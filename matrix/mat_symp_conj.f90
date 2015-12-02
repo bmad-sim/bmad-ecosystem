@@ -1,50 +1,49 @@
 !+
-! Subroutine mat_symp_conj (mat1, mat2)
+! Function mat_symp_conj (mat) result (mat_conj)
 !
-! Subroutine to take the symplectic conjugate of a square matrix.
+! Function to take the symplectic conjugate of a square matrix.
 !
 ! Modules needed:
 !   use sim_utils
 !
 ! Input:
-!   mat1(:, :) -- Real(rp): Input matrix.
+!   mat(:, :) -- Real(rp): Input matrix.
 !
 ! Output:
-!   mat2(:, :) -- Real(rp): Symplectic conjugate of mat1.
+!   mat_conj(:, :) -- Real(rp): Symplectic conjugate of mat.
 !-
 
-subroutine mat_symp_conj(mat1, mat2)
+function mat_symp_conj(mat) result (mat_conj)
 
-use precision_def
+use output_mod, only: rp, out_io, s_fatal$, global_com
 
 implicit none
 
 integer i, j, nn
 
-real(rp) mat1(:,:), mat2(:,:)
-real(rp) :: mat22(size(mat1, 1), size(mat1, 1))
+real(rp) mat(:,:)
+real(rp) :: mat_conj(size(mat, 1), size(mat, 1))
 
-! check bounds
+character(*), parameter :: r_name = 'mat_symp_conj'
 
-nn = size(mat1, 1)
+! Check bounds
 
-if (mod(nn, 2) /= 0) then
-  print *, 'ERROR IN MAT_SYMP_CONJ SUBROUTINE: ARRAY SIZE IS NOT EVEN'
+nn = size(mat, 1)
+
+if (mod(nn, 2) /= 0 .or. nn /= size(mat, 2)) then
+  call out_io (s_fatal$, r_name, 'ARRAY SIZE IS NOT EVEN!')
   if (global_com%exit_on_error) call err_exit
 endif
 
-! compute conjugate
-! mat22 is used in case mat1 and mat2 are the same.
+! Compute conjugate
 
 do i = 1, nn, 2
   do j = 1, nn, 2
-    mat22(i,   j)   =  mat1(j+1, i+1)
-    mat22(i,   j+1) = -mat1(j,   i+1)
-    mat22(i+1, j)   = -mat1(j+1, i)
-    mat22(i+1, j+1) =  mat1(j,   i)
+    mat_conj(i,   j)   =  mat(j+1, i+1)
+    mat_conj(i,   j+1) = -mat(j,   i+1)
+    mat_conj(i+1, j)   = -mat(j+1, i)
+    mat_conj(i+1, j+1) =  mat(j,   i)
   enddo
 enddo
 
-mat2 = mat22(1:nn,1:nn)
-
-end subroutine
+end function

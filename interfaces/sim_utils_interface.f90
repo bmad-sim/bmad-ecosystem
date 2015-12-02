@@ -327,12 +327,12 @@ interface
     real(rp) :: mat_out(size(mat_in, 1), size(mat_in, 2))
   end function
 
-  subroutine mat_symp_conj(mat1, mat2)
+  function mat_symp_conj(mat) result (mat_conj)
     import
     implicit none
-    real(rp) mat1(:,:)
-    real(rp) mat2(:,:)
-  end subroutine
+    real(rp) mat(:,:)
+    real(rp) mat_conj(size(mat, 1), size(mat, 2))
+  end function
 
   function mat_symp_error (mat, p0_ratio, err_mat) result (error)
     import
