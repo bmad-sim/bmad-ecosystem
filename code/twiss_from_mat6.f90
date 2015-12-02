@@ -35,7 +35,7 @@ type (ele_struct) :: ele
 real(rp) :: mat6(:,:), orb0(:)
 real(rp) :: growth_rate
 real(rp) mat4(4,4), eta_vec(4), vec(4), rel_p
-real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
+real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
 real(rp) rate1, rate2, symp_err
 real(rp) :: symp_tol = 3.0d-3
 
@@ -127,8 +127,7 @@ ele%y%etap = eta_vec(4)
 ele%z%eta  = 0
 ele%z%etap = 1
 
-call mat_symp_conj (v, v_inv)
-eta_vec = matmul(v_inv, eta_vec)
+eta_vec = matmul(mat_symp_conj(v), eta_vec)
 ele%a%eta  = eta_vec(1)
 ele%a%etap = eta_vec(2)
 ele%b%eta  = eta_vec(3)

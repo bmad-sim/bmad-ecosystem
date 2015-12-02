@@ -46,7 +46,7 @@ endif
 gamma_flip = sqrt(1 - ele%gamma_c**2)
 
 cg_mat = ele%c_mat / gamma_flip
-call mat_symp_conj (cg_mat, cg_conj)
+cg_conj = mat_symp_conj (cg_mat)
 
 a = ele%a
 call twiss1_propagate (ele%b, cg_mat, drift$, 0.0_rp, ele%a, err)

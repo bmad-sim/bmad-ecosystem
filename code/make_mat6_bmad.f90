@@ -1250,7 +1250,7 @@ case (sbend$)
     endif
     call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
     call mat6_coord_transformation (mat6_pre, ele, param, c0_off, dr, w_mat)
-    call mat_symp_conj(mat6_pre, mat6_pre)   ! Inverse
+    mat6_pre = mat_symp_conj(mat6_pre)   ! Inverse
 
     ! c1_off is the coordinates before the roll so this is what is needed
     axis(1) = -axis(1)  ! Axis in exit coordinates

@@ -32,7 +32,7 @@ type (coord_struct), pointer :: orb, orb_out
 integer key2
 
 real(rp), pointer :: mat6(:,:)
-real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
+real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
@@ -95,8 +95,7 @@ if (all(ele2%mat6(1:2,3:4) == 0)) then
   mat2_a = ele2%mat6(1:2,1:2)
   mat2_b = ele2%mat6(3:4,3:4) 
 
-  call mat_symp_conj (mat2_b, y_inv) ! conj == inverse
-  ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), y_inv)
+  ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), mat_symp_conj(mat2_b))  ! conj == inverse
   ele2%gamma_c = ele1%gamma_c
 
 !---------------------------------------------------------------------
@@ -113,7 +112,7 @@ else
   big_N = mat6(3:4,3:4)
   small_n = mat6(3:4,1:2)
 
-  call mat_symp_conj (ele1%c_mat, c_conj_mat)
+  c_conj_mat = mat_symp_conj (ele1%c_mat)
   mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
   det = determinant(mat2) / det_factor 
 
@@ -125,7 +124,7 @@ else
     gamma2_c = sqrt(det)
     mat2_a = mat2 / gamma2_c
     mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / gamma2_c
-    call mat_symp_conj (mat2_b, F_inv_mat)
+    F_inv_mat = mat_symp_conj (mat2_b)
     ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
     ele2%gamma_c = sqrt(det)
 
@@ -145,7 +144,7 @@ else
     mat2_a = (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / gamma2_c
     mat2_b = mat2 / gamma2_c
 
-    call mat_symp_conj (mat2_a, E_inv_mat)
+    E_inv_mat = mat_symp_conj (mat2_a)
     ele2%c_mat = matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
     ele2%gamma_c = gamma2_c
     ele2%mode_flip = .not. ele1%mode_flip

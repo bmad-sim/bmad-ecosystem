@@ -617,6 +617,8 @@ if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%curved_coords .eqv. f2%curved_coords)
 
 end function eq_em_field_grid
 

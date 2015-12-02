@@ -1053,7 +1053,8 @@ subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   endif
 
   if( PRESENT(s) ) then
-    t6 = matmul(ele%mat6,  matmul(dagger(lat%ele(ix_use)%mat6), matmul(t6, matmul(lat%ele(ix_use)%mat6, dagger(ele%mat6)))))
+    t6 = matmul(ele%mat6, matmul(mat_symp_conj(lat%ele(ix_use)%mat6), &
+                matmul(t6, matmul(lat%ele(ix_use)%mat6, mat_symp_conj(ele%mat6)))))
   endif
 
   energy = ele%value(E_TOT$)
@@ -1084,7 +1085,7 @@ subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
 
   call get_emit_from_sigma_mat(sigma_mat_updated,normal, Nmat, err_flag)
 
-  ! D_mat = matmul(dagger(N_mat),matmul(sigma_mat_updated,dagger(transpose(N_mat))))
+  ! D_mat = matmul(mat_symp_conj(N_mat),matmul(sigma_mat_updated,mat_symp_conj(transpose(N_mat))))
   ! normal(1) = D_mat(1,1)
   ! normal(2) = D_mat(3,3)
   ! normal(3) = D_mat(5,5)

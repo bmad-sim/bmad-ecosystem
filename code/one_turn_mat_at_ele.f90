@@ -34,7 +34,7 @@ subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
   call twiss_to_1_turn_mat (ele%a, phi_a, a)
   call twiss_to_1_turn_mat (ele%b, phi_b, b)
-  call mat_symp_conj (ele%c_mat, c_conj)
+  c_conj = mat_symp_conj (ele%c_mat)
   c = ele%c_mat
   g = ele%gamma_c
 

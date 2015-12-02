@@ -11,10 +11,6 @@ real(rp), parameter :: Qr(6,6) = reshape( [m,m,o,o,o,o, o,o,o,o,o,o, o,o,m,m,o,o
                                            o,o,o,o,o,o, o,o,o,o,m,m, o,o,o,o,o,o],[6,6] )
 real(rp), parameter :: Qi(6,6) = reshape( [o,o,o,o,o,o, m,-m,o,o,o,o, o,o,o,o,o,o,  &
                                            o,o,m,-m,o,o, o,o,o,o,o,o, o,o,o,o,m,-m],[6,6] )
-real(rp), parameter :: Qinv_r(6,6) = reshape( [m,o,o,o,o,o, m,o,o,o,o,o, o,o,m,o,o,o,  &
-                                               o,o,m,o,o,o, o,o,o,o,m,o, o,o,o,o,m,o],[6,6] )
-real(rp), parameter :: Qinv_i(6,6) = reshape( [o,-m,o,o,o,o, o,m,o,o,o,o, o,o,o,-m,o,o,  &
-                                               o,o,o,m,o,o, o,o,o,o,o,-m, o,o,o,o,o,m],[6,6] )
 real(rp), parameter :: S(6,6) = reshape( [o,-l,o,o,o,o, l,o,o,o,o,o,  &
                                           o,o,o,-l,o,o, o,o,l,o,o,o,  &
                                           o,o,o,o,o,-l, o,o,o,o,l,o],[6,6] )
@@ -22,11 +18,13 @@ real(rp), parameter :: I2(2,2) = reshape( [1,0, 0,1],[2,2] )
 
 private m, o, l
 private Qr, Qi
-private Qinv_r, Qinv_i
 private S
 
 contains
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine t6_to_B123(N,ab_tunes,B1,B2,B3)
 !
@@ -43,7 +41,9 @@ contains
 !   B2(6,6)     -- real(rp): Beta matrix associated with b-mode.
 !   B3(6,6)     -- real(rp): Beta matrix associated with c-mode.
 !-
+
 subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
+
   use bmad
 
   real(rp) t6(6,6)
@@ -57,6 +57,9 @@ subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
   real(rp) evec_r(6,6), evec_i(6,6)
   integer i
 
+  character(*), parameter :: r_name = 't6_to_b123'
+
+  !
 
   T1 = 0.0d0
   T2 = 0.0d0
@@ -71,7 +74,7 @@ subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
 
   call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
   if(err_flag) then
-    write(*,*) "Error received from eigen_decomp_6mat in t6_to_B123."
+    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
     B1 = 0.0d0
     B2 = 0.0d0
     B3 = 0.0d0
@@ -80,7 +83,7 @@ subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
 
   call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
   if(err_flag) then
-    write(*,*) "Error received from order_evecs_by_tune in t6_to_B123."
+    call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
     B1 = 0.0d0
     B2 = 0.0d0
     B3 = 0.0d0
@@ -92,8 +95,12 @@ subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
   B1 = matmul(evec_r,matmul(T1,transpose(evec_r))) - matmul(evec_i,matmul(T1,transpose(evec_i))) 
   B2 = matmul(evec_r,matmul(T2,transpose(evec_r))) - matmul(evec_i,matmul(T2,transpose(evec_i))) 
   B3 = matmul(evec_r,matmul(T3,transpose(evec_r))) - matmul(evec_i,matmul(T3,transpose(evec_i))) 
+
 end subroutine t6_to_B123
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine normal_mode3_calc (mat, tune, B, HV)
 !
@@ -116,6 +123,7 @@ end subroutine t6_to_B123
 !  HV(6,6)             -- real(rp): Transforms from normal mode coordinates to canonical coordinates: x = H.V.a
 !
 !-
+
 subroutine normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)
   use bmad
 
@@ -130,9 +138,13 @@ subroutine normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)
   real(rp) H(6,6)
   logical err_flag
 
+  character(*), parameter :: r_name = 'normal_mode3_calc'
+
+  !
+
   call make_N(t6, N, err_flag, tunes_out=tunes)
   if( err_flag ) then
-    write(*,'(a,i6,a)') "Error received from make_N in normal_mode3_calc."
+    call out_io (s_error$, r_name, "Error received from make_N.")
     tunes = 0.0d0
     B = 0.0d0
     HV = 0.0d0
@@ -148,11 +160,14 @@ subroutine normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)
   call make_HVBP (N, B, V, H)
   HV = matmul(H,V)
 
-!  HV=dagger(HV) 
-  B = dagger(B)  !for legacy compatability
+!  HV=mat_symp_conj(HV) 
+  B = mat_symp_conj(B)  !for legacy compatability
 
 end subroutine normal_mode3_calc
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine make_HVBP(N, B, V, H, Vbar, Hbar)
 !
@@ -176,10 +191,11 @@ end subroutine normal_mode3_calc
 !  B(6,6)              -- real(rp): Block diagonal matrix of Twiss parameters
 !  V(6,6)              -- real(rp): horizontal-vertical coupling information
 !  H(6,6)              -- real(rp): horizontal-longitudinal and vertical-longitudinal coupling information
-!  Vbar(6,6)           -- real(rp), optional: dagger(B).V.B
-!  Hbar(6,6)           -- real(rp), optional: dagger(B).H.B
+!  Vbar(6,6)           -- real(rp), optional: mat_symp_conj(B).V.B
+!  Hbar(6,6)           -- real(rp), optional: mat_symp_conj(B).H.B
 !
 !-
+
 subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
   use bmad
 
@@ -211,8 +227,8 @@ subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
 
   a = sqrt(abs(determinant(N(5:6,5:6))))
   BcPc = N(5:6,5:6) / a
-  Hx = matmul(N(1:2,5:6),dagger(BcPc))
-  Hy = matmul(N(3:4,5:6),dagger(BcPc))
+  Hx = matmul(N(1:2,5:6),mat_symp_conj(BcPc))
+  Hy = matmul(N(3:4,5:6),mat_symp_conj(BcPc))
   ax = determinant(Hx)/(1.0d0+a)  !shorthand
   ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
@@ -221,24 +237,24 @@ subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
   H(5:6,5:6) = a*I2
   H(1:2,5:6) = Hx
   H(3:4,5:6) = Hy
-  H(5:6,1:2) = -1.0d0*dagger(Hx)
-  H(5:6,3:4) = -1.0d0*dagger(Hy)
-  H(1:2,3:4) = -1.0d0 * matmul(Hx,dagger(Hy)) / (1.0d0 + a)
-  H(3:4,1:2) = -1.0d0 * matmul(Hy,dagger(Hx)) / (1.0d0 + a)
+  H(5:6,1:2) = -1.0d0*mat_symp_conj(Hx)
+  H(5:6,3:4) = -1.0d0*mat_symp_conj(Hy)
+  H(1:2,3:4) = -1.0d0 * matmul(Hx,mat_symp_conj(Hy)) / (1.0d0 + a)
+  H(3:4,1:2) = -1.0d0 * matmul(Hy,mat_symp_conj(Hx)) / (1.0d0 + a)
 
-  VBP = matmul(dagger(H),N)
+  VBP = matmul(mat_symp_conj(H),N)
 
   mu = sqrt(abs(determinant(VBP(1:2,1:2))))
   BaPa = VBP(1:2,1:2)/mu
   BbPb = VBP(3:4,3:4)/mu
-  V2 = matmul(VBP(1:2,3:4),dagger(BbPb))
+  V2 = matmul(VBP(1:2,3:4),mat_symp_conj(BbPb))
 
   V = 0.0d0
   V(1:2,1:2) = mu*I2
   V(3:4,3:4) = mu*I2
   V(5:6,5:6) = I2
   V(1:2,3:4) = V2
-  V(3:4,1:2) = -1.0d0*dagger(V2)
+  V(3:4,1:2) = -1.0d0*mat_symp_conj(V2)
 
   BP = 0.0d0
   BP(1:2,1:2) = BaPa
@@ -268,10 +284,14 @@ subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
 
   B = matmul(BP,Pinv)
 
-  if( present(Vbar) ) Vbar = matmul(dagger(B),matmul(V,B))
-  if( present(Hbar) ) Hbar = matmul(dagger(B),matmul(H,B))
+  if( present(Vbar) ) Vbar = matmul(mat_symp_conj(B),matmul(V,B))
+  if( present(Hbar) ) Hbar = matmul(mat_symp_conj(B),matmul(H,B))
+
 end subroutine make_HVBP
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine xyz_to_action(ring,ix,X,J,err_flag)
 !
@@ -300,6 +320,7 @@ end subroutine make_HVBP
 !  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !
 !-
+
 subroutine xyz_to_action(ring,ix,X,J,err_flag)
   use bmad
 
@@ -313,20 +334,27 @@ subroutine xyz_to_action(ring,ix,X,J,err_flag)
   real(rp) N(6,6)
   real(rp) ab_tunes(2)
 
+  character(*), parameter :: r_name = 'xyz_to_action'
+
+  !
+
   ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
   ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
 
   call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   call make_N(t6, N, err_flag, ab_tunes)
   if( err_flag ) then
-    write(*,*) "Error received from make_N in xyz_to_action."
+    call out_io (s_error$, r_name, "Error received from make_N.")
     J = 0.0d0
     return
   endif
 
-  J = matmul(dagger(N),X)
+  J = matmul(mat_symp_conj(N),X)
 end subroutine xyz_to_action
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine action_to_xyz(ring,ix,J,X,err_flag)
 !
@@ -365,20 +393,28 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
   real(rp) gamma(3)
   integer i
 
+  character(*), parameter :: r_name = 'action_to_xyz'
+
+  !
+
   ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
   ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
 
   call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   call make_N(t6, N, err_flag, ab_tunes)
   if( err_flag ) then
-    write(*,*) "Error received from make_N in action_to_xyz."
+    call out_io (s_error$, r_name, "Error received from make_N.")
     X = 0.0d0
     return
   endif
 
   X = matmul(N,J)
+
 end subroutine action_to_xyz
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, tunes, err_flag)
 !
@@ -394,6 +430,7 @@ end subroutine action_to_xyz
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
 !   err_flag     - logical, optional: set to true if an error has occured.
 !-
+
 subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
 
   use bmad
@@ -415,6 +452,8 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
   complex(rp) evec(6,6)
   complex(rp) check_mat(6,6)
 
+  character(*), parameter :: r_name = 'eigen_decomp_6mat'
+
   !call mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, err_flag)
   !evec_r = transpose(evec_r)
   !evec_i = transpose(evec_i)
@@ -424,7 +463,7 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
   A = mat  !LA_GEEV destroys the contents of its first argument.
   CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
   if( i_error .ne. 0 ) THEN
-    write(*,*) "la_geev in eigen_decomp_6mat returned error: ", i_error
+    call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
     if(global_com%exit_on_error) call err_exit
     eval_r = 0.0d0
     eval_i = 0.0d0
@@ -475,27 +514,31 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
 
   err_flag = .false.
 
-  contains
+!---------------------------------------------------------
+contains
 
-    function MyTan(y,x) result(arg)
-      !For a complex number x+iy graphed on an xhat,yhat plane, this routine returns the angle
-      !between (x,y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
-      !This routine returns a number between 0 and 2pi.
-      real(rp) x,y,arg
+  function MyTan(y,x) result(arg)
+    !For a complex number x+iy graphed on an xhat,yhat plane, this routine returns the angle
+    !between (x,y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
+    !This routine returns a number between 0 and 2pi.
+    real(rp) x,y,arg
 
-      if(y .ge. 0) then
-        arg = atan2(y,x)
-      else
-        arg = atan2(y,x) + 2.0d0*pi
-      endif
-    end function MyTan
+    if(y .ge. 0) then
+      arg = atan2(y,x)
+    else
+      arg = atan2(y,x) + 2.0d0*pi
+    endif
+  end function MyTan
 
 end subroutine eigen_decomp_6mat
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
 ! 
-! This subroutine orderes the eigensystem such that Nmat.dagger(N) is closest
+! This subroutine orderes the eigensystem such that Nmat.mat_symp_conj(N) is closest
 ! to the identity.  Nmat is supplied externally.
 !
 ! Input:
@@ -503,15 +546,16 @@ end subroutine eigen_decomp_6mat
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in 2pi units.
+!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
 !   Nmat(6,6)    - real(rp):  Normalized, real eigen matrix from make_N.
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Ordered normal mode tunes, in 2pi units.
+!   mat_tunes(3) - real(rp):  Ordered fractional normal mode tunes, in radians.
 !-
+
 subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
   use bmad
 
@@ -548,7 +592,7 @@ subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes
 
     Nlocal = matmul(evec_r_local,Qr) - matmul(evec_i_local,Qi)
 
-    check_mat = matmul(dagger(Nlocal),Nmat)
+    check_mat = matmul(mat_symp_conj(Nlocal),Nmat)
 
     checks(i) = abs(trace(abs(check_mat)) - 6.0d0)
   enddo
@@ -576,6 +620,9 @@ subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes
     end function
 end subroutine
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
 ! 
@@ -590,13 +637,14 @@ end subroutine
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in 2pi units.
+!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors.
 !   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors.
 !-
+
 subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
   use bmad
 
@@ -625,20 +673,23 @@ subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tu
   mat_tunes = mat_tunes([pair1, pair2, pair3])
 end subroutine
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
 ! 
 ! This subroutine orders the eigensystem by matching the tunes of the eigensystem to 
-! externally supplied tunes ab_tunes.  ab_tunes is in units of 2pi, and contains two
-! tunes.  The remaing tune is ordered last.
+! externally supplied tunes ab_tunes. ab_tunes contains two tunes.  The remaing tune is ordered last.
 !
 ! Input:
 !   eval_r(6)    - real(rp):  real part of eigenvalues.
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in 2pi units.
-!   ab_tunes(2)  - real(rp):  Tunes to order eigensystem by.
+!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
+!   ab_tunes(2)  - real(rp):  fractional Tunes to order eigensystem by.
+!
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
@@ -646,6 +697,7 @@ end subroutine
 !   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors.
 !   err_flag     - logical, optional:  Set to true if an error occured.
 !-
+
 subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
   use bmad
 
@@ -654,30 +706,27 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tun
   real(rp) mat_tunes(3), ab_tunes(2)
   logical err_flag
 
-  real(rp) vec(3)
+  real(rp) vec(3), min1, min2
   integer pair1, pair2, pair3
   integer pairindexes(6)
 
+  character(*), parameter :: r_name = 'order_evecs_by_tune'
+
+  ! Order eigenvector pairs
+
   err_flag = .true.
 
-  !order eigenvector pairs
   vec = [abs(mat_tunes(1)-ab_tunes(1)), abs(mat_tunes(2)-ab_tunes(1)), abs(mat_tunes(3)-ab_tunes(1))]
   pair1 = minloc(vec, 1)
-  if(vec(pair1) .gt. 0.0001) then
-    write(*,*) "Unable to match first tune in order_evecs_by_tune."
-    if(global_com%exit_on_error) call err_exit
-    eval_r = 0.0d0
-    eval_i = 0.0d0
-    evec_r = 0.0d0
-    evec_i = 0.0d0
-    return
-  endif
+  min1 = vec(pair1)
 
   vec = [abs(mat_tunes(1)-ab_tunes(2)), abs(mat_tunes(2)-ab_tunes(2)), abs(mat_tunes(3)-ab_tunes(2))]
   vec(pair1) = 9.9d9
   pair2 = minloc(vec, 1)
-  if(vec(pair2) .gt. 0.0001) then
-    write(*,*) "Unable to match second tune in order_evecs_by_tune."
+  min2 = vec(pair2)
+
+  if (pair1 == pair2 .or. min1 + min2 > 0.1 * abs(ab_tunes(1)-ab_tunes(2))) then
+    call out_io (s_fatal$, r_name, "Unable to match first tune.")
     if(global_com%exit_on_error) call err_exit
     eval_r = 0.0d0
     eval_i = 0.0d0
@@ -688,7 +737,7 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tun
 
   pair3 = 6 - pair1 - pair2
 
-  pairindexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+  pairindexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
 
   mat_tunes = mat_tunes([pair1, pair2, pair3])
 
@@ -701,6 +750,9 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tun
 
 end subroutine
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
 !
@@ -721,13 +773,14 @@ end subroutine
 !
 ! Input:
 !  t6(6,6)             -- real(rp): 1-turn transfer matrix
-!  ab_tunes(2)         -- real(rp), optional: a-mode is ab_tunes(1), b-mode is ab_tunes(2)
+!  ab_tunes(2)         -- real(rp), optional: Fractional (a-mode, b_mode) tune.
 !
 ! Output:
 !  N(6,6)              -- real(rp): X = N.J
 !  err_flag            -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !  tunes_out(3)        -- real(rp), optional: Fractional tune of the 3 normal modes of t6. 
 !-
+
 subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
   use bmad
 
@@ -743,9 +796,13 @@ subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
   real(rp) mat(6,6)
   integer i
 
+  character(*), parameter :: r_name = 'make_N'
+
+  !
+
   call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
   if(err_flag) then
-    write(*,*) "Error received from eigen_decomp_6mat in make_N."
+    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
     N = 0.0d0
     if(present(ab_tunes)) ab_tunes = 0.0d0
     if(present(tunes_out)) tunes_out = 0.0d0
@@ -755,7 +812,7 @@ subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
   if( present(ab_tunes) ) then
     call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
     if(err_flag) then
-      write(*,*) "Error received from order_evecs_by_tune in make_N."
+      call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
       N = 0.0d0
       if(present(ab_tunes)) ab_tunes = 0.0d0
       if(present(tunes_out)) tunes_out = 0.0d0
@@ -776,6 +833,9 @@ subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
   endif
 end subroutine make_N
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
 !
@@ -819,11 +879,14 @@ subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
 
   integer i
 
+  character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
+
+  !
   sigmaS = matmul(sigma_mat,S)
 
   call eigen_decomp_6mat(sigmas, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
   if(err_flag) then
-    write(*,*) "Error received from eigen_decomp_6mat in get_emit_from_sigma_mat."
+    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
     normal = 0.0d0
     return
   endif
@@ -839,6 +902,9 @@ subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
   normal(3) = abs(eval_i(5))
 end subroutine get_emit_from_sigma_mat
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
 !
@@ -888,7 +954,7 @@ end subroutine beam_tilts
 ! emittances, this routine returns the beam envelop sigma matrix.
 !
 ! sigma_mat = N.D.transpose(N)
-! equivalent to: sigma_mat.S = N.D.dagger(N)
+! equivalent to: sigma_mat.S = N.D.mat_symp_conj(N)
 !
 ! One way to populate mode%a%tune and mode%b%tune:
 !   mode%a%tune = mod(lat%ele(lat%n_ele_track)%a%phi,twopi)
@@ -907,6 +973,7 @@ end subroutine beam_tilts
 !  err_flag            -- logical:  set to true if something goes wrong.  Usually means Eigen decomposition of the 1-turn matrix failed.
 !  Nout(6,6)        -- real(rp), optional: Contains the normalized eigenvectors that were used to make the sigma matrix.
 !-
+
 subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
   use bmad
@@ -923,12 +990,16 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
   integer i
 
+  character(*), parameter :: r_name = 'make_smat_from_abc'
+
+  !
+
   ab_tunes(1) = mode%a%tune
   ab_tunes(2) = mode%b%tune
 
   call make_N(t6, N, err_flag, ab_tunes)
   if(err_flag) then
-    write(*,*) "Error received from make_N in make_smat_from_abc."
+    call out_io (s_error$, r_name, "Error received from make_N.")
     sigma_mat = 0.0d0
     if(present(Nout)) Nout = 0.0d0
     return
@@ -950,36 +1021,9 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
   sigma_mat = matmul( matmul(N,D),transpose(N) )
 end subroutine make_smat_from_abc
 
-!+
-! Function dagger(A) RESULT(Ad)
-!
-! Return the symplectic conjugate of a 2N x 2N matrix.
-!
-! A_dagger = -S.Transpose(A).S
-!
-! Input:
-!  A(2N,2N)   -- real(rp): 2N x 2N matrix
-! Output:
-!  Ad(2N,2N)  -- real(rp): A_dagger
-!-
-function dagger(A) result(Ad)
-  use bmad
-
-  real(rp) A(:,:)
-  real(rp) Ad(size(A(:,1)),size(A(1,:)))
-  integer n, m
-
-  n = size(A(:,1))
-  m = size(A(1,:))
-  if( (mod(n,2) .ne. 0) .or. (m .ne. n) ) then
-    write(*,*) "Error in dagger(A): argument is not 2N x 2N."
-    Ad = 0.0d0
-    return
-  endif
-
-  Ad = -1.0_rp * matmul(S(1:n,1:n),matmul(transpose(A),S(1:n,1:n)))
-end function dagger
-
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine normalize_evecs(evec_r, evec_i)
 !
@@ -992,6 +1036,7 @@ end function dagger
 !   evec_r(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
 !   evec_i(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
 !-
+
 subroutine normalize_evecs(evec_r, evec_i)
   use bmad
 
@@ -1015,6 +1060,9 @@ subroutine normalize_evecs(evec_r, evec_i)
   evec_i(:,5:6) = evec_i(:,5:6) / norm3
 end subroutine normalize_evecs
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 !
@@ -1058,10 +1106,14 @@ subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   real(rp) t6(6,6)
   real(rp) sigma_mat(6,6)
 
+  character(*), parameter :: r_name = 'project_emit_to_xyz'
+
+  !
+
   call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   call make_smat_from_abc(t6, mode, sigma_mat, err_flag)
   if(err_flag) then
-    write(*,*) "Error received from make_smat_from_abc."
+    call out_io (s_error$, r_name, "Error received from make_smat_from_abc.")
     sigma_x = 0.0d0
     sigma_y = 0.0d0
     sigma_z = 0.0d0
@@ -1073,14 +1125,14 @@ subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   sigma_z = sqrt(sigma_mat(5,5))
 end subroutine project_emit_to_xyz
 
-!----------------------------------------------
-! Subroutines below are from original mode3_mod
-!----------------------------------------------
-
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine twiss3_propagate_all (lat)
 !
 ! Subroutine to propagate the twiss parameters using all three normal modes.
+! Subroutine from original mode3_mod.
 !-
 
 subroutine twiss3_propagate_all (lat)
@@ -1096,10 +1148,14 @@ enddo
 
 end subroutine twiss3_propagate_all
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine twiss3_propagate1 (ele1, ele2, err_flag)
 !
 ! Subroutine to propagate the twiss parameters using all three normal modes.
+! Subroutine from original mode3_mod.
 !-
 
 subroutine twiss3_propagate1 (ele1, ele2, err_flag)
@@ -1131,7 +1187,7 @@ do i = 1, 3
   if (radx < 0) return
   gamma(i) = SQRT(radx)
   w(i)%m = w(i)%m / gamma(i)
-  call mat_symp_conj (w(i)%m, w_inv)
+  w_inv = mat_symp_conj (w(i)%m)
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
@@ -1150,13 +1206,17 @@ if (err) return
 
 err_flag = .false.
 
-end subroutine
+end subroutine twiss3_propagate1
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine twiss3_at_start (lat, error)
 !
-! Subroutine to calculate the twiss parameters of the three modes of the full 6D transfer
-! matrix.
+! Subroutine to calculate the twiss parameters of the three modes of the full 6D transfer matrix.
+! Subroutine from original mode3_mod.
+!
 ! Note: The rf must be on for this calculation.
 !
 ! Modules needed:
@@ -1211,21 +1271,21 @@ err_flag = .false.
 !-------------------------------------------------------------------------------------
 contains
 
-  subroutine mode1_calc (gg, tune, twiss)
+subroutine mode1_calc (gg, tune, twiss)
 
-  type(twiss_struct) twiss
-  real(rp) gg(:,:), tune
+type(twiss_struct) twiss
+real(rp) gg(:,:), tune
 
-  !
+!
 
-  twiss%beta = gg(2,2)**2
-  twiss%alpha = gg(2,1) * gg(2,2)
-  twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
-  twiss%phi = 0
+twiss%beta = gg(2,2)**2
+twiss%alpha = gg(2,1) * gg(2,2)
+twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
+twiss%phi = 0
 
-  end subroutine
+end subroutine mode1_calc
 
-end subroutine
+end subroutine twiss3_at_start
 
 end module mode3_mod
 

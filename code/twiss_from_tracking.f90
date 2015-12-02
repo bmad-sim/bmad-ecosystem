@@ -28,7 +28,7 @@
 !
 !   symp_err    -- Real(rp): A measure of how symplectic the constructed 
 !                   matrices were before symplecitification. 
-!                   See mat_symp_check for more details.
+!                  mat_symp_check for more details.
 !   err_flag    -- Logical: Set True if there is an error. False otherwise.
 !-
 
@@ -113,7 +113,7 @@ do j = 1, n_ele
 
   r = mo(0)%orb(j)%vec - matmul(mat, mo(0)%orb(0)%vec)
 
-  call mat_symp_conj (mat0, mat_inv)   ! symp_conj is the inverse
+  mat_inv = mat_symp_conj (mat0)   ! symp_conj is the inverse
   mat1 = matmul (mat, mat_inv)
 
   lat%ele(j)%mat6 = mat1
