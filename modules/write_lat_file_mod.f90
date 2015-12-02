@@ -502,11 +502,12 @@ do ib = 0, ubound(lat%branch, 1)
           if (associated(mode%grid)) then
             grid => mode%grid
             n = em_grid_dimension(grid%type)
-            write (iu2, '(4x, a)')   'grid = {'
-            write (iu2, '(6x, 3a)')  'type          = ', trim(em_grid_type_name(grid%type)), ','
-            write (iu2, '(6x, 4a)')  'dr            = ', trim(array_str(grid%dr(1:n))), ','
-            write (iu2, '(6x, 4a)')  'r0            = ', trim(array_str(grid%r0(1:n))), ','
-            write (iu2, '(6x, 3a)')  'ele_anchor_pt = ', trim(anchor_pt_name(mode%grid%ele_anchor_pt)), ','
+            write (iu2, '(4x, a)')        'grid = {'
+            write (iu2, '(6x, 3a)')       'type          = ', trim(em_grid_type_name(grid%type)), ','
+            write (iu2, '(6x, 4a)')       'dr            = ', trim(array_str(grid%dr(1:n))), ','
+            write (iu2, '(6x, 4a)')       'r0            = ', trim(array_str(grid%r0(1:n))), ','
+            write (iu2, '(6x, a, l1, a)') 'curved_coords = ', grid%curved_coords, ','
+            write (iu2, '(6x, 3a)')       'ele_anchor_pt = ', trim(anchor_pt_name(mode%grid%ele_anchor_pt)), ','
             end_str = '),'
             do id1 = lbound(grid%pt, 1), ubound(grid%pt, 1)
               if (n == 1) then

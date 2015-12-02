@@ -930,6 +930,16 @@ case(grid$)
     mode => ele%em_field%mode(i)
     m = mode%m
 
+    ! Check for grid
+    if (.not. associated(mode%grid)) then
+      call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
+      return
+    endif
+
+    !
+
     select case (mode%grid%ele_anchor_pt)
     case (anchor_beginning$); s0 = 0
     case (anchor_center$);    s0 = ele%value(l$) / 2
@@ -944,7 +954,7 @@ case(grid$)
     z = s_rel-s0
        
     ! Sbend grids are in cartesian coordinates
-    if (ele%key == sbend$) call convert_curvilinear_to_cartesian()
+    if (ele%key == sbend$ .and. .not. mode%grid%curved_coords) call convert_curvilinear_to_cartesian()
 
     ! radial coordinate
     r = sqrt(x**2 + y**2)
@@ -959,14 +969,6 @@ case(grid$)
     endif
 
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
-
-    ! Check for grid
-    if (.not. associated(mode%grid)) then
-      call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return
-    endif
 
     ! calculate field based on grid type
     select case(mode%grid%type)
@@ -1026,7 +1028,7 @@ case(grid$)
       return
     end select
     
-    if (ele%key == sbend$) call restore_curvilinear()
+    if (ele%key == sbend$ .and. .not. mode%grid%curved_coords) call restore_curvilinear()
 
   enddo
 

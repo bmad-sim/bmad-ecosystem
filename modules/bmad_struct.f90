@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 168
+integer, parameter :: bmad_inc_version$ = 169
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -450,6 +450,7 @@ type em_field_grid_struct
   type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Grid origin.
+  logical :: curved_coords = .false.
 end type
 
 ! Electro-Magnetic mode structure

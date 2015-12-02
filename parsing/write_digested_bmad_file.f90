@@ -397,7 +397,8 @@ if (n_em_field_mode > 0) then
 
     if (ix_ele == 0 .and. ng > 0) then
       write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
-                      mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt
+                  mode%grid%type, mode%grid%file, &
+                  mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords
       do j = lbound(mode%grid%pt, 3), ubound(mode%grid%pt, 3)
         write (d_unit) mode%grid%pt(:,:,j)
       enddo

@@ -6278,7 +6278,7 @@ character(40) :: word, word2, name
 
 integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1
-integer grid_dim,  num_dr, num_r0
+integer grid_dim,  num_dr, num_r0, ios
 
 logical delim_found, delim_found2, err_flag, err_flag2
 
@@ -6313,12 +6313,8 @@ do
   select case (word)
 
   case ('TYPE', 'ELE_ANCHOR_PT')
-    ! Expect "<component> = "
-    if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER GRID ' // word,  &
-                         'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
-      return
-    endif
+    if (.not. equal_sign_here()) return
+
     call get_next_word (word2, ix_word, ',}', delim, delim_found)
     ! Check to see if this is a valid type by checking against em_grid_type_name(:)
 
@@ -6334,13 +6330,16 @@ do
       return        
     endif      
       
-  case ('R0')       
-    ! Expect "<component> = "
-    if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER GRID R0',  &
-                      'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
-      return
+  case ('CURVED_COORDS')
+    if (.not. equal_sign_here()) return
+    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
+    grid%curved_coords = evaluate_logical (word2, ios)
+    if (ios /= 0 .or. ix_word == 0) then
+      call parser_error ('BAD "' // trim(word) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word2)
     endif
+
+  case ('R0')
+    if (.not. equal_sign_here()) return
     ! expect ( 1. ) or (1. , 2.) or (1., 2., 3.)
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%r0, .false.)) return
     ! Expect , or }
@@ -6351,13 +6350,8 @@ do
       return
     end if
 
-    case ('DR')      
-    ! Expect "<component> = "
-    if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER GRID DR',  &
-                      'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
-      return
-    endif      
+    case ('DR')
+    if (.not. equal_sign_here()) return
     ! expect ( 1.) or (1. , 2.) or (1., 2., 3.)
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%dr, .false.)) return
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
@@ -6536,6 +6530,27 @@ end if
 err_flag2 = .false.
 
 end subroutine parse_complex_component
+
+!-----------------------------------------------------------
+! contains 
+
+function equal_sign_here() result (is_here)
+
+logical is_here
+
+! Expect "<component> = "
+
+is_here = .false.
+
+if (delim /= '=') then
+call parser_error ('NO "=" SIGN FOUND AFTER: ' // word,  &
+                   'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
+  return
+endif
+
+is_here = .true.
+
+end function equal_sign_here
 
 end subroutine parse_rf_grid
 

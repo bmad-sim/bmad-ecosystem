@@ -1294,7 +1294,11 @@ if (n_max >= ubound(in_lat%ele, 1)) then
 endif
 
 in_lat%ele(n_max+1)%name = word_1
-call find_indexx (in_lat%ele(n_max+1)%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+if (ix /= n_max) then
+  call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word_1)
+endif
+
 in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
 plat%ele(n_max)%lat_file = bp_com%current_file%full_name
