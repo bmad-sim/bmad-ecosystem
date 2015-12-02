@@ -41,7 +41,7 @@ if (present(do_trim)) then
   if (do_trim) ixs = len_trim(string)
 endif
 
-i = ixs + 1
+i = ixs-n_match     !start looking where match interval just reaches end
 do 
 
   i = i - 1
