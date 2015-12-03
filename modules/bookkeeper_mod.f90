@@ -2223,7 +2223,7 @@ character(20) ::  r_name = 'attribute_bookkeeper'
 logical, optional :: force_bookkeeping
 logical err_flag, has_nonzero, set_l
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
-logical :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
+logical :: v_mask(num_ele_attrib$), vv_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
 
 ! Some init
@@ -2689,7 +2689,7 @@ endif
 
 ! Since things have changed we need to kill the Taylor Map and ptc_genfield.
 ! The factor of 1d-15 is to avoid negligible changes which can be caused if the digested 
-! file was created on different machine from machine where the code is run
+! file was created on a different machine from the machine where the code is run.
 
 v_mask = .true.
 v_mask([x_offset$, y_offset$, z_offset$, &
@@ -2697,7 +2697,6 @@ v_mask([x_offset$, y_offset$, z_offset$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
 offset_mask = .not. v_mask
 v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
-!! v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 
 dval = abs(val - ele%old_value)
 dval(scratch$) = 0
@@ -2707,6 +2706,10 @@ dval_change = (dval > small_rel_change$ * abs(val))
 dval_change(delta_ref_time$) = .false.  
 
 if (has_orientation_attributes(ele)) then
+  ! non_offset_changed is used to determine if maps should be killed.
+  ! Since maps do not depend upon custom attributes, veto them in the mask.
+  vv_mask = v_mask
+  vv_mask(custom_attribute1$:custom_attribute_max$) = .false.
   non_offset_changed = (any(dval_change .and. v_mask))
   offset_changed =  (any(dval_change .and. offset_mask))
   offset_nonzero = (any(val /= 0 .and. offset_mask))
