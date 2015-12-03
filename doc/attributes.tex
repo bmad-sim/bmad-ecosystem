@@ -2218,7 +2218,7 @@ with \vn{L} being the length of the element.
   \centering
   \includegraphics{bend-grid-coords.pdf}
   \caption[Grid coordinates when used with a bend element.]{
-By default, grid coordinates when used with a bend element will be Cartesian and not
+By default, grid coordinates, when used with a bend element, will be Cartesian and not
 curved like the reference orbit. The orientation of the grid coordinates is determined by
 the setting of \vn{ele_anchor_pt}. The grid uses curvilinear coordinates if
 \vn{curved_coords} is set to \vn{True}.}
@@ -2234,7 +2234,7 @@ the Cartesian coordinates of the grid and will rotate the computed field from th
 coordinates back to the particle coordinates.
 
 For bend elements, to make the grid coordinates use the same curved coordinate system as
-the bend, the \vn{curved_coords} component of \vn{grid} can be set to \vn{False}. The
+the bend, the \vn{curved_coords} component of \vn{grid} can be set to \vn{True}. The
 setting of \vn{curved_coords} is ignored for non-bend elements.
 
 %-----------------------------------------------------------------
