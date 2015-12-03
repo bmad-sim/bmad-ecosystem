@@ -721,7 +721,6 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tun
   min1 = vec(pair1)
 
   vec = [abs(mat_tunes(1)-ab_tunes(2)), abs(mat_tunes(2)-ab_tunes(2)), abs(mat_tunes(3)-ab_tunes(2))]
-  vec(pair1) = 9.9d9
   pair2 = minloc(vec, 1)
   min2 = vec(pair2)
 
