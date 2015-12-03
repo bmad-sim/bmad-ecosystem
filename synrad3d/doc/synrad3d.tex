@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[11pt,openany]{article}
 \usepackage{tocloft}
 \usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
 \usepackage{xspace}
@@ -710,14 +710,32 @@ photons have been generated, \srthree will generate another
 \section{Vacuum Chamber Definition File} 
 \label{s:wall.file}
 
-The vacuum chamber is defined in the \vn{wall_file} specified in
-the master input file \sref{s:master}. The syntax for specifying the
-vacuum chamber follows Fortran namelist input as explained in
-\sref{s:namelist}.
+The vacuum chamber is defined in the \vn{wall_file}. The name of the \vn{wall_file} is
+specified in the master input file \sref{s:master}. The syntax for specifying the vacuum
+chamber follows Fortran namelist input as explained in \sref{s:namelist}.
 
 %------------------------------------------------------------------
 \subsection{Sub-Chambers and Cross-Sections}
 \label{s:sub.chambers}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=6in]{vac-pipe.pdf} \caption[The vacuum chamber is the union of a
+number of sub-chambers.]{The vacuum chamber is the union of a number of sub-chambers.
+This figure illustrates this showing two sub-chambers -- one colored green and the other
+collored red. A photon is considered within the vacuum chamber if, and only if, it is
+inside at least one of the sub-chambers.}
+\label{f:vac-chamber}
+\end{center}
+\end{figure}
+
+The shape of the vacuum chamber is described by a number of ``sub-chambers'' (the reason
+for this will be made clear below). This is illustrated in \fig{f:vac-chamber}. The entire
+vacuum chamber is the union of all the sub-chambers. That is, a photon is considered
+within the vacuum chamber if, and only if, it is inside at least one of the
+sub-chambers. It is perfectly fine for sub-chambers to overlap one another. In fact,
+some overlap is desirable to prevent abutting sub-chambers from appearing to be separated
+due to round-off errors in the calculation.
 
 \begin{figure}[tb]
 \begin{center}
@@ -727,16 +745,7 @@ vacuum chamber follows Fortran namelist input as explained in
 \end{center}
 \end{figure}
 
-The shape of the vacuum chamber is described by a number of
-``sub-chambers'' (the reason for this will be made clear below).  The
-entire vacuum chamber is the union of all the sub-chambers. That is, a
-photon is considered within the vacuum chamber if, and only if it is
-inside at least one of the sub-chambers. It is perfectly fine for
-sub-chambers to intersect one another. In fact, some overlap is
-desireable to prevent abutting sub-chambers from apearing to be
-separated due to round-off errors in the calculation.
-
-Each sub-chanber is defined by specifying the chamber cross-section at
+Each sub-chamber is defined by specifying the chamber cross-section at
 a number of longitudinal positions. As illustrated in
 \fig{f:chamber.wall}. Each cross-section is specified using a namelist
 named \vn{place}. The general form of a \vn{place} namelist is:
@@ -855,7 +864,7 @@ Example:
   /
 \end{example}
 There are three \vn{place} namelists in this example.  The first
-\vn{place} namelist refers to the first \vn{shpae_def} namelist whose
+\vn{place} namelist refers to the first \vn{shape_def} namelist whose
 name is \vn{"rectangular1"}. The other two \vn{place} namelists
 refer to the second \vn{shape_def} namelist named \vn{"dipole_shape"}.
 As seen in this example, multiple \vn{place}s may refer to the
@@ -987,38 +996,35 @@ case, if the \vn{end_marker} section is set to ``closed'', a
 
   \begin{figure}
   \centering
-%%  \includegraphics[width=6in]{fast-sub-chamber.pdf}
+  \includegraphics[width=6in]{fast-chamber.pdf}
   \caption[Illustrating a fast sub-chamber residing within another sub-chamber.]
-{\label{f:fast}
-A fast sub-chamber with few cross-sections resides within another sub-chamber with
-many cross-sections enabling \srthree to speed up tracking.}
+{\label{f:fast} A fast sub-chamber (gree) with few cross-sections resides within another
+sub-chamber with many cross-sections (blue) enabling \srthree to speed up tracking. The
+two sub-chambers have been cut in the illustration to better show the geometry.}
   \end{figure}
 
 %------------------------------------------------------------------
 \subsection{Fast Sub-Chamber}
 \label{s:fast}
 
-In regions where there are many of cross-sections, which can easily
-happen when a multi-section (\sref{ss:multi.sec}) is used, the
-computation time for photon tracking may become large due to the
-necesity of stopping the photon at each cross-section. This can be
-amelerated by defining a ``fast'' sub-chamber to track through. This
-fast sub-chamber has only a few cross-sections and is nested 
-inside the sub-chamber with the large number of
-cross-sections. \srthree will use the fast sub-chamber for tracking
-when ever possible (\sref{s:track}). This is illustrated in
-\fig{f:fast}.
+In regions where there are many of cross-sections, which can easily happen when a
+multi-section (\sref{ss:multi.sec}) is used, the computation time for photon tracking may
+become large due to the necessity of stopping the photon at each cross-section to check
+whether the photon has crossed the sub-chamber boundary. This can be ameliorated by
+defining a ``fast'' sub-chamber to track through. This fast sub-chamber has only a few
+cross-sections and is nested inside the sub-chamber with the large number of
+cross-sections. This is illustrated in \fig{f:fast}.
+\srthree will use the fast sub-chamber for tracking when ever possible
+(\sref{s:track}). 
 
-To designate a fast sub-chamber, prepend the string ``\vn{FAST_}'' to
-the name of the sub-chamber with the large number of cross-sections.
-For example, for a sub-chamber named \vn{"main"}, the name of the fast
-sub-chamber would be \vn{"FAST_main"}. Only one fast sub-chamber may
-be associated with a given sub-chamber.
+To designate a fast sub-chamber, prepend the string ``\vn{FAST_}'' to the name of the
+sub-chamber with the large number of cross-sections.  For example, for a sub-chamber named
+\vn{"main"}, the name of the fast sub-chamber would be \vn{"FAST_main"}. Only one fast
+sub-chamber may be associated with a given sub-chamber.
 
-A fast sub-chamber may extend beyound the sub-chamber it is associated
-with.  The entire vaccum chamber is the union of all sub-chambers
-including the fast ones. That is, in terms of defining the vacuum
-chamber, fast sub-chambers are no different than non-fast ones.
+A fast sub-chamber may extend beyond the sub-chamber it is associated with. The entire
+vacuum chamber is the union of all sub-chambers including the fast ones. That is, in terms
+of defining the vacuum chamber, fast sub-chambers are no different than non-fast ones.
 
 %------------------------------------------------------------------
 \subsection{Sub-Chamber Wall Interpolation} 
@@ -1031,7 +1037,7 @@ computed using linear interpolation.
 For a given sub-chamber, and 
 at a given $s$ position, the $r, \theta$ coordinate system in the
 transverse $x, y$ plane is defined with respect to an origin
-$\bfr_O(s)$ given by a linear interpolaion of the origins of the
+$\bfr_O(s)$ given by a linear interpolation of the origins of the
 cross-sections to either side of the given $s$ position. Let $s_1$
 denote the position of the cross-section just before $s$ and $s_2$
 denote the position of the cross-section just after $s$. Let
