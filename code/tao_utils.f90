@@ -1123,7 +1123,7 @@ integer, optional :: ix_uni
 integer :: data_num, ios, n_found
 integer i, ix, iu
 
-logical err, component_here, this_err, print_error, error, found_data
+logical err, component_here, this_err, print_error, error, found_data, data_exists
 logical, optional :: print_err
 
 ! Init
@@ -1230,23 +1230,33 @@ if (dat_name(1:6) == 'data::') dat_name = dat_name(7:)
 
 ! Find the d2 data.
 
+data_exists = .false.  ! Does *any* data exist in the universes searched?
+
 if (present(ix_uni)) then
   u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
   call find_this_d2 (u, dat_name, this_err)
+  if (allocated(u%d2_data)) data_exists = .true.
 else
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. scratch%picked(i)) cycle
     u => tao_pointer_to_universe (i)
     call find_this_d2 (u, dat_name, this_err)
     if (this_err) return
+    if (allocated(u%d2_data)) data_exists = .true.
   enddo
 endif
 
 ! error check
 
 if (this_err .or. .not. found_data) then
-  if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
+  if (print_error) then
+    if (.not. data_exists) then
+      call out_io (s_error$, r_name, "No data defined in universes searched. [Check your init file?!]")
+    else
+      call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
+    endif
+  endif
   return
 endif
 
