@@ -11,7 +11,7 @@ use synrad3d_struct
 implicit none
 
 type sr3d_section_struct
-  character(60) :: section_id = '' 
+  character(60) :: shape_name = '' 
   character(40) :: name = ''
   character(40) :: sub_chamber_name = ''
   character(40) :: surface_name = ''
@@ -43,7 +43,7 @@ end type
 type sr3d_section_input
   real(rp) s                      ! Longitudinal position.
   character(40) name              ! Name of setion
-  character(60) section_id       
+  character(60) shape_name       
   integer repeat_count
 end type
 
@@ -91,7 +91,7 @@ type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), allocatable, target :: shape(:)
-type (wall3d_section_struct), pointer :: sec3d
+type (wall3d_section_struct), pointer :: sec3d, s0, s1
 type (sr3d_wall_struct), target :: wall_in
 type (sr3d_section_input) section
 type (sr3d_multi_section_struct), pointer :: m_sec
@@ -107,7 +107,6 @@ integer, allocatable :: n_sub_sec(:), ix_sort(:)
 integer n_shape, n_repeat, n_surface, last_type
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
 integer ix_slow, ix_fast
-integer, pointer :: ix_w(:)
 logical, optional :: err_flag
 logical err, absolute_vertices
 
@@ -208,7 +207,7 @@ allocate (wall_in%section(1:wall_in%n_place))
 
 rewind (iu)
 do i = 1, wall_in%n_place
-  section%section_id = ''
+  section%shape_name = ''
   section%repeat_count = -1
   section%name = ''
 
@@ -218,20 +217,20 @@ do i = 1, wall_in%n_place
   read (iu, nml = place)
 
   sec => wall_in%section(i)
-  sec%section_id        = section%section_id
+  sec%shape_name        = section%shape_name
   sec%repeat_count      = section%repeat_count
   sec%name              = section%name
   sec%s                 = section%s
 
-  ix = index(section%section_id, ':')
+  ix = index(section%shape_name, ':')
   if (ix /= 0) then
-    sec%sub_chamber_name  = section%section_id(1:ix-1)
-    sec%section_id = section%section_id(ix+1:)
+    sec%sub_chamber_name  = section%shape_name(1:ix-1)
+    sec%shape_name = section%shape_name(ix+1:)
   endif
 
-  ix = index(sec%section_id, '@')
+  ix = index(sec%shape_name, '@')
   if (ix /= 0) then
-    select case (sec%section_id(ix+1:))
+    select case (sec%shape_name(ix+1:))
     case ('')
       sec%type = normal$
     case ('START')
@@ -239,9 +238,9 @@ do i = 1, wall_in%n_place
     case ('END')
       sec%type = wall_end$
     case default
-      print *, 'BAD SECTION STOP POINT SPECIFICATION: ', trim(section%section_id)
+      print *, 'BAD SECTION STOP POINT SPECIFICATION: ', trim(section%shape_name)
     end select
-    sec%section_id = sec%section_id(1:ix-1)
+    sec%shape_name = sec%shape_name(1:ix-1)
   endif
 
   sec%surface_name = surface%name
@@ -273,6 +272,7 @@ do i = 1, n_shape
   v = wall3d_vertex_struct()
   name = ''
   absolute_vertices = .false.
+  r0 = 0
 
   read (iu, nml = shape_def, iostat = ios)
 
@@ -324,7 +324,7 @@ outer: do
   i = i + 1
   if (i > wall_in%n_place) exit
   ref_section = wall_in%section(i)
-  if (all(ref_section%section_id /= wall_in%multi_section%name)) cycle
+  if (all(ref_section%shape_name /= wall_in%multi_section%name)) cycle
   n_repeat = ref_section%repeat_count
 
   if (n_repeat < 0) then
@@ -334,7 +334,7 @@ outer: do
 
   do j = 1, size(wall_in%multi_section)
     m_sec => wall_in%multi_section(j)
-    if (ref_section%section_id /= m_sec%name) cycle
+    if (ref_section%shape_name /= m_sec%name) cycle
     m_max = ubound(m_sec%section, 1)
 
     if (m_sec%section(m_max)%name == 'closed') then
@@ -374,7 +374,7 @@ outer: do
 
   enddo
 
-  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(ref_section%section_id)
+  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(ref_section%shape_name)
   call err_exit
 
 enddo outer
@@ -384,12 +384,12 @@ enddo outer
 section_loop: do i = 1, wall_in%n_place
   sec => wall_in%section(i)
   do j = 1, size(shape)
-    if (sec%section_id /= shape(j)%name) cycle
+    if (sec%shape_name /= shape(j)%name) cycle
     sec%section = shape(j)
     cycle section_loop
   enddo
 
-  print *, 'CANNOT FIND MATCHING SHAPE FOR: ', trim(sec%section_id)
+  print *, 'CANNOT FIND MATCHING SHAPE FOR: ', trim(sec%shape_name)
   call err_exit
 
 enddo section_loop
@@ -401,7 +401,7 @@ do i = 1, wall_in%n_place
 
   ! Shape checks
 
-  if (sec%section_id == 'shape') then
+  if (sec%shape_name == 'shape') then
     if (sec%section%name == '') then
       call out_io (s_fatal$, r_name, 'BAD SHAPE ASSOCIATION')
       call err_exit
@@ -410,17 +410,6 @@ do i = 1, wall_in%n_place
   endif
 
 enddo
-
-! If circular lattice then begin and end shapes must match
-
-if (branch%param%geometry == closed$) then
-  sec0 => wall_in%section(1)
-  sec  => wall_in%section(wall_in%n_place)
-  if (sec0%section_id /= sec%section_id) then
-    call out_io (s_fatal$, r_name, 'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
-    call err_exit
-  endif
-endif
 
 ! Associate surface
 
@@ -492,10 +481,10 @@ do
   
   ix_slow = 0
   ix_fast = 0
-  do iw = 1, n_sub
+  do iw = 1, size(branch%wall3d)
     wall3d => branch%wall3d(iw)
-    if (branch%wall3d(i)%name == slow) ix_slow = iw
-    if (branch%wall3d(i)%name == fast) ix_fast = iw
+    if (wall3d%name == slow) ix_slow = iw
+    if (wall3d%name == fast) ix_fast = iw
   enddo
 
   if (ix_slow == 0) then
@@ -508,10 +497,9 @@ do
     call err_exit
   endif
 
-  ix_w => sr3d_com%fast(ix_fast)%ix_wall3d
-  n = size(ix_w) + 1
+  n = size(sr3d_com%fast(ix_fast)%ix_wall3d) + 1
   call re_allocate (sr3d_com%fast(ix_fast)%ix_wall3d, n)
-  ix_w(n) = ix_slow
+  sr3d_com%fast(ix_fast)%ix_wall3d(n) = ix_slow
 enddo
 
 close (iu)
@@ -528,9 +516,10 @@ do i = 1, wall_in%n_place
   sec3d           => wall3d%section(ns)
   sec3d           = wall_in%section(i)%section
   sec3d%s         = wall_in%section(i)%s
-  sec3d%name      = wall_in%section(i)%name
   sec3d%type      = wall_in%section(i)%type
   sec3d%ix_branch = branch%ix_branch
+  sec3d%name      = wall_in%section(i)%name
+  if (sec3d%name == '') sec3d%name = wall_in%section(i)%shape_name
 
   ! Check s ordering
 
@@ -547,7 +536,7 @@ do i = 1, wall_in%n_place
   endif
 enddo
 
-! Begin and end sections must come in non-overlapping pairs
+! Start and End sections must come in non-overlapping pairs
 
 do iw = 1, n_sub
   wall3d => branch%wall3d(iw)
@@ -575,8 +564,8 @@ do iw = 1, n_sub
   endif
 enddo
 
-! First section of a sub-chamber must have s = 0
-! Last section of a sub-chamber has s adjusted to match the lattice length.
+! First section of a subchamber must have s = 0
+! Last section of a subchamber has s adjusted to match the lattice length.
 ! Except: if first/last section represents a sub-section beginning or ending.
 
 s_lat = branch%ele(branch%n_ele_track)%s
@@ -605,6 +594,25 @@ do i = 1, size(branch%wall3d)
   endif
   wall3d%section(n)%s = s_lat
 enddo
+
+! If circular lattice then shapes at ends of lattice
+
+if (branch%param%geometry == closed$) then
+ do i = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(i)
+    n = ubound(wall3d%section, 1)
+    s0 => wall3d%section(1)
+    s1  => wall3d%section(n)
+    if (s0%type /= normal$) cycle
+    if (s1%type /= normal$) cycle
+ 
+    if (.not. all(s0%v == s1%v)) then
+      call out_io (s_warn$, r_name, &
+              'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD BE THE SAME AS THE FIRST!', &
+              'FOR SUBCHAMBER: ' // wall3d%name)
+    endif
+  enddo
+endif
 
 ! Regions between wall sections are not allowed to contain both bends and patch elements.
 ! If this is the case then add additional sections to avoid this situation
@@ -827,7 +835,7 @@ allocate (wall%multi_section(n_multi))
 
 rewind(iu)
 do i = 1, n_multi
-  section%section_id = ''
+  section%shape_name = ''
   section%name = ''
   name = ''
   read (iu, nml = multi_place)
@@ -846,8 +854,8 @@ do i = 1, n_multi
 
   wall%multi_section(i)%name = name
 
-  n_section = count(section%section_id /= '')
-  if (any(section(n_section+1:)%section_id /= '')) then
+  n_section = count(section%shape_name /= '')
+  if (any(section(n_section+1:)%shape_name /= '')) then
     print *, 'CONFUSED MULTI_PLACE: ', trim(name)
     call err_exit
   endif
@@ -857,7 +865,7 @@ do i = 1, n_multi
     sec => wall%multi_section(i)%section(j)
     sec_in => section(j)
     sec%name             = sec_in%name
-    sec%section_id       = sec_in%section_id
+    sec%shape_name       = sec_in%shape_name
     sec%s                = sec_in%s
   enddo
 enddo
