@@ -61,12 +61,12 @@ type (sr3d_params_struct), save :: sr3d_params
 
 ! Some parameters that cannot be set
 
-type sr3d_wall_ptr_struct
-  type (wall3d_struct), pointer :: wall3d => null()
+type sr3d_walls_struct
+  integer, allocatable :: ix_wall3d(:)
 end type
 
 type sr3d_common_struct
-  type (sr3d_wall_ptr_struct), allocatable :: fast(:) 
+  type (sr3d_walls_struct), allocatable :: fast(:) 
 end type
 
 type (sr3d_common_struct), target, save :: sr3d_com

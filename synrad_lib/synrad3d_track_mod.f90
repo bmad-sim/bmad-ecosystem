@@ -122,11 +122,12 @@ implicit none
 type (branch_struct), target :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (wall3d_struct), pointer :: wall3d
 
 real(rp) v_rad_max, dlen, radius
 real(rp), pointer :: vec(:)
 
+integer i
+integer, pointer :: ix_w(:)
 logical err
 
 ! The photon is tracked in a series of steps.
@@ -147,14 +148,14 @@ do
 
   ! See if there is a fast sub-chamber to switch to
 
-  wall3d => sr3d_com%fast(photon%now%ix_wall3d)%wall3d
-  if (associated(wall3d)) then
-    call sr3d_photon_status_calc (photon, branch, wall3d%ix_wall3d)
+  ix_w => sr3d_com%fast(photon%now%ix_wall3d)%ix_wall3d
+  do i = 1, size(ix_w)
+    call sr3d_photon_status_calc (photon, branch, ix_w(i))
     if (photon%status == inside_the_wall$) then
-      photon%now%ix_wall3d = wall3d%ix_wall3d
+      photon%now%ix_wall3d = ix_w(i)
       cycle
     endif
-  endif
+  enddo
 
   ! See if the photon has hit the wall.
   ! If so we calculate the exact hit spot where the photon crossed the

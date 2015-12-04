@@ -106,12 +106,13 @@ integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
 integer n_shape, n_repeat, n_surface, last_type
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
-
+integer ix_slow, ix_fast
+integer, pointer :: ix_w(:)
 logical, optional :: err_flag
 logical err, absolute_vertices
 
 character(*) wall_file
-character(40) name
+character(40) name, slow, fast
 character(40), allocatable :: sub_name(:)
 character(200) reflectivity_file, file
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
@@ -119,7 +120,7 @@ character(28), parameter :: r_name = 'sr3d_read_wall_file'
 namelist / place / section, surface
 namelist / shape_def / name, v, r0, absolute_vertices
 namelist / surface_def / name, reflectivity_file
-
+namelist / slow_fast / slow, fast
 ! Open file
 
 if (present(err_flag)) err_flag = .true.
@@ -316,8 +317,6 @@ do i = 1, n_shape
 
 enddo
 
-close (iu)
-
 ! Expand multi_sections
 
 i = 0
@@ -465,6 +464,8 @@ do i = 1, wall_in%n_place
   n_sub_sec(ix) = n_sub_sec(ix) + 1
 enddo
 
+! Allocate space for walls
+
 if (associated(branch%wall3d)) deallocate (branch%wall3d, sr3d_com%fast)
 allocate (branch%wall3d(n_sub), sr3d_com%fast(n_sub))
 do iw = 1, n_sub
@@ -472,22 +473,50 @@ do iw = 1, n_sub
   wall3d%name = sub_name(iw)
   wall3d%ix_wall3d = iw
   allocate (wall3d%section(n_sub_sec(iw)))
-  sr3d_com%fast(iw)%wall3d => null()
+  allocate(sr3d_com%fast(iw)%ix_wall3d(0))
 enddo
 
-outer_loop: do iw = 1, n_sub
-  wall3d => branch%wall3d(iw)
-  if (wall3d%name /= 'FAST' .and. wall3d%name(1:5) /= 'FAST_') cycle
-  name = wall3d%name(6:)
-  if (wall3d%name == 'FAST') name = wall3d%name(5:)
-  do i = 1, n_sub
-    if (branch%wall3d(i)%name /= wall3d%name(6:)) cycle
-    sr3d_com%fast(i)%wall3d => wall3d
-    cycle outer_loop
+! Associate slow/fast walls
+
+rewind(iu)
+do
+  read (iu, nml = slow_fast, iostat = ios)
+  if (ios > 0) then ! error
+    print *, 'ERROR READING SLOW_FAST NAMELIST IN WALL FILE: ', trim(wall_file)
+    rewind (iu)
+    do
+      read (iu, nml = slow_fast) ! will bomb program with error message
+    enddo  
+  endif
+  if (ios < 0) exit   ! End of file reached
+  
+  ix_slow = 0
+  ix_fast = 0
+  do iw = 1, n_sub
+    wall3d => branch%wall3d(iw)
+    if (branch%wall3d(i)%name == slow) ix_slow = iw
+    if (branch%wall3d(i)%name == fast) ix_fast = iw
   enddo
-  call out_io (s_fatal$, r_name, 'CANNOT FIND CORRESPONDING SUB-CHAMBER TO FAST SUB-CHAMBER: ' // wall3d%name)
-  call err_exit
-enddo outer_loop
+
+  if (ix_slow == 0) then
+    print *, 'SLOW SUBCHAMBER NOT FOUND: ', trim(slow)
+    call err_exit
+  endif
+
+  if (ix_fast == 0) then
+    print *, 'FAST SUBCHAMBER NOT FOUND: ', trim(fast)
+    call err_exit
+  endif
+
+  ix_w => sr3d_com%fast(ix_fast)%ix_wall3d
+  n = size(ix_w) + 1
+  call re_allocate (sr3d_com%fast(ix_fast)%ix_wall3d, n)
+  ix_w(n) = ix_slow
+enddo
+
+close (iu)
+
+! Sort sections
 
 n_sub_sec = 0
 
