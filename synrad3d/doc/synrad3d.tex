@@ -1,4 +1,4 @@
-\documentclass[11pt,openany]{article}
+\documentclass[11pt,openany]{report}
 \usepackage{tocloft}
 \usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
 \usepackage{xspace}
@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{November 24, 2015}
+\date{December 4, 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@
 \tableofcontents
 
 %------------------------------------------------------------------
-\section{Introduction} 
+\chapter{Introduction} 
 \label{s:intro}
 
 \srthree is a program which simulates the production and scattering of
@@ -141,7 +141,7 @@ directly gives wall heating numbers. The advantage of \srthree is that
 it tracks photons in three dimensions and it does simulate scattering.
 
 %------------------------------------------------------------------
-\section{Running \srthree} 
+\chapter{Running \srthree} 
 \label{s:run}
 
 Syntax for invoking \srthree:
@@ -202,8 +202,8 @@ by simulating a single specular reflection from given photon
 starting positions. See \sref{s:test.specular} for more details.
 
 %------------------------------------------------------------------------
-\section{Simulation Technique and Physics Models}
-\subsection{Overview} 
+\chapter{Simulation Technique and Physics Models}
+\section{Overview} 
 
 The \srthree program uses the Monte Carlo method for photon
 generation, scattering, and absorption calculations.
@@ -235,7 +235,7 @@ chamber wall, and the probability of scattering is again
 computed. This process continues until the photon is absorbed.
 
 %------------------------------------------------------------------
-\subsection{Photon Generation}
+\section{Photon Generation}
 
 Photon generation is based on the standard synchrotron radiation
 formulas, applicable for dipoles quadrupoles, and wigglers. The
@@ -280,7 +280,7 @@ need not be horizontal. For example, the bend plane orientation for an
 offset beam in a quadrupole will depend upon the offset.
 
 %------------------------------------------------------------------
-\subsection{Photon Scattering} 
+\section{Photon Scattering} 
 
   \begin{figure}
   \centering
@@ -434,11 +434,11 @@ Fig.~\ref{f:Diffuse.out.of.plane.HE}. These distributions
 have been computed from Eq.~\ref{Eq.diffuse.power}.
 
 %------------------------------------------------------------------
-\section{Master Input File} 
+\chapter{Master Input File} 
 \label{s:master}
 
 %------------------------------------------------------------------
-\subsection{Fortran Namelist}
+\section{Fortran Namelist}
 \label{s:namelist}
 
 Fortran namelist syntax is used for parameter input by \srthree. The
@@ -471,7 +471,7 @@ abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
 needs in Fortran code.
 
 %------------------------------------------------------------------
-\subsection{Example Master Input File} 
+\section{Example Master Input File} 
 \label{s:master.example}
 
 The master input file can be specified on the command line invoking \srthree.
@@ -707,46 +707,52 @@ photons have been generated, \srthree will generate another
 \vn{num_photons} unfiltered photons have been generated.
 
 %------------------------------------------------------------------
-\section{Vacuum Chamber Definition File} 
+\chapter{Vacuum Chamber} 
+\label{s:vac.chamber}
+
+\begin{figure}[bt]
+\begin{center}
+\includegraphics[width=5in]{vac-pipe.pdf} \caption[The vacuum chamber is the union of a
+number of subchambers.]{The vacuum chamber is the union of a number of subchambers.
+This figure illustrates this showing two subchambers -- one colored green and the other
+colored red. A photon is considered within the vacuum chamber if, and only if, it is
+inside at least one of the subchambers.}
+\label{f:vac-chamber}
+\end{center}
+\end{figure}
+
+%------------------------------------------------------------------
+\section{Subchambers}
+\label{s:sub.chambers}
+
+The shape of the vacuum chamber is described by a number of ``subchambers'' (the reason
+for dividing the vacuum chamber into subchambers is discussed in \sref{s:track}). This is
+illustrated in \fig{f:vac-chamber}. The entire vacuum chamber is the union of all the
+subchambers. That is, a photon is considered within the vacuum chamber if, and only if,
+it is inside at least one of the subchambers. It is perfectly fine for subchambers to
+overlap one another. In fact, some overlap is desirable to prevent abutting subchambers
+from appearing to be separated due to round-off errors in the calculation.
+
+%------------------------------------------------------------------
+\section{Wall_file Syntax}
 \label{s:wall.file}
 
 The vacuum chamber is defined in the \vn{wall_file}. The name of the \vn{wall_file} is
 specified in the master input file \sref{s:master}. The syntax for specifying the vacuum
 chamber follows Fortran namelist input as explained in \sref{s:namelist}.
 
-%------------------------------------------------------------------
-\subsection{Sub-Chambers and Cross-Sections}
-\label{s:sub.chambers}
+  \begin{figure}[tb]
+  \begin{center}
+  \includegraphics[width=6in]{chamber-wall.pdf} 
+\caption{A subchamber is defined by a number of cross-sectional slices. A) A subchamber
+(red) and two cross-sectional slices (blue). B) A given cross-section is defined by a
+number of vertices.}
+  \label{f:chamber.wall}
+  \end{center}
+  \end{figure}
 
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=6in]{vac-pipe.pdf} \caption[The vacuum chamber is the union of a
-number of sub-chambers.]{The vacuum chamber is the union of a number of sub-chambers.
-This figure illustrates this showing two sub-chambers -- one colored green and the other
-collored red. A photon is considered within the vacuum chamber if, and only if, it is
-inside at least one of the sub-chambers.}
-\label{f:vac-chamber}
-\end{center}
-\end{figure}
-
-The shape of the vacuum chamber is described by a number of ``sub-chambers'' (the reason
-for this will be made clear below). This is illustrated in \fig{f:vac-chamber}. The entire
-vacuum chamber is the union of all the sub-chambers. That is, a photon is considered
-within the vacuum chamber if, and only if, it is inside at least one of the
-sub-chambers. It is perfectly fine for sub-chambers to overlap one another. In fact,
-some overlap is desirable to prevent abutting sub-chambers from appearing to be separated
-due to round-off errors in the calculation.
-
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=6in]{chamber-wall.pdf}
-\caption{A sub-chamber is defined by a number of cross-sectional slices.}
-\label{f:chamber.wall}
-\end{center}
-\end{figure}
-
-Each sub-chamber is defined by specifying the chamber cross-section at
-a number of longitudinal positions. As illustrated in
+Each subchamber is defined by specifying the subchamber cross-section at
+a number of longitudinal positions as illustrated in
 \fig{f:chamber.wall}. Each cross-section is specified using a namelist
 named \vn{place}. The general form of a \vn{place} namelist is:
 \begin{example}
@@ -764,10 +770,10 @@ Example:
   &place section =  91.1, "IR1",     "rectang" /
 \end{example}
 
-The \vn{<s>} values for the cross-sections of a given sub-chamber must
-be in increasing order and there must be one sub-chamber that has a
+The \vn{<s>} values for the cross-sections of a given subchamber must
+be in increasing order and there must be one subchamber that has a
 cross-section at \vn{<s>} = 0. If the last cross-section of a given
-sub-chamber has \vn{<s>} greater than the end of the lattice, the
+subchamber has \vn{<s>} greater than the end of the lattice, the
 \vn{<s>} value will be reduced to the value at the end of the lattice.
 
 The \vn{<section_name>} is a descriptive name that can be, for example,
@@ -791,20 +797,20 @@ but \vn{<sub_chamber_id>} and \vn{<stop-pt?>} may be omitted. If
 \vn{<sub_chamber_id>} may be omitted too. If \vn{<stop-pt?>} is
 omitted, the ampersand before the \vn{<stop-pt?>} may be omitted too.
 
-The \vn{<sub_chamber_id>} component specifies which sub-chamber is
-being specified.  If \vn{<sub_chamber_id>} is omitted, the sub-chamber
+The \vn{<sub_chamber_id>} component specifies which subchamber is
+being specified.  If \vn{<sub_chamber_id>} is omitted, the subchamber
 name is blank. For example, \vn{":chamC@"}, which is equivalent to
-\vn{"chamC"}, is associated with the sub-chamber whose name is
+\vn{"chamC"}, is associated with the subchamber whose name is
 blank. Omitting the \vn{<sub_chamber_id>} can always be done if there
-is only one sub-chamber.
+is only one subchamber.
 
-The \vn{<stop-pt?>} component specifies if a sub-chamber is beginning
+The \vn{<stop-pt?>} component specifies if a subchamber is beginning
 or ending at a certain longitudinal position. If present,
 \vn{<stop-pt?>} must be:
 \begin{example}
   "START" or
   "END"
-A sub-chamber begins with the section with \vn{<stop-pt?>} set to \vn{"START"}
+A subchamber begins with the section with \vn{<stop-pt?>} set to \vn{"START"}
 and ends with the section with \vn{<stop-pt?>} set to \vn{"END"}. Example:
 \begin{example}
   &place section =    5, "", "left_ante:chamB@END"
@@ -812,12 +818,12 @@ and ends with the section with \vn{<stop-pt?>} set to \vn{"END"}. Example:
   &place section =  182, "", "left_ante:chamB@END"
   &place section =  936, ""  "left_ante:chamA@START" /
 \end{example}
-In this case there are actually two sub-chambers, both named
-\vn{"left_ante"}.  The one sub-chamber begins at $s = 174$~meters and
-ends at 182~meters.  The second sub-chamber begins at $s =
+In this case there are actually two subchambers, both named
+\vn{"left_ante"}.  The one subchamber begins at $s = 174$~meters and
+ends at 182~meters.  The second subchamber begins at $s =
 936$~meters, wraps around the end of the lattice back to the
 beginning, and ends at 245~meters. This is the only case where
-different sub-chambers can share the same name. Sub-chambers that
+different subchambers can share the same name. subchambers that
 overlap longitudinally may not share the same name. That is, for every
 \vn{"START"} there must be an \vn{"END"} and following is not allowed
 since there is overlap:
@@ -826,8 +832,8 @@ since there is overlap:
   &place section =  182, "", "left_ante:chamB@END"
   &place section =  183, "", "left_ante:chamB@END"
 \end{example}
-A sub-chamber does not have to have a beginning and an ending. In this
-case, the sub-chamber extends along the entire length of the machine.
+A subchamber does not have to have a beginning and an ending. In this
+case, the subchamber extends along the entire length of the machine.
 
 The \vn{<shape_name>} component of \vn{<section_id>} identifies the
 exact shape of the cross-section. The \vn{<shape_name>} is matched
@@ -909,7 +915,7 @@ the \vn{rectangular1} shape except the right and left sides are
 sections of an ellipse.
 
 %------------------------------------------------------------------
-\subsection{Multi-Section Cross-Section}
+\section{Multi-Section Cross-Section}
 \label{ss:multi.sec}
 
 The \vn{multi-section} cross-section is not actually a single
@@ -968,7 +974,7 @@ The optional \vn{surface} variable is explained in \sref{ss:surface}.
 cross-sections, \vn{<section_name>} is not used but must be present to
 keep the format the same as other \vn{place}s. The cross-sections in the
 \vn{multi_place} namelist will be repeated \vn{<repeat_count>}
-times when the sub-chamber wall is constructed. Example:
+times when the subchamber wall is constructed. Example:
 \begin{example}
   &place section = 10.0, "", "zig_zag", 1000 /
 \end{example}
@@ -997,44 +1003,56 @@ case, if the \vn{end_marker} section is set to ``closed'', a
   \begin{figure}
   \centering
   \includegraphics[width=6in]{fast-chamber.pdf}
-  \caption[Illustrating a fast sub-chamber residing within another sub-chamber.]
-{\label{f:fast} A fast sub-chamber (gree) with few cross-sections resides within another
-sub-chamber with many cross-sections (blue) enabling \srthree to speed up tracking. The
-two sub-chambers have been cut in the illustration to better show the geometry.}
+  \caption[Illustrating a fast subchamber residing within another subchamber.]
+{\label{f:fast} A ``fast'' subchamber (green) which uses fewer cross-sections to describe
+it resides within another ``slow'' (blue) subchamber with many cross-sections. The fast
+subchamber enables \srthree to speed up tracking. The two subchambers have been cut in
+the illustration to better show the geometry.}
   \end{figure}
 
 %------------------------------------------------------------------
-\subsection{Fast Sub-Chamber}
+\section{Fast and Slow Subchambers}
 \label{s:fast}
 
-In regions where there are many of cross-sections, which can easily happen when a
-multi-section (\sref{ss:multi.sec}) is used, the computation time for photon tracking may
-become large due to the necessity of stopping the photon at each cross-section to check
-whether the photon has crossed the sub-chamber boundary. This can be ameliorated by
-defining a ``fast'' sub-chamber to track through. This fast sub-chamber has only a few
-cross-sections and is nested inside the sub-chamber with the large number of
-cross-sections. This is illustrated in \fig{f:fast}.
-\srthree will use the fast sub-chamber for tracking when ever possible
-(\sref{s:track}). 
+When a subchamber has many cross-sections (which can easily happen when a multi-section
+(\sref{ss:multi.sec}) is used), the computation time for photon tracking may become large
+due to the necessity of stopping the photon at each cross-section to check whether the
+photon has crossed the subchamber boundary. This can be ameliorated by defining an
+associated ``fast'' subchamber with only a few cross-sections that is contained withing
+the ``slow'' subchamber with the large number of cross-sections as illustrated in
+\fig{f:fast}.
 
-To designate a fast sub-chamber, prepend the string ``\vn{FAST_}'' to the name of the
-sub-chamber with the large number of cross-sections.  For example, for a sub-chamber named
-\vn{"main"}, the name of the fast sub-chamber would be \vn{"FAST_main"}. Only one fast
-sub-chamber may be associated with a given sub-chamber.
+As explained in \sref{s:track}, when a photon is tracked that is contained in both a slow
+and an associated fast subchamber, \srthree can ignore the slow subchamber and track the
+photon through the fast subchamber until the photon exits the fast subchamber. Tracking
+will be quicker since there will be fewer cross-sections to stop the photon at.
 
-A fast sub-chamber may extend beyond the sub-chamber it is associated with. The entire
-vacuum chamber is the union of all sub-chambers including the fast ones. That is, in terms
-of defining the vacuum chamber, fast sub-chambers are no different than non-fast ones.
+To associate two subchambers as a fast/slow pair, a \vn{fast_slow} namelist is used.
+The syntax of this namelist is:
+\begin{example}
+  &fast_slow
+    fast = "<fast_subchamber_name>"
+    slow = "<slow_subchamber_name>"
+  /
+\end{example}
+A subchamber can have multiple associated slow or fast subchambers. A subchamber can also
+have an associated fast subchamber and an associated slow subchamber although in practice
+this is to be avoided since it will, if anything, slow down tracking.
+
+A fast subchamber may extend beyond the slow subchamber it is associated with. The entire
+vacuum chamber is the union of all subchambers including the fast ones. That is, in terms
+of defining the vacuum chamber, fast subchambers are no different than the slow ones and
+the ``normal'' subchambers that do not have any fast or slow associations.n
 
 %------------------------------------------------------------------
-\subsection{Sub-Chamber Wall Interpolation} 
+\section{Subchamber Wall Interpolation} 
 \label{s:wall}
 
-Once a set of sub-chamber cross-sections have been defined, the
-cross-section of the sub-chamber at a given longitudinal position is
+Once a set of subchamber cross-sections have been defined, the
+cross-section of the subchamber at a given longitudinal position is
 computed using linear interpolation. 
 
-For a given sub-chamber, and 
+For a given subchamber, and 
 at a given $s$ position, the $r, \theta$ coordinate system in the
 transverse $x, y$ plane is defined with respect to an origin
 $\bfr_O(s)$ given by a linear interpolation of the origins of the
@@ -1061,24 +1079,24 @@ defined by the equation
   r_c(\theta, s) = (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
 \Endeq
 
-A photon at $(r,\theta, s)$ is inside the sub-chamber if
+A photon at $(r,\theta, s)$ is inside the subchamber if
 \Begineq
   r < r_w(\theta, s)
 \Endeq
 
 %------------------------------------------------------------------
-\subsection{Sub-Chamber Wall and Patch Elements}
+\section{Subchamber Wall and Patch Elements}
 \label{ss:patch}
 
 A \vn{patch} element, which shifts the reference coordinate system
 complicates the calculation of where a photon hits the wall. The Bmad
 manual has a full explanation but the essential factor is that, since
 the reference orbit is discontinuous in a patch, to avoid a
-discontinuity in the sub-chamber wall, wall interpolation is done using
+discontinuity in the subchamber wall, wall interpolation is done using
 the global reference system. This can lead to non-intuitive behavior
 when the region between two wall sections contains both a bend and a
-patch since, without the patch, the center of the sub-chamber follows the
-curved reference orbit but with the patch the sub-chamber wall center
+patch since, without the patch, the center of the subchamber follows the
+curved reference orbit but with the patch the subchamber wall center
 follows a straight line between the wall sections.
 
 To avoid this non-intuitive behavior, if a region between wall sections
@@ -1089,13 +1107,13 @@ To simplify matters, \srthree does not allow wall cross-sections to be
 defined whose longitudinal position overlaps any \vn{patch} element.
 
 %------------------------------------------------------------------
-\subsection{Old Wall Format}
+\section{Old Wall Format}
 \label{s:old.wall}
 
-Originally, \srthree did not have the concept of sub-chambers. That is,
+Originally, \srthree did not have the concept of subchambers. That is,
 there was only one chamber and that chamber was allowed to be concave.
 This was problematical, as discussed above, and motivated the
-development of the sub-chamber concept. This section discusses the old
+development of the subchamber concept. This section discusses the old
 format to facillitate conversion from the old format to the new.
 
 \begin{example}
@@ -1202,9 +1220,9 @@ Prescription for converting:
 \begin{enumerate}
 \item If there are \vn{\&section_def} namelists that use rectangular or elliptical shapes. 
       That is, no "gen_shape:..." is present then the appropriate \vn{\&shape_def} namelists will have to be created. 
-      If the shape is not convex, the shape will need to be split into sub-chambers.
+      If the shape is not convex, the shape will need to be split into subchambers.
 \item rename: "gen_shape:..." to "..." in \vn{\&section_def} namelists. 
-      If the shape is not convex, the shape will need to be split into sub-chambers.
+      If the shape is not convex, the shape will need to be split into subchambers.
 \item If present, remove ``ix_vertex_ante'' and ``ix_vertex_ante2'' lines from \vn{\&gen_shape_def} .
 \item rename: ``\vn{\&section_def}'' to ``\vn{\&place}''.
 \item rename: ``\vn{\&gen_shape_def}'' to ``\vn{\&shape_def}''.
@@ -1212,7 +1230,7 @@ Prescription for converting:
 \end{enumerate}
 
 %------------------------------------------------------------------
-\subsection{Chamber Surface Reflectivity}
+\section{Chamber Surface Reflectivity}
 \label{ss:surface}
 
 By default, the photon reflectivity of the vacuum chamber wall is
@@ -1301,15 +1319,18 @@ the materials associated with different regions of the chamber are:
 \end{example}
 
 %------------------------------------------------------------------
-\subsection{Photon Tracking}
+\chapter{Photon Tracking \& Reflaections}
+
+%------------------------------------------------------------------
+\section{Photon Tracking}
 \label{s:track}
 
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=6in]{chamber-problem.pdf}
 \caption{A) A convex cross-section can lead to problems with linear interpolation.
-since it is assumed that if the beginning and ending points are inside the chamber 
-the entire track is inside the chamber. The track shown violates this assumption.
+since it is assumed that if the beginning and ending points are inside the subchamber 
+the entire track is inside the subchamber. The track shown violates this assumption.
 B) With linear interpolation, convex cross-sections are not a guarantee that 
 intermediate cross-sections are convex. B1 and B3 are the defined cross sections 
 at $s = 0$ and $s = 1$ respectively. These cross sections are ellipses with 5:1 
@@ -1318,80 +1339,86 @@ aspect ratio. The interpolated cross-section B2 at $s = 0.5$ is seen to be conca
 \end{center}
 \end{figure}
 
-When a photon is created, \srthree checks to see if the photon is
-within any sub-chambers. If the photon is not within any sub-chamber,
-that is, if it is outside the vacuum chamber wall, \srthree will
-generate an error message if the number of photons that have been
-generated up to this point exceed
-\vn{num_ignore_generated_outside_wall}. If the created photon is
-within some sub-chamber, the photon will be tracked through that
-sub-chamber until it reaches the edge of the sub-chamber. 
+When a photon is created, \srthree checks to see if the photon is within any
+subchamber. If the photon is not within any subchamber, that is, if it is outside the
+vacuum chamber wall, \srthree will generate an error message if the number of photons that
+have been generated up to this point exceed \vn{num_ignore_generated_outside_wall}. If
+the generated photon is within the vacuum chamber wall, the phton is ``associated'' with
+one of the subchambers that it is within.  The photon will be tracked through the
+associated subchamber until it reaches the edge of the subchamber.
 
-When the photon reaches the edge of the sub-chamber it is going
-through, \srthree checks if there is a suitable alternative
-sub-chamber to switch to. A suitable sub-chamber is any sub-chamber
-the the photon is within or a sub-chamber where the photon is at the
-edge and has velocity directed inward.
+When the photon reaches the edge of the associated subchamber it is going through,
+\srthree checks if there is a suitable alternative subchamber to switch association to. A
+suitable subchamber is any subchamber that the photon is within or a subchamber where the
+photon is at the edge and has velocity directed inward.
 
-If there is a suitable alternative, \srthree will ``transfer'' the
-photon to the alternative sub-chamber and keep tracking. If there is
-no suitable alternative then the photon has hit the wall.
+If there is a suitable alternative, \srthree will associate the photon with the
+alternative subchamber and keep tracking until the photon gets to the edge of this
+subchamber.  This process of reassociating the photon to a second subchamber when the
+photon reaches the edge of the current associated subchamber will continue until there is
+no suitable alternative. At this point the photon has hit the vacuum chamber wall.
 
-The exception to the above process happens when there is a suitable
-``fast'' chamber (\sref{s:fast}). In this case, the photon may be
-switched from a sub-chamber to the associated fast sub-chamber even
-before the photon has reached the edge of the non-fast sub-chamber.
+When tracking a photon through its associated subchamber, \srthree can ignore all other
+subchambers since, by definition, if the phton is inside its associated subchamber, it
+is inside the vacuum chamber.
 
-Photons are tracked in ``steps''. A step consists of propagating a
-photon from it's current position to some new position that is a
-certain distance away. The length to propagate the photon in a given
-step is determined by a number of factors. Maximum lengths are set by
-the input parameters 
+The exception to the above process happens when the subchamber associated with a photon
+itself has an associated ``fast'' chamber (\sref{s:fast}). In this case, \srthree, while
+tracking through the slow subchamber, will periodically check to see if the photon is also
+within the fast subchamber, if it is, the photon's associated subchamber will be switched
+to the fast subchamber.
+
+Photons are tracked in ``steps''. A step consists of propagating a photon from it's
+current position to some new position that is a certain distance away. The length to
+propagate the photon in a given step is determined by a number of factors. The maximum
+length for a step is set by the input parameters
 \begin{example}
   sr3d_params%ds_track_step_max
   sr3d_params%dr_track_step_max
 \end{example}
-These set longitudinal (\vn{%ds_track_step_max}) and transverse
-(\vn{%dr_track_step_max}) distances. Additionally, a single step will
-always be terminated at, and never cross over, a defined cross-section
-plane. steps will also be terminated at the boundaries of bend magnets
-and at the point in a bend where a trajectory is closest to the center
-of the bending radius.
+These set longitudinal (\vn{%ds_track_step_max}) and transverse (\vn{%dr_track_step_max})
+distances. Additionally, a single step will always be terminated at, and never cross over,
+a defined cross-section plane of the subsection associated with the photon. Steps will
+also be terminated at the boundaries of bend magnets and at the point in a bend where a
+trajectory is closest to the center of the bending radius.
 
 After a step, the new photon position is checked to see if it is still
-inside the sub-chamber. If it is not, the point where it has crossed
-the sub-chamber wall is calculated via a root finding algorithm.
+inside the associated subchamber. If it is not, the point where it has crossed
+the subchamber wall is calculated via a root finding algorithm.
 
-If the new photon position is inside the sub-chamber, there is still the
-question as to whether the photon trajectory between the beginning
-step point and the end step point is inside the sub-chamber. \srthree
-assumes that the sub-chamber is ``locally convex''. That is, given the two
-end points of a step with points inside the sub-chamber, it is assumed
-that the line drawn between these two points never touches or goes
-outside the sub-chamber. This locally convex assumption will be true if
-every cross-section $r_w(\theta, s)$ for fixed $s$ is convex where $s$
-is in the range of longitudinal $s$ positions covered by the step in
-question.
+If the new photon position is inside the associated subchamber, there is still the
+question as to whether the photon trajectory between the beginning step point and the end
+step point is inside the subchamber. \srthree assumes that the subchamber is ``locally
+convex''. That is, given the two end points of a step with points inside the subchamber,
+it is assumed that the line drawn between these two points never touches or goes outside
+the subchamber. This locally convex assumption will be true if every cross-section
+$r_w(\theta, s)$ for fixed $s$ is convex where $s$ is in the range of longitudinal $s$
+positions covered by the step in question.
 
 The problem of a concave cross-section is shown in
-Fig.~\ref{f:convex-chamber}A. Furthermore, even if two cross-sections are
-themselves convex, an intermediate cross-section can be concave as
-shown in Fig.~\ref{f:convex-chamber}B. How much of a problem the
-possibility that \srthree will not detect some photons leaving and
-then entering the chamber will, of course, depend upon the chamber
-geometry and what is being calculated. One way to treat this is to
-reduce the track step length limits:
+Fig.~\ref{f:convex-chamber}A. Furthermore, even if two defined cross-sections are
+themselves convex, an intermediate cross-section can be concave as shown in
+Fig.~\ref{f:convex-chamber}B. How much of a problem the possibility that \srthree will not
+detect some photons leaving and then entering the chamber will, of course, depend upon the
+chamber geometry and what is being calculated. One way to test if this is a problem this
+is to reduce the track step length limits:
 \begin{example}
     sr3d_params%ds_track_step_max
     sr3d_params%dr_track_step_max
 \end{example}
 This will reduce the possibility of mis-tracking at the cost of
-increased computation time.  If the results do not change significantly
+increased computation time. If the results do not change significantly
 when the track limits are reduced, this is good evidence that the 
 results are valid.
 
+Notice that if all the subchambers are convex there will be no problem even if the union
+of the subchambers -- which defines the entire vacuum chamber -- is concave. To put it
+another way, given a concave vacuum chamber, if the vacuum chamber can be constructed
+using a number of convex subchambers, there will be no problem with \srthree not detecting
+photons leaving and entering the vacuum chamber in a single step.
+
 %------------------------------------------------------------------
-\subsection{photon\_start\_input\_file}
+\section{photon\_start\_input\_file}
 \label{ss:photon.start}
 
 The \vn{photon_start_input_file} file is used to specify starting positions
@@ -1416,7 +1443,7 @@ generator.
 The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 
 %------------------------------------------------------------------
-\subsection{Surface Reflection File}
+\section{Surface Reflection File}
 \label{s:reflect.file}
 
 A surface reflectivity file is used to redefine the default chamber
@@ -1522,10 +1549,10 @@ the table. The \vn{p_reflect} component of the
 angle points.
 
 %------------------------------------------------------------------
-\section{Output Files} 
+\chapter{Output Files} 
 
 %------------------------------------------------------------------
-\subsection{Main Output File}
+\section{Main Output File}
 \label{ss:main.out}
 
 The format of the \vn{dat_file} (whose name is specified in the master
@@ -1591,7 +1618,7 @@ The same information is outputted as a table in a file whose name is
 the same as \vn{dat_file} with a ``_table'' suffix appended.
 
 %------------------------------------------------------------------
-\subsection{Photon Reflection File}
+\section{Photon Reflection File}
 \label{ss:reflection.file}
 
 If the switch \vn{wall_hit_file} is non-blank, an additional output
@@ -1680,7 +1707,7 @@ orbit will be the zero orbit and in this case all photons will start
 with $x$ = $px$ = $y$ = 0.
 
 %------------------------------------------------------------------
-\section{Test Modes}
+\chapter{Test Modes}
 \label{s:test}
 
 Test modes are used to generate diagnostic data files. Test modes are
@@ -1694,7 +1721,7 @@ specified using the \vn{-test <what>} option on the command line
 These test modes are explained below
 
 %------------------------------------------------------------------
-\subsection{Diffuse Reflection Test Mode}
+\section{Diffuse Reflection Test Mode}
 \label{s:test.diffuse}
 
 Diffuse reflection test mode (\sref{s:run}), invoked using the
@@ -1742,7 +1769,7 @@ angle in radians. That is, \vn{phi_out} is zero when the incident and
 reflected rays are in the same plane.
 
 %------------------------------------------------------------------
-\subsection{Specular Reflection Test Mode}
+\section{Specular Reflection Test Mode}
 \label{s:test.specular}
 
 Specular reflection test mode (\sref{s:run}), invoked using the
@@ -1786,7 +1813,7 @@ See \sref{ss:reflection.file} for details of the syntax for this file.
 
 %------------------------------------------------------------------
 \appendix
-\section{Diffuse Scattering Formalism}
+\chapter{Diffuse Scattering Formalism}
 
 This appendix presents the details of the formalism used to describe
 diffuse scattering. The basic approach is to use scalar Kirchoff
@@ -1816,7 +1843,7 @@ distribution functions. These functions are used in \srthree to choose
 outgoing scattering angles from a rough vacuum chamber surface
 
 %------------------------------------------------------------------
-\subsection{General Scalar Theory} 
+\section{General Scalar Theory} 
 
 The notation and terminology are taken from \cite{b:beckmann},
 Chap. 3.
@@ -1972,7 +1999,7 @@ E_{2}(P) &=& \imath E_{0}\frac{\e^{\imath k_{2}R_{0}}}{4\pi R_{0}}
   \end{eqnarray}
 
 %------------------------------------------------------------------
-\subsection{Scalar Theory: Smooth Surface Field}
+\section{Scalar Theory: Smooth Surface Field}
 
 If the surface is perfectly smooth, then $\xi(x)=\xi'(x)=0$ and we have
 \begin{eqnarray}
@@ -2022,7 +2049,7 @@ v_{x}^{2}+v_{y}^{2}=k^{2}\left((\sin\theta_{1}-
 This agrees with~\cite{b:jackson}, pg. 494, equation before 10.119.  
 
 %------------------------------------------------------------------
-\subsection{Scalar Theory: Power Computation}
+\section{Scalar Theory: Power Computation}
 
 According to~\cite{b:jackson}, the consistent way to use this scalar
 quantity to compute the power is to use the relation
@@ -2108,7 +2135,7 @@ results for the specular power from the rough surface given below are
 incorrect. However, the diffuse power results should be OK.
 
 %------------------------------------------------------------------
-\subsection{Scalar Theory: Rough Surface Power} 
+\section{Scalar Theory: Rough Surface Power} 
 
 The power is
 
@@ -2208,7 +2235,7 @@ to get
  in which $A=\pi a^{2}.$
 
 %------------------------------------------------------------------
-\subsection{Probability Distributions}
+\section{Probability Distributions}
 
 The differential probability, normalized to the total power, may be interpreted as the joint probability distribution of a photon scattering at an angle $\theta_{2}$ and $\phi$.  Thus, the diffuse scattering joint probability distribution is
 
@@ -2275,7 +2302,7 @@ and find $\phi$, again using the Newton-Raphson method.
 
 
 %------------------------------------------------------------------
-\subsection{Gaussian Autocorrelation}
+\section{Gaussian Autocorrelation}
 
  For a Gaussian autocorrelation function, we have
  $$C(\tau/T)=\e^{-\tau^{2}/T^{2}},$$
@@ -2495,7 +2522,7 @@ which corresponds to all scattering in the specular direction.
 
 
 %-----------------------------------------------
-\subsection{Gaussian Autocorrelation: Probability Distributions}
+\section{Gaussian Autocorrelation: Probability Distributions}
 
 The differential probability, normalized to the total power, may be interpreted as the joint probability distribution of a photon scattering at an angle $\theta_{2}$ and $\phi$.  Thus, in terms of $x=\cos\theta_{2}$ and $\phi,$ the diffuse scattering joint probability distribution is
 
@@ -2870,7 +2897,7 @@ P_x(x)C_{\phi}(\phi)&=& N_{0}\frac{\left<R\right>^{2}}{4\pi y}(1+xy)^{2}r^{2}s^{
 \end{eqnarray}
 
 %-----------------------------------------------
-\subsection{Exponential autocorrelation}
+\section{Exponential autocorrelation}
 
 For an exponential autocorrelation function, we have
  $$C(\tau/T)=\e^{-|\tau|/T},$$
@@ -3211,7 +3238,7 @@ in which
 \end{eqnarray}
 
 %-----------------------------------------------
-\subsection{Average reflectivity}
+\section{Average reflectivity}
 
 The reflectivity is a function of the incident angle relative to a
 tangent plane of the local rough surface. If the incident polar angle
@@ -3263,7 +3290,7 @@ For example, if the reflectivity is a constant $R$ for $\gamma<\gamma_{max}$, an
 \left(\frac{\gamma_{1}}{\sqrt{2}\sigma_{\beta}}\right)}$$
 
 %------------------------------------------------------------------
-\section{Default Reflectivity Tables.}
+\chapter{Default Reflectivity Tables.}
 \label{s:dflt.reflect}
 
   \begin{figure}
