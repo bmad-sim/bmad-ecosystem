@@ -27,8 +27,39 @@
   v(1) = 0.0901, 0.04
 /
 
+&shape_def
+  name = 'z1_shape'
+  r0 = 0.1, 0.01
+  v(1) = 0.03, 0.03
+/
+
+&shape_def
+  name = 'z2_shape'
+  absolute_vertices = T
+  r0 = 0.1, 0.01
+  v(1) =  0.13,  0.04
+  v(2) =  0.07,  0.04
+  v(3) =  0.07, -0.02
+  v(4) =  0.13, -0.02
+/
+
+&shape_def
+	name = 'f_shape'
+	v(1) = 0.0, 0.0, 0.02
+/
+
 &place section = 0.0,  'rec1', 'rectangular1' /
 &place section = 10.0, '',     'zigzag', 10 /
 &place section = 14.0, 'rec2', 'rectangular1' /
 
- 
+&place section =  0, 'z1', 'ante:z1_shape' /
+&place section = 14, 'z2', 'ante:z2_shape' /
+
+! Note: The f subchamber wraps around zero.
+&place section = 1, 'f1', 'f:f_shape@END' /
+&place section = 14, 'f2', 'f:f_shape@START' /
+
+&slow_fast
+	slow = ''
+	fast = 'f'
+/
