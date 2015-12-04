@@ -497,9 +497,9 @@ do
     call err_exit
   endif
 
-  n = size(sr3d_com%fast(ix_fast)%ix_wall3d) + 1
-  call re_allocate (sr3d_com%fast(ix_fast)%ix_wall3d, n)
-  sr3d_com%fast(ix_fast)%ix_wall3d(n) = ix_slow
+  n = size(sr3d_com%fast(ix_slow)%ix_wall3d) + 1
+  call re_allocate (sr3d_com%fast(ix_slow)%ix_wall3d, n)
+  sr3d_com%fast(ix_slow)%ix_wall3d(n) = ix_fast
 enddo
 
 close (iu)

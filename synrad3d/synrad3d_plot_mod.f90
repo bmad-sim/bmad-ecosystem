@@ -681,8 +681,12 @@ do
       print *, 'Cannot read sub-chamber index or sub-chamber index out of range.'
       cycle
     endif
-    wall3d_select => branch%wall3d(iw)
+    wall3d_select => branch%wall3d(ix)
     n_sec_max = ubound(wall3d_select%section, 1)
+
+    ix_section = 1
+    s_pos = wall3d_select%section(1)%s
+    at_section = .true.
 
   elseif (ans(1:1) == 'x') then
     call string_trim(ans(2:), ans, ix)
