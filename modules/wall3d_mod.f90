@@ -228,13 +228,19 @@ integer i, n, nn
 
 logical err
 
-character(40) :: r_name = 'wall3d_section_initializer'
+character(60) sec_name
+character(*), parameter :: r_name = 'wall3d_section_initializer'
 
 ! Init
 
 err = .true.
 v => section%v
 n = section%n_vertex_input
+if (section%name == '') then
+  sec_name = 'WALL SECTION'
+else
+  sec_name = 'WALL SECTION: ' // section%name
+endif
 
 ! Relative or absolute vertex numbers?
 ! Vertex numbers are always stored as relative so need to convert if input numbers are absolute.
@@ -242,6 +248,13 @@ n = section%n_vertex_input
 if (section%absolute_vertices_input) then
   v%x = v%x - section%r0(1)
   v%y = v%y - section%r0(2)
+endif
+
+! Error check if there is only a single vertex
+
+if (n == 1 .and. v(1)%radius_x == 0 .and. (v(1)%x == 0 .or. v(1)%y == 0)) then
+  call out_io (s_error$, r_name, trim(sec_name) // ' WITH SINGLE VERTEX AND ZERO RADIUS HAS X OR Y = 0 WHICH GIVES ZERO CROSS-SECTION AREA!')
+  return
 endif
 
 ! Single vertex is special.
@@ -260,25 +273,25 @@ do i = 1, n
   if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
 
   if (v(i)%angle >= v(i-1)%angle + pi .or. v(i)%angle <= v(i-1)%angle) then
-    call out_io (s_error$, r_name, 'WALL SECTION VERTEX NOT IN COUNTER-CLOCKWISE ORDER: (\2F10.5\)', &
+    call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX NOT IN COUNTER-CLOCKWISE ORDER: (\2F10.5\)', &
                  r_array = [v(i)%x, v(i)%y])
     return
   endif
 
   if (v(i)%radius_x == 0 .and. v(i)%radius_y /= 0) then
-    call out_io (s_error$, r_name, 'WALL SECTION VERTEX HAS RADIUS_X = 0 BUT RADIUS_Y != 0 (\2F10.5\)', &
+    call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX HAS RADIUS_X = 0 BUT RADIUS_Y != 0 (\2F10.5\)', &
                  r_array = [v(i)%radius_x, v(i)%radius_y])
   endif
 
   if (v(i)%radius_x * v(i)%radius_y < 0) then
-    call out_io (s_error$, r_name, 'WALL SECTION VERTEX HAS RADIUS_X OF DIFFERENT SIGN FROM RADIUS_Y (\2F10.5\)', &
+    call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX HAS RADIUS_X OF DIFFERENT SIGN FROM RADIUS_Y (\2F10.5\)', &
                  r_array = [v(i)%radius_x, v(i)%radius_y])
   endif
 
 enddo
 
 if (v(n)%angle - v(1)%angle >= twopi) then
-  call out_io (s_error$, r_name, 'WALL SECTION WINDS BY MORE THAN 2PI!')
+  call out_io (s_error$, r_name, trim(sec_name) // ' WINDS BY MORE THAN 2PI!')
   return
 endif
 
@@ -427,7 +440,7 @@ dx    = (x2 - x1)/2; dy    = (y2 - y1)/2
 
 a2 = (v2%radius_x**2 - dx**2 - dy**2) / (dx**2 + dy**2)
 if (a2 < 0) then
-  call out_io (s_error$, r_name, 'WALL SECTION VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE')
+  call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE')
   err = .true.
   return
 endif
