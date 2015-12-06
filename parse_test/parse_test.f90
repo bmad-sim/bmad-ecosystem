@@ -71,8 +71,6 @@ write (1, '(a, 2es15.8)') '"XSIF:Orbit"  REL 1e-8', orbit(0)%vec(1), orbit(0)%ve
 !
 
 call bmad_parser ('parse_test.bmad', lat, use_line = 'PHOT')
-call write_bmad_lattice_file ('out.bmad', lat)
-call bmad_parser ('out.bmad', lat)
 
 write (1, '(4a)')         '"PHOT-1"    STR ', '"', trim(lat%ele(1)%name), '"'
 write (1, '(2a, i0, a)')  '"PHOT-N"    STR ', '"', lat%n_ele_max, '"'
