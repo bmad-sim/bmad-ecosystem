@@ -434,7 +434,7 @@ enddo
 !---------------------------------------------------------------
 ! Transfer info to branch%wall3d
 
-! Count how many sub-chambers there are and allocate branch%wall3d(:) array.
+! Count how many subchambers there are and allocate branch%wall3d(:) array.
 
 allocate (sub_name(10), ix_sort(10), n_sub_sec(10))
 
@@ -547,10 +547,10 @@ do iw = 1, n_sub
     if (it == normal$) cycle
 
     if (it == wall_start$ .and. last_type == wall_start$) then
-      call out_io (s_fatal$, r_name, 'TWO STARTING WALL SECTIONS WITHOUT AN INTROVENING END SECTION IN SUB-CHAMBER: ' // wall3d%name)
+      call out_io (s_fatal$, r_name, 'TWO STARTING WALL SECTIONS WITHOUT AN INTROVENING END SECTION IN SUBCHAMBER: ' // wall3d%name)
       call err_exit
     elseif (it == wall_end$ .and. last_type == wall_end$) then
-      call out_io (s_fatal$, r_name, 'TWO ENDING WALL SECTIONS WITHOUT AN INTROVENING START SECTION IN SUB-CHAMBER: ' // wall3d%name)
+      call out_io (s_fatal$, r_name, 'TWO ENDING WALL SECTIONS WITHOUT AN INTROVENING START SECTION IN SUBCHAMBER: ' // wall3d%name)
       call err_exit
     endif
 
@@ -559,7 +559,7 @@ do iw = 1, n_sub
   enddo
 
   if (mod(n, 2) == 1) then
-    call out_io (s_fatal$, r_name, 'NUMBER OF START SECTIONS NOT EQUAL TO NUMBER OF END SECTIONS IN SUB-CHAMBER: ' // wall3d%name)
+    call out_io (s_fatal$, r_name, 'NUMBER OF START SECTIONS NOT EQUAL TO NUMBER OF END SECTIONS IN SUBCHAMBER: ' // wall3d%name)
     call err_exit
   endif
 enddo
@@ -575,27 +575,45 @@ do i = 1, size(branch%wall3d)
   if (wall3d%section(1)%type /= normal$) cycle  
   if (wall3d%section(1)%s /= 0) then
     call out_io (s_info$, r_name, &
-          'Sub-chamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
+          'subchamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
           'And not at lattice beginning.', &
           r_array = [wall3d%section(1)%s])
   endif
 enddo
 
+! Subchambers must either stop or have cross section at end of lattice
+
 do i = 1, size(branch%wall3d)
   wall3d => branch%wall3d(i)
   n = ubound(wall3d%section, 1)
-  if (wall3d%section(n)%type /= normal$) cycle  
-  if (abs(wall3d%section(n)%s - s_lat) > 0.01) then
+  if (n == 1) then
+    call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
+    call err_exit
+  endif
+
+  if (wall3d%section(1)%type /= wall_start$ .and. wall3d%section(1)%s /= 0) then
     call out_io (s_info$, r_name, &
-          'Sub-chamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
+          'subchamber named "' // trim(wall3d%name) // '" has first cross-section at s =: \f12.4\ ', &
+          'And not at s = 0.', &
+          r_array = [wall3d%section(1)%s])
+    call err_exit
+  endif
+
+
+  if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
+    call out_io (s_info$, r_name, &
+          'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
           'And not at lattice end of: \f12.4\ ', &
           '[But last point is always adjusted to have s = s_lat]', &
           r_array = [wall3d%section(n)%s, s_lat])
   endif
-  wall3d%section(n)%s = s_lat
+
+  if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
+
 enddo
 
-! If circular lattice then shapes at ends of lattice
+! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
+! beginning/end of lattice.
 
 if (branch%param%geometry == closed$) then
  do i = 1, size(branch%wall3d)
