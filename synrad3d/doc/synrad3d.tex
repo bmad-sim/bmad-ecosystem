@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{December 4, 2015}
+\date{December 7, 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -758,7 +758,7 @@ named \vn{place}. The general form of a \vn{place} namelist is:
 \begin{example}
   &place 
     section = <s>, "<section_name>", "<section_id>" 
-    surface = "<surface_name>", <is_local?>
+    surface = "<surface_name>", <is_local>
   /
 \end{example} 
 The optional \vn{surface} variable is explained in \sref{ss:surface}.
@@ -783,19 +783,19 @@ The \vn{<section_name>} may be blank.
 The \vn{<section_id>} identifies the section. The general format for 
 \vn{<section_id>} is:
 \begin{example}
-  <sub_chamber_id>:<shape_id>@<stop-pt?>
+  <sub_chamber_id>:<shape_id>@<edge-sec>
 \end{example}
 For example, if a section is placed like:
 \begin{example}
   &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
 \end{example}
 the \vn{<sub_chamber_id>} component is \vn{"left_ante"}, the
-\vn{<shape_id>} component is \vn{"chamA"}, and the \vn{<stop-pt?>}
+\vn{<shape_id>} component is \vn{"chamA"}, and the \vn{<edge-sec>}
 component is \vn{"START"}. The \vn{<shape_id>} must always be present
-but \vn{<sub_chamber_id>} and \vn{<stop-pt?>} may be omitted. If
+but \vn{<sub_chamber_id>} and \vn{<edge-sec>} may be omitted. If
 \vn{<sub_chamber_id>} is omitted, the colon after the
-\vn{<sub_chamber_id>} may be omitted too. If \vn{<stop-pt?>} is
-omitted, the ampersand before the \vn{<stop-pt?>} may be omitted too.
+\vn{<sub_chamber_id>} may be omitted too. If \vn{<edge-sec>} is
+omitted, the ampersand before the \vn{<edge-sec>} may be omitted too.
 
 The \vn{<sub_chamber_id>} component specifies which subchamber is
 being specified.  If \vn{<sub_chamber_id>} is omitted, the subchamber
@@ -804,36 +804,52 @@ name is blank. For example, \vn{":chamC@"}, which is equivalent to
 blank. Omitting the \vn{<sub_chamber_id>} can always be done if there
 is only one subchamber.
 
-The \vn{<stop-pt?>} component specifies if a subchamber is beginning
+The \vn{<edge-sec>} component specifies if a subchamber is beginning
 or ending at a certain longitudinal position. If present,
-\vn{<stop-pt?>} must be:
+\vn{<edge-sec>} must be:
 \begin{example}
   "START" or
   "END"
-A subchamber begins with the section with \vn{<stop-pt?>} set to \vn{"START"}
-and ends with the section with \vn{<stop-pt?>} set to \vn{"END"}. Example:
-\begin{example}
-  &place section =    5, "", "left_ante:chamB@END"
-  &place section =  174, ""  "left_ante:chamA@START" /
-  &place section =  182, "", "left_ante:chamB@END"
-  &place section =  936, ""  "left_ante:chamA@START" /
 \end{example}
-In this case there are actually two subchambers, both named
-\vn{"left_ante"}.  The one subchamber begins at $s = 174$~meters and
-ends at 182~meters.  The second subchamber begins at $s =
-936$~meters, wraps around the end of the lattice back to the
-beginning, and ends at 245~meters. This is the only case where
-different subchambers can share the same name. subchambers that
-overlap longitudinally may not share the same name. That is, for every
-\vn{"START"} there must be an \vn{"END"} and following is not allowed
-since there is overlap:
+For every \vn{"START"} there must be an \vn{"END"}. A subchamber begins with the
+section with \vn{<edge-sec>} set to \vn{"START"} and ends with the section with
+\vn{<edge-sec>} set to \vn{"END"}. Example:
+\begin{example}
+  &place section =     0, "", "left_ante:chamZ"
+  &place section =     5, "", "left_ante:chamB@END"
+  &place section =   174, ""  "left_ante:chamA@START" /
+  &place section =   182, "", "left_ante:chamB@END"
+  &place section =   936, ""  "left_ante:chamA@START" /
+  &place section =  1032, ""  "left_ante:chamZ" /
+\end{example}
+In this case there are two or three subchambers, both named \vn{"left_ante"}.  One
+subchamber begins at $s = 174$~meters and ends at 182~meters. If the lattice has a
+``closed'' geometry (this is set in the lattice file, see the Bmad manual\cite{b:bmad} for
+more details), there is a second subchamber that begins at $s = 936$~meters, wraps around
+the end of the lattice back to the beginning, and ends at 5~meters. On the other hand, if
+the lattice has an ``open'' geometry, there are two other subchambers, one from $s =
+936$~meters to the end of the lattice at $s = 1032$~meters and the other from $s = 0$ to
+$s = 5$~meters.
+
+The above example shows subchambers that share the same name. Subchambers that overlap
+longitudinally may not share the same name. That is, ``nested'' start/end groups are not
+allowed since there is an ambiguity as to how to pair the cross-sections. For example, the
+following is not allowed:
+\begin{example}
   &place section =  173, ""  "left_ante:chamA@START" /
   &place section =  174, ""  "left_ante:chamA@START" /
   &place section =  182, "", "left_ante:chamB@END"
   &place section =  183, "", "left_ante:chamB@END"
 \end{example}
-A subchamber does not have to have a beginning and an ending. In this
-case, the subchamber extends along the entire length of the machine.
+
+A subchamber does not have to have a beginning and an ending. In this case, the subchamber
+extends along the entire length of the machine and the first section must be placed at $s
+= 0$ and the last section must be placed at $s$ set to the value at the end of the
+lattice.  In other words, the first cross-section of a subchamber (the one with minimal
+value of $s$), must either have $s = 0$ or have \vn{<edge-sec>} set to
+\vn{"START"}. Likewise, the last cross-section of a subchamber (the one with maximal value
+of $s$), must either have $s$ set to the value at the end of the lattice or have
+\vn{<edge-sec>} set to \vn{"END"}.
 
 The \vn{<shape_name>} component of \vn{<section_id>} identifies the
 exact shape of the cross-section. The \vn{<shape_name>} is matched
@@ -965,7 +981,7 @@ general syntax for this is:
 \begin{example}
   &place 
     section = <s>, "<section_name>", "<section_id>", <repeat_count> 
-    surface = "<surface_name>", <is_local?>
+    surface = "<surface_name>", <is_local>
   /
 \end{example} 
 The optional \vn{surface} variable is explained in \sref{ss:surface}.
@@ -1027,7 +1043,7 @@ and an associated fast subchamber, \srthree can ignore the slow subchamber and t
 photon through the fast subchamber until the photon exits the fast subchamber. Tracking
 will be quicker since there will be fewer cross-sections to stop the photon at.
 
-To associate two subchambers as a fast/slow pair, a \vn{fast_slow} namelist is used.
+To associate two subchambers as a fast/slow pair, a \vn{fast_slow} namelist instance is used.
 The syntax of this namelist is:
 \begin{example}
   &fast_slow
@@ -1035,6 +1051,9 @@ The syntax of this namelist is:
     slow = "<slow_subchamber_name>"
   /
 \end{example}
+A \vn{fast_slow} namelist instance establishes a single association. So to make multiple
+associations, multiple \vn{fast_slow} namelist instances need to be used.
+
 A subchamber can have multiple associated slow or fast subchambers. A subchamber can also
 have an associated fast subchamber and an associated slow subchamber although in practice
 this is to be avoided since it will, if anything, slow down tracking.
@@ -1158,7 +1177,7 @@ cross-section is
   &section_def 
     section = <s>, <section_name> <section_id>, <width2>, <height2>, <width2_plus>, 
               <ante_height2_plus>, <width2_minus>, <ante_height2_minus> /
-    surface = "<surface_name>", <is_local?>
+    surface = "<surface_name>", <is_local>
 \end{example}
 The first five parameters -- \vn{<s>}, \vn{<section_name>}
 \vn{<section_id>}, \vn{<width2>}, and \vn{<height2>} -- must be
@@ -1262,7 +1281,7 @@ chamber wall, the optional \vn{surface} variable is set for the
 \begin{example}
   &place
     section = ...
-    surface  = "<surface_name>", <is_local?>
+    surface  = "<surface_name>", <is_local>
   /
 \end{example}
 The \vn{<surface_name>} must match the \vn{<surface_name>} of a
@@ -1273,13 +1292,13 @@ is set to
 \end{example}
 In this case the surface is a perfect absorber.
 
-If \vn{<is_local?>} is \vn{True}, then the
+If \vn{<is_local>} is \vn{True}, then the
 surface material only spans the region from the previous cross-section
-to this one. If \vn{<is_local?>} is \vn{False} or not present, the
+to this one. If \vn{<is_local>} is \vn{False} or not present, the
 surface material spans from the closest previous cross-section where
 there is a \vn{surface} variable set to this cross-section.  If a
 \vn{place} is a \vn{multi_section} cross-section
-(\sref{ss:multi.sec}), and \vn{<is_local?>} is \vn{True} then the
+(\sref{ss:multi.sec}), and \vn{<is_local>} is \vn{True} then the
 material only spans the multi_section region.
 
 Example:

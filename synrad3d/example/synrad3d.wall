@@ -16,10 +16,10 @@
 
 &shape_def
   name = "dip1"
-  v(1) = 0.01378 0.01715 0.02200 0.02200
-  v(2) = -0.01378 0.01715
+  v(1) =  0.01378  0.01715 0.02200 0.02200
+  v(2) = -0.01378  0.01715
   v(3) = -0.01378 -0.01715 0.02200, 0.02200
-  v(4) = 0.01378 -0.01715
+  v(4) =  0.01378 -0.01715
 /
 
 &shape_def
@@ -56,8 +56,10 @@
 &place section = 14, 'z2', 'ante:z2_shape' /
 
 ! Note: The f subchamber wraps around zero.
-&place section = 1, 'f1', 'f:f_shape@END' /
-&place section = 14, 'f2', 'f:f_shape@START' /
+&place section = 0, '', 'f:z2_shape' /
+&place section = 1, '', 'f:f_shape@END' /
+&place section = 14, '', 'f:f_shape@START' /
+&place section = 14, '', 'f:z2_shape' /
 
 &slow_fast
 	slow = ''
