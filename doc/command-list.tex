@@ -1319,11 +1319,11 @@ Format:
   graph <graph_name>
   hom
   key_bindings
-  lattice \{-0undef\} \{-tracking_elements\} \{-attribute <attrib>\} \{-base\} 
+  lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
         \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
         \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} \{-radiation_integrals\} 
-        \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+        \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-tracking_elements\} \{<elements>\} 
   matrix \{-s\} \{loc1 \{loc2\}\}
   normal_form \{-order <n_order>\} <type>
   optimizer \{-geodesic_lm\}
@@ -1667,26 +1667,30 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-tracking\_elements\} \{-attribute <attrib>\} \{-base\} \\
+  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} \\
   \hspace*{0.35in} \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \\
   \hspace*{0.35in} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} \\
   \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
-  \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<element_list>\}  }] \Newline
+  \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-tracking\_elements\} \{<element_list>\}  }] \Newline
 
 Show a table of Twiss and orbit data, etc. at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
 
+The \vn{<element_list>} is optional but if it is present it must be
+at the end of the command line.
+
 By default, the appropriate element(s) within the \vn{model} lattice
 (\sref{s:universe}) are used. This can be overridden by using the
 \vn{-base} or the \vn{-design} switches which switch the lattice to
 the \vn{base} or \vn{design} lattices respectively.
 
-The \vn{-orbit} switch, if present,t will show the particle reference
-orbit which is the closed orbit if the lattice has a closed geometry
-and is the orbit beginning from the specified starting position for
-lattices with an open geometry. Use \vn{set beam_start} to vary the
+The \vn{-all} switch shows all tracking and lord elements.
+
+The \vn{-orbit} switch will show the particle reference orbit which is the closed orbit
+if the lattice has a closed geometry and is the orbit beginning from the specified
+starting position for lattices with an open geometry. Use \vn{set beam_start} to vary the
 starting position in this case.
 
 The \vn{-radiation_integrals} switch, if present, will cause the
@@ -1714,13 +1718,9 @@ longitudinal position range with \vn{-s}, or by specifying a list
 list is given in section~\sref{s:ele.list.format}.  In this case there
 should be no blank characters in the list.
 
-The \vn{-tracking_elements} switch can be used to show all the elements
-in the tracking part of the lattice. The
-\vn{<element_list>} is optional but if it is present it must be at the
-end of the command line.
-
-If neither \vn{-tracking_elements}, nor a range is given,
-the first 200 elements are shown.
+The \vn{-tracking_elements} switch can be used to show all the elements in the tracking
+part of the lattice. If neither \vn{-tracking_elements}, nor a range is given, the first
+200 elements are shown.
 
 To customize the output use the command \vn{show lattice -custom
 <file_name>}. A customization file looks like:

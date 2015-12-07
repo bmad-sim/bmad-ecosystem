@@ -1643,7 +1643,7 @@ case ('lattice')
         '-tracking_elements  ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
-        '-attribute          '], switch, err, ix_s2)
+        '-attribute          ', '-all                '], switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1652,6 +1652,9 @@ case ('lattice')
       undef_str = '  0'
 
     case ('-tracking_elements')
+      show_lords = .false.
+
+    case ('-all')
       all_lat = .true. 
 
     case ('-attribute')
@@ -1913,9 +1916,8 @@ case ('lattice')
     picked_ele(0:branch%n_ele_track) = .false.
     picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .true.
   else
-    picked_ele(0:branch%n_ele_max) = .true.
-    !! picked_ele(0:branch%n_ele_track) = .true.
-    !! picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
+    picked_ele(0:branch%n_ele_track) = .true.
+    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
   endif
 
   if (by_s) then
