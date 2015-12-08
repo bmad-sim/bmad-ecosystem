@@ -3076,7 +3076,7 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
@@ -3100,6 +3100,11 @@ case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
 case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
+if (present(tracking_species)) then
+  rel_charge = charge_of(tracking_species) / charge_of(param%particle)
+else
+  rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
+endif
 
 leng = ele%value(l$)
 
@@ -3408,7 +3413,7 @@ if (associated(ele%a_pole_elec)) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
-  fh = 1d-9 / VOLT_C
+  fh = sign_of(charge_of(param%particle)) * 1d-9 / VOLT_C
   do i = 0, ubound(ele%a_pole_elec, 1)
     if (ele%a_pole_elec(i) /= 0) call add (ptc_fibre, -(i+1), 0, fh*ele%a_pole_elec(i), electric = .true.)
     if (ele%b_pole_elec(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*ele%b_pole_elec(i), electric = .true.)
@@ -3525,11 +3530,7 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
-if (present(tracking_species)) then
-  ptc_fibre%charge = charge_of(tracking_species) / charge_of(param%particle)
-else
-  ptc_fibre%charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
-endif
+ptc_fibre%charge = rel_charge
 
 end subroutine ele_to_fibre
 

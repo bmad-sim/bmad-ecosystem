@@ -647,12 +647,12 @@ case (bmad_standard$)
     do i = 0, n_pole_maxx
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
       if (df_calc) then
-        call ab_multipole_kick(a_pole(i)/ref_charge, b_pole(i)/ref_charge, i, local_orb, kx, ky, dkm)
+        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
       else
-        call ab_multipole_kick(a_pole(i)/ref_charge, b_pole(i)/ref_charge, i, local_orb, kx, ky)
+        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
       endif
-      field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
-      field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)
+      field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
+      field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
       if (df_calc) then
         field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
         field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
@@ -671,8 +671,8 @@ case (bmad_standard$)
     do i = 0, n_pole_maxx
       if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
       call elec_multipole_field(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, kx, ky, dkm, df_calc)
-      field%E(1) = field%E(1) + kx
-      field%E(2) = field%E(2) + ky
+      field%E(1) = field%E(1) - kx
+      field%E(2) = field%E(2) - ky
       if (df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
     enddo
 

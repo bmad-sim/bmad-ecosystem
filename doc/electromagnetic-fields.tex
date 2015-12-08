@@ -6,38 +6,32 @@
 \index{magnetic fields|hyperbf}
 
 \index{MAD}
-Start with the assumption that the local magnetic field has no
-longitudinal component (obviously this assumption does not work with,
-say, a solenoid).  Following \mad, the vertical magnetic field along
-the $y = 0$ axis is expanded in a Taylor series
+Start with the assumption that the local magnetic field has no longitudinal component
+(obviously this assumption does not work with, say, a solenoid).  Following \mad, ignoring
+skew fields for the moment, the vertical magnetic field along the $y = 0$ axis is expanded
+in a Taylor series
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
   \label{byx0b}
 \Endeq
-This is not the most
-general form for the magnetic field. Essentially all of the skew
-components have been ignored here. Assuming that the
-reference orbit is locally straight (there are correction terms if the
-Reference Orbit is locally curved), the field up to $3^{rd}$ order is
+Assuming that the reference orbit is locally straight (there are correction terms if the
+Reference Orbit is curved), the field is
 \begin{alignat}{5}
   B_x &=           &&B_1 y \plus         &&B_2 \, xy       
                    && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
   B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) 
                    && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
-The normalized integrated multipole $K_nL$ is used when specifying magnetic
-multipole components
+For some fields, the normalized integrated multipole $K_nL$ can be used when specifying
+magnetic multipole components
 \index{multipole!KnL, Tn|hyperbf}
 \Begineq
   K_nL \equiv \frac{q \, L \, B_n}{P_0}
 \Endeq
-$L \, B_n$ is the integrated multipole component over a length $L$,
-and $P_0$ is the reference momentum. Note that $P_0/q$ is sometimes
-written as $B\rho$. This is just an old notation where $\rho$ is the
-bending radius of a particle with the reference energy in a field of
-strength $B$. [Note: If $q$ is in Coulombs, $P_0$ is in
-kg*m/sec. If $q$ is in units of the elementary charge, $P_0$ is in
-eV/c_light.]
+where $q$ is the charge of the reference particle (in units of the elementary charge), $L$
+is the element length, and $P_0$ is the reference momentum (in units of eV/c).  Note that
+$P_0/q$ is sometimes written as $B\rho$. This is just an old notation where $\rho$ is the
+bending radius of a particle with the reference energy in a field of strength $B$.
 
 The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is
@@ -178,9 +172,9 @@ non-multipole elements.
 \label{s:elec.field}
 \index{electric fields}
 
-Except for the \vn{elseparator} element, \bmad specifies DC electric
-fields using normal $b_{en}$ and skew $a_{en}$ components. The
-potential $\phi_n$ for the $n$\Th\ order multipole is
+Except for the \vn{elseparator} element, \bmad specifies DC electric fields using normal
+$b_{en}$ and skew $a_{en}$ components (\sref{s:multip}. The potential $\phi_n$ for the
+$n$\Th\ order multipole is
 \Begineq
   \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, (x + i y)^{n+1} \right]
 \Endeq
@@ -189,9 +183,9 @@ multipole is
 \Begineq
   E_x - i E_y = (b_{en} - i a_{en}) \, (x + i y)^n
 \Endeq
-Notice that the magnetic multipole components $a_n$ and $b_n$ are
-normalized by the element length and reference momentum (\Eq{qlpbb})
-while their electric counterparts are not.
+Notice that the magnetic multipole components $a_n$ and $b_n$ are normalized by the
+element length, reference charge, and reference momentum (\Eq{qlpbb}) while their electric
+counterparts are not.
 
 Using the paraxial approximation, The kick given a particle due to the electric field is
 \Begineq

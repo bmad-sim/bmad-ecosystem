@@ -76,7 +76,7 @@ type (lat_param_struct) param
 type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
-real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
+real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f
 real(rp) angle, z_rel_center, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
 real(rp) rot(3), dr(3), rel_tracking_charge, rtc
@@ -222,7 +222,8 @@ if (set) then
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
-    if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
+    f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
+    if (has_nonzero_pole) call multipole_kicks (f*knl, tilt, coord)
   endif
 
   ! Set: Tilt & Roll
@@ -263,7 +264,6 @@ if (set) then
       coord%vec(4) = pvec(2)
       coord%vec(5) = coord%vec(5) + off(3) * E_rel / pvec(3) 
       coord%t = coord%t - off(3) * E_rel / (pvec(3) * c_light * coord%beta)
-
     endif
 
   endif
@@ -353,9 +353,10 @@ else
 
   if (set_multi) then
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
-    endif
+    if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
+    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
+    f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
+    if (has_nonzero_pole) call multipole_kicks (f * knl, tilt, coord)
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
