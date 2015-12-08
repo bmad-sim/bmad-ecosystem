@@ -3442,13 +3442,16 @@ integer ix_word, n_slave, i, j, k
                            
 character(1) delim
 character(40) word_in, word
-character(40) name(200), attrib_name(200)
-character(200) expression(200), err_str
+character(40), allocatable :: name(:), attrib_name(:)
+character(200), allocatable :: expression(:)
+character(200) err_str
 
 logical, optional :: use_control_var
 logical delim_found, err_flag, end_of_file, to_cv
 
 !
+
+allocate (name(40), attrib_name(40), expression(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
 if (delim /= '{' .or. ix_word /= 0) call parser_error  &
@@ -3472,6 +3475,12 @@ do
 
   n_slave = n_slave + 1
   word = word_in
+
+  if (n_slave > size(name)) then
+    call re_allocate(name, 2*n_slave)
+    call re_allocate(attrib_name, 2*n_slave)
+    call re_allocate(expression, 2*n_slave)
+  endif
 
   j = index(word, '[')
   if (j > 1) then

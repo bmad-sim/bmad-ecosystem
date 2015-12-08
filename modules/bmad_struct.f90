@@ -168,6 +168,8 @@ integer, parameter :: num_ele_attrib$ = 80
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
 
+integer, parameter :: magnetic$ = 1, electric$ = 2
+
 ! Diffraction
 
 integer, parameter :: bragg_diffracted$ = 1, forward_diffracted$ = 2, undiffracted$ = 3
