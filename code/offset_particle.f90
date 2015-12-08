@@ -220,9 +220,9 @@ if (set) then
 
   if (set_multi) then
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
-    endif
+    if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
+    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
+    if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
   endif
 
   ! Set: Tilt & Roll

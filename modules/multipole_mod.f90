@@ -2,6 +2,8 @@ module multipole_mod
 
 use bmad_utils_mod
 
+implicit none
+
 contains
 
 !------------------------------------------------------------------------
@@ -26,8 +28,6 @@ contains
 !-
 
 subroutine multipole_ab_to_kt (an, bn, knl, tn)
-
-implicit none
 
 real(rp) an(0:), bn(0:)
 real(rp) knl(0:), tn(0:)
@@ -66,8 +66,6 @@ end subroutine multipole_ab_to_kt
 
 subroutine multipole1_ab_to_kt (an, bn, n, knl, tn)
 
-implicit none
-
 real(rp) an, bn, knl, tn
 
 integer n
@@ -93,7 +91,7 @@ end subroutine multipole1_ab_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)
+! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
@@ -108,9 +106,10 @@ end subroutine multipole1_ab_to_kt
 !   use bmad
 !
 ! Input:
-!   ele          -- Ele_struct: Multipole element.
+!   ele          -- Ele_struct: Lattice element.
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations. 
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
+!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !
 ! Output:
 !   has_nonzero_pole    -- Logical: Set True if there is a nonzero pole. False otherwise.
@@ -118,9 +117,7 @@ end subroutine multipole1_ab_to_kt
 !   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)
-
-implicit none
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -128,7 +125,9 @@ type (ele_struct), pointer :: lord
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp) tilt1
+real(rp), pointer :: a_pole(:), b_pole(:)
 
+integer, optional :: pole_type
 integer i
 
 logical use_ele_tilt, has_nonzero_pole
@@ -137,15 +136,17 @@ logical has_nonzero
 ! Init
 
 has_nonzero_pole = .false.
+call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
 
 ! Note: For multipoles, use_ele_tilt arg is ignored.
-! Slice slaves and super slaves have their associated multipoles stored in the lord
+! Slice slaves and super slaves have their associated multipoles stored in the lord.
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (.not. associated(lord%a_pole)) cycle
-    call multipole_ele_to_ab (lord, use_ele_tilt, has_nonzero, this_a, this_b)
+    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
+    if (.not. associated(a_pole)) cycle
+    call multipole_ele_to_ab (lord, use_ele_tilt, has_nonzero, this_a, this_b, pole_type)
     if (.not. has_nonzero) cycle
     if (has_nonzero_pole) then
       a = a + this_a * (ele%value(l$) / lord%value(l$))
@@ -160,14 +161,14 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 ! Not a slave
 
 else
-  if (.not. associated(ele%a_pole)) return
+  if (.not. associated(a_pole)) return
   if (ele%key == multipole$) then
-    knl  = ele%a_pole
-    tilt = ele%b_pole + ele%value(tilt_tot$)
+    knl  = a_pole
+    tilt = b_pole + ele%value(tilt_tot$)
     if (any(knl /= 0)) has_nonzero_pole = .true.
     return
   else
-    call multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
+    call multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
   endif
 endif
 
@@ -175,9 +176,6 @@ endif
 
 if (has_nonzero_pole) then
   call multipole_ab_to_kt (a, b, knl, tilt)
-else
-  !! knl = 0
-  !! tilt = 0
 endif
 
 end subroutine multipole_ele_to_kt
@@ -204,8 +202,6 @@ end subroutine multipole_ele_to_kt
 !-
 
 subroutine multipole_kt_to_ab (knl, tn, an, bn)
-
-implicit none
 
 real(rp) an(0:), bn(0:)
 real(rp) knl(0:), tn(0:)
@@ -244,8 +240,6 @@ end subroutine multipole_kt_to_ab
 
 subroutine multipole1_kt_to_ab (knl, tn, n, an, bn)
 
-implicit none
-
 real(rp) an, bn
 real(rp) knl, tn
 real(rp) angle, kl
@@ -270,7 +264,7 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -279,20 +273,19 @@ end subroutine multipole1_kt_to_ab
 !   use bmad
 !
 ! Input:
-!   ele          -- Ele_struct: Element.
+!   ele          -- ele_struct: Element.
 !     %value()     -- ab_multipole values.
-!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations.
+!   use_ele_tilt -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
+!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !
 ! Output:
-!   has_nonzero_pole -- Logical: Set True if there is a nonzero pole. False otherwise.
-!   a(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
-!   b(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
+!   has_nonzero_pole -- logical: Set True if there is a nonzero pole. False otherwise.
+!   a(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
+!   b(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
-
-implicit none
+subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -300,7 +293,9 @@ type (ele_struct), pointer :: lord
 real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, cos_t, sin_t
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+real(rp), pointer :: a_pole(:), b_pole(:)
 
+integer, optional :: pole_type
 integer i, ref_exp, n
 
 logical use_ele_tilt, has_nonzero_pole
@@ -313,12 +308,14 @@ a = 0
 b = 0
 has_nonzero_pole = .false.
 
+call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+
 ! Multipole type element case. Note: use_ele_tilt is ignored in this case.
 
 if (ele%key == multipole$) then
-  if (all(ele%a_pole == 0)) return
+  if (all(a_pole == 0)) return
   has_nonzero_pole = .true.
-  call multipole_kt_to_ab (ele%a_pole, ele%b_pole, a, b)
+  call multipole_kt_to_ab (a_pole, b_pole, a, b)
   return
 endif
 
@@ -329,14 +326,16 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
-    if (.not. associated(lord%a_pole)) cycle
+    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
+    if (.not. associated(a_pole)) cycle
+
     if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
     call convert_this_ab (lord, this_a, this_b)
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
 else
-  if (.not. associated(ele%a_pole)) return
+  if (.not. associated(a_pole)) return
   if (.not. (ele%multipoles_on .and. ele%is_on)) return
   call convert_this_ab (ele, a, b)
 endif
@@ -354,8 +353,8 @@ logical a, b ! protect symbols
 
 !
 
-this_a = this_ele%a_pole
-this_b = this_ele%b_pole
+this_a = a_pole
+this_b = b_pole
 
 ! all zero then we do not need to scale.
 ! Also if scaling is turned off
@@ -381,6 +380,7 @@ endif
 ! radius = 0 defaults to radius = 1
 
 if (.not. this_ele%scale_multipoles) return
+if (integer_option(magnetic$, pole_type) == electric$) return
 
 radius = this_ele%value(radius$)
 if (radius == 0) radius = 1
@@ -473,8 +473,6 @@ end subroutine multipole_ele_to_ab
 
 subroutine multipole_kicks (knl, tilt, coord, ref_orb_offset)
 
-implicit none
-
 type (coord_struct)  coord
 
 real(rp) knl(0:), tilt(0:)
@@ -521,8 +519,6 @@ end subroutine multipole_kicks
 !-
 
 subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
-
-implicit none
 
 type (coord_struct)  coord
 
@@ -623,8 +619,6 @@ end subroutine multipole_kick
 
 subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
 
-implicit none
-
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
@@ -719,8 +713,6 @@ end subroutine ab_multipole_kick
 
 subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)
 
-implicit none
-
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
@@ -789,5 +781,48 @@ if (compute) then
 endif
 
 end subroutine elec_multipole_field
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+!
+! Routine to point to the appropriate magnetic or electric poles in an element.
+!
+! Input:
+!   ele          -- Ele_struct: Lattice element.
+!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!
+! Output:
+!   a_pole(:)    -- real(rp), pointer: Pointer to skew electric or magnetic poles.
+!   b_pole(:)    -- real(rp), pointer: Pointer to normal electric or magnetic poles.
+!-
+
+subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+
+type (ele_struct), target :: ele
+
+real(rp), pointer :: a_pole(:), b_pole(:)
+integer, optional :: pole_type
+
+!
+
+select case (integer_option(magnetic$, pole_type))
+case (magnetic$)
+  a_pole => ele%a_pole
+  b_pole => ele%b_pole
+
+case (electric$)
+  if (ele%key == multipole$) then
+    a_pole => null()   ! Multipoles do not have electric fields.
+    b_pole => null()
+  else
+    a_pole => ele%a_pole_elec
+    b_pole => ele%b_pole_elec
+  endif
+end select
+
+end subroutine pointer_to_ele_multipole
 
 end module

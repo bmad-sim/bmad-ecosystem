@@ -614,10 +614,9 @@ do i = 1, n_key$
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
                                    'B16', 'B17', 'B18', 'B19', 'B20', 'B21']
     attrib_array(i, a0$:b21$)%type = is_free$
-    if (i == ab_multipole$) cycle
     if (i == sad_mult$) cycle
-    call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
     call init_attribute_name1 (i, multipoles_on$,     'MULTIPOLES_ON')
+    if (i == multipole$) cycle
     attrib_array(i, a0_elec$:a21_elec$)%name = ['A0_ELEC ', &
                                     'A1_ELEC ', 'A2_ELEC ', 'A3_ELEC ', 'A4_ELEC ', 'A5_ELEC ', & 
                                     'A6_ELEC ', 'A7_ELEC ', 'A8_ELEC ', 'A9_ELEC ', 'A10_ELEC', &
@@ -628,6 +627,8 @@ do i = 1, n_key$
                                     'B6_ELEC ', 'B7_ELEC ', 'B8_ELEC ', 'B9_ELEC ', 'B10_ELEC', &
                                     'B11_ELEC', 'B12_ELEC', 'B13_ELEC', 'B14_ELEC', 'B15_ELEC', &
                                     'B16_ELEC', 'B17_ELEC', 'B18_ELEC', 'B19_ELEC', 'B20_ELEC', 'B21_ELEC']
+    if (i == ab_multipole$) cycle
+    call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
   end select
 enddo
 

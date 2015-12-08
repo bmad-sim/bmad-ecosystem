@@ -1942,6 +1942,8 @@ Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \begin{example}
   q1: quadrupole, l = 1.2, b2_elec = 1e6
 \end{example}
+Electric multipoles are never scalled by the element's field strength as they are with
+magnetic multipoles.
 
 \index{multipoles_on}
 The multipole kick can be toggled on or off using the
@@ -1950,6 +1952,9 @@ The multipole kick can be toggled on or off using the
   call, file = 'lattice.bmad'          ! Read in a lattice file
   quadrupole::*[multipoles_on] = False     ! But I want
 \end{example}
+The exception is \vn{multipole} and \vn{ab_multipole} elements do not have the
+\vn{mulipoles_on} attribute. Rather they can be toggles on/off using the \vn{is_on}
+attribute.
 
 %-----------------------------------------------------------------
 \section{EM Fields -- Grids and Maps}
