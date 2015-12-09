@@ -1616,6 +1616,7 @@ case ('key_bindings')
 
 case ('lattice')
 
+  print_slaves = .true.
   limited = .false.
   all_lat = .false.
   at_ends = .true.
@@ -1643,7 +1644,7 @@ case ('lattice')
         '-tracking_elements  ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
-        '-attribute          ', '-all                '], switch, err, ix_s2)
+        '-attribute          ', '-all                ', '-no_slaves          '], switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1713,6 +1714,9 @@ case ('lattice')
     case ('-no_label_lines')
       print_header_lines = .false.
       print_tail_lines = .false.
+
+    case ('-no_slaves')
+      print_slaves = .false.
 
     case ('-no_tail_lines')
       print_tail_lines = .false.
@@ -1963,6 +1967,15 @@ case ('lattice')
       limited = .true.
     endif
 
+  endif
+
+  !
+
+  if (.not. print_slaves) then
+    do ie = 0, branch%n_ele_max
+      ele => branch%ele(ie)
+      if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) picked_ele(ie) = .false.
+    enddo
   endif
 
   !
