@@ -109,7 +109,7 @@ For example, a normal quadrupole rotated by $45^\circ$ becomes a
 skew quadrupole.
 
 \index{ab_multipole}
-\index{radius}
+\index{r0_mag}
 The $a_n$, $b_n$ representation of multipole fields is in
 \vn{AB_Multipole} elements (\sref{s:ab.m}) as well as in other types
 of elements such as quadrupoles, sextupoles, etc. This allows error
@@ -129,7 +129,7 @@ is
 $a_n(\text{input})$ and $b_n(\text{input})$ are the multipole values as given in the
 lattice file. $a_n(\text{actual})$ and $b_n(\text{actual})$ are the multipole values
 that are used in any simulation calculations. $r_0$ is set by the
-\vn{radius} attribute of an element. $F$ and $n_\text{ref}$ are set
+\vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ are set
 automatically depending upon the type of element as shown in
 Table~\ref{t:ab}.
 
@@ -176,12 +176,13 @@ Except for the \vn{elseparator} element, \bmad specifies DC electric fields usin
 $b_{en}$ and skew $a_{en}$ components (\sref{s:multip}. The potential $\phi_n$ for the
 $n$\Th\ order multipole is
 \Begineq
-  \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, (x + i y)^{n+1} \right]
+  \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, frac{(x + i y)^{n+1}}{r_0^n} \right]
 \Endeq
-and the electric field for the $n$\Th order
-multipole is
+where $r_0$ is a ``measurement radius'' set by the \vn{r0_elec} attribute of an element (\sref{mulltip}).
+
+The electric field for the $n$\Th order multipole is
 \Begineq
-  E_x - i E_y = (b_{en} - i a_{en}) \, (x + i y)^n
+  E_x - i E_y = (b_{en} - i a_{en}) \, \frac{(x + i y)^n}{r_0^n}
 \Endeq
 Notice that the magnetic multipole components $a_n$ and $b_n$ are normalized by the
 element length, reference charge, and reference momentum (\Eq{qlpbb}) while their electric

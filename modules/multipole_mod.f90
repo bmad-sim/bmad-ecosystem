@@ -380,10 +380,18 @@ endif
 ! radius = 0 defaults to radius = 1
 
 if (.not. this_ele%scale_multipoles) return
-if (integer_option(magnetic$, pole_type) == electric$) return
-
-radius = this_ele%value(radius$)
-if (radius == 0) radius = 1
+if (integer_option(magnetic$, pole_type) == electric$) then
+  radius = this_ele%value(r0_elec$)
+  if (radius /= 0) then
+    factor = radius
+    do n = 0, n_pole_maxx
+      factor = factor / radius
+      this_a(n) = factor * this_a(n)
+      this_b(n) = factor * this_b(n)
+    enddo
+  endif
+  return
+endif
 
 ! normal case...
 
@@ -434,11 +442,19 @@ end select
 
 ! scale multipole values
 
-do n = 0, n_pole_maxx
-  factor = const * radius ** (ref_exp - n)
-  this_a(n) = factor * this_a(n)
-  this_b(n) = factor * this_b(n)
-enddo
+radius = this_ele%value(r0_mag$)
+if (radius == 0) then
+  this_a = const * this_a
+  this_b = const * this_b
+
+else
+  factor = const * radius**(ref_exp+1)
+  do n = 0, n_pole_maxx
+    factor = factor / radius
+    this_a(n) = factor * this_a(n)
+    this_b(n) = factor * this_b(n)
+  enddo
+endif
 
 end subroutine convert_this_ab
 
@@ -448,7 +464,7 @@ end subroutine multipole_ele_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kicks (knl, tilt, coord, ref_orb_offset)
+! Subroutine multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
 !
@@ -456,22 +472,23 @@ end subroutine multipole_ele_to_ab
 !   use bmad
 !                          
 ! Input:
-!   knl(0:)        -- Real(rp): Multipole strengths (mad units).
-!   tilt(0:)       -- Real(rp): Multipole tilts.
-!   coord          -- Coord_struct:
+!   knl(0:)        -- real(rp): Multipole strengths (mad units).
+!   tilt(0:)       -- real(rp): Multipole tilts.
+!   coord          -- coord_struct:
 !     %vec(1)          -- X position.
 !     %vec(3)          -- Y position.
-!   ref_orb_offset -- Logical, optional: If present and n = 0 then the
+!   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   ref_orb_offset -- logical, optional: If present and n = 0 then the
 !                       multipole simulates a zero length bend with bending
 !                       angle knl.
 !
 ! Output:
-!   coord -- Coord_struct: 
+!   coord -- coord_struct: 
 !     %vec(2) -- X kick.
 !     %vec(4) -- Y kick.
 !-
 
-subroutine multipole_kicks (knl, tilt, coord, ref_orb_offset)
+subroutine multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)
 
 type (coord_struct)  coord
 
@@ -479,13 +496,14 @@ real(rp) knl(0:), tilt(0:)
 
 integer n
 
+integer, optional :: pole_type
 logical, optional :: ref_orb_offset
 
 !
 
 do n = 0, n_pole_maxx
   if (knl(n) == 0) cycle
-  call multipole_kick (knl(n), tilt(n), n, coord, ref_orb_offset)
+  call multipole_kick (knl(n), tilt(n), n, coord, pole_type, ref_orb_offset)
 enddo
 
 end subroutine multipole_kicks
@@ -494,7 +512,7 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
+! Subroutine multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
 !
@@ -502,36 +520,38 @@ end subroutine multipole_kicks
 !   use bmad
 !                          
 ! Input:
-!   knl   -- Real(rp): Multipole strength (mad units).
-!   tilt  -- Real(rp): Multipole tilt.
-!   n     -- Real(rp): Multipole order.
-!   coord -- Coord_struct:
-!     %vec(1)     -- X position.
-!     %vec(3)     -- Y position.
-!   ref_orb_offset -- Logical, optional: If present and n = 0 then the
+!   knl            -- real(rp): Multipole strength (mad units).
+!   tilt           -- real(rp): Multipole tilt.
+!   n              -- real(rp): Multipole order.
+!   coord          -- coord_struct:
+!     %vec(1)         -- X position.
+!     %vec(3)         -- Y position.
+!   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   ref_orb_offset -- logical, optional: If present and n = 0 then the
 !                       multipole simulates a zero length bend with bending
 !                       angle knl.
 !
 ! Output:
-!   coord -- Coord_struct: 
+!   coord -- coord_struct: 
 !     %vec(2) -- X kick.
 !     %vec(4) -- Y kick.
 !-
 
-subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
+subroutine multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)
 
-type (coord_struct)  coord
+type (coord_struct) coord
 
 real(rp) knl, tilt, x, y, sin_ang, cos_ang
 real(rp) x_vel, y_vel
 real(rp) x_value, y_value
-real(rp) cval
+real(rp) cval, rp_dummy, t
 real(rp) x_terms(0:n)
 real(rp) y_terms(0:n)
-real(rp), SAVE :: cc(0:n_pole_maxx, 0:n_pole_maxx)
-real(rp) rp_dummy
+real(rp), save :: cc(0:n_pole_maxx, 0:n_pole_maxx)
 
-LOGICAL, SAVE :: first_call = .true.
+logical, save :: first_call = .true.
+
+integer, optional :: pole_type
 integer n, m
 
 logical, optional :: ref_orb_offset
@@ -542,14 +562,17 @@ if (knl == 0) return
 
 ! normal case
 
-if (tilt == 0) then
+t = tilt
+if (integer_option(magnetic$, pole_type) == electric$) t = pi/(n+1) - t
+
+if (t == 0) then
   sin_ang = 0
   cos_ang = 1
   x = coord%vec(1)
   y = coord%vec(3)
 else
-  sin_ang = sin(tilt)
-  cos_ang = cos(tilt)
+  sin_ang = sin(t)
+  cos_ang = cos(t)
   x =  coord%vec(1) * cos_ang + coord%vec(3) * sin_ang
   y = -coord%vec(1) * sin_ang + coord%vec(3) * cos_ang
 endif
@@ -567,16 +590,16 @@ endif
 
 x_terms(n)=1.0
 y_terms(0)=1.0
-do m=1,n
+do m = 1, n
   x_terms(n-m) = x_terms(n-m+1)*x
   y_terms(m) = y_terms(m-1)*y
 enddo
 
-IF( first_call ) THEN
-  !populate cc 
+if (first_call) then
+  ! populate cc 
   rp_dummy = c_multi(0,0,c_full=cc)
   first_call = .false.
-ENDIF
+endif
 
 x_value = SUM(cc(n,0:n:2) * x_terms(0:n:2) * y_terms(0:n:2))
 y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
@@ -584,7 +607,7 @@ y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
 x_vel = knl * x_value
 y_vel = knl * y_value
 
-if (tilt == 0) then
+if (t == 0) then
   coord%vec(2) = coord%vec(2) + x_vel
   coord%vec(4) = coord%vec(4) + y_vel
 else
@@ -598,7 +621,7 @@ end subroutine multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
+! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
 !
@@ -606,10 +629,11 @@ end subroutine multipole_kick
 !   use bmad
 !                          
 ! Input:
-!   a     -- Real(rp): Multipole skew component.
-!   b     -- Real(rp): Multipole normal component.
-!   n     -- Real(rp): Multipole order.
-!   coord -- Coord_struct:
+!   a         -- Real(rp): Multipole skew component.
+!   b         -- Real(rp): Multipole normal component.
+!   n         -- Real(rp): Multipole order.
+!   coord     -- Coord_struct:
+!   pole_type -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !
 ! Output:
 !   kx      -- Real(rp): X kick.
@@ -617,15 +641,15 @@ end subroutine multipole_kick
 !   dk(2,2) -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
 !-
 
-subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
+subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)
 
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
 real(rp), optional :: dk(2,2)
-real(rp) kx, ky, f
+real(rp) kx, ky, f, b2
 
-
+integer, optional :: pole_type
 integer n, m, n1
 
 ! Init
@@ -642,19 +666,22 @@ if (a == 0 .and. b == 0) return
 ! normal case
 ! Note that c_multi can be + or -
 
+b2 = b
+if (integer_option(magnetic$, pole_type) == electric$) b2 = -b2
+
 x = coord%vec(1)
 y = coord%vec(3)
 
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + b * f
+  kx = kx + b2 * f
   ky = ky - a * f
 enddo
 
 do m = 1, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
   kx = kx + a * f
-  ky = ky + b * f
+  ky = ky + b2 * f
 enddo
 
 ! dk calc
@@ -665,21 +692,21 @@ if (present(dk)) then
   
   do m = 0, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,1) = dk(1,1) + b * f
+    dk(1,1) = dk(1,1) + b2 * f
     dk(2,1) = dk(2,1) - a * f
 
     dk(1,2) = dk(1,2) - a * f
-    dk(2,2) = dk(2,2) - b * f
+    dk(2,2) = dk(2,2) - b2 * f
   enddo
 
 
   do m = 1, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,2) = dk(1,2) + b * f
+    dk(1,2) = dk(1,2) + b2 * f
     dk(2,2) = dk(2,2) - a * f
 
     dk(1,1) = dk(1,1) + a * f
-    dk(2,1) = dk(2,1) + b * f
+    dk(2,1) = dk(2,1) + b2 * f
   enddo
 
 endif
