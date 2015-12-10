@@ -187,7 +187,7 @@ type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
-real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
+real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
@@ -670,9 +670,9 @@ case (bmad_standard$)
 
     do i = 0, n_pole_maxx
       if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
-      call elec_multipole_field(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, kx, ky, dkm, df_calc)
-      field%E(1) = field%E(1) - kx
-      field%E(2) = field%E(2) - ky
+      call elec_multipole_field(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, Ex, Ey, dkm, df_calc)
+      field%E(1) = field%E(1) + Ex
+      field%E(2) = field%E(2) + Ey
       if (df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
     enddo
 

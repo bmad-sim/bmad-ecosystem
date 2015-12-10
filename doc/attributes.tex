@@ -1918,7 +1918,7 @@ Here \vn{n} ranges from 0 (dipole component) through 21. Example:
   q1: ab_multipole, b2 = 0.12, a20 = 1e7
 \end{example}
 
-\index{radius}\index{scale_multipoles}
+\index{r0_mag}\index{scale_multipoles}
 Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned
 to them both magnetic and electric multipole fields. In this case, the
 magnetic fields are specified using the same convention as the
@@ -1926,8 +1926,8 @@ magnetic fields are specified using the same convention as the
 strength is scaled by a factor $F \, r_0^{n_\text{ref}} / r_0^n$
 (cf.~\Eq{ababf}) where $F$ is the strength of the element (for example
 $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the ``measurement
-radius'' and is set by the \vn{radius} attribute. The default value of
-$r_0$, if the \vn{radius} is not given, is 1.0.  This behavior may be
+radius'' and is set by the \vn{r0_mag} attribute. The default value of
+$r_0$, if the \vn{r0_mag} is not given, is 1.0.  This behavior may be
 turned off by setting the \vn{scale_multipoles} attribute.  Example:
 \begin{example}
   q1: quadrupole, b2 = 0.12, a20 = 1e7, scale_multipoles = F
@@ -1938,9 +1938,12 @@ Electric multipoles are specified using normal (\vn{Bn_elec}) and skew
   An_elec = <Real>
   Bn_elec = <Real>
 \end{example}
-Here \vn{n} ranges from 0 (dipole component) through 21. Example:
+Here \vn{n} ranges from 0 (dipole component) through 21. Like the magnetic multipoles, 
+a measurement radius \vn{r0_elec} can be used to scale the multipoles as explained in 
+\sref{s:elec.field}.
+Example:
 \begin{example}
-  q1: quadrupole, l = 1.2, b2_elec = 1e6
+  q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
 \end{example}
 See \sec{s:elec.field} for how electric multipoles are defined.
 

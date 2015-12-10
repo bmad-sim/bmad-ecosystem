@@ -1031,16 +1031,16 @@ integer, parameter :: x_offset_tot$ = 57
 integer, parameter :: y_offset_tot$ = 58
 integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
-integer, parameter :: pole_radius$ = 61, ref_tilt_tot$ = 61
+integer, parameter :: ref_tilt_tot$ = 61
 integer, parameter :: n_ref_pass$ = 62
-integer, parameter :: radius$ = 63
+integer, parameter :: r0_mag$ = 63
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 66
 integer, parameter :: ds_step$ = 67
 integer, parameter :: lord_pad1$ = 68
 integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
-integer, parameter :: scratch$ = 70
+integer, parameter :: r0_elec$ = 70
 integer, parameter :: custom_attribute1$ = 71   ! Assumed unique. Do not overload.
 integer, parameter :: custom_attribute2$ = 72   ! Assumed unique. Do not overload.
 integer, parameter :: custom_attribute3$ = 73   ! Assumed unique. Do not overload.

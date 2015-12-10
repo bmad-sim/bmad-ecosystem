@@ -223,7 +223,7 @@ if (set) then
     if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
     f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
-    if (has_nonzero_pole) call multipole_kicks (f*knl, tilt, coord)
+    if (has_nonzero_pole) call multipole_kicks (f*knl, tilt, coord, electric$)
   endif
 
   ! Set: Tilt & Roll
@@ -356,7 +356,7 @@ else
     if (has_nonzero_pole) call multipole_kicks (knl*charge_dir/2, tilt, coord)
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
     f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
-    if (has_nonzero_pole) call multipole_kicks (f * knl, tilt, coord)
+    if (has_nonzero_pole) call multipole_kicks (f * knl, tilt, coord, electric$)
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.

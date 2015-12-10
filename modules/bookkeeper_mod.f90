@@ -2699,7 +2699,6 @@ offset_mask = .not. v_mask
 v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
 
 dval = abs(val - ele%old_value)
-dval(scratch$) = 0
 dval_change = (dval > small_rel_change$ * abs(val))
 ! delta_ref_time can have relatively large changes since this is computed 
 ! as an absolute time difference. Also it is a dependent attribute.
@@ -3517,7 +3516,6 @@ endif
 dv = abs(ele%value - ele%old_value)
 dv(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
 dv(custom_attribute1$:custom_attribute_max$) = 0
-dv(scratch$) = 0
 if (present(dval)) dval = dv
 
 if (all(dv == 0) .and. ele%key /= capillary$) then

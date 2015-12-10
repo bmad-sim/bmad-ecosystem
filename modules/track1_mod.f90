@@ -1133,9 +1133,9 @@ if (associated(hard_ele%a_pole_elec)) then
     if (hard_ele%a_pole_elec(i) == 0 .and. hard_ele%b_pole_elec(i) == 0) cycle
     phi = -real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i)) * xiy) / (i + 1)
     if (particle_at == first_track_edge$) then
-      orb%vec(6) = orb%vec(6) - phi / orb%p0c
+      orb%vec(6) = orb%vec(6) - charge_of(orb%species) * phi / orb%p0c
     else
-      orb%vec(6) = orb%vec(6) + phi / orb%p0c
+      orb%vec(6) = orb%vec(6) + charge_of(orb%species) * phi / orb%p0c
     endif
   enddo
 endif

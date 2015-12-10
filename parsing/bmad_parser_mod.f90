@@ -535,6 +535,13 @@ if (word == 'REL_TRACKING_CHARGE') then
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
 endif
 
+if (word == 'RADIUS') then
+  call parser_error ('THE ATTRIBUTE "RADIUS" HAS BEEN CHANGED TO "R0_MAG"', &
+                     'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
+                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
+  word = 'R0_MAG'
+endif
+
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
