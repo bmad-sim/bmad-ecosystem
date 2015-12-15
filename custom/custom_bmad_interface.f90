@@ -1,8 +1,22 @@
 module custom_bmad_interface
 
+use bmad_struct
+
 interface 
+
+  subroutine apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
+    import
+    implicit none
+    type (ele_struct) hard_ele, track_ele
+    type (coord_struct) orb
+    type (lat_param_struct) param
+    real(rp) t_rel, s_edge
+    integer particle_at, physical_end
+    logical finished
+  end subroutine
+
   subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
-    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: orb
     type (ele_struct) :: ele
@@ -12,7 +26,7 @@ interface
   end subroutine
 
   subroutine wall_hit_handler_custom (orb, ele, s, t)
-    use bmad_struct, only: coord_struct, ele_struct, rp
+    import
     implicit none
     type (coord_struct) :: orb
     type (ele_struct) :: ele
@@ -20,7 +34,7 @@ interface
   end subroutine
 
   subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
-    use bmad_struct
+    import
     implicit none
     type (ele_struct) :: ele
     type (lat_param_struct) param
@@ -33,7 +47,7 @@ interface
   end subroutine
 
   subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct) orb(0:)
@@ -42,14 +56,14 @@ interface
   end subroutine
 
   subroutine init_custom (ele, err_flag)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     logical err_flag
   end subroutine
 
   subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
@@ -58,7 +72,7 @@ interface
   end subroutine
 
   subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -69,7 +83,7 @@ interface
   end subroutine
 
   subroutine track1_postprocess (start_orb, ele, param, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -78,7 +92,7 @@ interface
   end subroutine
 
   subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -89,7 +103,7 @@ interface
   end subroutine
 
   subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, track)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -98,6 +112,7 @@ interface
     type (track_struct), optional :: track
     logical err_flag
   end subroutine
+
 end interface
 
 ! This is to suppress the ranlib "has no symbols" message

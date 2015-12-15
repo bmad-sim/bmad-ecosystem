@@ -1,7 +1,7 @@
 \chapter{Miscellaneous Programming}
 
 %-----------------------------------------------------------------------------
-\section{Custom Elements and Custom Calculations}
+\section{Custom Calculations}
 \label{s:custom.ele}
 \index{custom}
 
@@ -10,9 +10,9 @@ done by \bmad, that is instead handled by having the appropriate \bmad
 code call the appropriate custom code. Implementing custom
 calculations involve writing custom code and linking this code into a
 program. There are essentially two ways to do custom calculations. One
-method involves using a \vn{custom} element (\sref{s:custom}). The
-other method involves setting the appropriate component of an element
-to \vn{custom}. An appropriate component is one of
+way involves using a \vn{custom} element (\sref{s:custom}). The
+other way involves setting the appropriate \vn{method} component of an element
+to \vn{custom}. An appropriate method component is one of
 \begin{example}
   tracking_method       \sref{s:tkm}
   mat6_calc_method      \sref{s:xfer}
@@ -22,14 +22,14 @@ to \vn{custom}. An appropriate component is one of
 
 There are eight routines that implement custom calculations:
 \begin{example}
-   \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
-   \Hyperref{r:em.field.custom}{em_field_custom}
-   \Hyperref{r:init.custom}{init_custom}
-   \Hyperref{r:make.mat6.custom}{make_mat6_custom}
-   \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
-   \Hyperref{r:track1.custom}{track1_custom}
-   \Hyperref{r:track1.spin.custom}{track1_spin_custom}
-   \Hyperref{r:wall.hit.handler.custom}{wall_hit_handler_custom}
+  \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
+  \Hyperref{r:em.field.custom}{em_field_custom}
+  \Hyperref{r:init.custom}{init_custom}
+  \Hyperref{r:make.mat6.custom}{make_mat6_custom}
+  \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
+  \Hyperref{r:track1.custom}{track1_custom}
+  \Hyperref{r:track1.spin.custom}{track1_spin_custom}
+  \Hyperref{r:wall.hit.handler.custom}{wall_hit_handler_custom}
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
 routines.]  The \bmad library has ``dummy'' routines of the same name to
@@ -38,10 +38,18 @@ dummy routines, if called, will print an error message and stop the
 program. The exception is the dummy \vn{init_custom} routine which will
 simply do nothing when called.
 
-If a particular custom routine is not called in a program, then,
-obviously, a non-dummy version does not have to be implemented. To
-link in a non-dummy version of a custom routine, put the code file in
-the same directory as the program code and relink.
+If a particular custom routine is not called in a program, then, obviously, a non-dummy
+version does not have to be implemented. To link in a non-dummy version of a custom
+routine, put the code file in the same directory as the program code and
+relink. Important: 
+\begin{itemize}
+\item
+Do not put the non-dummy version of a custom routine into a library that is linked to the
+program. This will generally result in the non-dummy version {\em not} being linked to.
+\item
+Do not modify any subfile of the \vn{bmad} directory that holds the \bmad code. This is
+unnecessary and can make updating the \bmad code cumbersome.
+\end{itemize}
 
 While coding a custom routine, it is important to remember that it is
 {\em not} permissible to modify any routine argument that does not
@@ -73,8 +81,16 @@ matrix through an element.
 The \Hyperref{r:track1.custom}{track1_custom} routine is called by the
 \Hyperref{r:track1}{track1} routine when the \vn{tracking_method} for
 the element is set to \vn{custom}. Further customization can be set by
-the routines \vn{track1_preprocess} and \vn{track1_postprocess}. See
-Section~\sref{s:custom.track} for more details.
+the routines \Hyperref{r:track1.preprocess}{track1_preprocess} and \Hyperref{r:track1.postprocess}{track1_postprocess}. See
+Section~\sref{s:hook} for more details.
+
+A potential problem with \vn{track1_custom} is that the calling routine, that is
+\vn{track1}, does some work like checking aperture, etc. (see the \vn{track1} code for
+more details). If this is not desired, the \vn{track1_preprocess} routine (\sref{s:hook})
+can be used to do custom tracking and to make sure that \vn{track1} does not do any extra
+calculations. This is accomplished by putting the custom tracking code in
+\vn{track1_preprocess} and by setting the \vn{finished} argument of \vn{track1_preprocess}
+to True.
 
 The
 \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
@@ -133,7 +149,6 @@ a transformation between entrance and exit frames must be done:
   endif
 \end{example}
 
-
 The \Hyperref{r:wall.hit.handler.custom}{wall_hit_handler_custom} routine is called when the
 Runge-Kutta tracking code \Hyperref{r:odeint.bmad}{odeint_bmad} detects that a particle
 has hit a wall (\sref{s:wall}). [This is separate from hitting an
@@ -167,39 +182,34 @@ distinction between \vn{outside_wall\$} and \vn{wall_transition\$} is
 important if particles are to be allowed to travel outside the wall.
 
 %-----------------------------------------------------------------------------
-\section{Custom Tracking: track1_preprocess and track1_postprocess}
-\label{s:custom.track}
-\index{track1_preprocess}\index{track1_postprocess}
+\section{Hook Routines}
+\label{s:hook}
 
-For customizing tracking, there are three routines that are available:
+\index{track1_preprocess}\index{track1_postprocess}
+\index{apply_element_edge_kick_hook}
+
+A \vn{hook} routine is like a \vn{custom} routine in that a \vn{hook} routine can be used
+for custimizing a \bmad calculation by replacing the \vn{dummy} version of a \vn{hook}
+routine with customized code. The difference is that the \vn{hook} routine is always
+called at the appropriate time without regard to the type of lattice element under
+consideration or what tracking method is being used.
+There are three \vn{hook} routines that are available:
 \begin{example}
+  \Hyperref{r:apply.element.edge.kick.hook}{apply_element_edge_kick_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
-  \Hyperref{r:track1.custom}{track1_custom}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
 \end{example}
-All three routines are called by the \Hyperref{r:track1}{track1} routine.
-\vn{track1_custom} is only called when the element being tracked
-through has its tracking method set to \vn{custom}. See
-Section~\sref{s:custom.ele} for more details. The other routines are
-always called. The \vn{track1_preprocess} and \vn{track1_postprocess}
-routines are useful for a number of things. For example, if the effect
-of an electron cloud is to be modeled, these two routines can
-be used to put in half the electron cloud kick at the beginning of
-an element and half the kick at the end.
+The last two routines are called by the \Hyperref{r:track1}{track1} routine (along with
+\vn{track1_custom} if the element being tracked through has its tracking method set to
+\vn{custom}).  The \vn{track1_preprocess} and \vn{track1_postprocess}
+routines are useful for a number of things. For example, if the effect of an electron
+cloud is to be modeled, these two routines can be used to put in half the electron cloud
+kick at the beginning of an element and half the kick at the end.
 
 The routine \vn{track1_preprocess} has an additional feature in that
 it has an argument \vn{radiation_included} that can be set to \vn{True}
 if the routine \vn{track1_custom} will be called and \vn{track1_custom} will
 be handling radiation damping and excitation effects.
-
-A potential problem with \vn{track1_custom} is that the calling
-routine, that is \vn{track1}, does some work like checking aperture,
-etc. (see the \vn{track1} code for more details). If this is not
-desired, the \vn{track1_preprocess} routine can be used to do custom
-tracking and to make sure that \vn{track1} does not do any extra
-calculations. This is accomplished by putting the custom tracking code
-in \vn{track1_preprocess} and by setting the \vn{finished} argument of
-\vn{track1_preprocess} to True. 
 
 %-----------------------------------------------------------------------------
 \section{Physical and Mathematical Constants}

@@ -45,7 +45,7 @@ solely meant for \bmad internal use.
   Quick Plot                                  & \ref{r:qp}             \\ \hline
   Spin                                        & \ref{r:spin}           \\ \hline
   Transfer Maps: Routines Called by make_mat6 & \ref{r:mat6}           \\ \hline
-  Transfer Maps: Complex Taylor Maps          & \ref{r:ctaylor}         \\ \hline
+  Transfer Maps: Complex Taylor Maps          & \ref{r:ctaylor}        \\ \hline
   Transfer Maps: Taylor Maps                  & \ref{r:taylor}         \\ \hline
   Tracking: Tracking and Closed Orbit         & \ref{r:track}          \\ \hline
   Tracking: Low Level Routines                & \ref{r:low.track}      \\ \hline
@@ -54,7 +54,8 @@ solely meant for \bmad internal use.
   Twiss and Other Calculations                & \ref{r:twiss}          \\ \hline
   Twiss: 6-Dimensional                        & \ref{r:twiss6}         \\ \hline
   Wake Fields                                 & \ref{r:wake}           \\ \hline
-  Deprecated                                  & \ref{r:deprecated}     \\ \hline
+  C/C++ Interface                             & \ref{r:c.interface}    \\ \hline
+  % Deprecated                                  & \ref{r:deprecated}     \\ \hline
 \end{tabular}
 \end{center}
 \toffset
@@ -524,7 +525,7 @@ Routine to check the symplecticity of a square matrix
 
 \index[routine]{mat_symp_conj}
 \label{r:mat.symp.conj}
-\item[mat_symp_conj (mat1, mat2)] \Newline 
+\item[mat_symp_conj (mat) result (mat_conj)] \Newline 
 Routine to take the symplectic conjugate of a square matrix.
 
 \index[routine]{mat_symp_decouple}
@@ -1099,7 +1100,7 @@ whose name matches the names in the ele_names list.
 \label{r:pointer.to.indexed.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
-  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
+  \hspace*{1in} a_ptr, err_flag, err_print_flag)} ] \Newline 
 Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 
 \index[routine]{pointer_to_lord}
@@ -1218,7 +1219,7 @@ Routine to deallocate the pointers in a lat.
 
 \index[routine]{init_ele}
 \label{r:init.ele}
-\item[init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)] \Newline
+\item[init_ele (ele, key, sub_key, ix_ele, branch)] \Newline
 Routine to initialize an element. 
 
 \index[routine]{init_lat}
@@ -1256,7 +1257,7 @@ Subroutine to set the defaults for an element of a given type.
 
 \index[routine]{set_on_off}
 \label{r:set.on.off}
-\item[set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)] \Newline
+\item[set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, ix_attrib)] \Newline
 Routine to turn on or off a set of elements (quadrupoles,
 RF cavities, etc.) in a lat.
 
@@ -1660,12 +1661,12 @@ A multi_lord will be found for:
 
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
-\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk)] \Newline 
+\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)] \Newline 
 Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
 \label{r:multipole.kicks}
-\item[multipole_kicks (knl, tilt, coord, ref_orb_offset)] \Newline 
+\item[multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)] \Newline 
 Routine to put in the kick due to a multipole.
 
 \index[routine]{mexp}
@@ -1680,12 +1681,12 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
+\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
+\item[multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
@@ -1696,7 +1697,7 @@ Routine to initialize the multipole arrays within an element.
 
 \index[routine]{multipole_kick}
 \label{r:multipole.kick}
-\item[multipole_kick (knl, tilt, n, coord, ref_orb_offset)] \Newline
+\item[multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)] \Newline
 Routine to put in the kick due to a multipole. 
 
 \index[routine]{multipole_kt_to_ab}
@@ -1931,7 +1932,7 @@ Routine to create a PTC layout from a Bmad lat.
 \label{r:set.ptc}
 \item[\protect\parbox{6in}{
     set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
-    \hspace*{1in} exact_modeling, exact_misalign) }] \Newline
+    \hspace*{1in} exact_modeling, exact_misalign, init_complex) }] \Newline
 Routine to initialize PTC. 
 
 \index[routine]{sort_universal_terms}
@@ -2991,9 +2992,9 @@ Routine to find the closed orbit via tracking.
 Routine to compute a step size ds_out, close to ds_in, so that an 
 integer number of steps spans the length.
 
-\index[routine]{dynamic_aperture}
-\label{r:dynamic.aperture}
-\item[dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)] \Newline
+\index[routine]{dynamic_aperture1}
+\label{r:dynamic.aperture1}
+\item[dynamic_aperture1 (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)] \Newline
 Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
@@ -3570,16 +3571,111 @@ long range wakes in a lattice.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Deprecated}
-\label{r:deprecated}
-\index{deprecated routines}
+\section{C/C++ Interface}
+\label{r:c.interface}  
+\index{C/C++ interface!list of routines}
 
-\begin{description}
+\index[routine]{fscalar2scalar}
+\label{r:fscalar2scalar}
+\item[fscalar2scalar (f_scalar, n) result (c_scalar)] \Newline 
+Function to translate a scalar from Fortran form to C form.
 
-\index[routine]{element_locator}
-\label{r:element.locator}
-\item[element_locator (ele_name, lat, ix_ele)] \Newline
-Replaced by lat_ele_locator.
+\index[routine]{fvec2vec}
+\label{r:fvec2vec}
+\item[fvec2vec (f_vec, n) result (c_vec)] \Newline 
+Function to translate a vector from Fortran form to C form.
 
-\end{description}
+\index[routine]{mat2vec}
+\label{r:mat2vec}
+\item[mat2vec (mat, n) result (vec)] \Newline 
+Function to take a matrix and turn it into an array in C standard row-major order.
 
+\index[routine]{tensor2vec}
+\label{r:tensor2vec}
+\item[tensor2vec (tensor, n) result (vec)] \Newline 
+Function to take a tensor and turn it into an array in 
+C standard row-major order::
+
+\index[routine]{vec2mat}
+\label{r:vec2mat}
+\item[vec2mat (vec, mat)] \Newline 
+Routine to take a an array in C standard row-major 
+order and turn it into a matrix.
+
+\index[routine]{vec2tensor}
+\label{r:vec2tensor}
+\item[vec2tensor (vec, tensor)] \Newline 
+Routine to take a an array in C standard row-major 
+order and turn it into a tensor.
+
+\index[routine]{remove_null_in_string}
+\label{r:remove.null.in.string}
+\item[remove_null_in_string (str_in, str_out] \Newline 
+Routine to convert a null character in a string to a blank.
+
+\index[routine]{f_logic}
+\label{r:f.logic}
+\item[f_logic (logic) result (f_log)] \Newline 
+Function to convert from a C logical to a Fortran logical.
+
+\index[routine]{c_logic1}
+\label{r:c.logic1}
+\item[c_logic1 (logic) result (c_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+See c_logic for more details.
+
+\index[routine]{c_logic_vec}
+\label{r:c.logic.vec}
+\item[c_logic_vec (logic) result (c_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+See c_logic for more details.
+
+\index[routine]{f_logic_int}
+\label{r:f.logic.int}
+\item[f_logic_int (logic) result (f_log)] \Newline 
+Function to convert from a C logical to a Fortran logical.
+This function is overloaded by f_logic.
+
+\index[routine]{f_logic_bool}
+\label{r:f.logic.bool}
+\item[f_logic_bool (logic) result (f_log)] \Newline 
+Function to convert from a C logical to a Fortran logical.
+This function is overloaded by f_logic.
+
+\index[routine]{remove_null_in_string_arr}
+\label{r:remove.null.in.string.arr}
+\item[remove_null_in_string_arr (str_in, str_out)] \Newline 
+This routine overloaded by:
+       remove_null_in_string
+
+\index[routine]{remove_null_in_string_char}
+\label{r:remove.null.in.string.char}
+\item[remove_null_in_string_char (str_in, str_out)] \Newline 
+This routine overloaded by:
+       remove_null_in_string
+
+\index[routine]{to_c_str}
+\label{r:to.c.str}
+\item[to_c_str (f_string, c_string)] \Newline 
+Subroutine to append a null (0) character at the end of a string (trimmed
+of trailing blanks) so it will look like a C character array. 
+
+\index[routine]{c_string}
+\label{r:c.string}
+\item[c_string(f_string) ] \Newline 
+Functional form of subroutine to_c_str (f_string, c_string)
+
+\index[routine]{to_f_str}
+\label{r:to.f.str}
+\item[to_f_str (c_string, f_string)] \Newline 
+Subroutine to append a null (0) character at the end of a string (trimmed
+of trailing blanks) so it will look like a C character array. 
+
+% %------------------------------------------------------------------------
+% \section{Deprecated}
+% \label{r:deprecated}
+% \index{deprecated routines}
+%
+% \begin{description}
+%
+% \end{description}

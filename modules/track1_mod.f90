@@ -1060,24 +1060,19 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !+
 ! Subroutine apply_element_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at)
 !
-! Subroutine to track through the edge field of an element.
-! This routine is used with bmad_standard field_calc where the field
-! can have an abrubt, unphysical termination of the longitudinal field at the
+! Subroutine to track through the edge fringe field of an element.
+! This routine is used with the bmad_standard field_calc where the field
+! can have an abrubt, unphysical termination of the field at the
 ! edges of the element. 
 !
-! Elements that have kicks due to unphysical edge field terminations:
+! Elements that have kicks due to unphysical edge field termination include:
 !   sbend
 !   solenoid
 !   sol_quad
-!   sad_mult
-!   bend_sol_quad
 !   lcavity
 !   rfcavity 
 !   e_gun
 ! Additionally, Any element that has an electric multipole has an edge kick.
-!
-! Module needed:
-!   use track1_mod
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
@@ -1090,7 +1085,7 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !   particle_at -- Integer: first_track_edge$ or second_track_edge$
 !
 ! Output:
-!   orb        -- Coord_struct: Coords after tracking.
+!   orb        -- Coord_struct: Coords after application of the edge fringe field.
 !-
 
 subroutine apply_element_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at)
@@ -1106,6 +1101,12 @@ real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi
 complex(rp) xiy
 
 integer particle_at, physical_end, dir, i
+logical finished
+
+! Custom edge kick?
+
+call apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
+if (finished) return
 
 ! The setting of hard_ele%ixx is used by calc_next_fringe_edge to calculate the next fringe location.
 

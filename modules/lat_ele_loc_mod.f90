@@ -67,7 +67,7 @@ contains
 !               It is up to you to deallocate eles if needed.
 !   n_loc   -- Integer: Number of locations found.
 !                Set to zero if no elements are found.
-!   err     -- Logical: Set True if there is a decode error.
+!   err     -- Logical, optional: Set True if there is a decode error.
 !                Note: not finding any element is not an error.
 !-
 
@@ -90,12 +90,12 @@ integer, optional :: ix_dflt_branch
 integer i, j, ib, ios, ix, n_loc, n_loc2
 integer in_range, step, ix_word, key
 
-logical, optional :: above_ubound_is_err
-logical err, err2, delim_found, above_ub_is_err
+logical, optional :: above_ubound_is_err, err
+logical err2, delim_found, above_ub_is_err
 
 ! init
 
-err = .true.
+if (present(err)) err = .true.
 n_loc = 0
 str = loc_str
 call str_upcase (str, str)
@@ -221,7 +221,7 @@ if (in_range == 1) then
   return
 endif
 
-err = .false.
+if (present(err)) err = .false.
 
 end subroutine lat_ele_locator
 
