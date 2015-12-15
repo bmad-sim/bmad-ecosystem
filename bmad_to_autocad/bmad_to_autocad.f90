@@ -12,9 +12,11 @@ implicit none
 
 type(lat_struct), target :: erl
 type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, j, n, i0
+integer i, j, n, n_loc
 real(dp) x0, z0, th0, c0, s0, xloc, zloc, xmap, zmap, tmap
+
 character(*) file_name, ele_name
 character(80) file_name1, file_name2
 character(40) name
@@ -28,14 +30,15 @@ open (1, file = file_name1)
 call file_suffixer (file_name1, file_name2, '.lat_list_no_offset', .true.)
 open (2, file = file_name2)
 
-call element_locator(ele_name, erl, i0)
-if (i0 < 0) then
+call lat_ele_locator(ele_name, erl, eles, n_loc)
+if (n_loc == 0) then
   print *, 'ERROR: CANNOT FIND ELEMENT: ', ele_name
   print *, '       WILL USE BEGINNING OF LATTICE INSTEAD!'
-  i0 = 0
+  allocate (eles(1))
+  eles(1)%ele => erl%ele(0)
 endif
 
-x0=erl%ele(i0)%floor%r(1) ; z0=erl%ele(i0)%floor%r(3) ; th0=erl%ele(i0)%floor%theta
+x0=eles(1)%ele%floor%r(1) ; z0=eles(1)%ele%floor%r(3) ; th0=eles(1)%ele%floor%theta
 c0 = cos(tmap-th0) ; s0 = sin(tmap-th0)
 
 do n = 0, ubound(erl%branch, 1)

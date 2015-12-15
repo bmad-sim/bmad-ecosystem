@@ -64,8 +64,9 @@ type (beam_init_struct) beam_init
 type (beam_struct), target :: beam
 type (ele_struct), pointer :: ele
 type (bunch_struct), pointer :: bunch
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, j, n, ix, ix_start, ix_end, n_arg, ios, n_list
+integer i, j, n, ix, ix_start, ix_end, n_arg, ios, n_list, n_loc
 integer, allocatable :: repeat(:)
 
 character(100) bmad_lattice, input_file, particle_out_file
@@ -116,18 +117,26 @@ read (1, nml = beam_params)
 call bmad_parser (bmad_lattice, lat)
 call twiss_propagate_all (lat)
 
-ix_start = 1
-if (ele_start /= "") call element_locator (ele_start, lat, ix_start)
-if (ix_start < 0) then
-  print *, 'Error: Unable to locate element: ', ele_start
-  stop
+if (ele_start /= "") then
+  call lat_ele_locator (ele_start, lat, eles, n_loc)
+  if (n_loc == 0) then
+    print *, 'Error: Unable to locate element: ', ele_start
+    stop
+  endif
+else
+  allocate (eles(1))
+  eles(1)%ele => lat%ele(1)
 endif
+ix_start = eles(1)%ele%ix_ele
 
 ix_end = lat%n_ele_track
-if (ele_end /= "") call element_locator (ele_end, lat, ix_end)
-if (ix_end < 0) then
-  print *, 'Error: Unable to locate element: ', ele_end
-  stop
+if (ele_end /= "") then
+  call lat_ele_locator (ele_end, lat, eles, n_loc)
+  if (n_loc == 0) then
+    print *, 'Error: Unable to locate element: ', ele_end
+    stop
+  endif
+  ix_end = eles(1)%ele%ix_ele
 endif
 
 ! Create the CSRtrack input file
