@@ -1337,9 +1337,10 @@ type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp), allocatable, save :: r_value(:)
-integer i, ix, int_value
+integer i, ix, int_value, n_loc
 
 integer, allocatable :: i_save(:)
 
@@ -1451,17 +1452,18 @@ elseif (size(s_dat) /= 0) then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
       if (size(s_set) > 1) dummy = s_set(i)%s
-      call element_locator (dummy, u%design%lat, ix)
-      if (ix < 0) then
+      call lat_ele_locator (dummy, u%design%lat, eles, n_loc)
+      if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // dummy)
         return
       endif
       if (component == 'ele_name') then
-        d_dat(i)%d%ix_ele = ix
+        d_dat(i)%d%ix_ele    = eles(1)%ele%ix_ele
+        d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
       elseif (component == 'ele_start_name') then
-        d_dat(i)%d%ix_ele_start = ix
+        d_dat(i)%d%ix_ele_start = eles(1)%ele%ix_ele
       else
-        d_dat(i)%d%ix_ele_ref = ix
+        d_dat(i)%d%ix_ele_ref = eles(1)%ele%ix_ele
       endif
     enddo
   endif
