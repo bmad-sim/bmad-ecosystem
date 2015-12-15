@@ -1020,8 +1020,8 @@ case, if the \vn{end_marker} section is set to ``closed'', a
   \centering
   \includegraphics[width=6in]{fast-chamber.pdf}
   \caption[Illustrating a fast subchamber residing within another subchamber.]
-{\label{f:fast} A ``fast'' subchamber (green) which uses fewer cross-sections to describe
-it resides within another ``slow'' (blue) subchamber with many cross-sections. The fast
+{\label{f:fast} A ``fast'' subchamber (green), which uses fewer cross-sections to describe
+it, resides within another ``slow'' (blue) subchamber with many cross-sections. The fast
 subchamber enables \srthree to speed up tracking. The two subchambers have been cut in
 the illustration to better show the geometry.}
   \end{figure}
@@ -1346,15 +1346,14 @@ the materials associated with different regions of the chamber are:
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=6in]{chamber-problem.pdf}
-\caption{A) A convex cross-section can lead to problems with linear interpolation.
-since it is assumed that if the beginning and ending points are inside the subchamber 
-the entire track is inside the subchamber. The track shown violates this assumption.
-B) With linear interpolation, convex cross-sections are not a guarantee that 
-intermediate cross-sections are convex. B1 and B3 are the defined cross sections 
-at $s = 0$ and $s = 1$ respectively. These cross sections are ellipses with 5:1 
-aspect ratio. The interpolated cross-section B2 at $s = 0.5$ is seen to be concave.}
-\label{f:convex-chamber}
+\includegraphics[width=6in]{chamber-problem.pdf} \caption{A) A convex cross-section can
+lead to problems with linear interpolation since it is assumed that if the beginning and
+ending points of a step are inside the subchamber the entire track is inside the
+subchamber. The track shown violates this assumption.  B) With linear interpolation,
+convex cross-sections are not a guarantee that intermediate cross-sections are convex. B1
+and B3 are the defined cross sections at $s = 0$ and $s = 1$ respectively. These cross
+sections are ellipses with 5:1 aspect ratio. The interpolated cross-section B2 at $s =
+0.5$ is seen to be concave.}  \label{f:convex-chamber}
 \end{center}
 \end{figure}
 
@@ -1414,13 +1413,24 @@ the subchamber. This locally convex assumption will be true if every cross-secti
 $r_w(\theta, s)$ for fixed $s$ is convex where $s$ is in the range of longitudinal $s$
 positions covered by the step in question.
 
-The problem of a concave cross-section is shown in
-Fig.~\ref{f:convex-chamber}A. Furthermore, even if two defined cross-sections are
+\srthree assumes that if the beginning and ending points of a step are inside the
+subchamber, the entire track is inside the subchamber. This assumption my be violated if
+the cross-section of a subchamber is concave as illustrated in
+Fig.~\ref{f:convex-chamber}A.  Furthermore, even if two defined cross-sections are
 themselves convex, an intermediate cross-section can be concave as shown in
-Fig.~\ref{f:convex-chamber}B. How much of a problem the possibility that \srthree will not
+Fig.~\ref{f:convex-chamber}B. 
+
+A subchamber ``region'' is the volume of the subchamber between two adjacent
+cross-sections. The total subchamber volume is thus the sum of all the regions of the
+subchamber. Since \srthree always limits steps so that the beginning and ending points of
+a step cannot be in different regions, there is no problem with \srthree failing to detect
+photons crossing the chamber wall as long as each region indivdually is convex in
+shape. This is true even if the subchamber considered as a whole is not convex.
+
+How much of a problem the possibility that \srthree will not
 detect some photons leaving and then entering the chamber will, of course, depend upon the
-chamber geometry and what is being calculated. One way to test if this is a problem this
-is to reduce the track step length limits:
+specifics of the chamber geometry and what is being calculated. One way to test if this is
+a problem this is to reduce the track step length limits:
 \begin{example}
     sr3d_params%ds_track_step_max
     sr3d_params%dr_track_step_max
