@@ -25,7 +25,7 @@ contains
 
 function dir_open (dir_name) result (opened)
 
-use fortran_and_cpp
+use fortran_cpp_utils
 
 implicit none
 
@@ -35,7 +35,7 @@ logical opened
 
 !
 
-call open_dir (c_str(dir_name), ok)
+call open_dir (c_string(dir_name), ok)
 opened = f_logic(ok)
 
 end function
