@@ -205,14 +205,6 @@ interface
     logical, optional :: err_flag
   end subroutine
 
-  subroutine element_locator (ele_name, lat, ix_ele)
-    import
-    implicit none
-    type (lat_struct) lat
-    integer ix_ele
-    character(*) ele_name
-  end subroutine
-
   subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
     import
     implicit none

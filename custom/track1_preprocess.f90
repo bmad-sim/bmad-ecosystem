@@ -17,14 +17,15 @@
 !   use bmad
 !
 ! Input:
-!   start_orb  -- coord_struct: Starting position.
+!   start_orb  -- coord_struct: Starting position at the beginning of ele.
 !   ele        -- ele_struct: Element.
 !   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   start_orb   -- coord_struct: End position.
+!   start_orb   -- coord_struct: Modified starting position for track1 to use.
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
-!   finished    -- logical: When set True, track1 will halt processing and return to its calling routine.
+!   finished    -- logical: When set True, track1 will halt further processing and use the modified 
+!                     start_orb as the final end position of the particle.
 !   radiation_included
 !               -- logical: Should be set True if radiation damping/excitation is included in the tracking.
 !   track       -- track_struct, optional: Structure holding the track information if the 

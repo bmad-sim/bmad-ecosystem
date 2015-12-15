@@ -325,7 +325,7 @@ sub searchit {
     if (/^\s*subroutine /i || /^\s*recursive *subroutine /i || 
         /^\s*function /i   || /^\s*recursive *function /i || 
         /^\s*integer *function /i || /^\s*real\(rp\) *function /i || 
-        /^\s*logical *function /i || 
+        /^\s*logical *function /i || /^\s*pure *subroutine /i || 
         /^\s*elemental *subroutine /i || /^\s*interface /i) {
       $name = $';              #' strip off "subroutine"
       $name =~ s/ *\(.*//;     # strip off " (..."
@@ -368,7 +368,7 @@ sub searchit {
           }
         }
         elsif (/^\s*subroutine /i || /^\s*recursive subroutine /i || 
-              /^\s*function /i || /^\s*elemental subroutine /i ||
+              /^\s*function /i || /^\s*elemental subroutine /i || /^\s*pure subroutine /i ||
               /^\s*real\(rp\) *function /i || /^\s*interface /i) {
           $count = $count + 1;
         }

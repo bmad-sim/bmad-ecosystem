@@ -138,7 +138,7 @@ finished = .false.
 call track1_preprocess (start2_orb, ele, param, err, finished, radiation_included, track)
 if (err) return
 if (finished) then
-  end_orb = start_orb
+  end_orb = start2_orb
   if (present(err_flag)) err_flag = err
   return
 endif

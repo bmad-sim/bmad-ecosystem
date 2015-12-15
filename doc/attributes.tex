@@ -237,18 +237,16 @@ This is equivalent to
 Arithmetic expressions may themselves contain element attributes.
 Example:
 \begin{example}
-  sk_q20W: overlay = \{sex_20W[a1]:sex_20W[l]\}, k1
+  sk_q20W: overlay = \{sex_20W[a1]:-sex_20W[l]\}, k1
 \end{example}
-Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute
-of element \vn{sex_20w} and the length of \vn{sex_20w} is used as a
-scale factor between the overlay's variable \vn{k1} and the controlled
-attribute \vn{a1}. The potential problem here is that, to keep the
-internal bookkeeping simple, the value of \vn{sex_20w[l]} is evaluated
-once during parsing of the lattice file and never reevaluated. This is
-in line with the general philosophy of immediate substitution
-(\sref{s:arith}). If it is desired to use a variable element attribute
-in an expression, this may be effectively done by defining a control
-variable to take its place. Thus the above overlay may be recast as:
+Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute of element
+\vn{sex_20w} and the length of \vn{sex_20w} is used as a scale factor between the
+overlay's variable \vn{k1} and the controlled attribute \vn{a1}. The potential problem
+here is that, to keep the internal bookkeeping simple, the value of \vn{sex_20w[l]} is
+evaluated once during parsing of the lattice file and never reevaluated (\sref{s:arith}).
+If it is desired to use a variable element attribute in an expression, this may be
+effectively done by defining a control variable to take its place. Thus the above overlay
+may be recast as:
 \begin{example}
   sk_q20W: overlay = \{sex_20W[l]:ll, sex_20W[a1]:ll*k1\}, var = \{k1, ll\}
 \end{example}
@@ -1945,7 +1943,7 @@ Example:
 \begin{example}
   q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
 \end{example}
-See \sec{s:elec.field} for how electric multipoles are defined.
+See \sref{s:elec.field} for how electric multipoles are defined.
 
 Electric multipoles are never scalled by the element's field strength as they are with
 magnetic multipoles.
