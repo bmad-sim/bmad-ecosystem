@@ -35,11 +35,12 @@ type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
 type (tao_data_input) data(n_data_minn:n_data_maxx)
 type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) default_weight, def_weight        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
-integer n, iostat
+integer n, iostat, n_loc
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -497,35 +498,36 @@ else
 
     if (u%data(j)%ele_name /= '') then
       call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
-      call element_locator (u%data(j)%ele_name, u%design%lat, ix)
-      if (ix < 0) then
+      call lat_ele_locator (u%data(j)%ele_name, u%design%lat, eles, n_loc)
+      if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // u%data(j)%ele_name)
         u%data(j)%exists = .false.
         cycle
       endif
-      u%data(j)%ix_ele = ix
+      u%data(j)%ix_ele    = eles(1)%ele%ix_ele
+      u%data(j)%ix_branch = eles(1)%ele%ix_branch
     endif
 
     if (u%data(j)%ele_ref_name /= '') then
       call str_upcase (u%data(j)%ele_ref_name, u%data(j)%ele_ref_name)
-      call element_locator (u%data(j)%ele_ref_name, u%design%lat, ix)
-      if (ix < 0) then
+      call lat_ele_locator (u%data(j)%ele_ref_name, u%design%lat, eles, n_loc)
+      if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name)
         u%data(j)%exists = .false.
         cycle
       endif
-      u%data(j)%ix_ele_ref = ix
+      u%data(j)%ix_ele_ref = eles(1)%ele%ix_ele
     endif
 
     if (u%data(j)%ele_start_name /= '') then
       call str_upcase (u%data(j)%ele_start_name, u%data(j)%ele_start_name)
-      call element_locator (u%data(j)%ele_start_name, u%design%lat, ix)
-      if (ix < 0) then
+      call lat_ele_locator (u%data(j)%ele_start_name, u%design%lat, eles, n_loc)
+      if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name)
         u%data(j)%exists = .false.
         cycle
       endif
-      u%data(j)%ix_ele_start = ix
+      u%data(j)%ix_ele_start = eles(1)%ele%ix_ele
     endif
 
   enddo
