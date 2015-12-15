@@ -1296,3 +1296,38 @@ end subroutine bool_vec2tensor
 !-----------------------------------------------------------------------------
 
 end module
+
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine set_string (string_in, n_in, string_out)
+!
+! This routine is called by a C/C++ routine to set:
+!   string_out = string_in
+! Where:
+!   string_in is a string generated on the C/C++ side.
+!   string_out is a string originally defined in a fortran routine.
+!
+! Input:
+!   string_in -- Character(n_in): Input string.
+!   n_in      -- Integer: Length of string_in.
+!   n_out     -- Integer: Length of string_out.
+!
+! Output:
+!   string_out -- Character(n_out): Set equal to string_in.
+!-
+
+subroutine set_string (string_in, n_in, string_out, n_out)
+
+implicit none
+
+integer n_in, n_out
+character(n_in) string_in
+character(n_out) string_out
+
+!
+
+string_out = string_in
+
+end subroutine set_string
