@@ -10,6 +10,7 @@ use bmad_interface
 use make_mat6_mod
 use em_field_mod
 use geometry_mod
+use spin_mod
 
 ! Private routines for exact_bend_edge_kick
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
@@ -2486,7 +2487,7 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s, track_spin)
 ! 
 ! Routine to track through a patch element.
 ! The steps for tracking are:
@@ -2499,9 +2500,11 @@ end subroutine rf_coupler_kick
 ! Input:
 !   ele           -- ele_struct: patch element.
 !   orbit         -- coord_struct: Starting phase space coords
-!   drift_to_exit -- Logical, optional: If False then do not drift the particle from
+!   drift_to_exit -- logical, optional: If False then do not drift the particle from
 !                      beginning to end face. Also do not correct for a reference energy shift.
 !                      Default is True. 
+!   track_spin    -- logical, optional: If True rotate the spin vector appropriately. 
+!                       If ele%spin_tracking_method = symp_lie_ptc -> default = True. Else default = False.
 !
 ! Output:
 !   orbit      -- coord_struct: Coords after applying a patch transformation.
@@ -2514,7 +2517,7 @@ end subroutine rf_coupler_kick
 !   p_s        -- real(rp), optional: Longitudinal momentum.
 !-
 
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s, track_spin)
 
 implicit none
 
@@ -2522,10 +2525,11 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 
 real(rp), pointer :: v(:)
-real(rp) p_vec(3), r_vec(3), rel_pc, ww(3,3), beta0, ds0
+real(rp) p_vec(3), r_vec(3), rel_pc, ww(3,3), beta0, ds0, s_vec(3)
 real(rp), optional :: s_ent, ds_ref, w_mat(3,3), p_s
 
-logical, optional :: drift_to_exit
+logical, optional :: drift_to_exit, track_spin
+
 
 ! Transform to exit face coords.
 
@@ -2550,6 +2554,10 @@ if (orbit%direction * ele%orientation == 1) then
     r_vec = matmul(ww, r_vec)
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
+    if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
+      call spinor_to_vec(orbit, s_vec)
+      call vec_to_spinor(matmul(ww, s_vec), orbit)
+    endif
   else
     call mat_make_unit (ww)
   endif
@@ -2565,6 +2573,10 @@ else
     r_vec = matmul(ww, r_vec)
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
+    if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
+      call spinor_to_vec(orbit, s_vec)
+      call vec_to_spinor(matmul(ww, s_vec), orbit)
+    endif
   else
     call mat_make_unit (ww)
   endif

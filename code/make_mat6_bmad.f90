@@ -739,7 +739,7 @@ case (patch$)
 
   mc2 = mass_of(c0%species)
   c00%vec(5) = 0
-  call track_a_patch (ele, c00, .false., s_ent, ds_ref, ww, p_s)
+  call track_a_patch (ele, c00, .false., s_ent, ds_ref, ww, p_s, track_spin = .false.)
 
   ! Coordinate transform before drift
 
