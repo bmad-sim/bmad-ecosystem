@@ -506,7 +506,7 @@ case (custom$)
 case (symp_lie_ptc$)
   if (bmad_com%electric_dipole_moment /= 0) then
     call out_io (s_fatal$, r_name, &
-          'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR BMAD_STANDARD TRACKING')
+          'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR SYMP_LIE_PTC TRACKING')
     if (global_com%exit_on_error) call err_exit
   endif
   call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
@@ -532,6 +532,9 @@ end subroutine track1_spin
 !
 ! For now just does first order transport. The kappa term is determined from the
 ! unitarity condition.
+!
+! Note: spin tracking through a patch element is handled in track_a_patch since
+! this is needed by runge_kutta tracking.
 !
 ! Modules needed:
 !   use spin_mod
@@ -575,6 +578,15 @@ character(16), parameter :: r_name = 'track1_spin_bmad'
 
 !
 
+if (associated(ele%a_pole_elec)) then
+  if (any(ele%a_pole_elec /= 0) .or. any (ele%b_pole_elec /= 0)) then
+    call out_io (s_error$, r_name, 'BMAD_STANDARD SPIN TRACKING WITH ELECTRIC MULTIPOLES NOT IMPLEMENTED! ' // ele%name)
+  endif
+endif
+
+if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patch elements.
+
+!
 m_particle = mass_of(start_orb%species)
 anomalous_moment = anomalous_moment_of(start_orb%species)
 
