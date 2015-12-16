@@ -17,6 +17,7 @@ solely meant for \bmad internal use.
   Branch Handling                             & \ref{r:branch}         \\ \hline
   Coherent Synchrotron Radiation (CSR)        & \ref{r:csr}            \\ \hline
   Collective Effects                          & \ref{r:collective}     \\ \hline
+  Custom and Hook Routines                    & \ref{r:custom}         \\ \hline
   Electro-Magnetic Fields                     & \ref{r:em.fields}      \\ \hline
   Helper Routines: File, System, and IO       & \ref{r:helper.file}    \\ \hline
   Helper Routines: Math (Except Matrix)       & \ref{r:helper.math}    \\ \hline
@@ -251,6 +252,76 @@ Routine to calculate the Touschek lifetime for a lat.
 \end{description}
 
 %------------------------------------------------------------------------
+\section{Custom Routines}
+\label{r:custom}
+
+\begin{description}
+
+\index[routine]{apply_element_edge_kick_hook}
+\label{r:apply.element.edge.kick.hook}
+\item[apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)] \Newline 
+Routine that can be customized to track through the edge field of an element.
+This routine is always called by apply_element_edge_kick.
+
+\index[routine]{check_aperture_limit_custom}
+\label{r:check.aperture.limit.custom}
+\item[check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)] \Newline
+Routine to check if an orbit is outside an element's aperture.
+Used when \vn{ele%aperture_type} is set to \vn{custom\$} 
+
+\index[routine]{em_field_custom}
+\label{r:em.field.custom}
+\item[\protect\parbox{6in}{
+  em_field_custom(ele, param, s_rel, time, orb, local_ref_frame, field, \\
+  \hspace*{1in} calc_dfield, err_flag) }] \Newline
+Custom routine for calculating fields.
+
+\index[routine]{init_custom}
+\label{r:init.custom}
+\item[init_custom (ele, err_flag)] \Newline
+Routine for initializing custom elements or elements that do custom
+calculations.
+
+\index[routine]{make_mat6_custom}
+\label{r:make.mat6.custom}
+\item[make_mat6_custom (ele, param, c0, c1, err_flag)] \Newline
+Routine for custom calculations of the 6x6 transfer matrices.
+
+\index[routine]{radiation_integrals_custom}
+\label{r:radiation.integrals.custom}
+\item[radiation_integrals_custom (lat, ir, orb, err_flag)] \Newline
+User supplied routine to calculate the synchrotron radiation integrals for
+a custom element.
+
+\index[routine]{track1_custom}
+\label{r:track1.custom}
+    \item[track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
+Dummy routine for custom tracking.
+
+\index[routine]{track1_postprocess}
+\label{r:track1.postprocess}
+\item[track1_postprocess (start_orb, ele, param, end_orb)] \Newline 
+Dummy routine for post processing after the track1 routine is done.
+
+\index[routine]{track1_preprocess}
+\label{r:track1.preprocess}
+\item[track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)] \Newline 
+Dummy routine for pre processing at the start of the track1 routine.
+
+\index[routine]{track1_spin_custom}
+\label{r:track1.spin.custom}
+\item[track1_spin_custom (start, ele, param, end, err_flag, track)] \Newline 
+Dummy routine for custom spin tracking. 
+This routine needs to be replaced for a custom calculation.
+
+\index[routine]{wall_hit_handler_custom}
+\label{r:wall.hit.handler.custom}
+\item[wall_hit_handler_custom (orb, ele, s, t)] \Newline 
+This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Electro-Magnetic Fields}
 \label{r:em.fields}     
 
@@ -264,7 +335,6 @@ Routine to calculate the Touschek lifetime for a lat.
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
-\label{r:em.field.custom}
 \item[\protect\parbox{6in}{
   em_field_custom(ele, param, s_rel, time, orb, local_ref_frame, field, \\
   \hspace*{1in} calc_dfield, err_flag) }] \Newline
@@ -1403,12 +1473,6 @@ model for a sol_quad element.
 \label{r:create.unique.ele.names}
 \item[create_unique_ele_names (lat, key, suffix)] \Newline 
 Routine to give elements in a lattice unique names.
-
-\index[routine]{init_custom}
-\label{r:init.custom}
-\item[init_custom (ele, err_flag)] \Newline
-Routine for initializing custom elements or elements that do custom
-calculations.
 
 \index[routine]{read_digested_bmad_file}
 \label{r:read.digested.bmad.file}
@@ -2710,7 +2774,6 @@ Routine to make the 6x6 transfer matrix for an element
 using closed formulas.
 
 \index[routine]{make_mat6_custom}
-\label{r:make.mat6.custom}
 \item[make_mat6_custom (ele, param, c0, c1, err_flag)] \Newline
 Routine for custom calculations of the 6x6 transfer matrices.
 
@@ -2969,7 +3032,6 @@ The following routines perform tracking and closed orbit calculations.
 Routine to check if an orbit is outside an element's aperture. 
 
 \index[routine]{check_aperture_limit_custom}
-\label{r:check.aperture.limit.custom}
 \item[check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)] \Newline
 Routine to check if an orbit is outside an element's aperture.
 Used when \vn{ele%aperture_type} is set to \vn{custom\$} 
@@ -3068,7 +3130,6 @@ Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
 \index[routine]{track1_spin_custom}
-\label{r:track1.spin.custom}
 \item[track1_spin_custom (start, ele, param, end, err_flag, track)] \Newline 
 Dummy routine for custom spin tracking. 
 This routine needs to be replaced for a custom calculation.
@@ -3125,7 +3186,6 @@ Routine to compute from tracking the Twiss parameters and the transfer matrices
 for every element in the lat. 
 
 \index[routine]{wall_hit_handler_custom}
-\label{r:wall.hit.handler.custom}
 \item[wall_hit_handler_custom (orb, ele, s, t)] \Newline 
 This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
 
@@ -3323,24 +3383,21 @@ Routine to do Boris tracking.
 Particle tracking through a single element BMAD_standard style. 
 
 \index[routine]{track1_custom}
-\label{r:track1.custom}
-    \item[track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
+\item[track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
 Dummy routine for custom tracking.
-
-\index[routine]{track1_postprocess}
-\label{r:track1.postprocess}
-\item[track1_postprocess (start_orb, ele, param, end_orb)] \Newline 
-Dummy routine for post processing after the track1 routine is done.
-
-\index[routine]{track1_preprocess}
-\label{r:track1.preprocess}
-\item[track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)] \Newline 
-Dummy routine for pre processing at the start of the track1 routine.
 
 \index[routine]{track1_linear}
 \label{r:track1.linear}
 \item[track1_linear (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a single element using the transfer matrix.. 
+
+\index[routine]{track1_postprocess}
+\item[track1_postprocess (start_orb, ele, param, end_orb)] \Newline 
+Dummy routine for post processing after the track1 routine is done.
+
+\index[routine]{track1_preprocess}
+\item[track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)] \Newline 
+Dummy routine for pre processing at the start of the track1 routine.
 
 \index[routine]{track1_radiation}
 \label{r:track1.radiation}
@@ -3408,7 +3465,6 @@ Routine to compute the average betas in a quad.
 Routine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
 
 \index[routine]{radiation_integrals_custom}
-\label{r:radiation.integrals.custom}
 \item[radiation_integrals_custom (lat, ir, orb, err_flag)] \Newline
 User supplied routine to calculate the synchrotron radiation integrals for
 a custom element.
@@ -3575,6 +3631,8 @@ long range wakes in a lattice.
 \label{r:c.interface}  
 \index{C/C++ interface!list of routines}
 
+\begin{description}
+
 \index[routine]{fscalar2scalar}
 \label{r:fscalar2scalar}
 \item[fscalar2scalar (f_scalar, n) result (c_scalar)] \Newline 
@@ -3670,6 +3728,8 @@ Functional form of subroutine to_c_str (f_string, c_string)
 \item[to_f_str (c_string, f_string)] \Newline 
 Subroutine to append a null (0) character at the end of a string (trimmed
 of trailing blanks) so it will look like a C character array. 
+
+\end{description}
 
 % %------------------------------------------------------------------------
 % \section{Deprecated}
