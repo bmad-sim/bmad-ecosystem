@@ -22,7 +22,7 @@
 
 subroutine apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
 
-use track1_mod
+use track1_mod, dummy => apply_element_edge_kick_hook
 
 implicit none
 
