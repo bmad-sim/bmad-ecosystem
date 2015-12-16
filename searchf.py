@@ -290,7 +290,10 @@ def search_f90 (file_name, search_com):
         elif search_com.doc_type == 'FULL':
           print ('\nFile: ' + file_name)
           for com in comments: print (com.rstrip())
-          print (line.rstrip())
+          while True:
+            print (line.rstrip())
+            if line.rstrip()[-1] != '&': break
+            line = f90_file.readline()
         else:
           print ('\nFile: ' + file_name)
           print ('    ' + line.rstrip())
