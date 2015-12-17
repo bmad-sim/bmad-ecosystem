@@ -307,6 +307,8 @@ do ib = 0, ubound(lat%branch, 1)
         if (name /= ele%control_var(1)%name) line = trim(line) // '[' // trim(name) // ']'
         string = expression_stack_to_string(ctl%stack)
         if (string /= ele%control_var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)
+
+        if (len_trim(line) > len(line)/2) call write_lat_line(line, iu, .false.)
       enddo j_loop
       line = trim(line) // '}, var = {' // ele%control_var(1)%name
 
@@ -1362,7 +1364,7 @@ end function rchomp
 !
 ! Output:
 !   line          -- Character(*): part of the string not writen. 
-!                       If end_id_neight = T then line will be blank.
+!                       If end_is_neigh = T then line will be blank.
 !-
 
 subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
