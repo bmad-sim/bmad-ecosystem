@@ -2112,7 +2112,7 @@ case ('spin.')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%spin%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call spinor_to_polar (orbit(ix_ele), polar)
+      polar = spinor_to_polar (orbit(ix_ele)%spin)
       datum_value = polar%theta
       valid_value = .true.
     endif
@@ -2121,7 +2121,7 @@ case ('spin.')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%spin%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call spinor_to_polar (orbit(ix_ele), polar)
+      polar = spinor_to_polar (orbit(ix_ele)%spin)
       datum_value = polar%phi
       valid_value = .true.
     endif
