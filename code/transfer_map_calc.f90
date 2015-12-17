@@ -1,6 +1,6 @@
 !+         
 ! Subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, &
-!                                         integrate, one_turn, unit_start, err_flag)
+!                                                     integrate, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between two elements.
 ! To calculate just the first order transfer matrices see the routine: 
@@ -70,7 +70,7 @@ integer i, i1, i2
 logical, optional :: integrate, one_turn, unit_start
 logical integrate_this, one_turn_this, unit_start_this, err_flag
 
-character(*), parameter :: r_name = "transfer_map_calc"
+character(*), parameter :: r_name = 'transfer_map_calc'
 
 !
 
