@@ -99,8 +99,8 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
         isn = isn + 1
-        call spinor_to_polar(start_orb, start_p)
-        call spinor_to_polar(end_orb, end_p)
+        start_p = spinor_to_polar(start_orb%spin)
+        end_p = spinor_to_polar(end_orb%spin)
         final_str = trim(final_str) // ' dSpin'
         write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
               end_p%theta-start_p%theta, end_p%phi-start_p%phi, &
