@@ -169,7 +169,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
 enddo
 
-end subroutine
+end subroutine multipass_all_info
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -200,7 +200,7 @@ type (multipass_all_info_struct) info
 if (allocated(info%lord)) deallocate(info%lord)
 if (allocated(info%branch)) deallocate(info%branch)
 
-end subroutine
+end subroutine deallocate_multipass_all_info_struct 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -258,7 +258,7 @@ if (ele%slave_status == super_slave$) then
   multi_lord => pointer_to_lord(sup_lord, 1, ix_slave = ix_pass)
 endif
 
-end function
+end function pointer_to_multipass_lord
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

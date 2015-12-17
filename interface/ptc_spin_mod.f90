@@ -141,9 +141,9 @@ if (any(x /= 0)) then
 
   call concat_real_8 (y2, y0, y0)
 
-  do i = 1, 3
-    call concat_real_8 (y2, ptc_probe8%s(i)%x, ptc_probe8%s(i)%x)
-  enddo
+!  do i = 1, 3
+!    call concat_real_8 (y2, ptc_probe8%s(i)%x, ptc_probe8%s(i)%x)
+!  enddo
 
   call kill(y2)
 endif
