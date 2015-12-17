@@ -1060,7 +1060,7 @@ real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
 logical, optional :: no_cavity, exact_modeling, exact_misalign, init_complex
-logical, save :: init_needed = .true., init2_needed = .true.
+logical, save :: init_ptc_needed = .true., init_init_needed = .true., init_spin_needed = .true.
 logical params_present, c_verbose_save
 
 character(16) :: r_name = 'set_ptc'
@@ -1073,10 +1073,10 @@ endif
 
 ! Some init
 
-if (init2_needed) then
+if (init_init_needed) then
   EXACT_MODEL = .false.
   ALWAYS_EXACTMIS = .true.
-  init2_needed = .false.
+  init_init_needed = .false.
 endif
 
 ! More init
@@ -1087,7 +1087,7 @@ HIGHEST_FRINGE = bmad_com%ptc_max_fringe_order
 
 params_present = present(e_tot) .and. present(particle)
 
-if (init_needed .and. params_present) then
+if (init_ptc_needed .and. params_present) then
   if (particle == positron$ .or. particle == electron$) then
     call make_states(.true._lp)
   else
@@ -1123,7 +1123,7 @@ if (present(taylor_order)) then
 endif
 
 if (params_present) then
-  if (init_needed .or. old_e_tot /= e_tot .or. present(integ_order) .or. present(n_step)) then
+  if (init_ptc_needed .or. old_e_tot /= e_tot .or. present(integ_order) .or. present(n_step)) then
     this_energy = 1d-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
@@ -1132,10 +1132,8 @@ if (params_present) then
     call set_madx (energy = this_energy, method = this_method, step = this_steps)
     old_e_tot  = e_tot
     ! Only do this once
-    if (init_needed) then
-      call ptc_ini_no_append 
-    endif
-    init_needed = .false.
+    if (init_ptc_needed) call ptc_ini_no_append 
+    init_ptc_needed = .false.
   endif
 endif
 
@@ -1145,18 +1143,23 @@ endif
 ptc_com%complex_ptc_used = ptc_com%complex_ptc_used .or. logic_option(.false., init_complex) .or. &
                                                                             bmad_com%spin_tracking_on 
 
-if (.not. init_needed) then  ! If make_states has been called
+if (.not. init_ptc_needed) then  ! If make_states has been called
   t_order = 0
   if (present(taylor_order)) t_order = taylor_order
   if (t_order == 0) t_order = bmad_com%taylor_order
   if (t_order == 0) t_order = ptc_com%taylor_order_saved
   if (ptc_com%taylor_order_ptc /= t_order) then
     call init (DEFAULT, t_order, 0, berz, nd2, ptc_com%real_8_map_init)
+    init_spin_needed = .true.
     c_verbose_save = c_verbose
     c_verbose = .false.
-    if (ptc_com%complex_ptc_used) call init_all (DEFAULT, t_order, 0)
     c_verbose = c_verbose_save
     ptc_com%taylor_order_ptc = t_order
+  endif
+
+  if (ptc_com%complex_ptc_used .and. init_spin_needed) then
+    call init_all (DEFAULT, t_order, 0)
+    init_spin_needed = .false.
   endif
 endif
 

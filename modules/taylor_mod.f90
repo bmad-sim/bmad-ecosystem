@@ -496,27 +496,32 @@ else
   write (li(2), '(a)') ' Out      Coef_Sx             Coef_Sy             Coef_Sz          Exponents           Order'
   nl = 2
 
+  ! Loop over Sx, Sy, Sz
   do i = 1, 3
     nl=nl+1; li(nl) = ' ------------------------------------------------------------------------------------------'
 
+    ! Idea is for a given set of 6 exponents, collect the 3 associated coefs: Coef_Sx, Coef_Sy, Coef_Sz
     nullify (tlr1%term, tlr2%term, tlr3%term)
 
     call sort_taylor_terms (spin_taylor(i, 1), tlr1)
     call sort_taylor_terms (spin_taylor(i, 2), tlr2)
     call sort_taylor_terms (spin_taylor(i, 3), tlr3)
 
-    n1 = 1; n2 = 1; n3 = 1
+    ! Loop over all combinations of exponents
+    n1 = 1; n2 = 1; n3 = 1   ! Index in tlrN(:) array
     do
-      ixm = -1
+      ixm = -1    ! ixm is 6 digit number that encodes the exponents: e1 e2 e3 e4 e5 e6
+      ! Find the term with the smallest ixm
       call setup_this_term (n1, tlr1, tt1, ix1, ixm)
       call setup_this_term (n2, tlr2, tt2, ix2, ixm)
       call setup_this_term (n3, tlr3, tt3, ix3, ixm)
-      if (ixm == -1) exit
+      if (ixm == -1) exit   ! If no more terms
 
-      call set_this_coef (ix1, ixm, coef1, tt1, n1, exp_m)
-      call set_this_coef (ix2, ixm, coef2, tt2, n2, exp_m)
-      call set_this_coef (ix3, ixm, coef3, tt3, n3, exp_m)
+      call set_this_coef (ix1, ixm, coef1, tt1, n1, exp_m)  ! Find Coef_Sx
+      call set_this_coef (ix2, ixm, coef2, tt2, n2, exp_m)  ! Find Coef_Sy
+      call set_this_coef (ix3, ixm, coef3, tt3, n3, exp_m)  ! Find Coef_Sz
 
+      ! Now print coefs and exponents.
       if (present(max_order)) then
         if (sum(exp_m) > max_order) cycle
       endif
@@ -559,7 +564,7 @@ integer nn, ixx, ixm
 !
 
 nullify(tt)
-ixx = 0
+ixx = -2    ! Something that will never equal ixm which will always be -1 or above.
 
 if (nn <= size(tlr%term)) then
   tt => tlr%term(nn)
