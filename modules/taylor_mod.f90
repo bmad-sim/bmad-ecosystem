@@ -1188,26 +1188,27 @@ end subroutine track_taylor
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function spin_taylor_to_mat (start_orb, spin_taylor) result (rot_mat)
+! Function spin_taylor_to_mat (start_orb, ref_orb, spin_taylor) result (rot_mat)
 !
 ! Routine to create the spin rotation matrix from a given spin map.
 !
 ! Input:
 !   start_orb(6)     -- real(rp): Starting orbital coords.
+!   ref_orb(6)       -- real(rp): Reference orbit
 !   spin_taylor(3,3) -- taylor_struct: Spin Taylor map.
 !
 ! Output:
 !   rot_mat(3,3)     -- real(rp): Spin rotation matrix.
 !-
 
-function spin_taylor_to_mat (start_orb, spin_taylor) result (rot_mat)
+function spin_taylor_to_mat (start_orb, ref_orb, spin_taylor) result (rot_mat)
 
 implicit none
 
 type (taylor_struct) :: spin_taylor(:, :)
 
-real(rp) :: start_orb(:)
-real(rp) :: rot_mat(3,3)
+real(rp) :: start_orb(:), ref_orb(:)
+real(rp) :: rot_mat(3,3), dorb(6)
 real(rp), allocatable :: expn(:, :)
 
 integer i1, i2, j, k, ie, e_max
@@ -1227,9 +1228,10 @@ allocate (expn(0:e_max, 6))
 ! Fill in cache matrix
 
 expn(0,:) = 1.0d0  !for when ie=0
-if (e_max > 0) expn(1,:) = start_orb(:)
+dorb = start_orb - ref_orb
+if (e_max > 0) expn(1,:) = dorb
 do j = 2, e_max
-  expn(j,:) = expn(j-1,:) * start_orb(:)
+  expn(j,:) = expn(j-1,:) * dorb
 enddo
 
 ! Compute spin matrix

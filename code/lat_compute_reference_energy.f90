@@ -21,7 +21,6 @@
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 
-
 use multipass_mod, dummy => lat_compute_ref_energy_and_time
 use autoscale_mod, dummy2 => lat_compute_ref_energy_and_time
 

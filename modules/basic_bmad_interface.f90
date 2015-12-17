@@ -367,6 +367,13 @@ interface
     real(rp) mat4(4,4)
   end subroutine
 
+  function particle_ref_time (orbit, ele) result (time)
+    import
+    type (coord_struct) orbit
+    type (ele_struct) ele
+    real(rp) time
+  end function
+
   subroutine ptc_bookkeeper (lat)
     import
     implicit none
