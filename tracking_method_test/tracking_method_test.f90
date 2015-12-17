@@ -101,7 +101,7 @@ do ib = 0, ubound(lat%branch, 1)
         isn = isn + 1
         call spinor_to_polar(start_orb, start_p)
         call spinor_to_polar(end_orb, end_p)
-        final_str = trim(final_str) // ' Spin'
+        final_str = trim(final_str) // ' dSpin'
         write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
               end_p%theta-start_p%theta, end_p%phi-start_p%phi, &
               end_p%xi-start_p%xi, end_p%polarization - start_p%polarization
@@ -156,7 +156,7 @@ character(10) function tolerance_spin(instr)
 character(38) :: instr
 
   select case (instr)
-    case('WIGGLER_PERIODIC1:Runge_Kutta Spin')   ; tolerance_spin = 'ABS 2E-7'
+    case('WIGGLER_PERIODIC1:Runge_Kutta dSpin')  ; tolerance_spin = 'ABS 2E-7'
     case default                                 ; tolerance_spin = 'ABS 1E-8'
   end select
 

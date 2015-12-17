@@ -1,0 +1,11 @@
+no_digested
+parameter[e_tot] = 1e8
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+
+parameter[taylor_order] = 1
+
+q: quad, l = 0.2, k1 = 1
+
+ll: line = (q)
+use, ll

@@ -18,6 +18,7 @@ set (EXE_SPECS
   cmake.reverse_test
   cmake.sim_utils_test
   cmake.slice_test
+  cmake.spin_test
   cmake.superimpose_test
   cmake.synrad3d_test
   cmake.time_runge_kutta_test
