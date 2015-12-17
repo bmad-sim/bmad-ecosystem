@@ -1194,7 +1194,7 @@ end subroutine track_taylor
 !
 ! Input:
 !   start_orb(6)     -- real(rp): Starting orbital coords.
-!   ref_orb(6)       -- real(rp): Reference orbit
+!   ref_orb(6)       -- real(rp): Reference orbit at the start.
 !   spin_taylor(3,3) -- taylor_struct: Spin Taylor map.
 !
 ! Output:
