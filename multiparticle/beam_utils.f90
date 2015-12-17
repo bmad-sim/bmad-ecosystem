@@ -1390,7 +1390,7 @@ do i = 1, size(bunch%particle)
     n_diff = n_diff - 1
   endif
 
-  call polar_to_spinor (polar, bunch%particle(i))
+  bunch%particle(i)%spin = polar_to_spinor (polar)
 enddo
 
 end subroutine init_spin_distribution
@@ -1833,13 +1833,13 @@ charge_live = 0
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%state /= alive$) cycle
-  call spinor_to_vec (bunch%particle(i), vec)
+  vec = spinor_to_vec (bunch%particle(i)%spin)
   ave_vec = ave_vec + vec * bunch%particle(i)%charge
   charge_live = charge_live + bunch%particle(i)%charge
 enddo
 
 ave_vec = ave_vec / charge_live
-call vec_to_polar (ave_vec, ave_polar)
+ave_polar = vec_to_polar (ave_vec)
 bunch_params%spin%theta = ave_polar%theta
 bunch_params%spin%phi   = ave_polar%phi
 

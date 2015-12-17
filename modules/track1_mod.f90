@@ -2555,8 +2555,8 @@ if (orbit%direction * ele%orientation == 1) then
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
     if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
-      call spinor_to_vec(orbit, s_vec)
-      call vec_to_spinor(matmul(ww, s_vec), orbit)
+      s_vec = spinor_to_vec(orbit%spin)
+      orbit%spin = vec_to_spinor(matmul(ww, s_vec))
     endif
   else
     call mat_make_unit (ww)
@@ -2574,8 +2574,8 @@ else
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
     if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
-      call spinor_to_vec(orbit, s_vec)
-      call vec_to_spinor(matmul(ww, s_vec), orbit)
+      s_vec = spinor_to_vec(orbit%spin)
+      orbit%spin = vec_to_spinor(matmul(ww, s_vec))
     endif
   else
     call mat_make_unit (ww)

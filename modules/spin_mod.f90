@@ -85,7 +85,7 @@ end subroutine initialize_pauli_vector
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine spinor_to_polar (coord, polar)
+! Function spinor_to_polar (spinor) result (polar)
 !
 ! Converts a spinor into a spin polar vector of unit length
 !
@@ -93,43 +93,43 @@ end subroutine initialize_pauli_vector
 !   use spin_mod
 !
 ! Input:
-!   coord%spin(2) -- coord_struct: The particle
+!   spinor(2)  -- complex(rp): Spinor
 !
 ! Output:
-!   polar         -- Spin_polar_struct: The resultant Unitary Vector in polar coordinates
+!   polar      -- Spin_polar_struct: The resultant Unitary Vector in polar coordinates
 !-
 
-subroutine spinor_to_polar (coord, polar)
+function spinor_to_polar (spinor) result (polar)
 
 implicit none
 
-type (coord_struct) :: coord
 type (spin_polar_struct) ::  polar
 
+complex(rp) spinor(2)
 real(rp) temp(2)
 
 character(20) :: r_name = "spinor_to_polar"
 
 !
 
-temp(1) = atan2 (imag(coord%spin(1)), real(coord%spin(1)))
-temp(2) = atan2 (imag(coord%spin(2)), real(coord%spin(2)))
+temp(1) = atan2 (imag(spinor(1)), real(spinor(1)))
+temp(2) = atan2 (imag(spinor(2)), real(spinor(2)))
 polar%xi = temp(1)
 polar%phi = temp(2) - temp(1)
 
-temp=abs(coord%spin)
+temp=abs(spinor)
 polar%theta = 2 * atan2(temp(2), temp(1))
 ! no sqrt here! spinor scales with sqrt(r)
 polar%polarization = dot_product(temp, temp)
 
 
-end subroutine spinor_to_polar
+end function spinor_to_polar
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine polar_to_vec (polar, vec)
+! Function polar_to_vec (polar) result (vec)
 !
 ! Comverts a spinor in polar coordinates to a spin vector. This will ignore the
 ! spinor phase.
@@ -144,7 +144,7 @@ end subroutine spinor_to_polar
 !   vec(3)        -- Real(3)
 !-
 
-subroutine polar_to_vec (polar, vec)
+function polar_to_vec (polar) result (vec)
 
 implicit none
 
@@ -156,13 +156,13 @@ vec(1) = polar%polarization * sin(polar%theta) * cos(polar%phi)
 vec(2) = polar%polarization * sin(polar%theta) * sin(polar%phi)
 vec(3) = polar%polarization * cos(polar%theta)
 
-end subroutine polar_to_vec
+end function polar_to_vec
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine polar_to_spinor (polar, coord)
+! Function polar_to_spinor (polar) result (spin)
 !
 ! Converts a spin vector in polar coordinates to a spinor
 !
@@ -170,31 +170,31 @@ end subroutine polar_to_vec
 !   use spin_mod
 !
 ! Input:
-!   polar          -- spin_polar_struct: includes polar phase
+!   polar     -- spin_polar_struct: includes polar phase
 !
 ! Output:
-!   coord%spin(2)   -- coord_struct: the particle spin
+!   spin(2)   -- complex(rp): the particle spin
 !-
 
-subroutine polar_to_spinor (polar, coord)
+function polar_to_spinor (polar) result (spin)
 
 implicit none
 
 type (spin_polar_struct) polar
-type (coord_struct) coord
+complex(rp) :: spin(2)
 
 !
 
-coord%spin(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
-coord%spin(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+spin(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+spin(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
-end subroutine polar_to_spinor
+end function polar_to_spinor
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine vec_to_polar (vec, polar, phase)
+! Function vec_to_polar (vec, phase) result (polar)
 !
 ! Converts a spin vector to a spin polar
 !
@@ -203,14 +203,14 @@ end subroutine polar_to_spinor
 !
 ! Input:
 !   vec(3)   -- real(rp): unitary spin vector
-!   phase    -- real(rp)(Optional): Phase of the spinor, if not given then
+!   phase    -- real(rp), Optional: Phase of the spinor, if not given then
 !                                   set to zero
 !
 ! Output:
 !   polar    -- spin_polar_struct:
 !-
 
-subroutine vec_to_polar (vec, polar, phase)
+function vec_to_polar (vec, phase) result (polar)
 
 implicit none
 
@@ -226,13 +226,13 @@ polar%theta = atan2 (sqrt(vec(1)**2 + vec(2)**2), vec(3))
 polar%phi = atan2(vec(2), vec(1))
 polar%polarization = sqrt(dot_product(vec, vec))
 
-end subroutine vec_to_polar
+end function vec_to_polar
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine spinor_to_vec (coord, vec)
+! Function spinor_to_vec (spinor) result (vec)
 !
 ! Converts a spinor to a spin cartesian vector
 !
@@ -240,38 +240,33 @@ end subroutine vec_to_polar
 !   use spin_mod
 !
 ! Input:
-!   coord  -- coord_struct: the particle
+!   spinor  -- complex(rp): Spinor
 !
 ! Output
 !   vec(3) -- Real(rp): spin vector in cartesian coordinates
 !-
 
-subroutine spinor_to_vec (coord, vec)
+function spinor_to_vec (spinor) result (vec)
 
 implicit none
 
-type (coord_struct) coord
-! type (spin_polar_struct) polar
-
+complex(rp) spinor(2)
 real(rp) vec(3)
 
 !
 
-! call spinor_to_polar (coord, polar)
-! call polar_to_vec (polar, vec)
+! vec = conjg(spinor) * pauli(i)%sigma * spinor done explicitly
+vec(1) = 2.*( real(spinor(1))*real(spinor(2))+aimag(spinor(1))*aimag(spinor(2)) )
+vec(2) = 2.*( real(spinor(1))*aimag(spinor(2))-aimag(spinor(1))*real(spinor(2)) )
+vec(3) = real(spinor(1))**2+aimag(spinor(1))**2-real(spinor(2))**2-aimag(spinor(2))**2
 
-! vec = conjg(coord%spin) * pauli(i)%sigma * coord%spin done explicitly
-vec(1) = 2.*( real(coord%spin(1))*real(coord%spin(2))+aimag(coord%spin(1))*aimag(coord%spin(2)) )
-vec(2) = 2.*( real(coord%spin(1))*aimag(coord%spin(2))-aimag(coord%spin(1))*real(coord%spin(2)) )
-vec(3) = real(coord%spin(1))**2+aimag(coord%spin(1))**2-real(coord%spin(2))**2-aimag(coord%spin(2))**2
-
-end subroutine spinor_to_vec
+end function spinor_to_vec
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine vec_to_spinor (vec, coord, phase)
+! Function vec_to_spinor (vec, phase) result (spinor)
 !
 ! Converts a spin cartesian vector to a spinor.
 !
@@ -279,34 +274,30 @@ end subroutine spinor_to_vec
 !   use spin_mod
 !
 ! Input:
-!   vec(3)   -- Real(rp): spin vector in cartesian coordinates
+!   vec(3)   -- real(rp): Spin vector in cartesian coordinates
 !   phase    -- real(rp)(Optional): Phase of the spinor, if not given then
 !                                   set to zero
 !
 ! Output:
-!   spinor   -- Coord_struct: the particle
+!   spinor(2)-- complex(rp): Spinor.
 !-
 
-subroutine vec_to_spinor (vec, coord, phase)
+function vec_to_spinor (vec, phase) result (spinor)
 
 implicit none
 
-type (coord_struct) coord
 type (spin_polar_struct) :: polar
 
+complex(rp) :: spinor(2)
 real(rp) vec(3)
 real(rp), optional :: phase
 
-real(rp) set_phase
-
 !
 
-set_phase = real_option (0.0d0, phase)
+polar = vec_to_polar(vec, phase)
+spinor = polar_to_spinor(polar)
 
-call vec_to_polar (vec, polar, set_phase)
-call polar_to_spinor (polar, coord)
-
-end subroutine vec_to_spinor
+end function vec_to_spinor
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -339,8 +330,8 @@ real(rp) :: vec1(3), vec2(3)
 
 ! Round-off can make |arg| > 1 so need to check this.
 
-call polar_to_vec (polar1, vec1)
-call polar_to_vec (polar2, vec2)
+vec1 = polar_to_vec (polar1) 
+vec2 = polar_to_vec (polar2)
 
 arg = dot_product(vec1,vec2) / (sqrt(dot_product(vec1, vec1) * dot_product(vec2,vec2)))
 if (arg >= 1) then
