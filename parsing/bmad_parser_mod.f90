@@ -6920,11 +6920,11 @@ polar = spin_polar_struct(bs_ele%value(spinor_polarization$), bs_ele%value(spino
 
 if (any(vec /= [0, 0, 1])) then
   if (polar%polarization /= 1 .or. polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0) &
-          call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
-  call vec_to_polar (vec, polar)
+              call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+  polar = vec_to_polar (vec)
 endif
 
-call polar_to_spinor (polar, orbit)
+orbit%spin = polar_to_spinor (polar)
 
 end subroutine parser_set_spin
 

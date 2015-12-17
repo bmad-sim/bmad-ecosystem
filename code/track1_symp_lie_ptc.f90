@@ -61,12 +61,12 @@ call ele_to_fibre (ele, fibre_ele, param, .true., tracking_species = start_orb%s
 
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)) then
-  call spinor_to_vec (start_orb, spin_vec)
+  spin_vec = spinor_to_vec (start_orb%spin)
   spin_probe = re
   spin_probe%s(1)%x = real(spin_vec, dp)
   call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
   spin_vec = spin_probe%s(1)%x
-  call vec_to_spinor (spin_vec, end_orb)
+  end_orb%spin = vec_to_spinor (spin_vec)
   re = spin_probe%x
 else
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC

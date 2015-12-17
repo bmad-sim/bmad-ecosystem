@@ -1127,57 +1127,50 @@ end subroutine mat6_to_taylor
 !
 ! Subroutine to track using a Taylor map.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
+!   start_orb(6)   -- Real(rp): Starting coords.
 !   bmad_taylor(6) -- Taylor_struct: Taylor map.
-!   start_orb      -- Real(rp): Starting coords.
 !
 ! Output:
-!   end_orb        -- Real(rp): Ending coords.
+!   end_orb(6)     -- Real(rp): Ending coords.
 !-
 
 subroutine track_taylor (start_orb, bmad_taylor, end_orb)
 
 implicit none
 
-type (taylor_struct), intent(in) :: bmad_taylor(:)
+type (taylor_struct) :: bmad_taylor(:)
 
-real(rp), intent(in) :: start_orb(:)
-real(rp), intent(out) :: end_orb(:)
-real(rp) s0(6)
+real(rp) :: start_orb(:)
+real(rp) :: end_orb(:)
 real(rp), allocatable :: expn(:, :)
 
-integer i, j, k, ie, e_max, i_max
+integer i, j, k, ie, e_max
 
 ! size cache matrix
 
 e_max = 0
-i_max = size(bmad_taylor)
 
-do i = 1, i_max
+do i = 1, 6
   do j = 1, size(bmad_taylor(i)%term)
     e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%expn)) 
   enddo
 enddo
 
-allocate (expn(0:e_max, i_max))
+allocate (expn(0:e_max, 6))
 
 ! Fill in cache matrix
 
-expn(0,:) = 1.0d0  !for when ie=0
-if (e_max > 0) expn(1,:) = start_orb(:)
-do j = 2, e_max
+expn(0,:) = 1.0d0
+do j = 1, e_max
   expn(j,:) = expn(j-1,:) * start_orb(:)
 enddo
 
-! compute taylor map
+! Compute taylor map
 
-s0 = start_orb  ! in case start and end are the same in memory.
 end_orb = 0
 
-do i = 1, i_max
+do i = 1, 6
   do j = 1, size(bmad_taylor(i)%term)
     end_orb(i) = end_orb(i) + bmad_taylor(i)%term(j)%coef * &
                        expn(bmad_taylor(i)%term(j)%expn(1), 1) * &
@@ -1191,6 +1184,71 @@ enddo
 
 end subroutine track_taylor
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function spin_taylor_to_mat (start_orb, spin_taylor) result (rot_mat)
+!
+! Routine to create the spin rotation matrix from a given spin map.
+!
+! Input:
+!   start_orb(6)     -- real(rp): Starting orbital coords.
+!   spin_taylor(3,3) -- taylor_struct: Spin Taylor map.
+!
+! Output:
+!   rot_mat(3,3)     -- real(rp): Spin rotation matrix.
+!-
+
+function spin_taylor_to_mat (start_orb, spin_taylor) result (rot_mat)
+
+implicit none
+
+type (taylor_struct) :: spin_taylor(:, :)
+
+real(rp) :: start_orb(:)
+real(rp) :: rot_mat(3,3)
+real(rp), allocatable :: expn(:, :)
+
+integer i1, i2, j, k, ie, e_max
+
+! size cache matrix
+
+e_max = 0
+
+do i1 = 1, 3;  do i2 = 1, 3
+  do j = 1, size(spin_taylor(i1, i2)%term)
+    e_max = max (e_max, maxval(spin_taylor(i1, i2)%term(j)%expn)) 
+  enddo
+enddo;  enddo
+
+allocate (expn(0:e_max, 6))
+
+! Fill in cache matrix
+
+expn(0,:) = 1.0d0  !for when ie=0
+if (e_max > 0) expn(1,:) = start_orb(:)
+do j = 2, e_max
+  expn(j,:) = expn(j-1,:) * start_orb(:)
+enddo
+
+! Compute spin matrix
+
+rot_mat = 0
+
+do i1 = 1, 3;  do i2 = 1, 3
+  do j = 1, size(spin_taylor(i1, i2)%term)
+    rot_mat(i1, i2) = rot_mat(i1, i2) + spin_taylor(i1, i2)%term(j)%coef * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(1), 1) * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(2), 2) * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(3), 3) * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(4), 4) * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(5), 5) * &
+                       expn(spin_taylor(i1, i2)%term(j)%expn(6), 6)
+  enddo
+enddo;  enddo
+
+end function spin_taylor_to_mat
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
