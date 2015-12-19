@@ -51,7 +51,7 @@ orb_start = orb0
 orb_start%vec = orb_start%vec + dr
 
 spin0 = spinor_to_vec(orb0%spin)
-spin_a = matmul (spin_taylor_to_mat(orb0%vec+dr, ele%spin_taylor), spin0)
+spin_a = matmul (spin_taylor_to_mat(orb_start%vec, ele%taylor%ref, ele%spin_taylor), spin0)
 
 call type_taylors (ele%taylor)
 print *, '--------------------------------'
