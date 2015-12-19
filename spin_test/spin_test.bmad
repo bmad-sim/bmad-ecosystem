@@ -5,7 +5,7 @@ parameter[geometry] = open
 
 parameter[taylor_order] = 1
 
-beam_start[x]  = 0.001
+beam_start[x]  = 0.002
 beam_start[px] = 0.0
 beam_start[y]  = 0.0
 beam_start[py] = 0.0
@@ -15,7 +15,7 @@ beam_start[spin_x] = 0.3
 beam_start[spin_y] = 0.4
 beam_start[spin_z] = 0.5
 
-q: quad, l = 0.2, k1 = 0.1, num_steps = 10
+q: quad, l = 0.2, b1_elec = 1e8, num_steps = 10, tracking_method = runge_kutta
 
 ll: line = (q)
 use, ll

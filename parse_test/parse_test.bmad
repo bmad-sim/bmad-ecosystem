@@ -22,6 +22,7 @@ sbend0: sbend, field = {
         r0 = (0, 0, 0),
         dr = (0.001, 0.001, 0.002)}}}
 
+tt: taylor, {xy: 0.4 | 1 3}
 
 c: diffraction_plate, mode = transmission, 
     surface = {
@@ -105,7 +106,7 @@ q1: quad, L=0.1, superimpose, ref = pp, offset = -0.2
 q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
-ll: line = (aa, aa, bb, bb, cc, pp, sbend0)
+ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt)
 use, ll, phot
 
 phot: line = (ddd, cap, cry, ff)
