@@ -23,7 +23,8 @@ use multipass_mod, dummy => particle_ref_time
 implicit none
 
 type (coord_struct) orbit
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ref_ele, lord
 type (ele_pointer_struct), allocatable :: chain(:)
 
 real(rp) time
@@ -38,11 +39,15 @@ character(*), parameter :: r_name = 'particle_ref_time'
 ! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
 if (absolute_time_tracking(ele)) then
-    call multipass_chain(ele, ix_pass, n_links, chain)
-  if (ix_pass > 1) then
-    time = orbit%t - chain(1)%ele%value(ref_time_start$)
+  ref_ele => ele
+  call multipass_chain(ele, ix_pass, n_links, chain)
+  if (ix_pass > 1) ref_ele => chain(1)%ele
+
+  if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+    lord => pointer_to_lord (ref_ele, 1)
+    time = orbit%t - lord%value(ref_time_start$)
   else
-    time = orbit%t - ele%value(ref_time_start$)
+    time = orbit%t - ref_ele%value(ref_time_start$)
   endif
 
 else
