@@ -21,6 +21,7 @@ use bmad_interface, dummy => set_ele_defaults
 implicit none
 
 type (ele_struct) ele
+integer i, j
 logical, optional :: do_allocate
 
 ! Default fringe set for non bend elements
@@ -129,6 +130,18 @@ case (floor_shift$)
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
+
+case (hybrid$)   ! start with unit matrix
+  if (logic_option(.true., do_allocate)) then
+    do i = 1, 3
+      ele%taylor(i)%ref = 0
+      call init_taylor_series (ele%taylor(i), 0)
+    enddo
+    do i = 1, 3; do j = 1, 3
+      ele%spin_taylor(i,j)%ref = 0
+      call init_taylor_series (ele%spin_taylor(i,j), 0)
+    enddo; enddo
+  endif
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
@@ -243,6 +256,11 @@ case (taylor$)   ! start with unit matrix
   ele%taylor_map_includes_offsets = .false.
   if (logic_option(.true., do_allocate)) then
     call taylor_make_unit (ele%taylor)
+  
+    do i = 1, 3; do j = 1, 3
+      ele%spin_taylor(i,j)%ref = 0
+      call init_taylor_series (ele%spin_taylor(i,j), 0)
+    enddo; enddo
   endif
 
 case (wiggler$, undulator$) 

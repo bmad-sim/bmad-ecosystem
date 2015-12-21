@@ -18,7 +18,7 @@
 
 function particle_ref_time (orbit, ele) result (time)
 
-use multipass_mod
+use multipass_mod, dummy => particle_ref_time
 
 implicit none
 

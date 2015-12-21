@@ -638,43 +638,6 @@ end subroutine taylor_make_unit
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine spin_taylor_make_unit (spin_taylor)
-!
-! Subroutine to make the unit spin Taylor map:
-!       S(out) = Map * S(in) = S(in)
-!
-! Modules needed:
-!   use bmad
-!
-! Output:
-!   spin_taylor(3,3) -- Taylor_struct: Unit Taylor map .
-!-
-
-subroutine spin_taylor_make_unit (spin_taylor)
-
-implicit none
-
-type (taylor_struct) spin_taylor(:,:)
-integer i, j
-
-do i = 1, 3; do j = 1, 3
-  spin_taylor(i,j)%ref = 0
-  if (i == j) then
-    call init_taylor_series (spin_taylor(i,j), 1)
-    spin_taylor(i,j)%term(1)%coef = 1.0
-    spin_taylor(i,j)%term(1)%expn = 0
-    spin_taylor(i,j)%term(1)%expn(i) = 1
-  else
-    call init_taylor_series (spin_taylor(i,j), 0)
-  endif
-enddo; enddo
-
-end subroutine spin_taylor_make_unit
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
 ! Subroutine add_taylor_term1 (bmad_taylor, coef, expn, replace)
 !
 ! Routine to add a Taylor term to a Taylor series.
