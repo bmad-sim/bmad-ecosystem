@@ -249,10 +249,15 @@ wild_key0 = logic_option(.false., wild_and_key0)
 if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
 
   word = word(2:)             ! strip off '{'
-  read (word, *, iostat = ios) i_out
-  if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
-    call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name)
-    return
+  call match_word (word, ['XX', 'XY', 'XZ', 'YX', 'YY', 'YZ', 'ZX', 'ZY', 'ZZ'], i_out, .true., .false.)
+  if (i_out > 1) then
+    i_out = i_out + 100 ! Make i_out not in range [1:6]
+  else
+    read (word, *, iostat = ios) i_out
+    if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
+      call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name)
+      return
+    endif
   endif
 
   call evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
@@ -291,8 +296,8 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
   enddo
 
   call add_this_taylor_term (ele, i_out, coef, expn)
-  call get_next_word (word, ix_word, '},', delim, delim_found)
 
+  call get_next_word (word, ix_word, '},', delim, delim_found)
   if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
     call parser_error ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
@@ -2033,25 +2038,29 @@ subroutine add_this_taylor_term (ele, i_out, coef, expn)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (taylor_struct), pointer :: taylor
+
 real(rp) coef
-integer i, i_out, expn(6)
+integer i, j, i_out, expn(6)
 
 !
 
-if (.not. associated(ele%taylor(1)%term)) then
-  do i = 1, size(ele%taylor)
-    allocate (ele%taylor(i)%term(0))
-  enddo
+if (i_out > 100) then 
+  i_out = i_out - 101
+  j = i_out / 3
+  i = i_out - 3 * j
+  taylor => ele%spin_taylor(i+1,j+1) 
+else
+  if (i_out < 1 .or. i_out > 6) then
+    call parser_error ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &
+                  'FOR TAYLOR ELEMENT: ' // ele%name)
+    return
+  endif
+  taylor => ele%taylor(i_out)
 endif
 
-if (i_out < 1 .or. i_out > 6) then
-  call parser_error ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &
-                'FOR TAYLOR ELEMENT: ' // ele%name)
-  return
-endif
-
-call add_taylor_term (ele%taylor(i_out), coef, expn, .true.)
+call add_taylor_term (taylor, coef, expn, .true.)
 
 end subroutine add_this_taylor_term
 
