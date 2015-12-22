@@ -163,6 +163,7 @@ do
 
   call sr3d_photon_status_calc (photon, branch)
   if (photon%status == at_wall_end$) return
+  if (photon%status == at_transverse_wall$) return
   if (photon%status == is_through_wall$) then
     call sr3d_photon_hit_spot_calc (photon, branch, wall_hit, err)
     return
