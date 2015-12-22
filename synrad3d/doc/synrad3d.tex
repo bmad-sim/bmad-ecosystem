@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{December 7, 2015}
+\date{December 22, 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -512,11 +512,11 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     surface_roughness_rms       = -1         ! Surface roughness for diffuse scattering.
     roughness_correlation_len   = -1         ! Surface roughness correlation length.
     surface_reflection_file     = ""         ! File for specifying default reflection probabilities.
-    sr3d_params%diffuse_scattering_on = T    ! For testing the effect of diffuse scattering.
-    sr3d_params%ds_track_step_max     = 3    ! Photon propagation step size 
-    sr3d_params%dr_track_step_max     = 0.1  ! Photon propagation step size 
-    sr3d_params%allow_reflections     = T    ! For testing purposes.
-    sr3d_params%allow_absorption      = T    ! For testing purposes.
+    sr3d_params%ds_track_step_max        = 3    ! Photon propagation step size 
+    sr3d_params%dr_track_step_max        = 0.1  ! Photon propagation step size 
+    sr3d_params%specular_reflection_only = F    ! For testing the effect of diffuse scattering.
+    sr3d_params%allow_reflections        = T    ! For testing purposes.
+    sr3d_params%allow_absorption         = T    ! For testing purposes.
   /
 \end{example}
 
@@ -583,9 +583,9 @@ on the syntax of such a file.
   \item[\vn{sr3d_params\%allow_reflections}] \Newline
 This parameter, if set False, will cause \srthree to stop tracking a given photon once
 it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
-  \item[\vn{sr3d_params\%diffuse_scattering_on}] \Newline
-This parameter can be used to test whether diffuse scattering is important. If set to \vn{False},
-photons will always be specularly reflected.
+  \item[\vn{sr3d_params\%specular_reflection_only}] \Newline
+This parameter can be used to test whether diffuse scattering is important. If set to \vn{True},
+photons will always be specularly reflected. Default is \vn{False}.
   \item[\vn{sr3d_params\%allow_absorption}] \Newline
 This parameter, if set False, will cause \srthree suppress absorption
 and to always reflect photons when they hit the chamber wall. This
