@@ -666,16 +666,15 @@ case (bmad_standard$)
   !---------------------------------------------------------------------
   ! Add electric multipoles
 
-  if (associated(ele%a_pole_elec)) then
-
+  call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole, electric$)
+  if (has_nonzero_pole) then
     do i = 0, n_pole_maxx
-      if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
-      call elec_multipole_field(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, Ex, Ey, dkm, df_calc)
+      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, df_calc)
       field%E(1) = field%E(1) + Ex
       field%E(2) = field%E(2) + Ey
       if (df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
     enddo
-
   endif
 
   !-------------------------------

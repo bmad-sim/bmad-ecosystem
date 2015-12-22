@@ -3083,12 +3083,13 @@ real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer, optional :: tracking_species
 integer, optional :: integ_order, steps
 integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos
 
-logical use_offsets
+logical use_offsets, has_nonzero_pole
 logical, optional :: for_layout, use_hard_edge_drifts
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3417,9 +3418,10 @@ if (associated(ele%a_pole_elec)) then
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = sign_of(charge_of(param%particle)) * 1d-9 / VOLT_C
-  do i = 0, ubound(ele%a_pole_elec, 1)
-    if (ele%a_pole_elec(i) /= 0) call add (ptc_fibre, -(i+1), 0, fh*ele%a_pole_elec(i), electric = .true.)
-    if (ele%b_pole_elec(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*ele%b_pole_elec(i), electric = .true.)
+  call multipole_ele_to_ab(ele, .false., has_nonzero_pole, a_pole, b_pole, electric$)
+  do i = 0, n_pole_maxx
+    if (a_pole(i) /= 0) call add (ptc_fibre, -(i+1), 0, fh*a_pole(i), electric = .true.)
+    if (b_pole(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*b_pole(i), electric = .true.)
   enddo
   SOLVE_ELECTRIC = .false.
 endif
