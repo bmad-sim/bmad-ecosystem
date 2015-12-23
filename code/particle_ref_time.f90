@@ -24,7 +24,7 @@ implicit none
 
 type (coord_struct) orbit
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ref_ele, lord
+type (ele_struct), pointer :: ref_ele
 type (ele_pointer_struct), allocatable :: chain(:)
 
 real(rp) time
@@ -40,15 +40,12 @@ character(*), parameter :: r_name = 'particle_ref_time'
 
 if (absolute_time_tracking(ele)) then
   ref_ele => ele
-  call multipass_chain(ele, ix_pass, n_links, chain)
+  if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
+
+  call multipass_chain(ref_ele, ix_pass, n_links, chain)
   if (ix_pass > 1) ref_ele => chain(1)%ele
 
-  if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-    lord => pointer_to_lord (ref_ele, 1)
-    time = orbit%t - lord%value(ref_time_start$)
-  else
-    time = orbit%t - ref_ele%value(ref_time_start$)
-  endif
+  time = orbit%t - ref_ele%value(ref_time_start$)
 
 else
   if (orbit%beta == 0) then
