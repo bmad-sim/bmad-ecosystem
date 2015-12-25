@@ -134,14 +134,14 @@ end subroutine dynamic_aperture_scan
 !
 ! Subroutine to determine one dynamic aperture point by tracking.
 ! This routine works by determining where on a radial line y = const * x
-! the aperture is. Here x and y are deviations from the closed orbit.
+! the aperture is. Here x and y are deviations from the reference orbit.
 !
 ! Modules Needed:
 !   use dynamic_aperture_mod
 !
 ! Input:
 !   lat            -- lat_struct: Lat containing the lattice.
-!   orb0           -- Coord_struct: Closed orbit at the start.
+!   orb0           -- Coord_struct: reference orbit at the start.
 !   theta_xy       -- Real(rp): Angle of radial line (in radians) in x-y space.
 !                         Angle is "normalized" by %x_init, %y_init.
 !   aperture_param -- aperture_param_struct: Structure holding the input data:
@@ -209,10 +209,6 @@ test_loop: do
   orbit(0) = orb0
   orbit(0)%vec(1) = orbit(0)%vec(1) + x1 
   orbit(0)%vec(3) = orbit(0)%vec(3) + y1 
-
-
-  ! Make sure eta values have been calculated. 
-  call twiss_at_start(lat)
 
   ! track n_turns
 
