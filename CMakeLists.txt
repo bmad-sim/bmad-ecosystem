@@ -6,7 +6,8 @@ set(INC_DIRS
 
 set (SRC_DIRS
   code
-  synrad_lib
+  code_synrad
+  code_synrad3d
 )
 
 set (EXE_SPECS
