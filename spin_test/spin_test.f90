@@ -45,7 +45,7 @@ close (1)
 !
 
 call init_coord (orb0, lat%beam_start, lat%ele(0), downstream_end$)
-call transfer_map_calc_with_spin (lat, ele%taylor, ele%spin_taylor, orb0, err_flag, 0, 1)
+call transfer_map_calc_with_spin (lat, ele%taylor, ele%spin_taylor, orb0, err_flag, 1)
 
 orb_start = orb0
 orb_start%vec = orb_start%vec + dr

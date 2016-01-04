@@ -15,7 +15,7 @@ beam_start[spin_x] = 0.3
 beam_start[spin_y] = 0.4
 beam_start[spin_z] = 0.5
 
-q: quad, l = 0.2, b1_elec = 1e8, num_steps = 10, tracking_method = runge_kutta
+q: quad, l = 0.2, b1_elec = 1e8, num_steps = 10, tracking_method = runge_kutta, r0_elec = 2
 
 ll: line = (q)
 use, ll
