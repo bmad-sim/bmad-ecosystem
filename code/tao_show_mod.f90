@@ -192,8 +192,8 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6)
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
+real(rp) mat6(6,6), vec0(6), vec_in(6), pc, e_tot
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
@@ -1165,9 +1165,9 @@ case ('element')
           str(1:10) = adjustr(str(1:10))
         endif
         if (count(picked_uni) > 1) then
-          nl=nl+1; write(lines(nl), '(a10, 2x, i0, 2a)') str, i_uni, '@', ele%name
+          nl=nl+1; write(lines(nl), '(a10, 2x, i0, 2a, f14.3)') str, i_uni, '@', ele%name, ele%s
         else
-          nl=nl+1; write(lines(nl), '(a10, 2x, a)') str, ele%name
+          nl=nl+1; write(lines(nl), '(a10, 2x, a, f14.3)') str, ele%name, ele%s
         endif
       enddo
     enddo
@@ -1244,11 +1244,15 @@ case ('element')
       nl=nl+1; write(lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
-      fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f11.6)'
-      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                            Time'
-      nl=nl+1; write(lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
-      nl=nl+1; write(lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
-      nl=nl+1; write(lines(nl), fmt) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z, 'beta:', orb%beta
+      dt = orb%t - ele%ref_time
+      pc = orb%p0c * (1 + orb%vec(6))
+      call convert_pc_to (pc, orb%species, e_tot = e_tot) 
+      fmt  = '(2x, a, 2f15.8, a, es16.8, 2x, a, es12.4)'
+      fmt2 = '(2x, a, 2f15.8, a, es16.8, 2x, a, f11.6)'
+      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                          '
+      nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
+      nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
+      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
     endif
   endif
 
@@ -1644,7 +1648,8 @@ case ('lattice')
         '-tracking_elements  ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
-        '-attribute          ', '-all                ', '-no_slaves          '], switch, err, ix_s2)
+        '-attribute          ', '-all                ', '-no_slaves          ', '-energy             '], &
+            switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1701,6 +1706,9 @@ case ('lattice')
 
     case ('-design')
       lat_type = design$
+
+    case ('-energy')
+      what_to_print = 'energy'
 
     case ('-floor_coords')
       what_to_print = 'floor_coords'
@@ -1785,6 +1793,19 @@ case ('lattice')
       column(6+i) = show_lat_column_struct('ele::#[' // trim(attrib) // ']', fmt, width, '', .false.)
     enddo
 
+  case ('energy')
+    column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
+    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
+    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false.)
+    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
+    column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false.)
+    column( 7)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false.)
+    column( 8)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false.)
+    column( 9)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false.)
+    column(10)  = show_lat_column_struct('ele::#[e_tot]',          'es14.6',   14, '', .false.)
+    column(11)  = show_lat_column_struct('ele::#[pc]',       'es14.6',   14, '', .false.)
+
   case ('floor_coords')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
@@ -1863,7 +1884,7 @@ case ('lattice')
       column(6)  = show_lat_column_struct('ele::#[l]',           'f8.3',        8, '', .false.)
       column(7)  = show_lat_column_struct('ele::#[beta_a]',      'f8.2',        8, '', .false.)
       column(8)  = show_lat_column_struct('ele::#[phi_a]',       'f8.3',        8, '', .false.)
-      column(9)  = show_lat_column_struct('ele::#[etna_a]',       'f7.2',        7, '', .false.)
+      column(9)  = show_lat_column_struct('ele::#[eta_a]',       'f7.2',        7, '', .false.)
       column(10) = show_lat_column_struct('ele::#[orbit_x]',     '3p, f8.3',    8, 'orbit|x [mm]', .false.)
       column(11) = show_lat_column_struct('ele::#[beta_b]',      'f8.2',        8, '', .false.)
       column(12) = show_lat_column_struct('ele::#[phi_b]',       'f8.3',        8, '', .false.)

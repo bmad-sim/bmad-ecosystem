@@ -485,17 +485,22 @@ See the \bmad manual for more details.
 
   \index{chrom.}
   \item[chrom.] \Newline
-The \vn{chrom.} data type covers chromatic transfer map terms in a ring, 
-calculated using the linear map about an energy-offset closed orbit. 
-The types \vn{chrom.dtune.a} and \vn{chrom.dtune.b} are the chromaticities, and are
-global properties of the ring. The following are evaluated at individual elements.
-The types \vn{chrom.dbeta.a} and \vn{chrom.dbeta.b} are the normalized chromatic beta beats 
-$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$.
-The types \vn{chrom.dphi.a} and \vn{chrom.dphi.b} are the chromatic phase deviations 
-$\partial\phi_{a,b}/\partial\delta$.
-The second order dispersions $\partial\eta_{x,y}/\partial\delta$ and their slopes $\partial\eta'_{x,y}/\partial\delta$ are 
-\vn{chrom.deta.x}, \vn{chrom.deta.y}, and \vn{chrom.detap.x}, \vn{chrom.detap.y}, respectively.
+The \vn{chrom.} data type covers chromatic transfer map terms in a ring, calculated using
+the linear map about an energy-offset closed orbit.  The types \vn{chrom.dtune.a} and
+\vn{chrom.dtune.b} are the chromaticities, and are global properties of the ring. The
+following are evaluated at individual elements.  The types \vn{chrom.dbeta.a} and
+\vn{chrom.dbeta.b} are the normalized chromatic beta beats
+$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$.  The types \vn{chrom.dphi.a} and
+\vn{chrom.dphi.b} are the chromatic phase deviations $\partial\phi_{a,b}/\partial\delta$.
+The second order dispersions $\partial\eta_{x,y}/\partial\delta$ and their slopes
+$\partial\eta'_{x,y}/\partial\delta$ are \vn{chrom.deta.x}, \vn{chrom.deta.y}, and
+\vn{chrom.detap.x}, \vn{chrom.detap.y}, respectively.
 
+  \index{e_tot}
+  \item{e_tot}
+The \vn{e_tot} data type gives the total energy of a tracked particle (with
+\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
+\vn{beam}).
 
   \index{element_attrib.}
   \item[element_attrib.] \Newline

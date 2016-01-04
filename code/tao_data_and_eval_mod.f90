@@ -425,10 +425,10 @@ type (normal_modes_struct) mode
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
 type (coord_struct), pointer :: orb0
+type (coord_struct), pointer :: orbit(:), orb
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
-type (coord_struct), pointer :: orbit(:), orb
 type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
 type (tao_element_struct), pointer :: uni_ele(:)
@@ -1062,10 +1062,25 @@ case ('dpz_dz')
   endif
 
 case ('e_tot')
-  if (data_source == 'beam') return
-  mc2 = mass_of(branch%param%particle)
-  call tao_load_this_datum (sqrt((branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)))**2 + mc2**2), &
-                            ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  if (ix_ref > -1) then
+    if (data_source == 'beam') then
+      orb => bunch_params(ix_ref)%centroid
+    else
+      orb => orbit(ix_ref)
+    endif
+    call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(ix_ref))
+  endif
+
+  do i = ix_start, ix_ele
+    if (data_source == 'beam') then
+      orb => bunch_params(i)%centroid
+    else
+      orb => orbit(i)
+    endif
+    call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
+  enddo
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
 
@@ -1639,6 +1654,29 @@ case ('orbit.')
     return
 
   end select
+
+!-----------
+
+case ('pc')
+  if (ix_ref > -1) then
+    if (data_source == 'beam') then
+      value_vec(ix_ref) = (1 + bunch_params(ix_ref)%centroid%vec(6)) * bunch_params(ix_ref)%centroid%p0c
+    else
+      value_vec(ix_ref) = (1 + orbit(ix_ref)%vec(6)) * orbit(ix_ref)%p0c
+    endif
+  endif
+
+  if (data_source == 'beam') then
+    do i = ix_start, ix_ele
+      value_vec(i) = (1 + bunch_params(i)%centroid%vec(6)) * bunch_params(ix_ref)%centroid%p0c
+    enddo
+  else
+    do i = ix_start, ix_ele
+      value_vec(i) = (1 + orbit(i)%vec(6)) * orbit(ix_ref)%p0c
+    enddo
+  endif
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
 

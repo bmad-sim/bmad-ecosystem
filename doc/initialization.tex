@@ -1130,16 +1130,17 @@ The \vn{datum(:)%data_source} component specifies where the data is
 coming from. Possible values are:
 \begin{example}
   "beam"        ! Value is from multiparticle beam tracking.
-  "data"        ! Value is from a \tao datum in a data array (\sref{s:data.org}).
+  "data"        ! Used with expressions.
   "lat"         ! Value is from the lattice.
+  "var"         ! Used with expressions.
 \end{example}
-See \sref{s:data.types} for more details.  With \vn{%data_source} set
-to \vn{"beam"}, the particular bunch that the data is extracted from
-can be specified via \vn{datum(:)%ix_bunch}.  The default is \vn{0}
-which combines all the bunches for the datum calculation.  If the
-\vn{%data_source} is not set, the value of the
-\vn{default_data_source} is used. If both \vn{%data_source} and
-\vn{default_data_source} are not specified, \vn{"lat"} is the default.
+With \vn{%data_source} set to \vn{"beam"}, the particular bunch that the data is extracted
+from can be specified via \vn{datum(:)%ix_bunch}.  The default is \vn{0} which combines
+all the bunches for the datum calculation.  If the \vn{%data_source} is not set, the value
+of the \vn{default_data_source} is used. If both \vn{%data_source} and
+\vn{default_data_source} are not specified, \vn{"lat"} is the default. A \vn{%data_source}
+of \vn{"data"} or \vn{"var"} establishes the default data source for evaluating
+expressions (see \vn{"expression:"} in \sref{s:data.types}).
 
 If elements in the \vn{data} array do not exist the corresponding
 \vn{data%ele_name} should be left blank. Lists of names can be reused
