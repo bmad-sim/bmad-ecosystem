@@ -11,7 +11,7 @@ contains
 !----------------------------------------------------------------------------------------
 !+
 ! Subroutine transfer_map_calc_with_spin (lat, t_map, s_map, orb0, err_flag, &
-!																							ix1, ix2, ix_branch, one_turn, unit_start)
+!                                            ix1, ix2, ix_branch, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between two elements.
 ! To calculate just the first order transfer matrices see the routine:
@@ -40,7 +40,7 @@ contains
 !   lat        -- lat_struct: Lattice used in the calculation.
 !   t_map(6)   -- taylor_struct: Initial orbital map (used when unit_start = False)
 !   s_map(3,3) -- taylor_struct: Initial spin map (used when unit_start = False)
-!		orb0			 -- coord_struct: Initial orbit around which the map is made.
+!   orb0       -- coord_struct: Initial orbit around which the map is made.
 !   ix1        -- integer, optional: Element start index for the calculation.
 !                   Default is 0.
 !   ix2        -- integer, optional: Element end index for the calculation.
@@ -60,7 +60,7 @@ contains
 !-
 
 subroutine transfer_map_calc_with_spin (lat, t_map, s_map, orb0, err_flag, &
-																								ix1, ix2, ix_branch, one_turn, unit_start)
+                                                ix1, ix2, ix_branch, one_turn, unit_start)
 
 use pointer_lattice, only: assignment(=), operator(+), operator(**), operator(-), operator(/), operator(*), &
                       kill, internal_state, probe, probe_8, sqrt, c_damap, real_8, default, spin0, alloc, propagate
@@ -121,8 +121,11 @@ ptc_probe8%x(6) = -y0(5)/bet
 
 ! Track
 
-call propagate (branch%ptc%m_t_layout, ptc_probe8, +ptc_state, &
-														branch%ele(i1)%ptc_fibre%pos+1, branch%ele(i2)%ptc_fibre%pos+1)
+if (logic_option(.false., one_turn) .and. i1 == i2 .and. branch%param%geometry == closed$) then
+  call propagate (branch%ptc%m_t_layout, ptc_probe8, +ptc_state, branch%ele(i1)%ptc_fibre%pos+1)
+else
+  call propagate (branch%ptc%m_t_layout, ptc_probe8, +ptc_state, branch%ele(i1)%ptc_fibre%pos+1, branch%ele(i2)%ptc_fibre%pos+1)
+endif
 
 ! PTC to Bmad
 

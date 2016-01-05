@@ -50,13 +50,14 @@
 !                      n0 = lat%n_ele_track for direction = -1. Additionally, 
 !                      if i_dim = 4, then closed_orb(n0)%vec(6) is used as the energy 
 !                      around which the closed orbit is calculated.
-!   i_dim          -- Integer: Dimensions to use:
+!   i_dim          -- Integer, optional: Phase space dimensions to use:
 !                     = 4  Transverse closed orbit at constant energy (RF off).
 !                          (dE/E = closed_orb(0)%vec(6))
 !                     = 5 Transverse closed orbit at constant energy (RF off) with 
 !                          the energy adjusted so that vec(5) is the same 
 !                          at the beginning and at the end.
 !                     = 6 True closed orbit.
+!                     Default: Use 4 or 6 depending upon if RF is on or off.
 !   direction      -- Integer, optional: Direction of tracking. 
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only
@@ -100,8 +101,8 @@ real(rp), allocatable :: on_off_state(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
-integer, optional :: direction, ix_branch
-integer j, ie, i_loop, nt, n_ele, i_dim, i_max, dir, nc, track_state
+integer, optional :: direction, ix_branch, i_dim
+integer j, ie, i_loop, nt, n_ele, i_max, dir, nc, track_state
 
 logical, optional, intent(out) :: err_flag
 logical err, error
@@ -143,7 +144,14 @@ ele_start => branch%ele(0)
 !----------------------------------------------------------------------
 ! Further init
 
-nt = i_dim ! dimension of transfer matrix
+if (present(i_dim)) then
+  nt = i_dim ! dimension of transfer matrix
+elseif (rf_is_on(branch)) then
+  nt = 6
+else
+  nt = 4
+endif
+
 nc = i_dim ! number of dimensions to compare.
 
 select case (i_dim)
