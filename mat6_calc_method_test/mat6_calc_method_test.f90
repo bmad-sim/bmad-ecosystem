@@ -163,7 +163,7 @@ case ('"WIGGLER_MAP1:Tracking:MatrixRow2"')       ; tolerance = 'ABS 1e-11'
 case ('"WIGGLER_MAP1:Tracking:Symp_Err"')         ; tolerance = 'ABS 1e-11'
 
 case ('"PATCH1:Tracking:MatrixRow5"')              ; tolerance = 'ABS 3e-11'
-case ('"PATCH1:Tracking:Symp_Err"')                ; tolerance = 'ABS 1e-11'
+case ('"PATCH1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-11'
 
 case ('"RFCAVITY1:Tracking:MatrixRow5"')           ; tolerance = 'ABS 2e-11'
 case ('"RFCAVITY1:Tracking:MatrixRow6"')           ; tolerance = 'ABS 1e-10'

@@ -14,6 +14,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (all_pointer_struct) a_ptr
 type (coord_struct), allocatable :: orbit(:)
 real(rp) value
 integer i
@@ -28,6 +29,9 @@ call bmad_parser ('parse_test.bmad', lat)
 call write_bmad_lattice_file ('out.bmad', lat)
 call bmad_parser ('out.bmad', lat)
 
+call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
+
+write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
 write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_com%max_aperture_limit
 write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
 write (1, '(a, l1, a)') '"bmad_com[convert_to_kinetic_momentum]" STR   "', bmad_com%convert_to_kinetic_momentum, '"'
