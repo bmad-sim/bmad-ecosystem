@@ -50,12 +50,12 @@ contains
 !   use lat_ele_loc_mod
 !
 ! Input:
-!   loc_str  -- Character(*): Element name.
+!   loc_str  -- Character(*): Element names or indexes. May be lower case.
 !   lat      -- lat_struct: Lattice to search through.
 !   above_ubound_is_err
 !            -- Logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
 !                 is above the maximum element index then treat this as an error? 
-!                 Default is True. If False then set e2 to the maximum element index. 
+!                 Default is True. If False, treat e2 as the maximum element index. 
 !   ix_dflt_branch
 !            -- Integer, optional: If present and not -1 then restrict search to specified branch.
 !                 If not present or -1: Search all branches. Exception: For elements specified using 

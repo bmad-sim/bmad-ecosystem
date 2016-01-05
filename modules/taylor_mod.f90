@@ -322,7 +322,7 @@ end function taylor_coef2
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines)
+! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id)
 !
 ! Subroutine to print or put in a string array a Bmad taylor map.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -331,17 +331,18 @@ end function taylor_coef2
 !   use bmad
 !
 ! Input:
-!   bmad_taylor(6) -- Taylor_struct: Array of taylors.
-!   max_order      -- Integer, optional: Maximum order to print.
+!   bmad_taylor(6) -- taylor_struct: Array of taylors.
+!   max_order      -- integer, optional: Maximum order to print.
+!   file_id        -- integer, optional: If present, write output to a file with handle file_id.
 !
 ! Output:
-!   lines(:)     -- Character(100), allocatable, optional :: Character array to hold the output. 
+!   lines(:)     -- character(100), allocatable, optional :: Character array to hold the output. 
 !                     If not present, the information is printed to the terminal.
-!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_taylors (bmad_taylor, max_order, lines, n_lines)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id)
 
 use re_allocate_mod
 
@@ -352,7 +353,7 @@ type (taylor_term_struct), pointer :: tt
 type (taylor_struct) tlr
 
 integer, optional, intent(out) :: n_lines
-integer, optional :: max_order
+integer, optional :: max_order, file_id
 integer i, j, k, nl, ix, nt
 
 character(*), optional, allocatable :: lines(:)
@@ -429,13 +430,19 @@ else
   enddo
 endif
 
+if (present(file_id)) then
+  do i = 1, nl
+    write (file_id, '(a)') trim(li(i))
+  enddo
+endif
+
 end subroutine type_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines)
+! Subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines, file_id)
 !
 ! Subroutine to print or put in a string array a Bmad spin taylor map.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -444,17 +451,18 @@ end subroutine type_taylors
 !   use bmad
 !
 ! Input:
-!   spin_taylor(3,3)  -- Taylor_struct: Matrix of taylors.
+!   spin_taylor(3,3)  -- taylor_struct: Matrix of taylors.
 !   max_order         -- Integer, optional: Maximum order to print.
+!   file_id           -- integer, optional: If present, write output to a file with handle file_id.
 !
 ! Output:
-!   lines(:)     -- Character(100), allocatable, optional :: Character array to hold the output. 
+!   lines(:)     -- character(100), allocatable, optional :: Character array to hold the output. 
 !                     If not present, the information is printed to the terminal.
-!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines)
+subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines, file_id)
 
 use re_allocate_mod
 
@@ -467,7 +475,7 @@ type (taylor_struct) tlr1, tlr2, tlr3
 real(rp) coef1, coef2, coef3
 
 integer, optional, intent(out) :: n_lines
-integer, optional :: max_order
+integer, optional :: max_order, file_id
 integer i, j, k, nl, ix, ixm, n1, n2, n3, ix1, ix2, ix3, exp_m(6)
 
 character(*), optional, allocatable :: lines(:)
@@ -549,6 +557,12 @@ if (present(lines)) then
 else
   do i = 1, nl
     print '(1x, a)', trim(li(i))
+  enddo
+endif
+
+if (present(file_id)) then
+  do i = 1, nl
+    write (file_id, '(a)') trim(li(i))
   enddo
 endif
 

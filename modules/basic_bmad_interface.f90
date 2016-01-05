@@ -109,8 +109,7 @@ interface
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable, target :: closed_orb(:)
-    integer i_dim
-    integer, optional :: direction, ix_branch
+    integer, optional :: direction, ix_branch, i_dim
     logical, optional, intent(out) :: err_flag
   end subroutine
 
