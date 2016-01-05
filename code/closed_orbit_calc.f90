@@ -102,7 +102,7 @@ real(rp), allocatable :: on_off_state(:)
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
-integer j, ie, i_loop, nt, n_ele, i_max, dir, nc, track_state
+integer j, ie, i_loop, n_dim, n_ele, i_max, dir, nc, track_state
 
 logical, optional, intent(out) :: err_flag
 logical err, error
@@ -145,16 +145,16 @@ ele_start => branch%ele(0)
 ! Further init
 
 if (present(i_dim)) then
-  nt = i_dim ! dimension of transfer matrix
+  n_dim = i_dim ! dimension of transfer matrix
 elseif (rf_is_on(branch)) then
-  nt = 6
+  n_dim = 6
 else
-  nt = 4
+  n_dim = 4
 endif
 
-nc = nt ! number of dimensions to compare.
+nc = n_dim ! number of dimensions to compare.
 
-select case (i_dim)
+select case (n_dim)
 
 ! Constant energy case
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
@@ -186,8 +186,8 @@ case (4, 5)
     return
   endif
 
-  if (i_dim == 5) then  ! crude I1 integral calculation
-    nt = 4  ! Still only compute the transfer matrix for the transverse
+  if (n_dim == 5) then  ! crude I1 integral calculation
+    n_dim = 4  ! Still only compute the transfer matrix for the transverse
     nc = 6  ! compare all 6 coords.
     i1_int = 0
     do ie = 1, branch%n_ele_track
@@ -265,14 +265,14 @@ do i_loop = 1, i_max
 
   del_orb%vec = end%vec - start%vec
 
-  if (i_dim == 6 .and. branch%lat%absolute_time_tracking) then
+  if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
     dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
     del_orb%vec(5) = -end%beta * c_light * dt
   endif
 
-  del_co%vec(1:nt) = matmul(t11_inv(1:nt,1:nt), del_orb%vec(1:nt)) 
+  del_co%vec(1:n_dim) = matmul(t11_inv(1:n_dim,1:n_dim), del_orb%vec(1:n_dim)) 
 
-  if (i_dim == 5) then
+  if (n_dim == 5) then
     del_co%vec(5) = 0
     del_co%vec(6) = del_orb%vec(5) / i1_int      
   endif
@@ -280,7 +280,7 @@ do i_loop = 1, i_max
   ! For i_dim = 6, if at peak of RF then del_co(5) may be singularly large. 
   ! To avoid this, limit z step to be no more than lambda_rf/10
 
-  if (i_dim == 6) then
+  if (n_dim == 6) then
     dz_norm = abs(del_co%vec(5)) / (start%beta * c_light / (10 * rf_freq))
     if (dz_norm > 1) then
       del_co%vec = del_co%vec / dz_norm
@@ -316,7 +316,7 @@ do i_loop = 1, i_max
     ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
     ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
 
-    if (i_dim == 6) then
+    if (n_dim == 6) then
       call mat_eigen (t1, eigen_val, eigen_vec, error)
       if (maxval(abs(eigen_val)) - 1 > 1d-5) then
         amp_co = 1d10  ! Something large
@@ -354,12 +354,12 @@ subroutine end_cleanup
 
 bmad_com = bmad_com_saved  ! Restore
 
-if (nt == 4 .or. nt == 5) then
+if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, this_lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
 
 if (dir == -1) then
-  closed_orb(1:nt) = closed_orb(nt:1:-1)
+  closed_orb(1:n_dim) = closed_orb(n_dim:1:-1)
 endif
 
 end subroutine
@@ -411,9 +411,9 @@ logical ok1, ok2, err
 err = .true.
 
 ok1 = .true.
-call mat_make_unit (mat(1:nt,1:nt))
-mat(1:nt,1:nt) = mat(1:nt,1:nt) - t1(1:nt,1:nt)
-call mat_inverse(mat(1:nt,1:nt), t11_inv(1:nt,1:nt), ok2)
+call mat_make_unit (mat(1:n_dim,1:n_dim))
+mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
