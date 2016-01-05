@@ -88,7 +88,7 @@ beam, energy =   5.28900
 parameter[lattice] =  L9A18A000-_MOVEREC
 parameter[geometry] = open 
 
-aa: quadrupole, l = 1, my_custom = 123
+aa: quadrupole, l = 1, my_custom = 123, qqq = 3
 bb: aa, l = 2
 
 b2: sextupole
