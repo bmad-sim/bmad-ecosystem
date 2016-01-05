@@ -152,7 +152,7 @@ else
   nt = 4
 endif
 
-nc = i_dim ! number of dimensions to compare.
+nc = nt ! number of dimensions to compare.
 
 select case (i_dim)
 
