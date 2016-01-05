@@ -391,7 +391,7 @@ case ('derivative_matrix')
 case ('digested')
 
   file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
+  if (file_name0 == ' ') file_name0 = 'lat_#.digested'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
