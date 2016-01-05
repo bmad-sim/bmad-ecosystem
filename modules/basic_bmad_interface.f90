@@ -7,6 +7,15 @@ module basic_bmad_interface
 use bmad_struct
 
 interface
+
+  subroutine add_lattice_control_structs (lat, ele, add_at_end)
+    import
+    implicit none
+    type (lat_struct), target :: lat
+    type (ele_struct) ele
+    logical, optional :: add_at_end
+  end subroutine
+
   subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     import
     implicit none
@@ -15,6 +24,16 @@ interface
     logical, optional :: make_mats6
     logical, optional :: digested_read_ok, err_flag
     character(*), optional :: use_line
+  end subroutine
+
+  subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
+    import
+    implicit none
+    type (ele_struct) ele
+    type (lat_param_struct) param
+    type (coord_struct) orb
+    real(rp) s_pos
+    real(rp) mat6(6,6)
   end subroutine
 
   subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
@@ -321,6 +340,27 @@ interface
     type (lat_param_struct) param
   end subroutine
 
+  subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi, err_flag)
+    import
+    implicit none
+    type (coord_struct), intent(in) :: track(:)
+    type (coord_struct), intent(out) :: track0
+    type (ele_struct) :: ele
+    real(rp), intent(out) :: growth_rate, chi
+    integer, intent(in) :: i_dim
+    logical, intent(out) :: stable, err_flag
+  end subroutine
+
+  subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
+    import
+    implicit none
+    type (coord_struct), intent(in), target :: track(:)
+    type (coord_struct), intent(out) :: track0
+    real(rp), intent(out) :: mat1(:,:), map0(:)
+    real(rp), intent(out) :: chi
+    integer, intent(in) :: i_dim
+  end subroutine
+
   subroutine name_to_list (lat, ele_names)
     import
     implicit none
@@ -366,6 +406,22 @@ interface
     real(rp) mat4(4,4)
   end subroutine
 
+  subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb, particle)
+    import
+    implicit none
+    type (ele_struct) ele
+    type (coord_struct) orb
+    integer, optional :: particle
+    real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
+  end subroutine
+
+  subroutine order_super_lord_slaves (lat, ix_lord)
+    import
+    implicit none
+    type (lat_struct), target :: lat
+    integer ix_lord
+  end subroutine
+
   function particle_ref_time (orbit, ele) result (time)
     import
     type (coord_struct) orbit
@@ -377,35 +433,6 @@ interface
     import
     implicit none
     type (lat_struct) lat
-  end subroutine
-
-  subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
-                                             stable, growth_rate, chi, err_flag)
-    import
-    implicit none
-    type (coord_struct), intent(in) :: track(:)
-    type (coord_struct), intent(out) :: track0
-    type (ele_struct) :: ele
-    real(rp), intent(out) :: growth_rate, chi
-    integer, intent(in) :: i_dim
-    logical, intent(out) :: stable, err_flag
-  end subroutine
-
-  subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
-    import
-    implicit none
-    type (coord_struct), intent(in), target :: track(:)
-    type (coord_struct), intent(out) :: track0
-    real(rp), intent(out) :: mat1(:,:), map0(:)
-    real(rp), intent(out) :: chi
-    integer, intent(in) :: i_dim
-  end subroutine
-
-  subroutine order_super_lord_slaves (lat, ix_lord)
-    import
-    implicit none
-    type (lat_struct), target :: lat
-    integer ix_lord
   end subroutine
 
   subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
@@ -846,6 +873,16 @@ interface
     logical, optional :: compact_format
   end subroutine
 
+  function value_of_attribute (ele, attrib_name, err_flag, err_print_flag) result (value)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    type (all_pointer_struct) a_ptr
+    real(rp) value
+    character(*) attrib_name
+    logical, optional :: err_print_flag, err_flag
+  end function
+
   subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
     import
     implicit none
@@ -857,24 +894,6 @@ interface
     logical, optional :: err_flag
   end subroutine
 
-  subroutine add_lattice_control_structs (lat, ele, add_at_end)
-    import
-    implicit none
-    type (lat_struct), target :: lat
-    type (ele_struct) ele
-    logical, optional :: add_at_end
-  end subroutine
-
-  subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
-                                            amp_na, amp_nb, particle)
-    import
-    implicit none
-    type (ele_struct) ele
-    type (coord_struct) orb
-    integer, optional :: particle
-    real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
-  end subroutine
-
   subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     import
     implicit none
@@ -883,16 +902,6 @@ interface
     type (lat_struct), target :: lat
     logical, optional :: make_mats6
     logical, optional :: digested_read_ok, err_flag
-  end subroutine
-
-  subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
-    import
-    implicit none
-    type (ele_struct) ele
-    type (lat_param_struct) param
-    type (coord_struct) orb
-    real(rp) s_pos
-    real(rp) mat6(6,6)
   end subroutine
 
 end interface

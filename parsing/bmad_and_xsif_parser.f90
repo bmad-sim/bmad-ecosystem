@@ -26,8 +26,7 @@
 
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
-use bmad_struct
-use bmad_interface, except_dummy => bmad_and_xsif_parser
+use ptc_interface_mod, except_dummy => bmad_and_xsif_parser
 
 implicit none
 
@@ -37,6 +36,7 @@ character(*) :: lat_file
 character(*), optional :: use_line
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
+logical read_ok
 
 integer ix, inc_version
 
@@ -44,7 +44,12 @@ integer ix, inc_version
 
 if (index(lat_file, '.digested') /= 0) then
   call read_digested_bmad_file (lat_file, lat, inc_version, err_flag)
-  if (present(digested_read_ok)) digested_read_ok = (inc_version == bmad_inc_version$)
+  read_ok = (inc_version == bmad_inc_version$)
+  if (present(digested_read_ok)) digested_read_ok = read_ok
+  if (read_ok) then
+    if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
+    call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
+  endif
   return
 endif
 

@@ -7,6 +7,7 @@
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
 !     set_ele_attribute
+!     value_of_attribute
 !
 ! Modules needed:
 !   use bmad

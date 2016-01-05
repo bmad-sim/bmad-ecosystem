@@ -381,8 +381,8 @@ else
   nl = 2
 
 
-  fmt1 = '(i3, a, f20.12, 1x, 6i3, i9, f18.9)'
-  fmt2 = '(i3, a, 1p, e20.11, 0p, 1x, 6i3, i9, f18.9)'
+  fmt1 = '(i3, a, f20.12,  1x, 6i3, i9, f18.9)'
+  fmt2 = '(i3, a, es20.11, 1x, 6i3, i9, f18.9)'
 
   do i = 1, nt
     nl=nl+1; li(nl) = ' ---------------------------------------------------'
@@ -405,11 +405,9 @@ else
       endif
 
       if (j == 1) then
-        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
-                    (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
+        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
       else
-        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
-                    (tt%expn(k), k = 1, 6), sum(tt%expn)
+        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
       endif
     enddo
 
@@ -537,7 +535,7 @@ else
       if (max(abs(coef1), abs(coef2), abs(coef3)) < 1d5) then
         fmt = '(1x, a, 3f20.12, 1x, 6i3, i9)'
       else
-        fmt = '(1x, a, 1p, 3e20.11, 0p, 1x, 6i3, i9)'
+        fmt = '(1x, a, 3es20.11, 1x, 6i3, i9)'
       endif
 
       nl=nl+1; write (li(nl), fmt) s_str(i), coef1, coef2, coef3, (exp_m(k), k = 1, 6), sum(exp_m)
