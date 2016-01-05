@@ -2,8 +2,8 @@
 ! Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,
 !                     ptr_array, err_flag, err_print_flag, eles, ix_attrib)
 !
-! Returns an array of pointers to an attribute with name attrib_name within 
-! elements with name ele_name.
+! Returns an array of pointers to an attribute with name attrib_name within elements with name ele_name.
+!
 ! Note: If, for example, ele_name = 'BMAD_COM', there is not corresponding lattice element and
 !   therefore eles will have size 0 on output.
 ! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
@@ -17,6 +17,7 @@
 !       not have the the required attribute as long as at least one does.
 ! Note: Alternatively consider the routines:
 !     set_ele_attribute
+!     value_of_attribute
 !
 ! Modules needed:
 !   use bmad
