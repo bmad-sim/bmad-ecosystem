@@ -44,8 +44,10 @@ close (1)
 
 !
 
+open (1, file = 'output.now')
+
 call init_coord (orb0, lat%beam_start, lat%ele(0), downstream_end$)
-call transfer_map_calc_with_spin (lat, ele%taylor, ele%spin_taylor, orb0, err_flag, 1)
+call transfer_map_calc_with_spin (lat, ele%taylor, ele%spin_taylor, orb0, err_flag, 0, 1)
 
 orb_start = orb0
 orb_start%vec = orb_start%vec + dr
@@ -53,18 +55,28 @@ orb_start%vec = orb_start%vec + dr
 spin0 = spinor_to_vec(orb0%spin)
 spin_a = matmul (spin_taylor_to_mat(orb_start%vec, ele%taylor%ref, ele%spin_taylor), spin0)
 
-call type_taylors (ele%taylor)
-print *, '--------------------------------'
-call type_spin_taylors (ele%spin_taylor)
-
-!
-
 bmad_com%spin_tracking_on = .true.
 call track1 (orb_start, lat%ele(1), lat%param, orb_end)
 spin_b = spinor_to_vec(orb_end%spin)
 
-print '(a, 3f12.6)', 'Init: ', spin0
-print '(a, 3f12.6)', 'dPTC: ', spin_a - spin0
-print '(a, 3f12.6)', 'dBmad:', spin_b - spin0
+!
+
+  write (1, '(a, 3f14.9)') '"dPTC"   ABS 0 ', spin_a - spin0
+  write (1, '(a, 3f14.9)') '"dBmad"  ABS 0 ', spin_b - spin0
+
+
+if (print_extra) then
+  call type_taylors (ele%taylor)
+  print *, '--------------------------------'
+  call type_spin_taylors (ele%spin_taylor)
+
+  print '(a, 3f12.6)', 'Init: ', spin0
+  print '(a, 3f12.6)', 'dPTC: ', spin_a - spin0
+  print '(a, 3f12.6)', 'dBmad:', spin_b - spin0
+endif
+
+!
+
+close (1)
 
 end program
