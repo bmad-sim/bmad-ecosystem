@@ -30,8 +30,15 @@ call write_bmad_lattice_file ('out.bmad', lat)
 call bmad_parser ('out.bmad', lat)
 
 call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
-
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
+
+call set_attribute_alias('CUSTOM_ATTRIBUTE4', 'CALIB', err)
+call pointer_to_attribute (lat%ele(1), 'CALIB', .false., a_ptr, err)
+a_ptr%r = 7
+write (1, '(a, f8.4)')  '"calib"                                 ABS 0', a_ptr%r
+
+!
+
 write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_com%max_aperture_limit
 write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
 write (1, '(a, l1, a)') '"bmad_com[convert_to_kinetic_momentum]" STR   "', bmad_com%convert_to_kinetic_momentum, '"'
