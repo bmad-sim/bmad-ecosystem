@@ -3,7 +3,7 @@ parameter[e_tot] = 1e9
 parameter[ptc_exact_model] = true
 parameter[geometry] = open
 
-parameter[taylor_order] = 1
+parameter[taylor_order] = 3
 
 beam_start[x]  = 0.002
 beam_start[px] = 0.0

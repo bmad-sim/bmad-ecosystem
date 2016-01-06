@@ -16,6 +16,7 @@ NOTE: SKIPPING PTC_TEST!
 reverse_test
 sim_utils_test
 slice_test
+spin_test
 superimpose_test
 synrad3d_test
 time_runge_kutta_test
