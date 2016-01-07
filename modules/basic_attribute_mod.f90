@@ -1932,4 +1932,133 @@ has_it = (attribute_index(ele, attrib) > 0)
 
 end function
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_attribute_alias (attrib_name, alias_name, err_flag, lat)
+!
+! Routine to setup an alias for element attributes like custom_attribute1$, etc. in
+! the attribute name table.
+!
+! Input:
+!   attrib_name -- Character(*): Name of attribute to define an alias for.
+!   alias_name  -- Character(*): Name of alias. If prefixed by "<class>::" then
+!                    the alias will be set only for that element class. Example:
+!                    "quadrupole::error" will set the alias only for quadrupoles.
+!
+! Output:
+!   err_flag    -- Logical: Set True if an error. False otherwise.
+!   lat         -- lat_struct, optional: If present then the alias information will
+!                     be added to the lat%attribute_alias(:) array. This is only 
+!                     needed if the lattice is to be written to a file using 
+!                     write_bmad_lattice_file
+!-
+
+subroutine set_attribute_alias (attrib_name, alias_name, err_flag, lat)
+
+implicit none
+
+type (lat_struct), optional :: lat
+integer n
+character(*) attrib_name, alias_name
+character(40) attrib_str, alias_str 
+character(20) :: r_name = 'set_attribute_alias'
+logical err_flag
+
+!
+
+if (attribute_array_init_needed) call init_attribute_name_array
+
+err_flag = .false.
+
+attrib_str = upcase(attrib_name)
+alias_str = upcase(alias_name)
+
+select case(attrib_str)
+case ('CUSTOM_ATTRIBUTE1'); call set_it (custom_attribute1$)
+case ('CUSTOM_ATTRIBUTE2'); call set_it (custom_attribute2$)
+case ('CUSTOM_ATTRIBUTE3'); call set_it (custom_attribute3$)
+case ('CUSTOM_ATTRIBUTE4'); call set_it (custom_attribute4$)
+case ('CUSTOM_ATTRIBUTE5'); call set_it (custom_attribute5$)
+case default
+  err_flag = .true.
+  call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR ALIAS SETUP: ' // attrib_str)
+end select
+
+! Add to the lat%attribute_alias
+
+if (present(lat)) then
+  if (allocated(lat%attribute_alias)) then
+    n = size(lat%attribute_alias) + 1
+    call re_allocate(lat%attribute_alias, n)
+  else
+    n = 1
+    allocate(lat%attribute_alias(1))
+  endif
+  lat%attribute_alias(n) = trim(attrib_str) // '=' // alias_str
+endif
+
+!---------------------------------------------------------------
+contains
+
+subroutine set_it (ix_attrib)
+
+integer ix_attrib, ix, i, key
+character(40) old_attrib, a_str
+logical warning_given
+
+! If alias_str is of the form "ele_class::alias_name" then need to split string
+
+a_str = alias_str
+key = 0
+ix = index(alias_str, '::')
+if (ix /= 0) then
+  a_str = alias_str(ix+2:)
+  key = key_name_to_key_index(alias_str(1:ix-1), .true.)
+  if (key < 1) then
+    call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // alias_str)
+    err_flag = .true.
+    return
+  endif
+endif
+
+! Check alias name for invalid characters
+
+if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
+  call out_io (s_error$, r_name, 'ALIAS NAME HAS INVALID CHARACTERS: ' // a_str)
+  err_flag = .true.
+  return
+endif
+
+! Set
+
+warning_given = .false.
+
+do i = 1, n_key$
+  if (key /= 0 .and. key /= i) cycle
+  if (i == def_parameter$ .or. i == def_mad_beam$) cycle
+  old_attrib = attribute_name(i, ix_attrib)
+  if (old_attrib /= null_name$ .and. old_attrib /= a_str .and. .not. warning_given) then
+    if (key == 0) then
+      call out_io (s_warn$, r_name, &
+        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
+        'FROM: ' // old_attrib, &
+        'TO:   ' // a_str)
+    else
+      call out_io (s_warn$, r_name, &
+        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
+        'FOR ELEMENT CLASS: ' // key_name(i), &
+        'FROM: ' // old_attrib, &
+        'TO:   ' // a_str)
+    endif
+  endif
+
+  call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
+enddo
+
+end subroutine set_it
+
+end subroutine set_attribute_alias
+
 end module

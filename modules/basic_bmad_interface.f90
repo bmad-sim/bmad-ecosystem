@@ -241,6 +241,14 @@ interface
     type (coord_struct), optional, allocatable :: orbit(:)
   end subroutine
 
+  function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
+    import
+    implicit none
+    character(*) key_str
+    logical, optional :: abbrev_allowed
+    integer key_index
+  end function
+
   subroutine kill_ptc_layouts (lat)
     import
     implicit none

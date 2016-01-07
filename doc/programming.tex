@@ -27,11 +27,16 @@ The Cornell developed non-CESR specific code libraries are:
 subsidiary libraries are: 
 \begin{description}
   \index{sim_utils library}
-  \item[bmad]
+  \item[bmad] \Newline
 The \vn{bmad} library contains the routines for relativistic charged
 particle simulation including particle tracking, Twiss calculations,
 symplectic integration, etc., etc.
-  \item[sim_utils] 
+  \item[cpp_bmad_interface]
+The \vn{cpp_bmad_interface} library is for interfacing \bmad with C++.  This library
+defines a set of C++ classes corresponding to the major \bmad structures. Along
+with this, the library contains conversion routines to move information between 
+the C++ classes and the corresponding \bmad structures.
+  \item[sim_utils] \Newline
 The \vn{sim_utils} library contains a set of miscellaneous helper routines. 
 Included are routines for string manipulation, file manipulation,
 matrix manipulation, spline fitting, Gaussian random number generation, etc. 
@@ -39,20 +44,21 @@ matrix manipulation, spline fitting, Gaussian random number generation, etc.
 
 The \vn{package} libraries are:
 \begin{description}
-  \index{fftw!library}
-  \item{FFTW}
+  \index{gsl!library}
+  \index{fgsl!library}
+  \item[FFTW] \Newline
 FFTW is a C subroutine library for computing the discrete Fourier
 transform in one or more dimensions. FFTW has a Fortran 2003 API.
   \index{gsl!library}
   \index{fgsl!library}
-  \item[GSL / FGSL]
+  \item[gsl / fgsl] \Newline
 The Gnu Scientific Library (GSL), written in C,
 provides a wide range of mathematical routines
 such as random number generators, special functions and least-squares
 fitting. There are over 1000 functions in total. The FGSL library provides a Fortran
 interface to the GSL library.
   \index{pgplot!library}
-  \item[pgplot] 
+  \item[PGPLOT] \Newline
 The \vn{pgplot} Graphics Subroutine Library is a Fortran or
 C-callable, device-independent graphics package for making simple
 scientific graphs. Documentation including a user's manual may be
@@ -65,24 +71,25 @@ most user friendly. To remedy this, there is a set of Fortran90
 wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
 suite is part of the sim_utils library and is documented in
 Chapter~\ref{c:quick.plot}.
-  \index{LAPACK!library}
-  \index{LAPACK95!library}
-  \item[LAPACK / LAPACK95]
+  \index{lapack!library}
+  \index{lapack95!library}
+  \item[lapack / lapack95] \Newline
 LAPACK is a widely used package of linear algebra routines written in
 Fortran77.  The LAPACK95 library provides a Fortran95 interface to
 LAPACK.
   \index{PTC/FPP!library}
-  \item[forest] 
+  \item[forest] \Newline
 This is the PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic
 Package) library of \'Etienne Forest that handles Taylor maps to any
 arbitrary order (this is also known as Truncated Power Series Algebra
 (TPSA)). See Chapter~\ref{c:ptc} for more details.  FPP/PTC is a
 very general package and \bmad only makes use of a small part of its
-features.  For more information see the FPP/PTC
+features.  For more inform
+ation see the FPP/PTC
 manual\cite{b:ptc}. The core Differential Algebra (DA) package used
 by PTC was developed by Martin Berz\cite{b:berz}.
   \index{numerical recipes!library}
-  \item[recipes] 
+  \item[recipes] \Newline
 Numerical Recipes is a set of subroutines for doing scientific
 computing including Runge--Kutta integration, FFTs, interpolation and
 extrapolation, etc., etc. The documentation for this library is the
@@ -95,11 +102,11 @@ books if you want to use Numerical Recipes. For \bmad, this library
 has been modified to handle double precision reals which is the
 standard for the other libraries (See \sref{s:precision}).
   \index{xraylib!library}
-  \item{XRAYLIB}
+  \item[xraylib] \Newline
 The XRAYLIB library provides routines for obtaining parameters
 pertinent to the X-ray interaction with matter.
   \index{xsif!library}
-  \item[xsif] 
+  \item[xsif] \Newline
 \vn{xsif} is a library from \vn{SLAC} to read in \vn{xsif} format files. See 
 \sref{s:lattice.file.formats} for more details. The only
 \bmad routine to use this library is \vn{xsif_parser}.
