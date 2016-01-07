@@ -427,21 +427,6 @@ do i = 1, n_key$
   if (i == hybrid$)         cycle
   if (i == beginning_ele$)  cycle
 
-  select case (i)
-  case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
-    call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
-    num = a0$ - 1
-    do ix = 0, ubound(surface%curvature_xy, 1)
-    do iy = 0, ubound(surface%curvature_xy, 2)
-      if (ix+iy < 2) cycle
-      if (ix+iy > ubound(surface%curvature_xy, 1)) cycle
-      write (word, '(a, i1, a, i1)') 'CURVATURE_X', ix, '_Y', iy
-      num = num + 1
-      call init_attribute_name1 (i, num, word) 
-    enddo
-    enddo
-  end select
-
   call init_attribute_name1 (i, type$,      'TYPE')
   call init_attribute_name1 (i, alias$,     'ALIAS')
   call init_attribute_name1 (i, descrip$,   'DESCRIP')
@@ -556,26 +541,31 @@ do i = 1, n_key$
   if (i == drift$)        cycle
 
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
-  if (i /= pipe$) then
-    call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
-    call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
-  endif
   call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
+
+  if (i == pipe$)         cycle
+
+  call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
+  call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
   if (i == custom$)       cycle
   if (i == e_gun$)        cycle
   if (i == em_field$)     cycle
-  if (i == pipe$)         cycle
 
   call init_attribute_name1 (i, hkick$,     'HKICK', quasi_free$)
   call init_attribute_name1 (i, vkick$,     'VKICK', quasi_free$)
-  if (i /= elseparator$) then
-    call init_attribute_name1 (i, bl_hkick$,  'BL_HKICK', quasi_free$)
-    call init_attribute_name1 (i, bl_vkick$,  'BL_VKICK', quasi_free$)
-  endif
 
+  if (i == elseparator$) cycle
+
+  call init_attribute_name1 (i, bl_hkick$,  'BL_HKICK', quasi_free$)
+  call init_attribute_name1 (i, bl_vkick$,  'BL_VKICK', quasi_free$)
+enddo
+
+!
+
+do i = 1, n_key$
   select case(i)
   case (monitor$, instrument$, marker$, detector$)
     call init_attribute_name1 (i, x_gain_err$,      'X_GAIN_ERR')
@@ -592,7 +582,25 @@ do i = 1, n_key$
     call init_attribute_name1 (i, de_eta_meas$,     'DE_ETA_MEAS')
     call init_attribute_name1 (i, osc_amplitude$,   'OSC_AMPLITUDE')
   end select
+enddo
 
+!
+
+do i = 1, n_key$
+  select case (i)
+  case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
+    call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
+    num = a0$ - 1
+    do ix = 0, ubound(surface%curvature_xy, 1)
+    do iy = 0, ubound(surface%curvature_xy, 2)
+      if (ix+iy < 2) cycle
+      if (ix+iy > ubound(surface%curvature_xy, 1)) cycle
+      write (word, '(a, i1, a, i1)') 'CURVATURE_X', ix, '_Y', iy
+      num = num + 1
+      call init_attribute_name1 (i, num, word) 
+    enddo
+    enddo
+  end select
 enddo
 
 !

@@ -1,6 +1,47 @@
 \chapter{Bmad Programming Overview}
 \label{c:programming}
 
+%-----------------------------------------------------------------------------
+\section{Manual Notation}
+\label{s:component}
+
+\bmad defines a number of structures and these structures may contain
+components which are structures, etc. In order to keep the text in
+this manual succinct when referring to components, the enclosing
+structure name may be dropped. For example, the \vn{lat_struct}
+structure looks like
+\begin{example}
+  type lat_struct
+    character(40) name               
+    type (mode_info_struct) a, b, z  
+    type (lat_param_struct) param    
+    type (ele_struct), pointer ::  ele(:)
+    type (branch_struct), allocatable :: branch(:)  
+    ... etc. ...
+  end type
+\end{example}
+In this example, ``\vn{%a}'' could be used to refer to, the \vn{a}
+component of the \vn{lat_struct}.  To make it explicit that this is a
+component of a \vn{lat_struct}, ``\vn{lat_struct%a}'' is an alternate
+possibility. Since the vast majority of structures have the
+``_struct'' suffix, this may be shortened to ``\vn{lat%a}''. A similar
+notation works for subcomponents. For example, a \vn{branch_struct}
+looks like
+\begin{example}
+  type branch_struct
+    character(40) name
+    integer ix_from_ele                  ! Index of branching element
+    integer, pointer :: n_ele_track      ! Number of tracking elements
+    integer, pointer :: n_ele_max
+    type (ele_struct), pointer :: ele(:) ! Element array
+    ... etc. ...
+  end type
+\end{example}
+The \vn{ele} component of the \vn{branch} component of the
+\vn{lat_struct} can be referred to using ``\vn{lat%branch%ele}'',
+``\vn{%branch%ele}'', or ``\vn{%ele}''. Potentially, the last of these
+could be confused with the ``\vn{lat%ele}'' component so ``\vn{%ele}''
+would only be used if the meaning is unambiguous in the context.
 %-----------------------------------------------------------------------
 \section {The Bmad Libraries}
 \label{s:libs}
@@ -44,19 +85,40 @@ matrix manipulation, spline fitting, Gaussian random number generation, etc.
 
 The \vn{package} libraries are:
 \begin{description}
-  \index{gsl!library}
-  \index{fgsl!library}
-  \item[FFTW] \Newline
+  \index{PTC/FPP!library}
+  \item[forest] \Newline
+This is the PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic
+Package) library of \'Etienne Forest that handles Taylor maps to any
+arbitrary order (this is also known as Truncated Power Series Algebra
+(TPSA)). See Chapter~\ref{c:ptc} for more details.  FPP/PTC is a
+very general package and \bmad only makes use of a small part of its
+features.  For more inform
+ation see the FPP/PTC
+manual\cite{b:ptc}. The core Differential Algebra (DA) package used
+by PTC was developed by Martin Berz\cite{b:berz}.
+  \index{fftw!library}
+  \item[fftw] \Newline
 FFTW is a C subroutine library for computing the discrete Fourier
 transform in one or more dimensions. FFTW has a Fortran 2003 API.
   \index{gsl!library}
   \index{fgsl!library}
   \item[gsl / fgsl] \Newline
-The Gnu Scientific Library (GSL), written in C,
-provides a wide range of mathematical routines
-such as random number generators, special functions and least-squares
+The Gnu Scientific Library (GSL), written in C, provides a wide range of mathematical
+routines such as random number generators, special functions and least-squares
 fitting. There are over 1000 functions in total. The FGSL library provides a Fortran
 interface to the GSL library.
+  \index{hdf5!library}
+  \item[hdf5] \Newline
+\vn{hdf5} is a library for for storing and managing data.
+  \index{h5hut!library}
+  \item[h5hut] \Newline
+\vn{h5hut} is a library, based on \vn{hdf5} for storing particle data. Additionally,
+there are associated programs for viewing the particle data.
+  \index{lapack!library}
+  \index{lapack95!library}
+  \item[lapack / lapack95] \Newline
+\vn{lapack} is a widely used package of linear algebra routines written in Fortran77. The
+\vn{lapack95} library provides a Fortran95 interface to \vn{lapack}.
   \index{pgplot!library}
   \item[PGPLOT] \Newline
 The \vn{pgplot} Graphics Subroutine Library is a Fortran or
@@ -69,25 +131,15 @@ obtained from the \vn{pgplot} web site at
 One disadvantage of \vn{pgplot} for the programmer is that it is not the
 most user friendly. To remedy this, there is a set of Fortran90
 wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
-suite is part of the sim_utils library and is documented in
+suite is part of the \vn{sim_utils} library and is documented in
 Chapter~\ref{c:quick.plot}.
-  \index{lapack!library}
-  \index{lapack95!library}
-  \item[lapack / lapack95] \Newline
-LAPACK is a widely used package of linear algebra routines written in
-Fortran77.  The LAPACK95 library provides a Fortran95 interface to
-LAPACK.
-  \index{PTC/FPP!library}
-  \item[forest] \Newline
-This is the PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic
-Package) library of \'Etienne Forest that handles Taylor maps to any
-arbitrary order (this is also known as Truncated Power Series Algebra
-(TPSA)). See Chapter~\ref{c:ptc} for more details.  FPP/PTC is a
-very general package and \bmad only makes use of a small part of its
-features.  For more inform
-ation see the FPP/PTC
-manual\cite{b:ptc}. The core Differential Algebra (DA) package used
-by PTC was developed by Martin Berz\cite{b:berz}.
+  \index{plplot!library}
+  \item[plplot] \Newline
+The \vn{plplot} library is an updated version of \vn{pgplot}. The \vn{plplot}
+library can be used as a replacement for \vn{pgplot}. The \vn{quick_plot}
+suite, which is part of the \vn{sim_utils} library and is documented in
+Chapter~\ref{c:quick.plot}, provides wrapper routines for \vn{plplot} to
+make things more programmer friendly.
   \index{numerical recipes!library}
   \item[recipes] \Newline
 Numerical Recipes is a set of subroutines for doing scientific
@@ -284,44 +336,9 @@ For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a
 
 \end{description}
 
-%-----------------------------------------------------------------------------
-\section{Manual Notation}
-\label{s:component}
+%-----------------------------------------------------------------------
+%\section {Using Modules}
+%\label{s:modules}
+%\index{modules}
 
-\bmad defines a number of structures and these structures may contain
-components which are structures, etc. In order to keep the text in
-this manual succinct when referring to components, the enclosing
-structure name may be dropped. For example, the \vn{lat_struct}
-structure looks like
-\begin{example}
-  type lat_struct
-    character(40) name               
-    type (mode_info_struct) a, b, z  
-    type (lat_param_struct) param    
-    type (ele_struct), pointer ::  ele(:)
-    type (branch_struct), allocatable :: branch(:)  
-    ... etc. ...
-  end type
-\end{example}
-In this example, ``\vn{%a}'' could be used to refer to, the \vn{a}
-component of the \vn{lat_struct}.  To make it explicit that this is a
-component of a \vn{lat_struct}, ``\vn{lat_struct%a}'' is an alternate
-possibility. Since the vast majority of structures have the
-``_struct'' suffix, this may be shortened to ``\vn{lat%a}''. A similar
-notation works for subcomponents. For example, a \vn{branch_struct}
-looks like
-\begin{example}
-  type branch_struct
-    character(40) name
-    integer ix_from_ele                  ! Index of branching element
-    integer, pointer :: n_ele_track      ! Number of tracking elements
-    integer, pointer :: n_ele_max
-    type (ele_struct), pointer :: ele(:) ! Element array
-    ... etc. ...
-  end type
-\end{example}
-The \vn{ele} component of the \vn{branch} component of the
-\vn{lat_struct} can be referred to using ``\vn{lat%branch%ele}'',
-``\vn{%branch%ele}'', or ``\vn{%ele}''. Potentially, the last of these
-could be confused with the ``\vn{lat%ele}'' component so ``\vn{%ele}''
-would only be used if the meaning is unambiguous in the context.
+

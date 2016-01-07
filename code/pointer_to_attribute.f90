@@ -93,7 +93,7 @@ if (associated (ele%control_var)) then
     err_flag = .false.
     return
   enddo
-  goto 9000 ! Error message and return
+
 endif
 
 !--------------------
