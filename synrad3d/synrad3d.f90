@@ -1,7 +1,8 @@
 !+
 ! Program synrad3d
 !
-! Program to calculate photoelectron distributions in a lattice
+! Program to calculate photoelectron distributions in a lattice.
+! See the synrad3d manual for more details.
 !-
 
 program synrad3d
@@ -187,12 +188,7 @@ s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > 
 
 ! Get lattice
 
-if (lattice_file(1:6) == 'xsif::') then
-  call xsif_parser(lattice_file(7:), lat)
-else
-  call bmad_parser (lattice_file, lat)
-endif
-
+call bmad_and_xsif_parser(lattice_file, lat)
 branch => lat%branch(0)
 
 if (ix_ele_track_end < 0) ix_ele_track_end = branch%n_ele_track
