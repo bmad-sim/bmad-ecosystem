@@ -63,7 +63,7 @@ end type
 
 type tao_ele_shape_struct    ! for the element layout plot
   character(60) :: ele_id = ''       ! element "key::name" to match to.
-  character(16) :: shape = ''        ! Shape to draw
+  character(40) :: shape = ''        ! Shape to draw
   character(16) :: color = 'black'   ! Color of shape
   real(rp) :: size = 0               ! plot vertical height 
   character(16) :: label = 'name'    ! Can be: 'name', 's', 'none' 
@@ -71,6 +71,21 @@ type tao_ele_shape_struct    ! for the element layout plot
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: ix_ele_key = 0          ! Extracted from ele_id. 0 => all classes (quadrupole, etc.) 
   character(40) :: name_ele = ''     ! Name of element
+end type
+
+type tao_pattern_point_struct
+  real(rp) :: s = real_garbage$, x = real_garbage$, radius = 0
+end type
+
+type tao_pattern_curve_struct
+  type (qp_line_struct) :: line = qp_line_struct(1, -1, solid$)
+  type (tao_pattern_point_struct), allocatable :: pt(:)
+  character(8) :: scale = 'none'
+end type
+
+type tao_shape_pattern_struct
+  character(40) :: name = ''
+  type (tao_pattern_curve_struct), allocatable :: curve(:)
 end type
 
 type tao_drawing_struct
@@ -260,6 +275,7 @@ type tao_plot_page_struct
   type (qp_rect_struct) border              ! Border around plots edge of page.
   type (tao_drawing_struct) :: floor_plan
   type (tao_drawing_struct) :: lat_layout
+  type (tao_shape_pattern_struct), allocatable :: pattern(:)
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
   type (tao_plot_region_struct), allocatable :: region(:)
 end type

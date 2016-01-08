@@ -57,7 +57,7 @@ character(len(plot_file_in)) plot_file_array
 character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(40) str
-character(20) :: r_name = 'tao_init_plotting'
+character(*), parameter :: r_name = 'tao_init_plotting'
 
 logical err, include_default_plots
 
@@ -346,7 +346,13 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
   enddo
 endif
 
+!------------------------------------------------------------------------------------
+! Read in patterns
+! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
+
+call tao_read_in_patterns(iu)
 close (iu)
+
 
 !------------------------------------------------------------------------------------
 ! Read in the plot templates and transfer the info to the 
@@ -2159,3 +2165,94 @@ endif
 end subroutine tao_setup_default_plotting
 
 end subroutine tao_init_plotting
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine tao_read_in_patterns(iu)
+
+use tao_struct
+
+implicit none
+
+type input_pattern_curve_struct
+  type (qp_line_struct) :: line 
+  type (tao_pattern_point_struct) :: pt(30)
+  character(8) :: scale
+end type
+
+type (input_pattern_curve_struct) curve(10)
+type (tao_shape_pattern_struct), allocatable :: temp_pat(:)
+type (tao_shape_pattern_struct), pointer :: pat
+
+integer iu, ios, nn, j, jc, jpt, nc, npt
+character(40) name
+character(*), parameter :: r_name = 'tao_read_in_patterns'
+
+namelist / shape_pattern / name, curve
+
+!
+
+rewind (iu)
+allocate (s%plot_page%pattern(0))
+
+do  ! Loop over all patterns
+  do j = 1, size(curve)
+    curve(j)%line  = qp_line_struct(1, -1, solid$)
+    curve(j)%pt    = tao_pattern_point_struct()
+    curve(j)%scale = 'none'
+  enddo
+  name = ''
+  read (iu, nml = shape_pattern, iostat = ios) 
+  if (ios < 0) exit
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST IN FILE.')
+    rewind (iu)
+    do
+      read (iu, nml = shape_pattern)  ! To generate error message
+    enddo
+  endif
+
+  !
+
+  nn = size(s%plot_page%pattern)
+  call move_alloc(s%plot_page%pattern, temp_pat)
+  allocate (s%plot_page%pattern(nn+1))
+
+  do j = 1, nn
+    pat => s%plot_page%pattern(j)
+    nc = size(temp_pat(j)%curve)
+    allocate(pat%curve(nc))
+    do jc = 1, nc
+      npt = size(temp_pat(j)%curve(jc)%pt)
+      allocate (pat%curve(jc)%pt(npt))
+    enddo
+    pat = temp_pat(j)
+  enddo
+
+  deallocate (temp_pat)
+
+  !
+
+  pat => s%plot_page%pattern(nn+1)
+  pat%name = name
+
+  nc = size(curve)
+  do jc = nc, 1, -1
+    if (curve(jc)%pt(1)%s /= real_garbage$) exit
+  enddo
+  allocate(pat%curve(jc))
+  do jc = 1, size(pat%curve)
+    do jpt = size(curve(jc)%pt), 1, -1
+      if (curve(jc)%pt(jpt)%s /= real_garbage$) exit
+    enddo
+    allocate (pat%curve(jc)%pt(jpt))
+    pat%curve(jc)%line = curve(jc)%line
+    pat%curve(jc)%pt   = curve(jc)%pt(1:jpt)
+  enddo
+
+enddo
+
+end subroutine tao_read_in_patterns
+

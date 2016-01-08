@@ -2292,23 +2292,6 @@ For \vn{floor_plan} drawings, the building wall
 whose name is \vn{"wall::building"}. For the building wall, the only
 \vn{ele_shape} attribute that is relevant is the \vn{color}.
 
-The \vn{<shape>} parameter is the shape of the figure
-drawn. Valid Shapes are:
-\index{box}\index{xbox}
-\begin{example}
-  "asym_var_box"    -- Like var_box but is not symmetric about the center line.
-  "asym_vvar_box"   -- Like var_box but is not symmetric about the center line.
-  "box"             -- Rectangular box
-  "bow_tie"         -- Bow-tie shape.
-  "circle"          -- Circle centered at center of element.
-  "diamond"         -- Diamond shape.
-  "var_box"         -- Rectangular box with variable height. 
-                        The box is symmetric about the center line.
-  "vvar_box"        -- Like var_box.
-  "x"               -- "X" centered at center of element
-  "xbox"            -- Rectangular box with an x through it.
-\end{example}
-
 The width of a drawn shape is the width of the associated element. The
 exception is the \vn{"x"} shape whose width is always the same as the
 height determined by the \vn{<size>} setting.
@@ -2325,36 +2308,11 @@ is combined with the \vn{plot_page} (\sref{s:init.plot}) parameter
 If \vn{floor_plan_size_is_absolute} is False (the default),
 \vn{<size>} is taken to be the size of the shape in points (1 point is
 approximately 1 pixel). If \vn{floor_plan_size_is_absolute} is True,
-\vn{<size>} is taken to be the size in meters. That is, If
+\vn{<size>} is taken to be the size in meters. That is, if
 \vn{floor_plan_size_is_absolute} is False, zooming in or out will not
 affect the size of an element shape while if
 \vn{floor_plan_size_is_absolute} is True then the size of an element
 will scale with a zoom.
-
-If an element's shape is set to \vn{var_box} or \vn{asym_var_box}, the
-drawn size of the element is proportional to the element's magnetic or
-electric strength. The associated \vn{<size>} setting is the
-multiplier used to scale from element strength to height. For example,
-for a quadrupole the height is proportional to the \vn{K1} focusing
-strength. The difference between \vn{var_box} or \vn{asym_var_box} is
-that with \vn{var_box} the drawn box is symmetric with respect to the
-centerline with a size independent of the sign of the element
-strength. On the other hand, with \vn{asym_var_box}, the drawn box
-will terminate with one side on the centerline and the side on which
-it is drawn will depend upon the the sign of the element
-strength. Note: Not all lattice elements can be used with a
-\vn{var_box} or \vn{asym_var_box}.
-
-A \vn{vvar_box} is like a \vn{var_box} and a \vn{asym_vvar_box} is
-like a \vn{asym_var_box}. The difference is that \vn{vvar_box} and
-\vn{asym_vvar_box} shapes may only be used when the \vn{<ele_id>} is
-associated with data or variables. In this case the height of the box,
-instead of being proportional to the strength of the element, is
-proportional to the value of the associated datum or variable. If no
-datum or variable component is specified in the \vn{ele_id}, the model
-value will be used. Thus in the above example where \vn{ele_id} was
-set to \vn{"data::orbit.x|design"}, the design value is used.
-
 
 The overall size of all the shapes can be scaled using the
 \vn{plot_page} (\sref{s:init.plot}) parameters
@@ -2402,12 +2360,86 @@ Note: There is an old, deprecated syntax where both the lattice layout
 and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
 
+The \vn{<shape>} parameter is the shape of the figure
+drawn. Valid Shapes are:
+\index{box}\index{xbox}
+\begin{example}
+  "asym_var_box"   -- Like var_box but is not symmetric about the center line.
+  "asym_vvar_box"  -- Like asym_var_box except scaled to variable strength.
+  "box"            -- Rectangular box
+  "var_box"        -- Rectangular box with variable height. 
+                       The box is symmetric about the center line.
+  "vvar_box"       -- Like var_box except scaled to variable strength.
+  "bow_tie"        -- Bow-tie shape.
+  "circle"         -- Circle centered at center of element.
+  "diamond"        -- Diamond shape.
+  "pattern:<pattern_name>" 
+                   -- Custom curve specified by <name>.
+  "x"              -- "X" centered at center of element
+  "xbox"           -- Rectangular box with an x through it.
+\end{example}
 
+If an element's shape is set to \vn{var_box} or \vn{asym_var_box}, the drawn size of the
+element is proportional to the element's magnetic or electric strength. The associated
+\vn{<size>} setting is the multiplier used to scale from element strength to height. For
+example, for a quadrupole the height is proportional to the \vn{K1} focusing strength. The
+difference between \vn{var_box} or \vn{asym_var_box} is that with \vn{var_box} the drawn
+box is symmetric with respect to the centerline with a size independent of the sign of the
+element strength. On the other hand, with \vn{asym_var_box}, the drawn box will terminate
+with one side on the centerline and the side on which it is drawn will depend upon the the
+sign of the element strength. Note: Not all lattice elements can be used with a
+\vn{var_box} or \vn{asym_var_box}.
 
+A \vn{vvar_box} shape is like a \vn{var_box} and a \vn{asym_vvar_box} is like a
+\vn{asym_var_box}. The difference is that \vn{vvar_box} and \vn{asym_vvar_box} shapes may
+only be used when the \vn{<ele_id>} is associated with data or variables. In this case the
+height of the box, instead of being proportional to the strength of the element, is
+proportional to the value of the associated datum or variable. If no datum or variable
+component is specified in the \vn{ele_id}, the model value will be used. Thus in the above
+example where \vn{ele_id} was set to \vn{"data::orbit.x|design"}, the design value is
+used.
 
+The \vn{pattern:<pattern_name>} shape allows for a custom pattern to be specified. Custom
+patterns are specified by a \vn{shape_pattern} namelist:
+\begin{example}
+  &shape_pattern
+    name = "<curve_name>"
+    curve(1)%pt(1) = <s>, <x>
+    curve(1)%pt(2) = <s>, <x>
+    curve(1)%line%color = <color_name> 
+    curve(1)%line%width = <line_width>
+    curve(1)%scale = "none"
+    curve(2)%...
+  /
+\end{example}
+Example:
+\begin{example}
+  &floor_plan_drawing
+    ...
+    ele_shape(2) = "quadrupole::*"     "pattern:q_pat"     "red"     0.75     "none" 
+    ...
+  /
+
+  &shape_pattern
+    name = "q_pat"
+    curve(1)%pt(1) = 0, -1
+    curve(1)%pt(2) = 1, -1
+    curve(1)%pt(3) = 0.9, 1
+    curve(1)%pt(4) = 0.1, 1
+    curve(1)%pt(5) = 0, -1
+  /
+\end{example}
+The \vn{name} of the \vn{shape_pattern} namelist (in this example it is "q_pat") must
+match the name given by \vn{"pattern:<pattern_name>"}. The pattern is a series of
+piecewise linear curves. Each curve is specified by a number of points. In the above
+example, there is one curve with five points which represents an isosceles trapezoid.
+When drawn, the \vn{s} coordinate is scaled so that $s = 0$ corresponds to
+the entrance end of the element and $s = 1$ corresponds to the exit end. The \vn{x}
+coordinate is scaled by the \vn{size} attribute of the \vn{ele_shape}. The default color
+for a given curve is taken to be the \vn{color} attribute of the \vn{ele_shape} ("red" in
+the example).
 
 %-----------------------------------------------------------------
-\clearpage
 \subsection{Drawing a Dynamic Aperture}
 \index{dynamic aperture drawing}
 \label{s:dynamicapertureplot}
@@ -2419,7 +2451,6 @@ namelist.
   \caption{Example dynamic aperture plot.}
   \label{f:dynamic-aperture}
 \end{figure}
-
 
 A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture calculation. For example, the template
 
