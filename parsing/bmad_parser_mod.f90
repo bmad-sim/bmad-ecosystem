@@ -1488,6 +1488,10 @@ case ('SPATIAL_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
   ele%value(spatial_distribution$) = ix
 
+case ('SPIN_FRINGE_TYPE')
+  call get_switch (attrib_word, spin_fringe_type_name(1:), ix, err_flag, ele)
+  ele%value(spin_fringe_type$) = ix
+
 case ('SPIN_TRACKING_METHOD')
   call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
   if (err_flag) return

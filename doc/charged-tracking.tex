@@ -605,6 +605,9 @@ $\frac{2}{\hbar}$,
     P_s = \frac{2}{\hbar} \frac{1}{N} \sum_{j=1}^{N} \Psi_j^\dagger S_{\Bf u} \Psi_j
   \Endeq  
 
+See \S~\sref{s:spin.hard.fringe} for formulas for tracking a spin through a multipole
+fring field.
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Fringe Fields}
@@ -770,6 +773,24 @@ With this, the implicit multipole map is (Forest Eq.~(13.31))
   \delta^f &= \delta \CRNO
   z^f &=\frac{p_x^f \, f^x + p_y^f \, f^y}{(1 + \delta)^2} \nonumber
 \end{align}
+
+%---------------------------------------------------------------------------------
+\subsection{Spin Hard Edge Multipole Fringe Tracking}
+\label{s:spin.hard.fringe}
+
+The effect on the spin when tracking through the fringe field of a multipole field tends
+to be weak. As such, a hard edge, first order, treatment should be sufficient. In this
+case, it is the longitudinal integrated fringe field that is important. The longitudinal
+integrated field at constant $(x,y)$ for the $n$\Th order multipole is simply obtained by
+requireing that the curl is zero. For electric fields this is:
+\Begineq
+  \int E_s(x,y) \, ds = \phi_n(x,y)
+\Endeq
+where $\phi_n$ is given in \Eq{pbian1}. For a magnetic multipole there is an analogous
+equation.
+
+Once the integrated field is computed, the spin is tracked using the T-BMT equation
+(\Eq{tbmt}).
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

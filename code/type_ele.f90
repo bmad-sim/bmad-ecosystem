@@ -148,7 +148,7 @@ endif
 if (ele%key <= 0) then
   nl=nl+1; write (li(nl), *) 'Key: BAD VALUE!', ele%key
 else
-  nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
+  nl=nl+1; write (li(nl), *) 'Key: ', capitalized_key_name(ele%key)
 endif
 
 if (ele%sub_key /= 0) then

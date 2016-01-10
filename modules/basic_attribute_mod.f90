@@ -544,13 +544,14 @@ do i = 1, n_key$
   call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
 
   if (i == pipe$)         cycle
+  if (i == custom$)       cycle
 
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
+  call init_attribute_name1 (i, spin_fringe_type$,   'SPIN_FRINGE_TYPE')
   call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
-  if (i == custom$)       cycle
   if (i == e_gun$)        cycle
   if (i == em_field$)     cycle
 
@@ -714,14 +715,6 @@ call init_attribute_name1 (beginning_ele$, cmat_22_begin$,               'CMAT_2
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, wall_attribute$,              'WALL')
-call init_attribute_name1 (beginning_ele$, x_beam_start$,                'X_BEAM_START')
-call init_attribute_name1 (beginning_ele$, px_beam_start$,               'PX_BEAM_START')
-call init_attribute_name1 (beginning_ele$, y_beam_start$,                'Y_BEAM_START')
-call init_attribute_name1 (beginning_ele$, py_beam_start$,               'PY_BEAM_START')
-call init_attribute_name1 (beginning_ele$, z_beam_start$,                'Z_BEAM_START')
-call init_attribute_name1 (beginning_ele$, pz_beam_start$,               'PZ_BEAM_START')
-call init_attribute_name1 (beginning_ele$, abs_time_start$,              'ABS_TIME_START')
-call init_attribute_name1 (beginning_ele$, lattice_type$,                'LATTICE_TYPE') ! For backwards compatibility
 
 call init_attribute_name1 (beginning_ele$, spin_x$,                  'spin_x', private$)
 call init_attribute_name1 (beginning_ele$, spin_y$,                  'spin_y', private$)
@@ -848,6 +841,7 @@ call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVEL
 
 call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
+call init_attribute_name1 (drift$, spin_fringe_type$,               'spin_fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 
@@ -1236,6 +1230,7 @@ call init_attribute_name1 (sad_mult$, e2$,                     'E2')
 !call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
+call init_attribute_name1 (sad_mult$, spin_fringe_type$,       'SPIN_FRINGE_TYPE')
 call init_attribute_name1 (sad_mult$, fq1$,                    'FQ1')
 call init_attribute_name1 (sad_mult$, fq2$,                    'FQ2')
 call init_attribute_name1 (sad_mult$, fb1$,                    'FB1')
@@ -1512,7 +1507,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
-      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
+      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'SPIN_FRINGE_TYPE', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
   attrib_type = is_switch$
@@ -1715,7 +1710,6 @@ case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
 
-
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, fringe_type_name, lbound(fringe_type_name, 1))
   if (present(is_default)) then
@@ -1805,6 +1799,10 @@ case ('REF_ORBIT_FOLLOWS')
 case ('SPATIAL_DISTRIBUTION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
+
+case ('SPIN_FRINGE_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_fringe_type_name, lbound(fringe_type_name, 1))
+  if (present(is_default)) is_default = full$
 
 case ('SPIN_TRACKING_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
