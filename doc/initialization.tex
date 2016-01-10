@@ -2404,8 +2404,8 @@ patterns are specified by a \vn{shape_pattern} namelist:
 \begin{example}
   &shape_pattern
     name = "<curve_name>"
-    curve(1)%pt(1) = <s>, <x>
-    curve(1)%pt(2) = <s>, <x>
+    curve(1)%pt(1) = <s>, <x>, <radius>
+    curve(1)%pt(2) = <s>, <x>, <radius>
     curve(1)%line%color = <color_name> 
     curve(1)%line%width = <line_width>
     curve(1)%scale = "none"
@@ -2430,14 +2430,16 @@ Example:
   /
 \end{example}
 The \vn{name} of the \vn{shape_pattern} namelist (in this example it is "q_pat") must
-match the name given by \vn{"pattern:<pattern_name>"}. The pattern is a series of
-piecewise linear curves. Each curve is specified by a number of points. In the above
-example, there is one curve with five points which represents an isosceles trapezoid.
-When drawn, the \vn{s} coordinate is scaled so that $s = 0$ corresponds to
-the entrance end of the element and $s = 1$ corresponds to the exit end. The \vn{x}
-coordinate is scaled by the \vn{size} attribute of the \vn{ele_shape}. The default color
-for a given curve is taken to be the \vn{color} attribute of the \vn{ele_shape} ("red" in
-the example).
+match the name given by \vn{"pattern:<pattern_name>"}. The pattern is a series of curves.
+Each curve is specified by a number of points. Between the points, an arc is drawn with
+the given \vn{radius} or a line segment if the \vn{radius} is zero (which is the
+default). If there is only one point specified with a non-zero \vn{radius}, the \vn{s, x}
+value is taken to be the center of a circle with the given radius. In the above example,
+there is one curve with five points which represents an isosceles trapezoid.  When drawn,
+the \vn{s} coordinate is scaled so that $s = 0$ corresponds to the entrance end of the
+element and $s = 1$ corresponds to the exit end. The \vn{x} coordinate is scaled by the
+\vn{size} attribute of the \vn{ele_shape}. The default color for a given curve is taken to
+be the \vn{color} attribute of the \vn{ele_shape} ("red" in the example).
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Dynamic Aperture}
@@ -2452,8 +2454,8 @@ the example).
   \label{f:dynamic-aperture}
 \end{figure}
 
-A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture calculation. For example, the template
-
+A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
+calculation. For example, the template
 \begin{example}
 &tao_template_plot
   plot%name = 'da'
@@ -2489,10 +2491,11 @@ A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture cal
   curve(3)%line%width = 5 
 /
 \end{example}
-
-produces the plot on Fig.~\ref{f:dynamic-aperture}.
-Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}.
-If there are more momenta than curves (as in this case), additional curves will automatically be created using the styles of the previous curves. Note that apertures are calculated at element 0. If \vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
+produces the plot on Fig.~\ref{f:dynamic-aperture}.  Each curve represents a single
+momentum calculation according to \sref{s:dynamicaperture}.  If there are more momenta
+than curves (as in this case), additional curves will automatically be created using the
+styles of the previous curves. Note that apertures are calculated at element 0. If
+\vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
 
 Dynamic aperture curves can have the following \vn{%data_type}:
 \begin{example}
