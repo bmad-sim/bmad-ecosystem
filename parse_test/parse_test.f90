@@ -14,6 +14,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (ele_struct) ele2
 type (all_pointer_struct) a_ptr
 type (coord_struct), allocatable :: orbit(:)
 real(rp) value
@@ -33,7 +34,8 @@ call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
 
 call set_attribute_alias('CUSTOM_ATTRIBUTE4', 'CALIB', err)
-call pointer_to_attribute (lat%ele(1), 'CALIB', .false., a_ptr, err)
+ele2%key = overlay$
+call pointer_to_attribute (ele2, 'CALIB', .false., a_ptr, err)
 a_ptr%r = 7
 write (1, '(a, f8.4)')  '"calib"                                 ABS 0', a_ptr%r
 
