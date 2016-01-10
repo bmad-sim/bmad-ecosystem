@@ -2,6 +2,8 @@
 \label{c:attrib}
 \index{element attribute}
 
+For a listing of element attributes for each type of element, see Chapter~\sref{c:attrib.list}.
+
 %-----------------------------------------------------------------
 \section{Dependent and Independent Attributes} 
 \label{s:depend} 
@@ -29,19 +31,19 @@ in.
 \index{lcavity}\index{rbend}\index{sbend}\index{wiggler}
 \begin{table}[ht]
 \centering {
-\begin{tabular}{|l|l|l|} \hline
- {\em Element}                & {\em Independent Variables}    & {\em Dependent Variables}          \HH
- All elements                 & \vn{ds_step}                   & \vn{num_steps}                     \HH
+\begin{tabular}{lll} \toprule
+ {\em Element}                & {\em Independent Variables}    & {\em Dependent Variables}          \\ \midrule
+ All elements                 & \vn{ds_step}                   & \vn{num_steps}                     \\
  \vn{BeamBeam}                & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}, \vn{n_part}
-                                                               & \vn{bbi_constant}                  \HH
+                                                               & \vn{bbi_constant}                  \\
  \vn{Elseparator}             & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}      
-                                                               & \vn{e_field}, \vn{voltage}         \HH
- \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{voltage}          \HH
+                                                               & \vn{e_field}, \vn{voltage}         \\
+ \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{voltage}          \\
  \vn{Rbend}, \vn{Sbend}       & \vn{g}, \vn{l}                     
-                                                               & \vn{rho}, \vn{angle}, \vn{l_chord} \HH
+                                                               & \vn{rho}, \vn{angle}, \vn{l_chord} \\
 
- \vn{Wiggler} (map type)      & \vn{term(i)}                   & \vn{b_max}, \vn{k1}, \vn{rho}      \HH
- \vn{Wiggler} (periodic type) & \vn{b_max}, \vn{e_tot}         & \vn{k1}, \vn{rho}                  \HH
+ \vn{Wiggler} (map type)      & \vn{term(i)}                   & \vn{b_max}, \vn{k1}, \vn{rho}      \\
+ \vn{Wiggler} (periodic type) & \vn{b_max}, \vn{e_tot}         & \vn{k1}, \vn{rho}                  \\ \bottomrule
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Partial listing of dependent variables and 
@@ -66,13 +68,13 @@ be set by the bookkeeping routine.
 \index{sbend}\index{rfcavity}
 \begin{table}[ht]
 \centering {
-\begin{tabular}{|l|l|l|} \hline
-{\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
-  \vn{Lcavity}                 & \vn{voltage}       & \vn{gradient}      \HH
-  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \HH
-  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \HH
-  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \HH
-  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}        \HH
+\begin{tabular}{lll} \toprule
+{\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \\ \midrule
+  \vn{Lcavity}                 & \vn{voltage}       & \vn{gradient}      \\
+  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \\
+  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \\
+  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \\
+  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}        \\ \bottomrule
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
@@ -96,19 +98,19 @@ Table~\ref{t:dep.field}.
 \index{sol_quad}\index{sextupole}\index{octupole}
 \begin{table}[ht]
 \centering {
-\begin{tabular}{|l|l|l|} \hline
-  {\em Element} & {\em Normalized Strength} & {\em Field Attribute} \HH
-  \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}        \HH
-  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}    \HH
-  \vn{Solenoid, Sol_quad}    & \vn{ks}     &  \vn{bs_field}       \HH
+\begin{tabular}{lll} \toprule
+  {\em Element} & {\em Normalized Strength} & {\em Field Attribute} \\ \midrule
+  \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}        \\
+  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}    \\
+  \vn{Solenoid, Sol_quad}    & \vn{ks}     &  \vn{bs_field}       \\
   \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
-                             & \vn{k1}     &  \vn{b1_gradient}    \HH
+                             & \vn{k1}     &  \vn{b1_gradient}    \\
   \vn{Sextupole, Sbend, Rbend}             
-                             & \vn{k2}     &  \vn{b2_gradient}    \HH
-  \vn{Octupole}              & \vn{k3}     &  \vn{b3_gradient}    \HH
-  \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}        \HH
-  Most                       & \vn{hkick}  &  \vn{bl_hkick}       \HH
-  Most                       & \vn{vkick}  &  \vn{bl_vkick}       \HH
+                             & \vn{k2}     &  \vn{b2_gradient}    \\
+  \vn{Octupole}              & \vn{k3}     &  \vn{b3_gradient}    \\
+  \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}        \\
+  Most                       & \vn{hkick}  &  \vn{bl_hkick}       \\
+  Most                       & \vn{vkick}  &  \vn{bl_vkick}       \\ \bottomrule
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
@@ -959,7 +961,7 @@ parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
 with some structure parameters coming from NIST. The list of available
 structures is:
 \begin{center}
-\begin{tabular}{llll}
+\begin{tabular}{llll} \toprule
 AlphaAlumina & GaP       & KCl        & Platinum  \\
 AlphaQuartz  & GaSb      & KTP        & RbAP      \\
 Aluminum     & Ge        & LaB6       & Sapphire  \\
@@ -969,7 +971,7 @@ Copper       & InAs      & LiNbO3     & Si2       \\
 CsCl         & InP       & Muscovite  & SiC       \\
 CsF          & InSb      & NaCl       & Titanium  \\
 Diamond      & Iron      & PET        & TlAP      \\
-GaAs         & KAP       &            &           \\
+GaAs         & KAP       &            &           \\ \bottomrule
 \end{tabular}
 \end{center}
 These names are case sensitive
@@ -2627,10 +2629,10 @@ For programmers who deal with PTC directly: The translation between
 PTC side is:
 
 \begin{center}
-\begin{tabular}{lll} \hline 
-{\em ptc_fringe_geometry} & {\em bendfringe} \\ \hline
+\begin{tabular}{lll} \toprule 
+{\em ptc_fringe_geometry} & {\em bendfringe} \\ \midrule
   x_invariant             & True  \\
-  multipole_symmetry      & False \\
+  multipole_symmetry      & False \\ \bottomrule
 \end{tabular}
 \end{center}
 
@@ -2649,24 +2651,24 @@ PTC side is:
 have special attributes to describe orbit, betatron phase, dispersion
 and coupling measurements. These attributes are: \hfill\break
 \hspace*{0.1in}
-\begin{tabular}{llll}
-  {\em Attribute}     &            &! {\em Symbol} (\sref{s:meas.calc}) & \\
-  \vn{tilt}           &= <Real>    &! $\theta_t$            & See \sref{s:offset} \\ 
-  \vn{x_offset}       &= <Real>    &! $x_{\text{err}}$       & See \sref{s:offset} \\ 
-  \vn{y_offset}       &= <Real>    &! $y_{\text{err}}$       & See \sref{s:offset} \\ 
-  \vn{x_gain_err}     &= <Real>    &! $dg_{x,\text{err}}$    & Horizontal gain error \\ 
-  \vn{y_gain_err}     &= <Real>    &! $dg_{y,\text{err}}$    & Vertical gain error \\ 
-  \vn{crunch}         &= <Real>    &! $\psi_{\text{err}}$    & Crunch angle \\ 
-  \vn{tilt_calib}     &= <Real>    &! $\theta_{\text{err}}$  & tilt angle calibration \\ 
-  \vn{x_offset_calib} &= <Real>    &! $x_{\text{cal}}$       & Horizontal offset calibration \\ 
-  \vn{y_offset_calib} &= <Real>    &! $y_{\text{cal}}$       & Vertical offset calibration \\ 
-  \vn{x_gain_calib}   &= <Real>    &! $dg_{x,\text{cal}}$    & Horizontal gain calibration \\ 
-  \vn{y_gain_calib}   &= <Real>    &! $dg_{y,\text{cal}}$    & Vertical gain calibration \\ 
-  \vn{crunch_calib}   &= <Real>    &! $\psi_{\text{cal}}$    & Crunch angle calibration \\ 
-  \vn{noise}          &= <Real>    &! $n_f$                 & Noise factor \\ 
-  \vn{de_eta_meas}    &= <Real>    &! $dE/E$                & Percent change in energy \\ 
-  \vn{n_sample}       &= <Real>    &! $N_s$                 & Number of sampling points \\ 
-  \vn{osc_amplitude}  &= <Real>    &! $A_{\text{osc}}$       & Oscillation amplitude \\ 
+\begin{tabular}{lll} \toprule
+  {\em Attribute}     & {\em Symbol} (\sref{s:meas.calc}) & \\ \midrule
+  \vn{tilt}           & $\theta_t$             & See \sref{s:offset} \\ 
+  \vn{x_offset}       & $x_{\text{err}}$       & See \sref{s:offset} \\ 
+  \vn{y_offset}       & $y_{\text{err}}$       & See \sref{s:offset} \\ 
+  \vn{x_gain_err}     & $dg_{x,\text{err}}$    & Horizontal gain error \\ 
+  \vn{y_gain_err}     & $dg_{y,\text{err}}$    & Vertical gain error \\ 
+  \vn{crunch}         & $\psi_{\text{err}}$    & Crunch angle \\ 
+  \vn{tilt_calib}     & $\theta_{\text{err}}$  & tilt angle calibration \\ 
+  \vn{x_offset_calib} & $x_{\text{cal}}$       & Horizontal offset calibration \\ 
+  \vn{y_offset_calib} & $y_{\text{cal}}$       & Vertical offset calibration \\ 
+  \vn{x_gain_calib}   & $dg_{x,\text{cal}}$    & Horizontal gain calibration \\ 
+  \vn{y_gain_calib}   & $dg_{y,\text{cal}}$    & Vertical gain calibration \\ 
+  \vn{crunch_calib}   & $\psi_{\text{cal}}$    & Crunch angle calibration \\ 
+  \vn{noise}          & $n_f$                  & Noise factor \\ 
+  \vn{de_eta_meas}    & $dE/E$                 & Percent change in energy \\ 
+  \vn{n_sample}       & $N_s$                  & Number of sampling points \\ 
+  \vn{osc_amplitude}  & $A_{\text{osc}}$       & Oscillation amplitude \\ \bottomrule
 \end{tabular}
 \hfill\break
 A program can use these quantities to calculate ``measured'' values from the

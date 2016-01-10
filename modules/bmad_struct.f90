@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 169
+integer, parameter :: bmad_inc_version$ = 170
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -112,11 +112,14 @@ integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
 integer, parameter :: sad_full$ = 5, linear_edge$ = 6, basic_bend$ = 7, test_edge$ = 8
 integer, parameter :: n_non_bend_fringe_type$ = 4
 
-character(20), parameter :: fringe_type_name(0:8) = ['Garbage!          ', &
-                               'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
-                               'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', 'Test              ']
+character(16), parameter :: fringe_type_name(0:8) = ['Garbage!      ', &
+                                   'None          ', 'Soft_Edge_Only', 'Hard_edge_only', 'Full          ', &
+                                   'SAD_Full      ', 'Linear_Edge   ', 'Basic_Bend    ', 'Test          ']
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
+
+character(16), parameter :: spin_fringe_type_name(0:4) = ['Garbage!      ', &
+                                        'None          ', 'Garbage!      ', 'Garbage!      ', 'Full          ']
 
 integer, parameter :: standing_wave$ = 1, traveling_wave$ = 2, ptc_standard$ = 3
 character(16), parameter :: cavity_type_name(0:3) = ['Garbage!      ', 'Standing_Wave ', 'Traveling_Wave', 'PTC_Standard  ']
@@ -900,7 +903,7 @@ integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
 integer, parameter :: n_key$ = 57
-character(40), parameter :: key_name(n_key$) = [ &
+character(20), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
     'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
@@ -916,6 +919,23 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
     'PHOTON_INIT      ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
     'MASK             ']
+
+character(20), parameter :: capitalized_key_name(n_key$) = [ &
+    'Drift            ', 'Sbend            ', 'Quadrupole       ', 'Group            ', &
+    'Sextupole        ', 'Overlay          ', 'Custom           ', 'Taylor           ', &
+    'RFcavity         ', 'ELseparator      ', 'BeamBeam         ', 'Wiggler          ', &
+    'Sol_Quad         ', 'Marker           ', 'Kicker           ', 'Hybrid           ', &
+    'Octupole         ', 'Rbend            ', 'Multipole        ', 'Bend_sol_        ', &
+    'Def_Mad_Beam     ', 'AB_multipole     ', 'Solenoid         ', 'Patch            ', &
+    'Lcavity          ', 'Def_Parameter    ', 'Null_Ele         ', 'Beginning_Ele    ', &
+    'Line_Ele         ', 'Match            ', 'Monitor          ', 'Instrument       ', &
+    'Hkicker          ', 'Vkicker          ', 'Rcollimator      ', 'Ecollimator      ', &
+    'Girder           ', 'Bend_Sol_Quad    ', 'Def_Beam_Start   ', 'Photon_Fork      ', &
+    'Fork             ', 'Mirror           ', 'Crystal          ', 'Pipe             ', &
+    'Capillary        ', 'Multilayer_Mirror', 'E_Gun            ', 'EM_Field         ', &
+    'Floor_Shift      ', 'Fiducial         ', 'Undulator        ', 'Diffraction_Plate', &
+    'Photon_Init      ', 'Sample           ', 'Detector         ', 'Sad_Mult         ', &
+    'Mask             ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -951,10 +971,6 @@ integer, parameter :: t$ = 8
 integer, parameter :: field_x$ = 10, field_y$ = 11, phase_x$ = 12, phase_y$ = 13
 integer, parameter :: e_photon$ = 9
 
-integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
-integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
-integer, parameter :: abs_time_start$ = 8
-
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
@@ -974,6 +990,10 @@ integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
 integer, parameter :: l_chord$ = 9, voltage$ = 9
+integer, parameter :: fringe_type$ = 10
+integer, parameter :: fringe_at$ = 11
+integer, parameter :: higher_order_fringe_type$ = 12
+integer, parameter :: spin_fringe_type$ = 13
 integer, parameter :: fb1$ = 14, sig_x$ = 14
 integer, parameter :: fb2$ = 15, sig_y$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16
@@ -996,10 +1016,10 @@ integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ =
 integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
-integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
-integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
+integer, parameter :: cmat_12$ = 28
+integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
 integer, parameter :: cmat_21$ = 29
-integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
+integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
 integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
