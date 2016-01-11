@@ -1,7 +1,6 @@
 module runge_kutta_mod
 
 use em_field_mod
-use tracking_integration_mod
 use track1_mod
 use wall3d_mod
 
@@ -88,7 +87,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(11), r_scal(11), t, s_edge_track, s_edge_hard, position(6), pol
+real(rp) :: dr_ds(10), r_scal(10), t, s_edge_track, s_edge_hard, position(6), pol
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
 integer, parameter :: max_step = 10000
@@ -181,8 +180,8 @@ do n_step = 1, max_step
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
   rel_tol_eff = bmad_com%rel_tol_adaptive_tracking / sqrt_N
   abs_tol_eff = bmad_com%abs_tol_adaptive_tracking / sqrt_N
-  pol = sqrt(abs(orb_end%spin(1)) + abs(orb_end%spin(2)))
-  r_scal(:) = abs([orb_end%vec(:), t, pol, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
+  pol = 1  ! Spin scale
+  r_scal(:) = abs([orb_end%vec(:), t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
 
   call rk_adaptive_step (ele, param, orb_end, dr_ds, s, t, ds, &
                       rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
@@ -329,13 +328,13 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
 
-real(rp), intent(in)    :: dr_ds(11), r_scal(11)
+real(rp), intent(in)    :: dr_ds(10), r_scal(10)
 real(rp), intent(inout) :: s, t
 real(rp), intent(in)    :: ds_try, rel_tol, abs_tol
 real(rp), intent(out)   :: ds_did, ds_next
 
 real(rp) :: err_max, ds, ds_temp, s_new, p2
-real(rp) :: r_err(11), r_temp(11)
+real(rp) :: r_err(10), r_temp(10)
 real(rp) :: rel_pc, t_new
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
@@ -406,16 +405,15 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp(5)
 
-real(rp), intent(in) :: dr_ds1(11)
+real(rp), intent(in) :: dr_ds1(10)
 real(rp), intent(in) :: s, t, ds
-real(rp), intent(out) :: r_err(11), t_new
-real(rp) :: dr_ds2(11), dr_ds3(11), dr_ds4(11), dr_ds5(11), dr_ds6(11), t_temp(5)
+real(rp), intent(out) :: r_err(10), t_new
+real(rp) :: dr_ds2(10), dr_ds3(10), dr_ds4(10), dr_ds5(10), dr_ds6(10), t_temp(5)
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
     b51=-11.0_rp/54.0_rp, b52=2.5_rp, b53=-70.0_rp/27.0_rp, &
-    b54=35.0_rp/27.0_rp, &
-    b61=1631.0_rp/55296.0_rp, b62=175.0_rp/512.0_rp, &
+    b54=35.0_rp/27.0_rp, b61=1631.0_rp/55296.0_rp, b62=175.0_rp/512.0_rp, &
     b63=575.0_rp/13824.0_rp, b64=44275.0_rp/110592.0_rp, &
     b65=253.0_rp/4096.0_rp, c1=37.0_rp/378.0_rp, &
     c3=250.0_rp/621.0_rp, c4=125.0_rp/594.0_rp, &
@@ -450,17 +448,13 @@ if (err) return
 call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, t_new)
 r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
 
-if (.not. (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)) then
-  r_err(8:11) = 0
-endif
-
 !----------------------------------------------------------
 contains
 
 subroutine transfer_this_orbit (orb_in, dvec, orb_out, t_temp)
 
 type (coord_struct) orb_in, orb_out
-real(rp) dvec(11), t_temp
+real(rp) dvec(10), t_temp, a_quat(4), omega(3), angle
 
 !
 
@@ -475,8 +469,12 @@ endif
 t_temp = t + dvec(7)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  orb_out%spin(1) = orb_out%spin(1) + cmplx(dvec(8), dvec(9))
-  orb_out%spin(2) = orb_out%spin(2) + cmplx(dvec(10), dvec(11))
+  omega = dvec(8:10)
+  angle = sqrt(omega(1)**2 + omega(2)**2 + omega(3)**2)
+  if (angle /= 0) then
+    a_quat = calc_rotation_quaternion (omega/angle, angle)
+    call quaternion_track (a_quat, orb_out%spin)
+  endif
 endif
 
 end subroutine transfer_this_orbit
@@ -527,8 +525,7 @@ end subroutine rk_step1
 !
 !   dr(7)/ds = dt/ds
 !
-!   dr(8)/ds  + i dr(9)/ds  = d(orbit%spin(1))/ds  ! Is complex
-!   dr(10)/ds + i dr(11)/ds = d(orbit%spin(2))/ds  ! Is complex
+!   dr(8:10)/ds = Spin omega vector
 !
 ! Modules needed:
 !   use bmad
@@ -544,9 +541,9 @@ end subroutine rk_step1
 !               as being with respect to the frame of referene of the element. 
 !
 ! Output:
-!   dr_ds(11) -- real(rp): Kick vector.
-!   field     -- em_field_struct: Local field.
-!   err       -- Logical: Set True if there is an error.
+!   dr_ds(10)   -- real(rp): Kick vector.
+!   field       -- em_field_struct: Local field.
+!   err         -- Logical: Set True if there is an error.
 !-
 
 subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds, err)
@@ -559,13 +556,10 @@ type (em_field_struct) field
 type (coord_struct) orbit
 
 real(rp), intent(in) :: s_rel, t_rel 
-real(rp), intent(out) :: dr_ds(11)
+real(rp), intent(out) :: dr_ds(10)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
-real(rp) :: Omega(3)
-
-complex(rp) :: dspin(2), quaternion(2,2)
 
 integer direction
 logical :: local_ref_frame, err
@@ -622,16 +616,11 @@ dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) 
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds
 
-dr_ds(8:11) = 0
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  ! This uses a modified Omega' = Omega/v_z
-  Omega = f_bend * spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
-  quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
-  dspin = matmul(quaternion, orbit%spin)
-  dr_ds(8) = real(dspin(1))
-  dr_ds(9) = aimag(dspin(1))
-  dr_ds(10) = real(dspin(2))
-  dr_ds(11) = aimag(dspin(2))
+  ! dr_ds(8:10) = Omega/v_z
+  dr_ds(8:10) = f_bend * spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
+else
+  dr_ds(8:10) = 0
 endif
 
 err = .false.

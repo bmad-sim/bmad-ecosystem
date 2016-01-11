@@ -531,17 +531,23 @@ $\psi_{1,2}$ are complex numbers. The conversion between SU(2) and SO(3) is
 \Begineq  
   \Bf S = \Psi^{\dagger} \Bf {\bfsig} \, \Psi 
   \qquad \longleftrightarrow \qquad
-  \Psi  = \frac{1}{\sqrt{2 \left(s_{3}+1\right)}}   
-     \begin{pmatrix} 1+s_{3} \\ s_{1}+i s_{2} \end{pmatrix}   
+  \Psi  = \frac{e^{i \xi}}{\sqrt{2 \left(P+s_{3}\right)}}   
+     \begin{pmatrix} P+s_{3} \\ s_{1}+i s_{2} \end{pmatrix}   
   \Endeq  
-where ${\bfsig} = (\sigma_x, \sigma_y, \sigma_z)$ are the
-three Pauli matrices. In polar coordinates
+Where $\xi$ is an unmeasureable phase factor, and $P$ is the polarization. $P = 1$ for a single
+particle. Also ${\bfsig} = (\sigma_x, \sigma_y, \sigma_z)$ are the three Pauli matrices
+\Begineq
+  \sigma_x = \begin{pmatrix} 0 &  1 \\ 1 &  0 \end{pmatrix}, \qquad
+  \sigma_y = \begin{pmatrix} 0 & -i \\ i &  0 \end{pmatrix}, \qquad
+  \sigma_z = \begin{pmatrix} 1 &  0 \\ 0 & -1 \end{pmatrix}
+\Endeq
+In polar coordinates
 \Begineq   
   \Psi = \begin{pmatrix} \psi_{1} \\ \psi_{2} \end{pmatrix}
-       = \sqrt{P} \, e^{i \xi} 
+       = \sqrt{P} \, e^{i \xi}
          \begin{pmatrix} 
             \cos \frac{\theta}{2} \\   
-            e^{i \phi} \, \sin \frac{\theta}{2}   
+            e^{i \phi} \, \sin \frac{\theta}{2}
          \end{pmatrix}
   \qquad \longleftrightarrow \qquad
   \Bf S = P \, \begin{pmatrix} \sin \theta \cos \phi \\   
@@ -549,8 +555,7 @@ three Pauli matrices. In polar coordinates
                           \cos \theta \end{pmatrix}
   \label{pp1p2}
 \Endeq
-where $P$ is the polarization. $P = 1$ for a single particle.
-The $\xi$ being an extra phase factor. Due to the unitarity of the spin vector,   
+Due to the unitarity of the spin vector,   
 $|\psi_{1}|^{2} + |\psi_{2}|^{2} = P$.
 The spinor eigenvectors along the $x$, $y$ and $z$ axes are
 \begin{align}
@@ -565,21 +570,24 @@ The spinor eigenvectors along the $x$, $y$ and $z$ axes are
 In spinor notation, the T-BMT equation can be written as
   \Begineq   
     \frac{\mathrm{d}}{\mathrm{d} t} \Psi = - \frac{i}{2} \left( \bfsig \dotproduct   
-    {\pmb\Omega} \right) \Psi.   
+    {\pmb\Omega} \right) \Psi = -\frac{i}{2} \begin{pmatrix}
+    \Omega_z & \Omega_x - i \, \Omega_y \\
+    \Omega_x + i \, \Omega_y & -\Omega_z \end{pmatrix}
+    \Psi
   \Endeq   
 The solution leads to a rotation of the spin vector by an angle   
-$\alpha$ around a unit vector $\Bf e$ represented as   
+$\alpha$ around a unit vector $\bfhat n$ represented as   
   \begin{align}   
-    \Psi_f &= e^{-i \frac{\alpha}{2} \Bf e \dotproduct \bfsig} \Psi_i \CRNO
-         &= \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \dotproduct \bfsig \right) \Psi_i \\
+    \Psi_f &= \exp \left[ -i \frac{\alpha}{2} \bfhat n \dotproduct \bfsig \right] \Psi_i \CRNO
+         &= \left[ \cos \left( \frac{\alpha}{2} \right) \, \Bf 1_{2} - 
+            i \, (\bfhat n \dotproduct \bfsig) \, \sin \left( \frac{\alpha}{2} \right) \right] \Psi_i \\
          &= \Bf A \Psi_i. \nonumber
   \end{align}   
-where $\Psi_i$ is the initial spin state, $\Psi_f$ is the final spin
-state, and the SU(2) matrix $\Bf A$, called a \textit{quaternion},
-describes the spin transport. $\Bf A$ has the normalization condition
-$a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
-$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely
-describe $\Bf A$. 
+where $\Psi_i$ is the initial spin state, $\Psi_f$ is the final spin state, and $\Bf A$,
+which describes the spin transport, is the SU(2) matrix representation of the quaternian
+$(a_0, \Bf a) = (\cos(\alpha/2), -\sin(\alpha/2) \, \bfhat n)$. $\Bf A$ has the
+normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
+$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely describe $\Bf A$.
 
 With spinors, the matrix representation of the observable $S_{\Bf u}$
 corresponding to the measurement of the spin along the unit vector
@@ -695,7 +703,7 @@ In development...
 
 %---------------------------------------------------------------------------------
 \subsection{Quadrupole Soft Edge Fringe Map}
-\label{ss:q.soft}
+\label{s:q.soft}
 
 Only the quadrupole soft edge fringe is modeled in \bmad. The model is adapted 
 from SAD\cite{b:sad}. The fringe map is:

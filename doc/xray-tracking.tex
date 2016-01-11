@@ -26,7 +26,7 @@ treated as incoherent.
 
 %-------------------------------------------------------------------------
 \subsection{Incoherent Photon Tracking}
-\label{ss:incoher}
+\label{s:incoher}
 
 In a simulation with incoherent photons, some number of photons,
 $N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
@@ -200,7 +200,7 @@ practice the aperture procedure increases the number of photons that
 must be tracked for a given resolution. Thus, from a practical standpoint
 the ballistic alternative should always be used.
 
-As explaned in \sref{ss:incoher}, at some places the light may be split
+As explaned in \sref{s:incoher}, at some places the light may be split
 into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
 \Begineq
   P_i \, \what E_i = \frac{E_i}{E_0}
@@ -210,7 +210,7 @@ where here $\what E_i$ can be complex to take into account phase shifts.
 The same considerations about choosing the $P_i$ and $\what E_i$ apply to
 coherent photons as incoherent photons. In particular, $\what E_1$ for the
 case of isotropic emission from a surface as in the equample in
-\sref{ss:incoher} (cf. \Eq{roo}) is
+\sref{s:incoher} (cf. \Eq{roo}) is
 \Begineq
   \what E_1 = \frac{\Omega_1}{\Omega_0}
 \Endeq
@@ -334,7 +334,7 @@ Laboratory and Element Coordinates}
 
 %-------------------------------------------------------------------------
 \subsection{Transformation from Laboratory to Element Coordinates}
-\label{ss:crystal.trans.le}
+\label{s:crystal.trans.le}
 
 \index{z_offset_tot}
 With photons, the intensities must also be transformed.
@@ -387,12 +387,12 @@ with $\theta_{tot}$ being
   \end{cases}
   \label{tttt}
 \Endeq
-The \vn{tilt_corr} correction is explained in \sref{ss:crystal.trans}.
+The \vn{tilt_corr} correction is explained in \sref{s:crystal.trans}.
 \end{enumerate}
 
 %-------------------------------------------------------------------------
 \subsection{Transformation from Element to Laboratory Coordinates}
-\label{ss:crystal.trans.el}
+\label{s:crystal.trans.el}
 
 The back transformation from exit element coordinates to exit
 laboratory coordinates is accomplished by the transformation
@@ -502,14 +502,14 @@ problem can be divided up into two parts. First the reference
 trajectory must be calculated. This means calculating the incoming
 grazing angle $\theta_{B,in}$ and outgoing grazing angle
 $\theta_{B,out}$ as well as calculating the transformations between
-the various coordinate systems. This is done in \sref{ss:crystal.ref},
-\sref{ss:crystal.trans}, and \sref{ss:laue.ref}.  The second part
+the various coordinate systems. This is done in \sref{s:crystal.ref},
+\sref{s:crystal.trans}, and \sref{s:laue.ref}.  The second part
 is the actual tracking of the photon and this is covered in
-\sref{ss:bragg.track} \sref{ss:coherent.laue} and \sref{ss:incoherent.laue}.
+\sref{s:bragg.track} \sref{s:coherent.laue} and \sref{s:incoherent.laue}.
 
 %-------------------------------------------------------------------------
 \subsection{Calculation of Entrance and Exit Bragg Angles}
-\label{ss:crystal.ref}
+\label{s:crystal.ref}
 
 \fig{f:crystal.diffraction} shows the geometry of the
 problem. The bar over the vectors indicates that they refer to the
@@ -654,7 +654,7 @@ the difference between the total bend angle and the entrance Bragg angle.
 
 %-------------------------------------------------------------------------
 \subsection{Crystal Coordinate Transformations}
-\label{ss:crystal.trans}
+\label{s:crystal.trans}
 
 There are four transformations needed between coordinates
 denoted by $\Bf\Sigma_1$, $\Bf\Sigma_2$, $\Bf\Sigma_3$, and $\Bf\Sigma_4$
@@ -672,8 +672,8 @@ $\bfV$ of \Eqs{vwlv} and \eq{wws}
 
 \index{tilt_corr}\index{crystal!tilt correction}
 The transformation $\Bf\Sigma_1$ is given in
-\sref{ss:crystal.trans.le} and the transformation $\Bf\Sigma_4$ is
-given in \sref{ss:crystal.trans.el}. In general, the transformation
+\sref{s:crystal.trans.le} and the transformation $\Bf\Sigma_4$ is
+given in \sref{s:crystal.trans.el}. In general, the transformation
 $\Bf\Sigma_1$ needs a ``tilt correction'' (\Eq{tttt}), as explained
 below, when $\psi_H$ is nonzero.  [The exception is when the
 \vn{undiffracted} or \vn{forward_diffracted} beam is tracked with Laue
@@ -802,7 +802,7 @@ Energy flow used to determine the reference orbit for Laue diffraction.
 
 %-------------------------------------------------------------------------
 \subsection{Laue Reference Orbit}
-\label{ss:laue.ref}
+\label{s:laue.ref}
 
 For Laue diffraction, with the reference orbit following the
 \vn{undiffracted} beam, the reference orbit at the exit surface is
@@ -973,7 +973,7 @@ phase shift can only be calculated up to a constant offset.
 
 %-------------------------------------------------------------------------
 \subsection{Bragg Crystal Tracking}
-\label{ss:bragg.track}
+\label{s:bragg.track}
 
 The starting photon coordinates are specified in the laboratory
 entrance coordinates. The transformation from laboratory entrance
@@ -1074,7 +1074,7 @@ where $j$ is $\alpha$ or $\beta$ as appropriate.
 
 %-------------------------------------------------------------------------
 \subsection{Coherent Laue Crystal Tracking}
-\label{ss:coherent.laue}
+\label{s:coherent.laue}
 
 Laue diffraction has two interior wave fields (branches), labeled
 $\alpha$ and $\beta$, corresponding to the two tie points that are
@@ -1144,7 +1144,7 @@ an appropriately scaled $\what E$.
 
 %-------------------------------------------------------------------------
 \subsection{Incoherent Laue Crystal Tracking}
-\label{ss:incoherent.laue}
+\label{s:incoherent.laue}
 
 Laue diffraction has two interior wave fields (branches), labeled
 $\alpha$ and $\beta$, corresponding to the two tie points that are

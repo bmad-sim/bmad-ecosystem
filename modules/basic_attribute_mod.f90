@@ -547,7 +547,7 @@ do i = 1, n_key$
   if (i == custom$)       cycle
 
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
-  call init_attribute_name1 (i, spin_fringe_type$,   'SPIN_FRINGE_TYPE')
+  call init_attribute_name1 (i, spin_fringe_on$,     'SPIN_FRINGE_ON')
   call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
 
   if (i == hkicker$)      cycle
@@ -841,7 +841,7 @@ call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVEL
 
 call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
-call init_attribute_name1 (drift$, spin_fringe_type$,               'spin_fringe_type', private$)
+call init_attribute_name1 (drift$, spin_fringe_on$,                 'spin_fringe_on', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 
@@ -1230,7 +1230,7 @@ call init_attribute_name1 (sad_mult$, e2$,                     'E2')
 !call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
-call init_attribute_name1 (sad_mult$, spin_fringe_type$,       'SPIN_FRINGE_TYPE')
+call init_attribute_name1 (sad_mult$, spin_fringe_on$,         'SPIN_FRINGE_ON')
 call init_attribute_name1 (sad_mult$, fq1$,                    'FQ1')
 call init_attribute_name1 (sad_mult$, fq2$,                    'FQ2')
 call init_attribute_name1 (sad_mult$, fb1$,                    'FB1')
@@ -1494,7 +1494,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', &
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON')
   attrib_type = is_logical$
@@ -1507,7 +1507,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
-      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'SPIN_FRINGE_TYPE', &
+      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
   attrib_type = is_switch$
@@ -1799,10 +1799,6 @@ case ('REF_ORBIT_FOLLOWS')
 case ('SPATIAL_DISTRIBUTION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
-
-case ('SPIN_FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_fringe_type_name, lbound(fringe_type_name, 1))
-  if (present(is_default)) is_default = full$
 
 case ('SPIN_TRACKING_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
