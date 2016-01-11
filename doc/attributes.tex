@@ -399,16 +399,16 @@ other elements, like the \vn{fiducial} element, do affect the
 reference orbit. To sort all this out, lattice elements can be divided
 into seven classes:
   \begin{enumerate}
-  \item\vn{Straight line elements} (\sref{ss:straight.orient}) \Newline
+  \item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
 Straight line elements are elements where the reference orbit is a
 straight line. Examples include \vn{quadrupoles}, and \vn{sextupoles}
 as well as zero length elements like \vn{markers}.
-  \item\vn{Dipole bends} (\sref{ss:bend.orient}) \Newline
+  \item\vn{Dipole bends} (\sref{s:bend.orient}) \Newline
 Dipole bends are:
 \begin{example}
   sbend \& rbend
 \end{example}
-  \item\vn{Photon reflecting elements} (\sref{ss:photon.orient}) \Newline
+  \item\vn{Photon reflecting elements} (\sref{s:photon.orient}) \Newline
 The reflecting elements are
 \begin{example}
   crystal
@@ -417,15 +417,15 @@ The reflecting elements are
 \end{example}
 These elements have a kink in the reference orbit at the nominal
 element surface.
-  \item\vn{Reference orbit manipulator elements} (\sref{ss:manip.orient}) \Newline
+  \item\vn{Reference orbit manipulator elements} (\sref{s:manip.orient}) \Newline
 Elements that are used to manipulate the reference orbit are
 \begin{example}
   fork \& photon_fork
   floor_shift
   patch
 \end{example}
-  \item\vn{Fiducial Element} (\sref{ss:fiducial.orient}) \Newline
-  \item\vn{Girder Elements} (\sref{ss:girder.orient}) \Newline
+  \item\vn{Fiducial Element} (\sref{s:fiducial.orient}) \Newline
+  \item\vn{Girder Elements} (\sref{s:girder.orient}) \Newline
   \item\vn{Control Elements} \Newline
 Control elements are elements that control attributes of other
 elements. The control elements are:
@@ -438,7 +438,7 @@ These elements do not have orientational attributes.
 
 %-----------------------------------------------------------------
 \subsection{Straight Line Element Orientation}
-\label{ss:straight.orient}
+\label{s:straight.orient}
 
 The straight line elements have the following orientational attributes:
 \begin{example}
@@ -513,7 +513,7 @@ Note that \vn{hkick} and \vn{vkick} attributes are not affected by
 
 %-----------------------------------------------------------------
 \subsection{Bend Element Orientation}
-\label{ss:bend.orient}
+\label{s:bend.orient}
 
 \begin{figure}[ht]
   \centering
@@ -564,7 +564,7 @@ the same as the MAD \vn{tilt} attribute.
 
 %-----------------------------------------------------------------
 \subsection{Photon Reflecting Element Orientation}
-\label{ss:photon.orient}
+\label{s:photon.orient}
 
 \begin{figure}[ht]
   \centering
@@ -603,7 +603,7 @@ to the element's surface. This can be done using a \vn{girder} element
 
 %-----------------------------------------------------------------
 \subsection{Reference Orbit Manipulator Element Orientation}
-\label{ss:manip.orient}
+\label{s:manip.orient}
 
 The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements
 use the following attributes to orient their exit edge with respect to their
@@ -626,7 +626,7 @@ the orientational attributes here directly control the reference orbit.
 
 %-----------------------------------------------------------------
 \subsection{Fiducial Element Orientation}
-\label{ss:fiducial.orient}
+\label{s:fiducial.orient}
 
 The \vn{fiducial} element (\sref{s:girder}) uses the 
 following attributes to define its position:
@@ -644,7 +644,7 @@ See Section~\sref{s:fiducial} for more details.
 
 %-----------------------------------------------------------------
 \subsection{Girder Orientation}
-\label{ss:girder.orient}
+\label{s:girder.orient}
 
 A \vn{girder} (\sref{s:girder}) element uses the same attributes as a \vn{fiducial}
 element (\sref{s:fiducial}) to orient the reference girder position. In addition,
@@ -758,9 +758,9 @@ The aperture attributes are:
   x_limit       = <Real>      ! Alternative to specifying x1_limit and x2_limit
   y_limit       = <Real>      ! Alternative to specifying y1_limit and y2_limit
   aperture      = <Real>      ! Alternative to specifying x_limit and y_limit
-  aperture_at   = <Switch>    ! What end aperture is at. (\sref{ss:ap.place})
+  aperture_at   = <Switch>    ! What end aperture is at. (\sref{s:ap.place})
   aperture_type = <Switch>    ! What type of aperture it is
-  offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{ss:offset.ap})
+  offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{s:offset.ap})
 \end{example}
 \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify
 the half--width of the aperture of an element as shown in
@@ -834,7 +834,7 @@ Examples:
 
 %-----------------------------------------------------------------
 \subsection{Apertures and Element Offsets}
-\label{ss:offset.ap}
+\label{s:offset.ap}
 
 \index{tilt}
 \index{x_offset}
@@ -876,7 +876,7 @@ Example:
 
 %-----------------------------------------------------------------
 \subsection{Aperture Placement}
-\label{ss:ap.place}
+\label{s:ap.place}
 
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
 \index{entrance_end|hyperbf}\index{exit_end|hyperbf}
@@ -2145,7 +2145,7 @@ element.
 
 %-----------------------------------------------------------------
 \subsection {Field Grid}
-\label{ss:grid}
+\label{s:grid}
 
 A grid of field points in Cartesian coordinates can be specified using the general format:
 \begin{example}
@@ -2383,7 +2383,7 @@ tracking individual particles and only used when tracking bunches.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes}
-\label{ss:short.range.wakes}
+\label{s:short.range.wakes}
 
 \index{wakes!short-range}
 The input file name for the short--range wake fields is specified
@@ -2508,46 +2508,70 @@ Example:
 \label{s:fringe}
 \index{fringe fields}
 
+%-----------------------------------------------------------------
+\subsection{Turning On/Off Fringe Effects}
+\label{s:fringe.at}
+
 \index{fringe_at}
-Lattice elements can have fringe fields at the element edges. Whether
-fringe fields are ignored or not is determined by the setting
-of the \vn{fringe_at} element parameter. The possible settings are
+Lattice elements can have fringe fields at the element edges. Whether fringe fields are
+ignored or not is determined by the setting of the \vn{fringe_at} element parameter. The
+possible settings are
 \begin{example}
   no_end         
   both_ends             ! Default
   entrance_end
   exit_end
 \end{example}
-This is particularly useful in vetoing the
-fringe effect in the interior of split elements.
+This is particularly useful in vetoing the fringe effect in the interior of split
+elements. If there is no fringe at a particular boundary, the setting of attributes
+like \vn{fringe_type} (see below) are ignored.
+
+\index{spin_fringe_on}
+When a particles's spin is being tracked through the fringe field at an element's edge,
+the \vn{spin_fringe_on} logical attribute of the element determines how the tracking is handled.
+Example:
+\begin{example}
+  q: quad, spin_fringe_on = T, fringe_at = exit_end
+\end{example}
+Here, there is no fringe effect at the entrance of the element and the fringe at the exit
+end of the element will affect the spin. The default setting of \vn{spin_fringe_on} is
+\vn{True}.
+
+%-----------------------------------------------------------------
+\subsection{Fringe Types}
+\label{s:fringe.trype}
+
+\bmad and PTC have several fringe field models for the magnetic field. Which fringe
+model is used is set by two element attributes:
+\begin{example}
+  fringe_type
+  ptc_fringe_geometry
+\end{example}
 
 \index{fringe_type}
-For elements that have a multipole type fringe field (dipole,
-quadrupole, etc., as opposed to solenoid or RF fringes), the
-\vn{fringe_type} switch is used to select how a fringe field is
-simulated.  For everything except for \vn{rbend} and \vn{sbend}
-elements, \vn{fringe_type} may be set to one of:
+For elements that have a multipole type fringe field (dipole, quadrupole, etc., as opposed
+to solenoid or RF fringes), the \vn{fringe_type} switch is used to select how a fringe
+field is simulated.  For everything except for \vn{rbend} and \vn{sbend} elements,
+\vn{fringe_type} may be set to one of:
 \begin{example}
   none              ! Default 
   soft_edge_only
   hard_edge_only
   full
 \end{example}
-The \vn{none} setting ignores any fringe fields.
-The fringe field kick is divided into two pieces. 
-The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit
-that the longitudinal extent of the fringe is zero. The second piece is the 
+The \vn{none} setting ignores any fringe fields.  The fringe field kick is divided into
+two pieces.  The first piece is called the \vn{hard edge} fringe kick and is the kick in
+the limit that the longitudinal extent of the fringe is zero. The second piece is the
 \vn{soft edge} fringe kick which is the fringe kick with the fringe having a finite
 longitudinal extent minus the hard edge fringe kick. That is
 \begin{example}
   fringe kick = hard fringe kick + soft fringe kick
 \end{example}
-The advantage of separating the fringe kick in this way is that the hard fringe can
-be used without having to know anything about the longitudinal extent of the fringe.
-In many cases, this is a good enough approximation. Note that using the soft fringe
-without the hard fringe is not physical but can be useful in understanding how
-the soft edge component affects tracking.
-See~\sref{s:multi.fringe.std} for details.
+The advantage of separating the fringe kick in this way is that the hard fringe can be
+used without having to know anything about the longitudinal extent of the fringe.  In many
+cases, this is a good enough approximation. Note that using the soft fringe without the
+hard fringe is not physical but can be useful in understanding how the soft edge component
+affects tracking.  See~\sref{s:multi.fringe.std} for details.
 
 For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
 settings are:

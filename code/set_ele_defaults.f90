@@ -28,7 +28,7 @@ logical, optional :: do_allocate
 
 if (attribute_index(ele, 'FRINGE_AT') /= 0)        ele%value(fringe_at$) = both_ends$
 if (attribute_index(ele, 'FRINGE_TYPE') /= 0)      ele%value(fringe_type$) = none$
-if (attribute_index(ele, 'SPIN_FRINGE_TYPE') /= 0) ele%value(spin_fringe_type$) = full$
+if (attribute_index(ele, 'SPIN_FRINGE_ON') /= 0)   ele%value(spin_fringe_on$) = true$
 
 ! %value() inits
 

@@ -710,7 +710,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 Note: Collimators are the exception to the rule that the aperture is
 independent of any \vn{tilt}s. See \sref{s:limit} for more
 details. Additionally, the default setting of
-\vn{offset_moves_aperture} is \vn{True} for collimators (\sref{ss:offset.ap}).
+\vn{offset_moves_aperture} is \vn{True} for collimators (\sref{s:offset.ap}).
 
 Example:
 \begin{example}
@@ -858,7 +858,7 @@ of the \vn{Element Reference Frame} (See \fig{f:crystal}A).
 To keep the outgoing reference trajectory independent of the value of
 \vn{psi_angle}, the crystal will be automatically tilted by the
 appropriate ``tilt correction'' \vn{tilt_corr}. The calculation of
-\vn{tilt_corr} is outlined in \sref{ss:crystal.trans}. \vn{tilt_corr}
+\vn{tilt_corr} is outlined in \sref{s:crystal.trans}. \vn{tilt_corr}
 will be zero if \vn{psi_angle} is zero.
 
 The reference trajectory for a Bragg \vn{crystal} is that of a zero
@@ -1221,7 +1221,7 @@ Note: The default \vn{tracking_method} (\sref{s:tkm}) setting for an
 \vn{mat6_calc_method} is \vn{tracking}.
 
 In this example the field of an e_gun is given by a grid of field
-values (\sref{ss:grid}):
+values (\sref{s:grid}):
 \begin{example}
   apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
     field = \{ mode = \{
@@ -3344,7 +3344,7 @@ quadrupole is horizontally focusing and vertically defocusing
 (\sref{s:mag.field}).
 
 The \vn{fq1} and \vn{fq2} parameters are used to specify the
-quadrupolar ``soft'' edge fringe. See \sref{ss:q.soft} for more details.
+quadrupolar ``soft'' edge fringe. See \sref{s:q.soft} for more details.
 The \vn{fringe_at} and \vn{fringe_type} settings (\sref{s:fringe})
 determine if the fringe field is used in tracking.
 
@@ -3529,7 +3529,7 @@ equations in \sref{s:mag.field}, there is a factor of $n!$ between the
 two representations.
 
 The \vn{fq1} and \vn{fq2} parameters are used to specify the
-quadrupolar ``soft'' edge fringe. See \sref{ss:q.soft} for more details.
+quadrupolar ``soft'' edge fringe. See \sref{s:q.soft} for more details.
 
 The \vn{fringe_at} and \vn{fringe_type} settings (\sref{s:fringe})
 determine if the fringe field is used in tracking.

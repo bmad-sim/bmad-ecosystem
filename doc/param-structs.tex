@@ -289,8 +289,8 @@ type for the $(x, p_x)$ 2D phase space, etc.
 Possibilities for \vn{%distributeion_type(:)} are:
 \begin{example}
   "", or "RAN_GAUSS"  ! Random distribution (default).
-  "ELLIPSE"           ! Ellipse distribution (\sref{ss:ellipse.init})
-  "KV"                ! Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
+  "ELLIPSE"           ! Ellipse distribution (\sref{s:ellipse.init})
+  "KV"                ! Kapchinsky-Vladimirsky distribution (\sref{s:kv.init})
   "GRID"              ! Uniform distribution.
 \end{example}
 Since the Kapchinsky-Vladimirsky distribution is for a 4D
@@ -339,7 +339,7 @@ random variation in the emittance and bunch center.
 \end{description}
 
 The \vn{%ellipse(:)} array sets the parameters for the 
-\vn{ellipse} distribution (\sref{ss:ellipse.init}). 
+\vn{ellipse} distribution (\sref{s:ellipse.init}). 
 Each component of this array looks like
 \begin{example}
   type ellipse_beam_init_struct
@@ -350,7 +350,7 @@ Each component of this array looks like
 \end{example}
 
 The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
-Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
+Kapchinsky-Vladimirsky distribution (\sref{s:kv.init})
 \begin{example}
   type kv_beam_init_struct
     integer part_per_phi(2)    ! number of particles per angle variable.

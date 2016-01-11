@@ -1061,10 +1061,9 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !+
 ! Subroutine apply_element_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at)
 !
-! Subroutine to track through the edge fringe field of an element.
-! This routine is used with the bmad_standard field_calc where the field
-! can have an abrubt, unphysical termination of the field at the
-! edges of the element. 
+! Subroutine, used with runge_kutta and boris tracking, to track through the edge fringe field of an element.
+! This routine is used and with the bmad_standard field_calc where the field can have an abrubt, 
+! unphysical termination of the field at the edges of the element. 
 !
 ! Elements that have kicks due to unphysical edge field termination include:
 !   sbend
@@ -1080,8 +1079,8 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !   s_edge      -- real(rp): Hard edge relative to start of hard_ele.
 !   t_rel       -- real(rp): Time relative to track_ele entrance edge
 !   hard_ele    -- ele_struct: Element with hard edges.
-!   track_ele   -- ele_struct: Element being tracked through. 
-!                    Is different from hard_ele when there are superpositions.
+!   track_ele   -- ele_struct: Element being tracked through. Is different from hard_ele
+!                    when there are superpositions and track_ele can be a super_slave of hard_ele.
 !   param       -- lat_param_struct: lattice parameters.
 !   particle_at -- Integer: first_track_edge$ or second_track_edge$
 !
@@ -1098,16 +1097,11 @@ type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
 
-real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi
-complex(rp) xiy
+real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3)
+complex(rp) xiy, quaternion(2,2)
 
-integer particle_at, physical_end, dir, i
+integer particle_at, physical_end, dir, i, fringe_at
 logical finished
-
-! Custom edge kick?
-
-call apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
-if (finished) return
 
 ! The setting of hard_ele%ixx is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -1123,8 +1117,18 @@ else
   endif
 endif
 
+! Custom edge kick?
+
+call apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
+if (finished) return
+
+! Only need this routine when the field is calculated using bmad_standard
+
 if (hard_ele%field_calc /= bmad_standard$) return
+
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
+fringe_at = nint(hard_ele%value(fringe_at$))
+if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 ! Static electric
 
@@ -1139,7 +1143,15 @@ if (associated(hard_ele%a_pole_elec)) then
     else
       orb%vec(6) = orb%vec(6) + charge_of(orb%species) * phi / orb%p0c
     endif
+
+    if (bmad_com%spin_tracking_on .and. hard_ele%spin_tracking_method == tracking$ .and. is_true(hard_ele%value(spin_fringe_on$))) then
+      field%b = 0;  field%e = [0, 0, 1]
+      Omega = spin_omega (field, orb, track_ele)
+      quaternion = -phi * (i_imaginary/2.0_rp) * (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+    endif
+
   enddo
+
 endif
 
 ! Static magnetic and electromagnetic fringes

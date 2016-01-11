@@ -118,9 +118,6 @@ character(16), parameter :: fringe_type_name(0:8) = ['Garbage!      ', &
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
 
-character(16), parameter :: spin_fringe_type_name(0:4) = ['Garbage!      ', &
-                                        'None          ', 'Garbage!      ', 'Garbage!      ', 'Full          ']
-
 integer, parameter :: standing_wave$ = 1, traveling_wave$ = 2, ptc_standard$ = 3
 character(16), parameter :: cavity_type_name(0:3) = ['Garbage!      ', 'Standing_Wave ', 'Traveling_Wave', 'PTC_Standard  ']
 
@@ -993,7 +990,7 @@ integer, parameter :: l_chord$ = 9, voltage$ = 9
 integer, parameter :: fringe_type$ = 10
 integer, parameter :: fringe_at$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
-integer, parameter :: spin_fringe_type$ = 13
+integer, parameter :: spin_fringe_on$ = 13
 integer, parameter :: fb1$ = 14, sig_x$ = 14
 integer, parameter :: fb2$ = 15, sig_y$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16
