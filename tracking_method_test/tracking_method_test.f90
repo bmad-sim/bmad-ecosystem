@@ -10,7 +10,7 @@ type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
-type (spin_polar_struct) start_p, end_p
+real(rp) start_p(3), end_p(3)
 
 character(200) :: line(3)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
@@ -50,7 +50,6 @@ if (print_extra) then
   endif
 endif
 
-
 if (lat%beam_start%spin(1) /= 0 .or. lat%beam_start%spin(2) /= 0) then
   bmad_com%spin_tracking_on = .true.
 endif
@@ -87,7 +86,7 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
       start_orb%field = [1, 2]
       call track1 (start_orb, ele, branch%param, end_orb)
-      final_str = trim(ele%name) // ':' // trim(tracking_method_name(j)) 
+      final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
       write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
 
       if (ele%key == wiggler$) then
@@ -99,12 +98,11 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
         isn = isn + 1
-        start_p = spinor_to_polar(start_orb%spin)
-        end_p = spinor_to_polar(end_orb%spin)
+        start_p = spinor_to_vec(start_orb%spin)
+        end_p = spinor_to_vec(end_orb%spin)
         final_str = trim(final_str) // ' dSpin'
         write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
-              end_p%theta-start_p%theta, end_p%phi-start_p%phi, &
-              end_p%xi-start_p%xi, end_p%polarization - start_p%polarization
+              end_p-start_p, norm2(end_p) - norm2(start_p)
       endif
 
       if (branch%param%particle == photon$) then
