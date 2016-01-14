@@ -461,7 +461,7 @@ case (bmad_standard$)
   case (sbend$)
 
     field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
-    field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
+    field%b(2) = (x * ele%value(k1$) + ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
     if (df_calc) then
       field%dB(1,1) =  y * ele%value(k2$) * f_p0c
@@ -771,7 +771,7 @@ case(map$)
 
       cos_ks = cos(k_zn * (s_rel-s0))
       sin_ks = sin(k_zn * (s_rel-s0))
-      exp_kz = cmplx(cos_ks, sin_ks)
+      exp_kz = cmplx(cos_ks, sin_ks, rp)
 
       ! DC
       if (mode%harmonic == 0) then
@@ -788,7 +788,7 @@ case(map$)
           Im_plus  = I_bessel(m+1, kap_rho)
           Im_minus = I_bessel(m-1, kap_rho)
           Im_0     = kap_rho * (Im_minus - Im_plus) / (2 * m)
-          exp_m = cmplx(cos(m * phi), sin(m * phi))
+          exp_m = cmplx(cos(m * phi), sin(m * phi), rp)
 
           q = exp_kz * exp_m * (Im_minus + Im_plus) / 2
           Er_dc = Er_dc + real(term%e_coef * q)

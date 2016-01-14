@@ -537,8 +537,8 @@ case (lcavity$, rfcavity$, e_gun$)
         call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
       endif
 
-      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
       
       ! Update ref_field if larger Ez is found
       ! TODO: Opal may use Ex as well for scaling. Check this. 
@@ -566,7 +566,7 @@ case (lcavity$, rfcavity$, e_gun$)
   
     ! Calculate complex rotation number to rotate Ez onto the real axis
     phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref))
+    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
   
     do ix = 0, nx
       do iz = 0, nz
@@ -613,8 +613,8 @@ case (lcavity$, rfcavity$, e_gun$)
       field_im%E = 0
       field_im%B = 0
 
-      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
       
       ! Update ref_field if larger Bz is found
       ! OPAL normalizes the map to the maximum Bz

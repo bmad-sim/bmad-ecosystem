@@ -2415,12 +2415,13 @@ val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
 !----------------------------------
 ! General bookkeeping...
 
+if (attribute_index(ele, 'L_HARD_EDGE') /= 0) val(l_hard_edge$) = val(l$)
+
 select case (ele%key)
 
 ! Bend_sol_quad
 
 case (bend_sol_quad$)
-  val(l_hard_edge$) = val(l$)
 
 ! BeamBeam
 
@@ -2468,7 +2469,6 @@ case (e_gun$)
       val(voltage$) = val(gradient$) * val(l$)
       val(voltage_err$) = val(gradient_err$) * val(l$)
     endif
-    val(l_hard_edge$) = val(l$)
   endif
 
 ! Elseparator
@@ -2504,9 +2504,7 @@ case (lcavity$)
   endif
 
   val(voltage$) = val(gradient$) * val(l$)
-  if (val(rf_frequency$) == 0) then
-    val(l_hard_edge$) = 0
-  else
+  if (val(rf_frequency$) /= 0) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 
@@ -2523,8 +2521,6 @@ case (patch$)
 
 case (quadrupole$)
 
-    val(l_hard_edge$) = val(l$) ! In case of edge kicks
-
 ! RFcavity
 
 case (rfcavity$)
@@ -2540,9 +2536,7 @@ case (rfcavity$)
     endif
   endif
 
-  if (val(rf_frequency$) == 0) then
-    val(l_hard_edge$) = 0
-  else
+  if (val(rf_frequency$) /= 0) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 
@@ -2593,17 +2587,13 @@ case (sbend$)
     call set_ele_status_stale (ele, floor_position_group$)
   endif
 
-  val(l_hard_edge$) = val(l$)
-
 ! Sol_quad
 
 case (sol_quad$)
-  val(l_hard_edge$) = val(l$)
 
 ! Solenoid
 
 case (solenoid$)
-  val(l_hard_edge$) = val(l$)
 
 ! Wiggler
 

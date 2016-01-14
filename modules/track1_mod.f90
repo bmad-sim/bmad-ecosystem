@@ -1098,10 +1098,10 @@ type (lat_param_struct) param
 type (em_field_struct) field
 
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3)
-complex(rp) xiy, quaternion(2,2)
+complex(rp) xiy
 
-integer particle_at, physical_end, dir, i, fringe_at
-logical finished
+integer particle_at, physical_end, dir, i, fringe_at, at_sign
+logical finished, track_spin
 
 ! The setting of hard_ele%ixx is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -1129,29 +1129,32 @@ if (hard_ele%field_calc /= bmad_standard$) return
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(hard_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
+track_spin = (bmad_com%spin_tracking_on .and. hard_ele%spin_tracking_method == tracking$ .and. &
+                is_true(hard_ele%value(spin_fringe_on$)) .and. hard_ele%field_calc == bmad_standard$)
+
+if (particle_at == first_track_edge$) then
+  at_sign = 1
+else
+  at_sign = -1
+endif
 
 ! Static electric
 
 if (associated(hard_ele%a_pole_elec)) then
   xiy = 1
   do i = 0, max_nonzero(0, hard_ele%a_pole_elec, hard_ele%b_pole_elec)
-    xiy = xiy * cmplx(orb%vec(1), orb%vec(3))
+    xiy = xiy * cmplx(orb%vec(1), orb%vec(3), rp)
     if (hard_ele%a_pole_elec(i) == 0 .and. hard_ele%b_pole_elec(i) == 0) cycle
-    phi = -real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i)) * xiy) / (i + 1)
-    if (particle_at == first_track_edge$) then
-      orb%vec(6) = orb%vec(6) - charge_of(orb%species) * phi / orb%p0c
-    else
-      orb%vec(6) = orb%vec(6) + charge_of(orb%species) * phi / orb%p0c
-    endif
+    phi = at_sign * charge_of(orb%species) * real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i), rp) * xiy) / (i + 1)
+    orb%vec(6) = orb%vec(6) + phi / orb%p0c
 
-    if (bmad_com%spin_tracking_on .and. hard_ele%spin_tracking_method == tracking$ .and. is_true(hard_ele%value(spin_fringe_on$))) then
-      field%b = 0;  field%e = [0, 0, 1]
+    if (track_spin) then
+      field = em_field_struct()
+      field%e(3) = phi
       Omega = spin_omega (field, orb, track_ele)
-      quaternion = -phi * (i_imaginary/2.0_rp) * (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+      call rotate_spinor (omega, orb%spin)
     endif
-
   enddo
-
 endif
 
 ! Static magnetic and electromagnetic fringes
@@ -1173,19 +1176,20 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
-  if (particle_at == first_track_edge$) then
-    orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
-    orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
-  else
-    orb%vec(2) = orb%vec(2) - ks * orb%vec(3) / 2
-    orb%vec(4) = orb%vec(4) + ks * orb%vec(1) / 2
+  ks = at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
+  orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
+  orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
+  if (track_spin) then
+    field = em_field_struct()
+    field%b(1:2) = [orb%vec(1), orb%vec(3)] * at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) / 2
+    Omega = spin_omega (field, orb, track_ele)
+    call rotate_spinor (-omega, orb%spin)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
-  f = charge_of(orb%species) / (2 * orb%p0c)
+  f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
   t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
@@ -1195,17 +1199,13 @@ case (lcavity$, rfcavity$, e_gun$)
       ! E_gun does not have an entrance kick
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
-
-      orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
-      orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
-
     else
       s = s - bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
-
-      orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
-      orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f
     endif
+
+    orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
+    orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
     ! orb%phase(1) is set by em_field_calc.
 
@@ -1436,7 +1436,7 @@ end select
 
 x = orbit%vec(1)
 y = orbit%vec(3)
-xy = cmplx(x, y)
+xy = cmplx(x, y, rp)
 
 poly_n1 = 1
 poly = xy
@@ -1484,12 +1484,12 @@ do n = 1, n_max
   d2poly_dxy = i_imaginary * d2poly_dxx
   d2poly_dyy = -d2poly_dxx
 
-  cab = charge_dir * cmplx(bp, ap) / (4 * (n + 2) * rel_p)
+  cab = charge_dir * cmplx(bp, ap, rp) / (4 * (n + 2) * rel_p)
   if (particle_at == first_track_edge$) cab = -cab
   cn = real(n+3, rp) / (n+1) 
 
-  xny = cmplx(x, -cn * y)
-  dxny_dy = cmplx(0.0_rp, -cn)
+  xny = cmplx(x, -cn * y, rp)
+  dxny_dy = cmplx(0.0_rp, -cn, rp)
 
   fx = fx + real(cab * poly * xny)
   dfx_dx = dfx_dx + real(cab * (dpoly_dx * xny + poly))
@@ -1498,8 +1498,8 @@ do n = 1, n_max
   d2fx_dxy = d2fx_dxy + real(cab * (d2poly_dxy * xny + dpoly_dx * dxny_dy + dpoly_dy))
   d2fx_dyy = d2fx_dyy + real(cab * (d2poly_dyy * xny + 2 * dpoly_dy * dxny_dy))
 
-  xny = cmplx(y, cn * x)
-  dxny_dx = cmplx(0.0_rp, cn)
+  xny = cmplx(y, cn * x, rp)
+  dxny_dx = cmplx(0.0_rp, cn, rp)
 
   fy = fy + real(cab * poly * xny)
   dfy_dx = dfy_dx + real(cab * (dpoly_dx * xny + poly * dxny_dx))

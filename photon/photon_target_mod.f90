@@ -263,9 +263,9 @@ endif
 pix%n_photon  = pix%n_photon + 1
 if (ele%branch%lat%photon_type == coherent$) then
   phase = orb%phase(1) 
-  pix%E_x = pix%E_x + orb%field(1) * cmplx(cos(phase), sin(phase))
+  pix%E_x = pix%E_x + orb%field(1) * cmplx(cos(phase), sin(phase), rp)
   phase = orb%phase(2) 
-  pix%E_y = pix%E_y + orb%field(2) * cmplx(cos(phase), sin(phase))
+  pix%E_y = pix%E_y + orb%field(2) * cmplx(cos(phase), sin(phase), rp)
 else
   intens_x = orbit%field(1)**2
   intens_y = orbit%field(2)**2

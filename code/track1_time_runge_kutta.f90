@@ -50,7 +50,7 @@ integer :: i, hard_end
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
 logical :: local_ref_frame = .true.
-logical :: abs_time, err_flag, err
+logical :: abs_time, err_flag, err, set_spin
 
 !---------------------------------
 
@@ -58,6 +58,8 @@ err_flag = .true.
 
 end_orb = start_orb
 time = particle_ref_time(start_orb, ele)
+set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$ .and. &
+                is_true(ele%value(spin_fringe_on$)) .and. ele%field_calc == bmad_standard$)
 
 ! If element has zero length, skip tracking
 
@@ -116,17 +118,17 @@ dt_step = bmad_com%init_ds_adaptive_tracking / c_light
 
 ! Particle is moving forward towards the entrance
 if (end_orb%direction == +1 .and. end_orb%location /= inside$) then
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., ds_pos = 0.0_rp ) 
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., ds_pos = 0.0_rp, set_spin = set_spin) 
 
 ! Interior start, reference momentum is at the end. No edge kicks are given
 elseif (end_orb%location == inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                        ds_pos =s_rel)
+                        ds_pos =s_rel, set_spin = set_spin)
 
 ! Particle is at the exit surface, should be moving backwards
 elseif (end_orb%direction == -1 .and. end_orb%location /= inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                        ds_pos = s_rel)
+                        ds_pos = s_rel, set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
@@ -165,7 +167,7 @@ if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
   call convert_particle_coordinates_t_to_s(end_orb, ele%value(ref_time_start$))
   ! call apply_element_edge_kick (end_orb, ele, param, upstream_end$)
   !unset
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
 
 elseif (end_orb%state /= alive$) then
   !Particle is lost in the interior of the element.
@@ -182,7 +184,7 @@ elseif (end_orb%state /= alive$) then
   call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                          ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
+                          ds_pos = end_orb%s - (ele%s - ele%value(l$)), set_spin = set_spin)
 
 elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   !Particle left exit end going forward
@@ -192,7 +194,7 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
   !call apply_element_edge_kick (end_orb, ele, param, downstream_end$)
   !unset
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)

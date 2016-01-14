@@ -2015,18 +2015,18 @@ if (n1 == 0 .or. n2 ==0 ) then
   if (n1 > 0) then
   ! purely real
      call init_complex_taylor_series (complex_taylor, n1)
-     complex_taylor%ref = cmplx(re_taylor%ref, 0.0_rp)
+     complex_taylor%ref = cmplx(re_taylor%ref, 0.0_rp, rp)
      do n = 1, n1
-       complex_taylor%term(n)%coef = cmplx(re_taylor%term(n)%coef, 0.0_rp)
+       complex_taylor%term(n)%coef = cmplx(re_taylor%term(n)%coef, 0.0_rp, rp)
        complex_taylor%term(n)%expn = re_taylor%term(n)%expn
      enddo
  
   else if (n2 > 0) then
   ! purely imaginary
     call init_complex_taylor_series (complex_taylor, n2)
-    complex_taylor%ref = cmplx(0.0_rp, im_taylor%ref)
+    complex_taylor%ref = cmplx(0.0_rp, im_taylor%ref, rp)
     do n = 1, n2
-      complex_taylor%term(n)%coef = cmplx(0.0_rp, im_taylor%term(n)%coef)
+      complex_taylor%term(n)%coef = cmplx(0.0_rp, im_taylor%term(n)%coef, rp)
       complex_taylor%term(n)%expn = im_taylor%term(n)%expn
     enddo
   
@@ -2070,7 +2070,7 @@ end do
 
 ! Initialize output taylor
 call init_complex_taylor_series(complex_taylor, n_tot)
-complex_taylor%ref = cmplx(taylor1%ref, taylor2%ref)
+complex_taylor%ref = cmplx(taylor1%ref, taylor2%ref, rp)
 
 ! Second pass to assign values
 n = 1
@@ -2103,7 +2103,7 @@ do
   endif
   
   ! Assign complex coef
-  complex_taylor%term(n)%coef = cmplx(re, im)
+  complex_taylor%term(n)%coef = cmplx(re, im, rp)
   complex_taylor%term(n)%expn = expn
   if (n == n_tot) exit
   n = n + 1
