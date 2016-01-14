@@ -261,6 +261,7 @@ str_out = trim(str1) // str2
 tol = 'REL 0.1'
 if (abs(val) < 1e-14) tol = 'ABS 1e-14'
 if (index(str_out, 'Runge') /= 0) tol = 'ABS 1e-9'
+if (index(str_out, 'xmat') /= 0) tol = 'ABS 1e-8'
 
 select case (str_out)
 case ('"QUADRUPOLE5@Bmad_Standard:dorb_r"');    tol = 'ABS 1e-9'
