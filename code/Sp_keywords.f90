@@ -495,9 +495,9 @@ nmark=0
 !     write(MF,*) phase0,compute_stoch_kick,l%start%charge, " PHASE0, compute_stoch_kick, CHARGE"
     write(MF,*) CAVITY_TOTALPATH,ALWAYS_EXACTMIS,ALWAYS_EXACT_PATCHING, &
          "CAVITY_TOTALPATH,ALWAYS_EXACTMIS,ALWAYS_EXACT_PATCHING"
-    write(line,*) SECTOR_NMUL,sector_nmul_max,&
+    write(line,*) sector_nmul_max,SECTOR_NMUL,&
          OLD_IMPLEMENTATION_OF_SIXTRACK,HIGHEST_FRINGE,&
-         " SECTOR_NMUL,SECTOR_NMUL_MAX,OLD_IMPLEMENTATION_OF_SIXTRACK,HIGHEST_FRINGE"
+         " SECTOR_NMUL_MAX,SECTOR_NMUL,OLD_IMPLEMENTATION_OF_SIXTRACK,HIGHEST_FRINGE"
     write(mf,'(a255)')line
     write(line,*) wedge_coeff,valishev, " wedge_coeff", " Valishev Multipole "
     write(mf,'(a255)')line
@@ -2415,6 +2415,7 @@ logical(lp), optional :: arpent
 character(*) filename
 integer mf,ns
 ELE0%NAME_VORNAME(1)=' '
+ELE0%NAME_VORNAME(2)=' '
 
  call kanalnummer(mf,filename(1:len_trim(filename)))
           do while(ELE0%NAME_VORNAME(1)/="alldone")
@@ -2443,7 +2444,7 @@ logical(lp), optional :: arpent
 character(*) filename
 integer mf
 ELE0%NAME_VORNAME(1)=' '
-
+ELE0%NAME_VORNAME(2)=' '
  call kanalnummer(mf,filename(1:len_trim(filename)))
 
            call append_empty_layout(un)  
@@ -2507,6 +2508,7 @@ call read_initial_chart(mf)
 
 n=0
 do while(.true.) 
+ 
    read(mf,NML=ELEname,end=999) !!  basic stuff : an,bn,L, b_sol, etc...
 !write(6,*) ELE0%name_vorname
 
@@ -2801,6 +2803,9 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  MAGL0%TILTD_EDGE(2)=f%EDGE(1)
  MAGL0%TILTD_EDGE(3)=f%EDGE(2)
 
+ MAGL0%KILL_SPIN(1)=f%KILL_ENT_SPIN
+ MAGL0%KILL_SPIN(2)=f%KILL_EXI_SPIN
+
  MAGL0%KIN_KEX_BENDFRINGE_EXACT(1)=f%KILL_ENT_FRINGE
  MAGL0%KIN_KEX_BENDFRINGE_EXACT(2)=f%KILL_EXI_FRINGE
  MAGL0%KIN_KEX_BENDFRINGE_EXACT(3)=f%bend_fringe
@@ -2827,6 +2832,9 @@ else
  f%TILTD=MAGL0%TILTD_EDGE(1)
  f%EDGE(1)=MAGL0%TILTD_EDGE(2)
  f%EDGE(2)=MAGL0%TILTD_EDGE(3)
+
+ f%KILL_ENT_SPIN=MAGL0%KILL_SPIN(1)
+ f%KILL_EXI_SPIN=MAGL0%KILL_SPIN(2)
 
  f%KILL_ENT_FRINGE=MAGL0%KIN_KEX_BENDFRINGE_EXACT(1)
  f%KILL_EXI_FRINGE=MAGL0%KIN_KEX_BENDFRINGE_EXACT(2)
@@ -2855,8 +2863,11 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  ELE0%KIND=F%KIND
 ! ELE0%name_vorname(1)="'"//f%name//"' "
 ! ELE0%name_vorname(2)="'"//f%vorname//"' "
+
  ELE0%name_vorname(1)= f%name 
  ELE0%name_vorname(2)= f%vorname 
+  call context(ELE0%name_vorname(1))
+  call context(ELE0%name_vorname(2))
  if(.not.old_name_vorname) then
   call context(ELE0%name_vorname(1),dollar=my_true)
   call context(ELE0%name_vorname(2),dollar=my_true)
@@ -2902,6 +2913,8 @@ else
      read(mf,NML=ELEname)
     endif   
  F%KIND=ELE0%KIND  
+  call context(ELE0%name_vorname(1))
+  call context(ELE0%name_vorname(2))
 nname=ELE0%name_vorname(1)
  f%name=nname(1:nlp)
 nname=ELE0%name_vorname(2)

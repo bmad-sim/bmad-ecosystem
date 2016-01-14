@@ -153,7 +153,7 @@ MODULE S_DEF_KIND
   private track_slice4r,track_slice4p,PATCH_driftR,PATCH_driftp
   private  ZEROr_sol5,ZEROp_sol5
   logical(lp) :: tpsa_quad_sad=my_false
- 
+ logical :: piotr_freq=.false.
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
 !     MODULE PROCEDURE INTEP_CAV4
@@ -1905,7 +1905,12 @@ CALL FRINGECAV(EL,X,k,2)
     !    EL%DELTA_E=x(5)
     IF(.NOT.PRESENT(MID)) then
        dir=EL%P%DIR*EL%P%CHARGE
+
        O=twopi*EL%freq/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
 
        do ko=1,el%nf
 
@@ -1981,6 +1986,10 @@ CALL FRINGECAV(EL,X,k,2)
     dir=EL%P%DIR*EL%P%CHARGE
     O=twopi*EL%freq/CLIGHT
 
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     do ko=1,el%nf
 
        x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+ &
@@ -2052,6 +2061,11 @@ CALL FRINGECAV(EL,X,k,2)
 
 
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     V=EL%P%CHARGE*EL%volt*volt_c/EL%P%P0C
 
     A=0.0_dp
@@ -2103,6 +2117,10 @@ CALL FRINGECAV(EL,X,k,2)
     CALL ALLOC(C1,S1,V,O,dad1dz)
 
     O=EL%freq*twopi/CLIGHT
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     V=EL%P%CHARGE*EL%volt*volt_c/EL%P%P0C
     
     DO KO=1,3
@@ -2832,6 +2850,11 @@ CALL FRINGECAV(EL,X,k,2)
        
 
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     V=jC*EL%P%CHARGE*EL%volt*volt_c/EL%P%P0C
 
 
@@ -2883,6 +2906,10 @@ CALL FRINGECAV(EL,X,k,2)
     ENDIF
 
     O=EL%freq*twopi/CLIGHT
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     V=jC*EL%P%CHARGE*EL%volt*volt_c/EL%P%P0C
 
    do ko=1,el%nf    ! over modes
@@ -2922,6 +2949,11 @@ CALL FRINGECAV(EL,X,k,2)
     DIR=EL%P%DIR*EL%P%CHARGE
 
     O=twopi*EL%freq/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     VL=dir*YL*EL%volt*volt_c/EL%P%P0C
 
     do ko=1,el%nf    ! over modes
@@ -3017,6 +3049,11 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     DIR=EL%P%DIR*EL%P%CHARGE
 
     O=twopi*EL%freq/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     VL=dir*YL*EL%volt*volt_c/EL%P%P0C
 
     do ko=1,el%nf    ! over modes
@@ -10454,11 +10491,6 @@ integer :: kkk=0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
 
-    !    if(abs(x(1))+abs(x(3))+abs(x(2))+abs(x(4))>absolute_aperture.or.(.not.CHECK_MADX_APERTURE)) then
-    !       if(CHECK_MADX_APERTURE) c_%message="exceed absolute_aperture in SKICKR"
-    !       CHECK_STABLE=.false.
-    !    endif
-    !    if(.not.CHECK_STABLE) return
 
     DIR=EL%P%DIR*EL%P%CHARGE
 
@@ -13115,6 +13147,11 @@ integer :: kkk=0
     SPSI=SIN(EL%PSI)
 
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     C1=(eps1+(EL%P%DIR-eps1)*0.5_dp)*COS(O*(x(6)-Z0)+EL%PHAS+EL%phase0)
     C2=(eps2+(EL%P%DIR-eps2)*0.5_dp)*COS(O*(x(6)+Z0)+EL%PHAS+EL%phase0+EL%DPHAS)
     ! REMOVE FRINGE IN OPPOSITE DIRECTION  ULTRA RELATIVISTIC
@@ -13161,6 +13198,11 @@ integer :: kkk=0
     SPSI=SIN(EL%PSI)
 
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     C1=(eps1+(EL%P%DIR-eps1)*0.5_dp)*COS(O*(x(6)-Z0)+EL%PHAS+EL%phase0)
     C2=(eps2+(EL%P%DIR-eps2)*0.5_dp)*COS(O*(x(6)+Z0)+EL%PHAS+EL%phase0+EL%DPHAS)
     ! REMOVE FRINGE IN OPPOSITE DIRECTION  ULTRA RELATIVISTIC
@@ -14883,7 +14925,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        EL%B(I)%JL=T(I)%JL
        EL%B(I)%JV=T(I)%JV
        EL%B(I)%N=T(I)%N
-       EL%B(I)%ND2=T(I)%ND2
+       EL%B(I)%NP=T(I)%NP
        EL%B(I)%no=T(I)%no
        !       EL%ax(I)%CC=t_ax(I)%CC
        !       EL%ax(I)%JL=t_ax(I)%JL
@@ -14933,7 +14975,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        EL%B(I)%JL=T(I)%JL
        EL%B(I)%JV=T(I)%JV
        EL%B(I)%N=T(I)%N
-       EL%B(I)%ND2=T(I)%ND2
+       EL%B(I)%NP=T(I)%NP
        EL%B(I)%no=T(I)%no
        !       EL%ax(I)%CC=t_ax(I)%CC
        !       EL%ax(I)%JL=t_ax(I)%JL
@@ -15645,6 +15687,11 @@ SUBROUTINE ZEROr_teapot(EL,I)
 !    IF(k%NOCAVITY) RETURN
 
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     C1=COS(O*(x(6)-Z0)+EL%PHAS+EL%phase0)
     C2=COS(O*(x(6)+Z0)+EL%PHAS+EL%phase0+EL%DPHAS)
     S1=SIN(O*(x(6)-Z0)+EL%PHAS+EL%phase0)
@@ -15674,6 +15721,11 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     CALL ALLOC(C1,S1,C2,S2,V,O)
     O=EL%freq*twopi/CLIGHT
+
+    if(.not.k%TIME.and.piotr_freq) then
+       O=O/EL%p%beta0
+    endif
+
     C1=COS(O*(x(6)-Z0)+EL%PHAS+EL%phase0)
     C2=COS(O*(x(6)+Z0)+EL%PHAS+EL%phase0+EL%DPHAS)
     S1=SIN(O*(x(6)-Z0)+EL%PHAS+EL%phase0)

@@ -26,6 +26,7 @@ namelist / CHARTname / CHART0
     real(dp) TILTD_EDGE(3)   ! TILTD EDGE
     LOGICAL(Lp) KIN_KEX_BENDFRINGE_EXACT(4)  ! KILL_ENT_FRINGE, KILL_EXI_FRINGE, bend_fringe,EXACT
 	INTEGER METHOD_NST_NMUL_permfringe_highest(5)   ! METHOD,NST,NMUL,permfringr, highest_fringe
+    LOGICAL(Lp) kill_spin(2) 
   END TYPE MAGNET_CHARTLIST
 
 type(MAGNET_CHARTLIST) MAGL0

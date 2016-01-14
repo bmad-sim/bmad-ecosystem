@@ -24,6 +24,9 @@ module S_fitting_new
 
 contains
 
+
+
+
 subroutine find_time_patch(kekb,my_default,ee,kf,kb)
 implicit none
 type(layout), pointer :: kekb

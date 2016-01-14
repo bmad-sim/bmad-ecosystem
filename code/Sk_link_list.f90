@@ -28,6 +28,7 @@ MODULE S_FIBRE_BUNDLE
   logical(lp),PRIVATE,PARAMETER::T=.TRUE.,F=.FALSE.
   real(dp),target :: eps_pos=1e-10_dp
   integer(2),parameter::it0=0,it1=1,it2=2,it3=3,it4=4,it5=5,it6=6,it7=7,it8=8,it9=9
+  INTEGER,parameter :: IPOS =1000
 
   INTERFACE kill
      MODULE PROCEDURE kill_layout
@@ -2155,7 +2156,7 @@ CONTAINS
     NULLIFY(T%NEXT)
     NULLIFY(T%PREVIOUS)
     NULLIFY(T%BB)
-    NULLIFY(T%T)
+!    NULLIFY(T%T)
     !    NULLIFY(T%WORK)
     !    NULLIFY(T%USE_TPSA_MAP)
     !    NULLIFY(T%TPSA_MAP)
@@ -2354,10 +2355,10 @@ CONTAINS
        CALL KILL(T%BB)
        DEALLOCATE(T%BB)
     ENDIF
-    IF(ASSOCIATED(T%T)) THEN
-       CALL KILL(T%T)
-       DEALLOCATE(T%T)
-    ENDIF
+!    IF(ASSOCIATED(T%T)) THEN
+!       CALL KILL(T%T)
+!       DEALLOCATE(T%T)
+!    ENDIF
     !    IF(ASSOCIATED(T%TPSA_MAP)) THEN
     !       CALL KILL(T%TPSA_MAP)
     !       DEALLOCATE(T%TPSA_MAP)
@@ -2716,5 +2717,50 @@ CONTAINS
 
 
 
-  end SUBROUTINE TURN_OFF_ONE_aperture
+  end SUBROUTINE TURN_OFF_ONE_aperture 
+
+
+
+ SUBROUTINE toggle_aperture(R,pos)
+    IMPLICIT NONE
+    TYPE(LAYOUT),TARGET :: R
+    integer pos
+    type(fibre), pointer :: P
+
+    call toggle_ONE_aperture(p)
+
+  end SUBROUTINE toggle_aperture
+
+ SUBROUTINE turn_off_aperture(p)
+    IMPLICIT NONE
+    type(fibre), pointer :: P
+
+    if(ASSOCIATED(P%MAG%p%aperture)) THEN
+       IF(P%MAG%p%aperture%pos<IPOS/2) THEN
+        P%MAG%p%aperture%pos = ipos+P%MAG%p%aperture%pos 
+        P%MAGP%p%aperture%pos  = ipos+P%MAG%p%aperture%pos 
+       ELSE
+        WRITE(6,*) " ERROR APERTURE OFF ALREADY IN ", P%POS,P%MAG%NAME
+       ENDIF
+    ENDIF
+
+  end SUBROUTINE turn_off_aperture
+
+ SUBROUTINE turn_ON_aperture(p)
+    IMPLICIT NONE
+    type(fibre), pointer :: P
+
+    if(ASSOCIATED(P%MAG%p%aperture)) THEN
+       IF(P%MAG%p%aperture%pos>IPOS/2) THEN
+         P%MAG%p%aperture%pos =  P%MAG%p%aperture%pos - IPOS
+         P%MAGP%p%aperture%pos  = P%MAG%p%aperture%pos - IPOS
+       ELSE
+        WRITE(6,*) " ERROR APERTURE ON ALREADY IN ", P%POS,P%MAG%NAME
+       ENDIF
+    ENDIF
+ 
+
+  end SUBROUTINE turn_ON_aperture
+
+
 END MODULE S_FIBRE_BUNDLE
