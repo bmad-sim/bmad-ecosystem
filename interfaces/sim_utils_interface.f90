@@ -364,9 +364,9 @@ interface
 
   function max_nonzero (lbnd, array1, array2) result (ix_max)
     import
-    real(rp) array1(:)
-    real(rp), optional :: array2(:)
     integer lbnd, ix_max
+    real(rp) array1(lbnd:)
+    real(rp), optional :: array2(lbnd:)
   end function
 
   subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
