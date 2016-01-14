@@ -22,10 +22,10 @@ use precision_def
 
 implicit none
 
-real(rp) array1(:)
-real(rp), optional :: array2(:)
-
 integer lbnd, ix_max
+
+real(rp) array1(lbnd:)
+real(rp), optional :: array2(lbnd:)
 
 !
 
