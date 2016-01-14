@@ -3803,7 +3803,7 @@ integer nn, i
 
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
-nn = 22  ! number of standard (non-user defined) constants
+nn = 28  ! number of standard (non-user defined) constants
 allocate (bp_com%var(nn))
 
 bp_com%var( 1) = bp_var_struct('PI', pi, 0)
@@ -3819,15 +3819,21 @@ bp_com%var(10) = bp_var_struct('M_MUON', m_muon, 0)
 bp_com%var(11) = bp_var_struct('M_PION_0', m_pion_0)
 bp_com%var(12) = bp_var_struct('M_PION_CHARGED', m_pion_charged, 0)
 bp_com%var(13) = bp_var_struct('M_PROTON', m_proton, 0)
-bp_com%var(14) = bp_var_struct('C_LIGHT', c_light, 0)
-bp_com%var(15) = bp_var_struct('R_E', r_e, 0)
-bp_com%var(16) = bp_var_struct('R_P', r_p, 0)
-bp_com%var(17) = bp_var_struct('E_CHARGE', e_charge, 0)
-bp_com%var(18) = bp_var_struct('H_PLANCK', h_planck, 0)
-bp_com%var(19) = bp_var_struct('H_BAR_PLANCK', h_bar_planck, 0)
-bp_com%var(20) = bp_var_struct('PMASS', p_mass, 0)
-bp_com%var(21) = bp_var_struct('EMASS', e_mass, 0)
-bp_com%var(22) = bp_var_struct('CLIGHT', c_light, 0)
+bp_com%var(14) = bp_var_struct('M_DEUTERON', m_deuteron, 0)
+bp_com%var(15) = bp_var_struct('C_LIGHT', c_light, 0)
+bp_com%var(16) = bp_var_struct('R_E', r_e, 0)
+bp_com%var(17) = bp_var_struct('R_P', r_p, 0)
+bp_com%var(18) = bp_var_struct('E_CHARGE', e_charge, 0)
+bp_com%var(19) = bp_var_struct('H_PLANCK', h_planck, 0)
+bp_com%var(20) = bp_var_struct('H_BAR_PLANCK', h_bar_planck, 0)
+bp_com%var(21) = bp_var_struct('PMASS', p_mass, 0)
+bp_com%var(22) = bp_var_struct('EMASS', e_mass, 0)
+bp_com%var(23) = bp_var_struct('CLIGHT', c_light, 0)
+bp_com%var(24) = bp_var_struct('ANOM_MAG_ELECTRON', anomalous_mag_moment_electron, 0)
+bp_com%var(25) = bp_var_struct('ANOM_MAG_PROTON', anomalous_mag_moment_proton, 0)
+bp_com%var(26) = bp_var_struct('ANOM_MAG_MUON', anomalous_mag_moment_muon, 0)
+bp_com%var(27) = bp_var_struct('ANOM_MAG_DEUTERON', anomalous_mag_moment_deuteron, 0)
+bp_com%var(28) = bp_var_struct('FINE_STRUCT_CONST', fine_structure_constant, 0)
 
 bp_com%ivar_init = nn
 bp_com%ivar_tot  = nn
@@ -6532,7 +6538,7 @@ err_flag2 = .true.
 call get_next_word (word, ix_word, ',()', delim, delim_found)
 if (is_real(word)) then
   read (word, *) x
-  complex_component = cmplx(x, 0.0_rp)
+  complex_component = cmplx(x, 0.0_rp, rp)
 else if (delim == '(') then
   call get_next_word (word, ix_word, ',', delim, delim_found)
   call get_next_word (word2, ix_word2, ')', delim2, delim_found2)
@@ -6547,7 +6553,7 @@ else if (delim == '(') then
    !
    read (word, *) x
       read (word2, *) y
-      complex_component = cmplx(x,y)
+      complex_component = cmplx(x, y, rp)
       ! Look for "," or end of list ")"
    call get_next_word (word, ix_word, ',)', delim, delim_found)
 end if

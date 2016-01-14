@@ -484,7 +484,7 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
   evec_i(:,5) = VR(:,6)
   evec_i(:,6) = -VR(:,6)
 
-  evec = cmplx(evec_r,evec_i)
+  evec = cmplx(evec_r,evec_i, rp)
   check_mat = matmul(transpose(conjg(evec)),matmul(S,evec))
 
   if( aimag(check_mat(1,1)) > 0.0 ) then
@@ -1044,7 +1044,7 @@ subroutine normalize_evecs(evec_r, evec_i)
   complex(rp) evec(6,6)
   complex(rp) mat(6,6)
 
-  evec = cmplx(evec_r,evec_i)
+  evec = cmplx(evec_r,evec_i, rp)
   mat = matmul(transpose(conjg(evec)),matmul(S,evec))
 
   norm1 = sqrt(abs(mat(1,1)))

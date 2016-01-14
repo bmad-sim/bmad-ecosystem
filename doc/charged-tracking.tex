@@ -196,7 +196,7 @@ Apply the tilt $\theta_t$ (\vn{tilt_tot})
 \subsection{Transform from Laboratory Entrance to Element Coordinates for Bend Elements}
 
 Let $\bfr_c$ be the displacement of the bend at the bend center (where
-offsets are specified (\sref{s:offset}).
+offsets are specified \sref{s:offset}).
 
 The rotation matrix $\bfS_c$ transforming
 from the center of the bend (where the misalignments are defined) to the
@@ -500,14 +500,19 @@ $v$ is the velocity, $\bfhat z$ is the unit vector in the
 $z$-direction. $\pmb\Omega_{BMT}$ is the usual T-BMT precession vector
 due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ is the
 precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}
-\Begineq
-  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) = 
+\begin{align}
+  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) &= 
     - \frac{q}{m \gamma} \left[ 
-    \left(1 + G \gamma \right) \Bf B - 
+    \left(1 + G \gamma \right) \Bf B -
     \frac{G \, \Bf P \dotproduct \Bf B}{(1 + \gamma) \, m^2 \, c^2} \, \Bf P -
     \frac{1}{m \, c^2} \left( G + \frac{1}{1 + \gamma} \right) \mathbf{P \times  E} 
-    \right]
-\Endeq
+    \right] \\
+  &= - \frac{q}{m} \left[ 
+    \left( \frac{1}{\gamma} + G \right) \Bf B_{\perp} +
+    \frac{1 + G}{\gamma} \, \Bf B_\parallel -
+    \left( G + \frac{1}{1 + \gamma} \right) \mathbf{\bfbeta \times E} 
+    \right] \nonumber
+\end{align}
 and
 \Begineq
   {\pmb\Omega}_{EDM} (\mathbf{r,P},t) = 
@@ -517,12 +522,12 @@ and
   \frac{1}{m \, c} \, \mathbf{P \times B}
   \right]
 \Endeq
-Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and
-magnetic fields, $\gamma$ is the particle's relativistic gamma factor,
-$q$, $m$, and $\eta$ are the particle's charge, mass, and
-magnetic_moment, and $G = (g-2)/2$ is the particle's anomalous
-gyro-magnetic g-factor which is $1.793$ for protons and $0.00116$ for
-electrons and positrons.
+Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf
+B_\perp$ and $\Bf B_\parallel$ are the components perpendicular and parallel to the
+momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, $m$, and $\eta$ are
+the particle's charge, mass, and magnetic_moment, $\bfbeta$ is the normalized
+velocity, and $G = (g-2)/2$ is the particle's anomalous gyro-magnetic g-factor (values
+given in Table~\ref{t:constants}).
    
 It is more efficient to use the SU(2) representation rather than SO(3) when   
 describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is   
@@ -587,7 +592,7 @@ where $\Psi_i$ is the initial spin state, $\Psi_f$ is the final spin state, and 
 which describes the spin transport, is the SU(2) matrix representation of the quaternian
 $(a_0, \Bf a) = (\cos(\alpha/2), -\sin(\alpha/2) \, \bfhat n)$. $\Bf A$ has the
 normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
-$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely describe $\Bf A$.
+$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely describe $\Bf A$. 
 
 With spinors, the matrix representation of the observable $S_{\Bf u}$
 corresponding to the measurement of the spin along the unit vector

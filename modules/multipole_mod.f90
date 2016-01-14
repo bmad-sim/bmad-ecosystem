@@ -312,14 +312,6 @@ call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
 
 ! Multipole type element case. Note: use_ele_tilt is ignored in this case.
 
-if (ele%key == multipole$) then
-  if (all(a_pole == 0)) return
-  has_nonzero_pole = .true.
-  call multipole_kt_to_ab (a_pole, b_pole, a, b)
-  return
-endif
-
-! All other cases
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
@@ -328,18 +320,34 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
     if (.not. associated(a_pole)) cycle
-
     if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
+
+    if (lord%key == multipole$) then
+      if (all(a_pole == 0)) return
+      has_nonzero_pole = .true.
+      call multipole_kt_to_ab (a_pole, b_pole, a, b)
+      return
+    endif
+
     call convert_this_ab (lord, this_a, this_b)
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
+
+! Not a slave
 else
   if (.not. associated(a_pole)) return
   if (.not. (ele%multipoles_on .and. ele%is_on)) return
-  call convert_this_ab (ele, a, b)
-endif
 
+  if (ele%key == multipole$) then
+    if (all(a_pole == 0)) return
+    has_nonzero_pole = .true.
+    call multipole_kt_to_ab (a_pole, b_pole, a, b)
+  else
+    call convert_this_ab (ele, a, b)
+  endif
+
+endif
 
 !---------------------------------------------
 contains
@@ -527,9 +535,9 @@ end subroutine multipole_kicks
 !     %vec(1)         -- X position.
 !     %vec(3)         -- Y position.
 !   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   ref_orb_offset -- logical, optional: If present and n = 0 then the
+!   ref_orb_offset -- logical, optional: If True and n = 0 then the
 !                       multipole simulates a zero length bend with bending
-!                       angle knl.
+!                       angle knl. Default is False.
 !
 ! Output:
 !   coord -- coord_struct: 
@@ -579,7 +587,7 @@ endif
 
 ! ref_orb_offset with n = 0 means that we are simulating a zero length dipole.
 
-if (n == 0 .and. present(ref_orb_offset)) then
+if (n == 0 .and. logic_option(.false., ref_orb_offset)) then
   coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
   coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
   coord%vec(5) = coord%vec(5) - knl * (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))

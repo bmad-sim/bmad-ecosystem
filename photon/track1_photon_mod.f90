@@ -668,7 +668,7 @@ kz_air = twopi * orbit%vec(6) / wavelength
 c1 = exp(I_imaginary * kz1 * val(d1_thickness$) / 2)
 c2 = exp(I_imaginary * kz2 * val(d2_thickness$) / 2)
 
-zero = cmplx(0.0_rp, 0.0_rp)
+zero = cmplx(0.0_rp, 0.0_rp, rp)
 
 call multilayer_track (xi_1, xi_2, orbit%field(1), orbit%phase(1))     ! pi polarization
 call multilayer_track (zero, zero, orbit%field(2), orbit%phase(2))     ! sigma polarization
@@ -1012,17 +1012,17 @@ else
 
     if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
       kr = -twopi * dot_product(k_h_a, dr_alpha)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
 
       kr = -twopi * dot_product(k_h_b, dr_beta)
-      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b
 
     else
       kr = -twopi * dot_product(k_0_a, dr_alpha)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a
 
       kr = -twopi * dot_product(k_0_b, dr_beta)
-      E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp_factor_b
+      E_hat_beta  = cmplx(cos(kr), sin(kr), rp) * exp_factor_b
     endif
 
     ! Calculate branching numbers (first pass only)
@@ -1058,20 +1058,20 @@ else
 
     if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
       kr = -twopi * dot_product(k_h_a, dr)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
     else
       kr = -twopi * dot_product(k_0_a, dr)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
     endif
 
     ! Beta branch
 
     if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
       kr = -twopi * dot_product(k_h_B, dr)
-      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b 
     else
       kr = -twopi * dot_product(k_0_b, dr)
-      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b 
     endif
 
     E_hat = E_hat_alpha + E_hat_beta

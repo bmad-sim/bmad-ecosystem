@@ -39,7 +39,7 @@ type (track_struct), optional :: track
 
 real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1, ds_ref
 
-logical err_flag
+logical err_flag, set_spin
 
 ! Convert to element coords.
 ! For a patch, convert to the downstream coords so that the downstream face 
@@ -49,6 +49,7 @@ logical err_flag
 
 start2_orb = start_orb
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
+set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
   call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
@@ -62,7 +63,7 @@ if (ele%key == patch$) then
     start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s1) * start2_orb%beta / beta0 
   endif
 else
-  call offset_particle (ele, param, set$, start2_orb, set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, set$, start2_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
   if (start2_orb%direction == 1) then
     s0 = 0; s1 = ele%value(l$)
   else
@@ -78,7 +79,7 @@ if (err_flag) return
 ! convert to lab coords.
 
 if (ele%key /= patch$) then
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
 endif
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 

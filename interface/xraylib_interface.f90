@@ -95,7 +95,7 @@ if (ix > -1) then
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
     call Atomic_Factors (compound%elements(n), E_kev, q, debye_temp_factor, f0, fp, fpp)
-    f0_tot = f0_tot + cmplx(f0 + fp, fpp) * number_fraction
+    f0_tot = f0_tot + cmplx(f0 + fp, fpp, rp) * number_fraction
   enddo
 
   volume = 1d-6 / (N_avogadro * compound%density)
@@ -191,8 +191,8 @@ xi1 = -conjg(ele%photon%material%f0_m1) * v(ref_wavelength$)**2 * r_e / (pi * el
 xi2 = -conjg(ele%photon%material%f0_m2) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v2_unitcell$)) 
 
 sin_theta0 = v(ref_wavelength$) / (2 * D)
-del = (v(d1_thickness$) * real(sqrt(cmplx(sin_theta0**2 + xi1)) - sin_theta0) + &
-       v(d2_thickness$) * real(sqrt(cmplx(sin_theta0**2 + xi2)) - sin_theta0)) / D
+del = (v(d1_thickness$) * real(sqrt(sin_theta0**2 + xi1) - sin_theta0) + &
+       v(d2_thickness$) * real(sqrt(sin_theta0**2 + xi2) - sin_theta0)) / D
 v(graze_angle$) = asin(sin_theta0 - del)
 
 !-----------------------------------------------------------------------------------------
@@ -235,7 +235,7 @@ do n = 1, xraylib_z_max$
   if (material_name /= AtomicNumberToSymbol(n)) cycle
   v_unitcell = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
   call Atomic_Factors (n, energy, q, debye_temp_factor, f0_atom, fp, fpp)
-  f0 = cmplx(f0_atom + fp, fpp)
+  f0 = cmplx(f0_atom + fp, fpp, rp)
   return
 enddo
 
@@ -254,7 +254,7 @@ if (ix > -1) then
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
     call Atomic_Factors (compound%elements(n), energy, q, debye_temp_factor, f0_atom, fp, fpp)
-    f0 = f0 + cmplx(f0_atom + fp, fpp) * number_fraction
+    f0 = f0 + cmplx(f0_atom + fp, fpp, rp) * number_fraction
     number_fraction_min = min(number_fraction_min, number_fraction)
   enddo
   f0 = f0 / number_fraction_min

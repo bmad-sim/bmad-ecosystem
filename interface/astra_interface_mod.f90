@@ -589,8 +589,8 @@ case (lcavity$, rfcavity$, e_gun$)
     else 
       call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
     endif
-    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
     ! Update ref_field if larger Ez is found
     if(abs(pt(iz)%E(3)) > maxfield) then
       ref_field = pt(iz)
@@ -605,7 +605,7 @@ case (lcavity$, rfcavity$, e_gun$)
 
     ! Calculate complex rotation number to rotate Ez onto the real axis
     phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref) )
+    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
     do iz = 0, nz   
       write (astra_file_unit, '(2'//rfmt//')') z_step * iz - (z_max - z_min)/2, Ez_factor * real ( pt(iz)%E(3) * phasor_rotation )
     enddo 
@@ -630,8 +630,8 @@ case (lcavity$, rfcavity$, e_gun$)
     call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
     field_im%E = 0
     field_im%B = 0
-    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
 
     ! Update ref_field if larger Bz is found
     if(abs(pt(iz)%B(3)) > maxfield) then
@@ -821,8 +821,8 @@ do ix=1, nx
   else 
     call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
   endif
-  pt(ix, iy, iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-  pt(ix, iy, iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+  pt(ix, iy, iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+  pt(ix, iy, iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
 
 enddo
 enddo
@@ -840,7 +840,7 @@ enddo
 
 ! Calculate complex rotation number to rotate Ez onto the real axis
 phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref) )
+phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
 
 ! Put scaling in phasor rotation
 if (maxfield > 0) phasor_rotation = (1/maxfield)*phasor_rotation
@@ -946,9 +946,9 @@ else
   do iz=1, nz
   do iy=1, ny
     do ix=1, nx-1
-      write(iu, '('//rfmt//')',  advance = 'NO')  real ( pt(ix, iy, iz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp) ) ! further rotate by i
+      write(iu, '('//rfmt//')',  advance = 'NO')  real ( pt(ix, iy, iz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp, rp) ) ! further rotate by i
     enddo
-    write(iu, '('//rfmt//')',    advance = 'YES') real ( pt(ix, iy, nz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp) )
+    write(iu, '('//rfmt//')',    advance = 'YES') real ( pt(ix, iy, nz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp, rp) )
   enddo
   enddo
   

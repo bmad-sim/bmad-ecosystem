@@ -165,6 +165,8 @@ integer, parameter :: num_ele_attrib$ = 80
 
 ! Misc
 
+real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_unit_vec(3) = [0, 0, 1]
+
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
 
