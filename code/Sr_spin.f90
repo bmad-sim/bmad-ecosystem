@@ -4918,10 +4918,11 @@ m=1
 xs=xs0+m
 call propagate(xs,state,node1=t1c,node2=t2c)
  
-fix=xs%x
+
 ! For David
-!!  The full nonlinear map m is computed
+!!  The full nonlinear map m is computed and the final orbit
 !!  
+fix=xs%x  ! <---   
 m=xs  ! <---   
 
 m%e_ij=e_ij
@@ -4964,7 +4965,11 @@ arbre(1)%rad=mat
 arbre(1)%fix0(1:6)=fix0
 arbre(1)%fixr(1:6)=fixr
 arbre(1)%fix(1:6)=fix
-arbre(1)%ds=f%mag%p%ld/f%mag%p%nst
+if(onemap) then
+ arbre(1)%ds=f%mag%p%ld 
+else
+ arbre(1)%ds=f%mag%p%ld/f%mag%p%nst
+endif
 arbre(1)%beta0=f%beta0
 
 if(f%dir==1) then
@@ -5004,7 +5009,11 @@ arbre(1)%rad=mat
 arbre(1)%fix0(1:6)=fix0
 arbre(1)%fixr(1:6)=fixr
 arbre(1)%fix(1:6)=fix
-arbre(1)%ds=f%mag%p%ld/f%mag%p%nst
+if(onemap) then
+ arbre(1)%ds=f%mag%p%ld 
+else
+ arbre(1)%ds=f%mag%p%ld/f%mag%p%nst
+endif
 arbre(1)%beta0=f%beta0
  
 call kill(xs);call kill(m)

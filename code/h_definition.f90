@@ -408,6 +408,24 @@ type(c_taylor) c_temp
  end type c_ray
 contains
 
+
+ subroutine alloc_fibre_array(a,n)
+ implicit none
+ type(fibre_array), allocatable :: a(:)
+ integer i,n
+
+ allocate(a(n))
+
+ do i=1,n
+   allocate(a(i)%pos)
+   allocate(a(i)%v,a(i)%s)
+   a(i)%s=0.0_dp
+   a(i)%v=0.0_dp
+   a(i)%pos=0
+ enddo
+
+ end  subroutine alloc_fibre_array
+
   SUBROUTINE RESET_APERTURE_FLAG(complete)
     IMPLICIT NONE
     logical(lp), optional :: complete

@@ -483,6 +483,8 @@ END TYPE EXTRA_WORK
 TYPE fibre_array
    type(fibre), pointer :: p  => null()
    integer, pointer :: pos  => null()
+   real(dp),pointer :: v=> null() 
+   real(dp), pointer :: s=> null() 
 END TYPE fibre_array
 
 !!!!  graphical arrays used in Su_hiromi only now

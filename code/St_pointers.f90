@@ -1326,7 +1326,8 @@ endif
           do ii=1,my_ering%N
    
 
-             IF(p%mag%kind/=kind0.or.(skipcav.and.(p%mag%kind/=kind4.and.p%mag%kind/=kind21))) THEN
+             IF(p%mag%kind/=kind0) THEN
+              if(.not.skipcav.or.(p%mag%kind/=kind4.and.p%mag%kind/=kind21)) then
                 write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
                 call fill_tree_element(p,I1,x_REF,onemap)
                    IF(P%DIR==1) THEN
@@ -1336,6 +1337,7 @@ endif
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP
                    ENDIF
+              endif
              ENDIF
 
 
