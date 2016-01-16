@@ -68,7 +68,7 @@ subroutine offset_particle (ele, param, set, coord, set_tilt, set_multipoles, se
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
 use track1_mod, only: track_a_drift
-use spin_mod, only: rotate_spinor, multipole_spin_precession
+use spin_mod, only: rotate_spinor, spin_omega
 use rotation_3d_mod
 
 implicit none
@@ -76,6 +76,7 @@ implicit none
 type (ele_struct) :: ele
 type (lat_param_struct) param
 type (coord_struct), intent(inout) :: coord
+type (em_field_struct) field
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, a_gamma_plus 
@@ -121,10 +122,11 @@ else
   set_hv2 = .false.
 endif
 
-a_gamma_plus = 1 / (1 + coord%vec(6)) + &
-          anomalous_moment_of(coord%species) * ele%value(p0c$) / (coord%beta * mass_of(coord%species))
-                                                                     
-a_gamma_plus = a_gamma_plus * rel_tracking_charge
+if (set_spn) then
+  a_gamma_plus = 1 / (1 + coord%vec(6)) + &
+            anomalous_moment_of(coord%species) * ele%value(p0c$) / (coord%beta * mass_of(coord%species))
+  a_gamma_plus = a_gamma_plus * rel_tracking_charge
+endif
 
 !----------------------------------------------------------------
 ! Set...
@@ -236,7 +238,7 @@ if (set) then
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      call multipole_spin_precession (ele, param, coord, .false., .false.)
+      call multipole_spin_precession (ele, param, coord)
     endif
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
     f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
@@ -296,12 +298,18 @@ if (set) then
       rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
       coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
+      if (set_spn .and. ele%value(e_field$) /= 0) then
+        field = em_field_struct()
+        field%E = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2) ! Integrated field over half the length
+        rot = spin_omega(field, coord, ele)
+        call rotate_spinor (rot, coord%spin)
+      endif
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
       if (set_spn) call rotate_spinor ([0.0_rp, ele%value(kick$), 0.0_rp]*a_gamma_plus/2, coord%spin)
     elseif (ele%key == vkicker$) then
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spinor ([-ele%value(vkick$), 0.0_rp, 0.0_rp]*a_gamma_plus/2, coord%spin)
+      if (set_spn) call rotate_spinor ([-ele%value(kick$), 0.0_rp, 0.0_rp]*a_gamma_plus/2, coord%spin)
     else
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
@@ -321,12 +329,18 @@ else
       rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
       coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
+      if (set_spn .and. ele%value(e_field$) /= 0) then
+        field = em_field_struct()
+        field%E = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2)
+        rot = spin_omega(field, coord, ele)
+        call rotate_spinor (rot, coord%spin)
+      endif
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
       if (set_spn) call rotate_spinor ([0.0_rp, ele%value(kick$), 0.0_rp]*a_gamma_plus/2, coord%spin)
     elseif (ele%key == vkicker$) then
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spinor ([-ele%value(vkick$), 0.0_rp, 0.0_rp]*a_gamma_plus/2, coord%spin)
+      if (set_spn) call rotate_spinor ([-ele%value(kick$), 0.0_rp, 0.0_rp]*a_gamma_plus/2, coord%spin)
     else
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
@@ -386,7 +400,7 @@ else
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      call multipole_spin_precession (ele, param, coord, .false., .false.)
+      call multipole_spin_precession (ele, param, coord)
     endif
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
     f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
@@ -401,7 +415,7 @@ else
   if (set_hv1) then
     coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
     coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spinor ([ele%value(vkick$), -ele%value(hkick$), 0.0_rp]*a_gamma_plus/2, coord%spin)
+    if (set_spn) call rotate_spinor ([-ele%value(vkick$), ele%value(hkick$), 0.0_rp]*a_gamma_plus/2, coord%spin)
   endif
 
   ! Unset: Offset and pitch
@@ -488,3 +502,98 @@ endif
 end subroutine
                           
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine multipole_spin_precession (ele, param, orbit)
+!
+! Subroutine to track the spins in a multipole field
+!
+! Track1_spin uses quaternions which are calculated only up to second order,
+! which does not take into account higher-order magnets (sextupoles etc.).
+! This subroutine tracks spins through those higher-order magnets assuming simple
+! T-BMT precession to get a rough estimate of their effects.
+!
+! Input:
+!   ele              -- Ele_struct: Element
+!     %value(x_pitch$)        -- Horizontal roll of element.
+!     %value(y_pitch$)        -- Vertical roll of element.
+!     %value(tilt$)           -- Tilt of element.
+!     %value(roll$)           -- Roll of dipole.
+!   param            -- Lat_param_struct
+!   orbit            -- coord_struct: Coordinates of the particle.
+!   do_half_prec     -- Logical, optional: Default is False.
+!                          Apply half multipole effect only (for kick-drift-kick model)
+!   include_sextupole_octupole  -- Logical, optional: Default is False.
+!                          Include the effects of sextupoles and octupoles
+!
+! Output:
+!   spin(2)          -- Complex(rp): Resultant spinor
+!-
+
+subroutine multipole_spin_precession (ele, param, orbit)
+
+use multipole_mod, only: multipole_ele_to_ab
+
+use spin_mod
+
+implicit none
+
+type (ele_struct), intent(in) :: ele
+type (lat_param_struct) param
+type (coord_struct) orbit
+
+complex(rp) kick, pos
+
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), knl, rot_vec(3)
+real(rp) charge, a_gamma_plus
+
+integer n
+
+logical has_nonzero_pole
+
+!
+
+call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn)
+if (.not. has_nonzero_pole) return
+
+charge = relative_tracking_charge(orbit, param)
+an = an * charge
+bn = bn * charge
+
+an  = an/2
+bn  = bn/2
+
+! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
+! according to bmad manual, chapter "physics", section "Magnetic Fields"
+! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
+
+kick = bn(0)+i_imaginary*an(0)
+pos = orbit%vec(1)+i_imaginary*orbit%vec(3)
+if (pos /= 0.) then
+  kick = kick + (bn(1)+i_imaginary*an(1))*pos
+  do n = 2, n_pole_maxx
+    pos = pos * (orbit%vec(1)+i_imaginary*orbit%vec(3))
+    kick = kick + (bn(n)+i_imaginary*an(n))*pos
+  enddo
+endif
+
+! precession_angle = kick_angle*(a*gamma+1)
+
+if (kick /= 0) then
+  a_gamma_plus = 1 / (1 + orbit%vec(6)) + &
+        anomalous_moment_of(orbit%species) * ele%value(p0c$) / (orbit%beta * mass_of(orbit%species))
+  rot_vec = -[aimag(kick), real(kick), 0.0_rp] * a_gamma_plus
+  call rotate_spinor (rot_vec, orbit%spin)
+endif
+
+! calculate rotation of local coordinate system due to dipole component
+
+if (ele%key == multipole$ .and. (bn(0) /= 0 .or. an(0) /= 0)) then
+  kick = bn(0)+i_imaginary*an(0)
+  rot_vec = [aimag(kick), real(kick), 0.0_rp]
+  call rotate_spinor (rot_vec, orbit%spin)
+endif
+
+end subroutine multipole_spin_precession

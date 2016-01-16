@@ -2483,7 +2483,7 @@ case (elseparator$)
     endif
 
   else
-    if (val(l$) == 0 .or. val(gap$) == 0) then
+    if (val(l$) == 0) then
       val(e_field$) = 0
       val(voltage$) = 0
     else

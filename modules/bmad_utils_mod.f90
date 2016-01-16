@@ -2442,8 +2442,10 @@ select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$, sextupole$, quadrupole$, octupole$)
   if (ele%field_calc == bmad_standard$) has_fringe = .true.
   if (nint(ele%value(fringe_type$)) == none$) has_fringe = .false.
-case (sol_quad$, bend_sol_quad$, solenoid$)
+
+case (sol_quad$, bend_sol_quad$, solenoid$, elseparator$)
   if (ele%field_calc == bmad_standard$) has_fringe = .true.
+
 case (sbend$)
   has_fringe  = .true.
 end select
