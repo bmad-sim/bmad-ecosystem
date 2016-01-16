@@ -183,22 +183,11 @@ case (ecollimator$)
 ! There is no bmad_standard field calculation.
 
 case (elseparator$)
-  field_ele => ele
-  if (ele%field_calc == refer_to_lords$) field_ele => pointer_to_lord(ele, 1)
-  if (field_ele%field_calc == bmad_standard$) then
-    if (present(num_valid)) num_valid = 7
-    select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
-      is_valid = .true.
-    end select
-
-  else
-    if (present(num_valid)) num_valid = 10
-    select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
-      is_valid = .true.
-    end select
-  endif
+  if (present(num_valid)) num_valid = 10
+  select case (tracking_method)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
+    is_valid = .true.
+  end select
 
 case (em_field$)
   if (present(num_valid)) num_valid = 4

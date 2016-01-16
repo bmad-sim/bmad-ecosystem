@@ -313,11 +313,11 @@ case (bmad_standard$)
     field%e(3) = e_accel_field (ele, gradient$)
 
   !------------------------------------------
-  ! E_Gun
+  ! Elseparator
 
   case (elseparator$)
-    field%e(1) = ele%value(hkick$) * ele%value(p0c$) * c_light / ele%value(l$)
-    field%e(2) = ele%value(vkick$) * ele%value(p0c$) * c_light / ele%value(l$)
+    field%e(1) = ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
+    field%e(2) = ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
 
   !------------------------------------------
   ! HKicker

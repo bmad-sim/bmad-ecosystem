@@ -1276,11 +1276,11 @@ See \sref{s:list.elseparator} for a full list of element attributes.
 
 \index{hkick}
 \index{vkick}
-For an \vn{elseparator}, the kick for a positively charged particle is
-determined by \vn{hkick} and \vn{vkick}. The kick for a negatively
-charged particle is opposite this. The \vn{gap} for an
-\vn{Elseparator} is used to compute the voltage for a given
-kick
+For an \vn{elseparator}, the kick for a positively charged particle, with the magnitude of
+the charge that is the same as the reference particle (set by \vn{parameter[particle]}
+\sref{s:param}), is determined by \vn{hkick} and \vn{vkick}. The kick for a negatively
+charged particle is opposite this. The \vn{gap} for an \vn{Elseparator} is used to compute
+the voltage for a given kick
 \begin{example}
   e_field (V/m) = sqrt(hkick^2 + vkick^2) * P0 * c_light / L
   voltage (V) = e_field * gap

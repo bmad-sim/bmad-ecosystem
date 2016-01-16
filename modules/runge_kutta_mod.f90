@@ -469,12 +469,7 @@ endif
 t_temp = t + dvec(7)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  omega = dvec(8:10)
-  angle = sqrt(omega(1)**2 + omega(2)**2 + omega(3)**2)
-  if (angle /= 0) then
-    a_quat = calc_rotation_quaternion (omega/angle, angle)
-    call quaternion_track (a_quat, orb_out%spin)
-  endif
+  call rotate_spinor(dvec(8:10), orb_out%spin)
 endif
 
 end subroutine transfer_this_orbit

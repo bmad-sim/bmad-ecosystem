@@ -1097,8 +1097,8 @@ type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
 
-real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3)
-complex(rp) xiy
+real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
+complex(rp) xiy, c_vec
 
 integer particle_at, physical_end, dir, i, fringe_at, at_sign
 logical finished, track_spin
@@ -1138,15 +1138,17 @@ else
   at_sign = -1
 endif
 
-! Static electric
+! Static electric longitudinal field
 
 if (associated(hard_ele%a_pole_elec)) then
   xiy = 1
+  c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
   do i = 0, max_nonzero(0, hard_ele%a_pole_elec, hard_ele%b_pole_elec)
-    xiy = xiy * cmplx(orb%vec(1), orb%vec(3), rp)
+    xiy = xiy * c_vec
     if (hard_ele%a_pole_elec(i) == 0 .and. hard_ele%b_pole_elec(i) == 0) cycle
     phi = at_sign * charge_of(orb%species) * real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i), rp) * xiy) / (i + 1)
-    orb%vec(6) = orb%vec(6) + phi / orb%p0c
+    call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
+    orb%vec(6) = (pc - orb%p0c) / orb%p0c
 
     if (track_spin) then
       field = em_field_struct()
@@ -1181,9 +1183,9 @@ case (solenoid$, sol_quad$, bend_sol_quad$)
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spin) then
     field = em_field_struct()
-    field%b(1:2) = [orb%vec(1), orb%vec(3)] * at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) / 2
+    field%b(1:2) = -[orb%vec(1), orb%vec(3)] * (at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) / 2)
     Omega = spin_omega (field, orb, track_ele)
-    call rotate_spinor (-omega, orb%spin)
+    call rotate_spinor (omega, orb%spin)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
@@ -1194,7 +1196,6 @@ case (lcavity$, rfcavity$, e_gun$)
   s = s_edge
 
   if (at_this_ele_end(physical_end, nint(track_ele%value(fringe_at$)))) then
-
     if (particle_at == first_track_edge$) then
       ! E_gun does not have an entrance kick
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
@@ -1210,7 +1211,19 @@ case (lcavity$, rfcavity$, e_gun$)
     ! orb%phase(1) is set by em_field_calc.
 
     call rf_coupler_kick (hard_ele, param, particle_at, orb%phase(1), orb)
+  endif
 
+case (elseparator$)
+  ! Longitudinal fringe field
+  f = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
+  phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
+  call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
+  orb%vec(6) = (pc - orb%p0c) / orb%p0c
+  if (track_spin) then
+    field = em_field_struct()
+    field%E = [0.0_rp, 0.0_rp, phi]
+    Omega = spin_omega (field, orb, track_ele)
+    call rotate_spinor (omega, orb%spin)
   endif
 
 end select

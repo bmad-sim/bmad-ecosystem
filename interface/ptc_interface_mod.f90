@@ -1316,7 +1316,7 @@ do i = 1, n_taylor
 
   y8(i) = u_t
   u_t = -1   ! deallocate
-      
+
 enddo
 
 end subroutine real_8_equal_taylor
