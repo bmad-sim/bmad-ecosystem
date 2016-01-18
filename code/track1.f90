@@ -228,6 +228,10 @@ case default
 
 end select
 
+! Check
+
+if (orbit_too_large (end_orb, param)) return
+
 ! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
  
 if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb)
@@ -260,8 +264,7 @@ endif
 
 ! space charge
 
-if (bmad_com%space_charge_on .and. do_extra) &
-      call track1_ultra_rel_space_charge (ele, param, end_orb)
+if (bmad_com%space_charge_on .and. do_extra) call track1_ultra_rel_space_charge (ele, param, end_orb)
 
 ! check for particles outside aperture
 

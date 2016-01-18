@@ -336,6 +336,57 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine rotate_spinor_given_field (orbit, ele, BL, EL)
+!
+! Routine to rotate a spinor given the integrated magnetic and/or electric field strengths.
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input:
+!   orbit       -- coord_struct: Initial orbit.
+!   ele         -- ele_struct: Element being tracked through.
+!   BL(3)       -- real(rp), optional: Integrated field strength. Assumed zero if not present.
+!   EL(3)       -- real(rp), optional: Integrated field strength. Assumed zero if not present.
+!
+! Output:
+!   orbit       -- coord_struct: Orbit with rotated spin
+!-
+
+subroutine rotate_spinor_given_field (orbit, ele, BL, EL)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+type (em_field_struct) field
+
+real(rp), optional :: BL(3), EL(3)
+real(rp)  omega(3)
+
+!
+
+if (present(BL)) then
+  field%B = BL
+else
+  field%B = 0
+endif
+
+if (present(EL)) then
+  field%E = EL
+else
+  field%E = 0
+endif
+
+omega = spin_omega (field, orbit, ele)
+call rotate_spinor (omega, orbit%spin)
+
+end subroutine rotate_spinor_given_field
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine rotate_spinor (rot_vec, spin)
 !
 ! Routine to rotate a spinor.
