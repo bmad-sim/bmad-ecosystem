@@ -1000,10 +1000,6 @@ end function kind_name
 !                          no_cavity, exact_modeling, exact_misalign, init_complex)
 !
 ! Subroutine to initialize PTC.
-! This subroutine uses the FPP/PTC routines:
-!     make_states
-!     set_mad
-!     init
 !
 ! Note: At some point before you use PTC to compute Taylor maps etc.
 !   you have to call set_ptc with both e_tot and particle args present. 
@@ -1043,7 +1039,7 @@ end function kind_name
 subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
                         no_cavity, exact_modeling, exact_misalign, init_complex) 
 
-use mad_like, only: make_states, exact_model, always_exactmis, &
+use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
@@ -1088,11 +1084,17 @@ HIGHEST_FRINGE = bmad_com%ptc_max_fringe_order
 params_present = present(e_tot) .and. present(particle)
 
 if (init_ptc_needed .and. params_present) then
-  if (particle == positron$ .or. particle == electron$) then
+  if (particle == muon$ .or. particle == antimuon$) then
+    call make_states (pmaMUON/pmaE)
+  elseif (particle == positron$ .or. particle == electron$) then
     call make_states(.true._lp)
-  else
+  else   ! Proton / antiproton
+    if (particle /= proton$ .and. particle /= antiproton$) then
+      call out_io (s_error$, r_name, 'PTC IS NOT ABLE TO HANDLE PARTICLES OF TYPE: ' // particle_name(particle), 'USING PROTON/ANTIPROTON')
+    endif
     call make_states(.false._lp)
   endif
+
   ! Use PTC time tracking
   DEFAULT = DEFAULT + TIME0
   PHASE0 = 0
