@@ -643,11 +643,11 @@ case (quadrupole$)
 
   sign_k = sign(1.0_rp, ele%value(k1$))
 
-  call add_to_quaternion (a_quat(0), 1.0_rp, [0, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(1), -sign_k * xi * omega1 * sinh(u) / 2, [0, 0, 1, 0, 0, 0])
-  call add_to_quaternion (a_quat(1), -xi * (sinh(u / 2.0))**2, [0, 0, 0, 1, 0, 0])
-  call add_to_quaternion (a_quat(2), -sign_k * xi * omega1 * sin(u) / 2, [1, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(2),  -xi * (sin(u / 2.0))**2, [0, 1, 0, 0, 0, 0])
+  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], 1.0_rp)
+  call add_to_quaternion (a_quat(1), [0, 0, 1, 0, 0, 0], -sign_k * xi * omega1 * sinh(u) / 2)
+  call add_to_quaternion (a_quat(1), [0, 0, 0, 1, 0, 0], -xi * (sinh(u / 2.0))**2)
+  call add_to_quaternion (a_quat(2), [1, 0, 0, 0, 0, 0], -sign_k * xi * omega1 * sin(u) / 2)
+  call add_to_quaternion (a_quat(2), [0, 1, 0, 0, 0, 0],  -xi * (sin(u / 2.0))**2)
 
 !-----------------------------------------------
 ! sbend
@@ -662,19 +662,19 @@ case (sbend$)
 
   ! No first order gamma1
 
-  call add_to_quaternion (a_quat(0), cos(x / 2.0d0), [0, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(0), -0.5 * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0), [1, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(0), -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0), [0, 1, 0, 0, 0, 0])
+  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], cos(x / 2.0d0))
+  call add_to_quaternion (a_quat(0), [1, 0, 0, 0, 0, 0], -0.5d0 * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0))
+  call add_to_quaternion (a_quat(0), [0, 1, 0, 0, 0, 0], -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0))
   coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
-  call add_to_quaternion (a_quat(0), coef, [0, 0, 0, 0, 0, 1])
+  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 1], coef)
 
-  call add_to_quaternion (a_quat(2), -sin(x / 2.0d0), [0, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(2), -0.5d0 * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0), [1, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(2), -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2, [0, 1, 0, 0, 0, 0])
+  call add_to_quaternion (a_quat(2), [0, 0, 0, 0, 0, 0], -sin(x / 2.0d0))
+  call add_to_quaternion (a_quat(2), [1, 0, 0, 0, 0, 0], -0.5d0 * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0))
+  call add_to_quaternion (a_quat(2), [0, 1, 0, 0, 0, 0], -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2)
   coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
-  call add_to_quaternion (a_quat(2), coef, [0, 0, 0, 0, 0, 1])
+  call add_to_quaternion (a_quat(2), [0, 0, 0, 0, 0, 1], coef)
 
-  call add_to_quaternion (a_quat(3), (gamma0-1)/gamma0 * sin(x / 2.0d0), [0, 0, 0, 1, 0, 0])
+  call add_to_quaternion (a_quat(3), [0, 0, 0, 1, 0, 0], (gamma0-1)/gamma0 * sin(x / 2.0d0))
 
 !-----------------------------------------------
 ! solenoid
@@ -685,8 +685,8 @@ case (solenoid$)
 
   alpha = -(1-anomalous_moment)*ele%value(bs_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)   ! rotation angle
 
-  call add_to_quaternion (a_quat(0), cos(alpha/2.0), [0, 0, 0, 0, 0, 0])
-  call add_to_quaternion (a_quat(3), sin(alpha/2.0), [0, 0, 0, 0, 0, 0])
+  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], cos(alpha/2.0))
+  call add_to_quaternion (a_quat(3), [0, 0, 0, 0, 0, 0], sin(alpha/2.0))
 
 !-----------------------------------------------
 ! LCavity
@@ -761,7 +761,7 @@ end_orb%spin = temp_end%spin
 !-------------------------------------------------------------------------
 contains
 
-subroutine add_to_quaternion (quat, coef, expn)
+subroutine add_to_quaternion (quat, expn, coef)
 
 implicit none
 
@@ -799,18 +799,18 @@ k_el_tilde = (e_charge * k_el * (1 + anomalous_moment + (anomalous_moment*gam)))
 ! Focusing kick
 
 if (grad > 0) then
-  call add_to_quaternion (a_quat(1), -(k_el_tilde/2.0) * sin (omega_el * edge_length), [0, 0, 1, 0, 0, 0])
-  call add_to_quaternion (a_quat(1), -(k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2, [0, 0, 0, 1, 0, 0])
-  call add_to_quaternion (a_quat(2), -(k_el_tilde/2.0) * sin (omega_el * edge_length), [0, 0, 1, 0, 0, 0])
-  call add_to_quaternion (a_quat(2), -(k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2, [0, 0, 0, 1, 0, 0])
+  call add_to_quaternion (a_quat(1), [0, 0, 1, 0, 0, 0], -(k_el_tilde/2.0) * sin (omega_el * edge_length))
+  call add_to_quaternion (a_quat(1), [0, 0, 0, 1, 0, 0], -(k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2)
+  call add_to_quaternion (a_quat(2), [0, 0, 1, 0, 0, 0], -(k_el_tilde/2.0) * sin (omega_el * edge_length))
+  call add_to_quaternion (a_quat(2), [0, 0, 0, 1, 0, 0], -(k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2)
 
 ! Defocus kick
 
 else
-  call add_to_quaternion (a_quat(1), (k_el_tilde/2.0) * sinh (omega_el * edge_length), [0, 0, 1, 0, 0, 0])
-  call add_to_quaternion (a_quat(1), (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2, [0, 0, 0, 1, 0, 0])
-  call add_to_quaternion (a_quat(2), (k_el_tilde/2.0) * sinh (omega_el * edge_length), [0, 0, 1, 0, 0, 0])
-  call add_to_quaternion (a_quat(2), (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2, [0, 0, 0, 1, 0, 0])
+  call add_to_quaternion (a_quat(1), [0, 0, 1, 0, 0, 0], (k_el_tilde/2.0) * sinh (omega_el * edge_length))
+  call add_to_quaternion (a_quat(1), [0, 0, 0, 1, 0, 0], (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2)
+  call add_to_quaternion (a_quat(2), [0, 0, 1, 0, 0, 0], (k_el_tilde/2.0) * sinh (omega_el * edge_length))
+  call add_to_quaternion (a_quat(2), [0, 0, 0, 1, 0, 0], (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2)
 endif
 
 end subroutine lcav_edge_track

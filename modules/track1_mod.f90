@@ -1172,7 +1172,7 @@ case (quadrupole$)
   endif
 
 case (sbend$)
-  call bend_edge_kick (hard_ele, param, particle_at, orb)
+  call bend_edge_kick (hard_ele, param, particle_at, orb, track_spin = track_spin)
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
@@ -1197,7 +1197,7 @@ case (lcavity$, rfcavity$, e_gun$)
 
   if (at_this_ele_end(physical_end, nint(track_ele%value(fringe_at$)))) then
     if (particle_at == first_track_edge$) then
-      ! E_gun does not have an entrance kick
+      ! Note: E_gun does not have an entrance kick
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
     else
@@ -1569,7 +1569,7 @@ end subroutine hard_multipole_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+! Subroutine bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, track_spin)
 !
 ! Subroutine to track through the edge field of an sbend.
 !
@@ -1583,24 +1583,28 @@ end subroutine hard_multipole_edge_kick
 !   orb         -- Coord_struct: Starting coords.
 !   mat6(6,6)   -- Real(rp), optional: Transfer matrix before fringe.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
+!   track_spin  -- logical, optional: If True then track the spin through the edge fields. Default: False.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
 
-subroutine bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, track_spin)
 
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) orb
+type (coord_struct) orb, ave_orb
 type (lat_param_struct) param
+type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
+real(rp) vec(6), e_ang, omega(3), x, y, tan_e_x
+
 integer particle_at, fringe_type, physical_end
 
-logical, optional :: make_matrix
+logical, optional :: make_matrix, track_spin
 character(*), parameter :: r_name = 'bend_edge_kick'
 
 !
@@ -1610,6 +1614,8 @@ if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) return
 
 ! Higher order fringes. 
 ! Remember: In a bend, these fringes are turned on/off by ele%value(higher_order_fringe_type$)
+
+if (logic_option(.false., track_spin)) ave_orb = orb
 
 if (particle_at == first_track_edge$) then
   call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
@@ -1655,6 +1661,26 @@ end select
 
 if (particle_at == second_track_edge$) then
   call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+endif
+
+! spin
+
+if (logic_option(.false., track_spin)) then
+  ave_orb%vec = (ave_orb%vec + orb%vec) / 2   ! Use average position
+  field%E = 0
+  if (physical_end == entrance_end$) then
+    e_ang = ele%value(e1$)
+  else
+    e_ang = ele%value(e2$)
+  endif
+  x = ave_orb%vec(1);  y = ave_orb%vec(3)
+  tan_e_x = tan(e_ang) * x
+  field%B = (ele%value(b_field$) + ele%value(b_field_err$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
+  if (ele%value(b1_gradient$) /= 0) field%B = field%B - ele%value(b1_gradient$) * tan_e_x * [x*y, x*x - y*y, 0.0_rp]
+  if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
+  if (particle_at == second_track_edge$) field%B(3) = -field%B(3)
+  omega = spin_omega (field, ave_orb, ele)
+  call rotate_spinor (omega, orb%spin)
 endif
 
 end subroutine bend_edge_kick
