@@ -26,6 +26,17 @@ interface
     character(*), optional :: use_line
   end subroutine
 
+  subroutine apply_element_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, track_spin)
+    import
+    implicit none
+    type (ele_struct) hard_ele, track_ele
+    type (coord_struct) orb
+    type (lat_param_struct) param
+    real(rp) t_rel, s_edge
+    integer particle_at
+    logical track_spin
+  end subroutine
+
   subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
     import
     implicit none
@@ -367,6 +378,14 @@ interface
     real(rp), intent(out) :: mat1(:,:), map0(:)
     real(rp), intent(out) :: chi
     integer, intent(in) :: i_dim
+  end subroutine
+
+  subroutine multipole_spin_precession (ele, param, orbit)
+    import
+    implicit none
+    type (ele_struct) :: ele
+    type (lat_param_struct) param
+    type (coord_struct) orbit
   end subroutine
 
   subroutine name_to_list (lat, ele_names)

@@ -74,7 +74,7 @@ integer i, n_step, hard_end
 
 character(16), parameter :: r_name = 'track1_boris'
 
-logical err_flag
+logical err_flag, track_spin
 
 ! init
 
@@ -131,7 +131,8 @@ do
 
   do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
-    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
+    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end, track_spin)
     call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
   enddo
 
