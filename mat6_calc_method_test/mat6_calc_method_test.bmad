@@ -6,12 +6,12 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.001 ! Horizontal position.
-beam_start[px] = 0.002 ! Horizontal momentum.
-beam_start[y]  = 0.003 ! Vertical position.
-beam_start[py] = 0.004 ! Vertical momentum.
-beam_start[z]  = 0.005 ! Longitudinal position.
-beam_start[pz] = 0.006 ! Longitudinal momentum (energy deviation).
+beam_start[x]  = 0.001
+beam_start[px] = 0.002
+beam_start[y]  = 0.003
+beam_start[py] = 0.004
+beam_start[z]  = 0.005
+beam_start[pz] = 0.006
 
 ab_multipole1:     ab_multipole, a2 = 1e3, b2 = 1e3, x_offset = 0.02, tilt = 0.1
 beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, y_offset = 0.05
