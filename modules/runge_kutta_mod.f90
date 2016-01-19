@@ -93,7 +93,7 @@ real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, 
 integer, parameter :: max_step = 10000
 integer :: n_step, s_dir, hard_end, nr_max
 
-logical local_ref_frame, err_flag, err, at_hard_edge, has_hit
+logical local_ref_frame, err_flag, err, at_hard_edge, has_hit, track_spin
 
 character(*), parameter :: r_name = 'odeint_bmad'
 
@@ -147,7 +147,8 @@ do n_step = 1, max_step
   do
     if (.not. associated(hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
-    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
+    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end, track_spin)
     call calc_next_fringe_edge (ele, s_dir, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this

@@ -21,6 +21,7 @@ end type
 type (pauli_struct) pauli(0:3)
 
 logical, private :: init_pauli_vector = .true. ! Does pauli vector needs to be set up?
+private trapzd_omega, sbend_omega_func, quad_etc_omega_func
 
 contains
 
@@ -592,13 +593,7 @@ end subroutine track1_spin
 !+
 ! subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 !
-! Particle spin tracking through a single element.
-!
-! Uses "Nonlinear Spin Transfer Maps" from C. Weissbaecker and G. H. Hoffstaetter
-! proceedings of 1999 workshop on Polarized Protons at High Energies
-!
-! For now just does first order transport. The kappa term is determined from the
-! unitarity condition.
+! Bmad_standard particle spin tracking through a single element.
 !
 ! Note: spin tracking through a patch element is handled in track_a_patch since
 ! this is needed by runge_kutta tracking.
@@ -631,14 +626,13 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 real(rp) a_quat(0:3) ! quaternion four-vector
-real(rp) omega1, xi, gamma0, gammaf, v, x, u
-real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end
+real(rp) omega1, xi, gamma0, gammaf, v, x, u, spline_x(0:3), spline_y(0:3)
+real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, omega(3)
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
 real(rp) anomalous_moment, m_particle, sign_k, abs_a, coef
+real(rp) vec0(6), ks, kss, length, kl, kl2, c, s, m21, m22, m23, m24
 
 integer key
-
-logical isTreatedHere
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
@@ -664,41 +658,23 @@ if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
 temp_start = start_orb
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
+call apply_element_edge_kick (temp_start, 0.0_rp, temp_start%t, ele, ele, param, first_track_edge$, .true.)
 
 temp_end   = end_orb
 call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .true., ele%value(l$))
 
 temp_end%spin = temp_start%spin
 
-isTreatedHere = .true.
-
-temp_middle%vec = (temp_start%vec + temp_end%vec) / 2 ! rough estimate of particle coordinates in the element
-a_quat = 0
-
-
 select case (key)
 
 !-----------------------------------------------
 ! quadrupole
 
-case (quadrupole$)
+case (quadrupole$, sextupole$, octupole$)
 
-  ! initial:
-  omega1 = sqrt(abs(ele%value(k1$)))
-  u = omega1*ele%value(l$)
-
-  xi = anomalous_moment * ele%value(p0c$) / m_particle + start_orb%beta / (1 + start_orb%vec(6))
-
-  ! take into account sign of quadrupole (focusing or defocusing)
-  ! Note: no gamma3 terms
-
-  sign_k = sign(1.0_rp, ele%value(k1$))
-
-  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], 1.0_rp)
-  call add_to_quaternion (a_quat(1), [0, 0, 1, 0, 0, 0], -sign_k * xi * omega1 * sinh(u) / 2)
-  call add_to_quaternion (a_quat(1), [0, 0, 0, 1, 0, 0], -xi * (sinh(u / 2.0))**2)
-  call add_to_quaternion (a_quat(2), [1, 0, 0, 0, 0, 0], -sign_k * xi * omega1 * sin(u) / 2)
-  call add_to_quaternion (a_quat(2), [0, 1, 0, 0, 0, 0],  -xi * (sin(u / 2.0))**2)
+  call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
+  omega = trapzd_omega (ele, quad_etc_omega_func, temp_start, spline_x, spline_y)
+  call rotate_spinor(omega, temp_end%spin)
 
 !-----------------------------------------------
 ! sbend
@@ -706,38 +682,40 @@ case (quadrupole$)
 
 case (sbend$)
 
-  gamma0 = ((1 + temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
-  xi = 1 + anomalous_moment * gamma0
-  v = ele%value(g$) * ele%value(l$)
-  x = anomalous_moment*gamma0 * v
-
-  ! No first order gamma1
-
-  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], cos(x / 2.0d0))
-  call add_to_quaternion (a_quat(0), [1, 0, 0, 0, 0, 0], -0.5d0 * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0))
-  call add_to_quaternion (a_quat(0), [0, 1, 0, 0, 0, 0], -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0))
-  coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
-  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 1], coef)
-
-  call add_to_quaternion (a_quat(2), [0, 0, 0, 0, 0, 0], -sin(x / 2.0d0))
-  call add_to_quaternion (a_quat(2), [1, 0, 0, 0, 0, 0], -0.5d0 * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0))
-  call add_to_quaternion (a_quat(2), [0, 1, 0, 0, 0, 0], -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2)
-  coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
-  call add_to_quaternion (a_quat(2), [0, 0, 0, 0, 0, 1], coef)
-
-  call add_to_quaternion (a_quat(3), [0, 0, 0, 1, 0, 0], (gamma0-1)/gamma0 * sin(x / 2.0d0))
+  call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
+  omega = trapzd_omega (ele, sbend_omega_func, temp_start, spline_x, spline_y) + [0.0_rp, ele%value(g$)*ele%value(l$), 0.0_rp]
+  call rotate_spinor(omega, temp_end%spin)
 
 !-----------------------------------------------
 ! solenoid
 
 case (solenoid$)
 
-  ! This is a simple zeroeth order transfer matrix
+  vec0 = temp_start%vec
+  ks = ele%value(ks$) / (1+vec0(6))
+  kss = ks / 2
+  length = ele%value(l$)
 
-  alpha = -(1-anomalous_moment)*ele%value(bs_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)   ! rotation angle
+  if (abs(length * kss) < 1d-10) then
+    kl = kss * length 
 
-  call add_to_quaternion (a_quat(0), [0, 0, 0, 0, 0, 0], cos(alpha/2.0))
-  call add_to_quaternion (a_quat(3), [0, 0, 0, 0, 0, 0], sin(alpha/2.0))
+    m21 = -kl*kss/2
+    m22 = 1
+    m23 = -kl**2 * kss/3
+    m24 = kl/2
+
+  else
+    c = cos(ks * length)
+    s = sin(ks * length)
+    m21 = (c - 1) / (4 * length)
+    m22 = (s / (ks * length) + 1) / 2
+    m23 = kss * (m22 - 1)
+    m24 = -m21 / kss
+  endif
+
+  temp_end%vec(2) =  m21 * vec0(1) + m22 * vec0(2) + m23 * vec0(3) + m24 * vec0(4)
+  temp_end%vec(4) = -m23 * vec0(1) - m24 * vec0(2) + m21 * vec0(3) + m22 * vec0(4)
+  call rotate_spinor_given_field (temp_end, ele, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
 
 !-----------------------------------------------
 ! LCavity
@@ -748,6 +726,9 @@ case (solenoid$)
 ! Uses the fringe field as calculated by Hartman and Rosenzweig
 
 case (lcavity$)
+
+  temp_middle%vec = (temp_start%vec + temp_end%vec) / 2 ! rough estimate of particle coordinates in the element
+  a_quat = 0
 
   ! For now, just set to one
   g_ratio = 1
@@ -788,24 +769,18 @@ case (lcavity$)
 
   endif
 
-!
-
-case default
-  isTreatedHere = .false.
+  if (key /= lcavity$ .or. gradient /= 0) then
+    ! Negative sign due to fact that original quaternion_track routine used a left handed rule for the sign of rotations.
+    abs_a = sqrt(a_quat(1)**2 + a_quat(2)**2 + a_quat(3)**2 + a_quat(0)**2)
+    a_quat = [a_quat(0), -a_quat(1), -a_quat(2), -a_quat(3)] / abs_a
+    call quaternion_track (a_quat, temp_end%spin)
+  endif
 
 end select
 
-!
-
-if (isTreatedHere .and. (key /= lcavity$ .or. gradient /= 0)) then
-  ! Negative sign due to fact that original quaternion_track routine used a left handed rule for the sign of rotations.
-  abs_a = sqrt(a_quat(1)**2 + a_quat(2)**2 + a_quat(3)**2 + a_quat(0)**2)
-  a_quat = [a_quat(0), -a_quat(1), -a_quat(2), -a_quat(3)] / abs_a
-  call quaternion_track (a_quat, temp_end%spin)
-endif
-
 ! 
 
+call apply_element_edge_kick (temp_end, ele%value(l$), temp_start%t, ele, ele, param, second_track_edge$, .true.)
 call offset_particle (ele, param, unset$, temp_end, .true., .true., .true., set_spin = .true.)
 end_orb%spin = temp_end%spin
 
@@ -867,6 +842,194 @@ endif
 end subroutine lcav_edge_track
 
 end subroutine track1_spin_bmad
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine spline_fit_orbit (start_orb, end_orb, spline_x, spline_y)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb
+real(rp) spline_x(0:3), spline_y(0:3)
+real(rp) ds, relp, alpha, beta
+
+!
+
+ds = end_orb%s - start_orb%s
+relp = 1 + start_orb%vec(6)
+
+! X
+
+spline_x(0) = start_orb%vec(1)
+spline_x(1) = start_orb%vec(2) / relp 
+
+alpha = end_orb%vec(1) - spline_x(0) - spline_x(1) * ds
+beta = end_orb%vec(2) / relp - spline_x(1)
+
+spline_x(2) = 3 * alpha / ds**2 - beta / ds
+spline_x(3) = beta / ds**2 - 2 * alpha / ds**3
+
+! Y
+
+spline_y(0) = start_orb%vec(3)
+spline_y(1) = start_orb%vec(4) / relp 
+
+alpha = end_orb%vec(3) - spline_y(0) - spline_y(1) * ds
+beta = end_orb%vec(4) / relp - spline_y(1)
+
+spline_y(2) = 3 * alpha / ds**2 - beta / ds
+spline_y(3) = beta / ds**2 - 2 * alpha / ds**3
+
+
+end subroutine spline_fit_orbit
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+function trapzd_omega (ele, omega_func, orbit, spline_x, spline_y) result (omega)
+
+use nr, only: polint
+
+implicit none
+
+interface func
+  function omega_func(s, spline_x, spline_y, orbit, ele) result (om)
+    import
+    implicit none
+    type (coord_struct) orbit
+    type (ele_struct) ele
+    real(rp) s, spline_x(0:3), spline_y(0:3), om(3)
+  end function
+end interface
+
+type q_array_struct
+  real(rp) h
+  real(rp) omega(3)
+end type
+
+integer, parameter ::  j_max = 5
+
+type (q_array_struct) q_array(j_max)
+type (ele_struct) ele
+type (coord_struct) orbit, orb
+
+real(rp) s1, del_s, s, spline_x(0:3), spline_y(0:3), om(3), omega(3)
+real(rp) dint, eps
+real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
+
+integer j, k, n, n_pts
+
+!
+
+s1 = ele%value(l$)
+
+q_array(1)%h = 1
+q_array(1)%omega = s1 * (omega_func(0.0_rp, spline_x, spline_y, orbit, ele) + omega_func(s1, spline_x, spline_y, orbit, ele)) / 2
+
+do j = 2, j_max
+  ! This is trapzd from NR
+  n_pts = 2**(j-2)
+  del_s = s1 / n_pts
+  omega = 0
+
+  do n = 1, n_pts
+    s = del_s * (n - 0.5_rp)
+    omega = omega + omega_func(s, spline_x, spline_y, orbit, ele)
+  enddo
+
+  q_array(j)%h = q_array(j-1)%h / 4
+  q_array(j)%omega = (q_array(j-1)%omega + omega * del_s) / 2
+
+  eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
+
+  do k = 1, 3
+    call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
+    if (abs(dint) > eps .and. j < j_max) exit ! Failed test. Note: Last loop with j = j_max -> no test.
+    if (k == 3) return                        ! Passed all tests or last loop
+  enddo
+
+enddo
+
+end function trapzd_omega
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+function sbend_omega_func (s, spline_x, spline_y, orbit, ele) result (omega) 
+
+implicit none
+
+type (coord_struct) orbit, orb
+type (ele_struct) ele
+type (em_field_struct) field
+
+real(rp) s, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) x, y, s1
+
+!
+
+field%b = [0.0_rp, ele%value(b_field$) + ele%value(b_field_err$), 0.0_rp]
+field%e = 0
+
+if (ele%value(k1$) /= 0 .or. ele%value(k2$) /= 0) then
+  x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
+  y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
+endif
+
+if (ele%value(k1$) /= 0) field%b = field%b + ele%value(b1_gradient$) * [y, x, 0.0_rp]
+if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, x*x-y*y, 0.0_rp]
+
+!
+
+orb = orbit
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
+
+omega = spin_omega (field, orb, ele)
+
+end function sbend_omega_func
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+function quad_etc_omega_func (s, spline_x, spline_y, orbit, ele) result (omega) 
+
+implicit none
+
+type (coord_struct) orbit, orb
+type (ele_struct) ele
+type (em_field_struct) field
+
+real(rp) s, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) x, y, s1
+
+!
+
+field%e = 0
+
+x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
+y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
+
+select case (ele%key)
+case (quadrupole$);   field%b = ele%value(b1_gradient$) * [y, x, 0.0_rp]
+case (sextupole$);    field%b = field%b + ele%value(b2_gradient$) * [x*y, x*x-y*y, 0.0_rp]
+case (octupole$);     field%b = field%b + ele%value(b2_gradient$) * [3*x*x*y - y**3, x*3 - 3*x*y*y, 0.0_rp]
+end select
+
+!
+
+orb = orbit
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
+
+omega = spin_omega (field, orb, ele)
+
+end function quad_etc_omega_func
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

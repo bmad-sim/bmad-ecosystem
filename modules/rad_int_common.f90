@@ -86,7 +86,7 @@ implicit none
 
 integer, parameter :: num_int = 9
 type ri_array_struct
-  real(rp) h(num_int)
+  real(rp) h
   real(rp) sum(num_int)
 end type
 
@@ -214,7 +214,7 @@ do j = 1, j_max
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri_array(1:j1)%h(n), ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint)
+    call polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint)
     d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
     if (abs(dint) > d0)  converged = .false.
     if (d0 /= 0) d_max = max(d_max, abs(dint) / d0)

@@ -77,7 +77,7 @@ integer :: n_step, n_pt, old_direction, hard_end
 
 logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
-logical :: edge_kick_applied
+logical :: edge_kick_applied, track_spin
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
@@ -148,7 +148,8 @@ do n_step = 1, max_step
       end if
       s_save = orb%vec(5)
       call convert_particle_coordinates_t_to_s(orb, ref_time) 
-      call apply_element_edge_kick (orb, s_edge_hard, t_rel, hard_ele, ele, param, hard_end)
+      track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
+      call apply_element_edge_kick (orb, s_edge_hard, t_rel, hard_ele, ele, param, hard_end, track_spin)
       call convert_particle_coordinates_s_to_t(orb)
       orb%vec(5) = s_save
       call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
