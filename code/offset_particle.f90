@@ -82,7 +82,8 @@ real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor
 real(rp) angle, z_rel_center, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
-real(rp) rot(3), dr(3), rel_tracking_charge, rtc
+real(rp) rot(3), dr(3), rel_tracking_charge, rtc, Ex, Ey, kx, ky
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx)
 
 integer particle, sign_z_vel
 integer n
@@ -234,11 +235,23 @@ if (set) then
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      call multipole_spin_precession (ele, param, coord)
+      if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
-    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
-    f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
-    if (has_nonzero_pole) call multipole_kicks (f*knl, tilt, coord, electric$)
+
+    call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
+    if (has_nonzero_pole) then
+      f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
+      do n = 0, n_pole_maxx
+        if (an(n) == 0 .and. bn(n) == 0) cycle
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$)
+        coord%vec(2) = coord%vec(2) + f * kx
+        coord%vec(4) = coord%vec(4) + f * ky
+        if (set_spn) then
+          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
+          call rotate_spinor_given_field (coord, ele, EL = [Ex/2, Ey/2, 0.0_rp])
+        endif
+      enddo
+    endif
   endif
 
   ! Set: Tilt & Roll
@@ -388,11 +401,23 @@ else
     call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      call multipole_spin_precession (ele, param, coord)
+      if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
-    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt, electric$)
-    f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
-    if (has_nonzero_pole) call multipole_kicks (f * knl, tilt, coord, electric$)
+
+    call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
+    if (has_nonzero_pole) then
+      f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
+      do n = 0, n_pole_maxx
+        if (an(n) == 0 .and. bn(n) == 0) cycle
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$)
+        coord%vec(2) = coord%vec(2) + f * kx
+        coord%vec(4) = coord%vec(4) + f * ky
+        if (set_spn) then
+          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
+          call rotate_spinor_given_field (coord, ele, EL = [Ex/2, Ey/2, 0.0_rp])
+        endif
+      enddo
+    endif
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -487,9 +512,8 @@ else
 
 endif
 
-end subroutine
+end subroutine offset_particle
                           
-
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -549,7 +573,7 @@ kick = bn(0)+i_imaginary*an(0)
 pos = orbit%vec(1)+i_imaginary*orbit%vec(3)
 if (pos /= 0.) then
   kick = kick + (bn(1)+i_imaginary*an(1))*pos
-  do n = 2, n_pole_maxx
+  do n = 2, max_nonzero(0, an, bn)
     pos = pos * (orbit%vec(1)+i_imaginary*orbit%vec(3))
     kick = kick + (bn(n)+i_imaginary*an(n))*pos
   enddo

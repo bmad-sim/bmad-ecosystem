@@ -1945,19 +1945,30 @@ Example:
 \begin{example}
   q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
 \end{example}
-See \sref{s:elec.field} for how electric multipoles are defined.
+See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric
+multipoles are never scalled by the element's field strength as they are with magnetic
+multipoles.
 
-Electric multipoles are never scalled by the element's field strength as they are with
-magnetic multipoles.
+Unlike magnetic multipoles, there are no factors of the element length in the definition
+for magnetic multipoles. That is, electric multipole values represent the field and not
+the integrated field. Thus an electric multipole associated with a zero length element
+will have no effect on tracking. This being the case, \bmad does not allow electric
+multipole values to be specified for \vn{multipole} and \vn{ab_multipole}
+elements. Indeed, in the limit of zero element length at constant integrated electric
+field strength, the equations of motion are singular since, unlike the magnetic case, the
+infinite fringe fields give rise to infinite energy shifts.
 
 \index{multipoles_on}
-The multipole kick can be toggled on or off using the
+The magnetic and electric multipole kick can be toggled on or off using the
 \vn{multipoles_on} attribute. Example:
 \begin{example}
-  call, file = 'lattice.bmad'          ! Read in a lattice file
-  quadrupole::*[multipoles_on] = False     ! But I want
+  call, file = 'lattice.bmad'             ! Read in a lattice file
+  quadrupole::*[multipoles_on] = False    ! But I want the multipoles off.
+  q1[k1] = 0.3                            ! k1 attribute not affected.
 \end{example}
-The exception is \vn{multipole} and \vn{ab_multipole} elements do not have the
+\vn{multipoles_on} only effect multipoles specified by \vn{An}, \vn{Bn}, \vn{An_elec}, or
+\vn{Bn_elec}. Other multipoles, like the \vn{k2} multipole of a \vn{sextupole}, are not
+affected. The exception is \vn{multipole} and \vn{ab_multipole} elements do not have the
 \vn{mulipoles_on} attribute. Rather they can be toggles on/off using the \vn{is_on}
 attribute.
 
