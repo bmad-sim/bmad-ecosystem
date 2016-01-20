@@ -31,7 +31,7 @@
 
 subroutine apply_element_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, track_spin)
 
-use track1_mod
+use track1_mod, except_dummy => apply_element_edge_kick
 
 implicit none
 
@@ -93,10 +93,7 @@ if (associated(hard_ele%a_pole_elec)) then
     orb%vec(6) = (pc - orb%p0c) / orb%p0c
 
     if (track_spn) then
-      field = em_field_struct()
-      field%e(3) = phi
-      Omega = spin_omega (field, orb, track_ele)
-      call rotate_spinor (omega, orb%spin)
+      call rotate_spinor_given_field (orb, track_ele, EL = [0.0_rp, 0.0_rp, phi])
     endif
   enddo
 endif
@@ -124,10 +121,8 @@ case (solenoid$, sol_quad$, bend_sol_quad$)
   orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spn) then
-    field = em_field_struct()
-    field%b(1:2) = -[orb%vec(1), orb%vec(3)] * (at_sign * relative_tracking_charge(orb, param) * track_ele%value(bs_field$) / 2)
-    Omega = spin_omega (field, orb, track_ele)
-    call rotate_spinor (omega, orb%spin)
+    f = at_sign * relative_tracking_charge(orb, param) * track_ele%value(bs_field$) / 2
+    call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
@@ -150,6 +145,12 @@ case (lcavity$, rfcavity$, e_gun$)
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
+    if (track_spn) then
+      f = at_sign * charge_of(orb%species) / 2
+      call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * f * field%b(3), &
+                                                      -[orb%vec(1), orb%vec(3), 0.0_rp] * f * field%e(3))
+    endif
+
     ! orb%phase(1) is set by em_field_calc.
 
     call rf_coupler_kick (hard_ele, param, particle_at, orb%phase(1), orb)
@@ -162,10 +163,7 @@ case (elseparator$)
   call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
   orb%vec(6) = (pc - orb%p0c) / orb%p0c
   if (track_spn) then
-    field = em_field_struct()
-    field%E = [0.0_rp, 0.0_rp, phi]
-    Omega = spin_omega (field, orb, track_ele)
-    call rotate_spinor (omega, orb%spin)
+    call rotate_spinor_given_field (orb, track_ele, EL = [0.0_rp, 0.0_rp, phi])
   endif
 
 end select
