@@ -523,12 +523,13 @@ end subroutine multipole_kicks
 ! Subroutine multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
+! Note: The kick for an electric multipole does not include any energy change.
 !
 ! Modules Needed:
 !   use bmad
 !                          
 ! Input:
-!   knl            -- real(rp): Multipole strength (mad units).
+!   knl            -- real(rp): Multipole integrated strength.
 !   tilt           -- real(rp): Multipole tilt.
 !   n              -- real(rp): Multipole order.
 !   coord          -- coord_struct:
@@ -741,9 +742,9 @@ end subroutine ab_multipole_kick
 ! Output:
 !   Ex          -- Real(rp): X field component
 !   Ey          -- Real(rp): Y field component.
-!   dE(2,2)     -- Real(rp), optional: Field derivative: dfield(x,y)/d(x,y).
-!   compute_dE  -- logical, optional: If False, do not compute dE even if present.
-!                     Default is True.
+!   dE(2,2)     -- Real(rp), optional: Field derivatives: dfield(x,y)/d(x,y).
+!   compute_dE  -- logical, optional: If False, do not compute the field derivatives 
+!                     even if dE is present. Default is True.
 !-
 
 subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)

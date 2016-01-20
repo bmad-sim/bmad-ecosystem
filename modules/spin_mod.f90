@@ -638,12 +638,6 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 
 !
 
-if (associated(ele%a_pole_elec)) then
-  if (any(ele%a_pole_elec /= 0) .or. any (ele%b_pole_elec /= 0)) then
-    call out_io (s_error$, r_name, 'BMAD_STANDARD SPIN TRACKING WITH ELECTRIC MULTIPOLES NOT IMPLEMENTED! ' // ele%name)
-  endif
-endif
-
 if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patch elements.
 
 !
@@ -668,9 +662,9 @@ temp_end%spin = temp_start%spin
 select case (key)
 
 !-----------------------------------------------
-! quadrupole
+! quadrupole, etc.
 
-case (quadrupole$, sextupole$, octupole$)
+case (quadrupole$, sextupole$, octupole$, sol_quad$)
 
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, quad_etc_omega_func, temp_start, spline_x, spline_y)
@@ -1017,8 +1011,9 @@ y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
 
 select case (ele%key)
 case (quadrupole$);   field%b = ele%value(b1_gradient$) * [y, x, 0.0_rp]
-case (sextupole$);    field%b = field%b + ele%value(b2_gradient$) * [x*y, x*x-y*y, 0.0_rp]
-case (octupole$);     field%b = field%b + ele%value(b2_gradient$) * [3*x*x*y - y**3, x*3 - 3*x*y*y, 0.0_rp]
+case (sextupole$);    field%b = ele%value(b2_gradient$) * [x*y, (x*x-y*y)/2, 0.0_rp]
+case (octupole$);     field%b = ele%value(b3_gradient$) * [(3*x*x*y - y**3)/6, (x**3 - 3*x*y*y)/6, 0.0_rp]
+case (sol_quad$);     field%b = ele%value(b1_gradient$) * [y, x, 0.0_rp] + [0.0_rp, 0.0_rp, ele%value(bs_field$)]
 end select
 
 !
