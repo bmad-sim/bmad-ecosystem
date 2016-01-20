@@ -32,7 +32,7 @@ module Mad_like
   logical(lp),TARGET ::FIBRE_flip=.true.
   !  logical(lp) :: FIBRE_SURVEY=.true.
   INTEGER,TARGET ::FIBRE_DIR=1
-  real(dp),TARGET ::INITIAL_CHARGE=1
+
   real(dp),PRIVATE::ENERGY,P0C,BRHO,KINETIC,gamma0I,gamBET,beta0,MC2
 
   !real(dp),PRIVATE::TOTAL_EPS

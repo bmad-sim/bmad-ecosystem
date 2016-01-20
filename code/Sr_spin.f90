@@ -4717,7 +4717,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     !
     !
 
-    !$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    !!$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     ! some gymnastic if behind the integration node
     if(tw%parent_fibre%dir>0) then
 
@@ -4741,7 +4741,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           call change_basis(DA,b%ent,dal,tw%ent)
        endif
     endif
-    !$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    !!$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     p=dal
     b%tp(j)%ds=p(3)
@@ -4816,7 +4816,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
 
 
-subroutine fill_tree_element(f,no,fix0,onemap)   ! fix0 is the initial condition for the maps
+subroutine fill_tree_element(f,no,fix0,onemap,factor)   ! fix0 is the initial condition for the maps
 implicit none
 type(fibre), target :: f
 type(layout), pointer :: r
@@ -4828,9 +4828,15 @@ real(dp) fixr(6),fixs(6),fix(6),fix0(6),mat(6,6),e_ij(6,6),xn
 type(probe) xs0
 type(probe_8) xs
 type(c_damap) m,mr
-logical :: onemap
- 
+logical :: onemap,fact
+logical,optional :: factor
 integer no,i
+
+fact=.false. 
+
+if(present(factor)) fact=factor
+
+
 if(.not.associated(f%parent_layout)) then
  write(6,*) " parent layout not associated "
  stop

@@ -140,6 +140,7 @@ module S_status
   private track_TREE_G_complexr,track_TREE_G_complexp,track_TREE_probe_complexr,track_TREE_probe_complexp
   integer :: size_tree=15
   integer :: ind_spin(3,3),k1_spin(9),k2_spin(9)
+  real(dp),TARGET ::INITIAL_CHARGE=1
 
   TYPE B_CYL
      integer firsttime
@@ -1089,11 +1090,12 @@ CONTAINS
     IF(LOG) CONV="TRUE "
   END FUNCTION CONV
 
-  SUBROUTINE MAKE_STATES_m(muonfactor)
+  SUBROUTINE MAKE_STATES_m(muonfactor,ag,ne)
     USE   definition
     IMPLICIT NONE
     logical(lp) :: doneitt=.true.
     real(dp) muonfactor,MASSF
+    real(dp), optional :: ag,ne
     CALL MAKE_YOSHIDA
     muon=muonfactor
     MASSF=muon*pmae
@@ -1105,8 +1107,15 @@ CONTAINS
        A_PARTICLE=A_ELECTRON
     ELSEIF(ABS(MASSF-pmaMUON)/pmaMUON<0.01E0_DP) THEN
        A_PARTICLE=A_MUON
+    elseif(present(ag)) then
+     a_particle=ag
+    else 
+     write(6,*) "Cannot do spin : provide a=g-2. Now it is set to zero."
     ENDIF
-
+     initial_charge=1
+    if(present(ne)) then
+     initial_charge=ne
+    endif
   END  SUBROUTINE MAKE_STATES_m
 
   SUBROUTINE update_STATES
@@ -6398,7 +6407,7 @@ enddo
   end subroutine nul_coef
 
 !!!!!!!!!!!!!!!!!!!!   tree tracking for PTC using stuff in 
-  SUBROUTINE SET_TREE_G_complex(T,Ma)
+  SUBROUTINE SET_TREE_G_complex(T,Ma,factor)
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
     TYPE(c_damap), INTENT(INOUT) :: Ma
@@ -6407,8 +6416,10 @@ enddo
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
     integer js(6)
- 
-
+    logical, optional :: factor
+    logical fact
+    fact=.false.
+    if(present(factor)) fact=factor
     
 !    np=ma%n+18
     if(ma%n/=6) then
@@ -6458,7 +6469,13 @@ enddo
       js=0
      js(1)=1;js(3)=1;js(5)=1; ! q_i(q_f,p_i) and p_f(q_f,p_i)
      call alloc(ms)
-     ms=ma
+     if(fact) then
+      ms=(ma.sub.1)**(-1)*ma
+     else
+       ms=ma
+     endif
+ 
+
      ms=ms**js
 !     do i=1,3
 !      mg(i)=ms%v(2*i-1)   !  q_i(q_f,p_i)
@@ -6480,6 +6497,14 @@ enddo
      call SET_TREE_g(T(2),m(7:15))
 
      call SET_TREE_g(T(3),mg(1:size_tree))
+
+     if(fact) then
+      t(3)%rad=ma
+     else
+       do i=1,6
+        t(3)%rad(i,i)=1.0_dp
+       enddo
+     endif
 
        mat=ma**(-1)
        t(1)%e_ij=matmul(matmul(mat,ma%e_ij),transpose(mat))
@@ -6603,6 +6628,8 @@ do is=1,nrmax
        x(2)=x0(2)
        x(4)=x0(4)
        x(6)=x0(6)       
+
+       x(1:6)=matmul(t(3)%rad,x(1:6))
        exit
      endif
      normb=norm
@@ -6859,8 +6886,17 @@ endif ! jumpnot
          x(i)=xs0%x(i)
         enddo
      endif
-
-
+       do i=1,6
+        x0(i)=0.0_dp
+       enddo
+       do i=1,6
+        do j=1,6
+       x0(i)=t(3)%rad(i,j)*x(j)+x0(i)
+       enddo
+      enddo
+        do i=1,6
+         x(i)=x0(i)
+        enddo
      else
        call track_TREE_G_complex(T(1),X(1:6))
      endif

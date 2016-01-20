@@ -116,7 +116,7 @@ endif
     ! fitting and scanning tunes
     real(dp) tune_ini(2),tune_fin(2),dtu(2),fint,hgap
     integer nstep(2),i1,i2,I3,n_bessel
-    LOGICAL(LP) STRAIGHT,skip,fixp,skipcav
+    LOGICAL(LP) STRAIGHT,skip,fixp,skipcav,fact
     ! end
     ! TRACK 4D NORMALIZED
     INTEGER POS,NTURN,resmax
@@ -1279,7 +1279,7 @@ endif
           READ(MF,*) NAME
           READ(MF,*) I1  ! ORDER OF THE MAP
           READ(MF,*)  onemap  ! use one map : no cutting
-          READ(MF,*) fixp  !  SYMPLECTIC 
+          READ(MF,*) fixp,fact  !  SYMPLECTIC , factored
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           x_ref=0.0_DP
           CALL CONTEXT(NAME)
@@ -1301,7 +1301,7 @@ endif
 
              IF(FOUND_IT) THEN
                 write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
-                call fill_tree_element(p,I1,x_REF,onemap)
+                call fill_tree_element(p,I1,x_REF,onemap,fact)
                    IF(P%DIR==1) THEN
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
@@ -1317,7 +1317,7 @@ endif
        case('MAKEALLMAP','TRACKALLWITHMAP')
           READ(MF,*) I1  ! ORDER OF THE MAP
           READ(MF,*)  onemap  ! use one map : no cutting
-          READ(MF,*) fixp  !  SYMPLECTIC 
+          READ(MF,*) fixp,fact  !  SYMPLECTIC 
           READ(MF,*) skipcav  !  skip cavity 
           x_ref=0.0_DP
  
@@ -1329,7 +1329,7 @@ endif
              IF(p%mag%kind/=kind0) THEN
               if(.not.skipcav.or.(p%mag%kind/=kind4.and.p%mag%kind/=kind21)) then
                 write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
-                call fill_tree_element(p,I1,x_REF,onemap)
+                call fill_tree_element(p,I1,x_REF,onemap,fact)
                    IF(P%DIR==1) THEN
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
