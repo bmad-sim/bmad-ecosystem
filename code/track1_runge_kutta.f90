@@ -74,6 +74,7 @@ else
 endif
 
 ! Track.
+! Note that if ele is a slave, ele%field_calc = refer_to_lords$ and no error message is printed. 
 
 if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad_standard$ .and. &
                                                          ele%value(l$) < ele%value(l_hard_edge$)) then

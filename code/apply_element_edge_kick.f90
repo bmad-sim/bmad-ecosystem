@@ -65,9 +65,10 @@ endif
 call apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
 if (finished) return
 
-! Only need this routine when the field is calculated using bmad_standard
+! Only need this routine when the field is calculated using bmad_standard.
+! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
 
-if (track_ele%field_calc /= bmad_standard$) return
+if (hard_ele%field_calc /= bmad_standard$) return
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
