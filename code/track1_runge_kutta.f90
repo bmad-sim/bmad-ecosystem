@@ -41,6 +41,8 @@ real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1, ds_ref
 
 logical err_flag, set_spin
 
+character(*), parameter :: r_name = 'track1_runge_kutta'
+
 ! Convert to element coords.
 ! For a patch, convert to the downstream coords so that the downstream face 
 ! can be simply described as being at s = s1. Additionally, with a patch, s 
@@ -72,6 +74,12 @@ else
 endif
 
 ! Track.
+
+if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad_standard$ .and. &
+                                                         ele%value(l$) < ele%value(l_hard_edge$)) then
+  call out_io (s_error$, r_name, 'RUNGE-KUTTA TRACKING THROUGH RF CAVITY: ' // ele%name, &
+                          'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
+endif
 
 call odeint_bmad (start2_orb, ele, param, end_orb, s0, s1, .true., err_flag, track)
 if (err_flag) return

@@ -935,6 +935,7 @@ call init_attribute_name1 (lcavity$, coupler_angle$,                'COUPLER_ANG
 call init_attribute_name1 (lcavity$, coupler_phase$,                'COUPLER_PHASE')
 call init_attribute_name1 (lcavity$, coupler_at$,                   'COUPLER_AT')
 call init_attribute_name1 (lcavity$, gradient_err$,                 'GRADIENT_ERR')
+call init_attribute_name1 (lcavity$, voltage_err$,                  'VOLTAGE_ERR')
 call init_attribute_name1 (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attribute_name1 (lcavity$, field$,                        'FIELD')
 call init_attribute_name1 (lcavity$, phi0_ref$,                     'PHI0_REF', quasi_free$)
@@ -1132,6 +1133,7 @@ call init_attribute_name1 (rfcavity$, p0c_start$,                   'p0c_start',
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
+call init_attribute_name1 (rfcavity$, voltage_err$,                 'voltage_err', private$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, ref_tilt$,                       'REF_TILT')
