@@ -341,17 +341,20 @@ case (bmad_standard$)
   !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
   !   E_r   =     gradient * k * r * sin(k s) * cos(omega t + phase)
   !   B_phi =    -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
-  ! where
-  !   k = n_cell * pi / L
-  !   omega = c * k
-  ! Field extends to +/- c_light * freq / 2 from centerline of element.
-  ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
-  !  discontinuity can be handled in the apply_element_edge_kick routine.
-  !
   ! For traveling wave cavity:
   !   E_s   =  gradient * cos(omega t + phase - k s)
   !   E_r   = -gradient * k * r * sin(omega t + phase - k s) / 2
   !   B_phi = -gradient * k * r * sin(omega t + phase - k s) / c_light / 2
+  ! 
+  ! Note: Length of pillbox is 1/2 wavelength. Not the length of the element.  
+  ! That is, the field extends to +/- c_light * freq / 2 from centerline of element.
+  !
+  ! Since the active (pillbox) length is different from the element length, the gradient used
+  ! is different from the element-gradient = voltage / element-length stored in the element struct so that
+  !   gradient-used * pillbox-length = element-gradient * element-length = voltage
+  !
+  ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
+  !  discontinuity can be handled in the apply_element_edge_kick routine.
 
   case(rfcavity$, lcavity$)
 
@@ -1428,7 +1431,7 @@ select case (ele%key)
 case (lcavity$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_factor$) * ele%value(l$)
+    field = (ele%value(voltage$) + ele%value(voltage_err$)) * ele%value(field_factor$)
   case (gradient$)
     field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_factor$)
   end select
@@ -1438,13 +1441,13 @@ case (rfcavity$)
   case (voltage$)
     field = ele%value(voltage$) * ele%value(field_factor$)
   case (gradient$)
-    field = ele%value(voltage$) * ele%value(field_factor$) / ele%value(l$)
+    field = ele%value(gradient$) * ele%value(field_factor$)
   end select
 
 case (e_gun$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = ele%value(gradient$) * ele%value(field_factor$) * ele%value(l$)
+    field = ele%value(voltage$) * ele%value(field_factor$)
   case (gradient$)
     field = ele%value(gradient$) * ele%value(field_factor$) 
   end select

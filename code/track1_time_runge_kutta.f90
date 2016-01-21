@@ -47,10 +47,10 @@ real(rp) s_edge_track, s_edge_hard
 
 integer :: i, hard_end
 
-character(30), parameter :: r_name = 'track1_time_runge_kutta'
-
 logical :: local_ref_frame = .true.
 logical :: abs_time, err_flag, err, set_spin
+
+character(*), parameter :: r_name = 'track1_time_runge_kutta'
 
 !---------------------------------
 
@@ -107,7 +107,6 @@ if ( d_radius > 0 ) then
   return
 endif
 
-
 !------
 ! Specify initial time step.
 
@@ -150,6 +149,12 @@ if ( present(track) ) then
 endif
 
 ! Track through element
+
+if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad_standard$ .and. &
+                                                         ele%value(l$) < ele%value(l_hard_edge$)) then
+  call out_io (s_error$, r_name, 'TIME-RUNGE-KUTTA TRACKING THROUGH RF CAVITY: ' // ele%name, &
+                          'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
+endif
 
 call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, dt_step, local_ref_frame, err, track)
 if (err) return

@@ -2503,7 +2503,11 @@ case (lcavity$)
     endif
   endif
 
-  val(voltage$) = val(gradient$) * val(l$)
+  if (val(l$) /= 0) then
+    val(voltage$) = val(gradient$) * val(l$)
+    val(voltage_err$) = val(gradient_err$) * val(l$)
+  endif
+
   if (val(rf_frequency$) /= 0) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
@@ -3222,6 +3226,9 @@ case (beginning_ele$)
 
 case (fork$, photon_fork$)
 
+case (rfcavity$)
+  if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+
 case (lcavity$, e_gun$)
 
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
@@ -3229,6 +3236,9 @@ case (lcavity$, e_gun$)
       associated(a_ptr, ele%value(phi0_ref$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
+
+  if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+  if (associated(a_ptr, ele%value(voltage_err$)) .and. ele%value(l$) /= 0) ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
 
   if (ele%key == lcavity$) then 
     if (associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then

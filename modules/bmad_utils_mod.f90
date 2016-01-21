@@ -2377,7 +2377,8 @@ end function ele_has_constant_ds_dt_ref
 ! Input:
 !   ele                   -- ele_struct: Element.
 !   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?
-!                              default is set by bmad_com%use_hard_edge_drifts.
+!                              Default is set by bmad_com%use_hard_edge_drifts.
+!                              Default bmad_com%use_hard_edge_drifts is True.
 !
 ! Output:
 !   has_drifts -- Logical: True if tracking uses end drifts.

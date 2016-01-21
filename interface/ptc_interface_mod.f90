@@ -3058,6 +3058,8 @@ end subroutine type_map
 !                             Default is determined by param%default_tracking_species.
 !   use_hard_edge_drifts -- logical, optional: If False then hard edge drifts are not used.
 !                                              If True then this argument has no effect.
+!                              Default is set by bmad_com%use_hard_edge_drifts.
+!                              Default bmad_com%use_hard_edge_drifts is True.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.

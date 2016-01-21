@@ -606,7 +606,6 @@ end subroutine track1_spin
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !   end_orb    -- Coord_struct: Ending coords.
-!     %vec          -- Ending particle position
 !
 ! Output:
 !   end_orb    -- Coord_struct:
@@ -639,8 +638,6 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 !
 
 if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patch elements.
-
-!
 
 m_particle = mass_of(start_orb%species)
 anomalous_moment = anomalous_moment_of(start_orb%species)
