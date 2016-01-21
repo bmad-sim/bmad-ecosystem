@@ -146,9 +146,9 @@ case (lcavity$, rfcavity$, e_gun$)
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
     if (track_spn) then
-      f = at_sign * charge_of(orb%species) / 2
-      call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * f * field%b(3), &
-                                                      -[orb%vec(1), orb%vec(3), 0.0_rp] * f * field%e(3))
+      f = at_sign * charge_of(orb%species) / 2.0_rp
+      call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
+                                                      -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
     endif
 
     ! orb%phase(1) is set by em_field_calc.
