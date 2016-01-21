@@ -544,7 +544,7 @@ subroutine multipole_spin_precession (ele, param, orbit)
 
 use multipole_mod, only: multipole_ele_to_ab
 
-use spin_mod
+use spin_mod, dummy => multipole_spin_precession
 
 implicit none
 
