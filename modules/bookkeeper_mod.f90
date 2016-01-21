@@ -34,14 +34,14 @@ type (sad_param_struct), save :: sad_param
 ! Also will do some dependent variable bookkeeping when a particular attribute has 
 ! been altered. Look at this routine's code for more details.
 !
-! set_flages_for_changed_attribute is an overloaded name for:
-!   set_flages_for_changed_lat_attribute (lat, set_dependent)
-!   set_flages_for_changed_real_attribute (ele, real_attrib, set_dependent)
-!   set_flages_for_changed_inteter_attribute (ele, int_attrib, set_dependent)
-!   set_flages_for_changed_logical_attribute (ele, logic_attrib, set_dependent)
-!   set_flages_for_changed_all_attribute (ele, all_attrib, set_dependent)
+! set_flags_for_changed_attribute is an overloaded name for:
+!   set_flags_for_changed_lat_attribute (lat, set_dependent)
+!   set_flags_for_changed_real_attribute (ele, real_attrib, set_dependent)
+!   set_flags_for_changed_inteter_attribute (ele, int_attrib, set_dependent)
+!   set_flags_for_changed_logical_attribute (ele, logic_attrib, set_dependent)
+!   set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
 !
-! The set_flages_for_changed_lat_attribute (lat) routine is used when one
+! The set_flags_for_changed_lat_attribute (lat) routine is used when one
 ! does not know what has changed and wants a complete bookkeeping done.
 !
 ! Modules needed:
