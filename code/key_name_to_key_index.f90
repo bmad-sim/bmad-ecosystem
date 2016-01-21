@@ -19,7 +19,7 @@
 
 function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
 
-use basic_attribute_mod
+use basic_attribute_mod, dummy => key_name_to_key_index
 
 implicit none
 
