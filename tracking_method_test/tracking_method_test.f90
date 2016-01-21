@@ -70,6 +70,7 @@ do ib = 0, ubound(lat%branch, 1)
     do j = 1, n_methods$
       if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
+!      if ((ele%key == rfcavity$ .or. ele%key == lcavity$) .and. (j == runge_kutta$ .or. j == time_runge_kutta$ .or. j == boris$)) cycle
       ele%tracking_method = j
       if (ele%tracking_method == symp_lie_ptc$) then
         ele%spin_tracking_method = symp_lie_ptc$
