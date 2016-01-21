@@ -248,7 +248,7 @@ if (set) then
         coord%vec(4) = coord%vec(4) + f * ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spinor_given_field (coord, ele, EL = [Ex/2, Ey/2, 0.0_rp])
+          call rotate_spinor_given_field (coord, ele, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
         endif
       enddo
     endif
@@ -414,7 +414,7 @@ else
         coord%vec(4) = coord%vec(4) + f * ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spinor_given_field (coord, ele, EL = [Ex/2, Ey/2, 0.0_rp])
+          call rotate_spinor_given_field (coord, ele, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
         endif
       enddo
     endif
