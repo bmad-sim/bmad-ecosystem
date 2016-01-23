@@ -586,8 +586,8 @@ vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * direction]
 E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 
-f_bend = 1
-gx_bend = 0; gy_bend = 0
+f_bend = 1 ! Longitudinal distance per unit s-distance. Equal to 1 except when off axis in a bend.
+gx_bend = 0; gy_bend = 0  ! bend strengths (1/rho) in x and y planes.
 
 if (ele%key == sbend$) then
   if (ele%value(ref_tilt_tot$) /= 0 .and. .not. local_ref_frame) then

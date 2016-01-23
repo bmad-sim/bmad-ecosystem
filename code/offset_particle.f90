@@ -185,7 +185,7 @@ if (set) then
         if (set_spn) call rotate_spinor (-rot, coord%spin)
 
         if (off(3) /= 0 .and. set_z_off) then
-          call track_a_drift (coord, ele, sign_z_vel*off(3))
+          call track_a_drift (coord, sign_z_vel*off(3))
           coord%vec(5) = coord%vec(5) - sign_z_vel*off(3)  ! Correction due to reference particle is also offset.
         endif
 
@@ -194,7 +194,7 @@ if (set) then
       else
 
         if (z_off /= 0 .and. set_z_off) then
-          call track_a_drift (coord, ele, sign_z_vel*z_off)
+          call track_a_drift (coord, sign_z_vel*z_off)
           coord%vec(5) = coord%vec(5) - sign_z_vel*z_off  ! Correction due to reference particle is also offset.
         endif
 
@@ -503,7 +503,7 @@ else
       endif
 
       if (z_off /= 0 .and. set_z_off) then
-        call track_a_drift (coord, ele, -sign_z_vel*z_off)
+        call track_a_drift (coord, -sign_z_vel*z_off)
         coord%vec(5) = coord%vec(5) + sign_z_vel*z_off  ! Correction due to reference particle is also offset.
       endif
     endif

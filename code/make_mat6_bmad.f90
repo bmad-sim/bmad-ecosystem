@@ -320,7 +320,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrum
   endif
 
   do i = 1, n_slice 
-     call track_a_drift (c00, ele, length/n_slice)
+     call track_a_drift (c00, length/n_slice)
      call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
      mat6 = matmul(drift,mat6)
      if (i == n_slice) then
@@ -713,7 +713,7 @@ case (octupole$)
     mat6(1:4,1:6) = matmul(kmat4, mat6(1:4,1:6))
     if (i /= n_slice) then
       call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
-      call track_a_drift (c00, ele, length/n_slice)
+      call track_a_drift (c00, length/n_slice)
       mat6 = matmul(drift,mat6)
     end if
   end do
@@ -923,7 +923,7 @@ case (rfcavity$)
 
     if (i /= n_slice) then
       call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
-      call track_a_drift (c00, ele, length/n_slice)
+      call track_a_drift (c00, length/n_slice)
       mat6 = matmul(drift, mat6)
       phase = phase0 + twopi * v(rf_frequency$) * ((i + 1) * dt_ref/n_slice - (c00%t - t0)) 
     endif
@@ -1288,7 +1288,7 @@ case (sextupole$)
     mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
     if (i /= n_slice) then
       call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
-      call track_a_drift (c00, ele, length/n_slice)
+      call track_a_drift (c00, length/n_slice)
       mat6 = matmul(drift,mat6)
     end if
   end do

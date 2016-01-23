@@ -183,7 +183,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
     end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir
 
   elseif (kick == 0) then
-    call track_a_drift (end_orb, ele, length)
+    call track_a_drift (end_orb, length)
 
   else
     angle = atan2(ele%value(vkick$), ele%value(hkick$))
@@ -246,7 +246,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 case (drift$) 
 
   call offset_particle (ele, param, set$, end_orb)
-  call track_a_drift (end_orb, ele, length)
+  call track_a_drift (end_orb, length)
   call offset_particle (ele, param, unset$, end_orb)
   call set_end_orb_s()
 
@@ -342,7 +342,7 @@ case (kicker$, hkicker$, vkicker$)
      end_orb%vec(4) = end_orb%vec(4) + vkick / (2 * n_slice)
   endif
   do i = 1, n_slice
-     call track_a_drift (end_orb, ele, length/n_slice)
+     call track_a_drift (end_orb, length/n_slice)
      if (i == n_slice) then
         if (ele%key == hkicker$) then
            end_orb%vec(2) = end_orb%vec(2) + kick / (2 * n_slice)
@@ -620,7 +620,7 @@ case (octupole$)
 
   do i = 1, n_slice
 
-    call track_a_drift (end_orb, ele, length / n_slice)
+    call track_a_drift (end_orb, length / n_slice)
 
     if (i == n_slice) then
       end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
@@ -723,7 +723,7 @@ case (rfcavity$)
     endif
 
     if (i /= n_slice) then
-      call track_a_drift (end_orb, ele, length/n_slice)
+      call track_a_drift (end_orb, length/n_slice)
       phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref/n_slice - (end_orb%t - t0)) 
     endif
 
@@ -769,7 +769,7 @@ case (sextupole$)
     if (i == 0 .or. i == n_slice) k2l = k2l / 2
     end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
     end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3)
-    if (i /= n_slice) call track_a_drift (end_orb, ele, length/n_slice)
+    if (i /= n_slice) call track_a_drift (end_orb, length/n_slice)
   enddo
 
   call offset_particle (ele, param, unset$, end_orb)

@@ -250,8 +250,9 @@ call em_field_calc (ele, param, s+ds2, t, end, .true., field)
 ! 2.5) Push the spin 1/2 step
 ! This uses the momentum at the beginning and the fields at (ds2)
 
-if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) &
-                                call spin_track_a_step (ele, field, ds2, end) 
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  call rotate_spinor_given_field (end, ele, ds2*field%b, ds2*field%e)
+endif
 
 ! 3) Push the momenta a 1/2 step using only the "b" term.
 
@@ -326,50 +327,10 @@ end%beta = beta
 
 ! 6.5) Push the spin 1/2 step
 
-if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) &
-                                             call spin_track_a_step (ele, field, ds2, end) 
-  
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  call rotate_spinor_given_field (end, ele, ds2*field%b, ds2*field%e)
+endif
+
 end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine spin_track_a_step (ele, field, ds, orbit) 
-!
-! Routine to track the spin for one step of length ds.
-!
-! Input:
-!   ele       -- Ele_struct: Element being tracked through.
-!   field     -- em_field_struct: Field at particle.
-!   orbit     -- Coord_struct: Particle coordinates.
-!     %spin     -- Spin coordinates
-!
-! Output:
-!   orbit     -- Coord_struct: Particle coordinates
-!     %spin     -- Spin coordinates
-!-
-
-subroutine spin_track_a_step (ele, field, ds, orbit) 
-
-implicit none
-
-type (ele_struct) :: ele
-type (coord_struct) :: orbit
-type (em_field_struct) field
-
-real(rp) ds
-real(rp) :: Omega(3)
-complex(rp) :: dspin_dz(2), quaternion(2,2)
-
-! this uses a modified Omega' = Omega/v_z
-
-Omega = spin_omega (field, orbit, ele)
-quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
-
-dspin_dz = matmul(quaternion, orbit%spin)
-orbit%spin = orbit%spin + dspin_dz * ds
-
-end subroutine spin_track_a_step
 
 end module
