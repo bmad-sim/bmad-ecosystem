@@ -105,6 +105,8 @@ contains
 
 subroutine lattice_bookkeeper (lat, err_flag)
 
+use precision_constants, only: e_muon
+
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
@@ -116,6 +118,10 @@ logical, optional :: err_flag
 logical found, err, auto_saved
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
+
+! Set PTC E_MUON just to make sure it has the same value as bmad_com%electric_dipole_moment
+
+E_MUON = bmad_com%electric_dipole_moment
 
 ! Turn on intelligent bookkeeping while this routine is running
 ! If bookkeeping has nt been intelligent then mark everything as stale.

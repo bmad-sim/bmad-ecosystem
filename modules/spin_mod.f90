@@ -456,6 +456,9 @@ end function calc_rotation_quaternion
 !
 ! Return the modified T-BMT spin omega vector.
 !
+! In a bend, the omega returned should be modified:
+!   true_omega = (1 + g*x) * omega + [0, g, 0]
+!
 ! Modules needed:
 !   use spin_mod
 !   use em_field_mod
@@ -463,11 +466,10 @@ end function calc_rotation_quaternion
 ! Input:
 !   field      -- em_field_struct: E and B fields
 !   coord      -- coord_struct: particle momentum
-!   ele        -- ele_struct: element evauluated in
-!      %value(E_TOT$) -- reaL(rp): needed to find momentum
+!   ele        -- ele_struct: element particle is in.
 !
 ! Output:
-!   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates
+!   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates.
 !-
 
 function spin_omega (field, coord, ele) result (omega)
@@ -478,36 +480,36 @@ type (em_field_struct) :: field
 type (coord_struct) :: coord
 type (ele_struct) :: ele
 
-real(rp) omega(3),  p_vec(3)
-real(rp) anomalous_moment, charge, mc2, p_z, gamma0
-real(rp) e_particle, pc
+real(rp) omega(3),  beta_vec(3)
+real(rp) anomalous_moment, gamma, rel_p, e_particle, mc2, bz2
 
 ! Want everything in units of eV
 
-pc = ele%value(p0c$) * (1 + coord%vec(6))
-call convert_pc_to (pc, coord%species, E_tot = e_particle)
-
-anomalous_moment = anomalous_moment_of(coord%species)
-charge = charge_of(coord%species)
+rel_p = 1 + coord%vec(6)
+e_particle = coord%p0c * rel_p / coord%beta
 mc2 = mass_of(coord%species)
-gamma0 = e_particle / mc2
-p_z = (ele%value(p0c$)/c_light) * sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
-p_vec(1:2) = (ele%value(p0c$)/c_light)* [coord%vec(2), coord%vec(4)]
-p_vec(3) = p_z
+gamma = e_particle / mc2
+anomalous_moment = anomalous_moment_of(coord%species)
 
-omega = (1 + anomalous_moment*gamma0) * field%B
-
-omega = omega - p_vec * (anomalous_moment*dot_product(p_vec,field%B) / ((gamma0+1)*(mc2**2/c_light**2)))
-
-omega = omega - (1/mc2) * (anomalous_moment + 1/(1+gamma0)) * cross_product(p_vec,field%E)
-
-if (bmad_com%electric_dipole_moment /= 0) then
-  omega = omega - (gamma0 * bmad_com%electric_dipole_moment / (2 * c_light)) * &
-            (field%E - gamma0 * dot_product(p_vec, field%E) * field%E / ((1 + gamma0) * mc2) + &
-             c_light**2 * cross_product(p_vec, field%B))
+bz2 = rel_p**2 - coord%vec(2)**2 - coord%vec(4)**2
+if (bz2 < 0) then  ! Particle has unphysical velocity
+  omega = 0
+  return
 endif
 
-omega = -(charge/p_z) * omega
+beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sqrt(bz2)]
+
+omega = c_light * (1/gamma + anomalous_moment) * field%B
+omega = omega - c_light * (gamma * anomalous_moment * dot_product(beta_vec, field%B) / (gamma + 1)) * beta_vec
+omega = omega - (anomalous_moment + 1/(1+gamma)) * cross_product(beta_vec, field%E)
+
+if (bmad_com%electric_dipole_moment /= 0) then
+  omega = omega + (bmad_com%electric_dipole_moment / 2) * &
+            (field%E - (gamma * dot_product(beta_vec, field%E)/ (1 + gamma)) * beta_vec + &
+             c_light * cross_product(beta_vec, field%B))
+endif
+
+omega = -(charge_of(coord%species) / (mc2 * beta_vec(3))) * omega
 
 end function spin_omega
 
@@ -882,21 +884,19 @@ real(rp) x, y, s1
 field%b = [0.0_rp, ele%value(b_field$) + ele%value(b_field_err$), 0.0_rp]
 field%e = 0
 
-if (ele%value(k1$) /= 0 .or. ele%value(k2$) /= 0) then
-  x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
-  y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
-endif
+x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
+y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
 
 if (ele%value(k1$) /= 0) field%b = field%b + ele%value(b1_gradient$) * [y, x, 0.0_rp]
-if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, x*x-y*y, 0.0_rp]
+if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, (x*x-y*y)/2, 0.0_rp]
 
-!
+! 1 + g*x term comes from the curved coordinates.
 
 orb = start_orb
 orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
 orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
 
-omega = spin_omega (field, orb, ele)
+omega = (1 + ele%value(g$) * x) * spin_omega (field, orb, ele)
 
 end function sbend_omega_func
 

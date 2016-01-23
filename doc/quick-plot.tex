@@ -432,42 +432,6 @@ The fill styles are:
     4 -- cross_hatched\$     
 \end{example}
 
-\index{quick_plot!symbol table}
-\begin{table}
-  \centering
-  \includegraphics{plot-syms.pdf}
-  \caption{Plotting Symbols at Height = 40.0}
-  \label{t:plot.syms}
-\end{table}
-
-\begin{table}
-\begin{tabular}{|l|l|} \hline
-{\B}u       & Start a superscript, or end a subscript \\ \hline
-{\B}d       & \parbox{4in}{Start a subscript, or end a superscript 
-               (note that {\B}u and {\B}d must always be used in pairs)} \\ \hline
-{\B}b       & \parbox{4in}{Backspace (i.e., do not advance text pointer  
-               after plotting the previous character)} \\ \hline
-{\B}fn      & Switch to Normal font (1)       \\ \hline
-{\B}fr      & Switch to Roman font (2)        \\ \hline
-{\B}fi      & Switch to Italic font (3)       \\ \hline
-{\B}fs      & Switch to Script font (4)       \\ \hline
-{\B}{\B}    & Backslash character (\B)        \\ \hline
-{\B}x       & Multiplication sign ($\times$)  \\ \hline
-{\B}.       & Centered dot ($\cdot$)          \\ \hline
-{\B}A       & Angstrom symbol (\AA)         \\ \hline
-{\B}gx      & Greek letter corresponding to roman letter x \\ \hline
-{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\ \hline
-{\B}(nnnn)  & 
-\parbox{4in}{Character number nnnn (1 to 4 decimal digits) from the
-Hershey character set; the closing parenthesis may be omitted if the
-next character is neither a digit nor ``)''. This makes a number of
-special characters (e.g., mathematical, musical, astronomical, and
-cartographical symbols) available.} \\ \hline
-\end{tabular}
-\caption{PGPLOT Escape Sequences.}
-\label{t:pgplot.escape}
-\end{table}
-
 \index{quick_plot!symbol styles}
 The symbol types are:
 \begin{example}
@@ -510,6 +474,42 @@ using a height of 40 via the call
   call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
 \end{example}
 
+\index{quick_plot!symbol table}
+\begin{table}
+  \centering
+  \includegraphics{plot-syms.pdf}
+  \caption{Plotting Symbols at Height = 40.0}
+  \label{t:plot.syms}
+\end{table}
+
+\begin{table}
+\begin{tabular}{ll} \toprule
+{\B}u       & Start a superscript or end a subscript \\[0.5ex]
+{\B}d       & Start a subscript or end a superscript.
+              {\B}u and {\B}d must always be used in pairs \\[0.5ex]
+{\B}b       & Backspace (i.e., do not advance text pointer  
+               after plotting the previous character) \\[0.5ex]
+{\B}fn      & Switch to Normal font (1)       \\[0.5ex]
+{\B}fr      & Switch to Roman font (2)        \\[0.5ex]
+{\B}fi      & Switch to Italic font (3)       \\[0.5ex]
+{\B}fs      & Switch to Script font (4)       \\[0.5ex]
+{\B}{\B}    & Backslash character (\B)        \\[0.5ex]
+{\B}x       & Multiplication sign ($\times$)  \\[0.5ex]
+{\B}.       & Centered dot ($\cdot$)          \\[0.5ex]
+{\B}A       & Angstrom symbol (\AA)         \\[0.5ex]
+{\B}gx      & Greek letter corresponding to roman letter x \\[0.5ex]
+{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\[1ex]
+{\B}(nnnn)  & 
+\parbox{4.8in}{\setstretch{0.5} Character number nnnn (1 to 4 decimal digits) from the
+Hershey character set; the closing parenthesis may be omitted if the
+next character is neither a digit nor ``)''. This makes a number of
+special characters (e.g., mathematical, musical, astronomical, and
+cartographical symbols) available.} \\ \bottomrule
+\end{tabular}
+\caption{PGPLOT Escape Sequences.}
+\label{t:pgplot.escape}
+\end{table}
+
 Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
 is a Roman letter, map onto the Greek character set.
 \begin{table}
@@ -520,7 +520,6 @@ is a Roman letter, map onto the Greek character set.
 Greek character.}
 \label{t:greek}
 \end{table}
-
 
 
 %----------------------------------------------------------------------------
