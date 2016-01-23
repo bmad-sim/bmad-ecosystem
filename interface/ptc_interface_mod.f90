@@ -3279,20 +3279,21 @@ case (rfcavity$, lcavity$)
 
   ptc_key%list%delta_e = 0     ! For radiation calc.
 
+! ptc elsep cannot do spin tracking so use general electrostatic element instead.
 case (elseparator$)
-  ptc_key%magnet = 'elseparator'
-  hk = val(hkick$) / leng
-  vk = val(vkick$) / leng
-  if (hk == 0 .and. vk == 0) then
-    ptc_key%tiltd = 0
-  else
-    if (param%particle < 0) then
-      hk = -hk
-      vk = -vk
-    endif
-    ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
-  endif
-  ptc_key%list%volt = 1d-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
+!  ptc_key%magnet = 'elseparator'
+!  hk = val(hkick$) / leng
+!  vk = val(vkick$) / leng
+!  if (hk == 0 .and. vk == 0) then
+!    ptc_key%tiltd = 0
+!  else
+!    if (param%particle < 0) then
+!      hk = -hk
+!      vk = -vk
+!    endif
+!    ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
+!  endif
+!  ptc_key%list%volt = 1d-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
 
 case (ab_multipole$, multipole$)
   ptc_key%magnet = 'multipole'
@@ -3362,7 +3363,7 @@ endif
 
 ! Electric fields present? Everything is an sbend!
 
-if (associated(ele%a_pole_elec)) then
+if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   ptc_key%magnet = 'sbend'
   SOLVE_ELECTRIC = .true.
 endif
@@ -3416,13 +3417,19 @@ lielib_print(12) = n
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
 ! Note: PTC convert MV/m to GV/m internally.
 
-if (associated(ele%a_pole_elec)) then
+if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   if (ele%key /= sbend$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = sign_of(charge_of(param%particle)) * 1d-9 / VOLT_C
   call multipole_ele_to_ab(ele, .false., has_nonzero_pole, a_pole, b_pole, electric$)
+
+  if (ele%key == elseparator$) then
+    a_pole(0) = a_pole(0) + val(vkick$) * ele%value(p0c$) / leng
+    b_pole(0) = b_pole(0) + val(hkick$) * ele%value(p0c$) / leng
+  endif
+
   do i = 0, n_pole_maxx
     if (a_pole(i) /= 0) call add (ptc_fibre, -(i+1), 0, fh*a_pole(i), electric = .true.)
     if (b_pole(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*b_pole(i), electric = .true.)

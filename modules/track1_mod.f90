@@ -308,62 +308,6 @@ end function orbit_too_large
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, ele, length)
-!
-! Subroutine to track a particle as through a drift.
-!
-! Modules needed:
-!   use track1_mod
-!
-! Input:
-!   orb      -- coord_struct: Orbit at start of the drift.
-!   ele      -- Ele_struct: Element tracked through.
-!   length   -- Real(rp): Length to drift through.
-!
-! Output:
-!   orb      -- coord_struct: Orbit at end of the drift
-!-
-
-subroutine track_a_drift (orb, ele, length)
-
-implicit none
-
-type (coord_struct) orb
-type (ele_struct) ele
-type (lat_param_struct) param
-real(rp) length, rel_pc, dz, px, py, pz, pxy2
-
-! Everything but photons
-
-rel_pc = 1 + orb%vec(6)
-px = orb%vec(2) / rel_pc
-py = orb%vec(4) / rel_pc
-pxy2 = px**2 + py**2
-if (pxy2 >= 1) then
-  orb%state = lost_z_aperture$
-  return
-endif
-pz = sqrt(1 - pxy2)
-
-orb%vec(1) = orb%vec(1) + length * px / pz
-orb%vec(3) = orb%vec(3) + length * py / pz
-
-if (orb%beta > 0) then
-  dz = length * (orb%beta * ele%value(e_tot$) / ele%value(p0c$) - 1/pz)
-  orb%t = orb%t + length / (orb%beta * pz * c_light)
-else
-  dz = length * (1 - 1/pz)
-endif
-
-orb%vec(5) = orb%vec(5) + dz
-orb%s = orb%s + length
-
-end subroutine track_a_drift
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Subroutine track_a_bend (start_orb, ele, param, end_orb)
 !
 ! Particle tracking through a bend element. 
@@ -461,7 +405,7 @@ do n = 1, n_step
     call sbend_body_with_k1_map (ele, param, n_step, end_orb, end_orb = end_orb)
 
   elseif (g == 0 .and. g_err == 0) then
-    call track_a_drift (end_orb, ele, length)
+    call track_a_drift (end_orb, length)
     drifting = .true.
 
   !-----------------------------------------------------------------------
@@ -2490,61 +2434,5 @@ if (logic_option(.true., drift_to_exit)) then
 endif
 
 end subroutine track_a_patch
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine reference_energy_correction (ele, orbit, particle_at)
-!
-! For elements where the reference energy is changing the reference energy in the 
-! body is taken by convention to be the reference energy at the exit end.
-! Elements where the reference energy can change:
-!   lcavity
-!   patch
-!   custom
-!
-! This routine should be called at the start of any tracking integration.
-!
-! Input:
-!   ele         -- Ele_struct: Element being tracked through.
-!   orbit       -- Coord_struct: Coordinates to correct.
-!   particle_at -- integer: first_track_edge$ (that is, entering the element), or 
-!                           second_track_edge$ (that is, leaving the element).
-!
-! Output:
-!   orbit     -- Coord_struct: Coordinates to correct.
-!-
-
-subroutine reference_energy_correction (ele, orbit, particle_at)
-
-implicit none
-
-type (ele_struct) :: ele
-type (coord_struct) :: orbit
-
-real(rp) p0, p1, e_start, p_rel
-integer particle_at
-character(*), parameter :: r_name = 'reference_energy_correction'
-
-!
-
-if (ele%value(p0c$) == ele%value(p0c_start$)) return
-
-if (orbit%direction == 1 .and. particle_at == first_track_edge$) then
-  p_rel = ele%value(p0c_start$) / ele%value(p0c$)
-  orbit%p0c = ele%value(p0c$)
-elseif (orbit%direction == -1 .and. particle_at == second_track_edge$) then
-  p_rel = ele%value(p0c$) / ele%value(p0c_start$)
-  orbit%p0c = ele%value(p0c_start$)
-else
-  return
-endif
-
-orbit%vec(2) = orbit%vec(2) * p_rel
-orbit%vec(4) = orbit%vec(4) * p_rel
-orbit%vec(6) = (1 + orbit%vec(6)) * p_rel - 1
-
-end subroutine reference_energy_correction
 
 end module

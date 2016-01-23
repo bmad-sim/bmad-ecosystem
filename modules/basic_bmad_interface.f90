@@ -517,6 +517,14 @@ interface
     integer, optional :: ix_cache, ix_branch
   end subroutine
 
+  subroutine reference_energy_correction (ele, orbit, particle_at)
+    import
+    implicit none
+    type (ele_struct) :: ele
+    type (coord_struct) :: orbit
+    integer particle_at
+  end subroutine
+
   subroutine remove_eles_from_lat (lat, check_sanity)
     import
     implicit none
@@ -680,6 +688,13 @@ interface
     integer ix_end
     integer direction
     integer, optional :: ix_branch, track_state
+  end subroutine
+
+  subroutine track_a_drift (orb, length)
+    import
+    implicit none
+    type (coord_struct) orb
+    real(rp) length
   end subroutine
 
   recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
