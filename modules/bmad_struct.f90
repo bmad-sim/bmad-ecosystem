@@ -1332,7 +1332,7 @@ type bmad_common_struct
   real(rp) :: init_ds_adaptive_tracking = 1d-3        ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
-  real(rp) :: electric_dipole_moment = 0              ! Particle's EDM
+  real(rp) :: electric_dipole_moment = 0              ! Particle's EDM. Call set_ptc to transfer value to PTC.
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved
                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 

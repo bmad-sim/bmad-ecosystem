@@ -40,47 +40,22 @@ While \bmad cannot directly read in \mad\cite{b:maduser} or
 files is possible using the \vn{Universal Accelerator Parser} as
 discussed in Chapter~\sref{c:lat.convert}.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Units and Constants}
 \label{s:constants}
 \index{constants|hyperbf}
-
-\bmad uses SI (Syst\`eme International) units as shown in
-Table~\ref{t:units}.
-
-\index{MAD!units}
-\index{units!with MAD}
-\bmad uses SI (Syst\`eme International) units as shown in
-Table~\ref{t:units}.  Note that \mad uses different units. For example,
-\mad's unit of Particle Energy is GeV not eV.
-\begin{table}[ht]
-\centering
-\begin{tabular}{|l|l|} \hline
-  {\em Quantity}     & {\em Units}       \\ \hline
-  Angles             &    radians        \\ 
-  Betatron Phase     &    radians        \\
-  Current            &    Amps           \\ 
-  Frequency          &    Hz             \\ 
-  Kick               &    radians        \\ 
-  Length             &    meters         \\ 
-  Magnetic Field     &    Tesla          \\ 
-  Particle Energy    &    eV             \\ 
-  RF Phase Angles    &    radians/2$\pi$ \\ 
-  Voltage            &    Volts          \\ \hline
-\end{tabular}
-\caption{Physical units used by \bmad.}
-\label{t:units}
-\end{table}
 
 \bmad defines commonly used physical and mathematical constants
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{emass} and \vn{pmass} which are provided for
 compatibility with \mad and should be avoided.
 
-\begin{table}
+\begin{table}[h]
 \centering
-\begin{tabular}{|l|l|l|l|} \hline
-  {\em Symbol}        & {\em Value}       & {\em Units}     &  {\em Name}           \\ \hline
+\begin{tabular}{llll} \toprule
+  {\em Symbol}        & {\em Value}       & {\em Units}     &  {\em Name}           \\ \midrule
   pi                  & 3.14159265359          &            &                       \\
   twopi               & 2 * pi                 &            &                       \\
   fourpi              & 4 * pi                 &            &                       \\
@@ -107,10 +82,37 @@ compatibility with \mad and should be avoided.
   h_planck            & $4.13566733 \pow{-15}$ & eV*sec     & Planck's constant     \\
   h_bar_planck        & $6.58211899 \pow{-16}$ & eV*sec     & Planck / $2\pi$       \\
   emass               & $0.51099906 \pow{-3}$  & GeV        & Electron mass         \\
-  pmass               & $0.938271998$          & GeV        & Proton mass           \\ \hline
+  pmass               & $0.938271998$          & GeV        & Proton mass           \\ \bottomrule
 \end{tabular}
 \caption{Physical and mathematical constants recognized by \bmad.}
 \label{t:constants}
+\end{table}
+
+\newpage
+
+\index{MAD!units}
+\index{units!with MAD}
+\bmad uses SI (Syst\`eme International) units as shown in
+Table~\ref{t:units}.  Note that \mad uses different units. For example,
+\mad's unit of Particle Energy is GeV not eV.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll} \toprule
+  {\em Quantity}     & {\em Units}       \\ \midrule
+  Angles             &    radians        \\ 
+  Betatron Phase     &    radians        \\
+  Current            &    Amps           \\ 
+  Frequency          &    Hz             \\ 
+  Kick               &    radians        \\ 
+  Length             &    meters         \\ 
+  Magnetic Field     &    Tesla          \\ 
+  Particle Energy    &    eV             \\ 
+  RF Phase Angles    &    radians/2$\pi$ \\ 
+  Voltage            &    Volts          \\ \bottomrule
+\end{tabular}
+\caption{Physical units used by \bmad.}
+\label{t:units}
 \end{table}
 
 %---------------------------------------------------------------------------

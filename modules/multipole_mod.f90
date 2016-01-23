@@ -419,13 +419,17 @@ case (elseparator$, kicker$)
   endif
   ref_exp = 0
 
-case (quadrupole$, sol_quad$)
-  const = this_ele%value(k1$) * this_ele%value(l$)
-  ref_exp = 1
+case (hkicker$, vkicker$)
+  const = this_ele%value(kick$)
+  ref_exp = 0
 
 case (wiggler$, undulator$)
   const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / (pi * this_ele%value(p0c$))
   ref_exp = 0
+
+case (quadrupole$, sol_quad$)
+  const = this_ele%value(k1$) * this_ele%value(l$)
+  ref_exp = 1
 
 case (solenoid$)
   const = this_ele%value(ks$) * this_ele%value(l$)

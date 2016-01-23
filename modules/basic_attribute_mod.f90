@@ -825,6 +825,7 @@ call init_attribute_name1 (def_parameter$, absolute_time_tracking$,   'ABSOLUTE_
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,       'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, default_tracking_species$, 'DEFAULT_TRACKING_SPECIES')
+call init_attribute_name1 (def_parameter$, electric_dipole_moment$,   'ELECTRIC_DIPOLE_MOMENT')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)

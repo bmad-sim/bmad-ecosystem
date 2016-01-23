@@ -78,7 +78,7 @@ Flow chart of tune tracker module functions.}
 \item[New BPM Meas.]  
 This consists of one BPM measurement.  It is either horizontal or
 vertical position at the BPM location.  It is assumed that each
-measurement is separeted by the same $\Delta t$, and that $\Delta t$
+measurement is separated by the same $\Delta t$, and that $\Delta t$
 is an integer multiple of the ring period.
 
 \item[Subtract closed orbit offset]  
@@ -107,7 +107,7 @@ G = g_a \textrm{abs}\left(x\right) + \left(1-g_a\right)G\textrm{,}
 \end{equation*}
 which is a exponentially weighted moving average, or equivalently, a
 low-pass filter.  $x$ is the incoming data point.  $g_a$ is a
-hardcoded time constant.  It is set so that $G$ equilibriates to the
+hard coded time constant.  It is set so that $G$ equilibrates to the
 rms beam size after about 10 periods.
 
 \item[Fast Electronics]  
@@ -164,7 +164,7 @@ This is the (I)ntegrated channel of the PID controller.  It integrates
 the output of the phase detector, providing negative feedback.  If the
 integrated phase is positive, the I channel slows the VCO down.  If
 negative, it speeds the VCO up.  This channel is expected to
-equilibriate to some non-zero value proportional to the difference
+equilibrate to some non-zero value proportional to the difference
 between the beam frequency and the VCO base frequency.
 
 \item[Update $\boldsymbol{\psi}$] This increments the modulator phase according to,
@@ -192,7 +192,7 @@ small, the VCO may oscillate indefinitely around the fractional tune
 of the beam.  See section~\sref{Tuning} below for more details.
 
 \item[Gain $K_D$ $\times$ filtered derivative]  
-This is the (D)ifferential channel fo the PID controller.  Provides a
+This is the (D)ifferential channel of the PID controller.  Provides a
 filtered first derivative of the output of the phase detector.  The
 derivative is obtained a polynomial fitted to a history of the phase
 detector output.  This channel can be used to smooth out the VCO
@@ -243,14 +243,11 @@ Tab.~[\ref{t:pid-params}] is the effect increasing the PID controller
 gains.
 
 \begin{table}
-\begin{tabular}{|c|ccccc|}
-\hline
-Parameter&  Rise Time&        Overshoot&        Settling Rate&      Precision&  Stability Region\\
-\hline
+\begin{tabular}{llllll} \toprule
+Parameter&  Rise Time&        Overshoot&        Settling Rate&      Precision&  Stability Region\\ \midrule
 $K_P$&      slight decrease&  decrease&         faster&             degrade&    shrink\\
 $K_I$&      decrease&         increase&         slower&             no change&  shrink\\
-$K_D$$^\textrm{see note}$&    slight increase&  slight decrease&  slightly faster&    degrade&    grow\\ 
-\hline
+$K_D$$^\textrm{see note}$&    slight increase&  slight decrease&  slightly faster&    degrade&    grow\\ \bottomrule
 \end{tabular}
 \caption[Effect on VCO response of increasing $K_P$, $K_I$, or $K_D$.]{
 Effect on VCO response of increasing $K_P$, $K_I$, or $K_D$. 

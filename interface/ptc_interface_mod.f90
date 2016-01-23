@@ -1004,9 +1004,15 @@ end function kind_name
 ! Note: At some point before you use PTC to compute Taylor maps etc.
 !   you have to call set_ptc with both e_tot and particle args present. 
 !   Always supply both of these args together or not at all. 
+!
 ! Note: If you just want to use FPP without PTC then call the FPP routine init directly.
+!
 ! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
+!
 ! Note: Use the routine get_ptc_params to get the state of PTC parameters.
+!
+! Note: Call this routine to transfer the value of the electric dipole moment from 
+!   bmad_com%electric_dipole_moment to PTC.
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1043,7 +1049,7 @@ use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
-use c_tpsa, only: c_verbose
+use c_tpsa, only: c_verbose, E_MUON
 
 implicit none
 
@@ -1068,6 +1074,8 @@ if (present(particle)) then
 endif
 
 ! Some init
+
+E_MUON = bmad_com%electric_dipole_moment
 
 if (init_init_needed) then
   EXACT_MODEL = .false.
@@ -3093,12 +3101,12 @@ integer, optional :: tracking_species
 integer, optional :: integ_order, steps
 integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos
 
-logical use_offsets, has_nonzero_pole
+logical use_offsets, has_nonzero_pole, kill_spin_fringe
 logical, optional :: for_layout, use_hard_edge_drifts
 
 character(16) :: r_name = 'ele_to_fibre'
 
-!
+! 
 
 call zero_key(ptc_key)  ! init key
 
@@ -3355,11 +3363,16 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0
 endif
 
-if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
-  ix = nint(ele%value(fringe_at$))
-  ptc_key%list%kill_ent_fringe = (ix == exit_end$ .or. ix == no_end$)
-  ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
-endif
+! Fringes
+
+ix = both_ends$
+if (attribute_index(ele, 'FRINGE_AT') > 0) ix = nint(ele%value(fringe_at$))
+kill_spin_fringe = is_false(ele%value(spin_fringe_on$))
+
+ptc_key%list%kill_ent_fringe = (ix == exit_end$ .or. ix == no_end$)
+ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
+ptc_key%list%kill_ent_spin = (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_fringe)
+ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe)
 
 ! Electric fields present? Everything is an sbend!
 
