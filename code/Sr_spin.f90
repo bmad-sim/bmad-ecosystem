@@ -1276,7 +1276,6 @@ contains
     !     call clean_real_8(om(i),om(i),1.d-7)
     !     CALL PRINT(OM(I),24)
     !    ENDDO
-    !    WRITE(24,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  "
 
     !    X=XS
 
@@ -4408,7 +4407,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        enddo
 
        if(mod(k,kp)==0) then  ! kp
-          write(mff,*) k,"$$$$$$$$$$$$$$$$$$$$$$$$$"
+          write(mff,*) k,"#########################"
           do i=1,3
              norm=root(xst%s(1)%x(i)**2+xst%s(2)%x(i)**2+xst%s(3)%x(i)**2)
              if(norm>=0.0_dp) then
@@ -4717,7 +4716,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     !
     !
 
-    !!$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    !######################################
     ! some gymnastic if behind the integration node
     if(tw%parent_fibre%dir>0) then
 
@@ -4741,7 +4740,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           call change_basis(DA,b%ent,dal,tw%ent)
        endif
     endif
-    !!$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    !######################################
 
     p=dal
     b%tp(j)%ds=p(3)
