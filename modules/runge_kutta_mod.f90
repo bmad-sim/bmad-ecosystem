@@ -614,7 +614,7 @@ dr_ds(7) = dt_ds
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  dr_ds(8:10) = f_bend * spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
+  dr_ds(8:10) = f_bend * spin_omega (field, orbit) + [-gy_bend, gx_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0
 endif

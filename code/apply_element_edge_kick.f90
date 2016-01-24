@@ -94,7 +94,7 @@ if (associated(hard_ele%a_pole_elec)) then
     orb%vec(6) = (pc - orb%p0c) / orb%p0c
 
     if (track_spn) then
-      call rotate_spinor_given_field (orb, track_ele, EL = [0.0_rp, 0.0_rp, phi])
+      call rotate_spinor_given_field (orb, EL = [0.0_rp, 0.0_rp, phi])
     endif
   enddo
 endif
@@ -123,7 +123,7 @@ case (solenoid$, sol_quad$, bend_sol_quad$)
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spn) then
     f = at_sign * relative_tracking_charge(orb, param) * track_ele%value(bs_field$) / 2
-    call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
+    call rotate_spinor_given_field (orb, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
@@ -148,8 +148,8 @@ case (lcavity$, rfcavity$, e_gun$)
 
     if (track_spn) then
       f = at_sign * charge_of(orb%species) / 2.0_rp
-      call rotate_spinor_given_field (orb, track_ele, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
-                                                      -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+      call rotate_spinor_given_field (orb, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
+                                           -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
     endif
 
     ! orb%phase(1) is set by em_field_calc.
@@ -164,7 +164,7 @@ case (elseparator$)
   call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
   orb%vec(6) = (pc - orb%p0c) / orb%p0c
   if (track_spn) then
-    call rotate_spinor_given_field (orb, track_ele, EL = [0.0_rp, 0.0_rp, phi])
+    call rotate_spinor_given_field (orb, EL = [0.0_rp, 0.0_rp, phi])
   endif
 
 end select
