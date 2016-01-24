@@ -757,9 +757,9 @@ The quadrupole parameters are related to the corresponding SAD parameters
 In the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 %---------------------------------------------------------------------------------
-\subsection{Multipole Hard Edge Fringe Map}
+\subsection{Magnetic Multipole Hard Edge Fringe}
 
-The multipole hard edge fringe field is modeled using the method shown in
+The magnetic multipole hard edge fringe field is modeled using the method shown in
 Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
 is (Forest Eq.~(13.29):
 \begin{align}
@@ -786,22 +786,22 @@ With this, the implicit multipole map is (Forest Eq.~(13.31))
 \end{align}
 
 %---------------------------------------------------------------------------------
-\subsection{Spin Hard Edge Multipole Fringe Tracking}
+\subsection{Electrostatic Multipole Hard Edge Fringe}
 \label{s:spin.hard.fringe}
 
-The effect on the spin when tracking through the fringe field of a multipole field tends
-to be weak. As such, a hard edge, first order, treatment should be sufficient. In this
-case, it is the longitudinal integrated fringe field that is important. The longitudinal
-integrated field at constant $(x,y)$ for the $n$\Th order multipole is simply obtained by
-requireing that the curl is zero. For electric fields this is:
+The electric multipole hard edge fringe field, to lowest order, consists of just a
+longitudinal field. The integrated longitudinal field at constant $(x,y)$ for the $n$\Th
+order multipole is simply obtained by requireing that the curl of the field is zero.
+This gives:
 \Begineq
   \int E_s(x,y) \, ds = \phi_n(x,y)
 \Endeq
-where $\phi_n$ is given in \Eq{pbian1}. For a magnetic multipole there is an analogous
-equation.
+where $\phi_n$ is given in \Eq{pbian1}. [For a magnetic multipole there is an analogous
+equation.]
 
-Once the integrated field is computed, the spin is tracked using the T-BMT equation
-(\Eq{tbmt}).
+The effect on the spin when tracking through the fringe field of a multipole field tends
+to be weak. As such, this hard edge model is sufficient.  and the spin is tracked using
+the T-BMT equation (\Eq{tbmt}).
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

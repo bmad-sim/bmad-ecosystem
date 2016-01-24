@@ -449,13 +449,17 @@ Since speed may be an issue, \bmad has an global parameter called
 \vn{spin_tracking_on} which is part of the \vn{bmad_com} instance
 (\sref{s:bmad.params}) that determines whether spin is tracked or not.
 
+\index{spin_fringe_on}
+The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle
+whether the fringe fields of an element affect the spin.
+
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}
 
 \index{bmad_standard!spin_tracking_method}
 \item[\vn{Bmad_Standard}] \Newline
-Uses formulas for the calculation. The formulas generally use the
-paraxial approximation. The emphasis here is on speed.
+Uses thick element formulas for the calculation. The emphasis here is on speed at the
+potential cost of accuracy.
 
 \index{custom!spin_tracking_method}
 \item[\vn{Custom}] \Newline
@@ -465,18 +469,16 @@ calculation. See \vn{s:custom.ele} for more details.
 
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}] \Newline
-How spin is tracked here will depend also on the setting of
-\vn{tracking_method}. If \vn{tracking_method} is set to \vn{boris},
-\vn{runge_kutta}, or \vn{symp_lie_ptc}, the spin will be tracked along
-with the phase space particle coordinates using the local fields. For
-all other \vn{tracking_method}s, the spin will be tracked using the
-\vn{bmad_standard} spin tracking method.
+How spin is tracked here will depend also on the setting of \vn{tracking_method}. If
+\vn{tracking_method} is set to \vn{boris}, \vn{runge_kutta}, \vn{time_runge_kutta}, or
+\vn{symp_lie_ptc}, the spin will be tracked along with the phase space particle
+coordinates using the local fields. For all other \vn{tracking_method}s, the spin will be
+tracked using the \vn{bmad_standard} spin tracking method.
 
 \index{symp_lie_ptc!spin_tracking_method}
 \item[\vn{Symp_Lie_PTC}] \Newline
-Symplectic integration using a Hamiltonian and Lie operators.
-This uses \'Etienne's PTC software for the calculation.
-This method is symplectic but can be slow.
+Symplectic integration using a Hamiltonian and Lie operators.  This uses \'Etienne's PTC
+software for the calculation.  This method is symplectic but can be slow.
 
 \end{description}
 
