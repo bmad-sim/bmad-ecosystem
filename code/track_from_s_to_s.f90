@@ -99,7 +99,7 @@ endif
 
 ! Track to ending element
 
-ix_ele = ix_start + 1
+ix_ele = modulo(ix_start, branch%n_ele_track) + 1
 do
   if (ix_ele == ix_end) exit
 
