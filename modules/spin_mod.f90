@@ -283,7 +283,7 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine rotate_spinor_given_field (orbit, ele, BL, EL)
+! Subroutine rotate_spinor_given_field (orbit, BL, EL, ele, ds)
 !
 ! Routine to rotate a spinor given the integrated magnetic and/or electric field strengths.
 !
@@ -291,20 +291,20 @@ end function angle_between_polars
 !   use spin_mod
 !
 ! Input:
-!   orbit       -- coord_struct: Initial orbit.
-!   ele         -- ele_struct: Element being tracked through.
-!   BL(3)       -- real(rp), optional: Integrated field strength. Assumed zero if not present.
-!   EL(3)       -- real(rp), optional: Integrated field strength. Assumed zero if not present.
+!   orbit   -- coord_struct: Initial orbit.
+!   BL(3)   -- real(rp), optional: Integrated field strength. Assumed zero if not present.
+!   EL(3)   -- real(rp), optional: Integrated field strength. Assumed zero if not present.
+!   ele     -- ele_struct, optional: Element being tracked through. If element is an sbend,
+!               a
 !
 ! Output:
-!   orbit       -- coord_struct: Orbit with rotated spin
+!   orbit   -- coord_struct: Orbit with rotated spin
 !-
 
-subroutine rotate_spinor_given_field (orbit, ele, BL, EL)
+subroutine rotate_spinor_given_field (orbit, BL, EL)
 
 implicit none
 
-type (ele_struct) ele
 type (coord_struct) orbit
 type (em_field_struct) field
 
@@ -325,10 +325,50 @@ else
   field%E = 0
 endif
 
-omega = spin_omega (field, orbit, ele)
+omega = spin_omega (field, orbit)
 call rotate_spinor (omega, orbit%spin)
 
 end subroutine rotate_spinor_given_field
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine rotate_spinor_a_step (orbit, field, ele, ds)
+!
+! Routine to rotate a spinor an integration step.
+! Note: It is assumed that the orbit coords are in the element ref fram and not the lab frame.
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input:
+!   orbit   -- coord_struct: Initial orbit.
+!   field   -- em_field_struct: EM Field 
+!   ele     -- ele_struct, Element being tracked through. 
+!   ds      -- real(rp): Longitudinal step
+!
+! Output:
+!   orbit   -- coord_struct: Orbit with rotated spin
+!-
+
+subroutine rotate_spinor_a_step (orbit, field, ele, ds)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+type (em_field_struct) field
+
+real(rp) ds, omega(3)
+
+!
+
+omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + &
+                                                  [0.0_rp, ele%value(g$), 0.0_rp]
+call rotate_spinor (ds * omega, orbit%spin)
+
+end subroutine rotate_spinor_a_step
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -452,7 +492,7 @@ end function calc_rotation_quaternion
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega (field, coord, ele), result (omega)
+! Function spin_omega (field, coord), result (omega)
 !
 ! Return the modified T-BMT spin omega vector.
 !
@@ -464,21 +504,19 @@ end function calc_rotation_quaternion
 !   use em_field_mod
 !
 ! Input:
-!   field      -- em_field_struct: E and B fields
-!   coord      -- coord_struct: particle momentum
-!   ele        -- ele_struct: element particle is in.
+!   field      -- em_field_struct: E and B fields.
+!   coord      -- coord_struct: particle momentum.
 !
 ! Output:
 !   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates.
 !-
 
-function spin_omega (field, coord, ele) result (omega)
+function spin_omega (field, coord) result (omega)
 
 implicit none
 
 type (em_field_struct) :: field
 type (coord_struct) :: coord
-type (ele_struct) :: ele
 
 real(rp) omega(3),  beta_vec(3)
 real(rp) anomalous_moment, gamma, rel_p, e_particle, mc2, bz2
@@ -722,7 +760,7 @@ case (solenoid$)
 
   temp_end%vec(2) =  m21 * vec0(1) + m22 * vec0(2) + m23 * vec0(3) + m24 * vec0(4)
   temp_end%vec(4) = -m23 * vec0(1) - m24 * vec0(2) + m21 * vec0(3) + m22 * vec0(4)
-  call rotate_spinor_given_field (temp_end, ele, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
+  call rotate_spinor_given_field (temp_end, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
 
 !-----------------------------------------------
 ! RFcavity, LCavity
@@ -896,7 +934,7 @@ orb = start_orb
 orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
 orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
 
-omega = (1 + ele%value(g$) * x) * spin_omega (field, orb, ele)
+omega = (1 + ele%value(g$) * x) * spin_omega (field, orb)
 
 end function sbend_omega_func
 
@@ -936,7 +974,7 @@ orb = start_orb
 orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
 orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
 
-omega = spin_omega (field, orb, ele)
+omega = spin_omega (field, orb)
 
 end function quad_etc_omega_func
 
@@ -976,7 +1014,7 @@ orb%beta   = start_orb%beta   * (s_tot - ss) / s_tot + end_orb%beta   * ss / s_t
 
 call em_field_calc (ele, param, s, orb%t, orb, .true., field)
 
-omega = spin_omega (field, orb, ele)
+omega = spin_omega (field, orb)
 
 end function cavity_omega_func
 

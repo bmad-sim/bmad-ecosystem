@@ -251,7 +251,7 @@ call em_field_calc (ele, param, s+ds2, t, end, .true., field)
 ! This uses the momentum at the beginning and the fields at (ds2)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call rotate_spinor_given_field (end, ele, ds2*field%b, ds2*field%e)
+  call rotate_spinor_a_step (end, field, ele, ds2)
 endif
 
 ! 3) Push the momenta a 1/2 step using only the "b" term.
@@ -328,7 +328,7 @@ end%beta = beta
 ! 6.5) Push the spin 1/2 step
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call rotate_spinor_given_field (end, ele, ds2*field%b, ds2*field%e)
+  call rotate_spinor_a_step (end, field, ele, ds2)
 endif
 
 end subroutine
