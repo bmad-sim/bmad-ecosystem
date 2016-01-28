@@ -266,10 +266,11 @@ Example:
 \label{s:begin.ele}
 \index{beginning_ele|hyperbf}
 
-An \vn{beginning_ele} element, named \vn{BEGINNING}, is placed at the
-beginning of every branch (\sref{s:branch.def}) of a lattice to mark
-the start of the branch. The \vn{beginning_ele} always has element index 0
-(\sref{c:lat.concepts}).
+An \vn{beginning_ele} element, named \vn{BEGINNING}, is placed at the beginning of every
+branch (\sref{s:branch.def}) of a lattice to mark the start of the branch. The
+\vn{beginning_ele} always has element index 0 (\sref{c:lat.concepts}). The creation of
+this \vn{beginning_ele} element is automatic and it is not permitted for a lattice file to
+define any other \vn{beginning_ele} elements.
 
 \vn{beginning_ele} attributes are generally set using either \vn{parameter}
 (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statements.

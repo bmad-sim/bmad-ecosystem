@@ -1096,11 +1096,14 @@ if (init_ptc_needed .and. params_present) then
     call make_states (pmaMUON/pmaE)
   elseif (particle == positron$ .or. particle == electron$) then
     call make_states(.true._lp)
-  else   ! Proton / antiproton
+  elseif (particle == proton$ .or. particle == antiproton$) then
     if (particle /= proton$ .and. particle /= antiproton$) then
       call out_io (s_error$, r_name, 'PTC IS NOT ABLE TO HANDLE PARTICLES OF TYPE: ' // particle_name(particle), 'USING PROTON/ANTIPROTON')
     endif
     call make_states(.false._lp)
+  else
+    call make_states (mass_of(particle)/mass_of(electron$), anomalous_moment_of(particle), real(charge_of(particle), dp))
+    call out_io (s_error$, r_name, 'Note: Radiation calculation in PTC not correct for particles with charge magnitude that is not one.')
   endif
 
   ! Use PTC time tracking

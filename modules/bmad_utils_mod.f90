@@ -2407,56 +2407,6 @@ end function tracking_uses_end_drifts
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function element_has_fringe_fields (ele) result (has_fringe)
-!
-! Function to determine if the element has fringe fields that must be accounted
-! for when tracking through the element. For example, a solenoid has edge fields.
-! Note: If an element has end drifts (see tracking_uses_end_drifts function), 
-! Then the fringe_fields will be internal to the element and not at the ends.
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   ele    -- ele_struct: Element.
-!
-! Output:
-!   has_fringe -- Logical: True if the element has fringe fields.
-!-
-
-function element_has_fringe_fields (ele) result (has_fringe)
-
-type (ele_struct) ele
-logical has_fringe
-integer fringe_type
-
-!
-
-has_fringe = .false.
-
-if (associated(ele%a_pole_elec)) then
-  has_fringe = .true.
-  return
-endif
-
-select case (ele%key)
-case (lcavity$, rfcavity$, e_gun$, sextupole$, quadrupole$, octupole$)
-  if (ele%field_calc == bmad_standard$) has_fringe = .true.
-  if (nint(ele%value(fringe_type$)) == none$) has_fringe = .false.
-
-case (sol_quad$, bend_sol_quad$, solenoid$, elseparator$)
-  if (ele%field_calc == bmad_standard$) has_fringe = .true.
-
-case (sbend$)
-  has_fringe  = .true.
-end select
-
-end function element_has_fringe_fields
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end, init_needed, orbit)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
@@ -2482,7 +2432,7 @@ end function element_has_fringe_fields
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
-!   hard_end     -- Integer: Describes hard edge. Set to first_track_edge$ or second_track_edge$
+!   hard_end     -- Integer: Describes hard edge. Set to first_track_edge$, second_track_edge$, none$
 !-
 
 subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end, init_needed, orbit)
@@ -2526,6 +2476,7 @@ else
 endif
 
 nullify (hard_ele)
+hard_end = none$
 
 if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
   do i = 1, track_ele%n_lord
@@ -2546,8 +2497,6 @@ type (ele_struct) this_ele
 real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, s_orb, ds_small
 
 !
-
-if (.not. element_has_fringe_fields (this_ele)) return
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
@@ -2625,8 +2574,6 @@ real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_
 integer this_end, dir, hard_end
 
 ! Remamber: element length can be less than zero.
-
-if (.not. element_has_fringe_fields (this_ele)) return
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
