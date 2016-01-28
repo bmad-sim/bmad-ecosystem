@@ -2514,7 +2514,7 @@ case (lcavity$)
     val(voltage_err$) = val(gradient_err$) * val(l$)
   endif
 
-  if (val(rf_frequency$) /= 0) then
+  if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 
@@ -2546,7 +2546,7 @@ case (rfcavity$)
     endif
   endif
 
-  if (val(rf_frequency$) /= 0) then
+  if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 

@@ -185,7 +185,7 @@ if (present(err_flag)) err_flag = .true.
 
 mc2 = mass_of(particle)
 if (E_tot < mc2 .or. E_tot == 0) then
-  call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
+  call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS: \es10.2\ ', E_tot)
   if (global_com%exit_on_error) call err_exit
   return
 endif

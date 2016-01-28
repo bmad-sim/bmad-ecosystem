@@ -75,6 +75,8 @@ fringe_at = nint(track_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(track_ele%value(spin_fringe_on$)))
 
+if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
+
 if (particle_at == first_track_edge$) then
   at_sign = 1
 else
@@ -135,7 +137,6 @@ case (lcavity$, rfcavity$, e_gun$)
 
   if (at_this_ele_end(physical_end, nint(track_ele%value(fringe_at$)))) then
     if (particle_at == first_track_edge$) then
-      ! Note: E_gun does not have an entrance kick
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
     else
