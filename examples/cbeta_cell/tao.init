@@ -50,7 +50,7 @@ global%beam_timer_on = T
 
 &tao_d2_data
         d2_data%name = 'floor'
-        universe = *
+        universe = '*'
         n_d1_data= 2
 /
 &tao_d1_data
@@ -62,15 +62,15 @@ global%beam_timer_on = T
 &tao_d1_data
         ix_d1_data= 2
         d1_data%name = 'ele'
-        datum( 1) = element_attrib.x_offset        '' ''  'FF.Qua02'  'max'   0.340    1e10
-        datum( 2) = element_attrib.b1_gradient     '' ''  'FF.Qua02'  'max'   0.340    1e10
-        datum( 3) = orbit.x                        '' ''  'FF.Qua01.Mar.MID'  'max'   0.340    1e10
+        datum( 1) = 'element_attrib.x_offset'        '' ''  'FF.Qua02'  'max'   0.340    1e10
+        datum( 2) = 'element_attrib.b1_gradient'     '' ''  'FF.Qua02'  'max'   0.340    1e10
+        datum( 3) = 'orbit.x'                        '' ''  'FF.Qua01.Mar.MID'  'max'   0.340    1e10
 /
 
 
 &tao_d2_data
         d2_data%name = "ff"
-        universe = *
+        universe = '*'
         n_d1_data= 5
 /
 
@@ -111,13 +111,13 @@ global%beam_timer_on = T
 
 
 &tao_d2_data
-        d2_data%name = bfield
-        universe = *
+        d2_data%name = 'bfield'
+        universe = '*'
         n_d1_data= 1
 /
 &tao_d1_data
         ix_d1_data= 1
-        d1_data%name = tip
+        d1_data%name = 'tip'
         default_weight = 1e6
         datum( 1)%data_type =  'expression: (data::floor.ele[1]+12e-3 + abs(data::ff.orbit[1])) * abs(data::floor.ele[2]) '
         !datum( 1)%data_type =  'expression: (data::ff.orbit[1])'
@@ -128,13 +128,13 @@ global%beam_timer_on = T
 
 
 &tao_d2_data
-        d2_data%name = tune
-        universe = *
+        d2_data%name = 'tune'
+        universe = '*'
         n_d1_data= 1
 /
 &tao_d1_data
         ix_d1_data= 1
-        d1_data%name = ab
+        d1_data%name = 'ab'
         default_weight = 1e6
         datum( 1)%data_type =  'expression: (data::ff.phasea[1]/(2*pi)) '
         datum( 2)%data_type =  'expression: (data::ff.phaseb[1]/(2*pi)) '
@@ -163,32 +163,13 @@ global%beam_timer_on = T
 /
 
 
-&tao_d2_data
-        d2_data%name = "ctao"
-        universe = 1
-        n_d1_data= 1
-/	
-&tao_d1_data
-    ix_d1_data= 1
-	d1_data%name = da
-	default_weight = 1
-	datum( 1) = 'dynamic_aperture_pos_x'    '' ''  'FF.Mar.END'    'min'    2e-3    
-	datum( 2) = 'dynamic_aperture_neg_x'    '' ''  'FF.Mar.END'    'max'   -2e-3    
-	! datum( 1) = 'lowest_stable_energy'     '' ''  'FF.Mar.END'    'max'   60e6    1e-12
-	! datum( 2) = 'highest_stable_energy'    '' ''  'FF.Mar.END'    'min'    300e6   1e-12
-  ! datum( 3) = 'stability_at.120e6'    '' ''  'FF.Mar.END'      'target'    0    1e15
-  ! datum( 3) = 'x_closed_at.76e6'      '' ''  'FF.Mar.END'    'abs_max'      0.01     1e3
-  ! datum( 4) = 'x_closed_at.286e6'      '' ''  'FF.Mar.END'    'abs_max'      0.01     1e3
-/
-
-
 
 !-----------Variables--------------
 
 !&tao_var
 	v1_var%name = "interactive"
 	default_step = 1e-4
-	default_universe = gang 
+	default_universe = 'gang' 
 	ix_min_var = 1
 	ix_max_var = 6
 	var(1)%ele_name ="FF.Ben01"
@@ -230,8 +211,8 @@ global%beam_timer_on = T
 
 
 &tao_var 
-	v1_var%name = q
-	default_universe = gang
+	v1_var%name = 'q'
+	default_universe = 'gang'
 !	default_attribute = 'b1_gradient'
 	default_weight = 1e6
 	default_step = 1e-4 
@@ -259,9 +240,9 @@ var(1:4)%high_lim = 50,  50,  .1, .8
 
 g
 &tao_var 
-	v1_var%name = angle
-	default_universe = gang
-	default_attribute = x_pitch
+	v1_var%name = 'angle'
+	default_universe = 'gang'
+	default_attribute = 'x_pitch'
 	default_weight = 1e6
 	default_step = 1e-4 
   var(1:1)%ele_name = 'O_FF_angle_deg'
