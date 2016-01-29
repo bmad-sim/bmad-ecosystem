@@ -43,8 +43,8 @@ the plot page) is broken up.
 
 
 
-  place(1) = 'floor', floor
-  !place(1) = 'floor', beta
+  place(1) = 'floor', 'floor'
+  !place(1) = 'floor', 'beta'
   place(2) = 'top', 'beta'
   place(3) = 'middle', 'eta'
   place(4) = 'bottom', 'layout'
@@ -2856,7 +2856,7 @@ curve(2)%legend_text = 'Y'
   plot%n_graph = 1
 /
 &tao_template_graph
-  graph%name = g1
+  graph%name = 'g1'
   graph%type = 'dynamic_aperture'
   graph_index = 1
   graph%title = 'dynamic aperture'
