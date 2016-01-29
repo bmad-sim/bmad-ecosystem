@@ -1406,7 +1406,9 @@ case ('var')
     enddo
   elseif (plot%x_axis_type == 's') then
     do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-      curve%x_symb(jj) = branch%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+      ele => branch%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)
+      if (ele%lord_status == multipass_lord$) ele => pointer_to_slave(ele, 1)
+      curve%x_symb(jj) = ele%s
     enddo
   endif
 
