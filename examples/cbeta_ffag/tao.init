@@ -34,7 +34,7 @@ global%beam_timer_on = T
   
 &tao_d2_data
         d2_data%name = 'fa'
-        universe = *
+        universe = '*'
         n_d1_data = 1
 /
 &tao_d1_data
@@ -46,7 +46,7 @@ global%beam_timer_on = T
 
 &tao_d2_data
         d2_data%name = 'time'
-        universe = *
+        universe = '*'
         n_d1_data = 1
 /
 &tao_d1_data
@@ -58,7 +58,7 @@ global%beam_timer_on = T
 
 &tao_d2_data
         d2_data%name = 'test'
-        universe = *
+        universe = '*'
         n_d1_data = 1
 /
 &tao_d1_data
