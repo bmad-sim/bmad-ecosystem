@@ -1,0 +1,38 @@
+
+place floor multiorbit4
+set curve multiorbit4.orbit.c1 ix_universe = 1
+set curve multiorbit4.orbit.c2 ix_universe = 2
+set curve multiorbit4.orbit.c3 ix_universe = 3
+set curve multiorbit4.orbit.c4 ix_universe = 4
+
+place top multibeta4
+set curve multibeta4.beta.c1 ix_universe = 1
+set curve multibeta4.beta.c2 ix_universe = 1
+set curve multibeta4.beta.c3 ix_universe = 2
+set curve multibeta4.beta.c4 ix_universe = 2
+set curve multibeta4.beta.c5 ix_universe = 3
+set curve multibeta4.beta.c6 ix_universe = 3
+set curve multibeta4.beta.c7 ix_universe = 4
+set curve multibeta4.beta.c8 ix_universe = 4
+
+set curve multibeta4.beta.c1 y_axis_scale_factor = 0.422713
+set curve multibeta4.beta.c2 y_axis_scale_factor = 0.422713
+set curve multibeta4.beta.c3 y_axis_scale_factor = 0.807571
+set curve multibeta4.beta.c4 y_axis_scale_factor = 0.807571
+set curve multibeta4.beta.c5 y_axis_scale_factor = 1.19243
+set curve multibeta4.beta.c6 y_axis_scale_factor = 1.19243
+set curve multibeta4.beta.c7 y_axis_scale_factor = 1.57729
+set curve multibeta4.beta.c8 y_axis_scale_factor = 1.57729
+
+
+place middle multieta4
+set curve multieta4.eta.c1 ix_universe = 1
+set curve multieta4.eta.c2 ix_universe = 2
+set curve multieta4.eta.c3 ix_universe = 3
+set curve multieta4.eta.c4 ix_universe = 4
+
+set curve multieta4.eta.c1 y_axis_scale_factor = 0.422713
+set curve multieta4.eta.c2 y_axis_scale_factor = 0.807571
+set curve multieta4.eta.c3 y_axis_scale_factor = 1.19243
+set curve multieta4.eta.c4 y_axis_scale_factor = 1.57729
+
