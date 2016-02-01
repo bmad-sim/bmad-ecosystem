@@ -742,10 +742,18 @@ do i_b = 0, ubound(lat%branch, 1)
         ix2 = lat%control(i)%slave%ix_ele
         if (ix1 == ix2) then
           call out_io (s_fatal$, r_name, &
-                    'DUPLICATE SUPER_SLAVES: ', trim(slave_branch%ele(ix1)%name) // '  (\i0)', &
+                    'DUPLICATE SUPER_SLAVES: ', trim(slave_branch%ele(ix1)%name) // '  (\i0\)', &
                     'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
                     i_array = [ix1, i_t] )
           err_flag = .true.
+
+        elseif (ix1 < 1 .or. ix1 > slave_branch%n_ele_track .or. ix2 < 1 .or. ix2 > slave_branch%n_ele_track) then
+          call out_io (s_fatal$, r_name, &
+                    'SUPER LORD INDEX CORRUPTION! \i0\, \i0\ ', &
+                    'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                    i_array = [ix1, ix2, i_t] )
+          err_flag = .true.
+
         else
           ! All elements in between are not controlled and must be zero length
           ii = ix1
