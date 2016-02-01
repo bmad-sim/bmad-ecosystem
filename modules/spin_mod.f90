@@ -12,6 +12,20 @@ type spin_polar_struct
   real(rp) :: xi    = 0
 end type
 
+! Pauli matrices
+
+complex(rp), parameter :: pauli_1(2,2) = reshape([(1,0), (0,0), (0,0), (1,0)], [2,2])
+complex(rp), parameter :: pauli_x(2,2) = reshape([(0,0), (1,0), (1,0), (0,0)], [2,2])
+complex(rp), parameter :: pauli_y(2,2) = reshape([(0,0), (0,1), (0,-1), (0,0)], [2,2])
+complex(rp), parameter :: pauli_z(2,2) = reshape([(1,0), (0,0), (0,0), (-1,0)], [2,2])
+
+type pauli_struct
+  complex(rp) sigma(2,2)
+end type
+
+type (pauli_struct), parameter :: pauli(0:3) = [pauli_struct(pauli_1), pauli_struct(pauli_x), &
+                                                pauli_struct(pauli_y), pauli_struct(pauli_z)]
+
 private trapzd_omega, sbend_omega_func, quad_etc_omega_func
 
 contains
