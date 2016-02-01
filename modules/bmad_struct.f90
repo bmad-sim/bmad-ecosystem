@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 170
+integer, parameter :: bmad_inc_version$ = 171
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -86,13 +86,13 @@ character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 
 ! Control element logicals
 ! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
 
-integer, parameter :: free$ = 1, super_slave$ = 2, control_slave$ = 3
+integer, parameter :: free$ = 1, super_slave$ = 2
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
 
 character(16), parameter :: control_name(12) = [ &
-            'FREE           ', 'SUPER_SLAVE    ', 'CONTROL_SLAVE  ', 'GROUP_LORD     ', &
+            'FREE           ', 'SUPER_SLAVE    ', 'Garbage!       ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
             'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
 
@@ -751,7 +751,11 @@ type control_struct
   type (lat_ele_loc_struct) slave
   integer :: ix_lord = -1        ! Index to lord element
   integer :: ix_attrib = 0       ! Index of attribute controlled
+  integer :: type = 0            ! What kind of lord/slave relationship?
+                                 !  overlap$, group$, superimpose$, girder$, overlay$, or multipass$
 end type
+
+integer, parameter :: overlap$ = 60, multipass$ = 62
 
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
 ! Note that backwards_time_tracking is put in the lat_param_struct rather than begin a global
@@ -1116,7 +1120,7 @@ integer, parameter :: psi_position$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
 integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
-integer, parameter :: to_line$ = 110
+integer, parameter :: to_line$ = 110, field_overlapped_by$ = 110
 integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
@@ -1132,12 +1136,12 @@ integer, parameter :: ele_origin$ = 119
 integer, parameter :: superimpose$    = 120   
 integer, parameter :: offset$         = 121
 integer, parameter :: reference$      = 122
-integer, parameter :: ele_beginning$  = 123
-integer, parameter :: ele_center$     = 124
-integer, parameter :: ele_end$        = 125
-integer, parameter :: ref_beginning$  = 126
-integer, parameter :: ref_center$     = 127
-integer, parameter :: ref_end$        = 128
+integer, parameter :: ele_beginning$  = 123  ! Old syntax.
+integer, parameter :: ele_center$     = 124  ! Old syntax.
+integer, parameter :: ele_end$        = 125  ! Old syntax.
+integer, parameter :: ref_beginning$  = 126  ! Old syntax.
+integer, parameter :: ref_center$     = 127  ! Old syntax.
+integer, parameter :: ref_end$        = 128  ! Old syntax.
 integer, parameter :: create_jumbo_slave$ = 129
 
 integer, parameter :: a0$  = 130, a21$  = 151
@@ -1457,6 +1461,42 @@ case default;                  state_str = 'UNKNOWN!'
 end select
 
 end function coord_state_name
+
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!+
+! Function control_type_name (control_type) result (type_str)
+!
+! Routine to return the string representation of a %type component of a control_struct.
+!
+! Input:
+!   control_type -- integer: Value of a %type component of a control_struct.
+!
+! Output:
+!   type_str     -- character(20): String representation.
+!-
+
+function control_type_name (control_type) result (type_str)
+
+implicit none
+
+integer control_type
+character(12) type_str
+
+!
+
+select case (control_type)
+case (overlap$);               type_str = 'Overlap'
+case (overlay$);               type_str = 'Overlay'
+case (multipass$);             type_str = 'Multipass'
+case (superimpose$);           type_str = 'Superimpose'
+case (group$);                 type_str = 'Group'
+case (girder$);                type_str = 'Girder'
+case default;                  type_str = 'UNKNOWN!'
+end select
+
+end function control_type_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

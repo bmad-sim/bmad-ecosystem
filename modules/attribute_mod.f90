@@ -45,8 +45,8 @@ private check_this_attribute_free, print_error
 !   err_print_flag  -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is not free.
 !   except_overlay  -- Logical, optional: If present and True then an attribute that
-!                       is an control_slave will be treated as free. This is used by,
-!                       for example, the create_overlay routine.
+!                       is controlled by an overlay will be treated as free. 
+!                       This is used by, for example, the create_overlay routine.
 !
 ! Output:
 !   free   -- Logical: Set True if attribtute not found or attriubte

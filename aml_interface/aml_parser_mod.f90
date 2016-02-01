@@ -326,15 +326,6 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
 
   case ('')
     ele%slave_status = free$
-    if (size(node%controllers) /= 0) ele%slave_status = control_slave$
-    do j = lbound(node%controllers, 1), ubound(node%controllers, 1)
-      controller_node => node%controllers(j)%node%parent
-      found = parser_set_attribute_value (controller_node, 'variation', value_str)
-      if (value_str == 'ABSOLUTE' .or. value_str == '') then
-        ele%slave_status = control_slave$
-        exit
-      endif
-    enddo
 
   case default
     call parser_error('UNKNOWN SLAVE_RANK: ' // slave_rank)

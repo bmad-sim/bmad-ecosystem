@@ -2,10 +2,7 @@
 
 # Make index
 
-`pdflatex bmad`;
-`makeindex bmad`;
-`makeindex bmad.rdx -o bmad.rnd`;
-`pdflatex bmad`;
+`./makeindex.pl`;
 
 # To web page
 

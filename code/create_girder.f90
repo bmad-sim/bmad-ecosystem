@@ -79,8 +79,6 @@ do i = 1, girder_ele%n_slave
 
   slave => pointer_to_slave(girder_ele, i, ix_con)
 
-  if (slave%slave_status == free$) slave%slave_status = control_slave$
-
   ! You cannot control super_slaves, group or overlay elements
 
   if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. &

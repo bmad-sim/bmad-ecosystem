@@ -196,7 +196,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, j)
       select case(lord%lord_status)
       case (group_lord$, overlay_lord$, girder_lord$)
-        if (ele%slave_status == free$) ele%slave_status = control_slave$
+        ! Nothing to do
       case (multipass_lord$)
         ele%slave_status = multipass_slave$
       case (super_lord$)
