@@ -331,7 +331,7 @@ Nomenclature note: An element may be referred to by it's
 with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as
 a ``\vn{super_lord}'' element.
 
-\index{free\$}\index{super_lord\$}
+\index{super_lord\$}
 \index{group_lord}\index{girder_lord\$}
 \index{multipass_lord\$}
 \index{girder_lord\$}\index{not_a_lord\$}
@@ -365,18 +365,12 @@ and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
-\index{control_slave\$}\index{free\$}\index{slice_slave\$}
+\index{free\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
-  \item[free\$]\Newline
-Free elements do not have any lord elements controlling them.
   \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
-  \item[control_slave\$]\Newline 
-A \vn{control_slave} is an element that has one or more
-\vn{overlay_lord} or \vn{girder_lord} lords. A \vn{control_slave} can
-also have associated \vn{group_lord} elements.
   \item[slice_slave\$]\Newline
 A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
@@ -384,10 +378,15 @@ when, for example, a program needs to track part way through an element.
   \item[super_slave\$]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the branch that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
+  \item[free\$]\Newline
+Free elements are all other elements that are not \vn{super_slaves},
+\vn{multipass_slaves}, nor \vn{slice_slaves}. \vn{Free} elements can, however, have
+attributes that are controlled by \vn{overlay_lords}, \vn{group_lords}, or
+\vn{girder_lords}.
+
 \end{description}
 
-Any element whose \vn{%slave_status} is something other than
-\vn{free\$} is called a \vn{slave} element. \vn{super_slave} elements
+\vn{super_slave} elements
 always appear in the tracking part of the branch. The other types can
 be in either the tracking or control parts of the branch.
 
@@ -411,7 +410,6 @@ be in either the tracking or control parts of the branch.
     \\ \midrule
     %                         NL  GR  GI  O   M   S
     \vn{free\$}             & X & X & X & X & X & X \\ 
-    \vn{control_slave\$}    & X & X & X & X & X & X \\ 
     \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
     \vn{slice_slave\$}      & X &   &   &   &   &   \\
     \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
@@ -434,8 +432,7 @@ be in either the tracking or control parts of the branch.
     \begin{sideways}\vn{super_lord\$}\end{sideways}
     \\ \midrule
     %                         NL  GR  GI  O   M   S
-    \vn{free\$}             &   &   &   &   &   &   \\ 
-    \vn{control_slave\$}    &   & X & X & X &   &   \\ 
+    \vn{free\$}             &   & X & X & X &   &   \\ 
     \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
     \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
   \end{tabular}

@@ -46,9 +46,9 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, [control_slave$, multipass_slave$, super_slave$]) = .true.
-good_control(overlay_lord$, [control_slave$, multipass_slave$, super_slave$]) = .true.
-good_control(girder_lord$, [control_slave$, multipass_slave$]) = .true.
+good_control(group_lord$, [free$, multipass_slave$, super_slave$]) = .true.
+good_control(overlay_lord$, [free$, multipass_slave$, super_slave$]) = .true.
+good_control(girder_lord$, [free$, multipass_slave$]) = .true.
 good_control(super_lord$, [super_slave$]) = .true.
 good_control(multipass_lord$, [multipass_slave$]) = .true.
 
@@ -666,7 +666,7 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (.not. any( [free$, super_slave$, control_slave$, multipass_slave$] == s_stat)) then
+    if (.not. any( [free$, super_slave$, multipass_slave$] == s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [i_t, s_stat] )
@@ -689,13 +689,6 @@ do i_b = 0, ubound(lat%branch, 1)
                 i_array = [i_t, ele%n_lord, ele%ic1_lord, ele%ic2_lord] )
       err_flag = .true.
       cycle
-    endif
-
-    if (s_stat == control_slave$ .and. ele%n_lord == 0) then
-      call out_io (s_fatal$, r_name, &
-                'OVERLAY OR GROUP SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ZERO LORDS!', i_array = [i_t] )
-      err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. ele%n_lord == 0) then

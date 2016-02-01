@@ -175,8 +175,6 @@ do i = 1, lord%n_slave
 
   slave => pointer_to_slave(lord, i, ix_con)
 
-  if (slave%slave_status == free$) slave%slave_status = control_slave$
-
   ! You cannot overlay super_slaves 
 
   if (slave%slave_status == super_slave$) then
