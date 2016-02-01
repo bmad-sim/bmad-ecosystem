@@ -439,21 +439,9 @@ do
   end select
 
   ! Do we need to set up a super lord to control this slave element?
-
-  select case (slave%slave_status)
-  case (super_slave$) 
-    setup_lord = .false.
-  case (multipass_slave$, control_slave$)
-    setup_lord = .true.
-  case default
-    if (slave%key == drift$) then
-      setup_lord = .false.
-    else
-      setup_lord = .true.
-    endif
-  end select
-
   ! if yes then create the super lord element
+
+  setup_lord = (slave%slave_status /= super_slave$ .and. (slave%key /= drift$ .or. slave%n_lord /= 0))
 
   if (setup_lord) then
     call new_control (lat, ixn)

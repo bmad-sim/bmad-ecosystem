@@ -351,14 +351,15 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
     ! Attrubute bookkeeping is done in the makeup_super_slave
     call makeup_super_slave (lat, ele)
 
-  elseif (ele%slave_status == control_slave$) then
-    call makeup_control_slave (lat, ele)
-    call_a_bookkeeper = .true.
-
   elseif (ele%slave_status == multipass_slave$) then
     call makeup_multipass_slave (lat, ele)
     if (ele%n_lord > 1) call makeup_control_slave (lat, ele)
     call_a_bookkeeper = .true.
+
+  elseif (ele%n_lord > 0 .and. ele%slave_status /= slice_slave$) then
+    call makeup_control_slave (lat, ele)
+    call_a_bookkeeper = .true.
+
   endif
 
   ! Lord bookkeeping
@@ -1928,7 +1929,7 @@ character(*), parameter :: r_name = 'makeup_control_slave'
 logical is_free
 
 !
-                             
+
 branch => slave%branch
 n_attrib = 0
 val_attrib = 0

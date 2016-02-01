@@ -138,7 +138,7 @@ ix_super_lord = 0   ! no super lord made yet.
 
 ! A free drift needs nothing more.
 
-if (ele%key == drift$ .and. ele%slave_status == free$) goto 8000
+if (ele%key == drift$ .and. ele%n_lord == 0) goto 8000
 
 ! If we have split a super_slave we need to make a 2nd control list for one
 ! of the split elements (can't have both split elements using the same list).
