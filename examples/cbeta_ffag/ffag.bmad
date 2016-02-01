@@ -1,4 +1,4 @@
-parameter[lattice]     = "CBETA full FFAG arc without entrance pat"
+parameter[lattice]     = "CBETA first half FFAG arc + merge + straight"
 parameter[geometry] = Open            
  
 parameter[p0c]                    =1.5849917628E8
