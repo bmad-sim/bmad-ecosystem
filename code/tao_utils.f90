@@ -2495,7 +2495,7 @@ function tao_d2_d1_name(d1, show_universe) result (d2_d1_name)
 implicit none
 
 type (tao_d1_data_struct) d1
-character(60) d2_d1_name
+character(60) d2_d1_name, temp_str
 logical, optional :: show_universe
 
 ! If there is only one d1 array associated with the d2_data array then
@@ -2509,8 +2509,11 @@ endif
 
 !
 
-if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
-       write (d2_d1_name, '(i0, 2a)') d1%d2%ix_uni, '@', trim(d2_d1_name)
+if (size(s%u) > 1 .and. logic_option(.true., show_universe)) then
+  ! Stupid gfortran compiler requires a temp string for this
+  temp_str = d2_d1_name
+  write (d2_d1_name, '(i0, 2a)') d1%d2%ix_uni, '@', trim(temp_str)
+endif
 
 end function tao_d2_d1_name
 
