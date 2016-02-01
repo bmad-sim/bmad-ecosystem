@@ -636,7 +636,9 @@ end subroutine tao_graph_dynamic_aperture_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-subroutine tao_curve_physical_aperture_setup(curve)
+
+subroutine tao_curve_physical_aperture_setup (curve)
+
 type (tao_curve_struct) :: curve
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
@@ -646,13 +648,15 @@ integer :: i
 integer, parameter :: n = 25 ! points per elliptical quadrant
 character(40) :: r_name = 'tao_curve_physical_aperture_setup'
 
+!
+
 u => tao_pointer_to_universe (curve%ix_universe)
 ! Set to beginning if x_ele_ref out of bounds 
 if (curve%ix_ele_ref < 1 .or. curve%ix_ele_ref > u%model%lat%n_ele_track) then
   call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for: ' // tao_curve_name(curve) //', setting to 1')
   curve%ix_ele_ref = 1
 endif
-ele =>u%model%lat%ele(curve%ix_ele_ref)
+ele => u%model%lat%ele(curve%ix_ele_ref)
 
 
 x1 = ele%value(x1_limit$)
@@ -1388,11 +1392,11 @@ case ('var')
   endif
 
   call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
-  n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
+  n_dat = count(v1_ptr%v%useit_plot)             ! count the number of data points
 
   call re_allocate (curve%ix_symb, n_dat)
-  call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
-  call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
+  call re_allocate (curve%y_symb,  n_dat) ! allocate space for the data
+  call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
 
   curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
 
