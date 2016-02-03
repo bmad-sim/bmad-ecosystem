@@ -1190,11 +1190,10 @@ do i = 1, 3
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
-ele2%mode3%x%eta = ele2%mode3%v(1,6)
-ele2%mode3%y%eta = ele2%mode3%v(3,6)
-
-ele2%mode3%x%etap = ele2%mode3%v(1,5)
-ele2%mode3%y%etap = ele2%mode3%v(3,5)
+ele2%mode3%x%eta  = ele2%mode3%v(1,6)
+ele2%mode3%x%etap = ele2%mode3%v(2,6)
+ele2%mode3%y%eta  = ele2%mode3%v(3,6)
+ele2%mode3%y%etap = ele2%mode3%v(4,6)
 
 call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%key, ele2%value(l$), ele2%mode3%a, err)
 if (err) return
@@ -1255,11 +1254,10 @@ if (all(lat%param%t1_with_RF(6,1:5) == 0)) then
 endif
 call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
 
-lat%ele(0)%mode3%x%eta = lat%ele(0)%mode3%v(1,6)
-lat%ele(0)%mode3%y%eta = lat%ele(0)%mode3%v(3,6)
-
-lat%ele(0)%mode3%x%etap = lat%ele(0)%mode3%v(1,5)
-lat%ele(0)%mode3%y%etap = lat%ele(0)%mode3%v(3,5)
+lat%ele(0)%mode3%x%eta  = lat%ele(0)%mode3%v(1,6)
+lat%ele(0)%mode3%x%etap = lat%ele(0)%mode3%v(2,6)
+lat%ele(0)%mode3%y%eta  = lat%ele(0)%mode3%v(3,6)
+lat%ele(0)%mode3%y%etap = lat%ele(0)%mode3%v(4,6)
 
 call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
 call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
