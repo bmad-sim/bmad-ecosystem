@@ -138,7 +138,7 @@ end subroutine tao_data_check
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni)
+! Subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_uni)
 !
 ! Subroutine to pick what universe the data name is comming from.
 ! Examples:
@@ -151,17 +151,18 @@ end subroutine tao_data_check
 !   tao_pointer_to_universe
 !
 ! Input:
-!   name_in    -- Character(*): data name.
+!   name_in      -- Character(*): data name.
 !
 ! Output:
-!   name_out   -- Character(*): name_in without any "n@" beginning.
-!   picked(:)  -- Logical, allocatable: Array showing picked universes.
-!                   The array will be resized if necessary.
-!   err        -- Logical: Set True if an error is detected.
-!   ix_uni     -- Integer, optional: Set to the picked universe with the highest index.
+!   name_out     -- Character(*): name_in without any "n@" beginning.
+!   picked(:)    -- Logical, allocatable: Array showing picked universes.
+!                     The array will be resized if necessary.
+!   err          -- Logical: Set True if an error is detected.
+!   ix_uni       -- Integer, optional: Set to the picked universe with the highest index.
+!   explicit_uni -- Logical, optional: Set True if name_in has explicit universe "n@" specification.
 !-
 
-subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni)
+subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_uni)
 
 implicit none
 
@@ -175,6 +176,7 @@ integer i, ix, n, ios, iu, num, ic
 logical, allocatable :: picked(:)
 logical, allocatable :: p(:)
 logical err
+logical, optional :: explicit_uni
 
 ! Init
 
@@ -190,6 +192,9 @@ if (present(ix_uni)) ix_uni = -1
 
 ix = index (name_in, '@')
 ic = index (name_in, '::')
+
+if (present(explicit_uni)) explicit_uni = (ix /= 0)
+
 if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
   picked (s%com%default_universe) = .true.
   name_out = name_in
@@ -1123,7 +1128,7 @@ integer, optional :: ix_uni
 integer :: data_num, ios, n_found
 integer i, ix, iu
 
-logical err, component_here, this_err, print_error, error, found_data, data_exists
+logical err, component_here, this_err, print_error, error, found_data, data_exists, explicit_uni
 logical, optional :: print_err
 
 ! Init
@@ -1216,7 +1221,7 @@ endif
 
 ! Select universe
 
-call tao_pick_universe (dat_name, dat_name, scratch%picked, this_err)
+call tao_pick_universe (dat_name, dat_name, scratch%picked, this_err, explicit_uni = explicit_uni)
 if (this_err) return
 
 ! Trim 'data::' suffix if present
@@ -1232,7 +1237,7 @@ if (dat_name(1:6) == 'data::') dat_name = dat_name(7:)
 
 data_exists = .false.  ! Does *any* data exist in the universes searched?
 
-if (present(ix_uni)) then
+if (present(ix_uni) .and. .not. explicit_uni) then
   u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
   call find_this_d2 (u, dat_name, this_err)
