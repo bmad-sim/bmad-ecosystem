@@ -187,7 +187,7 @@ important if particles are to be allowed to travel outside the wall.
 
 \index{track1_preprocess}\index{track1_postprocess}
 \index{apply_element_edge_kick_hook}
-
+\index{ele_geometry_hook}
 A \vn{hook} routine is like a \vn{custom} routine in that a \vn{hook} routine can be used
 for custimizing a \bmad calculation by replacing the \vn{dummy} version of a \vn{hook}
 routine with customized code. The difference is that the \vn{hook} routine is always
@@ -196,9 +196,20 @@ consideration or what tracking method is being used.
 There are three \vn{hook} routines that are available:
 \begin{example}
   \Hyperref{r:apply.element.edge.kick.hook}{apply_element_edge_kick_hook}
+  \zzz{ele_geometry_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
 \end{example}
+
+The \vn{apply_element_edge_kick_hook} routine can be used for custom tracking through a fringe field.
+See the documentation in the file \vn{apply_element_edge_kick_hook.f90} for more details.
+
+The \vn{ele_geometry_hook} routine can be used for custom caculations of the global
+geometry of an element. This is useful, for example, for a support table on a kinematic
+mount since \bmad does not have the knowledge to calcuate the table orientation from the
+position of the mount points. See the documentation in the file \vn{ele_geometry_hook.f90}
+for more details.
+
 The last two routines are called by the \Hyperref{r:track1}{track1} routine (along with
 \vn{track1_custom} if the element being tracked through has its tracking method set to
 \vn{custom}).  The \vn{track1_preprocess} and \vn{track1_postprocess}

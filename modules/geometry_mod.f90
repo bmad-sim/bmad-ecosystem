@@ -275,15 +275,21 @@ real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_ma
 
 integer i, key, n_loc, ix_pass, n_links
 
-logical has_nonzero_pole, err, calc_done, doit
+logical has_nonzero_pole, err, calc_done, doit, finished
 logical, optional :: set_ok
 
 character(*), parameter :: r_name = 'ele_geometry'
 
-! Init. 
+! Custom geometry
+
+if (logic_option(.false., set_ok)) ele%bookkeeping_state%floor_position = ok$
+
+call ele_geometry_hook (floor0, ele, floor, finished, len_scale)
+if (finished) return
+
+! Init.
 
 len_factor = ele%orientation * real_option(1.0_rp, len_scale)
-if (logic_option(.false., set_ok)) ele%bookkeeping_state%floor_position = ok$
 
 if (ele%key /= girder$) then
   floor   = floor0

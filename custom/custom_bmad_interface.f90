@@ -25,6 +25,16 @@ interface
     logical err_flag
   end subroutine
 
+  subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
+    import
+    implicit none
+    type (ele_struct) ele
+    type (floor_position_struct) floor0, floor
+    real(rp) len_scale
+    logical finished
+  end subroutine ele_geometry_hook
+
+
   subroutine wall_hit_handler_custom (orb, ele, s, t)
     import
     implicit none
