@@ -1750,10 +1750,9 @@ Attributes specific to a \vn{floor_shift} elements are:
 \end{example}
 See \sref{s:list.girder} for a full list of element attributes.
 
-A simple example of a girder is shown in \fig{f:girder}. Here a girder
-supports three elements labeled \vn{A}, \vn{B}, and \vn{C} where
-\vn{B} is a bend so the geometry is nonlinear. Such a girder may
-specified in the lattice file like:
+A simple example of a girder is shown in \fig{f:girder}. Here a girder supports three
+elements labeled \vn{A}, \vn{B}, and \vn{C} where \vn{B} is a bend so the geometry is
+nonlinear. Such a girder may specified in the lattice file like:
 \begin{example}
   g1: girder = \{A, B, C\}
 \end{example}
@@ -1761,17 +1760,17 @@ The \vn{girder} statement syntax is:
 \begin{example}
   <element_name>: GIRDER = \{<ele1>, <ele2>, ..., <eleN> \}, ...
 \end{example}
-A \vn{girder} element will be created for each section of the lattice
-where there is a ``consecutive'' sequence of ``slave'' elements
-\vn{<ele1>} through \vn{<eleN>}.  This section of the lattice from
-\vn{<ele1>} through \vn{<eleN>} is called the ``girder support
-region''.  ``Consecutive'' here means there are no other elements in the
-girder support region except for possibly \vn{drift} and/or \vn{marker}
-elements.  \vn{Drift} elements cannot be controlled by a girder but may
-appear in the girder slave list. If a drift-like element is
-desired, use a \vn{pipe} element instead. \vn{Marker} elements present
-in a girder support region, but not mentioned in the girder slave
-list, are simply ignored.
+A \vn{girder} element will be created for each section of the lattice where there is a
+``consecutive'' sequence of ``slave'' elements \vn{<ele1>} through \vn{<eleN>}.  This
+section of the lattice from \vn{<ele1>} through \vn{<eleN>} is called the ``girder support
+region''.  ``Consecutive'' here means there are no other elements in the girder support
+region except for possibly \vn{drift} and/or \vn{marker} elements.  \vn{Drift} elements
+cannot be controlled by a girder but may appear in the girder slave list. If a \vn{drift}
+does appear in the slave list, only \vn{marker} elements, but not \vn{dirft} elements will
+be ignored when determining if elements are consecutive. Note: If a drift-like element is
+desired to be supported by a \vn{girder}, use a \vn{pipe} element instead. \vn{Marker}
+elements present in a girder support region, but not mentioned in the girder slave list,
+are simply ignored.
 
 Wild card characters (\sref{s:lat.attribs}) can be used in any element
 name in the girder slave list. Additionally, beam line names

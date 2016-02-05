@@ -4846,7 +4846,7 @@ integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 character(60) err_str
 character(40) input_slave_name, attrib_name, missing_slave_name
 
-logical err, slave_not_in_lat, created_girder_lord, err_flag
+logical err, slave_not_in_lat, created_girder_lord, err_flag, matched_to_drift, have_ignored_a_drift
 
 ! loop over lord elements
 
@@ -5015,6 +5015,8 @@ main_loop: do n = 1, n2
         ix_super_lord_end = -1   ! Not in a super_lord
         ixs = 1                  ! Index of girder slave element we are looking for.
         n_slave = 0              ! Number of actual slaves found.
+        matched_to_drift = .false.
+        have_ignored_a_drift = .false.
 
         if (size(pele%control) == 0) then
           call parser_error ('GIRDER DOES NOT HAVE ANY ELEMENTS TO SUPPORT: ' // lord%name)
@@ -5052,6 +5054,7 @@ main_loop: do n = 1, n2
 
           if ((ele%key == marker$ .or. ele%key == drift$) .and. ixs > 1) then
             ix_ele_now = ix_ele_now + 1
+            if (ele%key == marker$) have_ignored_a_drift = .true.
             cycle
           endif
 
@@ -5060,6 +5063,8 @@ main_loop: do n = 1, n2
           cycle ele_loop
 
         enddo slave_loop
+
+        if (matched_to_drift .and. have_ignored_a_drift) cycle  ! matching rules violated.
 
         ! create the girder element
 
@@ -5108,10 +5113,14 @@ is_matched = .false.
 if (match_wild(ele%name, input_slave_name)) then
 
   is_matched = .true.
-  if (ele%key /= drift$) then
+
+  if (ele%key == drift$) then
+    matched_to_drift = .true.
+  else ! If not a drift then ele will be a girder_slave
     n_slave = n_slave + 1
     cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
   endif
+
   ixs = ixs + 1  ! Next girder slave
 
   ! If a super_lord the logic here is complicated by the fact that 
