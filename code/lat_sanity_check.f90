@@ -24,6 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
+type (floor_position_struct) floor0, floor
 
 real(rp) s1, s2, ds, ds_small, l_lord
 
@@ -34,7 +35,7 @@ character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
-logical good_control(12,12), girder_here
+logical good_control(12,12), girder_here, finished
 
 ! check energy
 
@@ -937,13 +938,18 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
+      ! element is only allowed more than one girder_lord if custom geometry calculation is done.
+
       if (t2_type == girder_lord$) then
         if (girder_here) then
-          call out_io (s_fatal$, r_name, &
+          call ele_geometry_hook (floor0, ele, floor, finished)
+          if (.not. finished) then
+            call out_io (s_fatal$, r_name, &
                     'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                     'HAS MORE THAN ONE GIRDER_LORD.', &
                     i_array = [i_t] )
-          err_flag = .true.
+            err_flag = .true.
+         endif
         endif
         girder_here = .true.
       endif
