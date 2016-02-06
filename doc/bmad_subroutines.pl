@@ -105,7 +105,6 @@ $pl_hash{"lmpar"} = "lmdif_mod.f90";
 $pl_hash{"brent2"} = "brent2.f90";
 $pl_hash{"ety"} = "eigen_mod.f90";
 $pl_hash{"save_bunch_track"} = "save_bunch_track.f90";
-$pl_hash{"normalized_quaternion"} = "spin_mod.f90";
 $pl_hash{"value_to_line"} = "io_mod.f90";
 $pl_hash{"eigensys"} = "eigen_mod.f90";
 $pl_hash{"re_allocate_string"} = "reallocate_mod.f90";

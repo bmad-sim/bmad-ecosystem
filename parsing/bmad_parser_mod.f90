@@ -105,7 +105,8 @@ type parser_ele_struct
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
-  logical create_jumbo_slave
+  logical :: create_jumbo_slave = .false.
+  logical :: is_range = .false.               ! For girders
   character(40) :: default_attrib = ''        ! For group/overlay elements: slave attribute 
 end type
 
@@ -3437,13 +3438,13 @@ end subroutine read_sr_wake
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, use_control_var)
+! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
       
-subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, use_control_var)
+subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list)
 
 implicit none
 
@@ -3462,8 +3463,8 @@ character(40), allocatable :: name(:), attrib_name(:)
 character(200), allocatable :: expression(:)
 character(200) err_str
 
-logical, optional :: use_control_var
-logical delim_found, err_flag, end_of_file, to_cv
+logical :: is_control_var_list
+logical delim_found, err_flag, end_of_file, ele_names_only
 
 !
 
@@ -3474,7 +3475,7 @@ if (delim /= '{' .or. ix_word /= 0) call parser_error  &
         ('BAD ' // control_name(ele%lord_status) // 'SPEC: ' // word_in,  &
         'FOR ELEMENT: ' // ele%name)
 
-to_cv = logic_option(.false., use_control_var)
+ele_names_only = (is_control_var_list .or. ele%key == girder$)
 
 ! loop over all names in "{...}" list
 
@@ -3482,6 +3483,7 @@ n_slave = 0
 do 
 
   call get_next_word (word_in, ix_word, '{,}/:', delim, delim_found, .true.)
+  if (delim == ':' .and. ele%key == girder$) pele%is_range = .true.
 
   ! If "{}" with no slaves... 
   if (delim == '}' .and. ix_word == 0 .and. n_slave == 0) then
@@ -3515,13 +3517,13 @@ do
   name(n_slave) = word
   if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
 
-  ! If to_cv = True then evaluating "var = {...}" construct.
+  ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
   ! In this case, there are no expressions
   
   expression(n_slave) = '1'
 
-  if (delim == '/' .or. delim == ':') then
-    if (to_cv) then
+  if (delim == '/' .or. (delim == ':' .and. ele%key /= girder$)) then
+    if (ele_names_only) then
       call parser_error ('BAD VAR = {...} CONSTRUCT.', 'FOR: ' // ele%name)
       return
     else
@@ -3537,7 +3539,7 @@ do
   if (delim == '}') then
     call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
     exit
-  elseif (delim /= ',') then
+  elseif (delim /= ',' .and. .not. (delim == ':' .and. ele%key == girder$)) then
     call parser_error ('BAD ' // control_name(ele%lord_status) //  &
             'SPEC: ' // word_in, 'FOR: ' // ele%name)
     exit
@@ -3545,12 +3547,10 @@ do
                         
 enddo
 
-!
-
 ! if (n_slave == 0) call parser_error ( &
 !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
-if (to_cv) then
+if (is_control_var_list) then
   allocate(ele%control_var(n_slave))
   ele%control_var%name = name(1:n_slave)
 else
@@ -4815,7 +4815,7 @@ end subroutine allocate_plat
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (in_lat, n2, plat, lat)
+! Subroutine parser_add_lord (in_lat, n_ele_max, plat, lat)
 !
 ! Subroutine to add overlay, group, and girder lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -4825,7 +4825,7 @@ end subroutine allocate_plat
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_lord (in_lat, n2, plat, lat)
+subroutine parser_add_lord (in_lat, n_ele_max, plat, lat)
 
 implicit none
 
@@ -4839,9 +4839,9 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_controller_struct), pointer :: pc
 type (control_struct), pointer :: con
 
-integer i, n, ic, ig, k, ix, ib, ie, n_list, ns, ixs, ii, ix_end, n2
-integer n_slave, nn, n_loc, n_names, n_in_loc
-integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
+integer i, n_in, ic, ig, k, ix, ib, ie_start, n_list, ns, ixs, ii, ix_end, n_ele_max
+integer n_slave, nn, n_loc, n_names, n_in_loc, ix1_slave
+integer ix_lord, k_slave, ix_ele_now, ix_super_lord_end
 
 character(60) err_str
 character(40) input_slave_name, attrib_name, missing_slave_name
@@ -4850,9 +4850,9 @@ logical err, slave_not_in_lat, created_girder_lord, err_flag, matched_to_drift, 
 
 ! loop over lord elements
 
-main_loop: do n = 1, n2
+main_loop: do n_in = 1, n_ele_max
 
-  lord => in_lat%ele(n)  ! next lord to add
+  lord => in_lat%ele(n_in)  ! next lord to add
   pele => plat%ele(lord%ixx)
   
   !-----------------------------------------------------
@@ -4992,6 +4992,11 @@ main_loop: do n = 1, n2
 
   case (girder$)
 
+    if (pele%is_range .and. size(pele%control) /= 2) then
+      call parser_error ('GIRDER HAS BAD "ELE_START:ELE_END" RANGE CONSTRUCT. ' // ele%name)
+      cycle
+    endif
+
     ! Loop over all elements in the lattice.
 
     if (allocated(cs)) deallocate(cs)
@@ -5001,17 +5006,17 @@ main_loop: do n = 1, n2
 
     branch_loop: do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      ix_girder_end = -1
+      ie_start = 1
+      ix1_slave = -1
 
       ! Loop over all possible first elements
 
-      ele_loop: do ie = 1, branch%n_ele_track
+      ele_loop: do ie_start = 1, branch%n_ele_track
 
-        if (ie <= ix_girder_end) cycle
 
         ! Loop over girder slave list and see if this section matches.
 
-        ix_ele_now = ie
+        ix_ele_now = ie_start
         ix_super_lord_end = -1   ! Not in a super_lord
         ixs = 1                  ! Index of girder slave element we are looking for.
         n_slave = 0              ! Number of actual slaves found.
@@ -5026,6 +5031,7 @@ main_loop: do n = 1, n2
         ! loop over all girder slaves and see if lattice eles match slaves.
 
         slave_loop: do
+          if (n_slave > 0 .and. cs(1)%slave%ix_ele == ix1_slave) cycle ele_loop  ! Can happen with superposition
           if (ixs > size(pele%control)) exit
 
           ! Wrap around the origin if needed.
@@ -5064,7 +5070,7 @@ main_loop: do n = 1, n2
 
         enddo slave_loop
 
-        if (matched_to_drift .and. have_ignored_a_drift) cycle  ! matching rules violated.
+        if (matched_to_drift .and. have_ignored_a_drift .and. .not. pele%is_range) cycle  ! matching rules violated.
 
         ! create the girder element
 
@@ -5077,9 +5083,7 @@ main_loop: do n = 1, n2
         call new_control (lat, ix_lord)
         call create_girder (lat, ix_lord, cs(1:n_slave), lord)
         created_girder_lord = .true.
-
-        ix_girder_end = cs(n_slave)%slave%ix_ele
-        if (ix_girder_end < ie) exit ele_loop  ! And on to next branch
+        ix1_slave = cs(1)%slave%ix_ele
 
       enddo ele_loop
 
@@ -5101,27 +5105,33 @@ recursive function girder_match_slave_element (ele, slave, n_slave, ixs, ix_ele_
 
 type (ele_struct), target :: ele, slave
 type (ele_struct), pointer :: lord, slave1, slave2
-
+type (control_struct), allocatable :: cs_temp(:)
 integer n_slave, ixs, ix_ele_now
-integer ii, ls
+integer ii, ls, n
 logical is_matched
 
 ! Try to match
 
-is_matched = .false.
+is_matched = match_wild(ele%name, input_slave_name)
 
-if (match_wild(ele%name, input_slave_name)) then
+if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == free$)) then
 
-  is_matched = .true.
+  if (is_matched) ixs = ixs + 1  ! Next element in list
 
   if (ele%key == drift$) then
-    matched_to_drift = .true.
+    if (is_matched) matched_to_drift = .true.
   else ! If not a drift then ele will be a girder_slave
     n_slave = n_slave + 1
+    if (size(cs) < n_slave) then  ! Can happen if there is a range.
+      n = size(cs)
+      call move_alloc(cs, cs_temp)
+      allocate (cs(2*n))
+      cs(1:n) = cs_temp
+    endif
     cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
   endif
 
-  ixs = ixs + 1  ! Next girder slave
+  is_matched = .true.
 
   ! If a super_lord the logic here is complicated by the fact that 
   ! elements can, for example, be completely contained within another element.

@@ -1756,11 +1756,17 @@ nonlinear. Such a girder may specified in the lattice file like:
 \begin{example}
   g1: girder = \{A, B, C\}
 \end{example}
-The \vn{girder} statement syntax is:
+
+The \vn{girder} statement can take one of two forms:
 \begin{example}
-  <element_name>: GIRDER = \{<ele1>, <ele2>, ..., <eleN> \}, ...
+  <element_name>: GIRDER = \{<ele1>, <ele2>, ..., <eleN>\}, ... 
 \end{example}
-A \vn{girder} element will be created for each section of the lattice where there is a
+or
+\begin{example}
+  <element_name>: GIRDER = \{<ele_start>:<ele_end>\}, ... 
+\end{example}
+
+With the first form, a \vn{girder} element will be created for each section of the lattice where there is a
 ``consecutive'' sequence of ``slave'' elements \vn{<ele1>} through \vn{<eleN>}.  This
 section of the lattice from \vn{<ele1>} through \vn{<eleN>} is called the ``girder support
 region''.  ``Consecutive'' here means there are no other elements in the girder support
@@ -1771,6 +1777,10 @@ be ignored when determining if elements are consecutive. Note: If a drift-like e
 desired to be supported by a \vn{girder}, use a \vn{pipe} element instead. \vn{Marker}
 elements present in a girder support region, but not mentioned in the girder slave list,
 are simply ignored.
+
+The second form of a \vn{girder} statment specifies the first and last elements in the 
+sequence of elements to be supported. Everything in between except \vn{drift} elements will
+be supported by the \vn{girder}.
 
 Wild card characters (\sref{s:lat.attribs}) can be used in any element
 name in the girder slave list. Additionally, beam line names

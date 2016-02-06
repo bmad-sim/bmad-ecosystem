@@ -668,7 +668,7 @@ parsing_loop: do
     if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
     if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
 
-    call get_overlay_group_names(in_lat%ele(n_max), in_lat, plat%ele(n_max), delim, delim_found)
+    call get_overlay_group_names(in_lat%ele(n_max), in_lat, plat%ele(n_max), delim, delim_found, .false.)
 
     if (key /= girder$ .and. .not. delim_found) then
       call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
