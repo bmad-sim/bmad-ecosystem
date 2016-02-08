@@ -2867,6 +2867,7 @@ subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
 implicit none
 
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: slave
 
 integer ix_universe, ix_branch, ix_ele, ix_ele_track
 integer i_uni, ix_c
