@@ -43,13 +43,14 @@ type (lat_struct), target :: lat
 type (ele_struct), save :: ele
 type (ele_struct), pointer :: ele1, ele2, slave, lord, super_lord
 type (branch_struct), pointer :: branch, br
+type (control_struct), pointer :: ctl
 
 real(rp) s_split, len_orig, len1, len2, ds_fudge
 real(rp) dl, w_inv(3,3)
 
 integer i, j, k, ix, ix_branch, ib, ie
 integer ix_split, ixc, ix_attrib, ix_super_lord
-integer icon, ix2, inc, nr, n_ic2, ct
+integer ix2, inc, nr, n_ic2, ct
 
 logical split_done, err, controls_need_removing
 logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
@@ -156,7 +157,7 @@ if (ele%slave_status == super_slave$) then
     ! If lord does not overlap ele1 then adjust padding and do not add
     ! as a lord to ele1
 
-    lord => pointer_to_lord(ele, j, icon)
+    lord => pointer_to_lord(ele, j, ctl)
     if (.not. has_overlap(ele1, lord)) then
       lord%value(lord_pad1$) = lord%value(lord_pad1$) - ele1%value(l$)
       cycle
@@ -166,7 +167,7 @@ if (ele%slave_status == super_slave$) then
 
     n_ic2 = n_ic2 + 1
 
-    ix_attrib = lat%control(icon)%ix_attrib
+    ix_attrib = ctl%ix_attrib
 
     lord%n_slave = lord%n_slave + 1
     call add_lattice_control_structs (lat, lord)
@@ -188,9 +189,9 @@ if (ele%slave_status == super_slave$) then
 
   controls_need_removing = .false.
   do j = 1, ele2%n_lord
-    lord => pointer_to_lord(ele2, j, ixc)
+    lord => pointer_to_lord(ele2, j, ctl)
     if (has_overlap(ele2, lord)) cycle
-    lat%control(ixc)%ix_attrib = int_garbage$
+    ctl%ix_attrib = int_garbage$
     lord%value(lord_pad2$) = lord%value(lord_pad2$) - ele2%value(l$)
     controls_need_removing = .true.
   enddo

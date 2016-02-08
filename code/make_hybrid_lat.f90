@@ -73,11 +73,12 @@ type (coord_array_struct), optional :: orb0_arr(0:)
 type (coord_struct) c0, c2
 type (ele_struct), pointer :: ele_in, ele_out, lord, lord2, slave
 type (branch_struct), pointer :: b_in, b_out
+type (control_struct), pointer :: ctl1, ctl2
 
 real(rp) ref_time0
 
 integer j_in, i_out, k, n, ix_hyb
-integer j, ix, ic, o_key, n_con, n_ic, n_lord, ib, ie, il, il2, ixc1, ixc2, is
+integer j, ix, ic, o_key, n_con, n_ic, n_lord, ib, ie, il, il2, is
 integer, allocatable :: ica(:)
 
 logical init_hybrid_needed
@@ -128,13 +129,13 @@ do
     do ie = 1, b_out%n_ele_track
       ele_out => b_out%ele(ie)
       do il = 1, ele_out%n_lord
-        lord => pointer_to_lord(ele_out, il, ixc1)
+        lord => pointer_to_lord(ele_out, il, ctl1)
         if (.not. lord%select) cycle
         if (lord%key /= overlay$ .and. lord%key /= group$) cycle
         do il2 = 1, ele_out%n_lord
-          lord2 => pointer_to_lord(ele_out, il, ixc2)
+          lord2 => pointer_to_lord(ele_out, il, ctl2)
           if (lord2%select) cycle
-          if (lat_out%control(ixc1)%ix_attrib /= lat_out%control(ixc2)%ix_attrib) cycle
+          if (ctl1%ix_attrib /= ctl2%ix_attrib) cycle
           lord2%select = .true.
           call select_slaves(lord2)
           something_has_changed = .true.

@@ -53,6 +53,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, ele2, lord
+type (control_struct), pointer :: ctl
 
 real(rp) dQz_max
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
@@ -107,8 +108,8 @@ do i = 1, lat%n_ele_max
     if (ele%value(rf_frequency$) == 0) cycle
 
     do j = 1, ele%n_lord ! check any overlays.
-      lord => pointer_to_lord (ele, j, ix)
-      if (lord%key == overlay$ .and. lat%control(ix)%ix_attrib == voltage$) cycle
+      lord => pointer_to_lord (ele, j, ctl)
+      if (lord%key == overlay$ .and. ctl%ix_attrib == voltage$) cycle
     enddo
 
     n_rf = n_rf + 1
@@ -124,10 +125,10 @@ do i = 1, lat%n_ele_max
   if (ele%key == overlay$) then
     found_control = .false.
     do is = 1, ele%n_slave
-      ele2 => pointer_to_slave(ele, is, j) 
+      ele2 => pointer_to_slave(ele, is, ctl)
 
       if (found_control .and. &
-            (ele2%key /= rfcavity$ .or. lat%control(j)%ix_attrib /= voltage$)) then
+            (ele2%key /= rfcavity$ .or. ctl%ix_attrib /= voltage$)) then
         call out_io (s_error$, r_name, 'FOUND OVERLAY THAT DOES NOT', &
                                        'PURELY CONTROL RF VOLTAGE: ' // ele%name)
         cycle
@@ -139,7 +140,7 @@ do i = 1, lat%n_ele_max
       if (.not. found_control) n_rf = n_rf + 1
       found_control = .true.
       phase = twopi * (ele2%value(phi0$) + ele2%value(phi0_multipass$))
-      coef_tot = coef_tot + linear_coef(lat%control(j)%stack, err_flag) * twopi * &
+      coef_tot = coef_tot + linear_coef(ctl%stack, err_flag) * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
       voltage_control(n_rf)%r => ele%control_var(1)%value
     enddo

@@ -1045,6 +1045,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p, lord
 type (branch_struct), pointer :: branch
 type (ele_attribute_struct) attrib_info
+type (control_struct), pointer :: control
 
 integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
@@ -1129,13 +1130,13 @@ end select
 
 if (.not. do_except_overlay) then
   do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i, ix)
+    lord => pointer_to_lord(ele, i, control)
     if (present(ix_lord)) then
       if (ix_lord == lord%ix_ele) cycle
       if (lat%ele(ix_lord)%key == overlay$) cycle
     endif
     if (lord%key == overlay$) then
-      if (lat%control(ix)%ix_attrib == ix_attrib) then 
+      if (control%ix_attrib == ix_attrib) then 
         if (do_print) call print_error (ele, ix_attrib, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif

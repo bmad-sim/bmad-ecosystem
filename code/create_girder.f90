@@ -47,7 +47,7 @@ type (control_struct)  contrl(:)
 
 integer, intent(in) :: ix_girder
 integer i, j, ix, ix2, ixc, n_con2
-integer ixs, idel, n_slave, ix_con
+integer ixs, idel, n_slave
 
 ! Mark element as an girder lord
 
@@ -77,12 +77,11 @@ lat%n_control_max = n_con2
 
 do i = 1, girder_ele%n_slave
 
-  slave => pointer_to_slave(girder_ele, i, ix_con)
+  slave => pointer_to_slave(girder_ele, i)
 
   ! You cannot control super_slaves, group or overlay elements
 
-  if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. &
-                                          slave%key == overlay$) then
+  if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. slave%key == overlay$) then
     print *, 'ERROR IN CREATE_GIRDER: ILLEGAL GIRDER ON ', slave%name
     print *, '      BY: ', girder_ele%name
     if (global_com%exit_on_error) call err_exit
@@ -92,7 +91,7 @@ do i = 1, girder_ele%n_slave
 
   slave%n_lord = slave%n_lord + 1
   call add_lattice_control_structs (lat, slave)
-  lat%ic(slave%ic2_lord) = ix_con
+  lat%ic(slave%ic2_lord) = girder_ele%ix1_slave + i - 1
 
 enddo
 

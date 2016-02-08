@@ -406,10 +406,11 @@ Subroutine makeup_group_lord (lat, lord)
 type (lat_struct), target :: lat
 type (ele_struct) :: lord
 type (ele_struct), pointer :: slave, slave2
+type (control_struct), pointer :: control
 
 real(rp), pointer :: r_ptr
 
-integer ix, ix_attrib, i, j
+integer ix_attrib, i, j
 
 logical moved, err_flag
 
@@ -420,8 +421,8 @@ character(20) :: r_name = 'makeup_group_lord'
 moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
-  slave => pointer_to_slave(lord, i, ix)
-  ix_attrib = lat%control(ix)%ix_attrib
+  slave => pointer_to_slave(lord, i, control)
+  ix_attrib = control%ix_attrib
   if (ix_attrib == l$) moved = .true.
 
   select case (ix_attrib)
@@ -434,35 +435,35 @@ do i = 1, lord%n_slave
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
         slave2 => pointer_to_slave (slave, j)
-        call change_this_edge (slave2, lat%control(ix))
+        call change_this_edge (slave2, control)
       enddo
     else
-      call change_this_edge (slave, lat%control(ix))
+      call change_this_edge (slave, control)
     endif
 
   !---------
   ! x_limit, y_limit, aperture
 
   case (x_limit$)
-    call group_change_this (slave, x1_limit$, lat%control(ix), 1)
-    call group_change_this (slave, x2_limit$, lat%control(ix), 1)
+    call group_change_this (slave, x1_limit$, control, 1)
+    call group_change_this (slave, x2_limit$, control, 1)
 
   case (y_limit$)
-    call group_change_this (slave, y1_limit$, lat%control(ix), 1)
-    call group_change_this (slave, y2_limit$, lat%control(ix), 1)
+    call group_change_this (slave, y1_limit$, control, 1)
+    call group_change_this (slave, y2_limit$, control, 1)
 
   case (aperture$) 
-    call group_change_this (slave, x1_limit$, lat%control(ix), 1)
-    call group_change_this (slave, x2_limit$, lat%control(ix), 1)
-    call group_change_this (slave, y1_limit$, lat%control(ix), 1)
-    call group_change_this (slave, y2_limit$, lat%control(ix), 1)
+    call group_change_this (slave, x1_limit$, control, 1)
+    call group_change_this (slave, x2_limit$, control, 1)
+    call group_change_this (slave, y1_limit$, control, 1)
+    call group_change_this (slave, y2_limit$, control, 1)
 
   !---------
   ! All else
 
   case default
 
-    call group_change_this (slave, ix_attrib, lat%control(ix), 1)
+    call group_change_this (slave, ix_attrib, control, 1)
 
   end select
 
@@ -666,7 +667,7 @@ endif
 ! In the loop over all multipass_slaves, only modify the multipass_lord once
 
 if (ele%slave_status == multipass_slave$) then
-  my_lord => pointer_to_lord(ele, 1, ix_slave)
+  my_lord => pointer_to_lord(ele, 1, ix_slave = ix_slave)
   if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, ctl, 1)
 endif
 
@@ -1914,6 +1915,7 @@ type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
 type (all_pointer_struct) ptr_attrib(20), a_ptr
+type (control_struct), pointer :: control
 
 real(rp) ds, s_slave, val_attrib(20)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
@@ -1921,7 +1923,7 @@ real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
 real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr, length
 real(rp), pointer :: v(:), vs(:), tt
 
-integer i, j, ix_con, ix, iv, ix_slave, icom, l_stat, n_attrib
+integer i, j, ix, iv, ix_slave, icom, l_stat, n_attrib
 logical err_flag, on_an_offset_girder
 
 character(40) a_name
@@ -1942,7 +1944,7 @@ ix_slave = slave%ix_ele
 on_an_offset_girder = .false.
 
 do i = 1, slave%n_lord
-  lord => pointer_to_lord(slave, i, ix_con)
+  lord => pointer_to_lord(slave, i, control)
 
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
@@ -2007,20 +2009,20 @@ do i = 1, slave%n_lord
 
   ! overlay lord
 
-  iv = lat%control(ix_con)%ix_attrib  
+  iv = control%ix_attrib  
   select case (iv)
 
   case (x_limit$)
-    call overlay_change_this(slave%value(x1_limit$), lat%control(ix_con))
-    call overlay_change_this(slave%value(x2_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(x1_limit$), control)
+    call overlay_change_this(slave%value(x2_limit$), control)
   case (y_limit$)
-    call overlay_change_this(slave%value(y1_limit$), lat%control(ix_con))
-    call overlay_change_this(slave%value(y2_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(y1_limit$), control)
+    call overlay_change_this(slave%value(y2_limit$), control)
   case (aperture$)
-    call overlay_change_this(slave%value(x1_limit$), lat%control(ix_con))
-    call overlay_change_this(slave%value(x2_limit$), lat%control(ix_con))
-    call overlay_change_this(slave%value(y1_limit$), lat%control(ix_con))
-    call overlay_change_this(slave%value(y2_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(x1_limit$), control)
+    call overlay_change_this(slave%value(x2_limit$), control)
+    call overlay_change_this(slave%value(y1_limit$), control)
+    call overlay_change_this(slave%value(y2_limit$), control)
   case default
     a_name = attribute_name(slave, iv)
     is_free = attribute_free (slave, a_name, .true., .true.)
@@ -2033,7 +2035,7 @@ do i = 1, slave%n_lord
 
     call pointer_to_indexed_attribute (slave, iv, .true., a_ptr, err_flag)
     if (err_flag) call err_exit
-    call overlay_change_this(a_ptr%r, lat%control(ix_con))
+    call overlay_change_this(a_ptr%r, control)
   end select
 
 enddo

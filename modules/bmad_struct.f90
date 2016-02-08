@@ -751,8 +751,6 @@ type control_struct
   type (lat_ele_loc_struct) slave
   integer :: ix_lord = -1        ! Index to lord element
   integer :: ix_attrib = 0       ! Index of attribute controlled
-  integer :: type = 0            ! What kind of lord/slave relationship?
-                                 !  overlap$, group$, superimpose$, girder$, overlay$, or multipass$
 end type
 
 integer, parameter :: overlap$ = 60, multipass$ = 62

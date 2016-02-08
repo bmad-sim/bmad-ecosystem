@@ -37,8 +37,9 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave, ele2
 type (ele_struct) slave_ave
 type (ele_pointer_struct), allocatable :: slaves(:)
+type (control_struct), pointer :: ctl
 
-integer ix_ele, ix1, ix2, ixc
+integer ix_ele, ix1, ix2
 integer i, ix, n_slave, key
 
 real(rp) rr, tot, l_now
@@ -116,21 +117,21 @@ key = ele2%key
 
 tot = 0
 do i = 1, ele2%n_slave
-  slave => pointer_to_slave(ele2, i, ixc)
+  slave => pointer_to_slave(ele2, i, ctl)
   if (key == group$ .or. key == overlay$) then
-    tot = tot + abs(linear_coef(branch%lat%control(ixc)%stack, err_flag)) * slave%value(l$)
+    tot = tot + abs(linear_coef(ctl%stack, err_flag)) * slave%value(l$)
   else
     tot = tot + slave%value(l$)
   endif
 enddo
 
 do i = 1, ele2%n_slave
-  slave => pointer_to_slave(ele2, i, ixc)
+  slave => pointer_to_slave(ele2, i, ctl)
   call twiss_at_element (slave, average = slave_ave)
   if (tot == 0) then
     rr = 1.0 / ele2%n_slave
   elseif (key == group$ .or. key == overlay$) then
-    rr = abs(linear_coef(branch%lat%control(ixc)%stack, err_flag)) * slave_ave%value(l$) / tot
+    rr = abs(linear_coef(ctl%stack, err_flag)) * slave_ave%value(l$) / tot
   else
     rr = slave_ave%value(l$) / tot
   endif
