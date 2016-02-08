@@ -98,7 +98,7 @@ do i = 1, 10
 
   do j = 1, lat%n_ele_max
     if (dk1(j) == 0) cycle
-    call twiss_at_element (lat, j, average = ave)
+    call twiss_at_element (lat%ele(j), average = ave)
     l_beta_a =  abs(dk1(j)) * ave%a%beta * ave%value(l$) / 2
     l_beta_b = -abs(dk1(j)) * ave%b%beta * ave%value(l$) / 2
 
