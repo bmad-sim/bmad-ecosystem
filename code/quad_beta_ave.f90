@@ -43,7 +43,7 @@ endif
 ! if a controller element just use the value at the end of the first
 ! controlled element
 
-branch => ele%ix_branch
+branch => ele%branch
 if (ele%ix_ele > branch%n_ele_track) then
   slave => pointer_to_slave(ele, 1)
   beta_a_ave = slave%a%beta
