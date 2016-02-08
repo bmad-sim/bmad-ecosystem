@@ -1842,13 +1842,13 @@ class CPP_control {
 public:
   CPP_expression_atom_ARRAY stack;
   CPP_lat_ele_loc slave;
-  Int ix_lord;
+  CPP_lat_ele_loc lord;
   Int ix_attrib;
 
   CPP_control() :
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     slave(),
-    ix_lord(-1),
+    lord(),
     ix_attrib(0)
     {}
 
@@ -2497,10 +2497,12 @@ public:
   Int ix_branch;
   Int slave_status;
   Int n_slave;
+  Int n_slave_field;
   Int ix1_slave;
   Int ix2_slave;
   Int lord_status;
   Int n_lord;
+  Int n_lord_field;
   Int ic1_lord;
   Int ic2_lord;
   Int ix_pointer;
@@ -2597,10 +2599,12 @@ public:
     ix_branch(0),
     slave_status(Bmad::FREE),
     n_slave(0),
+    n_slave_field(0),
     ix1_slave(0),
     ix2_slave(-1),
     lord_status(Bmad::NOT_A_LORD),
     n_lord(0),
+    n_lord_field(0),
     ic1_lord(0),
     ic2_lord(-1),
     ix_pointer(0),

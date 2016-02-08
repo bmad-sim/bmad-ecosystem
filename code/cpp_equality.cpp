@@ -759,7 +759,7 @@ bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.slave == y.slave);
-  is_eq = is_eq && (x.ix_lord == y.ix_lord);
+  is_eq = is_eq && (x.lord == y.lord);
   is_eq = is_eq && (x.ix_attrib == y.ix_attrib);
   return is_eq;
 };
@@ -1109,10 +1109,12 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
   is_eq = is_eq && (x.slave_status == y.slave_status);
   is_eq = is_eq && (x.n_slave == y.n_slave);
+  is_eq = is_eq && (x.n_slave_field == y.n_slave_field);
   is_eq = is_eq && (x.ix1_slave == y.ix1_slave);
   is_eq = is_eq && (x.ix2_slave == y.ix2_slave);
   is_eq = is_eq && (x.lord_status == y.lord_status);
   is_eq = is_eq && (x.n_lord == y.n_lord);
+  is_eq = is_eq && (x.n_lord_field == y.n_lord_field);
   is_eq = is_eq && (x.ic1_lord == y.ic1_lord);
   is_eq = is_eq && (x.ic2_lord == y.ic2_lord);
   is_eq = is_eq && (x.ix_pointer == y.ix_pointer);
