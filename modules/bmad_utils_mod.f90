@@ -1937,7 +1937,7 @@ lat => lord%branch%lat
 
 do ic_out = slave%ic1_lord, slave%ic2_lord
   icon_out = lat%ic(ic_out)
-  if (lat%control(icon_out)%ix_lord == lord%ix_ele) exit
+  if (lat%control(icon_out)%lord%ix_ele == lord%ix_ele) exit
 enddo
 
 if (icon_out == slave%ic2_lord + 1) call err_exit ! Should not be
@@ -2005,7 +2005,8 @@ end subroutine remove_lord_slave_link
 !
 ! Input:
 !   lord     -- Ele_struct: Lord element
-!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave
+!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave for 
+!                 regular (not field_slave) slaves and from 1 to lord%n_slave + lord%n_slave_field otherwise.
 !
 ! Output:
 !   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
@@ -2026,7 +2027,7 @@ integer ix_slave, icon
 
 !
 
-if (ix_slave > lord%n_slave .or. ix_slave < 1) then
+if (ix_slave > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
   nullify(slave_ptr)
   if (present(control)) nullify(control)
   return
@@ -2057,7 +2058,8 @@ end function pointer_to_slave
 !
 ! Input:
 !   slave      -- Ele_struct: Slave element.
-!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
+!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord for 
+!                 regular (not field_lord) lords and from 1 to lord%n_lord + lord%n_lord_field otherwise.
 !
 ! Output:
 !   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
@@ -2073,6 +2075,7 @@ function pointer_to_lord (slave, ix_lord, control, ix_slave) result (lord_ptr)
 
 type (ele_struct), target :: slave
 type (control_struct), pointer, optional :: control
+type (control_struct), pointer :: ctl
 type (ele_struct), pointer :: lord_ptr
 type (lat_struct), pointer :: lat
 
@@ -2083,7 +2086,7 @@ character(*), parameter :: r_name = 'pointer_to_lord'
 
 ! Case where there is no lord
 
-if (ix_lord > slave%n_lord .or. ix_lord < 1) then
+if (ix_lord > slave%n_lord+slave%n_lord_field .or. ix_lord < 1) then
   nullify(lord_ptr)
   if (present(control)) nullify(control)
   if (present(ix_slave)) ix_slave = -1
@@ -2097,11 +2100,13 @@ lat => slave%branch%lat
 if (slave%slave_status == slice_slave$) then
   if (present(control)) nullify(control)
   if (present(ix_slave)) ix_slave = -1
+
   if (associated(slave%lord)) then
     lord_ptr => slave%lord
   else
     icon = lat%ic(slave%ic1_lord + ix_lord - 1)
-    lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+    ctl => lat%control(icon)
+    lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
   endif
   return
 endif
@@ -2109,9 +2114,10 @@ endif
 ! Point to the lord
 
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
-lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+ctl => lat%control(icon)
+lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
 
-if (present(control)) control => lat%control(icon)
+if (present(control)) control => ctl
 
 ! There must be a corresponding ix_slave value such that
 !   pointer_to_slave(lord_ptr, ix_slave) => slave 

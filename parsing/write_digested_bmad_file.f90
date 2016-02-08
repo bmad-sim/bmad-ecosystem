@@ -143,7 +143,7 @@ do i = 1, lat%n_control_max
   c => lat%control(i)
   n = 0
   if (allocated(c%stack)) n = size(c%stack)
-  write (d_unit) n, c%ix_lord, c%slave, c%ix_attrib
+  write (d_unit) n, c%lord, c%slave, c%ix_attrib
   do j = 1, n
     write (d_unit) c%stack(j)
   enddo
@@ -311,8 +311,8 @@ write (d_unit) &
           ele%a, ele%b, ele%z, 0.0_rp, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
+          ele%ic1_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
           ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &

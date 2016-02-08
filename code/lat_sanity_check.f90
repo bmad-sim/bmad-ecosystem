@@ -818,7 +818,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! check slaves
 
-    do j = ele%ix1_slave, ele%ix2_slave
+    do j = ele%ix1_slave, ele%ix2_slave+ele%n_slave_field
 
       if (j < 1 .or. j > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
@@ -828,12 +828,12 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      if (lat%control(j)%ix_lord /= i_t) then
+      if (lat%control(j)%lord%ix_ele /= i_t) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)', &
-                  'HAS A %IX_LORD POINTER MISMATCH: \i0\ ', &
+                  'HAS A %LORD%IX_ELE POINTER MISMATCH: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = [i_t, lat%control(j)%ix_lord, j] )
+                  i_array = [i_t, lat%control(j)%lord%ix_ele, j] )
         err_flag = .true.
       endif
 
@@ -854,8 +854,7 @@ do i_b = 0, ubound(lat%branch, 1)
       t2_type = slave%slave_status 
       str_ix_slave = ele_loc_to_string(slave)
 
-      if (.not. good_control(l_stat, t2_type) .and. &
-                        lat%control(j)%ix_attrib /= l$) then
+      if (j <= ele%ix2_slave .and. .not. good_control(l_stat, t2_type) .and. lat%control(j)%ix_attrib /= l$) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)',  &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
@@ -868,7 +867,7 @@ do i_b = 0, ubound(lat%branch, 1)
       if (l_stat /= group_lord$ .and. l_stat /= girder_lord$) then
         n = slave%ic2_lord - slave%ic1_lord + 1
         cc(1:n) = [(lat%ic(i), i = slave%ic1_lord, slave%ic2_lord)]
-        if (.not. any(lat%control(cc(1:n))%ix_lord == i_t)) then
+        if (.not. any(lat%control(cc(1:n))%lord%ix_ele == i_t)) then
           call out_io (s_fatal$, r_name, &
                     'SLAVE: ', trim(slave%name) // '  (\i0\)', &
                     'WITH SLAVE_STATUS: ' // control_name(t2_type), &
@@ -904,7 +903,7 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
           
-      i_t2 = lat%control(j)%ix_lord
+      i_t2 = lat%control(j)%lord%ix_ele
 
       if (i_t2 < 1 .or. i_t2 > lat%n_ele_max) then
         call out_io (s_fatal$, r_name, &

@@ -8,11 +8,12 @@ use bmad_struct
 
 interface
 
-  subroutine add_lattice_control_structs (lat, ele, add_at_end)
+  subroutine add_lattice_control_structs (lat, ele, n_add_slave_field, n_add_lord_field, add_at_end)
     import
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) ele
+    integer, optional :: n_add_slave_field, n_add_lord_field
     logical, optional :: add_at_end
   end subroutine
 

@@ -1316,8 +1316,8 @@ if (.not. is_eq) return
 if (allocated(f1%stack)) is_eq = all(f1%stack == f2%stack)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%slave == f2%slave)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_lord == f2%ix_lord)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%lord == f2%lord)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_attrib == f2%ix_attrib)
 
@@ -1989,6 +1989,8 @@ is_eq = is_eq .and. (f1%slave_status == f2%slave_status)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_slave == f2%n_slave)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_slave_field == f2%n_slave_field)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix1_slave == f2%ix1_slave)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix2_slave == f2%ix2_slave)
@@ -1996,6 +1998,8 @@ is_eq = is_eq .and. (f1%ix2_slave == f2%ix2_slave)
 is_eq = is_eq .and. (f1%lord_status == f2%lord_status)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_lord == f2%n_lord)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_lord_field == f2%n_lord_field)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ic1_lord == f2%ic1_lord)
 !! f_side.equality_test[integer, 0, NOT]

@@ -3909,7 +3909,7 @@ endif
 do i = 1, n_multipass
   slave => pointer_to_ele (lat, m_slaves(i))
   ixc = i + lord%ix1_slave - 1
-  lat%control(ixc)%ix_lord = ix_lord
+  lat%control(ixc)%lord%ix_ele = ix_lord
   lat%control(ixc)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
   if (slave%n_lord /= 0) then
     call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
@@ -4917,7 +4917,7 @@ main_loop: do n_in = 1, n_ele_max
         call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
         cs(n_slave)%stack = pc%stack(1:pc%n_stk)
         cs(n_slave)%slave = lat_ele_loc_struct(eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
-        cs(n_slave)%ix_lord = -1             ! dummy value
+        cs(n_slave)%lord%ix_ele = -1             ! dummy value
         attrib_name = pc%attrib_name
         if (attrib_name == blank_name$) attrib_name = pele%default_attrib
         slave => pointer_to_ele (lat, eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)

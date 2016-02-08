@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 171
+integer, parameter :: bmad_inc_version$ = 172
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -712,11 +712,13 @@ type ele_struct
   integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer :: slave_status = free$                 ! super_slave$, etc.
-  integer :: n_slave = 0                          ! Number of slaves
+  integer :: n_slave = 0                          ! Number of slaves (except field slaves).
+  integer :: n_slave_field = 0                    ! Number of field slaves of this element
   integer :: ix1_slave = 0                        ! Start index for slave elements
   integer :: ix2_slave = -1                       ! Stop  index for slave elements
   integer :: lord_status = not_a_lord$            ! overlay_lord$, etc.
-  integer :: n_lord = 0                           ! Number of lords
+  integer :: n_lord = 0                           ! Number of lords (except field lords).
+  integer :: n_lord_field = 0                     ! Number of field lords of this element
   integer :: ic1_lord = 0                         ! Start index for lord elements
   integer :: ic2_lord = -1                        ! Stop  index for lord elements
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
@@ -748,8 +750,8 @@ end type
 
 type control_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
-  type (lat_ele_loc_struct) slave
-  integer :: ix_lord = -1        ! Index to lord element
+  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
+  type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
   integer :: ix_attrib = 0       ! Index of attribute controlled
 end type
 

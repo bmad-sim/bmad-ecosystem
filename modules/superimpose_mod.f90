@@ -453,7 +453,7 @@ do
     lat%ele(ixn)%ix1_slave = ixc
     lat%ele(ixn)%ix2_slave = ixc
     lat%ele(ixn)%n_slave = 1
-    lat%control(ixc)%ix_lord = ixn
+    lat%control(ixc)%lord%ix_ele = ixn
     lat%control(ixc)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
     lat%n_control_max = ixc
 
@@ -485,7 +485,7 @@ do
 
   ix_super_con = ix_super_con + 1
   sup_con(ix_super_con)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
-  sup_con(ix_super_con)%ix_lord = ix_super
+  sup_con(ix_super_con)%lord%ix_ele = ix_super
   sup_con(ix_super_con)%ix_attrib = 0
 
   ! change the element key
@@ -591,10 +591,10 @@ if (logic_option(.false., create_jumbo_slave)) then
           ele0%n_lord = ele0%n_lord + 1
           call add_lattice_control_structs(lat, ele0)
           lord%n_slave = lord%n_slave + 1
-          call add_lattice_control_structs(lat, lord, .false.)
+          call add_lattice_control_structs(lat, lord, add_at_end = .false.)
           
           cntl => lat%control(lord%ix1_slave)
-          cntl%ix_lord = lord%ix_ele
+          cntl%lord%ix_ele = lord%ix_ele
           cntl%slave%ix_ele = ele0%ix_ele
           cntl%slave%ix_branch = ele0%ix_branch
           lat%ic(ele0%ic2_lord) = lord%ix1_slave

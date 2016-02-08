@@ -222,7 +222,7 @@ enddo
 
 do i = 1, lat%n_control_max
   c => lat%control(i)
-  read (d_unit, err = 9040) n, c%ix_lord, c%slave, c%ix_attrib
+  read (d_unit, err = 9040) n, c%lord, c%slave, c%ix_attrib
   if (n > 0) then
     allocate (c%stack(n))
     do j = 1, n
@@ -442,8 +442,8 @@ read (d_unit, err = 9100, end = 9100) &
         ele%a, ele%b, ele%z, rdum, ele%vec0, ele%mat6, &
         ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
-        ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-        ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
+        ele%ic1_lord, ele%ix_pointer, ele%ixx, &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
         ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
         ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &
@@ -452,6 +452,9 @@ read (d_unit, err = 9100, end = 9100) &
         ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
         ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
         idum2, ele%bookkeeping_state, ele%ptc_integration_type
+
+ele%ix2_slave = ele%ix1_slave + ele%n_slave - 1
+ele%ic2_lord  = ele%ic1_lord  + ele%n_lord  - 1
 
 ! Decompress value array
 

@@ -425,7 +425,7 @@ do i = lbound(master_node%children, 1), ubound(master_node%children, 1)
 
   do j = lbound(node%slaves, 1), ubound(node%slaves, 1)
     n = j + n_con1 - lbound(node%slaves, 1)
-    lat%control(n)%ix_lord = ele%ix_ele
+    lat%control(n)%lord%ix_ele = ele%ix_ele
     ix_ele = node%slaves(j)%node%ix
     slave_ele => lat%ele(ix_ele)
     lat%control(n)slave%ix_ele = ix_ele
@@ -498,7 +498,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
       n = k + n_con1 - lbound(slave_node%slaves, 1)
       ix_slave = slave_node%slaves(k)%node%ix
       lat%control(n)slave%ix_ele = ix_slave
-      lat%control(n)%ix_lord = ele%ix_ele
+      lat%control(n)%lord%ix_ele = ele%ix_ele
 
       found =  parser_set_attribute_value (attrib_node%children(j), 'coef', coef_str)
       coef = dflt_coef
@@ -533,7 +533,7 @@ enddo
 ! Add the lord info for controllers and masters
 
 do i = 1, lat%n_control_max
-  ix = lat%control(i)%ix_lord
+  ix = lat%control(i)%lord%ix_ele
   if (lat%ele(ix)%key == group$) cycle
   ix = lat%control(i)slave%ix_ele
   lat%ele(ix)%n_lord = lat%ele(ix)%n_lord + 1
@@ -550,7 +550,7 @@ do i = 1, lat%n_ele_max
 enddo
 
 do i = 1, lat%n_control_max
-  ix = lat%control(i)%ix_lord
+  ix = lat%control(i)%lord%ix_ele
   if (lat%ele(ix)%key == group$) cycle
   ix = lat%control(i)slave%ix_ele
   slave_ele => lat%ele(ix)
@@ -570,7 +570,7 @@ do i = 1, lat%n_ele_track
   ele%name = ''
   do j = ele%ic1_lord, ele%ic2_lord
     ix = lat%ic(j)
-    ix_lord = lat%control(ix)%ix_lord
+    ix_lord = lat%control(ix)%lord%ix_ele
     ele%name = trim(ele%name) // '\' // trim(lat%ele(ix_lord)%name)  ! '
     call calc_superimpose_key (ele, lat%ele(ix_lord), ele)
     if (ele%key < 1) then

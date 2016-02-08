@@ -144,7 +144,7 @@ do i = 1, n_control
   c%stack     = contrl(i)%stack(1:is-1)
   c%ix_attrib = contrl(i)%ix_attrib
   c%slave     = contrl(i)%slave
-  c%ix_lord   = lord%ix_ele
+  c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
   ! Convert variable$ type to group variable index if name matches a group variable name
   do is = 1, size(c%stack)
