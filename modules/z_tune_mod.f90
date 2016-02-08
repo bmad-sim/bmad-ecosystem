@@ -59,7 +59,7 @@ real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
 real(rp), optional :: z_tune
 logical, optional :: ok
 
-integer i, j, k, ix
+integer i, j, k, ix, is
 integer :: loop_max = 10
 
 logical found_control, rf_is_on, err_flag
@@ -123,9 +123,8 @@ do i = 1, lat%n_ele_max
 
   if (ele%key == overlay$) then
     found_control = .false.
-    do j = ele%ix1_slave, ele%ix2_slave
-      ix = lat%control(j)%slave%ix_ele
-      ele2 => lat%ele(ix)
+    do is = 1, ele%n_slave
+      ele2 => pointer_to_slave(ele, is, j) 
 
       if (found_control .and. &
             (ele2%key /= rfcavity$ .or. lat%control(j)%ix_attrib /= voltage$)) then

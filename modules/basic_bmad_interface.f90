@@ -498,11 +498,10 @@ interface
     integer, optional :: ix_attrib
   end subroutine
 
-  subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
+  subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
     import
     implicit none
-    type (lat_struct) lat
-    integer ix_ele
+    type (ele_struct) ele
     real(rp) beta_a_ave
     real(rp) beta_b_ave
   end subroutine
