@@ -1302,9 +1302,10 @@ contains
     INTEGER,OPTIONAL,INTENT(IN) ::POS
     REAL(DP),INTENT(INOUT) :: B(3),E(3),phi
     REAL(DP),INTENT(INOUT) :: X(6)
-    REAL(DP) Z,VM,a(3),ad(2)
+    REAL(DP) Z,VM,a(3),ad(3)
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
     B=0.0_dp
     E=0.0_dp
     phi=0.0_dp
@@ -1357,7 +1358,15 @@ contains
       endif
 
     CASE(KIND21)     ! travelling wave cavity
-       WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
+       IF(EL%cav21%P%DIR==1) THEN
+          Z= pos*el%l/el%p%nst
+       ELSE
+          Z=EL%L-pos*el%l/el%p%nst
+       ENDIF
+
+       call A_TRANS(EL%cav21,Z,X,k,A,AD,B,E)
+
+
     CASE(KIND22)     ! helical dipole
        IF(EL%HE22%P%DIR==1) THEN
           Z= pos*el%l/el%p%nst
@@ -1388,7 +1397,7 @@ contains
     TYPE(REAL_8),INTENT(INOUT) :: B(3),E(3),phi
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
     INTEGER I
-    TYPE(REAL_8) z,VM,ad(2),a(3)
+    TYPE(REAL_8) z,VM,ad(3),a(3)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     
     CALL alloc(VM,Z)
@@ -1438,7 +1447,7 @@ contains
         CALL GET_BE_CAV(EL%C4,B,E,X,k)
       else
        call alloc(a,3)
-       call alloc(ad,2)
+       call alloc(ad,3)
        IF(EL%c4%P%DIR==1) THEN
           Z= pos*el%l/el%p%nst
        ELSE
@@ -1446,10 +1455,20 @@ contains
        ENDIF
        call  Abmad_TRANS(EL%C4,Z,X,k,A,AD,B,E) 
        call kill(a,3)
-       call kill(ad,2)
+       call kill(ad,3)
       endif
     CASE(KIND21)     ! travelling wave cavity
-       WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
+       call alloc(a,3)
+       call alloc(ad,3)
+       IF(EL%cav21%P%DIR==1) THEN
+          Z= pos*el%l/el%p%nst
+       ELSE
+          Z=EL%L-pos*el%l/el%p%nst
+       ENDIF
+
+       call A_TRANS(EL%cav21,Z,X,k,A,AD,B,E)
+       call kill(a,3)
+       call kill(ad,3)
     CASE(KIND22)     ! helical dipole
        IF(EL%HE22%P%DIR==1) THEN
           Z= pos*el%l/el%p%nst

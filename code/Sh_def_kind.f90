@@ -2048,7 +2048,7 @@ CALL FRINGECAV(EL,X,k,2)
   SUBROUTINE Abmad_TRANSR(EL,Z,X,k,A,AD,B,E)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
-    real(dp),INTENT(INOUT):: Z,A(3),AD(2)
+    real(dp),INTENT(INOUT):: Z,A(3),AD(3)
     real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV4),INTENT(INOUT):: EL
     real(dp) C1,S1,V,O,dad1dz
@@ -2070,14 +2070,13 @@ CALL FRINGECAV(EL,X,k,2)
 
     A=0.0_dp
     ad=0.0_dp
-    dad1dz=0.0_dp
    do ko=1,el%nf    ! over modes
    
     C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
     S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
-    dad1dz=dad1dz-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
 
 !!!   DA_3/DT FOR KICK IN X(5)    
     A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
@@ -2087,14 +2086,14 @@ CALL FRINGECAV(EL,X,k,2)
     A(2)=AD(1)*X(3)  ! A_y
 
      if(present(b)) then
-     b(1)=-dad1dz*x(3)/EL%P%CHARGE
-     b(2)= dad1dz*x(1)/EL%P%CHARGE
+     b(1)=-ad(3)*x(3)/EL%P%CHARGE
+     b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
     endif
 
     if(present(e)) then
-     E(1)=-dad1dz*x(3)/EL%P%CHARGE
-     E(2)= dad1dz*x(1)/EL%P%CHARGE
+     E(1)=-ad(2)*x(1)/EL%P%CHARGE
+     E(2)=-ad(2)*x(3)/EL%P%CHARGE
      E(3)=A(3)/EL%P%CHARGE
     endif
 
@@ -2103,7 +2102,7 @@ CALL FRINGECAV(EL,X,k,2)
  SUBROUTINE Abmad_TRANSP(EL,Z,X,k,A,AD,B,E)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6)
-    TYPE(REAL_8),INTENT(INOUT):: Z,A(3),AD(2)
+    TYPE(REAL_8),INTENT(INOUT):: Z,A(3),AD(3)
     TYPE(CAV4P),INTENT(INOUT):: EL
     TYPE(REAL_8),optional,INTENT(INOUT):: B(3),E(3)
     TYPE(REAL_8) C1,S1,V,O,dad1dz
@@ -2114,7 +2113,7 @@ CALL FRINGECAV(EL,X,k,2)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     IF(EL%THIN) RETURN
     
-    CALL ALLOC(C1,S1,V,O,dad1dz)
+    CALL ALLOC(C1,S1,V,O)
 
     O=EL%freq*twopi/CLIGHT
     if(.not.k%TIME.and.piotr_freq) then
@@ -2126,11 +2125,11 @@ CALL FRINGECAV(EL,X,k,2)
     DO KO=1,3
      A(KO)=0.0_dp
     ENDDO
-    DO KO=1,2
+    DO KO=1,3
      AD(KO)=0.0_dp
     ENDDO
 
-    dad1dz=0.0_dp
+  
 
    do ko=1,el%nf    ! over modes
    
@@ -2140,7 +2139,7 @@ CALL FRINGECAV(EL,X,k,2)
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
 
-    dad1dz=dad1dz-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
 
 !!!   DA_3/DT FOR KICK IN X(5)    
     A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
@@ -2150,18 +2149,18 @@ CALL FRINGECAV(EL,X,k,2)
     A(2)=AD(1)*X(3)
  
      if(present(b)) then
-     b(1)=-dad1dz*x(3)/EL%P%CHARGE
-     b(2)= dad1dz*x(1)/EL%P%CHARGE
+     b(1)=-ad(3)*x(3)/EL%P%CHARGE
+     b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
     endif
 
     if(present(e)) then
-     E(1)=-dad1dz*x(3)/EL%P%CHARGE
-     E(2)= dad1dz*x(1)/EL%P%CHARGE
+     E(1)=-ad(2)*x(1)/EL%P%CHARGE
+     E(2)=-ad(2)*x(3)/EL%P%CHARGE
      E(3)=A(3)/EL%P%CHARGE
     endif
 
-    CALL KILL(C1,S1,V,O,dad1dz)
+    CALL KILL(C1,S1,V,O)
 
 
   END SUBROUTINE Abmad_TRANSP
@@ -2171,7 +2170,7 @@ CALL FRINGECAV(EL,X,k,2)
     real(dp), INTENT(INout) :: X(6)
     real(dp),INTENT(INOUT):: Z0
     real(dp), INTENT(INOUT) :: F(6)
-    REAL(DP) A(3),AD(2),PZ
+    REAL(DP) A(3),AD(3),PZ
     TYPE(CAV4),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -2230,7 +2229,7 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(REAL_8), INTENT(INout) :: X(6)
     TYPE(REAL_8),INTENT(INOUT):: Z0
     TYPE(REAL_8), INTENT(INOUT) :: F(6)
-    TYPE(REAL_8)  A(3),AD(2),PZ
+    TYPE(REAL_8)  A(3),AD(3),PZ
     TYPE(CAV4P),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -15554,7 +15553,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
     real(dp), INTENT(INout) :: X(6)
     real(dp),INTENT(INOUT):: Z0
     real(dp), INTENT(INOUT) :: F(6)
-    REAL(DP) A(3),AD(2),PZ
+    REAL(DP) A(3),AD(3),PZ
     TYPE(CAV_TRAV),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -15612,7 +15611,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
     TYPE(REAL_8), INTENT(INout) :: X(6)
     TYPE(REAL_8), INTENT(INOUT):: Z0
     TYPE(REAL_8), INTENT(INOUT) :: F(6)
-    TYPE(REAL_8)  A(3),AD(2),PZ
+    TYPE(REAL_8)  A(3),AD(3),PZ
     TYPE(CAV_TRAVp),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -15674,11 +15673,13 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
   END subroutine feval_CAVP
 
-  SUBROUTINE A_TRANSR(EL,Z0,X,k,A,AD)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
+  SUBROUTINE A_TRANSR(EL,Z0,X,k,A,AD,B,E)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
-    real(dp),INTENT(INOUT):: Z0,A(3),ad(2)
+    real(dp),INTENT(INOUT):: Z0,A(3),ad(3)
+    real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAV),INTENT(INOUT):: EL
+
     real(dp) C1,S1,C2,S2,V,O
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -15700,18 +15701,31 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     AD(1)=0.5_dp*V*(COS(EL%PSI)*S1-SIN(EL%PSI)*S2)
     AD(2)=O*0.5_dp*V*(COS(EL%PSI)*C1-SIN(EL%PSI)*C2)
+    AD(3)=O*0.5_dp*V*(-COS(EL%PSI)*C1-SIN(EL%PSI)*C2)
     A(1)=AD(1)*X(1)
     A(2)=AD(1)*X(3)
     A(3)=-EL%P%DIR*V*(COS(EL%PSI)*S1+SIN(EL%PSI)*S2)
 
+     if(present(b)) then
+     b(1)=-ad(3)*x(3)/EL%P%CHARGE
+     b(2)= ad(3)*x(1)/EL%P%CHARGE
+     b(3)=0.0_dp
+    endif
+
+    if(present(e)) then
+     E(1)=-ad(2)*x(1)/EL%P%CHARGE
+     E(2)=-ad(2)*x(3)/EL%P%CHARGE
+     E(3)=EL%P%DIR*A(3)/EL%P%CHARGE
+    endif
 
   END SUBROUTINE A_TRANSR
 
 
-  SUBROUTINE A_TRANSP(EL,Z0,X,k,A,AD)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
+  SUBROUTINE A_TRANSP(EL,Z0,X,k,A,AD,B,E)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6)
-    TYPE(REAL_8),INTENT(INOUT):: Z0,A(3),ad(2)
+    TYPE(REAL_8),INTENT(INOUT):: Z0,A(3),ad(3)
+    TYPE(REAL_8),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAVP),INTENT(INOUT):: EL
     TYPE(REAL_8) C1,S1,C2,S2,V,O
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -15734,9 +15748,22 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     AD(1)=0.5_dp*V*(COS(EL%PSI)*S1-SIN(EL%PSI)*S2)
     AD(2)=O*0.5_dp*V*(COS(EL%PSI)*C1-SIN(EL%PSI)*C2)
+    AD(3)=O*0.5_dp*V*(-COS(EL%PSI)*C1-SIN(EL%PSI)*C2)
     A(1)=AD(1)*X(1)
     A(2)=AD(1)*X(3)
     A(3)=-EL%P%DIR*V*(COS(EL%PSI)*S1+SIN(EL%PSI)*S2)
+
+     if(present(b)) then
+     b(1)=-ad(3)*x(3)/EL%P%CHARGE
+     b(2)= ad(3)*x(1)/EL%P%CHARGE
+     b(3)=0.0_dp
+    endif
+
+    if(present(e)) then
+     E(1)=-ad(2)*x(1)/EL%P%CHARGE
+     E(2)=-ad(2)*x(3)/EL%P%CHARGE
+     E(3)=EL%P%DIR*A(3)/EL%P%CHARGE
+    endif
 
     CALL KILL(C1,S1,C2,S2,V,O)
 
