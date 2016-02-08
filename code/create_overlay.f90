@@ -41,7 +41,7 @@ type (ele_struct), pointer :: slave
 type (control_struct)  contrl(:)
 type (control_struct), pointer :: c
 
-integer i, j, nc0, nc2, ix_con, is, n, iv
+integer i, j, nc0, nc2, is, n, iv
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(40) at_name
@@ -173,7 +173,7 @@ lat%n_control_max = nc2
 
 do i = 1, lord%n_slave
 
-  slave => pointer_to_slave(lord, i, ix_con)
+  slave => pointer_to_slave(lord, i)
 
   ! You cannot overlay super_slaves 
 
@@ -187,7 +187,7 @@ do i = 1, lord%n_slave
 
   slave%n_lord = slave%n_lord + 1
   call add_lattice_control_structs (lat, slave)
-  lat%ic(slave%ic2_lord) = ix_con
+  lat%ic(slave%ic2_lord) = lord%ix1_slave + i - 1
 
 enddo
 

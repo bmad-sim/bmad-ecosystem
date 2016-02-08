@@ -72,6 +72,7 @@ type (photon_element_struct), pointer :: p
 type (photon_surface_struct), pointer :: s
 type (ele_attribute_struct) attrib
 type (lat_param_struct) param
+type (control_struct), pointer :: ctl
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
@@ -600,19 +601,19 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
     do i = 1, ele%n_lord
-      lord => pointer_to_lord (ele, i, ic)
+      lord => pointer_to_lord (ele, i, ctl)
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$, girder_lord$)
         coef_str = ''
         a_name = ''
         val_str = ''
       case default
-        if (allocated(lat%control(ic)%stack)) then
-          coef_str = expression_stack_to_string (lat%control(ic)%stack)
+        if (allocated(ctl%stack)) then
+          coef_str = expression_stack_to_string (ctl%stack)
         else
           coef_str = ''
         endif
-        iv = lat%control(ic)%ix_attrib
+        iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)
       end select
 
@@ -671,17 +672,17 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     case default
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute                Value    Expression'
       do ix = 1, ele%n_slave
-        slave => pointer_to_slave (ele, ix, i)
-        if (allocated(lat%control(i)%stack)) then
-          coef_str = expression_stack_to_string (lat%control(i)%stack)
+        slave => pointer_to_slave (ele, ix, ctl)
+        if (allocated(ctl%stack)) then
+          coef_str = expression_stack_to_string (ctl%stack)
           if (ele%key == overlay$) then
-            call evaluate_expression_stack(lat%control(i)%stack, val, err_flag, str1, ele%control_var)
+            call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control_var)
             write (coef_str, '(es12.4, 4x, a)') val, trim(coef_str)
           endif
         else
           coef_str = ''
         endif
-        iv = lat%control(i)%ix_attrib
+        iv = ctl%ix_attrib
         a_name = attribute_name(slave, iv)
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, trim(coef_str)
       enddo

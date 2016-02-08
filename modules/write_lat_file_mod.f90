@@ -63,7 +63,7 @@ type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
 type (ele_struct), target :: ele_default(n_key$)
 type (wig_term_struct) wt
-type (control_struct) ctl
+type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (multipass_ele_info_struct), pointer :: e_info
@@ -94,7 +94,7 @@ character(4) end_str, last
 character(1), parameter :: xyz(3) = ['x', 'y', 'z']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
-integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
+integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
@@ -291,12 +291,11 @@ do ib = 0, ubound(lat%branch, 1)
         write (line, '(2a)') trim(ele%name), ': group = {'
       endif
       j_loop: do j = 1, ele%n_slave
-        slave => pointer_to_slave(ele, j, ic)
-        ctl = lat%control(ic)
+        slave => pointer_to_slave(ele, j, ctl)
         ! do not use elements w/ duplicate names & attributes
         do k = 1, j-1 
-          slave2 => pointer_to_slave(ele, k, ic2)
-          if (slave2%name == slave%name .and. lat%control(ic2)%ix_attrib == ctl%ix_attrib) cycle j_loop
+          slave2 => pointer_to_slave(ele, k, ctl2)
+          if (slave2%name == slave%name .and. ctl2%ix_attrib == ctl%ix_attrib) cycle j_loop
         enddo
         ! Now write the slave info
         if (j == 1) then
