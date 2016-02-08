@@ -822,10 +822,10 @@ interface
     logical, optional :: err, compute_floor_coords
   end subroutine
 
-  recursive subroutine twiss_at_element (lat, ix_ele, start_ele, end_ele, average)
+  recursive subroutine twiss_at_element (ele, start_ele, end_ele, average)
     import
     implicit none
-    type (lat_struct), target :: lat
+    type (ele_struct), target :: ele
     type (ele_struct), optional :: start_ele
     type (ele_struct), optional :: end_ele
     type (ele_struct), optional :: average
