@@ -318,7 +318,7 @@ type (tao_ele_shape_struct), pointer :: ele_shape
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (floor_position_struct) end1, end2, floor
 type (tao_building_wall_point_struct), pointer :: pt(:)
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
 real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
@@ -376,9 +376,9 @@ do n = 0, ubound(lat%branch, 1)
                                                                              dat_var_name, dat_var_value, ix_shape)
       if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
       if (ele%lord_status == multipass_lord$) then
-        do j = ele%ix1_slave, ele%ix2_slave
-          ic = lat%control(j)%slave%ix_ele
-          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, branch%ele(ic), dat_var_name, dat_var_value, ele_shape)
+        do j = 1, ele%n_slave
+          slave => pointer_to_slave(ele, j)
+          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, slave, dat_var_name, dat_var_value, ele_shape)
         enddo
       else
         call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, dat_var_name, dat_var_value, ele_shape)
