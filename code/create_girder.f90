@@ -61,7 +61,7 @@ if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
 
 do j = 1, n_slave
   lat%control(ix+j)           = contrl(j)
-  lat%control(ix+j)%ix_lord   = ix_girder
+  lat%control(ix+j)%lord      = lat_ele_loc_struct(ix_girder, 0)
   lat%control(ix+j)%ix_attrib = 0
 enddo
 

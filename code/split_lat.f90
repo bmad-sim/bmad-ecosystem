@@ -48,7 +48,7 @@ type (control_struct), pointer :: ctl
 real(rp) s_split, len_orig, len1, len2, ds_fudge
 real(rp) dl, w_inv(3,3)
 
-integer i, j, k, ix, ix_branch, ib, ie
+integer i, j, k, ix, ix_branch, ib, ie, n_slave
 integer ix_split, ixc, ix_attrib, ix_super_lord
 integer ix2, inc, nr, n_ic2, ct
 
@@ -136,6 +136,7 @@ ele2%value(l$) = len2
 ! Now to correct the slave/lord bookkeeping...
 
 ix_super_lord = 0   ! no super lord made yet.
+controls_need_removing = .false.
 
 ! A free drift needs nothing more.
 
@@ -187,16 +188,13 @@ if (ele%slave_status == super_slave$) then
 
   ! Remove lord/slave control for ele2 if the lord does not overlap
 
-  controls_need_removing = .false.
   do j = 1, ele2%n_lord
     lord => pointer_to_lord(ele2, j, ctl)
     if (has_overlap(ele2, lord)) cycle
-    ctl%ix_attrib = int_garbage$
+    ctl%ix_attrib = int_garbage$  ! Mark for deletion
     lord%value(lord_pad2$) = lord%value(lord_pad2$) - ele2%value(l$)
     controls_need_removing = .true.
   enddo
-
-  if (controls_need_removing) call remove_eles_from_lat(lat, .false.)
 
   goto 8000   ! and return
 
@@ -213,22 +211,33 @@ lat%n_ele_max = ix_super_lord
 super_lord = ele
 super_lord%lord_status = super_lord$
 super_lord%value(l$) = len_orig
-ixc = lat%n_control_max + 1
-if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+500)
-super_lord%ix1_slave = ixc
-super_lord%ix2_slave = ixc + 1
+ixc = lat%n_control_max
+n_slave = 2 + ele%n_slave_field
+if (ixc+ele%n_slave_field > size(lat%control)) call reallocate_control (lat, ixc+ele%n_slave_field+100)
+super_lord%ix1_slave = ixc + 1
+super_lord%ix2_slave = ixc + 2
 super_lord%n_slave = 2
-lat%n_control_max = ixc + 1
-lat%control(ixc)%ix_lord   = ix_super_lord
-lat%control(ixc)%slave = lat_ele_loc_struct(ix_split, ix_branch)
-lat%control(ixc+1)%ix_lord   = ix_super_lord
-lat%control(ixc+1)%slave = lat_ele_loc_struct(ix_split + 1, ix_branch)
+super_lord%n_slave_field = ele%n_slave_field
+lat%n_control_max = ixc + n_slave
+lat%control(ixc+1)%lord  = lat_ele_loc_struct(ix_super_lord, 0)
+lat%control(ixc+1)%slave = lat_ele_loc_struct(ix_split, ix_branch)
+lat%control(ixc+2)%lord  = lat_ele_loc_struct(ix_super_lord, 0)
+lat%control(ixc+2)%slave = lat_ele_loc_struct(ix_split+1, ix_branch)
+do i = 1, super_lord%n_slave_field
+  lat%control(ixc+2+i)%lord = lat_ele_loc_struct(ix_super_lord, 0)
+  ix = ele%ix1_slave+ele%n_slave+i-1
+  lat%control(ixc+2+i)%slave = lat%control(ix)%slave
+  lat%control(ix)%ix_attrib = int_garbage$ ! Mark for deletion with remove_eles_from_lat
+enddo
 
-! lord elements of the split element must now point towards the super lord
+if (ele2%n_slave_field /= 0) controls_need_removing = .true.
+ele2%n_slave_field = 0
 
-do i = 1, ele%n_lord
+! lord elements of the split element must now point towards the super_lord
+
+do i = 1, ele%n_lord+ele%n_lord_field
   lord => pointer_to_lord(ele, i)
-  do k = lord%ix1_slave, lord%ix2_slave
+  do k = lord%ix1_slave, lord%ix1_slave+lord%n_slave+lord%n_slave_field-1
     if (lat%control(k)%slave%ix_ele == ix_split+1) then
       lat%control(k)%slave = lat_ele_loc_struct(ix_super_lord, 0)
     endif
@@ -245,7 +254,7 @@ ele1%ic1_lord = inc
 ele1%ic2_lord = inc
 ele1%n_lord = 1
 lat%n_ic_max = inc
-lat%ic(inc) = ixc
+lat%ic(inc) = ixc + 1
 
 ele2%slave_status = super_slave$
 inc = lat%n_ic_max + 1
@@ -253,11 +262,14 @@ ele2%ic1_lord = inc
 ele2%ic2_lord = inc
 ele2%n_lord = 1
 lat%n_ic_max = inc
-lat%ic(inc) = ixc + 1
+lat%ic(inc) = ixc + 2
+
+!---------------------------------------
+! Last details...
 
 8000  continue
 
-! Last details...
+if (controls_need_removing) call remove_eles_from_lat(lat, .false.)
 
 ! The length of a Patch element is a dependent attribute so adjust offsets and pitches accordingly.
 

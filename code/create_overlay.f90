@@ -124,9 +124,8 @@ do j = 1, n_slave
   c%stack     = contrl(j)%stack(1:is-1)
   c%ix_attrib = contrl(j)%ix_attrib
   c%slave     = contrl(j)%slave
-  c%ix_lord   = lord%ix_ele
+  c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
-  c%ix_lord = lord%ix_ele
   nc2 = nc2 + 1
 
   ! Convert variable$ type to overlay variable index if name matches an overlay variable name.

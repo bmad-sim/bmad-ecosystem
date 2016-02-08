@@ -31,7 +31,7 @@ use bmad_interface, except => remove_eles_from_lat
 implicit none
                          
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, ele2
+type (ele_struct), pointer :: ele, lord, ele2, slave
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: ctl
 type (lat_ele_loc_struct), pointer :: loc
@@ -65,8 +65,10 @@ enddo
 
 do i = 1, lat%n_control_max
   ctl => lat%control(i)
-  if (lat%branch(ctl%slave%ix_branch)%ele(ctl%slave%ix_ele)%key == -1) control(i) = -1
-  if (lat%ele(ctl%ix_lord)%key == -1) control(i) = -1
+  slave => pointer_to_ele(lat, ctl%slave)
+  if (slave%key == -1) control(i) = -1
+  lord => pointer_to_ele(lat, ctl%lord)
+  if (lord%key == -1) control(i) = -1
   if (ctl%ix_attrib == int_garbage$) control(i) = -1
   if (control(i) == -1 .and. control_to_ic(i) /= -1) ic(control_to_ic(i)) = -1
 enddo
@@ -107,7 +109,7 @@ do ib = 0, ubound(lat%branch, 1)
 
 enddo
 
-! Compress lat%control() array and correct %ix_lord and %slave%ix_ele pointers.
+! Compress lat%control() array and correct %lord and %slave pointers.
 
 i2 = 0
 do i = 1, lat%n_control_max
@@ -116,7 +118,7 @@ do i = 1, lat%n_control_max
   control(i) = i2
   ctl => lat%control(i)
   lat%control(i2) = ctl
-  lat%control(i2)%ix_lord  = ibr(0)%new(ctl%ix_lord)%ix_ele
+  lat%control(i2)%lord%ix_ele  = ibr(0)%new(ctl%lord%ix_ele)%ix_ele
   lat%control(i2)%slave%ix_ele = ibr(ctl%slave%ix_branch)%new(ctl%slave%ix_ele)%ix_ele
 enddo
 

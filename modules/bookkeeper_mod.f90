@@ -712,7 +712,7 @@ slave%bookkeeping_state%control = ok$
 
 ix_slave = slave%ix_ele
 j =  lat%ic(slave%ic1_lord)
-lord => lat%ele(lat%control(j)%ix_lord)
+lord => lat%ele(lat%control(j)%lord%ix_ele)
 n_pass = j - lord%ix1_slave + 1  ! pass number for slave
 
 slave_val = slave%value  ! save
