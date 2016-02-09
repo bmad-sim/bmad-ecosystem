@@ -1085,6 +1085,44 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 call remove_eles_from_lat (lat, .false.)  
 
+! Consistancy check
+
+call lat_sanity_check (lat, err)
+if (err) then
+  bp_com%error_flag = .true.
+  call parser_end_stuff
+  return
+endif
+
+! Spin
+
+call parser_set_spin (lat%ele(0), lat%beam_start)
+
+! Bookkeeping...
+! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
+! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.
+
+if (logic_option (.true., make_mats6)) then
+  call set_flags_for_changed_attribute(lat)
+  call lattice_bookkeeper (lat, err)
+  if (err) then
+    bp_com%error_flag = .true.
+    call parser_end_stuff
+    return
+  endif
+else ! Must always call lattice_bookkeeper when there is field overlap since create_file_overlap depends upon it.
+  do i = 1, n_max
+    if (.not. allocated(plat%ele(i)%field_overlaps)) cycle
+    call lattice_bookkeeper (lat, err)
+    if (err) then
+      bp_com%error_flag = .true.
+      call parser_end_stuff
+      return
+    endif
+    exit
+  enddo
+endif
+
 ! Put in field overlaps
 
 do i = 1, n_max
@@ -1103,33 +1141,6 @@ do i = 1, n_max
     endif
   enddo
 enddo
-
-! Consistancy check
-
-call lat_sanity_check (lat, err)
-if (err) then
-  bp_com%error_flag = .true.
-  call parser_end_stuff
-  return
-endif
-
-! Spin
-
-call parser_set_spin (lat%ele(0), lat%beam_start)
-
-! Bookkeeping...
-! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
-! file may contain references to dependent variables.
-
-if (logic_option (.true., make_mats6)) then
-  call set_flags_for_changed_attribute(lat)
-  call lattice_bookkeeper (lat, err)
-  if (err) then
-    bp_com%error_flag = .true.
-    call parser_end_stuff
-    return
-  endif
-endif
 
 ! Do we need to expand the lattice and call bmad_parser2?
 
