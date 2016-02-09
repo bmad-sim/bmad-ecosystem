@@ -379,7 +379,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%lord_status == super_lord$ .or. is_multi_sup) then
       write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
-      line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
+      line = trim(line) // ', superimpose, ele_origin = beginning, ref = x__' // trim(ele%name)
     endif
 
     ! Wall3d

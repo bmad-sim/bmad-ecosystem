@@ -170,8 +170,7 @@ end subroutine save_a_step
 !                   This is experimental and only implemented for wigglers at present.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, &
-                                                                           calc_dfield, err_flag, potential)
+recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, err_flag, potential)
 
 use geometry_mod
 
@@ -374,7 +373,7 @@ case (bmad_standard$)
 
     s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
     s_eff = s_rel - s_hard_offset
-    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) return  ! Zero field outside
+    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) goto 8000  ! Zero field outside
 
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
     t_eff = time - s_hard_offset / (c_light * beta_start)
@@ -421,8 +420,6 @@ case (bmad_standard$)
   ! Patch: There are no fields
 
   case (patch$)
-
-    return
 
   !------------------------------------------
   ! Quadrupole
@@ -1043,6 +1040,18 @@ case default
   if (present(err_flag)) err_flag = .true.
   return
 end select
+
+! overlapping of fields from other elements
+
+8000 continue
+
+if (ele%n_lord_field /= 0) then
+  do i = 1, ele%n_lord_field
+    lord => pointer_to_lord(ele, ele%n_lord+i)
+  enddo
+endif
+
+! Final
 
 call convert_fields_to_lab_coords
 

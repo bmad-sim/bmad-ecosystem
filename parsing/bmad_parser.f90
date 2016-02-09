@@ -51,7 +51,7 @@ type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
-type (ele_pointer_struct), allocatable :: branch_ele(:)
+type (ele_pointer_struct), allocatable :: branch_ele(:), eles(:)
 type (parser_controller_struct), allocatable :: pcon(:)
 
 real(rp) beta, val
@@ -1084,6 +1084,25 @@ do n = 0, ubound(lat%branch, 1)
   enddo
 enddo
 call remove_eles_from_lat (lat, .false.)  
+
+! Put in field overlaps
+
+do i = 1, n_max
+  lord => in_lat%ele(i)
+  pele => plat%ele(i)
+  if (.not. allocated(pele%field_overlaps)) cycle
+  call lat_ele_locator (lord%name, lat, eles, n)
+  if (n < 1) cycle
+
+  do j = 1, size(pele%field_overlaps)
+    call create_field_overlap (lat, lord%name, pele%field_overlaps(j), err)
+    if (err) then
+      call parser_error ('CANNOT FIND ELEMENT: ' // pele%field_overlaps(j), &
+                         'WHICH HAS FIELD OVERLAP FROM ELEMENT: ' // lord%name)
+      call parser_end_stuff
+    endif
+  enddo
+enddo
 
 ! Consistancy check
 

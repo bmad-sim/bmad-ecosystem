@@ -1120,7 +1120,7 @@ integer, parameter :: psi_position$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
 integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
-integer, parameter :: to_line$ = 110, field_overlapped_by$ = 110
+integer, parameter :: to_line$ = 110, field_overlaps$ = 110
 integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
