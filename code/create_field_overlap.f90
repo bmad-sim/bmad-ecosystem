@@ -62,6 +62,7 @@ do i = 1, n_lord
       min_dist2 = dist2
     endif
   enddo
+  slave => slaves(j_min)%ele
 
   call add_lattice_control_structs (lat, lord, n_add_slave_field = 1)
   n = lord%ix1_slave + lord%n_slave + lord%n_slave_field - 1

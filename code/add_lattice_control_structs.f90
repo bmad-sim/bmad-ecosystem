@@ -179,12 +179,12 @@ if (n_add_field > 0) then
     ele%ic2_lord = n_ic
   else
     i2_field = ele%ic2_lord + ele%n_lord_field
-    lat%ic(i2+1+n_add_field:n_ic2) = lat%ic(i2+1:n_ic)
-    lat%ic(i2+1:i2+n_add_field) = 0
+    lat%ic(i2_field+1+n_add_field:n_ic2) = lat%ic(i2_field+1:n_ic)
+    lat%ic(i2_field+1:i2_field+n_add_field) = 0
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      where (branch%ele%ic1_lord > i2) branch%ele%ic1_lord = branch%ele%ic1_lord + n_add_field
-      where (branch%ele%ic2_lord > i2) branch%ele%ic2_lord = branch%ele%ic2_lord + n_add_field
+      where (branch%ele%ic1_lord > i2_field) branch%ele%ic1_lord = branch%ele%ic1_lord + n_add_field
+      where (branch%ele%ic2_lord > i2_field) branch%ele%ic2_lord = branch%ele%ic2_lord + n_add_field
     enddo
     ele%ic2_lord = ele%ic1_lord + ele%n_lord - 1
   endif
