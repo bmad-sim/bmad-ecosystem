@@ -543,7 +543,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
   call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
 
-  call init_attribute_name1 (i, field_overlapped_by$, 'FIELD_OVERLAPPED_BY')
+  call init_attribute_name1 (i, field_overlaps$,     'FIELD_OVERLAPS')
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle

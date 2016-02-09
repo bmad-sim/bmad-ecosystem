@@ -68,7 +68,7 @@ if (n_add_field > 0) then
 
   if (ele%ix1_slave < 1) then
     ele%ix1_slave = n_con + 1
-    ele%ix2_slave = n_con + 1
+    ele%ix2_slave = n_con
     lat%control(n_con+1:n_con+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
 
   ! Else we need to make room in lat%control for the new slaves by moving
@@ -80,7 +80,7 @@ if (n_add_field > 0) then
 
     if (logic_option(.true., add_at_end)) then
       lat%control(i2_field+n_add_field+1:n_con+n_add_field) = lat%control(i2_field+1:n_con)
-      lat%control(i2_field+1:i2_field+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+      lat%control(i2_field+1:i2_field+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i2_field+1:i2_field+n_add_field)%slave = lat_ele_loc_struct()
       lat%control(i2_field+1:i2_field+n_add_field)%ix_attrib = 0
       where (lat%ic > i2_field) lat%ic = lat%ic + n_add_field
@@ -88,7 +88,7 @@ if (n_add_field > 0) then
     else
       i1_field = ele%ix1_slave + ele%n_slave
       lat%control(i1_field+n_add_field:n_con+n_add_field) = lat%control(i1_field:n_con)
-      lat%control(i1_field:i1_field+n_add_field-1)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+      lat%control(i1_field:i1_field+n_add_field-1)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i1_field:i1_field+n_add_field-1)%slave = lat_ele_loc_struct()
       lat%control(i1_field:i1_field+n_add_field-1)%ix_attrib = 0
       where (lat%ic >= i1_field) lat%ic = lat%ic + n_add_field
@@ -99,10 +99,9 @@ if (n_add_field > 0) then
       where (branch%ele%ix1_slave > i2_field) branch%ele%ix1_slave = branch%ele%ix1_slave + n_add_field
       where (branch%ele%ix2_slave > i2_field) branch%ele%ix2_slave = branch%ele%ix2_slave + n_add_field
     enddo
-
-    ele%ix2_slave = ele%ix1_slave + ele%n_slave - 1
   endif
 
+  ele%n_slave_field = ele%n_slave_field + n_add_field
 endif
 
 ! Add regular (non-field) slaves
@@ -120,7 +119,7 @@ if (n_add > 0) then
   if (ele%ix1_slave < 1) then  
     ele%ix1_slave = n_con + 1
     ele%ix2_slave = n_con + n_add
-    lat%control(n_con+1:n_con+n_add)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+    lat%control(n_con+1:n_con+n_add)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
 
   ! Else we need to make room in lat%control for the new slaves by moving
   ! a slice of lat%control.
@@ -130,7 +129,7 @@ if (n_add > 0) then
 
     if (logic_option(.true., add_at_end)) then
       lat%control(i2+1+n_add:n_con+n_add) = lat%control(i2+1:n_con)
-      lat%control(i2+1:i2+n_add)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+      lat%control(i2+1:i2+n_add)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i2+1:i2+n_add)%slave = lat_ele_loc_struct()
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
       where (lat%ic > i2) lat%ic = lat%ic + n_add
@@ -138,7 +137,7 @@ if (n_add > 0) then
     else
       i1 = ele%ix1_slave
       lat%control(i1+n_add:n_con+n_add) = lat%control(i1:n_con)
-      lat%control(i1:i1+n_add-1)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+      lat%control(i1:i1+n_add-1)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i1:i1+n_add-1)%slave = lat_ele_loc_struct()
       lat%control(i1:i1+n_add-1)%ix_attrib = 0
       where (lat%ic >= i1) lat%ic = lat%ic + n_add
@@ -177,7 +176,7 @@ if (n_add_field > 0) then
 
   if (ele%ic1_lord < 1) then
     ele%ic1_lord = n_ic + 1
-    ele%ic2_lord = n_ic + 1
+    ele%ic2_lord = n_ic
   else
     i2_field = ele%ic2_lord + ele%n_lord_field
     lat%ic(i2+1+n_add_field:n_ic2) = lat%ic(i2+1:n_ic)
@@ -190,6 +189,7 @@ if (n_add_field > 0) then
     ele%ic2_lord = ele%ic1_lord + ele%n_lord - 1
   endif
 
+  ele%n_lord_field = ele%n_lord_field + n_add_field
 endif
 
 ! Add regular (non-field) lords

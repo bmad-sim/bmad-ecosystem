@@ -97,6 +97,7 @@ end type
 
 type parser_ele_struct
   type (parser_controller_struct), allocatable :: control(:)
+  character(40), allocatable :: field_overlaps(:)
   character(40) ref_name
   character(40) :: ele_name = ''               ! For patch.
   character(200) lat_file                      ! File where element was defined.
@@ -1240,6 +1241,13 @@ if (delim /= '=')  then
     end select
   endif
 
+!  select case (attrib_word)
+!  case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', 'REF_END')
+!    call parser_error ('OLD SUPERPOSITION SYNTAX: ' // attrib_word, &
+!              'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+!  end select
+
+
   select case (attrib_word)
 
   case ('SUPERIMPOSE')
@@ -1299,6 +1307,9 @@ case ('OFFSET')
   if (err_flag) return
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   pele%offset = value
+
+case ('FIELD_OVERLAPS')
+  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
@@ -2945,7 +2956,7 @@ implicit none
 type (ele_struct)  ele
 type (parser_ele_struct), optional :: pele
 
-integer ix, ix_word
+integer ix, ix_word, n
 
 character(*) attrib_name
 character(*), optional :: name, str_out
@@ -3006,6 +3017,10 @@ case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
       'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')
   name = type_name
   call upcase_string (name)
+case ('FIELD_OVERLAPS')
+  n = size(pele%field_overlaps) + 1
+  call re_allocate (pele%field_overlaps, n)
+  pele%field_overlaps(n) = type_name
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit

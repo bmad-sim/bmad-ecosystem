@@ -2519,14 +2519,27 @@ Example:
 \label{s:fringe}
 \index{fringe fields}
 
+Lattice elements can have fringe fields at the element edges. Whether \bmad tries to model
+the fringe fields using the models described below first depends upon what kind of
+tracking is done. Fringe effects are {\em not} applied when an element's
+\vn{tracking_method} is set to:
+\begin{example}
+  custom
+  linear
+  mad
+\end{example}
+Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{boris},
+\vn{runge_kutta}, or \vn{time_runge_kutta}, and the element's \vn{field_calc} is not
+\vn{bmad_standard}. This is done since it is assumed, in this case, that the body of the
+field includes any fringe fields.
+
 %-----------------------------------------------------------------
 \subsection{Turning On/Off Fringe Effects}
 \label{s:fringe.at}
 
 \index{fringe_at}
-Lattice elements can have fringe fields at the element edges. Whether fringe fields are
-ignored or not is determined by the setting of the \vn{fringe_at} element parameter. The
-possible settings are
+Whether fringe fields are ignored or not is determined by the setting of the
+\vn{fringe_at} element parameter. The possible settings are
 \begin{example}
   no_end         
   both_ends             ! Default

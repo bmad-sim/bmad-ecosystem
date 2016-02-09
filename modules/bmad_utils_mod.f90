@@ -67,7 +67,6 @@ end interface
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_lord
-!   pointer_to_field_ele
 !
 ! Module needed:
 !   use bmad_utils_mod
@@ -1998,7 +1997,6 @@ end subroutine remove_lord_slave_link
 ! Also see:
 !   pointer_to_lord
 !   pointer_to_ele
-!   pointer_to_field_ele
 !
 ! Modules Needed:
 !   use bmad_utils_mod
@@ -2051,7 +2049,6 @@ end function pointer_to_slave
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_ele
-!   pointer_to_field_ele
 !
 ! Modules Needed:
 !   use bmad_utils_mod

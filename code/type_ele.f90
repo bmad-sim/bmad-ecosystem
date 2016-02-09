@@ -597,7 +597,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   endif
 
   if (ele%n_lord /= 0) then
-
+    nl=nl+1; li(nl) = 'Lords:'
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
     do i = 1, ele%n_lord
@@ -621,7 +621,16 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
             lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(coef_str)
     enddo
     nl=nl+1; li(nl) = ''
+  endif
 
+  if (ele%n_lord_field /= 0) then
+    nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
+    nl=nl+1; li(nl) = '   Index   Name                                Type             S'
+    do i = 1, ele%n_lord_field
+      lord => pointer_to_lord(ele, ele%n_lord+i)
+      nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
+                    trim(ele_loc_to_string(lord)), lord%name, trim(key_name(lord%key)), lord%s
+    enddo
   endif
 
   ! Print info on elements slaves.
@@ -649,6 +658,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
     endif
   endif
+
+  !
 
   if (ele%n_slave /= 0) then
     nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
@@ -687,7 +698,18 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, trim(coef_str)
       enddo
     end select
+  endif
 
+  !
+
+  if (ele%n_slave_field /= 0) then
+    nl=nl+1; li(nl) = "This element's field overlaps:"
+    nl=nl+1; li(nl) = '   Index   Name                                Type             S'
+    do i = 1, ele%n_slave_field
+      slave => pointer_to_slave(ele, ele%n_slave+i)
+      nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
+                    trim(ele_loc_to_string(slave)), slave%name, trim(key_name(slave%key)), slave%s
+    enddo
   endif
 
 endif

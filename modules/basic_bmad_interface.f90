@@ -160,6 +160,41 @@ interface
     type (lat_struct), target :: lat
   end subroutine
 
+  subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
+    import
+    implicit none
+    type (lat_struct) lat
+    character(*) lord_name, slave_name
+    logical err_flag
+  end subroutine
+
+  subroutine create_girder (lat, ix_ele, con, init_ele)
+    import
+    implicit none
+    type (lat_struct) lat
+    type (ele_struct), optional :: init_ele
+    type (control_struct) con(:)
+    integer, intent(in) :: ix_ele
+  end subroutine
+
+  subroutine create_group (lord, con, err, err_print_flag)
+    import
+    implicit none
+    type (ele_struct) lord
+    type (control_struct) con(:)
+    logical err
+    logical, optional :: err_print_flag
+  end subroutine
+
+  subroutine create_overlay (lord, contl, err, err_print_flag)
+    import
+    implicit none
+    type (ele_struct) lord
+    type (control_struct) contl(:)
+    logical err
+    logical, optional :: err_print_flag
+  end subroutine
+
   subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
     import
     implicit none
@@ -169,18 +204,11 @@ interface
     real(rp), optional :: s_start, s_end
   end subroutine
 
-  subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+  subroutine create_unique_ele_names (lat, key, suffix)
     import
-    type (ele_struct) ele0, ele
-    type (lat_param_struct) param
-    real(rp) e_tot_start, p0c_start, ref_time_start
-    logical err_flag
-  end subroutine
-
-  subroutine lat_compute_ref_energy_and_time (lat, err_flag)
-    import
-    type (lat_struct) lat
-    logical err_flag
+    type (lat_struct), target :: lat
+    integer key
+    character(*) suffix
   end subroutine
 
   subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)
@@ -194,45 +222,19 @@ interface
     logical, optional :: err_flag
   end subroutine
 
-  subroutine create_group (lord, con, err, err_print_flag)
-    import
-    implicit none
-    type (ele_struct) lord
-    type (control_struct) con(:)
-    logical err
-    logical, optional :: err_print_flag
-  end subroutine
-
-  subroutine create_girder (lat, ix_ele, con, init_ele)
-    import
-    implicit none
-    type (lat_struct) lat
-    type (ele_struct), optional :: init_ele
-    type (control_struct) con(:)
-    integer, intent(in) :: ix_ele
-  end subroutine
-
-  subroutine create_overlay (lord, contl, err, err_print_flag)
-    import
-    implicit none
-    type (ele_struct) lord
-    type (control_struct) contl(:)
-    logical err
-    logical, optional :: err_print_flag
-  end subroutine
-
-  subroutine create_unique_ele_names (lat, key, suffix)
-    import
-    type (lat_struct), target :: lat
-    integer key
-    character(*) suffix
-  end subroutine
-
   subroutine do_mode_flip (ele, err_flag)
     import
     implicit none
     type (ele_struct) ele
     logical, optional :: err_flag
+  end subroutine
+
+  subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+    import
+    type (ele_struct) ele0, ele
+    type (lat_param_struct) param
+    real(rp) e_tot_start, p0c_start, ref_time_start
+    logical err_flag
   end subroutine
 
   subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
@@ -265,6 +267,12 @@ interface
     import
     implicit none
     type (lat_struct) lat
+  end subroutine
+
+  subroutine lat_compute_ref_energy_and_time (lat, err_flag)
+    import
+    type (lat_struct) lat
+    logical err_flag
   end subroutine
 
   subroutine make_g_mats (ele, g_mat, g_inv_mat)

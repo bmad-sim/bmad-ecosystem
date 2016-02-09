@@ -25,6 +25,7 @@ type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
 type (floor_position_struct) floor0, floor
+type (control_struct), pointer :: ctl
 
 real(rp) s1, s2, ds, ds_small, l_lord
 
@@ -57,7 +58,7 @@ err_flag = .false.
            
 ! loop over all branches
 
-do i_b = 0, ubound(lat%branch, 1)
+branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(i_b)
 
@@ -115,7 +116,7 @@ do i_b = 0, ubound(lat%branch, 1)
   !--------------------------------
   ! Loop over all elements
 
-  do i_t = 1, branch%n_ele_max
+  ele_loop: do i_t = 1, branch%n_ele_max
 
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
@@ -816,7 +817,7 @@ do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! check slaves
+    ! check regular slaves
 
     do j = ele%ix1_slave, ele%ix2_slave+ele%n_slave_field
 
@@ -828,17 +829,19 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      if (lat%control(j)%lord%ix_ele /= i_t) then
+      ctl => lat%control(j)
+
+      if (ctl%lord%ix_ele /= i_t .or. ctl%lord%ix_branch /= i_b) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS A %LORD%IX_ELE POINTER MISMATCH: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = [i_t, lat%control(j)%lord%ix_ele, j] )
+                  i_array = [i_t, ctl%lord%ix_ele, j] )
         err_flag = .true.
       endif
 
-      i_t2 = lat%control(j)%slave%ix_ele
-      i_b2 = lat%control(j)%slave%ix_branch
+      i_t2 = ctl%slave%ix_ele
+      i_b2 = ctl%slave%ix_branch
 
       if (i_t2 < 1 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
@@ -850,11 +853,11 @@ do i_b = 0, ubound(lat%branch, 1)
         cycle
       endif
 
-      slave => lat%branch(i_b2)%ele(i_t2)  
+      slave => lat%branch(i_b2)%ele(i_t2)
       t2_type = slave%slave_status 
       str_ix_slave = ele_loc_to_string(slave)
 
-      if (j <= ele%ix2_slave .and. .not. good_control(l_stat, t2_type) .and. lat%control(j)%ix_attrib /= l$) then
+      if (j <= ele%ix2_slave .and. .not. good_control(l_stat, t2_type) .and. ctl%ix_attrib /= l$) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)',  &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
@@ -865,11 +868,11 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
 
       if (l_stat /= group_lord$ .and. l_stat /= girder_lord$) then
-        n = slave%ic2_lord - slave%ic1_lord + 1
-        cc(1:n) = [(lat%ic(i), i = slave%ic1_lord, slave%ic2_lord)]
+        n = slave%ic2_lord + slave%n_lord_field - slave%ic1_lord + 1
+        cc(1:n) = [(lat%ic(i), i = slave%ic1_lord, slave%ic2_lord+slave%n_lord_field)]
         if (.not. any(lat%control(cc(1:n))%lord%ix_ele == i_t)) then
           call out_io (s_fatal$, r_name, &
-                    'SLAVE: ', trim(slave%name) // '  (\i0\)', &
+                    'SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                     'WITH SLAVE_STATUS: ' // control_name(t2_type), &
                     'DOES NOT HAVE A POINTER TO ITS LORD: ' // trim(ele%name) // '  (\i0\)', &
                     i_array = [i_t2, i_t] )
@@ -883,7 +886,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     girder_here = .false.
 
-    do ix = ele%ic1_lord, ele%ic2_lord
+    do ix = ele%ic1_lord, ele%ic2_lord+ele%n_lord_field
 
       if (ix < 1 .or. ix > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
@@ -902,10 +905,32 @@ do i_b = 0, ubound(lat%branch, 1)
                   i_array = [i_t, ix, j] )
         err_flag = .true.
       endif
-          
-      i_t2 = lat%control(j)%lord%ix_ele
 
-      if (i_t2 < 1 .or. i_t2 > lat%n_ele_max) then
+      ctl => lat%control(j)
+      i_b2 = ctl%lord%ix_branch 
+
+      if (i_b2 < 0 .or. i_b2 > ubound(lat%branch, 1) .or. (i_b2 /= 0 .and. ix <= ele%ic2_lord)) then
+        call out_io (s_fatal$, r_name, &
+                  'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
+                  'HAS A LORD BRANCH OUT OF RANGE: \3i7\ ', &
+                  i_array = [ix, j, i_b2] )
+        err_flag = .true.
+        cycle
+      endif
+
+
+      i_t2 = ctl%lord%ix_ele
+
+      if (ctl%slave%ix_ele /= i_t) then
+        call out_io (s_fatal$, r_name, &
+                  'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
+                  'HAS A %IX_SLAVE POINTER MISMATCH: \i0\ ', &
+                  'AT: \2i7\ ', &
+                  i_array = [ctl%slave%ix_ele, ix, j] )
+        err_flag = .true.
+      endif
+
+      if (i_t2 < 1 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
                   'HAS A LORD INDEX OUT OF RANGE: \3i7\ ', &
@@ -914,20 +939,11 @@ do i_b = 0, ubound(lat%branch, 1)
         cycle
       endif
 
-      if (lat%control(j)%slave%ix_ele /= i_t) then
-        call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
-                  'HAS A %IX_SLAVE POINTER MISMATCH: \i0\ ', &
-                  'AT: \2i7\ ', &
-                  i_array = [lat%control(j)%slave%ix_ele, ix, j] )
-        err_flag = .true.
-      endif
-
-      lord => lat%ele(i_t2)
+      lord => lat%branch(i_b2)%ele(i_t2)
       t2_type = lord%lord_status
       str_ix_lord = ele_loc_to_string(lord)
 
-      if (.not. good_control(t2_type, s_stat)) then
+      if (ix <= ele%ic2_lord .and. .not. good_control(t2_type, s_stat)) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                   'WITH SLAVE_STATUS: ' // control_name(s_stat), &
@@ -953,12 +969,11 @@ do i_b = 0, ubound(lat%branch, 1)
         girder_here = .true.
       endif
 
+    enddo  ! ix = ele%ic1_lord, ele%ic2_lord
 
-    enddo
+  enddo ele_loop
 
-  enddo
-
-enddo
+enddo branch_loop
 
 !
 
