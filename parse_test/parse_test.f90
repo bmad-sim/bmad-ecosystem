@@ -26,6 +26,11 @@ logical err, delim_found
 
 open (1, file = 'output.now')
 
+call bmad_parser ('overlap.bmad', lat)
+
+
+!
+
 call bmad_parser ('parse_test.bmad', lat)
 call write_bmad_lattice_file ('out.bmad', lat)
 call bmad_parser ('out.bmad', lat)
