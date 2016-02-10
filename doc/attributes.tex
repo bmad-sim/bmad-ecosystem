@@ -1973,12 +1973,25 @@ affected. The exception is \vn{multipole} and \vn{ab_multipole} elements do not 
 attribute.
 
 %-----------------------------------------------------------------
-\section{EM Fields -- Grids and Maps}
+\section{EM Field Customization}
 \label{s:em.fields}
+
+Custom field profiles are used with integration type tracking methods (\sref{s:integ}).
+Custom field profiles may be defined using \vn{tables} or \vn{maps}
+(\sref{s:field.tab.map}) and may extend longitudinally beyound the ends of an element
+(\sref{s:overlap}).
+
+%-----------------------------------------------------------------
+\subsection{Field Extending Beyond Element Boundary}
+\label{s:overlap}
+
+%-----------------------------------------------------------------
+\subsection{Field Table or Map}
+\label{s:field.tab.map}
 
 \index{field_calc}
 Three dimensional electromagnetic fields can be specified in a number
-of ways.  Setting a lattice element's \vn{field_calc} switch to
+of ways. Setting a lattice element's \vn{field_calc} switch to
 \vn{custom} (\sref{s:integ}) alows for a custom calculation. The
 drawback here is that the appropriate custom code must be linked into
 any program that needs to do tracking (\sref{s:custom.ele}).

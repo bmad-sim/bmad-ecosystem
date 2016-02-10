@@ -189,7 +189,7 @@ important if particles are to be allowed to travel outside the wall.
 \index{apply_element_edge_kick_hook}
 \index{ele_geometry_hook}
 A \vn{hook} routine is like a \vn{custom} routine in that a \vn{hook} routine can be used
-for custimizing a \bmad calculation by replacing the \vn{dummy} version of a \vn{hook}
+for customizing a \bmad calculation by replacing the \vn{dummy} version of a \vn{hook}
 routine with customized code. The difference is that the \vn{hook} routine is always
 called at the appropriate time without regard to the type of lattice element under
 consideration or what tracking method is being used.
@@ -204,9 +204,9 @@ There are three \vn{hook} routines that are available:
 The \vn{apply_element_edge_kick_hook} routine can be used for custom tracking through a fringe field.
 See the documentation in the file \vn{apply_element_edge_kick_hook.f90} for more details.
 
-The \vn{ele_geometry_hook} routine can be used for custom caculations of the global
+The \vn{ele_geometry_hook} routine can be used for custom calculations of the global
 geometry of an element. This is useful, for example, for a support table on a kinematic
-mount since \bmad does not have the knowledge to calcuate the table orientation from the
+mount since \bmad does not have the knowledge to calculate the table orientation from the
 position of the mount points. See the documentation in the file \vn{ele_geometry_hook.f90}
 for more details.
 
