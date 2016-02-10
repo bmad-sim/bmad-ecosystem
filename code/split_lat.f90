@@ -213,7 +213,7 @@ super_lord%lord_status = super_lord$
 super_lord%value(l$) = len_orig
 ixc = lat%n_control_max
 n_slave = 2 + ele%n_slave_field
-if (ixc+ele%n_slave_field > size(lat%control)) call reallocate_control (lat, ixc+ele%n_slave_field+100)
+if (ixc+2+ele%n_slave_field > size(lat%control)) call reallocate_control (lat, ixc+ele%n_slave_field+100)
 super_lord%ix1_slave = ixc + 1
 super_lord%ix2_slave = ixc + 2
 super_lord%n_slave = 2
