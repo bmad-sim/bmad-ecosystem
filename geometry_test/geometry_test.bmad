@@ -11,7 +11,9 @@ d: drift, l = 1
 p1: patch, z_offset = 1, x_pitch = pi/4
 
 b: sbend, l = 1, angle = 2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
+b2: sbend, l = 1, g = 0.1
 
 p_line: line = (p1, d, p1, b)
+p2_line: line = (b2)
 
-use, p_line
+use, p_line, p2_line

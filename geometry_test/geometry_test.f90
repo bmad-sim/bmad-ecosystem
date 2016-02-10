@@ -21,6 +21,12 @@ call bmad_parser ('geometry_test.bmad', lat)
 
 open (1, file = 'output.now')
 
+floor%r = [-0.11_rp, 0.2_rp, 2.0_rp]
+local = coords_floor_to_local_curvilinear(floor, lat%branch(1)%ele(1), status)
+write (1, '(a, 3f12.8, i6)') '"Floor-to-loc" ABS 0 ', local%r, status
+
+!
+
 floor%r = [1.0_rp, 0.1_rp, 2.1_rp]
 local = coords_floor_to_curvilinear (floor, lat%ele(2), ele, status)
 write (1, '(a, 2i6, 3f12.6)') '"G1" ABS 0 ', ele%ix_ele, status, local%r
