@@ -148,20 +148,19 @@ end subroutine save_a_step
 !   use bmad
 !
 ! Input:
-!   ele    -- Ele_struct: Element
-!   param  -- lat_param_struct: Lattice parameters.
-!   s_pos  -- Real(rp): Longitudinal position relative to the upstream edge of the element.
-!   time   -- Real(rp): Particle time.
+!   ele      -- Ele_struct: Element
+!   param    -- lat_param_struct: Lattice parameters.
+!   s_pos    -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   time     -- Real(rp): Particle time.
 !                 For absolute time tracking this is the absolute time.
 !                 For relative time tracking this is relative to the reference particle entering the element.
-!   orbit  -- Coord_struct: Transverse coordinates.
+!   orbit    -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame 
-!          -- Logical, If True then take the input coordinates and output fields 
-!                as being with respect to the frame of referene of the element (ignore misalignments). 
-!   calc_dfield     
-!          -- Logical, optional: If present and True 
-!                then calculate the field derivatives.
+!            -- Logical, If True then take the input coordinates and output fields 
+!                  as being with respect to the frame of referene of the element (ignore misalignments). 
+!   calc_dfield
+!            -- Logical, optional: If present and True then calculate the field derivatives.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -177,13 +176,14 @@ use geometry_mod
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
-type (coord_struct) :: orbit, local_orb
+type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb
 type (em_potential_struct), optional :: potential
 type (wig_term_struct), pointer :: wig
-type (em_field_struct) :: field, field2
+type (em_field_struct) :: field, field2, lord_field, l1_field
 type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
+type (floor_position_struct) lab_position, global_position, lord_position
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
@@ -194,12 +194,13 @@ real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
 real(rp) Er_dc, Ep_dc, Ez_dc, Br_dc, Bp_dc, Bz_dc
 real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z, sx_over_kx, sy_over_ky
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) w_ele_mat(3,3), w_lord_mat(3,3)
 
 complex(rp) Er, Ep, Ez, Br, Bp, Bz
 complex(rp) exp_kz, exp_m, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
-integer i, j, m, n, trig_x, trig_y
+integer i, j, m, n, trig_x, trig_y, status
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
 logical, optional :: calc_dfield, err_flag
@@ -261,7 +262,7 @@ if (ele%field_calc == refer_to_lords$) then
     endif
 
   enddo
-  call convert_fields_to_lab_coords
+  if (.not. local_ref_frame) call convert_field_ele_to_lab(ele, s_rel, .true., field)
   return
 endif
 
@@ -1046,29 +1047,67 @@ end select
 8000 continue
 
 if (ele%n_lord_field /= 0) then
+  lab_orb = orbit
+  if (local_ref_frame) then
+    call offset_particle (ele, param, unset$, lab_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+  endif
+
+  lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_rel]
+  global_position = coords_local_curvilinear_to_floor (lab_position, ele, w_mat = w_ele_mat)
+
+  lord_orb = lab_orb
   do i = 1, ele%n_lord_field
     lord => pointer_to_lord(ele, ele%n_lord+i)
+    lord_position = coords_floor_to_local_curvilinear (global_position, lord, status, w_lord_mat)
+    lord_orb%vec(1) = lord_position%r(1)
+    lord_orb%vec(3) = lord_position%r(2)
+    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err)
+    if (err) then
+      if (present(err_flag)) err_flag = .true.
+      return
+    endif
+    ! Field in lord lab coords to field in global coords
+    call rotate_em_field (l1_field, transpose(w_lord_mat), w_lord_mat, calc_dfield)
+    if (i == 1) then
+      lord_field = l1_field
+    else
+      lord_field = lord_field + l1_field
+    endif
   enddo
+
+  ! Field in global coords to field in lab coords
+
+  call rotate_em_field (lord_field, transpose(w_ele_mat), transpose(w_ele_mat))
+
+  if (local_ref_frame) then
+    call convert_field_ele_to_lab (ele, s_rel, .false., lord_field)  ! lab -> ele
+    field = field + lord_field
+  else
+    call convert_field_ele_to_lab (ele, s_rel, .true., field)
+    field = field + lord_field
+  endif
+
+  return
 endif
 
 ! Final
 
-call convert_fields_to_lab_coords
+if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_rel, .true., field)
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! Convert fields to lab coords
+! Convert fields: ele to lab coords
 
 contains
 
-subroutine convert_fields_to_lab_coords()
+subroutine convert_field_ele_to_lab (ele, s_rel, forward_transform, field)
 
-real(rp) w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
+type (ele_struct) ele
+type (em_field_struct) field
+
+real(rp) s_rel, w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
 real(rp) theta
-
-!
-
-if (local_ref_frame) return
+logical forward_transform
 
 !
 
@@ -1082,27 +1121,23 @@ if (ele%key == sbend$) then
     call w_mat_for_tilt (ele%value(ref_tilt_tot$), w_rt, w_rt_inv)
     w_mat = matmul(matmul(matmul(matmul(matmul(w_rt, w_s), w_rt_inv), w_mat), w_rt), transpose(w_s))
   endif
-else
-  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat)
-endif
-
-field%B = matmul(w_mat, field%B)
-field%E = matmul(w_mat, field%E)
-
-if (present(potential)) then
-  potential%A = matmul(w_mat, potential%A)
-endif
-
-if (df_calc) then
   w_inv = transpose(w_mat)
-  field%dB = matmul(w_mat, matmul(field%dB, w_inv))
-  field%dE = matmul(w_mat, matmul(field%dE, w_inv))
+else
+  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
 endif
 
-end subroutine convert_fields_to_lab_coords
+if (forward_transform) then
+  call rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+else
+  call rotate_em_field (field, w_inv, w_mat, calc_dfield, potential)
+endif
+
+end subroutine convert_field_ele_to_lab
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+! contains
+
 ! convert_curvilinear_to_cartesian()
 !
 ! For sbend with Grid calculation.
@@ -1112,8 +1147,8 @@ real(rp) :: temp
 
 if (ele%value(g$) == 0) return
 
-cos_ang = cos( (s_rel-s0)*ele%value(g$) )
-sin_ang = sin( (s_rel-s0)*ele%value(g$) )
+cos_ang = cos((s_rel-s0)*ele%value(g$))
+sin_ang = sin((s_rel-s0)*ele%value(g$))
 
 ! Save values because modes may have different anchor points
 x_save = x
@@ -1122,6 +1157,7 @@ z = (x_save + ele%value(rho$) )*sin_ang
 
 ! Rotate current field into this frame
 ! Note that we are rotating the zx plane 
+
 temp       = field%e(3)*cos_ang + field%e(1)*sin_ang
 field%e(1) = field%e(3)*sin_ang - field%e(1)*cos_ang
 field%e(3) = temp
@@ -1135,9 +1171,14 @@ end subroutine convert_curvilinear_to_cartesian
 !----------------------------------------------------------------------------
 ! restore_curvilinear()
 !
+! For sbend with Grid calculation.
+
 subroutine restore_curvilinear()
+
 real(rp) :: temp
+
 !For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
+
 if (ele%value(g$) == 0) return
 x = x_save
 temp       = field%e(3)*cos_ang - field%e(1)*sin_ang
@@ -1148,8 +1189,50 @@ field%b(1) = field%b(3)*sin_ang + field%b(1)*cos_ang
 field%b(3) = temp 
 end subroutine restore_curvilinear
 
-
 end subroutine em_field_calc 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+!
+! Routine to transform the fields using the given rotation matrices.
+!
+! Input:
+!   field       -- em_field_struct: E and B fields and derivatives.
+!   w_mat(3,3)  -- real(rp): rotation matrix.
+!   w_inv(3,3)  -- real(rp): rotation matrix inverse = transpose(w_mat)
+!   calc_dfield -- Logical, optional: If present and True then calculate the field derivatives.
+!   potential   -- em_potential_struct, optional: The electric and magnetic potentials.
+!
+! Output:
+!   field       -- em_field_struct: E and B fields and derivatives.
+!-
+
+subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+
+type (em_field_struct) field
+type (em_potential_struct), optional :: potential
+
+real(rp) w_mat(3,3), w_inv(3,3)
+logical, optional :: calc_dfield
+
+!
+
+field%B = matmul(w_mat, field%B)
+field%E = matmul(w_mat, field%E)
+
+if (present(potential)) then
+  potential%A = matmul(w_mat, potential%A)
+endif
+
+if (logic_option (.false., calc_dfield)) then
+  field%dB = matmul(w_mat, matmul(field%dB, w_inv))
+  field%dE = matmul(w_mat, matmul(field%dE, w_inv))
+endif
+
+end subroutine rotate_em_field
 
 !-----------------------------------------------------------
 !-----------------------------------------------------------

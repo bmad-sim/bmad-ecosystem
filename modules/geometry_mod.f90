@@ -962,32 +962,20 @@ function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat)
 use nr, only: zbrent
 
 type (floor_position_struct) :: global_position, local_position
-type (ele_struct)   :: ele, ele2
+type (ele_struct)   :: ele
 type (floor_position_struct) :: floor0
 real(rp), optional :: w_mat(3,3)
-real(rp) s_local
+real(rp) s_local, z_min, z_max
 integer :: status
 
 ! sbend case
 
 if (ele%key == sbend$) then
-  local_position = coords_floor_to_relative (ele%floor, global_position)
-  if (local_position%r(3) > 0) then
-    status = downstream_end$
-    local_position%r(3) = local_position%r(3) + ele%value(l$)
-    return
-  endif
-
   floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
   local_position = coords_floor_to_relative (floor0, global_position)
-  if (local_position%r(3) < 0) then
-    status = upstream_end$
-    return
-  endif
-
-  call transfer_ele (ele, ele2)
-  s_local = zbrent (delta_s_func, 0.0_rp, ele%value(l$), 1d-9)
-  local_position%r(3) = s_local
+  z_min = local_position%r(3) - abs(local_position%r(1)) - abs(local_position%r(2))
+  z_max = local_position%r(3) + abs(local_position%r(1)) + abs(local_position%r(2))
+  local_position%r(3) = zbrent (delta_s_func, z_min, z_max, 1d-9)
 
 ! Straight line case
 
@@ -1000,21 +988,21 @@ else
     local_position = coords_floor_to_relative (floor0, global_position)
     local_position%r(3) = local_position%r(3) + ele%value(l$)
   endif
-
-  if (local_position%r(3) < 0) then
-    status = upstream_end$
-    return
-  elseif (local_position%r(3) > ele%value(l$)) then
-    status = downstream_end$
-    return
-  endif
 endif
 
-status = inside$
+! Inside or outside?
+
+if (local_position%r(3) < 0) then
+  status = upstream_end$
+elseif (local_position%r(3) > ele%value(l$)) then
+  status = downstream_end$
+else
+  status = inside$
+endif
 
 ! Optionally return w_mat
 
-if (present(w_mat) ) then
+if (present(w_mat)) then
   call floor_angles_to_w_mat (local_position%theta, local_position%phi, local_position%psi, w_mat)
 endif
 
@@ -1029,10 +1017,7 @@ real(rp) :: delta_s
 
 !
 
-ele2%value(l$) = this_len
-ele2%value(angle$) = ele%value(angle$) * this_len / ele%value(l$)
-
-call ele_geometry(floor0, ele2, floor_at_s)  
+call ele_geometry(floor0, ele, floor_at_s, this_len /ele%value(l$))  
 local_position = coords_floor_to_relative (floor_at_s, global_position, calculate_angles = .false.)
 delta_s = local_position%r(3)
 
@@ -1206,8 +1191,7 @@ end function coords_floor_to_curvilinear
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_local_curvilinear_to_floor (local_position, ele, 
-!                                             in_ele_frame, w_mat) result (global_position)
+! Function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 !
@@ -1278,8 +1262,6 @@ end function coords_local_curvilinear_to_floor
 !   ele_position    -- floor_position_struct: element frame curvilinear coordinates.
 !     %r(3)                                 Position from beginning of element [x, y, s]
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
-!   in_ele_frame    -- logical, optional :: local_position is in ele_frame and includes offsets
-!                               Default: .false.
 !  
 ! Output         
 !   local_position  -- floor_position_struct; Cartesian coortinates relative to
@@ -1288,7 +1270,6 @@ end function coords_local_curvilinear_to_floor
 !   w_mat(3,3)      -- real(rp), optional: W matrix at to transform vectors. 
 !                                  v_local     = w_mat . v_ele_frame
 !                                  v_ele_frame = transpose(w_mat) . v_local
-!
 !-
 
 function coords_element_frame_to_local(ele_position, ele, w_mat) result(local_position)
@@ -1349,9 +1330,6 @@ else
 endif
 
 end function
-
-
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
