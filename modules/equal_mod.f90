@@ -9,7 +9,45 @@ interface assignment (=)
   module procedure branch_equal_branch
 end interface
 
+interface operator (+)
+  module procedure em_field_plus_em_field
+end interface
+
 contains
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Function em_field_plus_em_field (field1, field2) result (field_tot)
+!
+! Subroutine to add fields.
+!
+! Note: This subroutine is called by the overloaded plus sign:
+!		field_tot = field1 + field2 
+!
+! Input:
+!   field1 -- em_field_struct: Input field
+!   field2 -- em_field_struct: Input field
+!
+! Output:
+!   field_tot -- em_field_struct: Combined field.
+!-
+
+function em_field_plus_em_field (field1, field2) result (field_tot)
+
+type (em_field_struct), intent(in) :: field1, field2
+type (em_field_struct) field_tot
+
+!
+
+field_tot%e = field1%e + field2%e
+field_tot%b = field1%b + field2%b
+
+field_tot%de = field1%de + field2%de
+field_tot%db = field1%db + field2%db
+
+end function em_field_plus_em_field 
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
