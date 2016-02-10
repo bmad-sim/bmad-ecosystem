@@ -2884,7 +2884,7 @@ elseif (ix_ele <= lat%branch(ix_branch)%n_ele_track) then
   ix_ele_track = ix_ele
 
 elseif (lat%ele(ix_ele)%lord_status == super_lord$) then
-  slave = pointer_to_slave (lat%ele(ix_ele), lat%ele(ix_ele)%n_slave)
+  slave => pointer_to_slave (lat%ele(ix_ele), lat%ele(ix_ele)%n_slave)
   ix_ele_track = slave%ix_ele ! element at exit end.
 
 else  ! overlays, multipass_lords, etc.
