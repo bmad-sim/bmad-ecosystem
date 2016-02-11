@@ -40,8 +40,9 @@ ixs = len(string)
 if (present(do_trim)) then
   if (do_trim) ixs = len_trim(string)
 endif
+if(n_match.gt.1) ixs=ixs-(n_match-1)
+i = ixs+1     !start looking where match interval just reaches end
 
-i = ixs-n_match+1     !start looking where match interval just reaches end
 do 
 
   i = i - 1
