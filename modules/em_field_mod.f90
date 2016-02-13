@@ -133,7 +133,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-!                                                                          err_flag, potential, with_overlap)
+!                                                           err_flag, potential, use_overlap, allow_out_of_bounds)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -157,10 +157,12 @@ end subroutine save_a_step
 !                       For relative time tracking this is relative to the reference particle entering the element.
 !   orbit           -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
-!   local_ref_frame -- Logical, If True then take the input coordinates and output fields 
-!                        as being with respect to the frame of referene of the element (ignore misalignments). 
-!   calc_dfield     -- Logical, optional: If present and True then calculate the field derivatives.
-!   with_overlap    -- logical, optional: Add in overlap fields from other elements? Default is True.
+!   local_ref_frame     -- Logical, If True then take the input coordinates and output fields 
+!                                   as being with respect to the frame of referene of the element (ignore misalignments). 
+!   calc_dfield         -- Logical, optional: If present and True then calculate the field derivatives.
+!   use_overlap         -- logical, optional: Add in overlap fields from other elements? Default is True.
+!   allow_out_of_bounds -- logical, optional: allow out of bounds to return
+!                                             zero field without an error. Default: False
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -170,7 +172,7 @@ end subroutine save_a_step
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-                                                                               err_flag, potential, use_overlap)
+                                                       err_flag, potential, use_overlap, allow_out_of_bounds)
 
 use geometry_mod
 
@@ -204,7 +206,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 integer i, j, m, n, trig_x, trig_y, status
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
-logical, optional :: calc_dfield, err_flag, use_overlap
+logical, optional :: calc_dfield, err_flag, use_overlap, allow_out_of_bounds
 logical df_calc, err
 
 character(20) :: r_name = 'em_field_calc'
@@ -971,12 +973,14 @@ case(grid$)
 
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
+
     ! calculate field based on grid type
     select case(mode%grid%type)
 
     case (xyz$)
     
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z, &
+                                      allow_out_of_bounds = logic_option(.false., allow_out_of_bounds))
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -994,7 +998,8 @@ case(grid$)
       ! Interpolate 2D (r, z) grid
       ! local_field is a em_field_pt_struct, which has complex E and B
 
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, z)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, z, &
+                                      allow_out_of_bounds = logic_option(.false., allow_out_of_bounds))
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -1063,7 +1068,8 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(1) = lord_position%r(1)
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
-    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err, use_overlap = .false.)
+    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err, &
+                        use_overlap = .false., allow_out_of_bounds = .true.)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
@@ -1240,7 +1246,8 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3)
+! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3,
+! allow_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -1256,12 +1263,15 @@ end subroutine rotate_em_field
 !   x1       -- real(rp) : dimension 1 interpolation point
 !   x2       -- real(rp), optional : dimension 2 interpolation point
 !   x3       -- real(rp), optional : dimension 3 interpolation point
+!   allow_out_of_bounds -- logical, optional : allow out of bounds to return
+!   zero field without an error. 
+!                                   default: false
 !
 ! Output:
 !   field  -- em_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3)
+subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_out_of_bounds)
 
 type (ele_struct) ele
 type (em_field_grid_struct) :: grid
@@ -1270,7 +1280,8 @@ real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
 integer i1, i2, i3, grid_dim
-logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag
+logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag, allow_oob
+logical, optional :: allow_out_of_bounds
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 
@@ -1279,11 +1290,13 @@ character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 err_flag = .false.
 
 grid_dim = em_grid_dimension(grid%type)
+allow_oob = logic_option(.false., allow_out_of_bounds)
+
 select case(grid_dim)
 
 case (1)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
   if (out_of_bounds1) return
 
   field%E(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%E(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%E(:) 
@@ -1291,8 +1304,8 @@ case (1)
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_oob); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2) return
 
   ! Do bilinear interpolation
@@ -1308,9 +1321,9 @@ case (2)
             
 case (3)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag); if (err_flag) return
-  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_oob); if (err_flag) return
+  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag, allow_oob); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2 .or. out_of_bounds3) return
     
   ! Do trilinear interpolation
@@ -1343,11 +1356,11 @@ end select
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag)
+subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag, allow_out_of_bounds)
 
 real(rp) x, rel_x0, x_norm
 integer ix_x, i0, ig0, ig1, idg
-logical out_of_bounds, err_flag
+logical out_of_bounds, err_flag, allow_out_of_bounds
 
 !
 
@@ -1380,6 +1393,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
   field%E = 0
   field%B = 0
   out_of_bounds = .true.
+  if (allow_out_of_bounds) return
   idg = ig1 - ig0
 
   if (abs(i0 - idg/2) > idg) then
