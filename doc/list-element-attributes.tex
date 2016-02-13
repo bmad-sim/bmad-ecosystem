@@ -10,7 +10,7 @@ internal reference number is:
 \end{example}
 
  %---------------------------------
- \section{AB_multipole}
+ \section{Attributes for: AB_multipole}
  \label{s:list.ab.multipole}
  
  \begin{tabular}{lll} \toprule
@@ -32,7 +32,7 @@ mat6_calc_method            & type                        & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{BeamBeam}
+ \section{Attributes for: BeamBeam}
  \label{s:list.beambeam}
  
  \begin{tabular}{lll} \toprule
@@ -61,7 +61,7 @@ field_calc                  & tracking_method             &                     
  \vfill
  
  %---------------------------------
- \section{Bend_Sol_Quad}
+ \section{Attributes for: Bend_Sol_Quad}
  \label{s:list.bend.sol.quad}
  
  \begin{tabular}{lll} \toprule
@@ -91,7 +91,7 @@ field                       & ref_origin                  & y_pitch             
 field_calc                  & rho                         & y_pitch_tot                 \\
 field_factor                & scale_multipoles            & y_quad                      \\
 field_master                & spin_fringe_on              & z_offset                    \\
-field_overlapped_by         & spin_tracking_method        & z_offset_tot                \\
+field_overlaps              & spin_tracking_method        & z_offset_tot                \\
 fringe_at                   & sr_wake_file                &                             \\
 fringe_type                 & start_edge                  &                             \\
  \bottomrule
@@ -99,7 +99,7 @@ fringe_type                 & start_edge                  &                     
  \vfill
  
  %---------------------------------
- \section{Capillary}
+ \section{Attributes for: Capillary}
  \label{s:list.capillary}
  
  \begin{tabular}{lll} \toprule
@@ -123,7 +123,7 @@ offset_moves_aperture       & x_limit                     &                     
  \vfill
  
  %---------------------------------
- \section{Crystal}
+ \section{Attributes for: Crystal}
  \label{s:list.crystal}
  
  \begin{tabular}{lll} \toprule
@@ -153,7 +153,7 @@ e_tot                       & tilt                        & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Custom}
+ \section{Attributes for: Custom}
  \label{s:list.custom}
  
  \begin{tabular}{lll} \toprule
@@ -175,7 +175,7 @@ e_tot_start                 & symplectify                 & x_pitch_tot         
 field_calc                  & taylor_map_includes_offsets & y1_limit                    \\
 field_factor                & tilt                        & y2_limit                    \\
 field_master                & tilt_tot                    & y_limit                     \\
-field_overlapped_by         & tracking_method             & y_offset                    \\
+field_overlaps              & tracking_method             & y_offset                    \\
 integrator_order            & type                        & y_offset_tot                \\
 is_on                       & val1                        & y_pitch                     \\
 l                           & val10                       & y_pitch_tot                 \\
@@ -187,7 +187,7 @@ l_hard_edge                 & val2                        &                     
  \vfill
  
  %---------------------------------
- \section{Detector}
+ \section{Attributes for: Detector}
  \label{s:list.detector}
  
  \begin{tabular}{lll} \toprule
@@ -215,7 +215,7 @@ offset                      & x_gain_err                  &                     
  \vfill
  
  %---------------------------------
- \section{Diffraction_Plate}
+ \section{Attributes for: Diffraction_Plate}
  \label{s:list.diffraction.plate}
  
  \begin{tabular}{lll} \toprule
@@ -239,7 +239,7 @@ offset                      & x1_limit                    & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Drift}
+ \section{Attributes for: Drift}
  \label{s:list.drift}
  
  \begin{tabular}{lll} \toprule
@@ -266,7 +266,7 @@ lord_pad2                   & type                        &                     
  \vfill
  
  %---------------------------------
- \section{Collimators: Ecollimator and Rcollimator}
+ \section{Attributes for collimators: Ecollimator and Rcollimator}
  \label{s:list.collimator}
  
  \begin{tabular}{lll} \toprule
@@ -286,7 +286,7 @@ ele_origin                  & ref_origin                  & y2_limit            
 end_edge                    & spin_fringe_on              & y_limit                     \\
 e_tot                       & spin_tracking_method        & y_offset                    \\
 field_factor                & sr_wake_file                & y_offset_tot                \\
-field_overlapped_by         & start_edge                  & y_pitch                     \\
+field_overlaps              & start_edge                  & y_pitch                     \\
 fringe_at                   & superimpose                 & y_pitch_tot                 \\
 fringe_type                 & symplectify                 & z_offset                    \\
 hkick                       & taylor_map_includes_offsets & z_offset_tot                \\
@@ -297,7 +297,7 @@ is_on                       & tilt_tot                    &                     
  \vfill
  
  %---------------------------------
- \section{ELseparator}
+ \section{Attributes for: ELseparator}
  \label{s:list.elseparator}
  
  \begin{tabular}{lll} \toprule
@@ -320,7 +320,7 @@ field                       & reference                   & y2_limit            
 field_calc                  & ref_origin                  & y_limit                     \\
 field_factor                & scale_multipoles            & y_offset                    \\
 field_master                & spin_fringe_on              & y_offset_tot                \\
-field_overlapped_by         & spin_tracking_method        & y_pitch                     \\
+field_overlaps              & spin_tracking_method        & y_pitch                     \\
 fringe_at                   & sr_wake_file                & y_pitch_tot                 \\
 fringe_type                 & start_edge                  & z_offset                    \\
 gap                         & superimpose                 & z_offset_tot                \\
@@ -331,7 +331,7 @@ integrator_order            & taylor_map_includes_offsets &                     
  \vfill
  
  %---------------------------------
- \section{EM_Field}
+ \section{Attributes for: EM_Field}
  \label{s:list.em.field}
  
  \begin{tabular}{lll} \toprule
@@ -352,7 +352,7 @@ e_tot_start                 & ref_origin                  & y2_limit            
 field                       & rf_frequency                & y_limit                     \\
 field_calc                  & spin_fringe_on              & y_offset                    \\
 field_factor                & spin_tracking_method        & y_offset_tot                \\
-field_overlapped_by         & sr_wake_file                & y_pitch                     \\
+field_overlaps              & sr_wake_file                & y_pitch                     \\
 fringe_at                   & start_edge                  & y_pitch_tot                 \\
 fringe_type                 & superimpose                 & z_offset                    \\
 integrator_order            & symplectify                 & z_offset_tot                \\
@@ -362,7 +362,7 @@ is_on                       & taylor_map_includes_offsets &                     
  \vfill
  
  %---------------------------------
- \section{E_Gun}
+ \section{Attributes for: E_Gun}
  \label{s:list.e.gun}
  
  \begin{tabular}{lll} \toprule
@@ -384,7 +384,7 @@ e_tot                       & ptc_integration_type        & x_pitch_tot         
 field                       & reference                   & y1_limit                    \\
 field_calc                  & ref_origin                  & y2_limit                    \\
 field_factor                & rf_frequency                & y_limit                     \\
-field_overlapped_by         & spin_fringe_on              & y_offset                    \\
+field_overlaps              & spin_fringe_on              & y_offset                    \\
 fringe_at                   & spin_tracking_method        & y_offset_tot                \\
 fringe_type                 & sr_wake_file                & y_pitch                     \\
 gradient                    & start_edge                  & y_pitch_tot                 \\
@@ -395,7 +395,7 @@ integrator_order            & symplectify                 & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Fiducial}
+ \section{Attributes for: Fiducial}
  \label{s:list.fiducial}
  
  \begin{tabular}{lll} \toprule
@@ -412,7 +412,7 @@ dy_origin                   & origin_ele_ref_pt           & type                
  \vfill
  
  %---------------------------------
- \section{Floor_Shift}
+ \section{Attributes for: Floor_Shift}
  \label{s:list.floor.shift}
  
  \begin{tabular}{lll} \toprule
@@ -434,7 +434,7 @@ offset                      & upstream_ele_dir            &                     
  \vfill
  
  %---------------------------------
- \section{Fork and Photon_Fork}
+ \section{Attributes for: Fork and Photon_Fork}
  \label{s:list.fork}
  
  \begin{tabular}{lll} \toprule
@@ -455,7 +455,7 @@ ix_to_branch                & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{Girder}
+ \section{Attributes for: Girder}
  \label{s:list.girder}
  
  \begin{tabular}{lll} \toprule
@@ -473,7 +473,7 @@ is_on                       & x_offset                    & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Group}
+ \section{Attributes for: Group}
  \label{s:list.group}
  
  \begin{tabular}{lll} \toprule
@@ -485,7 +485,7 @@ descrip                     & s_position                  &                     
  \vfill
  
  %---------------------------------
- \section{Kickers: Hkicker and Vkicker}
+ \section{Attributes for kickers: Hkicker and Vkicker}
  \label{s:list.hvkicker}
  
  \begin{tabular}{lll} \toprule
@@ -507,7 +507,7 @@ e_tot                       & ref_origin                  & y_limit             
 field_calc                  & scale_multipoles            & y_offset                    \\
 field_factor                & spin_fringe_on              & y_offset_tot                \\
 field_master                & spin_tracking_method        & y_pitch                     \\
-field_overlapped_by         & sr_wake_file                & y_pitch_tot                 \\
+field_overlaps              & sr_wake_file                & y_pitch_tot                 \\
 fringe_at                   & start_edge                  & z_offset                    \\
 fringe_type                 & superimpose                 & z_offset_tot                \\
 integrator_order            & symplectify                 &                             \\
@@ -517,7 +517,7 @@ is_on                       & taylor_map_includes_offsets &                     
  \vfill
  
  %---------------------------------
- \section{Hybrid}
+ \section{Attributes for: Hybrid}
  \label{s:list.hybrid}
  
  \begin{tabular}{lll} \toprule
@@ -529,7 +529,7 @@ e_tot_start                 & p0c_start                   &                     
  \vfill
  
  %---------------------------------
- \section{Instrument, Monitor, and Pipe}
+ \section{Attributes for: Instrument, Monitor, and Pipe}
  \label{s:list.instrument}
  
  \begin{tabular}{lll} \toprule
@@ -553,7 +553,7 @@ end_edge                    & spin_fringe_on              & y_gain_calib        
 e_tot                       & spin_tracking_method        & y_gain_err                  \\
 field_calc                  & sr_wake_file                & y_limit                     \\
 field_factor                & start_edge                  & y_offset                    \\
-field_overlapped_by         & superimpose                 & y_offset_calib              \\
+field_overlaps              & superimpose                 & y_offset_calib              \\
 fringe_at                   & symplectify                 & y_offset_tot                \\
 fringe_type                 & taylor_map_includes_offsets & y_pitch                     \\
 hkick                       & tilt                        & y_pitch_tot                 \\
@@ -564,7 +564,7 @@ is_on                       & tilt_tot                    & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Kicker}
+ \section{Attributes for: Kicker}
  \label{s:list.kicker}
  
  \begin{tabular}{lll} \toprule
@@ -587,7 +587,7 @@ e_tot                       & reference                   & y2_limit            
 field_calc                  & ref_origin                  & y_limit                     \\
 field_factor                & scale_multipoles            & y_offset                    \\
 field_master                & spin_fringe_on              & y_offset_tot                \\
-field_overlapped_by         & spin_tracking_method        & y_pitch                     \\
+field_overlaps              & spin_tracking_method        & y_pitch                     \\
 fringe_at                   & sr_wake_file                & y_pitch_tot                 \\
 fringe_type                 & start_edge                  & z_offset                    \\
 hkick                       & superimpose                 & z_offset_tot                \\
@@ -598,7 +598,7 @@ integrator_order            & taylor_map_includes_offsets &                     
  \vfill
  
  %---------------------------------
- \section{Lcavity}
+ \section{Attributes for: Lcavity}
  \label{s:list.lcavity}
  
  \begin{tabular}{lll} \toprule
@@ -630,14 +630,14 @@ field                       & ptc_integration_type        & y_offset_tot        
 field_calc                  & reference                   & y_pitch                     \\
 field_factor                & ref_origin                  & y_pitch_tot                 \\
 field_master                & rf_frequency                & z_offset                    \\
-field_overlapped_by         & spin_fringe_on              & z_offset_tot                \\
+field_overlaps              & spin_fringe_on              & z_offset_tot                \\
 fringe_at                   & spin_tracking_method        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
  
  %---------------------------------
- \section{Marker}
+ \section{Attributes for: Marker}
  \label{s:list.marker}
  
  \begin{tabular}{lll} \toprule
@@ -665,7 +665,7 @@ offset_moves_aperture       & x_offset                    &                     
  \vfill
  
  %---------------------------------
- \section{Mask}
+ \section{Attributes for: Mask}
  \label{s:list.mask}
  
  \begin{tabular}{lll} \toprule
@@ -689,7 +689,7 @@ offset_moves_aperture       & x_limit                     &                     
  \vfill
  
  %---------------------------------
- \section{Match}
+ \section{Attributes for: Match}
  \label{s:list.match}
  
  \begin{tabular}{lll} \toprule
@@ -718,7 +718,7 @@ etap_x1                     & py1                         & z1                  
  \vfill
  
  %---------------------------------
- \section{Mirror}
+ \section{Attributes for: Mirror}
  \label{s:list.mirror}
  
  \begin{tabular}{lll} \toprule
@@ -743,7 +743,7 @@ offset                      & x1_limit                    &                     
  \vfill
  
  %---------------------------------
- \section{Multilayer_Mirror}
+ \section{Attributes for: Multilayer_Mirror}
  \label{s:list.multilayer.mirror}
  
  \begin{tabular}{lll} \toprule
@@ -770,7 +770,7 @@ n_cell                      & v2_unitcell                 &                     
  \vfill
  
  %---------------------------------
- \section{Multipole}
+ \section{Attributes for: Multipole}
  \label{s:list.multipole}
  
  \begin{tabular}{lll} \toprule
@@ -792,7 +792,7 @@ mat6_calc_method            & wall                        &                     
  \vfill
  
  %---------------------------------
- \section{Octupole}
+ \section{Attributes for: Octupole}
  \label{s:list.octupole}
  
  \begin{tabular}{lll} \toprule
@@ -817,7 +817,7 @@ field                       & reference                   & y_limit             
 field_calc                  & ref_origin                  & y_offset                    \\
 field_factor                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
-field_overlapped_by         & spin_tracking_method        & y_pitch_tot                 \\
+field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
 fringe_type                 & start_edge                  & z_offset_tot                \\
 hkick                       & superimpose                 &                             \\
@@ -826,7 +826,7 @@ hkick                       & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{Overlay}
+ \section{Attributes for: Overlay}
  \label{s:list.overlay}
  
  \begin{tabular}{lll} \toprule
@@ -837,7 +837,7 @@ descrip                     & var                         &                     
  \vfill
  
  %---------------------------------
- \section{Patch}
+ \section{Attributes for: Patch}
  \label{s:list.patch}
  
  \begin{tabular}{lll} \toprule
@@ -860,7 +860,7 @@ flexible                    & tracking_method             & z_offset            
  \vfill
  
  %---------------------------------
- \section{Photon_Init}
+ \section{Attributes for: Photon_Init}
  \label{s:list.photon.init}
  
  \begin{tabular}{lll} \toprule
@@ -889,7 +889,7 @@ p0c                         & type                        &                     
  \vfill
  
  %---------------------------------
- \section{Quadrupole}
+ \section{Attributes for: Quadrupole}
  \label{s:list.quadrupole}
  
  \begin{tabular}{lll} \toprule
@@ -914,7 +914,7 @@ field                       & r0_mag                      & y_limit             
 field_calc                  & reference                   & y_offset                    \\
 field_factor                & ref_origin                  & y_offset_tot                \\
 field_master                & scale_multipoles            & y_pitch                     \\
-field_overlapped_by         & spin_fringe_on              & y_pitch_tot                 \\
+field_overlaps              & spin_fringe_on              & y_pitch_tot                 \\
 fq1                         & spin_tracking_method        & z_offset                    \\
 fq2                         & sr_wake_file                & z_offset_tot                \\
 fringe_at                   & start_edge                  &                             \\
@@ -924,7 +924,7 @@ fringe_type                 & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{RFcavity}
+ \section{Attributes for: RFcavity}
  \label{s:list.rfcavity}
  
  \begin{tabular}{lll} \toprule
@@ -953,7 +953,7 @@ e_tot                       & phi0_ref                    & y_limit             
 field                       & ptc_integration_type        & y_offset                    \\
 field_calc                  & reference                   & y_offset_tot                \\
 field_factor                & ref_origin                  & y_pitch                     \\
-field_overlapped_by         & rf_frequency                & y_pitch_tot                 \\
+field_overlaps              & rf_frequency                & y_pitch_tot                 \\
 fringe_at                   & spin_fringe_on              & z_offset                    \\
 fringe_type                 & spin_tracking_method        & z_offset_tot                \\
  \bottomrule
@@ -961,7 +961,7 @@ fringe_type                 & spin_tracking_method        & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Sad_Mult}
+ \section{Attributes for: Sad_Mult}
  \label{s:list.sad.mult}
  
  \begin{tabular}{lll} \toprule
@@ -992,7 +992,7 @@ fringe_at                   & tracking_method             & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Sample}
+ \section{Attributes for: Sample}
  \label{s:list.sample}
  
  \begin{tabular}{lll} \toprule
@@ -1016,7 +1016,7 @@ offset                      & x_limit                     &                     
  \vfill
  
  %---------------------------------
- \section{Bends: Rbend and Sbend}
+ \section{Attributes for bends: Rbend and Sbend}
  \label{s:list.bend}
  
  \begin{tabular}{lll} \toprule
@@ -1047,7 +1047,7 @@ field                       & p0c                         & y1_limit            
 field_calc                  & ptc_field_geometry          & y2_limit                    \\
 field_factor                & ptc_fringe_geometry         & y_limit                     \\
 field_master                & ptc_integration_type        & y_offset                    \\
-field_overlapped_by         & r0_elec                     & y_offset_tot                \\
+field_overlaps              & r0_elec                     & y_offset_tot                \\
 fint                        & r0_mag                      & y_pitch                     \\
 fintx                       & reference                   & y_pitch_tot                 \\
 fringe_at                   & ref_origin                  & z_offset                    \\
@@ -1057,7 +1057,7 @@ fringe_type                 & ref_tilt                    & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Sextupole}
+ \section{Attributes for: Sextupole}
  \label{s:list.sextupole}
  
  \begin{tabular}{lll} \toprule
@@ -1082,7 +1082,7 @@ field                       & reference                   & y_limit             
 field_calc                  & ref_origin                  & y_offset                    \\
 field_factor                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
-field_overlapped_by         & spin_tracking_method        & y_pitch_tot                 \\
+field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
 fringe_type                 & start_edge                  & z_offset_tot                \\
 hkick                       & superimpose                 &                             \\
@@ -1091,7 +1091,7 @@ hkick                       & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{Solenoid}
+ \section{Attributes for: Solenoid}
  \label{s:list.solenoid}
  
  \begin{tabular}{lll} \toprule
@@ -1116,7 +1116,7 @@ field                       & reference                   & y_limit             
 field_calc                  & ref_origin                  & y_offset                    \\
 field_factor                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
-field_overlapped_by         & spin_tracking_method        & y_pitch_tot                 \\
+field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
 fringe_type                 & start_edge                  & z_offset_tot                \\
 hkick                       & superimpose                 &                             \\
@@ -1125,7 +1125,7 @@ hkick                       & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{Sol_Quad}
+ \section{Attributes for: Sol_Quad}
  \label{s:list.sol.quad}
  
  \begin{tabular}{lll} \toprule
@@ -1151,7 +1151,7 @@ field                       & reference                   & y_offset            
 field_calc                  & ref_origin                  & y_offset_tot                \\
 field_factor                & scale_multipoles            & y_pitch                     \\
 field_master                & spin_fringe_on              & y_pitch_tot                 \\
-field_overlapped_by         & spin_tracking_method        & z_offset                    \\
+field_overlaps              & spin_tracking_method        & z_offset                    \\
 fringe_at                   & sr_wake_file                & z_offset_tot                \\
 fringe_type                 & start_edge                  &                             \\
 hkick                       & superimpose                 &                             \\
@@ -1160,7 +1160,7 @@ hkick                       & superimpose                 &                     
  \vfill
  
  %---------------------------------
- \section{Taylor}
+ \section{Attributes for: Taylor}
  \label{s:list.taylor}
  
  \begin{tabular}{lll} \toprule
@@ -1184,7 +1184,7 @@ offset                      & x1_limit                    & z_offset_tot        
  \vfill
  
  %---------------------------------
- \section{Wiggler and Undulator}
+ \section{Attributes for: Wiggler and Undulator}
  \label{s:list.wiggler}
  
  \begin{tabular}{lll} \toprule
@@ -1209,7 +1209,7 @@ field                       & r0_mag                      & y1_limit            
 field_calc                  & reference                   & y2_limit                    \\
 field_factor                & ref_origin                  & y_limit                     \\
 field_master                & rho                         & y_offset                    \\
-field_overlapped_by         & scale_multipoles            & y_offset_tot                \\
+field_overlaps              & scale_multipoles            & y_offset_tot                \\
 fringe_at                   & spin_fringe_on              & y_pitch                     \\
 fringe_type                 & spin_tracking_method        & y_pitch_tot                 \\
 hkick                       & sr_wake_file                & z_offset                    \\

@@ -132,7 +132,8 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, err_flag, potential)
+! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
+!                                                                          err_flag, potential, with_overlap)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -148,19 +149,18 @@ end subroutine save_a_step
 !   use bmad
 !
 ! Input:
-!   ele      -- Ele_struct: Element
-!   param    -- lat_param_struct: Lattice parameters.
-!   s_pos    -- Real(rp): Longitudinal position relative to the upstream edge of the element.
-!   time     -- Real(rp): Particle time.
-!                 For absolute time tracking this is the absolute time.
-!                 For relative time tracking this is relative to the reference particle entering the element.
-!   orbit    -- Coord_struct: Transverse coordinates.
+!   ele             -- Ele_struct: Element
+!   param           -- lat_param_struct: Lattice parameters.
+!   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   time            -- Real(rp): Particle time.
+!                       For absolute time tracking this is the absolute time.
+!                       For relative time tracking this is relative to the reference particle entering the element.
+!   orbit           -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
-!   local_ref_frame 
-!            -- Logical, If True then take the input coordinates and output fields 
-!                  as being with respect to the frame of referene of the element (ignore misalignments). 
-!   calc_dfield
-!            -- Logical, optional: If present and True then calculate the field derivatives.
+!   local_ref_frame -- Logical, If True then take the input coordinates and output fields 
+!                        as being with respect to the frame of referene of the element (ignore misalignments). 
+!   calc_dfield     -- Logical, optional: If present and True then calculate the field derivatives.
+!   with_overlap    -- logical, optional: Add in overlap fields from other elements? Default is True.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -169,7 +169,8 @@ end subroutine save_a_step
 !                   This is experimental and only implemented for wigglers at present.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, err_flag, potential)
+recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
+                                                                               err_flag, potential, use_overlap)
 
 use geometry_mod
 
@@ -203,7 +204,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 integer i, j, m, n, trig_x, trig_y, status
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
-logical, optional :: calc_dfield, err_flag
+logical, optional :: calc_dfield, err_flag, use_overlap
 logical df_calc, err
 
 character(20) :: r_name = 'em_field_calc'
@@ -1046,7 +1047,7 @@ end select
 
 8000 continue
 
-if (ele%n_lord_field /= 0) then
+if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   lab_orb = orbit
   if (local_ref_frame) then
     call offset_particle (ele, param, unset$, lab_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
@@ -1061,7 +1062,8 @@ if (ele%n_lord_field /= 0) then
     lord_position = coords_floor_to_local_curvilinear (global_position, lord, status, w_lord_mat)
     lord_orb%vec(1) = lord_position%r(1)
     lord_orb%vec(3) = lord_position%r(2)
-    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err)
+    ! Set use_overlap = False to prevent recursion.
+    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err, use_overlap = .false.)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
