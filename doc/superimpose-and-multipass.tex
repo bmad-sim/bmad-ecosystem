@@ -275,16 +275,17 @@ The following rule holds for all super lords with and without jumbo slaves:
   Sum of all slave lengths = lord length + lord_pad1 + lord_pad2
 \end{example}
 
-One major drawback of jumbo \vn{super_slave} elements is that the
-\vn{tracking_method} (\sref{s:tkm}) will, by necessity, be set by \bmad to
-\vn{runge_kutta} and the \vn{mat6_calc_method} (\sref{s:xfer}) will be set to
-\vn{tracking}.
+One major drawback of jumbo \vn{super_slave} elements is that the \vn{tracking_method}
+(\sref{s:tkm}) will, by necessity, have to be \vn{runge_kutta}, \vn{time_runge_kutta}, or
+\vn{boris} and the \vn{mat6_calc_method} (\sref{s:xfer}) will be set to \vn{tracking}.
 
 Notice that the problem with edge effects for non-jumbo
 \vn{super_slave} elements only occurs when elements with nonzero
 fields are superimposed on top of one another. Thus, for example, one
 does not need to use jumbo elements when superimposing a \vn{marker}
 element.
+
+
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}

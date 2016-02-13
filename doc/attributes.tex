@@ -1985,6 +1985,25 @@ Custom field profiles may be defined using \vn{tables} or \vn{maps}
 \subsection{Field Extending Beyond Element Boundary}
 \label{s:overlap}
 
+\index{field_overlaps} 
+The \vn{field_overlaps} element attribute can be used to indicate that the electric or
+magnetic fields of one element overlap another element. Example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2, ...
+  inj_line: line = (..., s2, b1, mark3, q1, ...)
+\end{example}
+In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and
+overlaps elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that
+are overlapped by any given element and overlapped elements do not have to be next to the
+overlapping element in the line. If there are multiple elements whose name matches the
+name of a overlapped element, the element closest to the overlapping element is
+choisen. Thus in the above example, if there are multiple elements named \vn{q1}, the
+closest \vn{q1} to \vn{b1} is designated as the overlapped element.
+
+The field overlap construct is only useful with integration type tracking methods and when the
+field is specified and when the setting of \vn{field_calc} (\sref{s:integ}) attribute for
+both the overlapping and overlapped elements is something other than \vn{bmad_standard}.
+
 %-----------------------------------------------------------------
 \subsection{Field Table or Map}
 \label{s:field.tab.map}
