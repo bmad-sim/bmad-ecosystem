@@ -2964,7 +2964,7 @@ character(40)  word
 character(1)   delim, str_end
 character(200) type_name
 
-logical delim_found
+logical delim_found, err
 
 !
 
@@ -3018,9 +3018,20 @@ case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
   name = type_name
   call upcase_string (name)
 case ('FIELD_OVERLAPS')
-  n = size(pele%field_overlaps) + 1
-  call re_allocate (pele%field_overlaps, n)
-  pele%field_overlaps(n) = type_name
+  if (present(pele)) then
+    n = size(pele%field_overlaps) + 1
+    call re_allocate (pele%field_overlaps, n)
+    pele%field_overlaps(n) = type_name
+
+  ! If pele is not present then bmad_parser2 is the parser and this is an element in the lattice.
+  ! In this case, simple call create_field_overlap directly.
+  else
+    call create_field_overlap (ele%branch%lat, ele%name, type_name, err)
+    if (err) then
+      call parser_error ('OVERLAP ELEMENT: ' // type_name, 'NOT FOUND FOR OVERLAPPING ELEMENT: ' // ele%name)
+    endif
+  endif
+
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit

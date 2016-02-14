@@ -38,7 +38,7 @@ implicit none
   
 type (lat_struct), target :: lat
 type (lat_struct) :: lat2
-type (ele_struct), pointer :: ele, mad_beam_ele, param_ele
+type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -47,7 +47,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) v1, v2
 
-integer ix_word, i, j, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
+integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
 integer key, n_max_old, n_loc, n_def_ele
 integer, pointer :: n_max, n_ptr
 integer, allocatable :: lat_indexx(:)
@@ -601,6 +601,25 @@ enddo
 ! Go through and create the overlay, girder, and group lord elements.
 
 call parser_add_lord (lat2, ele_num, plat, lat)
+
+! put in field overlap
+
+do i = 1, ele_num
+  lord => lat2%ele(i)
+  pele => plat%ele(lord%ixx)
+  if (.not. allocated(pele%field_overlaps)) cycle
+  call lat_ele_locator (lord%name, lat, eles, n)
+  if (n < 1) cycle
+
+  do j = 1, size(pele%field_overlaps)
+    call create_field_overlap (lat, lord%name, pele%field_overlaps(j), err)
+    if (err) then
+      call parser_error ('CANNOT FIND ELEMENT: ' // pele%field_overlaps(j), &
+                         'WHICH HAS FIELD OVERLAP FROM ELEMENT: ' // lord%name)
+    endif
+  enddo
+enddo
+
 
 ! make matrices for entire lat
 

@@ -1199,6 +1199,9 @@ if (.not. bp_com%error_flag .and. .not. bp_com%always_parse) then
   endif
 endif
 
+call lat_sanity_check (lat, err)
+if (err) bp_com%error_flag = .true.
+
 call parser_end_stuff ()
 
 if (bp_com%extra%ran_function_was_called) then
