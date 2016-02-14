@@ -35,9 +35,10 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) ele
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele2
 
 integer, optional :: n_add_slave_field, n_add_lord_field
-integer n_add, n_con, i1, i2, i2_field, n_con2, n_ic, n_ic2, ib, n_add_field
+integer n_add, n_con, i1, i2, i2_field, n_con2, n_ic, n_ic2, ib, ie, n_add_field
 integer i1_field
 
 logical, optional :: add_at_end
@@ -80,7 +81,7 @@ if (n_add_field > 0) then
 
     if (logic_option(.true., add_at_end)) then
       lat%control(i2_field+n_add_field+1:n_con+n_add_field) = lat%control(i2_field+1:n_con)
-      lat%control(i2_field+1:i2_field+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
+      lat%control(i2_field+1:i2_field+n_add_field)%lord  = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i2_field+1:i2_field+n_add_field)%slave = lat_ele_loc_struct()
       lat%control(i2_field+1:i2_field+n_add_field)%ix_attrib = 0
       where (lat%ic > i2_field) lat%ic = lat%ic + n_add_field
@@ -88,7 +89,7 @@ if (n_add_field > 0) then
     else
       i1_field = ele%ix1_slave + ele%n_slave
       lat%control(i1_field+n_add_field:n_con+n_add_field) = lat%control(i1_field:n_con)
-      lat%control(i1_field:i1_field+n_add_field-1)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
+      lat%control(i1_field:i1_field+n_add_field-1)%lord  = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i1_field:i1_field+n_add_field-1)%slave = lat_ele_loc_struct()
       lat%control(i1_field:i1_field+n_add_field-1)%ix_attrib = 0
       where (lat%ic >= i1_field) lat%ic = lat%ic + n_add_field
@@ -96,9 +97,14 @@ if (n_add_field > 0) then
 
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      where (branch%ele%ix1_slave > i2_field) branch%ele%ix1_slave = branch%ele%ix1_slave + n_add_field
-      where (branch%ele%ix2_slave > i2_field) branch%ele%ix2_slave = branch%ele%ix2_slave + n_add_field
+      do ie = 1, branch%n_ele_max
+        ele2 => branch%ele(ie)
+        if (ele2%ix1_slave <= ele%ix1_slave) cycle
+        ele2%ix1_slave = ele2%ix1_slave + n_add_field
+        ele2%ix2_slave = ele2%ix2_slave + n_add_field
+      enddo
     enddo
+    ele%ix2_slave = ele%ix1_slave + ele%n_slave - 1
   endif
 
   ele%n_slave_field = ele%n_slave_field + n_add_field
@@ -145,10 +151,13 @@ if (n_add > 0) then
 
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      where (branch%ele%ix1_slave > i2) branch%ele%ix1_slave = branch%ele%ix1_slave + n_add
-      where (branch%ele%ix2_slave > i2) branch%ele%ix2_slave = branch%ele%ix2_slave + n_add
+      do ie = 1, branch%n_ele_max
+        ele2 => branch%ele(ie)
+        if (ele2%ix1_slave <= ele%ix1_slave) cycle
+        ele2%ix1_slave = ele2%ix1_slave + n_add
+        ele2%ix2_slave = ele2%ix2_slave + n_add
+      enddo
     enddo
-
     ele%ix2_slave = ele%ix1_slave + ele%n_slave - 1
   endif
 
@@ -178,13 +187,18 @@ if (n_add_field > 0) then
     ele%ic1_lord = n_ic + 1
     ele%ic2_lord = n_ic
   else
-    i2_field = ele%ic2_lord + ele%n_lord_field
+    i2 = ele%ic2_lord
+    i2_field = i2 + ele%n_lord_field
     lat%ic(i2_field+1+n_add_field:n_ic2) = lat%ic(i2_field+1:n_ic)
     lat%ic(i2_field+1:i2_field+n_add_field) = 0
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      where (branch%ele%ic1_lord > i2_field) branch%ele%ic1_lord = branch%ele%ic1_lord + n_add_field
-      where (branch%ele%ic2_lord > i2_field) branch%ele%ic2_lord = branch%ele%ic2_lord + n_add_field
+      do ie = 1, branch%n_ele_max
+        ele2 => branch%ele(ie)
+        if (ele2%ic1_lord <= ele%ic1_lord) cycle
+        ele2%ic1_lord = ele2%ic1_lord + n_add_field
+        ele2%ic2_lord = ele2%ic2_lord + n_add_field
+      enddo
     enddo
     ele%ic2_lord = ele%ic1_lord + ele%n_lord - 1
   endif
@@ -210,8 +224,12 @@ if (n_add > 0) then
     lat%ic(i2+1:i2+n_add) = 0
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
-      where (branch%ele%ic1_lord > i2) branch%ele%ic1_lord = branch%ele%ic1_lord + n_add
-      where (branch%ele%ic2_lord > i2) branch%ele%ic2_lord = branch%ele%ic2_lord + n_add
+      do ie = 1, branch%n_ele_max
+        ele2 => branch%ele(ie)
+        if (ele2%ic1_lord <= ele%ic1_lord) cycle
+         ele2%ic1_lord = ele2%ic1_lord + n_add
+         ele2%ic2_lord = ele2%ic2_lord + n_add
+      enddo
     enddo
     ele%ic2_lord = ele%ic1_lord + ele%n_lord - 1
   endif
