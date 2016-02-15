@@ -25,7 +25,7 @@ type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
 type (floor_position_struct) floor0, floor
-type (control_struct), pointer :: ctl
+type (control_struct), pointer :: ctl, ctl1, ctl2
 
 real(rp) s1, s2, ds, ds_small, l_lord
 
@@ -36,7 +36,7 @@ character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
-logical good_control(12,12), girder_here, finished
+logical good_control(12,12), girder_here, finished, foundit
 
 ! check energy
 
@@ -868,19 +868,65 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
 
       if (l_stat /= group_lord$ .and. l_stat /= girder_lord$) then
-        n = slave%ic2_lord + slave%n_lord_field - slave%ic1_lord + 1
-        cc(1:n) = [(lat%ic(i), i = slave%ic1_lord, slave%ic2_lord+slave%n_lord_field)]
-        if (.not. any(lat%control(cc(1:n))%lord%ix_ele == i_t)) then
+        do ix = slave%ic1_lord, slave%ic1_lord+slave%n_lord+slave%n_lord_field-1
+          if (ix < 1 .or. ix > lat%n_ic_max) then
+            call out_io (s_fatal$, r_name, &
+                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
+                  'AND THE SLAVE HAS A BAD IC POINTER. ', &
+                  i_array = [i_t, i_t2] )
+            err_flag = .true.
+            exit
+          endif
+
+          k = lat%ic(ix)
+          if (k < 1 .or. k > lat%n_control_max) then
+            call out_io (s_fatal$, r_name, &
+                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
+                  'AND THE SLAVE HAS A BAD CONTROL POINTER. ', &
+                  i_array = [i_t, i_t2] )
+            err_flag = .true.
+            exit
+          endif
+        enddo
+
+        foundit = .false.
+        do ix = slave%ic1_lord, slave%ic1_lord+slave%n_lord+slave%n_lord_field-1
+          k = lat%ic(ix)
+          if (lat%control(k)%lord%ix_ele /= i_t .or. lat%control(k)%lord%ix_branch /= i_b) cycle
+          foundit = .true.
+          exit
+        enddo
+        if (.not. foundit) then
           call out_io (s_fatal$, r_name, &
-                    'SLAVE: ' // trim(slave%name) // '  (\i0\)', &
-                    'WITH SLAVE_STATUS: ' // control_name(t2_type), &
-                    'DOES NOT HAVE A POINTER TO ITS LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = [i_t2, i_t] )
+                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
+                  'AND THE SLAVE HAS NO CONTROL STRUCT POINTING TO THE LORD. ', &
+                  i_array = [i_t, i_t2] )
           err_flag = .true.
         endif
       endif
 
     enddo  ! j = ele%ix1_slave, ele%ix2_slave
+
+    ! Check that field overlaps are unique
+
+    n = ele%ix1_slave + ele%n_lord
+    do j = n, n + ele%n_slave_field - 1
+      ctl1 => lat%control(j)
+      do k = n, j-1
+        ctl2 => lat%control(k)
+        if (ctl1%slave == ctl2%slave) then
+          slave => pointer_to_ele(lat, ctl1%slave)
+          call out_io (s_fatal$, r_name, &
+                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'HAS MULTIPLE FIELD OVERLAP POINTERS TO SLAVE: ' // trim(slave%name) // '  (\i0\)', &
+                  i_array = [i_t, ctl1%slave%ix_ele] )
+          err_flag = .true.
+        endif
+      enddo
+    enddo
 
     ! check lords
 
