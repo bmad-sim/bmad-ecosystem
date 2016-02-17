@@ -337,7 +337,11 @@ if (u%calc%track) then
     endif
     if (err) then
       ! In desperation try a different starting point
-      orbit(0)%vec = 0
+      if (i_dim == 4) then
+        orbit(0)%vec(1:5) = 0
+      else
+        orbit(0)%vec = 0
+      endif
       call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
     endif
 
