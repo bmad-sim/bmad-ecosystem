@@ -230,6 +230,7 @@ integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), plane, n_sec
 
 character(40) :: word, str_ix, attrib_word, word2
+character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
@@ -1309,7 +1310,26 @@ case ('OFFSET')
   pele%offset = value
 
 case ('FIELD_OVERLAPS')
-  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
+
+  ! If pele is not present then bmad_parser2 is the parser and this is an element in the lattice.
+  ! In this case, simple call create_field_overlap directly.
+
+  call get_list_of_names (ele, 'FIELD_OVERLAPS', name_list, delim, delim_found, err_flag)
+  nn = size(name_list)
+
+  if (present(pele)) then
+    n = size(pele%field_overlaps)
+    call re_allocate (pele%field_overlaps, n+nn)
+    pele%field_overlaps(n+1:n+nn) = name_list
+
+  else
+    do i = 1, n
+      call create_field_overlap (ele%branch%lat, ele%name, name_list(i), err_flag)
+      if (err_flag) then
+        call parser_error ('OVERLAP ELEMENT: ' // name_list(i), 'NOT FOUND FOR OVERLAPPING ELEMENT: ' // ele%name)
+      endif
+    enddo
+  endif
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
@@ -3017,20 +3037,6 @@ case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
       'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')
   name = type_name
   call upcase_string (name)
-case ('FIELD_OVERLAPS')
-  if (present(pele)) then
-    n = size(pele%field_overlaps) + 1
-    call re_allocate (pele%field_overlaps, n)
-    pele%field_overlaps(n) = type_name
-
-  ! If pele is not present then bmad_parser2 is the parser and this is an element in the lattice.
-  ! In this case, simple call create_field_overlap directly.
-  else
-    call create_field_overlap (ele%branch%lat, ele%name, type_name, err)
-    if (err) then
-      call parser_error ('OVERLAP ELEMENT: ' // type_name, 'NOT FOUND FOR OVERLAPPING ELEMENT: ' // ele%name)
-    endif
-  endif
 
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
@@ -3459,6 +3465,75 @@ is_ok = .true.
 end function expect_nothing
 
 end subroutine read_sr_wake
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine get_list_of_names (ele, err_str, delim, delim_found)
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+      
+subroutine get_list_of_names (ele, err_str, name_list, delim, delim_found, err_flag)
+
+implicit none
+
+type (ele_struct)  ele
+
+character(*) err_str
+character(*), allocatable :: name_list(:)
+character(1) delim
+character(40) word
+
+integer ix_word, n_name 
+
+logical delim_found, curly_parens_found, err_flag
+
+! Opening "}" is optional if there is only one word
+
+err_flag = .true.
+
+call get_next_word (word, ix_word, '{,}()', delim, delim_found, .true.)
+curly_parens_found = (delim == '{')
+if (curly_parens_found .and. ix_word /= 0) then
+  call parser_error ('ERROR PARSING: ' // err_str, 'FOUND STUFF BEFORE OPENING "{"')
+  return
+endif
+
+if (curly_parens_found) call get_next_word (word, ix_word, '{,}()', delim, delim_found, .true.)
+
+n_name = 0
+call re_allocate (name_list, 10)
+
+do
+  n_name = n_name + 1
+  if (n_name > size(name_list)) call re_allocate(name_list, n_name+10)
+  name_list(n_name) = word
+
+  if ((delim == '}' .and. .not. curly_parens_found) .or. (.not. delim_found .and. curly_parens_found)) then
+    call parser_error ('ERROR PARSING: ' // err_str, 'MISMATCHED {} BRACES')
+    return
+  endif
+
+  if (delim_found .and. delim /= '}' .and. delim /= ',') then
+    call parser_error ('ERROR PARSING: ' // err_str, 'MALFORMED STATEMENT')
+    return
+  endif
+
+  if (delim == '}' .or. .not. curly_parens_found) then 
+    if (delim == '}') call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
+    exit
+  endif
+
+  call get_next_word (word, ix_word, '{,}()', delim, delim_found, .true.)
+enddo
+
+call re_allocate(name_list, n_name)
+err_flag = .false.
+
+end subroutine get_list_of_names
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

@@ -1137,7 +1137,6 @@ do i = 1, n_max
     if (err) then
       call parser_error ('CANNOT FIND ELEMENT: ' // pele%field_overlaps(j), &
                          'WHICH HAS FIELD OVERLAP FROM ELEMENT: ' // lord%name)
-      call parser_end_stuff
     endif
   enddo
 enddo
