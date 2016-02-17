@@ -45,7 +45,7 @@ call lat_ele_locator (lord_name, lat, lords, n_lord, err)
 if (err .or. n_lord == 0) return
 
 call lat_ele_locator (slave_name, lat, slaves, n_slave, err)
-if (err .or. n_lord == 0) return
+if (err .or. n_slave == 0) return
 
 do i = 1, n_lord
   lord => lords(i)%ele
