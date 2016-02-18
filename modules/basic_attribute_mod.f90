@@ -1078,7 +1078,7 @@ call init_attribute_name1 (quadrupole$, field$,                     'FIELD')
 call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start', private$)
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
-call init_attribute_name1 (quadrupole$, fb2$,                       'FQ2')
+call init_attribute_name1 (quadrupole$, fq2$,                       'FQ2')
 
 call init_attribute_name1 (sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
