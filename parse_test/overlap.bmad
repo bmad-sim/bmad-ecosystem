@@ -1,0 +1,18 @@
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 1e9
+parameter[geometry] = open
+
+a: quadrupole, l = 1, field_overlaps = b, field_overlaps = c
+b: quadrupole, l = 1
+c: quadrupole, l = 1
+
+ma: marker, superimpose, ref = a
+mb: marker, superimpose, ref = b
+
+d: drift, l = 10
+
+z1: line[multipass] = (a, b, c)
+z2: line = (z1, d, z1)
+use, z2
