@@ -2328,7 +2328,7 @@ if (ele%field_master) then
   if (val(p0c$) == 0) then
     factor = 0
   else
-    factor = c_light / val(p0c$)
+    factor = charge_of(param%particle) * c_light / val(p0c$)
   endif
 
   select case (ele%key)
@@ -2367,7 +2367,11 @@ if (ele%field_master) then
 
 else
 
-  factor = val(p0c$) / c_light
+  if (charge_of(param%particle) == 0) then
+    factor = 0
+  else
+    factor = val(p0c$) / (charge_of(param%particle) * c_light)
+  endif
 
   select case (ele%key)
   case (quadrupole$)
