@@ -1991,20 +1991,26 @@ end subroutine remove_lord_slave_link
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lord, ix_slave, control) result (slave_ptr)
+! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
+!
+! If field_overlap_ptr = False (default), the range for ix_slave is:
+!   1 to lord%n_slave                                 for "regular" slaves.
+!   lord%n_slave+1 to lord%n_slave+lord%n_slave_field for field overlap slaves.
+!
+! If field_overlap_ptr = True, only the field overlap slaves may be accessed and the range for ix_slave is:
+!   1 to lord%n_slave_field  
+!
 ! Also see:
 !   pointer_to_lord
 !   pointer_to_ele
 !
-! Modules Needed:
-!   use bmad_utils_mod
-!
 ! Input:
-!   lord     -- Ele_struct: Lord element
-!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave for 
-!                 regular (not field_slave) slaves and from 1 to lord%n_slave + lord%n_slave_field otherwise.
+!   lord               -- Ele_struct: Lord element
+!   ix_slave           -- Integer: Index of the slave. 
+!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
+!                           Default is False.
 !
 ! Output:
 !   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
@@ -2013,7 +2019,7 @@ end subroutine remove_lord_slave_link
 !                   Nullified if there is an error.
 !-
 
-function pointer_to_slave (lord, ix_slave, control) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
 
 type (ele_struct), target :: lord
 type (control_struct), pointer, optional :: control
@@ -2021,18 +2027,22 @@ type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 type (lat_struct), pointer :: lat
 
-integer ix_slave, icon
+integer ix_slave, icon, ixs
+logical, optional :: field_overlap_ptr
 
 !
 
-if (ix_slave > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
+ixs = ix_slave
+if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
+
+if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
   nullify(slave_ptr)
   if (present(control)) nullify(control)
   return
 endif
 
 lat => lord%branch%lat
-icon = lord%ix1_slave + ix_slave - 1
+icon = lord%ix1_slave + ixs - 1
 con => lat%control(icon)
 slave_ptr => lat%branch(con%slave%ix_branch)%ele(con%slave%ix_ele)
 if (present(control)) control => con
@@ -2043,9 +2053,17 @@ end function pointer_to_slave
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_lord (slave, ix_lord, control, ix_slave) result (lord_ptr)
+! Function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)
 !
 ! Function to point to a lord of a slave.
+!
+! If field_overlap_ptr = False (default), the range for ix_lord is:
+!   1 to slave%n_lord                                 for "regular" lords.
+!   slave%n_lord+1 to slave%n_lord+slave%n_lord_field for field overlap lords.
+!
+! If field_overlap_ptr = True, only the field overlap lords may be accessed and the range for ix_lord is:
+!   1 to slave%n_lord_field  
+!
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_ele
@@ -2054,9 +2072,10 @@ end function pointer_to_slave
 !   use bmad_utils_mod
 !
 ! Input:
-!   slave      -- Ele_struct: Slave element.
-!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord for 
-!                 regular (not field_lord) lords and from 1 to lord%n_lord + lord%n_lord_field otherwise.
+!   slave              -- Ele_struct: Slave element.
+!   ix_lord            -- Integer: Index of the lord.
+!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
+!                           Default is False.
 !
 ! Output:
 !   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
@@ -2068,7 +2087,7 @@ end function pointer_to_slave
 !                   Set to -1 is there is an error or the slave is a slice_slave.
 !-
 
-function pointer_to_lord (slave, ix_lord, control, ix_slave) result (lord_ptr)
+function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)
 
 type (ele_struct), target :: slave
 type (control_struct), pointer, optional :: control
@@ -2077,13 +2096,17 @@ type (ele_struct), pointer :: lord_ptr
 type (lat_struct), pointer :: lat
 
 integer, optional :: ix_slave
-integer i, ix_lord, icon
+integer i, ix_lord, icon, ixl
 
+logical, optional :: field_overlap_ptr
 character(*), parameter :: r_name = 'pointer_to_lord'
 
 ! Case where there is no lord
 
-if (ix_lord > slave%n_lord+slave%n_lord_field .or. ix_lord < 1) then
+ixl = ix_lord
+if (logic_option(.false., field_overlap_ptr)) ixl = ixl + slave%n_lord
+
+if (ixl > slave%n_lord+slave%n_lord_field .or. ix_lord < 1) then
   nullify(lord_ptr)
   if (present(control)) nullify(control)
   if (present(ix_slave)) ix_slave = -1
@@ -2101,7 +2124,7 @@ if (slave%slave_status == slice_slave$) then
   if (associated(slave%lord)) then
     lord_ptr => slave%lord
   else
-    icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+    icon = lat%ic(slave%ic1_lord + ixl - 1)
     ctl => lat%control(icon)
     lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
   endif
@@ -2110,7 +2133,7 @@ endif
 
 ! Point to the lord
 
-icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+icon = lat%ic(slave%ic1_lord + ixl - 1)
 ctl => lat%control(icon)
 lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
 
