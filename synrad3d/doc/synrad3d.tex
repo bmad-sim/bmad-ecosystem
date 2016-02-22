@@ -99,7 +99,29 @@
 %---------------------------------------------------------------------------------
 
 \begin{document}
-\maketitle
+%%\maketitle
+
+\begin{titlepage}
+
+\begin{center}
+
+\vspace*{1in}
+
+$\vcenter{\hbox{\includegraphics[width=2.5in]{photon-emission.pdf}}}$
+\hspace{0.5in}
+$\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
+
+\vspace{1in}
+{\Huge\bfseries Synrad3D Photon Tracking Program}
+
+\vspace{0.4in}
+{\LARGE\bfseries Gerry Dugan and David Sagan}
+
+\vspace{0.4in}
+{\large\bfseries February 21, 2016}
+
+\end{center}
+\end{titlepage}
 
 \pdfbookmark[1]{Contents}{Contents}
 \tableofcontents
@@ -1242,7 +1264,8 @@ Prescription for converting:
       If the shape is not convex, the shape will need to be split into subchambers.
 \item rename: "gen_shape:..." to "..." in \vn{\&section_def} namelists. 
       If the shape is not convex, the shape will need to be split into subchambers.
-\item If present, remove ``ix_vertex_ante'' and ``ix_vertex_ante2'' lines from \vn{\&gen_shape_def} .
+\item If present, remove ``ix_vertex_ante1'' and ``ix_vertex_ante2'' lines from \vn{\&gen_shape_def}.
+      To get the correct antechamber absorbtion, use a separate subchamber for the antechamber regions.'
 \item rename: ``\vn{\&section_def}'' to ``\vn{\&place}''.
 \item rename: ``\vn{\&gen_shape_def}'' to ``\vn{\&shape_def}''.
 \item If a \vn{shape_def} has a name that has a colon ``:'', replace this by some other character.
@@ -1301,10 +1324,10 @@ only spans the multi_section region.
 
   
 {\em \vn{Note:}} If a region of the vacuum chamber wall is defined by multiple
-sub-chambers (that is, multipole sub-chamber walls coincide in this region), which
-sub-chamber is used to select the surface type can vary from photon to photon. Therefore,
+subchambers (that is, multipole subchamber walls coincide in this region), which
+subchamber is used to select the surface type can vary from photon to photon. Therefore,
 it is important to make sure that for any given point on the vacuum chamber wall, that the
-local surface type is the same for all sub-chambers that have walls that coincide with the
+local surface type is the same for all subchambers that have walls that coincide with the
 point in question.
 
 Example:
