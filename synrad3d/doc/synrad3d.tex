@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{December 22, 2015}
+\date{February 21, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -767,7 +767,7 @@ Example:
   &place section =   0.0, "arc_std", "beam:dipole_shape" /
   &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
   &place section =  82.9, "wig1",    "left_ante:chamB@END"
-  &place section =  91.1, "IR1",     "rectang" /
+  &place section =  91.1, "IR1",     "rectangle" /
 \end{example}
 
 The \vn{<s>} values for the cross-sections of a given subchamber must
@@ -1292,14 +1292,20 @@ is set to
 \end{example}
 In this case the surface is a perfect absorber.
 
-If \vn{<is_local>} is \vn{True}, then the
-surface material only spans the region from the previous cross-section
-to this one. If \vn{<is_local>} is \vn{False} or not present, the
-surface material spans from the closest previous cross-section where
-there is a \vn{surface} variable set to this cross-section.  If a
-\vn{place} is a \vn{multi_section} cross-section
-(\sref{ss:multi.sec}), and \vn{<is_local>} is \vn{True} then the
-material only spans the multi_section region.
+If \vn{<is_local>} is \vn{True}, then the surface material only spans the region from the
+previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the
+surface material spans from the closest previous cross-section where there is a
+\vn{surface} variable set to this cross-section.  If a \vn{place} is a \vn{multi_section}
+cross-section (\sref{ss:multi.sec}), and \vn{<is_local>} is \vn{True} then the material
+only spans the multi_section region.
+
+  
+{\em \vn{Note:}} If a region of the vacuum chamber wall is defined by multiple
+sub-chambers (that is, multipole sub-chamber walls coincide in this region), which
+sub-chamber is used to select the surface type can vary from photon to photon. Therefore,
+it is important to make sure that for any given point on the vacuum chamber wall, that the
+local surface type is the same for all sub-chambers that have walls that coincide with the
+point in question.
 
 Example:
 \begin{example}
