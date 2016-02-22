@@ -1987,9 +1987,15 @@ Custom field profiles may be defined using \vn{tables} or \vn{maps}
 
 \index{field_overlaps} 
 The \vn{field_overlaps} element attribute can be used to indicate that the electric or
-magnetic fields of one element overlap another element. Example:
+magnetic fields of one element overlap another element. The syntax is:
 \begin{example}
-  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2, ...
+  <overlapping_ele>: ... field_overlaps = \{<overlapped_ele1>, <overlapped_ele2>, ...\}
+\end{example}
+The \{\} braces are optional if there is only one overlapped element.
+
+Example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = \{q1, s2\}, ...
   inj_line: line = (..., s2, b1, mark3, q1, ...)
 \end{example}
 In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and
@@ -1999,6 +2005,12 @@ overlapping element in the line. If there are multiple elements whose name match
 name of a overlapped element, the element closest to the overlapping element is
 choisen. Thus in the above example, if there are multiple elements named \vn{q1}, the
 closest \vn{q1} to \vn{b1} is designated as the overlapped element.
+
+There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
+Thus the following is equivalent to the above example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
+\end{example}
 
 The field overlap construct is only useful with integration type tracking methods and when the
 field is specified and when the setting of \vn{field_calc} (\sref{s:integ}) attribute for
