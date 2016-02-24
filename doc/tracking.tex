@@ -584,6 +584,9 @@ tracking is \vn{time_runge_kutta\$}. Time tracking needs extra
 bookkeeping due to the fact that the particle may reverse directions.
 See the \vn{dark_current_tracker} program as an example. 
 
+Note: Using time as the independent variable can be used with both
+absolute and relative time tracking (\sref{s:rf.time}).
+
 %----------------------------------------------------------------
 \section{Absolute/Relative Time Tracking}
 \label{s:abs.time}
@@ -596,7 +599,6 @@ the lattice file is parsed, by setting the
 \vn{%absolute_time_tracking} is toggled, the
 \Hyperref{r:autoscale.phase.and.amp}{autoscale_phase_and_amp} must be
 called to reset the appropriate phase offsets and scale amplitudes.
-
 
 %----------------------------------------------------------------
 \section{Taylor Maps}
