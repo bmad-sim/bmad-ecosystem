@@ -2930,6 +2930,7 @@ implicit none
 type (lat_struct) lat
 character(*) word
 character(1) delim
+real(rp) old_val
 integer i, ivar, ixm, ixm2
 logical delim_found, err_flag
 
@@ -2937,27 +2938,31 @@ logical delim_found, err_flag
 
 call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
 if (i /= 0) then
-  call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+  old_val = bp_com%var(i)%value
   call evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
-  return
+
+  if (bp_com%var(i)%value == old_val) then
+    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', warn_only = .true.)
+  else
+    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+  endif
+
+else
+  bp_com%ivar_tot = bp_com%ivar_tot + 1
+  if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
+  ivar = bp_com%ivar_tot
+  bp_com%var(ivar)%name = word
+  ! Reindex.
+  call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
+  bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
+  bp_com%var(ixm2)%indexx = ivar
+  ! Evaluate
+  call evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, lat, delim, delim_found, err_flag)
 endif
 
-bp_com%ivar_tot = bp_com%ivar_tot + 1
-if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
-ivar = bp_com%ivar_tot
-bp_com%var(ivar)%name = word
-call evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, &
-                                     lat, delim, delim_found, err_flag)
 if (delim_found .and. .not. err_flag) call parser_error  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                    'FOR VARIABLE: ' // bp_com%var(ivar)%name)
-
-! Reindex.
-
-call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
-
-bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
-bp_com%var(ixm2)%indexx = ivar
 
 end subroutine parser_add_variable
 
