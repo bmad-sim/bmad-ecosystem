@@ -56,6 +56,18 @@ the error in a step is estimated by repeating a step using two mini
 steps. If the fields are rather uniform and you know what a good step
 size is you can save time by using a fixed step size.
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=4in]{dark-current.pdf}
+  \caption[Dark current tracking.]{
+Dark current tracking. Example of where a time based tracker (\vn{time_runge_kutta}) is
+useful for simulating particles that can reverse their longitudinal velocity. Here the
+tracks drawn are from a simulation of ``dark current'' electrons generated at the
+walls of an RF cavity due to the large electromagnetic fields.
+}
+  \label{f:dark.current}
+\end{figure}
+
 \begin{description}
 
 \index{boris!tracking_method}
@@ -94,7 +106,7 @@ matrix was generated this may or may not be symplectic.
 \index{MAD!tracking_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map. This method is not able to
-handle element misalignments or kicks, and becomes inacurate as the
+handle element misalignments or kicks, and becomes inaccurate as the
 particle energy deviates from the reference energy. MAD tracking is
 generally only used for testing purposes. Note: Thanks to CERN and
 Frank Schmidt for permission to use the MAD tracking code within
@@ -154,13 +166,12 @@ Note: Taylor maps for \vn{match}, and
 
 \index{time_runge_kutta!tracking_method}
 \item[\vn{Time_Runge_Kutta}]
-This method uses time as the independent variable instead of
-the longitudinal $z$ position. The advantage of this method is that it can
-handle particles which reverse direction longitudinally.  One use for
-this method is ``dark current'' tracking where low energy particles
-generated at the vacuum chamber walls can be found traveling in all
-directions. Notice that \vn{time_runge_kutta} is different from using
-\vn{absolute time tracking} as explained in \sref{s:rf.time}.
+This method uses time as the independent variable instead of the longitudinal $z$
+position. The advantage of this method is that it can handle particles which reverse
+direction longitudinally.  One use for this method is ``dark current'' tracking where, as
+illustrated in \fig{f:dark.current}, low energy particles generated at the vacuum chamber
+walls can be found traveling in all directions. Notice that \vn{time_runge_kutta} is
+different from using \vn{absolute time tracking} as explained in \sref{s:rf.time}.
 
 \end{description}
 
@@ -299,7 +310,7 @@ See \vn{s:custom.ele} for more details.
 \index{MAD!mat6_calc_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map. This method is not able to
-handle element misalignments or kicks, and becomes inacurate as the
+handle element misalignments or kicks, and becomes inaccurate as the
 particle energy deviates from the reference energy. MAD tracking is
 generally only used for testing purposes. Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
@@ -314,7 +325,7 @@ Typically \vn{Static} is used internally in a program to prevent recomputation.
 
 \index{symp_lie_bmad!mat6_calc_method}
 \item[\vn{Symp_Lie_Bmad}]
-A Symplectic calculation using a Hamiltonian with Lie operator
+A symplectic calculation using a Hamiltonian with Lie operator
 techniques.  This is similar to \vn{Symp_Lie_PTC} (see below) except
 this uses a \bmad routine. By bypassing some of the generality
 inherent in PTC, \vn{Symp_Lie_Bmad} achieves about a factor
