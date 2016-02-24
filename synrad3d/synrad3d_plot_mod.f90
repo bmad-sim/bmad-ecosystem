@@ -501,6 +501,7 @@ type (sr3d_photon_track_struct) photon
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d, wall3d_select
 type (wall3d_vertex_struct), pointer :: v(:)
+type (ele_struct), pointer :: ele
 
 real(rp), allocatable :: x(:), y(:)
 real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old, rr(2)
@@ -647,6 +648,11 @@ do
   enddo
 
   call qp_draw_text (label2, 0.5_rp, 0.98_rp, '%/GRAPH/LB', 'CT')
+
+  ! What element at this s-position?
+
+  ele => pointer_to_element_at_s (branch, s_pos, .true.)
+  call qp_draw_text ('Lattice Element: ' // trim(ele%name), 0.5_rp, 0.9_rp, '%/GRAPH/LB', 'CT')
 
   ! Query
 
