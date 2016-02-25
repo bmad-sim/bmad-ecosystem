@@ -265,12 +265,12 @@ do i = 1, n_bunch
       return
     endif
 
-    call match_word (upcase(line), particle_name, ix, .false., .false.)
-    if (ix < 1) then
+    ix = particle_index(trim(line))
+    if (ix == invalid$) then
       call this_error_out ('BAD SPECIES NAME: ' // trim(line))
       return
     endif
-    bunch%particle%species = ix + lbound(particle_name, 1) - 1
+    bunch%particle%species = ix
 
     read (rb_com%iu, *, iostat = ios) bunch%charge_tot
     if (ios /= 0) then
