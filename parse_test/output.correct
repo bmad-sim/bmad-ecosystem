@@ -29,7 +29,6 @@
 "Ref_Particle"    0.000000000000E+00     0
 "Anti_Ref_Particle"    0.000000000000E+00     0
 "Deuteron"    1.875612928000E+09     1
-"Deuteron_0"    1.875612928000E+09     0
 "XSIF:Twiss"   20.56499970 12.05361620
 "XSIF:Orbit"   1.54985405E-04 1.81420417E-04
 "PHOT-1"     "DDD#1"
