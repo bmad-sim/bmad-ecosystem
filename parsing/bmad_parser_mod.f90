@@ -1397,8 +1397,9 @@ case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)
 
 case ('DEFAULT_TRACKING_SPECIES')
-  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
-  ele%value(default_tracking_species$) = ix + lbound(particle_name, 1) - 1 
+  !???
+  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+  ele%value(default_tracking_species$) = particle_index(attrib_word)
 
 case ('ENERGY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
@@ -1477,10 +1478,12 @@ case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele)
 
 case ('PARTICLE')
-  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
+! ???
+  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+  ix = particle_index(word)
   branch => pointer_to_branch(ele%name, lat, .true.)
-  if (associated(branch)) branch%param%particle = ix + lbound(particle_name, 1) - 1
-  ele%value(particle$) = ix + lbound(particle_name, 1) - 1
+  if (associated(branch)) branch%param%particle = ix 
+  ele%value(particle$) = ix
 
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
