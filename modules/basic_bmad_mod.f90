@@ -27,41 +27,6 @@ type controller_var_struct
   real(rp) :: old_value = 0
 end type
 
-! Species ID, mass, and charge.
-
-integer, parameter :: not_set$ = -999
-
-integer, parameter :: deuteron_0$ = 9     ! Neutral deuteron
-integer, parameter :: deuteron$   = 8     ! Charged deuteron
-integer, parameter :: ref_particle$ = 6, anti_ref_particle$ = 7
-integer, parameter :: pion_0$     = +5
-integer, parameter :: pion_plus$  = +4
-integer, parameter :: antimuon$   = +3
-integer, parameter :: proton$     = +2
-integer, parameter :: positron$   = +1
-integer, parameter :: photon$     =  0
-integer, parameter :: electron$   = -1
-integer, parameter :: antiproton$ = -2
-integer, parameter :: muon$       = -3
-integer, parameter :: pion_minus$ = -4
-
-character(20), parameter :: particle_name(-4:9) = [&
-                'Pion_Minus       ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
-                'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
-                'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
-                'Deuteron         ', 'Deuteron_0       ']
-
-integer, parameter :: charge_of(-4:9) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0]
-real(rp), parameter :: mass_of(-4:9) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
-                                m_electron, m_proton, m_muon, m_pion_charged, m_pion_0, 0.0_rp, 0.0_rp, &
-                                m_deuteron, m_deuteron]
-
-real(rp), parameter :: anomalous_moment_of(-4:9) = [0.0_rp, anomalous_mag_moment_muon, &
-                        anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
-                        anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
-                        anomalous_mag_moment_muon, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, anomalous_mag_moment_deuteron, 0.0_rp]
-
-integer, parameter :: antiparticle(-4:7) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6]
 
 contains
 
@@ -131,13 +96,13 @@ character(12) species_str
 
 !
 
-if (species < lbound(particle_name, 1) .or. species > ubound(particle_name, 1)) then
-  select case (species)
-  case (not_set$); species_str = 'Not_Set!'
-  case default;    species_str = 'UNKNOWN!'
-  end select
-  return
-endif
+!if (species < lbound(particle_name, 1) .or. species > ubound(particle_name, 1)) then
+!  select case (species)
+!  case (not_set$); species_str = 'Not_Set!'
+!  case default;    species_str = 'UNKNOWN!'
+!  end select
+!  return
+!endif
 
 species_str = particle_name(species)
 

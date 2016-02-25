@@ -1701,7 +1701,7 @@ case ('COUPLER_AT')
   endif
 
 case ('DEFAULT_TRACKING_SPECIES')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, particle_name, lbound(particle_name, 1))
+  attrib_val_name = particle_name(ix_attrib_val)
   if (present(is_default)) is_default = (ix_attrib_val == ref_particle$)
 
 case ('ENERGY_DISTRIBUTION')
@@ -1773,7 +1773,7 @@ case ('ORIGIN_ELE_REF_PT')
     if (present(is_default)) is_default = (ix_attrib_val == center_pt$)
 
 case ('PARTICLE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, particle_name, lbound(particle_name, 1))
+  attrib_val_name = particle_name(ix_attrib_val)
   if (present(is_default)) then
     if (ele%key == photon_fork$) then
       is_default = (ix_attrib_val == photon$)
