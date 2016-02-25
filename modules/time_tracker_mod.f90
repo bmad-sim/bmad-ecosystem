@@ -857,7 +857,7 @@ real(rp)        :: dt, pc, gmc, gammabeta(3), charge_alive
 
 character(10)   ::  rfmt 
 integer :: n_alive
-integer :: i, i_style, a_particle_index, a_status
+integer :: i, i_style, a_species_id, a_status
 integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3, gpt$ = 4
 logical, optional   :: err
 
@@ -909,7 +909,7 @@ select case (i_style)
     orb_ref%ix_ele = bunch%ix_ele
     orb_ref%p0c = orb%p0c
     orb_ref%species = orb%species
-    a_particle_index = astra_particle_index(orb_ref%species)
+    a_species_id = astra_species_id(orb_ref%species)
     orb_ref = particle_in_global_frame (orb_ref,  branch)
     if (orb_ref%p0c == 0) then
       a_status = -1 ! Starting at cathode
@@ -917,7 +917,7 @@ select case (i_style)
       a_status = 5
     endif
     write(time_file_unit, '(8'//rfmt//', 2i8)') orb_ref%vec(1:5:2), orb_ref%vec(2:6:2), &
-                     1e9_rp*orb_ref%t, 1e9_rp*orb_ref%charge, a_particle_index, a_status
+                     1e9_rp*orb_ref%t, 1e9_rp*orb_ref%charge, a_species_id, a_status
   case (gpt$)
     write(time_file_unit, '(9a13)') 'x', 'y', 'z', 'GBx', 'GBy', 'GBz', 't', 'q', 'nmacro'
                        
@@ -963,7 +963,7 @@ do i = 1, size(bunch%particle)
 											orb%vec(5), gammabeta(3)
   case (astra$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
-    a_particle_index = astra_particle_index(orb_ref%species)
+    a_species_id = astra_species_id(orb_ref%species)
     ! The reference particle is used for z, pz, and t
     write(time_file_unit, '(8'//rfmt//', 2i8)')  orb%vec(1), &
 	    	 									 orb%vec(3), &
@@ -973,7 +973,7 @@ do i = 1, size(bunch%particle)
 	    	 									 orb%vec(6) - orb_ref%vec(6), &
                                                  1e9_rp*(orb%t - orb_ref%t), &
                                                  1e9_rp*orb%charge, &
-                                                 a_particle_index, &
+                                                 a_species_id, &
                                                  a_status
   case (gpt$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
@@ -991,7 +991,7 @@ if (present(err)) err = .false.
 
 contains
 
-function astra_particle_index(species) result (index)
+function astra_species_id(species) result (index)
 implicit none
 integer :: species, index
 select case (species)

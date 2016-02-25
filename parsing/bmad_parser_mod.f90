@@ -1399,7 +1399,7 @@ case ('CSR_CALC_ON')
 case ('DEFAULT_TRACKING_SPECIES')
   !???
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
-  ele%value(default_tracking_species$) = particle_index(attrib_word)
+  ele%value(default_tracking_species$) = species_id(word)
 
 case ('ENERGY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
@@ -1480,7 +1480,7 @@ case ('PTC_INTEGRATION_TYPE')
 case ('PARTICLE')
 ! ???
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
-  ix = particle_index(word)
+  ix = species_id(word)
   branch => pointer_to_branch(ele%name, lat, .true.)
   if (associated(branch)) branch%param%particle = ix 
   ele%value(particle$) = ix

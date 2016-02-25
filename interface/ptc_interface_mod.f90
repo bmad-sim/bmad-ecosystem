@@ -1098,7 +1098,7 @@ if (init_ptc_needed .and. params_present) then
     call make_states(.true._lp)
   elseif (particle == proton$ .or. particle == antiproton$) then
     if (particle /= proton$ .and. particle /= antiproton$) then
-      call out_io (s_error$, r_name, 'PTC IS NOT ABLE TO HANDLE PARTICLES OF TYPE: ' // particle_name(particle), 'USING PROTON/ANTIPROTON')
+      call out_io (s_error$, r_name, 'PTC IS NOT ABLE TO HANDLE PARTICLES OF TYPE: ' // species_name(particle), 'USING PROTON/ANTIPROTON')
     endif
     call make_states(.false._lp)
   else

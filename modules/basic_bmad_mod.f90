@@ -73,45 +73,6 @@ end subroutine reallocate_expression_stack
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Function species_name (species) result (species_str)
-!
-! Routine to return the string representation of the type of particle under consideration.
-! This routine is similar in action to the particle_name array except that
-! this routine does not have a problem with array index out of bounds.
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   species     -- integer: Species. positron$, etc.
-!
-! Output:
-!   species_str -- Character(12): String representation.
-!-
-
-Function species_name (species) result (species_str)
-
-integer species
-character(12) species_str
-
-!
-
-!if (species < lbound(particle_name, 1) .or. species > ubound(particle_name, 1)) then
-!  select case (species)
-!  case (not_set$); species_str = 'Not_Set!'
-!  case default;    species_str = 'UNKNOWN!'
-!  end select
-!  return
-!endif
-
-species_str = particle_name(species)
-
-end function species_name
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+ 
 ! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.

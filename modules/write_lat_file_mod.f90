@@ -161,7 +161,7 @@ if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] 
 
 write (iu, *)
 write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c_start$)))
-write (iu, '(4a)')    'parameter[particle]               = ', trim(particle_name(lat%param%particle))
+write (iu, '(4a)')    'parameter[particle]               = ', trim(species_name(lat%param%particle))
 
 if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_part]                 = ', lat%param%n_part
 
@@ -1074,7 +1074,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, *)
   write (iu, '(3a)') trim(branch%name), '[geometry] = ', trim(geometry_name(branch%param%geometry))
   if (branch%param%default_tracking_species /= ref_particle$) write (iu, '(3a)') trim(branch%name), &
-                        '[default_tracking_species] = ', trim(particle_name(branch%param%default_tracking_species))
+                        '[default_tracking_species] = ', trim(species_name(branch%param%default_tracking_species))
  
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
@@ -1083,7 +1083,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   ele0 => branch%ele(0)
 
-  write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(particle_name(branch%param%particle))
+  write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
   write (iu, '(3a)') trim(branch%name), '[p0c]      = ', trim(str(ele0%value(p0c$)))
 
   if (is_false (ele0%value(floor_set$))) then
@@ -2120,7 +2120,7 @@ case ('MAD-8', 'MAD-X', 'XSIF')
   ele => branch_out%ele(ie1-1)
 
   write (line_out, '(2a, 2(a, es14.6), a)')  &
-        'beam_def: Beam, Particle = ', trim(particle_name(branch_out%param%particle)),  &
+        'beam_def: Beam, Particle = ', trim(species_name(branch_out%param%particle)),  &
         ', Energy =', 1d-9*ele%value(E_TOT$), ', Npart =', branch_out%param%n_part, trim(eol_char)
   call write_line (line_out)
   write (iu, *)
