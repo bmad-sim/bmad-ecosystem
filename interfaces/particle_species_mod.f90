@@ -431,7 +431,7 @@ if (ix /= 0) then
   case (' ')
     charge = +1
   case default
-    read (nam(ix+1:), '(i)', iostat = ios) charge
+    read (nam(ix+1:), '(i4)', iostat = ios) charge
     if (ios /= 0) return
   end select
   nam = nam(1:ix-1)
@@ -450,7 +450,7 @@ if (ix /= 0) then
   case (' ')
     charge = -1
   case default
-    read (nam(ix+1:), '(i)', iostat = ios) charge
+    read (nam(ix+1:), '(i4)', iostat = ios) charge
     if (ios /= 0) return
     charge = -charge
   end select
