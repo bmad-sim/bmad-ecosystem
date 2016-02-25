@@ -6,7 +6,6 @@ set (EXE_SPECS
   cmake.coord_test
   cmake.bookkeeper_test
   cmake.em_field_test
-  cmake.field_overlap_test
   cmake.geometry_test
   cmake.girder_test
   cmake.mat6_calc_method_test
