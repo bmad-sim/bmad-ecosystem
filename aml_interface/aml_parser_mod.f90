@@ -633,12 +633,12 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
       call read_parameter (child_node, value_str, value)
       call ran_seed_put (nint(value))
     case ("PARTICLE")
-      call match_word(value_str, particle_name, ix)
+      call match_word(value_str, species_name, ix)
       if (ix < 1) then
         call parser_error ('BAD PARTICLE TYPE: ', value_str)
         cycle
       endif
-      lat%param%particle = ix - lbound(particle_name, 1) + 1
+      lat%param%particle = ix - lbound(species_name, 1) + 1
 
     case default
       call parser_error ('UNKNOWN PARAMETER: ' // param_str, node = child_node)
