@@ -1,12 +1,11 @@
 !+
 ! Module particle_species_mod
 !
-!
 ! This module defines the differnet types of particles that Bmad knows about along
 ! with masses, etc.
 !
 ! ID number for fundamental particles. These parameters are provided for backwards compatibility.
-! In general, use particle_index(name) to get the ID number.
+! In general, use species_id(name) to get the ID number.
 ! IMPORTANT: The particular integers used for IDs can change. 
 ! Do use hard coded numbers in your code. For example, the association of positrons with ID = 1 is not assured.
 
@@ -21,15 +20,14 @@
 !         if PPP > 200  —-> Molecule with PPP = Species ID  [EG: nh2$ = 201, etc.]
 ! MMMMM = For atoms: MMMMM = number of nucleons.
 !         For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 => Use default.
-!External input names:
-! NH3+            Molecule, id: 01 201 00000
-! CH3++ of CH3+2  Molecule, id: 02 204 00000
-! 
-! NH3@M37.5-     Molecule With specified mass: -01 201 03750
 !
-! @M37.5+        Molecule of unknown type with specified mass 01 200 03750
-! C+             Atom: 01 006 00000
-! #12C+          Atom: Carbon-12: 01 006 00012 
+! Example external input names:
+!   NH3+            Molecule                           01 201 00000
+!   CH3++ or CH3+2  Molecule                           02 204 00000
+!   NH3@M37.5-      Molecule With specified mass      -01 201 03750
+!   @M37.5+         Unknown Molecule with given mass   01 200 03750
+!   C+              Atom:                              01 006 00000
+!   #12C+           Atom: Carbon-12                    01 006 00012 
 
 
 !-
@@ -65,7 +63,7 @@ integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
 
-character(20), parameter:: fundamental_particle_name(-4:8) = [&
+character(20), parameter:: fundamental_species_name(-4:8) = [&
                 'Pion_Minus       ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
                 'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
                 'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
@@ -355,38 +353,34 @@ atom_struct([ 294.21392_rp, 294.21392_rp, no_iso, no_iso, no_iso, no_iso, no_iso
 !----------------------
 ! Molecules
 
+character(8), parameter :: molecular_name(18) = [character(8) :: &
+                        'CH2', 'CH3', 'CH4', 'CO', 'CO2', 'D2', 'D2O', 'H2', 'H2O', 'N2', 'HF',  &
+                        'OH', 'O2', 'NH2', 'NH3', 'C2H3', 'C2H4', 'C2H5']
 
-character(8), parameter :: molecular_name(14) = [character(8) :: &
-                        'CH2', 'CH3', 'CH4', 'CO', 'CO2', 'D2', 'D2O', 'H2', 'H2O', 'N2', 'HF', 'OH', 'O2', 'NH3']
-                        
-                        
-real(rp), parameter, private ::  molecular_mass(14) = [ &
-  14.026579004642441_rp, &! u for CH2
-  15.034498933118178_rp, &! u for CH3
-  16.04249886158824_rp, &! u for CH4
-  28.01009801234052_rp, &! u for CO
-  44.009496876987235_rp, &! u for CO2
-  4.028203269749646_rp, &! u for D2
-  20.02759857879661_rp, &! u for D2O
-  2.015879856948637_rp, &! u for H2
-  18.01527872159535_rp, &! u for H2O
-  28.013398012106343_rp, &! u for N2
-  20.006341580305058_rp, &! u for HF
-  17.00733879312103_rp, &! u for OH
-  31.998797729293425_rp, &! u for O2
-  17.030518791476126_rp]  ! u for NH3
+real(rp), parameter, private ::  molecular_mass(18) = [ &
+  14.026579004642441_rp, & ! for CH2
+  15.034498933118178_rp, & ! for CH3
+  16.04249886158824_rp, &  ! for CH4
+  28.01009801234052_rp, &  ! for CO
+  44.009496876987235_rp, & ! for CO2
+  4.028203269749646_rp, &  ! for D2
+  20.02759857879661_rp, &  ! for D2O
+  2.015879856948637_rp, &  ! for H2
+  18.01527872159535_rp, &  ! for H2O
+  28.013398012106343_rp, & ! for N2
+  20.006341580305058_rp, & ! for HF
+  17.00733879312103_rp, &  ! for OH
+  31.998797729293425_rp, & ! for O2
+  16.0228_rp, 17.030518791476126_rp, &       ! for NH2, NH3
+  27.0457_rp, 28.0536_rp, 29.0615_rp]        ! For C2H3, C2H4, C2H5
 
-
-                        
-              
-                        
 contains
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function particle_index (name) result(index)
+! Function species_id (name) result(index)
 !
 ! Routine to return the integer ID index of a particle species given the name.
 !
@@ -401,19 +395,18 @@ contains
 !               Will return invalid$ if name is not valid.
 !-
 
-function particle_index (name) result(species)
+function species_id (name) result(species)
 
 integer ::  species, charge, i, ix, iso, ios, n_nuc
 real(rp) :: mol_mass
 character(*) :: name
 character(20) :: nam
-character(40), parameter :: r_name = 'particle_index'
+character(40), parameter :: r_name = 'species_id'
 
 
 species = invalid$
 iso = 0
 nam = name
-
 
 ! Strip off charge.
 
@@ -468,8 +461,15 @@ mol_mass = 0
 ix = index(nam, '@M')
 if (ix /= 0) then
   read (nam(ix+2:), *, iostat = ios) mol_mass
-  if (ix == 1 .or. ios /= 0) return 
+  if (ios /= 0) return 
   nam = nam(1:ix-1)
+endif
+
+if (nam == '') then
+  if (mol_mass == 0) return
+  species = abs(charge*100000000) + 20000000 + nint(100*mol_mass)
+  if (charge < 0) species = -species
+  return
 endif
 
 
@@ -491,10 +491,10 @@ endif
 ! Find species
 
 ! Fundamental particle
-call match_word(nam, fundamental_particle_name, ix, .false., .false.)
+call match_word(nam, fundamental_species_name, ix, .false., .false.)
 if (ix > 0) then
   if (charge /= 0) return  ! Charge cannot be specified for fundamental particles.
-  species = ix + lbound(fundamental_particle_name, 1) - 1
+  species = ix + lbound(fundamental_species_name, 1) - 1
   return
 endif
 
@@ -524,13 +524,13 @@ if (ix > 0) then
   return  
 endif
 
-end function particle_index
+end function species_id
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function particle_name (species) result(name)
+! Function species_name (species) result(name)
 !
 ! Routine to return the name of a particle species given the integer index.
 !
@@ -542,19 +542,27 @@ end function particle_index
 !               Will return 'INVALID!' (= invalid_name) if index is not valid.
 !-
 
-function particle_name(species) result(name)
+function species_name(species) result(name)
 
 integer :: charge, species, ia, im, ppp, mmmmm
 character(20) :: name
-character(5)  :: extra
+character(6)  :: extra
 
 !
 
-if (species >= lbound(fundamental_particle_name, 1) .and. species <= ubound(fundamental_particle_name, 1)) then
-  name = fundamental_particle_name(species)
+select case (species)
+case (invalid$)
+  name = "Invalid!"
+  return
+case (not_set$)
+  name = "Not_Set!"
+  return
+end select
+
+if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+  name = fundamental_species_name(species)
   return
 endif
-
 
 ppp = mod(abs(species), 100000000)/100000 
 mmmmm = mod(abs(species), 100000)
@@ -563,27 +571,27 @@ mmmmm = mod(abs(species), 100000)
 if (ppp < 200) then
   name = atomic_name(ppp) 
   ! Isotope?
-  if (mmmmm > 0 ) then
+  if (mmmmm > 0) then
     write(extra, '(i0)') mmmmm
     name = '#'//trim(extra)//trim(name)
   endif
 
-! Unknown molecule with mass MMMMM/100*atomic_mass_unit
-elseif (ppp == 200 ) then
-  write(extra, '(i0)') mmmmm
-  name = '@'//trim(extra)
-
-! Unknown molecule with mass MMMMM/100*atomic_mass_unit
-elseif (ppp == 200 ) then
-  write(extra, '(i0)') mmmmm
-  name = '@'//trim(extra)
-
-! Known molecule, possibly with specified mass
+! molecule, possibly with specified mass
 else
-  name = molecular_name(ppp-200) 
-  if (mmmmm>0) then
-    write(extra, '(i0)') mmmmm
-    name = trim(name)//'@'//trim(extra)
+  if (mmmmm > 0) then
+    if (mod(mmmmm, 100) == 0) then
+      write (name, '(i0)') mmmmm / 100
+    elseif (mod(mmmmm, 10) == 0) then
+      write (name, '(f6.1)') mmmmm / 100.0_rp
+    else
+      write (name, '(f6.2)') mmmmm / 100.0_rp
+    endif
+
+    name = '@M' // trim(adjustl(name))
+  endif
+
+  if (ppp > 200) then
+    name = trim(molecular_name(ppp-200)) // trim(name)
   endif
 endif
 
@@ -609,9 +617,9 @@ case default
   endif
 end select
 
-end function particle_name
+end function species_name
 
- !--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
@@ -631,7 +639,7 @@ integer :: species
 real(rp) :: moment
 !
 
-if (species >= lbound(fundamental_particle_name, 1) .and. species <= ubound(fundamental_particle_name, 1)) then
+if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
 	moment = anomalous_moment_of_fundamental(species)
 	return
 endif
@@ -639,7 +647,6 @@ endif
 moment = 0
 
 end function anomalous_moment_of
- 
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
@@ -661,7 +668,7 @@ integer :: charge, species
 character(*), parameter :: r_name = 'charge_of'
 !
 
-if (species >= lbound(fundamental_particle_name, 1) .and. species <= ubound(fundamental_particle_name, 1)) then
+if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
 	charge = charge_of_fundamental(species)
 	return
 endif
@@ -672,7 +679,6 @@ if (abs(species) < 1000) then
   if (global_com%exit_on_error) call err_exit
   return
 endif
-
 
 ! |species| > 1000, decode CC PPP MMMMM
 charge = species/100000000  ! Charge encoded in first two digits of species.
@@ -701,7 +707,7 @@ integer species, n_nuc, ppp
 character(*), parameter :: r_name = 'mass_of'
 
 ! Fundamental particle
-if (species >= lbound(fundamental_particle_name, 1) .and. species <= ubound(fundamental_particle_name, 1)) then
+if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
 	mass = mass_of_fundamental(species)
 	return
 endif
@@ -736,7 +742,6 @@ if (ppp<200) then
   return
 endif
 
-
 ! Molecule
 if (ppp == 200) then
   ! unknown, mass is specified directly in units of u/100
@@ -747,18 +752,12 @@ else
   mass = molecular_mass(ppp-200) * atomic_mass_unit
   return
 endif
- 
 
 ! ERROR
 call out_io (s_abort$, r_name, 'ERROR: CANNOT DECODE MASS FOR SPECIES: \i0\ ', species)
 if (global_com%exit_on_error) call err_exit
 
-
-
 end function mass_of
-
-
-
 
 end module
 
