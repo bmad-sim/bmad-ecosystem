@@ -37,19 +37,19 @@ print *, 'atomic mass unit (eV): ', atomic_mass_unit
 !call print_species(1)
 
 ! Encode
-!species = particle_index('#2H--')
+!species = species_id('#2H--')
 !call print_species(species)
 
 open (1, file = 'output.now')
 
-!species = particle_index('H2O ')
+!species = species_id('H2O ')
 !call print_species(species)
 !call write_mass_and_charge(species)
 
 call print_all(example_names)
 
 write(1, *) ''
-call print_all(fundamental_particle_name)
+call print_all(fundamental_species_name)
 write(1, *) ''
 call print_all(atomic_name)
 write(1, *) ''
@@ -63,7 +63,7 @@ character(*)  :: p_array(:)
 
 do i=lbound(p_array, 1), ubound(p_array, 1)
   if (trim(p_array(i)) =='') cycle ! Skip empty
-  species = particle_index(p_array(i))
+  species = species_id(p_array(i))
   call print_species(species)
   call write_mass_and_charge(species)
 enddo
@@ -76,7 +76,7 @@ subroutine print_species(species)
 integer :: species
 
 write (*, '(a, i0)')    'species: ', species
-write (*, '(a, a)'),   'name:    ', particle_name(species)
+write (*, '(a, a)'),   'name:    ', species_name(species)
 write (*, '(a, f20.5)') 'mass (MeV):    ', mass_of(species)*1e-6
 write (*, '(a, f20.5)') 'mass (u) :    ', mass_of(species)/atomic_mass_unit
 write (*, '(a, i0)')    'charge   ', charge_of(species)
@@ -89,7 +89,7 @@ end subroutine
 subroutine write_mass_and_charge(species)
 integer :: species
 character(20) :: name
-name = particle_name(species)
+name = species_name(species)
 write (1, '(a, a, es20.10)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species)
 write (1, '(a, a, i0)') '"'//trim(name)//':charge"'   , ' ABS  0 ', charge_of(species)
 end subroutine
