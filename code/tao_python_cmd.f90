@@ -583,7 +583,7 @@ case ('lat_global')
   nl=nl+1; write(ss%lines(nl), '(i0, a, i0)') &
     lat%n_ele_track, ';', lat%n_ele_max
   nl=nl+1; write(ss%lines(nl), '(3a)') &
-    trim(particle_name(lat%param%particle)), ';', trim(geometry_name(lat%param%geometry))
+    trim(species_name(lat%param%particle)), ';', trim(geometry_name(lat%param%geometry))
 
 
 

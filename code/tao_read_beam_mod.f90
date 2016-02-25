@@ -265,7 +265,7 @@ do i = 1, n_bunch
       return
     endif
 
-    ix = particle_index(trim(line))
+    ix = species_id(line)
     if (ix == invalid$) then
       call this_error_out ('BAD SPECIES NAME: ' // trim(line))
       return
