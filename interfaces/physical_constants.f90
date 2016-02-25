@@ -23,8 +23,10 @@ real(rp), parameter :: m_muon     = 105.6583745d6        ! Mass [eV]
 real(rp), parameter :: m_pion_0 = 134.9766d6             ! Mass [eV]
 real(rp), parameter :: m_pion_charged = 139.57018d6      ! Mass [eV]
 
-real(rp), parameter :: m_deuteron = 1.875612928d9        ! Mass [eV]
+real(rp), parameter :: m_deuteron   = 1.875612928d9      ! Mass [eV]
 
+real(rp), parameter :: atomic_mass_unit = 931.494095d6  ! unified atomic mass unit u (or dalton) in [eV]
+ 
 real(rp), parameter :: c_light = 2.99792458d8            ! speed of light
 real(rp), parameter :: r_e = 2.8179402894d-15            ! classical electron radius
 real(rp), parameter :: r_p = r_e * m_electron / m_proton ! proton radius
