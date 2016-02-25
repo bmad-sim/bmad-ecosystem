@@ -11,6 +11,7 @@ module sim_utils
   use filename_mod
   use word_mod
   use physical_constants
+  use particle_species_mod
   use sign_of_mod
 
   ! This is to suppress the ranlib "has no symbols" message
