@@ -65,11 +65,18 @@ write (1, '(a, f10.4)') '"4 REL"  ABS 0', lat%ele(4)%value(k1$)
 write (1, '(a, f10.4)') '"5 REL"  ABS 0', lat%ele(5)%value(k2$)
 write (1, '(4a)')       '"TM1"     STR ', '"', trim(tracking_method_name(lat%ele(1)%tracking_method)), '"'
 write (1, '(4a)')       '"TM5"     STR ', '"', trim(tracking_method_name(lat%ele(5)%tracking_method)), '"'
-write (1, '(a, i3)')       '"N3"     ABS 0', lat%branch(2)%n_ele_track
+write (1, '(a, i3)')    '"N3"     ABS 0', lat%branch(2)%n_ele_track
 write (1, '(4a)')       '"Custom"  STR ', '"', trim(attribute_name(lat%ele(1), custom_attribute1$)), '"'
+
 do i = lbound(mass_of_fundamental, 1), ubound(mass_of_fundamental, 1)
-  write (1, '(3a, es20.12, i6)')         '"', trim(particle_name(i)), '"  REL 1e-12', mass_of_fundamental(i), charge_of_fundamental(i)
+  write (1, '(3a, es20.12, i6)')         '"', trim(species_name(i)), '"  REL 1e-12', mass_of(i), charge_of(i)
 enddo
+
+write (1, '(3a)') '"He++"         STR "', trim(species_name(species_id('He++'))), '"'
+write (1, '(3a)') '"#12C-5"       STR "', trim(species_name(species_id('#12C-5'))), '"'
+write (1, '(3a)') '"He+"          STR "', trim(species_name(species_id('He+'))), '"'
+write (1, '(3a)') '"CH3+2@M34.5"  STR "', trim(species_name(species_id('CH3+2@M34.5'))), '"'
+write (1, '(3a)') '"@M3.45---     STR "', trim(species_name(species_id('@M3.45---'))), '"'
 
 !
 
