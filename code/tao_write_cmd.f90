@@ -150,7 +150,7 @@ case ('beam')
         do ib = 1, size(beam%bunch)
           bunch => beam%bunch(ib)
           write (iu, *) 'BEGIN_BUNCH'
-          write (iu, *) '  ', trim(particle_name(bunch%particle(1)%species))
+          write (iu, *) '  ', trim(species_name(bunch%particle(1)%species))
           write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
           write (iu, *) bunch%z_center,   '  ! z_center'
           write (iu, *) bunch%t_center,   '  ! t_center'
