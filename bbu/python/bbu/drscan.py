@@ -10,7 +10,7 @@ import numpy as np
 def setup_drscan ( arc_time, py_par ):
 #######################
     # Make lat2 txt file
-    print("Filling lat2.txt now")
+    print("Filling lat2.txt with the new arclength")
     # Calculate the arclength for this given recirculation time
     arc_l = calc_arcl ( arc_time )
     my_file = open(os.path.join(py_par['temp_dir'],'lat2.lat'),'w')
@@ -49,10 +49,14 @@ def make_dr_plot ( py_par ):
     yv = np.array(y)
 
   plt.scatter(xv, yv, marker = 'o', color = 'b')
-  plt.title("BBI paper reproduction")
+  plt.title("DR Scan for Q=10^-4, R/Q=100Ohm, f=2E9Hz, m12=10")
   plt.rcParams.update({'font.size': 20})
   plt.xlabel("Arc Time / Bunch Time")
   plt.ylabel("Log( HOM Voltage )")
   #plt.text(.15, .9, 'PRSTAB 7 (2004) Fig. 3.')
+  fig = plt.figure()
+  ax = fig.add_subplot(111)  
+  ax.annotate('PRSTAB 7 (2004) Fig. 3.',xy=(0,0))
+
   plt.show()
 

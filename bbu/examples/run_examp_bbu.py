@@ -7,8 +7,8 @@ from bbu import bbu_main, find_threshold, drscan  #imports bbu package in user p
 #bbu settings
 bbu_par = {  \
 #'lat_filename': "'home/mt728/nfs/linux_lib/bsim/bbu/examples/multicavity_lat.bmad'",  
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'",  
-'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/mlc.lat'",  
+'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'",  
+#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/mlc.lat'",  
 'bunch_freq': 1.3e9,                # Freq in Hz.
 'limit_factor': 3,                   # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
 'simulation_turns_max': 1000,       # Must be greater than 10
@@ -27,8 +27,9 @@ bbu_par = {  \
 
 #py settings
 py_par = {  \
-'exec_path':'/home/mt728/nfs/linux_lib/production/bin/bbu', 
-'ndata_pnts': 100, 
+#'exec_path':'/home/mt728/nfs/linux_lib/production/bin/bbu', 
+'exec_path':'/home/wl528/nfs/linux_lib/production/bin/bbu', 
+'ndata_pnts': 2, 
 'threshold_start_curr': 1,
 # For something like the PRSTAB 7, Fig. 3, try startarctime = 4.028*10**-9, endarctime = 4.725*10**-9
 'start_dr_arctime': 4.028*10**-9,  
@@ -36,16 +37,17 @@ py_par = {  \
 'plot_drscan': True,   # Creates a python plot
 'random_homs': True,    # Will create a lattice file which randomly assigns hom data files to each cavity of the lattice
                         # Set to False for DR scan
-'hom_dir': '/home/mt728/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/',
+'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/',
+#'hom_dir': '/home/mt728/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/',
 #'hom_dir': '/home/mt728/nfs/linux_lib/bsim/bbu/test/HOM_lists/', 
 'temp_dir': ''
 }
 
 # FOR EASE OF USE, KEEP THE COMMENTED LINES BELOW AND INCLUDE THEM WHEN DESIRED
-'''
-#  For drscan, run the script with no arguments, include either of these two lines:
-#bbu_main.drscanner( py_par )    
-'''
+# '''
+# #  For drscan, run the script with no arguments, include either of these two lines:
+# #bbu_main.drscanner( py_par )    
+# '''
 # This runs the code below from the command line:
 #python3 examples/examp_bbu.py #Thresholds #ID '/home/mt728/nfs/linux_lib/bsim/bbu/test/'
 
@@ -64,10 +66,15 @@ def main(argv):
     mode = 'threshold'
 
   user_lattice = bbu_par['lat_filename'] 
+  print(bbu_par['lat_filename'])
   py_par['temp_dir'] = find_threshold.make_tempdir( 1, working_dir )  
   # cd to temp directory to call bbu
   os.chdir( py_par['temp_dir'])
+  print(py_par['temp_dir']) 
   bbu_par['lat_filename'] = '\''+os.path.join(py_par['temp_dir'],'temp_lat.lat')+'\''  # make_assign() will include the user-specified lat file and the random_hom latfile
+  print(bbu_par['lat_filename'])
+
+## creates bbu_template.init which has all bbu_par
   find_threshold.make_init( bbu_par, py_par['temp_dir'] )
   find_threshold.make_assign( py_par, user_lattice, 'need_names' )  # In threshold mode uts rand_assign_homs.bmad in working dir, but must run bbu to get cavity names in hom_info.txt
 
@@ -99,9 +106,11 @@ def main(argv):
   if(mode == 'dr_scan'):
     bbu_main.drscanner( py_par ) 
     os.chdir(os.path.dirname(working_dir))
+    print('saving thresh_v_trotb.txt in ', working_dir)
     shutil.copyfile(os.path.join(py_par['temp_dir'],'thresh_v_trotb.txt'), 'thresh_v_trotb.txt')
+    
 
-
+  print('Cleaning up temprary directory')
   find_threshold.cleanup_workdir( py_par['temp_dir'] )
 
 
@@ -111,6 +120,6 @@ def main(argv):
 
 # Boilerplate
 if __name__ == "__main__":
-  print ( sys.argv )
+  print ('Argument list:',  sys.argv )
   main(sys.argv[1:]) 
   

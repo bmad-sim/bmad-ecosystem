@@ -103,6 +103,7 @@ endif
 
 
 ! Find all elements that have a lr wake.
+! This determines the number of stages
 n_stage = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -914,11 +915,11 @@ end subroutine rf_cav_names
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 implicit none
-type (lat_struct), target :: lat
-type (bbu_beam_struct), target :: bbu_beam
+type (lat_struct), target :: lat  !(input)
+type (bbu_beam_struct), target :: bbu_beam !(input)
 type (bunch_struct), pointer :: bunch
-type (bbu_param_struct) bbu_param
-type (bbu_stage_struct), pointer :: this_stage
+type (bbu_param_struct) bbu_param          !(input)
+type (bbu_stage_struct), pointer :: this_stage    !(input)
 type (wake_lr_struct), pointer :: lr
 
 integer :: i, ios
