@@ -74,9 +74,8 @@ enddo
 
 write (1, '(3a)') '"He++"         STR "', trim(species_name(species_id('He++'))), '"'
 write (1, '(3a)') '"#12C-5"       STR "', trim(species_name(species_id('#12C-5'))), '"'
-write (1, '(3a)') '"He+"          STR "', trim(species_name(species_id('He+'))), '"'
-write (1, '(3a)') '"CH3+2@M34.5"  STR "', trim(species_name(species_id('CH3+2@M34.5'))), '"'
-write (1, '(3a)') '"@M3.45---     STR "', trim(species_name(species_id('@M3.45---'))), '"'
+write (1, '(3a)') '"CH3@M34.5+2"  STR "', trim(species_name(species_id('CH3@M34.5+2'))), '"'
+write (1, '(3a)') '"@M3.45---"    STR "', trim(species_name(species_id('@M3.45---'))), '"'
 
 !
 

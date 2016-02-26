@@ -9,9 +9,6 @@ PARAMETER[geometry] = open
 !PARAMETER[p0c] = 180806.1746
 PARAMETER[e_tot] = 5e6
 
-parameter[auto_scale_field_amp] = T
-parameter[auto_scale_field_phase] = T
-
 cavity2_delta_e = 2e6
 
 CALL, FILE = cavity2.bmad
@@ -21,9 +18,14 @@ lat: line = (cavity2)
 
 USE, lat
 
+lcavity::*[autoscale_amplitude] = T
+lcavity::*[autoscale_phase] = T
+
+
+
 end_file
 
 &params
-  !start_orb%vec = 0.001, 0.002, 0.003, 0.004, 0.005, 0.006
-  start_orb%vec = 0,0,0,0,0,0
+  start_orb%vec = 0.001, 0.002, 0.003, 0.004, 0.005, 0.006
+  !start_orb%vec = 0,0,0,0,0,0
 /

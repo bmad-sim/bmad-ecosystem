@@ -46,52 +46,68 @@ open (1, file = 'output.now')
 !call print_species(species)
 !call write_mass_and_charge(species)
 
-call print_all(example_names)
+call print_all(example_names, .true.)
+call print_all(fundamental_species_name, .false.)
+call print_all(atomic_name, .true.)
+call print_all(molecular_name, .true.)
 
-write(1, *) ''
-call print_all(fundamental_species_name)
-write(1, *) ''
-call print_all(atomic_name)
-write(1, *) ''
-call print_all(molecular_name)
-
+!---------------------------------------------------------------------------
 contains
 
-subroutine print_all(p_array)
+subroutine print_all(p_array, convert_to_amu)
 integer :: i, species
 character(*)  :: p_array(:)
+logical convert_to_amu
+
+!
+write(1, *) ''
 
 do i=lbound(p_array, 1), ubound(p_array, 1)
   if (trim(p_array(i)) =='') cycle ! Skip empty
   species = species_id(p_array(i))
-  call print_species(species)
-  call write_mass_and_charge(species)
+  !call print_species(species, convert_to_amp)
+  call write_mass_and_charge(species, convert_to_amu)
 enddo
 
 end subroutine
 
+!---------------------------------------------------------------------------
+! contains
 
-subroutine print_species(species)
+subroutine print_species(species, convert_to_amu)
 
 integer :: species
+logical convert_to_amu
 
 write (*, '(a, i0)')    'species: ', species
 write (*, '(a, a)'),   'name:    ', species_name(species)
-write (*, '(a, f20.5)') 'mass (MeV):    ', mass_of(species)*1e-6
-write (*, '(a, f20.5)') 'mass (u) :    ', mass_of(species)/atomic_mass_unit
+if (convert_to_amu) then
+  write (*, '(a, f20.5)') 'mass:    ', mass_of(species)/atomic_mass_unit
+else
+  write (*, '(a, es20.10)') 'mass:    ', mass_of(species)
+endif
 write (*, '(a, i0)')    'charge   ', charge_of(species)
 write (*,*) ''
 
-
 end subroutine 
 
+!---------------------------------------------------------------------------
+! contains
 
-subroutine write_mass_and_charge(species)
+subroutine write_mass_and_charge(species, convert_to_amu)
+
 integer :: species
 character(20) :: name
+logical convert_to_amu
+
 name = species_name(species)
-write (1, '(a, a, es20.10)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species)
-write (1, '(a, a, i0)') '"'//trim(name)//':charge"'   , ' ABS  0 ', charge_of(species)
+if (convert_to_amu) then
+  write (1, '(a, a, f16.9)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species) / atomic_mass_unit
+else
+  write (1, '(a, a, es20.10)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species)
+endif
+write (1, '(a, a, i6)') '"'//trim(name)//':charge"'   , ' ABS  0 ', charge_of(species)
+
 end subroutine
 
 end program
