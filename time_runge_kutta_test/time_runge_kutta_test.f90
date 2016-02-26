@@ -30,9 +30,13 @@ read (1, nml = params)
 ele => lat%ele(1)
 call init_coord (start_orb, start_orb%vec, ele, upstream_end$, lat%param%particle)
 
+
+print *, 'Tracking with time_runge_kutta'
 ele%tracking_method = time_runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb1)
 
+
+print *, 'Tracking with runge_kutta'
 lat%ele%tracking_method = runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb2)
 
@@ -58,6 +62,8 @@ write (1, '(a, es20.10)') '"runge_kutta:s"      ABS  1E-10', end_orb2%s
 write (1, '(a, es20.10)') '"runge_kutta:t"      ABS  1E-10', end_orb2%t
 
 
+stop
+
 ! Track backwards
 call init_coord (start_orb, start_orb%vec, ele, element_end = downstream_end$, particle = lat%param%particle, direction = -1)
 
@@ -69,7 +75,7 @@ do i=1, track%n_pt
   field = track%field(i)
   write(*, '(5es18.10)') orb%t, orb%s, orb%vec(5), orb%vec(6), field%E(3)
 enddo
-
+print *, 'ENDTRACK3'
 
 lat%ele%tracking_method = runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb4, track=track)
@@ -79,6 +85,7 @@ do i=1, track%n_pt
   call convert_particle_coordinates_s_to_t (orb)
   write(*, '(5es18.10)') orb%t, orb%s, orb%vec(5), orb%vec(6) , field%E(3)
 enddo
+print *, 'ENDTRACK4'
 
 
 write (1, '(a, es20.10)') '"reverse:time_runge_kutta:diff:vec(1)" ABS  1E-10', end_orb3%vec(1) - end_orb4%vec(1)
