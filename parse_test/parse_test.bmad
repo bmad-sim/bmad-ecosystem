@@ -2,6 +2,10 @@ no_digested
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
+parameter[particle] = He@M28.4++
+beam, energy =   5.28900
+parameter[p0c] = 1e12
+
 parameter[custom_attribute3] = 'zzz'
 parameter[custom_attribute2] = 'quadrupole::qqq'
 
@@ -82,8 +86,6 @@ l2: line = (3*(-ll))
 use, l2
 
 !
-
-beam, energy =   5.28900
 
 parameter[lattice] =  L9A18A000-_MOVEREC
 parameter[geometry] = open 
