@@ -4,7 +4,9 @@ from bbu import bbu_main, find_threshold
 import os, sys
 import glob
 
-# From command line:  python3 cut_HOM.py 	# HOMs to cut to		'directory of original dat files'		'output cut directory'
+# For command line:  
+# python3 cut_HOM.py '#_HOMs_to_cut_to'  'directory_with_original_HOM_dat_files' 'output cut directory'
+# Only files starting in "vhoms" and ends in ".dat" will be cut
 
 def main( argv ):
   max_nHOMs = int(argv[0])

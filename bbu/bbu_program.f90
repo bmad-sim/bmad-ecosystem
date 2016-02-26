@@ -49,7 +49,7 @@ call lat_make_mat6(lat_in)  ! Necessary if a match lattice element is present.
 
 call run_timer ('START')
 
-!Parse additional settings for drscan
+!Parse additional settings (lattice2) for drscan
 if (bbu_param%lat2_filename /= '') then
   print *, 'Parsing: ',bbu_param%lat2_filename
   call bmad_parser2 (bbu_param%lat2_filename, lat_in)
@@ -59,16 +59,18 @@ endif
 if (bbu_param%hom_order_cutoff > 0) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
+    ! Find cavity element with lr_wake
     if (.not. associated(ele%wake)) cycle
     if (.not. allocated(ele%wake%lr)) cycle
     n = count(ele%wake%lr(:)%m > bbu_param%hom_order_cutoff)
-    if (n == 0) cycle  ! Nothing to remove
-    if (n == size(ele%wake%lr)) then
+    if (n == 0) cycle  !All HOMs order <= cutoff m, nothing to remove
+    if (n == size(ele%wake%lr)) then  ! All HOMs order > m, remove this lcavity  
       deallocate (ele%wake%lr)
       cycle
     endif
+    !! If some HOMs order > m, extract the HOMs with order <= m 
     lr => ele%wake%lr
-    nn = size(ele%wake%lr) - n
+    nn = size(ele%wake%lr) - n    ! nn = number of HOMs to be kept
     allocate(ele%wake%lr(nn))
     n = 0
     do j = 1, size(lr)
@@ -79,18 +81,22 @@ if (bbu_param%hom_order_cutoff > 0) then
   enddo
 endif
 
+!! ele%select == true means the element will NOT be hybridized (to be "kept")
 if (bbu_param%hybridize) then
-  print *, 'CANT HYBRIDIZE -- SET THIS TO FALSE'
-  print *, 'WILL TRY ANYWAY'
+!  print *, 'CANT HYBRIDIZE -- SET THIS TO FALSE'
+!  print *, 'WILL TRY ANYWAY'
 !  call err_exit
   do i = 1, lat_in%n_ele_max
-    ! Keep element if defined as end of tracking
     ele => lat_in%ele(i)
     ele%select = .false.
+    ! Keep element if defined as end of tracking
     if (ele%name == bbu_param%ele_track_end) then
       ele%select = .true.
       cycle
     endif
+    ! Any non-cavity elements are hybridized
+    ! If user chooses not to keep all cavities,
+    ! check and keep cavities with lr_wake
     if (ele%key /= lcavity$) cycle
     if (.not. bbu_param%keep_all_lcavities) then
       if (.not. associated (ele%wake)) cycle
@@ -103,12 +109,16 @@ else
   lat = lat_in
 endif
 
-lat0 = lat
+
+! Keep the original hybridized lattice
+lat0 = lat 
 
 ! Define element at which tracking ends
 if (bbu_param%ele_track_end.ne.' ') then
   call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
-  if(err)call err_exit
+  ! eles: (output) Ele_pointer_struct, allocatable: Array of matching elements
+  ! n_loc: (output) Number of locations found
+  if(err) call err_exit
   if(n_loc.eq.0)then
     print '(2a)', 'No matching element found for ',bbu_param%ele_track_end  
     call err_exit
@@ -126,17 +136,18 @@ if (bbu_param%ele_track_end.ne.' ') then
   bbu_param%ix_ele_track_end = ix
 endif
 
-
+!! Record cavity names in hom_info.txt
 if (bbu_param%write_hom_info) then
- call rf_cav_names (lat)
+  call rf_cav_names (lat)
 endif
 
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
 n_ele = 0
 do i = 1, size(bbu_beam%stage)
-  j = bbu_beam%stage(i)%ix_ele_lr_wake
+  j = bbu_beam%stage(i)%ix_ele_lr_wake ! j = index of THE lr_wake in stag i
   call multipass_chain (lat%ele(j), ix_pass, n_links = n)
+  ! ix_pass = Multipass pass number of the input lr_wake
   if (ix_pass /= 1 .and. n /= 0) cycle
   n_ele = n_ele + 1
 enddo
