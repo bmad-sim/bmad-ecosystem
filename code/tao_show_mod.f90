@@ -1231,8 +1231,8 @@ case ('element')
   nl = nl + n
 
   stat = ele%lord_status
-  if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$ .and. stat /= girder_lord$) then
-    orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
+  orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
+  if (orb%state /= not_set$) then
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; write(lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then

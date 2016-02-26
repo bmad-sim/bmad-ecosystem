@@ -209,7 +209,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', i_array = (/ i /))
-    stop
+    if (s%global%stop_on_error) stop
   endif
 
   u%design%modes%a%emittance = u%design%lat%a%emit

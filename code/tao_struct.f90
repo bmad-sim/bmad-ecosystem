@@ -564,7 +564,8 @@ type tao_global_struct
   logical :: orm_analysis = .false.               ! orm using mdsa? 
   logical :: plot_on = .true.                     ! Do plotting?
   logical :: lattice_calc_on = .true.             ! Turn on/off calculations.
-  logical :: svd_retreat_on_merit_increase = .true.  
+  logical :: svd_retreat_on_merit_increase = .true.
+  logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
   logical :: command_file_print_on = .true.       ! print to terminal when using a cmd file?
   logical :: box_plots = .false.                  ! For debugging plot layout issues.
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
