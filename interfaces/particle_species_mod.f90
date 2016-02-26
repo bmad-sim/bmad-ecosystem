@@ -64,9 +64,9 @@ integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
 
 character(20), parameter:: fundamental_species_name(-4:8) = [&
-                'Pion_Minus       ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
+                'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
                 'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
-                'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
+                'Pion+            ', 'Pion0            ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
                 'Deuteron         ']
 
 
@@ -397,19 +397,105 @@ contains
 
 function species_id (name) result(species)
 
-integer ::  species, charge, i, ix, iso, ios, n_nuc
+integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc
 real(rp) :: mol_mass
 character(*) :: name
 character(20) :: nam
 character(40), parameter :: r_name = 'species_id'
 
+! Init
 
 species = invalid$
 iso = 0
 nam = name
 
+if (upcase(nam) == 'PION_PLUS')  nam = 'pion+'  ! Old style
+if (upcase(nam) == 'PION_0')     nam = 'pion0'  ! Old style
+if (upcase(nam) == 'PION_MINUS') nam = 'pion-'  ! Old style
+
+! Fundamental particle?
+
+call match_word(nam, fundamental_species_name, ix, .false., .false.)
+if (ix > 0) then
+  species = ix + lbound(fundamental_species_name, 1) - 1
+  return
+endif
+
+! Get mass and charge
+
+ix1 = max(index(nam, '+'), index(nam, '-'))
+ix2 = index(nam, '@M')
+
+if (ix1 > ix2) then
+  if (.not. get_this_charge()) return
+  if (.not. get_this_mass()) return
+else
+  if (.not. get_this_mass()) return
+  if (.not. get_this_charge()) return
+endif
+
+if (nam == '') then
+  if (mol_mass == 0) return
+  species = abs(charge*100000000) + 20000000 + nint(100*mol_mass)
+  if (charge < 0) species = -species
+  return
+endif
+
+! Isotopic number (e.g. #12C)
+
+n_nuc = 0
+if (nam(1:1) == '#') then
+ do i = 2, 10
+   if (index('0123456789', nam(i:i)) == 0) exit
+ enddo
+ if (i == 2) then 
+   n_nuc = 0 ! use the standard if no number was given, i.e. #C 
+ else
+   read (nam(2:i-1), *) n_nuc
+ endif
+ 
+ nam = nam(i:)
+endif
+
+! Is molecule?
+
+call match_word(nam, molecular_name, ix, .true., .false.)
+if (ix > 0) then
+  if (n_nuc /= 0) return  ! Isotopic number not allowed with molecules
+  ! Only 3+2 digits are allowed
+  if (mol_mass*100 > 99999) then
+    call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR '//name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+    
+  species = abs(charge*100000000) + (ix+200) * 100000 + mol_mass*100
+  if (charge < 0) species = -species
+  return  
+endif
+
+
+! Is Atom?
+
+call match_word(nam, atomic_name, ix, .true., .false.)
+if (ix > 0) then
+  species =  abs(charge*100000000) + ix * 100000 + n_nuc
+  if (charge < 0) species = -species
+  return  
+endif
+
+!----------------------------------------------------------------------------------------
+contains
+
 ! Strip off charge.
 
+function get_this_charge () result (is_ok)
+
+logical is_ok
+
+!
+
+is_ok = .false.
 charge = 0
 
 ix = index(nam, '+')
@@ -451,13 +537,29 @@ if (ix /= 0) then
 endif
 
 if (abs(charge) > 21) then
-  call out_io (s_abort$, r_name, 'CHARGE >21 not allowed for particle name: '//name)
+  call out_io (s_abort$, r_name, 'CHARGE >21 not allowed: ' // name)
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
-! Strip off mass @M, 
+is_ok = .true.
+
+end function get_this_charge
+
+!----------------------------------------------------------------------------------------
+! contains
+
+! Strip off mass @M
+
+function get_this_mass () result (is_ok)
+
+logical is_ok
+
+!
+
+is_ok = .false.
 mol_mass = 0
+
 ix = index(nam, '@M')
 if (ix /= 0) then
   read (nam(ix+2:), *, iostat = ios) mol_mass
@@ -465,64 +567,9 @@ if (ix /= 0) then
   nam = nam(1:ix-1)
 endif
 
-if (nam == '') then
-  if (mol_mass == 0) return
-  species = abs(charge*100000000) + 20000000 + nint(100*mol_mass)
-  if (charge < 0) species = -species
-  return
-endif
+is_ok = .true.
 
-
-! Isotope? e.g. #12C
-n_nuc = 0
-if (nam(1:1) == '#') then
- do i = 2, 10
-   if (index('0123456789', nam(i:i)) == 0) exit
- enddo
- if (i == 2) then 
-   n_nuc = 0 ! use the standard if no number was given, i.e. #C 
- else
-   read (nam(2:i-1), *) n_nuc
- endif
- 
- nam = nam(i:)
-endif
-
-! Find species
-
-! Fundamental particle
-call match_word(nam, fundamental_species_name, ix, .false., .false.)
-if (ix > 0) then
-  if (charge /= 0) return  ! Charge cannot be specified for fundamental particles.
-  species = ix + lbound(fundamental_species_name, 1) - 1
-  return
-endif
-
-
-! Molecule
-call match_word(nam, molecular_name, ix, .true., .false.)
-if (ix > 0) then
-  if (n_nuc /= 0) return  ! Isotopic number not allowed with molecules
-  ! Only 3+2 digits are allowed
-  if (mol_mass*100 > 99999) then
-    call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR '//name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif  
-    
-  species = abs(charge*100000000) + (ix+200) * 100000 + mol_mass*100
-  if (charge < 0) species = -species
-  return  
-endif
-
-
-! Atom
-call match_word(nam, atomic_name, ix, .true., .false.)
-if (ix > 0) then
-  species =  abs(charge*100000000) + ix * 100000 + n_nuc
-  if (charge < 0) species = -species
-  return  
-endif
+end function get_this_mass
 
 end function species_id
 
@@ -559,6 +606,8 @@ case (not_set$)
   return
 end select
 
+!
+
 if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
   name = fundamental_species_name(species)
   return
@@ -566,6 +615,7 @@ endif
 
 ppp = mod(abs(species), 100000000)/100000 
 mmmmm = mod(abs(species), 100000)
+name = ''
 
 ! Atom
 if (ppp < 200) then
@@ -573,7 +623,7 @@ if (ppp < 200) then
   ! Isotope?
   if (mmmmm > 0) then
     write(extra, '(i0)') mmmmm
-    name = '#'//trim(extra)//trim(name)
+    name = '#' // trim(extra) // trim(name)
   endif
 
 ! molecule, possibly with specified mass
