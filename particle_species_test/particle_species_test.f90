@@ -11,12 +11,15 @@ character(30), parameter :: r_name = 'particle_species_test'
 
 character(20) :: example_names(1:100)  = ''
 
+logical :: verbose
+
 namelist / particle_species_test_params / &
-    example_names
+    example_names, verbose
 
 !------------------------------------------
 !Defaults for namelist
-example_names(1:6) =  ['NH3+', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+']
+example_names(1:6) =  [character(20) :: 'NH3+', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+']
+verbose = .false.
 
 !Read namelist
 in_file = 'particle_species_test.in'
@@ -65,7 +68,7 @@ write(1, *) ''
 do i=lbound(p_array, 1), ubound(p_array, 1)
   if (trim(p_array(i)) =='') cycle ! Skip empty
   species = species_id(p_array(i))
-  !call print_species(species, convert_to_amp)
+  if (verbose) call print_species(species, convert_to_amu)
   call write_mass_and_charge(species, convert_to_amu)
 enddo
 
