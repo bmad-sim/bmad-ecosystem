@@ -33,7 +33,7 @@ real(rp) bragg_angle_in, ang_tot, k0_x_norm, k0_y_norm, k0_z_norm
 real(rp) kh_x_norm, kh_y_norm, kh_z_norm, h_x_norm, h_y_norm, h_z_norm
 real(rp) ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm, b_param, beta
 real(rp) cos_graze_in, sin_graze_in, s_vec(3), k0_norm(3), h_vec(3), dtheta_sin_2theta
-real(rp) p_factor
+real(rp) p_factor, f
 
 complex(rp) eta, eta1, f_cmp, xi_0k, xi_hk
 
@@ -91,7 +91,12 @@ ele%value(bragg_angle_in$) = bragg_angle_in
 
 kh_x_norm = lambda * h_x_norm/d + k0_x_norm
 kh_y_norm = lambda * h_y_norm/d
-kh_z_norm = sqrt(1 - kh_x_norm**2 - kh_y_norm**2)
+f = 1 - kh_x_norm**2 - kh_y_norm**2
+if (f < 0) then   ! Can happen due to roundoff
+  kh_z_norm = 0
+else
+  kh_z_norm = sqrt(f)
+endif
 if (ele%value(b_param$) < 0) kh_z_norm = -kh_z_norm   ! Bragg
 
 ! ent_kh_norm is kh_norm in entrance coordinates 
@@ -160,8 +165,15 @@ ele%value(l$) = norm2(pms%l_ref)
 !
 
 ele%value(ref_cap_gamma$) = gamma
-ele%value(darwin_width_sigma$) = 2 * gamma * real(pms%f_hkl) / (abs(sin(ang_tot)) * sqrt(abs(ele%value(b_param$))))
-ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(ang_tot))
-ele%value(dbragg_angle_de$) = -lambda / (2 * d * ele%value(e_tot$) * cos(abs(ang_tot)/2))
+
+if (ang_tot == 0) then
+  ele%value(darwin_width_sigma$) = 0
+  ele%value(darwin_width_pi$) = 0
+  ele%value(dbragg_angle_de$) = 0
+else
+  ele%value(darwin_width_sigma$) = 2 * gamma * real(pms%f_hkl) / (abs(sin(ang_tot)) * sqrt(abs(ele%value(b_param$))))
+  ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(ang_tot))
+  ele%value(dbragg_angle_de$) = -lambda / (2 * d * ele%value(e_tot$) * cos(abs(ang_tot)/2))
+endif
 
 end subroutine
