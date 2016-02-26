@@ -38,7 +38,7 @@ implicit none
   
 type (lat_struct), target :: lat
 type (lat_struct) :: lat2
-type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord
+type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord, slave, slave2
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -48,7 +48,7 @@ type (branch_struct), pointer :: branch
 real(rp) v1, v2
 
 integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
-integer key, n_max_old, n_loc, n_def_ele
+integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie
 integer, pointer :: n_max, n_ptr
 integer, allocatable :: lat_indexx(:)
 
@@ -85,6 +85,27 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
   call parser_file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
 endif
+
+! Mark multipass elements in case there is a superposition
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  branch%ele%iyy = 0
+enddo
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(ie)
+  if (ele%lord_status /= multipass_lord$) cycle
+  do is = 1, ele%n_slave
+    slave => pointer_to_slave(ele, is)
+    slave%iyy = ie
+    if (slave%lord_status /= super_lord$) cycle
+    do is2 = 1, slave%n_slave
+      slave2 => pointer_to_slave(slave, is2)
+      slave2%iyy = ie
+    enddo
+  enddo
+enddo
 
 !
 
