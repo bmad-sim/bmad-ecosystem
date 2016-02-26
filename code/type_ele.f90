@@ -676,7 +676,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(a8, t12, a, a)') &
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a)') &
                     trim(ele_loc_to_string(slave)), slave%name(1:n_char), key_name(slave%key)
       enddo
 

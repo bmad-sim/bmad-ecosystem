@@ -733,8 +733,14 @@ enddo
 !----------------------------------------------------------------------
 ! Expand all branches...
 
+bp_com%used_line_set_by_calling_routine = .false.
+
 if (present (use_line)) then
-  if (use_line /= '') call str_upcase (lat%use_name, use_line)
+  if (use_line /= '') then
+    call str_upcase (name, use_line)
+    if (lat%use_name /= '' .and. name /= lat%use_name) bp_com%used_line_set_by_calling_routine = .true.
+    lat%use_name = name
+  endif
 endif
 
 if (lat%use_name == blank_name$) then
@@ -905,6 +911,9 @@ branch_loop: do i_loop = 1, n_branch_max
       call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
     elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
       call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+    elseif (branch%ix_branch > 0 .and. lat%param%particle == branch%param%particle) then
+      ele%value(e_tot$) = lat%ele(0)%value(e_tot$)
+      ele%value(p0c$)   = lat%ele(0)%value(p0c$)
     else
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
         if (branch%param%particle == photon$) then
