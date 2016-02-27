@@ -278,18 +278,19 @@ end subroutine sr3d_plot_reflection_probability
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
+! subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane, wall_hit_file)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   plot_param -- sr3d_plot_param_struct: Plot parameters.
-!   branch     -- branch_struct: Lattice branch with wall.
-!   plane      -- Character(*): section. 'xs' or. 'ys'
+!   plot_param    -- sr3d_plot_param_struct: Plot parameters.
+!   branch        -- branch_struct: Lattice branch with wall.
+!   plane         -- character(*): section. 'xs' or. 'ys'
+!   wall_hit_file -- character(*): Photon trajectory file for plotting the trajectory.
 !-
 
-subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
+subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane, wall_hit_file)
 
 implicit none
 
@@ -300,16 +301,18 @@ type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
+real(rp) dummy, r1(3), r2(3)
 real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
 integer i, n, ix, iw, i_chan, ios, i0, i1
+integer n_phot1, n_phot2, n_hit1, n_hit2
 
-character(*) plane
+character(*) plane, wall_hit_file
 character(16) plane_str
 character(40) :: ans
 
-logical xy_user_good, s_user_good, no_wall_here, found 
+logical xy_user_good, s_user_good, no_wall_here, found, good_tracks
 logical, allocatable :: no_wall(:)
 
 ! Open plotting window
@@ -435,6 +438,28 @@ do
       endif
     enddo
   enddo
+
+  ! Plot photon trajectories if trajectory file exists
+
+  if (wall_hit_file /= '') then
+    inquire (file = wall_hit_file, exist = good_tracks)
+    if (good_tracks) then
+      open (10, file = wall_hit_file, iostat = ios)
+      read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
+      do 
+        n_phot1 = n_phot2; n_hit1 = n_hit2; r1 = r2
+        read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
+        if (ios /= 0) exit
+        if (n_phot2 /= n_phot1) cycle
+        if (plane == 'xs') then
+          call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
+        else
+          call qp_draw_line(r1(3), r2(3), 100*r1(2), 100*r2(2))
+        endif
+      enddo
+      close (10)
+    endif
+  endif
 
   ! Query
 
