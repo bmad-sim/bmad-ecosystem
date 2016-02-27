@@ -118,7 +118,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries February 21, 2016}
+{\large\bfseries February 27, 2016}
 
 \end{center}
 \end{titlepage}
@@ -207,6 +207,11 @@ plane at $x = 0$.
 When plotting $x$-$y$ cross-sections, symbols
 will be drawn at the vertex points \vn{v(i)} that define the
 cross-section.
+
+When plotting $x$-$s$ or $y$-$s$ cross-sections, if the Master Input file specifies a
+\vn{wall_hit_file}, this file will be read and the photon trajectories plotted. Since
+photon tracking is {\em not} done when there is plotting done, the \vn{wall_hit_file} must
+be generated in a previous run of \srthree prior to using the \vn{-plot} option.
 
 The \vn{-test <what>} option is for generating diagnostic
 files:
@@ -1684,85 +1689,64 @@ file is generated, which contains more detailed information. An
 example of the output is shown below. (This
 example is not for the same run as in the previous section).
 \begin{example}
- *********************************************
-       1       0     825.0
-    0.000163   -0.001690   -0.000078    0.000084  761.691897    1.000000
- *********************************************
-       1       1     825.0
-    0.044902    0.035208    0.001647    0.000084   13.729227    0.999381
-               -0.034247               -0.008171                0.999381
-    0.9930    0.1180    0.0000              0.034972    0.409532
- *********************************************
-       2       0      59.0
-   -0.000135   -0.002640    0.000010    0.000995  761.701478    1.000000
- *********************************************
-       2       1      59.0
-   -0.037269   -0.002640    0.014011    0.000995    7.332935    1.000000
-                0.000462               -0.002783                1.000000
-   -0.6345    0.7729    0.0000              0.002444    0.983416
- *********************************************
-       2       2      59.0
-    0.044491    0.037193   -0.003750   -0.002783   13.714673    0.999308
-               -0.033444                0.016510                0.999308
-    0.9647   -0.2635    0.0000              0.036612    0.766948
- *********************************************
-       2       3      59.0
-   -0.008275   -0.030089    0.024574    0.016510   15.429119    0.999414
-               -0.026051               -0.022345                0.999414
-   -0.1034    0.9946    0.0000              0.019532    0.870489
- *********************************************
-       2       4      59.0
-    0.010349    0.043049   -0.024330   -0.022345   17.617477    0.998827
-                0.035823                0.032699                0.998827
-    0.1302   -0.9915    0.0000              0.027758    0.819663
+  1     0       0.0      -0.000823    0.000054     67.785765        0.000000    0.000000    0.000000
+  1     1     698.2       0.045000   -0.000229     70.515079        0.032303   -0.000104    0.999478
+  1     2     698.2      -0.039304   -0.013811     71.216813       -0.115289   -0.019212    0.993146
+  2     0       0.0      -0.000740    0.000054     67.851507        0.000000    0.000000    0.000000
+  2     1    4705.8       0.045000    0.000128     70.578267        0.032274    0.000027    0.999479
+  3     0       0.0      -0.000658    0.000054     67.917250        0.000000    0.000000    0.000000
+  3     1     688.4       0.045000    0.000465     70.641452        0.032245    0.000151    0.999480
+  3     2     688.4      -0.045000   -0.002062     71.036893       -0.219720   -0.006232    0.975543
+  4     0       0.0      -0.000575    0.000053     67.982992        0.000000    0.000000    0.000000
+  4     1     346.3       0.045000   -0.000370     70.704636        0.032216   -0.000155    0.999481
+  4     2     346.3      -0.045000   -0.001490     71.234797       -0.164390   -0.002083    0.986393
+  5     0       0.0      -0.000493    0.000053     68.048735        0.000000    0.000000    0.000000
+  5     1      21.0       0.045000    0.000393     70.767817        0.032187    0.000125    0.999482
 \end{example}
-Individual entries are separated by a row of asterisks. Each entry
-corresponds to a photon striking the vacuum chamber except the
-``zeroth'' entry for a given photon gives the emission point
-parameters. There will be at least two entries for each photon.
-
-The format of and entry is:
+The columns are
 \begin{example}
-  photon_index  wall_hit_index  photon_energy
-  x_before  v_x_before  y_before  v_y_before  s_before  v_s_before
-            v_x_after             v_y_after             v_s_after
-  perp_x   perp_y   perp_z        cos_perp    reflectivity
+  1:     photon_index  
+  2:     wall_hit_index  
+  3:     photon_energy             ! When wall_hit_index = 0 this is 0]
+  4-6:   (x, y, s)                 ! Coordinates of photon at wall
+  7-9:   (vx, vy, vs)              ! Velocity before bounce
+  10-12: (vx, vy, vs)              ! Velocity after bounce 
+  13-15: (perp_x, perp_y, perp_z)  ! Wall perpendicular
+  16:    cos_perp_in               ! Cosine of photon incoming direction wrt wall.
+  17:    cos_perp_out              ! Cosine of photon outgoing direction wrt wall.
+  18:    reflectivity              ! Reflectivity coef
 \end{example}
-The \vn{photon_index} is the same index as in the main output file.
-The \vn{wall_hit_index} starts at 0 for the emission point entry and
-increases up to the value for \vn{n_wall_hits} in the main file.
-The \vn{photon_energy} will be the same as in the main file.
+The \vn{photon_index} is the same index as in the main output file. The
+\vn{wall_hit_index} starts at 0 for the emission point and increases up to the value for
+\vn{n_wall_hits} in the main file.  The \vn{photon_energy} will be the same as in the main
+file.
 
-The second line gives the 6-coordinate position of the photon as it
-strikes the chamber (same conventions as given in the previous
-section) except that the zeroth entry gives the emission point
-coordinates.
+Columns 4 through 6 give the coordinates of the photon where it strikes the wall.  except
+that the entry for wall_hit_index = 0 gives the emission point coordinates.
 
-Except for the zeroth entry, there is a third line and fourth
-line. The third line gives the values for $v_x, v_y, v_z$ after the
-reflection. For the last entry of a given photon, this line gives the
-values of $v_x, v_y, v_z$ that the photon would have had had it been
-reflected.
+Columns 7 through 9 gives the velocity of the photon just before it bounces and columns 10
+through 12 gives the velocity just after it bounces (or what would be its velocity if it
+does not get absorbed).
 
-The first three numbers on the fourth line give the orientation of the
-vector normal to the chamber surface at the hit point. The fourth number
-is $\cos{\theta_\perp}$, the angle
-relative to the surface normal with which the photon strikes the
-wall. The grazing angle is $\theta_g=\pi/2-\theta_\perp$. The last
-real number on the fourth line is the probability of reflection, computed
-from the X-ray data for the given grazing angle and photon energy.
+Columns 13 through 15 give the perpendicular vector to the wall at the point of photon
+impact.
 
-If the photon is ``adsorbed'' due to reflections being disallowed, the
-third and fourth lines will have zeros.
+Columns 16 and 17 give the cosine of the angle between the wall perpendicular and the
+photon velocity just before and just after the bounce.
 
-In the example given above, the first photon is absorbed at the first
-encounter with the vacuum chamber and the second photon is reflected 3
-times, before being adsorbed on the fourth hit.
+Column 18 gives reflectivity which is a function of the type of surface and the photon
+orientation with respect to the wall.
+
+If the photon is ``adsorbed'' due to reflections being disallowed, columns 10 and
+higher will be zero.
+
+In the example given above, the first photon is absorbed after reflecting once.
+and the second photon is not reflected at all being absorbed on the first hit.
 
 Note: If the beam emittances are zero, photons will be generated on
 the central orbit. If there are no steerings powered, the central
 orbit will be the zero orbit and in this case all photons will start
-with $x$ = $px$ = $y$ = 0.
+with $x$ = $vx$ = $y$ = 0.
 
 %------------------------------------------------------------------
 \chapter{Test Modes}

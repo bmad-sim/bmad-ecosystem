@@ -210,7 +210,7 @@ if (plotting /= '') then
   if (plotting == 'xy') then
     call sr3d_plot_wall_cross_sections (plot_param, branch)
   elseif (plotting == 'xs' .or. plotting == 'ys') then
-    call sr3d_plot_wall_vs_s (plot_param, branch, plotting)
+    call sr3d_plot_wall_vs_s (plot_param, branch, plotting, wall_hit_file)
   elseif (index('reflect', trim(plotting)) == 1) then
     call sr3d_plot_reflection_probability(plot_param, branch)
   else
@@ -297,7 +297,7 @@ endif
 
 if (wall_hit_file /= '') then
   iu_hit_file = lunget()
-  open (iu_hit_file, file = wall_hit_file)
+  open (iu_hit_file, file = wall_hit_file, recl = 300)
   print *, 'Creating photon hit point output file: ', trim(wall_hit_file)
 endif
 
