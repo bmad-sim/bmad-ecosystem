@@ -2499,12 +2499,10 @@ public:
   Int n_slave;
   Int n_slave_field;
   Int ix1_slave;
-  Int ix2_slave;
   Int lord_status;
   Int n_lord;
   Int n_lord_field;
   Int ic1_lord;
-  Int ic2_lord;
   Int ix_pointer;
   Int ixx;
   Int iyy;
@@ -2601,12 +2599,10 @@ public:
     n_slave(0),
     n_slave_field(0),
     ix1_slave(0),
-    ix2_slave(-1),
     lord_status(Bmad::NOT_A_LORD),
     n_lord(0),
     n_lord_field(0),
     ic1_lord(0),
-    ic2_lord(-1),
     ix_pointer(0),
     ixx(0),
     iyy(0),

@@ -4359,91 +4359,85 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 66 + offset; C.ix1_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 67 + offset; C.ix2_slave = rhs;
+  rhs = 67 + offset; C.lord_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 68 + offset; C.lord_status = rhs;
+  rhs = 68 + offset; C.n_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 69 + offset; C.n_lord = rhs;
+  rhs = 69 + offset; C.n_lord_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 70 + offset; C.n_lord_field = rhs;
+  rhs = 70 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 71 + offset; C.ic1_lord = rhs;
+  rhs = 71 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 72 + offset; C.ic2_lord = rhs;
+  rhs = 72 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 73 + offset; C.ix_pointer = rhs;
+  rhs = 73 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 74 + offset; C.ixx = rhs;
+  rhs = 74 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 75 + offset; C.iyy = rhs;
+  rhs = 75 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 76 + offset; C.mat6_calc_method = rhs;
+  rhs = 76 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 77 + offset; C.tracking_method = rhs;
+  rhs = 77 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 78 + offset; C.spin_tracking_method = rhs;
+  rhs = 78 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 79 + offset; C.ptc_integration_type = rhs;
+  rhs = 79 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 80 + offset; C.field_calc = rhs;
+  rhs = 80 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 81 + offset; C.aperture_at = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 82 + offset; C.aperture_type = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 83 + offset; C.orientation = rhs;
+  rhs = 81 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 84 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 82 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 85 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 83 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 86 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 84 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 87 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 85 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 88 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 86 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 89 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 87 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 90 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 88 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 91 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 89 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 92 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 90 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 93 + offset; C.select = (rhs % 2 == 0);
+  rhs = 91 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 94 + offset; C.csr_calc_on = (rhs % 2 == 0);
+  rhs = 92 + offset; C.csr_calc_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 95 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 93 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }

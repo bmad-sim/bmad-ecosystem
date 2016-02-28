@@ -1111,12 +1111,10 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.n_slave == y.n_slave);
   is_eq = is_eq && (x.n_slave_field == y.n_slave_field);
   is_eq = is_eq && (x.ix1_slave == y.ix1_slave);
-  is_eq = is_eq && (x.ix2_slave == y.ix2_slave);
   is_eq = is_eq && (x.lord_status == y.lord_status);
   is_eq = is_eq && (x.n_lord == y.n_lord);
   is_eq = is_eq && (x.n_lord_field == y.n_lord_field);
   is_eq = is_eq && (x.ic1_lord == y.ic1_lord);
-  is_eq = is_eq && (x.ic2_lord == y.ic2_lord);
   is_eq = is_eq && (x.ix_pointer == y.ix_pointer);
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.iyy == y.iyy);

@@ -6783,19 +6783,19 @@ interface
       z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, &
       z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, &
       z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_n_slave_field, &
-      z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, &
-      z_ic2_lord, z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, &
-      z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-      z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
-      z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
-      z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture) bind(c)
+      z_ix1_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, &
+      z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, &
+      z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_orientation, &
+      z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
+      z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, &
+      z_csr_calc_on, z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_n_slave_field
-    integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ic2_lord
-    integer(c_int) :: z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type
-    integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_orientation
+    integer(c_int) :: z_ix1_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
+    integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
+    integer(c_int) :: z_aperture_type, z_orientation
     integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
     integer(c_int), value :: n_wake, n1_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec
@@ -6941,8 +6941,8 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, fvec2vec(F%a_pole_elec, &
     n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, n1_b_pole_elec), n1_b_pole_elec, &
     F%key, F%sub_key, F%ix_ele, F%ix_branch, F%slave_status, F%n_slave, F%n_slave_field, &
-    F%ix1_slave, F%ix2_slave, F%lord_status, F%n_lord, F%n_lord_field, F%ic1_lord, F%ic2_lord, &
-    F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, &
+    F%ix1_slave, F%lord_status, F%n_lord, F%n_lord_field, F%ic1_lord, F%ix_pointer, F%ixx, &
+    F%iyy, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, &
     F%ptc_integration_type, F%field_calc, F%aperture_at, F%aperture_type, F%orientation, &
     c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
     c_logic(F%scale_multipoles), c_logic(F%taylor_map_includes_offsets), &
@@ -6975,12 +6975,12 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, &
     z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, &
     n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, z_sub_key, z_ix_ele, z_ix_branch, &
-    z_slave_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_ix2_slave, z_lord_status, &
-    z_n_lord, z_n_lord_field, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx, z_iyy, &
-    z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, &
-    z_field_calc, z_aperture_at, z_aperture_type, z_orientation, z_symplectify, z_mode_flip, &
-    z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
-    z_is_on, z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture) bind(c)
+    z_slave_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_lord_status, z_n_lord, &
+    z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, &
+    z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, &
+    z_aperture_at, z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
+    z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
+    z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture) bind(c)
 
 
 implicit none
@@ -6992,9 +6992,9 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_n_slave_field
-integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ic2_lord
-integer(c_int) :: z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type
-integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_orientation
+integer(c_int) :: z_ix1_slave, z_lord_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
+integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
+integer(c_int) :: z_aperture_type, z_orientation
 type(mode3_struct), pointer :: f_mode3
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
 integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
@@ -7250,8 +7250,6 @@ F%n_slave_field = z_n_slave_field
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix1_slave = z_ix1_slave
 !! f_side.to_f2_trans[integer, 0, NOT]
-F%ix2_slave = z_ix2_slave
-!! f_side.to_f2_trans[integer, 0, NOT]
 F%lord_status = z_lord_status
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_lord = z_n_lord
@@ -7259,8 +7257,6 @@ F%n_lord = z_n_lord
 F%n_lord_field = z_n_lord_field
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ic1_lord = z_ic1_lord
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ic2_lord = z_ic2_lord
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_pointer = z_ix_pointer
 !! f_side.to_f2_trans[integer, 0, NOT]
