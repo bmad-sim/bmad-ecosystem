@@ -421,7 +421,6 @@ do i = lbound(master_node%children, 1), ubound(master_node%children, 1)
 
   ele%n_slave = n_slave
   ele%ix1_slave = n_con1
-  ele%ix2_slave = n_con2
 
   do j = lbound(node%slaves, 1), ubound(node%slaves, 1)
     n = j + n_con1 - lbound(node%slaves, 1)
@@ -488,7 +487,6 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
 
   ele%n_slave = n_slave
   ele%ix1_slave = n_con1
-  ele%ix2_slave = n_con2
 
   do j = lbound(node%children, 1), ubound(node%children, 1)
     slave_node => node%children(j)
@@ -544,7 +542,6 @@ do i = 1, lat%n_ele_max
   slave_ele => lat%ele(i)
   if (slave_ele%n_lord == 0) cycle
   slave_ele%ic1_lord = n + 1
-  slave_ele%ic2_lord = n + slave_ele%n_lord
   slave_ele%ixx = n + 1
   n = n + slave_ele%n_lord
 enddo
@@ -568,7 +565,7 @@ do i = 1, lat%n_ele_track
   if (ele%slave_status /= super_slave$) cycle
 
   ele%name = ''
-  do j = ele%ic1_lord, ele%ic2_lord
+  do j = ele%ic1_lord, ele%ic1_lord+ele%n_lord-1
     ix = lat%ic(j)
     ix_lord = lat%control(ix)%lord%ix_ele
     ele%name = trim(ele%name) // '\' // trim(lat%ele(ix_lord)%name)  ! '

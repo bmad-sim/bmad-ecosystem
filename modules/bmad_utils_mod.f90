@@ -1924,7 +1924,7 @@ type (ele_struct), pointer :: ele
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 
-integer ic_out, icon_out, ib, i, n
+integer ic_out, icon_out, ib, i, n, ic2_lord
 
 !
 
@@ -1934,12 +1934,13 @@ lat => lord%branch%lat
 
 ! Find lat%control(:) and lat%ic(:) elements associated with this link
 
-do ic_out = slave%ic1_lord, slave%ic2_lord
+ic2_lord = slave%ic1_lord + slave%n_lord - 1
+do ic_out = slave%ic1_lord, ic2_lord
   icon_out = lat%ic(ic_out)
   if (lat%control(icon_out)%lord%ix_ele == lord%ix_ele) exit
 enddo
 
-if (icon_out == slave%ic2_lord + 1) call err_exit ! Should not be
+if (icon_out == ic2_lord+1) call err_exit ! Should not be
 
 ! Compress lat%control and lat%ic arrays.
 
@@ -1964,24 +1965,19 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(i)
 
     if (ele%ix1_slave >  icon_out) ele%ix1_slave = ele%ix1_slave - 1
-    if (ele%ix2_slave >= icon_out) ele%ix2_slave = ele%ix2_slave - 1
-
     if (ele%ic1_lord >  ic_out) ele%ic1_lord = ele%ic1_lord - 1
-    if (ele%ic2_lord >= ic_out) ele%ic2_lord = ele%ic2_lord - 1
   enddo
 enddo
 
 slave%n_lord = slave%n_lord - 1
 if (slave%n_lord == 0) then
   slave%ic1_lord = 0
-  slave%ic2_lord = -1
   slave%slave_status = free$
 endif
 
 lord%n_slave = lord%n_slave - 1
 if (lord%n_slave == 0) then
   lord%ix1_slave = 0
-  lord%ix2_slave = -1
   lord%lord_status = not_a_lord$
 endif
 

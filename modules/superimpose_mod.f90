@@ -112,7 +112,6 @@ call transfer_ele (super_ele_in, super_saved)
 super_saved%slave_status = free$
 super_saved%n_lord = 0
 super_saved%ic1_lord = 0
-super_saved%ic2_lord = -1
 
 branch => lat%branch(ix_branch)
 
@@ -274,7 +273,7 @@ do
     if (ix > ubound(branch%ele, 1))  call allocate_lat_ele_array (lat, ix_branch = ix_branch)
 
     branch%ele(ix) = branch%ele(i)       ! copy null_ele
-    do ic = branch%ele(i)%ic1_lord, branch%ele(i)%ic2_lord
+    do ic = branch%ele(i)%ic1_lord, branch%ele(i)%ic1_lord+branch%ele(i)%n_lord-1
       j = lat%ic(ic)
       lat%control(j)%slave%ix_ele = ix ! point to new null_ele.
     enddo
@@ -344,17 +343,14 @@ do i = ix1_split+1, ix2_split
     if (lat%control(j)%slave%ix_ele == i) lat%control(j)%slave%ix_ele = ixs
   enddo
   ! Now put in the info to make the original element a super_slave
-  lord%n_slave = 1
-  call add_lattice_control_structs (lat, lord)
+  call add_lattice_control_structs (lord, n_add_slave = 1)
   ix = lord%ix1_slave
   lat%control(ix)%slave%ix_ele = i
   lat%control(ix)%slave%ix_branch = ix_branch
   slave%slave_status = super_slave$
   slave%name = trim(slave%name) // '#1'
-  slave%n_lord = 1
   slave%ic1_lord = 0   ! So add_lattice_control_structs does the right thing
-  slave%ic2_lord = -1  ! So add_lattice_control_structs does the right thing
-  call add_lattice_control_structs (lat, slave)
+  call add_lattice_control_structs (slave, n_add_lord = 1)
   ic = slave%ic1_lord
   lat%ic(ic) = ix
   !
@@ -451,27 +447,24 @@ do
     ixc = lat%n_control_max + 1
     if (ixc > size(lat%control)) call reallocate_control(lat, ixc+100)
     lat%ele(ixn)%ix1_slave = ixc
-    lat%ele(ixn)%ix2_slave = ixc
     lat%ele(ixn)%n_slave = 1
     lat%control(ixc)%lord%ix_ele = ixn
     lat%control(ixc)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
     lat%n_control_max = ixc
 
-    do j = lat%ele(ixn)%ic1_lord, lat%ele(ixn)%ic2_lord
+    do j = lat%ele(ixn)%ic1_lord, lat%ele(ixn)%ic1_lord+lat%ele(ixn)%n_lord-1
       jj = lat%ic(j)
       lat%control(jj)%slave%ix_ele = ixn
     enddo
 
     ic = lat%n_ic_max + 1
     slave%ic1_lord = ic
-    slave%ic2_lord = ic + 1
     slave%n_lord = 2
     lat%n_ic_max = ic + 1
     lat%ic(ic) = ixc 
 
   else
-    slave%n_lord = slave_saved%n_lord + 1
-    call add_lattice_control_structs (lat, slave)
+    call add_lattice_control_structs (slave, n_add_lord = 1)
   endif
 
   ! Components like %wall3d, %em_field are contained in the lord so
@@ -525,14 +518,13 @@ ixc = lat%n_control_max + 1
 n_con = ixc + ix_super_con - 1
 if (n_con > size(lat%control)) call reallocate_control(lat, n_con+500) 
 lat%ele(ix_super)%ix1_slave = ixc
-lat%ele(ix_super)%ix2_slave = n_con
 lat%ele(ix_super)%n_slave = ix_super_con
 if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 do k = 1, ix_super_con
   lat%control(k+ixc-1) = sup_con(k)
   ix_slave = lat%control(k+ixc-1)%slave%ix_ele
-  i2 = branch%ele(ix_slave)%ic2_lord
+  i2 = branch%ele(ix_slave)%ic1_lord+branch%ele(ix_slave)%n_lord-1
   lat%ic(i2) = k+ixc-1
 enddo
 
@@ -588,17 +580,13 @@ if (logic_option(.false., create_jumbo_slave)) then
           if (slave%ix_ele <= ele0%ix_ele) cycle
 
           ! Need to make ele0 a super_slave of this lord.
-          ele0%n_lord = ele0%n_lord + 1
-          call add_lattice_control_structs(lat, ele0)
-          lord%n_slave = lord%n_slave + 1
-          call add_lattice_control_structs(lat, lord, add_at_end = .false.)
+          call add_lattice_control_structs(ele0, n_add_lord = 1)
+          call add_lattice_control_structs(lord, n_add_slave = 1, add_at_end = .false.)
           
           cntl => lat%control(lord%ix1_slave)
           cntl%lord%ix_ele = lord%ix_ele
           cntl%slave%ix_ele = ele0%ix_ele
           cntl%slave%ix_branch = ele0%ix_branch
-          lat%ic(ele0%ic2_lord) = lord%ix1_slave
-
         enddo
       enddo
       nullify(ele0)

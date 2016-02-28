@@ -675,24 +675,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then
-      call out_io (s_fatal$, r_name, &
-                'LORD: ' // trim(ele%name) // '  (\i0\)',  &
-                'HAS SLAVE NUMBER MISMATCH: \3i5\ ', &
-                i_array = [i_t, ele%n_slave, ele%ix1_slave, ele%ix2_slave] )
-      err_flag = .true.
-      cycle
-    endif
-
-    if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
-      call out_io (s_fatal$, r_name, &
-                'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS LORD NUMBER MISMATCH: \3i5\ ', &
-                i_array = [i_t, ele%n_lord, ele%ic1_lord, ele%ic2_lord] )
-      err_flag = .true.
-      cycle
-    endif
-
     if (s_stat == super_slave$ .and. ele%n_lord == 0) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
@@ -731,7 +713,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! check that super_lord elements have their slaves in the correct order
 
     if (l_stat == super_lord$) then
-      do i = ele%ix1_slave+1, ele%ix2_slave
+      do i = ele%ix1_slave+1, ele%ix1_slave+ele%n_slave-1
         slave_branch => lat%branch(lat%control(i)%slave%ix_branch)
         ix1 = lat%control(i-1)%slave%ix_ele
         ix2 = lat%control(i)%slave%ix_ele
@@ -819,13 +801,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! check regular slaves
 
-    do j = ele%ix1_slave, ele%ix2_slave+ele%n_slave_field
+    do j = ele%ix1_slave, ele%ix1_slave+ele%n_slave+ele%n_slave_field-1
 
       if (j < 1 .or. j > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name)  // '  (\i0\)', &
-                  'HAS IX_SLAVE INDEX OUT OF BOUNDS: \2i5\ ', &
-                  i_array = [i_t, ele%ix1_slave, ele%ix2_slave] )
+                  'HAS IX_SLAVE INDEX OUT OF BOUNDS: \3i5\ ', &
+                  i_array = [i_t, ele%ix1_slave, ele%n_slave, ele%n_slave_field] )
         err_flag = .true.
       endif
 
@@ -857,7 +839,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       t2_type = slave%slave_status 
       str_ix_slave = ele_loc_to_string(slave)
 
-      if (j <= ele%ix2_slave .and. .not. good_control(l_stat, t2_type) .and. ctl%ix_attrib /= l$) then
+      if (j <= ele%ix1_slave+ele%n_slave-1 .and. .not. good_control(l_stat, t2_type) .and. ctl%ix_attrib /= l$) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)',  &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
@@ -908,7 +890,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         endif
       endif
 
-    enddo  ! j = ele%ix1_slave, ele%ix2_slave
+    enddo  ! j = ele%ix1_slave, ele%ix1_slave+ele%n_slave-1
 
     ! Check that field overlaps are unique
 
@@ -932,13 +914,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     girder_here = .false.
 
-    do ix = ele%ic1_lord, ele%ic2_lord+ele%n_lord_field
+    do ix = ele%ic1_lord, ele%ic1_lord+ele%n_lord+ele%n_lord_field-1
 
       if (ix < 1 .or. ix > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                  'HAS IC_LORD INDEX OUT OF BOUNDS: \2i5\ ', &
-                  i_array = [i_t, ele%ic1_lord, ele%ic2_lord] )
+                  'HAS IC_LORD INDEX OUT OF BOUNDS: \3i5\ ', &
+                  i_array = [i_t, ele%ic1_lord, ele%n_lord, ele%n_lord_field] )
         err_flag = .true.
       endif
 
@@ -955,7 +937,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       ctl => lat%control(j)
       i_b2 = ctl%lord%ix_branch 
 
-      if (i_b2 < 0 .or. i_b2 > ubound(lat%branch, 1) .or. (i_b2 /= 0 .and. ix <= ele%ic2_lord)) then
+      if (i_b2 < 0 .or. i_b2 > ubound(lat%branch, 1) .or. (i_b2 /= 0 .and. ix <= ele%ic1_lord+ele%n_lord-1)) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
                   'HAS A LORD BRANCH OUT OF RANGE: \3i7\ ', &
@@ -989,7 +971,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       t2_type = lord%lord_status
       str_ix_lord = ele_loc_to_string(lord)
 
-      if (ix <= ele%ic2_lord .and. .not. good_control(t2_type, s_stat)) then
+      if (ix <= ele%ic1_lord+ele%n_lord-1 .and. .not. good_control(t2_type, s_stat)) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                   'WITH SLAVE_STATUS: ' // control_name(s_stat), &
@@ -1015,7 +997,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         girder_here = .true.
       endif
 
-    enddo  ! ix = ele%ic1_lord, ele%ic2_lord
+    enddo  ! ix = ele%ic1_lord, ele%ic1_lord+ele%n_lord-1
 
   enddo ele_loop
 

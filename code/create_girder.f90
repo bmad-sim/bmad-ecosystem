@@ -67,7 +67,6 @@ enddo
 
 girder_ele%n_slave = n_slave
 girder_ele%ix1_slave = ix + 1
-girder_ele%ix2_slave = ix + n_slave
 girder_ele%lord_status = girder_lord$
 girder_ele%key = girder$
 lat%n_control_max = n_con2
@@ -89,10 +88,8 @@ do i = 1, girder_ele%n_slave
 
   ! update controller info for the slave ele
 
-  slave%n_lord = slave%n_lord + 1
-  call add_lattice_control_structs (lat, slave)
-  lat%ic(slave%ic2_lord) = girder_ele%ix1_slave + i - 1
-
+  call add_lattice_control_structs (slave, n_add_lord = 1)
+  lat%ic(slave%ic1_lord+slave%n_lord-1) = girder_ele%ix1_slave + i - 1
 enddo
 
 ! ele_init stuff

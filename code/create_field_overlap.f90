@@ -64,11 +64,11 @@ do i = 1, n_lord
   enddo
   slave => slaves(j_min)%ele
 
-  call add_lattice_control_structs (lat, lord, n_add_slave_field = 1)
+  call add_lattice_control_structs (lord, n_add_slave_field = 1)
   n = lord%ix1_slave + lord%n_slave + lord%n_slave_field - 1
   lat%control(n)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
 
-  call add_lattice_control_structs (lat, slave, n_add_lord_field = 1)
+  call add_lattice_control_structs (slave, n_add_lord_field = 1)
   n2 = slave%ic1_lord + slave%n_lord + slave%n_lord_field - 1
   lat%ic(n2) = n
 enddo

@@ -65,7 +65,7 @@ enddo
 
 call indexx (s_rel, ixx)
 
-ix1 = lord%ix1_slave; ix2 = lord%ix2_slave
+ix1 = lord%ix1_slave; ix2 = lord%ix1_slave+lord%n_slave-1
 cs = lat%control(ix1:ix2) 
 
 do i = 1, ns

@@ -4005,10 +4005,9 @@ endif
 
 lord%logic = .false.  ! So parser_add_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
-lord%n_slave = n_multipass
+lord%n_slave = 0
 lord%ix1_slave = 0
-lord%ix2_slave = -1
-call add_lattice_control_structs (lat, lord)
+call add_lattice_control_structs (lord, n_add_slave = n_multipass)
 
 ! Multipass_lord does not have reference energy or s_position or map bookkeeping. 
 
@@ -4034,9 +4033,8 @@ do i = 1, n_multipass
                   'PLEASE GET EXPERT HELP!')
     if (global_com%exit_on_error) call err_exit
   endif
-  slave%n_lord = 1
   write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
-  call add_lattice_control_structs (lat, slave)
+  call add_lattice_control_structs (slave, n_add_lord = 1)
   slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
   lat%ic(ixic) = ixc
@@ -5149,7 +5147,7 @@ main_loop: do n_in = 1, n_ele_max
     ! Evaluate any variable values.
 
     lord2 => lat%ele(ix_lord)
-    do k = lord2%ix1_slave, lord2%ix2_slave
+    do k = lord2%ix1_slave, lord2%ix1_slave+lord2%n_slave-1
       con => lat%control(k)
       do ic = 1, size(con%stack)
         select case (con%stack(ic)%type)

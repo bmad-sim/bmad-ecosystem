@@ -453,9 +453,6 @@ read (d_unit, err = 9100, end = 9100) &
         ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
         idum2, ele%bookkeeping_state, ele%ptc_integration_type
 
-ele%ix2_slave = ele%ix1_slave + ele%n_slave - 1
-ele%ic2_lord  = ele%ic1_lord  + ele%n_lord  - 1
-
 ! Decompress value array
 
 read (d_unit, err = 9110) k_max

@@ -338,6 +338,11 @@ These components can be used to provide a bunch-to-bunch
 random variation in the emittance and bunch center.
 \end{description}
 
+Note: The \vn{z} coordinate value given to particles of a bunch is with respect to the
+nominal center of the bunch. Therefore, if there are multiple bunches, and there is an RF
+cavity whose frequency is not comensurate with the spacing between bunches, absolute time
+tracking (\sref{s:rf.time}) must be used.
+
 The \vn{%ellipse(:)} array sets the parameters for the 
 \vn{ellipse} distribution (\sref{s:ellipse.init}). 
 Each component of this array looks like
