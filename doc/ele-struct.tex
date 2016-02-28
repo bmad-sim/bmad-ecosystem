@@ -84,12 +84,12 @@ The complete structure is shown in this and the following figure.}
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer slave_status           ! super_slave$, etc.
   integer n_slave                ! Number of slaves
-  integer ix1_slave              ! Start index for slave elements
-  integer ix2_slave              ! Stop  index for slave elements
+  integer n_slave_field          ! Number of field slaves
+  integer ix1_slave              ! Pointer to lat%control array
   integer lord_status            ! overlay_lord$, etc.
   integer n_lord                 ! Number of lords
-  integer ic1_lord               ! Start index for lord elements
-  integer ic2_lord               ! Stop  index for lord elements
+  integer n_lord_field           ! Number of field lords
+  integer ic1_lord               ! Pointer to lat%ic array.
   integer ix_pointer             ! For general use. Not used by Bmad.
   integer ixx, iyy               ! Index for Bmad internal use
   integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
@@ -393,24 +393,24 @@ at the downstream end of the element. See \cref{c:normal.modes} for more details
 
 \index{ele_struct!\%slave_status}
 \index{ele_struct!\%n_slave}
+\index{ele_struct!\%n_slave_field}
 \index{ele_struct!\%ix1_slave}
-\index{ele_struct!\%ix2_slave}
 \index{ele_struct!\%lord_status}
 \index{ele_struct!\%n_lord}
+\index{ele_struct!\%n_lord_field}
 \index{ele_struct!\%ic1_lord}
-\index{ele_struct!\%ic2_lord}
 \index{ele_struct!\%component_name}
 In \bmad, elements in a lattice can control other elements.
 The components that determine this control are:
 \begin{example}
   %slave_status
   %n_slave
+  %n_slave_field
   %ix1_slave
-  %ix2_slave
   %lord_status
   %n_lord
+  %n_lord_field
   %ic1_lord
-  %ic2_lord
   %component_name
 \end{example}
 \index{lat_struct}

@@ -166,20 +166,17 @@ if (ele%slave_status == super_slave$) then
 
     !
 
-    n_ic2 = n_ic2 + 1
+    call add_lattice_control_structs (lord, n_add_slave = 1)
 
+    n_ic2 = n_ic2 + 1
     ix_attrib = ctl%ix_attrib
 
-    lord%n_slave = lord%n_slave + 1
-    call add_lattice_control_structs (lat, lord)
-
-    ix2 = lord%ix2_slave
+    ix2 = lord%ix1_slave+lord%n_slave-1
     lat%control(ix2)%slave = lat_ele_loc_struct(ix_split, ix_branch)
     lat%control(ix2)%ix_attrib = ix_attrib
     lat%ic(n_ic2) = ix2
 
     ele1%ic1_lord = ixc + 1
-    ele1%ic2_lord = n_ic2
     lat%n_ic_max = n_ic2
 
     if (lord%lord_status == super_lord$) call order_super_lord_slaves (lat, lord%ix_ele)
@@ -215,7 +212,6 @@ ixc = lat%n_control_max
 n_slave = 2 + ele%n_slave_field
 if (ixc+2+ele%n_slave_field > size(lat%control)) call reallocate_control (lat, ixc+ele%n_slave_field+100)
 super_lord%ix1_slave = ixc + 1
-super_lord%ix2_slave = ixc + 2
 super_lord%n_slave = 2
 super_lord%n_slave_field = ele%n_slave_field
 lat%n_control_max = ixc + n_slave
@@ -251,7 +247,6 @@ if (lat%n_ic_max+2 > size(lat%ic)) call reallocate_control (lat, lat%n_ic_max+10
 ele1%slave_status = super_slave$
 inc = lat%n_ic_max + 1
 ele1%ic1_lord = inc
-ele1%ic2_lord = inc
 ele1%n_lord = 1
 lat%n_ic_max = inc
 lat%ic(inc) = ixc + 1
@@ -259,7 +254,6 @@ lat%ic(inc) = ixc + 1
 ele2%slave_status = super_slave$
 inc = lat%n_ic_max + 1
 ele2%ic1_lord = inc
-ele2%ic2_lord = inc
 ele2%n_lord = 1
 lat%n_ic_max = inc
 lat%ic(inc) = ixc + 2

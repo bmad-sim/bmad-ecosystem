@@ -597,14 +597,13 @@ controlled and coefficients, on all group elements in a lattice.
   enddo
 \end{example}
 
-\index{lat_struct!\%control}
-\index{lat_struct!\%ix1_slave}\index{lat_struct!\%ix2_slave}
+\index{lat_struct!\%control}\index{lat_struct!\%n_slave_field}
+\index{lat_struct!\%ix1_slave}\index{lat_struct!\%n_slave}
 The elements in the \vn{lat%control(:)} array associated with
 the slaves of a given lord are in the same order as the slaves and the 
 index of the associated \vn{lat%control(:)} element of the first slave 
 is given by the \vn{%ix1_slave} component of the lord
-and the last slave is given by the \vn{%ix2_slave} component of the
-lord. Example:
+Example:
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave
@@ -613,8 +612,6 @@ lord. Example:
   if (lord%n_slave > 0) then
     slave => pointer_to_slave (lord, 1, ix_con)
     print *, lord%ix1_slave == ix_con   ! Will print "T" for True
-    slave => pointer_to_slave (lord, lord%n_slave, ix_con)
-    print *, lord%ix2_slave == ix_con   ! Will print "T" for True
   endif
 \end{example}
 This fact can be used to determine where a slave is in the list of slaves
@@ -633,13 +630,12 @@ taking advantage of the fact that the pass number
   endif
 \end{example}
 
-\index{ele_struct!\%ic1_lord}\index{ele_struct!\%ic2_lord}
-\index{lat_struct!\%ic}
-Except for a \vn{slice_slave}, the \vn{%ic1_lord} and \vn{%ic2_lord} 
-components of a given slave
-element, along with the \vn{lat%ic(:)} array, can be used to find
-the lords of the slave. 
-Somewhat simplified, the code for the \Hyperref{r:pointer.to.lord}{pointer_to_lord} function is:
+\index{ele_struct!\%ic1_lord}\index{ele_struct!\%n_lord}
+\index{lat_struct!\%ic}\index{ele_struct!\%n_lord_field}
+Except for a \vn{slice_slave}, the \vn{%ic1_lord}, \vn{%n_lord}, and \vn{%n_lord_field}
+components of a given slave element, along with the \vn{lat%ic(:)} array, can be used to
+find the lords of the slave.  Somewhat simplified, the code for the
+\Hyperref{r:pointer.to.lord}{pointer_to_lord} function is:
 \begin{example}
   function pointer_to_lord (slave, ix_lord, ix_control) result (lord_ptr)
     implicit none

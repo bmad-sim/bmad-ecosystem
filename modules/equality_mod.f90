@@ -1993,8 +1993,6 @@ is_eq = is_eq .and. (f1%n_slave_field == f2%n_slave_field)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix1_slave == f2%ix1_slave)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix2_slave == f2%ix2_slave)
-!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%lord_status == f2%lord_status)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_lord == f2%n_lord)
@@ -2002,8 +2000,6 @@ is_eq = is_eq .and. (f1%n_lord == f2%n_lord)
 is_eq = is_eq .and. (f1%n_lord_field == f2%n_lord_field)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ic1_lord == f2%ic1_lord)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ic2_lord == f2%ic2_lord)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_pointer == f2%ix_pointer)
 !! f_side.equality_test[integer, 0, NOT]

@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 172
+integer, parameter :: bmad_inc_version$ = 173
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -715,12 +715,10 @@ type ele_struct
   integer :: n_slave = 0                          ! Number of slaves (except field slaves).
   integer :: n_slave_field = 0                    ! Number of field slaves of this element
   integer :: ix1_slave = 0                        ! Start index for slave elements
-  integer :: ix2_slave = -1                       ! Stop  index for slave elements
   integer :: lord_status = not_a_lord$            ! overlay_lord$, etc.
   integer :: n_lord = 0                           ! Number of lords (except field lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element
   integer :: ic1_lord = 0                         ! Start index for lord elements
-  integer :: ic2_lord = -1                        ! Stop  index for lord elements
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0                     ! Index for Bmad internal use
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.

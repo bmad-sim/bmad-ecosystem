@@ -164,7 +164,6 @@ enddo
 
 lord%n_slave = n_slave
 lord%ix1_slave = nc0 + 1
-lord%ix2_slave = nc0 + n_slave
 lat%n_control_max = nc2
 
 ! Loop over all slaves
@@ -184,10 +183,8 @@ do i = 1, lord%n_slave
 
   ! update controller info for the slave ele
 
-  slave%n_lord = slave%n_lord + 1
-  call add_lattice_control_structs (lat, slave)
-  lat%ic(slave%ic2_lord) = lord%ix1_slave + i - 1
-
+  call add_lattice_control_structs (slave, n_add_lord = 1)
+  lat%ic(slave%ic1_lord+slave%n_lord-1) = lord%ix1_slave + i - 1
 enddo
 
 ! Finish: Do control bookkeeping.

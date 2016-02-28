@@ -71,7 +71,7 @@ do i = rlat%n_ele_track+1, rlat%n_ele_max
   lord => rlat%ele(i)
   if (lord%lord_status /= super_lord$) cycle
   i1 = lord%ix1_slave
-  i2 = lord%ix2_slave
+  i2 = lord%ix1_slave+lord%n_slave+lord%n_slave_field-1
   rlat%control(i1:i2) = rlat%control(i2:i1:-1)
   ix_con(i1:i2) = ix_con(i2:i1:-1)
   if (lord%s > lord%value(l$)) then

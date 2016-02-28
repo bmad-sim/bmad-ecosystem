@@ -2909,7 +2909,6 @@ if (present(converted_lat)) then
     do i = 1, branch%n_ele_track
       branch%ele(i)%slave_status = free$
       branch%ele(i)%n_lord = 0
-      branch%ele(i)%ic2_lord = branch%ele(i)%ic1_lord - 1
     enddo
   enddo
   converted_lat%n_control_max = 0

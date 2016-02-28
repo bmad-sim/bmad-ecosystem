@@ -143,18 +143,16 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    i1 = ele%ix1_slave; i2 = ele%ix2_slave
+    i1 = ele%ix1_slave; i2 = ele%ix1_slave+ele%n_slave+ele%n_slave_field-1
     if (i1 < 1) cycle
     if (control(i1) == i1 .and. control(i2) == i2) cycle
 
     ele%ix1_slave = 0  ! Start with no slaves
-    ele%ix2_slave = -1
     ele%n_slave = 0
     do j = i1, i2
       if (control(j) /= -1 .and. ele%ix1_slave == 0) ele%ix1_slave = control(j)
-      if (control(j) /= -1) ele%ix2_slave = control(j)
+      if (control(j) /= -1) ele%n_slave = control(j) - ele%ix1_slave + 1
     enddo
-    ele%n_slave = ele%ix2_slave - ele%ix1_slave + 1
   enddo
 
 enddo
@@ -176,20 +174,19 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Don't do anything if nothing needs to be modified
 
-    i1 = ele%ic1_lord; i2 = ele%ic2_lord
+    i1 = ele%ic1_lord; i2 = ele%ic1_lord + ele%n_lord + ele%n_lord_field - 1
     if (i1 < 1) cycle
     if (ic(i1) == i1 .and. ic(i2) == i2) cycle
 
     ! Correct ic and n_lord info.
 
     ele%ic1_lord = 0  ! Start with no lords
-    ele%ic2_lord = -1
     ele%n_lord = 0
+    ele%n_lord_field = 0
     do j = i1, i2
       if (ic(j) /= -1 .and. ele%ic1_lord == 0) ele%ic1_lord = ic(j)
-      if (ic(j) /= -1) ele%ic2_lord = ic(j)
+      if (ic(j) /= -1) ele%n_lord = ic(j) - ele%ic1_lord + 1
     enddo
-    ele%n_lord = ele%ic2_lord - ele%ic1_lord + 1
 
     ! Correct slave_status
 
