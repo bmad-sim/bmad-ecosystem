@@ -5,13 +5,14 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 20
 
-a: quad, l = 1, y_pitch = 0.003
+a: quad, l = 1, y_pitch = 0.003, field_overlaps = b
 b: sext, l = 2, type = "A", x_pitch = 0.02, tilt = 0.2
 c: oct, l = 3, type = "", y_pitch = 0.002
+dd: drift, l = 10
 
 lm: line[multipass] = (a, b, c)
 
-ll: line = (lm, lm)
+ll: line = (lm, dd, lm)
 
 use, ll
 

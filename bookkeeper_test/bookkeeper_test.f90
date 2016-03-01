@@ -10,6 +10,7 @@ type (lat_struct), target :: lat, lat2
 type (ele_struct), pointer :: ele, nele
 type (ele_struct) a_ele
 type (coord_struct) orb
+type (control_struct), pointer :: ctl
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(100) str
@@ -33,7 +34,22 @@ endif
 
 !-------------
 
+open (1, file = 'output.now', recl = 200)
+
+!
+
 call bmad_parser ('bookkeeper_test2.bmad', lat)
+
+write (1, "(a, 100i4)") '"lat%ic"   ABS 0    ', lat%ic(1:lat%n_ic_max)
+do i = 1, lat%n_control_max
+  ctl => lat%control(i)
+  write (1, "(a, i0, a, 4i4)") '"lat%con', i, '"    ABS 0    ', ctl%slave, ctl%lord
+enddo
+
+do i = 1, lat%n_ele_max
+  ele => lat%ele(i)
+  write (1, "(a, i0, a, 6i4)") '"ele', i, '"    ABS 0    ', ele%ix1_slave, ele%n_slave, ele%n_slave_field, ele%ic1_lord, ele%n_lord, ele%n_lord_field
+enddo  
 
 do i = 1, lat%n_ele_max
   lat%ele(i)%select = .false.
@@ -46,8 +62,6 @@ call write_bmad_lattice_file('lat2.bmad', lat2)
 !-------------
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
-
-open (1, file = 'output.now', recl = 200)
 
 !
 
