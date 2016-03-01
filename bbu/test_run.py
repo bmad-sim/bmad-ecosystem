@@ -36,8 +36,8 @@ py_par = {  \
 'start_dr_arctime': 4.028*10**-9,  
 'end_dr_arctime': 4.725*10**-9,  
 'plot_drscan': True,   # Creates a python plot
-'random_homs': True,    # Will create a lattice file which randomly assigns hom data files to each cavity of the lattice
-#'random_homs': False,     # Set to False for DR scan
+#'random_homs': True,    #  (Threshold mode for now) Will create a lattice file which randomly assigns hom data files to each cavity of the lattice
+'random_homs': False,     # Set to False only when HOMs are PRE-assigned
 
 # Make sure hom_dir has the desired HOMs ( to be assigned randomly to cavities )
       # cut_HOM_lists has only 4 dominant lr_wakes for each assignment
@@ -63,7 +63,7 @@ def main(argv):
     print('Dr scan. No arguments given.')
     #n_jobs = 1
     bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'"
-    py_par['random_homs']='False'
+    #py_par['random_homs']='False'
     mode = 'dr_scan'
     working_dir = os.getcwd() #/bsim/bbu/examples/
     print('WORKING DIR ',os.getcwd())
@@ -81,9 +81,8 @@ def main(argv):
   py_par['temp_dir'] = make_tempdir( 1, working_dir )  
   os.chdir( py_par['temp_dir'])
   print('Temporary directory created:', py_par['temp_dir']) 
+ 
   bbu_par['lat_filename'] = '\''+os.path.join(py_par['temp_dir'],'temp_lat.lat')+'\'' 
-  # make_assign() will include the user-specified lat file and the random_hom latfile
-  print(bbu_par['lat_filename'])
 
 ## creates bbu_template.init which stores all bbu_par
   find_threshold.make_init( bbu_par, py_par['temp_dir'] )
