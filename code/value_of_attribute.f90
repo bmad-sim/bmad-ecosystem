@@ -20,7 +20,7 @@
 !   err_print_flag  -- Logical, optional: If present and True then print an error message if there is an  error.
 !
 ! Output:
-!   value      -- real(rp): Value of the attribute. Set to real_garbage if not found.
+!   value      -- real(rp): Value of the attribute. Set to real_garbage$ if not found.
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !-
 
