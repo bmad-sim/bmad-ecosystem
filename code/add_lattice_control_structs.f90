@@ -66,7 +66,7 @@ if (n_add_field > 0) then
 
   if (ele%ix1_slave < 1) then
     ele%ix1_slave = n_con + 1
-    lat%control(n_con+1:n_con+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, 0)
+    lat%control(n_con+1:n_con+n_add_field)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
 
   ! Else we need to make room in lat%control for the new slaves by moving
   ! a slice of lat%control.
