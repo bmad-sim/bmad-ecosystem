@@ -130,20 +130,6 @@ def calc_new_charge( t, bool_stable, rel_tol ):
     else:  # Still searching for an unstable point
       t['bunch_charge'] = t['bunch_charge'] * 2
 
-#==========================================================
-#def make_tempdir ( namecode, dir ):
-###################### Makes the temporary directory 
-#  my_tdir = tempfile.mkdtemp(str(namecode), 'bbu_temp_', dir)
-#  tdir = os.path.join(dir, my_tdir)
-#  return tdir
-#
-##==========================================================
-#def cleanup_workdir(tempdir):
-## Remove the temporary directory
-#  if (not os.path.exists(tempdir)):
-#    print('Error: workdir was already removed!: ', tempdir)
-#  else:
-#    shutil.rmtree(tempdir)
 
 #==========================================================
 def make_init ( bbu_params, temp_dir ):
