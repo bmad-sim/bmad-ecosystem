@@ -1,0 +1,18 @@
+
+
+
+!- - - Bends
+! soft bend for DU
+la.demer.ben01.angle =-1*pi/180
+la.demer.ben01: sbend, L = 0.3, fringe_type = full, angle = la.demer.ben01.angle, e1=0,e2=la.demer.ben01.angle
+
+la.demer.pip01: pipe
+la.demer.pip02: pipe
+
+la.demer.mar.beg: marker
+la.demer.mar.end: marker
+
+
+la.demer: line = (la.demer.mar.beg, 
+la.demer.ben01,
+la.demer.mar.end)

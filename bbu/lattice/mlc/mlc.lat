@@ -1,0 +1,6 @@
+call, file = './la.lat.bmad' 
+call, file = './mlc_assignHOMs.bmad'  
+
+!call, file = '~/nfs/linux_lib/bsim/bbu/la.lat.bmad' 
+!call, file = '~/nfs/linux_lib/bsim/bbu/mlc_assignHOMs.bmad'  
+!call, file = 'rand_assign_homs.bmad'  
