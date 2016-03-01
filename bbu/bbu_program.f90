@@ -43,7 +43,7 @@ endif
 
 ! Init and parse
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
-call bmad_parser (bbu_param%lat_filename, lat_in)
+call bmad_parser (bbu_param%lat_filename, lat_in) !! lat_in is the parsed lattice
 call twiss_propagate_all (lat_in)
 call lat_make_mat6(lat_in)  ! Necessary if a match lattice element is present.
 
@@ -68,7 +68,7 @@ if (bbu_param%hom_order_cutoff > 0) then
       deallocate (ele%wake%lr)
       cycle
     endif
-    !! If some HOMs order > m, extract the HOMs with order <= m 
+    !! If some (not all) HOMs order > m, extract the HOMs with order <= m 
     lr => ele%wake%lr
     nn = size(ele%wake%lr) - n    ! nn = number of HOMs to be kept
     allocate(ele%wake%lr(nn))
@@ -164,6 +164,7 @@ call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growt
 o = lunget() 
 open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
+print *, 'HOM VOLT: ',hom_voltage_gain
 write(o,'(a, es18.8)') 'v_gain = ', hom_voltage_gain
 write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
 write(o,'(a,es14.6)') 'bunch_dt = ', beam_init%dt_bunch

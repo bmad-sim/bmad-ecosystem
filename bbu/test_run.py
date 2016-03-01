@@ -7,7 +7,8 @@ from bbu import bbu_main, find_threshold, drscan  #imports bbu package in user p
 #bbu settings
 bbu_par = {  \
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'",  
-'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/mlc.lat'",   # Make sure the correct lattice is called 
+#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/mlc/mlc.lat'",   # Make sure the correct lattice is called 
+'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/cbeta_lat.bmad'",   # Make sure the correct lattice is called 
 'bunch_freq': 1.3e9,                # Freq in Hz.
 'limit_factor': 3,                   # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
 'simulation_turns_max': 1000,       # Must be greater than 10
@@ -27,7 +28,7 @@ bbu_par = {  \
 #py settings
 py_par = {  \
 'exec_path':'/home/wl528/nfs/linux_lib/production/bin/bbu', 
-#'exec_path':'/home/wl528/nfs/linux_lib/debug/bin/bbu', 
+#'exec_path':'/home/wl528/nfs/linux_lib/debug/bin/bbu',    
 #'ndata_pnts': 100, 
 'ndata_pnts': 30, 
 'threshold_start_curr': 1,
@@ -43,7 +44,7 @@ py_par = {  \
       # HOM_lists has 10, 20, 30, or 40 for each assignment 
 'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/cut_HOM_lists/',
 #'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/HOM_lists/',
-'temp_dir': ''   # Will be created
+'temp_dir': ''   # Will be created, leave it empty
 }
 
 # FOR EASE OF USE, KEEP THE COMMENTED LINES BELOW AND INCLUDE THEM WHEN DESIRED
@@ -70,7 +71,7 @@ def main(argv):
     print ('3 arguments given, threshold (current) mode')
     n_jobs = int(sys.argv[1])  # Number of times to run 
     f_n  = int(sys.argv[2])  # File number to be saved as 
-    working_dir = sys.argv[3]  # Location for temp directory
+    working_dir = sys.argv[3]  # Location to store output files
     mode = 'threshold'
 ######################################################################
 

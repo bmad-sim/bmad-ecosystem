@@ -1,3 +1,69 @@
+BBU program 2016 (updated by William Lou)
+=======================================
+For the 2015 version, refers to Mary(mt728)'s BBU directory
+======================================
+
+SET UP
+--------------------------------------
+1) Obtain the BBU package from SVN.                         
+   "/home/USERNAME/nfs/linux_lib/bsim/bbu" should be created.
+   (To compile, "mk" and "mkd" under /bsim )
+2) Update your python path. Add this line to your .bashrc file (with YOUR username):
+   "export PYTHONPATH=${PYTHONPATH}:/home/USERNAME/nfs/linux_lib/bsim/bbu/python"
+3) In test_run.py, properly set the BBU parameters and Python parameters.
+   Make sure the desired lattice file is called
+-------------------------------------
+
+
+
+RUN BBU
+  Note: the output files will be stored in the working directory at which python3 is called.   
+--------------------------------------
+1) DR_SCAN:  
+       Command:  python3 .../test_run.py  
+       Obtain (Ith v.s. tr/tb) for a lattice with one cavity and varying arclength
+       Can produce the plot for PRSTAB 7 (2004) Fig. 3. (with one dipole HOM assigned, and one-time recirculation)
+       Output file: thresh_v_trotb.txt
+2) THRESHOLD (CURRENT):                                                           
+       Command:  python3 .../test_run.py  N  fn  output_dir
+       For a fixed lattice with many cavities assigned with (random) HOMs,
+       compute the threshold current for N times. 
+       (fn is the job number reserved for grid submission, set to any number if not submitting)
+       Output file:  bbu_threshold_fn.txt  and   rand_assign_homs_fn.txt 
+
+Important files
+--------------------------------------
+-> BBU Fortran codes (Core Computation):                 
+(Loaction: .../bsim/bbu/*)
+   1)  bbu_program.f90  ---  Main bmad / tracking code
+   2)  bbu_track_mod.f90  ---  BBU tracking and analysis modules
+                                     
+-> Python main user interface  ( Most upper-level program )
+(Location: .../bsim/bbu/*)
+   1) test_run.py --- The only file to be modified by a user (formerly as run_examp_bbu.py)
+                  --- Define all BBU and python parameters, and calls the Fortran package
+                  --- Create and Clean up the temporary directory
+
+-> Python package (Call BBU Fortran codes; intermediate calculation, file organization):
+(Location: .../bsim/bbu/python/bbu/*)
+
+  1) bbu_main.py  ---  Parse BBU result. Calls other python codes.
+  2) find_threshold.py  ---  The core of the threshold calculation; 
+                             Prepare temporary files to run bbu / runs bbu_program.f90
+  3) drscan.py  ---  Prepares drscan files and plots. lat2.lat (temp) and thresh_v_trotb.txt will be created.
+  
+-> Extra stand-alone programs  
+  1) cut_HOM.py  ---  Accepts a directory full of wakefiled data files and a maximum number (N) of desired HOMs per file
+                 and creates a new user-specified directory of corresponding files cut to include only the most influential N HOMs
+                 (An independent python program)
+  2) grid_submitter.sge --- To submit to a grid for (time-consuming) threshold calculation (specifies the number of jobs)
+                        --- calls mlc.sge, which specifies the number of runs PER job 
+                        --- To clean up the output (and error) messages, run clean_grid_messages.rc
+  2) collect_thresholds.py  --- Summarizes the calculated threshold currents stored in the "bbu_thresholds_*" output files
+                                Usually used after a complete grid submission
+                            --- Output: bbu_combined_thresholds.txt
+=====================================================================================
+
 BBU PROGRAM __ 2015
 
 GENERAL USAGE NOTES
