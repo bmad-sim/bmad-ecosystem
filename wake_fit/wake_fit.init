@@ -1,0 +1,10 @@
+&params
+  mode(1) = 1, 0, 0.1
+  n_mode = 1
+  ix_data_start = 1
+  n_data = 3
+  amp_weight = 1e-10
+  n_cycles = 100
+  negligible_merit = 1e-6
+/
+
