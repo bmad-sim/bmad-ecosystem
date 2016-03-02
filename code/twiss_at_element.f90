@@ -87,7 +87,6 @@ case (multipass_lord$, super_lord$, girder_lord$)
 
 case default   ! overlay$ or group$
 
-  ele2 => ele
   call get_slave_list (ele, slaves, n_slave)
   ix1 = branch%n_ele_track;  ix2 = 0
   do i = 1, n_slave
@@ -112,12 +111,12 @@ end select
 
 if (.not. present(average)) return
 call zero_ave (average)
-if (ele2%n_slave == 0) return
-key = ele2%key
+if (ele%n_slave == 0) return
+key = ele%key
 
 tot = 0
-do i = 1, ele2%n_slave
-  slave => pointer_to_slave(ele2, i, ctl)
+do i = 1, ele%n_slave
+  slave => pointer_to_slave(ele, i, ctl)
   if (key == group$ .or. key == overlay$) then
     tot = tot + abs(linear_coef(ctl%stack, err_flag)) * slave%value(l$)
   else
@@ -125,11 +124,11 @@ do i = 1, ele2%n_slave
   endif
 enddo
 
-do i = 1, ele2%n_slave
-  slave => pointer_to_slave(ele2, i, ctl)
+do i = 1, ele%n_slave
+  slave => pointer_to_slave(ele, i, ctl)
   call twiss_at_element (slave, average = slave_ave)
   if (tot == 0) then
-    rr = 1.0 / ele2%n_slave
+    rr = 1.0 / ele%n_slave
   elseif (key == group$ .or. key == overlay$) then
     rr = abs(linear_coef(ctl%stack, err_flag)) * slave_ave%value(l$) / tot
   else
