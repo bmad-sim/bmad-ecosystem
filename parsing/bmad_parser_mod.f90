@@ -4272,7 +4272,7 @@ if (n_loc == 1) then
   ref_branch => pointer_to_branch(ref_ele)
   if (ref_ele%iyy == 0 .and. ref_branch%ix_branch == branch%ix_branch) then
     call compute_super_lord_s (eles(1)%ele, super_ele, pele, ix_insert)
-    ele_at_s => pointer_to_element_at_s (branch, super_ele%s, .true., err_flag)
+    ele_at_s => pointer_to_element_at_s (branch, super_ele%s-super_ele%value(l$), .true., err_flag)
     if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
     if (.not. err_flag) then
       if (ele_at_s%iyy /= 0) then  ! If in multipass region...
