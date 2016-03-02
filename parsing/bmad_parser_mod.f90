@@ -1320,7 +1320,8 @@ case ('FIELD_OVERLAPS')
   nn = size(name_list)
 
   if (present(pele)) then
-    n = size(pele%field_overlaps)
+    n = 0
+    if (allocated(pele%field_overlaps)) n = size(pele%field_overlaps)
     call re_allocate (pele%field_overlaps, n+nn)
     pele%field_overlaps(n+1:n+nn) = name_list
 
