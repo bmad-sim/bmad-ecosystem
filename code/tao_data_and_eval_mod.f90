@@ -1068,6 +1068,7 @@ case ('e_tot')
     else
       orb => orbit(ix_ref)
     endif
+    if (orb%state == not_set$) return
     call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(ix_ref))
   endif
 
@@ -1077,6 +1078,7 @@ case ('e_tot')
     else
       orb => orbit(i)
     endif
+    if (orb%state == not_set$) return
     call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
   enddo
 

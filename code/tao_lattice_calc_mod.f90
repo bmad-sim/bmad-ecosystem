@@ -541,14 +541,15 @@ do j = ie1, ie2
     n = size(beam%bunch(n_bunch)%particle(:))
     if (size(s%u) == 1) then
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost at element \i0\: ' // trim(ele%name) // &
+            '\i0\ particle(s) lost at element ' // trim(ele_loc_to_string(ele)) // ': ' // trim(ele%name) // &
             '  Total lost: \i0\  of \i0\ ', &
-            i_array = [n_lost-n_lost_old, j, n_lost, n])
+            i_array = [n_lost-n_lost_old, n_lost, n])
     else
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // trim(ele%name) // &
+            '\i0\ particle(s) lost in universe \i0\ at element ' // trim(ele_loc_to_string(ele)) // &
+                                                                           ': ' // trim(ele%name) // &
             '  Total lost: \i0\  of \i0\ ', &
-            i_array = [n_lost-n_lost_old, u%ix_uni, j, n_lost, n])
+            i_array = [n_lost-n_lost_old, u%ix_uni, n_lost, n])
     endif
     n_lost_old = n_lost
   endif
@@ -557,8 +558,8 @@ do j = ie1, ie2
     ix_track = j
     lost = .true.
     call out_io (s_warn$, r_name, &
-            "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
-            // trim(ele%name), j)
+            'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_to_string(ele)) // &
+                                          ': ' // trim(ele%name))
   endif
 
   ! calc bunch params
