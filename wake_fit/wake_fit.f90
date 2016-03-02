@@ -15,6 +15,7 @@ type wake_mode_struct
   real(rp) amp    ! Amplitude
   real(rp) damp   ! Damping factor
   real(rp) k      ! wave number
+  real(rp) phi    ! phase
 end type
 
 type (wake_mode_struct) mode(100)
@@ -44,7 +45,7 @@ close (1)
 
 ! Fit
 
-n_var = 3 * n_mode
+n_var = 4 * n_mode
 n_y = n_mode + n_data
 
 allocate (weight(n_y), y(n_y), y_fit(n_y), a(n_var))
@@ -60,30 +61,36 @@ do id = 1, n_data
 enddo
 
 do iv = 1, n_mode
-  iv0 = 3 * (iv - 1)
+  iv0 = 4 * (iv - 1)
   a(iv0+1) = mode(iv)%amp
   a(iv0+2) = mode(iv)%damp
   a(iv0+3) = mode(iv)%k
+  a(iv0+4) = mode(iv)%phi
 enddo
 
 !
 
 merit_min = merit()
 ix_min = 0
+a_lambda = -1
 
 do i = 1, 1000000
   call super_mrqmin (y, weight, a, covar, alpha, chisq, mrq_func, a_lambda, status)
+  if (status /= 0) then
+    a_lambda = 2 * a_lambda
+    cycle
+  endif
   call mrq_func (a, y_fit, dy_da, status)
 
   merit_now = merit()
-  print '(i5, es14.4, es10.2, 10x, 100f10.4)', i, merit_now, a_lambda, (y(j)-y_fit(j), j = 1, n_y)
+  print '(i5, es14.4, es10.2, 10x, 100f10.4)', i, sqrt(merit_now)/n_data, a_lambda, (y(j)-y_fit(j), j = n_mode+1, n_mode+min(n_data, 10))
 
   if (merit_now < 0.99 * merit_min) then
     merit_min = merit_now
     ix_min = i
   endif
 
-  if (ix_min - i > n_cycles .or. a_lambda > 1d10) then
+  if (i - ix_min > n_cycles .or. a_lambda > 1d10) then
     print *, 'At local minimum. Stopping.'
     exit
   endif
@@ -99,7 +106,7 @@ enddo
 
 print *
 do i = 1, n_mode
-  print '(i5, 3f10.5)', i, mode(i)%amp, mode(i)%damp, mode(i)%k
+  print '(a, i0, a, 4f12.7)', '  mode(', i, ') =', mode(i)%amp, mode(i)%damp, mode(i)%k, mode(i)%phi
 enddo
 
 !----------------------------------------------------------------------------------
@@ -110,7 +117,7 @@ subroutine mrq_func (a, y_fit, dy_da, status)
 real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
-real(rp) damp, cosine
+real(rp) damp, c, s
 
 integer status
 integer j, iv, id, iid, iy, iv0
@@ -122,23 +129,34 @@ dy_da = 0
 y_fit = 0
 
 do iv = 1, n_mode
-  iv0 = 3*(iv-1)
-  mode(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3))
+  iv0 = 4*(iv-1)
+  if (a(iv0+2) < 0) then   ! negative damp factor not allowed.
+    status = 1
+    return
+  endif
+enddo
+
+do iv = 1, n_mode
+  iv0 = 4*(iv-1)
+  mode(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3), a(iv0+4))
   y_fit(iv) = a(iv0+1)
   dy_da(iv,iv0+1) = 1
 enddo
+
 
 do id = 1, n_data
   iy = id + n_mode
   iid = id + ix_data_start - 1
   do iv = 1, n_mode
-    iv0 = 3*(iv-1)
+    iv0 = 4*(iv-1)
     damp = exp(-iid * a(iv0+2)) 
-    cosine = cos(iid * a(iv0+3))
-    y_fit(iy) = y_fit(iy) + a(iv0+1) * damp * cosine
-    dy_da(iy, iv0+1) = damp * cosine
-    dy_da(iy, iv0+2) = -iid * a(iv0+1) * damp * cosine
-    dy_da(iy, iv0+3) = -a(iv0+1) * damp * sin(iid * a(iv0+3))
+    c = cos(iid * a(iv0+3) + a(iv0+4))
+    s = sin(iid * a(iv0+3) + a(iv0+4))
+    y_fit(iy) = y_fit(iy) + a(iv0+1) * damp * c
+    dy_da(iy, iv0+1) =                   damp * c
+    dy_da(iy, iv0+2) = -iid * a(iv0+1) * damp * c
+    dy_da(iy, iv0+3) = -iid * a(iv0+1) * damp * s
+    dy_da(iy, iv0+4) =       -a(iv0+1) * damp * s
   enddo
 enddo
 
@@ -165,7 +183,7 @@ do id = 1, n_data
   y_fit = 0
   do iv = 1, n_mode
     damp = exp(-iid * mode(iv)%damp) 
-    c = cos(iid * mode(iv)%k)
+    c = cos(iid * mode(iv)%k + mode(iv)%phi)
     y_fit = y_fit + mode(iv)%amp * damp * c
   enddo
   this_merit = this_merit + (1 / sqrt(real(iid, rp)) - y_fit)**2

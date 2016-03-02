@@ -1,8 +1,6 @@
 set (EXENAME wake_fit)
 
-set (SRC_FILES
-  wake_fit/wake_fit.f90
-)
+FILE (GLOB SRC_FILES "wake_fit/*.f90")
 
 set (INC_DIRS
 )
