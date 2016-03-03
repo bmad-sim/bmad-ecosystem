@@ -25,10 +25,10 @@ character(100) fm, fm2
 
 if (logic_option(.false., lots_of_digits)) then
   fm  = '(6es25.15)'
-  fm2 = '(2i8, f10.1, 5x, 3es25.15, 2(6x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10)' 
+  fm2 = '(i7, i4, f10.2, 5x, 3es25.15, 2(5x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10)' 
 else
   fm  = '(6f12.6)'
-  fm2 = '(2i8, f10.1, 5x, 2f12.6, f14.6, 2(6x, 3f12.6), 10x, 3f12.6, 5x, 3f12.6)'
+  fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6)'
 endif
 
 

@@ -374,7 +374,7 @@ if (photon_start_input_file /= '') then
           read (1, nml = start) ! will generate error message
         enddo
       endif
-      ix_ele = element_at_s(lat, photon%start%orb%s, .true., branch%ix_branch)
+      ix_ele = element_at_s(lat, orbit%vec(5), .true., branch%ix_branch)
       call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
       photon%start%orb%s = orbit%vec(5)
 
