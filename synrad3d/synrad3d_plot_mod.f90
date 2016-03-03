@@ -815,41 +815,4 @@ end subroutine calc_this_outline
 
 end subroutine sr3d_plot_wall_cross_sections
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine sr3d_find_wall_point (photon, branch, x_wall, y_wall, no_wall_here, dw_perp)
-
-implicit none
-
-type (sr3d_photon_track_struct) photon
-type (branch_struct) branch
-
-real(rp) x_wall, y_wall
-real(rp), optional :: dw_perp(3)
-real(rp) d_radius, r_wall, r_part, origin(3)
-
-logical no_wall_here ! No wall at this s-position?
-
-!
-
-
-photon%now%orb%ix_ele = element_at_s (branch%lat, photon%now%orb%s, .true., branch%ix_branch)
-call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, origin)
-if (no_wall_here) return
-
-if (d_radius < 0) then
-  print *, 'INTERNAL COMPUTATION ERROR!'
-  call err_exit
-endif
-
-r_part = sqrt((photon%now%orb%vec(1) - origin(1))**2 + (photon%now%orb%vec(3) - origin(2))**2)
-r_wall = r_part - d_radius
-
-x_wall = origin(1) + (photon%now%orb%vec(1) - origin(1)) * r_wall / r_part
-y_wall = origin(2) + (photon%now%orb%vec(3) - origin(2)) * r_wall / r_part
-
-end subroutine sr3d_find_wall_point
-
 end module
