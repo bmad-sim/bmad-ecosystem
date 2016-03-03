@@ -199,6 +199,12 @@ real(rp), allocatable, save :: value(:)
 character(*) :: what, stuff
 character(*), parameter :: r_name = "tao_show_cmd"
 
+character(*), allocatable :: lines(:)
+character(*) result_id
+character(n_char_show) line, line1, line2, line3
+character(n_char_show) stuff2
+character(9) angle_str
+
 character(3) undef_str
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = ''
@@ -219,12 +225,6 @@ character(16) :: show_what, show_names(32) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ']
-
-character(*), allocatable :: lines(:)
-character(*) result_id
-character(n_char_show) line, line1, line2, line3
-character(n_char_show) stuff2
-character(9) angle_str
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -522,23 +522,26 @@ case ('branch')
   endif
 
   nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default'
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry'
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry  From_Fork'
 
 
-  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a)'
+  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, a)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
+    ele_name = ''
+    if (branch%ix_from_ele > 0) write (ele_name, '(i0, a, i0)') branch%ix_from_branch, '>>', branch%ix_from_ele
+
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
               trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
-              trim(geometry_name(branch%param%geometry))
+              trim(geometry_name(branch%param%geometry)), ele_name
   enddo
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = '                                                                               Defines'
-  nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                      Direction    To_Branch?'
+  nl=nl+1; lines(nl) = '                                                                                        Defines'
+  nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                              Direction    To_Branch?'
   nl0 = nl
 
-  fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t70, i2, l14)'
+  fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t75, i2, l14)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     do j = 1, branch%n_ele_max

@@ -148,7 +148,6 @@ type (spin_polar_struct) spin
 
 integer i, k, iu, ios, ib, n_uni
 integer n, iostat, ix_universe, to_universe
-integer ix_track_start, ix_track_end
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
@@ -160,8 +159,7 @@ character(60), target :: save_beam_at(100)   ! old style syntax
 logical err
 
 namelist / tao_beam_init / ix_universe, beam0_file, &
-  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
-  beam_saved_at, track_start, track_end
+          beam_all_file, beam_init, beam_saved_at, beam_saved_at, track_start, track_end
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -215,8 +213,6 @@ do
   save_beam_at  = ''
   track_start = ''
   track_end = ''
-  ix_track_start = 0
-  ix_track_end = -1
 
   ! Read beam parameters
 
@@ -267,9 +263,8 @@ close (iu)
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 contains
-!
+
 ! Initialize the beams. Determine which element to track beam to
-!
 
 subroutine init_beam (u)
 
@@ -303,8 +298,6 @@ if (track_start /= '') then
     call err_exit
   endif
   uni_branch0%ix_track_start = eles(1)%ele%ix_ele
-else
-  uni_branch0%ix_track_start = ix_track_start
 endif
 
 if (track_end /= '') then
@@ -318,8 +311,6 @@ if (track_end /= '') then
     call err_exit
   endif
   uni_branch0%ix_track_end = eles(1)%ele%ix_ele
-else
-  uni_branch0%ix_track_end = ix_track_end
 endif
 
 u%beam%beam_init = beam_init

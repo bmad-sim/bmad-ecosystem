@@ -50,7 +50,7 @@ type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: scan
 
 real(rp) tt
-integer iuni, j, ib, ix, n_max, iu, it, id, ie
+integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
@@ -115,7 +115,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, ib)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
-      call tao_inject_beam (u, tao_lat, ib, this_calc_ok)
+      call tao_inject_beam (u, tao_lat, ib, this_calc_ok, ix_ele0)
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) then
         if (ib == 0) then
@@ -128,7 +128,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         tao_lat%lat_branch(ib)%bunch_params(:)%n_particle_live = 0
         exit
       endif
-      call tao_beam_track (u, tao_lat, this_calc_ok, ib)
+      call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
 
@@ -419,7 +419,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in circular lattices. 
 ! If extracting from a lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (u, tao_lat, calc_ok, ix_branch)
+subroutine tao_beam_track (u, tao_lat, calc_ok, ix_branch, ix_ele0)
 
 implicit none
 
@@ -439,7 +439,7 @@ type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (bunch_params_struct), pointer :: bunch_params
 
-integer what_lat, n_lost_old
+integer ix_ele0, what_lat, n_lost_old
 integer i, j, n, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_track
 integer n_lost, ix_branch
@@ -503,9 +503,9 @@ endif
 ! The reference orbit for the transfer matrix calculation is taken to be the nominal 
 ! bunch center rather then the computed center to prevent jitter from changing things.
 
-ie1 = uni_branch%ix_track_start
+ie1 = ix_ele0
 ie2 = branch%n_ele_track
-if (uni_branch%ix_track_end > -1) ie2 = uni_branch%ix_track_end
+if (uni_branch%ix_track_end > -1 .and. ix_branch == 0) ie2 = uni_branch%ix_track_end
 
 print_err = .true.
 
@@ -693,10 +693,20 @@ end subroutine tao_inject_particle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+! Subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
 !
-! This will initialize the beam.
-
-subroutine tao_inject_beam (u, model, ix_branch, init_ok)
+! This will initialize the beam for a given lattice branch.
+!
+! Input:
+!   u         -- tao_universe_struct: Universe containing the lattice.
+!   model     -- tao_lattic_struct: Universe parameters.
+!   ix_branch -- integer: Lattice branch index to inject into.
+!
+! Output:
+!   init_ok   -- logical: Set False if there are problems. True otherwise.
+!   ix_ele0   -- integer: Index of element injected into in branch. Typically = 0.
+!-
+subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
 
 use tao_read_beam_mod
 
@@ -713,6 +723,7 @@ type (beam_struct), pointer :: beam
 type (coord_struct), pointer :: orbit
 
 real(rp) v(6)
+integer ix_ele0
 integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 
 character(20) :: r_name = "tao_inject_beam"
@@ -723,6 +734,7 @@ logical err, init_ok
 ! If using beam info from a file then no init necessary.
 
 init_ok = .true.
+ix_ele0 = 0
 
 if (s%com%use_saved_beam_in_tracking) return
 
@@ -735,11 +747,11 @@ if (ix_branch > 0) then
   ib = branch%ix_from_branch
   ie = branch%ix_from_ele
   if (.not. allocated (u%uni_branch(ib)%ele(ie)%beam%bunch)) then
-    call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // &
-                                                   u%model%lat%branch(ib)%ele(ie)%name)
+    call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ie)%name)
     init_ok = .false.
   else
-    uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
+    ix_ele0 = nint(model%lat%branch(ib)%ele(ie)%value(ix_to_element$))
+    uni_branch%ele(ix_ele0)%beam = u%uni_branch(ib)%ele(ie)%beam
   endif
   return
 endif
@@ -787,11 +799,10 @@ endif
 
 if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-  call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
-                                    model%lat%param, beam_init, beam, err)
+  ix_ele0 = uni_branch%ix_track_start
+  call init_beam_distribution (model%lat%ele(ix_ele0), model%lat%param, beam_init, beam, err)
   if (err) then
-    call out_io (s_fatal$, r_name, &
-      'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
+    call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     call err_exit
   endif
 

@@ -743,14 +743,14 @@ circular lattices the Twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 
-\vn{track_start} and \vn{track_end} are used when it is desired
-to only track the beam through part of the lattice.
-\vn{track_start} gives the starting element name or index. Tracking will
-start at the exit end of this element so the beam {\em will not} be
-tracked through this element. The tracking will end at the exit end of
-the lattice element with name or index \vn{track_end}. The default, if
-\vn{track_start} and \vn{track_end} are not present, is to track
-through the entire lattice.
+\vn{track_start} and \vn{track_end} are used when it is desired to only track the beam
+through part of the root lattice branch.  \vn{track_start} gives the starting element name
+or index. Tracking will start at the exit end of this element so the beam {\em will not}
+be tracked through this element. The tracking will end at the exit end of the lattice
+element with name or index \vn{track_end}. The default, if \vn{track_start} and
+\vn{track_end} are not present, is to track through the entire root lattice branch.
+\vn{track_start} and \vn{track_end} is ignored for lattice branches other than the root
+branch (branch 0).
 
 If spin tracking is desired then \vn{beam_init%init_spin} must be set
 to true.  If it is desired to use the exact same distribution of
