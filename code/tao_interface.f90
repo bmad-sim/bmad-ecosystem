@@ -93,6 +93,13 @@ interface
     implicit none
   end subroutine
 
+  subroutine tao_hook_draw_floor_plan (plot, graph)
+    import
+    implicit none
+    type (tao_plot_struct) plot
+    type (tao_graph_struct) graph
+  end subroutine
+ 
   subroutine tao_hook_draw_graph (plot, graph, found)
     import
     implicit none
