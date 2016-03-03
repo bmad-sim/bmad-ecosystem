@@ -199,7 +199,7 @@ do
   photon%ix_photon = n_photon
 
   call sr3d_track_photon (photon, branch, wall_hit, err, .true.)
-  call print_hit_points (2, photon, wall_hit)  
+  call sr3d_print_hit_points (2, photon, wall_hit)  
 
 enddo
 

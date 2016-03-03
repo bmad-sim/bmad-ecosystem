@@ -290,7 +290,7 @@ end subroutine sr3d_plot_reflection_probability
 !   wall_hit_file -- character(*): Photon trajectory file for plotting the trajectory.
 !-
 
-subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane, wall_hit_file)
+subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
 
 implicit none
 
@@ -308,11 +308,11 @@ real(rp), pointer :: photon_xy, wall_xy
 integer i, n, ix, iw, i_chan, ios, i0, i1
 integer n_phot1, n_phot2, n_hit1, n_hit2
 
-character(*) plane, wall_hit_file
+character(*) plane
 character(16) plane_str
 character(40) :: ans
 
-logical xy_user_good, s_user_good, no_wall_here, found, good_tracks
+logical xy_user_good, s_user_good, no_wall_here, found, good_wall_hit, good_photon_track
 logical, allocatable :: no_wall(:)
 
 ! Open plotting window
@@ -441,24 +441,43 @@ do
 
   ! Plot photon trajectories if trajectory file exists
 
-  if (wall_hit_file /= '') then
-    inquire (file = wall_hit_file, exist = good_tracks)
-    if (good_tracks) then
-      open (10, file = wall_hit_file, iostat = ios)
+  good_photon_track = .false.
+  if (sr3d_params%photon_track_file /= '') inquire (file = sr3d_params%photon_track_file, exist = good_photon_track)
+
+  good_wall_hit = .false.
+  if (sr3d_params%wall_hit_file /= '') inquire (file = sr3d_params%wall_hit_file, exist = good_wall_hit)
+
+  if (good_photon_track) then
+    open (10, file = sr3d_params%photon_track_file, iostat = ios)
+    read (10, *, iostat = ios) n_phot2, r2
+    do 
+      n_phot1 = n_phot2; r1 = r2
+      read (10, *, iostat = ios) n_phot2, r2
+      if (ios /= 0) exit
+      if (n_phot2 /= n_phot1) cycle
+      if (plane == 'xs') then
+        call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
+      else
+        call qp_draw_line(r1(3), r2(3), 100*r1(2), 100*r2(2))
+      endif
+    enddo
+    close (10)
+
+  elseif (good_wall_hit) then
+    open (10, file = sr3d_params%wall_hit_file, iostat = ios)
+    read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
+    do 
+      n_phot1 = n_phot2; n_hit1 = n_hit2; r1 = r2
       read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
-      do 
-        n_phot1 = n_phot2; n_hit1 = n_hit2; r1 = r2
-        read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
-        if (ios /= 0) exit
-        if (n_phot2 /= n_phot1) cycle
-        if (plane == 'xs') then
-          call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
-        else
-          call qp_draw_line(r1(3), r2(3), 100*r1(2), 100*r2(2))
-        endif
-      enddo
-      close (10)
-    endif
+      if (ios /= 0) exit
+      if (n_phot2 /= n_phot1) cycle
+      if (plane == 'xs') then
+        call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
+      else
+        call qp_draw_line(r1(3), r2(3), 100*r1(2), 100*r2(2))
+      endif
+    enddo
+    close (10)
   endif
 
   ! Query

@@ -2,15 +2,15 @@ module synrad3d_output_mod
 
 use synrad3d_utils
 
+implicit none
+
 contains
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 
-subroutine print_hit_points (iu_hit_file, photon, wall_hit, lots_of_digits)
-
-implicit none
+subroutine sr3d_print_hit_points (iu_hit_file, photon, wall_hit, lots_of_digits)
 
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), pointer :: hit
@@ -70,6 +70,22 @@ if (iu_hit_file == -1) then
   print *, 'Written file: error_photon_start'
 endif
 
-end subroutine print_hit_points
+end subroutine sr3d_print_hit_points
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+
+subroutine sr3d_record_photon_position (photon)
+
+type (sr3d_photon_track_struct), target :: photon
+type (coord_struct), pointer :: orb
+
+!
+
+orb => photon%now%orb
+write (sr3d_params%iu_photon_track, '(i8, 3f12.6, 5x, 3f12.6)') photon%ix_photon, orb%vec(1:3:2), orb%s, orb%vec(2:6:2)
+
+end subroutine sr3d_record_photon_position
 
 end module

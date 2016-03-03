@@ -42,7 +42,7 @@ integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
 integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
 
-character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
+character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file, photon_track_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg, line
@@ -59,7 +59,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
-            surface_roughness_rms, roughness_correlation_len
+            surface_roughness_rms, roughness_correlation_len, photon_track_file
 
 namelist / start / orbit, ran_state, random_seed
 
@@ -146,6 +146,7 @@ emit_b = -1
 sig_e  = -1
 dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
+photon_track_file = ''
 photon_direction = 1
 e_init_filter_min = -1
 e_init_filter_max = -1
@@ -157,7 +158,6 @@ wall_hit_file = ''
 reflect_file = ''
 lat_ele_file = ''
 iu_lat_file = 0
-iu_hit_file = 0
 photon_start_output_file = ''
 num_photons = -1
 num_photons_per_pass = -1
@@ -167,6 +167,7 @@ surface_roughness_rms = -1; roughness_correlation_len = -1
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
+sr3d_params%iu_wall_hit = 0
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -177,6 +178,8 @@ print *,'Lattice file: ',trim(lattice_file)
 print *,'Wall file: ',trim(wall_file)
 
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
+sr3d_params%photon_track_file = photon_track_file
+sr3d_params%wall_hit_file = wall_hit_file
 
 call ran_seed_put (random_seed)
 
@@ -210,7 +213,7 @@ if (plotting /= '') then
   if (plotting == 'xy') then
     call sr3d_plot_wall_cross_sections (plot_param, branch)
   elseif (plotting == 'xs' .or. plotting == 'ys') then
-    call sr3d_plot_wall_vs_s (plot_param, branch, plotting, wall_hit_file)
+    call sr3d_plot_wall_vs_s (plot_param, branch, plotting)
   elseif (index('reflect', trim(plotting)) == 1) then
     call sr3d_plot_reflection_probability(plot_param, branch)
   else
@@ -295,10 +298,10 @@ endif
 
 ! Open data files.
 
-if (wall_hit_file /= '') then
-  iu_hit_file = lunget()
-  open (iu_hit_file, file = wall_hit_file, recl = 300)
-  print *, 'Creating photon hit point output file: ', trim(wall_hit_file)
+if (sr3d_params%wall_hit_file /= '') then
+  sr3d_params%iu_wall_hit = lunget()
+  open (sr3d_params%iu_wall_hit, file = sr3d_params%wall_hit_file, recl = 300)
+  print *, 'Creating photon hit point output file: ', trim(sr3d_params%wall_hit_file)
 endif
 
 if (lat_ele_file /= '') then
@@ -317,6 +320,11 @@ open (1, file = dat_file)
 open (3, file = trim(dat_file) // '_table', recl = 240)
 print *, 'Data file is: ', trim(dat_file)
 print *, 'Data file in table format is: ', trim(dat_file) // '_table'
+
+if (sr3d_params%photon_track_file /= '') then
+  open (5, file = sr3d_params%photon_track_file)
+  sr3d_params%iu_photon_track = 5
+endif
 
 ! Write header info
 
@@ -389,7 +397,7 @@ if (photon_start_input_file /= '') then
     ! This is used for diagnostic purposes.
 
     if (photon%ix_photon_generated == ix_photon_out) then
-      call print_hit_points (-1, photon, wall_hit)
+      call sr3d_print_hit_points (-1, photon, wall_hit)
        stop
      endif
 
@@ -403,7 +411,7 @@ if (photon_start_input_file /= '') then
     call check_filter_restrictions(ok, .false.)
     if (.not. ok) cycle
 
-    call print_hit_points (iu_hit_file, photon, wall_hit)
+    call sr3d_print_hit_points (sr3d_params%iu_wall_hit, photon, wall_hit)
     call write_photon_data (n_photon_array, photon)
 
   enddo photon_loop
@@ -526,7 +534,7 @@ else
         ! This is used for diagnostic purposes.
 
         if (photon%ix_photon_generated == ix_photon_out) then
-          call print_hit_points (-1, photon, wall_hit)
+          call sr3d_print_hit_points (-1, photon, wall_hit)
           stop
         endif
 
@@ -540,7 +548,7 @@ else
         call check_filter_restrictions (ok, .false.)
         if (.not. ok) cycle
 
-        call print_hit_points (iu_hit_file, photon, wall_hit)
+        call sr3d_print_hit_points (sr3d_params%iu_wall_hit, photon, wall_hit)
         call write_photon_data (n_photon_array, photon)
 
       enddo
