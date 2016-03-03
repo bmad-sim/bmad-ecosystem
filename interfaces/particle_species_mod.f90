@@ -757,6 +757,9 @@ integer species, n_nuc, ppp
 character(*), parameter :: r_name = 'mass_of'
 
 ! Fundamental particle
+
+mass = real_garbage$
+
 if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
 	mass = mass_of_fundamental(species)
 	return
