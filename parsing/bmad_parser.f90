@@ -71,7 +71,7 @@ character(*), optional :: use_line
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_2, name
-character(40) this_name, word_1
+character(40) this_name, word_1, branch_name
 character(40), allocatable ::  in_name(:), seq_name(:)
 character(80) debug_line
 character(200) full_lat_file_name, digested_file, call_file
@@ -762,14 +762,14 @@ branch_loop: do i_loop = 1, n_branch_max
     if (use_line_str == '') exit
     ix = index(use_line_str, ',')
     if (ix == 0) then
-      this_name = use_line_str
+      branch_name = use_line_str
       use_line_str = ''
     else
-      this_name = use_line_str(1:ix-1)
+      branch_name = use_line_str(1:ix-1)
       use_line_str = use_line_str(ix+1:)
     endif
 
-    call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
+    call parser_expand_line (lat, branch_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
                                                             in_lat, n_ele_use, is_true(param_ele%value(no_end_marker$)))
     if (bp_com%fatal_error_flag) then
       call parser_end_stuff (.false.)
@@ -780,8 +780,7 @@ branch_loop: do i_loop = 1, n_branch_max
   else
     ele => branch_ele(1)%ele
     call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, &
-                                      is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch)
-    this_name = ele%component_name
+                                      is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch, branch_name)
     is_photon_fork = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
     branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
@@ -791,7 +790,7 @@ branch_loop: do i_loop = 1, n_branch_max
   n_branch = ubound(lat%branch, 1)
   branch => lat%branch(n_branch)
 
-  call find_indexx (this_name, in_name, 0, in_indexx, n_max, ix)
+  call find_indexx (branch_name, in_name, 0, in_indexx, n_max, ix)
   ele => in_lat%ele(ix) ! line_ele element associated with this branch.
   ele0 => branch%ele(0)
 
@@ -1064,6 +1063,10 @@ enddo
 ! Now put in the overlay, girder, and group elements
 
 call parser_add_lord (in_lat, n_max, plat, lat)
+
+! fork element to element bookkeeping
+
+call parser_identify_fork_to_element(lat)
 
 ! Skiped to here if XSIF was called
 

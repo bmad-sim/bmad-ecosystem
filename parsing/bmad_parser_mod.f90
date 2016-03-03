@@ -5727,7 +5727,7 @@ end subroutine form_digested_bmad_file_name
 !-
 
 subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
-                                                   seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch)
+                                    seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch, new_branch_name)
 
 implicit none
 
@@ -5741,8 +5741,8 @@ type (branch_struct), pointer :: branch
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer i, j, nb, n_ele_use, n, ix, key
 
+character(*), optional :: new_branch_name
 character(*), allocatable ::  in_name(:), seq_name(:)
-character(40) name
 
 logical created_new_branch, no_end_marker
 
@@ -5756,6 +5756,7 @@ if (fork_ele%value(new_branch$) == 0) then ! Branch back if
     if (branch%name /= fork_ele%component_name) cycle
     fork_ele%value(ix_to_branch$) = i
     created_new_branch = .false.
+    if (present(new_branch_name)) new_branch_name = ''
   enddo
 endif
 
@@ -5771,41 +5772,83 @@ if (created_new_branch) then
   branch%ix_from_ele        = fork_ele%ix_ele
 endif
 
-name = plat%ele(fork_ele%ixx)%ele_name
-nullify(target_ele)
-
-if (name == '') then
-  if (nint(fork_ele%value(direction$)) == 1) then
-    target_ele => branch%ele(0)
-  else
-    target_ele => branch%ele(branch%n_ele_track)
-  endif
-else
-  do j = 0, branch%n_ele_max
-    if (branch%ele(j)%name /= name) cycle
-    if (associated(target_ele)) then
-      call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
-      exit
-    endif
-    target_ele => branch%ele(j)
-  enddo
-endif
-
-if (.not. associated(target_ele)) then
-  call parser_error('TO_ELEMENT NOT FOUND: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
-  return
-endif
-
-fork_ele%value(ix_to_element$) = target_ele%ix_ele
-
-key = target_ele%key
-if (key /= marker$ .and. key /= fork$ .and. key /= photon_fork$ .and. &
-    key /= fiducial$ .and. key /= beginning_ele$) then
-  call parser_error('TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name, &
-                    'IS NOT A ZERO-LENGTH MARKER-LIKE ELEMENT')
-endif
+if (present(new_branch_name)) new_branch_name = fork_ele%component_name
+fork_ele%component_name = plat%ele(fork_ele%ixx)%ele_name  ! Substitute element name for line name.
 
 end subroutine parser_add_branch
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_identify_fork_to_element (lat)
+!
+! Routine to identify the elements the forks in a lattice are branching to.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_identify_fork_to_element (lat)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: target_ele
+type (ele_struct), pointer :: fork_ele
+type (branch_struct), pointer :: branch
+
+integer ib, ie, j
+
+character(40) name
+
+!
+
+do ib = 0, ubound(lat%branch, 1)
+  do ie = 1, lat%branch(ib)%n_ele_max
+
+    fork_ele => lat%branch(ib)%ele(ie)
+    if (fork_ele%key /= fork$ .and. fork_ele%key /= photon_fork$) cycle
+
+    branch => lat%branch(nint(fork_ele%value(ix_to_branch$)))
+    nullify(target_ele)
+    name = fork_ele%component_name
+
+    if (name == '') then
+      if (nint(fork_ele%value(direction$)) == 1) then
+        target_ele => branch%ele(0)
+      else
+        target_ele => branch%ele(branch%n_ele_track)
+      endif
+    else
+      do j = 0, branch%n_ele_max
+        if (branch%ele(j)%name /= name) cycle
+        if (associated(target_ele)) then
+          call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+          exit
+        endif
+        target_ele => branch%ele(j)
+      enddo
+    endif
+
+    if (.not. associated(target_ele)) then
+      call parser_error('TO_ELEMENT NOT FOUND: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+      return
+    endif
+
+    fork_ele%value(ix_to_element$) = target_ele%ix_ele
+
+    select case (target_ele%key)
+    case (marker$, fork$, photon_fork$, fiducial$, beginning_ele$)
+    case default
+      call parser_error('TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name, &
+                        'IS NOT A ZERO-LENGTH MARKER-LIKE ELEMENT')
+    end select
+
+  enddo
+enddo
+
+end subroutine parser_identify_fork_to_element
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
