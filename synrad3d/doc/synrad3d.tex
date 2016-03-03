@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{February 21, 2016}
+\date{March 2, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -209,9 +209,11 @@ will be drawn at the vertex points \vn{v(i)} that define the
 cross-section.
 
 When plotting $x$-$s$ or $y$-$s$ cross-sections, if the Master Input file specifies a
-\vn{wall_hit_file}, this file will be read and the photon trajectories plotted. Since
-photon tracking is {\em not} done when there is plotting done, the \vn{wall_hit_file} must
-be generated in a previous run of \srthree prior to using the \vn{-plot} option.
+\vn{photon_track_file}, this file will be read and the photon trajectories plotted.  If
+the \vn{photon_track_file} does not exist, and a \vn{wall_hit_file} file does, the
+\vn{wall_hit_file} will be read and the photon trajectories plotted. Since photon tracking
+is {\em not} done when there is plotting done, the \vn{wall_hit_file} must be generated in
+a previous run of \srthree prior to using the \vn{-plot} option.
 
 The \vn{-test <what>} option is for generating diagnostic
 files:
@@ -522,7 +524,8 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
     wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
     dat_file     = "synrad3d.dat"    ! Output data file.
-    wall_hit_file = ""               ! Photon wall hit data file.
+    wall_hit_file = ""               ! Photon wall hit output data file.
+    photon_track_file = ""           ! Photon track output data file
     lat_ele_file  = ""               ! Write lattice element data file.
 
     random_seed = 123456             ! 0 -> Use sys clock.
@@ -548,6 +551,11 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
 \end{example}
 
   \begin{description}
+  \item[\vn{ds_step_min}] \Newline
+This parameter establishes the minimum distance to track the particle beam between emission
+points. The thought was that if \srthree decided to make very small steps  between emission
+points, this might slow the calculation down. This has not been tested. This parameter
+does not influence photon tracking.
   \item[\vn{ix_ele_track_start}, \vn{ix_ele_track_end}] \Newline
 The parameters \vn{ix_ele_track_start} and \vn{ix_ele_track_end} establish
 the region where radiation is produced. These are the index numbers of 
@@ -575,11 +583,6 @@ all filter requirements.
 radiation production region. If \vn{num_photon_per_pass} is negative
 (the default), the number of photons generated per pass is taken from
 the value of \vn{num_photons}.
-  \item[\vn{ds_step_min}] \Newline
-This parameter establishes the minimum distance to track the particle beam between emission
-points. The thought was that if \srthree decided to make very small steps  between emission
-points, this might slow the calculation down. This has not been tested. This parameter
-does not influence photon tracking.
   \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
 These parameters set the particle beam size and so will affect the starting coordinates of
 the photons. A negative set of any of these parameters will result in \srthree 
@@ -588,11 +591,14 @@ using the value for the parameter from a calculation of the synchrotron radiatio
 This file defines the machine optics. The lattice file format may be
 the Bmad format or, if the \vn{lattice_file} string is prefixed by
 \vn{``xsif::''}, may be in xsif format. See the Bmad manual for more details.
+  \item[\vn{photon_track_file}] \Newline
+This string, if not blank, will create a data file with a table of points along the photon tracks.
+See \sref{s:photon.track.file} for more details
   \item[\vn{wall_file}] \Newline
 This string gives the name of the vacuum chamber wall definition
 file. See \sref{s:wall.file} for more details.
   \item[\vn{dat_file}] \Newline
-This string gives the name of the output data file (\sref{ss:main.out}).
+This string gives the name of the output data file (\sref{s:main.out}).
 See below for more details.
   \item[\vn{surface_roughness_rms}] \Newline
 This parameter sets the surface roughness RMS in meters for the
@@ -624,7 +630,7 @@ a given ``step'' see \sref{s:track} for more details.
 This string, if not blank, will create a data file listing the points
 where the photons hit the wall including all the reflection
 points. This will be in addition to the regular output file.  See
-\sref{ss:reflection.file} for more details.
+\sref{s:wall.hit.file} for more details.
   \item[\vn{lat_ele_file}] \Newline
 This string, if not blank, will create a data file listing  the lattice
 elements within the emission region. For each element the following are given. 
@@ -672,7 +678,7 @@ file may be very large. See below for the syntax of this file.
   \item[\vn{photon_start_input_file}] \Newline
 If not blank, the file named by \vn{photon_start_input_file}
 will be read by \srthree and used to initialize photon
-starting positions. See \sref{ss:photon.start} for the syntax of this file.
+starting positions. See \sref{s:photon.start} for the syntax of this file.
 The state of the random number generator at the time of a photon's
 initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
@@ -788,7 +794,7 @@ named \vn{place}. The general form of a \vn{place} namelist is:
     surface = "<surface_name>", <is_local>
   /
 \end{example} 
-The optional \vn{surface} variable is explained in \sref{ss:surface}.
+The optional \vn{surface} variable is explained in \sref{s:surface}.
 Example:
 \begin{example}
   &place section =   0.0, "arc_std", "beam:dipole_shape" /
@@ -959,7 +965,7 @@ sections of an ellipse.
 
 %------------------------------------------------------------------
 \section{Multi-Section Cross-Section}
-\label{ss:multi.sec}
+\label{s:multi.sec}
 
 The \vn{multi-section} cross-section is not actually a single
 cross-section but a repeating pattern of cross-sections. The basic
@@ -1011,7 +1017,7 @@ general syntax for this is:
     surface = "<surface_name>", <is_local>
   /
 \end{example} 
-The optional \vn{surface} variable is explained in \sref{ss:surface}.
+The optional \vn{surface} variable is explained in \sref{s:surface}.
 
 \vn{<s>} is the longitudinal starting position of the series of
 cross-sections, \vn{<section_name>} is not used but must be present to
@@ -1058,7 +1064,7 @@ the illustration to better show the geometry.}
 \label{s:fast}
 
 When a subchamber has many cross-sections (which can easily happen when a multi-section
-(\sref{ss:multi.sec}) is used), the computation time for photon tracking may become large
+(\sref{s:multi.sec}) is used), the computation time for photon tracking may become large
 due to the necessity of stopping the photon at each cross-section to check whether the
 photon has crossed the subchamber boundary. This can be ameliorated by defining an
 associated ``fast'' subchamber with only a few cross-sections that is contained withing
@@ -1132,7 +1138,7 @@ A photon at $(r,\theta, s)$ is inside the subchamber if
 
 %------------------------------------------------------------------
 \section{Subchamber Wall and Patch Elements}
-\label{ss:patch}
+\label{s:patch}
 
 A \vn{patch} element, which shifts the reference coordinate system
 complicates the calculation of where a photon hits the wall. The Bmad
@@ -1211,7 +1217,7 @@ The first five parameters -- \vn{<s>}, \vn{<section_name>}
 specified. Values for the other parameters are optional and default to
 the ``unset'' value of -1.
 
-The optional \vn{surface} variable is explained in \sref{ss:surface}.
+The optional \vn{surface} variable is explained in \sref{s:surface}.
 
 For \vn{elliptical} or \vn{rectangular} shapes, the
 parameters needed to specify the chamber are:
@@ -1278,7 +1284,7 @@ Prescription for converting:
 
 %------------------------------------------------------------------
 \section{Chamber Surface Reflectivity}
-\label{ss:surface}
+\label{s:surface}
 
 By default, the photon reflectivity of the vacuum chamber wall is
 based on the reflectivity of a 10 nm C film on an Al substrate.
@@ -1324,7 +1330,7 @@ If \vn{<is_local>} is \vn{True}, then the surface material only spans the region
 previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the
 surface material spans from the closest previous cross-section where there is a
 \vn{surface} variable set to this cross-section.  If a \vn{place} is a \vn{multi_section}
-cross-section (\sref{ss:multi.sec}), and \vn{<is_local>} is \vn{True} then the material
+cross-section (\sref{s:multi.sec}), and \vn{<is_local>} is \vn{True} then the material
 only spans the multi_section region.
 
   
@@ -1482,7 +1488,7 @@ photons leaving and entering the vacuum chamber in a single step.
 
 %------------------------------------------------------------------
 \section{photon\_start\_input\_file}
-\label{ss:photon.start}
+\label{s:photon.start}
 
 The \vn{photon_start_input_file} file is used to specify starting positions
 for the photons. This is done typically for debugging purposes.
@@ -1512,7 +1518,7 @@ The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 A surface reflectivity file is used to redefine the default chamber
 wall surface reflectivity (By setting \vn{surface_reflection_file}
 in the master input file (\sref{s:master})) or to define the
-surface reflectivity for a particular wall material (\sref{ss:surface}).
+surface reflectivity for a particular wall material (\sref{s:surface}).
 
 The probability for a photon reflecting from a wall is dependent upon
 the grazing angle and the photon energy. For a given graze angle and
@@ -1616,7 +1622,7 @@ angle points.
 
 %------------------------------------------------------------------
 \section{Main Output File}
-\label{ss:main.out}
+\label{s:main.out}
 
 The format of the \vn{dat_file} (whose name is specified in the master
 input file (\sref{s:master})) is as follows:
@@ -1681,13 +1687,12 @@ The same information is outputted as a table in a file whose name is
 the same as \vn{dat_file} with a ``_table'' suffix appended.
 
 %------------------------------------------------------------------
-\section{Photon Reflection File}
-\label{ss:reflection.file}
+\section{Wall Hit Output File}
+\label{s:wall.hit.file}
 
-If the switch \vn{wall_hit_file} is non-blank, an additional output
-file is generated, which contains more detailed information. An
-example of the output is shown below. (This
-example is not for the same run as in the previous section).
+If the switch \vn{wall_hit_file} is non-blank, an additional output file is generated,
+which contains more detailed information on where photons are hitting the vacuum chamber
+wall. An example of the output is shown below. Example:
 \begin{example}
   1     0       0.0      -0.000823    0.000054     67.785765        0.000000    0.000000    0.000000
   1     1     698.2       0.045000   -0.000229     70.515079        0.032303   -0.000104    0.999478
@@ -1703,7 +1708,7 @@ example is not for the same run as in the previous section).
   5     0       0.0      -0.000493    0.000053     68.048735        0.000000    0.000000    0.000000
   5     1      21.0       0.045000    0.000393     70.767817        0.032187    0.000125    0.999482
 \end{example}
-The columns are
+The columns of this file are
 \begin{example}
   1:     photon_index  
   2:     wall_hit_index  
@@ -1747,6 +1752,42 @@ Note: If the beam emittances are zero, photons will be generated on
 the central orbit. If there are no steerings powered, the central
 orbit will be the zero orbit and in this case all photons will start
 with $x$ = $vx$ = $y$ = 0.
+
+Note: Since the $(x,y,s)$ coordinates are curved in bend elements, the photon trajectory
+in $(x,y,s)$ cordinates is not, in general, a straight line between hit points. For more
+accurate plotting, a \vn{photon_track_file} (\sref{s:photon.track.file}) should be
+generated. Caution: \vn{photon_track_file}s are over an order of magnitude larger than
+\vn{wall_hit_file}s.
+
+%------------------------------------------------------------------
+\section{Photon Track Output File}
+\label{s:photon.track.file}
+
+A photon track file records the photon position after each propagation step.
+Example:
+the previous section).
+\begin{example}
+  1    -0.000823    0.000054     67.785765        0.000000    0.000000    0.000000
+  1     0.045000   -0.000229     70.515079        0.032303   -0.000104    0.999478
+  1    -0.039304   -0.013811     71.216813       -0.115289   -0.019212    0.993146
+  2    -0.000740    0.000054     67.851507        0.000000    0.000000    0.000000
+  2     0.045000    0.000128     70.578267        0.032274    0.000027    0.999479
+  3    -0.000658    0.000054     67.917250        0.000000    0.000000    0.000000
+  3     0.045000    0.000465     70.641452        0.032245    0.000151    0.999480
+  3    -0.045000   -0.002062     71.036893       -0.219720   -0.006232    0.975543
+  4    -0.000575    0.000053     67.982992        0.000000    0.000000    0.000000
+  4     0.045000   -0.000370     70.704636        0.032216   -0.000155    0.999481
+  4    -0.045000   -0.001490     71.234797       -0.164390   -0.002083    0.986393
+  5    -0.000493    0.000053     68.048735        0.000000    0.000000    0.000000
+  5     0.045000    0.000393     70.767817        0.032187    0.000125    0.999482
+\end{example}
+The columns of this file are
+\begin{example}
+  1:     photon_index  
+  4-6:   (x, y, s)                 ! Coordinates of photon 
+  7-9:   (vx, vy, vs)              ! Velocity of the photon
+\end{example}
+
 
 %------------------------------------------------------------------
 \chapter{Test Modes}
@@ -1835,7 +1876,7 @@ reflection test is called \vn{specular_reflection_test}.  Example:
 \end{example}
 
 The \vn{photon_start_input_file} is the file of initial photon
-positions. The format of this file is given in \vn{ss:photon.start}.
+positions. The format of this file is given in \vn{s:photon.start}.
 Note that for the specular test, the photon energy and the random
 number generator state do not affect the results and do not have to be
 set. Also: The if the magnitude of the velocity
@@ -1851,7 +1892,7 @@ The \vn{wall_file} gives the name of the vacuum chamber will
 definition file. See \sref{s:wall.file} for more details.
 
 The \vn{output_file} gives the name of the output data file.
-See \sref{ss:reflection.file} for details of the syntax for this file.
+See \sref{s:wall.hit.file} for details of the syntax for this file.
 
 %------------------------------------------------------------------
 \appendix

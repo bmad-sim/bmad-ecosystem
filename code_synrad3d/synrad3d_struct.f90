@@ -46,6 +46,10 @@ end type
 ! Some parameters that can be set. 
 
 type sr3d_params_struct
+  character(200) :: photon_track_file = ''
+  character(200) :: wall_hit_file = ''
+  integer :: iu_photon_track = 0
+  integer :: iu_wall_hit = 0
   type (random_state_struct) ran_state
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".

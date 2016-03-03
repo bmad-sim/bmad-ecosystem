@@ -89,6 +89,7 @@ main_loop: do
 
   ! Reflect photon
 
+  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position(photon)
   call sr3d_reflect_photon (photon, branch, wall_hit, absorbed, err)
   if (absorbed .or. err .or. logic_option(.false., one_reflection_only)) return
 enddo main_loop
@@ -135,6 +136,8 @@ logical err
 vec => photon%now%orb%vec
 
 do
+
+  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position(photon)
 
   v_rad_max = max(abs(vec(2)), abs(vec(4)))
   if (sr3d_params%dr_track_step_max * abs(vec(6)) > &
@@ -708,7 +711,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_le
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
       print '(8x, a)', 'WILL IGNORE THIS PHOTON.'
       call sr3d_print_photon_info (photon)
-      call print_hit_points (-1, photon, wall_hit, .true.)
+      call sr3d_print_hit_points (-1, photon, wall_hit, .true.)
       err = .true.
       return
     endif
@@ -725,7 +728,7 @@ path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, sr3d_params
 if (err) then
   print *, 'WILL IGNORE THIS PHOTON.'
   call sr3d_print_photon_info (photon)
-  call print_hit_points (-1, photon, wall_hit, .true.)
+  call sr3d_print_hit_points (-1, photon, wall_hit, .true.)
   return
 endif
 
@@ -903,7 +906,7 @@ if (cos_perp < 0) then
   print '(8x, a, 6es13.5)', 'WILL IGNORE THIS PHOTON...'
   print '(8x, a, 6es13.5)', 'dw_perp:', dw_perp
   call sr3d_print_photon_info (photon)
-  call print_hit_points (-1, photon, wall_hit, .true.)
+  call sr3d_print_hit_points (-1, photon, wall_hit, .true.)
   err_flag = .true.
   return
 endif
