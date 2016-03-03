@@ -558,13 +558,14 @@ integer ix0, iw_wall, n_sec_max
 character(100) :: ans, label, label2, sub_label
 character(8) v_str
 
-logical at_section, draw_norm, reverse_x_axis, no_wall_here
+logical at_section, draw_norm, reverse_x_axis, no_wall_here, write_cross_section
 
 ! Open plotting window
 
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
+write_cross_section = .false.
 draw_norm = .false.
 reverse_x_axis = .false.
 x_max_user = -1
@@ -671,6 +672,14 @@ do
     if (no_wall_here) cycle
     call qp_draw_polyline (x, y)
 
+    if (write_cross_section) then
+      write (iu, *) '# Sub_chamber index =', iw
+      write (iu, *) '#       x           y'
+      do j = 1, size(x)
+        write (iu, '(2f12.6)') x(j), y(j)
+      enddo
+    endif
+
     if (draw_norm) then
       do j = 1, size(x), 4
         call qp_draw_line(x(j), x(j) + x_norm(j), y(j), y(j) + y_norm(j))
@@ -712,6 +721,12 @@ do
   print '(a)', '   write            ! Write (x,y) points to a file.'
   print '(a)', '   normal           ! Toggle drawing of a set of vectors normal to the wall'
   print '(a)', '   reverse          ! Toggle reversing the x-axis to point left for +x'
+
+  if (write_cross_section) then
+    close (iu)
+    print *
+    print *, 'Writen: cross_section.dat'
+  endif
 
   call read_a_line ('Input: ', ans)
 
@@ -766,13 +781,8 @@ do
   elseif (index('write', ans(1:ix)) == 1) then
     iu = lunget()
     open (iu, file = 'cross_section.dat')
-    write (iu, *) '  s = ', s_pos
-    write (iu, *) '        x           y'
-    do j = 1, size(x)
-      write (iu, '(2f12.6)') x(j), y(j)
-    enddo
-    close (iu)
-    print *, 'Writen: cross_section.dat'
+    write (iu, *) '# s = ', s_pos
+    write_cross_section = .true.
 
   elseif (ans == 'b') then
     ix_section = ix_section - 1

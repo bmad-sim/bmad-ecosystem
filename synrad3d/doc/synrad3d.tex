@@ -527,6 +527,8 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     wall_hit_file = ""               ! Photon wall hit output data file.
     photon_track_file = ""           ! Photon track output data file
     lat_ele_file  = ""               ! Write lattice element data file.
+    photon_start_input_file  = ""    ! File for initializing the photons
+    photon_start_output_file = ""    ! File recording photon start positions
 
     random_seed = 123456             ! 0 -> Use sys clock.
     e_init_filter_min = -1           ! Min energy filter param.
@@ -535,8 +537,6 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     e_filter_max = -1                ! Max energy filter param.
     s_filter_min = -1                ! Min S position filter param.
     s_filter_max = -1                ! Max S position filter param.
-    photon_start_input_file  = ""    ! File for initializing the photons
-    photon_start_output_file = ""    ! File recording photon start positions
     num_ignore_generated_outside_wall = 0    !
     turn_off_kickers_in_lattice = F          ! Zero the closed orbit?
     surface_roughness_rms       = -1         ! Surface roughness for diffuse scattering.
