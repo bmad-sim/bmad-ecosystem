@@ -241,7 +241,22 @@ allocate (names(lat%n_ele_max), an_indexx(lat%n_ele_max))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
+
+  if (ib > 0) then
+    write (iu, *)
+    write (iu, '(a)')  '!-------------------------------------------------------'
+    write (iu, '(2a)') '! Branch: ', trim(branch%name)
+    write (iu, *)
+  endif
+
   ele_loop: do ie = 1, branch%n_ele_max
+
+    if (ie == branch%n_ele_track+1) then
+      write (iu, *)
+      write (iu, '(a)') '!-------------------------------------------------------'
+      write (iu, '(a)') '! Overlays, groups, etc.'
+      write (iu, *)
+    endif
 
     ele => branch%ele(ie)
     if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
@@ -254,13 +269,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
     if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
     if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
-
-    if (ie == lat%n_ele_track+1) then
-      write (iu, *)
-      write (iu, '(a)') '!-------------------------------------------------------'
-      write (iu, '(a)') '! Overlays, groups, etc.'
-      write (iu, *)
-    endif
 
     ! For a super_slave just create a dummy drift. 
 
@@ -373,8 +381,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     is_multi_sup = .false.
     if (ele%lord_status == multipass_lord$) then
-      ix1 = lat%control(ele%ix1_slave)%slave%ix_ele
-      if (lat%ele(ix1)%lord_status == super_lord$) is_multi_sup = .true.
+      slave => pointer_to_slave(ele, 1)
+      if (slave%lord_status == super_lord$) is_multi_sup = .true.
     endif
 
     if (ele%lord_status == super_lord$ .or. is_multi_sup) then
