@@ -28,6 +28,12 @@ open (1, file = 'output.now')
 
 call bmad_parser ('overlap.bmad', lat)
 
+lat%branch(0)%ele(1)%key = -1
+lat%branch(1)%ele(1)%key = -1
+lat%branch(2)%ele(1)%key = -1
+
+call remove_eles_from_lat (lat, .true.)
+call write_bmad_lattice_file ('out_overlap.bmad', lat)
 
 !
 
