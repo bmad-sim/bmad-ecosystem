@@ -759,8 +759,9 @@ endif
 ! Init for main branch...
 ! If there is an init file then read from the file
 
+ix_ele0 = uni_branch%ix_track_start
 beam_init => u%beam%beam_init
-beam => uni_branch%ele(0)%beam
+beam => uni_branch%ele(ix_ele0)%beam
 
 if (u%beam%beam0_file /= "") then
   if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
@@ -777,7 +778,7 @@ if (u%beam%beam0_file /= "") then
         orbit => beam%bunch(i)%particle(j)
         orbit%vec = orbit%vec + model%lat%beam_start%vec
         if (orbit%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-        call init_coord (orbit, orbit, branch%ele(0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
+        call init_coord (orbit, orbit, branch%ele(ix_ele0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &
@@ -799,7 +800,6 @@ endif
 
 if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-  ix_ele0 = uni_branch%ix_track_start
   call init_beam_distribution (model%lat%ele(ix_ele0), model%lat%param, beam_init, beam, err)
   if (err) then
     call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
