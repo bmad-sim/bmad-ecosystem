@@ -32,7 +32,6 @@ end type
 
 type (branch_struct), target :: branch
 type (sr3d_plot_param_struct) plot_param
-type (wall3d_struct), pointer :: wall3d
 type (yplot), allocatable :: ny(:)
 type (photon_reflect_surface_struct), pointer :: surface
 
@@ -48,8 +47,6 @@ character(80) ans, head_lab
 character(16) x_lab, y_lab, param, reflection_type
 
 ! init
-
-wall3d => branch%wall3d(1)
 
 angle_min = 0
 angle_max = 40
@@ -295,10 +292,8 @@ subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
 implicit none
 
 type (sr3d_plot_param_struct) plot_param
-type (wall3d_struct), pointer :: wall
 type (sr3d_photon_track_struct), target :: photon
 type (branch_struct), target :: branch
-type (wall3d_struct), pointer :: wall3d
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
 real(rp) dummy, r1(3), r2(3)
@@ -359,8 +354,6 @@ do
     xy_max = 0
 
     do iw = 1, size(branch%wall3d)
-      wall3d => branch%wall3d(iw)
-
       do i = 1, size(s)
         s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
 
@@ -392,9 +385,8 @@ do
   call qp_draw_graph (s, xy_in, 'S (m)', plane_str, '', .false., 0)
 
   do iw = 1, size(branch%wall3d)
-    wall3d => branch%wall3d(iw)
-
     do i = 1, size(s)
+
       s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
 
       photon%now%orb%vec = 0

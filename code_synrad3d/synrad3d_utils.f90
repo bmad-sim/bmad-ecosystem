@@ -300,8 +300,8 @@ end subroutine sr3d_photon_d_radius
 !     %now%ix_wall3d  -- sub-chamber wall index.
 !
 ! Output:
-!   x_wall        -- real(rp):  x wall point
-!   y_wall        -- real(rp):  y wall point
+!   x_wall        -- real(rp): x wall point. Return zero if no wall here..
+!   y_wall        -- real(rp): y wall point. Return zero if no wall here.
 !   no_wall_here  -- logical: Set True if the subchamber does not extend longitudinally to the given s-position.
 !   dw_perp(3)    -- real(rp), optional: Vector which is outward perpendicular to the wall.
 !-
@@ -320,6 +320,9 @@ real(rp) d_radius, r_wall, r_part, origin(3)
 logical no_wall_here ! No wall at this s-position?
 
 !
+
+x_wall = 0
+y_wall = 0
 
 photon%now%orb%ix_ele = element_at_s (branch%lat, photon%now%orb%s, .true., branch%ix_branch)
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, origin)
