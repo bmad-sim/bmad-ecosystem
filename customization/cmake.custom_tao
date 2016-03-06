@@ -12,17 +12,23 @@ set (LINK_LIBS
   recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
   forest 
+  fgsl
+  gsl
+  gslcblas
   lapack95
   lapack
   blas
 )
 
-set (EXTRA_SHARED_LINK_LIBS
-  readline
-  curses
-  termcap
-  pango-1.0
-  pangocairo-1.0
-  cairo
-  gobject-2.0
-)  
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  link_directories(/opt/local/lib)
+ENDIF ()
+
+IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
+  set (SHARED_LINK_LIBS
+    pangocairo-1.0
+    cairo
+    pango-1.0
+    gobject-2.0
+  )
+ENDIF ()

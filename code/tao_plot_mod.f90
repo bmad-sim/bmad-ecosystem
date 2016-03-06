@@ -398,7 +398,7 @@ if (allocated(s%building_wall%section)) then
     ele_shape => s%plot_page%floor_plan%ele_shape(i)
     if (ele_shape%ele_id /= 'wall::building') cycle
     if (.not. ele_shape%draw) cycle
-    call qp_translate_to_color_index (ele_shape%color, icol)
+    icol =qp_translate_to_color_index (ele_shape%color)
 
     do ib = 1, size(s%building_wall%section)
       pt => s%building_wall%section(ib)%point
@@ -644,7 +644,7 @@ endif
 
 ! Here if element is to be drawn...
 
-call qp_translate_to_color_index (ele_shape%color, icol)
+icol = qp_translate_to_color_index (ele_shape%color)
 
 off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = off
@@ -791,8 +791,8 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   branch_shape => tao_pointer_to_ele_shape (ix_uni, drift, s%plot_page%floor_plan%ele_shape)
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
-      call qp_translate_to_color_index (branch_shape%color, ic)
-      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, color = ic)
+      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, &
+                                        color = qp_translate_to_color_index (branch_shape%color))
     endif
   endif
 endif
@@ -1189,7 +1189,7 @@ character(20) shape_name
 
 shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
-call qp_translate_to_color_index (ele_shape%color, icol)
+icol = qp_translate_to_color_index (ele_shape%color)
 
 ! Draw the shape
 
