@@ -31,7 +31,7 @@ type (beam_struct), pointer :: beam
 real(rp) value
 real(rp), pointer :: ptr_attrib
 
-character(80) arg, arg2, startup_file
+character(80) arg, arg2, startup_file, hook_init_file
 character(100) plot_file, data_file, var_file, file_name
 character(100) building_wall_file, beam_file, why_invalid, init_tao_file
 character(40) name1, name2
@@ -44,7 +44,7 @@ integer iu_log
 logical err, calc_ok, valid_value
 logical :: err_flag
 
-namelist / tao_start / startup_file, building_wall_file, &
+namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
 
 ! global inits
@@ -112,6 +112,7 @@ building_wall_file = 'NOT SET!'
 n_universes        = 1                  ! set default
 init_name          = "Tao"              ! set default
 startup_file       = 'NOT SET!'       
+hook_init_file     = 'NOT SET!'
 
 ! Read the info
 
@@ -141,6 +142,8 @@ call set_this_file_name (var_file,  init_tao_file, s%com%var_file)
 call set_this_file_name (beam_file, init_tao_file, s%com%beam_file)
 call set_this_file_name (building_wall_file, '',   s%com%building_wall_file)
 call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file)
+call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_file)
+s%com%hook_init_file = hook_init_file
 
 ! Tao inits.
 ! Data can have variable info so init vars first.

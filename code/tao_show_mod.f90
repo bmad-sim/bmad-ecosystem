@@ -1349,7 +1349,9 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) 's%com%beam_file              = ', s%com%beam_file
     nl=nl+1; write(lines(nl), amt) 's%com%beam_all_file          = ', s%com%beam_all_file
     nl=nl+1; write(lines(nl), amt) 's%com%beam0_file             = ', s%com%beam0_file
+    nl=nl+1; write(lines(nl), amt) 's%com%building_wall_file     = ', s%com%building_wall_file
     nl=nl+1; write(lines(nl), amt) 's%com%data_file              = ', s%com%data_file
+    nl=nl+1; write(lines(nl), amt) 's%com%hook_init_file         = ', s%com%hook_init_file
     nl=nl+1; write(lines(nl), amt) 's%com%init_tao_file          = ', s%com%init_tao_file
     nl=nl+1; write(lines(nl), amt) 's%com%lat_file               = ', s%com%lat_file
     nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', s%com%plot_file

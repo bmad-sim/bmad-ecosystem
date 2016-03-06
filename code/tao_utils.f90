@@ -2650,7 +2650,7 @@ do
         '-var                     ', '-data                    ', '-building_wall           ', '-plot                    ', &
         '-startup                 ', 'help                     ', '-help                    ', '?                        ', &
         '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc', &
-        '-color_prompt            ', '-no_stopping             '], &
+        '-color_prompt            ', '-no_stopping             ', '-hook_init_file          '], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -2694,6 +2694,9 @@ do
   case ('help', '-help', '?', '-?')
     call tao_print_command_line_info
     stop
+
+  case ('-hook_init_file')
+    call get_next_arg (s%com%hook_init_file)
 
   case ('-lat')
     call get_next_arg (s%com%lat_file)
@@ -2776,28 +2779,29 @@ character(40), parameter :: r_name = 'tao_print_command_line_info'
 !
 
 call out_io (s_blank$, r_name, [ &
-        'Syntax:                                                                            ', &
-        '  <path-to-tao-exe-directory>/tao {OPTIONS}                                        ', &
-        'Options are:                                                                       ', &
-        '  -beam <beam_file>               # Beam init particle positions                   ', &
-        '  -beam0 <beam0_file>             # Beam init params (beam size, etc.)             ', &
-        '  -beam_all <all_beam_file>       # Beam info from previous tracking               ', &
-        '  -building_wall <wall_file>      # Define the building tunnel wall                ', &
-        '  -color_prompt                   # Set color of prompt string to blue             ', &
-        '  -data <data_file>               # Define data for plotting and optimization      ', &
-        '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting  ', &
-        '  -geometry <width>x<height>      # Plot window geometry                           ', &
-        '  -init <tao_init_file>           # Tao init file                                  ', &
-        '  -lat <bmad_lattice_file>        # Bmad lattice file                              ', &
-        '  -lat xsif::<xsif_lattice_file>  # XSIF lattice file                              ', &
-        '  -log_startup                    # Write startup debugging info                   ', &
-        '  -no_stopping                    # For debugging: Prevents Tao from exiting on err', &
-        '  -noinit                         # Do not use Tao init file                       ', &
-        '  -noplot                         # Do not open a plotting window                  ', &
-        '  -plot <plot_file>               # Define plot setup info                         ', &
-        '  -rf_on                          # Keep RF on (Default is to turn off)            ', &
-        '  -startup <starup_command_file>  # Commands to run after parsing Tao init file    ', &
-        '  -var <var_file>                 # Define variables for plotting and optimization '])
+        'Syntax:                                                                                  ', &
+        '  <path-to-tao-exe-directory>/tao {OPTIONS}                                              ', &
+        'Options are:                                                                             ', &
+        '  -beam <beam_file>               # Beam init particle positions                         ', &
+        '  -beam0 <beam0_file>             # Beam init params (beam size, etc.)                   ', &
+        '  -beam_all <all_beam_file>       # Beam info from previous tracking                     ', &
+        '  -building_wall <wall_file>      # Define the building tunnel wall                      ', &
+        '  -color_prompt                   # Set color of prompt string to blue                   ', &
+        '  -data <data_file>               # Define data for plotting and optimization            ', &
+        '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting        ', &
+        '  -geometry <width>x<height>      # Plot window geometry                                 ', &
+        '  -hook_init_file <init_file>     # Init file for hook routines (Default = tao_hook.init)', &
+        '  -init <tao_init_file>           # Tao init file                                        ', &
+        '  -lat <bmad_lattice_file>        # Bmad lattice file                                    ', &
+        '  -lat xsif::<xsif_lattice_file>  # XSIF lattice file                                    ', &
+        '  -log_startup                    # Write startup debugging info                         ', &
+        '  -no_stopping                    # For debugging: Prevents Tao from exiting on err      ', &
+        '  -noinit                         # Do not use Tao init file                             ', &
+        '  -noplot                         # Do not open a plotting window                        ', &
+        '  -plot <plot_file>               # Define plot setup info                               ', &
+        '  -rf_on                          # Keep RF on (Default is to turn off)                  ', &
+        '  -startup <starup_command_file>  # Commands to run after parsing Tao init file          ', &
+        '  -var <var_file>                 # Define variables for plotting and optimization       '])
 
 
 end subroutine tao_print_command_line_info
