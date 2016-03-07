@@ -463,7 +463,6 @@ uni_ele => uni_branch%ele
 beam_init => u%beam%beam_init
 
 beam => u%beam%current
-beam = uni_branch%ele(0)%beam
 
 lat => tao_lat%lat
 
@@ -513,6 +512,8 @@ if (s%global%beam_timer_on) then
   call run_timer ('START')
   old_time = 0
 endif
+
+beam = uni_branch%ele(ie1)%beam
 
 n_lost_old = 0
 do j = ie1, ie2
