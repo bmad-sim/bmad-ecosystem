@@ -76,15 +76,54 @@ end subroutine sr3d_print_hit_points
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 
-subroutine sr3d_record_photon_position (photon)
+subroutine sr3d_record_photon_position (action, photon)
 
-type (sr3d_photon_track_struct), target :: photon
+type (sr3d_photon_track_struct), target, optional :: photon
 type (coord_struct), pointer :: orb
 
-!
+integer ios
+integer, save :: iu = 0
+character(*) action
+character(120) line
 
-orb => photon%now%orb
-write (sr3d_params%iu_photon_track, '(i8, 3f12.6, 5x, 3f12.6)') photon%ix_photon, orb%vec(1:3:2), orb%s, orb%vec(2:6:2)
+! Only tracks that pass the filter tests get into the official track file.
+
+select case (action)
+
+case ('START_RECORDING')
+  ! Open a scratch file
+  if (iu /= 0) call err_exit ! Should be zero
+  iu = lunget()
+  open (iu, status = 'scratch')
+
+case ('ERASE_RECORDING')
+  ! Close scratch file
+  if (iu == 0) call err_exit ! Should be non-zero
+  close (iu)
+  iu = 0
+
+case ('MOVE_TRACK_TO_FILE')
+  ! Move info from scratch file to the official track file
+  if (iu == 0) call err_exit ! Should be non-zero
+  rewind (iu)
+  do
+    read (iu, '(a)', iostat = ios) line
+    if (ios /= 0) exit
+    write (sr3d_params%iu_photon_track, '(a)') trim(line)
+  enddo
+  close (iu)
+  iu = 0
+
+case ('RECORD_TRACK_POINT')
+  ! Record a track point in the scratch file.
+  if (iu == 0) call err_exit ! Should be non-zero
+  orb => photon%now%orb
+  write (iu, '(i8, i10, 2f11.6, f13.6, 5x, 3f11.6)') &
+     photon%ix_photon, photon%ix_photon_generated, orb%vec(1:3:2), orb%s, orb%vec(2:6:2)
+
+case default
+  call err_exit   ! Should not be here
+end select
 
 end subroutine sr3d_record_photon_position
 
