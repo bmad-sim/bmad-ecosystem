@@ -4883,9 +4883,9 @@ end subroutine qp_calc_minor_div
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_translate_to_color_index (name, index)
+! Function qp_translate_to_color_index (name, index)
 !
-! Subroutine to translate from a string to a color index.
+! Function to translate from a string to a color index.
 ! Translation is case insensitive.
 !
 ! Input:
@@ -4895,7 +4895,7 @@ end subroutine qp_calc_minor_div
 !   index -- Integer: Color index. -1 => Unknown name.
 !-
 
-subroutine qp_translate_to_color_index (name, index)
+function qp_translate_to_color_index (name) result (index)
 
 implicit none
 
@@ -4917,7 +4917,7 @@ enddo
 call out_io (s_error$, r_name, 'UNKNOWN COLOR NAME: ' // name)
 index = -1
 
-end subroutine qp_translate_to_color_index
+end function qp_translate_to_color_index
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
