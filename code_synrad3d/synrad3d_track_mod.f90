@@ -89,7 +89,7 @@ main_loop: do
 
   ! Reflect photon
 
-  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position(photon)
+  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
   call sr3d_reflect_photon (photon, branch, wall_hit, absorbed, err)
   if (absorbed .or. err .or. logic_option(.false., one_reflection_only)) return
 enddo main_loop
@@ -137,7 +137,7 @@ vec => photon%now%orb%vec
 
 do
 
-  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position(photon)
+  if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
 
   v_rad_max = max(abs(vec(2)), abs(vec(4)))
   if (sr3d_params%dr_track_step_max * abs(vec(6)) > &
