@@ -92,7 +92,7 @@ if (ele%tracking_method /= time_runge_kutta$ .or. start2_orb%location /= inside$
   endif
 endif
 
-if (start2_orb%species /= photon$) then
+if (start2_orb%species /= photon$ .and. start2_orb%state == alive$) then
   err = .false.
 
   if (ele%key == beginning_ele$) then
