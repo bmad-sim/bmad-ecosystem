@@ -1129,8 +1129,9 @@ if (csr_param%tsc_component_on) then
     call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
                                                        bin1%sig_y/bin1%sig_x, kx, ky)
     f = f0 * r1 * bin1%charge / (bin1%sig_x + bin1%sig_y)
-    vec(2) = vec(2) + kx * f
-    vec(4) = vec(4) + ky * f
+    ! The kick is negative of the bbi kick. That is, the kick is outward.
+    vec(2) = vec(2) - kx * f   
+    vec(4) = vec(4) - ky * f
   endif
 
 endif
