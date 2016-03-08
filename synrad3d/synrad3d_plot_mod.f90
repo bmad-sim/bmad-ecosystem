@@ -441,10 +441,10 @@ do
 
   if (good_photon_track) then
     open (10, file = sr3d_params%photon_track_file, iostat = ios)
-    read (10, *, iostat = ios) n_phot2, r2
+    read (10, *, iostat = ios) n_phot2, dummy, r2
     do 
       n_phot1 = n_phot2; r1 = r2
-      read (10, *, iostat = ios) n_phot2, r2
+      read (10, *, iostat = ios) n_phot2, dummy, r2
       if (ios /= 0) exit
       if (n_phot2 /= n_phot1) cycle
       if (plane == 'xs') then

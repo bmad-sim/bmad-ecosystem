@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{March 2, 2016}
+\date{March 7, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -1764,30 +1764,46 @@ generated. Caution: \vn{photon_track_file}s are over an order of magnitude large
 \label{s:photon.track.file}
 
 A photon track file records the photon position after each propagation step.
-Example:
-the previous section).
+A phton track file is generated if the \vn{photon_track_file} parameter is
+set to something that is not blank in the master input file (\sref{s:master}).
+
+Example track file output
 \begin{example}
-  1    -0.000823    0.000054     67.785765        0.000000    0.000000    0.000000
-  1     0.045000   -0.000229     70.515079        0.032303   -0.000104    0.999478
-  1    -0.039304   -0.013811     71.216813       -0.115289   -0.019212    0.993146
-  2    -0.000740    0.000054     67.851507        0.000000    0.000000    0.000000
-  2     0.045000    0.000128     70.578267        0.032274    0.000027    0.999479
-  3    -0.000658    0.000054     67.917250        0.000000    0.000000    0.000000
-  3     0.045000    0.000465     70.641452        0.032245    0.000151    0.999480
-  3    -0.045000   -0.002062     71.036893       -0.219720   -0.006232    0.975543
-  4    -0.000575    0.000053     67.982992        0.000000    0.000000    0.000000
-  4     0.045000   -0.000370     70.704636        0.032216   -0.000155    0.999481
-  4    -0.045000   -0.001490     71.234797       -0.164390   -0.002083    0.986393
-  5    -0.000493    0.000053     68.048735        0.000000    0.000000    0.000000
-  5     0.045000    0.000393     70.767817        0.032187    0.000125    0.999482
+  1   1  -0.000823    0.000054    67.785765        0.000000    0.000000    0.000000
+  1   1   0.045000   -0.000229    70.515079        0.032303   -0.000104    0.999478
+  1   1  -0.039304   -0.013811    71.216813       -0.115289   -0.019212    0.993146
+  2   4  -0.000740    0.000054    67.851507        0.000000    0.000000    0.000000
+  2   4   0.045000    0.000128    70.578267        0.032274    0.000027    0.999479
+  3   5  -0.000658    0.000054    67.917250        0.000000    0.000000    0.000000
+  3   5   0.045000    0.000465    70.641452        0.032245    0.000151    0.999480
+  3   5  -0.045000   -0.002062    71.036893       -0.219720   -0.006232    0.975543
+  4   7  -0.000575    0.000053    67.982992        0.000000    0.000000    0.000000
+  4   7   0.045000   -0.000370    70.704636        0.032216   -0.000155    0.999481
+  4   7  -0.045000   -0.001490    71.234797       -0.164390   -0.002083    0.986393
+  5   9  -0.000493    0.000053    68.048735        0.000000    0.000000    0.000000
+  5   9   0.045000    0.000393    70.767817        0.032187    0.000125    0.999482
 \end{example}
 The columns of this file are
 \begin{example}
-  1:     photon_index  
-  4-6:   (x, y, s)                 ! Coordinates of photon 
-  7-9:   (vx, vy, vs)              ! Velocity of the photon
+  1:     Photon index  
+  2:     Generated photon index.
+  3-5:   (x, y, s)                 ! Coordinates of photon 
+  6-8:   (vx, vy, vs)              ! Velocity of the photon
 \end{example}
 
+Column 1 gives the photon index which gives a count of the photons that have been tracked
+and passed the filter restrictions. Only photons that have passed the filter restriction have
+their tracks recorded in the file. Thus the photon index numbers will be consecutive.
+
+Colum 2 gives the photon generation index. Each tracked photon is given a unique
+generation index starting from 1. Thus for the example above, photons with generation
+index 1, 4, 5, 7 and 9 passed the filter tests and thus are present in the file. Photons
+with generation index 2, 3, 6, and 8 did not pass the filter tests and are not shown in
+the file.
+
+Columns 3 through 5 give the position of the photon.
+
+Columns 6 through 8 gives the velocity of the photon.
 
 %------------------------------------------------------------------
 \chapter{Test Modes}
