@@ -244,13 +244,18 @@ end subroutine
 !
 ! Subroutine to propagate the twiss parameters of a single mode.
 !
-! The betatron phase phi is only determined up to a factor of 2pi. 
-! The length and ele_key argument is used to determine what phi should be:
-!   length > 0:                           0 <= phi <  twopi
-!   length = 0 or ele_key = patch$:     -pi <  phi <= pi
-!   length < 0:                      -twopi <  phi <= 0
+! The betatron phase advance del_phi is only determined up to a factor of 2pi. 
+! The length and ele_key argument are used to determine what range
+! of angles del_phi should be in:
+!   length > 0:                           0 <= del_phi <  twopi
+!   length = 0 or ele_key = patch$:     -pi <  del_phi <= pi
+!   length < 0:                      -twopi <  del_phi <= 0
 ! The patch element is exceptional in that its length is defined in a somewhat 
 ! arbitrary manner and thus is not a good reference as to what the phase advance should be.
+!
+! Note: The soft edge multipole fringe may give a slightly negative phase shift.
+! So to avoid unwanted 2pi phase shifts if del_phi is small, the above ranges are 
+! only enforced if If |del_phi| > 0.1.
 !
 ! Modules needed:
 !   use bmad
@@ -305,7 +310,10 @@ g2 =  (1 + a2**2) /b2
 
 del_phi = atan2(m12, m11*b1 - m12*a1)
 
-if (ele_key /= patch$) then
+! The soft edge multipole fringe may give a slightly negative phase shift.
+! So avoid unwanted 2pi phase shifts if del_phi is small.
+
+if (ele_key /= patch$ .and. abs(del_phi) > 0.1) then
   if (del_phi < 0 .and. length > 0) del_phi = del_phi + twopi
   if (del_phi > 0 .and. length < 0) del_phi = del_phi - twopi
 endif
