@@ -1090,6 +1090,8 @@ integer i, i0, i_del
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
 ! so that the integral varies smoothly as a function of particle%vec(5).
 
+if (.not. allocated(bin%bin1)) return  ! True if kicks are turned off.
+
 zp = particle%vec(5)
 i0 = int((zp - bin%bin1(1)%z_center) / bin%dz_bin) + 1
 r1 = (zp - bin%bin1(i0)%z_center) / bin%dz_bin
@@ -1120,8 +1122,9 @@ if (csr_param%tsc_component_on) then
     call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
                                                        bin1%sig_y/bin1%sig_x, kx, ky)
     f = f0 * r0 * bin1%charge / (bin1%sig_x + bin1%sig_y)
-    vec(2) = vec(2) + kx * f
-    vec(4) = vec(4) + ky * f
+    ! The kick is negative of the bbi kick. That is, the kick is outward.
+    vec(2) = vec(2) - kx * f
+    vec(4) = vec(4) - ky * f
   endif
 
   bin1 => bin%bin1(i0+1)
