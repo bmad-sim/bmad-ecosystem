@@ -2195,6 +2195,7 @@ namelist / shape_pattern / name, curve
 !
 
 rewind (iu)
+if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 do  ! Loop over all patterns
