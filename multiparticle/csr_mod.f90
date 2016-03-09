@@ -1083,7 +1083,7 @@ type (csr_bin_struct), target :: bin
 type (coord_struct), target :: particle
 type (csr_bin1_struct), pointer :: bin1
 
-real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f
+real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0
 real(rp), pointer :: vec(:)
 integer i, i0, i_del
 
@@ -1110,6 +1110,12 @@ vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_csr + r1 * bin%bin1(i0+1)%kick_csr
 if (csr_param%lsc_component_on) then
   vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_lsc + r1 * bin%bin1(i0+1)%kick_lsc
 endif
+
+! Must update beta and z due to the energy change
+
+beta0 = particle%beta
+call convert_pc_to ((1+vec(6))* particle%p0c, particle%species, beta = particle%beta)
+vec(5) = vec(5) * particle%beta / beta0
 
 ! Transverse space charge.
 
