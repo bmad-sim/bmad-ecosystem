@@ -455,8 +455,10 @@ enddo
 
 ! Allocate space for walls
 
-if (associated(branch%wall3d)) deallocate (branch%wall3d, sr3d_com%fast)
+if (associated(branch%wall3d)) deallocate (branch%wall3d)
+if (allocated(sr3d_com%fast)) deallocate (sr3d_com%fast)
 allocate (branch%wall3d(n_sub), sr3d_com%fast(n_sub))
+
 do iw = 1, n_sub
   wall3d => branch%wall3d(iw)
   wall3d%name = sub_name(iw)
