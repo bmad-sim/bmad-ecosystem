@@ -198,15 +198,13 @@ the setting of \vn{<what>}:
 \end{example}
 
 The \vn{-plot reflect} option is for viewing photon reflection
-probability curves. The \vn{-plot xy} option is for viewing of wall
+probability curves. 
+
+The \vn{-plot xy} option is for viewing of wall
 cross-sections in the $x$-$y$ plane at any point in the machine. The
 \vn{-plot xs} option plots the wall outline in the $x$-$s$ plane at $y
 = 0$. The \vn{-plot ys} option plots the wall outline in the $y$-$s$
-plane at $x = 0$.
-
-When plotting $x$-$y$ cross-sections, symbols
-will be drawn at the vertex points \vn{v(i)} that define the
-cross-section.
+plane at $x = 0$. 
 
 When plotting $x$-$s$ or $y$-$s$ cross-sections, if the Master Input file specifies a
 \vn{photon_track_file}, this file will be read and the photon trajectories plotted.  If
@@ -214,6 +212,10 @@ the \vn{photon_track_file} does not exist, and a \vn{wall_hit_file} file does, t
 \vn{wall_hit_file} will be read and the photon trajectories plotted. Since photon tracking
 is {\em not} done when there is plotting done, the \vn{wall_hit_file} must be generated in
 a previous run of \srthree prior to using the \vn{-plot} option.
+
+When plotting $x$-$y$ cross-sections, symbols
+will be drawn at the vertex points \vn{v(i)} that define the
+cross-section.
 
 The \vn{-test <what>} option is for generating diagnostic
 files:
