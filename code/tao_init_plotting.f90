@@ -249,7 +249,7 @@ if (ios < 0) then
   if (ios1 >= 0) then
     call out_io (s_error$, r_name, &
             'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
-            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
+            '      "floor_plan_drawing" to reflect the fact that this namelist ', &
             '      now is used to specify more than element shapes. Please     ', &
             '      make the appropriate change in your input file.             ', &
             'For now, Tao will accept the old namelist name...                 ')
@@ -283,7 +283,7 @@ if (ios < 0) then
   if (ios1 == 0) then
     call out_io (s_error$, r_name, &
             'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
-            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
+            '      "lat_layout_drawing" to reflect the fact that this namelist   ', &
             '      now is used to specify more than element shapes. Please       ', &
             '      make the appropriate change in your input file.               ', &
             'For now, Tao will accept the old namelist name...                   ')
