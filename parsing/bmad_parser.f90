@@ -42,7 +42,7 @@ use random_mod
 
 implicit none
 
-type (lat_struct), target :: lat, in_lat, lat2
+type (lat_struct), target :: lat, in_lat
 type (ele_struct) this_ele
 type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, mad_beam_ele, param_ele
 type (ele_struct), save :: marker_ele
@@ -61,7 +61,7 @@ integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
+integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave
 integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
 integer, pointer :: n_max, n_ptr
 
@@ -72,7 +72,7 @@ character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_2, name
 character(40) this_name, word_1, branch_name
-character(40), allocatable ::  in_name(:), seq_name(:)
+character(40), allocatable ::  in_name(:), seq_name(:), names(:)
 character(80) debug_line
 character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
@@ -707,7 +707,6 @@ bp_com%input_line_meaningful = .false.
 mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
 param_ele    => in_lat%ele(ix_param_ele)
 
-
 ! sort elements and lists and check for duplicates
 ! seq_name(:) and in_name(:) arrays speed up the calls to find_indexx since
 ! the compiler does not have to repack the memory.
@@ -1006,32 +1005,25 @@ do i = 1, n_max
   lord => in_lat%ele(i)
   if (lord%key /= girder$) cycle
   pele => plat%ele(i)
+  n_slave = size(pele%control)
   j = 0
   do 
     j = j + 1
-    if (j > lord%n_slave) exit
+    if (j > n_slave) exit
     call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
-    call init_lat (lat2)
-    call parser_expand_line (lat2, pele%control(j)%name, sequence, in_name, in_indexx, &
-                                                            seq_name, seq_indexx, in_lat, n_ele_use, .false.)
+    call parser_expand_line (lat, pele%control(j)%name, sequence, in_name, in_indexx, &
+                                         seq_name, seq_indexx, in_lat, n_ele_use, .false., names)
     ! Put elements from the line expansion into the slave list.
-    ! Remember to ignore drifts.
-    lord%n_slave = lord%n_slave - 1   ! Remove beam line name
-    pele%control(1:lord%n_slave)%name = [pele%control(1:j-1)%name, pele%control(j+1:lord%n_slave+1)%name]
 
     call move_alloc(pele%control, pcon)
-    allocate (pele%control(lord%n_slave+n_ele_use))
-    pele%control(1:size(pcon)) = pcon
+    allocate (pele%control(n_slave+n_ele_use-1))
 
-    do k = 1, n_ele_use
-      call find_indexx (lat2%ele(k)%name, in_name, 0, in_indexx, n_max, ix, ix2)      
-      if (ix /= 0) then
-        if (in_lat%ele(ix)%key == drift$) cycle
-      endif
-      lord%n_slave = lord%n_slave + 1
-      pele%control(lord%n_slave)%name = lat2%ele(k)%name
-    enddo
+    pele%control(1:j-1) = pcon(1:j-1)
+    pele%control(j:j+n_ele_use-1)%name = names
+    pele%control(j+n_ele_use:n_slave+n_ele_use-1) = pcon(j:n_slave-1)
+
+    j = j + n_ele_use - 1
   enddo
 enddo
 
@@ -1283,7 +1275,6 @@ do i = 1, lat%n_ele_max
 enddo
 
 call deallocate_lat_pointers(in_lat)
-call deallocate_lat_pointers(lat2)
 
 end subroutine parser_end_stuff 
 

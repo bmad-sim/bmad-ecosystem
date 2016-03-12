@@ -5235,18 +5235,18 @@ main_loop: do n_in = 1, n_ele_max
           ! If not previously in a super lord then there is no overall match to the slave list.
 
           if (ele%slave_status == super_slave$ .and. ix_super_lord_end > -1) then
+            if (ix_ele_now == ix_super_lord_end) ix_super_lord_end = -1
             ix_ele_now = ix_ele_now + 1
             cycle
           endif
-
-          ix_super_lord_end = -1  ! Not in a super_lord
 
           ! No match to the slave list. If a marker or drift then ignore except 
           ! if this is the first slave in which case there is no match.
 
           if ((ele%key == marker$ .or. ele%key == drift$) .and. ixs > 1) then
+            if (ix_ele_now == ix_super_lord_end) ix_super_lord_end = -1
             ix_ele_now = ix_ele_now + 1
-            if (ele%key == marker$) have_ignored_a_drift = .true.
+            if (ele%key == drift$) have_ignored_a_drift = .true.
             cycle
           endif
 
@@ -5276,7 +5276,7 @@ main_loop: do n_in = 1, n_ele_max
     enddo branch_loop
 
     if (.not. created_girder_lord) then
-      call parser_error ('FAILED TO FIND REGION IN LATTICE FOR CRATING GIRDER: ' // &
+      call parser_error ('FAILED TO FIND REGION IN LATTICE FOR CREATING GIRDER: ' // &
                           lord%name, warn_only = .true.)
     endif
 
@@ -5337,11 +5337,12 @@ if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == free
 
   if (ix_super_lord_end == -1) ix_ele_now = ix_ele_now + 1
 
-  ! If match to a girder then move pointers to element after latst girder slave
+  ! If match to a girder then move pointers to element after last girder slave
 
   if (ele%key == girder$) then
     call find_element_ends (ele, slave1, slave2)
     ix_ele_now = slave2%ix_ele + 1
+    ix_super_lord_end = -1
   endif
 
   return
@@ -5855,16 +5856,33 @@ end subroutine parser_identify_fork_to_element
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-!                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
+!                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker, expanded_line)
 !
 ! Subroutine to do line expansion.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   use_name      -- character(*): Root line to expand.
+!   sequence(:)   -- seq_struct: Array of sequencies.
+!   in_name(:)    -- character(*): Array of element names.
+!   in_indexx(:)  -- integer: Index array of for the element names.
+!   seq_name(:)   -- character(*): Array of sequence names.
+!   seq_indexx(:) -- integer: Index array for the sequence names.
+!   in_lat        -- lat_struct: Lattice with array of elements defined in the lattice file.
+!   no_end_marker -- logical: Put a marker named "end" at the end of the branch?
+!
+! Output:
+!   lat           -- lat_struct: Lattice with new line. Except if expanded_line is present.
+!   n_ele_use     -- integer: Number of elements in the finished line.
+!   expanded_line(:) -- character(*), allocatable, optional: If present, lat argument will be
+!                         ignored and expanded_line will have the expanded line.
+!                         This arg is used for girder lords.
 !-
 
 subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
+               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker, expanded_line)
 
 implicit none
 
@@ -5884,6 +5902,7 @@ integer iseq_tot, i_lev, i_use, n_ele_use, n_max
 integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 
 character(*), allocatable ::  in_name(:), seq_name(:)
+character(*), allocatable, optional :: expanded_line(:)
 character(*) use_name
 character(40) name
 
@@ -5966,9 +5985,15 @@ n_ele_use = 0
          
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
+! Note: if present(expanded_line) => expansion is for getting a girder slave list.
+
 if (stack(1)%multipass) then
-  call parser_error ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
-  if (global_com%exit_on_error) call err_exit
+  if (present(expanded_line)) then
+    ix_multipass = 1
+  else
+    call parser_error ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
+    if (global_com%exit_on_error) call err_exit
+  endif
 endif
 
 !-------------------------------------------------------------------------
@@ -6157,6 +6182,17 @@ enddo line_expansion
 ! Stop here if there has been an error
 
 if (bp_com%error_flag) return
+
+! expanded_line present?
+
+if (present(expanded_line)) then
+  if (allocated(expanded_line)) deallocate(expanded_line)
+  allocate(expanded_line(n_ele_use))
+  do i = 1, n_ele_use
+    expanded_line(i) = used_line(i)%name
+  enddo
+  return
+endif
 
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
