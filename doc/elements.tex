@@ -3984,9 +3984,9 @@ Attributes specific to a \vn{map type} \vn{wiggler} element are:
                       !   Dependent attribute (\sref{s:depend}).
 \end{example}
 
-A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{cm6}):
+A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{bsq}):
 \Begineq
-  \{ C, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{plane} \}
+  \{ A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family} \}
 \Endeq
 The \vn{polarity} value is used to scale the magnetic field. By
 default, \vn{polarity} has a value of 1.0.  Example:
@@ -4005,34 +4005,34 @@ There is no \vn{bmad_standard} tracking for a \vn{map_type}
 
 \vn{Note:} When the wiggler model was first developed, the definition
 of the field was somewhat different. The old definition used only the three forms
-with \vn{plane} set to \vn{y} and there was a different normalization convention.
+with \vn{family} set to \vn{y} and there was a different normalization convention.
 The old style \vn{hyper-y} form was
 \begin{alignat}{5}
-  B_x &= -&\wt C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
+  B_x &= -& C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&&  \nonumber
 \end{alignat}
 The old style \vn{hyper-xy} form was
 \begin{alignat}{5}
-  B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
+  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
   & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&&  \nonumber
 \end{alignat}
 The old style \vn{hyper_x} form was
 \begin{alignat}{5}
-  B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
+  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
 \end{alignat}
-The correspondence between $\wt C$ and $C$ is given by comparing
-\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm4}, \eq{cm5}, and \eq{cm6}. In
-a lattice file, the old field definition will be used if a
+The correspondence between $C$ in the above equations and $A$ in the new equations is
+given by comparing \Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{family.y}.
+In a lattice file, the old field definition will be used if a
 \vn{\{<Wig_Term>\}} has just 5 numbers:
 \Begineq
-  \text{term(i)} = \{ \wt C, k_x, k_y, k_z, \phi_z \}
+  \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
 \Endeq
 For example, the old style syntax:
 \begin{example}

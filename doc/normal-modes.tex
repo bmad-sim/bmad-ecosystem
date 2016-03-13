@@ -143,24 +143,18 @@ stored in the lattice elements must be computed.
 \Hyperref{r:bmad.parser}{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
 a different orbit needs to be used for the reference, The routine
-\Hyperref{r:lat.make.mat6}{lat_make_mat6} can be used. For example
+\Hyperref{r:twiss.and.track}{twiss_and_track} can be used. For example:
 \begin{example}
   type (lat_struct) lat
   type (coord_struct), allocatable :: orbit(:)
   call bmad_parser ('my_lattice', lat)
-  call closed_orbit_calc (lat, orbit, 4)
-  call lat_make_mat6 (lat, -1, orbit)
+  call twiss_and_track (lat, orb, ok)
 \end{example}
-This example reads in a lattice, finds the closed orbit which may be
-non--zero due to, say, non-zero kickers or quadrupole offsets, and
-then remakes the transfer matrices, which are stored in
-\vn{lat%ele(i)%mat6}, around the closed orbit.
 
 Once the starting Twiss parameters are set,
 \Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used to
 propagate the Twiss parameters to the rest of the elements
 \begin{example}
-  call twiss_propagate_all (lat)
 \end{example}
 
 The routine \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s}
