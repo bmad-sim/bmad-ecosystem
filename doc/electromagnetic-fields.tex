@@ -322,71 +322,114 @@ an extension of the method of Sagan, Crittenden, and
 Rubin\cite{b:wiggler}. In this model the magnetic (or electric) field is written as
 a sum of terms $B_i$
 \Begineq
-  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, x_0, y_0, \phi_z, plane)
+  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; A, k_x, k_y, k_z, x_0, y_0, \phi_z, family)
 \Endeq 
-Each term $B_i$ is specified using seven numbers $(C, k_x, k_y, k_z,
-x_0, y_0, \phi_z)$ and a switch called \vn{plane} which can be either:
+Each term $B_i$ is specified using seven numbers $(A, k_x, k_y, k_z,
+x_0, y_0, \phi_z)$ and a switch called \vn{family} which can be one of:
 \begin{example}
-  x
-  y
+  x,  qu
+  y,  sq
 \end{example}
-Basically, a seting of \vn{plane} of \vn{x} means
-that the on-axis field is primarily horizontal while a setting of
-\vn{y} gives a form where the on-axis vertical field is primarily
-vertical.
+Roughly, the \vn{x} \vn{family} gives a field that is like a horizontal dipole, the \vn{y}
+\vn{family} is good for simulating vertical dipole fields, the \vn{qu} \vn{family} is good
+for simulating quadrupole fields, and the \vn{sq} \vn{family} is good for simulating skew
+quadrupole fields.
 
-There are six possible forms that $\bfB_i$ can take - Three with
-\vn{plane} set to \vn{x} and three with \vn{plane} set to \vn{y}.
-The groups of three forms are designated as ``\vn{hyper-y}'',
-``\vn{hyper-xy}'', and ``\vn{hyper-x}''. For \vn{plane} set to
-\vn{x} the \vn{hyper-y} form is:
+Each family has three possible forms These are designated as ``\vn{hyper-y}'',
+``\vn{hyper-xy}'', and ``\vn{hyper-x}''. 
+
+For the \vn{x} \vn{family} the \vn{hyper-y} form is:
 \begin{alignat}{4}
-  B_x &=  &C \, &\dfrac{k_x}{k_y} & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &                 & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_y} & \sin(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  B_x &=  &A \, &\dfrac{k_x}{k_y} & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &A \, &                 & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&A \, &\dfrac{k_z}{k_y} & \sin(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm1} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
-The \vn{hyper-xy} form for \vn{plane} set to \vn{x} is:
+The \vn{x} \vn{family} \vn{hyper-xy} form is:
 \begin{alignat}{4}
-  B_x &=  &C \, &\dfrac{k_x}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &\dfrac{k_y}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &                 & \sinh(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm3} \\
+  B_x &=  &A \, &\dfrac{k_x}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &A \, &\dfrac{k_y}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&A \, &                 & \sinh(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm3} \\
   & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
 \end{alignat}
-And the \vn{hyper-x} form for \vn{plane} set to \vn{x} is:
+And the \vn{x} \vn{family} \vn{hyper-x} form is:
 \begin{alignat}{4}
-  B_x &=  &C \, &                 & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &= -&C \, &\dfrac{k_y}{k_x} & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_x} & \sinh(\kxx) \, \cos(\kyy) \, \sin(\kzz) \label{cm5} \\
+  B_x &=  &A \, &                 & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &= -&A \, &\dfrac{k_y}{k_x} & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&A \, &\dfrac{k_z}{k_x} & \sinh(\kxx) \, \cos(\kyy) \, \sin(\kzz) \label{cm5} \\
   & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
+
 The relationship between $k_x$, $k_y$, and $k_z$ ensures that
 Maxwell's equations are satisfied. Notice that which form
 \vn{hyper-y}, \vn{hyper-xy}, and \vn{hyper-x} a particular $\bfB_i$
 belongs to can be computed by \bmad by looking at the values of $k_x$,
 $k_y$, and $k_z$.
 
-For \vn{plane} set to \vn{y} the \vn{hyper-y} form is:
-\begin{alignat}{4}
-  B_x &= -&C \, &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
+Using a compact notation where $\Ch \equiv \cosh$, subscript $x$ is $\kxx$ etc., 
+the \vn{y} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    &-& A \, \dfrac{k_x}{k_y} \, \Se_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Sh_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \hphphp          \, \Sh_x \, \Se_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Ce_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Ch_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Ch_x \, \Ce_y \, \Ce_z \quad \label{family.y} \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Ce_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Ch_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \dfrac{k_z}{k_x} \, \Ch_x \, \Se_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
 \end{alignat}
-the \vn{hyper-xy} form for \vn{plane} set to \vn{y} is:
-\begin{alignat}{4}
-  B_x &=  &C \, &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm4} \\
-  & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
+
+the \vn{qu} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    & & A \, \dfrac{k_x}{k_y} \, \Ce_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Ch_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \hphphp          \, \Ch_x \, \Se_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Se_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Sh_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Sh_x \, \Ce_y \, \Ce_z \quad \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Se_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Sh_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \dfrac{k_z}{k_x} \, \Sh_x \, \Se_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
 \end{alignat}
-and the \vn{hyper-x} form for \vn{plane} set to \vn{y} is:
-\begin{alignat}{4}
-  B_x &=  &C \, &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm6} \\
-  & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
+
+the \vn{sq} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    &-& A \, \dfrac{k_x}{k_y} \, \Se_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Sh_x \, \Ch_y \, \Ce_z \quad
+    &-& A \, \hphphp          \, \Sh_x \, \Ce_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Ce_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Ch_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Ch_x \, \Se_y \, \Ce_z \quad \label{bsq} \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Ce_x \, \Ch_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Ch_x \, \Ch_y \, \Se_z \quad
+    & & A \, \dfrac{k_z}{k_x} \, \Ch_x \, \Ce_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
 \end{alignat}
+
 
 The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a
 uniform field is needed, a term with very small $k_x$, $k_y$, and
