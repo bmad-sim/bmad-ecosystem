@@ -46,6 +46,8 @@ integer, parameter :: dflt_draw$ = 1, dflt_set$ = 2
 integer, parameter :: print_page_long_len = 10.5
 integer, parameter :: print_page_short_len = 7.8
 
+integer, parameter :: filled_arrow_head$ = 1, outline_arrow_head$ = 2
+
 !------------------------------------
 
 type qp_axis_struct
@@ -115,6 +117,13 @@ type qp_symbol_struct
   integer :: line_width   = 1
 end type
 
+type qp_arrow_struct
+  real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees
+  real(rp) :: head_barb  = 0.4     ! fraction of triangular arrow head that is cut away from the back.
+  integer :: head_type   = filled_arrow_head$    ! or outline_arrow_head$
+  integer :: color       = black$
+end type
+
 type qp_state_struct
   type (qp_plot_struct) plot
   type (qp_rect_struct) :: page   = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
@@ -130,6 +139,7 @@ type qp_state_struct
   type (qp_text_struct) :: axis_label = qp_text_struct(15.0, black$, .false.)
   type (qp_text_struct) :: this_text  ! current settings.
   type (qp_symbol_struct) :: symbol 
+  type (qp_arrow_struct) :: arrow
   type (qp_line_struct) :: std_line  = qp_line_struct (2, black$, solid$)
   type (qp_line_struct) :: plot_line = qp_line_struct (2, black$, solid$)
   type (qp_line_struct) :: axis_line = qp_line_struct (2, black$, solid$)
