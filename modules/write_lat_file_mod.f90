@@ -877,10 +877,14 @@ do ib = 0, ubound(lat%branch, 1)
         last = '}, &'
         if (j == size(ele%wig%term)) last = '}'
         select case (wt%type)
-        case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
           name = 'X'
-        case default
+        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
           name = 'Y'
+        case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+          name = 'QU'
+        case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+          name = 'SQ'
         end select
         write (iu, '(a, i3, 17a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
           trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &

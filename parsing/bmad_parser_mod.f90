@@ -229,7 +229,7 @@ real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
-integer ix_bounds(2), iy_bounds(2), i_vec(2), plane, n_sec
+integer ix_bounds(2), iy_bounds(2), i_vec(2), family, n_sec
 
 character(40) :: word, str_ix, attrib_word, word2
 character(40), allocatable :: name_list(:)
@@ -1131,14 +1131,14 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
   old_style_input = .true.
-  plane = y_plane$
+  family = y_family$
 
   if (delim == ',') then
     wt%x0 = wt%phi_z
     call evaluate_value (err_str, wt%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
     call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call get_switch ('PLANE', ['X', 'Y'], plane, err_flag, ele); if (err_flag) return
-    if (.not. expect_this ('}', .true., .false., 'AFTER "PLANE" SWITCH')) return
+    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele); if (err_flag) return
+    if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH')) return
     old_style_input = .false.
   endif
 
@@ -1148,22 +1148,24 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   tol = 1d-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
-    if (plane == x_plane$) then
-      wt%type = hyper_y_plane_x$
-    else
-      wt%type = hyper_y_plane_y$
-    endif
+    select case (family)
+    case (x_family$);   wt%type = hyper_y_family_x$
+    case (y_family$);   wt%type = hyper_y_family_y$
+    case (qu_family$);  wt%type = hyper_y_family_qu$
+    case (sq_family$);  wt%type = hyper_y_family_sq$
+    end select
 
     if (old_style_input) then
       if (wt%kx == 0) wt%kx = 1d-30  ! Something small to prevent divide by zero problems.
     endif
 
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
-    if (plane == x_plane$) then
-      wt%type = hyper_xy_plane_x$
-    else
-      wt%type = hyper_xy_plane_y$
-    endif
+    select case (family)
+    case (x_family$);   wt%type = hyper_xy_family_x$
+    case (y_family$);   wt%type = hyper_xy_family_y$
+    case (qu_family$);  wt%type = hyper_xy_family_qu$
+    case (sq_family$);  wt%type = hyper_xy_family_sq$
+    end select
 
     if (old_style_input) then
       wt%coef = wt%coef * wt%kz / wt%ky
@@ -1172,11 +1174,12 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     endif
 
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
-    if (plane == x_plane$) then
-      wt%type = hyper_x_plane_x$
-    else
-      wt%type = hyper_x_plane_y$
-    endif
+    select case (family)
+    case (x_family$);   wt%type = hyper_x_family_x$
+    case (y_family$);   wt%type = hyper_x_family_y$
+    case (qu_family$);  wt%type = hyper_x_family_qu$
+    case (sq_family$);  wt%type = hyper_x_family_sq$
+    end select
 
     if (old_style_input) then
       wt%coef = wt%coef * wt%kx / wt%ky

@@ -345,13 +345,18 @@ type bpm_phase_coupling_struct
   real(rp) phi_b    ! b-mode betatron phase.
 end type
 
-! Wiggler 
+! Cartesian field decomposition
 
-integer, parameter :: hyper_y_plane_y$ = 1, hyper_xy_plane_y$ = 2, hyper_x_plane_y$ = 3
-integer, parameter :: hyper_y_plane_x$ = 4, hyper_xy_plane_x$ = 5, hyper_x_plane_x$ = 6
-character(16), parameter :: wig_term_type_name(0:6) = [ &
-                                        'Garbage         ', 'Hyper_Y_Plane_Y ', 'Hyper_XY_Plane_Y', 'Hyper_X_Plane_Y ', &
-                                        'Hyper_Y_Plane_X ', 'Hyper_XY_Plane_X', 'Hyper_X_Plane_X ']
+integer, parameter :: hyper_y_family_y$ = 1, hyper_xy_family_y$ = 2, hyper_x_family_y$ = 3
+integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_family_x$ = 6
+integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
+integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
+integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
+character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage         ', &
+                                        'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
+                                        'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
+                                        'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
+                                        'Hyper_Y_Family_SQ ', 'Hyper_XY_Family_SQ', 'Hyper_X_Family_SQ ']
 
 ! Single wiggler term
 
@@ -359,7 +364,7 @@ type wig_term_struct
   real(rp) :: coef = 0
   real(rp) :: kx = 0, ky = 0, kz = 0
   real(rp) :: x0 = 0, y0 = 0, phi_z = 0
-  integer :: type = 0        ! hyper_y_plane_x$, etc.
+  integer :: type = 0        ! hyper_y_family_x$, etc.
 end type
 
 ! Wiggler field
