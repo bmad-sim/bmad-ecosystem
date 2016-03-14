@@ -2450,7 +2450,8 @@ end function tracking_uses_end_drifts
 !
 ! Output:
 !   s_edge_track -- Real(rp): S position of next hard edge in track_ele frame.
-!                     If there are no more hard edges then s_pos will be set to ele%value(l$).
+!                     If there are no more hard edges then s_pos will be set to ele%value(l$) if 
+!                     track_direction = 1, and set to 0 if track_direction = -1.
 !   hard_ele     -- ele_struct, pointer: Points to element with the hard edge.
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
@@ -2620,7 +2621,7 @@ if (dir == 1) then
   case default
     call err_exit
   end select
-  if (s_this_edge > s_edge_track + ds_small .and. .not. associated(hard_ele)) return
+  if (s_this_edge > s_edge_track + ds_small) return
 
 else
   select case (this_ele%ixx)
@@ -2635,7 +2636,7 @@ else
   case default
     call err_exit
   end select
-  if (s_this_edge < s_edge_track - ds_small .and. .not. associated(hard_ele)) return
+  if (s_this_edge < s_edge_track - ds_small) return
 endif
 
 ! This looks like the next hard edge
