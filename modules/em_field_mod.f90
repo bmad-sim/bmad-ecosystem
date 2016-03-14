@@ -190,12 +190,12 @@ type (floor_position_struct) lab_position, global_position, lord_position
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
-real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, kx, ky, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
 real(rp) Er_dc, Ep_dc, Ez_dc, Br_dc, Bp_dc, Bz_dc
-real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z, sx_over_kx, sy_over_ky
+real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z, sx_over_kx, sy_over_ky, sz_over_kz
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3)
 
@@ -508,33 +508,37 @@ case (bmad_standard$)
 
     do i = 1, n
       wig => ele%wig%term(i)
-      sgn_x = 1; sgn_y = 1
+      sgn_x = 1; sgn_y = 1; sgn_z = 1
 
       select case (wig%type)
-      case (hyper_y_plane_x$, hyper_y_plane_y$)
+      case (hyper_y_family_x$, hyper_y_family_y$, hyper_y_family_qu$, hyper_y_family_sq$)
         coef = wig%coef * ele%value(polarity$) / ref_charge / wig%ky
         c_x = cos(wig%kx * (x + wig%x0))
         s_x = sin(wig%kx * (x + wig%x0))
         c_y = cosh (wig%ky * (y + wig%y0))
         s_y = sinh (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_y_plane_y$) sgn_x = -1
+        if (wig%type == hyper_y_family_y$)  sgn_x = -1
+        if (wig%type == hyper_y_family_sq$) sgn_x = -1
+        if (wig%type == hyper_y_family_sq$) sgn_z = -1
         trig_x = -1; trig_y = 1
 
-      case (hyper_xy_plane_x$, hyper_xy_plane_y$)
+      case (hyper_xy_family_x$, hyper_xy_family_y$, hyper_xy_family_qu$, hyper_xy_family_sq$)
         coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kz
         c_x = cosh(wig%kx * (x + wig%x0))
         s_x = sinh(wig%kx * (x + wig%x0))
         c_y = cosh (wig%ky * (y + wig%y0))
         s_y = sinh (wig%ky * (y + wig%y0))
+        if (wig%type == hyper_xy_family_sq$) sgn_z = -1
         trig_x = 1; trig_y = 1
 
-      case (hyper_x_plane_x$, hyper_x_plane_y$)
+      case (hyper_x_family_x$, hyper_x_family_y$, hyper_x_family_qu$, hyper_x_family_sq$)
         coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kx
         c_x = cosh(wig%kx * (x + wig%x0))
         s_x = sinh(wig%kx * (x + wig%x0))
         c_y = cos (wig%ky * (y + wig%y0))
         s_y = sin (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_x_plane_x$) sgn_y = -1
+        if (wig%type == hyper_x_family_x$)  sgn_y = -1
+        if (wig%type == hyper_x_family_sq$) sgn_x = -1
         trig_x = 1; trig_y = -1
       end select
 
@@ -542,19 +546,27 @@ case (bmad_standard$)
       s_z = sin (wig%kz * s_rel + wig%phi_z)
 
       select case (wig%type)
-      case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+      case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
         field%B(1) = field%B(1) + coef  * wig%kx * c_x * c_y * c_z
         field%B(2) = field%B(2) + coef  * wig%ky * s_x * s_y * c_z * sgn_y
         field%B(3) = field%B(3) - coef  * wig%kz * s_x * c_y * s_z
-      case default
+      case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
         field%B(1) = field%B(1) + coef  * wig%kx * s_x * s_y * c_z * sgn_x
         field%B(2) = field%B(2) + coef  * wig%ky * c_x * c_y * c_z
         field%B(3) = field%B(3) - coef  * wig%kz * c_x * s_y * s_z
+      case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+        field%B(1) = field%B(1) + coef  * wig%kx * c_x * s_y * c_z
+        field%B(2) = field%B(2) + coef  * wig%ky * s_x * c_y * c_z
+        field%B(3) = field%B(3) - coef  * wig%kz * s_x * s_y * s_z
+      case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+        field%B(1) = field%B(1) + coef  * wig%kx * s_x * c_y * c_z * sgn_x
+        field%B(2) = field%B(2) + coef  * wig%ky * c_x * s_y * c_z
+        field%B(3) = field%B(3) + coef  * wig%kz * c_x * c_y * s_z * sgn_z
       end select
 
       if (df_calc) then
         select case (wig%type)
-        case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
           f = coef * wig%kx
           field%dB(1,1) = field%dB(1,1) + f * wig%kx * s_x * c_y * c_z * trig_x
           field%dB(2,1) = field%dB(2,1) + f * wig%ky * c_x * s_y * c_z * sgn_y
@@ -566,8 +578,8 @@ case (bmad_standard$)
           f = coef * wig%kz
           field%dB(1,3) = field%dB(1,3) - f * wig%kx * c_x * c_y * s_z
           field%dB(2,3) = field%dB(2,3) - f * wig%ky * s_x * s_y * s_z * sgn_y 
-          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * c_y * c_z 
-        case default
+          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * c_y * c_z
+        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
           f = coef * wig%kx
           field%dB(1,1) = field%dB(1,1) + f * wig%kx * c_x * s_y * c_z * sgn_x
           field%dB(2,1) = field%dB(2,1) + f * wig%ky * s_x * c_y * c_z * trig_x
@@ -580,45 +592,102 @@ case (bmad_standard$)
           field%dB(1,3) = field%dB(1,3) - f * wig%kx * s_x * s_y * s_z * sgn_x
           field%dB(2,3) = field%dB(2,3) - f * wig%ky * c_x * c_y * s_z 
           field%dB(3,3) = field%dB(3,3) - f * wig%kz * c_x * s_y * c_z 
+        case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+          f = coef * wig%kx
+          field%dB(1,1) = field%dB(1,1) + f * wig%kx * s_x * s_y * c_z * trig_x
+          field%dB(2,1) = field%dB(2,1) + f * wig%ky * c_x * c_y * c_z 
+          field%dB(3,1) = field%dB(3,1) - f * wig%kz * c_x * s_y * s_z
+          f = coef * wig%ky
+          field%dB(1,2) = field%dB(1,2) + f * wig%kx * c_x * c_y * c_z 
+          field%dB(2,2) = field%dB(2,2) + f * wig%ky * s_x * s_y * c_z * trig_y
+          field%dB(3,2) = field%dB(3,2) - f * wig%kz * s_x * c_y * s_z 
+          f = coef * wig%kz
+          field%dB(1,3) = field%dB(1,3) - f * wig%kx * c_x * s_y * s_z
+          field%dB(2,3) = field%dB(2,3) - f * wig%ky * s_x * c_y * s_z 
+          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * s_y * c_z 
+        case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+          f = coef * wig%kx
+          field%dB(1,1) = field%dB(1,1) + f * wig%kx * c_x * c_y * c_z * sgn_x
+          field%dB(2,1) = field%dB(2,1) + f * wig%ky * s_x * s_y * c_z * trig_x
+          field%dB(3,1) = field%dB(3,1) + f * wig%kz * s_x * c_y * s_z * sgn_z * trig_x
+          f = coef * wig%ky
+          field%dB(1,2) = field%dB(1,2) + f * wig%kx * s_x * s_y * c_z * sgn_x * trig_y
+          field%dB(2,2) = field%dB(2,2) + f * wig%ky * c_x * c_y * c_z 
+          field%dB(3,2) = field%dB(3,2) + f * wig%kz * c_x * s_y * s_z * sgn_z * trig_y
+          f = coef * wig%kz
+          field%dB(1,3) = field%dB(1,3) - f * wig%kx * s_x * c_y * s_z * sgn_x
+          field%dB(2,3) = field%dB(2,3) - f * wig%ky * c_x * s_y * s_z 
+          field%dB(3,3) = field%dB(3,3) + f * wig%kz * c_x * c_y * c_z * sgn_z
         end select
       endif
 
       if (present(potential)) then
         coef = wig%coef * ele%value(polarity$) / ref_charge
         select case (wig%type)
-        case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
           if (abs(wig%ky * (y + wig%y0)) < 1d-10) then
             sy_over_ky = y + wig%y0
           else
             sy_over_ky = s_y / wig%ky
           endif
-        case (hyper_y_plane_y$, hyper_xy_plane_y$, hyper_x_plane_y$)
+        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
           if (abs(wig%kx * (x + wig%x0)) < 1d-10) then
             sx_over_kx = x + wig%x0
           else
             sx_over_kx = s_x / wig%kx
           endif
+        case default
+          if (abs(wig%kz * z + wig%phi_z) < 1d-10) then
+            if (wig%kz == 0) then
+              sz_over_kz = 0
+            else
+              sz_over_kz = z + wig%phi_z / wig%kz
+            endif
+          else
+            sz_over_kz = s_z / wig%kz
+          endif
         end select
 
         select case (wig%type)
-        case (hyper_y_plane_x$)
+        case (hyper_y_family_x$)
           potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%ky
           potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%ky
-        case (hyper_xy_plane_x$)
+        case (hyper_xy_family_x$)
           potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
           potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%kz
-        case (hyper_x_plane_x$)
+        case (hyper_x_family_x$)
           potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%kx
           potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
-        case (hyper_y_plane_y$)
+
+        case (hyper_y_family_y$)
           potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%ky
           potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
-        case (hyper_xy_plane_y$)
+        case (hyper_xy_family_y$)
           potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
           potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kz
-        case (hyper_x_plane_y$)
+        case (hyper_x_family_y$)
           potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%kx
           potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kx
+
+        case (hyper_y_family_qu$)
+          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
+          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * wig%kx / wig%ky
+        case (hyper_xy_family_qu$)
+          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * wig%ky / wig%kz
+          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * wig%kx / wig%kz
+        case (hyper_x_family_qu$)
+          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * wig%ky / wig%kx
+          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
+
+        case (hyper_y_family_sq$)
+          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
+          potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * wig%kx / wig%ky
+        case (hyper_xy_family_sq$)
+          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * wig%ky / wig%kz
+          potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * wig%kx / wig%kz
+        case (hyper_x_family_sq$)
+          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * wig%ky / wig%kx
+          potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
         end select
       endif
 

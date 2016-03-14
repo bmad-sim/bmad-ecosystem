@@ -1479,50 +1479,88 @@ $x$ = $y$ = 0) is placed along the centerline of the solenoid so that
 there is cylendrical symmetry around the $\Bf z$-axis.
 
 %---------------------------------------------------------------------------------
-\section{Wiggler and Undulator Tracking}
+\section{Symplectic Tracking with Cartesian Modes}
 \label{s:wiggler.std}
 \index{wiggler!tracking}
 
-For \vn{map_type} wigglers and undulators, symplectic integration as
-outlined in \sref{s:symp.track} is used for tracking. The vector
-potential is constructed to avoid singularities when one of the wave
-vectors $k_x$, $k_y$, or $k_z$ is zero. 
+The method for symplectic integration for elements that define the magnetic field using a
+Cartesian mode decomposition (\sref{s:cart.mode}) is outlined in \sref{s:symp.track}.  The
+vector potential is constructed to avoid singularities when one of the wave vectors $k_x$,
+$k_y$, or $k_z$ is zero.
 
-The vector potential for the \vn{hyper-y} form of the \vn{x} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &C &\dfrac{k_z}{k_y^2}      & \sin(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \CRNO
-  A_y &=  &0 && \label{bf1} \\
-  A_s &=  &C &\dfrac{k_x}{k_y^2}      & \cos(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
-The vector potential for the \vn{hyper-xy} form of the \vn{x} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &C &\dfrac{1}{k_y}          & \sinh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \CRNO
-  A_y &=  &0 && \label{bf3} \\
-  A_s &=  &C &\dfrac{k_x}{k_y \, k_z} & \cosh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
-The vector potential for the \vn{hyper-x} form of the \vn{x} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \CRNO
-  A_y &=  &0 && \label{bf5} \\
-  A_s &=  &C &\dfrac{1}{k_y}          & \cosh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
+For the \vn{x} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+    $A$ & $\dfrac{k_z}{k_y^2}$      & $\Se_x \, \Sh_y \, \Se_z \qquad$ &
+    $A$ & $\dfrac{1}{k_y}$          & $\Sh_x \, \Sh_y \, \Se_z \qquad$ &
+    $A$ & $\dfrac{k_z}{k_x \, k_y}$ & $\Sh_x \, \Se_y \, \Se_z$ \\
+  $A_y$   & 0 &&& 0 &&& 0 && \\
+  $A_z$   & 
+    $A$ & $\dfrac{k_x}{k_y^2}$      & $\Ce_x \, \Sh_y \, \Ce_z \qquad$ &
+    $A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Ch_x \, \Sh_y \, \Ce_z \qquad$ &
+    $A$ & $\dfrac{1}{k_y}$          & $\Ch_x \, \Se_y \, \Ce_z$ 
+\end{tabular}
+}
+\end{center}
 
-The vector potential for the \vn{hyper-y} form of the \vn{y} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &0 &&\CRNO
-  A_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sin(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{bf2} \\
-  A_s &= -&C &\dfrac{1}{k_x}          & \sin(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
-The vector potential for the \vn{hyper-xy} form of the \vn{y} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &0 &&\CRNO
-  A_y &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{bf4} \\
-  A_s &= -&C &\dfrac{k_y}{k_x \, k_z} & \sinh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
-The vector potential for the \vn{hyper-x} form of the \vn{y} \vn{family} is
-\begin{alignat}{4}
-  A_x &=  &0 &&\CRNO
-  A_y &= -&C &\dfrac{k_z}{k_x^2}      & \sinh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{bf6} \\
-  A_s &= -&C &\dfrac{k_y}{k_x^2}      & \sinh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \nonumber
-\end{alignat}
+For the \vn{y} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 0 &&& 0 &&& 0 && \\
+  $A_y$   & 
+    $-A$ & $\dfrac{k_z}{k_x \, k_y}$ & $\Se_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{1}{k_x}$          & $\Sh_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_z}{k_x^2}$      & $\Sh_x \, \Se_y \, \Se_z$ \\
+  $A_z$   & 
+    $-A$ & $\dfrac{1}{k_x}$          & $\Se_x \, \Ch_y \, \Ce_z \qquad$ &
+    $-A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Sh_x \, \Ch_y \, \Ce_z \qquad$ &
+    $-A$ & $\dfrac{k_y}{k_x^2}$      & $\Sh_x \, \Ce_y \, \Ce_z$ 
+\end{tabular}
+}
+\end{center}
+
+For the \vn{qu} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+     $A$ & $\dfrac{1}{k_z}$          & $\Se_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_z^2}$      & $\Sh_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Sh_x \, \Ce_y \, \Se_z$ \\
+  $A_y$   & 
+    $-A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Ce_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_x}{k_z^2}$      & $\Ch_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{1}{k_z}$          & $\Ch_x \, \Se_y \, \Se_z$ \\
+  $A_z$   & 0 &&& 0 &&& 0 &&
+\end{tabular}
+}
+\end{center}
+
+For the \vn{sq} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+     $A$ & $\dfrac{1}{k_z}$          & $\Ce_x \, \Sh_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_z^2}$      & $\Ch_x \, \Sh_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Ch_x \, \Se_y \, \Se_z$ \\
+  $A_y$   & 
+     $A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Se_x \, \Ch_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_x}{k_z^2}$      & $\Sh_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{1}{k_z}$          & $\Sh_x \, \Ce_y \, \Se_z$ \\
+  $A_z$   & 0 &&& 0 &&& 0 &&
+\end{tabular}
+}
+\end{center}
 

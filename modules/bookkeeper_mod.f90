@@ -2678,7 +2678,7 @@ case (wiggler$, undulator$)
     ele%wig%term(1)%x0     = 0
     ele%wig%term(1)%y0     = 0
     ele%wig%term(1)%phi_z  = -ele%wig%term(1)%kz * val(l$) / 2 
-    ele%wig%term(1)%type   = hyper_y_plane_y$
+    ele%wig%term(1)%type   = hyper_y_family_y$
   endif
 
 end select

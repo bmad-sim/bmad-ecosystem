@@ -312,8 +312,8 @@ endif
 
 if (associated(ele%wig)) then
   if (logic_option(.false., type_field)) then
-    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 3(9x, a))') ' Term#', &
-                                'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z   Type'
+    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 3(12x, a), 3x, a)') ' Term#', &
+                                'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
     do i = 1, size(ele%wig%term)
       term => ele%wig%term(i)
       write (li(nl+i), '(i4, 4f12.6, 3f14.6, 3x, a)') i, term%coef, term%kx, term%ky, term%kz, &

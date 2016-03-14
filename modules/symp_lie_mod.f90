@@ -11,7 +11,7 @@ type wiggler_computations_struct
   real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0
   real(rp) :: coef_Ax = 0, coef_Ay = 0, coef_Az = 0
   real(rp) :: sx_over_kx = 0, sy_over_ky = 0, integral_sx = 0, integral_sy = 0
-  integer :: trig_x = 0, trig_y = 0, plane = 0
+  integer :: trig_x = 0, trig_y = 0, family= 0
 end type
 
 private wiggler_computations_struct
@@ -671,47 +671,50 @@ do j = 1, num_wig_terms
   coef = factor * wt%coef 
 
   select case (wt%type)
-  case (hyper_y_plane_x$)
+  case (hyper_y_family_x$)
     tmj%trig_x = -1
     tmj%trig_y =  1
-    tmj%plane = x_plane$
+    tmj%family = x_family$
     tmj%coef_Ax =  coef * wt%kz / wt%ky                ! Missing factor of: / k_y
     tmj%coef_Az =  coef * wt%kx / wt%ky * orientation  ! Missing factor of: / k_y
 
-  case (hyper_y_plane_y$)
+  case (hyper_y_family_y$)
     tmj%trig_x = -1
     tmj%trig_y =  1
-    tmj%plane = y_plane$
+    tmj%family = y_family$
     tmj%coef_Ay = -coef * wt%kz / wt%ky                ! Missing factor of: / k_x
     tmj%coef_Az = -coef * orientation                  ! Missing factor of: / k_x
 
-  case (hyper_xy_plane_x$)
+  case (hyper_xy_family_x$)
     tmj%trig_x =  1
     tmj%trig_y =  1
-    tmj%plane = x_plane$
+    tmj%family = x_family$
     tmj%coef_Ax =  coef                                ! Missing factor of: / k_y
     tmj%coef_Az =  coef * wt%kx / wt%kz * orientation  ! Missing factor of: / k_y
 
-  case (hyper_xy_plane_y$)
+  case (hyper_xy_family_y$)
     tmj%trig_x =  1
     tmj%trig_y =  1
-    tmj%plane = y_plane$
+    tmj%family = y_family$
     tmj%coef_Ay = -coef                                ! Missing factor of: / k_x
     tmj%coef_Az = -coef * wt%ky / wt%kz * orientation  ! Missing factor of: / k_x
 
-  case (hyper_x_plane_x$)
+  case (hyper_x_family_x$)
     tmj%trig_x =  1
     tmj%trig_y = -1
-    tmj%plane = x_plane$
+    tmj%family = x_family$
     tmj%coef_Ax =  coef * wt%kz / wt%kx * orientation  ! Missing factor of: / k_y
     tmj%coef_Az =  coef                                ! Missing factor of: / k_y
 
-  case (hyper_x_plane_y$)
+  case (hyper_x_family_y$)
     tmj%trig_x =  1
     tmj%trig_y = -1
-    tmj%plane = y_plane$
+    tmj%family = y_family$
     tmj%coef_Ay = -coef * wt%kz / wt%kx                ! Missing factor of: / k_x
     tmj%coef_Az = -coef * wt%ky / wt%kx * orientation  ! Missing factor of: / k_x
+
+  case default
+    call err_exit
   end select
 enddo
 
@@ -769,7 +772,7 @@ do j = 1, num_wig_terms
 
   end select
 
-  if (tmj%plane == y_plane$) then
+  if (tmj%family == y_family$) then
     if (abs(arg) < 1d-10) then
       tmj%sx_over_kx = x + wt%x0
     else
@@ -833,7 +836,7 @@ do j = 1, num_wig_terms
 
   end select
 
-  if (tmj%plane == x_plane$) then
+  if (tmj%family == x_family$) then
     if (abs(arg) < 1d-10) then
       tmj%sy_over_ky = y + wt%y0
     else
@@ -879,7 +882,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= x_plane$) cycle
+  if (tm(j)%family /= x_family$) cycle
   value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%s_z
 enddo
 
@@ -898,7 +901,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= x_plane$) cycle
+  if (tm(j)%family /= x_family$) cycle
   value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%s_z * wig_term(j)%kx
 enddo
 
@@ -917,7 +920,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= x_plane$) cycle
+  if (tm(j)%family /= x_family$) cycle
   value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
 enddo
 
@@ -936,7 +939,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= x_plane$) cycle
+  if (tm(j)%family /= x_family$) cycle
   value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%s_z
 enddo
 
@@ -955,7 +958,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= x_plane$) cycle
+  if (tm(j)%family /= x_family$) cycle
   value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%s_z * wig_term(j)%ky * tm(j)%trig_y
 enddo
 
@@ -976,7 +979,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= y_plane$) cycle
+  if (tm(j)%family /= y_family$) cycle
   value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%s_z
 enddo
 
@@ -995,7 +998,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= y_plane$) cycle
+  if (tm(j)%family /= y_family$) cycle
   value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
@@ -1014,7 +1017,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= y_plane$) cycle
+  if (tm(j)%family /= y_family$) cycle
   value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%s_z * wig_term(j)%ky
 enddo
 
@@ -1033,7 +1036,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= y_plane$) cycle
+  if (tm(j)%family /= y_family$) cycle
   value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%integral_sy * tm(j)%s_z
 enddo
 
@@ -1052,7 +1055,7 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  if (tm(j)%plane /= y_plane$) cycle
+  if (tm(j)%family /= y_family$) cycle
   value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%integral_sy * tm(j)%s_z * wig_term(j)%kx * tm(j)%trig_x
 enddo
 
@@ -1072,10 +1075,10 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%plane)
-  case (x_plane$)
+  select case (tm(j)%family)
+  case (x_family$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
-  case (y_plane$)
+  case (y_family$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
   end select
 enddo
@@ -1095,10 +1098,10 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%plane)
-  case (x_plane$)
+  select case (tm(j)%family)
+  case (x_family$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
-  case (y_plane$)
+  case (y_family$)
     value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
   end select
 enddo
@@ -1118,10 +1121,10 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%plane)
-  case (x_plane$)
+  select case (tm(j)%family)
+  case (x_family$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx**2 * tm(j)%trig_x
-  case (y_plane$)
+  case (y_family$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
   end select
 enddo
@@ -1141,10 +1144,10 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%plane)
-  case (x_plane$)
+  select case (tm(j)%family)
+  case (x_family$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
-  case (y_plane$)
+  case (y_family$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
   end select
 enddo
@@ -1164,10 +1167,10 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%plane)
-  case (x_plane$)
+  select case (tm(j)%family)
+  case (x_family$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
-  case (y_plane$)
+  case (y_family$)
     value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%c_z * wig_term(j)%ky**2 * tm(j)%trig_y
   end select
 enddo
