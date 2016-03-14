@@ -2295,10 +2295,11 @@ end subroutine qp_draw_rectangle
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_symbol (x, y, units, type, height, color, 
-!                                            fill_pattern, line_width, clip)
+! Subroutine qp_draw_symbol (x, y, units, type, height, color, fill_pattern, line_width, clip)
 !
 ! Draws a symbol at (x, y) 
+!
+! Also see: qp_draw_symbols.
 !
 ! Input:
 !   x, y         -- Real(rp): Symbol coordinates in data units.
@@ -2313,8 +2314,7 @@ end subroutine qp_draw_rectangle
 !   clip         -- Logical, optional: Clip at the graph boundary?
 !-
 
-subroutine qp_draw_symbol (x, y, units, type, height, color, &
-                                                 fill_pattern, line_width, clip)
+subroutine qp_draw_symbol (x, y, units, type, height, color, fill_pattern, line_width, clip)
 
 implicit none
               
@@ -2346,12 +2346,13 @@ end subroutine qp_draw_symbol
 ! Subroutine qp_draw_symbols (x, y, units, type, height, color, 
 !                                 fill_pattern, line_width, clip, symbol_every)
 !
-! Draws a symbol at the (x, y) points. 
+! Draws symbols at a set of (x, y) points. 
 ! Data units are assumed.
 !
+! Also see: qp_draw_symbol.
+!
 ! Input:
-!   x, y         -- Real(rp): Symbol coordinates in data units.
-!                     x and y may be vectors.
+!   x(:), y(:)   -- Real(rp): Symbol coordinates in data units.
 !   type         -- Integer, optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
 !   color        -- Integer, optional: Symbol color.
@@ -3647,7 +3648,30 @@ end subroutine qp_draw_main_title
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-!+  
+!+
+! Subroutine qp_set_arrow (arrow)
+!
+! Subroutine to set the type of the arrows used in plotting data.
+! See the quick_plot documentation for more details.
+!
+! Input:
+!   arrow -- qp_arrow_struct: Arrow parameters.
+!-
+
+subroutine qp_set_arrow (arrow)
+
+implicit none
+
+type (qp_arrow_struct) arrow
+
+qp_com%arrow = arrow
+
+end subroutine qp_set_arrow
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
 ! Subroutine qp_set_symbol (symbol)
 !
 ! Subroutine to set the type and size of the symbols used in plotting data.
@@ -3729,6 +3753,30 @@ call qp_set_symbol_fill_basic (qp_com%symbol%fill_pattern)
 call qp_set_line_width_basic (qp_com%symbol%line_width)
 
 end subroutine qp_set_symbol_attrib
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+  
+! Subroutine qp_get_arrow_attrib (arrow)
+!
+! Subroutine to get the arrow parameters used in plotting data.
+! Use qp_set_arrow or qp_set_arrow_attrib to set arrow attributes.
+! See the quick_plot documentation for more details.
+!
+! Output:
+!   arrow -- qp_arrow_struct: Arrow parameters.
+!-
+
+subroutine qp_get_arrow_attrib (arrow)
+
+implicit none
+
+type (qp_arrow_struct) arrow
+
+arrow = qp_com%arrow
+
+end subroutine qp_get_arrow_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
