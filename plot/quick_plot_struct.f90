@@ -118,9 +118,10 @@ type qp_symbol_struct
 end type
 
 type qp_arrow_struct
-  real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees
-  real(rp) :: head_barb  = 0.4     ! fraction of triangular arrow head that is cut away from the back.
-  integer :: head_type   = filled_arrow_head$    ! or outline_arrow_head$
+  real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees.
+  real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
+  real(rp) :: head_size = 1.0
+  integer :: head_type   = filled_arrow_head$    ! Or outline_arrow_head$
   integer :: color       = black$
 end type
 
