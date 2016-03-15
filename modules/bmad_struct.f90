@@ -352,7 +352,7 @@ integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_fam
 integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
 integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
 integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
-character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage         ', &
+character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage           ', &
                                         'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
                                         'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
                                         'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
