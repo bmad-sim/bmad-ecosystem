@@ -506,6 +506,30 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
+! Subroutine qp_draw_arrow_basic (r1, r2, arrow)
+!
+! Subroutine to draw an arrow.
+!
+! Input:
+!   r1(2)  -- real(rp): tail (x, y) position in inches from bottom, left page edge.
+!   r2(2)  -- real(rp): head (x, y) position in inches from bottom left page edge.
+!   arrow  -- qp_arrow_struct: Arrow parameters.
+!-
+
+subroutine qp_draw_arrow_basic (r1, r2, arrow)
+
+implicit none
+real(rp) r1(2), r2(2), f
+type (qp_arrow_struct) arrow
+
+print *, 'ARROWS NOT YET IMPLEMENTED!'
+
+end subroutine qp_draw_arrow_basic
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
 ! Subroutine qp_draw_symbol_basic (x, y, symbol)
 !
 ! Subroutine to draw a symbol.

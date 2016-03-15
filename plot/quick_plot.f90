@@ -2290,7 +2290,49 @@ call qp_draw_polyline ([x1, x1, x2, x2, x1 ], [y1, y2, y2, y1, y1 ], &
                                             units, width, color, line_pattern, clip, style)
 
 end subroutine qp_draw_rectangle
-                                     
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_draw_arrow (r1, r2, units, color, head_size, head_type, head_angle, head_barb)
+!
+! Draws an arrow 
+!
+! Input:
+!   r1(2), r2(2)  -- real(rp): Arrow tail and head (x, y) coordinates.
+!   units         -- character(*), optional: Units of r1 and r2. Default is: 'DATA/GRAPH/LB'
+!   color         -- integer, optional: Arrow color.
+!   head_size     -- real(rp), optional: Size of the arrow.
+!   head_type     -- integer, optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
+!   head_angle    -- real(rp), optional: Acute angle of the arrow point in degrees.
+!   head_barb     -- real(rp), optional: Fraction of triangular arrow head that is cut away from the back.
+!-
+
+subroutine qp_draw_arrow (r1, r2, units, color, head_size, head_type, head_angle, head_barb)
+
+implicit none
+              
+real(rp) r1(2), r2(2), rinch1(2), rinch2(2)
+real(rp), optional :: head_size, head_angle, head_barb
+
+integer, optional :: color, head_type
+
+character(*), optional :: units
+
+!
+
+call qp_save_state (.true.)
+
+call qp_set_arrow_attrib (color, head_size, head_type, head_angle, head_barb)
+call qp_to_inch_abs (r1(1), r1(2), rinch1(1), rinch1(2), units)
+call qp_to_inch_abs (r2(1), r2(2), rinch2(1), rinch2(2), units)
+call qp_draw_arrow_basic (r1, r2, qp_com%arrow)
+
+call qp_restore_state
+
+end subroutine qp_draw_arrow
+
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2302,10 +2344,8 @@ end subroutine qp_draw_rectangle
 ! Also see: qp_draw_symbols.
 !
 ! Input:
-!   x, y         -- Real(rp): Symbol coordinates in data units.
-!                     x and y may be vectors.
-!   units        -- Character(*), optional: Units of (x, y)
-!                     Default is: 'DATA/GRAPH/LB'
+!   x, y         -- Real(rp): Symbol coordinates.
+!   units        -- Character(*), optional: Units of (x, y). Default is: 'DATA/GRAPH/LB'
 !   type         -- Integer, optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
 !   color        -- Integer, optional: Symbol color.
@@ -2343,8 +2383,7 @@ end subroutine qp_draw_symbol
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_symbols (x, y, units, type, height, color, 
-!                                 fill_pattern, line_width, clip, symbol_every)
+! Subroutine qp_draw_symbols (x, y, units, type, height, color, fill_pattern, line_width, clip, symbol_every)
 !
 ! Draws symbols at a set of (x, y) points. 
 ! Data units are assumed.
@@ -2367,8 +2406,7 @@ end subroutine qp_draw_symbol
 !-
 
 
-subroutine qp_draw_symbols (x, y, units, type, height, color, &
-                                      fill_pattern, line_width, clip, symbol_every)
+subroutine qp_draw_symbols (x, y, units, type, height, color, fill_pattern, line_width, clip, symbol_every)
 
 implicit none
 
@@ -3695,6 +3733,40 @@ type (qp_symbol_struct) symbol
 qp_com%symbol = symbol
 
 end subroutine qp_set_symbol
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+  
+! Subroutine qp_set_arrow_attrib (color, head_size, head_type, head_angle, head_barb)
+!
+! Subroutine to set the arrow shape used in drawing arrows.
+! See the quick_plot documentation for more details.
+!
+! Input:
+!   color         -- integer, optional: Arrow color.
+!   head_size     -- real(rp), optional: Size of the arrow.
+!   head_type     -- integer, optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
+!   head_angle    -- real(rp), optional: Acute angle of the arrow point in degrees.
+!   head_barb     -- real(rp), optional: Fraction of triangular arrow head that is cut away from the back.
+!-
+
+subroutine qp_set_arrow_attrib (color, head_size, head_type, head_angle, head_barb)
+
+implicit none
+
+integer, optional :: color, head_type
+real(rp), optional :: head_size, head_angle, head_barb
+
+!
+
+if (present(color))      qp_com%arrow%color       = color
+if (present(head_size))  qp_com%arrow%head_size   = head_size
+if (present(head_type))  qp_com%arrow%head_type   = head_type
+if (present(head_angle)) qp_com%arrow%head_angle  = head_angle
+if (present(head_barb))  qp_com%arrow%head_barb   = head_barb
+
+end subroutine qp_set_arrow_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
