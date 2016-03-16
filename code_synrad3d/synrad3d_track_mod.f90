@@ -263,6 +263,7 @@ subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d)
 implicit none
 
 type (sr3d_photon_track_struct) photon
+type (sr3d_coord_struct) now
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
@@ -276,9 +277,10 @@ logical is_through, no_wall_here
 ! check for particle outside wall
 
 photon%status = inside_the_wall$
-call sr3d_get_section_index(photon%now, branch, ix_wall3d)
 
-call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
+now = photon%now
+call sr3d_get_section_index(now, branch, ix_wall3d)
+call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
 
 if (abs(d_radius) < sr3d_params%significant_length .and. .not. no_wall_here) then
   photon%status = at_transverse_wall$
@@ -292,11 +294,11 @@ endif
 
 ! Is at the end of a linear lattice or at the end of the current sub-section?
 
-s = photon%now%orb%s
-ixs = photon%now%ix_wall_section
-wall3d => branch%wall3d(integer_option(photon%now%ix_wall3d, ix_wall3d))
+s = now%orb%s
+ixs = now%ix_wall_section
+wall3d => branch%wall3d(integer_option(now%ix_wall3d, ix_wall3d))
 
-if (photon%now%orb%vec(6) < 0) then
+if (now%orb%vec(6) < 0) then
   if (branch%param%geometry == open$ .and. s == 0) then
     photon%status = at_wall_end$
     return
@@ -304,12 +306,11 @@ if (photon%now%orb%vec(6) < 0) then
   if (s == wall3d%section(ixs)%s .and. wall3d%section(ixs)%type == wall_start$) photon%status = at_wall_end$
 endif
 
-if (photon%now%orb%vec(6) > 0) then
+if (now%orb%vec(6) > 0) then
   ix = branch%n_ele_track
   if (branch%param%geometry == open$ .and. s == branch%ele(ix)%s) photon%status = at_wall_end$
   if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) photon%status = at_wall_end$
 endif
-
 
 end subroutine sr3d_photon_status_calc
 
@@ -373,6 +374,8 @@ wall3d => branch%wall3d(photon%now%ix_wall3d)
 ele => branch%ele(now%ix_ele)
 s0 = ele%s - ele%value(l$)
 sl = sr3d_params%significant_length 
+
+call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
 
 ! Since patch elements have a complicated geometry, the photon s-position may not be
 ! within the interval from the s-position at the ends of the patch
@@ -889,6 +892,7 @@ cos_perp = dot_product (photon%now%orb%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
+call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
 if (photon%now%ix_wall_section == not_set$) call sr3d_get_section_index (photon%now, branch)
 surface => branch%wall3d(photon%now%ix_wall3d)%section(photon%now%ix_wall_section+1)%surface
 
