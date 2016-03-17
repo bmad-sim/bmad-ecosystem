@@ -32,13 +32,13 @@ private init_short_attrib_array
 ! Function attribute_index (...) result (attrib_index)
 !
 ! Function to return the index of a attribute for a given BMAD element type
-! and the name of the attribute. Abbreviations are permitted but must be at 
+! and the name of the attribute. Abbreviations are by default permitted but must be at 
 ! least 3 characters. Exception: overlay and group varialbe names may not
 ! be abbreviated.
 !
 ! This routine is an overloaded name for:
-!   attribute_index1 (ele, name, full_name) result (attrib_index)
-!   attribute_index2 (key, name, full_name) result (attrib_index)
+!   attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
+!   attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
 !
 ! Note:
 !   If ele%key or key = 0 -> Entire name table will be searched.
@@ -47,14 +47,16 @@ private init_short_attrib_array
 !   use bmad
 !
 ! Input:
-!   ele     -- Ele_struct: attribute_index will restrict the name search to 
+!   ele     -- ele_struct: attribute_index will restrict the name search to 
 !                valid attributes of the given element. 
-!   key     -- Integer: Equivalent to ele%key.
-!   name    -- Character(40): Attribute name. Must be uppercase.
+!   key     -- integer: Equivalent to ele%key.
+!   name    -- character(40): Attribute name. Must be uppercase.
+!   can_abbreviate
+!           -- logical, optional: Can abbreviate names? Default is True.
 !
 ! Output:
-!   full_name    -- Character(40), optional: Non-abbreviated name.
-!   attrib_index -- Integer: Index of the attribute. If the attribute name
+!   full_name    -- character(40), optional: Non-abbreviated name.
+!   attrib_index -- integer: Index of the attribute. If the attribute name
 !                            is not appropriate then 0 will be returned.
 !
 ! Example:
@@ -119,17 +121,18 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index1 (ele, name, full_name) result (attrib_index)
+! Function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index1 (ele, name, full_name) result (attrib_index)
+function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
 
 type (ele_struct) ele
 integer attrib_index, i, n
 character(*) name
 character(*), optional :: full_name
+logical, optional :: can_abbreviate
 
 ! Note: ele%control_var may not be associated during parsing.
 
@@ -152,7 +155,7 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_va
   endif
 endif
 
-attrib_index = attribute_index2 (ele%key, name, full_name)
+attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate)
 
 end function attribute_index1
 
@@ -160,12 +163,12 @@ end function attribute_index1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index2 (key, name, full_name) result (attrib_index)
+! Function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index2 (key, name, full_name) result (attrib_index)
+function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
 
 integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
 integer attrib_index
@@ -174,6 +177,8 @@ character(*) name
 character(*), optional :: full_name
 character(40) name40
 character(*), parameter :: r_name = 'attribute_index2'
+
+logical, optional :: can_abbreviate
 
 if (attribute_array_init_needed) call init_attribute_name_array
 
@@ -192,16 +197,21 @@ n_abbrev = 0            ! number of abbreviation matches.
 if (key == 0) then
   do k = 1, n_key$
     do i = 1, attrib_num(k)
+
       if (short_attrib_array(k, i) == name40) then
         attrib_index = attrib_ix(k, i)
         if (present(full_name)) full_name = short_attrib_array(k, i)
         return
       endif
-      if (short_attrib_array(k, i)(1:ilen) == name40(1:ilen)) then
-        n_abbrev = n_abbrev + 1
-        ix_abbrev = attrib_ix(k, i)
-        if (present(full_name)) full_name = short_attrib_array(k, i)
-      endif 
+
+      if (logic_option(.true., can_abbreviate)) then
+        if (short_attrib_array(k, i)(1:ilen) == name40(1:ilen)) then
+          n_abbrev = n_abbrev + 1
+          ix_abbrev = attrib_ix(k, i)
+          if (present(full_name)) full_name = short_attrib_array(k, i)
+        endif 
+      endif
+
     enddo
   enddo
 
@@ -209,16 +219,21 @@ if (key == 0) then
 
 elseif (key > 0 .and. key <= n_key$) then
   do i = 1, attrib_num(key)
+
     if (short_attrib_array(key, i) == name40) then
       attrib_index = attrib_ix(key, i)
       if (present(full_name)) full_name = short_attrib_array(key, i)
       return
     endif
-    if (short_attrib_array(key, i)(1:ilen) == name40(1:ilen)) then
-      n_abbrev = n_abbrev + 1
-      ix_abbrev = attrib_ix(key, i)
-      if (present(full_name)) full_name = short_attrib_array(key, i)
-    endif 
+
+    if (logic_option(.true., can_abbreviate)) then
+      if (short_attrib_array(key, i)(1:ilen) == name40(1:ilen)) then
+        n_abbrev = n_abbrev + 1
+        ix_abbrev = attrib_ix(key, i)
+        if (present(full_name)) full_name = short_attrib_array(key, i)
+      endif 
+    endif
+
   enddo      
 
 ! error
@@ -687,6 +702,7 @@ call init_attribute_name1 (beambeam$, cmat_12$,                     'CMAT_12')
 call init_attribute_name1 (beambeam$, cmat_21$,                     'CMAT_21')
 call init_attribute_name1 (beambeam$, cmat_22$,                     'CMAT_22')
 
+call init_attribute_name1 (beginning_ele$, l$,                           'l', dependent$)
 call init_attribute_name1 (beginning_ele$, floor_set$,                   'floor_set', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
 call init_attribute_name1 (beginning_ele$, ref_time_start$,              'ref_time_start', private$)
@@ -833,12 +849,12 @@ call init_attribute_name1 (detector$, l$,                             'L', depen
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
-call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
+call init_attribute_name1 (diffraction_plate$, l$,                    'l', dependent$)
 call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
 call init_attribute_name1 (diffraction_plate$, field_scale_factor$,   'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (diffraction_plate$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 
-call init_attribute_name1 (mask$, l$,                                 'l', private$)
+call init_attribute_name1 (mask$, l$,                                 'l', dependent$)
 call init_attribute_name1 (mask$, mode$,                              'MODE')
 call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
@@ -1485,7 +1501,7 @@ end function has_orientation_attributes
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
-!                     is_string$, is_logical$, is_integer$, is_real$, or is_switch$
+!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, or unknown$
 !-
 
 function attribute_type (attrib_name) result (attrib_type)
@@ -1515,15 +1531,20 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
-      'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
+      'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
+      'LORD_STATUS')
   attrib_type = is_switch$
 
-case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'PHYSICAL_SOURCE', &
-     'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE')
+case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
+     'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME')
   attrib_type = is_string$
 
 case default
-  attrib_type = is_real$
+  if (attribute_index(0, attrib_name, can_abbreviate = .false.) == 0) then
+    attrib_type = unknown$
+  else
+    attrib_type = is_real$
+  endif
 end select
 
 end function attribute_type 
@@ -1626,6 +1647,73 @@ end function is_a_tot_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine string_attrib (attrib_name, ele, attrib_value)
+!
+! Routine to return the value of a string attribute of a lattice element.
+! This routine is useful when attrib_name is specified by the program user.
+!
+! For example:
+!   call string_attrib ('NAME', ele, attrib_value)  ! Will return attrib_value = ele%name
+!
+! Input:
+!   attrib_name   -- character(*): Name of the type of element attribute.
+!   ele           -- ele_struct: Lattice element.
+!
+! Output:
+!   attrib_value  -- character(*): The string associated with the attribute.
+!-
+
+subroutine string_attrib (attrib_name, ele, attrib_value)
+
+type (ele_struct) ele
+character(*) attrib_name, attrib_value
+integer ib, ie
+
+!
+
+attrib_value = ''
+
+select case (attrib_name)
+case ('TYPE')
+  attrib_value = ele%type
+case ('ALIAS')
+  attrib_value = ele%alias
+case ('DESCRIP')
+  if (associated(ele%descrip)) attrib_value = ele%descrip
+case ('SR_WAKE_FILE')
+  if (associated(ele%wake)) attrib_value = ele%wake%sr_file
+case ('LR_WAKE_FILE')
+  if (associated(ele%wake)) attrib_value = ele%wake%lr_file
+case ('PHYSICAL_SOURCE')
+  if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
+case ('CRYSTAL_TYPE')
+  if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
+case ('MATERIAL_TYPE')
+  if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
+case ('TO_LINE')
+  if (associated(ele%branch)) then
+    ib = nint(ele%value(ix_to_branch$))
+    attrib_value = ele%branch%lat%branch(ib)%name
+  endif
+case ('TO_ELEMENT')
+  if (associated(ele%branch)) then
+    ib = nint(ele%value(ix_to_branch$))
+    ie = nint(ele%value(ix_to_element$))
+    attrib_value = ele%branch%lat%branch(ib)%ele(ie)%name
+  endif
+case ('ORIGIN_ELE')
+  if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
+case ('NAME')
+  attrib_value = ele%name
+end select
+
+
+end subroutine string_attrib
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Function switch_attrib_value_name (attrib_name, attrib_value, ele, 
 !                                     is_default) result (attrib_val_name)
 !
@@ -1696,9 +1784,7 @@ case ('CAVITY_TYPE')
 
 case ('COUPLER_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == downstream_end$)
-  endif
+  if (present(is_default)) is_default = (ix_attrib_val == downstream_end$)
 
 case ('DEFAULT_TRACKING_SPECIES')
   attrib_val_name = species_name(ix_attrib_val)
@@ -1736,6 +1822,14 @@ case ('PTC_FRINGE_GEOMETRY')
 case ('GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
 
+case ('KEY')
+    call get_this_attrib_name (attrib_val_name, ix_attrib_val, key_name, lbound(key_name, 1))
+  if (present(is_default)) is_default = .false.
+
+case ('LORD_STATUS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  
+  if (present(is_default)) is_default = .false.
+  
 case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$ .or. ele%key == mask$) then
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, mode_name, lbound(mode_name, 1))
@@ -1802,6 +1896,10 @@ case ('REF_ORBIT_FOLLOWS')
     is_default = (ix_attrib_val == bragg_diffracted$)
   endif
 
+case ('SLAVE_STATUS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  
+  if (present(is_default)) is_default = .false.
+  
 case ('SPATIAL_DISTRIBUTION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
