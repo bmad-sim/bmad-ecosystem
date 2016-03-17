@@ -55,11 +55,12 @@ Examples
   \begin{description}
   \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
   \item[{parameter[absolute_time_tracking]}] \Newline
-The \vn{absolute_time_tracking} switch sets whether the clock for the
-\vn{lcavity} and \vn{rfcavity} elements is tied to the reference
-particle or to uses the absolute time (\sref{s:rf.time}). A value of
-\vn{False} (the default) mandates relative time and a value of
-\vn{True} mandates absolute time.
+The \vn{absolute_time_tracking} switch sets whether the clock for the \vn{lcavity} and
+\vn{rfcavity} elements is tied to the reference particle or to uses the absolute time
+(\sref{s:rf.time}). A value of \vn{False} (the default) mandates relative time and a value
+of \vn{True} mandates absolute time. The exception is that for an \vn{e_gun} element
+(\sref{s:e.gun}), absolute time tracking is always used in order to be able to avoid
+problems with a zero reference momentum at the beginning of the element.
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
 For more information on defining custom attributes, see \sref{s:custom.attrib}.

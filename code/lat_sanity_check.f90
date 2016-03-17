@@ -894,7 +894,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! Check that field overlaps are unique
 
-    n = ele%ix1_slave + ele%n_lord
+    n = ele%ix1_slave + ele%n_slave
     do j = n, n + ele%n_slave_field - 1
       ctl1 => lat%control(j)
       do k = n, j-1
