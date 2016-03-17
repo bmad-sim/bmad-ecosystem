@@ -87,7 +87,7 @@ The \vn{alias} command defines command shortcuts. Format:
   alias \{<alias_name> <string>\}
 \end{example}
 
-\vskip 0.2in
+\vskip 0.1in
 
 \vn{Alias} is like Unix aliases. Using the \vn{alias} command without
 any arguments results in a printout of the aliases that have been
@@ -805,11 +805,14 @@ Where \vn{<value>} may be one of:
 
 %% set beam_init --------------------------------------------------------------
 
-\begin{description}
+\subsection{set beam_init}
+\label{s:set.beam.init}
 
-\item[set beam\_init \{n@\}<component> = <value>] \Newline
+Format:
+\begin{example}
+  set beam_init \{n@\}<component> = <value>
+\end{example}
 
-\vskip -0.2in
 
 For \vn{set beam_init}, the \vn{<component>}s that can be set can be
 found in section~\sref{s:beam.init}. The optional \vn{n@} allows the
@@ -826,9 +829,14 @@ Examples:
 
 %% set bmad_com --------------------------------------------------------------
 
-\item[set bmad_com <component> = <value>] \Newline
+\subsection{set bmad_com}
+\label{s:set.bmad.com}
 
-\vskip -0.2in
+Format:
+\begin{example}
+  set bmad_com <component> = <value>
+\end{example}
+
 
 For \vn{set bmad_com}: The \vn{show global} command will give a list of 
 \vn{<component>}s.
@@ -840,9 +848,14 @@ Example:
 
 %% set csr_param --------------------------------------------------------------
 
-\item[set csr_param <component> = <value>] \Newline
+\subsection{set csr_param}
+\label{s:set.csr.param}
 
-\vskip -0.2in
+Format:
+\begin{example}
+  set csr_param <component> = <value>
+\end{example}
+
 
 Sets coherent synchrotron radiation parameters. Use the \vn{show
 global -csr_param} command to see a list of \vn{<component>}s.
@@ -854,9 +867,14 @@ Example:
 
 %% set curve --------------------------------------------------------------
 
-\item[set curve <curve> <component> = <value>] \Newline
+\subsection{set curve}
+\label{s:set.curve}
 
-\vskip -0.2in
+Format:
+\begin{example}
+  set curve <curve> <component> = <value>
+\end{example}
+
 
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -882,9 +900,14 @@ Examples:
 
 %% set data --------------------------------------------------------------
 
-\item[set data <data\_name>|<component> = <value>] \Newline
+\subsection{set data}
+\label{s:set.data}
 
-\vskip -0.2in
+Format:
+\begin{example}
+  set data <data_name>|<component> = <value>
+\end{example}
+
 
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -915,8 +938,13 @@ Examples:
 
 %% set default --------------------------------------------------------------
 
-\item[set default <parameter> = <value>] \Newline
-\vskip -0.2in
+\subsection{set default}
+\label{s:set.default}
+
+Format:
+\begin{example}
+  set default <parameter> = <value>
+\end{example}
 
 The parameters that can be set are:
 \begin{example}
@@ -934,9 +962,13 @@ Example:
 
 %% set element --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set element <element_list> <attribute> = <value>] \Newline
-\vskip -0.2in
+\subsection{set element}
+\label{s:set.element}
+
+Format:
+\begin{example}
+  set element <element_list> <attribute> = <value>
+\end{example}
 
 The \vn{set element} command sets the attributes of an element. Use the
 \vn{show element} command to view the attributes of an element. 
@@ -956,11 +988,14 @@ Examples:
 
 %% set floor_plan --------------------------------------------------------------
 
-\vskip 0.1 in
+\subsection{set floor_plan}
+\label{s:set.floor.plan}
 
-\item[set floor_plan <component> = <value>] \Newline
+Format:
+\begin{example}
+  set floor_plan <component> = <value>
+\end{example}
 
-\vskip -0.2in
 
 Sets parameters for \vn{floor_plan} plots (\sref{s:layout.and.floor}).
 Possible \vn{<components>} are:
@@ -982,9 +1017,13 @@ Example:
 
 %% set global --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set geodesic_lm <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set geodesic_lm}
+\label{s:set.geodesic.lm}
+
+Format:
+\begin{example}
+  set geodesic_lm <component> = <value>
+\end{example}
 
 For \vn{set geodesic_lm}: The \vn{show optimizer geodesic_lm} command will give a list of 
 \vn{<component>}s.
@@ -996,9 +1035,13 @@ Example:
 
 %% set global --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set global <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set global}
+\label{s:set.global}
+
+Format:
+\begin{example}
+  set global <component> = <value>
+\end{example}
 
 For \vn{set global}: The \vn{show global} command will give a list of 
 \vn{<component>}s.
@@ -1010,9 +1053,13 @@ Example:
 
 %% set graph --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set graph <graph> <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set graph}
+\label{s:set.graph}
+
+Format:
+\begin{example}
+  set graph <graph> <component> = <value>
+\end{example}
 
 For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
@@ -1034,9 +1081,13 @@ Example:
 
 %% set key --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set key <key> = <command>] \Newline
-\vskip -0.2in
+\subsection{set key}
+\label{s:set.key}
+
+Format:
+\begin{example}
+  set key <key> = <command>
+\end{example}
 
 Binds a custom command to a key for use in single mode (\sref{c:single}).
 This will override the default behavior (if there is one) of the key.
@@ -1051,9 +1102,13 @@ Example:
 
 %% set lat_layout --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set lat_layout <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set lat_layout}
+\label{s:set.lat.layout}
+
+Format:
+\begin{example}
+  set lat_layout <component> = <value>
+\end{example}
 
 Sets parameters for \vn{lat_layout} plots (\sref{s:layout.and.floor}).
 Syntax for ``\vn{set lat_layout}'' is identical to syntax of ``\vn{set
@@ -1068,9 +1123,13 @@ Example:
 
 %% set lattice --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set lattice \{n@\}<destination\_lat> = <source\_lat>] \Newline
-\vskip -0.2in
+\subsection{set lattice}
+\label{s:set.lattice}
+
+Format:
+\begin{example}
+  set lattice \{n@\}<destination_lat> = <source_lat>
+\end{example}
 
 The \vn{set lattice} command transfers lattice parameters (element
 strengths, etc., etc.) from one lattice (the \vn{source} lattice) to
@@ -1112,9 +1171,13 @@ Example:
 
 %% set opti_de_param --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set opti_de_param <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set opti_de_param}
+\label{s:set.opti}
+
+Format:
+\begin{example}
+  set opti_de_param <component> = <value>
+\end{example}
 
 For \vn{set opti_de_param}: The \vn{show global} command will give a list of 
 \vn{<component>}s.
@@ -1126,9 +1189,13 @@ Example:
 
 %% set plot --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set plot <plot> <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set plot}
+\label{s:set.plot}
+
+Format:
+\begin{example}
+  set plot <plot> <component> = <value>
+\end{example}
 
 For \vn{set plot}, the \vn{component}s that can be set are:
 \begin{example}
@@ -1144,9 +1211,13 @@ Example:
 
 %% set plot_page --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set plot\_page <component> = <value1> \{<value2>\}] \Newline
-\vskip -0.2in
+\subsection{set plot\_page}
+\label{s:set.plot}
+
+Format:
+\begin{example}
+  set plot_page <component> = <value1> \{<value2>\}
+\end{example}
 
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -1165,23 +1236,31 @@ Example:
 
 %% set ran_state --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set ran\_state = <random_number_generator_state>] \Newline
-\vskip -0.2in
+\subsection{set ran\_state}
+\label{s:set.ran}
+
+Format:
+\begin{example}
+  set ran_state = <random_number_generator_state>
+\end{example}
 
 Sets the state of the random number generator to a specific state. Use
 \vn{show global -ran_state} to show the random number generator state.
 
 %% set universe --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[\protect\parbox{6in}{
-        set universe <what\_universe> <on/off> \\ 
-        set universe <what\_universe> recalculate \\
-        set universe <what\_universe> mat6\_recalc <on/off> \\
-        set universe <what_universe> dynamic\_aperture\_calc <on/off> \\
-        set universe <what\_universe> one\_turn\_map\_calc <on/off> \\
-        set universe <what\_universe> track\_recalc <on/off>}] \Newline
+\subsection{set universe}
+\label{s:set.universe}
+
+Format:
+\begin{example}
+        set universe <what_universe> <on/off> 
+        set universe <what_universe> recalculate
+        set universe <what_universe> mat6_recalc <on/off>
+        set universe <what_universe> dynamic_aperture_calc <on/off>
+        set universe <what_universe> one_turn_map_calc <on/off>
+        set universe <what_universe> track_recalc <on/off>
+\end{example}
 
 The \vn{set universe <what_universe> <on/off>} command will turn the
 specified universe(s) on or off. Turning a universe off is useful to
@@ -1233,9 +1312,13 @@ Example:
 
 %% set variable --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set variable <var\_name>|<component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set variable}
+\label{s:set.variable}
+
+Format:
+\begin{example}
+  set variable <var_name>|<component> = <value>
+\end{example}
 
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
@@ -1258,14 +1341,18 @@ For \vn{set var}, the \vn{<component>}s that can be set are:
 
 Example:
 \begin{example}
-  set var quad\_k1|weight = 0.1         ! Set quad\_k1 weights. 
+  set var quad_k1|weight = 0.1         ! Set quad_k1 weights. 
 \end{example}
 
 %% set wave --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[set wave <component> = <value>] \Newline
-\vskip -0.2in
+\subsection{set wave}
+\label{s:set.wave}
+
+Format:
+\begin{example}
+  set wave <component> = <value>
+\end{example}
 
 The \vn{set wave} command sets the boundaries of the $A$ and $B$ regions 
 for the wave analysis (\sref{c:wave}). The components are
@@ -1278,8 +1365,7 @@ Example:
   set wave ix_a = 15 27    ! Set A-region to span from datum #15 to #27
 \end{example}
 
-\end{description}
-
+%--------------------------------------------------------------------------
 %% show --------------------------------------------------------------
 
 \section{show}\index{commands!show}
@@ -1364,21 +1450,25 @@ for communicating with the parent process.
 %   help show plot
 
 %% show alias --------------------------------------------------------------
+\label{s:show.alias}
+\subsection{show alias}
 
-\begin{description}
-
-\vskip 0.1 in
-\item[show alias] \Newline
-\vskip -0.2in
+Syntax:
+\begin{example}
+  show alias
+\end{example}
 
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
 %% show beam --------------------------------------------------------------
+\label{s:show.beam}
+\subsection{show beam}
 
-\vskip 0.1 in
-\item[show beam \{<element\_name\_or\_index>\}] \Newline
-\vskip -0.2in
+Syntax:
+\begin{example}
+  show beam \{<element_name_or_index>\}
+\end{example}
 
 If \vn{<element_name_or_index>} is absent, \vn{show beam} shows
 parameters used with beam tracking including the number of particles
@@ -1388,10 +1478,14 @@ beam} will show beam parameters at the selected element. Also see
 of the \vn{beam_init} structure.
 
 %% show branch --------------------------------------------------------------
+\label{s:show.branch}
+\subsection{show branch}
 
-\vskip 0.1 in
-\item[show branch \{-universe <universe>\}] \Newline
-\vskip -0.2in
+Syntax:
+\begin{example}
+  show branch \{-universe <universe>\}
+\end{example}
+
 
 Lists the lattice branches of the lattice associated with the given universe
 along with information on the fork elements connecting the branches.
@@ -1404,9 +1498,14 @@ Example:
 
 %% show building_wall --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show building_wall] \Newline
-\vskip -0.2in 
+\label{s:show.building}
+\subsection{show building_wall}
+
+Syntax:
+\begin{example}
+  show building_wall
+\end{example}
+ 
 
 List all building wall (\sref{s:building.wall}) sections
 along with the points that define the sections. 
@@ -1416,17 +1515,27 @@ For vacuum_chamber, capillary, and diffraction_plate walls use the
 
 %% show constraints --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show constraints] \Newline
-\vskip -0.2in
+\label{s:show.constraints}
+\subsection{show constraints}
+
+Syntax:
+\begin{example}
+  show constraints
+\end{example}
+
 
 Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show curve \{-line\} \{-no_header\} \{-symbol\} <curve\_name>] \Newline
-\vskip -0.2in
+\label{s:show.curve}
+\subsection{show curve}
+
+Syntax:
+\begin{example}
+  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>
+\end{example}
+
 
 Show information on a particular curve of a particular plot. See
 \sref{c:plotting} for the syntax on plot, graph, and curve names.  Use
@@ -1458,9 +1567,14 @@ Example:
 
 %% show data --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show data \{<data\_name>\}] \Newline
-\vskip -0.2in
+\label{s:show.data}
+\subsection{show data}
+
+Syntax:
+\begin{example}
+  show data \{<data_name>\}
+\end{example}
+
 
 Shows data information. If \vn{<data_name>} is not
 present then a list of all \vn{d2_data} names is printed.
@@ -1481,12 +1595,17 @@ Examples:
 
 %% show derivative --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show derivative <data\_name(s)> <var\_name(s)>] \Newline
-\vskip -0.2in
+\label{s:show.derivative}
+\subsection{show derivative}
+
+Syntax:
+\begin{example}
+  show derivative <data_name(s)> <var_name(s)>
+\end{example}
+
 
 \index{lm}\index{svd}
-Shows the derivative dModel\_Value/dVariable. This derivative is used
+Shows the derivative dModel_Value/dVariable. This derivative is used
 by the optimizers \vn{lm} and \vn{svd}. Note: Wild card characters can
 be used to show multiple derivatives.
 
@@ -1499,20 +1618,28 @@ Example:
 
 %% show dynamic_aperture --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show dynamic_aperture] \Newline
-\vskip -0.2in
+\label{s:show.dynamic}
+\subsection{show dynamic_aperture}
+
+Syntax:
+\begin{example}
+  show dynamic_aperture
+\end{example}
+
 
 \index{dynamic_aperture}
 Shows parameters and results of the dynamic aperture calculation.
 
 %% show element --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[\protect\parbox{6in}{
-  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} \\
-  \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
-\vskip -0.1in
+\label{s:show.element}
+\subsection{show element}
+
+Syntax:
+\begin{example}
+  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\}
+      \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
+\end{example}
 
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
@@ -1591,9 +1718,13 @@ Example:
 
 %% show field --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show field <ele> <x> <y> <z> \{t\} ] \Newline
-\vskip -0.1in
+\label{s:show.field}
+\subsection{show field}
+
+Syntax:
+\begin{example}
+  show field <ele> <x> <y> <z> \{t\}
+\end{example}
 
 The \vn{show field} command shows the electric and magnetic field at a
 point in space-time. The \vn{<z>} coordinate is with respect to the
@@ -1603,9 +1734,14 @@ case, \vn{<ele>} must specify a single element.
 
 %% show global --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} ] \Newline
-\vskip -0.2in
+\label{s:show.global}
+\subsection{show global}
+
+Syntax:
+\begin{example}
+  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
+\end{example}
+
 
 The \vn{show global} command, used without any optional switches,
 shows information on the global parameter structure
@@ -1624,9 +1760,14 @@ Displays the state of the random number generator. Use this with the
 
 %% show graph --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show graph <graph\_name>] \Newline
-\vskip -0.2in
+\label{s:show.graph}
+\subsection{show graph}
+
+Syntax:
+\begin{example}
+  show graph <graph_name>
+\end{example}
+
 
 Show information on a particular graph of a particular plot. See
 \sref{c:plotting} for the syntax on plot, graph, and curve names.
@@ -1642,31 +1783,46 @@ Example:
 
 %% show hom --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show hom] \Newline
-\vskip -0.2in
+\label{s:show.hom}
+\subsection{show hom}
+
+Syntax:
+\begin{example}
+  show hom
+\end{example}
+
 
 Shows long--range higher order mode information for linac accelerating
 cavities.
 
 %% show key_bindings  --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show key\_bindings] \Newline
-\vskip -0.2in
+\label{s:show.key}
+\subsection{show key_bindings}
+
+Syntax:
+\begin{example}
+  show key_bindings
+\end{example}
+
 
 Shows all key bindings.
 
 %% show lattice --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} \\
-  \hspace*{0.35in} \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \\
-  \hspace*{0.35in} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} \\
-  \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-no\_slaves\} \{-orbit\} \{-radiation_integrals\} \\
-  \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-tracking\_elements\} \\
-  \hspace*{0.35in} \{<element_list>\} }] \Newline
+\label{s:show.lattice}
+\subsection{show lattice}
+
+Syntax:
+\begin{example}
+  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\}
+      \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
+      \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
+      \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-orbit\} \{-radiation_integrals\}
+      \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-tracking_elements\}
+      \{<element_list>\} 
+\end{example}
+
 
 Show a table of Twiss and orbit data, etc. at the specified
 element locations. The default is to show the parameters at the exit
@@ -1845,10 +2001,14 @@ Example:
 \end{example}
 
 %% show matrix --------------------------------------------------------------
+\label{s:show.matrix}
+\subsection{show matrix}
 
-\item[show matrix \{-s\} \{loc1 \{loc2\}\}] \Newline
+Syntax:
+\begin{example}
+  show matrix \{-s\} \{loc1 \{loc2\}\}
+\end{example}
 
-\vskip -0.2in
 
 Shows the transfer matrix for the \vn{model} lattice of the
 default universe (set by \vn{set default universe}).
@@ -1858,9 +2018,14 @@ on the \vn{show matrix} arguments.
 
 %% show normal_form --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show normal_form \{-order <n_order>\} <type>] \Newline
-\vskip -0.2in
+\label{s:show.normal}
+\subsection{show normal_form}
+
+Syntax:
+\begin{example}
+  show normal_form \{-order <n_order>\} <type>
+\end{example}
+
 
 Shows normal form taylor maps (optionally truncated to <n\_order>) from Eq.~\ref{normalform1}
  and Eq.~\ref{normalform2}. <type> can be: \vn{M}, \vn{A}, \vn{A_inv}, \vn{dhdj}, \vn{F}, \vn{L}. 
@@ -1869,9 +2034,14 @@ Shows normal form taylor maps (optionally truncated to <n\_order>) from Eq.~\ref
 
 %% show optimizer --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show optimizer \{-geodesic_lm\}] \Newline
-\vskip -0.2in
+\label{s:show.optimizer}
+\subsection{show optimizer}
+
+Syntax:
+\begin{example}
+  show optimizer \{-geodesic_lm\}
+\end{example}
+
 
 Shows parameters pertinent to optimization: Data and variables used,
 etc. 
@@ -1883,20 +2053,29 @@ if the optimizer has been set to use \vn{geodesic_lm}.
 
 %% show opt_vars --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show opt\_vars] \Newline
-\vskip -0.2in
+\label{s:show.opt.vars}
+\subsection{show opt_vars}
+
+Syntax:
+\begin{example}
+  show opt_vars
+\end{example}
+
 
 Shows the settings of the variables used in the optimization using the 
 Bmad standard lattice input format.
 
 %% show particle --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[\protect\parbox{6in}{
-    show particle \{-bunch <bunch\_index>\} \{-particle <particle\_index> \\
-    \hspace*{0.35in} \{-element <element\_name\_or\_index>\} \{-lost\} \{-all\}}] \Newline 
-\vskip -0.1in
+\label{s:show.particle}
+\subsection{show particle}
+
+Syntax:
+\begin{example}
+    show particle \{-bunch <bunch_index>\} \{-particle <particle_index>
+    \{-element <element_name_or_index>\} \{-lost\} \{-all\}
+\end{example}
+
 
 Shows individual particle information. The default for the
 optional \vn{-bunch} index is set by the global variable
@@ -1920,9 +2099,13 @@ Examples:
 
 %% show plot --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show plot \{-floor_plan\} \{-lat_layout \} \{<plot_or_template_name>\}] \Newline
-\vskip -0.1in
+\label{s:show.plot}
+\subsection{show plot}
+
+Syntax:
+\begin{example}
+  show plot \{-floor_plan\} \{-lat_layout \} \{<plot_or_template_name>\}
+\end{example}
 
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
@@ -1945,9 +2128,14 @@ Examples:
 
 %% show top10 --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show top10 \{-derivative\}] \Newline
-\vskip -0.2in
+\label{s:show.top10}
+\subsection{show top10}
+
+Syntax:
+\begin{example}
+  show top10 \{-derivative\}
+\end{example}
+
 
 If the \vn{-derivative} switch is present, this command shows top
 dMerit/dVariable derivatives, and Largest changes in variable value.
@@ -1960,9 +2148,14 @@ be shown.
 
 %% show taylor_map --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show taylor\_map \{-order <n\_order>\} \{-s\} \{loc1 \{loc2\}\}] \Newline
-\vskip -0.2in
+\label{s:show.taylor}
+\subsection{show taylor_map}
+
+Syntax:
+\begin{example}
+  show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
+\end{example}
+
 
 Shows the Taylor transfer map for the \vn{model} lattice of the
 default universe (set by \vn{set default universe}).
@@ -2000,11 +2193,15 @@ Examples:
 
 %% show twiss_and_orbit --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[\protect\parbox{6in}{
-    show twiss\_and\_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} \\
-    \hspace*{0.35in} \{-universe <ix\_uni>\} <s\_position>}] \Newline
-\vskip -0.1in
+\label{s:show.twiss}
+\subsection{show twiss_and_orbit}
+
+
+Syntax:
+\begin{example}
+    show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\}
+    \{-universe <ix_uni>\} <s_position>
+\end{example}
 
 Show Twiss and orbit information at a given longitudinal position \vn{<s_position>}. 
 
@@ -2025,11 +2222,15 @@ Examples:
 
 %% show universe --------------------------------------------------------------
 
-\vskip 0.1 in
+\label{s:show.universe}
+\subsection{show universe}
 
-\item[show universe \{universe\_number\}] \Newline
+Syntax:
+\begin{example}
+  show universe \{universe_number\}
+\end{example}
 
-\vskip -0.1in Shows various parameters associated with a given
+Shows various parameters associated with a given
 
 universe. If no universe is specified, the current default universe is
 used. Parameters displayed include tune, chromaticity, radiation
@@ -2037,18 +2238,28 @@ integrals, etc.
 
 %% show use --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show use] \Newline
-\vskip -0.2in
+\label{s:show.use}
+\subsection{show use}
+
+Syntax:
+\begin{example}
+  show use
+\end{example}
+
 
 Shows what data and variables are used in a format that, if saved to a file, can
 be read in with a \vn{call} command.
 
 %% show value --------------------------------------------------------------
 
-\vskip 0.1 in
-\item[show value <expression>] \Newline
-\vskip -0.2in
+\label{s:show.value}
+\subsection{show value}
+
+Syntax:
+\begin{example}
+  show value <expression>
+\end{example}
+
 
 Shows the value of an expression. Examples:
 \begin{example}
@@ -2057,13 +2268,16 @@ Shows the value of an expression. Examples:
 
 
 %% show variable --------------------------------------------------------------
+\label{s:show.varibale}
+\subsection{show variable}
 
-\vskip 0.1in
-\item[\protect\parbox{6in}{
-        show variable \{-no\_label\_lines\} \{<var\_name> <locations>\} \\
-        show variable \{-no\_label\_lines\} <universe\_number>@  \\
-        show variable \{-good\_opt\_only\} \{-no\_label\_lines\} -bmad\_format }] \Newline
-\vskip -0.1in 
+Syntax:
+\begin{example}
+  show variable \{-no_label_lines\} \{<var_name> <locations>\}
+  show variable \{-no_label_lines\} <universe_number>@ 
+  show variable \{-good_opt_only\} \{-no_label_lines\} -bmad_format
+\end{example}
+
 
 Shows variable information. If \vn{<var_name>} is not
 present, a list of all \vn{v1_var} classes is printed. To show
@@ -2090,12 +2304,15 @@ Examples:
 \end{example}
 
 %% show wall --------------------------------------------------------------
+\label{s:show.wall}
+\subsection{show wall}
 
-\vskip 0.1in
-\item[\protect\parbox{6in}{
-    show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>\} \\
-    \hspace*{0.35in} \{-s <s1>:<s2>\} \{<n1>:<n2>\}}] \Newline
-\vskip -0.1in 
+Syntax:
+\begin{example}
+  show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>\}
+  \{-s <s1>:<s2>\} \{<n1>:<n2>\}
+\end{example}
+
 
 The \vn{show wall} command shows the vacuum chamber wall associated
 with a lattice branch.
@@ -2128,14 +2345,18 @@ Examples:
 \end{example}
 
 %% show wave --------------------------------------------------------------
+\label{s:show.wave}
+\subsection{show wave}
 
-\vskip 0.1 in
-\item[show wave] \Newline
+Syntax:
+\begin{example}
+  show wave
+\end{example}
+
 The \vn{show wave} command shows the results of the current wave 
 analysis (\sref{c:wave}).
 
-\end{description}
-
+%-----------------------------------------------------------------------------------------------
 %% single_mode --------------------------------------------------------------
 \section{single_mode}\index{commands!single_mode}
 \label{s:sing}
@@ -2151,8 +2372,6 @@ The \vn{spawn} command is used to pass a command to the command shell. Format:
 \begin{example}
   spawn <shell_command>
 \end{example}
-
-\vskip 0.2in
 
 The users default shell is used. \vn{spawn} only works in Linux and
 Unix environments.
@@ -2202,7 +2421,7 @@ the rest of the data. Format:
   use var <var_name>
 \end{example}
 
-\vskip 0.2in 
+\vskip 0.1 in 
 
 See also the \vn{restore} and \vn{veto} commands.
 
@@ -2264,7 +2483,7 @@ analysis (\sref{c:wave}). Format:
   wave <curve> \{<plot_location>\}
 \end{example}
 
-\vskip 0.1in
+\vskip 0.1 in
 
 The \vn{<curve>} argument specifies what plot curve is to be used in
 the analysis. The specified curve must be visible in the plot window.
@@ -2311,7 +2530,7 @@ Format:
                                    ! Create a Bmad file of variable values.
 \end{example}
 
-\vskip 0.2in 
+\vskip 0.1 in 
 
 If \vn{<file_name>} is not given then the defaults are:
 \begin{example}
@@ -2458,7 +2677,7 @@ individual graph withing a plot.  If \vn{<where>} is \vn{s} then the
 scaling is done only for the plots where the x-axis scale is the
 longitudinal s-position.
 
-\vskip 0.2in 
+\vskip 0.1in 
 
 \vn{x_scale} sets the lower and upper bounds for the
 horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
@@ -2502,7 +2721,7 @@ Which graphs are scaled is determined by the \vn{<where>} switch. If
 graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot. 
 
-\vskip 0.2in 
+\vskip 0.1in 
 
 \vn{xy_scale} sets the lower and upper bounds for both
 the horizontal and vertical axes.  This is just a shortcut for doing

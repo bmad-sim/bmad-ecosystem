@@ -1413,7 +1413,7 @@ end subroutine tao_plot_data
 !   curve     -- Tao_curve_struct: Curve to draw.
 !   have_data -- Logical: Intitial state.
 ! Output:
-!    have_data -- Logical: Is there any data to plot? Set True if so.
+!   have_data -- Logical: Is there any data to plot? Set True if so.
 !                   But never reset to False. 
 !-
 

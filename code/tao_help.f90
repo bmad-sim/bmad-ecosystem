@@ -107,13 +107,14 @@ do
   if (index(line, '\begin{example}') /= 0) in_example = .true.
   if (index(line, '\end{example}') /= 0) in_example = .true.
 
-  if (line(1:8)  == '\section')   cycle
-  if (line(1:6)  == '\label')     cycle
-  if (line(1:6)  == '\begin')     cycle
-  if (line(1:4)  == '\end')       cycle
-  if (line(1:10) == '\centering') cycle
-  if (line(1:8)  == '\caption') cycle
-  if (line(1:6)  == '\vskip') cycle
+  if (line(1:8)  == '\section')    cycle
+  if (line(1:11) == '\subsection') cycle
+  if (line(1:6)  == '\label')      cycle
+  if (line(1:6)  == '\begin')      cycle
+  if (line(1:4)  == '\end')        cycle
+  if (line(1:10) == '\centering')  cycle
+  if (line(1:8)  == '\caption')    cycle
+  if (line(1:6)  == '\vskip')      cycle
 
   if (left_over_eliminate /= '') then
     ix = index(line, trim(left_over_eliminate))

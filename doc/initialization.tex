@@ -394,86 +394,95 @@ end type
 All global parameters can be changed from their initial value using
 the \vn{set} command (\sref{s:set}).
 
+  \begin{description}
+  \item{\vn{global%command_file_print_on}} \Newline
+The \vn{} switch controls whether printing is suppressed when a command file is called.
+
+  \item{\vn{global%derivative_recalc}} \Newline
+The \vn{global%derivative_recalc} logical determines whether the derivative matrix is
+recalculated every optimization loop. The \vn{global%derivative_uses_design} logical
+determines if the design lattice is used in the derivative matrix calculation instead of
+the model lattice.
+
+  \item{\vn{global%disable_smooth_line_calc}} \Newline
+The \vn{global%disable_smooth_line_calc} is used to disable computation of the ``smooth
+curves'' used in plotting.  This can be used to speed up \tao as discussed in
+\sref{s:plot.data}.
+
+  \item{\vn{global%lattice_calc_on}} \Newline
+\vn{global%lattice_calc_on} controls whether lattice calculations are done. This switch is
+useful in controlling unnecessary calculational overhead.  A typical scenario where this
+switch is used involves first setting \vn{%lattice_calc_on} to \vn{False} (using the
+\vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
+\vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead
+that each command generates. Similarly, \vn{global%plot_on} can be toggled to save even
+more time.
+
+  \item{\vn{global%merit_stop_value}} \Newline
+The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
+the merit function falls below that value, the optimization stops. If the value is
+negative (the default), \vn{global%merit_stop_value} is ignored.
+
+
+  \item{\vn{Random Number Generation}} \Newline
+Random number generation in \tao is divided into two categories: Random numbers used for
+generating the initial coordinates of the particles in a beam and random numbers used for
+everything else.  As explained below, there are four parameters that govern how random
+numbers are generated. For beam particle generation, three of the four (everything except
+the random number seed) are accessed through the \vn{beam_init} structure
+(\sref{s:beam.init}). For everything else, these parameters are accessed through the
+\vn{tao_global_struct}.
+
+  \item{\vn{global%random_engine}} \Newline
+\vn{global%random_engine} selects the algorithm used for generating the random
+numbers. \vn{"pseudo"} causes \tao to use a pseudo-random number generator. \vn{"quasi"}
+uses Sobel quasi-random number generator which generates a distribution that is smoother
+then the pseudo-random number generator. \vn{"pseudo"} is the default.
+
+  \item{\vn{global%random_gauss_converter}} \Newline
+\vn{global%random_gauss_converter} selects the algorithm used in the conversion from a
+uniform distribution to a Gaussian distribution.  \vn{"exact"} is an exact conversion and
+\vn{"limited"} has a cut-off so that no particles are generated beyond. This cutoff is set
+by \vn{global%random_gauss_cutoff}.
+
+  \item{\vn{global%random_gauss_cutoff}} \Newline
+See \vn{global%random_gauss_converter}.
+
+  \item{\vn{global%random_seed}} \Newline
+\vn{global%random_seed} sets the seed number for the pseudo-random number generator. A
+value of \vn{0} (the default) causes the seed number to be picked based upon the system
+clock. Use the \vn{show global} command to see what the seed number is.
+
+  \item{\vn{global%rf_on}} \Newline
+The rf cavities in circular lattices can be be toggled on or off using the
+\vn{global%rf_on} switch. The default is False. Notice that with the RF off, the beam
+energy will be independent of the closed orbit which is not the case when the RF is on.
+
+  \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
 \begin{example}
   "single"
   "beam"
 \end{example}
-The \vn{"single"} setting is used when single particle tracking is
-desired and \vn{"beam"} is used when tracking with a beam of
-particles. Note that with \vn{"single"} tracking, synchrotron
-radiation fluctuations (but not damping) is always turned off.
+The \vn{"single"} setting is used when single particle tracking is desired and \vn{"beam"}
+is used when tracking with a beam of particles. Note that with \vn{"single"} tracking,
+synchrotron radiation fluctuations (but not damping) is always turned off.
 
-The \vn{global%derivative_recalc} logical determines whether the
-derivative matrix is recalculated every optimization loop. The
-\vn{global%derivative_uses_design} logical determines if the design
-lattice is used in the derivative matrix calculation instead of the
-model lattice. 
+  \item{\vn{global%var_limits_on}} \Newline
+The \vn{global%var_limits_on} switch controls whether a variable's model value is limited
+by the variable's \vn{high_lim} and \vn{low_lim} settings (\sref{s:init.var}). This is
+particularly important during optimization. If a variable's model value moves outside of
+the limits, the value is set at the limit and the variable's \vn{good_user} parameter is
+set to \vn{False} so it will not be further varied in the optimization.
 
-The \vn{global%disable_smooth_line_calc} is used to disable
-computation of the ``smooth curves'' used in plotting.  This can be
-used to speed up \tao as discussed in \sref{s:plot.data}.
+  \item{\vn{global%var_limit_only_used}} \Newline
+The \vn{global%var_limit_only_used} switch controls whether only the variables being
+optimized are limited or whether all variables are limited. The
+\vn{global%optimizer_var_limit_warn} switch controls whether a warning is printed when a
+variable value goes past a limit.
 
-The \vn{merit_stop_value} establishes a point such that, during
-optimization, if the merit function falls below that value, the
-optimization stops. If the value is negative (the default),
-\vn{merit_stop_value} is ignored.
 
-Random number generation in \tao is divided into two categories:
-Random numbers used for generating the initial coordinates of the
-particles in a beam and random numbers used for everything else.  As
-explained below, there are four parameters that govern how random
-numbers are generated. For beam particle generation, three of the four
-(everything except the random number seed) are accessed through the
-\vn{beam_init} structure (\sref{s:beam.init}). For
-everything else, these parameters are accessed through the
-\vn{tao_global_struct}.
-
-\vn{global%random_seed} sets the seed number for the pseudo-random
-number generator. A value of \vn{0} (the default) causes the seed
-number to be picked based upon the system clock. Use the \vn{show
-global} command to see what the seed number is.
-
-\vn{global%random_engine} selects the algorithm used for generating
-the random numbers. \vn{"pseudo"} causes \tao to use a pseudo-random
-number generator. \vn{"quasi"} uses Sobel quasi-random number
-generator which generates a distribution that is smoother then the
-pseudo-random number generator. \vn{"pseudo"} is the default.
-
-\vn{global%random_gauss_converter} selects the algorithm used in the
-conversion from a uniform distribution to a Gaussian distribution.
-\vn{"exact"} is an exact conversion and \vn{"limited"} has a cut-off
-so that no particles are generated beyond. This cutoff is set by
-\vn{global%random_gauss_cutoff}.
-
-\vn{global%lattice_calc_on} controls whether lattice calculations are
-done. This switch is useful in controlling unnecessary calculational
-overhead.  A typical scenario where this switch is used involves first
-setting \vn{%lattice_calc_on} to \vn{False} (using the \vn{set}
-command (\sref{s:set})), then executing a set of commands, and finally
-setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
-the calculational overhead that each command generates. Similarly,
-\vn{global%plot_on} can be toggled to save even more time.
-
-The \vn{global%var_limits_on} switch controls whether a variable's
-model value is limited by the variable's \vn{high_lim} and
-\vn{low_lim} settings (\sref{s:init.var}). This is particularly
-important during optimization. If a variable's model value moves
-outside of the limits, the value is set at the limit and the
-variable's \vn{good_user} parameter is set to \vn{False} so it will
-not be further varied in the optimization.  The
-\vn{global%var_limit_only_used} switch controls whether only the
-variables being optimized are limited or whether all variables are
-limited. The \vn{global%optimizer_var_limit_warn} switch controls
-whether a warning is printed when a variable value goes past a limit.
-
-The \vn{global%command_file_print_on} switch controls whether printing
-is suppressed when a command file is called.
-
-The rf cavities in circular lattices can be be toggled on or off using
-the \vn{global%rf_on} switch. The default is False. Notice that with
-the RF off, the beam energy will be independent of the closed orbit
-which is not the case when the RF is on.
+\end{description}
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}\index{taylor_order}

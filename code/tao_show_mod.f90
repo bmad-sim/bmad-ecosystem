@@ -35,7 +35,6 @@ subroutine tao_show_cmd (what, stuff)
 
 implicit none
 
-
 integer iu, ix, n, nl
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
@@ -146,6 +145,7 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
+type (all_pointer_struct) a_ptr
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
@@ -230,7 +230,7 @@ integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, 
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type
 
 logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -1264,8 +1264,8 @@ case ('element')
   endif
 
   if (size(eles) > 10) then
-      nl=nl+1; write(lines(nl), '(a, i0)') &
-                'NOTE: The number of other elements in the lattice with the same name is: ', size(eles) - 1
+      nl=nl+1; write(lines(nl), '(a, i0)') 'NOTE: The number of other elements in the lattice with the same name is: ', size(eles) - 1
+      nl=nl+1; write(lines(nl), '(a, i0)') '      To see a  list of these elements use a wild card character in the element name.'
   else
     call re_allocate (lines, nl+size(eles), .false.)
     do i = 2, size(eles)
@@ -2150,27 +2150,56 @@ case ('lattice')
     ele => branch%ele(ie)
     do i = 1, size(column)
         
+      if (i > 1) then
+        if (column(i-1)%name /= '') nc  = nc + column(i-1)%field_width
+      endif
+
       name = column(i)%name
+
+      if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
+        sub_name = upcase(name(8:index(name, ']')-1))
+        a_type = attribute_type(sub_name)
+        select case (a_type)
+
+        case (is_logical$, is_real$, is_integer$, is_switch$)
+          call pointer_to_attribute(ele, sub_name, .true., a_ptr, err, .false.)
+          if (err) then
+            write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+            cycle
+          endif
+          select case (a_type)
+          case (is_logical$)
+            write (line(nc:), column(i)%format, iostat = ios) a_ptr%l
+          case (is_real$)
+            write (line(nc:), column(i)%format, iostat = ios) a_ptr%r
+          case (is_integer$)            
+            write (line(nc:), column(i)%format, iostat = ios) a_ptr%i
+          case (is_switch$)
+            if (associated(a_ptr%r)) then
+              r = a_ptr%r
+            else
+              r = a_ptr%i
+            endif
+            write (line(nc:), column(i)%format, iostat = ios) switch_attrib_value_name(sub_name, r, ele)
+          end select
+
+          if (line(nc:) == '') write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+          cycle
+
+        case (is_string$)
+          call string_attrib (sub_name, ele, line(nc:))
+          if (line(nc:) == '') write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+          cycle
+        end select
+      endif
+
       if (name == '') cycle
 
       if (name == '#') then
         write (line(nc:), column(i)%format, iostat = ios) ie
 
-      elseif (name == 'ele::#[name]') then
-        write (line(nc:), column(i)%format, iostat = ios) ele%name
-
-      elseif (name == 'ele::#[key]') then
-        write (line(nc:), column(i)%format, iostat = ios) key_name(ele%key)
-
-      elseif (name == 'ele::#[slave_status]') then
-        write (line(nc:), column(i)%format, iostat = ios) control_name(ele%slave_status)
-
-      elseif (name == 'ele::#[lord_status]') then
-        write (line(nc:), column(i)%format, iostat = ios) control_name(ele%lord_status)
-
       elseif (name == 'ele::#[type]') then
         if (ele%type == '') then
-          write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
         else
           write (line(nc:), column(i)%format, iostat = ios) ele%type
         endif
@@ -2220,8 +2249,6 @@ case ('lattice')
         nl = 2
         return
       endif
-
-      nc  = nc + column(i)%field_width
 
     enddo
 

@@ -312,6 +312,8 @@ do k = 1, size(graph%curve)
   if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
+  !----------------------------
+
   if (curve%data_source == 'beam') then
     beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
