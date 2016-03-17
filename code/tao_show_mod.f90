@@ -185,7 +185,7 @@ type (aperture_scan_struct), pointer :: aperture_scan
 type show_lat_column_struct
   character(80) name
   character(16) format
-  integer field_width
+  integer width
   character(32) label
   logical remove_line_if_zero
 end type
@@ -226,7 +226,7 @@ character(16) :: show_what, show_names(32) = [ &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ']
 
-integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, width
+integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
@@ -1770,10 +1770,32 @@ case ('lattice')
     column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
     column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
     column( 6)  = show_lat_column_struct('ele::#[l]',              'f8.3',      8, '', .false.)
+    i0 = 6
+
     do i = 1, n_attrib
       attrib = attrib_list(i)
-      fmt = 'es12.4'
-      width = 12
+      sub_name = upcase(attrib)
+      a_type = attribute_type(sub_name)
+
+      select case (a_type)
+      case (is_logical$)
+        fmt = 'l12'
+        width = 12
+      case (is_real$)
+        fmt = 'es12.4'
+        width = 12
+      case (is_integer$)
+        fmt = 'i12'
+        width = 12
+      case (is_switch$)
+        column(i0+i) = show_lat_column_struct('x', 'x', 2, '', .false.)
+        i0 = i0 + 1
+        fmt = 'a'
+        width = 20
+      case default
+        fmt = 'es12.4'
+        width = 12
+      end select
 
       ix = index(attrib, '@')
       if (ix /= 0) then
@@ -1795,7 +1817,7 @@ case ('lattice')
         endif
       endif
 
-      column(6+i) = show_lat_column_struct('ele::#[' // trim(attrib) // ']', fmt, width, '', .false.)
+      column(i0+i) = show_lat_column_struct('ele::#[' // trim(attrib) // ']', fmt, width, '', .false.)
     enddo
 
   case ('energy')
@@ -2033,20 +2055,20 @@ case ('lattice')
 
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
-    if (column(i)%field_width == 0) then
+    if (column(i)%width == 0) then
       if (column(i)%name /= 'ele::#[name]') then
         call out_io (s_error$, r_name, &
-            'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
+            'WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
         return
       endif
-      column(i)%field_width = 5
+      column(i)%width = 5
       do ie = 0, branch%n_ele_max
         if (.not. picked_ele(ie)) cycle
-        column(i)%field_width = max(column(i)%field_width, len_trim(branch%ele(ie)%name)+1)
+        column(i)%width = max(column(i)%width, len_trim(branch%ele(ie)%name)+1)
       enddo
     endif
 
-    ix2 = ix1 + column(i)%field_width
+    ix2 = ix1 + column(i)%width
 
     if (column(i)%label == '') then
       name = column(i)%name
@@ -2078,10 +2100,13 @@ case ('lattice')
       ix = index(name, '.')
       if (ix == 0) ix = index(name, '_')
       n = len_trim(name)
-      if (column(i)%format(2:2) == 'a') then
+
+      if (index(column(i)%format, 'a') /= 0) then
         line2(ix1:) = name
+
       elseif (ix == 0) then
         line2(ix2-n:) = name
+
       else
         if (ix2 - ix + 1 > 0) then
           line2(ix2-ix+1:) = name(1:ix-1)
@@ -2151,7 +2176,7 @@ case ('lattice')
     do i = 1, size(column)
         
       if (i > 1) then
-        if (column(i-1)%name /= '') nc  = nc + column(i-1)%field_width
+        if (column(i-1)%name /= '') nc  = nc + column(i-1)%width
       endif
 
       name = column(i)%name
@@ -2167,6 +2192,7 @@ case ('lattice')
             write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
             cycle
           endif
+
           select case (a_type)
           case (is_logical$)
             write (line(nc:), column(i)%format, iostat = ios) a_ptr%l
@@ -2219,8 +2245,8 @@ case ('lattice')
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) cycle line_loop
           n = len(undef_str)
-          k = min(n, column(i)%field_width - 1)
-          j = nc + column(i)%field_width - k
+          k = min(n, column(i)%width - 1)
+          j = nc + column(i)%width - k
           line(j:) = undef_str(n-k+1:n)
 
         elseif (column(i)%name == 'ele::#[state]') then
