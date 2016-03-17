@@ -2767,7 +2767,7 @@ is_abs_time = bmad_com%absolute_time_tracking_default
 if (associated(ele%branch)) is_abs_time = ele%branch%lat%absolute_time_tracking
 if (ele%key == e_gun$) is_abs_time = .true.
 
-if (ele%key == em_field$ .and. ele%slave_status == super_slave$) then
+if (ele%key == em_field$ .and. (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$)) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == e_gun$) is_abs_time = .true.

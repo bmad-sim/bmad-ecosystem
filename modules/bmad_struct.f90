@@ -1262,7 +1262,7 @@ end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
 
-integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
+integer, parameter :: unknown$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 
 ! For coords_floor_to_curvilinear status argument
 

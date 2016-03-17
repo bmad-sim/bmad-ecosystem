@@ -448,11 +448,14 @@ if (associated(ele%em_field)) then
         nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%grid%file)
         nl=nl+1; write (li(nl), '(2a)')         '    Type:          ', em_grid_type_name(rfm%grid%type)
         nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%grid%ele_anchor_pt)
+        nl=nl+1; write (li(nl), '(a, l)')       '    curved_coords: ', rfm%grid%curved_coords
         nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%grid%n_link
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:            ', rfm%grid%dr
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:            ', rfm%grid%r0
-        nl=nl+1; write (li(nl), '(a, l)')       '    curved_coords: ', rfm%grid%curved_coords
-        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max - r0:    ', ubound(rfm%grid%pt)*rfm%grid%dr - rfm%grid%r0
+        nl=nl+1; write (li(nl), '(a, 3i4)')     '    Index_max:     ', ubound(rfm%grid%pt)
+        nl=nl+1; write (li(nl), '(a, 3i4)')     '    Index_min:     ', lbound(rfm%grid%pt)
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:         ', ubound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:         ', lbound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
       endif
 
     enddo
