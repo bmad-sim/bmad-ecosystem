@@ -16,6 +16,7 @@
 subroutine lat_sanity_check (lat, err_flag)
 
 use lat_ele_loc_mod, except_dummy => lat_sanity_check
+use custom_bmad_interface
 
 implicit none
      
@@ -30,7 +31,7 @@ type (control_struct), pointer :: ctl, ctl1, ctl2
 real(rp) s1, s2, ds, ds_small, l_lord
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
-integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
+integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm
 
 character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'lat_sanity_check'
@@ -985,7 +986,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (t2_type == girder_lord$) then
         if (girder_here) then
-          call ele_geometry_hook (floor0, ele, floor, finished)
+          call ele_geometry_hook (floor0, ele, floor, finished, 1.0_rp)
           if (.not. finished) then
             call out_io (s_fatal$, r_name, &
                     'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
