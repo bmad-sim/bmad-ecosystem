@@ -28,6 +28,10 @@ open (1, file = 'output.now')
 
 call bmad_parser ('overlap.bmad', lat)
 
+do i = lat%n_ele_track+1, lat%n_ele_max
+  write (1, '(a, i0, 3a)')       '"Overlap-Lord', i, '"    STR   "', trim(lat%ele(i)%name), '"'
+enddo
+
 lat%branch(0)%ele(1)%key = -1
 lat%branch(1)%ele(1)%key = -1
 lat%branch(2)%ele(1)%key = -1
