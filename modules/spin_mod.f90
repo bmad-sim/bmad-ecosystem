@@ -719,8 +719,8 @@ endif
 
 temp_end   = end_orb
 call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .true., ele%value(l$))
-if (hard_end == second_track_edge$ .and. s_edge_hard /= ele%value(l$)) &
-                                                  call track_a_drift (temp_end, s_edge_hard - ele%value(l$))
+if (hard_end == second_track_edge$ .and. s_edge_track /= ele%value(l$)) &
+                                                  call track_a_drift (temp_end, s_edge_track - ele%value(l$))
 temp_end%spin = temp_start%spin
 
 select case (key)
