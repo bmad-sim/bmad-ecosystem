@@ -108,21 +108,22 @@ do ib = 0, ubound(lat%branch, 1)
       print '(a, 3f10.3)', 'At:', orb%vec(1:5:2)
 
       print *
-      print '(2x, a, t49, a, t95, a)', 'dB(theory)', 'dB(actual)', 'dB(theory) - dB(actual)'
+      print '(2x, a, t49, a, t95, a)', 'dB(em_field)', 'dB(diff)', 'dB(em_field) - dB(diff)'
       do i = 1, 3
         print '(3(3es14.6, 4x))', field0%dB(i,:), ff%dB(i,:), field0%dB(i,:) - ff%dB(i,:)
       enddo
 
       print *
-      print *, ' B(actual)     B(theory)     B(actual) - B(theory)'
+      print *, ' B(em_field)   B(dA)         B(em_field) - B(dA)'
       do i = 1, 3
         print '(3es14.6)', field0%B(i), ff%B(i), field0%B(i) - ff%B(i)
       enddo
 
       print *
+      print *, 'From em_field and taking differences:'
       print '(a, 3es14.6)', 'B:      ', field0%b
       print '(a, 3es14.6)', 'B Grad: ', ff%dB(1,1),  ff%dB(2,2),  ff%dB(3,3)
-      print '(a, 3es14.6)', 'B Curl: ', ff%dB(2,3) - ff%dB(3,2), ff%dB(3,1) - ff%dB(1,3), ff%dB(1,2) - ff%dB(2,1)
+      print '(a, 3es14.6)', 'B Curl: ', ff%dB(2,3) - ff%dB(3,2),  ff%dB(3,1) - ff%dB(1,3), ff%dB(1,2) - ff%dB(2,1)
       print '(a, 3es14.6)', 'B Div:  ', ff%dB(1,1) + ff%dB(2,2) + ff%dB(3,3)
     endif
 

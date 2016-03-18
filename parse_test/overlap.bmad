@@ -24,3 +24,5 @@ xlin: line = (dd, xx)
 ylin: line = (dd, yy)
 
 use, xlin, ylin, z2
+
+gg: girder = {z1}
