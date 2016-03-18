@@ -58,6 +58,7 @@ type sr3d_params_struct
   logical :: allow_absorption = .true.  ! If False, do not allow photon to be adsorbed.
   logical :: specular_reflection_only = .false.
   logical :: debug_on = .false.
+  integer :: chamber_end_geometry = -1  ! Will be set to: open$ or closed$
   integer ix_generated_warn             ! For debug use
 end type
 

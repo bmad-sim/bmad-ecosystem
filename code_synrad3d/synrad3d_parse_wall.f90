@@ -106,7 +106,7 @@ integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
 integer n_shape, n_repeat, n_surface, last_type
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
-integer ix_slow, ix_fast
+integer ix_slow, ix_fast, chamber_end_geometry
 logical, optional :: err_flag
 logical err, absolute_vertices
 
@@ -617,7 +617,10 @@ enddo
 ! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
 ! beginning/end of lattice.
 
-if (branch%param%geometry == closed$) then
+chamber_end_geometry = sr3d_params%chamber_end_geometry
+if (chamber_end_geometry < 0) chamber_end_geometry = branch%param%geometry   ! In case this routine is used by something other than the synrad3d program
+
+if (chamber_end_geometry == closed$) then
  do i = 1, size(branch%wall3d)
     wall3d => branch%wall3d(i)
     n = ubound(wall3d%section, 1)

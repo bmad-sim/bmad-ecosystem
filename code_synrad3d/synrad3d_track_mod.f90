@@ -299,7 +299,7 @@ ixs = now%ix_wall_section
 wall3d => branch%wall3d(integer_option(now%ix_wall3d, ix_wall3d))
 
 if (now%orb%vec(6) < 0) then
-  if (branch%param%geometry == open$ .and. s == 0) then
+  if (sr3d_params%chamber_end_geometry == open$ .and. s == 0) then
     photon%status = at_wall_end$
     return
   endif
@@ -308,7 +308,7 @@ endif
 
 if (now%orb%vec(6) > 0) then
   ix = branch%n_ele_track
-  if (branch%param%geometry == open$ .and. s == branch%ele(ix)%s) photon%status = at_wall_end$
+  if (sr3d_params%chamber_end_geometry == open$ .and. s == branch%ele(ix)%s) photon%status = at_wall_end$
   if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) photon%status = at_wall_end$
 endif
 
@@ -413,7 +413,7 @@ propagation_loop: do
 
     if (now%location == downstream_end$) then
       if (now%ix_ele == branch%n_ele_track) then
-        if (branch%param%geometry == open$) return
+        if (sr3d_params%chamber_end_geometry == open$) return
         now%ix_ele = 1
         now%s = now%s - branch%param%total_length
         photon%crossed_lat_end = .not. photon%crossed_lat_end
@@ -469,7 +469,7 @@ propagation_loop: do
     if (now%location == upstream_end$) then
 
       if (now%ix_ele == 1) then
-        if (branch%param%geometry == open$) return
+        if (sr3d_params%chamber_end_geometry == open$) return
         now%s = now%s + branch%param%total_length
         now%ix_ele = branch%n_ele_track 
         photon%crossed_lat_end = .not. photon%crossed_lat_end

@@ -47,12 +47,13 @@ character(200) photon_start_input_file, photon_start_output_file, surface_reflec
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg, line
 character(40) plotting, test, who
+character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
 logical is_inside, turn_off_kickers_in_lattice
 
-namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
+namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
@@ -164,6 +165,7 @@ num_photons_per_pass = -1
 num_ignore_generated_outside_wall = 0
 turn_off_kickers_in_lattice = .false.
 surface_roughness_rms = -1; roughness_correlation_len = -1
+chamber_end_geometry = ''
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
@@ -194,6 +196,18 @@ s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > 
 call bmad_and_xsif_parser(lattice_file, lat)
 branch => lat%branch(0)
 
+select case (chamber_end_geometry)
+case ('open')
+  sr3d_params%chamber_end_geometry = open$
+case ('closed')
+  sr3d_params%chamber_end_geometry = closed$
+case ('')
+  sr3d_params%chamber_end_geometry = branch%param%geometry
+case default
+  print *, 'Bad "chamber_end_geometry" setting: ', chamber_end_geometry
+  stop
+end select
+
 if (ix_ele_track_end < 0) ix_ele_track_end = branch%n_ele_track
 
 ! Wall init
@@ -218,7 +232,7 @@ if (plotting /= '') then
     call sr3d_plot_reflection_probability(plot_param, branch)
   else
     call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
-    call err_exit
+    stop
   endif
 endif
 
@@ -728,17 +742,18 @@ subroutine write_this_header (iu)
 
 integer iu
 
-write (iu, '(a36)') 'photon_number_factor    = 0.000E+00  '
-write (iu, '(a, i0)') 'ix_ele_track_start      = ', ix_ele_track_start
-write (iu, '(a, i0)') 'ix_ele_track_end        = ', ix_ele_track_end
-write (iu, '(a, i0)') 'photon_direction        = ', photon_direction
-write (iu, '(a, i0)') 'num_photons             = ', num_photons
-write (iu, '(a, i0)') 'num_photons_per_pass    = ', num_photons_per_pass
-write (iu, '(a, i0)') 'random_seed             = ', random_seed
-write (iu, '(a, a)') 'lattice_file            = ', trim(lattice_file)
-write (iu, '(a, a)') 'photon_start_input_file = ', trim(photon_start_input_file)
-write (iu, '(a, a)') 'wall_file               = ', trim(wall_file)
-write (iu, '(a, a)') 'dat_file                = ', trim(dat_file)
+write (iu, '(a36)')       'photon_number_factor    = 0.000E+00  '
+write (iu, '(a, i0)')     'ix_ele_track_start      = ', ix_ele_track_start
+write (iu, '(a, i0)')     'ix_ele_track_end        = ', ix_ele_track_end
+write (iu, '(a, i0)')     'photon_direction        = ', photon_direction
+write (iu, '(a, i0)')     'num_photons             = ', num_photons
+write (iu, '(a, i0)')     'num_photons_per_pass    = ', num_photons_per_pass
+write (iu, '(a, i0)')     'random_seed             = ', random_seed
+write (iu, '(a, 3a)')     'lattice_file            = ', '"', trim(lattice_file), '"'
+write (iu, '(a, 3a)')     'photon_start_input_file = ', '"', trim(photon_start_input_file), '"'
+write (iu, '(a, 3a)')     'wall_file               = ', '"', trim(wall_file), '"'
+write (iu, '(a, 3a)')     'dat_file                = ', '"', trim(dat_file), '"'
+write (iu, '(a, 3a)')     'chamber_end_geometry    = ', '"', trim(chamber_end_geometry), '"'
 write (iu, '(a, es10.3)') 'ds_step_min             = ', ds_step_min
 write (iu, '(a, es10.3)') 'emit_a                  = ', emit_a
 write (iu, '(a, es10.3)') 'emit_b                  = ', emit_b
@@ -755,8 +770,8 @@ write (iu, '(a, es10.3)') 'surface_roughness_rms (input)         = ', surface_ro
 write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', lat%surface(1)%surface_roughness_rms
 write (iu, '(a, es10.3)') 'roughness_correlation_len (input)     = ', roughness_correlation_len
 write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
-write (iu, '(a, l1)') 'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
-write (iu, '(a, l1)') 'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
+write (iu, '(a, l1)')     'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
+write (iu, '(a, l1)')     'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
 write (iu, *)
 
 end subroutine
