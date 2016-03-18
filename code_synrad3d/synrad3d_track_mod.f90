@@ -38,7 +38,7 @@ type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) dw_perp(3), d_radius
-integer iw
+integer iw, status
 
 logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
@@ -71,10 +71,11 @@ main_loop: do
 
   do iw = 1, size(branch%wall3d)
     if (iw == photon%now%ix_wall3d) cycle
-    call sr3d_photon_status_calc (photon, branch, iw)
+    status = sr3d_photon_status_calc (photon, branch, iw)
 
-    if (photon%status == inside_the_wall$) then
+    if (status == inside_the_wall$) then
       photon%now%ix_wall3d = iw
+      photon%status = status
       cycle main_loop
     endif
 
@@ -82,6 +83,7 @@ main_loop: do
       call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, ix_wall3d = iw)
       if (dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0) then   ! Traveling into sub-chamber
         photon%now%ix_wall3d = iw
+        photon%status = status
         cycle main_loop
       endif
     endif  
@@ -127,7 +129,7 @@ type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 real(rp) v_rad_max, dlen, radius
 real(rp), pointer :: vec(:)
 
-integer i
+integer i, status
 integer, pointer :: ix_w(:)
 logical err
 
@@ -153,9 +155,10 @@ do
 
   ix_w => sr3d_com%fast(photon%now%ix_wall3d)%ix_wall3d
   do i = 1, size(ix_w)
-    call sr3d_photon_status_calc (photon, branch, ix_w(i))
+    status = sr3d_photon_status_calc (photon, branch, ix_w(i))
     if (photon%status == inside_the_wall$) then
       photon%now%ix_wall3d = ix_w(i)
+      photon%status = status
       cycle
     endif
   enddo
@@ -164,7 +167,7 @@ do
   ! If so we calculate the exact hit spot where the photon crossed the
   ! wall boundry and return
 
-  call sr3d_photon_status_calc (photon, branch)
+  photon%status = sr3d_photon_status_calc (photon, branch)
   if (photon%status == at_wall_end$) return
   if (photon%status == at_transverse_wall$) return
   if (photon%status == is_through_wall$) then
@@ -204,7 +207,7 @@ type (sr3d_photon_track_struct) photon
 type (branch_struct), target :: branch
 
 real(rp) d_radius
-integer iw, bad_photon_counter, ix
+integer iw, bad_photon_counter, ix, status
 logical is_inside
 
 ! 
@@ -214,14 +217,14 @@ photon%old = photon_start
 photon%old%orb%vec(1:3:2) = 0   ! 
 
 do iw = 1, size(branch%wall3d)
-  call sr3d_photon_status_calc (photon, branch, iw)
-  if (photon%status == inside_the_wall$) exit
+  status = sr3d_photon_status_calc (photon, branch, iw)
+  if (status == inside_the_wall$ .or. status == at_wall_end$) exit
 enddo
 
 photon_start%ix_wall3d = iw
 is_inside = .true.
 
-if (photon%status /= inside_the_wall$ .and. photon%status /= at_wall_end$) then
+if (status /= inside_the_wall$ .and. status /= at_wall_end$) then
   is_inside = .false.
   ix = photon_start%orb%ix_ele
   print *,                       'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!'
@@ -244,7 +247,7 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d)
+! Function sr3d_photon_status_calc (photon, branch, ix_wall3d) result (status)
 !
 ! Routine to determine if a photon has crossed through the wall or
 ! is at the end of a linear lattice
@@ -255,10 +258,10 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !   ix_wall3d -- integer, optional: If present then override phton%now%ix_wall3d.
 !
 ! Output:
-!   photon%status -- Integer: is_through_wall$, at_wall_end$, at_transverse_wall$, or inside_the_wall$
+!   status -- Integer: is_through_wall$, at_wall_end$, at_transverse_wall$, or inside_the_wall$
 !-
 
-subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d) 
+function sr3d_photon_status_calc (photon, branch, ix_wall3d) result (status)
 
 implicit none
 
@@ -269,6 +272,7 @@ type (wall3d_struct), pointer :: wall3d
 
 real(rp) d_radius, s
 
+integer status
 integer, optional :: ix_wall3d
 integer i, ix, ixs
 
@@ -276,19 +280,19 @@ logical is_through, no_wall_here
 
 ! check for particle outside wall
 
-photon%status = inside_the_wall$
+status = inside_the_wall$
 
 now = photon%now
 call sr3d_get_section_index(now, branch, ix_wall3d)
 call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
 
 if (abs(d_radius) < sr3d_params%significant_length .and. .not. no_wall_here) then
-  photon%status = at_transverse_wall$
+  status = at_transverse_wall$
   return
 endif
 
 if (d_radius > 0 .or. no_wall_here) then
-  photon%status = is_through_wall$
+  status = is_through_wall$
   return
 endif    
 
@@ -300,19 +304,19 @@ wall3d => branch%wall3d(integer_option(now%ix_wall3d, ix_wall3d))
 
 if (now%orb%vec(6) < 0) then
   if (sr3d_params%chamber_end_geometry == open$ .and. s == 0) then
-    photon%status = at_wall_end$
+    status = at_wall_end$
     return
   endif
-  if (s == wall3d%section(ixs)%s .and. wall3d%section(ixs)%type == wall_start$) photon%status = at_wall_end$
+  if (s == wall3d%section(ixs)%s .and. wall3d%section(ixs)%type == wall_start$) status = at_wall_end$
 endif
 
 if (now%orb%vec(6) > 0) then
   ix = branch%n_ele_track
-  if (sr3d_params%chamber_end_geometry == open$ .and. s == branch%ele(ix)%s) photon%status = at_wall_end$
-  if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) photon%status = at_wall_end$
+  if (sr3d_params%chamber_end_geometry == open$ .and. s == branch%ele(ix)%s) status = at_wall_end$
+  if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) status = at_wall_end$
 endif
 
-end subroutine sr3d_photon_status_calc
+end function sr3d_photon_status_calc
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
