@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{March 7, 2016}
+\date{March 17, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -544,6 +544,7 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     surface_roughness_rms       = -1         ! Surface roughness for diffuse scattering.
     roughness_correlation_len   = -1         ! Surface roughness correlation length.
     surface_reflection_file     = ""         ! File for specifying default reflection probabilities.
+    chamber_end_geometry = ""                   ! For defining the wall at the ends of the lattice
     sr3d_params%ds_track_step_max        = 3    ! Photon propagation step size 
     sr3d_params%dr_track_step_max        = 0.1  ! Photon propagation step size 
     sr3d_params%specular_reflection_only = F    ! For testing the effect of diffuse scattering.
@@ -702,7 +703,20 @@ print an error message and stop.
   \item[\vn{turn_off_kickers_in_lattice}] \Newline
 If \vn{turn_off_kickers_in_lattice} is set to True (the default is
 False), then all kicks from steering elements in the lattice will be zeroed.
-
+  \item[\vn{chamber_end_geometry}] \Newline
+The \vn{chamber_end_geometry} sets how the chamber ends at the ends of the lattice
+are treated. \vn{chamber_end_geometry} may be set to one of:
+\begin{example}
+  ""            ! Use lattice geometry
+  "closed"      ! The chamber ends connect together.
+  "open"        ! The chamber end are not connected together.
+\end{example}
+If \vn{chamber_end_geometry} is set to blank (""), the setting of the lattice geometry
+will be used as the chamber geometry (the lattice geometry is set in the lattice file,
+see the Bmad manual\cite{b:bmad} for more details). For a \vn{"closed"} geometry, the
+chamber ends at the ends of the lattice are connected together so a photon hitting one end
+will reappear at the other end.  For an \vn{"open"} geometry, the camber ends at the ends
+of the lattice are not connected so a photon hitting an end will be reflectecd or absorbed.
 \end{description}
 
 The six "filter" parameters are:
@@ -858,13 +872,12 @@ section with \vn{<edge-sec>} set to \vn{"START"} and ends with the section with
   &place section =  1032, ""  "left_ante:chamZ" /
 \end{example}
 In this case there are two or three subchambers, both named \vn{"left_ante"}.  One
-subchamber begins at $s = 174$~meters and ends at 182~meters. If the lattice has a
-``closed'' geometry (this is set in the lattice file, see the Bmad manual\cite{b:bmad} for
-more details), there is a second subchamber that begins at $s = 936$~meters, wraps around
-the end of the lattice back to the beginning, and ends at 5~meters. On the other hand, if
-the lattice has an ``open'' geometry, there are two other subchambers, one from $s =
-936$~meters to the end of the lattice at $s = 1032$~meters and the other from $s = 0$ to
-$s = 5$~meters.
+subchamber begins at $s = 174$~meters and ends at 182~meters. If the vaccum chamber has a
+``closed'' geometry (see the description of the \vn{chamber_end_geometry} parameter), there
+is a second subchamber that begins at $s = 936$~meters, wraps around the end of the
+lattice back to the beginning, and ends at 5~meters. On the other hand, if the chamber has
+an ``open'' geometry, there are two other subchambers, one from $s = 936$~meters to the
+end of the lattice at $s = 1032$~meters and the other from $s = 0$ to $s = 5$~meters.
 
 The above example shows subchambers that share the same name. Subchambers that overlap
 longitudinally may not share the same name. That is, ``nested'' start/end groups are not
