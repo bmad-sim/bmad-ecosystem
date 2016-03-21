@@ -1046,8 +1046,7 @@ if (allocated(graph%curve)) then
         if (err) return
         n = n0_line + size(branch_curve%x_line)
         !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
-        !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line
-        
+        !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line        
       enddo
 
     else
@@ -1703,6 +1702,7 @@ type (coord_struct) orbit, orbit_last
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
+type (em_field_struct) field
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
@@ -1906,6 +1906,18 @@ do ii = 1, size(curve%x_line)
   case ('coupling.22a')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+  case ('curl.x')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = (field%dB(2,3) - field%dB(3,2)) + (field%dE(2,3) - field%dE(3,2))
+  case ('curl.y')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = (field%dB(3,1) - field%dB(1,3)) + (field%dE(3,1) - field%dE(1,3))
+  case ('curl.z')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = (field%dB(1,2) - field%dB(2,1)) + (field%dE(1,2) - field%dE(2,1))
+  case ('div')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = (field%dB(1,1) + field%dB(2,2) + field%dB(3,3)) + (field%dE(1,1) + field%dE(2,2) + field%dE(3,3))
   case ('element_attrib.')
     name = upcase(curve%data_source(16:))
     ele_dum%key = overlay$  ! so entire attribute name table will be searched

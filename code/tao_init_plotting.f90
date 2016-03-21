@@ -854,7 +854,7 @@ end subroutine tao_uppercase_shapes
 subroutine tao_setup_default_plotting()
 
 type (branch_struct), pointer :: branch
-type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1_c4
+type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c4
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
@@ -912,13 +912,13 @@ endif
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
   call move_alloc(s%plot_page%template, temp_template)
-  allocate (s%plot_page%template(n + 36))
+  allocate (s%plot_page%template(n + 37))
   s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
   np = n
   if (s%plot_page%template(np)%name == 'scratch') np = np - 1
 else
-  allocate (s%plot_page%template(36))
+  allocate (s%plot_page%template(37))
   np = 0
 endif
 
@@ -992,7 +992,7 @@ crv%symbol%color = crv%line%color
 !---------------
 ! This plot defines the default 1-graph, 4-curve/graph plot
 
-plt => default_plot_g1_c4
+plt => default_plot_g1c4
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1195,7 +1195,7 @@ if (all(s%plot_page%template%name /= 'cbar')) then
   allocate (plt%graph(1))
   allocate (plt%graph(1)%curve(4))
 
-  plt = default_plot_g1_c4
+  plt = default_plot_g1c4
   plt%name                 = 'cbar'
   plt%description          = 'Cbar coupling matrix'
 
@@ -1341,6 +1341,53 @@ if (all(s%plot_page%template%name /= 'detap')) then
   crv%smooth_line_calc = .false.
 endif
 
+!---------------
+! div_curl plot
+
+if (all(s%plot_page%template%name /= 'div_curl')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(4))
+
+  plt = default_plot_g1c4
+  plt%name                 = 'div_curl'
+  plt%description          = 'E+M Field Divergence and Curl'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Electric + Magnetic Field Divergence and Curl'
+  grph%y%label             = 'Div, Curl'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'div'
+  crv%g => grph
+  crv%data_type    = 'div'
+  crv%legend_text  = 'a'
+
+  crv => grph%curve(2)
+  crv%name         = 'cx'
+  crv%g => grph
+  crv%data_type    = 'curl.x'
+  crv%legend_text  = 'b'
+
+  crv => grph%curve(3)
+  crv%name         = 'cy'
+  crv%g => grph
+  crv%data_type    = 'curl.y'
+  crv%legend_text  = 'b'
+
+  crv => grph%curve(2)
+  crv%name         = 'cz'
+  crv%g => grph
+  crv%data_type    = 'curl.z'
+  crv%legend_text  = 'b'
+endif
+ 
 !---------------
 ! dphi (chrom.dphi) plot
 
