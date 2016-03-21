@@ -37,7 +37,7 @@ real(rp), parameter :: zero6(6) = 0
 integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun
 
-logical stale, err
+logical stale, err, lord_compute
 logical :: err_flag
 
 character(40), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -237,28 +237,44 @@ do ib = 0, ubound(lat%branch, 1)
         lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
         if (ix_slave /= 1) cycle
         if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
-        if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+
+        nullify(lord2)
+        if (lord%slave_status == multipass_slave$) then
+          lord2 => lord   ! lord2 is a combination super_lord/multipass_slave element 
+          lord => pointer_to_lord(lord, 1)
+        endif
+
+        lord_compute = .true.
         if (lord%lord_status == multipass_lord$) then
           call multipass_chain(ele, ix_pass, n_links)
-          if (ix_pass /= 1) cycle
+          if (ix_pass /= 1) lord_compute = .false.
         endif
+
         ! This adjusts the RF phase and amplitude.
         ! Note: Any multipass lord element where the reference energy is not constant must have n_ref_pass = 1.
-        if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
-          if (lord%value(p0c$) > 0) then
-            call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
-          elseif (lord%value(e_tot$) > 0) then
-            call convert_total_energy_to(lord%value(e_tot$), branch%param%particle, pc = lord%value(p0c$))
+        if (lord_compute) then
+          if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
+            if (lord%value(p0c$) > 0) then
+              call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
+            elseif (lord%value(e_tot$) > 0) then
+              call convert_total_energy_to(lord%value(e_tot$), branch%param%particle, pc = lord%value(p0c$))
+            else
+              ! Marker element, for example, may not set either p0c or e_tot.
+              cycle
+            endif
+            lord%ref_time = 0
+            call ele_compute_ref_energy_and_time (lord, lord, branch%param, err)
           else
-            ! Marker element, for example, may not set either p0c or e_tot.
-            cycle
+            call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
           endif
-          lord%ref_time = 0
-          call ele_compute_ref_energy_and_time (lord, lord, branch%param, err)
-        else
-          call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
+          if (err) return
         endif
-        if (err) return
+
+        ! Compute energy/time for a combo super_lord/multipass_slave element 
+        if (associated(lord2)) then
+          call ele_compute_ref_energy_and_time (ele0, lord2, branch%param, err)
+          if (err) return
+        endif
       enddo
     endif
 
