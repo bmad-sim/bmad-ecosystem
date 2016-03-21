@@ -2221,6 +2221,8 @@ case ('lattice')
 
       if (name == '') cycle
 
+      ios = 0
+
       if (name == '#') then
         write (line(nc:), column(i)%format, iostat = ios) ie
 
@@ -2230,10 +2232,7 @@ case ('lattice')
           write (line(nc:), column(i)%format, iostat = ios) ele%type
         endif
 
-      elseif (name == 'x') then
-        ios = 0
-
-      else
+      elseif (name /= 'x') then
         write (nam, '(i0, a, i0)') ix_branch, '>>', ie
         call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele::')
