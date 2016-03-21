@@ -1633,4 +1633,86 @@ end select
 
 end function e_accel_field
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, dfield)
+!
+! Routine to calculate field derivatives.
+! In theory this should be handled by em_filed_calc. In practice, em_field_calc is currently incomplete.
+!
+! Input
+!   ele             -- Ele_struct: Element
+!   param           -- lat_param_struct: Lattice parameters.
+!   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   time            -- Real(rp): Particle time.
+!                       For absolute time tracking this is the absolute time.
+!                       For relative time tracking this is relative to the reference particle entering the element.
+!   orbit           -- Coord_struct: Transverse coordinates.
+!     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
+!   local_ref_frame     -- Logical, If True then take the input coordinates and output fields 
+!                                   as being with respect to the frame of referene of the element (ignore misalignments). 
+!
+! Output:
+!   dfield       -- em_field_struct: E and B field derivatives.
+!-
+
+subroutine em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, dfield)
+
+type (ele_struct), target :: ele
+type (lat_param_struct) param
+type (em_field_struct) :: dfield, f0, f1
+type (coord_struct) :: orbit, orb
+
+real(rp) s_pos, time, s0, s1, del
+logical local_ref_frame
+
+!
+
+orb = orb
+del = bmad_com%d_orb(1)
+
+orb%vec(1) = orb%vec(1) - del
+call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
+orb%vec(1) = orb%vec(1) + del
+call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
+
+dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
+dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
+
+!
+
+orb = orb
+del = bmad_com%d_orb(3)
+
+orb%vec(3) = orb%vec(3) - del
+call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
+orb%vec(3) = orb%vec(3) + del
+call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
+
+dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
+dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
+
+!
+
+orb = orb
+del = bmad_com%d_orb(5)
+
+del = bmad_com%d_orb(5)
+s0 = max(s_pos-del, 0.0_rp)
+s1 = min(s_pos+del, ele%value(l$))
+
+if (s0 == s1) then
+  dfield%dB(:,3) = 0
+  dfield%dE(:,3) = 0
+else
+  call em_field_calc (ele, param, s0, time, orbit, .true., f0)
+  call em_field_calc (ele, param, s1, time, orbit, .true., f1)
+  dfield%dB(:,3) = (f1%B - f0%B) / (2 * del)
+  dfield%dE(:,3) = (f1%E - f0%E) / (2 * del)
+endif
+
+end subroutine em_field_derivatives
+
 end module
