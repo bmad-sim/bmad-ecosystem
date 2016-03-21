@@ -133,7 +133,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-!                                                           err_flag, potential, use_overlap, allow_out_of_bounds)
+!                                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -156,13 +156,13 @@ end subroutine save_a_step
 !                       For absolute time tracking this is the absolute time.
 !                       For relative time tracking this is relative to the reference particle entering the element.
 !   orbit           -- Coord_struct: Transverse coordinates.
-!     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
-!   local_ref_frame     -- Logical, If True then take the input coordinates and output fields 
-!                                   as being with respect to the frame of referene of the element (ignore misalignments). 
-!   calc_dfield         -- Logical, optional: If present and True then calculate the field derivatives.
-!   use_overlap         -- logical, optional: Add in overlap fields from other elements? Default is True.
-!   allow_out_of_bounds -- logical, optional: allow out of bounds to return
-!                                             zero field without an error. Default: False
+!     %vec(1), %vec(3) -- Transverse coords. These are the only components used in the calculation.
+!   local_ref_frame -- Logical, If True then take the input coordinates and output fields 
+!                                as being with respect to the frame of referene of the element (ignore misalignments). 
+!   calc_dfield      -- Logical, optional: If present and True then calculate the field derivatives.
+!   use_overlap      -- logical, optional: Add in overlap fields from other elements? Default is True.
+!   grid_allow_s_out_of_bounds -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
+!                                             and return zero instead of an error? Default: False.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -172,7 +172,7 @@ end subroutine save_a_step
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-                                                       err_flag, potential, use_overlap, allow_out_of_bounds)
+                                                   err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 
 use geometry_mod
 
@@ -206,7 +206,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 integer i, j, m, n, trig_x, trig_y, status
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
-logical, optional :: calc_dfield, err_flag, use_overlap, allow_out_of_bounds
+logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
 logical df_calc, err
 
 character(20) :: r_name = 'em_field_calc'
@@ -1049,7 +1049,7 @@ case(grid$)
     case (xyz$)
     
       call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z, &
-                                      allow_out_of_bounds = logic_option(.false., allow_out_of_bounds))
+                              allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -1068,7 +1068,7 @@ case(grid$)
       ! local_field is a em_field_pt_struct, which has complex E and B
 
       call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, z, &
-                                      allow_out_of_bounds = logic_option(.false., allow_out_of_bounds))
+                              allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -1138,7 +1138,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
     call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err, &
-                        use_overlap = .false., allow_out_of_bounds = .true.)
+                        use_overlap = .false., grid_allow_s_out_of_bounds = .true.)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
@@ -1315,8 +1315,7 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3,
-! allow_out_of_bounds)
+! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -1332,15 +1331,14 @@ end subroutine rotate_em_field
 !   x1       -- real(rp) : dimension 1 interpolation point
 !   x2       -- real(rp), optional : dimension 2 interpolation point
 !   x3       -- real(rp), optional : dimension 3 interpolation point
-!   allow_out_of_bounds -- logical, optional : allow out of bounds to return
-!   zero field without an error. 
-!                                   default: false
+!   allow_s_out_of_bounds -- logical, optional : allow s-coordinate grossly out of bounds to return
+!                 zero field without an error. 
 !
 ! Output:
 !   field  -- em_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_out_of_bounds)
+subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 
 type (ele_struct) ele
 type (em_field_grid_struct) :: grid
@@ -1348,72 +1346,108 @@ type (em_field_grid_pt_struct), intent(out) :: field
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
-integer i1, i2, i3, grid_dim
-logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag, allow_oob
-logical, optional :: allow_out_of_bounds
+integer i1, i2, i3, grid_dim, allow_s
+logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag
+logical :: allow_s_out_of_bounds
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
+
+integer, parameter :: allow_none$ = 1, allow_small$ = 2, allow_all$ = 3
 
 ! Pick appropriate dimension 
 
 err_flag = .false.
 
+allow_S = allow_small$
+if (allow_s_out_of_bounds) allow_s = allow_all$
+
 grid_dim = em_grid_dimension(grid%type)
-allow_oob = logic_option(.false., allow_out_of_bounds)
-
 select case(grid_dim)
-
-case (1)
-
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
-  if (out_of_bounds1) return
-
-  field%E(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%E(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%E(:) 
-  field%B(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%B(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%B(:) 
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_oob); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_s); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2) return
 
-  ! Do bilinear interpolation
-  field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
-             + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%E(:) &
-             + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%E(:) &
-             + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%E(:) 
+  ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%B(:) &
-             + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%B(:) &
-             + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%B(:) &
-             + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%B(:)  
-            
+  if (i2 == lbound(grid%pt, 2) - 1) then  ! Just outside at entrance end
+    field%E(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%E(:) 
+
+    field%B(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%B(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%B(:)  
+
+  elseif (i2 == ubound(grid%pt, 2)) then  ! Just outside at exit end
+    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:)
+
+    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%B(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%B(:)
+
+  else
+    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
+               + (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%E(:) 
+
+    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%B(:) &
+               + (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%B(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%B(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%B(:)  
+  endif
+
 case (3)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_oob); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_oob); if (err_flag) return
-  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag, allow_oob); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag, allow_s); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2 .or. out_of_bounds3) return
     
-  ! Do trilinear interpolation
-  field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
-             + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%E(:) &
-             + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%E(:) &
-             + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%E(:) &
-             + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%E(:) &
-             + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%E(:) &
-             + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%E(:) &
-             + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%E(:)               
-             
-  field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%B(:) &
-             + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%B(:) &
-             + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%B(:) &
-             + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%B(:) &
-             + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%B(:) &
-             + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%B(:) &
-             + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%B(:) &
-             + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%B(:) 
+  ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
+  if (i3 == lbound(grid%pt, 3) - 1) then  ! Just outside at entrance end
+    field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%E(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%E(:)               
+               
+    field%B(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%B(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%B(:)
+
+  elseif (i3 == ubound(grid%pt, 3)) then  ! Just outside at exit end
+    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%E(:)
+               
+    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%B(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%B(:) 
+
+  else
+    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%E(:) &
+               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%E(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%E(:)               
+               
+    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%B(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%B(:) &
+               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%B(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%B(:) 
+  endif
 
 case default
   call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', em_grid_dimension(grid%type))
@@ -1428,8 +1462,8 @@ contains
 subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag, allow_out_of_bounds)
 
 real(rp) x, rel_x0, x_norm
-integer ix_x, i0, ig0, ig1, idg
-logical out_of_bounds, err_flag, allow_out_of_bounds
+integer ix_x, i0, ig0, ig1, idg, allow_out_of_bounds
+logical out_of_bounds, err_flag
 
 !
 
@@ -1440,37 +1474,32 @@ x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
 i0 = floor(x_norm)     ! index of lower 1 data point
 rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
 
-if (i0 == ig1 .and. rel_x0 < bmad_com%significant_length) then
-  i0 = ig1 - 1
-  rel_x0 = 1
-endif
-
-if (i0 == ig0 - 1 .and. abs(rel_x0 - 1) < bmad_com%significant_length) then
-  i0 = ig0
-  rel_x0 = 0
-endif
-
-! Outside of the gird the field is considered to be zero.
-
-! Only generate a warning message if the particle is grossly outside of the grid region.
-! Here "gross" is defined as dOut > L_grid/2 where dOut is the distance between the
-! particle and the grid edge and L_grid is the length of the grid.
+! Out of bounds?
 
 out_of_bounds = .false.
 
-if (i0 < ig0 .or. i0 >= ig1) then
+if (i0 < ig0-1 .or. i0 > ig1) then
+  out_of_bounds = .true.
   field%E = 0
   field%B = 0
-  out_of_bounds = .true.
-  if (allow_out_of_bounds) return
-  idg = ig1 - ig0
 
-  if (abs(i0 - idg/2) > idg) then
-    err_flag = .true.
-    call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
-                                'For element: ' // ele%name, &
-                                'Setting field to zero', i_array = [grid_dim, ix_x, i0])
-  endif
+  select case (allow_out_of_bounds)
+  case (allow_none$)
+    ! Definite Error
+  case (allow_small$)
+    ! Here only generate an error message if the particle is grossly outside of the grid region.
+    ! Here "gross" is defined as dOut > L_grid/2 where dOut is the distance between the
+    ! particle and the grid edge and L_grid is the length of the grid.
+    idg = ig1 - ig0
+    if (abs(i0 - idg/2) < idg) return
+  case (allow_all$)
+    return
+  end select
+
+  err_flag = .true.
+  call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
+                                 'For element: ' // ele%name, &
+                                 'Setting field to zero', i_array = [grid_dim, ix_x, i0])
 endif
 
 end subroutine get_this_index 
