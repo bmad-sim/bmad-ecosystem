@@ -73,7 +73,7 @@ real(rp) dE_p, dpx, dpy, mc2, z_offset, orientation, rel_tracking_charge, charge
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp), allocatable :: dz_offset(:)
 
-integer i, n_step, n_field
+integer i, n_step, n_field, key
 
 integer num_wig_terms  ! number of wiggler terms
 
