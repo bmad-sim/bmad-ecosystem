@@ -251,7 +251,7 @@ do i_loop = 1, i_max
 
   if (i_loop == i_max .or. track_state /= moving_forward$) then
     if (track_state /= moving_forward$) then
-      call out_io (s_error$, r_name, 'CLOSED ORBIT SEARCH DIVERGING TO INFINITY!')
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.')
     else
       call out_io (s_error$, r_name, &
                 'Closed orbit not converging! error in closed orbit: \es10.2\ ', &

@@ -138,6 +138,9 @@ endif
 !------------------------------------------------------------------
 ! select the element
 
+key = ele%key
+if (associated(ele%wig)) key = wiggler$
+
 select case (ele%key)
 
 !------------------------------------------------------------------
@@ -800,7 +803,7 @@ do j = 1, num_wig_terms
       tmj%integral_sx = (cos(arg0) - tmj%c_x) / wt%kx
     endif
 
-    if (tmj%family == qu_family$) then
+    if (tmj%family == sq_family$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cx = x * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
       else
@@ -823,7 +826,7 @@ do j = 1, num_wig_terms
       tmj%integral_sx = (tmj%c_x - cosh(arg0)) / wt%kx
     endif
 
-    if (tmj%family == qu_family$) then
+    if (tmj%family == sq_family$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cx = x * ((1 + darg**2/6) * cosh(arg0) + (darg/2 + darg**3/24) * sinh(arg0))
       else
@@ -880,7 +883,7 @@ do j = 1, num_wig_terms
       tmj%integral_sy = (cos(arg0) - tmj%c_y) / wt%ky
     endif
 
-    if (tmj%family == qu_family$) then
+    if (tmj%family == sq_family$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cy = y * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
       else
@@ -903,7 +906,7 @@ do j = 1, num_wig_terms
       tmj%integral_sy = (tmj%c_y - cosh(arg0)) / wt%ky
     endif
 
-    if (tmj%family == qu_family$) then
+    if (tmj%family == sq_family$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cy = y * ((1 + darg**2/6) * cosh(arg0) + (darg/2 + darg**3/24) * sinh(arg0))
       else
@@ -949,10 +952,15 @@ tm(1:num_wig_terms)%s_z = sin(kzz(1:num_wig_terms))
 do j = 1, num_wig_terms
   select case (tm(j)%family)
   case (qu_family$, sq_family$)
-    if (abs(kzz(j)) < 1d-10) then
-      tm(j)%sz_over_kz = spz_offset   ! phi_z must be small
+    wt => wig_term(j)
+    if (abs(kzz(j)) < 1d-5) then
+      if (wt%kz == 0) then
+        tm(j)%sz_over_kz = spz_offset 
+      else
+        tm(j)%sz_over_kz = spz_offset + wt%phi_z / wt%kz   ! phi_z must be small
+      endif
     else
-      tm(j)%sz_over_kz = tm(j)%s_z / kzz(j)
+      tm(j)%sz_over_kz = tm(j)%s_z / wt%kz
     endif
   end select
 end do
@@ -1077,11 +1085,11 @@ do j = 1, size(wig_term)
   wt => wig_term(j)
   select case (tm(j)%family)
   case (x_family$)
-    value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%s_z * wig_term(j)%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%s_z * wt%ky * tm(j)%trig_y
   case (qu_family$)
-    value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky**2 * tm(j)%trig_y
   case (sq_family$)
-    value = value + tm(j)%coef_Ax * tm(j)%integral_cx * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Ax * tm(j)%integral_cx * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky**2 * tm(j)%trig_y
   end select
 enddo
 
@@ -1130,7 +1138,7 @@ do j = 1, size(wig_term)
   case (y_family$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
   case (qu_family$)
-    value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%kx
+    value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%kx * tm(j)%trig_x
   case (sq_family$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%kx
   end select
@@ -1154,7 +1162,7 @@ do j = 1, size(wig_term)
   wt => wig_term(j)
   select case (tm(j)%family)
   case (y_family$)
-    value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%s_z * wig_term(j)%ky
+    value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%s_z * wt%ky
   case (qu_family$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky
   case (sq_family$)

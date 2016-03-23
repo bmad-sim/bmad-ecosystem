@@ -44,8 +44,11 @@ type (sad_param_struct), save :: sad_param
 ! The set_flags_for_changed_lat_attribute (lat) routine is used when one
 ! does not know what has changed and wants a complete bookkeeping done.
 !
-! Modules needed:
-!   use bmad
+! NOTE: The attribute argument MUST be the component that was changed. For example:
+!     ele%value(x_offset$) = off_value
+!     call set_flags_for_changed_attribute (ele, ele%value(x_offset$))
+! And NOT:
+!     call set_flags_for_changed_attribute (ele, off_value)  ! WRONG
 !
 ! Input:
 !   lat           -- lat_struct: Lattice being modified.
