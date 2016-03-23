@@ -4945,7 +4945,7 @@ real(rp) delta
 real(dp) log_del
 
 integer div_max, divisions, idel
-integer id5, id10
+integer id2, id5, id10
 
 ! Sinple case
 
@@ -4959,8 +4959,8 @@ endif
 log_del = log10 (abs(delta) * 1.000000001_dp)
 idel = nint(abs(delta) / 10d0**(floor(log_del)-1))
 
-! First look for a division that gives a width that is a multiple of 5 or 10.
-! Choose id10 over id5 except when id5 >= 2 * id10
+! First look for a division that gives a width that is a multiple of 2, 5 or 10.
+! [Rule not used: Choose id10 over id5 except when id5 >= 2 * id10]
 ! A division of 1 is not acceptable in this first step.
 
 do id10 = div_max, 1, -1
@@ -4971,25 +4971,12 @@ do id5 = div_max, 1, -1
   if (mod(idel, 5 * id5) == 0) exit
 enddo
 
-if (id10 > 1 .and. id5 > 1) then
-  if (id5 >= 2 * id10) then
-    divisions = id5
-  else
-    divisions = id10
-  endif
-  return
-endif
+do id2 = div_max, 1, -1
+  if (mod(idel, 2 * id2) == 0) exit
+enddo
 
-if (id10 > 1) then
-  divisions = id10
-  return
-endif
-
-if (id5 > 1) then
-  divisions = id5
-  return
-endif
-
+divisions = max(id10, id5, id2)
+if (divisions > 1) return
 
 ! Now look for anything that divides evenly into idel.
 
