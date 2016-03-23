@@ -255,7 +255,11 @@ if (ele%field_calc == refer_to_lords$) then
       t = t + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
     endif
 
-    call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
+    call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield, err)
+    if (err) then
+      if (present(err_flag)) err_flag = .true.
+      return
+    endif
 
     field%E = field%E + field2%E
     field%B = field%B + field2%B
@@ -1107,7 +1111,12 @@ case(grid$)
 
   enddo
 
-!----------------------------------------------------------------------------
+! Beginning_ele, for example, has no field
+
+case (no_field$)
+
+  return
+
 ! Unknown field_calc
 
 case default
@@ -1117,6 +1126,7 @@ case default
   return
 end select
 
+!----------------------------------------------------------------------------
 ! overlapping of fields from other elements
 
 8000 continue
@@ -1346,8 +1356,8 @@ type (em_field_grid_pt_struct), intent(out) :: field
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
-integer i1, i2, i3, grid_dim, allow_s
-logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag
+integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd
+logical err_flag
 logical :: allow_s_out_of_bounds
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
@@ -1358,7 +1368,7 @@ integer, parameter :: allow_none$ = 1, allow_small$ = 2, allow_all$ = 3
 
 err_flag = .false.
 
-allow_S = allow_small$
+allow_s = allow_small$
 if (allow_s_out_of_bounds) allow_s = allow_all$
 
 grid_dim = em_grid_dimension(grid%type)
@@ -1366,27 +1376,27 @@ select case(grid_dim)
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_none$); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_s); if (err_flag) return
-  if (out_of_bounds1 .or. out_of_bounds2) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_s); if (err_flag) return
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  if (i2 == lbound(grid%pt, 2) - 1) then  ! Just outside at entrance end
+  lbnd = lbound(grid%pt, 2); ubnd = ubound(grid%pt, 2)
+  if (i2 == lbnd - 1) then  ! Just outside entrance end
     field%E(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
                + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%E(:) 
 
     field%B(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%B(:) &
                + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%B(:)  
 
-  elseif (i2 == ubound(grid%pt, 2)) then  ! Just outside at exit end
+  elseif (i2 == ubnd) then  ! Just outside exit end
     field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
                + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:)
 
     field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%B(:) &
                + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%B(:)
 
-  else
+  elseif (lbnd <= i2 .and. i2 < ubnd) then   ! Inside 
     field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
                + (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
                + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:) &
@@ -1400,14 +1410,14 @@ case (2)
 
 case (3)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag, allow_none$); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag, allow_none$); if (err_flag) return
-  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag, allow_s); if (err_flag) return
-  if (out_of_bounds1 .or. out_of_bounds2 .or. out_of_bounds3) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_s); if (err_flag) return
     
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  if (i3 == lbound(grid%pt, 3) - 1) then  ! Just outside at entrance end
+  lbnd = lbound(grid%pt, 3); ubnd = ubound(grid%pt, 3)
+  if (i3 == lbnd - 1) then  ! Just outside entrance end
     field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%E(:) &
                + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%E(:) &
                + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%E(:) &
@@ -1418,7 +1428,7 @@ case (3)
                + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%B(:) &
                + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%B(:)
 
-  elseif (i3 == ubound(grid%pt, 3)) then  ! Just outside at exit end
+  elseif (i3 == ubnd) then  ! Just outside exit end
     field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
                + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
                + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
@@ -1429,7 +1439,7 @@ case (3)
                + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%B(:) &
                + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%B(:) 
 
-  else
+  elseif (lbnd <= i3 .and. i3 < ubnd) then   ! Inside
     field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
                + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
                + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
@@ -1459,11 +1469,11 @@ end select
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag, allow_out_of_bounds)
+subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_out_of_bounds)
 
 real(rp) x, rel_x0, x_norm
 integer ix_x, i0, ig0, ig1, idg, allow_out_of_bounds
-logical out_of_bounds, err_flag
+logical err_flag
 
 !
 
@@ -1476,10 +1486,7 @@ rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
 
 ! Out of bounds?
 
-out_of_bounds = .false.
-
-if (i0 < ig0-1 .or. i0 > ig1) then
-  out_of_bounds = .true.
+if (i0 < ig0 .or. i0 >= ig1) then
   field%E = 0
   field%B = 0
 
@@ -1497,9 +1504,9 @@ if (i0 < ig0-1 .or. i0 > ig1) then
   end select
 
   err_flag = .true.
-  call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
+  call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ (position = \f12.6\)', &
                                  'For element: ' // ele%name, &
-                                 'Setting field to zero', i_array = [grid_dim, ix_x, i0])
+                                 'Setting field to zero', i_array = [grid_dim, ix_x, i0], r_array = [x])
 endif
 
 end subroutine get_this_index 
