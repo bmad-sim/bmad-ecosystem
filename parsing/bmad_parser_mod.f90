@@ -3821,7 +3821,7 @@ end function verify_valid_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, warn_only)
+subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, warn_only, r_array, i_array)
 
 implicit none
 
@@ -3832,7 +3832,9 @@ character(*) what1
 character(*), optional :: what2, what3, what4
 character(160) lines(12)
 character(16), parameter :: r_name = 'parser_error'
+real(rp), optional :: r_array(:)
 integer nl, err_level
+integer, optional :: i_array(:)
 logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
@@ -3889,7 +3891,7 @@ if (bp_com%print_err) then
 
   nl=nl+1; lines(nl) = ''
 
-  call out_io (err_level, r_name, lines(1:nl))
+  call out_io (err_level, r_name, lines(1:nl), r_array = r_array, i_array = i_array)
 
 endif
 
@@ -6773,6 +6775,12 @@ do i = 1, pt_counter
   grid%pt(ix1, iy1, iz1)%E(1:3) = array(i)%field(1:3)
   grid%pt(ix1, iy1, iz1)%B(1:3) = array(i)%field(4:6)
 end do
+
+n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
+if (n /= pt_counter) then
+  call parser_error ('Number of grid points (\i0\) in the file not equal to grid array size (\i0\).', &
+                     'for element: ' // ele%name, warn_only = .true., i_array = [n, pt_counter])
+endif
 
 ! Clear temporary array
 
