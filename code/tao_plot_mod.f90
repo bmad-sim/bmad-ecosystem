@@ -1537,7 +1537,7 @@ character(100), allocatable :: text(:)
 ! Set scales, margens, etc
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .false.)
+call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
 if (graph%title == '') then
   call qp_set_graph (title = '')

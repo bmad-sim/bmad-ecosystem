@@ -854,7 +854,7 @@ end subroutine tao_uppercase_shapes
 subroutine tao_setup_default_plotting()
 
 type (branch_struct), pointer :: branch
-type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c4
+type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c3, default_plot_g1c4
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
@@ -885,7 +885,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., photon_init$, '*') ]
 
 real(rp) y_layout, dx, dy, dz
-integer np, n, nr
+integer np, n, nr, n_plots
 character(40) name
 
 !
@@ -909,16 +909,18 @@ endif
 
 !---------------------------------
 
+n_plots = 38
+
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
   call move_alloc(s%plot_page%template, temp_template)
-  allocate (s%plot_page%template(n + 37))
+  allocate (s%plot_page%template(n + n_plots))
   s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
   np = n
   if (s%plot_page%template(np)%name == 'scratch') np = np - 1
 else
-  allocate (s%plot_page%template(37))
+  allocate (s%plot_page%template(n_plots))
   np = 0
 endif
 
@@ -986,6 +988,66 @@ crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
+crv%line%width   = 2
+crv%symbol%color = crv%line%color
+
+!---------------
+! This plot defines the default 1-graph, 3-curve/graph plot
+
+plt => default_plot_g1c3
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(3))
+
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+plt%x%major_div_nominal  = 8
+plt%x%minor_div_max = 6
+
+grph => plt%graph(1)
+grph%name                 = 'g'
+grph%type                 = 'data'
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+grph%box                  = [1, 1, 1, 1]
+grph%y                    = init_axis
+grph%y%label_offset       = 0.15
+grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
+grph%y2%major_div_nominal = 4
+grph%y2%draw_numbers      = .false.
+grph%component            = 'model'
+grph%draw_curve_legend    = .true.
+grph%draw_axes            = .true.
+grph%draw_grid            = .true.
+grph%text_legend_origin   = default_graph%text_legend_origin
+grph%curve_legend_origin  = default_graph%curve_legend_origin
+grph%x                    = init_axis
+grph%x%label = 's [m]'
+
+crv => grph%curve(1)
+crv%name         = 'c1'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = blue$
+crv%line%width   = 2
+crv%symbol%color = crv%line%color
+
+crv => grph%curve(2)
+crv%name         = 'c2'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = orange$
+crv%line%width   = 2
+crv%symbol%color = crv%line%color
+
+crv => grph%curve(3)
+crv%name         = 'c3'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = green$
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1148,6 +1210,94 @@ crv%line%color   = blue$
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
+!---------------
+! b_div_curl plot
+
+if (all(s%plot_page%template%name /= 'b_div_curl')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(4))
+
+  plt = default_plot_g1c4
+  plt%name                 = 'b_div_curl'
+  plt%description          = 'Magnetic Field Divergence and Curl along orbit'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Magnetic Field Divergence and Curl Along Orbit'
+  grph%y%label             = 'Mag Div, Curl (T/m)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'div'
+  crv%g => grph
+  crv%data_type    = 'b_div'
+  crv%legend_text  = 'divergence'
+
+  crv => grph%curve(2)
+  crv%name         = 'cx'
+  crv%g => grph
+  crv%data_type    = 'b_curl.x'
+  crv%legend_text  = 'curl x'
+
+  crv => grph%curve(3)
+  crv%name         = 'cy'
+  crv%g => grph
+  crv%data_type    = 'b_curl.y'
+  crv%legend_text  = 'curl y'
+
+  crv => grph%curve(4)
+  crv%name         = 'cz'
+  crv%g => grph
+  crv%data_type    = 'b_curl.z'
+  crv%legend_text  = 'curl z'
+endif
+ 
+!---------------
+! B_field plot
+
+if (all(s%plot_page%template%name /= 'b_field')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(3))
+
+  plt = default_plot_g1c3
+  plt%name                 = 'b_field'
+  plt%description          = 'Magnetic Field Along Orbit'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Magnetic Field Along Orbit'
+  grph%y%label             = 'B-Field (T)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'bx'
+  crv%g => grph
+  crv%data_type    = 'b_field.x'
+  crv%legend_text  = 'B_field.x'
+
+  crv => grph%curve(2)
+  crv%name         = 'by'
+  crv%g => grph
+  crv%data_type    = 'b_field.y'
+  crv%legend_text  = 'B_field.y'
+
+  crv => grph%curve(3)
+  crv%name         = 'bz'
+  crv%g => grph
+  crv%data_type    = 'b_field.z'
+  crv%legend_text  = 'B_field.z'
+endif
+ 
 !---------------
 ! beta plot
 
@@ -1342,53 +1492,6 @@ if (all(s%plot_page%template%name /= 'detap')) then
 endif
 
 !---------------
-! div_curl plot
-
-if (all(s%plot_page%template%name /= 'div_curl')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(4))
-
-  plt = default_plot_g1c4
-  plt%name                 = 'div_curl'
-  plt%description          = 'E+M Field Divergence and Curl'
-
-  grph => plt%graph(1)
-  grph%p => plt
-  grph%title               = 'Electric + Magnetic Field Divergence and Curl'
-  grph%y%label             = 'Div, Curl'
-  grph%y%label_offset= .15
-
-  crv => grph%curve(1)
-  crv%name         = 'div'
-  crv%g => grph
-  crv%data_type    = 'div'
-  crv%legend_text  = 'a'
-
-  crv => grph%curve(2)
-  crv%name         = 'cx'
-  crv%g => grph
-  crv%data_type    = 'curl.x'
-  crv%legend_text  = 'b'
-
-  crv => grph%curve(3)
-  crv%name         = 'cy'
-  crv%g => grph
-  crv%data_type    = 'curl.y'
-  crv%legend_text  = 'b'
-
-  crv => grph%curve(2)
-  crv%name         = 'cz'
-  crv%g => grph
-  crv%data_type    = 'curl.z'
-  crv%legend_text  = 'b'
-endif
- 
-!---------------
 ! dphi (chrom.dphi) plot
 
 if (all(s%plot_page%template%name /= 'dphi')) then
@@ -1463,6 +1566,95 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   crv%g => grph
   crv%smooth_line_calc = .false.
   crv%y_axis_scale_factor = 1000
+endif
+
+!---------------
+! e_div_curl plot
+
+if (all(s%plot_page%template%name /= 'e_div_curl')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(4))
+
+  plt = default_plot_g1c4
+  plt%name                 = 'e_div_curl'
+  plt%description          = 'Electric Field Divergence and Curl along orbit'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Electric Field Divergence and Curl Along Orbit'
+  grph%y%label             = 'Elec Div, Curl (T/m)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'div'
+  crv%g => grph
+  crv%data_type    = 'e_div'
+  crv%legend_text  = 'divergence'
+
+  crv => grph%curve(2)
+  crv%name         = 'cx'
+  crv%g => grph
+  crv%data_type    = 'e_curl.x'
+  crv%legend_text  = 'curl x'
+
+  crv => grph%curve(3)
+  crv%name         = 'cy'
+  crv%g => grph
+  crv%data_type    = 'e_curl.y'
+  crv%legend_text  = 'curl y'
+
+  crv => grph%curve(4)
+  crv%name         = 'cz'
+  crv%g => grph
+  crv%data_type    = 'e_curl.z'
+  crv%legend_text  = 'curl z'
+endif
+ 
+!---------------
+! E_field plot
+
+if (all(s%plot_page%template%name /= 'e_field')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(3))
+
+  plt = default_plot_g1c3
+  plt%name                 = 'e_field'
+  plt%description          = 'Electric Field Along Orbit'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Electric Field Along Orbit'
+  grph%y%label             = 'E-Field (T)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'ex'
+  crv%g => grph
+  crv%data_type    = 'e_field.x'
+  crv%legend_text  = 'E_field.x'
+
+  crv => grph%curve(2)
+  crv%name         = 'ey'
+  crv%g => grph
+  crv%data_type    = 'e_field.y'
+  crv%legend_text  = 'E_field.y'
+
+  crv => grph%curve(3)
+  crv%name         = 'ez'
+  crv%g => grph
+  crv%data_type    = 'e_field.z'
+  crv%legend_text  = 'E_field.z'
+
 endif
 
 !---------------

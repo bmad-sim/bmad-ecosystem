@@ -1521,8 +1521,10 @@ case ('lat', 'beam')
     call err_exit
   end select
 
+if (curve%draw_symbols) then
   call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL', valid)
   if (.not. valid) return
+endif
 
 !----------------------------------------------------------------------------
 ! Case: Bad data_source
@@ -1654,8 +1656,10 @@ case ('s')
       endif
     enddo
 
-    call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', graph%valid)
-    if (.not. graph%valid) return
+    if (curve%draw_line) then
+      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', graph%valid)
+      if (.not. graph%valid) return
+    endif
 
     do i = 1, size(curve%x_line)
       curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
@@ -1878,6 +1882,27 @@ do ii = 1, size(curve%x_line)
       value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case ('b_curl.x')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%dB(2,3) - field%dB(3,2)
+  case ('b_curl.y')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%dB(3,1) - field%dB(1,3)
+  case ('b_curl.z')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%dB(1,2) - field%dB(2,1)
+  case ('b_div')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
+  case ('b_field.x')
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%b(1)
+  case ('b_field.y')
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%b(2)
+  case ('b_field.z')
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%b(3)
   case ('beta.a')
     value = ele%a%beta
   case ('beta.b')
@@ -1906,18 +1931,27 @@ do ii = 1, size(curve%x_line)
   case ('coupling.22a')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
-  case ('curl.x')
+  case ('e_curl.x')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = (field%dB(2,3) - field%dB(3,2)) + (field%dE(2,3) - field%dE(3,2))
-  case ('curl.y')
+    value = field%dE(2,3) - field%dE(3,2)
+  case ('e_curl.y')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = (field%dB(3,1) - field%dB(1,3)) + (field%dE(3,1) - field%dE(1,3))
-  case ('curl.z')
+    value = field%dE(3,1) - field%dE(1,3)
+  case ('e_curl.z')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = (field%dB(1,2) - field%dB(2,1)) + (field%dE(1,2) - field%dE(2,1))
-  case ('div')
+    value = field%dE(1,2) - field%dE(2,1)
+  case ('e_div')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = (field%dB(1,1) + field%dB(2,2) + field%dB(3,3)) + (field%dE(1,1) + field%dE(2,2) + field%dE(3,3))
+    value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
+  case ('e_field.x')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%e(1)
+  case ('e_field.y')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%e(2)
+  case ('e_field.z')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    value = field%e(3)
   case ('element_attrib.')
     name = upcase(curve%data_source(16:))
     ele_dum%key = overlay$  ! so entire attribute name table will be searched
