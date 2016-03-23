@@ -1706,7 +1706,7 @@ logical local_ref_frame
 
 !
 
-orb = orb
+orb = orbit
 del = bmad_com%d_orb(1)
 
 orb%vec(1) = orb%vec(1) - del
@@ -1719,7 +1719,7 @@ dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
 
 !
 
-orb = orb
+orb = orbit
 del = bmad_com%d_orb(3)
 
 orb%vec(3) = orb%vec(3) - del
@@ -1732,7 +1732,7 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 
 !
 
-orb = orb
+orb = orbit
 del = bmad_com%d_orb(5)
 
 del = bmad_com%d_orb(5)
