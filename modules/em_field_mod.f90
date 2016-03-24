@@ -1709,9 +1709,9 @@ logical local_ref_frame
 orb = orbit
 del = bmad_com%d_orb(1)
 
-orb%vec(1) = orb%vec(1) - del
+orb%vec(1) = orbit%vec(1) - del
 call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
-orb%vec(1) = orb%vec(1) + del
+orb%vec(1) = orbit%vec(1) + del
 call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
 
 dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
@@ -1722,9 +1722,9 @@ dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
 orb = orbit
 del = bmad_com%d_orb(3)
 
-orb%vec(3) = orb%vec(3) - del
+orb%vec(3) = orbit%vec(3) - del
 call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
-orb%vec(3) = orb%vec(3) + del
+orb%vec(3) = orbit%vec(3) + del
 call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
 
 dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
@@ -1735,19 +1735,11 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 orb = orbit
 del = bmad_com%d_orb(5)
 
-del = bmad_com%d_orb(5)
-s0 = max(s_pos-del, 0.0_rp)
-s1 = min(s_pos+del, ele%value(l$))
+call em_field_calc (ele, param, s_pos-del, time, orbit, .true., f0)
+call em_field_calc (ele, param, s_pos+del, time, orbit, .true., f1)
 
-if (s0 == s1) then
-  dfield%dB(:,3) = 0
-  dfield%dE(:,3) = 0
-else
-  call em_field_calc (ele, param, s0, time, orbit, .true., f0)
-  call em_field_calc (ele, param, s1, time, orbit, .true., f1)
-  dfield%dB(:,3) = (f1%B - f0%B) / (2 * del)
-  dfield%dE(:,3) = (f1%E - f0%E) / (2 * del)
-endif
+dfield%dB(:,3) = (f1%B - f0%B) / (2 * del)
+dfield%dE(:,3) = (f1%E - f0%E) / (2 * del)
 
 end subroutine em_field_derivatives
 
