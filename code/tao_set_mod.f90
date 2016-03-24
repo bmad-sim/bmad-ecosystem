@@ -1006,9 +1006,9 @@ if (this_graph%type == 'phase_space') then
   endif
 endif
 
-end subroutine
+end subroutine set_this_curve
 
-end subroutine
+end subroutine tao_set_curve_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1171,6 +1171,8 @@ select case (comp)
     call tao_real_set_value(this_graph%scale_margin%y1, comp, value, error)
   case ('scale_margin%y2')
     call tao_real_set_value(this_graph%scale_margin%y2, comp, value, error)
+  case ('title')
+    this_graph%title = value
   case ('y2_mirrors_y')
     call tao_logical_set_value (this_graph%y2_mirrors_y, comp, value, error)
   case ('floor_plan_view')
