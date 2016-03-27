@@ -2219,7 +2219,7 @@ type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) p0c, pc, beta, beta0, mass, e_tot
+real(rp) p0c, pc, beta0, mass, e_tot
 
 !
 
@@ -2231,9 +2231,8 @@ if (abs(orbit%vec(6)) < 1d-6 * mass**2 * p0c / e_tot**3) then
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
 else
   pc = (1 + orbit%vec(6)) * ele%value(p0c$)
-  call convert_pc_to (pc, orbit%species, beta = beta)
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
-  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (beta - beta0) / beta0
+  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (orbit%beta - beta0) / beta0
 endif
 
 end subroutine track1_low_energy_z_correction

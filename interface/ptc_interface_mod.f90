@@ -3095,7 +3095,7 @@ type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge
-real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2)
+real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -3158,6 +3158,17 @@ else
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
 endif
 
+! Fringes
+
+ix = both_ends$
+if (attribute_index(ele, 'FRINGE_AT') > 0) ix = nint(ele%value(fringe_at$))
+kill_spin_fringe = is_false(ele%value(spin_fringe_on$))
+
+ptc_key%list%kill_ent_fringe = (ix == exit_end$ .or. ix == no_end$)
+ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
+ptc_key%list%kill_ent_spin = (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_fringe)
+ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe)
+
 !
 
 key = ele%key
@@ -3190,10 +3201,19 @@ case (sad_mult$)
   endif
 
 case (sbend$) 
+  ! PTC does not consider a finite e1/e2 part of the fringe so must zero e1/e2 if needed.
+  ix = nint(ele%value(fringe_type$))
+
+  e1 = ele%value(e1$)
+  if (ptc_key%list%kill_ent_fringe .or. ix == none$) e1 = 0
+
+  e2 = ele%value(e2$)
+  if (ptc_key%list%kill_exi_fringe .or. ix == none$) e2 = 0
+
   ptc_key%magnet = 'sbend'
   ptc_key%list%b0   = ele%value(g$) * leng
-  ptc_key%list%t1   = ele%value(e1$)
-  ptc_key%list%t2   = ele%value(e2$)
+  ptc_key%list%t1   = e1
+  ptc_key%list%t2   = e2
 
   select case (nint(ele%value(fringe_at$)))
   case (both_ends$)
@@ -3220,11 +3240,11 @@ case (sbend$)
   ix = nint(ele%value(ptc_field_geometry$))
   if (ix == straight$) then
     ptc_key%magnet = 'wedgrbend'
-    ptc_key%list%t1   = ele%value(e1$) - ele%value(angle$)/2
-    ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2
+    ptc_key%list%t1   = e1 - ele%value(angle$)/2
+    ptc_key%list%t2   = e2 - ele%value(angle$)/2
   elseif (ix == true_rbend$) then
     ptc_key%magnet = 'truerbend'
-    ptc_key%list%t1   = ele%value(e1$) - ele%value(angle$)/2
+    ptc_key%list%t1   = e1 - ele%value(angle$)/2
     !! ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2 ! Determined by %t1 in this case.
   endif
 
@@ -3365,17 +3385,6 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
 
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0
 endif
-
-! Fringes
-
-ix = both_ends$
-if (attribute_index(ele, 'FRINGE_AT') > 0) ix = nint(ele%value(fringe_at$))
-kill_spin_fringe = is_false(ele%value(spin_fringe_on$))
-
-ptc_key%list%kill_ent_fringe = (ix == exit_end$ .or. ix == no_end$)
-ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
-ptc_key%list%kill_ent_spin = (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_fringe)
-ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe)
 
 ! Electric fields present? Everything is an sbend!
 
