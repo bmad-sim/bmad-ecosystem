@@ -117,6 +117,12 @@ do ib = 0, ubound(lat%branch, 1)
           write (1, '(a, 2i4, es12.2)'),   'Max diff |BS - PTC|:     ', maxloc(err_mat), maxval(err_mat)
         endif
 
+        if (valid_mat6_calc_method(ele, branch%param%particle, symp_lie_bmad$) .and. &
+            valid_mat6_calc_method(ele, branch%param%particle, symp_lie_ptc$)) then
+          err_mat = abs(eles(symp_lie_bmad$)%mat6 - eles(symp_lie_ptc$)%mat6)
+          write (1, '(a, 2i4, es12.2)'),   'Max diff |SLBmad - PTC|:     ', maxloc(err_mat), maxval(err_mat)
+        endif
+
       endif
       write (1,*)
     END DO
