@@ -93,9 +93,9 @@ charge_dir = rel_tracking_charge * ele%orientation
 c00 = c0
 c00%direction = +1
 
-! Note: sad_mult and match code will handle the calc of c1 if needed.
+! Note: sad_mult, match, etc. will handle the calc of c1 if needed.
 
-if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$) then
+if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$ .and. ele%key /= solenoid$) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, c1)
@@ -800,8 +800,6 @@ case (patch$)
 !--------------------------------------------------------
 ! quadrupole
 
-!!  call quad_mat6_edge_effect (ele, k1, c_int, c11, mat6)
-
 case (quadrupole$)
 
   k1 = v(k1$) * charge_dir / rel_p
@@ -948,8 +946,7 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, c00, c11, logic_option (.false., end_in), .true.)
-  if (.not. logic_option (.false., end_in)) c1 = c11
+  call sad_mult_track_and_mat (ele, param, c00, c1, ele%mat6)
 
 !--------------------------------------------------------
 ! sbend
@@ -1308,11 +1305,10 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
-
-  call solenoid_mat6_calc (rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
+  call solenoid_track_and_mat (ele, param, c00, c1, mat6)
+  call offset_particle (ele, param, unset$, c1)
 
   call add_multipoles_and_z_offset (.true.)
-  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
