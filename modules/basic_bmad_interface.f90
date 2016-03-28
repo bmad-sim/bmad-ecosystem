@@ -616,6 +616,15 @@ interface
     logical ok
   end subroutine
 
+  subroutine solenoid_track_and_mat (ele, param, start_orb, end_orb, mat6)
+    import
+    implicit none
+    type (ele_struct) ele
+    type (lat_param_struct) param
+    type (coord_struct) start_orb, end_orb
+    real(rp), optional :: mat6(:,:)
+  end subroutine
+
   subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
     import
     implicit none

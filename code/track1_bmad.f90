@@ -742,8 +742,7 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, start_orb, end_orb, .false., .false.)
-
+  call sad_mult_track_and_mat (ele, param, start_orb, end_orb)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -782,19 +781,11 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
-
-  ks = rel_tracking_charge * ele%value(ks$)
-
-  xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
-  yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
-  end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / (2 * rel_p**2)
-
-  call solenoid_mat4_calc (ks, length, rel_p, mat4)
-  end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
-
+  call solenoid_track_and_mat (ele, param, end_orb, end_orb)
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 
   if (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
+    ks = rel_tracking_charge * ele%value(ks$)
     ksr = ks / rel_p
     kss = ksr * length
     if (abs(kss) < 1d-2) then
@@ -811,7 +802,6 @@ case (solenoid$)
                                           ele%value(vkick$) * [f, cos_a * ksr / 2, cos_a, sin_a]
   endif
 
-  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
