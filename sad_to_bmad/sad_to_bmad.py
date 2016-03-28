@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, getopt, re, math
+import sys, getopt, re, math, copy
 from collections import *
 import time
 
@@ -18,7 +18,7 @@ class ele_struct:
 class line_item_struct:
   def __init__(self, name = '', sign = '', multiplyer = '1'):
     self.name = name
-    self.sign = ''
+    self.sign = sign
     self.multiplyer = multiplyer
 
 class lat_line_struct:
@@ -210,19 +210,18 @@ ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
 
-sad_reversed_params = {
+sad_reversed_param = {
       'ae1': 'ae2',
-      'ae2': 'ae1',
       'e1': 'e2',
-      'e2': 'e1',
       'fb1': 'fb2',
-      'fb2': 'fb1'
 }
-  
+
+sad_reverse_sign_flip_param = ['offset', 'bz']
+
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list):
+def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
 
   global ix_null
 
@@ -233,48 +232,115 @@ def output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list):
 
   # Loop over all SAD elements
 
-  for ix_s_ele, sad_ele in enumerate(sad_line.list):
+  for ix_s_ele, sad_line_ele in enumerate(sad_line.list):
 
-    ele_name = sad_ele.name
+    ele_name = sad_line_ele.name
 
     # If the line element is itself a line then print this line info.
 
     if ele_name in sad_info.lat_line_list:
       if not sad_info.lat_line_list[ele_name].printed: 
-        output_lattice_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz, rf_list)
-      bmad_line.append(sad_ele)
+        output_lattice_line(sad_info.lat_line_list[ele_name], sad_info, sol_status, bz, rf_list)
+      bmad_line.append(sad_line_ele)
       continue
 
     if not ele_name in sad_info.ele_list:
       print ('No definition found for element name: ' + ele_name)
       continue
 
-    s_ele = sad_info.ele_list[ele_name]
+    sad_ele_def = sad_info.ele_list[ele_name]
+
+    # Reversed and not longitudinally symmetric?
+    # If so create a new reversed element
+
+    if sad_line_ele.sign == '-':
+      symmetric = True
+      for pname in sad_reversed_param:
+        if sad_ele_def.param.get(pname, '0') != sad_ele_def.param.get(sad_reversed_param[pname], '0'): symmetric = False
+      for pname in sad_reverse_sign_flip_param:
+        if pname in sad_ele_def.param: symmetric = False
+
+      if not symmetric:
+        ele_name = ele_name + '_inverse'
+        sad_line_ele.name = ele_name
+
+        if ele_name in sad_info.ele_list:
+          sad_ele_def = sad_info.ele_list[ele_name]
+
+        else:
+          sad_ele_def = copy.deepcopy(sad_ele_def)
+          sad_ele_def.name = ele_name
+          sad_ele_def.printed = False
+
+          for pname in sad_reversed_param:
+            rname = sad_reversed_param[pname]
+            if pname in sad_ele_def.param and rname in sad_ele_def.param:
+              sad_ele_def.param[pname], sad_ele_def.param[rname] = sad_ele_def.param[rname], sad_ele_def.param[pname]
+            elif pname in sad_ele_def.param:
+              sad_ele_def.param[rname] = sad_ele_def.param[pname]
+              del sad_ele_def.param[pname]
+            elif rname in sad_ele_def.param:
+              sad_ele_def.param[pname] = sad_ele_def.param[rname]
+              del sad_ele_def.param[rname]
+
+          for pname in sad_reverse_sign_flip_param:
+            if pname in sad_ele_def.param: 
+              if sad_ele_def.param[pname][0] == '-':
+                sad_ele_def.param[pname] = sad_ele_def.param[pname][1:]
+              else:
+                sad_ele_def.param[pname] = '-' + sad_ele_def.param[pname]
+
+          sad_info.ele_list[ele_name] = sad_ele_def
 
     # sol element
 
-    if s_ele.type == 'sol':
-      bz = s_ele.param.get('bz', '0')
-      try:
-        b_z = float(bz)
-        if b_z == 0: bz = '0'    # EG convert '0.0' to '0'
-      except ValueError:
-        pass
-      if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
+    if sad_ele_def.type == 'sol':
+      if sad_ele_def.param.get('bound') == '1': 
+        if sol_status == 0:
+          if sad_line_ele.sign == '':
+            sol_status = 1
+          else:
+            sol_status = -1
+        else:
+          sol_status = 0
+
+    if sad_ele_def.type == 'sol':
+      if sol_status == 1:
+        bz = sad_ele_def.param.get('bz', '0')
+      elif sol_status == -1:
+        for ise in range(ix_s_ele+1, len(sad_line.list)):
+          s2_ele = sad_line.list[ise]
+          s2_type = sad_info.ele_list[s2_ele.name]
+          if s2_type.type == 'sol':
+            bz = s2_type.param.get('bz', '0')
+            break
+
+      if sol_status == 1 or sol_status == -1:
+        try:
+          b_z = float(bz)
+          if b_z == 0: bz = '0'    # EG convert '0.0' to '0'
+        except ValueError:
+          pass
+
+      if sol_status == -1:
+        if bz[0] == '-':
+          bz = bz[1:]
+        else:
+          bz = '-' + bz
 
     # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
 
-    if s_ele.type == 'mark' and 'offset' in s_ele.param:
+    if sad_ele_def.type == 'mark' and 'offset' in sad_ele_def.param:
       if ignore_marker_offsets:
-        del s_ele.param['offset']
+        del sad_ele_def.param['offset']
       else:
         ix_null += 1
-        null_ele_name = 'null_' + s_ele.name + '#' + str(ix_null)   # Guaranteed unique
+        null_ele_name = 'null_' + sad_ele_def.name + '#' + str(ix_null)   # Guaranteed unique
         bmad_line.append (line_item_struct(null_ele_name))          # Put null_ele in the line
         WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
   
         # Now define the marker element
-        sad_offset = float(s_ele.param['offset'])
+        sad_offset = float(sad_ele_def.param['offset'])
         int_off = int(math.floor(sad_offset))
         frac_off = sad_offset - int_off
   
@@ -284,42 +350,42 @@ def output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list):
         for ix in range(0, int_off, direc):
           this_name = sad_line.list[ix_s_ele+ix].name
           if this_name in sad_info.ele_list:
-            ss_ele = sad_info.ele_list[this_name]
-            if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
+            sad_ele_def2 = sad_info.ele_list[this_name]
+            if 'l' in sad_ele_def2.param: offset += direc * eval(sad_ele_def2.param['l'])
           else:   # Must be a line
             for sub_ele in sad_info.lat_line_list[this_name].list:
-              ss_ele = sad_info.ele_list[sub_ele.name]
-              if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
+              sad_ele_def2 = sad_info.ele_list[sub_ele.name]
+              if 'l' in sad_ele_def2.param: offset += direc * eval(sad_ele_def2.param['l'])
   
-        ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
-        if 'l' in ss_ele.param: offset += frac_off * eval(ss_ele.param['l'])
+        sad_ele_def2 = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
+        if 'l' in sad_ele_def2.param: offset += frac_off * eval(sad_ele_def2.param['l'])
   
-        if s_ele.instances == 0:
+        if sad_ele_def.instances == 0:
           suffix = ''
         else:
-          suffix = '.' + str(s_ele.instances)
-        bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
+          suffix = '.' + str(sad_ele_def.instances)
+        bmad_ele_def = sad_ele_def.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
         WrapWrite(bmad_ele_def)
-        s_ele.printed = True
-        s_ele.instances += 1
+        sad_ele_def.printed = True
+        sad_ele_def.instances += 1
         continue
 
     # Regular element not getting superimposed
 
-    bmad_line.append(sad_ele)
-    if s_ele.type == 'cavi': rf_list.append(s_ele.name)
+    bmad_line.append(sad_line_ele)
+    if sad_ele_def.type == 'cavi': rf_list.append(sad_ele_def.name)
 
-    if s_ele.printed == True: continue
+    if sad_ele_def.printed == True: continue
 
     b_ele = ele_struct()
-    sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz, sad_ele.sign == '-')
+    sad_ele_to_bmad (sad_ele_def, b_ele, sol_status, bz, sad_line_ele.sign == '-')
 
     bmad_ele_def = b_ele.name + ': ' + b_ele.type
     for param in iter(b_ele.param):
       bmad_ele_def += ', ' + param + ' = ' + b_ele.param[param]
 
     WrapWrite(bmad_ele_def)
-    s_ele.printed = True
+    sad_ele_def.printed = True
 
   #---------------------------------------------
   # Write line
@@ -340,7 +406,7 @@ def output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
+def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   bmad_ele.name = sad_ele.name
 
@@ -352,23 +418,25 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   # SAD sol with misalignments becomes a Bmad patch
 
-  if sad_ele.type == 'sol':
+  if sad_ele.type == 'sol' and sad_ele.param.get('bound') == '1':
     if len(set(['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']).intersection(sad_ele.param)) > 0:
-      if sad_ele.param.get('geo') == '1':
-        print ('MISALIGNMENTS IN SOL ELEMENT '+ sad_ele.name + ' WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
-        print ('  IF MISALIGNMENTS ARE SMALL, OR BZ = 0 THROUGH THE SOLENOID, THIS IS NOT A PROBLEM:')
-        for param in sad_ele.param:
-          if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
-            print ('  ' + param + ' = ' + sad_ele.param[param])
-      else:
-        bmad_ele.type = 'patch'
+      bmad_ele.type = 'patch'
+##      if sad_ele.param.get('geo') == '1':
+##        print ('MISALIGNMENTS IN SOL ELEMENT '+ sad_ele.name + ' WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
+##        print ('  IF MISALIGNMENTS ARE SMALL, OR BZ = 0 THROUGH THE SOLENOID, THIS IS NOT A PROBLEM:')
+##        for param in sad_ele.param:
+##          if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
+##            print ('  ' + param + ' = ' + sad_ele.param[param])
 
   # Handle case when inside solenoid
 
-  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
+  if sol_status != 0 and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
                     bmad_ele.type != 'patch' and bz != '0' and 'l' in sad_ele.param: 
-    bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
+    if bmad_ele.type == 'drift':
+      bmad_ele.type = 'solenoid'
+    else:
+      bmad_ele.type = 'sad_mult'
 
   # convert apert
 
@@ -424,12 +492,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     if full_param_name in ignore_sad_param: continue
 
     value = sad_ele.param[sad_param_name]
-
-    # For reversed elements, ae1 -> ae2, etc.
-
-    if reversed and sad_param_name in sad_reversed_params: 
-      sad_param_name = sad_reversed_params[sad_param_name]
-      full_param_name = sad_ele.type + ':' + sad_param_name 
 
     # Use more specific translation first
 
@@ -493,9 +555,9 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
     #
 
-    if reversed:
+    if reversed and sad_ele.type != 'sol':
       if sad_param_name == 'offset': value = '1 - ' + value
-      if sad_param_name in ['chi1', 'chi2', 'dz']: 
+      if sad_param_name in ['chi1', 'chi2', 'dz', 'bz']: 
         if value[0] == '-': 
           value = value[1:]
         else:
@@ -538,17 +600,33 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
         bmad_ele.param['phi0'] = bmad_ele.param['phi0_err']
       del bmad_ele.param['phi0_err']
 
-  # Correct patch signs
+  # Correct patch signs. And SAD applies pitches and offsets in reverse order to bmad.
 
   if bmad_ele.type == 'patch':
-    # If entering solenoid 
-    if inside_sol:
-      if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = add_parens(bmad_ele.param['x_offset']) + ' * -1'
-      if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = add_parens(bmad_ele.param['y_offset']) + ' * -1'
-      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = add_parens(bmad_ele.param['z_offset']) + ' * -1'
     # If exiting solenoid 
+    if sol_status == 0:
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
+
+    # If entering solenoid 
     else:
-      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = add_parens(bmad_ele.param['z_offset']) + ' * -1'
+      if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = str(eval(bmad_ele.param['x_offset'] + ' * -1'))
+      if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = str(eval(bmad_ele.param['y_offset'] + ' * -1'))
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
+
+      print ('ele: ' + bmad_ele.name)
+      zo = eval(bmad_ele.param.get('z_offset', '0'))
+      xo = eval(bmad_ele.param.get('x_offset', '0'))
+      xp = eval(bmad_ele.param.get('x_pitch', '0'))
+      yo = eval(bmad_ele.param.get('y_offset', '0'))
+      yp = eval(bmad_ele.param.get('y_pitch', '0'))
+
+      if xp != 0 and xo != 0:
+        bmad_ele.param['z_offset'] = str(zo - xo * math.sin(xp))
+        bmad_ele.param['x_offset'] = str(xo * math.cos(xp))
+        zo = eval(bmad_ele.param.get('z_offset', '0'))
+      if yp != 0 and yo != 0:
+        bmad_ele.param['z_offset'] = str(zo - yo * math.sin(yp))
+        bmad_ele.param['y_offset'] = str(yo * math.cos(yp))
 
   # Fringe 
 
@@ -1065,11 +1143,11 @@ for var in sad_info.var_list:
 #------------------------------------------------------------------
 # Translate and write element defs
 
-inside_sol = False
+sol_status = 0
 bz = '0'
 
 rf_list = []
-output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list)
+output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list)
 
 #-------------------------------------------------------------------
 
