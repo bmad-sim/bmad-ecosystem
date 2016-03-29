@@ -193,7 +193,7 @@ ENDIF
 IF( use_t6_cache .AND. (ibs_formula .EQ. 'kubo') ) THEN
   WRITE(*,*) "Making 1-turn mats and caching in ele%r."
   DO i=1, lat%n_ele_track
-    CALL transfer_matrix_calc(lat, .true., mat1turn, ix1=i, one_turn=.TRUE.)
+    CALL transfer_matrix_calc(lat, mat1turn, ix1=i, one_turn=.TRUE.)
     ALLOCATE(lat%ele(i)%r(6,6,1))
     lat%ele(i)%r(:,:,1) = mat1turn
   ENDDO

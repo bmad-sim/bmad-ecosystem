@@ -52,7 +52,7 @@
 
 ! to get alpha as well as beta 
 
-   call transfer_matrix_calc (ring, .true., a)
+   call transfer_matrix_calc (ring, a)
 !  subroutine one_turn_matrix was removed from BMAD early Oct, 2004
 !  call one_turn_matrix(ring,.true.,a)
 
