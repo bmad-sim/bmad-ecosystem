@@ -2805,7 +2805,7 @@ case ('taylor_map', 'matrix')
         return
       endif
     else
-      call transfer_matrix_calc (lat, .true., mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
+      call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
     endif
 
   endif

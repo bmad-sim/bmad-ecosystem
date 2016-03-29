@@ -1567,7 +1567,7 @@ case ('momentum_compaction')
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
 
-  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
   do i = ix_start, ix_ele
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
@@ -1823,7 +1823,7 @@ case ('r.')
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
 
   if (ix_ref < 0) ix_ref = 0
-  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
   k = ix_start
   do 
