@@ -402,7 +402,7 @@ do i = 1, 100
       print *
       print *, 'Model:'
       call lat_make_mat6 (lat)
-      call transfer_matrix_calc (lat, .true., mat6, vec0)
+      call transfer_matrix_calc (lat, mat6, vec0)
       call mat_type (mat6)
       print *
       print *, 'Wiggler g2_int, g3_int:', g2_int, g3_int
@@ -543,7 +543,7 @@ call set_flags_for_changed_attribute (lat_com)
 call lattice_bookkeeper (lat_com)
 
 call lat_make_mat6 (lat_com)
-call transfer_matrix_calc (lat_com, .true., mat6, vec0)
+call transfer_matrix_calc (lat_com, mat6, vec0)
 
 if (even_pole_num) then
   g2_int = g**2 * (n_pole - 2) * len_bend

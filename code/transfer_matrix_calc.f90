@@ -1,5 +1,5 @@
 !+         
-! Subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
+! Subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
 !
 ! Subroutine to calculate the 6X6 transfer matrix between two elements.
 ! To calculate transfer maps see the routine: transfer_map_calc.
@@ -26,9 +26,6 @@
 ! Input:
 !   lat   -- lat_struct: Lattice used in the calculation.
 !     %ele(:)%mat6  -- Transfer matrices used in the calculation.
-!   rf_on -- Logical: Keep the RF on for the calculation? 
-!              True does nothing. False forces the RF off.
-!              False is what is needed for the Twiss parameter calculation.
 !   ix1   -- Integer, optional: Element start index for the calculation.
 !              Default is 0.
 !   ix2   -- Integer, optional: Element end index for the calculation.
@@ -47,7 +44,7 @@
 !    xfr_vec(6)   -- Real(rp), optional: 0th order part of the transfer map.
 !-
 
-subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
+subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
 
 use bmad_interface, except_dummy => transfer_matrix_calc
 use sim_utils, only: integer_option
@@ -64,7 +61,6 @@ real(rp) rf_mat(6,6)
 integer, optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
-logical :: rf_on
 logical vec_present, one_turn_this
 logical, optional :: one_turn
 
@@ -120,17 +116,9 @@ contains
 
 subroutine add_on_to_xfer_mat
 
-if (branch%ele(i)%key == rfcavity$ .and. .not. rf_on) then
-  rf_mat = branch%ele(i)%mat6
-  rf_mat(6,5) = 0  ! turn rf off
-  xfer_mat = matmul (rf_mat, xfer_mat)
-  if (vec_present) xfer_vec = matmul(rf_mat, xfer_vec) + branch%ele(i)%vec0
-else
-  xfer_mat = matmul (branch%ele(i)%mat6, xfer_mat)
-  if (vec_present) xfer_vec = matmul(branch%ele(i)%mat6, xfer_vec) + branch%ele(i)%vec0
-endif
+xfer_mat = matmul (branch%ele(i)%mat6, xfer_mat)
+if (vec_present) xfer_vec = matmul(branch%ele(i)%mat6, xfer_vec) + branch%ele(i)%vec0
 
 end subroutine
 
 end subroutine
-                                          

@@ -580,7 +580,7 @@ if (ran_gauss_here) then
 endif
 
 if (beam_init%full_6D_coupling_calc) then
-  call transfer_matrix_calc(ele%branch%lat, .true., t6, ix1=ele%ix_ele, one_turn=.true.)
+  call transfer_matrix_calc(ele%branch%lat, t6, ix1=ele%ix_ele, one_turn=.true.)
   call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true.)
   call mat_inverse(G6mat, G6inv, ok)
   do i = 1, size(bunch%particle)

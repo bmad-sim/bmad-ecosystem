@@ -172,7 +172,7 @@ case (4, 5)
   bmad_com%radiation_damping_on = .false.  ! Want constant energy
 
   if (all(branch%param%t1_no_RF == 0)) &
-              call transfer_matrix_calc (this_lat, .false., branch%param%t1_no_RF, ix_branch = branch%ix_branch)
+              call transfer_matrix_calc (this_lat, branch%param%t1_no_RF, ix_branch = branch%ix_branch)
   t1 = branch%param%t1_no_RF
   start%vec(5) = 0
 
@@ -202,7 +202,7 @@ case (4, 5)
 
 case (6)
   if (all(branch%param%t1_with_RF == 0)) &
-              call transfer_matrix_calc (this_lat, .true., branch%param%t1_with_RF, ix_branch = branch%ix_branch)
+              call transfer_matrix_calc (this_lat, branch%param%t1_with_RF, ix_branch = branch%ix_branch)
   t1 = branch%param%t1_with_RF
 
   if (t1(6,5) == 0) then
@@ -303,7 +303,7 @@ do i_loop = 1, i_max
     amp_del_old = amp_del
   else  ! not converging so remake t11_inv matrix
     call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
-    call transfer_matrix_calc (this_lat, .true., t1, ix_branch = branch%ix_branch)
+    call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
     call make_t11_inv (err)
     if (err) then
       call end_cleanup
@@ -390,7 +390,7 @@ else
 endif
 
 call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
-call transfer_matrix_calc (this_lat, .true., t1, ix_branch = branch%ix_branch)
+call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
 call make_t11_inv (err)
 
 call mat_eigen (t1, eigen_val, eigen_vec, error)

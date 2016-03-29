@@ -254,6 +254,14 @@ interface
     type (coord_struct), optional, allocatable :: orbit(:)
   end subroutine
 
+  subroutine ion_kick (orbit, r_beam, n_beam_part, a_twiss, b_twiss, sig_ee, kick)
+    import
+    implicit none
+    type (coord_struct) orbit
+    type (twiss_struct) a_twiss, b_twiss
+    real(rp) r_beam(2), n_beam_part, sig_ee, kick(3)
+  end subroutine
+
   function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
     import
     implicit none
@@ -636,11 +644,10 @@ interface
     logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
   end subroutine
 
-  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
+  subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
     import
     implicit none
     type (lat_struct) lat
-    logical :: rf_on
     real(rp) :: xfer_mat(:,:)
     real(rp), optional :: xfer_vec(:)
     integer, optional :: ix1, ix2, ix_branch

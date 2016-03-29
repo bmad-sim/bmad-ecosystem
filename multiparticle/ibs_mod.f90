@@ -1046,10 +1046,10 @@ subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
       t6 = lat%ele(ix_use)%r(:,:,1)
     else
       write(*,'(A)') "use_t6_cache is true, but lat%ele(ix_use)%r not allocated.  Defaulting to transfer_matrix_calc."
-      call transfer_matrix_calc (lat, .true., t6, ix1=ix_use, one_turn=.TRUE.)
+      call transfer_matrix_calc (lat, t6, ix1=ix_use, one_turn=.TRUE.)
     endif
   else
-    call transfer_matrix_calc (lat, .true., t6, ix1=ix_use, one_turn=.TRUE.)
+    call transfer_matrix_calc (lat, t6, ix1=ix_use, one_turn=.TRUE.)
   endif
 
   if( PRESENT(s) ) then
@@ -1061,7 +1061,7 @@ subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
 
   ! t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, ele%z%sigma)
-  ! call transfer_matrix_calc_special(lat, .true., t6, ix1=ix_use, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix_use)%z%sigma)
+  ! call transfer_matrix_calc_special(lat, t6, ix1=ix_use, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix_use)%z%sigma)
 
   if( ibs_sim_params%set_dispersion ) then
     t6 = matmul(t6,W) 
@@ -2254,9 +2254,9 @@ subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 
       mode%z%emittance = zz * mode%sigE_E
 
-      call transfer_matrix_calc (lat, .true., t6, ix1=0, one_turn=.TRUE.)
+      call transfer_matrix_calc (lat, t6, ix1=0, one_turn=.TRUE.)
       t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, zz)
-      ! call transfer_matrix_calc_special (lat, .true., t6, ix1=0, one_turn=.true., inductance=ibs_sim_params%inductance, sig_z=zz)
+      ! call transfer_matrix_calc_special (lat, t6, ix1=0, one_turn=.true., inductance=ibs_sim_params%inductance, sig_z=zz)
       call make_smat_from_abc(t6, mode, sigma_mat, error)
 
       residual_pwd_sig_z = (abs(sqrt(sigma_mat(5,5)) - zz))/zz

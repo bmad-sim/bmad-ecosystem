@@ -341,7 +341,7 @@ subroutine xyz_to_action(ring,ix,X,J,err_flag)
   ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
   ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
 
-  call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
+  call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
   call make_N(t6, N, err_flag, ab_tunes)
   if( err_flag ) then
     call out_io (s_error$, r_name, "Error received from make_N.")
@@ -400,7 +400,7 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
   ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
   ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
 
-  call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
+  call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
   call make_N(t6, N, err_flag, ab_tunes)
   if( err_flag ) then
     call out_io (s_error$, r_name, "Error received from make_N.")
@@ -1109,7 +1109,7 @@ subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 
   !
 
-  call transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
+  call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
   call make_smat_from_abc(t6, mode, sigma_mat, err_flag)
   if(err_flag) then
     call out_io (s_error$, r_name, "Error received from make_smat_from_abc.")
@@ -1247,7 +1247,7 @@ err_flag = .true.
 
 if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
 
-call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF, one_turn=.true.)
+call transfer_matrix_calc (lat, lat%param%t1_with_RF, one_turn=.true.)
 if (all(lat%param%t1_with_RF(6,1:5) == 0)) then
   call out_io (s_error$, r_name, 'RF IS OFF FOR THE MODE3 CALCULATION!')
   return
