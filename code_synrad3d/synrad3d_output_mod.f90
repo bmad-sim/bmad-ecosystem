@@ -10,25 +10,27 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 
-subroutine sr3d_print_hit_points (iu_hit_file, photon, wall_hit, lots_of_digits)
+subroutine sr3d_print_hit_points (iu_hit_file, photon, wall_hit, branch, lots_of_digits)
 
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), pointer :: hit
 type (sr3d_photon_wall_hit_struct), target :: wall_hit(0:)
+type (branch_struct) branch
 
 integer iu, n, iu_hit_file
 
 logical, optional :: lots_of_digits
 character(100) fm, fm2
+character(40) wall_name
 
 !
 
 if (logic_option(.false., lots_of_digits)) then
   fm  = '(6es25.15)'
-  fm2 = '(i7, i4, f10.2, 5x, 3es25.15, 2(5x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10)' 
+  fm2 = '(i7, i4, f10.2, 5x, 3es25.15, 2(5x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10, 3x, a)' 
 else
   fm  = '(6f12.6)'
-  fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6)'
+  fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6, 3x, a)'
 endif
 
 
@@ -44,9 +46,15 @@ endif
 
 do n = 0, photon%n_wall_hit
   hit => wall_hit(n)
+  if (n == 0) then
+    wall_name = '<inside chamber>'
+  else
+    wall_name = branch%wall3d(hit%ix_wall3d)%name
+    if (wall_name == '') wall_name = '<default_subchamber>'
+  endif
   write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
           hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
-          hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
+          hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity, trim(wall_name)
 enddo
 
 if (iu_hit_file == -1) then

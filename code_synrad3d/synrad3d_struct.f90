@@ -13,6 +13,7 @@ type sr3d_photon_wall_hit_struct
   real(rp) cos_perp_in                  ! Cosine of incoming ray and hit angle
   real(rp) cos_perp_out                 ! Cosine of hit angle
   real(rp) reflectivity                 ! Reflectivity probability
+  integer ix_wall3d                     ! Index of wall hit.
 end type
 
 type sr3d_coord_struct
@@ -50,6 +51,7 @@ type sr3d_params_struct
   character(200) :: wall_hit_file = ''
   integer :: iu_photon_track = 0
   integer :: iu_wall_hit = 0
+  integer :: iu_dat_file = 0
   type (random_state_struct) ran_state
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
