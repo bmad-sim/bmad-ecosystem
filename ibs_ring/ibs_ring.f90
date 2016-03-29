@@ -336,17 +336,17 @@ DO i=1,n_steps
     STOP
   ENDIF
 
-  CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=x_view, one_turn=.TRUE.)
+  CALL transfer_matrix_calc (omp_lat(omp_i), t6, ix1=x_view, one_turn=.TRUE.)
   IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_x = SQRT(sigma_mat(1,1))
 
-  CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=y_view, one_turn=.TRUE.)
+  CALL transfer_matrix_calc (omp_lat(omp_i), t6, ix1=y_view, one_turn=.TRUE.)
   IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_y = SQRT(sigma_mat(3,3))
 
-  CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=z_view, one_turn=.TRUE.)
+  CALL transfer_matrix_calc (omp_lat(omp_i), t6, ix1=z_view, one_turn=.TRUE.)
   IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   IF(L_ratio .gt. 0) THEN 

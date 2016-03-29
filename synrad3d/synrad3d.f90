@@ -331,7 +331,7 @@ endif
 
 
 sr3d_params%iu_dat_file = lunget()
-open (sr3d_params%iu_dat_file, file = dat_file)
+open (sr3d_params%iu_dat_file, recl = 300, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
 
 if (sr3d_params%photon_track_file /= '') then
@@ -589,14 +589,16 @@ endif
 
 ! Write photon_number_factor = (Num actual photons emitted per beam particle) / (Num macro photons generated in simulation)
 ! Using direct access to be able to modify the first line in the file without touching the rest of the file.
+! NOTE: recl = 40 must match first line length in write_this_header!
 
 iu = sr3d_params%iu_dat_file
 photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / &
                                         (6 * h_bar_planck * c_light * n_photon_generated)
-close (iu)
-open (iu, file = dat_file, access = 'direct', recl = 36, form = 'formatted')
 write (line, '(a, es11.3)') '# photon_number_factor    =', photon_number_factor
-write (iu, '(a36)', rec = 1) line
+
+close (iu)
+open (iu, file = dat_file, access = 'direct', recl = 40, form = 'formatted')
+write (iu, '(a40)', rec = 1) line(1:40)
 close (iu)
 
 !--------------------------------------------------------------------------------------------
@@ -731,8 +733,10 @@ end subroutine
 subroutine write_this_header (iu)
 
 integer iu
+character(40) line
 
-write (iu, '(a)')         '# photon_number_factor    = 0.000E+00  '
+line = ''
+write (iu, '(a40)') line
 write (iu, '(a, i0)')     '# ix_ele_track_start      = ', ix_ele_track_start
 write (iu, '(a, i0)')     '# ix_ele_track_end        = ', ix_ele_track_end
 write (iu, '(a, i0)')     '# photon_direction        = ', photon_direction
