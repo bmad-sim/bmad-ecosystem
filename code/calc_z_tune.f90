@@ -34,7 +34,7 @@ integer i
 
 !
 
-call transfer_matrix_calc (lat, .true., a)
+call transfer_matrix_calc (lat, a)
 lat%param%t1_with_RF = a
 
 denom = 2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5))
