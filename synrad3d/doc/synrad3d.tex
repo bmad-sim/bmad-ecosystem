@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{March 17, 2016}
+\date{March 28, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -1393,7 +1393,7 @@ the materials associated with different regions of the chamber are:
 \end{example}
 
 %------------------------------------------------------------------
-\chapter{Photon Tracking \& Reflaections}
+\chapter{Photon Tracking \& Reflections}
 
 %------------------------------------------------------------------
 \section{Photon Tracking}
@@ -1521,7 +1521,7 @@ format for a \vn{\&start} namelist is:
 \end{example}
 The \vn{<s>} component of \vn{orbit%vec} is the longitudinal distance
 from the start of the lattice.  If needed, The \vn{ran_state} and
-\vn{random_see} parameters can be used to initialize the random number
+\vn{random_seed} parameters can be used to initialize the random number
 generator.
 
 The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
@@ -1639,47 +1639,66 @@ angle points.
 \section{Main Output File}
 \label{s:main.out}
 
-The format of the \vn{dat_file} (whose name is specified in the master
-input file (\sref{s:master})) is as follows:
-
-The first line in the file gives the \vn{photon_number_factor}.
-If $N_{\gamma}$ is the total number of photons per beam particle
-emitted in one revolution, then the \vn{photon_number_factor} $F$ in a simulation
-run containing $N_{sim}$ photons is defined as $F = N_{\gamma}/N_{sim}.$
-Thus, if a simulation run is done using $N_{sim}$ photons, and $N_L$
-is the number of photon absorption sites in a longitudinal region of
-length $L$, then the average number of photons per beam particle per
-unit length absorbed in this region is $(N_L/L)\times F.$ This number
-is needed as input for electron cloud simulation programs.
-
-
-The next 20 lines of data file echo the information provided in the
-file \vn{synrad3d.init}.
-
-After the first 21 lines of header information, \vn{dat_file} contains
-six lines for each photon generated. An example of the output
-generated for two photons is shown below.
+The \vn{dat_file} (whose name is specified in the master input file (\sref{s:master})) is
+divided into two parts. the top part essentially echos the information provided in
+the main input file. It looks like:
 \begin{example}
-       1       2     71.52  ! index, n_wall_hits, eV
-    0.000542    0.000037   -0.000073    0.000080       9.015    1.000000  ! Start position
-    0.015165    0.004010    0.023538    0.017410      18.661    0.999840  ! End position
-    7.906054  ! photon_track_len
-    0.001911  ! photon_track_len - ds_beam
-      37   DRIFT             ! Lat ele index and class
-       2       1     11.25  ! index, n_reflect, eV
-   -0.000604   -0.000046    0.000003    0.000826       9.036    1.000000  ! Start position
-    0.013187   -0.004171   -0.023902   -0.009377      15.524    0.999947  ! End position
-    9.968419  ! photon_track_len
-    0.001770  ! photon_track_len - ds_beam
-      36   SBEND             ! Lat ele index and class
+  # photon_number_factor    =  8.155E-01
+  # ix_ele_track_start      = 103
+  # ix_ele_track_end        = 104
+  # photon_direction        = 1
+  # num_photons             = 10
+  # num_photons_per_pass    = -1
+  # random_seed             = 123456
+  # lattice_file            = "../tao/examples/cesr/bmad_L9A18A000-_MOVEREC.lat"
+  # photon_start_input_file = ""
+  # wall_file               = "synrad3d.wall"
+  # dat_file                = "synrad3d.dat"
+  # chamber_end_geometry    = ""
+  # ds_step_min             =  1.000E-02
+  ... etc ...
 \end{example}
-The first line gives the photon index number, the number of times the
-photon struck the vacuum chamber (including the final hit where it is
-adsorbed), the photon energy (in eV)
 
-In the second line, the initial position of the generated photon is
-given. The six numbers are $x$ (m), $v_x/c$, $y$ (m), $v_y/c$, $s$
-(m), and $v_s/c.$ $x$ is the horizontal position (direction along the
+The first line gives the \vn{photon_number_factor}.  If $N_{\gamma}$ is the total number
+of photons per beam particle emitted in one revolution, then the \vn{photon_number_factor}
+$F$ in a simulation run containing $N_{sim}$ photons is defined as $F =
+N_{\gamma}/N_{sim}.$ Thus, if a simulation run is done using $N_{sim}$ photons, and $N_L$
+is the number of photon absorption sites in a longitudinal region of length $L$, then the
+average number of photons per beam particle per unit length absorbed in this region is
+$(N_L/L)\times F.$ This number is needed as input for electron cloud simulation programs.
+
+The second part of the file is a table. Each row is the data for one photon. Only photons
+that pass the filter tests are shown. The table looks like:
+\begin{example}
+   1       2  6.981783E+02   -0.000221    0.001255    0.000052   ... etc.
+   2       1  4.705803E+03    0.000605    0.001255    0.000050   ... etc.
+   3       2  6.883773E+02    0.001430    0.001255    0.000048   ... etc.
+   4       2  3.463312E+02    0.002255    0.001255    0.000046   ... etc.
+   5       1  2.104224E+01    0.003080    0.001255    0.000043   ... etc.
+   6       2  1.393605E+02    0.003904    0.001254    0.000041   ... etc.
+   7       5  1.979004E+01    0.004729    0.001254    0.000039   ... etc.
+   8       2  4.288703E+02    0.005553    0.001253    0.000037   ... etc.
+   9      12  1.493411E+01    0.006377    0.001253    0.000034   ... etc.
+  10       2  1.297799E+02    0.007200    0.001252    0.000032   ... etc.
+\end{example}
+
+The columns of the file are:
+\begin{example}
+  1:      Photon index number.
+  2:      The number of times the photon has struck the vacuum 
+              chamber wall including the final hit. 
+  3:      The photon energy (in eV).
+  4-9:    Initial photon position $x$, $v_x/c$, $y$, $v_y/c$, $s$, $v_s/c.$
+  10-15:  Final photon position
+  16:     Photon travel length
+  17:     Photon longitudinal travel length - beam travel length 
+                                                       in the same time period.
+  18:     Lattice element index where photon is absorbed.
+  19:     Lattice element type (eg: quadrupole, etc.) where photon is absorbed.
+  20:     sub-chamber name where photon is absorbed.
+\end{example}  
+
+$x$ is the horizontal position (direction along the
 local normal to the closed orbit, in the bend plane, zero on the
 closed orbit, positive to the outside of the machine, ), $y$ is the
 vertical position (direction perpendicular to the bend plane, zero on
@@ -1687,43 +1706,29 @@ the closed orbit, positive up), and $s$ is the longitudinal position
 (direction tangent to the closed orbit, zero at the beginning of the
 lattice, positive in the direction of motion of the beam).
 
-The third line gives the position of the point at which the photon is absorbed.
-
-The fourth line gives how far the photon traveled.
-
-The fifth line gives how far the photon traveled relative to how far the beam traveled.
-
-The sixth line gives the lattice element index and element type for
-the longitudinal position at which the photon is absorbed. This is
-provided so that the photon hits can be sorted by magnetic environment
-(e.g., drift, sbend, wiggler, etc.)  
-
-The same information is outputted as a table in a file whose name is
-the same as \vn{dat_file} with a ``_table'' suffix appended.
-
 %------------------------------------------------------------------
 \section{Wall Hit Output File}
 \label{s:wall.hit.file}
 
 If the switch \vn{wall_hit_file} is non-blank, an additional output file is generated,
 which contains more detailed information on where photons are hitting the vacuum chamber
-wall. An example of the output is shown below. Example:
+wall. Example:
 \begin{example}
-  1     0       0.0      -0.000823    0.000054     67.785765        0.000000    0.000000    0.000000
-  1     1     698.2       0.045000   -0.000229     70.515079        0.032303   -0.000104    0.999478
-  1     2     698.2      -0.039304   -0.013811     71.216813       -0.115289   -0.019212    0.993146
-  2     0       0.0      -0.000740    0.000054     67.851507        0.000000    0.000000    0.000000
-  2     1    4705.8       0.045000    0.000128     70.578267        0.032274    0.000027    0.999479
-  3     0       0.0      -0.000658    0.000054     67.917250        0.000000    0.000000    0.000000
-  3     1     688.4       0.045000    0.000465     70.641452        0.032245    0.000151    0.999480
-  3     2     688.4      -0.045000   -0.002062     71.036893       -0.219720   -0.006232    0.975543
-  4     0       0.0      -0.000575    0.000053     67.982992        0.000000    0.000000    0.000000
-  4     1     346.3       0.045000   -0.000370     70.704636        0.032216   -0.000155    0.999481
-  4     2     346.3      -0.045000   -0.001490     71.234797       -0.164390   -0.002083    0.986393
-  5     0       0.0      -0.000493    0.000053     68.048735        0.000000    0.000000    0.000000
-  5     1      21.0       0.045000    0.000393     70.767817        0.032187    0.000125    0.999482
+  1     0       0.0     -0.0008    0.0000     67.7857       0.0000   ... etc.
+  1     1     698.2      0.0450   -0.0002     70.5150       0.0323   ... etc.
+  1     2     698.2     -0.0393   -0.0138     71.2168      -0.1152   ... etc.
+  2     0       0.0     -0.0007    0.0000     67.8515       0.0000   ... etc.
+  2     1    4705.8      0.0450    0.0001     70.5782       0.0322   ... etc.
+  3     0       0.0     -0.0006    0.0000     67.9172       0.0000   ... etc.
+  3     1     688.4      0.0450    0.0004     70.6414       0.0322   ... etc.
+  3     2     688.4     -0.0450   -0.0020     71.0368      -0.2197   ... etc.
+  4     0       0.0     -0.0005    0.0000     67.9829       0.0000   ... etc.
+  4     1     346.3      0.0450   -0.0003     70.7046       0.0322   ... etc.
+  4     2     346.3     -0.0450   -0.0014     71.2347      -0.1643   ... etc.
+  5     0       0.0     -0.0004    0.0000     68.0487       0.0000   ... etc.
+  5     1      21.0      0.0450    0.0003     70.7678       0.0321   ... etc.
 \end{example}
-The columns of this file are
+The columns of this file are:
 \begin{example}
   1:     photon_index  
   2:     wall_hit_index  
@@ -1735,6 +1740,7 @@ The columns of this file are
   16:    cos_perp_in               ! Cosine of photon incoming direction wrt wall.
   17:    cos_perp_out              ! Cosine of photon outgoing direction wrt wall.
   18:    reflectivity              ! Reflectivity coef
+  19:    sub-chamber               ! Subchamber name where photon hits.
 \end{example}
 The \vn{photon_index} is the same index as in the main output file. The
 \vn{wall_hit_index} starts at 0 for the emission point and increases up to the value for
@@ -1784,19 +1790,19 @@ set to something that is not blank in the master input file (\sref{s:master}).
 
 Example track file output
 \begin{example}
-  1   1  -0.000823    0.000054    67.785765        0.000000    0.000000    0.000000
-  1   1   0.045000   -0.000229    70.515079        0.032303   -0.000104    0.999478
-  1   1  -0.039304   -0.013811    71.216813       -0.115289   -0.019212    0.993146
-  2   4  -0.000740    0.000054    67.851507        0.000000    0.000000    0.000000
-  2   4   0.045000    0.000128    70.578267        0.032274    0.000027    0.999479
-  3   5  -0.000658    0.000054    67.917250        0.000000    0.000000    0.000000
-  3   5   0.045000    0.000465    70.641452        0.032245    0.000151    0.999480
-  3   5  -0.045000   -0.002062    71.036893       -0.219720   -0.006232    0.975543
-  4   7  -0.000575    0.000053    67.982992        0.000000    0.000000    0.000000
-  4   7   0.045000   -0.000370    70.704636        0.032216   -0.000155    0.999481
-  4   7  -0.045000   -0.001490    71.234797       -0.164390   -0.002083    0.986393
-  5   9  -0.000493    0.000053    68.048735        0.000000    0.000000    0.000000
-  5   9   0.045000    0.000393    70.767817        0.032187    0.000125    0.999482
+  1   1  -0.000823    0.000054    67.785765      0.000000    0.000000    0.000000
+  1   1   0.045000   -0.000229    70.515079      0.032303   -0.000104    0.999478
+  1   1  -0.039304   -0.013811    71.216813     -0.115289   -0.019212    0.993146
+  2   4  -0.000740    0.000054    67.851507      0.000000    0.000000    0.000000
+  2   4   0.045000    0.000128    70.578267      0.032274    0.000027    0.999479
+  3   5  -0.000658    0.000054    67.917250      0.000000    0.000000    0.000000
+  3   5   0.045000    0.000465    70.641452      0.032245    0.000151    0.999480
+  3   5  -0.045000   -0.002062    71.036893     -0.219720   -0.006232    0.975543
+  4   7  -0.000575    0.000053    67.982992      0.000000    0.000000    0.000000
+  4   7   0.045000   -0.000370    70.704636      0.032216   -0.000155    0.999481
+  4   7  -0.045000   -0.001490    71.234797     -0.164390   -0.002083    0.986393
+  5   9  -0.000493    0.000053    68.048735      0.000000    0.000000    0.000000
+  5   9   0.045000    0.000393    70.767817      0.032187    0.000125    0.999482
 \end{example}
 The columns of this file are
 \begin{example}
