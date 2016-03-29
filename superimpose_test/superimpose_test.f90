@@ -23,7 +23,7 @@ integer i
 call bmad_parser ('superimpose_test.bmad', lat)
 open (1, file = 'output.now')
 
-call transfer_matrix_calc (lat, .false., mat6, vec0)
+call transfer_matrix_calc (lat, mat6, vec0)
 do i = 1, 6
   write (1, '(a, i0, a, 6f14.8)') '"mat_row', i, '" ABS 1E-7', mat6(i,:)
 enddo
