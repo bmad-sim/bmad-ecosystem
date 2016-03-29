@@ -219,21 +219,22 @@ offset                      & x_gain_err                  &                     
  \label{s:list.diffraction.plate}
  
  \begin{tabular}{lll} \toprule
-alias                       & offset_moves_aperture       & x2_limit                    \\
-aperture                    & p0c                         & x_limit                     \\
-aperture_at                 & ptc_integration_type        & x_offset                    \\
-aperture_type               & reference                   & x_offset_tot                \\
-create_jumbo_slave          & ref_origin                  & x_pitch                     \\
-curvature_x0_y2             & ref_wavelength              & x_pitch_tot                 \\
-delta_ref_time              & spin_tracking_method        & y1_limit                    \\
-descrip                     & superimpose                 & y2_limit                    \\
-ele_origin                  & surface                     & y_limit                     \\
-e_tot                       & tilt                        & y_offset                    \\
-field_scale_factor          & tilt_tot                    & y_offset_tot                \\
-is_on                       & tracking_method             & y_pitch                     \\
-mat6_calc_method            & type                        & y_pitch_tot                 \\
-mode                        & wall                        & z_offset                    \\
-offset                      & x1_limit                    & z_offset_tot                \\
+alias                       & p0c                         & x_offset                    \\
+aperture                    & ptc_integration_type        & x_offset_tot                \\
+aperture_at                 & reference                   & x_pitch                     \\
+aperture_type               & ref_origin                  & x_pitch_tot                 \\
+create_jumbo_slave          & ref_wavelength              & y1_limit                    \\
+curvature_x0_y2             & spin_tracking_method        & y2_limit                    \\
+delta_ref_time              & superimpose                 & y_limit                     \\
+descrip                     & surface                     & y_offset                    \\
+ele_origin                  & tilt                        & y_offset_tot                \\
+e_tot                       & tilt_tot                    & y_pitch                     \\
+field_scale_factor          & tracking_method             & y_pitch_tot                 \\
+is_on                       & type                        & z_offset                    \\
+mat6_calc_method            & wall                        & z_offset_tot                \\
+mode                        & x1_limit                    & l                           \\
+offset                      & x2_limit                    &                             \\
+offset_moves_aperture       & x_limit                     &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -682,7 +683,7 @@ field_scale_factor          & tracking_method             & y_pitch             
 is_on                       & type                        & y_pitch_tot                 \\
 mat6_calc_method            & wall                        & z_offset                    \\
 mode                        & x1_limit                    & z_offset_tot                \\
-offset                      & x2_limit                    &                             \\
+offset                      & x2_limit                    & l                           \\
 offset_moves_aperture       & x_limit                     &                             \\
  \bottomrule
  \end{tabular}

@@ -500,12 +500,12 @@ precession vector due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ i
 precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}
 \begin{align}
   {\pmb\Omega}_{BMT} (\mathbf{r,P},t) &= 
-    - \frac{q}{m} \left[ 
+    - \frac{q}{m \, c} \left[ 
     \left(\frac{1}{\gamma} + G \right) \, c \, \Bf B -
     \frac{G \, \gamma \, c}{1 + \gamma} \, ( \bfbeta \dotproduct \Bf B ) \, \bfbeta -
     \left( G + \frac{1}{1 + \gamma} \right) \, \mathbf{\bfbeta \times  E} 
     \right] \\
-  &= - \frac{q}{m} \left[ 
+  &= - \frac{q}{m \, c} \left[ 
     \left( \frac{1}{\gamma} + G \right) \, c \, \Bf B_{\perp} +
     \frac{(1 + G) \, c}{\gamma} \, \Bf B_\parallel -
     \left( G + \frac{1}{1 + \gamma} \right) \mathbf{\bfbeta \times E} 
@@ -514,7 +514,7 @@ precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}
 and
 \Begineq
   {\pmb\Omega}_{EDM} (\mathbf{r,P},t) = 
-  - \frac{q \, \eta}{2 \, m} \left[
+  - \frac{q \, \eta}{2 \, m \, c} \left[
   \Bf E - \frac{\gamma}{1 + \gamma} \, 
   ( \bfbeta \dotproduct \Bf E ) \, \bfbeta +
   c \, \mathbf{\bfbeta \times B}
