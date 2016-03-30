@@ -99,6 +99,7 @@ i2 = integer_option(branch%n_ele_track, ix2)
 
 call alloc (ptc_c_map)
 call alloc (bet)
+call alloc (ptc_probe8)
 
 t_map(:)%ref = orb0%vec
 x = orb0%vec
@@ -162,6 +163,7 @@ enddo
 call kill (ptc_c_map)
 call kill (y0)
 call kill (bet)
+call kill (ptc_probe8)
 
 end subroutine transfer_map_calc_with_spin
 
