@@ -41,7 +41,7 @@ type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
-real(rp) dt_step, vec(6), d_radius
+real(rp) vec(6), d_radius
 real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
 real(rp) s_edge_track, s_edge_hard
 
@@ -108,10 +108,6 @@ if ( d_radius > 0 ) then
 endif
 
 !------
-! Specify initial time step.
-
-dt_step = bmad_com%init_ds_adaptive_tracking / c_light
-
 ! Convert particle to element coordinates
 ! Kicks and multipoles should be turned off in offset_particle
 
@@ -156,7 +152,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, dt_step, local_ref_frame, err, track)
+call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, local_ref_frame, err, track)
 if (err) return
 
 !------

@@ -14,14 +14,10 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, dt1, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
-!
-!
-! Modules needed:
-!   use bmad
 !
 ! Input: 
 !   orb   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
@@ -33,8 +29,7 @@ contains
 !   param   -- lat_param_struct: Beam parameters.
 !   s1      -- Real: Limit point to stop at.
 !   s2      -- Real: Limit point to stop at.
-!   t_rel   -- Real: time relative to entering reference time
-!   dt1      -- Real: Initial guess for a time step size.
+!   t_rel   -- Real: The effective start time.
 !   local_ref_frame 
 !           -- Logical: If True then take the 
 !                input and output coordinates as being with 
@@ -45,12 +40,13 @@ contains
 !
 ! Output:
 !   orb      -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   t_rel    -- Real: The effective end time.
 !   err_flag -- Logical: Set True if there is an error. False otherwise.
 !   track    -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, dt1, local_ref_frame, err_flag, track)
+subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
@@ -65,25 +61,26 @@ type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
 
-real(rp), intent(in) :: s1, s2, dt1
+real(rp), intent(in) :: s1, s2
 real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
-real(rp), target  :: dvec_dt(6), vec_err(6), s_target 
+real(rp), target  :: dvec_dt(6), vec_err(6), s_target, dt_next_save
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
-real(rp) :: s_edge_track, s_edge_hard, ref_time
+real(rp) :: s_edge_track, s_edge_hard, ref_time, stop_time
 
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, old_direction, hard_end
 
 logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
-logical :: edge_kick_applied, track_spin
+logical :: edge_kick_applied, track_spin, stop_time_limited
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
 ! init
 ds_safe = bmad_com%significant_length / 10
-dt_next = dt1
+dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
+call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, .true.)
 
 ! local s coordinates for vec(5)
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
@@ -230,10 +227,25 @@ do n_step = 1, max_step
 
   ! Single Runge-Kutta step. Updates orb% vec(6), s, and t 
 
+  stop_time_limited = .false.
+  if (stop_time /= real_garbage$ .and. dt > stop_time - orb%t) then
+    dt_next_save = dt_next
+    dt_next = stop_time - orb%t
+    stop_time_limited = .true.
+  endif
+
   dt = dt_next
   orb_old = orb
   t_old = t_rel
+
   call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
+
+  if (stop_time_limited) then
+    dt_next = dt_next_save
+    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
+      call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, .false.)
+    endif
+  endif
 
   if (orb%direction /= old_direction) then
     call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)

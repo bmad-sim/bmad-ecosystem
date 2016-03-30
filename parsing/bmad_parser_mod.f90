@@ -6778,7 +6778,7 @@ end do
 n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
 if (n /= pt_counter) then
   call parser_error ('Number of grid points (\i0\) in the file not equal to grid array size (\i0\).', &
-                     'for element: ' // ele%name, warn_only = .true., i_array = [n, pt_counter])
+                     'for element: ' // ele%name, warn_only = .true., i_array = [pt_counter, n])
 endif
 
 ! Clear temporary array

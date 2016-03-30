@@ -707,6 +707,8 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     sec1 => wall3d%section(n_sec);  s1 = sec1%s - ele%branch%param%total_length
     sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
+    ! If there are only two sections then sec1 will be on top of sec2 so s1 needs to be offset again.
+    if (n_sec == 2 .and. abs(s1-s2) < bmad_com%significant_length) s1 = s1 - ele%branch%param%total_length
   else
     call d_radius_at_section(wall3d%section(1))
     return
@@ -720,6 +722,8 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
     sec1 => wall3d%section(n_sec);  s1 = sec1%s
     sec2 => wall3d%section(1);      s2 = sec2%s + ele%branch%param%total_length
     if (present(ix_section)) ix_section = n_sec
+    ! If there are only two sections then sec2 will be on top of sec1 so s2 needs to be offset again.
+    if (n_sec == 2 .and. abs(s1-s2) < bmad_com%significant_length) s2 = s2 + ele%branch%param%total_length
   else
     call d_radius_at_section(wall3d%section(n_sec))
     return

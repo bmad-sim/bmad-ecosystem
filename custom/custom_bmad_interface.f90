@@ -81,6 +81,15 @@ interface
     logical err_flag, finished
   end subroutine
 
+  subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
+    import
+    type (coord_struct) orbit
+    type (ele_struct) ele
+    type (lat_param_struct) param
+    real(rp) stop_time
+    logical :: init_needed
+  end subroutine
+
   subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
     import
     implicit none
