@@ -1,6 +1,7 @@
 abs_time_test
 autoscale_test
-bbu_test   ! Note: Does not have corresponding cmake.* file
+NOTE: SKIPPING BBU_TEST. THIS TEST NEEDS TO BE UPGRADED FOR THE NEW BBU PROGRAM...
+! bbu_test   ! Note: Does not have corresponding cmake.* file
 bookkeeper_test
 coord_test
 geometry_test
