@@ -216,7 +216,7 @@ sad_reversed_param = {
       'fb1': 'fb2',
 }
 
-sad_reverse_sign_flip_param = ['offset', 'bz']
+sad_reverse_sign_flip_param = ['offset', 'bz', 'dz']
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -421,6 +421,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   if sad_ele.type == 'sol' and sad_ele.param.get('bound') == '1':
     if len(set(['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']).intersection(sad_ele.param)) > 0:
       bmad_ele.type = 'patch'
+
 ##      if sad_ele.param.get('geo') == '1':
 ##        print ('MISALIGNMENTS IN SOL ELEMENT '+ sad_ele.name + ' WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
 ##        print ('  IF MISALIGNMENTS ARE SMALL, OR BZ = 0 THROUGH THE SOLENOID, THIS IS NOT A PROBLEM:')
@@ -600,10 +601,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
         bmad_ele.param['phi0'] = bmad_ele.param['phi0_err']
       del bmad_ele.param['phi0_err']
 
-  # Correct patch signs. And SAD applies pitches and offsets in reverse order to bmad.
+  # Correct patch signs. 
+  # And SAD applies pitches and offsets in reverse order to bmad which is why the trig is needed.
 
   if bmad_ele.type == 'patch':
-    # If exiting solenoid 
+
+    # If exiting solenoid
     if sol_status == 0:
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
@@ -613,7 +616,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
       if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = str(eval(bmad_ele.param['y_offset'] + ' * -1'))
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
-      print ('ele: ' + bmad_ele.name)
       zo = eval(bmad_ele.param.get('z_offset', '0'))
       xo = eval(bmad_ele.param.get('x_offset', '0'))
       xp = eval(bmad_ele.param.get('x_pitch', '0'))
@@ -1137,6 +1139,7 @@ for var in sad_info.var_list:
   if var == 'fshift':
     f_out.write ('++NOTE: IF YOU ARE READING THIS THEN THIS FILE HAS NOT BEEN PROCESSED BY THE PROGRAM sad_to_bmad_postprocess AS IT SHOULD!\n')
     f_out.write ('++fshift = ???  ! In SAD file: ' + sad_info.var_list[var] + '\n')
+    print ('Remember: Process lattice file by the program sad_to_bmad_postprocess')
   else:
     f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
 
