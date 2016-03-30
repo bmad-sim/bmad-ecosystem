@@ -117,6 +117,8 @@ dpz_dpy = -yp / pz
 c2s2 = c2 - s2
 lpz = length / pz
 
+mat6 = 0
+
 ff = -2 * kss0 * vec0(1) * cs + vec0(2) * c2s2 + kss0 * vec0(3) * c2s2 + 2 * vec0(4) * cs
 mat6(1,1) = mat4(1,1) - ff * dpz_dx  * lpz / pz
 mat6(1,2) = mat4(1,2) - ff * dpz_dpx * lpz / pz
