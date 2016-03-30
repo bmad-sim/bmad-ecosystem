@@ -20,7 +20,7 @@
 !   floor       -- floor_position_struct: Floor position at downstream end.
 !     %r(3)              -- X, Y, Z Floor position at end of element
 !     %theta, phi, %psi  -- Orientation angles 
-!   finished    -- logical: When set True, ele_geometry will set.
+!   finished    -- logical: Set True to prevent ele_geometry from doing the geometry calculation.
 !-
 
 subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
