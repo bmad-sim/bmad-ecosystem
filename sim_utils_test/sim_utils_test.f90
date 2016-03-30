@@ -35,7 +35,7 @@ call naff (rr, ii, freq, amp, n_freq)
 write (1, '(a, i0)') '"naff-n_freq" ABS 0   ', n_freq
 write (1, '(a, 3es16.8)') '"naff-freq1" REL 1E-6   ', freq(1), amp(1)
 write (1, '(a, 3es16.8)') '"naff-freq2" REL 1E-6   ', freq(2), amp(2)
-write (1, '(a, 3es16.8)') '"naff-freq3" REL 1E-6   ', freq(3), amp(3)
+write (1, '(a, 3es16.8)') '"naff-freq3" REL 4E-6   ', freq(3), amp(3)
 
 ! Random test
 
