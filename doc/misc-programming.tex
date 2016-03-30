@@ -197,6 +197,7 @@ There are three \vn{hook} routines that are available:
 \begin{example}
   \Hyperref{r:apply.element.edge.kick.hook}{apply_element_edge_kick_hook}
   \Hyperref{r:ele.geometry.hook}{ele_geometry_hook}
+  \Hyperref{r:time.runge.kutta.periodic.kick.hook}{time_runge_kutta_periodic_kick_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
 \end{example}
@@ -208,6 +209,12 @@ The \vn{ele_geometry_hook} routine can be used for custom calculations of the gl
 geometry of an element. This is useful, for example, for a support table on a kinematic
 mount since \bmad does not have the knowledge to calculate the table orientation from the
 position of the mount points. See the documentation in the file \vn{ele_geometry_hook.f90}
+for more details.
+
+The \vn{time_runge_kutta_periodic_kick_hook} routine can be used to indroduce a time
+dependent kick when doing tracking with \vn{time_runge_kutta}. This routine could be used,
+for example, to add the kick due to a passing beam ! on a residual gas ion that is being
+tracked. See the documentation in the file \vn{time_runge_kutta_periodic_kick_hook.f90}
 for more details.
 
 The last two routines are called by the \Hyperref{r:track1}{track1} routine (along with
