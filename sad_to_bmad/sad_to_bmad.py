@@ -584,6 +584,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   if sad_ele.type == 'mult' and 'volt' in sad_ele.param: bmad_ele.type = 'rfcavity'
 
+  # Use ptc_standard type cavities
+
+  if bmad_ele.type == 'rfcavity' or bmad_ele.type == 'lcavity':
+    bmad_ele.param['cavity_type'] = 'ptc_standard'
+
   # If the SAD cavi has a nonzero phi then the reference particle's energy is changing and
   # in this case the corresponding Bmad element must be an lcavity.
   # Also remember that an lcavity has a differnt phase convention.
@@ -1128,7 +1133,8 @@ for name in sad_info.param_list:
 
 # The SuperKEK-B sler lattice may need PTC_exact_model = True
 
-f_out.write ('parameter[ptc_exact_model] = true')
+f_out.write ('parameter[ptc_exact_model] = true\n')
+f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
 
 #------------------------------------------------------------------
 # Write variable definitions
