@@ -929,7 +929,6 @@ if (attrib_word == 'FIELD') then
       nullify(ele%em_field)
       call init_em_field (ele%em_field, i_mode)
       ele%em_field%mode(1:i_mode-1) = em_modes 
-      deallocate(em_modes)
     else
       call init_em_field (ele%em_field, 1)
       i_mode = 1
