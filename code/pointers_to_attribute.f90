@@ -103,6 +103,7 @@ case ('BMAD_COM')
   case ('MIN_DS_ADAPTIVE_TRACKING');        ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
   case ('FATAL_DS_ADAPTIVE_TRACKING');      ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
   case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
+  case ('PTC_CUT_FACTOR');                  ptr_array(1)%r => bmad_com%ptc_cut_factor
 
   case ('TAYLOR_ORDER');                    ptr_array(1)%i => bmad_com%taylor_order
   case ('DEFAULT_INTEG_ORDER');             ptr_array(1)%i => bmad_com%default_integ_order

@@ -403,6 +403,7 @@ if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == de
     if (associated(a_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))       bp_com%extra%min_ds_adaptive_tracking_set        = .true.
     if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 

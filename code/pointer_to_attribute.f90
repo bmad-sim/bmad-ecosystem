@@ -296,6 +296,7 @@ if (ix_a < 1 .and. a_name /= 'KEY') goto 9000 ! Error message and return
 select case (a_name)
 ! attrib_type = is_real$
 case ('ELECTRIC_DIPOLE_MOMENT');         a_ptr%r => bmad_com%electric_dipole_moment
+case ('PTC_CUT_FACTOR');                 a_ptr%r => bmad_com%ptc_cut_factor
 case ('APERTURE_LIMIT_ON');              a_ptr%l => bmad_com%aperture_limit_on
 case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
 ! attrib_type = is_logical$

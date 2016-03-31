@@ -3094,7 +3094,7 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
@@ -3102,7 +3102,7 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer, optional :: tracking_species
 integer, optional :: integ_order, steps
-integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos
+integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
 
 logical use_offsets, has_nonzero_pole, kill_spin_fringe
 logical, optional :: for_layout, use_hard_edge_drifts
@@ -3193,6 +3193,21 @@ case (sad_mult$)
   else
     ptc_key%magnet = 'solenoid'
     ptc_key%list%bsol = val(ks$)
+    ! PTC tracking uses Matrix-Kick where the Matrix step uses the solenoid component and the Kick step
+    ! uses the quadrupole (and higher order) components. SAD and Bmad combine the quadrupole component
+    ! in the Matrix step. Thus PTC may need a smaller step size.
+    if (.not. present(integ_order) .and. .not. present(steps)) then
+      call multipole1_ab_to_kt (ele%a_pole(1), ele%b_pole(1), 1, k1l, t1)
+      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(eps_step_scale$) * ele%value(l$) * abs(k1l) / bmad_com%ptc_cut_factor))
+      ptc_key%method = 2
+      if (ptc_key%nstep > 18) then
+        ptc_key%nstep = nint(ptc_key%method / 7.0)
+        ptc_key%method = 6
+      elseif (ptc_key%nstep > 4) then
+        ptc_key%nstep = nint(ptc_key%method / 3.0)
+        ptc_key%method = 4
+      endif
+    endif
   endif
 
   if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then

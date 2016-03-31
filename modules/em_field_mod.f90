@@ -1055,7 +1055,6 @@ case(grid$)
       call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z, &
                               allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
       if (err) then
-        if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
         return
       endif

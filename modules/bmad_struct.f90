@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 173
+integer, parameter :: bmad_inc_version$ = 174
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -1294,6 +1294,7 @@ type extra_parsing_info_struct
   logical :: min_ds_adaptive_tracking_set           = .false.
   logical :: fatal_ds_adaptive_tracking_set         = .false.
   logical :: electric_dipole_moment_set             = .false.
+  logical :: ptc_cut_factor_set                     = .false.
   logical :: taylor_order_set                       = .false.
   logical :: default_integ_order_set                = .false.
   logical :: ptc_max_fringe_order_set               = .false.
@@ -1340,6 +1341,7 @@ type bmad_common_struct
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
   real(rp) :: electric_dipole_moment = 0              ! Particle's EDM. Call set_ptc to transfer value to PTC.
+  real(rp) :: ptc_cut_factor = 0.006                  ! Cut factor for PTC tracking
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved
                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 
