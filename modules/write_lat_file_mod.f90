@@ -181,6 +181,9 @@ if (bmad_com%aperture_limit_on .neqv. bmad_com_default%aperture_limit_on) &
 if (bmad_com%use_hard_edge_drifts .neqv. bmad_com_default%use_hard_edge_drifts) &
             write (iu, '(a, l1)') 'bmad_com[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
 
+if (abs(bmad_com%ptc_cut_factor - bmad_com_default%ptc_cut_factor) >  bmad_com_default%ptc_cut_factor/1d6) &
+            write (iu, '(a, l1)') 'bmad_com[ptc_cut_factor] = ', bmad_com%ptc_cut_factor
+
 if (bmad_com%electric_dipole_moment /= 0) &
             write (iu, '(a, l1)') 'bmad_com[electric_dipole_moment] = ', bmad_com%electric_dipole_moment
 

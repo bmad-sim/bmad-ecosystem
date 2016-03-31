@@ -1501,8 +1501,8 @@ end subroutine w_mat_for_tilt
 !+
 ! Subroutine convert_ele_to_cartesian_coords_in_bend(x, s, g, xout, zout)
 ! 
-! Convert from element frame with reference atcurvature g to element frame in Cartesian coordinates
-! with origin at x=0, s=0
+! Convert from element frame with reference at curvature g to element frame in 
+! Cartesian coordinates with origin at x=0, s=0.
 !
 ! Module needed:
 !   use geometry_mod

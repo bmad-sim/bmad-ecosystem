@@ -167,7 +167,11 @@ do n_step = 1, max_step
   ! Need to propagate a step. First calc tolerances.
 
   call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds, err)
-  if (err) return
+  if (err) then
+    call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
+    orb_end%state = lost$
+    return
+  endif
 
   ds = ds_next
   at_hard_edge = .false.

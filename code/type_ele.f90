@@ -452,8 +452,8 @@ if (associated(ele%em_field)) then
         nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%grid%n_link
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:            ', rfm%grid%dr
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:            ', rfm%grid%r0
-        nl=nl+1; write (li(nl), '(a, 3i4)')     '    Index_max:     ', ubound(rfm%grid%pt)
-        nl=nl+1; write (li(nl), '(a, 3i4)')     '    Index_min:     ', lbound(rfm%grid%pt)
+        nl=nl+1; write (li(nl), '(a, 3i14)')     '    Index_max:     ', ubound(rfm%grid%pt)
+        nl=nl+1; write (li(nl), '(a, 3i14)')     '    Index_min:     ', lbound(rfm%grid%pt)
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:         ', ubound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:         ', lbound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
       endif
