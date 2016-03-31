@@ -3198,13 +3198,13 @@ case (sad_mult$)
     ! in the Matrix step. Thus PTC may need a smaller step size.
     if (.not. present(integ_order) .and. .not. present(steps)) then
       call multipole1_ab_to_kt (ele%a_pole(1), ele%b_pole(1), 1, k1l, t1)
-      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(eps_step_scale$) * ele%value(l$) * abs(k1l) / bmad_com%ptc_cut_factor))
+      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(l$) * abs(k1l) / (ele%value(eps_step_scale$) * bmad_com%ptc_cut_factor)))
       ptc_key%method = 2
       if (ptc_key%nstep > 18) then
-        ptc_key%nstep = nint(ptc_key%method / 7.0)
+        ptc_key%nstep = nint(ptc_key%nstep / 7.0)
         ptc_key%method = 6
       elseif (ptc_key%nstep > 4) then
-        ptc_key%nstep = nint(ptc_key%method / 3.0)
+        ptc_key%nstep = nint(ptc_key%nstep / 3.0)
         ptc_key%method = 4
       endif
     endif
