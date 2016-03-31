@@ -1259,8 +1259,8 @@ end function coords_local_curvilinear_to_floor
 !  Returns Cartesian coordinates relative to ele%floor (end of element).
 !
 ! Input:
-!   ele_position    -- floor_position_struct: element frame curvilinear coordinates.
-!     %r(3)                                 Position from beginning of element [x, y, s]
+!   ele_position    -- floor_position_struct: [x, y, s] element frame curvilinear coordinates.
+!     %r(3)                                 s = Position from beginning of element 
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
 !  
 ! Output         

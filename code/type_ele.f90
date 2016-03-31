@@ -856,21 +856,27 @@ endif
 if (logic_option(.false., type_floor_coords)) then
   select case (ele%key)
   case (floor_shift$, group$, overlay$, hybrid$, beginning_ele$, match$, null_ele$, patch$)
+    ! These elements do not have offsets
     floor = ele%floor
+
   case (crystal$, mirror$, multilayer_mirror$)
+    ! Misalignments are referenced to beginning of element
     call ele_geometry (ele%floor, ele, floor, -1.0_rp)
     floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor)
+
   case (girder$)
     floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
   case default
+    ! Misalignments referenced to center of element
     call ele_geometry (ele%floor, ele, floor, -0.5_rp)
     floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor, 0.5_rp)
   end select
+
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'
   nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
