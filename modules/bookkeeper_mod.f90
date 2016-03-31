@@ -2572,10 +2572,13 @@ case (sad_mult$)
 
   if (ele%value(eps_step_scale$) > 0) then
     call multipole_ele_to_kt (ele, .true., has_nonzero, knl, tilt)
-
     eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
     n_div = 1
-    do n = 2, n_pole_maxx
+
+    ! The SAD algorithm for calculating n_div does not include n = 1 (quadrupole component).
+    ! It is included here since the matrix-kick integration of PTC uses the solenoid component in the matrix
+    ! and lumps any quadrupole component in the kick.
+    do n = 1, n_pole_maxx
       if (knl(n) == 0) cycle  
       n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * sad_param%amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
     enddo
