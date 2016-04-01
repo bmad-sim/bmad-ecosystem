@@ -20,15 +20,14 @@ contains
 !   use beam_mod
 !
 ! Input:
-!   lat      -- lat_struct: Lattice to track through.
-!   beam     -- Beam_struct: Beam at end of element ix1.
-!   ele1     -- Ele_struct, optional: Starting element (this element 
-!                 is NOT tracked through). Default is lat%ele(0).
-!   ele2     -- Ele_struct, optional: Ending element.
-!                 Default is lat%ele(lat%n_ele_track).
-!   centroid(0:) 
-!            -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
-!                 central orbit is far from the zero orbit.
+!   lat          -- lat_struct: Lattice to track through.
+!   beam         -- Beam_struct: Beam at end of element ix1.
+!   ele1         -- Ele_struct, optional: Starting element (this element 
+!                     is NOT tracked through). Default is lat%ele(0).
+!   ele2         -- Ele_struct, optional: Ending element.
+!                     Default is lat%ele(lat%n_ele_track).
+!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
+!                     central orbit is far from the zero orbit.
 !
 ! Output:
 !   beam   -- beam_struct: Beam at end of element ix2.
@@ -62,11 +61,7 @@ if (present(ele2)) e2 => ele2
 
 branch => lat%branch(e1%ix_branch)
 do i = e1%ix_ele+1, e2%ix_ele
-  if (present(centroid)) then
-    call track1_beam (beam, lat, branch%ele(i), beam, err, centroid(i-1), centroid(i))
-  else
-    call track1_beam (beam, lat, branch%ele(i), beam, err)
-  endif
+  call track1_beam (beam, lat, branch%ele(i), beam, err, centroid)
   if (err) return
 enddo
 
@@ -76,7 +71,7 @@ end subroutine track_beam
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam (beam_start, lat, ele, beam_end, err, orb_start, orb_end)
+! Subroutine track1_beam (beam_start, lat, ele, beam_end, err, centroid)
 !
 ! Routine to track a beam of particles through a single element.
 ! See also track1_beam_simple.
@@ -87,13 +82,11 @@ end subroutine track_beam
 !   use beam_mod
 !
 ! Input:
-!   beam_start  -- Beam_struct: Starting beam position.
-!   lat         -- lat_struct: Lattice containing element to be tracked through.
-!   ele         -- Ele_struct: Element to track through.
-!   orb_start   -- coord_struct, optional: Centroid orbit at start of element. 
-!                    Only needed if CSR is on and the central orbit is far from the zero orbit.
-!   orb_end     -- coord_struct, optional: Centroid orbit at the end of element. 
-!                    Only needed if CSR is on and the central orbit is far from the zero orbit.
+!   beam_start   -- Beam_struct: Starting beam position.
+!   lat          -- lat_struct: Lattice containing element to be tracked through.
+!   ele          -- Ele_struct: Element to track through.
+!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
+!                     central orbit is far from the zero orbit.
 !
 ! Output:
 !   beam_end    -- beam_struct: Ending beam position.
@@ -101,7 +94,7 @@ end subroutine track_beam
 !                    EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_beam (beam_start, lat, ele, beam_end, err, orb_start, orb_end)
+subroutine track1_beam (beam_start, lat, ele, beam_end, err, centroid)
 
 implicit none
 
@@ -109,7 +102,7 @@ type (beam_struct) beam_start
 type (beam_struct) :: beam_end
 type (lat_struct) :: lat
 type (ele_struct) ele
-type (coord_struct), optional :: orb_start, orb_end
+type (coord_struct), optional :: centroid(0:)
 
 integer i, n_mode
 logical err
@@ -117,7 +110,7 @@ logical err
 ! loop over all bunches in a beam
 
 do i = 1, size(beam_start%bunch)
-  call track1_bunch (beam_start%bunch(i), lat, ele, beam_end%bunch(i), err, orb_start, orb_end)
+  call track1_bunch (beam_start%bunch(i), lat, ele, beam_end%bunch(i), err, centroid)
   if (err) return
 enddo
 
@@ -171,7 +164,7 @@ end subroutine track1_beam_simple
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, orb_start, orb_end)
+! Subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid)
 !
 ! Subroutine to track a bunch of particles through an element.
 !
@@ -179,13 +172,11 @@ end subroutine track1_beam_simple
 !   use beam_mod
 !
 ! Input:
-!   bunch_start -- bunch_struct: Starting bunch position.
-!   lat         -- lat_struct: Lattice containing element to be tracked through.
-!   ele         -- Ele_struct: element to track through.
-!   orb_start   -- coord_struct, optional: Centroid orbit at start of element. 
-!                    Only needed if CSR is on and the central orbit is far from the zero orbit.
-!   orb_end     -- coord_struct, optional: Centroid orbit at the end of element. 
-!                    Only needed if CSR is on and the central orbit is far from the zero orbit.
+!   bunch_start  -- bunch_struct: Starting bunch position.
+!   lat          -- lat_struct: Lattice containing element to be tracked through.
+!   ele          -- Ele_struct: element to track through.
+!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
+!                     central orbit is far from the zero orbit.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -193,7 +184,7 @@ end subroutine track1_beam_simple
 !                  EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, orb_start, orb_end)
+subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid)
 
 implicit none
 
@@ -203,7 +194,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, slave
 type (wake_lr_struct), pointer :: lr, lr_chain
 type (ele_pointer_struct), allocatable :: chain_ele(:)
-type (coord_struct), optional :: orb_start, orb_end
+type (coord_struct), optional :: centroid(0:)
 
 integer i, j, n, im, ix_pass, ixs, ix, n_links
 
@@ -217,7 +208,7 @@ if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix
 if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele <= csr_param%ix2_ele_csr) 
 
 if (csr_on) then
-  call track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, orb_start = orb_start, orb_end = orb_end)
+  call track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, centroid = centroid)
   bunch_end%ix_ele = ele%ix_ele
 
 ! Non csr / non space-charge tracking

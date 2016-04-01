@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 174
+integer, parameter :: bmad_inc_version$ = 175
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -1282,7 +1282,6 @@ type extra_parsing_info_struct
   integer :: deterministic                          = 0
   logical :: ran_function_was_called                = .false.
   logical :: deterministic_ran_function_was_called  = .false.
-
   logical :: max_aperture_limit_set                 = .false.
   logical :: default_ds_step_set                    = .false.
   logical :: significant_length_set                 = .false.
@@ -1313,6 +1312,9 @@ type extra_parsing_info_struct
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
   logical :: debug_set                              = .false.
+  logical :: sad_eps_scale_set                      = .false.
+  logical :: sad_amp_max_set                        = .false.
+  logical :: sad_n_div_max_set                      = .false.
 end type
 
 ! ptc_field_geometry for bends
@@ -1342,6 +1344,9 @@ type bmad_common_struct
   real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
   real(rp) :: electric_dipole_moment = 0              ! Particle's EDM. Call set_ptc to transfer value to PTC.
   real(rp) :: ptc_cut_factor = 0.006                  ! Cut factor for PTC tracking
+  real(rp) :: sad_eps_scale = 5.0d-3                  ! Used in sad_mult step length calc.
+  real(rp) :: sad_amp_max = 5.0d-2                    ! Used in sad_mult step length calc.
+  integer :: sad_n_div_max = 1000                     ! Used in sad_mult step length calc.
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved
                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 

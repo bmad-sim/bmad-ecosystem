@@ -94,6 +94,12 @@ type (coord_struct), allocatable, target ::  closed_orb(:)
 type (coord_struct), pointer :: start, end
 type (bmad_common_struct) bmad_com_saved
 
+type matrix_save
+  real(rp) mat6(6,6)
+  real(rp) vec0(6)
+end type
+type (matrix_save), allocatable :: m(:)
+
 real(rp) t11_inv(6,6), t1(6,6)
 real(rp) :: amp_co, amp_del, amp_del_old, i1_int, rf_freq, dt
 real(rp) max_eigen, z0, dz_max, dz, z_here, this_amp, dz_norm
@@ -102,16 +108,18 @@ real(rp), allocatable :: on_off_state(:)
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
-integer j, ie, i_loop, n_dim, n_ele, i_max, dir, nc, track_state
+integer j, ie, i_loop, n_dim, n_ele, i_max, dir, nc, track_state, n
 
 logical, optional, intent(out) :: err_flag
-logical err, error
+logical err, error, allocate_m_done
 
 character(20) :: r_name = 'closed_orbit_calc'
 
 !----------------------------------------------------------------------
 ! init
 ! Random fluctuations must be turned off to find the closed orbit.
+
+allocate_m_done = .false.
 
 dir = integer_option(+1, direction)
 if (dir /= 1 .and. dir /= -1) then
@@ -302,8 +310,24 @@ do i_loop = 1, i_max
     call init_coord (start, start, ele_start, start_end$, start%species)
     amp_del_old = amp_del
   else  ! not converging so remake t11_inv matrix
-    call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
-    call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
+    if (.not. allocate_m_done) then
+      allocate (m(branch%n_ele_max))
+      allocate_m_done = .true.
+    endif
+
+    do n = 1, branch%n_ele_max
+      m(n)%mat6 = branch%ele(n)%mat6
+      m(n)%vec0 = branch%ele(n)%vec0
+    enddo
+
+    call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
+    call transfer_matrix_calc (lat, t1, ix_branch = branch%ix_branch)
+
+    do n = 1, branch%n_ele_max
+      branch%ele(n)%mat6 = m(n)%mat6
+      branch%ele(n)%vec0 = m(n)%vec0
+    enddo
+
     call make_t11_inv (err)
     if (err) then
       call end_cleanup

@@ -3615,19 +3615,19 @@ characterized by the \vn{f1} and \vn{f2} attributes. The
 \vn{sad_nonlinear_only} fringe kick comes from the nonlinear part of
 the quadrupolar field plus the fringes of the other multipoles.
 
-If \vn{eps_step_scale} is positive, the \vn{eps_step_scale} is
-equivalent to the SAD \vn{eps} attribute. The default
-\vn{eps_step_scale} value is 1 which is essentially the same default
-as SAD. From \vn{eps_step_scale}, the values of \vn{num_steps} and
-\vn{ds_step} (\sref{s:integ}) are computed. Thus, for a \vn{sad_mult}
-element, \vn{num_steps} and \vn{ds_step} are \vn{dependent} attributes
-(\sref{s:depend}).
+Unlike other elements, the \vn{ds_step} and \vn{num_steps} attributes (\sref{s:integ}) of a \vn{sad_mult}
+are dependent attributes (\sref{s:depend}) and are not directly settable. Rather these
+attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To
+vary the calculated step size for a single \vn{sad_mult} element, the attribute
+\vn{eps_step_scale} may be set.  To vary the step size for all \vn{sad_mult} elements, the
+global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.params}) may be set.
+The default values for these parameters are:
+\begin{example}
+  eps_step_scale          = 1
+  bmad_com[sad_eps_scale] = 5e-3
+\end{example}
 
-If \vn{eps_step_scale} is not positive, the SAD calculation for
-setting the step size is not used and \vn{num_steps} and \vn{ds_step}
-are treated as they are with every other element.
-
-Sad conventions:
+SAD conventions to be aware of when comparing SAD to Bmad:
 \begin{itemize}
 \item
 A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}

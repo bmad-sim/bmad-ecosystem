@@ -4,6 +4,7 @@
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
+! Note: This routine will not work on bmad_com components. Rather use pointers_to_attribute.
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
 !     set_ele_attribute
@@ -295,10 +296,6 @@ if (ix_a < 1 .and. a_name /= 'KEY') goto 9000 ! Error message and return
 
 select case (a_name)
 ! attrib_type = is_real$
-case ('ELECTRIC_DIPOLE_MOMENT');         a_ptr%r => bmad_com%electric_dipole_moment
-case ('PTC_CUT_FACTOR');                 a_ptr%r => bmad_com%ptc_cut_factor
-case ('APERTURE_LIMIT_ON');              a_ptr%l => bmad_com%aperture_limit_on
-case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
 ! attrib_type = is_logical$
 case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
 case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)

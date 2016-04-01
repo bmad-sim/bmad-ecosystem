@@ -404,6 +404,8 @@ if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == de
     if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
     if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
@@ -412,6 +414,7 @@ if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == de
     if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
     if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
     if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
     call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag)

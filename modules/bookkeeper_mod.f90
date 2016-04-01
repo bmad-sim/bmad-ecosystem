@@ -16,14 +16,6 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 
-type sad_param_struct
-  real(rp) :: eps_scale = 5.0d-3
-  real(rp) :: amp_max = 5.0d-2
-  integer :: n_div_max = 1000
-end type
-
-type (sad_param_struct), save :: sad_param
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2572,15 +2564,15 @@ case (sad_mult$)
 
   if (ele%value(eps_step_scale$) > 0) then
     call multipole_ele_to_kt (ele, .true., has_nonzero, knl, tilt)
-    eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
+    eps6 = 6 * ele%value(eps_step_scale$) * bmad_com%sad_eps_scale
     n_div = 1
     ! This is the same algorithm as in SAD to determine the step size.
     do n = 2, n_pole_maxx
       if (knl(n) == 0) cycle  
-      n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * sad_param%amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
+      n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * bmad_com%sad_amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
     enddo
 
-    ele%value(num_steps$) = min(n_div, sad_param%n_div_max)
+    ele%value(num_steps$) = min(n_div, bmad_com%sad_n_div_max)
     ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
   endif
 

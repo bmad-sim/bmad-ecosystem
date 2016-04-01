@@ -1239,8 +1239,8 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
-call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', quasi_free$)
-call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', quasi_free$)
+call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
+call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
 call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
 call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')
@@ -1521,7 +1521,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'MULTIPOLES_ON')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', &
       'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR')
   attrib_type = is_integer$

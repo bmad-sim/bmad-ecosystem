@@ -471,17 +471,20 @@ structure. The instance name here is \vn{bmad_com}. The parameters of
 this structure along with the default values are:
 \begin{example}
   type bmad_common_struct
-    real(rp) max_aperture_limit = 1e3          ! Max Aperture.
-    real(rp) d_orb(6)           = 1e-5         ! for the make_mat6_tracking routine.
-    real(rp) default_ds_step    = 0.2          ! Integration step size.  
-    real(rp) significant_length = 1e-10        ! meter 
-    real(rp) rel_tol_tracking = 1e-8           ! Closed orbit relative tolerance.
-    real(rp) abs_tol_tracking = 1e-10          ! Closed orbit absolute tolerance.
-    real(rp) rel_tol_adaptive_tracking = 1e-8  ! Runge-Kutta tracking relative tolerance.
-    real(rp) abs_tol_adaptive_tracking = 1e-10 ! Runge-Kutta tracking absolute tolerance.
-    real(rp) init_ds_adaptive_tracking = 1e-3  ! Initial step size.
-    real(rp) min_ds_adaptive_tracking = 0      ! Minimum step size to use.
-    real(rp) fatal_ds_adaptive_tracking = 1e-8 ! Threshold for loosing particles.
+    real max_aperture_limit = 1e3              ! Max Aperture.
+    real d_orb(6)           = 1e-5             ! for the make_mat6_tracking routine.
+    real default_ds_step    = 0.2              ! Integration step size.  
+    real significant_length = 1e-10            ! meter 
+    real rel_tol_tracking = 1e-8               ! Closed orbit relative tolerance.
+    real abs_tol_tracking = 1e-10              ! Closed orbit absolute tolerance.
+    real rel_tol_adaptive_tracking = 1e-8      ! Runge-Kutta tracking relative tolerance.
+    real abs_tol_adaptive_tracking = 1e-10     ! Runge-Kutta tracking absolute tolerance.
+    real init_ds_adaptive_tracking = 1e-3      ! Initial step size.
+    real min_ds_adaptive_tracking = 0          ! Minimum step size to use.
+    real fatal_ds_adaptive_tracking = 1e-8     ! Threshold for loosing particles.
+    real sad_eps_scale = 5.0d-3                ! Used in sad_mult step length calc.
+    real sad_amp_max = 5.0d-2                  ! Used in sad_mult step length calc.
+    integer sad_n_div_max = 1000               ! Used in sad_mult step length calc.
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
     integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
