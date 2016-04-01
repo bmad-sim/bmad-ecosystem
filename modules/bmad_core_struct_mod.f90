@@ -304,8 +304,8 @@ end subroutine transfer_ele
 ! Subroutine transfer_eles (ele1, ele2)
 !
 ! Subroutine to set ele2 = ele1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end ele2's pointers point to the same memory as ele1's.
+! This is a plain transfer of information not using the overloaded equal sign.
+! Thus, at the end, ele2's pointers point to the same memory as ele1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -335,8 +335,8 @@ end subroutine transfer_eles
 ! Subroutine transfer_branch (branch1, branch2)
 !
 ! Subroutine to set branch2 = branch1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end branch2's pointers point to the same memory as branch1's.
+! This is a plain transfer of information not using the overloaded equal sign.
+! Thus, at the end, branch2's pointers point to the same memory as branch1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -368,8 +368,8 @@ end subroutine transfer_branch
 ! Subroutine transfer_branches (branch1, branch2)
 !
 ! Subroutine to set branch2 = branch1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end branch2's pointers point to the same memory as branch1's.
+! This is a plain transfer of information not using the overloaded equal sign.
+! Thus, at the end, branch2's pointers point to the same memory as branch1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -399,8 +399,8 @@ end subroutine transfer_branches
 ! Subroutine transfer_lat (lat1, lat2)
 !
 ! Subroutine to set lat2 = lat1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end lat2's pointers point to the same memory as lat1's.
+! This is a plain transfer of information not using the overloaded equal sign.
+! Thus, at the end, lat2's pointers point to the same memory as lat1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !

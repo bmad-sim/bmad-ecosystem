@@ -290,7 +290,9 @@ if (found_it) then
   if (extra%absolute_time_tracking_default_set) bmad_com%absolute_time_tracking_default  = bmad_com_read%absolute_time_tracking_default
   if (extra%convert_to_kinetic_momentum_set)    bmad_com%convert_to_kinetic_momentum     = bmad_com_read%convert_to_kinetic_momentum
   if (extra%aperture_limit_on_set)              bmad_com%aperture_limit_on               = bmad_com_read%aperture_limit_on
-
+  if (extra%sad_eps_scale_set)                  bmad_com%sad_eps_scale                   = bmad_com_read%sad_eps_scale
+  if (extra%sad_amp_max_set)                    bmad_com%sad_amp_max                     = bmad_com_read%sad_amp_max
+  if (extra%sad_n_div_max_set)                  bmad_com%sad_n_div_max                   = bmad_com_read%sad_n_div_max
 endif
 
 ! Setup any attribute aliases in the global attribute name table.

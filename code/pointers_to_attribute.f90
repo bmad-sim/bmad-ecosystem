@@ -104,7 +104,10 @@ case ('BMAD_COM')
   case ('FATAL_DS_ADAPTIVE_TRACKING');      ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
   case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
   case ('PTC_CUT_FACTOR');                  ptr_array(1)%r => bmad_com%ptc_cut_factor
+  case ('SAD_EPS_SCALE');                   ptr_array(1)%r => bmad_com%sad_eps_scale
+  case ('SAD_AMP_MAX');                     ptr_array(1)%r => bmad_com%sad_amp_max
 
+  case ('SAD_N_DIV_MAX');                   ptr_array(1)%i => bmad_com%sad_n_div_max
   case ('TAYLOR_ORDER');                    ptr_array(1)%i => bmad_com%taylor_order
   case ('DEFAULT_INTEG_ORDER');             ptr_array(1)%i => bmad_com%default_integ_order
   case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => bmad_com%ptc_max_fringe_order
@@ -249,8 +252,7 @@ endif
 call re_allocate (ptrs, n_loc)
 n = 0
 do i = 1, n_loc
-  call pointer_to_attribute (eles2(i)%ele, &
-          attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a)
+  call pointer_to_attribute (eles2(i)%ele, attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a)
   if (err_flag .or. .not. associated(a_ptr%r)) cycle
   n = n + 1
   ptrs(n)%r => a_ptr%r
