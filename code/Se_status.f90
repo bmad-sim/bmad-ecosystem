@@ -1372,9 +1372,9 @@ CONTAINS
        n_acc=1
     endif
 
-    IF(STATE%spin.or.STATE%modulation.or.STATE%radiation.or.STATE%envelope)  then
+   ! IF(STATE%spin.or.STATE%modulation.or.STATE%radiation.or.STATE%envelope)  then
        if(automatic_complex) use_complex_in_ptc=.true.
-    endif
+   ! endif
     !    write(6,*) NO1,ND1,NP1,NDEL,NDPT1
     !pause 678
     CALL INIT(NO1,ND1,NP1+NDEL,NDPT1,PACKAGE)

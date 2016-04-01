@@ -2074,7 +2074,7 @@ do i=1,ring%n
   call fib_fib0(f,my_true,mf)
   CALL MC_MC0(f%MAG%P,my_true,mf)
   CALL print_ElementLIST(f%mag,MY_TRUE,mf)
-  if(f%patch%patch/=0) call patch_patch0(f%patch,my_true,mf)
+  if(f%patch%patch/=0.or.f%patch%time/=0.or.f%patch%energy/=0) call patch_patch0(f%patch,my_true,mf)
   if(f%mag%mis) call CHART_CHART0(f%chart,my_true,mf)
  write(mf,*) " $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$"
  f=>f%next    
@@ -2578,7 +2578,7 @@ if(ele0%slowac_recut_even_electric_MIS(5)) read(mf,NML=CHARTname)  ! reading mis
        s22%CHART=0
        s22%PATCH=0
      if(fib0%patch/=0) then
-       s22%PATCH%patch=fib0%patch
+       !s22%PATCH%patch=fib0%patch
       call patch_patch0(s22%patch,my_false)
     endif
    if(ele0%slowac_recut_even_electric_MIS(5)) call CHART_CHART0(s22%chart,my_false)
@@ -2679,7 +2679,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  fib0%GAMMA0I_GAMBET_MASS_AG(4)=f%AG
  fib0%DIR=f%DIR
  fib0%CHARGE=f%CHARGE
- fib0%patch=f%patch%patch
+ fib0%patch=f%patch%patch+4*f%patch%energy+16*f%patch%time
  !fib0%pos=f%pos
  !fib0%loc=f%loc
     if(present(mf)) then
@@ -2724,6 +2724,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  patch0%B_T=f%B_T
  patch0%ENERGY=f%ENERGY
  patch0%TIME=f%TIME
+ patch0%geometry=f%patch
 
     if(present(mf)) then
      write(mf,NML=patchname)
@@ -2746,6 +2747,7 @@ f%B_X2= patch0%B_X2
  f%B_T=patch0%B_T
  f%ENERGY=patch0%ENERGY
  f%TIME=patch0%TIME
+ f%patch=patch0%geometry
 
 endif
 endif
@@ -2873,7 +2875,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
   call context(ELE0%name_vorname(2),dollar=my_true)
  endif
  ele0%an=0.0_dp
- ele0%an=0.0_dp
+ ele0%bn=0.0_dp
 if(f%p%nmul>0) then
   ele0%an(1:f%p%nmul)=f%an(1:f%p%nmul)
   ele0%bn(1:f%p%nmul)=f%bn(1:f%p%nmul)

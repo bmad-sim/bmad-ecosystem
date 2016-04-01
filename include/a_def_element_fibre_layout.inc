@@ -480,13 +480,6 @@ TYPE EXTRA_WORK
    REAL(DP), POINTER :: ORB(:)  => null()
 END TYPE EXTRA_WORK
 
-TYPE fibre_array
-   type(fibre), pointer :: p  => null()
-   integer, pointer :: pos  => null()
-   real(dp),pointer :: v=> null() 
-   real(dp), pointer :: s=> null() 
-END TYPE fibre_array
-
 !!!!  graphical arrays used in Su_hiromi only now
   real(sp), allocatable :: z_hiromi(:,:) ,z_hiromi0(:,:)
   integer n_hiromi,above_kicker,n_hiromi_lost

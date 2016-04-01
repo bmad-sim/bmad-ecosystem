@@ -66,7 +66,7 @@ integer, private :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
 logical(lp), private ::   c_similarity=my_false
 logical(lp) :: symp =my_false
 logical(lp) :: c_normal_auto=my_true,c_verbose=my_true
-integer :: spin_tune_def=-1,spin_def=-1   !, private 
+integer :: spin_def_tune=-1,spin_def_L=-1, spin_def_cor=-1;   !, private 
 integer :: order_gofix=1
 logical(lp) :: time_lie_choice=my_false,courant_snyder_teng_edwards=my_true,dosymp=my_false
   private copy_damap_matrix,copy_matrix_matrix,invert_22,ALLOC_33t,kill_33t,matmul_33
@@ -79,7 +79,7 @@ private GETORDER_par,GETORDERMAP_par,GETORDERSPINMATRIX_par,liebraspinor
 integer,private,parameter::ndd=6
 private c_concat_vector_field_ray,CUTORDERVEC,kill_c_vector_field_fourier,alloc_c_vector_field_fourier
 private complex_mul_vec,equal_c_vector_field_fourier,c_IdentityEQUALVECfourier,c_vector_field_spinmatrix
-private c_add_map,c_sub_map
+private c_add_map,c_sub_map,c_read_spinor,flatten_c_factored_lie_r
 integer :: n_fourier=12,n_extra=0
 logical :: remove_tune_shift=.false.
 complex(dp) :: n_cai=-2*i_
@@ -133,6 +133,7 @@ real(dp) :: epso_factor =1000.d0 ! for log
       MODULE PROCEDURE equalc_ray_ray
       MODULE PROCEDURE equal_c_vector_field_fourier
       MODULE PROCEDURE equalc_spinor_cspinor
+      MODULE PROCEDURE flatten_c_factored_lie_r ! same as       flatten_c_factored_lie
   end  INTERFACE
 
 
@@ -249,6 +250,14 @@ real(dp) :: epso_factor =1000.d0 ! for log
      MODULE PROCEDURE powmaps
   END INTERFACE
 
+
+  INTERFACE clean
+!     MODULE PROCEDURE c_clean
+     MODULE PROCEDURE c_clean_taylor
+     MODULE PROCEDURE c_clean_spinmatrix
+     MODULE PROCEDURE c_clean_damap
+     MODULE PROCEDURE c_clean_vector_field
+  end INTERFACE clean
   ! Exponential of Lie Operators
 
  
@@ -479,12 +488,14 @@ real(dp) :: epso_factor =1000.d0 ! for log
        MODULE PROCEDURE c_rea
        module procedure c_read_spinmatrix
        module procedure c_read_map
+       MODULE PROCEDURE c_read_spinor
     END INTERFACE
 
     INTERFACE read
        MODULE PROCEDURE c_rea
        module procedure c_read_spinmatrix
        module procedure c_read_map
+       MODULE PROCEDURE c_read_spinor
     END INTERFACE
 
     INTERFACE daprint
@@ -2253,7 +2264,14 @@ end subroutine c_get_indices
 
   END FUNCTION c_logt
 
-  SUBROUTINE  flatten_c_factored_lie(S1,S2)
+  SUBROUTINE  flatten_c_factored_lie_r(St,S1)
+  implicit none
+  type (c_factored_lie),INTENT(IN) :: S1
+  type (c_vector_field),INTENT(inOUT) :: ST
+  call flatten_c_factored_lie(S1,ST)
+end  SUBROUTINE  flatten_c_factored_lie_r
+
+  SUBROUTINE  flatten_c_factored_lie(S1,ST)
 !#general: manipulation
 !# Type c_factored_lie is a product of Lie exponents.
 !# Lie map=exp(s1%f(1).grad)...exp(s1%f(s1%n).grad) if s1%dir=1.
@@ -2262,16 +2280,18 @@ end subroutine c_get_indices
 !# if the map is a rotation.
 !# s2 = s1%f(1)+...+s1%f(s1%n)
   implicit none
-  type (c_factored_lie),INTENT(INOUT) :: S1
-  type (c_vector_field),INTENT(inOUT) :: S2
+  type (c_factored_lie),INTENT(IN) :: S1
+  type (c_vector_field),INTENT(inOUT) :: ST
   integer i,j
-
+  type (c_vector_field) S2
 !  This routine assumes commutation of all the factored Lie exponents
     
+    s2%n = s1%f(1)%n
+    call alloc(s2)
 
     s2%eps   = s1%f(1)%eps
     s2%nrmax = s1%f(1)%nrmax
-    s2%n = s1%f(1)%n
+    
  
     s2=0
     do j=1,s1%n
@@ -2280,8 +2300,9 @@ end subroutine c_get_indices
        s2%v(i)=s2%v(i)+s1%f(j)%v(i)
       enddo      
     enddo
+    st=s2
   if(complex_extra_order==1.and.special_extra_order_1) s2=s2.cut.no
-
+   call kill(s2)
   END SUBROUTINE flatten_c_factored_lie
 
   FUNCTION c_logf_spin( s1,h,epso,n,tpsa )
@@ -5652,6 +5673,28 @@ cgetvectorfield=0
   END SUBROUTINE c_pri_spinor
 
 
+  SUBROUTINE  c_read_spinor(S1,MFILE) ! spin routine
+    implicit none
+    INTEGER,INTENT(IN)::MFILE
+    type (c_spinor),INTENT(IN)::S1
+    integer i
+    character(120) line
+
+     ! write(mfile,*) " Complex Spinor "
+      read(mfile,'(a120)') line
+    do i=1,3
+ 
+      read(mfile,'(a120)') line
+      read(mfile,'(a120)') line
+      read(mfile,'(a120)') line
+
+     call c_rea(s1%v(i),mfile)
+
+    enddo
+
+ 
+  END SUBROUTINE c_read_spinor
+
   SUBROUTINE  c_pri(S1,MFILE,DEPS)
     implicit none
     INTEGER,INTENT(IN)::MFILE
@@ -6160,6 +6203,35 @@ cgetvectorfield=0
 
   end subroutine c_ass_vector_field
 
+ SUBROUTINE  c_norm(S1,S2,prec)
+    implicit none
+    type (c_taylor),INTENT(INOUT)::S2
+    type (c_taylor), intent(INOUT):: s1
+    real(dp) prec
+    INTEGER ipresent,n,I,illa
+    complex(dp) value,v
+    INTEGER, allocatable :: j(:)
+    type (c_taylor) t
+
+    call alloc(t)
+    t=0.0_dp
+    ipresent=1
+    call c_dacycle(S1%I,ipresent,value,n)
+
+    allocate(j(nv))
+
+    do i=1,N
+       call c_dacycle(S1%I,i,value,illa,j)
+       v=0.0_dp
+       if(abs(value)>prec) v=abs(value)
+          t=t+(v.cmono.j)
+!       endif
+    ENDDO
+    s2=t
+    deallocate(j)
+    call kill(t)
+
+  END SUBROUTINE c_norm
 
   ! remove small numbers
 
@@ -6222,7 +6294,7 @@ cgetvectorfield=0
 
     do i=1,3
     do j=1,3
-       call c_clean_taylor(s1%s(i,j),s2%s(i,j),prec)
+       call clean(s1%s(i,j),s2%s(i,j),prec)
     enddo
     enddo
 
@@ -6239,7 +6311,6 @@ cgetvectorfield=0
     do i=1,3
        call c_clean_taylor(s1%v(i),s2%v(i),prec)
     enddo
-
 
   END SUBROUTINE c_clean_spinor
 
@@ -8772,8 +8843,8 @@ end subroutine c_full_canonise
         egspin(3)=ri%s%s(1,1)-i_*ri%s%s(1,3)
         egspin(2)=1.0_dp
         egspin(1)=ri%s%s(1,1)+i_*ri%s%s(1,3)
-!!! tune is taken from egspin(1) or egspin(3)   spin_tune_def= +/- 1
-        n%spin_tune=aimag(log(egspin(2-spin_tune_def))/twopi)   
+!!! tune is taken from egspin(1) or egspin(3)   spin_def_tune= +/- 1
+        n%spin_tune=aimag(log(egspin(2-spin_def_tune))/twopi)   
 ! because  exp(a L_y) x = x- a z + O(a**2)
         ri=ri**(-1) ! exp(-alpha_0 L_y)   (3)
 
@@ -9072,11 +9143,11 @@ end subroutine c_full_canonise
      t2=t2+abs(je(i)-je(i+1)-m(j,kr))
     enddo
         if(k==1) then
-         t1=t1+iabs(-spin_tune_def-ms(kr))
-         t2=t2+iabs(-spin_tune_def+ms(kr))
+         t1=t1+iabs(-spin_def_tune-ms(kr))
+         t2=t2+iabs(-spin_def_tune+ms(kr))
         elseif(k==3) then
-         t1=t1+iabs(spin_tune_def-ms(kr))
-         t2=t2+iabs(spin_tune_def+ms(kr))
+         t1=t1+iabs(spin_def_tune-ms(kr))
+         t2=t2+iabs(spin_def_tune+ms(kr))
         else
          t1=t1+iabs(ms(kr))
          t2=t2+iabs(ms(kr))
@@ -9282,9 +9353,9 @@ end subroutine c_full_canonise
     
     call c_full_norm_spin(s1%s,i,norm)
     if(i/=0) then
-     c_1_vf%om%v(1)=s1%s%s(3,2)*spin_def
-     c_1_vf%om%v(2)=s1%s%s(1,3)*spin_def
-     c_1_vf%om%v(3)=s1%s%s(2,1)*spin_def
+     c_1_vf%om%v(1)=s1%s%s(3,2)*spin_def_L
+     c_1_vf%om%v(2)=s1%s%s(1,3)*spin_def_L
+     c_1_vf%om%v(3)=s1%s%s(2,1)*spin_def_L*spin_def_cor
     endif
     
     c_master=localmaster
@@ -10116,9 +10187,9 @@ prec=1.d-8
        c=-c
     enddo
 
-    om%v(1)=spin_def*h%s(3,2)
-    om%v(2)=spin_def*h%s(1,3)
-    om%v(3)=spin_def*h%s(2,1)
+    om%v(1)=spin_def_L*h%s(3,2)
+    om%v(2)=spin_def_L*h%s(1,3)
+    om%v(3)=spin_def_L*h%s(2,1)*spin_def_cor
 
     call kill(h)
     call kill(dh)
@@ -10259,7 +10330,7 @@ endif
       if(present(radian)) rad=radian
      tune=S%s(1,1)+i_*S%s(1,3)
 
-     tune=-i_*log(tune)*spin_def
+     tune=-i_*log(tune)*spin_def_L
 
      if(.not.rad) tune=tune/twopi
 
@@ -10348,12 +10419,12 @@ endif
       call c_ass_spinmatrix(c_spinor_spinmatrix)
       call alloc(dh)
 
-    dh%s(3,1)=-spin_def*h_axis%v(2)
-    dh%s(2,1)=spin_def*h_axis%v(3)
-    dh%s(1,3)=spin_def*h_axis%v(2)
-    dh%s(3,2)=spin_def*h_axis%v(1)
-    dh%s(1,2)=-spin_def*h_axis%v(3)
-    dh%s(2,3)=-spin_def*h_axis%v(1)
+    dh%s(3,1)=-spin_def_L*h_axis%v(2)
+    dh%s(2,1)=spin_def_L*h_axis%v(3)*spin_def_cor
+    dh%s(1,3)=spin_def_L*h_axis%v(2)
+    dh%s(3,2)=spin_def_L*h_axis%v(1)
+    dh%s(1,2)=-spin_def_L*h_axis%v(3)*spin_def_cor
+    dh%s(2,3)=-spin_def_L*h_axis%v(1)
     
 !    c_spinor_spinmatrix=dh*ds
 !    Lie operator order
@@ -10438,12 +10509,12 @@ endif
      c_exp_spinmatrix=1
   
     dh=0
-    dh%s(2,1)=spin_def*h_axis%v(3)
-    dh%s(1,3)=spin_def*h_axis%v(2)
-    dh%s(3,2)=spin_def*h_axis%v(1)
-    dh%s(1,2)=-spin_def*h_axis%v(3)
-    dh%s(3,1)=-spin_def*h_axis%v(2)
-    dh%s(2,3)=-spin_def*h_axis%v(1)
+    dh%s(2,1)=spin_def_L*h_axis%v(3)*spin_def_cor
+    dh%s(1,3)=spin_def_L*h_axis%v(2)
+    dh%s(3,2)=spin_def_L*h_axis%v(1)
+    dh%s(1,2)=-spin_def_L*h_axis%v(3)*spin_def_cor
+    dh%s(3,1)=-spin_def_L*h_axis%v(2)
+    dh%s(2,3)=-spin_def_L*h_axis%v(1)
 
     dhn=1
     c=1.0_dp
@@ -12396,7 +12467,7 @@ end subroutine extract_a2
     endif
        if(present(tune)) then
         tune=0.0_dp
-        tune=spin_tune_def*spin_def*tune0%v(2)   ! in phasors
+        tune=spin_def_tune*spin_def_L*tune0%v(2)   ! in phasors
        endif
 
     call kill(n_expo)
@@ -12776,6 +12847,28 @@ subroutine print_vector_field_fourier(s1,mf)
 
 end subroutine print_vector_field_fourier
 
+subroutine print_poisson_bracket_fourier(s1,mf)
+    implicit none
+    TYPE (c_vector_field_fourier), INTENT (INout) :: S1 
+    type(c_taylor) h
+    INTEGER I,mf
+    call alloc(h)
+     write(mf,*) 0,"th mode"
+!     call print(s1%f(0),mf)
+      h=cgetpb(s1%f(0))
+      call print(h,mf)
+    do i=1,n_fourier
+     write(mf,*) i,"th mode"
+      h=cgetpb(s1%f(i))
+      call print(h,mf)
+      h=cgetpb(s1%f(-i))
+      call print(h,mf)
+  !   call print(s1%f(i),mf)
+  !   call print(s1%f(-i),mf)
+    enddo
+    call kill(h)
+end subroutine print_poisson_bracket_fourier
+
 subroutine bra_vector_field_fourier(s1,s2,r)
     implicit none
     TYPE (c_vector_field_fourier), INTENT (INout) :: S1,s2,r
@@ -12866,7 +12959,6 @@ end subroutine mulc_vector_field_fourier
     enddo
 
   END SUBROUTINE c_evaluate_vector_field_fourier
-
 
   subroutine normalise_vector_field_fourier(H,F,K,F1)
     implicit none
@@ -13280,6 +13372,61 @@ call kill(f)
 call kill(dm)
 
 end subroutine nth_root
+
+!!!!!   stuff for arrays of nodes
+
+ subroutine alloc_node_array_tpsa(a)
+ implicit none
+ type(node_array), allocatable :: a(:)
+ integer i
+
+ do i=1,size(a)
+   call alloc(a(i)%f)
+   call alloc(a(i)%m)
+ enddo
+
+ end  subroutine alloc_node_array_tpsa
+
+ subroutine kill_node_array_tpsa(a)
+ implicit none
+ type(node_array), allocatable :: a(:)
+ integer i
+
+ do i=1,size(a)
+   call kill(a(i)%f)
+   call kill(a(i)%m)
+ enddo
+
+ end  subroutine kill_node_array_tpsa
+
+ subroutine kill_node_array(a)
+ implicit none
+ type(node_array), allocatable :: a(:)
+ integer i
+
+ do i=1,size(a)
+   deallocate(a(i)%pos,a(i)%f)
+   deallocate(a(i)%v,a(i)%vmax,a(i)%err,a(i)%s)
+ enddo
+
+ end  subroutine kill_node_array
+
+ subroutine alloc_node_array(a,n,m)
+ implicit none
+ type(node_array), allocatable :: a(:)
+ integer i,n,m
+
+ allocate(a(n))
+
+ do i=1,n
+   allocate(a(i)%pos,a(i)%f,a(i)%m)
+   allocate(a(i)%v,a(i)%vmax,a(i)%err,a(i)%s(m))
+   a(i)%s=0.0_dp
+   a(i)%v=0.0_dp;a(i)%vmax=1.d38;
+   a(i)%pos=0
+ enddo
+
+ end  subroutine alloc_node_array
 
 
   END MODULE  c_tpsa

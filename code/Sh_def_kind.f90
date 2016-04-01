@@ -1773,6 +1773,9 @@ endif
     integer :: nlim(1:6) =(/0,1,0,3,0,7/)  ! multiplicative factors  
     integer :: nlimit(1:4) , k
 
+    EL=>f%magp%c4
+    EL%P%CHARGE=>f%charge
+    EL%P%dir=>f%dir
 
      if(symplectic_check==0.0_dp) then
        if(metcav>0.and.nstcav>0) then
@@ -1791,9 +1794,7 @@ endif
      nlimit(2)=1*limit_int0(1)
      nlimit(4)=3*limit_int0(2)   
      
-    EL=>f%magp%c4
-    EL%P%CHARGE=>f%charge
-    EL%P%dir=>f%dir
+
     tpsa=my_true
        if(present(turn_off_tpsa)) tpsa=.not.turn_off_tpsa
     met0=el%p%method
@@ -2233,8 +2234,8 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(CAV4P),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    call alloc(A,3)
-    call alloc(AD,2)
+    call alloc(A)
+    call alloc(AD)
     call alloc(PZ)
 
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
@@ -2283,8 +2284,8 @@ CALL FRINGECAV(EL,X,k,2)
     X(2)=X(2)+A(1)
     X(4)=X(4)+A(2)
 
-    call KILL(A,3)
-    call KILL(AD,2)
+    call KILL(A)
+    call KILL(AD)
     call KILL(PZ)
   END subroutine feval_CAV_bmadp
 

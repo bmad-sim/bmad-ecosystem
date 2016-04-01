@@ -155,6 +155,7 @@ module precision_constants
   real(dp),parameter::c_0_005=5e-3_dp,c_0_012=1.2e-2_dp,c_1_5=1.5e0_dp
   real(dp),parameter::c_0_002=2e-3_dp,c_0_05=5e-2_dp,c_0_216=0.216e0_dp
   real(dp),parameter::c_0_7=0.7e0_dp,c_1_2d_5=1.2e-5_dp,c_1d7=1e7_dp
+  real(dp),parameter:: suntao=1.6021766208e-19_dp/299792458.0_dp/9.10938356e-31_dp
   ! Constant Symplectic integrator schemes
   real(dp) YOSK(0:4), YOSD(4)    ! FIRST 6TH ORDER OF YOSHIDA
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator

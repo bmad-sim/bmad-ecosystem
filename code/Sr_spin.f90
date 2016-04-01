@@ -1555,6 +1555,9 @@ e=0
     end select
 call alloc(e)
     call GET_BZ_fringe(EL,X,B(3),e(3),pos,k)
+!write(6,*) el%name,el%p%b0
+!call print(b(3),6)
+!pause
 call kill(e)
 
   END SUBROUTINE get_Bfield_fringeP
@@ -3348,11 +3351,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        IF(C%CAS==CASE1) THEN
           pos=-2
           !          call PUSH_SPIN_fake_fringe(c,p,my_true,k,pos)
-          if(.not.el%P%KILL_ENT_FRINGE) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+          if(.not.el%P%KILL_ENT_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
        elseif(C%CAS==CASE2) then
           pos=-1
           !          call PUSH_SPIN_fake_fringe(c,p,my_false,k,pos)
-          if(.not.el%P%KILL_exi_FRINGE) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+          if(.not.el%P%KILL_exi_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
        endif
        !    case(KIND6)
        !    case(KIND7)
@@ -3390,11 +3393,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        IF(C%CAS==CASE1) THEN
           pos=-2
           !          call PUSH_SPIN_fake_fringe(c,p,my_true,k,pos)
-          if(.not.el%P%KILL_ENT_FRINGE) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+          if(.not.el%P%KILL_ENT_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
        elseif(C%CAS==CASE2) then
           pos=-1
           !          call PUSH_SPIN_fake_fringe(c,p,my_false,k,pos)
-          if(.not.el%P%KILL_exi_FRINGE) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+          if(.not.el%P%KILL_exi_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
        endif
        !    case(KIND6)
        !    case(KIND7)

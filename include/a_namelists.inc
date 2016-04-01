@@ -2,7 +2,7 @@
      real(dp) GAMMA0I_GAMBET_MASS_AG(4)  !GAMMA0I,GAMBET,MASS ,AG  BETA0 is computed
      real(dp)  CHARGE
      integer  DIR !DIR,CHARGE
-     integer patch
+     integer patch 
   END TYPE fibrelist
 type(fibrelist) fib0
 namelist / fibrename / fib0
@@ -10,7 +10,7 @@ namelist / fibrename / fib0
  TYPE patchlist
      integer  A_X1,A_X2,B_X1,B_X2
      real(dp) A_D(3),B_D(3),A_ANG(3),B_ANG(3), A_T,B_T 
-     INTEGER(2)  ENERGY,TIME
+     INTEGER(2)  ENERGY,TIME,GEOMETRY
   END TYPE patchlist
 type(patchlist) patch0
 namelist / patchname / patch0

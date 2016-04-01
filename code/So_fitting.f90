@@ -2903,14 +2903,14 @@ endif
              IF(C%MAG%P%NMUL>=2) THEN
                 QUAD=SQRT(C%MAG%BN(2)**2+C%MAG%AN(2)**2)
                 IF(C%MAG%P%NMUL>=3) THEN
-                 quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
+                 if(sexr0>0) quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
                  QUAD=QUAD+quad0
                 endif
              ELSE
                 QUAD=0.0_dp
              ENDIF
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
-                quad=quad+(C%MAG%b_sol)**2/4.0_dp+abs(C%MAG%b_sol/2.0_dp)
+                quad=quad+(C%MAG%b_sol)**2/4.0_dp !+abs(C%MAG%b_sol/2.0_dp)
              endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)
@@ -3010,14 +3010,14 @@ endif
              IF(C%MAG%P%NMUL>=2) THEN
                 QUAD=SQRT(C%MAG%BN(2)**2+C%MAG%AN(2)**2)
                 IF(C%MAG%P%NMUL>=3) THEN
-                 quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
+                 if(sexr0>0) quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
                  QUAD=QUAD+quad0
                 endif
              ELSE
                 QUAD=0.0_dp
              ENDIF
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
-                quad=quad+(C%MAG%b_sol)**2/4.0_dp+abs(C%MAG%b_sol/2.0_dp)
+                quad=quad+(C%MAG%b_sol)**2/4.0_dp   !+abs(C%MAG%b_sol/2.0_dp)
              endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)
@@ -3126,14 +3126,14 @@ endif
              IF(C%MAG%P%NMUL>=2) THEN
                 QUAD=SQRT(C%MAG%BN(2)**2+C%MAG%AN(2)**2)
                 IF(C%MAG%P%NMUL>=3) THEN
-                 quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
+                 if(sexr0>0) quad0=SQRT(C%MAG%BN(3)**2+C%MAG%AN(3)**2)*sexr0
                  QUAD=QUAD+quad0
                 endif
              ELSE
                 QUAD=0.0_dp
              ENDIF
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
-                quad=quad+(C%MAG%b_sol)**2/4.0_dp+abs(C%MAG%b_sol/2.0_dp)
+                quad=quad+(C%MAG%b_sol)**2/4.0_dp   !+abs(C%MAG%b_sol/2.0_dp)
              endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)

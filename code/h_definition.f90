@@ -406,25 +406,64 @@ type(c_taylor) c_temp
   complex(dp) x(lnv)
   complex(dp) s1(3),s2(3),s3(3)
  end type c_ray
+
+
+TYPE fibre_array
+   type(fibre), pointer :: p  => null()
+   integer, pointer :: pos  => null()
+   real(dp),pointer :: v=> null() , vmax=> null(); 
+   real(dp), pointer :: s(:)=> null()
+   real(dp), pointer :: err=> null()
+END TYPE fibre_array
+
+
+TYPE node_array
+   type(integration_node), pointer :: t  => null()
+   integer, pointer :: pos  => null()
+   real(dp),pointer :: v=> null() , vmax=> null(); 
+   complex(dp), pointer :: s(:)=> null()
+   real(dp), pointer :: err=> null()
+   type(c_vector_field), pointer :: f => null()
+   type(c_damap), pointer :: m => null()
+END TYPE node_array
+
+
 contains
 
 
- subroutine alloc_fibre_array(a,n)
+
+
+
+
+
+ subroutine alloc_fibre_array(a,n,m)
  implicit none
  type(fibre_array), allocatable :: a(:)
- integer i,n
+ integer i,n,m
 
  allocate(a(n))
 
  do i=1,n
    allocate(a(i)%pos)
-   allocate(a(i)%v,a(i)%s)
+   allocate(a(i)%v,a(i)%vmax,a(i)%err,a(i)%s(m))
    a(i)%s=0.0_dp
-   a(i)%v=0.0_dp
+   a(i)%v=0.0_dp;a(i)%vmax=1.d38;
    a(i)%pos=0
  enddo
 
  end  subroutine alloc_fibre_array
+
+ subroutine kill_fibre_array(a)
+ implicit none
+ type(fibre_array), allocatable :: a(:)
+ integer i
+
+ do i=1,size(a)
+   deallocate(a(i)%pos)
+   deallocate(a(i)%v,a(i)%vmax,a(i)%err,a(i)%s)
+ enddo
+
+ end  subroutine kill_fibre_array
 
   SUBROUTINE RESET_APERTURE_FLAG(complete)
     IMPLICIT NONE
