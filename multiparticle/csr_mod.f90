@@ -15,7 +15,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)
+! Subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end, orb_start, orb_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
 !
@@ -28,13 +28,17 @@ contains
 !   ele         -- Ele_struct: The element to track through.
 !   s_start     -- real(rp), optional: Starting position relative to ele. Default = 0
 !   s_end       -- real(rp), optional: Ending position. Default is ele length.
+!   orb_start   -- coord_struct, optional: Centroid orbit at start of element. 
+!                    Only needed if the central orbit is far from the zero orbit.
+!   orb_end     -- coord_struct, optional: Centroid orbit at the end of element. 
+!                    Only needed if the central orbit is far from the zero orbit.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)
+subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end, orb_start, orb_end)
 
 implicit none
 
@@ -45,6 +49,7 @@ type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0
 type (csr_bin_struct), save :: bin
+type (coord_struct), optional :: orb_start, orb_end
 
 real(rp), optional :: s_start, s_end
 real(rp) s0_step

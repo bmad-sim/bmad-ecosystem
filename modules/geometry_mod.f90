@@ -7,8 +7,6 @@ use rotation_3d_mod
 
 implicit none
 
-private bend_L_vec, bend_S_mat
-
 contains
 
 !---------------------------------------------------------------------------------------
@@ -1625,42 +1623,6 @@ end select
 
 end subroutine ele_misalignment_L_S_calc
 
-!---------------------------------------------------------------------------
-!+
-! Function bend_L_vec (g, delta_s, tilt) result(L_vec)
-!-
-
-function bend_L_vec (g, delta_s, tilt) result(L_vec)
-real(rp) :: g, delta_s, L_vec(3), angle
-real(rp), optional :: tilt
-if (g==0) then
-  L_vec = [0.0_rp, 0.0_rp, delta_s]
-else
-  angle = g*delta_s
-  L_vec = [cos(angle)-1, 0.0_rp, sin(angle)]/g
-  if (present(tilt)) call rotate_vec_z(L_vec, tilt)
-endif
-end function bend_L_vec
-
-!---------------------------------------------------------------------------
-!+
-! Function bend_S_mat (angle, tilt) result(S_mat)
-!-
-
-function bend_S_mat (angle, tilt) result(S_mat)
-real(rp) :: angle, S_mat(3,3)
-real(rp), optional :: tilt
-call mat_make_unit(S_mat)
-if (present(tilt) .and. tilt /= 0) then
-  call rotate_mat_z(S_mat, -tilt)
-  call rotate_mat_y(S_mat, -angle)
-  call rotate_mat_z(S_mat,  tilt)
-else
-  call rotate_mat_y(S_mat, -angle)
-endif
-end function bend_S_mat
-
-
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
@@ -1683,16 +1645,33 @@ end function bend_S_mat
 !   w_mat(3,3)  -- real(rp): W matrix used in the transformation   
 !
 function bend_shift_xyz(xyz1, g, delta_s, w_mat, tilt) result(xyz2)
-real(rp) :: xyz1(3), xyz2(3), g, delta_s, S_mat(3,3), L_vec(3)
+real(rp) :: xyz1(3), xyz2(3), g, delta_s, S_mat(3,3), L_vec(3), tlt, angle
 real(rp), optional :: w_mat(3,3), tilt
 
-if (present(tilt) .and. tilt /= 0) then
-  s_mat = bend_S_mat( -delta_s * g, tilt)
-  L_vec = bend_L_vec(g, -delta_s, tilt)
+!
+
+angle = delta_s * g
+tlt = real_option(0.0_rp, tilt)
+call mat_make_unit(S_mat)
+if (tlt /= 0) then
+  call rotate_mat_z(S_mat, -tilt)
+  call rotate_mat_y(S_mat,  angle)
+  call rotate_mat_z(S_mat,  tilt)
 else
-  s_mat = bend_S_mat( -delta_s * g)
-  L_vec = bend_L_vec(g, -delta_s)
+  call rotate_mat_y(S_mat, angle)
 endif
+
+!
+
+if (g==0) then
+  L_vec = [0.0_rp, 0.0_rp, -delta_s]
+else
+  angle = g*delta_s
+  L_vec = [cos(angle)-1, 0.0_rp, -sin(angle)]/g
+  if (present(tilt)) call rotate_vec_z(L_vec, tilt)
+endif
+
+!
 
 xyz2 = matmul(S_mat, xyz1) + L_vec
 
