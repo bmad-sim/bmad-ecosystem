@@ -4727,7 +4727,7 @@ n_log_max = -1000
 do i = 0, major_div
   v = axis%min + i * delta
   if (abs(v) < effective_zero) cycle  ! Ignore zero.
-  n_log = floor(log10(abs(v+1d-30)) + 0.0001)
+  n_log = floor(log10(abs(v)+1d-30) + 0.0001)
   n_log_min   = min (n_log_min, n_log)
   n_log_max   = max (n_log_max, n_log)
 enddo

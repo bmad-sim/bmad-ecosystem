@@ -2,14 +2,73 @@ module spline_mod
 
 use sim_utils
 
+! Given a spline s and some point x_eval, y_spline is:
+!   y_spline = Sum: s%coef(i) * dx**i, i = [0:3]
+! where dx = x_eval - s%x 
+
 type spline_struct
-  real(rp) x, y       ! data points
+  real(rp) x, y       ! Point at start of spline
   real(rp) coef(0:3)  ! coefficients for cubic spline
 end type
 
 private akima_spline_coef23_calc, akima_spline_slope_calc, end_akima_spline_calc 
 
 contains
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!+
+! Subroutine create_a_spline (spline, r0, r1, slope0, slope1)
+!
+! Routine to create a single spline given end point positions and slopes.
+! The spline will pass through the data points and have the given slopes
+! at these points.
+!
+! Modules used:
+!   use spline_mod
+!
+! Input:
+!   r0(2)   -- real(rp): Start (x, y) point.
+!   r1(2)   -- real(rp): End (x, y) point.
+!   slope0  -- real(rp): Starting slope.
+!   slope1  -- real(rp): End slope.
+!
+! Output:
+!   spline  -- spline_struct: Spline.
+!-
+
+subroutine create_a_spline (spline, r0, r1, slope0, slope1)
+
+implicit none
+
+type (spline_struct) spline
+real(rp) r0(2), r1(2), slope0, slope1, dx, dy
+
+character(*), parameter :: r_name = 'create_a_spline'
+
+!
+
+spline%x = r0(1)
+spline%y = r0(2)
+
+dx = r1(1) - r0(1)
+dy = r1(2) - r0(2)
+
+if (dx == 0) then
+  call out_io (s_fatal$, r_name, 'X DISTANCE BETWEEN POINTS IS ZERO.')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+spline%coef(0) = r0(2)
+spline%coef(1) = slope0
+spline%coef(2) = (3*dy / dx - 2*slope0 - slope1) / dx
+spline%coef(3) = (slope0 + slope1 - 2*dy / dx) / (dx**2)
+
+
+
+end subroutine create_a_spline
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
