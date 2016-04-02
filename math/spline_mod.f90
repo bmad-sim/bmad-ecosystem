@@ -77,7 +77,7 @@ end subroutine create_a_spline
 ! Subroutine spline_evaluate (spline, x, ok, y, dy)
 !
 ! Subroutine to evalueate a spline at a set of points. 
-! The spline does not have to be an Akima spline.
+! Also see: spline1_evaluate
 !
 ! A spline may be generated using, for example, the spline_akima routine.
 !
@@ -103,9 +103,8 @@ implicit none
 
 type (spline_struct), target :: spline(:)
 
-real(rp) :: x
+real(rp), intent(in) :: x
 real(rp), optional :: y, dy
-real(rp) :: c(0:3)
 
 real(rp) dx       
 
@@ -134,9 +133,51 @@ endif
 ! Find correct interval and evaluate
 
 call bracket_index (spline%x, 1, ix_max, x, ix0)
+call spline1_evaluate (spline(ix0), x, y, dy)
 
-dx = x - spline(ix0)%x
-c = spline(ix0)%coef
+ok = .true.
+
+end subroutine spline_evaluate
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!+
+! Subroutine spline1_evaluate (spline1, x, y, dy)
+!
+! Subroutine to evalueate a single spline.
+! Also see: spline_evaluate.
+!
+! Modules used:
+!   use spline_mod
+!
+! Input:
+!   spline1   -- Spline_struct: Spline structure.
+!   x         -- Real(rp): point for evaluation.
+!
+! Output:
+!   y         -- Real(rp), optional: Spline interpolation.
+!   dy        -- Real(rp), optional: Spline derivative interpolation.
+!-
+
+subroutine spline1_evaluate (spline1, x, y, dy)
+
+implicit none
+
+type (spline_struct), target :: spline1
+
+real(rp), intent(in) :: x
+real(rp), optional :: y, dy
+real(rp) :: c(0:3)
+
+real(rp) dx       
+
+logical ok       
+character(16) :: r_name = 'spline1_evaluate'
+
+
+dx = x - spline1%x
+c = spline1%coef
 
 if (present(y)) then
   y = (((c(3) * dx) + c(2)) * dx + c(1)) * dx + c(0)
@@ -146,9 +187,7 @@ if (present(dy)) then
  dy = ((3*c(3) * dx) + 2*c(2)) * dx + c(1)
 endif
 
-ok = .true.
-
-end subroutine spline_evaluate
+end subroutine spline1_evaluate
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
