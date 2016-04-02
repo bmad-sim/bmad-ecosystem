@@ -193,7 +193,7 @@ end subroutine
 
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_vec_y(vec, angle)
+! Subroutine rotate_vec_z(vec, angle)
 !   wrapper for rotate_vec(vec, 1, 2, angle)
 !-
 subroutine rotate_vec_z(vec, angle)
