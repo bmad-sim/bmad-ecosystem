@@ -259,7 +259,7 @@ if (turn_off_kickers_in_lattice) then
   call lattice_bookkeeper (lat)
 endif
 
-call twiss_and_track (lat, orb, ok, branch%ix_branch)
+call twiss_and_track (lat, orb, ok, branch%ix_branch, use_beam_start = .true.)
 if (.not. ok) stop
   
 ! Find out much radiation is produced
@@ -734,9 +734,12 @@ subroutine write_this_header (iu)
 
 integer iu
 character(40) line
+character(20) date_and_time
 
+call date_and_time_stamp (date_and_time)
 line = ''
-write (iu, '(a40)') line
+write (iu, '(a40)') line           ! Temporary. Will be replaced by phton_number_factor at end of run.
+write (iu, '(2a)')        '# date                    = ', date_and_time
 write (iu, '(a, i0)')     '# ix_ele_track_start      = ', ix_ele_track_start
 write (iu, '(a, i0)')     '# ix_ele_track_end        = ', ix_ele_track_end
 write (iu, '(a, i0)')     '# photon_direction        = ', photon_direction
