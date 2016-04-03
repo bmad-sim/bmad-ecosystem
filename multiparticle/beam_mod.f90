@@ -1,7 +1,7 @@
 module beam_mod
 
-use csr_mod
 use multipass_mod
+use beam_utils
 
 contains
 
@@ -186,6 +186,10 @@ end subroutine track1_beam_simple
 
 subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid)
 
+use csr_old_mod, only: track1_bunch_csr_old
+use csr_mod, only: track1_bunch_csr
+use beam_utils, only: track1_bunch_hom
+
 implicit none
 
 type (bunch_struct) bunch_start, bunch_end
@@ -208,7 +212,11 @@ if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix
 if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele <= csr_param%ix2_ele_csr) 
 
 if (csr_on) then
-  call track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, centroid = centroid)
+  if (csr_param%use_csr_old) then
+    call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
+  else
+    call track1_bunch_csr (bunch_start, ele, bunch_end, err, centroid = centroid)
+  endif
   bunch_end%ix_ele = ele%ix_ele
 
 ! Non csr / non space-charge tracking
