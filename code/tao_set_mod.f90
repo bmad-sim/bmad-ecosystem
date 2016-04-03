@@ -390,7 +390,7 @@ end subroutine tao_set_global_cmd
 
 subroutine tao_set_csr_param_cmd (who, set_value)
 
-use csr_mod
+use beam_def_struct, only: csr_parameter_struct, csr_param
 
 implicit none
 
