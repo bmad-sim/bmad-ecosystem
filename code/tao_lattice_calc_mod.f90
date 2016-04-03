@@ -421,6 +421,9 @@ end subroutine tao_single_track
 
 subroutine tao_beam_track (u, tao_lat, calc_ok, ix_branch, ix_ele0)
 
+use wake_mod, only: zero_lr_wakes_in_lat
+use beam_utils, only: calc_bunch_params
+
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
@@ -710,6 +713,7 @@ end subroutine tao_inject_particle
 subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
 
 use tao_read_beam_mod
+use beam_utils
 
 implicit none
 

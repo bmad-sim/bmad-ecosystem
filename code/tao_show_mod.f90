@@ -129,7 +129,7 @@ end subroutine
 subroutine tao_show_this (what, stuff, result_id, lines, nl)
 
 use random_mod
-use csr_mod, only: csr_param
+use beam_def_struct, only: csr_param
 use location_encode_mod
 use transfer_map_mod
 use opti_de_mod
@@ -1385,7 +1385,11 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking      = ', bmad_com%init_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking       = ', bmad_com%min_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment         = ', bmad_com%electric_dipole_moment
+    nl=nl+1; write(lines(nl), rmt) '  %ptc_cut_factor                 = ', bmad_com%ptc_cut_factor
+    nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                  = ', bmad_com%sad_eps_scale
+    nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                    = ', bmad_com%sad_amp_max
 
+    nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                  = ', bmad_com%sad_n_div_max
     nl=nl+1; write(lines(nl), imt) '  %taylor_order                   = ', bmad_com%taylor_order
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order            = ', bmad_com%default_integ_order
     nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order           = ', bmad_com%ptc_max_fringe_order
