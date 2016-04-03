@@ -631,11 +631,6 @@ case (custom$)
 
 ! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)
-  if (bmad_com%electric_dipole_moment /= 0) then
-    call out_io (s_fatal$, r_name, &
-          'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR SYMP_LIE_PTC TRACKING')
-    if (global_com%exit_on_error) call err_exit
-  endif
   call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
 
 case default
