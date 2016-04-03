@@ -1,6 +1,6 @@
 program wake_test
 
-use beam_mod
+use beam_utils
 use wake_mod
 
 type (lat_struct), target :: lat
