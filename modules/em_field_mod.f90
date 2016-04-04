@@ -1038,7 +1038,7 @@ case(grid$)
     ! DC modes should have mode%harmonic = 0
 
     if (mode%harmonic == 0) then
-      expt = 1
+      expt = mode%field_scale
     else
       freq = ele%value(rf_frequency$) * mode%harmonic
       expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))

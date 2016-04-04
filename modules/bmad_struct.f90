@@ -38,7 +38,7 @@ character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
       'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'GARBAGE!        ', 'Garbage         ', 'Symp_Lie_PTC    ', 'Garbage         ', &
       'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
       'Garbage         ', 'Garbage         ', 'Garbage         ', 'Garbage         ', &
       'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']

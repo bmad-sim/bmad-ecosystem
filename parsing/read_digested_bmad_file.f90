@@ -469,7 +469,7 @@ enddo
 if (n_var /= 0) then
   allocate (ele%control_var(n_var))
   do i = 1, n_var
-    read (d_unit) ele%control_var(i)
+    read (d_unit, err = 9120) ele%control_var(i)
   enddo
 endif
 
@@ -479,7 +479,7 @@ call init_em_field (ele%em_field, n_em_field_mode)
 
 if (n_em_field_mode > 0) then
 
-  read (d_unit) ele%em_field%mode_to_autoscale
+  read (d_unit, err = 9140) ele%em_field%mode_to_autoscale
 
   do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)

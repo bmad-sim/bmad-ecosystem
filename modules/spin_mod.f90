@@ -378,8 +378,7 @@ real(rp) ds, omega(3)
 
 !
 
-omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + &
-                                                  [0.0_rp, ele%value(g$), 0.0_rp]
+omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + [0.0_rp, ele%value(g$), 0.0_rp]
 call rotate_spinor (ds * omega, orbit%spin)
 
 end subroutine rotate_spinor_a_step
@@ -506,7 +505,7 @@ end function calc_rotation_quaternion
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega (field, coord), result (omega)
+! Function spin_omega (field, coord, phase_space_coords), result (omega)
 !
 ! Return the modified T-BMT spin omega vector.
 !
@@ -518,38 +517,51 @@ end function calc_rotation_quaternion
 !   use em_field_mod
 !
 ! Input:
-!   field      -- em_field_struct: E and B fields.
-!   coord      -- coord_struct: particle momentum.
+!   field              -- em_field_struct: E and B fields.
+!   coord              -- coord_struct: particle momentum.
+!   phase_space_coords -- logical, optional: Is coord in standard phase_space coordinates or
+!                           is it time_runge_kutta coords?
 !
 ! Output:
-!   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates.
+!   omega(3)   -- real(rp): If phase_space_coords: Omega_TBMT/v_z
+!                           If not: Omega_TBMT
 !-
 
-function spin_omega (field, coord) result (omega)
+function spin_omega (field, coord, phase_space_coords) result (omega)
 
 implicit none
 
 type (em_field_struct) :: field
 type (coord_struct) :: coord
 
-real(rp) omega(3),  beta_vec(3)
+real(rp) omega(3),  beta_vec(3), pc
 real(rp) anomalous_moment, gamma, rel_p, e_particle, mc2, bz2
+
+logical, optional :: phase_space_coords
 
 ! Want everything in units of eV
 
-rel_p = 1 + coord%vec(6)
-e_particle = coord%p0c * rel_p / coord%beta
-mc2 = mass_of(coord%species)
-gamma = e_particle / mc2
 anomalous_moment = anomalous_moment_of(coord%species)
 
-bz2 = rel_p**2 - coord%vec(2)**2 - coord%vec(4)**2
-if (bz2 < 0) then  ! Particle has unphysical velocity
-  omega = 0
-  return
-endif
+if (logic_option(.true., phase_space_coords)) then
+  rel_p = 1 + coord%vec(6)
+  e_particle = coord%p0c * rel_p / coord%beta
+  mc2 = mass_of(coord%species)
+  gamma = e_particle / mc2
+  bz2 = rel_p**2 - coord%vec(2)**2 - coord%vec(4)**2
+  if (bz2 < 0) then  ! Particle has unphysical velocity
+    omega = 0
+    return
+  endif
+  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sqrt(bz2)]
 
-beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sqrt(bz2)]
+else
+  pc = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2)
+  beta_vec = [coord%vec(2), coord%vec(4), coord%vec(6)] / pc
+  e_particle = pc / coord%beta
+  mc2 = mass_of(coord%species)
+  gamma = e_particle / mc2
+endif
 
 omega = c_light * (1/gamma + anomalous_moment) * field%B
 omega = omega - c_light * (gamma * anomalous_moment * dot_product(beta_vec, field%B) / (gamma + 1)) * beta_vec
@@ -561,7 +573,11 @@ if (bmad_com%electric_dipole_moment /= 0) then
              c_light * cross_product(beta_vec, field%B))
 endif
 
-omega = -(charge_of(coord%species) / (mc2 * beta_vec(3))) * omega
+if (logic_option(.true., phase_space_coords)) then
+  omega = -(charge_of(coord%species) / (mc2 * beta_vec(3))) * omega
+else
+  omega = -(charge_of(coord%species) * c_light / mc2) * omega
+endif
 
 end function spin_omega
 
@@ -613,7 +629,7 @@ if (start_orb%species == photon$) return
 method = ele%spin_tracking_method
 if (method == tracking$) then
   select case (ele%tracking_method)
-  case (boris$, runge_kutta$, symp_lie_ptc$)
+  case (boris$, runge_kutta$, time_runge_kutta$, symp_lie_ptc$)
     return ! Spin tracking is done at the same time orbital tracking is done
   case default
     method = bmad_standard$

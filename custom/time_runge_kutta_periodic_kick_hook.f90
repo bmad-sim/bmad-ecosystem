@@ -13,6 +13,9 @@
 ! When this routine is called with init_needed = False, this routine
 ! should give the appropriate kick to the orbit and set stop_time to the next time when
 ! time_runge_kutta should call this routine.
+!
+! Note: If this routine sets orbit%state to anything but alive$, this will cause time_runge_kutta
+! to stop tracking and return to the calling routine.
 ! 
 ! Input:
 !   orbit       -- coord_struct: Particle orbit.
