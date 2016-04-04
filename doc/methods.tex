@@ -449,26 +449,12 @@ method. ``X'' denotes an available method.}
 \index{spin tracking!methods}
 \index{spin_tracking_method}
 
-The \vn{spin_tracking_method} attribute of an elements sets the
-algorithm that is used for tracking a particle's spin
-(\sref{s:spin.dyn}) through that element. Table~\ref{t:spin.methods}
-gives which methods are available for each type of element.
-
-Since speed may be an issue, \bmad has an global parameter called
-\vn{spin_tracking_on} which is part of the \vn{bmad_com} instance
-(\sref{s:bmad.params}) that determines whether spin is tracked or not.
-
-\index{spin_fringe_on}
-The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle
-whether the fringe fields of an element affect the spin.
+The \vn{spin_tracking_method} attribute of an elements sets the algorithm that is used for
+tracking a particle's spin (\sref{s:spin.dyn}) through that element.
+Table~\ref{t:spin.methods} gives which methods are available for each type of element.
 
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}
-
-\index{bmad_standard!spin_tracking_method}
-\item[\vn{Bmad_Standard}] \Newline
-Uses thick element formulas for the calculation. The emphasis here is on speed at the
-potential cost of accuracy. 
 
 \index{custom!spin_tracking_method}
 \item[\vn{Custom}] \Newline
@@ -491,6 +477,14 @@ software for the calculation.  This method is symplectic but can be slow.
 
 \end{description}
 
+Since speed may be an issue, \bmad has an global parameter called
+\vn{spin_tracking_on} which is part of the \vn{bmad_com} instance
+(\sref{s:bmad.params}) that determines whether spin is tracked or not.
+
+\index{spin_fringe_on}
+The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle
+whether the fringe fields of an element affect the spin.
+
 Example:
 \begin{example}
   q: quadrupole, spin_tracking_method = symp_lie_ptc
@@ -509,48 +503,47 @@ Example:
 \centering {
 \begin{tabular}{lcccc} \toprule
 \rule{0pt}{80pt} &
-\begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
-%                               BS   C  SLP Trk 
-  \vn{ab_multipole}            & X & X &   & D \\  
-  \vn{beambeam}                &   & X &   &   \\  
-  \vn{bend_sol_quad}           & X & X & X & D \\  
-  \vn{capillary}               &   &   &   &   \\  
-  \vn{crystal}                 &   &   &   &   \\  
-  \vn{custom}                  &   & D &   & X \\  
-  \vn{drift}                   & X & X & X & D \\  
-  \vn{e_gun}                   &   & X &   & D \\  
-  \vn{ecollimator}             & X & X & X & D \\  
-  \vn{elseparator}             & X & X & X & D \\  
-  \vn{em_field}                &   & X &   & D \\  
-  \vn{hkicker}                 & X & X & X & D \\  
-  \vn{instrument}              & X & X & X & D \\  
-  \vn{kicker}                  & X & X & X & D \\  
-  \vn{lcavity}                 & X & X & X & D \\  
-  \vn{marker}                  & X & X & X & D \\  
-  \vn{match}                   &   & X &   &   \\  
-  \vn{mirror}                  &   &   &   &   \\  
-  \vn{monitor}                 & X & X & X & D \\  
-  \vn{multipole}               & X & X & X & D \\  
-  \vn{multilayer}              &   &   &   &   \\  
-  \vn{octupole}                & X & X & X & D \\ 
-  \vn{patch}                   &   & X & X &   \\ 
-  \vn{quadrupole}              & X & X & X & D \\ 
-  \vn{rbend}                   & X & X & X & D \\ 
-  \vn{rcollimator}             & X & X & X & D \\ 
-  \vn{rfcavity}                & X & X & X & D \\ 
-  \vn{sad_mult}                &   & X &   &   \\  
-  \vn{sample}                  &   &   &   &   \\  
-  \vn{sbend}                   & X & X & X & D \\ 
-  \vn{sextupole}               & X & X & X & D \\ 
-  \vn{solenoid}                & X & X & X & D \\ 
-  \vn{sol_quad}                & X & X & X & D \\ 
-  \vn{taylor}                  &   &   &   &   \\ 
-  \vn{vkicker}                 & X & X & X & D \\ 
-  \vn{wiggler}                 & X & X & X & D \\ \bottomrule
+%                                C  SLP Trk 
+  \vn{ab_multipole}            & X &   & D \\  
+  \vn{beambeam}                & X &   &   \\  
+  \vn{bend_sol_quad}           & X & X & D \\  
+  \vn{capillary}               &   &   &   \\  
+  \vn{crystal}                 &   &   &   \\  
+  \vn{custom}                  & D &   & X \\  
+  \vn{drift}                   & X & X & D \\  
+  \vn{e_gun}                   & X &   & D \\  
+  \vn{ecollimator}             & X & X & D \\  
+  \vn{elseparator}             & X & X & D \\  
+  \vn{em_field}                & X &   & D \\  
+  \vn{hkicker}                 & X & X & D \\  
+  \vn{instrument}              & X & X & D \\  
+  \vn{kicker}                  & X & X & D \\  
+  \vn{lcavity}                 & X & X & D \\  
+  \vn{marker}                  & X & X & D \\  
+  \vn{match}                   & X &   &   \\  
+  \vn{mirror}                  &   &   &   \\  
+  \vn{monitor}                 & X & X & D \\  
+  \vn{multipole}               & X & X & D \\  
+  \vn{multilayer}              &   &   &   \\  
+  \vn{octupole}                & X & X & D \\ 
+  \vn{patch}                   & X & X &   \\ 
+  \vn{quadrupole}              & X & X & D \\ 
+  \vn{rbend}                   & X & X & D \\ 
+  \vn{rcollimator}             & X & X & D \\ 
+  \vn{rfcavity}                & X & X & D \\ 
+  \vn{sad_mult}                & X &   &   \\  
+  \vn{sample}                  &   &   &   \\  
+  \vn{sbend}                   & X & X & D \\ 
+  \vn{sextupole}               & X & X & D \\ 
+  \vn{solenoid}                & X & X & D \\ 
+  \vn{sol_quad}                & X & X & D \\ 
+  \vn{taylor}                  &   &   &   \\ 
+  \vn{vkicker}                 & X & X & D \\ 
+  \vn{wiggler}                 & X & X & D \\ \bottomrule
 \end{tabular}
 }
 

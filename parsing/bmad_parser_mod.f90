@@ -229,9 +229,9 @@ real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
-integer ix_bounds(2), iy_bounds(2), i_vec(2), family, n_sec
+integer ix_bounds(2), iy_bounds(2), i_vec(2), family, n_sec, key
 
-character(40) :: word, str_ix, attrib_word, word2
+character(40) :: word, str_ix, attrib_word, word2, name
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
@@ -376,8 +376,16 @@ endif
 ! beam_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON')) then
-  call pointers_to_attribute (lat, ele%name, word, .false., a_ptrs, err_flag, .false.)
+key = ele%key
+if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') key = def_bmad_com$
+if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_bmad_com$
+if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
+if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bmad_com$
+
+if (key == def_beam_start$ .or. key == def_bmad_com$) then
+  name = ele%name
+  if (ele%name == 'PARAMETER') name = 'BMAD_COM'
+  call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
   if (err_flag .or. size(a_ptrs) /= 1) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
