@@ -428,7 +428,7 @@ integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, n_var, ix_d, ix_m
 integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch, ix_st(3,3)
-integer i0, i1, j0, j1, j2
+integer i0, i1, j0, j1, j2, ix_mode
 
 logical error, is_alloc_pt
 
@@ -483,13 +483,13 @@ if (n_em_field_mode > 0) then
 
   do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%phi0_ref, &
+    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, ix_mode, mode%harmonic, mode%f_damp, mode%phi0_ref, &
                          mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
-    if (ix_ele /= 0) then
-      mode%map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(i)%map
+    if (ix_ele > 0) then
+      mode%map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%map
       if (associated(mode%map)) mode%map%n_link = mode%map%n_link + 1
-      mode%grid => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(i)%grid
+      mode%grid => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%grid
       if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
       cycle
     endif
