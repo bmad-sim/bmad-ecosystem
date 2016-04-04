@@ -1470,8 +1470,8 @@ contains
 
 subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_out_of_bounds)
 
-real(rp) x, rel_x0, x_norm
-integer ix_x, i0, ig0, ig1, idg, allow_out_of_bounds
+real(rp) x, rel_x0, x_norm, x_diff, x_ave
+integer ix_x, i0, ig0, ig1, allow_out_of_bounds
 logical err_flag
 
 !
@@ -1496,8 +1496,9 @@ if (i0 < ig0 .or. i0 >= ig1) then
     ! Here only generate an error message if the particle is grossly outside of the grid region.
     ! Here "gross" is defined as dOut > L_grid/2 where dOut is the distance between the
     ! particle and the grid edge and L_grid is the length of the grid.
-    idg = ig1 - ig0
-    if (abs(i0 - idg/2) < idg) return
+    x_diff = (ig1 - ig0) * grid%dr(ix_x)
+    x_ave = (ig1 + ig0) * grid%dr(ix_x) / 2
+    if (abs(x - x_ave) < x_diff .or. i0 == ig0-1 .or. i0 == ig1) return
   case (allow_all$)
     return
   end select

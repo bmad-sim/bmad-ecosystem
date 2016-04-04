@@ -498,55 +498,24 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! multipass lords/slaves must share %wig memory
-
-    if (l_stat == multipass_lord$) then
-      do is = 1, ele%n_slave
-        slave => pointer_to_slave(ele, is)
-        if (.not. associated(ele%wig) .and. .not. associated(slave%wig)) cycle
-        if (associated(ele%wig) .and. .not. associated(slave%wig)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'THE LORD HAS A %WIG BUT THE SLAVE DOES NOT.')
-          err_flag = .true.
-        elseif (.not. associated(ele%wig) .and. associated(slave%wig)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'THE SLAVE HAS A %WIG BUT THE LORD DOES NOT.')
-          err_flag = .true.
-        elseif (.not. associated(ele%wig, slave%wig)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'THE %WIG OF BOTH DO NOT POINT TO THE SAME MEMORY LOCATION.')
-          err_flag = .true.
-        endif
-      enddo
-    endif
-
     ! multipass lords/slaves must share %em_field%mode%map and %em_field%mode%term memory
 
     if (l_stat == multipass_lord$) then
       do is = 1, ele%n_slave
         slave => pointer_to_slave(ele, is)
+
         if (.not. associated(ele%em_field) .and. .not. associated(slave%em_field)) cycle
-        if (associated(ele%em_field) .and. .not. associated(slave%em_field)) then
+
+        if (associated(ele%em_field) .neqv. associated(slave%em_field)) then
           call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
                     'HAS A SLAVE:' // slave%name, &
-                    'THE LORD HAS A %EM_FIELD BUT THE SLAVE DOES NOT.')
+                    'WITH %EM_FIELD NOT BOTH ASSOCIATED.')
           err_flag = .true.
           cycle
-        elseif (.not. associated(ele%em_field) .and. associated(slave%em_field)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'THE SLAVE HAS A %EM_FIELD BUT THE LORD DOES NOT.')
-          err_flag = .true.
-          cycle
-        elseif (size(ele%em_field%mode) /= size(slave%em_field%mode)) then
+        endif
+
+        if (size(ele%em_field%mode) /= size(slave%em_field%mode)) then
           call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
                     'HAS A SLAVE:' // slave%name, &
@@ -555,8 +524,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         endif
 
         do i = 1, size(ele%em_field%mode)
-          if (associated(ele%em_field%mode(i)%map) .neqv. &
-              associated(slave%em_field%mode(i)%map)) then
+          if (associated(ele%em_field%mode(i)%map) .neqv. associated(slave%em_field%mode(i)%map)) then
             call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
                     'HAS A SLAVE:' // slave%name, &
@@ -591,6 +559,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             err_flag = .true.
           endif
         enddo
+
       enddo
     endif
 

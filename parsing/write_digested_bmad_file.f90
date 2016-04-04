@@ -203,7 +203,7 @@ type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var
+integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var, ix_mode, im
 integer i, j, k, n, ng, nf, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
 
 logical write_wake, mode3
@@ -348,54 +348,54 @@ if (n_em_field_mode > 0) then
 
   write (d_unit) ele%em_field%mode_to_autoscale
 
-  ix_ele = 0
-  ix_branch = 0
-
   ! If the field is the same as the field of a previous element then set ix_ele and ix_branch.
 
-  mode_loop: do i = 1, n_em_field_mode
+  do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
     if (.not. associated(mode%map) .and. .not. associated(mode%grid)) cycle
 
-    do ib = 0, ele%ix_branch
+    ix_ele = -1
+    ix_branch = -1
+    ix_mode = -1
+
+    branch_loop: do ib = 0, ele%ix_branch
       ie_max = lat%branch(ib)%n_ele_max
       if (ib == ele%ix_branch) ie_max = ele%ix_ele - 1
       do ie = 1, ie_max
         ele2 => lat%branch(ib)%ele(ie)
         if (.not. associated(ele2%em_field)) cycle
-        mode2 => ele2%em_field%mode(i)
-        if (size(ele2%em_field%mode) /= size(ele%em_field%mode)) cycle
-        if (associated(mode%map) .and. .not. associated (mode2%map, mode%map)) cycle
-        if (associated(mode%grid) .and. .not. associated (mode2%grid, mode%grid)) cycle
-        ix_ele = ie
-        ix_branch = ib
-        exit mode_loop
+        do im = 1, size(ele2%em_field%mode)
+          mode2 => ele2%em_field%mode(im)
+          if (associated(mode%map) .neqv. associated (mode2%map, mode%map)) cycle
+          if (associated(mode%grid) .neqv. associated (mode2%grid, mode%grid)) cycle
+          if (associated(mode%map)) then
+            if (mode%map%file /= mode2%map%file) cycle
+          endif
+          if (associated(mode%grid)) then
+            if (mode%grid%file /= mode2%grid%file) cycle
+          endif
+          ix_ele = ie
+          ix_branch = ib
+          ix_mode = im
+          exit branch_loop
+        enddo
       enddo  
-    enddo
-
-    exit
-
-  enddo mode_loop
-
-  !
-
-  do i = 1, n_em_field_mode
-    mode => ele%em_field%mode(i)
+    enddo branch_loop
 
     nf = 0
     if (associated(mode%map)) nf = size(mode%map%term)
     ng = 0
     if (associated(mode%grid)) ng = size(mode%grid%pt)
 
-    write (d_unit) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%phi0_ref, &
+    write (d_unit) nf, ng, ix_ele, ix_branch, ix_mode, mode%harmonic, mode%f_damp, mode%phi0_ref, &
                    mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
-    if (ix_ele == 0 .and. nf > 0) then
+    if (ix_ele == -1 .and. nf > 0) then
       write (d_unit) mode%map%file, mode%map%dz, mode%map%ele_anchor_pt
       write (d_unit) mode%map%term
     endif
 
-    if (ix_ele == 0 .and. ng > 0) then
+    if (ix_ele == -1 .and. ng > 0) then
       write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
                   mode%grid%type, mode%grid%file, &
                   mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords
