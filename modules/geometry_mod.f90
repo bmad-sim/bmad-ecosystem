@@ -912,12 +912,12 @@ endif
 local_position%w =  matmul(w0_mat_T, global_position%w)
 
 ! If angles are not needed, just return zeros; 
-if (.not. logic_option(.true., calculate_angles)) then
+if (logic_option(.true., calculate_angles)) then
+  call update_floor_angles(local_position)
+else
   local_position%theta = 0
   local_position%phi = 0
   local_position%psi = 0
-else
-  call update_floor_angles(local_position)
 endif 
 
 
@@ -1185,7 +1185,9 @@ end function coords_floor_to_curvilinear
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)
+! Function coords_local_curvilinear_to_floor (local_position, ele, 
+!                                             in_ele_frame, w_mat, calculate_angles) 
+! Result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 !
@@ -1198,12 +1200,17 @@ end function coords_floor_to_curvilinear
 !
 ! Result:
 !   global_position -- floor_position_struct: Position in global coordinates.
+!                       %r and %w
 !   w_mat(3,3)      -- real(rp), optional: W matrix at s, to transform vectors. 
 !                                  v_global = w_mat . v_local
 !                                  v_local = transpose(w_mat) . v_global
+!   
+!   calculate_angles  -- logical, optional: calculate angles for global_position 
+!                          Default: True.
+!                          False returns local_position angles (%theta, %phi, %psi) = 0.
 !-  
 
-function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)
+function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat, calculate_angles) result (global_position)
 
 
 type (floor_position_struct) :: local_position, global_position, p
@@ -1212,6 +1219,7 @@ real(rp) :: L_save
 real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), s
 real(rp), optional :: w_mat(3,3)
 logical, optional :: in_ele_frame
+logical, optional :: calculate_angles
 
 ! Set x and y for floor offset 
 
@@ -1237,6 +1245,15 @@ endif
 ! Get global floor coordinates
 global_position%r = matmul(ele%floor%w, p%r) + ele%floor%r
 global_position%w = matmul(ele%floor%w, p%w)
+
+! If angles are not needed, just return zeros; 
+if (logic_option(.true., calculate_angles)) then
+  call update_floor_angles(global_position)
+else
+  global_position%theta = 0
+  global_position%phi = 0
+  global_position%psi = 0
+endif 
 
 ! Optionally return w_mat used in these transformations
 if (present(w_mat) ) then
@@ -1267,14 +1284,14 @@ end function coords_local_curvilinear_to_floor
 !                                  v_ele_frame = transpose(w_mat) . v_local
 !-
 
-function coords_element_frame_to_local(ele_position, ele, w_mat) result(local_position)
+function coords_element_frame_to_local(ele_position, ele, w_mat, calculate_angles) result(local_position)
 
 type (floor_position_struct) :: ele_position, local_position
 type (ele_struct) :: ele
 real(rp) :: s, g, theta, Sb(3,3), Lb(3)
 real(rp) ::  L_mis(3), S_mis(3,3) , S_mat0(3,3)
 real(rp), optional :: w_mat(3,3)
-
+logical, optional :: calculate_angles
 !
 
 local_position = ele_position
@@ -1328,6 +1345,15 @@ else
   
   if (present(w_mat)) w_mat = S_mis
 endif
+
+! If angles are not needed, just return zeros; 
+if (logic_option(.true., calculate_angles)) then
+  call update_floor_angles(local_position)
+else
+  local_position%theta = 0
+  local_position%phi = 0
+  local_position%psi = 0
+endif 
 
 end function
 

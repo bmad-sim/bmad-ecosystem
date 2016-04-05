@@ -1137,7 +1137,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   endif
 
   lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_rel]
-  global_position = coords_local_curvilinear_to_floor (lab_position, ele, w_mat = w_ele_mat)
+  global_position = coords_local_curvilinear_to_floor (lab_position, ele, w_mat = w_ele_mat, calculate_angles = .false.)
 
   lord_orb = lab_orb
   do i = 1, ele%n_lord_field
