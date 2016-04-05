@@ -1978,13 +1978,13 @@ do i = 1, slave%n_lord
 
     ! If slave is an sbend then correct offsets since roll axis is displaced from the bend center.
     if (slave%key == sbend$ .and. vs(g$) /= 0) then
-      call floor_w_mat_to_angles (w_slave_mis_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(roll_tot$))
+      call floor_w_mat_to_angles (w_slave_mis_tot, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(roll_tot$))
       dr = (1 - cos(vs(angle$)/2)) / vs(g$)
       vs(x_offset_tot$) = l_slave_off_tot(1) + dr * (1 - cos(vs(roll_tot$)))
       vs(y_offset_tot$) = l_slave_off_tot(2) - dr * sin(vs(roll_tot$))  
       vs(z_offset_tot$) = l_slave_off_tot(3) 
     else
-      call floor_w_mat_to_angles (w_slave_mis_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(tilt_tot$))
+      call floor_w_mat_to_angles (w_slave_mis_tot, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(tilt_tot$))
       vs(x_offset_tot$) = l_slave_off_tot(1)
       vs(y_offset_tot$) = l_slave_off_tot(2)
       vs(z_offset_tot$) = l_slave_off_tot(3)
