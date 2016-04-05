@@ -556,9 +556,8 @@ if (logic_option(.true., phase_space_coords)) then
   beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sqrt(bz2)]
 
 else
-  pc = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2)
-  beta_vec = [coord%vec(2), coord%vec(4), coord%vec(6)] / pc
-  e_particle = pc / coord%beta
+  e_particle = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / coord%beta
+  beta_vec = [coord%vec(2), coord%vec(4), coord%vec(6)] / e_particle
   mc2 = mass_of(coord%species)
   gamma = e_particle / mc2
 endif

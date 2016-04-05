@@ -109,6 +109,9 @@ s_dir = sign(1.0_rp, s2-s1)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
 ds_tiny  = bmad_com%significant_length/100
 
+! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
+! calc_next_fringe_edge.
+
 orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 

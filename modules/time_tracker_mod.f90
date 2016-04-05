@@ -83,6 +83,10 @@ dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, .true.)
 
 ! local s coordinates for vec(5)
+! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
+! calc_next_fringe_edge.
+
+orb%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
 call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb)
@@ -447,7 +451,7 @@ else
   if (err_flag) return
 endif
 
-orb_temp%species = orb%species
+orb_temp = orb
 
 call transfer_this_orbit (orb_temp, orb, b21*dt*dr_dt1)
 call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2, err_flag)
@@ -500,6 +504,7 @@ real(rp) dvec(9), a_quat(4), omega(3), angle
 orb_out%vec = orb_in%vec + dvec(1:6)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  orb_out%spin = orb_in%spin
   call rotate_spinor(dvec(7:9), orb_out%spin)
 endif
 
@@ -616,7 +621,8 @@ endif
 ! Spin
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  dvec_dt(7:9) = spin_omega (field, orbit, .false.) + [-kappa_y, kappa_x, 0.0_rp] * vel(3)
+  dvec_dt(7:9) = spin_omega (field, orbit, .false.) + &
+                      [-kappa_y, kappa_x, 0.0_rp] * vel(3) / (1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3))
 else
   dvec_dt(7:9) = 0
 endif

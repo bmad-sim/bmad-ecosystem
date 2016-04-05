@@ -1548,6 +1548,12 @@ case ('SPATIAL_DISTRIBUTION')
   ele%value(spatial_distribution$) = ix
 
 case ('SPIN_TRACKING_METHOD')
+  if (attrib_word == 'BMAD_STANDARD') then
+    call parser_error ('SPIN_TRACKING_METHOD = BMAD_STANDARD NOW NO LONGER VALID.', &
+                     'PLEASE REPLACE WITH SPIN_TRACKING_METHOD = TRACKING.', &
+                     'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+    attrib_word = 'TRACKING'
+  endif
   call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
   if (err_flag) return
   if (.not. valid_spin_tracking_method (ele, switch)) then
