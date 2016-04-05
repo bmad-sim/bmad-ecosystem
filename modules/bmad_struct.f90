@@ -493,7 +493,10 @@ end type
 
 type floor_position_struct
   real(rp) :: r(3) = 0                      ! (x, y, z) offset from origin
-  real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation
+  real(rp) :: w(3,3) = reshape( [1, 0, 0, & ! W matrix. 
+                                 0, 1, 0, & ! Columns are unit vectors of the frame axes
+                                 0, 0, 1], [3,3]) 
+  real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation consistent with W matrix
 end type
 
 ! Space charge structure. This structure contains information about the beam as a whole.
@@ -683,7 +686,11 @@ type ele_struct
   type (ele_struct), pointer :: lord => null()                       ! Pointer to a slice lord.
   type (em_fields_struct), pointer :: em_field => null()             ! DC and AC E/M fields
   type (fibre), pointer :: ptc_fibre => null()                       ! PTC tracking.
-  type (floor_position_struct) :: floor = floor_position_struct()    ! Reference position in global coords.
+  type (floor_position_struct) :: floor = floor_position_struct( &   ! Reference position in global coords.
+       [0.0_rp, 0.0_rp, 0.0_rp], reshape([1.0_rp, 0.0_rp, 0.0_rp,  &
+                                        0.0_rp, 1.0_rp, 0.0_rp,  &
+                                        0.0_rp, 0.0_rp, 1.0_rp], [3,3]), &
+                                0.0_rp, 0.0_rp, 0.0_rp)
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
   type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()

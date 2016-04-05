@@ -109,7 +109,7 @@ end function skip_ele_blender
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 
-
+ 
 subroutine write_blender_ele(iu, ele, old_format)
 
 type(ele_struct) :: ele
@@ -127,7 +127,7 @@ character(500) line
 
 !
 
-local_position = floor_position_struct()
+call mat_make_unit(local_position%w)
 local_position%r = [0.0_rp, 0.0_rp, ele%value(L$)/2]
 
 p = coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame=.true., w_mat=w_mat)
@@ -141,7 +141,7 @@ case (crystal$, mirror$, multilayer_mirror$)
   w_mat = matmul(w_mat, w2_mat)
 end select
 
-call floor_w_mat_to_angles (w_mat, 0.0_rp, p%theta, p%phi, p%psi)
+call floor_w_mat_to_angles (w_mat, p%theta, p%phi, p%psi)
 
 
 
