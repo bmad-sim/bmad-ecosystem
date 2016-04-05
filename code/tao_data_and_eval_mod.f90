@@ -2061,7 +2061,7 @@ case ('rel_floor.')
       ele2 => branch%ele(i)
       call floor_angles_to_w_mat (ele2%floor%theta, ele2%floor%phi, ele2%floor%psi, w_mat)
       w_mat = matmul (w0_mat, w_mat)
-      call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
+      call floor_w_mat_to_angles (w_mat, theta, phi, psi)
 
       select case (datum%data_type)
       case ('rel_floor.theta')
