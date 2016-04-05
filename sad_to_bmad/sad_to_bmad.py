@@ -1139,10 +1139,16 @@ f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
 #------------------------------------------------------------------
 # Write variable definitions
 
+if 'fshift' in sad_info.var_list:
+  if float(sad_info.var_list['fshift']) == 0: patch_for_fshift = False
+else:
+  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
+  patch_for_fshift = False
+
 f_out.write ('\n')
 
 for var in sad_info.var_list:
-  if var == 'fshift':
+  if var == 'fshift' and patch_for_fshift:
     f_out.write ('++NOTE: IF YOU ARE READING THIS THEN THIS FILE HAS NOT BEEN PROCESSED BY THE PROGRAM sad_to_bmad_postprocess AS IT SHOULD!\n')
     f_out.write ('++fshift = ???  ! In SAD file: ' + sad_info.var_list[var] + '\n')
     print ('Remember: Process lattice file by the program sad_to_bmad_postprocess')
@@ -1167,12 +1173,6 @@ print ('Execution time: ' + str(time.time() - start_time))
 
 #-------------------------------------------------------------------
 # Insert patches for finite fshift 
-
-if 'fshift' in sad_info.var_list:
-  if float(sad_info.var_list['fshift']) == 0: patch_for_fshift = False
-else:
-  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
-  patch_for_fshift = False
 
 if patch_for_fshift:
   f_out.write ('\n' + 'expand_lattice\n')
