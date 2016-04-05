@@ -3,6 +3,7 @@
 import sys, getopt, re, math, copy
 from collections import *
 import time
+import subprocess
 
 start_time = time.time()
 ix_null = 0
@@ -51,34 +52,9 @@ def add_units (line):
 def print_help():
   print (''' \
 Syntax: 
-  sad_to_bmad.py {-open} {-closed} {-ignore_marker_offsets} {-no_fshift} {-include <bmad_header_file>} <input-sad-file>
-
-Options:
-  -open                   # Put "parameter[geometry] = open" line in the bmad lattice file
-
-  -closed                 # Put "parameter[geometry] = closed" line in the bmad lattice file
-
-  -no_fshift              # In tracking, SAD puts a z-shift to shift a particle's z-position through
-                          #   every element. This is done so that the closed orbit will have pz
-                          #   approximately zero (pz shifts would show up in SuperKEKB where the
-                          #   reference orbit is through the center of the solenoid but the
-                          #   on-energy particle orbit is displaced due to the crossing angle). 
-                          #   Normally, Bmad patch elements are inserted just before RF cavities to mimic this.
-                          #   If -no_fshift is present, these patch elements are not inserted.
-
-  -ignore_marker_offsets  # SAD mark elements which have an offset are translated to a marker element that 
-                          #   is superimposed on the lattice. The -ignore_marker_offsets switch means 
-                          #   that the offset is ignored and no superposition is done. 
-
-  -include <bmad_header_file>  # Include lines from this file in the Bmad lattice file.
-
-Output:
-  If the input SAD file has "sad" in the name, the output bmad lattice file name will substitute "bmad".
-  If "sad" is not in the input file name, the output file name will be the input file name with ".bmad" appended.
-
-Please see the NOTES file for known limitations of this translation script.
+  sad_to_bmad.py <parameter_file>
+Default: <parameter_file> = "sad_to_bmad.params"
 ''')
-
   sys.exit()
 
 #-------------------------------------------------------------------
@@ -994,58 +970,34 @@ def parse_directive(directive, sad_info):
 #------------------------------------------------------------------
 # Main program.
 
-header_file = ''
-mark_open = False
-mark_closed = False
-patch_for_fshift = True
-inputfile = None
-ignore_marker_offsets = False
-
-i = 1
-while i < len(sys.argv):
-  n = len(sys.argv[i])
-  if sys.argv[i] == '-open': 
-    mark_open = True
-  elif sys.argv[i] == '-closed': 
-    mark_closed = True
-  elif n > 1 and '-ignore_marker_offsets'[:n] == sys.argv[i]:
-    ignore_marker_offsets = True
-  elif n > 1 and '-no_fshift'[:n] == sys.argv[i]:
-    patch_for_fshift = False
-  elif sys.argv[i] == '-include':
-    i += 1
-    header_file = sys.argv[i]
-  elif sys.argv[i][0] == '-':
-    print_help()
-  else:
-    inputfile = sys.argv[i]
-
-  i += 1
+param_file = "sad_to_bmad.params"
+if len(sys.argv) == 2:
+  param_file = sys.argv[1]
+elif len(sys.argv) > 2:
+  print_help()
 
 #
 
-if inputfile == None:
-  print_help()
+execfile (param_file)
 
-if inputfile.find('sad') != -1:
-  outputfile = inputfile.replace('sad', 'bmad')
-elif inputfile.find('Sad') != -1:
-  outputfile = inputfile.replace('Sad', 'Bmad')
-elif inputfile.find('SAD') != -1:
-  outputfile = inputfile.replace('SAD', 'BMAD')
-else:
-  outputfile = inputfile + '.bmad'
+if bmad_lattice_file == '':
+  if sad_lattice_file.find('sad') != -1:
+    bmad_lattice_file = sad_lattice_file.replace('sad', 'bmad')
+  elif sad_lattice_file.find('Sad') != -1:
+    bmad_lattice_file = sad_lattice_file.replace('Sad', 'Bmad')
+  elif sad_lattice_file.find('SAD') != -1:
+    bmad_lattice_file = sad_lattice_file.replace('SAD', 'BMAD')
+  else:
+    bmad_lattice_file = sad_lattice_file + '.bmad'
 
-print ('Input file is:  ' + inputfile)
-print ('Output file is: ' + outputfile)
+print ('Input lattice file is:  ' + sad_lattice_file)
+print ('Output lattice file is: ' + bmad_lattice_file)
 
-f_in = open(inputfile, 'r')
-f_out = open(outputfile, 'w')
-f_out.write ('! Translated from SAD file: ' + inputfile + "\n\n")
-
+f_in = open(sad_lattice_file, 'r')
+f_out = open(bmad_lattice_file, 'w')
+f_out.write ('! Translated from SAD file: ' + sad_lattice_file + "\n\n")
 
 sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
-
 
 #------------------------------------------------------------------
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
@@ -1112,21 +1064,19 @@ if ele0_name in sad_info.ele_list:
 #------------------------------------------------------------------
 # Header
 
-if header_file != '':
-  h_file = open(header_file, 'r')
-  for line in h_file:
-    f_out.write (line)
+f_out.write (header_lines + '\n')
 
 #------------------------------------------------------------------
 # Translate and write parameters
 
-if mark_open: f_out.write ('parameter[geometry] = open\n')
-if mark_closed: f_out.write ('parameter[geometry] = closed\n')
+if lattice_geometry != '': f_out.write ('parameter[geometry] = ' + lattice_geometry + '\n')
 
 for name in sad_info.param_list:
   if name not in global_param_translate: continue
   if global_param_translate[name] != '':
-    if '=' in global_param_translate[name]:   # EG: 'parameter[geometry] = open'
+    if global_param_translate[name][:19] == 'parameter[geometry]':
+      if lattice_geometry != '': f_out.write(global_param_translate[name] + '\n')
+    elif '=' in global_param_translate[name]: 
       f_out.write(global_param_translate[name] + '\n')
     else:
       f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
@@ -1139,11 +1089,16 @@ f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
 #------------------------------------------------------------------
 # Write variable definitions
 
-if 'fshift' in sad_info.var_list:
-  if float(sad_info.var_list['fshift']) == 0: patch_for_fshift = False
-else:
-  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
-  patch_for_fshift = False
+if patch_for_fshift == None:
+  if 'fshift' in sad_info.var_list:
+    if float(sad_info.var_list['fshift']) == 0: 
+      patch_for_fshift = False
+    else:
+      patch_for_fshift = True
+  else:
+    patch_for_fshift = False
+
+if patch_for_fshift and 'fshift' not in sad_info.var_list: sad_info.var_list['fshift'] = '0'
 
 f_out.write ('\n')
 
@@ -1151,7 +1106,6 @@ for var in sad_info.var_list:
   if var == 'fshift' and patch_for_fshift:
     f_out.write ('++NOTE: IF YOU ARE READING THIS THEN THIS FILE HAS NOT BEEN PROCESSED BY THE PROGRAM sad_to_bmad_postprocess AS IT SHOULD!\n')
     f_out.write ('++fshift = ???  ! In SAD file: ' + sad_info.var_list[var] + '\n')
-    print ('Remember: Process lattice file by the program sad_to_bmad_postprocess')
   else:
     f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
 
@@ -1199,10 +1153,11 @@ if patch_for_fshift:
   f_out.write ('end_patch: patch, superimpose, ref_origin = end, ref = ' + full_rf_name)
   f_out.write (', t_offset = t_shift * (end[s] - ' + old_full_rf_name + '[s])\n')
 
-  print ('REMEMBER! Run "sad_to_bmad_postprocess <bmad-lat-file>" to complete the translation.')
-
 #-------------------------------------------------------------------
 
 f_in.close()
 f_out.close()
 
+if patch_for_fshift:
+  print ('\nRunning sad_to_bmad_postprocess to complete the translation...\n')
+  subprocess.call (sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file, shell = True)

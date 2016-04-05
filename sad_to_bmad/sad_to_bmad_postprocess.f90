@@ -83,7 +83,7 @@ close(1)
 close(2)
 
 if (.not. fshift_found) then
-  print *, 'fshift line not found! Something is wrong.'
+  print *, 'ERROR: FSHIFT LINE NOT FOUND! SOMETHING IS WRONG!'
   stop
 endif
 
