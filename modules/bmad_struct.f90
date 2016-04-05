@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 176
+integer, parameter :: bmad_inc_version$ = 177
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -491,11 +491,12 @@ end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
 
+real(rp), parameter :: r0_vec(3) = 0
+real(rp), parameter :: w_unit(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
+
 type floor_position_struct
   real(rp) :: r(3) = 0                      ! (x, y, z) offset from origin
-  real(rp) :: w(3,3) = reshape( [1, 0, 0, & ! W matrix. 
-                                 0, 1, 0, & ! Columns are unit vectors of the frame axes
-                                 0, 0, 1], [3,3]) 
+  real(rp) :: w(3,3) =  w_unit              ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation consistent with W matrix
 end type
 
@@ -687,10 +688,7 @@ type ele_struct
   type (em_fields_struct), pointer :: em_field => null()             ! DC and AC E/M fields
   type (fibre), pointer :: ptc_fibre => null()                       ! PTC tracking.
   type (floor_position_struct) :: floor = floor_position_struct( &   ! Reference position in global coords.
-       [0.0_rp, 0.0_rp, 0.0_rp], reshape([1.0_rp, 0.0_rp, 0.0_rp,  &
-                                        0.0_rp, 1.0_rp, 0.0_rp,  &
-                                        0.0_rp, 0.0_rp, 1.0_rp], [3,3]), &
-                                0.0_rp, 0.0_rp, 0.0_rp)
+                                                       r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
   type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()

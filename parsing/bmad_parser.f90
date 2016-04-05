@@ -893,6 +893,8 @@ branch_loop: do i_loop = 1, n_branch_max
   if (ele%s /= 0)                 ele0%s                = ele%s
   if (ele%ref_time /= 0)          ele0%ref_time         = ele%ref_time
 
+  call floor_angles_to_w_mat(ele0%floor%theta, ele0%floor%theta, ele0%floor%theta, ele0%floor%w)
+
   ! Reference energy bookkeeping...
   ! Do not need to have set the energy for branch lines where the particle is the same
 
