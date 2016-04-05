@@ -1,19 +1,10 @@
 How to translate: 
 
-1) The translation script is:
+The translation script is:
   util_programs/sad_to_bmad/sad_to_bmad.py
 
-To get help on the syntax of the command line arguments for this
-script just run the script with no arguments.
-
-2) If there is an "fshift" defined in the sad lattice, the value of
-this needs to be modified to take into accout small variations in
-tracking between Bmad and SAD. In this case, the program
-sad_to_bmad_postprocess needs to be run. [sad_to_bmad.py will print an
-informational message as a reminder if this is necessary.] The
-command for this is:
-	production/bin/sad_to_bmad_postprocess <bmad_lattice>
-where <bmad_lattice> is the lattice file created by sad_to_bmad.py.
+There is an example parameter input file at:
+  util_programs/sad_to_bmad/sad_to_bmad.params
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
