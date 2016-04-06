@@ -54,7 +54,7 @@ type (em_field_struct) :: field
 logical, optional :: calc_dfield, err_flag
 character(32) :: r_name = 'em_field_custom'
 
-real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3), r0_vec(3)
+real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3), r0vec(3)
 real(rp), pointer :: v(:)
 
 !
@@ -64,9 +64,9 @@ if (present(err_flag)) err_flag = .false.
 ! Convert particle coordinates from exit to entrance frame.
 v => ele%value   ! v helps makes code compact
 call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat, w_mat_inv)
-r0_vec = [v(x_offset$), v(y_offset$), v(z_offset$)]
+r0vec = [v(x_offset$), v(y_offset$), v(z_offset$)]
 r_vec = [orb%vec(1), orb%vec(3), s_rel]  ! coords in exit frame
-r_vec = matmul(w_mat, r_vec) +  r0_vec     ! coords in entrance frame
+r_vec = matmul(w_mat, r_vec) +  r0vec     ! coords in entrance frame
 
 !
 
