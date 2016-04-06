@@ -366,8 +366,8 @@ if (n_em_field_mode > 0) then
         if (.not. associated(ele2%em_field)) cycle
         do im = 1, size(ele2%em_field%mode)
           mode2 => ele2%em_field%mode(im)
-          if (associated(mode%map) .neqv. associated (mode2%map, mode%map)) cycle
-          if (associated(mode%grid) .neqv. associated (mode2%grid, mode%grid)) cycle
+          if (associated(mode%map) .neqv. associated(mode2%map)) cycle
+          if (associated(mode%grid) .neqv. associated(mode2%grid)) cycle
           if (associated(mode%map)) then
             if (mode%map%file /= mode2%map%file) cycle
           endif
