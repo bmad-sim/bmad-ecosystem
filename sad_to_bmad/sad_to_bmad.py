@@ -439,30 +439,33 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   # For a bend, f1 mut be added to fb1 and fb2
 
-  if sad_ele.type == 'bend' and 'f1' in sad_ele.param:
-    if 'fb1' in sad_ele.param:
-      sad_ele.param['fb1'] = sad_ele.param['fb1'] + sad_ele.param['f1']
-    else:
-      sad_ele.param['fb1'] = sad_ele.param['f1']
+  if sad_ele.type == 'bend':
 
-    if 'fb2' in sad_ele.param:
-      sad_ele.param['fb2'] = sad_ele.param['fb2'] + sad_ele.param['f1']
-    else:
-      sad_ele.param['fb2'] = sad_ele.param['f1']
+    if 'f1' in sad_ele.param and 'fb1' in sad_ele.param:
+      bmad_ele.param['hgap'] = '(' + sad_ele.param['f1'] + ' + ' + sad_ele.param['fb1'] + ')/6, fint = 0.5'
+    elif 'f1' in sad_ele.param:
+      bmad_ele.param['hgap'] = '(' + sad_ele.param['f1'] + ')/6, fint = 0.5'
+    elif 'fb1' in sad_ele.param:
+      bmad_ele.param['hgap'] = '(' + sad_ele.param['fb1'] + ')/6, fint = 0.5'
 
-    del sad_ele.param['f1']
+    # If fb1 == fb2 then don't need fb2 
+    if sad_ele.param.get('fb1', '0') != sad_ele.param.get('fb2', '0'):
+      if 'f1' in sad_ele.param and 'fb2' in sad_ele.param:
+        bmad_ele.param['hgapx'] = '(' + sad_ele.param['f1'] + ' + ' + sad_ele.param['fb2'] + ')/6, fintx = 0.5'
+      elif 'f1' in sad_ele.param:
+        bmad_ele.param['hgapx'] = '(' + sad_ele.param['f1'] + ')/6, fintx = 0.5'
+      elif 'fb2' in sad_ele.param:
+        bmad_ele.param['hgapx'] = '(' + sad_ele.param['fb2'] + ')/6, fintx = 0.5'
 
-    # If fb1 == fb2 then don't need fb2 (Bmad will take them as equal if fb2 is not present).
 
-    if 'fb1' in sad_ele.param:
-      if 'fb2' in sad_ele.param:
-        if sad_ele.param['fb1'] == sad_ele.param['fb2']: del sad_ele.param['fb2']
-      else:
-        sad_ele.param['fb2'] = '0'
 
   # Loop over all parameters
 
   for sad_param_name in sad_ele.param:
+
+    if sad_ele.type == 'bend' and sad_param_name == 'f1': continue
+    if sad_ele.type == 'bend' and sad_param_name == 'fb1': continue
+    if sad_ele.type == 'bend' and sad_param_name == 'fb2': continue
 
     full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
@@ -1103,11 +1106,7 @@ if patch_for_fshift and 'fshift' not in sad_info.var_list: sad_info.var_list['fs
 f_out.write ('\n')
 
 for var in sad_info.var_list:
-  if var == 'fshift' and patch_for_fshift:
-    f_out.write ('++NOTE: IF YOU ARE READING THIS THEN THIS FILE HAS NOT BEEN PROCESSED BY THE PROGRAM sad_to_bmad_postprocess AS IT SHOULD!\n')
-    f_out.write ('++fshift = ???  ! In SAD file: ' + sad_info.var_list[var] + '\n')
-  else:
-    f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
+  f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
 
 #------------------------------------------------------------------
 # Translate and write element defs
@@ -1130,10 +1129,9 @@ print ('Execution time: ' + str(time.time() - start_time))
 
 if patch_for_fshift:
   f_out.write ('\n' + 'expand_lattice\n')
-  f_out.write ('t_shift = -fshift / c_light\n')
+  f_out.write ('t_scale = 1\n')
 
   rf_dict = {}
-  old_full_rf_name = ''
   for rf_name in rf_list:
     if rf_name in rf_dict:
       rf_dict[rf_name] = rf_dict[rf_name] + 1
@@ -1142,16 +1140,15 @@ if patch_for_fshift:
 
     ns = str(rf_dict[rf_name])
     full_rf_name = rf_name + '##' + ns
-    f_out.write (rf_name + '_patch' + ns + ': patch, superimpose, ref_origin = beginning, ref = ' + full_rf_name)
-    if old_full_rf_name == '':
-      f_out.write (', t_offset = t_shift * ' + full_rf_name + '[s]\n')
-    else:
-      f_out.write (', t_offset = t_shift * (' + full_rf_name + '[s] - ' + old_full_rf_name + '[s])\n')
+    patch_name = rf_name + '_patch' + ns
+    f_out.write ('t_' + patch_name + ' = 0  ! Will be replaced by sad_to_bmad_postprocess\n')
+    f_out.write (patch_name + ': patch, superimpose, ref_origin = beginning, ref = ' + full_rf_name +
+                 ', t_offset = t_scale * t_' + patch_name + '\n')
 
-    old_full_rf_name = full_rf_name
-
-  f_out.write ('end_patch: patch, superimpose, ref_origin = end, ref = ' + full_rf_name)
-  f_out.write (', t_offset = t_shift * (end[s] - ' + old_full_rf_name + '[s])\n')
+  patch_name = 'last_rf_time_patch'
+  f_out.write ('t_' + patch_name + ' = 0  ! Will be replaced by sad_to_bmad_postprocess\n')
+  f_out.write (patch_name + ': patch, superimpose, ref_origin = end, ref = ' + full_rf_name +
+                 ', t_offset = t_scale * t_' + patch_name + '\n')
 
 #-------------------------------------------------------------------
 
@@ -1160,4 +1157,4 @@ f_out.close()
 
 if patch_for_fshift:
   print ('\nRunning sad_to_bmad_postprocess to complete the translation...\n')
-  subprocess.call (sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file, shell = True)
+  subprocess.call (sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file + ' ' + calc_fshift_for, shell = True)

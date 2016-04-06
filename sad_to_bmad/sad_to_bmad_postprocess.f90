@@ -11,85 +11,135 @@
 program sad_to_bmad_postprocess
 
 use bmad
+use pointer_lattice, lat_ptc => lat, dpe => dp
+use ptc_layout_mod
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orbit(:)
+type (ele_struct), pointer :: ele
 
-real(rp) f_shift
+real(rp) f_shift, z_old
+real(rp), allocatable :: t_shift(:)
 
-integer ios, ix
+integer nn, i, ios, ix
 
 logical ok, fshift_found
 
-character(100) lat_file, temp_file
+character(40), allocatable :: name(:)
+character(40) pname, calc_fshift_for
+character(100) lat_file
 character(200) line
 
-! Read in lattice file and write out temorary file
+! Read in lattice file 
 
-if (cesr_iargc() /= 1) then
+if (cesr_iargc() /= 2) then
   print *, 'Command line syntax:'
-  print *, '  sad_to_bmad_postprocess <lattice-file-name>'
+  print *, '  sad_to_bmad_postprocess <lattice-file-name> <calc_fshift_for>'
   stop
 endif
 
 call cesr_getarg (1, lat_file)
-temp_file = 'temp.bmad'
+call cesr_getarg (2, calc_fshift_for)
+call bmad_parser (lat_file, lat)
 
-open (1, file = lat_file)
-open (2, file = temp_file)
+calc_fshift_for = upcase(calc_fshift_for)
 
-write (2, '(a)') 'no_digested'
-write (2, '(a)') 'fshift = 0'
-do
-  read (1, '(a)', iostat = ios) line
-  if (ios /= 0) exit
-  if (line(1:2) == '++') cycle   ! '++' => lines to ignore
-  write (2, '(a)') trim(line)
+nn = 0
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%key == patch$) nn = nn + 1
 enddo
 
-close(1)
-close(2)
+allocate (t_shift(nn))
+allocate (name(nn))
 
-! Parse temp file and calculate fshift
+!-------------
+! PTC way
 
-call bmad_parser (temp_file, lat)
-call set_on_off (rfcavity$, lat, off$)
-call reallocate_coord (orbit, lat)
-call twiss_and_track (lat, orbit, ok)
+if (calc_fshift_for == 'PTC') then
+  call lat_to_ptc_layout (lat)
+  call find_time_patch (lat%branch(0)%ptc%m_t_layout, DEFAULT, 1d40)
 
-f_shift = orbit(lat%n_ele_track)%vec(5) / lat%param%total_length
+  nn = 0
+  do i = 1, lat%n_ele_track
+    ele => lat%ele(i)
+    if (ele%key == patch$) then
+      print '(i6, 2x, a20, i2, 2es13.4)', i, ele%name, &
+                              ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
+      if (ele%ptc_fibre%patch%time /= 0) then
+        nn = nn + 1
+        name(nn) = downcase(ele%name)
+        t_shift(nn) = (ele%ptc_fibre%patch%a_t + ele%ptc_fibre%patch%b_t) / c_light
+      endif
 
-! Create file with f_shift value
+    else
+      if (ele%ptc_fibre%patch%time /= 0) print '(a, i6, 2x, a20, i2, 2es13.4)', 'ERROR: ', &
+                              i, ele%name, ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
+    endif
+  enddo
 
-open (1, file = lat_file)
-open (2, file = temp_file)
+!-------------
+! Bmad way
 
-fshift_found = .false.
-do
-  read (1, '(a)', iostat = ios) line
-  if (ios /= 0) exit
-  if (line(1:8) == '++fshift') then
-    fshift_found = .true.
-    ix = index(line, '!')
-    write (2, '(a, es20.8, 2x, a)') 'fshift =', f_shift, trim(line(ix:))
-  endif
-  if (line(1:2) == '++') cycle
-  write (2, '(a)') trim(line)
-enddo
+else
 
-close(1)
-close(2)
+  call set_on_off (rfcavity$, lat, off$)
+  call reallocate_coord (orbit, lat)
+  call twiss_and_track (lat, orbit, ok)
 
-if (.not. fshift_found) then
-  print *, 'ERROR: FSHIFT LINE NOT FOUND! SOMETHING IS WRONG!'
-  stop
+  z_old = 0
+  
+  nn = 0
+  do i = 1, lat%n_ele_track
+    ele => lat%ele(i)
+    if (ele%key /= patch$) cycle
+    if (lat%ele(i-1)%key /= rfcavity$ .and. lat%ele(i+1)%key /= rfcavity$) cycle
+    nn = nn + 1
+    name(nn) = downcase(ele%name)
+    t_shift(nn) = (z_old - orbit(i)%vec(5)) / c_light
+    z_old = orbit(i)%vec(5)
+  enddo
+
+  ! Last patch must time offset to the end of the cavity
+  ix = lat%n_ele_track
+  t_shift(nn) = t_shift(nn) + (z_old - orbit(ix)%vec(5)) / c_light
+
 endif
+
+!-------------
+! Create file with t_offset values
+
+open (1, file = lat_file)
+open (2, file = 'temp.temp')
+
+do
+  read (1, '(a)', iostat = ios) line
+  if (ios /= 0) exit
+
+  if (index(line, '! Will be replaced by sad_to_bmad_postprocess') /= 0) then
+    ix = index(line, '=')
+    pname = line(3:ix-1)
+    do i = 1, nn
+      if (name(i) == pname) exit
+      if (i == nn) then
+        print *, 'ERROR: CANNOT MATCH PATCH NAME: ', pname
+        call err_exit
+      endif
+    enddo
+    write (line, '(a, es16.8)'), line(1:ix), t_shift(i)
+  endif
+
+  write (2, '(a)') trim(line)    
+enddo
+
+close(1)
+close(2)
 
 ! And now move temp file to lattice file
 
-call system_command ('mv ' // trim(temp_file) // ' ' // trim(lat_file))
+call system_command ('mv temp.temp ' // trim(lat_file))
 print *, 'Modified file: ', trim(lat_file)
 
 end program
