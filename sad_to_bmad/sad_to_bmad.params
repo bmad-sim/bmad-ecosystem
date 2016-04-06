@@ -14,10 +14,15 @@ patch_for_fshift = None    # None => Insert patches only if fshift is defined an
 													 # Set to True to always insert patches. False to always not insert.
 
 # If there is an "fshift" defined in the sad lattice, the value of this needs to be modified
-# to take into accout small variations in tracking between Bmad and SAD. In this case, the
+# to take into account small variations in tracking between Bmad/PTC and SAD. In this case, the
 # program sad_to_bmad_postprocess needs to be run. 
 
 sad_to_bmad_postprocess_exe = "../production/bin/sad_to_bmad_postprocess"
+
+# What the time shifts are needed depend upon whether PTC or Bmad will be used for
+# any simulations. 
+
+calc_fshift_for = 'ptc'        # Or 'bmad'
 
 # SAD mark elements which have an offset are translated to a marker element that 
 #   is superimposed on the lattice. The ignore_marker_offsets switch means 
