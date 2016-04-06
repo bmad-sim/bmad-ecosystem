@@ -1015,12 +1015,12 @@ CONTAINS
 
 
   !  SUBROUTINE SETFAMILYR(EL,T,t_ax,t_ay,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
-  SUBROUTINE SETFAMILYR(EL,T)  !,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
+  SUBROUTINE SETFAMILYR(EL,T,angc,xc,dc,h)  !,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
     IMPLICIT NONE
     TYPE(ELEMENT), INTENT(INOUT) ::EL
     !    INTEGER,OPTIONAL :: NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2
     type(tree_element),OPTIONAL :: T(:) !,t_ax(:),t_ay(:)
-
+    real(dp), optional :: angc,xc,dc,h
    ! EL%P%permfringe=>EL%permfringe
     SELECT CASE(EL%KIND)
     CASE(KIND1)
@@ -1476,18 +1476,18 @@ CONTAINS
        !       IF(EL%P%NMUL==0) CALL ZERO_ANBN(EL,1)
        !       EL%mu%AN=>EL%AN
        !       EL%mu%BN=>EL%BN
-       CALL POINTERS_pancake(EL%pa,T) !,t_ax,t_ay)
+       CALL POINTERS_pancake(EL%pa,T) !,angc,xc,dc,h) !,t_ax,t_ay)
     END SELECT
   END SUBROUTINE SETFAMILYR
 
 
-  SUBROUTINE SETFAMILYP(EL,T)  !,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
+  SUBROUTINE SETFAMILYP(EL,T,angc,xc,dc,h)  !,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
     !  SUBROUTINE SETFAMILYP(EL,T,t_ax,t_ay,NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2)
     IMPLICIT NONE
     TYPE(ELEMENTP), INTENT(INOUT) ::EL
     !    INTEGER,OPTIONAL :: NTOT,ntot_rad,NTOT_REV,ntot_rad_REV,ND2
     type(tree_element),OPTIONAL :: T(:) !,t_ax(:),t_ay(:)
-
+    real(dp), optional :: angc,xc,dc,h
 !    EL%P%permfringe=>EL%permfringe
     SELECT CASE(EL%KIND)
     CASE(KIND1)
@@ -1989,7 +1989,7 @@ CONTAINS
        !       IF(EL%P%NMUL==0) CALL ZERO_ANBN(EL,1)
        !       EL%mu%AN=>EL%AN
        !       EL%mu%BN=>EL%BN
-       CALL POINTERS_pancake(EL%pa,T)  !,t_ax,t_ay)
+       CALL POINTERS_pancake(EL%pa,T) !,angc,xc,dc,h)  !,t_ax,t_ay)
        CALL ALLOC(EL%pa%SCALE)
     END SELECT
 
@@ -3454,7 +3454,7 @@ ENDIF
     
     
     IF(EL%KIND==KINDPA) THEN         !
-       CALL SETFAMILY(ELP,EL%PA%B)  !,EL%PA%ax,EL%PA%ay)
+       CALL SETFAMILY(ELP,EL%PA%B)  !,EL%PA%angc,EL%PA%xc,EL%PA%dc,EL%PA%h)  !,EL%PA%ax,EL%PA%ay)
        CALL COPY(EL%PA,ELP%PA)
     ENDIF
     !    IF(ASSOCIATED(EL%PARENT_FIBRE))        then
@@ -3830,7 +3830,7 @@ ENDIF
     ENDIF
  
     IF(EL%KIND==KINDPA) THEN         !
-       CALL SETFAMILY(ELP,EL%PA%B) !,EL%PA%ax,EL%PA%ay)
+       CALL SETFAMILY(ELP,EL%PA%B) !,EL%PA%angc,EL%PA%xc,EL%PA%dc,EL%PA%h)  !,EL%PA%ax,EL%PA%ay)
        CALL COPY(EL%PA,ELP%PA)
     ENDIF
 
@@ -4202,7 +4202,7 @@ ENDIF
     ENDIF    
     
     IF(EL%KIND==KINDPA) THEN         !
-       CALL SETFAMILY(ELP,EL%PA%B)  !,EL%PA%ax,EL%PA%ay)
+       CALL SETFAMILY(ELP,EL%PA%B) !,EL%PA%angc,EL%PA%xc,EL%PA%dc,EL%PA%h)   !,EL%PA%ax,EL%PA%ay)
        CALL COPY(EL%PA,ELP%PA)
     ENDIF
 

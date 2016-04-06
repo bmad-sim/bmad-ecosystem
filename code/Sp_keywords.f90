@@ -2679,7 +2679,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  fib0%GAMMA0I_GAMBET_MASS_AG(4)=f%AG
  fib0%DIR=f%DIR
  fib0%CHARGE=f%CHARGE
- fib0%patch=f%patch%patch+4*f%patch%energy+16*f%patch%time
+ fib0%patch=f%patch%patch+7*f%patch%energy+49*f%patch%time
  !fib0%pos=f%pos
  !fib0%loc=f%loc
     if(present(mf)) then

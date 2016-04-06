@@ -41,11 +41,16 @@ MODULE TPSA
 
   PRIVATE null_it,Set_Up,de_Set_Up,LINE_L,RING_L,kill_DALEVEL,dealloc_DASCRATCH,set_up_level
   private insert_da,append_da,GETINTegrate
-
+INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
+!INTEGER, private, PARAMETER :: DP = KIND(1.0D0)
+private bessi_se,bessi0_se,poly_e,bessi1_se,I_nt,I_nr
 
   type(dalevel) scratchda(ndumt)   !scratch levels of DA using linked list
 
-
+  INTERFACE I_n
+     MODULE PROCEDURE I_nr
+     MODULE PROCEDURE I_nt
+  END INTERFACE
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUAL
@@ -3951,7 +3956,212 @@ endif
 
   END SUBROUTINE clean_gmap
 
-  
+  !!! bessel
 
+		FUNCTION I_nr(n,x)
+        real(dp) I_nr
+		INTEGER(I4B), INTENT(IN) :: n
+		REAL(dp), INTENT(IN) :: x
+        if(n>=2)  then
+         I_nr=bessi_se(n,x)
+!         I_nr=bessi(n,x)
+
+        elseif(n==1) then
+         I_nr=bessi1_se(x)
+        elseif(n==0) then
+         I_nr=bessi0_se(x)
+        else
+         write(6,*) "n<0 in I_n "
+         stop
+        endif
+		END FUNCTION I_nr
+
+
+		FUNCTION I_nt(n,x)
+        type(taylor)  I_nt
+		INTEGER(I4B), INTENT(IN) :: n
+        type(taylor), INTENT(IN) :: x
+        integer localmaster,i,j
+        type(taylor)  dx,tx
+        real(dp) fac,x0
+!        real(dp) :: der(0:2*lno)
+!        real(dp) :: dder(0:2*lno),ddert(0:2*lno)
+         real(dp), allocatable :: ddert(:),dder(:),der(:)
+
+
+
+        localmaster=master
+        call ass(I_nt)
+             x0=(x.sub.'0')
+
+
+        if(c_%no==1) then
+         I_nt=I_n(n,x0)+dI_n(n,x0)*(x-x0)
+         master=localmaster
+         return
+        endif
+        allocate(der(0:c_%no+n),dder(0:c_%no+n),ddert(0:c_%no+n))
+
+        der=0
+        der(0)=I_n(n,x0)            
+ 
+        do i=n,c_%no+n
+         der(i)=I_n(i,x0)
+        enddo
+        j=max(0,n-c_%no)
+
+        do i=n-1,j,-1
+         der(i)=I_n(i,x0)
+        enddo
+
+       call alloc(dx,tx)
+
+          dder=0.0_dp
+          dx=x-x0
+          tx=dx
+          I_nt=I_n(n,x0)
+          fac=1.0_dp
+          dder(n)=1.0_dp
+
+          do i=1,c_%no
+            ddert=0.0_dp
+          do j=max(n-(i-1),0),n+(i-1)
+           ddert(iabs(j-1))=0.5_dp*dder(iabs(j))+ddert(iabs(j-1))
+           ddert(iabs(j+1))=0.5_dp*dder(iabs(j))+ddert(iabs(j+1))
+          enddo
+
+            ddert=ddert/i
+            fac=0
+          do j=max(n-i,0),n+i
+            fac=fac+ddert(j)*der(j)
+          enddo
+            I_nt=I_nt+fac*tx
+            tx=tx*dx
+            dder=ddert
+          enddo  
+       call kill(dx,tx)
+        deallocate(der,dder,ddert)
+
+        master=localmaster
+
+		END FUNCTION I_nt
+
+	FUNCTION bessi_se(n,x)
+	IMPLICIT NONE
+	INTEGER(I4B), INTENT(IN) :: n
+	REAL(dp), INTENT(IN) :: x
+	REAL(dp) :: bessi_se
+	INTEGER(I4B), PARAMETER :: IACC=40,IEXP=maxexponent(x)/2
+	INTEGER(I4B) :: j,m
+	REAL(dp) :: bi,bim,bip,tox
+	bessi_se=0.0
+	if (x*x <= 8.0_dp*tiny(x)) RETURN
+	tox=2.0_dp/abs(x)
+	bip=0.0
+	bi=1.0
+	m=2*((n+int(sqrt(real(IACC*n,dp)))))
+	do j=m,1,-1
+		bim=bip+j*tox*bi
+		bip=bi
+		bi=bim
+		if (exponent(bi) > IEXP) then
+			bessi_se=scale(bessi_se,-IEXP)
+			bi=scale(bi,-IEXP)
+			bip=scale(bip,-IEXP)
+		end if
+		if (j == n) bessi_se=bip
+	end do
+	bessi_se=bessi_se*bessi0_se(x)/bi
+	if (x < 0.0 .and. mod(n,2) == 1) bessi_se=-bessi_se
+	END FUNCTION bessi_se
+
+	FUNCTION bessi0_se(x)
+	IMPLICIT NONE
+	REAL(dp), INTENT(IN) :: x
+	REAL(dp) :: bessi0_se
+	REAL(dp) :: ax
+	REAL(DP), DIMENSION(7) :: p = (/1.0_dp,3.5156229_dp,&
+		3.0899424_dp,1.2067492_dp,0.2659732_dp,0.360768e-1_dp,&
+		0.45813e-2_dp/)
+	REAL(DP), DIMENSION(9) :: q = (/0.39894228_dp,0.1328592e-1_dp,&
+		0.225319e-2_dp,-0.157565e-2_dp,0.916281e-2_dp,&
+		-0.2057706e-1_dp,0.2635537e-1_dp,-0.1647633e-1_dp,&
+		0.392377e-2_dp/)
+	ax=abs(x)
+	if (ax < 3.75) then
+		bessi0_se=poly_e(real((x/3.75_dp)**2,dp),p)
+	else  
+		bessi0_se=(exp(ax)/sqrt(ax))*poly_e(real(3.75_dp/ax,dp),q)
+	end if
+	END FUNCTION bessi0_se
+
+	FUNCTION poly_e(x,coeffs)
+! poly_rr
+INTEGER(I4B), PARAMETER :: NPAR_POLY=8
+	REAL(dp), INTENT(IN) :: x
+	REAL(dp), DIMENSION(:), INTENT(IN) :: coeffs
+	REAL(dp) :: poly_e
+	REAL(dp) :: pow
+	REAL(dp), DIMENSION(:), ALLOCATABLE :: vec
+	INTEGER(I4B) :: i,n,nn
+	n=size(coeffs)
+	if (n <= 0) then
+		poly_e=0.0_dp
+	else if (n < NPAR_POLY) then
+		poly_e=coeffs(n)
+		do i=n-1,1,-1
+			poly_e=x*poly_e+coeffs(i)
+		end do
+	else
+		allocate(vec(n+1))
+		pow=x
+		vec(1:n)=coeffs
+		do
+			vec(n+1)=0.0_dp
+			nn=ishft(n+1,-1)
+			vec(1:nn)=vec(1:n:2)+pow*vec(2:n+1:2)
+			if (nn == 1) exit
+			pow=pow*pow
+			n=nn
+		end do
+		poly_e=vec(1)
+		deallocate(vec)
+	end if
+	END FUNCTION poly_e
+
+	FUNCTION bessi1_se(x)
+	IMPLICIT NONE
+	REAL(dp), INTENT(IN) :: x
+	REAL(dp) :: bessi1_se
+	REAL(dp) :: ax
+	REAL(DP), DIMENSION(7) :: p = (/0.5_dp,0.87890594_dp,&
+		0.51498869_dp,0.15084934_dp,0.2658733e-1_dp,&
+		0.301532e-2_dp,0.32411e-3_dp/)
+	REAL(DP), DIMENSION(9) :: q = (/0.39894228_dp,-0.3988024e-1_dp,&
+		-0.362018e-2_dp,0.163801e-2_dp,-0.1031555e-1_dp,&
+		0.2282967e-1_dp,-0.2895312e-1_dp,0.1787654e-1_dp,&
+		-0.420059e-2_dp/)
+	ax=abs(x)
+	if (ax < 3.75) then
+		bessi1_se=ax*poly_e(real((x/3.75_dp)**2,dp),p)
+	else
+		bessi1_se=(exp(ax)/sqrt(ax))*poly_e(real(3.75_dp/ax,dp),q)
+	end if
+	if (x < 0.0) bessi1_se=-bessi1_se
+	END FUNCTION bessi1_se
+
+		FUNCTION dI_n(n,x)
+        real(dp) dI_n
+		INTEGER(I4B), INTENT(IN) :: n
+		REAL(dp), INTENT(IN) :: x
+        if(n>=1)  then
+         dI_n=0.5_dp*(I_n(n+1,x)+I_n(n-1,x))
+        elseif(n==0) then
+         dI_n=bessi1_se(x)
+        else
+         write(6,*) "n<0 in dI_n "
+         stop
+        endif
+		END FUNCTION dI_n
 
 END MODULE  tpsa
