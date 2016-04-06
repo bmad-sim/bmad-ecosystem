@@ -1,4 +1,4 @@
-set (EXENAME interface_test)
+set (EXENAME cpp_interface_test)
 
 file (GLOB SRC_FILES interface_test/*.f90 interface_test/*.cpp)
 
