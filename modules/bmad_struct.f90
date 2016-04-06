@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 177
+integer, parameter :: bmad_inc_version$ = 178
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -52,7 +52,6 @@ character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
 character(16), parameter :: ptc_integration_type_name(0:3) = [&
          'GARBAGE!   ', 'Drift_Kick ', 'Matrix_Kick', 'Ripken_Kick']
-
 
 ! sbend$ and rbend$ are from key definitions.
 
@@ -345,35 +344,6 @@ type bpm_phase_coupling_struct
   real(rp) phi_b    ! b-mode betatron phase.
 end type
 
-! Cartesian field decomposition
-
-integer, parameter :: hyper_y_family_y$ = 1, hyper_xy_family_y$ = 2, hyper_x_family_y$ = 3
-integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_family_x$ = 6
-integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
-integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
-integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
-character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage           ', &
-                                        'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
-                                        'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
-                                        'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
-                                        'Hyper_Y_Family_SQ ', 'Hyper_XY_Family_SQ', 'Hyper_X_Family_SQ ']
-
-! Single wiggler term
-
-type wig_term_struct
-  real(rp) :: coef = 0
-  real(rp) :: kx = 0, ky = 0, kz = 0
-  real(rp) :: x0 = 0, y0 = 0, phi_z = 0
-  integer :: type = 0        ! hyper_y_family_x$, etc.
-end type
-
-! Wiggler field
-
-type wig_struct
-  integer :: n_link = 1                            ! For memory management of %term
-  type (wig_term_struct), allocatable :: term(:)   ! Wiggler Coefs
-end type
-
 ! Wakefield structs...
 
 integer, parameter :: x_axis$ = 2, y_axis$ = 3
@@ -431,18 +401,58 @@ type wake_struct
   real(rp) :: z_sr_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-type em_field_map_term_struct
+! Cartesian field decomposition
+
+integer, parameter :: hyper_y_family_y$ = 1, hyper_xy_family_y$ = 2, hyper_x_family_y$ = 3
+integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_family_x$ = 6
+integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
+integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
+integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
+character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage           ', &
+                                        'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
+                                        'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
+                                        'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
+                                        'Hyper_Y_Family_SQ ', 'Hyper_XY_Family_SQ', 'Hyper_X_Family_SQ ']
+
+type wig_term_struct
+  real(rp) :: coef = 0
+  real(rp) :: kx = 0, ky = 0, kz = 0
+  real(rp) :: x0 = 0, y0 = 0, phi_z = 0
+  integer :: type = 0        ! hyper_y_family_x$, etc.
+end type
+
+type wig_struct
+  integer :: n_link = 1                            ! For memory management of %term
+  type (wig_term_struct), allocatable :: term(:)   
+end type
+
+type em_field_cartesian_map_term_struct
+  real(rp) :: coef = 0
+  real(rp) :: kx = 0, ky = 0, kz = 0
+  real(rp) :: x0 = 0, y0 = 0, phi_z = 0
+  integer :: type = 0        ! hyper_y_family_x$, etc.
+end type
+
+type em_field_cartesian_map_struct
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1                            ! For memory management of %term
+  integer :: ele_anchor_pt = anchor_beginning$
+                                ! anchor_beginning$, anchor_center$, or anchor_end$
+  type (em_field_cartesian_map_term_struct), allocatable :: term(:)   
+end type
+
+type em_field_cylindrical_map_term_struct
   complex(rp) :: e_coef = 0
   complex(rp) :: b_coef = 0
 end type
 
-type em_field_map_struct
+type em_field_cylindrical_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   integer :: ele_anchor_pt = anchor_beginning$
                                 ! anchor_beginning$, anchor_center$, or anchor_end$
   real(rp) :: dz = 0            ! Distance between sampled field points.
-  type (em_field_map_term_struct), allocatable :: term(:)
+  type (em_field_cylindrical_map_term_struct), allocatable :: term(:)
 end type
 
 type em_field_grid_pt_struct
@@ -452,21 +462,32 @@ end type
 
 type em_field_grid_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1         ! For memory management of this structure
   integer :: type = 0           ! Type of grid structure
   integer :: ele_anchor_pt = anchor_beginning$  
                                 ! anchor_beginning$, anchor_center$, or anchor_end$
-  integer :: n_link = 1         ! For memory management of this structure
   type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Grid origin.
   logical :: curved_coords = .false.
 end type
 
+type em_field_taylor_struct
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1         ! For memory management of this structure
+  integer :: ele_anchor_pt = anchor_beginning$  
+                                ! anchor_beginning$, anchor_center$, or anchor_end$
+  type (taylor_struct), allocatable :: pt(:)
+  real(rp) :: dr = 0   ! Grid spacing.
+  real(rp) :: r0 = 0   ! Grid origin.
+  logical :: curved_coords = .false.
+end type
+
 ! Electro-Magnetic mode structure
 ! Note: Unlike most everything else, to save on space, different ele%field%mode%grid
-! and ele%field%mode%map pointers may point to the same memeory location. 
+! and ele%field%mode%cylindrical_map pointers may point to the same memeory location. 
 ! This being the case, these components are never deallocated.
-! Rule: If %map is associated then %map%term(:) will be allocated.
+! Rule: If %cylindrical_map is associated then %cylindrical_map%term(:) will be allocated.
 ! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
@@ -478,8 +499,10 @@ type em_field_mode_struct
   real(rp) :: phi0_azimuth = 0     ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1      ! Factor to scale the fields by
   integer :: master_scale = 0      ! Master scaling parameter in ele%value(:) array.
-  type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
+  type (em_field_cylindrical_map_struct), pointer :: cylindrical_map => null()
+  type (em_field_cartesian_map_struct), pointer :: cartesian_map => null()
+  type (em_field_taylor_struct), pointer :: taylor => null()
 end type
 
 ! The RF field may be characterized by a collection of modes.
@@ -687,8 +710,8 @@ type ele_struct
   type (ele_struct), pointer :: lord => null()                       ! Pointer to a slice lord.
   type (em_fields_struct), pointer :: em_field => null()             ! DC and AC E/M fields
   type (fibre), pointer :: ptc_fibre => null()                       ! PTC tracking.
-  type (floor_position_struct) :: floor = floor_position_struct( &   ! Reference position in global coords.
-                                                       r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
+  type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
+                                                               ! Reference position in global coords.
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
   type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
@@ -1248,7 +1271,7 @@ end type
 type track_struct
   type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:) 
   type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:) 
-  type (track_map_struct), allocatable :: map(:)  ! An array of maps: %map(0:)
+  type (track_map_struct), allocatable :: map(:)  ! An array of maps: %cylindrical_map(0:)
   real(rp) :: ds_save = 1d-3                      ! Min distance between points.
   integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
   integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.

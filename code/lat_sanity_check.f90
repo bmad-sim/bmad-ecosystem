@@ -498,7 +498,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! multipass lords/slaves must share %em_field%mode%map and %em_field%mode%term memory
+    ! multipass lords/slaves must share %em_field%mode%cylindrical_map and %em_field%mode%term memory
 
     if (l_stat == multipass_lord$) then
       do is = 1, ele%n_slave
@@ -524,7 +524,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         endif
 
         do i = 1, size(ele%em_field%mode)
-          if (associated(ele%em_field%mode(i)%map) .neqv. associated(slave%em_field%mode(i)%map)) then
+          if (associated(ele%em_field%mode(i)%cylindrical_map) .neqv. associated(slave%em_field%mode(i)%cylindrical_map)) then
             call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
                     'HAS A SLAVE:' // slave%name, &
@@ -532,8 +532,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             err_flag = .true.
           endif
            
-          if (associated(ele%em_field%mode(i)%map) .and. &
-              .not. associated(ele%em_field%mode(i)%map, slave%em_field%mode(i)%map)) then
+          if (associated(ele%em_field%mode(i)%cylindrical_map) .and. &
+              .not. associated(ele%em_field%mode(i)%cylindrical_map, slave%em_field%mode(i)%cylindrical_map)) then
             call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
                     'HAS A SLAVE:' // slave%name, &

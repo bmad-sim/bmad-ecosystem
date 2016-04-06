@@ -185,7 +185,7 @@ type (wig_term_struct), pointer :: wig
 type (em_field_struct) :: field, field2, lord_field, l1_field
 type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
-type (em_field_map_term_struct), pointer :: term
+type (em_field_cylindrical_map_term_struct), pointer :: term
 type (floor_position_struct) lab_position, global_position, lord_position
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
@@ -831,7 +831,7 @@ case(map$)
 
     if (mode%harmonic /= 0) k_t = twopi * ele%value(rf_frequency$) * mode%harmonic / c_light
 
-    select case (mode%map%ele_anchor_pt)
+    select case (mode%cylindrical_map%ele_anchor_pt)
     case (anchor_beginning$); s0 = 0
     case (anchor_center$);    s0 = ele%value(l$) / 2
     case (anchor_end$);       s0 = ele%value(l$)
@@ -840,11 +840,11 @@ case(map$)
       if (global_com%exit_on_error) call err_exit
     end select
 
-    do n = 1, size(mode%map%term)
+    do n = 1, size(mode%cylindrical_map%term)
 
-      term => mode%map%term(n)
-      k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
-      if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
+      term => mode%cylindrical_map%term(n)
+      k_zn = twopi * (n - 1) / (size(mode%cylindrical_map%term) * mode%cylindrical_map%dz)
+      if (2 * n > size(mode%cylindrical_map%term)) k_zn = k_zn - twopi / mode%cylindrical_map%dz
 
       cos_ks = cos(k_zn * (s_rel-s0))
       sin_ks = sin(k_zn * (s_rel-s0))

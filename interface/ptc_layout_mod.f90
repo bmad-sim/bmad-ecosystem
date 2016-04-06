@@ -1636,7 +1636,7 @@ endif
 ptc_fibre => lost_fibre
 state = lost$
 
-!! ptc_fibre%map%p%aperture%...
+!! ptc_fibre%cylindrical_map%p%aperture%...
 !! xlost(1:6) is lost position
 
 !

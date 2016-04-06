@@ -527,7 +527,7 @@ end subroutine transfer_wall3d
 !
 ! Subroutine to transfer the field info from one struct to another.
 ! In the end will have:
-!     field_out%map  => field_in%map
+!     field_out%cylindrical_map  => field_in%cylindrical_map
 !     field_out%grid => field_in%grid
 !
 ! Modules needed:
@@ -560,7 +560,7 @@ if (.not. associated(field_out)) then
   field_out%mode = field_in%mode
   do i = 1, size(field_out%mode)
     mode => field_out%mode(i)
-    if (associated(mode%map)) mode%map%n_link = mode%map%n_link + 1
+    if (associated(mode%cylindrical_map)) mode%cylindrical_map%n_link = mode%cylindrical_map%n_link + 1
     if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
   enddo
   return
@@ -583,19 +583,19 @@ do i = 1, size(field_out%mode)
   mode_in => field_in%mode(i)
   mode_out => field_out%mode(i)
 
-  if (associated(mode_in%map) .and. associated(mode_out%map)) then
-    if (.not. associated(mode_in%map, mode_out%map)) then
-      mode_out%map%n_link = mode_out%map%n_link - 1
-      if (mode_out%map%n_link == 0) deallocate (mode_out%map)
-      mode_out%map => mode_in%map
-      mode_out%map%n_link = mode_out%map%n_link + 1
+  if (associated(mode_in%cylindrical_map) .and. associated(mode_out%cylindrical_map)) then
+    if (.not. associated(mode_in%cylindrical_map, mode_out%cylindrical_map)) then
+      mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link - 1
+      if (mode_out%cylindrical_map%n_link == 0) deallocate (mode_out%cylindrical_map)
+      mode_out%cylindrical_map => mode_in%cylindrical_map
+      mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link + 1
     endif
-  elseif (associated(mode_out%map) .and. .not. associated(mode_in%map)) then 
-    mode_out%map%n_link = mode_out%map%n_link - 1
-    if (mode_out%map%n_link == 0) deallocate (mode_out%map)
-  elseif (associated(mode_in%map) .and. .not. associated(mode_out%map)) then 
-    mode_out%map => mode_in%map
-    mode_out%map%n_link = mode_out%map%n_link + 1
+  elseif (associated(mode_out%cylindrical_map) .and. .not. associated(mode_in%cylindrical_map)) then 
+    mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link - 1
+    if (mode_out%cylindrical_map%n_link == 0) deallocate (mode_out%cylindrical_map)
+  elseif (associated(mode_in%cylindrical_map) .and. .not. associated(mode_out%cylindrical_map)) then 
+    mode_out%cylindrical_map => mode_in%cylindrical_map
+    mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link + 1
   endif
 
   if (associated(mode_in%grid) .and. associated(mode_out%grid)) then
@@ -739,9 +739,9 @@ call deallocate_wall3d_pointer (ele%wall3d)
 if (associated (ele%em_field)) then
   do i = 1, size(ele%em_field%mode)
     mode => ele%em_field%mode(i)
-    if (associated (mode%map)) then
-      mode%map%n_link = mode%map%n_link - 1
-      if (mode%map%n_link == 0) deallocate (ele%em_field%mode(i)%map)
+    if (associated (mode%cylindrical_map)) then
+      mode%cylindrical_map%n_link = mode%cylindrical_map%n_link - 1
+      if (mode%cylindrical_map%n_link == 0) deallocate (ele%em_field%mode(i)%cylindrical_map)
     endif
     if (associated (mode%grid)) then
       mode%grid%n_link = mode%grid%n_link - 1
@@ -1440,9 +1440,9 @@ endif
 if (associated(em_field)) then
   do i = 1, size(em_field%mode)
     mode => em_field%mode(i)
-    if (associated(mode%map)) then
-      mode%map%n_link = mode%map%n_link - 1
-      if (mode%map%n_link == 0) deallocate (mode%map)
+    if (associated(mode%cylindrical_map)) then
+      mode%cylindrical_map%n_link = mode%cylindrical_map%n_link - 1
+      if (mode%cylindrical_map%n_link == 0) deallocate (mode%cylindrical_map)
     endif
     if (associated(mode%grid)) then
       mode%grid%n_link = mode%grid%n_link - 1
