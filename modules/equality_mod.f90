@@ -17,7 +17,7 @@ interface operator (==)
   module procedure eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var
   module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_mode
   module procedure eq_wake_sr, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
-  module procedure eq_taylor, eq_wig_term, eq_wig, eq_em_field_cartesian_map, eq_em_field_cartesian_map_term
+  module procedure eq_taylor, eq_wig_term, eq_wig, eq_em_field_cartesian_map_term, eq_em_field_cartesian_map
   module procedure eq_em_field_cylindrical_map_term, eq_em_field_cylindrical_map, eq_em_field_taylor, eq_em_field_grid_pt, eq_em_field_grid
   module procedure eq_em_field_mode, eq_em_fields, eq_floor_position, eq_space_charge, eq_xy_disp
   module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
@@ -564,34 +564,6 @@ end function eq_wig
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_em_field_cartesian_map (f1, f2) result (is_eq)
-
-implicit none
-
-type(em_field_cartesian_map_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%file == f2%file)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_link == f2%n_link)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%term) .eqv. allocated(f2%term))
-if (.not. is_eq) return
-if (allocated(f1%term)) is_eq = all(shape(f1%term) == shape(f2%term))
-if (.not. is_eq) return
-if (allocated(f1%term)) is_eq = all(f1%term == f2%term)
-
-end function eq_em_field_cartesian_map
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_em_field_cartesian_map_term (f1, f2) result (is_eq)
 
 implicit none
@@ -620,6 +592,34 @@ is_eq = is_eq .and. (f1%phi_z == f2%phi_z)
 is_eq = is_eq .and. (f1%type == f2%type)
 
 end function eq_em_field_cartesian_map_term
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_em_field_cartesian_map (f1, f2) result (is_eq)
+
+implicit none
+
+type(em_field_cartesian_map_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file == f2%file)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_link == f2%n_link)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%term) .eqv. allocated(f2%term))
+if (.not. is_eq) return
+if (allocated(f1%term)) is_eq = all(shape(f1%term) == shape(f2%term))
+if (.not. is_eq) return
+if (allocated(f1%term)) is_eq = all(f1%term == f2%term)
+
+end function eq_em_field_cartesian_map
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
