@@ -1828,11 +1828,111 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%term)) allocate (F%term(-1:1))
   do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_em_field_cartesian_map_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+    call set_wig_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 
 end subroutine set_wig_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_em_field_cartesian_map_term (ok)
+
+implicit none
+
+type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_em_field_cartesian_map_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 1)
+
+call test_c_em_field_cartesian_map_term(c_loc(f2_em_field_cartesian_map_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_em_field_cartesian_map_term_test_pattern (f_em_field_cartesian_map_term, 4)
+if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
+  print *, 'em_field_cartesian_map_term: C side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_em_field_cartesian_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_em_field_cartesian_map_term
+type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call em_field_cartesian_map_term_to_f (c_em_field_cartesian_map_term, c_loc(f_em_field_cartesian_map_term))
+
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 2)
+if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
+  print *, 'em_field_cartesian_map_term: F side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 3)
+call em_field_cartesian_map_term_to_c (c_loc(f2_em_field_cartesian_map_term), c_em_field_cartesian_map_term)
+
+end subroutine test2_f_em_field_cartesian_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_em_field_cartesian_map_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(em_field_cartesian_map_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%coef = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%kx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%ky = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%kz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%phi_z = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%type = rhs
+
+end subroutine set_em_field_cartesian_map_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -1935,106 +2035,6 @@ else
 endif
 
 end subroutine set_em_field_cartesian_map_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_em_field_cartesian_map_term (ok)
-
-implicit none
-
-type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_em_field_cartesian_map_term
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 1)
-
-call test_c_em_field_cartesian_map_term(c_loc(f2_em_field_cartesian_map_term), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_em_field_cartesian_map_term_test_pattern (f_em_field_cartesian_map_term, 4)
-if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
-  print *, 'em_field_cartesian_map_term: C side convert C->F: Good'
-else
-  print *, 'em_field_cartesian_map_term: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_em_field_cartesian_map_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_em_field_cartesian_map_term
-type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call em_field_cartesian_map_term_to_f (c_em_field_cartesian_map_term, c_loc(f_em_field_cartesian_map_term))
-
-call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 2)
-if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
-  print *, 'em_field_cartesian_map_term: F side convert C->F: Good'
-else
-  print *, 'em_field_cartesian_map_term: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 3)
-call em_field_cartesian_map_term_to_c (c_loc(f2_em_field_cartesian_map_term), c_em_field_cartesian_map_term)
-
-end subroutine test2_f_em_field_cartesian_map_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_em_field_cartesian_map_term_test_pattern (F, ix_patt)
-
-implicit none
-
-type(em_field_cartesian_map_term_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%coef = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%kx = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%ky = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%kz = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%y0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%phi_z = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%type = rhs
-
-end subroutine set_em_field_cartesian_map_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

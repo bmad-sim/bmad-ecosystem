@@ -30,6 +30,8 @@ def searchit (file):
     line = re_int.sub('const int ', line)
     line = re_real.sub('const double ', line)
 
+    if '(' in line: continue                              # Skip parameter arrays. EG: "real(rp), parameter :: abc(3) = 0"
+
     line = line.replace('$', '')
 
     if re_equal.search(line):
@@ -82,6 +84,7 @@ searchit('../bmad/modules/bmad_struct.f90')
 searchit('../bmad/modules/basic_bmad_mod.f90')
 searchit('../sim_utils/io/output_mod.f90')
 searchit('../sim_utils/interfaces/physical_constants.f90')
+searchit('../sim_utils/interfaces/particle_species_mod.f90')
 
 f_out.write('''
 }

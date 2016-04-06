@@ -350,20 +350,6 @@ template bool is_all_equal (const CPP_wig_MATRIX&, const CPP_wig_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_em_field_cartesian_map& x, const CPP_em_field_cartesian_map& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.file == y.file);
-  is_eq = is_eq && (x.n_link == y.n_link);
-  is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
-  is_eq = is_eq && is_all_equal(x.term, y.term);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_em_field_cartesian_map_ARRAY&, const CPP_em_field_cartesian_map_ARRAY&);
-template bool is_all_equal (const CPP_em_field_cartesian_map_MATRIX&, const CPP_em_field_cartesian_map_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_em_field_cartesian_map_term& x, const CPP_em_field_cartesian_map_term& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.coef == y.coef);
@@ -379,6 +365,20 @@ bool operator== (const CPP_em_field_cartesian_map_term& x, const CPP_em_field_ca
 
 template bool is_all_equal (const CPP_em_field_cartesian_map_term_ARRAY&, const CPP_em_field_cartesian_map_term_ARRAY&);
 template bool is_all_equal (const CPP_em_field_cartesian_map_term_MATRIX&, const CPP_em_field_cartesian_map_term_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_em_field_cartesian_map& x, const CPP_em_field_cartesian_map& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && (x.n_link == y.n_link);
+  is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_em_field_cartesian_map_ARRAY&, const CPP_em_field_cartesian_map_ARRAY&);
+template bool is_all_equal (const CPP_em_field_cartesian_map_MATRIX&, const CPP_em_field_cartesian_map_MATRIX&);
 
 //--------------------------------------------------------------
 

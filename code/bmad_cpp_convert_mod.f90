@@ -179,7 +179,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_field_cartesian_map_to_f (C, Fp) bind(c)
+  subroutine em_field_cartesian_map_term_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -188,7 +188,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_field_cartesian_map_term_to_f (C, Fp) bind(c)
+  subroutine em_field_cartesian_map_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -2558,12 +2558,110 @@ else
   endif
   if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
   do jd1 = 1, n1_term
-    call em_field_cartesian_map_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+    call wig_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
   enddo
 endif
 
 
 end subroutine wig_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_cartesian_map_term_struct to a C++ CPP_em_field_cartesian_map_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_cartesian_map_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cartesian_map_term struct.
+!-
+
+subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_cartesian_map_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
+      z_phi_z, z_type) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+    integer(c_int) :: z_type
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_cartesian_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call em_field_cartesian_map_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%x0, F%y0, F%phi_z, &
+    F%type)
+
+end subroutine em_field_cartesian_map_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_cartesian_map_term structure to a Bmad em_field_cartesian_map_term_struct structure.
+! This routine is called by em_field_cartesian_map_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_cartesian_map_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_cartesian_map_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_cartesian_map_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
+    z_phi_z, z_type) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_cartesian_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+integer(c_int) :: z_type
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kx = z_kx
+!! f_side.to_f2_trans[real, 0, NOT]
+F%ky = z_ky
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kz = z_kz
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi_z = z_phi_z
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+
+end subroutine em_field_cartesian_map_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2681,104 +2779,6 @@ endif
 
 
 end subroutine em_field_cartesian_map_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad em_field_cartesian_map_term_struct to a C++ CPP_em_field_cartesian_map_term structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad em_field_cartesian_map_term_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cartesian_map_term struct.
-!-
-
-subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine em_field_cartesian_map_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
-      z_phi_z, z_type) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
-    integer(c_int) :: z_type
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(em_field_cartesian_map_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call em_field_cartesian_map_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%x0, F%y0, F%phi_z, &
-    F%type)
-
-end subroutine em_field_cartesian_map_term_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine em_field_cartesian_map_term_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_em_field_cartesian_map_term structure to a Bmad em_field_cartesian_map_term_struct structure.
-! This routine is called by em_field_cartesian_map_term_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the em_field_cartesian_map_term_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad em_field_cartesian_map_term_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine em_field_cartesian_map_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
-    z_phi_z, z_type) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(em_field_cartesian_map_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
-integer(c_int) :: z_type
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%coef = z_coef
-!! f_side.to_f2_trans[real, 0, NOT]
-F%kx = z_kx
-!! f_side.to_f2_trans[real, 0, NOT]
-F%ky = z_ky
-!! f_side.to_f2_trans[real, 0, NOT]
-F%kz = z_kz
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x0 = z_x0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y0 = z_y0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%phi_z = z_phi_z
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
-
-end subroutine em_field_cartesian_map_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

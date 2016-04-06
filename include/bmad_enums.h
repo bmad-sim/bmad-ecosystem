@@ -76,7 +76,6 @@ namespace Bmad {
   const int HYPER_Y_FAMILY_QU = 7, HYPER_XY_FAMILY_QU = 8, HYPER_X_FAMILY_QU = 9;
   const int HYPER_Y_FAMILY_SQ = 10, HYPER_XY_FAMILY_SQ = 11, HYPER_X_FAMILY_SQ = 12;
   const int X_FAMILY = 1, Y_FAMILY = 2, QU_FAMILY = 3, SQ_FAMILY = 4;
-  const double R0_VEC(3) = 0;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
@@ -330,17 +329,30 @@ namespace Bmad {
   const double H_PLANCK = 4.13566733E-15;
   const double H_BAR_PLANCK = 6.58211899E-16;
   const double MU_0_VAC = FOURPI * 1E-7;
-  const double EPS_0_VAC = 1 / (C_LIGHT*C_LIGHT * MU_0_VAC);
   const double CLASSICAL_RADIUS_FACTOR = 1.439964416E-9;
   const double N_AVOGADRO = 6.02214129E23;
   const double FINE_STRUCTURE_CONSTANT =  7.29735257E-3;
   const double ANOMALOUS_MAG_MOMENT_ELECTRON = 1.159652193E-3;
-  const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285_DP;
+  const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285E0;
   const double ANOMALOUS_MAG_MOMENT_MUON     = 1.1659208E-3;
-  const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298727047_DP;
+  const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298727047E0;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
   const double TRUE = 1, FALSE = 0;
+  const int INVALID = -666;
+  const int NOT_SET = -999;
+  const int DEUTERON   = 8;
+  const int REF_PARTICLE = 6, ANTI_REF_PARTICLE = 7;
+  const int PION_0     = +5;
+  const int PION_PLUS  = +4;
+  const int ANTIMUON   = +3;
+  const int PROTON     = +2;
+  const int POSITRON   = +1;
+  const int PHOTON     =  0;
+  const int ELECTRON   = -1;
+  const int ANTIPROTON = -2;
+  const int MUON       = -3;
+  const int PION_MINUS = -4;
 
 }
 

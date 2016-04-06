@@ -142,15 +142,15 @@ typedef valarray<CPP_wig>          CPP_wig_ARRAY;
 typedef valarray<CPP_wig_ARRAY>    CPP_wig_MATRIX;
 typedef valarray<CPP_wig_MATRIX>   CPP_wig_TENSOR;
 
-class CPP_em_field_cartesian_map;
-typedef valarray<CPP_em_field_cartesian_map>          CPP_em_field_cartesian_map_ARRAY;
-typedef valarray<CPP_em_field_cartesian_map_ARRAY>    CPP_em_field_cartesian_map_MATRIX;
-typedef valarray<CPP_em_field_cartesian_map_MATRIX>   CPP_em_field_cartesian_map_TENSOR;
-
 class CPP_em_field_cartesian_map_term;
 typedef valarray<CPP_em_field_cartesian_map_term>          CPP_em_field_cartesian_map_term_ARRAY;
 typedef valarray<CPP_em_field_cartesian_map_term_ARRAY>    CPP_em_field_cartesian_map_term_MATRIX;
 typedef valarray<CPP_em_field_cartesian_map_term_MATRIX>   CPP_em_field_cartesian_map_term_TENSOR;
+
+class CPP_em_field_cartesian_map;
+typedef valarray<CPP_em_field_cartesian_map>          CPP_em_field_cartesian_map_ARRAY;
+typedef valarray<CPP_em_field_cartesian_map_ARRAY>    CPP_em_field_cartesian_map_MATRIX;
+typedef valarray<CPP_em_field_cartesian_map_MATRIX>   CPP_em_field_cartesian_map_TENSOR;
 
 class CPP_em_field_cylindrical_map_term;
 typedef valarray<CPP_em_field_cylindrical_map_term>          CPP_em_field_cylindrical_map_term_ARRAY;
@@ -981,11 +981,11 @@ class Bmad_wig_class {};  // Opaque class for pointers to corresponding fortran 
 class CPP_wig {
 public:
   Int n_link;
-  CPP_em_field_cartesian_map_term_ARRAY term;
+  CPP_wig_term_ARRAY term;
 
   CPP_wig() :
     n_link(1),
-    term(CPP_em_field_cartesian_map_term_ARRAY(CPP_em_field_cartesian_map_term(), 0))
+    term(CPP_wig_term_ARRAY(CPP_wig_term(), 0))
     {}
 
   ~CPP_wig() {
@@ -997,36 +997,6 @@ extern "C" void wig_to_c (const Bmad_wig_class*, CPP_wig&);
 extern "C" void wig_to_f (const CPP_wig&, Bmad_wig_class*);
 
 bool operator== (const CPP_wig&, const CPP_wig&);
-
-
-//--------------------------------------------------------------------
-// CPP_em_field_cartesian_map
-
-class Bmad_em_field_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_em_field_cartesian_map {
-public:
-  string file;
-  Int n_link;
-  Int ele_anchor_pt;
-  CPP_em_field_cartesian_map_term_ARRAY term;
-
-  CPP_em_field_cartesian_map() :
-    file(),
-    n_link(1),
-    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    term(CPP_em_field_cartesian_map_term_ARRAY(CPP_em_field_cartesian_map_term(), 0))
-    {}
-
-  ~CPP_em_field_cartesian_map() {
-  }
-
-};   // End Class
-
-extern "C" void em_field_cartesian_map_to_c (const Bmad_em_field_cartesian_map_class*, CPP_em_field_cartesian_map&);
-extern "C" void em_field_cartesian_map_to_f (const CPP_em_field_cartesian_map&, Bmad_em_field_cartesian_map_class*);
-
-bool operator== (const CPP_em_field_cartesian_map&, const CPP_em_field_cartesian_map&);
 
 
 //--------------------------------------------------------------------
@@ -1065,6 +1035,36 @@ extern "C" void em_field_cartesian_map_term_to_c (const Bmad_em_field_cartesian_
 extern "C" void em_field_cartesian_map_term_to_f (const CPP_em_field_cartesian_map_term&, Bmad_em_field_cartesian_map_term_class*);
 
 bool operator== (const CPP_em_field_cartesian_map_term&, const CPP_em_field_cartesian_map_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_cartesian_map
+
+class Bmad_em_field_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_cartesian_map {
+public:
+  string file;
+  Int n_link;
+  Int ele_anchor_pt;
+  CPP_em_field_cartesian_map_term_ARRAY term;
+
+  CPP_em_field_cartesian_map() :
+    file(),
+    n_link(1),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    term(CPP_em_field_cartesian_map_term_ARRAY(CPP_em_field_cartesian_map_term(), 0))
+    {}
+
+  ~CPP_em_field_cartesian_map() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_cartesian_map_to_c (const Bmad_em_field_cartesian_map_class*, CPP_em_field_cartesian_map&);
+extern "C" void em_field_cartesian_map_to_f (const CPP_em_field_cartesian_map&, Bmad_em_field_cartesian_map_class*);
+
+bool operator== (const CPP_em_field_cartesian_map&, const CPP_em_field_cartesian_map&);
 
 
 //--------------------------------------------------------------------
@@ -1316,7 +1316,7 @@ public:
 
   CPP_floor_position() :
     r(0.0, 3),
-    w(Real_ARRAY(w_unit, 3), 3),
+    w(Real_ARRAY(0.0, 3), 3),
     theta(0.0),
     phi(0.0),
     psi(0.0)

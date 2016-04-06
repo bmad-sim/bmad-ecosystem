@@ -866,15 +866,14 @@ extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c
 extern "C" void wig_to_c (const Bmad_wig_class*, CPP_wig&);
 
 // c_side.to_f2_arg
-extern "C" void wig_to_f2 (Bmad_wig_class*, c_Int&, const CPP_em_field_cartesian_map_term**,
-    Int);
+extern "C" void wig_to_f2 (Bmad_wig_class*, c_Int&, const CPP_wig_term**, Int);
 
 extern "C" void wig_to_f (const CPP_wig& C, Bmad_wig_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_term = C.term.size();
-  const CPP_em_field_cartesian_map_term** z_term = NULL;
+  const CPP_wig_term** z_term = NULL;
   if (n1_term != 0) {
-    z_term = new const CPP_em_field_cartesian_map_term*[n1_term];
+    z_term = new const CPP_wig_term*[n1_term];
     for (int i = 0; i < n1_term; i++) z_term[i] = &C.term[i];
   }
 
@@ -886,15 +885,55 @@ extern "C" void wig_to_f (const CPP_wig& C, Bmad_wig_class* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link,
-    Bmad_em_field_cartesian_map_term_class** z_term, Int n1_term) {
+extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link, Bmad_wig_term_class** z_term, Int
+    n1_term) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_link = z_n_link;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.term.resize(n1_term);
-  for (int i = 0; i < n1_term; i++) em_field_cartesian_map_term_to_c(z_term[i], C.term[i]);
+  for (int i = 0; i < n1_term; i++) wig_term_to_c(z_term[i], C.term[i]);
 
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_em_field_cartesian_map_term
+
+extern "C" void em_field_cartesian_map_term_to_c (const Bmad_em_field_cartesian_map_term_class*, CPP_em_field_cartesian_map_term&);
+
+// c_side.to_f2_arg
+extern "C" void em_field_cartesian_map_term_to_f2 (Bmad_em_field_cartesian_map_term_class*,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&);
+
+extern "C" void em_field_cartesian_map_term_to_f (const CPP_em_field_cartesian_map_term& C, Bmad_em_field_cartesian_map_term_class* F) {
+
+  // c_side.to_f2_call
+  em_field_cartesian_map_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.x0, C.y0, C.phi_z, C.type);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void em_field_cartesian_map_term_to_c2 (CPP_em_field_cartesian_map_term& C, c_Real&
+    z_coef, c_Real& z_kx, c_Real& z_ky, c_Real& z_kz, c_Real& z_x0, c_Real& z_y0, c_Real&
+    z_phi_z, c_Int& z_type) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.coef = z_coef;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.kx = z_kx;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.ky = z_ky;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.kz = z_kz;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x0 = z_x0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y0 = z_y0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi_z = z_phi_z;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
 }
 
 //--------------------------------------------------------------------
@@ -938,46 +977,6 @@ extern "C" void em_field_cartesian_map_to_c2 (CPP_em_field_cartesian_map& C, c_C
   C.term.resize(n1_term);
   for (int i = 0; i < n1_term; i++) em_field_cartesian_map_term_to_c(z_term[i], C.term[i]);
 
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_em_field_cartesian_map_term
-
-extern "C" void em_field_cartesian_map_term_to_c (const Bmad_em_field_cartesian_map_term_class*, CPP_em_field_cartesian_map_term&);
-
-// c_side.to_f2_arg
-extern "C" void em_field_cartesian_map_term_to_f2 (Bmad_em_field_cartesian_map_term_class*,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&);
-
-extern "C" void em_field_cartesian_map_term_to_f (const CPP_em_field_cartesian_map_term& C, Bmad_em_field_cartesian_map_term_class* F) {
-
-  // c_side.to_f2_call
-  em_field_cartesian_map_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.x0, C.y0, C.phi_z, C.type);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void em_field_cartesian_map_term_to_c2 (CPP_em_field_cartesian_map_term& C, c_Real&
-    z_coef, c_Real& z_kx, c_Real& z_ky, c_Real& z_kz, c_Real& z_x0, c_Real& z_y0, c_Real&
-    z_phi_z, c_Int& z_type) {
-
-  // c_side.to_c2_set[real, 0, NOT]
-  C.coef = z_coef;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.kx = z_kx;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.ky = z_ky;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.kz = z_kz;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x0 = z_x0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y0 = z_y0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.phi_z = z_phi_z;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.type = z_type;
 }
 
 //--------------------------------------------------------------------

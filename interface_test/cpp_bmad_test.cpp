@@ -1193,7 +1193,7 @@ void set_CPP_wig_test_pattern (CPP_wig& C, int ix_patt) {
     C.term.resize(0);
   else {
     C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cartesian_map_term_test_pattern(C.term[i], ix_patt+i+1);}
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_wig_term_test_pattern(C.term[i], ix_patt+i+1);}
   }
 
 
@@ -1232,72 +1232,6 @@ extern "C" void test_c_wig (Bmad_wig_class* F, bool& c_ok) {
 
   set_CPP_wig_test_pattern (C2, 4);
   wig_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_em_field_cartesian_map (CPP_em_field_cartesian_map&, bool&);
-
-void set_CPP_em_field_cartesian_map_test_pattern (CPP_em_field_cartesian_map& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[character, 0, NOT]
-  C.file.resize(200);
-  for (unsigned int i = 0; i < C.file.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_link = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ele_anchor_pt = rhs;
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.term.resize(0);
-  else {
-    C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cartesian_map_term_test_pattern(C.term[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_em_field_cartesian_map (Bmad_em_field_cartesian_map_class* F, bool& c_ok) {
-
-  CPP_em_field_cartesian_map C, C2;
-
-  c_ok = true;
-
-  em_field_cartesian_map_to_c (F, C);
-  set_CPP_em_field_cartesian_map_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " em_field_cartesian_map: C side convert F->C: Good" << endl;
-  } else {
-    cout << " em_field_cartesian_map: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_em_field_cartesian_map_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_em_field_cartesian_map (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_em_field_cartesian_map_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " em_field_cartesian_map: F side convert F->C: Good" << endl;
-  } else {
-    cout << " em_field_cartesian_map: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_em_field_cartesian_map_test_pattern (C2, 4);
-  em_field_cartesian_map_to_f (C2, F);
 
 }
 
@@ -1370,6 +1304,72 @@ extern "C" void test_c_em_field_cartesian_map_term (Bmad_em_field_cartesian_map_
 
   set_CPP_em_field_cartesian_map_term_test_pattern (C2, 4);
   em_field_cartesian_map_term_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_em_field_cartesian_map (CPP_em_field_cartesian_map&, bool&);
+
+void set_CPP_em_field_cartesian_map_test_pattern (CPP_em_field_cartesian_map& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_link = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.ele_anchor_pt = rhs;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.term.resize(0);
+  else {
+    C.term.resize(3);
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cartesian_map_term_test_pattern(C.term[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_em_field_cartesian_map (Bmad_em_field_cartesian_map_class* F, bool& c_ok) {
+
+  CPP_em_field_cartesian_map C, C2;
+
+  c_ok = true;
+
+  em_field_cartesian_map_to_c (F, C);
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " em_field_cartesian_map: C side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_em_field_cartesian_map (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_em_field_cartesian_map_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " em_field_cartesian_map: F side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 4);
+  em_field_cartesian_map_to_f (C2, F);
 
 }
 

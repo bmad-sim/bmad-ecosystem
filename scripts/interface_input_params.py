@@ -37,8 +37,8 @@ struct_list = [
     'taylor_struct',
     'wig_term_struct',
     'wig_struct',
-    'em_field_cartesian_map_struct',
     'em_field_cartesian_map_term_struct',
+    'em_field_cartesian_map_struct',
     'em_field_cylindrical_map_term_struct',
     'em_field_cylindrical_map_struct',
     'em_field_taylor_struct',
@@ -164,6 +164,7 @@ c_custom_constructors = {
     'ele%is_on' : 'is_on(true)', 
     'ele%csr_calc_on' : 'csr_calc_on(true)',
     'ele%orientation' : 'orientation(1)',
+    'floor_position%w' : 'w(Real_ARRAY(0.0, 3), 3)',
 }
 
 #-----------------------------------------------
