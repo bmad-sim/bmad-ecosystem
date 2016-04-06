@@ -227,7 +227,8 @@ do i = 0, n_step
 
   ie = ele%ix_ele
   csr_top%s_kick = s0_step + ele%s - ele%value(l$)
-  csr_top%z_kick = (csr_top%source_ele(ie-1)%orbit_c%vec(5) + dz(s0_step, ele, csr_top%source_ele(ie)%spline)) 
+  csr_top%z_kick = (csr_top%source_ele(ie-1)%orbit_c%vec(5) + &
+                      dz_from_ele_beginning(s0_step, ele, csr_top%source_ele(ie)%spline)) 
 
   call csr_bin_particles (bunch_end%particle, csr_top)
 
@@ -869,9 +870,8 @@ l_vec(2) = csr_top%y2
 l_vec(3) = fk%r(3) - fs%r(3)
 kick1%L = sqrt(dot_product(L_vec, L_vec))
 
-z = (csr_top%s_kick + csr_top%z_kick) - &
-                    (s + s_ele%s - s_ele%value(l$) + dz(s, s_ele, source_ele%spline)) - &
-                    csr_top%beta * kick1%L
+z = (csr_top%s_kick + csr_top%z_kick) - (s + s_ele%s - s_ele%value(l$) + &
+                    dz_from_ele_beginning(s, s_ele, source_ele%spline)) - csr_top%beta * kick1%L
 ddz_this = z - kick1%dz_particles
 
 end function ddz_calc_csr
@@ -971,7 +971,7 @@ end subroutine csr_kick_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function dz(s, ele, spline) result (this_dz)
+! Function dz_from_ele_beginning(s, ele, spline) result (this_dz)
 !
 ! Routine to calculate the change in particle z from the beginning of an element to a particular point.
 !
@@ -984,7 +984,7 @@ end subroutine csr_kick_calc
 !   this_dz -- real(rp): change in particle z.
 !-
 
-function dz(s, ele, spline) result (this_dz)
+function dz_from_ele_beginning(s, ele, spline) result (this_dz)
 
 implicit none
 
@@ -1004,6 +1004,6 @@ this_dz = -(c(1)**2 * s + 2*c(1)*c(2) * s**2 + (6*c(1)*c(3) + 4*c(2)**2) * s**3/
 if (ele%key /= sbend$) return
 this_dz = this_dz - ele%value(g$) * (c(0)*s + c(1)*s**2/2 + c(2)*s**3/3 + c(3)* s**4/4)
 
-end function dz
+end function dz_from_ele_beginning
 
 end module
