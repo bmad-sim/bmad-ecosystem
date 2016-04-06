@@ -646,137 +646,6 @@ extern "C" void test_c_expression_atom (Bmad_expression_atom_class* F, bool& c_o
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wig_term (CPP_wig_term&, bool&);
-
-void set_CPP_wig_term_test_pattern (CPP_wig_term& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.coef = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.kx = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.ky = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.kz = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.x0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.y0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.phi_z = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.type = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_wig_term (Bmad_wig_term_class* F, bool& c_ok) {
-
-  CPP_wig_term C, C2;
-
-  c_ok = true;
-
-  wig_term_to_c (F, C);
-  set_CPP_wig_term_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " wig_term: C side convert F->C: Good" << endl;
-  } else {
-    cout << " wig_term: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wig_term_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_wig_term (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_wig_term_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " wig_term: F side convert F->C: Good" << endl;
-  } else {
-    cout << " wig_term: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wig_term_test_pattern (C2, 4);
-  wig_term_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_wig (CPP_wig&, bool&);
-
-void set_CPP_wig_test_pattern (CPP_wig& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.n_link = rhs;
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.term.resize(0);
-  else {
-    C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_wig_term_test_pattern(C.term[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_wig (Bmad_wig_class* F, bool& c_ok) {
-
-  CPP_wig C, C2;
-
-  c_ok = true;
-
-  wig_to_c (F, C);
-  set_CPP_wig_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " wig: C side convert F->C: Good" << endl;
-  } else {
-    cout << " wig: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wig_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_wig (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_wig_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " wig: F side convert F->C: Good" << endl;
-  } else {
-    cout << " wig: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wig_test_pattern (C2, 4);
-  wig_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_wake_sr_mode (CPP_wake_sr_mode&, bool&);
 
 void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
@@ -1125,9 +994,391 @@ extern "C" void test_c_wake (Bmad_wake_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_em_field_map_term (CPP_em_field_map_term&, bool&);
+extern "C" void test2_f_taylor_term (CPP_taylor_term&, bool&);
 
-void set_CPP_em_field_map_term_test_pattern (CPP_em_field_map_term& C, int ix_patt) {
+void set_CPP_taylor_term_test_pattern (CPP_taylor_term& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.coef = rhs;
+
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.expn.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.expn[i] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_taylor_term (Bmad_taylor_term_class* F, bool& c_ok) {
+
+  CPP_taylor_term C, C2;
+
+  c_ok = true;
+
+  taylor_term_to_c (F, C);
+  set_CPP_taylor_term_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " taylor_term: C side convert F->C: Good" << endl;
+  } else {
+    cout << " taylor_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_taylor_term_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_taylor_term (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_taylor_term_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " taylor_term: F side convert F->C: Good" << endl;
+  } else {
+    cout << " taylor_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_taylor_term_test_pattern (C2, 4);
+  taylor_term_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_taylor (CPP_taylor&, bool&);
+
+void set_CPP_taylor_test_pattern (CPP_taylor& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.ref = rhs;
+
+  // c_side.test_pat[type, 1, PTR]
+  if (ix_patt < 3) 
+    C.term.resize(0);
+  else {
+    C.term.resize(3);
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_taylor_term_test_pattern(C.term[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_taylor (Bmad_taylor_class* F, bool& c_ok) {
+
+  CPP_taylor C, C2;
+
+  c_ok = true;
+
+  taylor_to_c (F, C);
+  set_CPP_taylor_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " taylor: C side convert F->C: Good" << endl;
+  } else {
+    cout << " taylor: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_taylor_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_taylor (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_taylor_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " taylor: F side convert F->C: Good" << endl;
+  } else {
+    cout << " taylor: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_taylor_test_pattern (C2, 4);
+  taylor_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_wig_term (CPP_wig_term&, bool&);
+
+void set_CPP_wig_term_test_pattern (CPP_wig_term& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.coef = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.kx = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.ky = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.kz = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.phi_z = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.type = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_wig_term (Bmad_wig_term_class* F, bool& c_ok) {
+
+  CPP_wig_term C, C2;
+
+  c_ok = true;
+
+  wig_term_to_c (F, C);
+  set_CPP_wig_term_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " wig_term: C side convert F->C: Good" << endl;
+  } else {
+    cout << " wig_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wig_term_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_wig_term (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_wig_term_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " wig_term: F side convert F->C: Good" << endl;
+  } else {
+    cout << " wig_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wig_term_test_pattern (C2, 4);
+  wig_term_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_wig (CPP_wig&, bool&);
+
+void set_CPP_wig_test_pattern (CPP_wig& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.n_link = rhs;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.term.resize(0);
+  else {
+    C.term.resize(3);
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cartesian_map_term_test_pattern(C.term[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_wig (Bmad_wig_class* F, bool& c_ok) {
+
+  CPP_wig C, C2;
+
+  c_ok = true;
+
+  wig_to_c (F, C);
+  set_CPP_wig_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " wig: C side convert F->C: Good" << endl;
+  } else {
+    cout << " wig: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wig_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_wig (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_wig_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " wig: F side convert F->C: Good" << endl;
+  } else {
+    cout << " wig: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wig_test_pattern (C2, 4);
+  wig_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_em_field_cartesian_map (CPP_em_field_cartesian_map&, bool&);
+
+void set_CPP_em_field_cartesian_map_test_pattern (CPP_em_field_cartesian_map& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_link = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.ele_anchor_pt = rhs;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.term.resize(0);
+  else {
+    C.term.resize(3);
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cartesian_map_term_test_pattern(C.term[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_em_field_cartesian_map (Bmad_em_field_cartesian_map_class* F, bool& c_ok) {
+
+  CPP_em_field_cartesian_map C, C2;
+
+  c_ok = true;
+
+  em_field_cartesian_map_to_c (F, C);
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " em_field_cartesian_map: C side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_em_field_cartesian_map (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_em_field_cartesian_map_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " em_field_cartesian_map: F side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_test_pattern (C2, 4);
+  em_field_cartesian_map_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_em_field_cartesian_map_term (CPP_em_field_cartesian_map_term&, bool&);
+
+void set_CPP_em_field_cartesian_map_term_test_pattern (CPP_em_field_cartesian_map_term& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.coef = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.kx = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.ky = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.kz = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.phi_z = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.type = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_em_field_cartesian_map_term (Bmad_em_field_cartesian_map_term_class* F, bool& c_ok) {
+
+  CPP_em_field_cartesian_map_term C, C2;
+
+  c_ok = true;
+
+  em_field_cartesian_map_term_to_c (F, C);
+  set_CPP_em_field_cartesian_map_term_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " em_field_cartesian_map_term: C side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_term_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_em_field_cartesian_map_term (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_em_field_cartesian_map_term_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " em_field_cartesian_map_term: F side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_cartesian_map_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_cartesian_map_term_test_pattern (C2, 4);
+  em_field_cartesian_map_term_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_em_field_cylindrical_map_term (CPP_em_field_cylindrical_map_term&, bool&);
+
+void set_CPP_em_field_cylindrical_map_term_test_pattern (CPP_em_field_cylindrical_map_term& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -1142,46 +1393,46 @@ void set_CPP_em_field_map_term_test_pattern (CPP_em_field_map_term& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_map_term (Bmad_em_field_map_term_class* F, bool& c_ok) {
+extern "C" void test_c_em_field_cylindrical_map_term (Bmad_em_field_cylindrical_map_term_class* F, bool& c_ok) {
 
-  CPP_em_field_map_term C, C2;
+  CPP_em_field_cylindrical_map_term C, C2;
 
   c_ok = true;
 
-  em_field_map_term_to_c (F, C);
-  set_CPP_em_field_map_term_test_pattern (C2, 1);
+  em_field_cylindrical_map_term_to_c (F, C);
+  set_CPP_em_field_cylindrical_map_term_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " em_field_map_term: C side convert F->C: Good" << endl;
+    cout << " em_field_cylindrical_map_term: C side convert F->C: Good" << endl;
   } else {
-    cout << " em_field_map_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " em_field_cylindrical_map_term: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_field_map_term_test_pattern (C2, 2);
+  set_CPP_em_field_cylindrical_map_term_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_em_field_map_term (C2, c_ok2);
+  test2_f_em_field_cylindrical_map_term (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_em_field_map_term_test_pattern (C, 3);
+  set_CPP_em_field_cylindrical_map_term_test_pattern (C, 3);
   if (C == C2) {
-    cout << " em_field_map_term: F side convert F->C: Good" << endl;
+    cout << " em_field_cylindrical_map_term: F side convert F->C: Good" << endl;
   } else {
-    cout << " em_field_map_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " em_field_cylindrical_map_term: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_field_map_term_test_pattern (C2, 4);
-  em_field_map_term_to_f (C2, F);
+  set_CPP_em_field_cylindrical_map_term_test_pattern (C2, 4);
+  em_field_cylindrical_map_term_to_f (C2, F);
 
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_em_field_map (CPP_em_field_map&, bool&);
+extern "C" void test2_f_em_field_cylindrical_map (CPP_em_field_cylindrical_map&, bool&);
 
-void set_CPP_em_field_map_test_pattern (CPP_em_field_map& C, int ix_patt) {
+void set_CPP_em_field_cylindrical_map_test_pattern (CPP_em_field_cylindrical_map& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -1203,7 +1454,7 @@ void set_CPP_em_field_map_test_pattern (CPP_em_field_map& C, int ix_patt) {
     C.term.resize(0);
   else {
     C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_map_term_test_pattern(C.term[i], ix_patt+i+1);}
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_field_cylindrical_map_term_test_pattern(C.term[i], ix_patt+i+1);}
   }
 
 
@@ -1211,37 +1462,112 @@ void set_CPP_em_field_map_test_pattern (CPP_em_field_map& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_map (Bmad_em_field_map_class* F, bool& c_ok) {
+extern "C" void test_c_em_field_cylindrical_map (Bmad_em_field_cylindrical_map_class* F, bool& c_ok) {
 
-  CPP_em_field_map C, C2;
+  CPP_em_field_cylindrical_map C, C2;
 
   c_ok = true;
 
-  em_field_map_to_c (F, C);
-  set_CPP_em_field_map_test_pattern (C2, 1);
+  em_field_cylindrical_map_to_c (F, C);
+  set_CPP_em_field_cylindrical_map_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " em_field_map: C side convert F->C: Good" << endl;
+    cout << " em_field_cylindrical_map: C side convert F->C: Good" << endl;
   } else {
-    cout << " em_field_map: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " em_field_cylindrical_map: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_field_map_test_pattern (C2, 2);
+  set_CPP_em_field_cylindrical_map_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_em_field_map (C2, c_ok2);
+  test2_f_em_field_cylindrical_map (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_em_field_map_test_pattern (C, 3);
+  set_CPP_em_field_cylindrical_map_test_pattern (C, 3);
   if (C == C2) {
-    cout << " em_field_map: F side convert F->C: Good" << endl;
+    cout << " em_field_cylindrical_map: F side convert F->C: Good" << endl;
   } else {
-    cout << " em_field_map: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " em_field_cylindrical_map: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_field_map_test_pattern (C2, 4);
-  em_field_map_to_f (C2, F);
+  set_CPP_em_field_cylindrical_map_test_pattern (C2, 4);
+  em_field_cylindrical_map_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_em_field_taylor (CPP_em_field_taylor&, bool&);
+
+void set_CPP_em_field_taylor_test_pattern (CPP_em_field_taylor& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_link = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.ele_anchor_pt = rhs;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.pt.resize(0);
+  else {
+    C.pt.resize(3);
+    for (unsigned int i = 0; i < C.pt.size(); i++)  {set_CPP_taylor_test_pattern(C.pt[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.dr = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.r0 = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 8 + offset; C.curved_coords = (rhs % 2 == 0);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_em_field_taylor (Bmad_em_field_taylor_class* F, bool& c_ok) {
+
+  CPP_em_field_taylor C, C2;
+
+  c_ok = true;
+
+  em_field_taylor_to_c (F, C);
+  set_CPP_em_field_taylor_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " em_field_taylor: C side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_taylor: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_taylor_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_em_field_taylor (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_em_field_taylor_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " em_field_taylor: F side convert F->C: Good" << endl;
+  } else {
+    cout << " em_field_taylor: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_em_field_taylor_test_pattern (C2, 4);
+  em_field_taylor_to_f (C2, F);
 
 }
 
@@ -1313,13 +1639,13 @@ void set_CPP_em_field_grid_test_pattern (CPP_em_field_grid& C, int ix_patt) {
   for (unsigned int i = 0; i < C.file.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.type = rhs;
+  rhs = 2 + offset; C.n_link = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ele_anchor_pt = rhs;
+  rhs = 3 + offset; C.type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.n_link = rhs;
+  rhs = 4 + offset; C.ele_anchor_pt = rhs;
 
   // c_side.test_pat[type, 3, ALLOC]
   if (ix_patt < 3) 
@@ -1418,18 +1744,34 @@ void set_CPP_em_field_mode_test_pattern (CPP_em_field_mode& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
-    C.map = NULL;
-  else {
-    C.map = new CPP_em_field_map;
-    set_CPP_em_field_map_test_pattern((*C.map), ix_patt);
-  }
-
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
     C.grid = NULL;
   else {
     C.grid = new CPP_em_field_grid;
     set_CPP_em_field_grid_test_pattern((*C.grid), ix_patt);
+  }
+
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.cylindrical_map = NULL;
+  else {
+    C.cylindrical_map = new CPP_em_field_cylindrical_map;
+    set_CPP_em_field_cylindrical_map_test_pattern((*C.cylindrical_map), ix_patt);
+  }
+
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.cartesian_map = NULL;
+  else {
+    C.cartesian_map = new CPP_em_field_cartesian_map;
+    set_CPP_em_field_cartesian_map_test_pattern((*C.cartesian_map), ix_patt);
+  }
+
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.taylor = NULL;
+  else {
+    C.taylor = new CPP_em_field_taylor;
+    set_CPP_em_field_taylor_test_pattern((*C.taylor), ix_patt);
   }
 
 
@@ -1542,14 +1884,17 @@ void set_CPP_floor_position_test_pattern (CPP_floor_position& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.r[i] = rhs;}
+  // c_side.test_pat[real, 2, NOT]
+  for (unsigned int i = 0; i < C.w.size(); i++)  for (unsigned int j = 0; j < C.w[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.w[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.theta = rhs;
+  rhs = 3 + offset; C.theta = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.phi = rhs;
+  rhs = 4 + offset; C.phi = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.psi = rhs;
+  rhs = 5 + offset; C.psi = rhs;
 
 
 }
@@ -2819,119 +3164,6 @@ extern "C" void test_c_wall3d (Bmad_wall3d_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_taylor_term (CPP_taylor_term&, bool&);
-
-void set_CPP_taylor_term_test_pattern (CPP_taylor_term& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.coef = rhs;
-
-  // c_side.test_pat[integer, 1, NOT]
-  for (unsigned int i = 0; i < C.expn.size(); i++)
-    {int rhs = 101 + i + 2 + offset; C.expn[i] = rhs;}
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_term (Bmad_taylor_term_class* F, bool& c_ok) {
-
-  CPP_taylor_term C, C2;
-
-  c_ok = true;
-
-  taylor_term_to_c (F, C);
-  set_CPP_taylor_term_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_term: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_term: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_term_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_term (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_term_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_term: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_term: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_term_test_pattern (C2, 4);
-  taylor_term_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_taylor (CPP_taylor&, bool&);
-
-void set_CPP_taylor_test_pattern (CPP_taylor& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.ref = rhs;
-
-  // c_side.test_pat[type, 1, PTR]
-  if (ix_patt < 3) 
-    C.term.resize(0);
-  else {
-    C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_taylor_term_test_pattern(C.term[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor (Bmad_taylor_class* F, bool& c_ok) {
-
-  CPP_taylor C, C2;
-
-  c_ok = true;
-
-  taylor_to_c (F, C);
-  set_CPP_taylor_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_test_pattern (C2, 4);
-  taylor_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_control (CPP_control&, bool&);
 
 void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
@@ -3727,6 +3959,9 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 13 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 14 + offset; C.use_csr_old = (rhs % 2 == 0);
+
 
 }
 
@@ -3811,59 +4046,71 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 12 + offset; C.electric_dipole_moment = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.taylor_order = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 13 + offset; C.ptc_cut_factor = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 14 + offset; C.sad_eps_scale = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 15 + offset; C.sad_amp_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.default_integ_order = rhs;
+  rhs = 16 + offset; C.sad_n_div_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.ptc_max_fringe_order = rhs;
+  rhs = 17 + offset; C.taylor_order = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 18 + offset; C.default_integ_order = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 19 + offset; C.ptc_max_fringe_order = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 16 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 20 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 17 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 21 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 18 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 22 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 19 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 23 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 20 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 24 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 21 + offset; C.space_charge_on = (rhs % 2 == 0);
+  rhs = 25 + offset; C.space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 22 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
+  rhs = 26 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 23 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 27 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 24 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 28 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 29 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 30 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 31 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 32 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 34 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

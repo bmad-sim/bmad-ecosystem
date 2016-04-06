@@ -951,202 +951,6 @@ end subroutine set_expression_atom_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_wig_term (ok)
-
-implicit none
-
-type(wig_term_struct), target :: f_wig_term, f2_wig_term
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_wig_term (c_wig_term, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_wig_term
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_wig_term_test_pattern (f2_wig_term, 1)
-
-call test_c_wig_term(c_loc(f2_wig_term), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_wig_term_test_pattern (f_wig_term, 4)
-if (f_wig_term == f2_wig_term) then
-  print *, 'wig_term: C side convert C->F: Good'
-else
-  print *, 'wig_term: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_wig_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_wig_term (c_wig_term, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_wig_term
-type(wig_term_struct), target :: f_wig_term, f2_wig_term
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call wig_term_to_f (c_wig_term, c_loc(f_wig_term))
-
-call set_wig_term_test_pattern (f2_wig_term, 2)
-if (f_wig_term == f2_wig_term) then
-  print *, 'wig_term: F side convert C->F: Good'
-else
-  print *, 'wig_term: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_wig_term_test_pattern (f2_wig_term, 3)
-call wig_term_to_c (c_loc(f2_wig_term), c_wig_term)
-
-end subroutine test2_f_wig_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_wig_term_test_pattern (F, ix_patt)
-
-implicit none
-
-type(wig_term_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%coef = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%kx = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%ky = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%kz = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%y0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%phi_z = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%type = rhs
-
-end subroutine set_wig_term_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_wig (ok)
-
-implicit none
-
-type(wig_struct), target :: f_wig, f2_wig
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_wig (c_wig, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_wig
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_wig_test_pattern (f2_wig, 1)
-
-call test_c_wig(c_loc(f2_wig), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_wig_test_pattern (f_wig, 4)
-if (f_wig == f2_wig) then
-  print *, 'wig: C side convert C->F: Good'
-else
-  print *, 'wig: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_wig
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_wig (c_wig, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_wig
-type(wig_struct), target :: f_wig, f2_wig
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call wig_to_f (c_wig, c_loc(f_wig))
-
-call set_wig_test_pattern (f2_wig, 2)
-if (f_wig == f2_wig) then
-  print *, 'wig: F side convert C->F: Good'
-else
-  print *, 'wig: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_wig_test_pattern (f2_wig, 3)
-call wig_to_c (c_loc(f2_wig), c_wig)
-
-end subroutine test2_f_wig
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_wig_test_pattern (F, ix_patt)
-
-implicit none
-
-type(wig_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%n_link = rhs
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%term)) deallocate (F%term)
-else
-  if (.not. allocated(F%term)) allocate (F%term(-1:1))
-  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_wig_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-
-end subroutine set_wig_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_wake_sr_mode (ok)
 
 implicit none
@@ -1651,18 +1455,18 @@ end subroutine set_wake_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_em_field_map_term (ok)
+subroutine test1_f_taylor_term (ok)
 
 implicit none
 
-type(em_field_map_term_struct), target :: f_em_field_map_term, f2_em_field_map_term
+type(taylor_term_struct), target :: f_taylor_term, f2_taylor_term
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_em_field_map_term (c_em_field_map_term, c_ok) bind(c)
+  subroutine test_c_taylor_term (c_taylor_term, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_em_field_map_term
+    type(c_ptr), value :: c_taylor_term
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -1670,58 +1474,643 @@ end interface
 !
 
 ok = .true.
-call set_em_field_map_term_test_pattern (f2_em_field_map_term, 1)
+call set_taylor_term_test_pattern (f2_taylor_term, 1)
 
-call test_c_em_field_map_term(c_loc(f2_em_field_map_term), c_ok)
+call test_c_taylor_term(c_loc(f2_taylor_term), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_em_field_map_term_test_pattern (f_em_field_map_term, 4)
-if (f_em_field_map_term == f2_em_field_map_term) then
-  print *, 'em_field_map_term: C side convert C->F: Good'
+call set_taylor_term_test_pattern (f_taylor_term, 4)
+if (f_taylor_term == f2_taylor_term) then
+  print *, 'taylor_term: C side convert C->F: Good'
 else
-  print *, 'em_field_map_term: C SIDE CONVERT C->F: FAILED!'
+  print *, 'taylor_term: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_em_field_map_term
+end subroutine test1_f_taylor_term
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_em_field_map_term (c_em_field_map_term, c_ok) bind(c)
+subroutine test2_f_taylor_term (c_taylor_term, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_em_field_map_term
-type(em_field_map_term_struct), target :: f_em_field_map_term, f2_em_field_map_term
+type(c_ptr), value ::  c_taylor_term
+type(taylor_term_struct), target :: f_taylor_term, f2_taylor_term
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call em_field_map_term_to_f (c_em_field_map_term, c_loc(f_em_field_map_term))
+call taylor_term_to_f (c_taylor_term, c_loc(f_taylor_term))
 
-call set_em_field_map_term_test_pattern (f2_em_field_map_term, 2)
-if (f_em_field_map_term == f2_em_field_map_term) then
-  print *, 'em_field_map_term: F side convert C->F: Good'
+call set_taylor_term_test_pattern (f2_taylor_term, 2)
+if (f_taylor_term == f2_taylor_term) then
+  print *, 'taylor_term: F side convert C->F: Good'
 else
-  print *, 'em_field_map_term: F SIDE CONVERT C->F: FAILED!'
+  print *, 'taylor_term: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_em_field_map_term_test_pattern (f2_em_field_map_term, 3)
-call em_field_map_term_to_c (c_loc(f2_em_field_map_term), c_em_field_map_term)
+call set_taylor_term_test_pattern (f2_taylor_term, 3)
+call taylor_term_to_c (c_loc(f2_taylor_term), c_taylor_term)
 
-end subroutine test2_f_em_field_map_term
+end subroutine test2_f_taylor_term
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_em_field_map_term_test_pattern (F, ix_patt)
+subroutine set_taylor_term_test_pattern (F, ix_patt)
 
 implicit none
 
-type(em_field_map_term_struct) F
+type(taylor_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%coef = rhs
+!! f_side.test_pat[integer, 1, NOT]
+do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%expn(jd1+lb1) = rhs
+enddo
+
+end subroutine set_taylor_term_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_taylor (ok)
+
+implicit none
+
+type(taylor_struct), target :: f_taylor, f2_taylor
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_taylor (c_taylor, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_taylor
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_taylor_test_pattern (f2_taylor, 1)
+
+call test_c_taylor(c_loc(f2_taylor), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_taylor_test_pattern (f_taylor, 4)
+if (f_taylor == f2_taylor) then
+  print *, 'taylor: C side convert C->F: Good'
+else
+  print *, 'taylor: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_taylor (c_taylor, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_taylor
+type(taylor_struct), target :: f_taylor, f2_taylor
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call taylor_to_f (c_taylor, c_loc(f_taylor))
+
+call set_taylor_test_pattern (f2_taylor, 2)
+if (f_taylor == f2_taylor) then
+  print *, 'taylor: F side convert C->F: Good'
+else
+  print *, 'taylor: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_taylor_test_pattern (f2_taylor, 3)
+call taylor_to_c (c_loc(f2_taylor), c_taylor)
+
+end subroutine test2_f_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_taylor_test_pattern (F, ix_patt)
+
+implicit none
+
+type(taylor_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%ref = rhs
+!! f_side.test_pat[type, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%term)) deallocate (F%term)
+else
+  if (.not. associated(F%term)) allocate (F%term(-1:1))
+  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
+    call set_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_taylor_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_wig_term (ok)
+
+implicit none
+
+type(wig_term_struct), target :: f_wig_term, f2_wig_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_wig_term (c_wig_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_wig_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_wig_term_test_pattern (f2_wig_term, 1)
+
+call test_c_wig_term(c_loc(f2_wig_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_wig_term_test_pattern (f_wig_term, 4)
+if (f_wig_term == f2_wig_term) then
+  print *, 'wig_term: C side convert C->F: Good'
+else
+  print *, 'wig_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_wig_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_wig_term (c_wig_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_wig_term
+type(wig_term_struct), target :: f_wig_term, f2_wig_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call wig_term_to_f (c_wig_term, c_loc(f_wig_term))
+
+call set_wig_term_test_pattern (f2_wig_term, 2)
+if (f_wig_term == f2_wig_term) then
+  print *, 'wig_term: F side convert C->F: Good'
+else
+  print *, 'wig_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_wig_term_test_pattern (f2_wig_term, 3)
+call wig_term_to_c (c_loc(f2_wig_term), c_wig_term)
+
+end subroutine test2_f_wig_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_wig_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(wig_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%coef = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%kx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%ky = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%kz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%phi_z = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%type = rhs
+
+end subroutine set_wig_term_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_wig (ok)
+
+implicit none
+
+type(wig_struct), target :: f_wig, f2_wig
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_wig (c_wig, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_wig
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_wig_test_pattern (f2_wig, 1)
+
+call test_c_wig(c_loc(f2_wig), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_wig_test_pattern (f_wig, 4)
+if (f_wig == f2_wig) then
+  print *, 'wig: C side convert C->F: Good'
+else
+  print *, 'wig: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_wig
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_wig (c_wig, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_wig
+type(wig_struct), target :: f_wig, f2_wig
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call wig_to_f (c_wig, c_loc(f_wig))
+
+call set_wig_test_pattern (f2_wig, 2)
+if (f_wig == f2_wig) then
+  print *, 'wig: F side convert C->F: Good'
+else
+  print *, 'wig: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_wig_test_pattern (f2_wig, 3)
+call wig_to_c (c_loc(f2_wig), c_wig)
+
+end subroutine test2_f_wig
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_wig_test_pattern (F, ix_patt)
+
+implicit none
+
+type(wig_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%n_link = rhs
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%term)) deallocate (F%term)
+else
+  if (.not. allocated(F%term)) allocate (F%term(-1:1))
+  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
+    call set_em_field_cartesian_map_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_wig_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_em_field_cartesian_map (ok)
+
+implicit none
+
+type(em_field_cartesian_map_struct), target :: f_em_field_cartesian_map, f2_em_field_cartesian_map
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_em_field_cartesian_map (c_em_field_cartesian_map, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_em_field_cartesian_map
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_em_field_cartesian_map_test_pattern (f2_em_field_cartesian_map, 1)
+
+call test_c_em_field_cartesian_map(c_loc(f2_em_field_cartesian_map), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_em_field_cartesian_map_test_pattern (f_em_field_cartesian_map, 4)
+if (f_em_field_cartesian_map == f2_em_field_cartesian_map) then
+  print *, 'em_field_cartesian_map: C side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_em_field_cartesian_map
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_em_field_cartesian_map (c_em_field_cartesian_map, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_em_field_cartesian_map
+type(em_field_cartesian_map_struct), target :: f_em_field_cartesian_map, f2_em_field_cartesian_map
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call em_field_cartesian_map_to_f (c_em_field_cartesian_map, c_loc(f_em_field_cartesian_map))
+
+call set_em_field_cartesian_map_test_pattern (f2_em_field_cartesian_map, 2)
+if (f_em_field_cartesian_map == f2_em_field_cartesian_map) then
+  print *, 'em_field_cartesian_map: F side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_em_field_cartesian_map_test_pattern (f2_em_field_cartesian_map, 3)
+call em_field_cartesian_map_to_c (c_loc(f2_em_field_cartesian_map), c_em_field_cartesian_map)
+
+end subroutine test2_f_em_field_cartesian_map
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_em_field_cartesian_map_test_pattern (F, ix_patt)
+
+implicit none
+
+type(em_field_cartesian_map_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file)
+  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_link = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%ele_anchor_pt = rhs
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%term)) deallocate (F%term)
+else
+  if (.not. allocated(F%term)) allocate (F%term(-1:1))
+  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
+    call set_em_field_cartesian_map_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_em_field_cartesian_map_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_em_field_cartesian_map_term (ok)
+
+implicit none
+
+type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_em_field_cartesian_map_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 1)
+
+call test_c_em_field_cartesian_map_term(c_loc(f2_em_field_cartesian_map_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_em_field_cartesian_map_term_test_pattern (f_em_field_cartesian_map_term, 4)
+if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
+  print *, 'em_field_cartesian_map_term: C side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_em_field_cartesian_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_em_field_cartesian_map_term (c_em_field_cartesian_map_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_em_field_cartesian_map_term
+type(em_field_cartesian_map_term_struct), target :: f_em_field_cartesian_map_term, f2_em_field_cartesian_map_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call em_field_cartesian_map_term_to_f (c_em_field_cartesian_map_term, c_loc(f_em_field_cartesian_map_term))
+
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 2)
+if (f_em_field_cartesian_map_term == f2_em_field_cartesian_map_term) then
+  print *, 'em_field_cartesian_map_term: F side convert C->F: Good'
+else
+  print *, 'em_field_cartesian_map_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_em_field_cartesian_map_term_test_pattern (f2_em_field_cartesian_map_term, 3)
+call em_field_cartesian_map_term_to_c (c_loc(f2_em_field_cartesian_map_term), c_em_field_cartesian_map_term)
+
+end subroutine test2_f_em_field_cartesian_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_em_field_cartesian_map_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(em_field_cartesian_map_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%coef = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%kx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%ky = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%kz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%phi_z = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%type = rhs
+
+end subroutine set_em_field_cartesian_map_term_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_em_field_cylindrical_map_term (ok)
+
+implicit none
+
+type(em_field_cylindrical_map_term_struct), target :: f_em_field_cylindrical_map_term, f2_em_field_cylindrical_map_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_em_field_cylindrical_map_term (c_em_field_cylindrical_map_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_em_field_cylindrical_map_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_em_field_cylindrical_map_term_test_pattern (f2_em_field_cylindrical_map_term, 1)
+
+call test_c_em_field_cylindrical_map_term(c_loc(f2_em_field_cylindrical_map_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_em_field_cylindrical_map_term_test_pattern (f_em_field_cylindrical_map_term, 4)
+if (f_em_field_cylindrical_map_term == f2_em_field_cylindrical_map_term) then
+  print *, 'em_field_cylindrical_map_term: C side convert C->F: Good'
+else
+  print *, 'em_field_cylindrical_map_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_em_field_cylindrical_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_em_field_cylindrical_map_term (c_em_field_cylindrical_map_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_em_field_cylindrical_map_term
+type(em_field_cylindrical_map_term_struct), target :: f_em_field_cylindrical_map_term, f2_em_field_cylindrical_map_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call em_field_cylindrical_map_term_to_f (c_em_field_cylindrical_map_term, c_loc(f_em_field_cylindrical_map_term))
+
+call set_em_field_cylindrical_map_term_test_pattern (f2_em_field_cylindrical_map_term, 2)
+if (f_em_field_cylindrical_map_term == f2_em_field_cylindrical_map_term) then
+  print *, 'em_field_cylindrical_map_term: F side convert C->F: Good'
+else
+  print *, 'em_field_cylindrical_map_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_em_field_cylindrical_map_term_test_pattern (f2_em_field_cylindrical_map_term, 3)
+call em_field_cylindrical_map_term_to_c (c_loc(f2_em_field_cylindrical_map_term), c_em_field_cylindrical_map_term)
+
+end subroutine test2_f_em_field_cylindrical_map_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_em_field_cylindrical_map_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(em_field_cylindrical_map_term_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -1733,24 +2122,24 @@ rhs = 1 + offset; F%e_coef = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[complex, 0, NOT]
 rhs = 2 + offset; F%b_coef = cmplx(rhs, 100+rhs)
 
-end subroutine set_em_field_map_term_test_pattern
+end subroutine set_em_field_cylindrical_map_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_em_field_map (ok)
+subroutine test1_f_em_field_cylindrical_map (ok)
 
 implicit none
 
-type(em_field_map_struct), target :: f_em_field_map, f2_em_field_map
+type(em_field_cylindrical_map_struct), target :: f_em_field_cylindrical_map, f2_em_field_cylindrical_map
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_em_field_map (c_em_field_map, c_ok) bind(c)
+  subroutine test_c_em_field_cylindrical_map (c_em_field_cylindrical_map, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_em_field_map
+    type(c_ptr), value :: c_em_field_cylindrical_map
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -1758,58 +2147,58 @@ end interface
 !
 
 ok = .true.
-call set_em_field_map_test_pattern (f2_em_field_map, 1)
+call set_em_field_cylindrical_map_test_pattern (f2_em_field_cylindrical_map, 1)
 
-call test_c_em_field_map(c_loc(f2_em_field_map), c_ok)
+call test_c_em_field_cylindrical_map(c_loc(f2_em_field_cylindrical_map), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_em_field_map_test_pattern (f_em_field_map, 4)
-if (f_em_field_map == f2_em_field_map) then
-  print *, 'em_field_map: C side convert C->F: Good'
+call set_em_field_cylindrical_map_test_pattern (f_em_field_cylindrical_map, 4)
+if (f_em_field_cylindrical_map == f2_em_field_cylindrical_map) then
+  print *, 'em_field_cylindrical_map: C side convert C->F: Good'
 else
-  print *, 'em_field_map: C SIDE CONVERT C->F: FAILED!'
+  print *, 'em_field_cylindrical_map: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_em_field_map
+end subroutine test1_f_em_field_cylindrical_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_em_field_map (c_em_field_map, c_ok) bind(c)
+subroutine test2_f_em_field_cylindrical_map (c_em_field_cylindrical_map, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_em_field_map
-type(em_field_map_struct), target :: f_em_field_map, f2_em_field_map
+type(c_ptr), value ::  c_em_field_cylindrical_map
+type(em_field_cylindrical_map_struct), target :: f_em_field_cylindrical_map, f2_em_field_cylindrical_map
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call em_field_map_to_f (c_em_field_map, c_loc(f_em_field_map))
+call em_field_cylindrical_map_to_f (c_em_field_cylindrical_map, c_loc(f_em_field_cylindrical_map))
 
-call set_em_field_map_test_pattern (f2_em_field_map, 2)
-if (f_em_field_map == f2_em_field_map) then
-  print *, 'em_field_map: F side convert C->F: Good'
+call set_em_field_cylindrical_map_test_pattern (f2_em_field_cylindrical_map, 2)
+if (f_em_field_cylindrical_map == f2_em_field_cylindrical_map) then
+  print *, 'em_field_cylindrical_map: F side convert C->F: Good'
 else
-  print *, 'em_field_map: F SIDE CONVERT C->F: FAILED!'
+  print *, 'em_field_cylindrical_map: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_em_field_map_test_pattern (f2_em_field_map, 3)
-call em_field_map_to_c (c_loc(f2_em_field_map), c_em_field_map)
+call set_em_field_cylindrical_map_test_pattern (f2_em_field_cylindrical_map, 3)
+call em_field_cylindrical_map_to_c (c_loc(f2_em_field_cylindrical_map), c_em_field_cylindrical_map)
 
-end subroutine test2_f_em_field_map
+end subroutine test2_f_em_field_cylindrical_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_em_field_map_test_pattern (F, ix_patt)
+subroutine set_em_field_cylindrical_map_test_pattern (F, ix_patt)
 
 implicit none
 
-type(em_field_map_struct) F
+type(em_field_cylindrical_map_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -1833,11 +2222,119 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%term)) allocate (F%term(-1:1))
   do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_em_field_map_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+    call set_em_field_cylindrical_map_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 
-end subroutine set_em_field_map_test_pattern
+end subroutine set_em_field_cylindrical_map_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_em_field_taylor (ok)
+
+implicit none
+
+type(em_field_taylor_struct), target :: f_em_field_taylor, f2_em_field_taylor
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_em_field_taylor (c_em_field_taylor, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_em_field_taylor
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_em_field_taylor_test_pattern (f2_em_field_taylor, 1)
+
+call test_c_em_field_taylor(c_loc(f2_em_field_taylor), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_em_field_taylor_test_pattern (f_em_field_taylor, 4)
+if (f_em_field_taylor == f2_em_field_taylor) then
+  print *, 'em_field_taylor: C side convert C->F: Good'
+else
+  print *, 'em_field_taylor: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_em_field_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_em_field_taylor (c_em_field_taylor, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_em_field_taylor
+type(em_field_taylor_struct), target :: f_em_field_taylor, f2_em_field_taylor
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call em_field_taylor_to_f (c_em_field_taylor, c_loc(f_em_field_taylor))
+
+call set_em_field_taylor_test_pattern (f2_em_field_taylor, 2)
+if (f_em_field_taylor == f2_em_field_taylor) then
+  print *, 'em_field_taylor: F side convert C->F: Good'
+else
+  print *, 'em_field_taylor: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_em_field_taylor_test_pattern (f2_em_field_taylor, 3)
+call em_field_taylor_to_c (c_loc(f2_em_field_taylor), c_em_field_taylor)
+
+end subroutine test2_f_em_field_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_em_field_taylor_test_pattern (F, ix_patt)
+
+implicit none
+
+type(em_field_taylor_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file)
+  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_link = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%ele_anchor_pt = rhs
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%pt)) deallocate (F%pt)
+else
+  if (.not. allocated(F%pt)) allocate (F%pt(-1:1))
+  do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
+    call set_taylor_test_pattern (F%pt(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%dr = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%r0 = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 8 + offset; F%curved_coords = (modulo(rhs, 2) == 0)
+
+end subroutine set_em_field_taylor_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -2019,11 +2516,11 @@ do jd1 = 1, len(F%file)
   F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
 enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%type = rhs
+rhs = 2 + offset; F%n_link = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%ele_anchor_pt = rhs
+rhs = 3 + offset; F%type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 4 + offset; F%n_link = rhs
+rhs = 4 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[type, 3, ALLOC]
 if (ix_patt < 3) then
   if (allocated(F%pt)) deallocate (F%pt)
@@ -2151,19 +2648,35 @@ rhs = 7 + offset; F%field_scale = rhs
 rhs = 8 + offset; F%master_scale = rhs
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
-  if (associated(F%map)) deallocate (F%map)
-else
-  if (.not. associated(F%map)) allocate (F%map)
-  rhs = 9 + offset
-  call set_em_field_map_test_pattern (F%map, ix_patt)
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
   if (associated(F%grid)) deallocate (F%grid)
 else
   if (.not. associated(F%grid)) allocate (F%grid)
-  rhs = 11 + offset
+  rhs = 9 + offset
   call set_em_field_grid_test_pattern (F%grid, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%cylindrical_map)) deallocate (F%cylindrical_map)
+else
+  if (.not. associated(F%cylindrical_map)) allocate (F%cylindrical_map)
+  rhs = 11 + offset
+  call set_em_field_cylindrical_map_test_pattern (F%cylindrical_map, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%cartesian_map)) deallocate (F%cartesian_map)
+else
+  if (.not. associated(F%cartesian_map)) allocate (F%cartesian_map)
+  rhs = 13 + offset
+  call set_em_field_cartesian_map_test_pattern (F%cartesian_map, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%taylor)) deallocate (F%taylor)
+else
+  if (.not. associated(F%taylor)) allocate (F%taylor)
+  rhs = 15 + offset
+  call set_em_field_taylor_test_pattern (F%taylor, ix_patt)
 endif
 
 end subroutine set_em_field_mode_test_pattern
@@ -2350,12 +2863,18 @@ do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
   rhs = 100 + jd1 + 1 + offset
   F%r(jd1+lb1) = rhs
 enddo
+!! f_side.test_pat[real, 2, NOT]
+do jd1 = 1, size(F%w,1); lb1 = lbound(F%w,1) - 1
+do jd2 = 1, size(F%w,2); lb2 = lbound(F%w,2) - 1
+  rhs = 100 + jd1 + 10*jd2 + 2 + offset
+  F%w(jd1+lb1,jd2+lb2) = rhs
+enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%theta = rhs
+rhs = 3 + offset; F%theta = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%phi = rhs
+rhs = 4 + offset; F%phi = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%psi = rhs
+rhs = 5 + offset; F%psi = rhs
 
 end subroutine set_floor_position_test_pattern
 
@@ -4149,193 +4668,6 @@ end subroutine set_wall3d_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_taylor_term (ok)
-
-implicit none
-
-type(taylor_term_struct), target :: f_taylor_term, f2_taylor_term
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_taylor_term (c_taylor_term, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_taylor_term
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_taylor_term_test_pattern (f2_taylor_term, 1)
-
-call test_c_taylor_term(c_loc(f2_taylor_term), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_taylor_term_test_pattern (f_taylor_term, 4)
-if (f_taylor_term == f2_taylor_term) then
-  print *, 'taylor_term: C side convert C->F: Good'
-else
-  print *, 'taylor_term: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_taylor_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_taylor_term (c_taylor_term, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_taylor_term
-type(taylor_term_struct), target :: f_taylor_term, f2_taylor_term
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call taylor_term_to_f (c_taylor_term, c_loc(f_taylor_term))
-
-call set_taylor_term_test_pattern (f2_taylor_term, 2)
-if (f_taylor_term == f2_taylor_term) then
-  print *, 'taylor_term: F side convert C->F: Good'
-else
-  print *, 'taylor_term: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_taylor_term_test_pattern (f2_taylor_term, 3)
-call taylor_term_to_c (c_loc(f2_taylor_term), c_taylor_term)
-
-end subroutine test2_f_taylor_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_taylor_term_test_pattern (F, ix_patt)
-
-implicit none
-
-type(taylor_term_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%coef = rhs
-!! f_side.test_pat[integer, 1, NOT]
-do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
-  rhs = 100 + jd1 + 2 + offset
-  F%expn(jd1+lb1) = rhs
-enddo
-
-end subroutine set_taylor_term_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_taylor (ok)
-
-implicit none
-
-type(taylor_struct), target :: f_taylor, f2_taylor
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_taylor (c_taylor, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_taylor
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_taylor_test_pattern (f2_taylor, 1)
-
-call test_c_taylor(c_loc(f2_taylor), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_taylor_test_pattern (f_taylor, 4)
-if (f_taylor == f2_taylor) then
-  print *, 'taylor: C side convert C->F: Good'
-else
-  print *, 'taylor: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_taylor
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_taylor (c_taylor, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_taylor
-type(taylor_struct), target :: f_taylor, f2_taylor
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call taylor_to_f (c_taylor, c_loc(f_taylor))
-
-call set_taylor_test_pattern (f2_taylor, 2)
-if (f_taylor == f2_taylor) then
-  print *, 'taylor: F side convert C->F: Good'
-else
-  print *, 'taylor: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_taylor_test_pattern (f2_taylor, 3)
-call taylor_to_c (c_loc(f2_taylor), c_taylor)
-
-end subroutine test2_f_taylor
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_taylor_test_pattern (F, ix_patt)
-
-implicit none
-
-type(taylor_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%ref = rhs
-!! f_side.test_pat[type, 1, PTR]
-
-if (ix_patt < 3) then
-  if (associated(F%term)) deallocate (F%term)
-else
-  if (.not. associated(F%term)) allocate (F%term(-1:1))
-  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-
-end subroutine set_taylor_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_control (ok)
 
 implicit none
@@ -5566,6 +5898,8 @@ rhs = 11 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
 rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 13 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 14 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 
@@ -5677,42 +6011,50 @@ rhs = 10 + offset; F%min_ds_adaptive_tracking = rhs
 rhs = 11 + offset; F%fatal_ds_adaptive_tracking = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 12 + offset; F%electric_dipole_moment = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 13 + offset; F%ptc_cut_factor = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 14 + offset; F%sad_eps_scale = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%sad_amp_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%taylor_order = rhs
+rhs = 16 + offset; F%sad_n_div_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%default_integ_order = rhs
+rhs = 17 + offset; F%taylor_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%ptc_max_fringe_order = rhs
+rhs = 18 + offset; F%default_integ_order = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 19 + offset; F%ptc_max_fringe_order = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 16 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 20 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 17 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 21 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 18 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 22 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 19 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
+rhs = 23 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 20 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
+rhs = 24 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 21 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 25 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 22 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 23 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 24 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 25 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

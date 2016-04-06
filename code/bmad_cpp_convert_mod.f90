@@ -98,24 +98,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine wig_term_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
-  subroutine wig_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine wake_sr_mode_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -161,7 +143,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_field_map_term_to_f (C, Fp) bind(c)
+  subroutine taylor_term_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -170,7 +152,70 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_field_map_to_f (C, Fp) bind(c)
+  subroutine taylor_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine wig_term_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine wig_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine em_field_cartesian_map_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine em_field_cartesian_map_term_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine em_field_cylindrical_map_term_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine em_field_cylindrical_map_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine em_field_taylor_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -369,24 +414,6 @@ end interface
 
 interface 
   subroutine wall3d_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
-  subroutine taylor_term_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
-  subroutine taylor_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -1622,209 +1649,6 @@ end subroutine expression_atom_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wig_term_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad wig_term_struct to a C++ CPP_wig_term structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wig_term_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wig_term struct.
-!-
-
-subroutine wig_term_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine wig_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z, z_type) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
-    integer(c_int) :: z_type
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(wig_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call wig_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%x0, F%y0, F%phi_z, F%type)
-
-end subroutine wig_term_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine wig_term_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_wig_term structure to a Bmad wig_term_struct structure.
-! This routine is called by wig_term_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the wig_term_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad wig_term_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine wig_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z, z_type) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(wig_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
-integer(c_int) :: z_type
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%coef = z_coef
-!! f_side.to_f2_trans[real, 0, NOT]
-F%kx = z_kx
-!! f_side.to_f2_trans[real, 0, NOT]
-F%ky = z_ky
-!! f_side.to_f2_trans[real, 0, NOT]
-F%kz = z_kz
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x0 = z_x0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y0 = z_y0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%phi_z = z_phi_z
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
-
-end subroutine wig_term_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine wig_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad wig_struct to a C++ CPP_wig structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wig_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wig struct.
-!-
-
-subroutine wig_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine wig_to_c2 (C, z_n_link, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    integer(c_int), value :: n1_term
-    type(c_ptr) :: z_term(*)
-    integer(c_int) :: z_n_link
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(wig_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-type(c_ptr), allocatable :: z_term(:)
-integer(c_int) :: n1_term
-
-!
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_c_trans[type, 1, ALLOC]
- n1_term = 0
-if (allocated(F%term)) then
-  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
-  allocate (z_term(n1_term))
-  do jd1 = 1, n1_term
-    z_term(jd1) = c_loc(F%term(jd1+lb1))
-  enddo
-endif
-
-!! f_side.to_c2_call
-call wig_to_c2 (C, F%n_link, z_term, n1_term)
-
-end subroutine wig_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine wig_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_wig structure to a Bmad wig_struct structure.
-! This routine is called by wig_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the wig_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad wig_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine wig_to_f2 (Fp, z_n_link, z_term, n1_term) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(wig_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int), value :: n1_term
-type(c_ptr) :: z_term(*)
-integer(c_int) :: z_n_link
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_link = z_n_link
-!! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_term == 0) then
-  if (allocated(F%term)) deallocate(F%term)
-else
-  if (allocated(F%term)) then
-    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
-    if (any(lbound(F%term) /= 1)) deallocate(F%term)
-  endif
-  if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
-  do jd1 = 1, n1_term
-    call wig_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
-  enddo
-endif
-
-
-end subroutine wig_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine wake_sr_mode_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad wake_sr_mode_struct to a C++ CPP_wake_sr_mode structure
@@ -2351,34 +2175,35 @@ end subroutine wake_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_field_map_term_to_c (Fp, C) bind(c)
+! Subroutine taylor_term_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad em_field_map_term_struct to a C++ CPP_em_field_map_term structure
+! Routine to convert a Bmad taylor_term_struct to a C++ CPP_taylor_term structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad em_field_map_term_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad taylor_term_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_em_field_map_term struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_taylor_term struct.
 !-
 
-subroutine em_field_map_term_to_c (Fp, C) bind(c)
+subroutine taylor_term_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_field_map_term_to_c2 (C, z_e_coef, z_b_coef) bind(c)
+  subroutine taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    complex(c_double_complex) :: z_e_coef, z_b_coef
+    real(c_double) :: z_coef
+    integer(c_int) :: z_expn(*)
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(em_field_map_term_struct), pointer :: F
+type(taylor_term_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -2388,83 +2213,284 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call em_field_map_term_to_c2 (C, F%e_coef, F%b_coef)
+call taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 6))
 
-end subroutine em_field_map_term_to_c
+end subroutine taylor_term_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_field_map_term_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine taylor_term_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_em_field_map_term structure to a Bmad em_field_map_term_struct structure.
-! This routine is called by em_field_map_term_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_taylor_term structure to a Bmad taylor_term_struct structure.
+! This routine is called by taylor_term_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the em_field_map_term_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the taylor_term_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad em_field_map_term_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad taylor_term_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_field_map_term_to_f2 (Fp, z_e_coef, z_b_coef) bind(c)
+subroutine taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(em_field_map_term_struct), pointer :: F
+type(taylor_term_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-complex(c_double_complex) :: z_e_coef, z_b_coef
+real(c_double) :: z_coef
+integer(c_int) :: z_expn(*)
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%e_coef = z_e_coef
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%b_coef = z_b_coef
+!! f_side.to_f2_trans[real, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[integer, 1, NOT]
+F%expn = z_expn(1:6)
 
-end subroutine em_field_map_term_to_f2
+end subroutine taylor_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_field_map_to_c (Fp, C) bind(c)
+! Subroutine taylor_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad em_field_map_struct to a C++ CPP_em_field_map structure
+! Routine to convert a Bmad taylor_struct to a C++ CPP_taylor structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad em_field_map_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad taylor_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_em_field_map struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_taylor struct.
 !-
 
-subroutine em_field_map_to_c (Fp, C) bind(c)
+subroutine taylor_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_field_map_to_c2 (C, z_file, z_n_link, z_ele_anchor_pt, z_dz, z_term, n1_term) &
-      bind(c)
+  subroutine taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int), value :: n1_term
-    real(c_double) :: z_dz
+    real(c_double) :: z_ref
     type(c_ptr) :: z_term(*)
-    integer(c_int) :: z_n_link, z_ele_anchor_pt
-    character(c_char) :: z_file(*)
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(em_field_map_struct), pointer :: F
+type(taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_term(:)
+integer(c_int) :: n1_term
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_term = 0
+if (associated(F%term)) then
+  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
+  allocate (z_term(n1_term))
+  do jd1 = 1, n1_term
+    z_term(jd1) = c_loc(F%term(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call taylor_to_c2 (C, F%ref, z_term, n1_term)
+
+end subroutine taylor_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine taylor_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_taylor structure to a Bmad taylor_struct structure.
+! This routine is called by taylor_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the taylor_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad taylor_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_term
+real(c_double) :: z_ref
+type(c_ptr) :: z_term(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%ref = z_ref
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_term == 0) then
+  if (associated(F%term)) deallocate(F%term)
+else
+  if (associated(F%term)) then
+    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
+    if (any(lbound(F%term) /= 1)) deallocate(F%term)
+  endif
+  if (.not. associated(F%term)) allocate(F%term(1:n1_term+1-1))
+  do jd1 = 1, n1_term
+    call taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine taylor_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wig_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wig_term_struct to a C++ CPP_wig_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wig_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wig_term struct.
+!-
+
+subroutine wig_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wig_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z, z_type) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+    integer(c_int) :: z_type
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wig_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call wig_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%x0, F%y0, F%phi_z, F%type)
+
+end subroutine wig_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wig_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_wig_term structure to a Bmad wig_term_struct structure.
+! This routine is called by wig_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the wig_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad wig_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine wig_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z, z_type) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(wig_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+integer(c_int) :: z_type
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kx = z_kx
+!! f_side.to_f2_trans[real, 0, NOT]
+F%ky = z_ky
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kz = z_kz
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi_z = z_phi_z
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+
+end subroutine wig_term_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wig_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wig_struct to a C++ CPP_wig structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wig_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wig struct.
+!-
+
+subroutine wig_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wig_to_c2 (C, z_n_link, z_term, n1_term) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_term
+    type(c_ptr) :: z_term(*)
+    integer(c_int) :: z_n_link
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wig_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_term(:)
@@ -2485,35 +2511,442 @@ if (allocated(F%term)) then
 endif
 
 !! f_side.to_c2_call
-call em_field_map_to_c2 (C, trim(F%file) // c_null_char, F%n_link, F%ele_anchor_pt, F%dz, &
-    z_term, n1_term)
+call wig_to_c2 (C, F%n_link, z_term, n1_term)
 
-end subroutine em_field_map_to_c
+end subroutine wig_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_field_map_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine wig_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_em_field_map structure to a Bmad em_field_map_struct structure.
-! This routine is called by em_field_map_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_wig structure to a Bmad wig_struct structure.
+! This routine is called by wig_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the em_field_map_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the wig_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad em_field_map_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad wig_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_field_map_to_f2 (Fp, z_file, z_n_link, z_ele_anchor_pt, z_dz, z_term, n1_term) &
-    bind(c)
+subroutine wig_to_f2 (Fp, z_n_link, z_term, n1_term) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(em_field_map_struct), pointer :: F
+type(wig_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_term
+type(c_ptr) :: z_term(*)
+integer(c_int) :: z_n_link
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_link = z_n_link
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_term == 0) then
+  if (allocated(F%term)) deallocate(F%term)
+else
+  if (allocated(F%term)) then
+    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
+    if (any(lbound(F%term) /= 1)) deallocate(F%term)
+  endif
+  if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
+  do jd1 = 1, n1_term
+    call em_field_cartesian_map_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine wig_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_cartesian_map_struct to a C++ CPP_em_field_cartesian_map structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_cartesian_map_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cartesian_map struct.
+!-
+
+subroutine em_field_cartesian_map_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_cartesian_map_to_c2 (C, z_file, z_n_link, z_ele_anchor_pt, z_term, &
+      n1_term) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_term
+    type(c_ptr) :: z_term(*)
+    integer(c_int) :: z_n_link, z_ele_anchor_pt
+    character(c_char) :: z_file(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_cartesian_map_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_term(:)
+integer(c_int) :: n1_term
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_term = 0
+if (allocated(F%term)) then
+  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
+  allocate (z_term(n1_term))
+  do jd1 = 1, n1_term
+    z_term(jd1) = c_loc(F%term(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call em_field_cartesian_map_to_c2 (C, trim(F%file) // c_null_char, F%n_link, F%ele_anchor_pt, &
+    z_term, n1_term)
+
+end subroutine em_field_cartesian_map_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_cartesian_map structure to a Bmad em_field_cartesian_map_struct structure.
+! This routine is called by em_field_cartesian_map_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_cartesian_map_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_cartesian_map_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_cartesian_map_to_f2 (Fp, z_file, z_n_link, z_ele_anchor_pt, z_term, &
+    n1_term) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_cartesian_map_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_term
+type(c_ptr) :: z_term(*)
+integer(c_int) :: z_n_link, z_ele_anchor_pt
+character(c_char) :: z_file(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_link = z_n_link
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ele_anchor_pt = z_ele_anchor_pt
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_term == 0) then
+  if (allocated(F%term)) deallocate(F%term)
+else
+  if (allocated(F%term)) then
+    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
+    if (any(lbound(F%term) /= 1)) deallocate(F%term)
+  endif
+  if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
+  do jd1 = 1, n1_term
+    call em_field_cartesian_map_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine em_field_cartesian_map_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_cartesian_map_term_struct to a C++ CPP_em_field_cartesian_map_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_cartesian_map_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cartesian_map_term struct.
+!-
+
+subroutine em_field_cartesian_map_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_cartesian_map_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
+      z_phi_z, z_type) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+    integer(c_int) :: z_type
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_cartesian_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call em_field_cartesian_map_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%x0, F%y0, F%phi_z, &
+    F%type)
+
+end subroutine em_field_cartesian_map_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cartesian_map_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_cartesian_map_term structure to a Bmad em_field_cartesian_map_term_struct structure.
+! This routine is called by em_field_cartesian_map_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_cartesian_map_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_cartesian_map_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_cartesian_map_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, &
+    z_phi_z, z_type) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_cartesian_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
+integer(c_int) :: z_type
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kx = z_kx
+!! f_side.to_f2_trans[real, 0, NOT]
+F%ky = z_ky
+!! f_side.to_f2_trans[real, 0, NOT]
+F%kz = z_kz
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi_z = z_phi_z
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+
+end subroutine em_field_cartesian_map_term_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cylindrical_map_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_cylindrical_map_term_struct to a C++ CPP_em_field_cylindrical_map_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_cylindrical_map_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cylindrical_map_term struct.
+!-
+
+subroutine em_field_cylindrical_map_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_cylindrical_map_term_to_c2 (C, z_e_coef, z_b_coef) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    complex(c_double_complex) :: z_e_coef, z_b_coef
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_cylindrical_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call em_field_cylindrical_map_term_to_c2 (C, F%e_coef, F%b_coef)
+
+end subroutine em_field_cylindrical_map_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cylindrical_map_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_cylindrical_map_term structure to a Bmad em_field_cylindrical_map_term_struct structure.
+! This routine is called by em_field_cylindrical_map_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_cylindrical_map_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_cylindrical_map_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_cylindrical_map_term_to_f2 (Fp, z_e_coef, z_b_coef) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_cylindrical_map_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+complex(c_double_complex) :: z_e_coef, z_b_coef
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%e_coef = z_e_coef
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%b_coef = z_b_coef
+
+end subroutine em_field_cylindrical_map_term_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cylindrical_map_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_cylindrical_map_struct to a C++ CPP_em_field_cylindrical_map structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_cylindrical_map_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_cylindrical_map struct.
+!-
+
+subroutine em_field_cylindrical_map_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_cylindrical_map_to_c2 (C, z_file, z_n_link, z_ele_anchor_pt, z_dz, &
+      z_term, n1_term) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_term
+    real(c_double) :: z_dz
+    type(c_ptr) :: z_term(*)
+    integer(c_int) :: z_n_link, z_ele_anchor_pt
+    character(c_char) :: z_file(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_cylindrical_map_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_term(:)
+integer(c_int) :: n1_term
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_term = 0
+if (allocated(F%term)) then
+  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
+  allocate (z_term(n1_term))
+  do jd1 = 1, n1_term
+    z_term(jd1) = c_loc(F%term(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call em_field_cylindrical_map_to_c2 (C, trim(F%file) // c_null_char, F%n_link, F%ele_anchor_pt, &
+    F%dz, z_term, n1_term)
+
+end subroutine em_field_cylindrical_map_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_cylindrical_map_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_cylindrical_map structure to a Bmad em_field_cylindrical_map_struct structure.
+! This routine is called by em_field_cylindrical_map_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_cylindrical_map_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_cylindrical_map_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_cylindrical_map_to_f2 (Fp, z_file, z_n_link, z_ele_anchor_pt, z_dz, z_term, &
+    n1_term) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_cylindrical_map_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int), value :: n1_term
@@ -2542,12 +2975,139 @@ else
   endif
   if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
   do jd1 = 1, n1_term
-    call em_field_map_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+    call em_field_cylindrical_map_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
   enddo
 endif
 
 
-end subroutine em_field_map_to_f2
+end subroutine em_field_cylindrical_map_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_taylor_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad em_field_taylor_struct to a C++ CPP_em_field_taylor structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad em_field_taylor_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_em_field_taylor struct.
+!-
+
+subroutine em_field_taylor_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine em_field_taylor_to_c2 (C, z_file, z_n_link, z_ele_anchor_pt, z_pt, n1_pt, z_dr, &
+      z_r0, z_curved_coords) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_n_link, z_ele_anchor_pt
+    integer(c_int), value :: n1_pt
+    logical(c_bool) :: z_curved_coords
+    character(c_char) :: z_file(*)
+    real(c_double) :: z_dr, z_r0
+    type(c_ptr) :: z_pt(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(em_field_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_pt(:)
+integer(c_int) :: n1_pt
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_pt = 0
+if (allocated(F%pt)) then
+  n1_pt = size(F%pt); lb1 = lbound(F%pt, 1) - 1
+  allocate (z_pt(n1_pt))
+  do jd1 = 1, n1_pt
+    z_pt(jd1) = c_loc(F%pt(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call em_field_taylor_to_c2 (C, trim(F%file) // c_null_char, F%n_link, F%ele_anchor_pt, z_pt, &
+    n1_pt, F%dr, F%r0, c_logic(F%curved_coords))
+
+end subroutine em_field_taylor_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine em_field_taylor_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_em_field_taylor structure to a Bmad em_field_taylor_struct structure.
+! This routine is called by em_field_taylor_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the em_field_taylor_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad em_field_taylor_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine em_field_taylor_to_f2 (Fp, z_file, z_n_link, z_ele_anchor_pt, z_pt, n1_pt, z_dr, &
+    z_r0, z_curved_coords) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(em_field_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_n_link, z_ele_anchor_pt
+integer(c_int), value :: n1_pt
+logical(c_bool) :: z_curved_coords
+character(c_char) :: z_file(*)
+real(c_double) :: z_dr, z_r0
+type(c_ptr) :: z_pt(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_link = z_n_link
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ele_anchor_pt = z_ele_anchor_pt
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_pt == 0) then
+  if (allocated(F%pt)) deallocate(F%pt)
+else
+  if (allocated(F%pt)) then
+    if (n1_pt == 0 .or. any(shape(F%pt) /= [n1_pt])) deallocate(F%pt)
+    if (any(lbound(F%pt) /= 1)) deallocate(F%pt)
+  endif
+  if (.not. allocated(F%pt)) allocate(F%pt(1:n1_pt+1-1))
+  do jd1 = 1, n1_pt
+    call taylor_to_f (z_pt(jd1), c_loc(F%pt(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%dr = z_dr
+!! f_side.to_f2_trans[real, 0, NOT]
+F%r0 = z_r0
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%curved_coords = f_logic(z_curved_coords)
+
+end subroutine em_field_taylor_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2651,12 +3211,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_field_grid_to_c2 (C, z_file, z_type, z_ele_anchor_pt, z_n_link, z_pt, n1_pt, &
+  subroutine em_field_grid_to_c2 (C, z_file, z_n_link, z_type, z_ele_anchor_pt, z_pt, n1_pt, &
       n2_pt, n3_pt, z_dr, z_r0, z_curved_coords) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
+    integer(c_int) :: z_n_link, z_type, z_ele_anchor_pt
     integer(c_int), value :: n1_pt, n2_pt, n3_pt
     logical(c_bool) :: z_curved_coords
     character(c_char) :: z_file(*)
@@ -2693,7 +3253,7 @@ else
 endif
 
 !! f_side.to_c2_call
-call em_field_grid_to_c2 (C, trim(F%file) // c_null_char, F%type, F%ele_anchor_pt, F%n_link, &
+call em_field_grid_to_c2 (C, trim(F%file) // c_null_char, F%n_link, F%type, F%ele_anchor_pt, &
     z_pt, n1_pt, n2_pt, n3_pt, fvec2vec(F%dr, 3), fvec2vec(F%r0, 3), c_logic(F%curved_coords))
 
 end subroutine em_field_grid_to_c
@@ -2714,7 +3274,7 @@ end subroutine em_field_grid_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_field_grid_to_f2 (Fp, z_file, z_type, z_ele_anchor_pt, z_n_link, z_pt, n1_pt, &
+subroutine em_field_grid_to_f2 (Fp, z_file, z_n_link, z_type, z_ele_anchor_pt, z_pt, n1_pt, &
     n2_pt, n3_pt, z_dr, z_r0, z_curved_coords) bind(c)
 
 
@@ -2724,7 +3284,7 @@ type(c_ptr), value :: Fp
 type(em_field_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
+integer(c_int) :: z_n_link, z_type, z_ele_anchor_pt
 integer(c_int), value :: n1_pt, n2_pt, n3_pt
 logical(c_bool) :: z_curved_coords
 character(c_char) :: z_file(*)
@@ -2736,11 +3296,11 @@ call c_f_pointer (Fp, F)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_file, F%file)
 !! f_side.to_f2_trans[integer, 0, NOT]
+F%n_link = z_n_link
+!! f_side.to_f2_trans[integer, 0, NOT]
 F%type = z_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ele_anchor_pt = z_ele_anchor_pt
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_link = z_n_link
 !! f_side.to_f2_trans[type, 3, ALLOC]
 if (n1_pt == 0) then
   if (allocated(F%pt)) deallocate(F%pt)
@@ -2786,13 +3346,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine em_field_mode_to_c2 (C, z_m, z_harmonic, z_f_damp, z_phi0_ref, z_stored_energy, &
-      z_phi0_azimuth, z_field_scale, z_master_scale, z_map, n_map, z_grid, n_grid) bind(c)
+      z_phi0_azimuth, z_field_scale, z_master_scale, z_grid, n_grid, z_cylindrical_map, &
+      n_cylindrical_map, z_cartesian_map, n_cartesian_map, z_taylor, n_taylor) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_map, z_grid
+    type(c_ptr), value :: z_grid, z_cylindrical_map, z_cartesian_map, z_taylor
     real(c_double) :: z_f_damp, z_phi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
-    integer(c_int), value :: n_map, n_grid
+    integer(c_int), value :: n_grid, n_cylindrical_map, n_cartesian_map, n_taylor
     integer(c_int) :: z_m, z_harmonic, z_master_scale
   end subroutine
 end interface
@@ -2802,23 +3363,33 @@ type(c_ptr), value :: C
 type(em_field_mode_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-integer(c_int) :: n_map
 integer(c_int) :: n_grid
+integer(c_int) :: n_cylindrical_map
+integer(c_int) :: n_cartesian_map
+integer(c_int) :: n_taylor
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 0, PTR]
-n_map = 0
-if (associated(F%map)) n_map = 1
-!! f_side.to_c_trans[type, 0, PTR]
 n_grid = 0
 if (associated(F%grid)) n_grid = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_cylindrical_map = 0
+if (associated(F%cylindrical_map)) n_cylindrical_map = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_cartesian_map = 0
+if (associated(F%cartesian_map)) n_cartesian_map = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_taylor = 0
+if (associated(F%taylor)) n_taylor = 1
 
 !! f_side.to_c2_call
 call em_field_mode_to_c2 (C, F%m, F%harmonic, F%f_damp, F%phi0_ref, F%stored_energy, &
-    F%phi0_azimuth, F%field_scale, F%master_scale, c_loc(F%map), n_map, c_loc(F%grid), n_grid)
+    F%phi0_azimuth, F%field_scale, F%master_scale, c_loc(F%grid), n_grid, &
+    c_loc(F%cylindrical_map), n_cylindrical_map, c_loc(F%cartesian_map), n_cartesian_map, &
+    c_loc(F%taylor), n_taylor)
 
 end subroutine em_field_mode_to_c
 
@@ -2839,7 +3410,8 @@ end subroutine em_field_mode_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine em_field_mode_to_f2 (Fp, z_m, z_harmonic, z_f_damp, z_phi0_ref, z_stored_energy, &
-    z_phi0_azimuth, z_field_scale, z_master_scale, z_map, n_map, z_grid, n_grid) bind(c)
+    z_phi0_azimuth, z_field_scale, z_master_scale, z_grid, n_grid, z_cylindrical_map, &
+    n_cylindrical_map, z_cartesian_map, n_cartesian_map, z_taylor, n_taylor) bind(c)
 
 
 implicit none
@@ -2849,11 +3421,13 @@ type(em_field_mode_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_m, z_harmonic, z_master_scale
-type(em_field_map_struct), pointer :: f_map
-integer(c_int), value :: n_map, n_grid
+type(em_field_cartesian_map_struct), pointer :: f_cartesian_map
+integer(c_int), value :: n_grid, n_cylindrical_map, n_cartesian_map, n_taylor
 type(em_field_grid_struct), pointer :: f_grid
+type(em_field_cylindrical_map_struct), pointer :: f_cylindrical_map
+type(em_field_taylor_struct), pointer :: f_taylor
 real(c_double) :: z_f_damp, z_phi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
-type(c_ptr), value :: z_map, z_grid
+type(c_ptr), value :: z_grid, z_cylindrical_map, z_cartesian_map, z_taylor
 
 call c_f_pointer (Fp, F)
 
@@ -2874,19 +3448,35 @@ F%field_scale = z_field_scale
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%master_scale = z_master_scale
 !! f_side.to_f2_trans[type, 0, PTR]
-if (n_map == 0) then
-  if (associated(F%map)) deallocate(F%map)
-else
-  if (.not. associated(F%map)) allocate(F%map)
-  call em_field_map_to_f (z_map, c_loc(F%map))
-endif
-
-!! f_side.to_f2_trans[type, 0, PTR]
 if (n_grid == 0) then
   if (associated(F%grid)) deallocate(F%grid)
 else
   if (.not. associated(F%grid)) allocate(F%grid)
   call em_field_grid_to_f (z_grid, c_loc(F%grid))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_cylindrical_map == 0) then
+  if (associated(F%cylindrical_map)) deallocate(F%cylindrical_map)
+else
+  if (.not. associated(F%cylindrical_map)) allocate(F%cylindrical_map)
+  call em_field_cylindrical_map_to_f (z_cylindrical_map, c_loc(F%cylindrical_map))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_cartesian_map == 0) then
+  if (associated(F%cartesian_map)) deallocate(F%cartesian_map)
+else
+  if (.not. associated(F%cartesian_map)) allocate(F%cartesian_map)
+  call em_field_cartesian_map_to_f (z_cartesian_map, c_loc(F%cartesian_map))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_taylor == 0) then
+  if (associated(F%taylor)) deallocate(F%taylor)
+else
+  if (.not. associated(F%taylor)) allocate(F%taylor)
+  call em_field_taylor_to_f (z_taylor, c_loc(F%taylor))
 endif
 
 
@@ -3021,11 +3611,11 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine floor_position_to_c2 (C, z_r, z_theta, z_phi, z_psi) bind(c)
+  subroutine floor_position_to_c2 (C, z_r, z_w, z_theta, z_phi, z_psi) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_r(*), z_theta, z_phi, z_psi
+    real(c_double) :: z_r(*), z_w(*), z_theta, z_phi, z_psi
   end subroutine
 end interface
 
@@ -3041,7 +3631,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call floor_position_to_c2 (C, fvec2vec(F%r, 3), F%theta, F%phi, F%psi)
+call floor_position_to_c2 (C, fvec2vec(F%r, 3), mat2vec(F%w, 3*3), F%theta, F%phi, F%psi)
 
 end subroutine floor_position_to_c
 
@@ -3061,7 +3651,7 @@ end subroutine floor_position_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine floor_position_to_f2 (Fp, z_r, z_theta, z_phi, z_psi) bind(c)
+subroutine floor_position_to_f2 (Fp, z_r, z_w, z_theta, z_phi, z_psi) bind(c)
 
 
 implicit none
@@ -3070,12 +3660,14 @@ type(c_ptr), value :: Fp
 type(floor_position_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_r(*), z_theta, z_phi, z_psi
+real(c_double) :: z_r(*), z_w(*), z_theta, z_phi, z_psi
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r = z_r(1:3)
+!! f_side.to_f2_trans[real, 2, NOT]
+call vec2mat(z_w, F%w)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%theta = z_theta
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -4856,197 +5448,6 @@ end subroutine wall3d_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine taylor_term_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad taylor_term_struct to a C++ CPP_taylor_term structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad taylor_term_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_taylor_term struct.
-!-
-
-subroutine taylor_term_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    real(c_double) :: z_coef
-    integer(c_int) :: z_expn(*)
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(taylor_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 6))
-
-end subroutine taylor_term_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine taylor_term_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_taylor_term structure to a Bmad taylor_term_struct structure.
-! This routine is called by taylor_term_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the taylor_term_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad taylor_term_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(taylor_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_coef
-integer(c_int) :: z_expn(*)
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%coef = z_coef
-!! f_side.to_f2_trans[integer, 1, NOT]
-F%expn = z_expn(1:6)
-
-end subroutine taylor_term_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine taylor_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad taylor_struct to a C++ CPP_taylor structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad taylor_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_taylor struct.
-!-
-
-subroutine taylor_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    integer(c_int), value :: n1_term
-    real(c_double) :: z_ref
-    type(c_ptr) :: z_term(*)
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(taylor_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-type(c_ptr), allocatable :: z_term(:)
-integer(c_int) :: n1_term
-
-!
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_c_trans[type, 1, PTR]
- n1_term = 0
-if (associated(F%term)) then
-  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
-  allocate (z_term(n1_term))
-  do jd1 = 1, n1_term
-    z_term(jd1) = c_loc(F%term(jd1+lb1))
-  enddo
-endif
-
-!! f_side.to_c2_call
-call taylor_to_c2 (C, F%ref, z_term, n1_term)
-
-end subroutine taylor_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine taylor_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_taylor structure to a Bmad taylor_struct structure.
-! This routine is called by taylor_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the taylor_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad taylor_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(taylor_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int), value :: n1_term
-real(c_double) :: z_ref
-type(c_ptr) :: z_term(*)
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%ref = z_ref
-!! f_side.to_f2_trans[type, 1, PTR]
-if (n1_term == 0) then
-  if (associated(F%term)) deallocate(F%term)
-else
-  if (associated(F%term)) then
-    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
-    if (any(lbound(F%term) /= 1)) deallocate(F%term)
-  endif
-  if (.not. associated(F%term)) allocate(F%term(1:n1_term+1-1))
-  do jd1 = 1, n1_term
-    call taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
-  enddo
-endif
-
-
-end subroutine taylor_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine control_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad control_struct to a C++ CPP_control structure
@@ -6184,11 +6585,11 @@ interface
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
       z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
-      z_print_taylor_warning) bind(c)
+      z_print_taylor_warning, z_use_csr_old) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning
+    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning, z_use_csr_old
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
   end subroutine
@@ -6209,7 +6610,7 @@ call c_f_pointer (Fp, F)
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, &
     c_logic(F%lcsr_component_on), c_logic(F%lsc_component_on), c_logic(F%tsc_component_on), &
-    c_logic(F%small_angle_approx), c_logic(F%print_taylor_warning))
+    c_logic(F%small_angle_approx), c_logic(F%print_taylor_warning), c_logic(F%use_csr_old))
 
 end subroutine csr_parameter_to_c
 
@@ -6232,7 +6633,7 @@ end subroutine csr_parameter_to_c
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
     z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
-    z_print_taylor_warning) bind(c)
+    z_print_taylor_warning, z_use_csr_old) bind(c)
 
 
 implicit none
@@ -6241,7 +6642,7 @@ type(c_ptr), value :: Fp
 type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning
+logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning, z_use_csr_old
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
 
@@ -6273,6 +6674,8 @@ F%tsc_component_on = f_logic(z_tsc_component_on)
 F%small_angle_approx = f_logic(z_small_angle_approx)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%print_taylor_warning = f_logic(z_print_taylor_warning)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%use_csr_old = f_logic(z_use_csr_old)
 
 end subroutine csr_parameter_to_f2
 
@@ -6301,9 +6704,10 @@ interface
       z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, &
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
       z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, &
-      z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, &
-      z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
-      z_space_charge_on, z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
+      z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
+      z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, &
+      z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
+      z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
       z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
@@ -6313,8 +6717,9 @@ interface
     logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on
     logical(c_bool) :: z_debug
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
-    real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
-    integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
+    real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale
+    real(c_double) :: z_sad_amp_max
+    integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
   end subroutine
 end interface
 
@@ -6333,14 +6738,14 @@ call c_f_pointer (Fp, F)
 call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default_ds_step, &
     F%significant_length, F%rel_tol_tracking, F%abs_tol_tracking, F%rel_tol_adaptive_tracking, &
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
-    F%fatal_ds_adaptive_tracking, F%electric_dipole_moment, F%taylor_order, &
-    F%default_integ_order, F%ptc_max_fringe_order, c_logic(F%use_hard_edge_drifts), &
-    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), &
-    c_logic(F%auto_bookkeeper), c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), &
-    c_logic(F%spin_tracking_on), c_logic(F%radiation_damping_on), &
-    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
-    c_logic(F%absolute_time_tracking_default), c_logic(F%convert_to_kinetic_momentum), &
-    c_logic(F%aperture_limit_on), c_logic(F%debug))
+    F%fatal_ds_adaptive_tracking, F%electric_dipole_moment, F%ptc_cut_factor, F%sad_eps_scale, &
+    F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%default_integ_order, &
+    F%ptc_max_fringe_order, c_logic(F%use_hard_edge_drifts), c_logic(F%sr_wakes_on), &
+    c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), &
+    c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), c_logic(F%spin_tracking_on), &
+    c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
+    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
+    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -6363,12 +6768,13 @@ end subroutine bmad_common_to_c
 subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_step, &
     z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking, &
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
-    z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_taylor_order, &
-    z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, &
-    z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
-    z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
-    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
+    z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
+    z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_default_integ_order, &
+    z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, &
+    z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, &
+    z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
+    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
+    z_aperture_limit_on, z_debug) bind(c)
 
 
 implicit none
@@ -6381,8 +6787,9 @@ logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_
 logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on
 logical(c_bool) :: z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
-real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
-integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
+real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale
+real(c_double) :: z_sad_amp_max
+integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
 
 call c_f_pointer (Fp, F)
 
@@ -6410,6 +6817,14 @@ F%min_ds_adaptive_tracking = z_min_ds_adaptive_tracking
 F%fatal_ds_adaptive_tracking = z_fatal_ds_adaptive_tracking
 !! f_side.to_f2_trans[real, 0, NOT]
 F%electric_dipole_moment = z_electric_dipole_moment
+!! f_side.to_f2_trans[real, 0, NOT]
+F%ptc_cut_factor = z_ptc_cut_factor
+!! f_side.to_f2_trans[real, 0, NOT]
+F%sad_eps_scale = z_sad_eps_scale
+!! f_side.to_f2_trans[real, 0, NOT]
+F%sad_amp_max = z_sad_amp_max
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%sad_n_div_max = z_sad_n_div_max
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%taylor_order = z_taylor_order
 !! f_side.to_f2_trans[integer, 0, NOT]

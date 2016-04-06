@@ -214,36 +214,6 @@ template bool is_all_equal (const CPP_expression_atom_MATRIX&, const CPP_express
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_wig_term& x, const CPP_wig_term& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.coef == y.coef);
-  is_eq = is_eq && (x.kx == y.kx);
-  is_eq = is_eq && (x.ky == y.ky);
-  is_eq = is_eq && (x.kz == y.kz);
-  is_eq = is_eq && (x.x0 == y.x0);
-  is_eq = is_eq && (x.y0 == y.y0);
-  is_eq = is_eq && (x.phi_z == y.phi_z);
-  is_eq = is_eq && (x.type == y.type);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_wig_term_ARRAY&, const CPP_wig_term_ARRAY&);
-template bool is_all_equal (const CPP_wig_term_MATRIX&, const CPP_wig_term_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_wig& x, const CPP_wig& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.n_link == y.n_link);
-  is_eq = is_eq && is_all_equal(x.term, y.term);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_wig_ARRAY&, const CPP_wig_ARRAY&);
-template bool is_all_equal (const CPP_wig_MATRIX&, const CPP_wig_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_wake_sr_mode& x, const CPP_wake_sr_mode& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.amp == y.amp);
@@ -326,19 +296,105 @@ template bool is_all_equal (const CPP_wake_MATRIX&, const CPP_wake_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_em_field_map_term& x, const CPP_em_field_map_term& y) {
+bool operator== (const CPP_taylor_term& x, const CPP_taylor_term& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && is_all_equal(x.expn, y.expn);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_taylor_term_ARRAY&, const CPP_taylor_term_ARRAY&);
+template bool is_all_equal (const CPP_taylor_term_MATRIX&, const CPP_taylor_term_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_taylor& x, const CPP_taylor& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ref == y.ref);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_taylor_ARRAY&, const CPP_taylor_ARRAY&);
+template bool is_all_equal (const CPP_taylor_MATRIX&, const CPP_taylor_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_wig_term& x, const CPP_wig_term& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && (x.kx == y.kx);
+  is_eq = is_eq && (x.ky == y.ky);
+  is_eq = is_eq && (x.kz == y.kz);
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.phi_z == y.phi_z);
+  is_eq = is_eq && (x.type == y.type);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wig_term_ARRAY&, const CPP_wig_term_ARRAY&);
+template bool is_all_equal (const CPP_wig_term_MATRIX&, const CPP_wig_term_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_wig& x, const CPP_wig& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.n_link == y.n_link);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wig_ARRAY&, const CPP_wig_ARRAY&);
+template bool is_all_equal (const CPP_wig_MATRIX&, const CPP_wig_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_em_field_cartesian_map& x, const CPP_em_field_cartesian_map& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && (x.n_link == y.n_link);
+  is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_em_field_cartesian_map_ARRAY&, const CPP_em_field_cartesian_map_ARRAY&);
+template bool is_all_equal (const CPP_em_field_cartesian_map_MATRIX&, const CPP_em_field_cartesian_map_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_em_field_cartesian_map_term& x, const CPP_em_field_cartesian_map_term& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && (x.kx == y.kx);
+  is_eq = is_eq && (x.ky == y.ky);
+  is_eq = is_eq && (x.kz == y.kz);
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.phi_z == y.phi_z);
+  is_eq = is_eq && (x.type == y.type);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_em_field_cartesian_map_term_ARRAY&, const CPP_em_field_cartesian_map_term_ARRAY&);
+template bool is_all_equal (const CPP_em_field_cartesian_map_term_MATRIX&, const CPP_em_field_cartesian_map_term_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_em_field_cylindrical_map_term& x, const CPP_em_field_cylindrical_map_term& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.e_coef == y.e_coef);
   is_eq = is_eq && (x.b_coef == y.b_coef);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_em_field_map_term_ARRAY&, const CPP_em_field_map_term_ARRAY&);
-template bool is_all_equal (const CPP_em_field_map_term_MATRIX&, const CPP_em_field_map_term_MATRIX&);
+template bool is_all_equal (const CPP_em_field_cylindrical_map_term_ARRAY&, const CPP_em_field_cylindrical_map_term_ARRAY&);
+template bool is_all_equal (const CPP_em_field_cylindrical_map_term_MATRIX&, const CPP_em_field_cylindrical_map_term_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_em_field_map& x, const CPP_em_field_map& y) {
+bool operator== (const CPP_em_field_cylindrical_map& x, const CPP_em_field_cylindrical_map& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file == y.file);
   is_eq = is_eq && (x.n_link == y.n_link);
@@ -348,8 +404,25 @@ bool operator== (const CPP_em_field_map& x, const CPP_em_field_map& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_em_field_map_ARRAY&, const CPP_em_field_map_ARRAY&);
-template bool is_all_equal (const CPP_em_field_map_MATRIX&, const CPP_em_field_map_MATRIX&);
+template bool is_all_equal (const CPP_em_field_cylindrical_map_ARRAY&, const CPP_em_field_cylindrical_map_ARRAY&);
+template bool is_all_equal (const CPP_em_field_cylindrical_map_MATRIX&, const CPP_em_field_cylindrical_map_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_em_field_taylor& x, const CPP_em_field_taylor& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && (x.n_link == y.n_link);
+  is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
+  is_eq = is_eq && (x.dr == y.dr);
+  is_eq = is_eq && (x.r0 == y.r0);
+  is_eq = is_eq && (x.curved_coords == y.curved_coords);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_em_field_taylor_ARRAY&, const CPP_em_field_taylor_ARRAY&);
+template bool is_all_equal (const CPP_em_field_taylor_MATRIX&, const CPP_em_field_taylor_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -368,9 +441,9 @@ template bool is_all_equal (const CPP_em_field_grid_pt_MATRIX&, const CPP_em_fie
 bool operator== (const CPP_em_field_grid& x, const CPP_em_field_grid& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && (x.n_link == y.n_link);
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
-  is_eq = is_eq && (x.n_link == y.n_link);
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
@@ -393,12 +466,18 @@ bool operator== (const CPP_em_field_mode& x, const CPP_em_field_mode& y) {
   is_eq = is_eq && (x.phi0_azimuth == y.phi0_azimuth);
   is_eq = is_eq && (x.field_scale == y.field_scale);
   is_eq = is_eq && (x.master_scale == y.master_scale);
-  is_eq = is_eq && ((x.map == NULL) == (y.map == NULL));
-  if (!is_eq) return false;
-  if (x.map != NULL) is_eq = (*x.map == *y.map);
   is_eq = is_eq && ((x.grid == NULL) == (y.grid == NULL));
   if (!is_eq) return false;
   if (x.grid != NULL) is_eq = (*x.grid == *y.grid);
+  is_eq = is_eq && ((x.cylindrical_map == NULL) == (y.cylindrical_map == NULL));
+  if (!is_eq) return false;
+  if (x.cylindrical_map != NULL) is_eq = (*x.cylindrical_map == *y.cylindrical_map);
+  is_eq = is_eq && ((x.cartesian_map == NULL) == (y.cartesian_map == NULL));
+  if (!is_eq) return false;
+  if (x.cartesian_map != NULL) is_eq = (*x.cartesian_map == *y.cartesian_map);
+  is_eq = is_eq && ((x.taylor == NULL) == (y.taylor == NULL));
+  if (!is_eq) return false;
+  if (x.taylor != NULL) is_eq = (*x.taylor == *y.taylor);
   return is_eq;
 };
 
@@ -422,6 +501,7 @@ template bool is_all_equal (const CPP_em_fields_MATRIX&, const CPP_em_fields_MAT
 bool operator== (const CPP_floor_position& x, const CPP_floor_position& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.r, y.r);
+  is_eq = is_eq && is_all_equal(x.w, y.w);
   is_eq = is_eq && (x.theta == y.theta);
   is_eq = is_eq && (x.phi == y.phi);
   is_eq = is_eq && (x.psi == y.psi);
@@ -731,30 +811,6 @@ template bool is_all_equal (const CPP_wall3d_MATRIX&, const CPP_wall3d_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_taylor_term& x, const CPP_taylor_term& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.coef == y.coef);
-  is_eq = is_eq && is_all_equal(x.expn, y.expn);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_taylor_term_ARRAY&, const CPP_taylor_term_ARRAY&);
-template bool is_all_equal (const CPP_taylor_term_MATRIX&, const CPP_taylor_term_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_taylor& x, const CPP_taylor& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.ref == y.ref);
-  is_eq = is_eq && is_all_equal(x.term, y.term);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_taylor_ARRAY&, const CPP_taylor_ARRAY&);
-template bool is_all_equal (const CPP_taylor_MATRIX&, const CPP_taylor_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
@@ -947,6 +1003,7 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
   is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
   is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
+  is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
   return is_eq;
 };
 
@@ -969,6 +1026,10 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.min_ds_adaptive_tracking == y.min_ds_adaptive_tracking);
   is_eq = is_eq && (x.fatal_ds_adaptive_tracking == y.fatal_ds_adaptive_tracking);
   is_eq = is_eq && (x.electric_dipole_moment == y.electric_dipole_moment);
+  is_eq = is_eq && (x.ptc_cut_factor == y.ptc_cut_factor);
+  is_eq = is_eq && (x.sad_eps_scale == y.sad_eps_scale);
+  is_eq = is_eq && (x.sad_amp_max == y.sad_amp_max);
+  is_eq = is_eq && (x.sad_n_div_max == y.sad_n_div_max);
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
