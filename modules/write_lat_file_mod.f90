@@ -73,7 +73,7 @@ type (wake_sr_mode_struct), pointer :: sr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (em_field_mode_struct), pointer :: mode
 type (em_field_grid_struct), pointer :: grid
-type (em_field_map_struct), pointer :: map
+type (em_field_cylindrical_map_struct), pointer :: map
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
@@ -512,8 +512,8 @@ do ib = 0, ubound(lat%branch, 1)
           if (mode%master_scale > 0) write (iu2, '(3a)') &
                                         'master_scale  = ', trim(attribute_name(ele, mode%master_scale)), ','
           write (iu2, '(4x, 3a)')       'field_scale   = ', trim(str(mode%field_scale)), ','
-          if (associated(mode%map)) then
-            map => mode%map
+          if (associated(mode%cylindrical_map)) then
+            map => mode%cylindrical_map
             write (iu2, '(4x, a)')  'map = {'
             write (iu2, '(4x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(map%ele_anchor_pt)), ','
             write (iu2, '(4x, 3a)') 'dz            =', trim(str(map%dz)), ' &'

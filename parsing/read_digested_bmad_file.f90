@@ -487,18 +487,18 @@ if (n_em_field_mode > 0) then
                          mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
     if (ix_ele > 0) then
-      mode%map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%map
-      if (associated(mode%map)) mode%map%n_link = mode%map%n_link + 1
+      mode%cylindrical_map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%cylindrical_map
+      if (associated(mode%cylindrical_map)) mode%cylindrical_map%n_link = mode%cylindrical_map%n_link + 1
       mode%grid => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%grid
       if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
       cycle
     endif
 
     if (nf > 0) then
-      allocate (mode%map)
-      allocate (mode%map%term(nf))
-      read (d_unit, err = 9140) mode%map%file, mode%map%dz, mode%map%ele_anchor_pt
-      read (d_unit, err = 9140) mode%map%term
+      allocate (mode%cylindrical_map)
+      allocate (mode%cylindrical_map%term(nf))
+      read (d_unit, err = 9140) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
+      read (d_unit, err = 9140) mode%cylindrical_map%term
     endif
 
     if (ng > 0) then

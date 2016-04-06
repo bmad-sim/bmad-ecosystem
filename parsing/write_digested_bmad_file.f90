@@ -352,7 +352,7 @@ if (n_em_field_mode > 0) then
 
   do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
-    if (.not. associated(mode%map) .and. .not. associated(mode%grid)) cycle
+    if (.not. associated(mode%cylindrical_map) .and. .not. associated(mode%grid)) cycle
 
     ix_ele = -1
     ix_branch = -1
@@ -366,10 +366,10 @@ if (n_em_field_mode > 0) then
         if (.not. associated(ele2%em_field)) cycle
         do im = 1, size(ele2%em_field%mode)
           mode2 => ele2%em_field%mode(im)
-          if (associated(mode%map) .neqv. associated(mode2%map)) cycle
+          if (associated(mode%cylindrical_map) .neqv. associated(mode2%cylindrical_map)) cycle
           if (associated(mode%grid) .neqv. associated(mode2%grid)) cycle
-          if (associated(mode%map)) then
-            if (mode%map%file /= mode2%map%file) cycle
+          if (associated(mode%cylindrical_map)) then
+            if (mode%cylindrical_map%file /= mode2%cylindrical_map%file) cycle
           endif
           if (associated(mode%grid)) then
             if (mode%grid%file /= mode2%grid%file) cycle
@@ -383,7 +383,7 @@ if (n_em_field_mode > 0) then
     enddo branch_loop
 
     nf = 0
-    if (associated(mode%map)) nf = size(mode%map%term)
+    if (associated(mode%cylindrical_map)) nf = size(mode%cylindrical_map%term)
     ng = 0
     if (associated(mode%grid)) ng = size(mode%grid%pt)
 
@@ -391,8 +391,8 @@ if (n_em_field_mode > 0) then
                    mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
     if (ix_ele == -1 .and. nf > 0) then
-      write (d_unit) mode%map%file, mode%map%dz, mode%map%ele_anchor_pt
-      write (d_unit) mode%map%term
+      write (d_unit) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
+      write (d_unit) mode%cylindrical_map%term
     endif
 
     if (ix_ele == -1 .and. ng > 0) then

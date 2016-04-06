@@ -796,7 +796,7 @@ if (associated (slave%wake)) then
 endif
 
 ! EM fields
-! Note: %em_field%mode%map, %em_field_mode%grid are in common between lord and slave.
+! Note: %em_field%mode%cylindrical_map, %em_field_mode%grid are in common between lord and slave.
 
 if (associated(slave%em_field)) then
   do i = 1, size(lord%em_field%mode)

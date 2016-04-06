@@ -98,7 +98,7 @@ endif
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are separate.
-! Exceptions: %em_field%mode%map, %em_field%mode%grid and %wig.
+! Exceptions: %em_field%mode%cylindrical_map, %em_field%mode%grid and %wig.
 
 ! %wig%term exception: The problem with having ele1%wig and ele2%wig point to the same 
 ! memory location is when we have a periodic_wiggler and ele1 is not a slave or ele2. 

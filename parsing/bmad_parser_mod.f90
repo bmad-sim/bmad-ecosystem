@@ -1004,7 +1004,7 @@ if (attrib_word == 'FIELD') then
         do_evaluate = .false.
 
       case ('MAP') 
-        call parse_rf_map(em_mode%map, ele, lat, delim, delim_found, err_flag)
+        call parse_rf_map(em_mode%cylindrical_map, ele, lat, delim, delim_found, err_flag)
         if (err_flag) return
         do_evaluate = .false.
 
@@ -1060,11 +1060,11 @@ if (attrib_word == 'FIELD') then
         if (.not. associated(bele%em_field)) cycle    
         if (bele%ix_ele == ele%ix_ele .and. bele%ix_branch == ele%ix_branch) cycle
         do im = 1, size(bele%em_field%mode)
-          if (.not. associated(bele%em_field%mode(im)%map)) cycle
-          if (bele%em_field%mode(im)%map%file /= em_mode%map%file) cycle
-          deallocate(em_mode%map)
-          em_mode%map => bele%em_field%mode(im)%map
-          em_mode%map%n_link = em_mode%map%n_link + 1        
+          if (.not. associated(bele%em_field%mode(im)%cylindrical_map)) cycle
+          if (bele%em_field%mode(im)%cylindrical_map%file /= em_mode%cylindrical_map%file) cycle
+          deallocate(em_mode%cylindrical_map)
+          em_mode%cylindrical_map => bele%em_field%mode(im)%cylindrical_map
+          em_mode%cylindrical_map%n_link = em_mode%cylindrical_map%n_link + 1        
           exit branch_loop
         end do
       enddo 
@@ -6425,7 +6425,7 @@ subroutine parse_rf_map (map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (em_field_map_struct), pointer :: map
+type (em_field_cylindrical_map_struct), pointer :: map
 type (ele_struct), target :: ele
 type (lat_struct) lat
 

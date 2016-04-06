@@ -428,18 +428,18 @@ if (associated(ele%em_field)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_azimuth:  ', rfm%phi0_azimuth
       nl=nl+1; write (li(nl), '(a, es16.8)')    '    field_scale:   ', rfm%field_scale
 
-      if (associated(rfm%map)) then
-        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%map%file)
-        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%map%ele_anchor_pt)
-        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%map%n_link
-        nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:            ', rfm%map%dz
+      if (associated(rfm%cylindrical_map)) then
+        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%cylindrical_map%file)
+        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%cylindrical_map%ele_anchor_pt)
+        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%cylindrical_map%n_link
+        nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:            ', rfm%cylindrical_map%dz
         nl=nl+1; write (li(nl), '(a)')          '  Term                e                           b'
-        do j = 1, min(10, size(rfm%map%term))
+        do j = 1, min(10, size(rfm%cylindrical_map%term))
           if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
           nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
-                                             '(', rfm%map%term(j)%e_coef, ')  (', rfm%map%term(j)%b_coef, ')'
+                                             '(', rfm%cylindrical_map%term(j)%e_coef, ')  (', rfm%cylindrical_map%term(j)%b_coef, ')'
         enddo
-        if (size(rfm%map%term) > 10) then
+        if (size(rfm%cylindrical_map%term) > 10) then
           nl=nl+1; li(nl) = '     .... etc ...'
         endif
       endif
