@@ -513,7 +513,7 @@ type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
 type (ele_struct), pointer :: ele1, ele2, lord
-type (floor_position_struct) end1, end2, floor, x_ray
+type (floor_position_struct) end1, end2, floor, x_ray, floor1, floor2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 
@@ -531,7 +531,7 @@ real(rp) x_min, x_max, y_min, y_max
 character(*) dat_var_name
 character(80) str
 character(40) name
-character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
+character(*), parameter :: r_name = 'tao_draw_ele_for_floor_plan'
 character(8) :: draw_units
 character(2) justify
 
@@ -546,15 +546,28 @@ if (.not. associated(ele1)) return
 is_data_or_var = .false.
 if (associated(ele_shape)) is_data_or_var = (ele_shape%ele_id(1:6) == 'data::' .or. ele_shape%ele_id(1:5) == 'var::')
 
-if (is_data_or_var) then  ! pretend this is zero length element
-  ele1 => ele2
-  is_bend = .false.
+is_bend = (ele%key == sbend$ .and. .not. is_data_or_var)
+
+if (ele%key == overlay$ .or. ele%key == group$) then
+  floor%r = [0.0_rp, 0.0_rp, ele1%value(l$)]
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+
+  floor%r = [0.0_rp, 0.0_rp, ele2%value(l$)]
+  floor2 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+
 else
-  is_bend = (ele%key == sbend$)
+  floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
+  floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+  floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
 endif
 
-call floor_to_screen_coords (graph, ele1%floor, end1)
-call floor_to_screen_coords (graph, ele2%floor, end2)
+if (is_data_or_var) floor1 = floor2 ! pretend this is zero length element
+
+
+call floor_to_screen_coords (graph, floor1, end1)
+call floor_to_screen_coords (graph, floor2, end2)
 
 ! Only draw those element that have at least one point in bounds.
 
@@ -574,7 +587,7 @@ if ((end1%r(1) < x_min .or. x_max < end1%r(1) .or. end1%r(2) < y_min .or. y_max 
 
 if (is_bend) then
 
-  floor = ele1%floor
+  floor = floor1
   v_old = floor%r
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
@@ -686,7 +699,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   call init_ele(drift)
   drift%key = drift$
   drift%value(l$) = ele%value(x_ray_line_len$)
-  call ele_geometry (ele2%floor, drift, drift%floor) 
+  call ele_geometry (floor2, drift, drift%floor) 
   call floor_to_screen_coords (graph, drift%floor, x_ray)
   call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), draw_units)
 endif
