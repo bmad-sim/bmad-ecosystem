@@ -50,9 +50,9 @@ real(rp), parameter :: N_avogadro = 6.02214129d23    ! Number / mole
 
 real(rp), parameter :: fine_structure_constant =  7.29735257d-3
 real(rp), parameter :: anomalous_mag_moment_electron = 1.159652193d-3
-real(rp), parameter :: anomalous_mag_moment_proton   = 1.79285_dp
+real(rp), parameter :: anomalous_mag_moment_proton   = 1.79285d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
-real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047_dp
+real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
 
 complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
   
