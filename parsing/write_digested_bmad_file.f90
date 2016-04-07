@@ -204,7 +204,7 @@ type (surface_grid_pt_struct), pointer :: s_pt
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var, ix_mode, im
-integer i, j, k, n, ng, nf, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
+integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
 
 logical write_wake, mode3
 
@@ -367,9 +367,17 @@ if (n_em_field_mode > 0) then
         do im = 1, size(ele2%em_field%mode)
           mode2 => ele2%em_field%mode(im)
           if (associated(mode%cylindrical_map) .neqv. associated(mode2%cylindrical_map)) cycle
+          if (associated(mode%cartesian_map) .neqv. associated(mode2%cartesian_map)) cycle
+          if (associated(mode%taylor) .neqv. associated(mode2%taylor)) cycle
           if (associated(mode%grid) .neqv. associated(mode2%grid)) cycle
           if (associated(mode%cylindrical_map)) then
             if (mode%cylindrical_map%file /= mode2%cylindrical_map%file) cycle
+          endif
+          if (associated(mode%cartesian_map)) then
+            if (mode%cartesian_map%file /= mode2%cartesian_map%file) cycle
+          endif
+          if (associated(mode%taylor)) then
+            if (mode%taylor%file /= mode2%taylor%file) cycle
           endif
           if (associated(mode%grid)) then
             if (mode%grid%file /= mode2%grid%file) cycle
@@ -382,20 +390,25 @@ if (n_em_field_mode > 0) then
       enddo  
     enddo branch_loop
 
-    nf = 0
-    if (associated(mode%cylindrical_map)) nf = size(mode%cylindrical_map%term)
-    ng = 0
-    if (associated(mode%grid)) ng = size(mode%grid%pt)
+    n_cyl = 0
+    if (associated(mode%cylindrical_map)) n_cyl = size(mode%cylindrical_map%term)
+    n_cart = 0
+    if (associated(mode%cartesian_map)) n_cart = size(mode%cartesian_map%term)
+    n_tay = 0
+    if (associated(mode%taylor)) n_tay = size(mode%taylor%pt)
+    n_grid = 0
+    if (associated(mode%grid)) n_grid = size(mode%grid%pt)
 
-    write (d_unit) nf, ng, ix_ele, ix_branch, ix_mode, mode%harmonic, mode%f_damp, mode%phi0_ref, &
+    write (d_unit) n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_mode, &
+                   mode%harmonic, mode%f_damp, mode%phi0_ref, &
                    mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
-    if (ix_ele == -1 .and. nf > 0) then
+    if (ix_ele == -1 .and. n_cyl > 0) then
       write (d_unit) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
       write (d_unit) mode%cylindrical_map%term
     endif
 
-    if (ix_ele == -1 .and. ng > 0) then
+    if (ix_ele == -1 .and. n_grid > 0) then
       write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
                   mode%grid%type, mode%grid%file, &
                   mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords

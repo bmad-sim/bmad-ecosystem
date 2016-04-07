@@ -498,7 +498,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! multipass lords/slaves must share %em_field%mode%cylindrical_map and %em_field%mode%term memory
+    ! multipass lords/slaves must share %em_field%mode%... memory
 
     if (l_stat == multipass_lord$) then
       do is = 1, ele%n_slave
