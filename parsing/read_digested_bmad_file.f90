@@ -424,7 +424,7 @@ type (surface_grid_pt_struct), pointer :: s_pt
 
 real(rp) rdum
 
-integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_taylor, n_grid, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, n_var, ix_d, ix_m
 integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch, ix_st(3,3)
@@ -483,7 +483,8 @@ if (n_em_field_mode > 0) then
 
   do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, ix_mode, mode%harmonic, mode%f_damp, mode%phi0_ref, &
+    read (d_unit, err = 9140) n_cyl, n_cart, n_taylor, n_grid, ix_ele, ix_branch, ix_mode, &
+                         mode%harmonic, mode%f_damp, mode%phi0_ref, &
                          mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
     if (ix_ele > 0) then
@@ -494,14 +495,14 @@ if (n_em_field_mode > 0) then
       cycle
     endif
 
-    if (nf > 0) then
+    if (n_cyl > 0) then
       allocate (mode%cylindrical_map)
-      allocate (mode%cylindrical_map%term(nf))
+      allocate (mode%cylindrical_map%term(n_cyl))
       read (d_unit, err = 9140) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
       read (d_unit, err = 9140) mode%cylindrical_map%term
     endif
 
-    if (ng > 0) then
+    if (n_grid > 0) then
       allocate (mode%grid)
       read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
                         mode%grid%type, mode%grid%file, &
