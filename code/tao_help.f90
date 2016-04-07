@@ -149,6 +149,9 @@ do
   call substitute ('\W ', '^')
   call substitute ('"\W"', '"^"')
 
+  if (line(1:2) == '% ') line = line(3:)
+  if (line(1:1) == '%')  line = line(2:)
+
   do
     if (line(1:1) /= '{' .and. line(1:1) /= '}') exit
     line = line(2:)
