@@ -390,25 +390,30 @@ endif
 err = .false.
 
 do i = 1, n-1
-  call calc_vertex_center (v(i), v(i+1), err)
+  call calc_vertex_center (i, i+1, err)
   if (err) return
 enddo
-call calc_vertex_center (v(n), v(1), err)
+call calc_vertex_center (n, 1, err)
 
 !----------------------------------------------------------------------------
 contains
 
-subroutine calc_vertex_center (v1, v2, err)
+subroutine calc_vertex_center (i1, i2, err)
 
-type (wall3d_vertex_struct) v1, v2
+type (wall3d_vertex_struct), pointer :: v1, v2
 
 real(rp) x1, y1, x2, y2, x, y
 real(rp) x_mid, y_mid, dx, dy
 real(rp) a, a2, ct, st
 
+integer i1, i2
 logical err
 
 ! If straight line nothing to be done
+
+v1 => v(i1)
+v2 => v(i2)
+
 if (v2%radius_x == 0) return
 
 ! Convert (x, y) into unrotated frame if tilted ellipse
@@ -440,7 +445,8 @@ dx    = (x2 - x1)/2; dy    = (y2 - y1)/2
 
 a2 = (v2%radius_x**2 - dx**2 - dy**2) / (dx**2 + dy**2)
 if (a2 < 0) then
-  call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE')
+  call out_io (s_error$, r_name, trim(sec_name) // &
+                  ' VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE FOR VERTICES: \i0\ TO \i0\ ', i_array = [i1, i2])
   err = .true.
   return
 endif
