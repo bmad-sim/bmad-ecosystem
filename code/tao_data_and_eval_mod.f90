@@ -2088,6 +2088,15 @@ case ('rel_floor.')
 
 case ('sigma.')
 
+  ! Looks for numbers: e.g. sigma.13
+  i = index('123456', datum%data_type(7:7))
+  if (i > 0) then
+    if (data_source == 'lat') return
+    j = index('123456', datum%data_type(8:8)) 
+    call tao_load_this_datum (bunch_params(:)%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    return
+  endif
+
   select case (datum%data_type)
 
   case ('sigma.x')  
@@ -2130,7 +2139,11 @@ case ('sigma.')
   case ('sigma.xy')  
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    
+
+  case ('sigma.Lxy')  
+    if (data_source == 'lat') return
+    call tao_load_this_datum (bunch_params(:)%sigma(1,4) - bunch_params(:)%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
     return
