@@ -727,6 +727,11 @@ coordinate system where the exit end of the reference element is taken to be at
 \vn{x = y = z = theta = phi = 0}. See the \bmad manual for details on
 the global coordinate system. See also \vn{floor.}.
 
+  \index{sigma.}
+  \item[sigma.] \Newline
+  Beam sizes, correlations, and angular momentum calculated from the
+  beam sigma matrix. The angular momentum $\vn{Lxy} = <xp_x - yp_x>$. 
+
   \index{t. tt.} 
   \item[t. tt.] \Newline
 The \vn{t} and \vn{tt} data types give terms of the Taylor map between
@@ -1005,7 +1010,9 @@ squared.
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
-    sigma.px, sigma.py, sigma.pz
+    sigma.px, sigma.py, sigma.pz, \\
+    sigma.$ij$ \hspace{10pt} $1 \le i,j \le 6$, \\
+    sigma.Lxy
   \end{tabular}                       & Bunch size                                    & beam, lat \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
