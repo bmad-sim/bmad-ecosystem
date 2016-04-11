@@ -26,7 +26,7 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine t6_to_B123(N,ab_tunes,B1,B2,B3)
+! Subroutine t6_to_B123(N,abz_tunes,B1,B2,B3)
 !
 ! This decomposes the one-turn matrix according to Equation 56 from 
 ! "Alternative approach to general coupled linear optics" by A. Wolski. PRSTAB.
@@ -35,19 +35,19 @@ contains
 !
 ! Input:
 !   t6(6,6)     -- real(rp): 1-turn transfer matrix.  RF assumed to be on.
-!   ab_tunes(2) -- real(rp): a-mode and b-mode tunes.  Used to order eigensystem.
+!   abz_tunes(3) -- real(rp): a-mode and b-mode tunes.  Used to order eigensystem.
 ! Output:
 !   B1(6,6)     -- real(rp): Beta matrix associated with a-mode.
 !   B2(6,6)     -- real(rp): Beta matrix associated with b-mode.
 !   B3(6,6)     -- real(rp): Beta matrix associated with c-mode.
 !-
 
-subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
+subroutine t6_to_B123(t6,abz_tunes,B1,B2,B3)
 
   use bmad
 
   real(rp) t6(6,6)
-  real(rp) ab_tunes(2)
+  real(rp) abz_tunes(3)
   real(rp) B1(6,6), B2(6,6), B3(6,6)
   logical err_flag
 
@@ -81,7 +81,7 @@ subroutine t6_to_B123(t6,ab_tunes,B1,B2,B3)
     return
   endif
 
-  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
+  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
   if(err_flag) then
     call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
     B1 = 0.0d0
@@ -332,17 +332,18 @@ subroutine xyz_to_action(ring,ix,X,J,err_flag)
 
   real(rp) t6(6,6)
   real(rp) N(6,6)
-  real(rp) ab_tunes(2)
+  real(rp) abz_tunes(3)
 
   character(*), parameter :: r_name = 'xyz_to_action'
 
   !
 
-  ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
-  ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
+  abz_tunes(1) = ring%a%tune
+  abz_tunes(2) = ring%b%tune
+  abz_tunes(3) = ring%z%tune
 
   call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
-  call make_N(t6, N, err_flag, ab_tunes)
+  call make_N(t6, N, err_flag, abz_tunes)
   if( err_flag ) then
     call out_io (s_error$, r_name, "Error received from make_N.")
     J = 0.0d0
@@ -389,7 +390,7 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
   real(rp) t6(1:6,1:6)
   real(rp) N(1:6,1:6)
   real(rp) Ninv(1:6,1:6)
-  real(rp) ab_tunes(2)
+  real(rp) abz_tunes(3)
   real(rp) gamma(3)
   integer i
 
@@ -397,11 +398,12 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
 
   !
 
-  ab_tunes(1) = mod(ring%ele(ring%n_ele_track)%a%phi,twopi)
-  ab_tunes(2) = mod(ring%ele(ring%n_ele_track)%b%phi,twopi)
+  abz_tunes(1) = ring%a%tune
+  abz_tunes(2) = ring%b%tune
+  abz_tunes(3) = ring%z%tune
 
   call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
-  call make_N(t6, N, err_flag, ab_tunes)
+  call make_N(t6, N, err_flag, abz_tunes)
   if( err_flag ) then
     call out_io (s_error$, r_name, "Error received from make_N.")
     X = 0.0d0
@@ -429,6 +431,7 @@ end subroutine action_to_xyz
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
 !   err_flag     - logical, optional: set to true if an error has occured.
+!   tunes(3)     - real(rp):  Mode tunes, in radians.
 !-
 
 subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
@@ -546,14 +549,14 @@ end subroutine eigen_decomp_6mat
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
+!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
 !   Nmat(6,6)    - real(rp):  Normalized, real eigen matrix from make_N.
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Ordered fractional normal mode tunes, in radians.
+!   mat_tunes(3) - real(rp):  Ordered normal mode tunes, in radians.
 !-
 
 subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
@@ -637,7 +640,7 @@ end subroutine
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
+!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
@@ -677,18 +680,19 @@ end subroutine
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
+! Subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
 ! 
 ! This subroutine orders the eigensystem by matching the tunes of the eigensystem to 
-! externally supplied tunes ab_tunes. ab_tunes contains two tunes.  The remaing tune is ordered last.
+! externally supplied tunes abz_tunes.  abz_tunes is in radians, and contains two
+! tunes.  The remaing tune is ordered last.
 !
 ! Input:
 !   eval_r(6)    - real(rp):  real part of eigenvalues.
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three fractional normal mode tunes, in radians.
-!   ab_tunes(2)  - real(rp):  fractional Tunes to order eigensystem by.
+!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
+!   abz_tunes(3)  - real(rp):  Tunes to order eigensystem by.
 !
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
@@ -698,16 +702,16 @@ end subroutine
 !   err_flag     - logical, optional:  Set to true if an error occured.
 !-
 
-subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
+subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
   use bmad
 
   real(rp) evec_r(6,6), evec_i(6,6)
   real(rp) eval_r(6), eval_i(6)
-  real(rp) mat_tunes(3), ab_tunes(2)
+  real(rp) mat_tunes(3)
   logical err_flag
 
-  real(rp) vec(3), min1, min2
-  integer pair1, pair2, pair3
+  real(rp) abz_tunes(3)
+  real(rp) val(6)
   integer pairindexes(6)
 
   character(*), parameter :: r_name = 'order_evecs_by_tune'
@@ -716,29 +720,64 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tun
 
   err_flag = .true.
 
-  vec = [abs(mat_tunes(1)-ab_tunes(1)), abs(mat_tunes(2)-ab_tunes(1)), abs(mat_tunes(3)-ab_tunes(1))]
-  pair1 = minloc(vec, 1)
-  min1 = vec(pair1)
-
-  vec = [abs(mat_tunes(1)-ab_tunes(2)), abs(mat_tunes(2)-ab_tunes(2)), abs(mat_tunes(3)-ab_tunes(2))]
-  pair2 = minloc(vec, 1)
-  min2 = vec(pair2)
-
-  if (pair1 == pair2 .or. min1 + min2 > 0.1 * abs(ab_tunes(1)-ab_tunes(2))) then
-    call out_io (s_fatal$, r_name, "Unable to match first tune.")
+  if( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
+    call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
+    write(*,'(3f14.5)') mat_tunes(1:3)
     if(global_com%exit_on_error) call err_exit
-    eval_r = 0.0d0
-    eval_i = 0.0d0
-    evec_r = 0.0d0
-    evec_i = 0.0d0
+    return
+  endif
+  if( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
+    call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing abz_tunes.")
+    write(*,'(3f14.5)') abz_tunes(1:3)
+    if(global_com%exit_on_error) call err_exit
     return
   endif
 
-  pair3 = 6 - pair1 - pair2
+  val(1) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
+  val(2) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
+  val(3) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
+  val(4) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
+  val(5) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
+  val(6) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
+           modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
+           modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
 
-  pairindexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
+  if(minval(val,1) .gt. 0.1) then
+    call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing mat_tunes and abz_tunes.")
+    write(*,'(3f14.5)') mat_tunes(1:3)
+    write(*,'(3f14.5)') abz_tunes(1:3)
+  endif
 
-  mat_tunes = mat_tunes([pair1, pair2, pair3])
+  select case(minloc(val,1))
+    case(1)
+      pairindexes = [1,2,3,4,5,6]
+      mat_tunes = mat_tunes([1, 2, 3])
+    case(2)
+      pairindexes = [1,2,5,6,3,4]
+      mat_tunes = mat_tunes([1, 3, 2])
+    case(3)
+      pairindexes = [3,4,1,2,5,6]
+      mat_tunes = mat_tunes([2, 1, 3])
+    case(4)
+      pairindexes = [3,4,5,6,1,2]
+      mat_tunes = mat_tunes([2, 3, 1])
+    case(5)
+      pairindexes = [5,6,1,2,3,4]
+      mat_tunes = mat_tunes([3, 1, 2])
+    case(6)
+      pairindexes = [5,6,3,4,1,2]
+      mat_tunes = mat_tunes([3, 2, 1])
+  end select
 
   evec_r = evec_r(:,pairindexes)
   evec_i = evec_i(:,pairIndexes)
@@ -753,7 +792,7 @@ end subroutine
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
+! Subroutine make_N(t6,N,err_flag,abz_tunes,tunes_out)
 !
 ! Given a 1-turn transfer matrix, this returns N and its inverse Ninv.
 ! N converts between normal invarients and phases and canonical coordinates:
@@ -763,30 +802,28 @@ end subroutine
 ! It is obtained by applying certain normalizations to the matrix of Eigen vectors, then making
 ! the result real using Q.
 !
-! If ab_tunes is present, then the eigensystem is ordered by matching the tunes.
-! If ab_tunes is not present, then the eigensystem is ordered by plane dominance.
+! If abz_tunes is present, then the eigensystem is ordered by matching the tunes.
+! If abz_tunes is not present, then the eigensystem is ordered by plane dominance.
 !
-! It is assumed that the first two modes rotate clockwise in phase space, and that the
-! third mode rotates counter-clockwise.  This is correct for machines with a positive slip factor.
-! IF the slip factor is negative, then the twopi correction should be removed.
+! It is assumed that the synchrotron tune is less than pi.
 !
 ! Input:
 !  t6(6,6)             -- real(rp): 1-turn transfer matrix
-!  ab_tunes(2)         -- real(rp), optional: Fractional (a-mode, b_mode) tune.
+!  abz_tunes(3)         -- real(rp), optional: a-mode is abz_tunes(1), b-mode is abz_tunes(2), synch tune is abz_tunes(3)
 !
 ! Output:
 !  N(6,6)              -- real(rp): X = N.J
 !  err_flag            -- logical: Set to true on error.  Often means Eigen decomposition failed.
-!  tunes_out(3)        -- real(rp), optional: Fractional tune of the 3 normal modes of t6. 
+!  tunes_out(3)        -- real(rp), optional: Fractional tune (in radians) of the 3 normal modes of t6.
 !-
 
-subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
+subroutine make_N(t6,N,err_flag,abz_tunes,tunes_out)
   use bmad
 
   real(rp) t6(6,6)
   real(rp) N(6,6)
   logical err_flag
-  real(rp), optional :: ab_tunes(2)
+  real(rp), optional :: abz_tunes(3)
   real(rp), optional :: tunes_out(3)
 
   real(rp) eval_r(6), eval_i(6)
@@ -803,17 +840,17 @@ subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
   if(err_flag) then
     call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
     N = 0.0d0
-    if(present(ab_tunes)) ab_tunes = 0.0d0
+    if(present(abz_tunes)) abz_tunes = 0.0d0
     if(present(tunes_out)) tunes_out = 0.0d0
     return
   endif
 
-  if( present(ab_tunes) ) then
-    call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, ab_tunes, err_flag)
+  if( present(abz_tunes) ) then
+    call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
     if(err_flag) then
       call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
       N = 0.0d0
-      if(present(ab_tunes)) ab_tunes = 0.0d0
+      if(present(abz_tunes)) abz_tunes = 0.0d0
       if(present(tunes_out)) tunes_out = 0.0d0
       return
     endif
@@ -821,7 +858,9 @@ subroutine make_N(t6,N,err_flag,ab_tunes,tunes_out)
     call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
   endif
 
-  mat_tunes(3) = mat_tunes(3) - twopi  ! assume positive slip factor.
+  if(abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
+    mat_tunes(3) = mat_tunes(3) - twopi
+  endif
 
   call normalize_evecs(evec_r, evec_i)
 
@@ -985,7 +1024,7 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
   real(rp) N(6,6)
   real(rp) D(6,6)
-  real(rp) ab_tunes(2)
+  real(rp) abz_tunes(3)
 
   integer i
 
@@ -993,10 +1032,11 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
   !
 
-  ab_tunes(1) = mode%a%tune
-  ab_tunes(2) = mode%b%tune
+  abz_tunes(1) = mode%a%tune
+  abz_tunes(2) = mode%b%tune
+  abz_tunes(3) = mode%z%tune
 
-  call make_N(t6, N, err_flag, ab_tunes)
+  call make_N(t6, N, err_flag, abz_tunes)
   if(err_flag) then
     call out_io (s_error$, r_name, "Error received from make_N.")
     sigma_mat = 0.0d0
@@ -1186,13 +1226,14 @@ do i = 1, 3
   if (radx < 0) return
   gamma(i) = SQRT(radx)
   w(i)%m = w(i)%m / gamma(i)
-  w_inv = mat_symp_conj (w(i)%m)
+  w_inv = mat_symp_conj(w(i)%m)
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
-ele2%mode3%x%eta  = ele2%mode3%v(1,6)
+ele2%mode3%x%eta = ele2%mode3%v(1,6)
+ele2%mode3%y%eta = ele2%mode3%v(3,6)
+
 ele2%mode3%x%etap = ele2%mode3%v(2,6)
-ele2%mode3%y%eta  = ele2%mode3%v(3,6)
 ele2%mode3%y%etap = ele2%mode3%v(4,6)
 
 call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%key, ele2%value(l$), ele2%mode3%a, err)
@@ -1204,7 +1245,7 @@ if (err) return
 
 err_flag = .false.
 
-end subroutine twiss3_propagate1
+end subroutine
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -1254,9 +1295,10 @@ if (all(lat%param%t1_with_RF(6,1:5) == 0)) then
 endif
 call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
 
-lat%ele(0)%mode3%x%eta  = lat%ele(0)%mode3%v(1,6)
+lat%ele(0)%mode3%x%eta = lat%ele(0)%mode3%v(1,6)
+lat%ele(0)%mode3%y%eta = lat%ele(0)%mode3%v(3,6)
+
 lat%ele(0)%mode3%x%etap = lat%ele(0)%mode3%v(2,6)
-lat%ele(0)%mode3%y%eta  = lat%ele(0)%mode3%v(3,6)
 lat%ele(0)%mode3%y%etap = lat%ele(0)%mode3%v(4,6)
 
 call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
@@ -1268,21 +1310,21 @@ err_flag = .false.
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine mode1_calc (gg, tune, twiss)
+  subroutine mode1_calc (gg, tune, twiss)
 
-type(twiss_struct) twiss
-real(rp) gg(:,:), tune
+  type(twiss_struct) twiss
+  real(rp) gg(:,:), tune
 
-!
+  !
 
-twiss%beta = gg(2,2)**2
-twiss%alpha = gg(2,1) * gg(2,2)
-twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
-twiss%phi = 0
+  twiss%beta = gg(2,2)**2
+  twiss%alpha = gg(2,1) * gg(2,2)
+  twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
+  twiss%phi = 0
 
-end subroutine mode1_calc
+  end subroutine
 
-end subroutine twiss3_at_start
+end subroutine
 
 end module mode3_mod
 
