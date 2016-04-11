@@ -1228,6 +1228,9 @@ end subroutine get_ptc_params
 ! Subroutine overloads "=" in expressions
 !       bmad_taylor = y8
 !
+! This does not do any conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
+! To convert coordinates, use the taylor_to_real_8 routine.
+!
 ! Modules needed:
 !   use ptc_interface_mod
 !
@@ -1273,10 +1276,10 @@ end subroutine taylor_equal_real_8
 !+
 ! Subroutine real_8_equal_taylor (y8, bmad_taylor)
 !
-! Subroutine to convert from a taylor map in Bmad to a
-! real_8 taylor map in Etienne's PTC. This does not do any
-! conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
-! To convert coordinates, use the taylor_to_real_8 routine.
+! Subroutine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
+!
+! This does not do any conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
+! To convert coordinates, use the real_8_to_taylor routine.
 !
 ! Subroutine overloads "=" in expressions
 !       y8 = bmad_taylor
@@ -1338,7 +1341,7 @@ end subroutine real_8_equal_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)
+! Subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1353,10 +1356,12 @@ end subroutine real_8_equal_taylor
 !   beta1    -- real(rp): Reference particle velocity at end of map
 !
 ! Output:
-!   y8(6) -- real_8: PTC Taylor map.
+!   y8(6)     -- real_8: PTC Taylor map.
+!   use_ref0  -- logical, optional: If present and True then resulting PTC map will be with
+!                   respect to bmad_taylor%ref. Default is False.
 !-
 
-subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)
+subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)
 
 use s_fibre_bundle
 
@@ -1367,6 +1372,7 @@ type (real_8) y8(:), rr(6), bet
 type (damap) bm, id, si
 
 real(dp) beta0, beta1, fix0(6), v0(:), v_ptc(6)
+logical, optional :: use_ref0
 
 !
 
@@ -1398,6 +1404,15 @@ y8 = rr
 y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+rr(6)**2+2.d0*rr(6)) )
 bet = (1.d0+rr(6))/(1.d0/beta1+y8(5))
 y8(6) = -rr(5)/bet
+
+if (logic_option(.false., use_ref0)) then
+  bm = y8
+  call vec_bmad_to_ptc (bmad_taylor%ref, beta0, fix0) 
+  rr = id + fix0
+  si = rr
+  bm = bm .o. si
+  y8 = bm
+endif
 
 call kill(bm, id, si)
 call kill(bet)
@@ -3092,10 +3107,14 @@ type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 type (el_list) ptc_el_list
+type (tree_element), pointer :: arbre(:)
+type (c_damap) ptc_c_damap
+type (real_8) ptc_re8(6)
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
+real(rp) beta0, beta1, ref0(6), ref1(6)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -3104,7 +3123,7 @@ integer, optional :: tracking_species
 integer, optional :: integ_order, steps
 integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
 
-logical use_offsets, has_nonzero_pole, kill_spin_fringe
+logical use_offsets, has_nonzero_pole, kill_spin_fringe, onemap
 logical, optional :: for_layout, use_hard_edge_drifts
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3267,6 +3286,9 @@ case (sextupole$)
   ptc_key%magnet = 'sextupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+case (taylor$)
+  ptc_key%magnet = 'marker'
+
 case (octupole$)
   ptc_key%magnet = 'octupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
@@ -3314,7 +3336,7 @@ case (rfcavity$, lcavity$)
   end select
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
   if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then
@@ -3356,7 +3378,6 @@ case default
   call out_io (s_fatal$, r_name, 'CONVERSION TO PTC NOT IMPLEMENTED FOR ELEMENTS OF TYPE ' // trim(key_name(ele%key)), &
                                  'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
-
 end select
 
 ! Fringe
@@ -3588,6 +3609,128 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ptc_fibre%charge = rel_charge
 
+! Taylor maps
+! In theory can put in a taylor map for any element but for now only setup Bmad taylor elements.
+
+if (ele%key == taylor$) then
+  ! The map can be split into pieces by taking the log of the map.
+  ! onemap = T means do not split.
+  ! At this point in time there is no splitting allowed.
+
+  onemap = .true.
+
+  call real_8_init(ptc_re8)
+  call alloc(ptc_c_damap)
+
+  beta0 = ele%value(p0c_start$)/ele%value(e_tot_start$)
+  beta1 = ele%value(p0c$)/ele%value(e_tot$)  
+
+  ! 
+
+  call vec_bmad_to_ptc (ele%taylor%ref, beta0, ref0)
+
+  call taylor_to_real_8 (ele%taylor, ele%taylor%ref, beta0, beta1,  ptc_re8, .true.)
+  ptc_c_damap = ptc_re8
+
+  ! The map must map zero to zero so take out any constant piece.
+
+  do i=1,6
+    ref1(i) = ptc_c_damap%v(i)
+    ptc_c_damap%v(i)=ptc_c_damap%v(i) - (ptc_c_damap%v(i).sub.0)
+  enddo 
+
+  if (.not. onemap) then
+    call nth_root(ptc_c_damap, ptc_c_damap, ptc_fibre%mag%p%nst)
+  endif
+
+  if (ptc_fibre%dir == 1) then
+    if (.not.associated(ptc_fibre%mag%forward)) then 
+      allocate(ptc_fibre%mag%forward(3))
+      allocate(ptc_fibre%mag%usef)
+    else
+      call KILL(ptc_fibre%mag%forward)
+    endif
+
+    call SET_TREE_G_complex(ptc_fibre%mag%forward, ptc_c_damap)
+    ptc_fibre%mag%do1mapf = onemap
+    ptc_fibre%mag%usef = .true.
+    arbre => ptc_fibre%mag%forward
+  else
+    if (.not. associated(ptc_fibre%mag%backward)) then 
+      allocate(ptc_fibre%mag%backward(3))
+      allocate(ptc_fibre%mag%useb)
+    else
+      call KILL(ptc_fibre%mag%backward)
+    endif
+    call SET_TREE_G_complex(ptc_fibre%mag%backward, ptc_c_damap)
+    ptc_fibre%mag%do1mapb = onemap
+    ptc_fibre%mag%useb = .true.
+    arbre => ptc_fibre%mag%backward
+  endif
+
+  arbre => ptc_fibre%mag%forward
+  call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
+  arbre(1)%fix0(1:6) = ref0
+  arbre(1)%fixr(1:6) = ref1
+  arbre(1)%fix(1:6) = ref1
+
+  if (onemap) then
+    arbre(1)%ds = ptc_fibre%mag%p%ld
+  else
+    arbre(1)%ds = ptc_fibre%mag%p%ld/ptc_fibre%mag%p%nst 
+  endif
+
+  arbre(1)%beta0 = ptc_fibre%beta0
+
+  if (ptc_fibre%dir == 1) then
+    if (.not.associated(ptc_fibre%magp%forward)) then 
+      allocate(ptc_fibre%magp%forward(3))
+      allocate(ptc_fibre%magp%usef)
+    else
+      call KILL(ptc_fibre%magp%forward)
+    endif
+    !call SET_TREE_G_complex(ptc_fibre%magp%forward,m)
+    do i = 1, 3
+      call alloc_tree(ptc_fibre%magp%forward(i), ptc_fibre%mag%forward(i)%n, ptc_fibre%mag%forward(i)%np)
+      call copy_tree(ptc_fibre%mag%forward(i), ptc_fibre%magp%forward(i))
+    enddo
+    ptc_fibre%magp%do1mapf = onemap
+    ptc_fibre%magp%usef = .true.             ! Use the Taylor map by default 
+    arbre => ptc_fibre%magp%forward
+
+  else
+    if (.not.associated(ptc_fibre%magp%backward)) then 
+      allocate(ptc_fibre%magp%backward(3))
+      allocate(ptc_fibre%magp%useb)
+    else
+      call KILL(ptc_fibre%magp%backward)
+    endif
+    ! call SET_TREE_G_complex(ptc_fibre%magp%backward,m)
+    do i = 1, 3
+      call alloc_tree(ptc_fibre%magp%backward(i), ptc_fibre%mag%backward(i)%n, ptc_fibre%mag%backward(i)%np)
+      call copy_tree(ptc_fibre%mag%backward(i), ptc_fibre%magp%backward(i))
+    enddo
+    ptc_fibre%magp%do1mapb = onemap
+    ptc_fibre%magp%useb = .true.
+    arbre => ptc_fibre%magp%backward
+  endif
+
+  call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
+  arbre(1)%fix0(1:6) = ref0
+  arbre(1)%fixr(1:6) = ref1
+  arbre(1)%fix(1:6) = ref1
+
+  if (onemap) then
+    arbre(1)%ds = ptc_fibre%mag%p%ld    ! Length of magnet (arc of circle if a bend)
+  else
+    arbre(1)%ds = ptc_fibre%mag%p%ld/ptc_fibre%mag%p%nst
+  endif
+
+  arbre(1)%beta0 = ptc_fibre%beta0
+   
+  call kill(ptc_re8); call kill(ptc_c_damap)
+endif
+ 
 end subroutine ele_to_fibre
 
 !------------------------------------------------------------------------
@@ -3802,6 +3945,8 @@ logical creating_fibre, kick_here, has_nonzero_pole, add_kick
 character(16) :: r_name = 'ele_to_an_bn'
 
 !
+
+if (ele%key == taylor$) return
 
 leng = ele%value(l$)
 
