@@ -49,7 +49,7 @@ sig_x = a_twiss%sigma
 if (sig_x == 0) sig_x = sqrt(a_twiss%emit * a_twiss%beta + (a_twiss%eta*sig_ee)**2)
 
 sig_y = a_twiss%sigma
-if (sig_y == 0) sig_y = sqrt(a_twiss%emit * a_twiss%beta + (a_twiss%eta*sig_ee)**2)
+if (sig_y == 0) sig_y = sqrt(b_twiss%emit * b_twiss%beta + (b_twiss%eta*sig_ee)**2)
 
 r = sig_y/sig_x
 scale = factor * n_beam_part  / ((sig_x + sig_y) * ion_weight)
