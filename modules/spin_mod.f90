@@ -630,6 +630,8 @@ if (method == tracking$) then
   select case (ele%tracking_method)
   case (boris$, runge_kutta$, time_runge_kutta$, symp_lie_ptc$)
     return ! Spin tracking is done at the same time orbital tracking is done
+  case (taylor$)
+    method = taylor$
   case default
     method = bmad_standard$
   end select
@@ -647,6 +649,10 @@ case (custom$)
 ! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
+  end_orb%spin = temp_orb%spin
+
+case (taylor$)
+  call track1_spin_taylor (start_orb, ele, param, end_orb)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // spin_tracking_method_name(ele%spin_tracking_method), &
@@ -655,6 +661,55 @@ case default
 end select
 
 end subroutine track1_spin
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
+!
+! Particle spin tracking through a single element with a spin map.
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input :
+!   start_orb  -- Coord_struct: Starting coords.
+!   ele        -- Ele_struct: Element to track through.
+!   param      -- lat_param_struct: Beam parameters.
+!   end_orb    -- Coord_struct: Ending coords.
+!
+! Output:
+!   end_orb    -- Coord_struct:
+!     %spin(2)   -- complex(rp): Ending spinor
+!-
+
+subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
+
+type (coord_struct) :: start_orb, end_orb
+type (ele_struct) ele
+type (lat_param_struct) param
+
+real(rp) svec0(3), svec1(3), rot(3,3)
+character(*), parameter :: r_name = 'track1_spin_taylor'
+
+!
+
+if (.not. associated(ele%spin_taylor(1,1)%term)) then
+  call out_io (s_error$, r_name, 'NO SPIN TAYLOR MAP ASSOCIATED WITH ELEMENT: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  end_orb%spin = start_orb%spin
+endif
+
+call track_taylor (start_orb%vec, ele%spin_taylor(1,:), rot(1,:))
+call track_taylor (start_orb%vec, ele%spin_taylor(2,:), rot(2,:))
+call track_taylor (start_orb%vec, ele%spin_taylor(3,:), rot(3,:))
+
+svec0 = spinor_to_vec(start_orb%spin)
+svec1 = matmul(rot, svec0)
+end_orb%spin = vec_to_spinor(svec1)
+
+end subroutine track1_spin_taylor
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
