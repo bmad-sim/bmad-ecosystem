@@ -92,6 +92,11 @@ if (print_extra) then
   write (*, '(a, 4es10.2)') '"dRot" ABS 1e-10   ', orb2%spin - orb1%spin
 endif
 
+orb_start = orb0
+call track1_spin_taylor (orb_start, lat%ele(2), lat%param, orb_end)
+spin_a = spinor_to_vec(orb_end%spin)
+write (1, '(a, 3f12.8)') '"spin_taylor" Abs 1e-10  ', spin_a
+
 close (1)
 
 end program

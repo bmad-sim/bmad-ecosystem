@@ -66,8 +66,8 @@ do ib = 0, ubound(lat%branch, 1)
     ns = len_trim(ele%name) + 28
 
     do j = 1, n_methods$
-      if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
-      call kill_taylor(ele%taylor)
+      if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
+      if (ele%key /= taylor$) call kill_taylor(ele%taylor)
       ele%mat6_calc_method = j
       call init_coord (start_orb, lat%beam_start, ele, upstream_end$, branch%param%particle)
       call make_mat6 (ele, branch%param, start_orb, end_orb)
