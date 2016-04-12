@@ -45,7 +45,7 @@ type seq_struct
   character(40), pointer :: dummy_arg(:) => null()
   character(40), pointer :: corresponding_actual_arg(:) => null()
   integer type                    ! LINE$, REPLACEMENT_LINE$ or LIST$
-  integer ix                      ! current index of element in %ELE
+  integer ix                      ! current index of element in %ele
   integer indexx                  ! alphabetical order sorted index
   character(200) file_name        ! file where sequence is defined
   integer ix_line                 ! line number in filewhere sequence is defined
@@ -292,11 +292,17 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
       end select
       expn(j) = n
     else
-      if (n < 1 .or. n > 6) then
-        call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
-        return
-      endif
-      expn(n) = expn(n) + 1
+      ! Where, for example, n = 34, must separate into 3 and 4.
+      do
+        nn = modulo(n, 10)
+        if (nn < 1 .or. nn > 6) then
+          call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+          return
+        endif
+        expn(nn) = expn(nn) + 1
+        n = (n - nn) / 10
+        if (n == 0) exit
+      enddo
     endif
   enddo
 
@@ -2113,8 +2119,8 @@ integer i, j, i_out, expn(6)
 
 if (i_out > 100) then 
   i_out = i_out - 101
-  j = i_out / 3
-  i = i_out - 3 * j
+  i = i_out / 3
+  j = i_out - 3 * i
   taylor => ele%spin_taylor(i+1,j+1) 
 else
   if (i_out < 1 .or. i_out > 6) then

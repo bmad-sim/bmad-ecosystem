@@ -2782,7 +2782,8 @@ end subroutine taylor_propagate1
 subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
 
 use s_tracking
-use mad_like, only: real_8, fibre, ptc_track => track
+use mad_like, only: real_8, fibre
+use ptc_spin, only: track_probe_x
 
 implicit none
 
@@ -2814,8 +2815,6 @@ call attribute_bookkeeper (ele, param, .true.)
 
 ! Match elements are not implemented in PTC so just use the matrix.
 ! Also Taylor elements already have a taylor map.
-
-if (ele%key == taylor$) return
 
 if (ele%key == match$) then
   call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
@@ -2856,7 +2855,7 @@ y8(6) = -y0(5)/bet
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
+  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
 endif
 
 ! Track element
@@ -2866,14 +2865,16 @@ if (present(orb0)) then
 else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
 endif
-call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
+! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
+call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
 
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
+  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
+  
 endif
 
 ! PTC to Bmad
@@ -3166,6 +3167,8 @@ if (present(integ_order)) ptc_key%method = integ_order
 if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
+  ptc_key%nstep = 1
+elseif (ele%key == taylor$) then
   ptc_key%nstep = 1
 else
   if (ele%value(ds_step$) == 0) then

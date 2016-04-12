@@ -93,13 +93,13 @@ That is from large z (head of bunch) to small z.
 
 \index[routine]{track1_beam}
 \label{r:track1.beam}
-\item[track1_beam (beam_start, lat, ele, beam_end, err)] \Newline 
+\item[track1_beam (beam_start, lat, ele, beam_end, err, centroid)] \Newline 
 Routine to track a beam of particles through a single element.
 Overloaded by \vn{track1_beam}.
 
 \index[routine]{track1_bunch}
 \label{r:track1.bunch}
-\item[track1_bunch (bunch_start, lat, ele, bunch_end, err)] \Newline 
+\item[track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid)] \Newline 
 Routine to track a bunch of particles through an element.
 
 \index[routine]{track1_bunch_hom}
@@ -161,7 +161,7 @@ Subroutine to reallocate particles within a bunch_struct.
 
 \index[routine]{track_beam}
 \label{r:track.beam}
-\item[track_beam (lat, beam, ele1, ele2, err)] \Newline 
+\item[track_beam (lat, beam, ele1, ele2, err, centroid)] \Newline 
      Routine to track a beam of particles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
@@ -201,22 +201,22 @@ This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{csr_bin_particles}
 \label{r:csr.bin.particles}
-\item[csr_bin_particles (particle, bin)] \Newline 
+\item[csr_bin_particles (particle, csr_top)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
 \index[routine]{csr_bin_kicks}
 \label{r:csr.bin.kicks}
-\item[csr_bin_kicks (lat, ele, s_travel, bin, small_angle_approx)] \Newline 
+\item[csr_bin_kicks (ele, ds_kick_pt, csr_top)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index[routine]{csr_kick_calc}
 \label{r:csr.kick.calc}
-\item[csr_kick_calc (bin, particle)] \Newline 
+\item[csr_kick_calc (csr_top, particle)] \Newline 
 Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
-\item[i_csr (kick1, i_bin, k_factor, bin) result (i_this)] \Newline 
+\item[i_csr (kick1, i_bin, csr_top) result (i_this)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -341,7 +341,7 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
     em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, \\
-    \hspace*{1in} calc_dfield, err_flag, potential) }] \Newline 
+    \hspace*{1in} calc_dfield, err_flag, potential, use_overlap, grid_allow_s_out_of_bounds) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -837,7 +837,7 @@ These routine are for adding elements, moving elements, etc.
 
 \index[routine]{add_lattice_control_structs}
 \label{r:add.lattice.control.structs}
-\item[add_lattice_control_structs (lat, ele, add_at_end)] \Newline 
+\item[add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, n_add_lord_field, add_at_end)] \Newline 
 Routine to adjust the control structure of a lat so that extra control
 elements can be added.
 
@@ -1011,7 +1011,7 @@ This is an essentially an inverse of routine coords_relative_to_floor.
 
 \index[routine]{floor_w_mat_to_angles}
 \label{r:floor.w.mat.to.angles}
-\item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)] \Newline 
+\item[floor_w_mat_to_angles (w_mat, theta, phi, psi, floor0)] \Newline 
 Routine to construct the angles that define the orientation of an element
 in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
 
@@ -1035,7 +1035,7 @@ This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_p
 
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
-\item[coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)] \Newline 
+\item[coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat, calculate_angles) result (global_position)] \Newline 
 Given a position local to ele, return global floor coordinates
 
 \index[routine]{coords_floor_to_local_curvilinear}
@@ -1185,7 +1185,7 @@ Returns a pointer to an attribute of an element ele with attribute index ix_attr
 
 \index[routine]{pointer_to_lord}
 \label{r:pointer.to.lord}
-\item[pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)] \Newline 
+\item[pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)] \Newline 
 Function to point to a lord of a slave.
 
 \index[routine]{pointer_to_multipass_lord}
@@ -1196,7 +1196,7 @@ A multi_lord will be found for:
 
 \index[routine]{pointer_to_slave}
 \label{r:pointer.to.slave}
-\item[pointer_to_slave (lord, ix_slave, ix_control) result (slave_ptr)] \Newline 
+\item[pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)] \Newline 
 Function to point to a slave of a lord.
 
 \index[routine]{rf_is_on}
@@ -1209,7 +1209,12 @@ Routine to check if any rfcavity is powered in a branch.
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, \\
 \hspace*{1in} twiss_out, type_control, type_wake, type_floor_coords, \\
 \hspace*{1in} type_field, type_wall, lines, n_lines)}] \Newline
-Like \vn{type_ele} but the output is stored in a string array. 
+Subroutine to print or put in a string array information on a lattice element.
+
+\index[routine]{type_spin_taylors}
+\label{r:type.spin.taylors}
+\item[type_spin_taylors (spin_taylor, max_order, lines, n_lines, file_id)] \Newline 
+Subroutine to print or put in a string array a Bmad spin taylor map.
 
 \index[routine]{type_twiss}
 \label{r:type.twiss}
@@ -1593,7 +1598,7 @@ and the closed orbit offset.
 
 \index[routine]{transfer_matrix_calc}
 \label{r:transfer.matrix.calc}
-\item[transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)] \Newline
+\item[transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)] \Newline
 Routine to calculate the transfer matrix between two elements. If
 ix1 and ix2 are not present the full 1--turn matrix is calculated.
 
@@ -2021,7 +2026,7 @@ Routine to overload "=" in expressions bmad_taylor = y8
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
-\item[taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)] \Newline
+\item[taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)] \Newline
 Routine to convert from a taylor map in Bmad to a real_8 taylor map in \'Etienne's PTC. 
 
 \index[routine]{type_ptc_layout}
@@ -2700,7 +2705,7 @@ Function to find the length of a text string.
 
 \index[routine]{qp_translate_to_color_index}
 \label{r:qp.translate.to.color.index}
-\item[qp_translate_to_color_index (name, index)] \Newline 
+\item[qp_translate_to_color_index (name)] \Newline 
      Routine to translate from a string to a color index.
 
 \end{description}
@@ -2756,7 +2761,7 @@ Subroutine to track the spin with the Euler four-vector quaternion a.
 
 \index[routine]{spin_omega}
 \label{r:spin.omega}
-\item[spin_omega (field, coord), result (omega)] \Newline 
+\item[spin_omega (field, coord, phase_space_coords), result (omega)] \Newline 
 Return the modified T-BMT spin omega vector.
 
 \index[routine]{track1_spin}
@@ -3135,7 +3140,7 @@ This routine does *not* include multiparticle effects.
 
 \index[routine]{track1_bunch_csr}
 \label{r:track1.bunch.csr}
-\item[track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)] \Newline 
+\item[track1_bunch_csr (bunch_start, ele, bunch_end, err, s_start, s_end, centroid)] \Newline 
 Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
@@ -3466,7 +3471,7 @@ has the desired chromaticities.
 
 \index[routine]{quad_beta_ave}
 \label{r:quad.beta.ave}
-\item[quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)] \Newline
+\item[quad_beta_ave (ele, beta_a_ave, beta_b_ave)] \Newline
 Routine to compute the average betas in a quad.
 
 \index[routine]{radiation_integrals}
@@ -3519,7 +3524,7 @@ This is not necessarily the fastest routine.
 
 \index[routine]{twiss_at_element}
 \label{r:twiss.at.element}
-\item[twiss_at_element (lat, ix_ele, start, end, average)] \Newline
+\item[twiss_at_element (ele, start, end, average)] \Newline
 Routine to return the Twiss parameters at the beginning, end, or the average of an element. 
 
 \index[routine]{twiss_and_track_at_s}

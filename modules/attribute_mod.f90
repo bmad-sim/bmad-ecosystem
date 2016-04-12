@@ -351,9 +351,9 @@ case (sol_quad$)
   end select
 
 case (taylor$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (tracking_method)
-  case (bmad_standard$, linear$, custom$)
+  case (taylor$, linear$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
@@ -664,9 +664,9 @@ case (sol_quad$)
   end select
 
 case (taylor$)
-  if (present(num_valid)) num_valid = 3 
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (taylor$, static$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 

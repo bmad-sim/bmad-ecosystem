@@ -1101,13 +1101,15 @@ end subroutine mat6_to_taylor
 ! Subroutine track_taylor (start_orb, bmad_taylor, end_orb)
 !
 ! Subroutine to track using a Taylor map.
+! This routine can be used for both orbital phase space and spin tracking
 !
 ! Input:
-!   start_orb(6)   -- Real(rp): Starting coords.
-!   bmad_taylor(6) -- Taylor_struct: Taylor map.
+!   start_orb(6)   -- Real(rp): Starting phase space coords.
+!   bmad_taylor(:) -- Taylor_struct: Taylor map. Array size is 6 for phase space 
+!                       tracking and 3 for spin tracking.
 !
 ! Output:
-!   end_orb(6)     -- Real(rp): Ending coords.
+!   end_orb(:)     -- Real(rp): Ending coords. Must be same size as bmad_taylor(:)
 !-
 
 subroutine track_taylor (start_orb, bmad_taylor, end_orb)
@@ -1120,13 +1122,14 @@ real(rp) :: start_orb(:)
 real(rp) :: end_orb(:)
 real(rp), allocatable :: expn(:, :)
 
-integer i, j, k, ie, e_max
+integer i, j, k, ie, e_max, n_size
 
 ! size cache matrix
 
 e_max = 0
+n_size = size(end_orb)
 
-do i = 1, 6
+do i = 1, n_size
   do j = 1, size(bmad_taylor(i)%term)
     e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%expn)) 
   enddo
@@ -1145,7 +1148,7 @@ enddo
 
 end_orb = 0
 
-do i = 1, 6
+do i = 1, n_size
   do j = 1, size(bmad_taylor(i)%term)
     end_orb(i) = end_orb(i) + bmad_taylor(i)%term(j)%coef * &
                        expn(bmad_taylor(i)%term(j)%expn(1), 1) * &
