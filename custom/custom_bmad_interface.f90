@@ -34,7 +34,6 @@ interface
     logical finished
   end subroutine ele_geometry_hook
 
-
   subroutine wall_hit_handler_custom (orb, ele, s, t)
     import
     implicit none
@@ -54,6 +53,14 @@ interface
     type (em_field_struct) :: field
     logical, optional :: err_flag
     logical, optional :: calc_dfield
+  end subroutine
+
+  subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
+    import
+    implicit none
+    type (ele_struct) ele
+    type (fibre) ptc_fibre
+    type (lat_param_struct) param
   end subroutine
 
   subroutine radiation_integrals_custom (lat, ir, orb, err_flag)

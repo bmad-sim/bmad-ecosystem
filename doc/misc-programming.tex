@@ -36,6 +36,10 @@ Note: Remember to modify the appropriate compile script file (typically named so
 like ``cmake.XXX'') so that any routines that you have added to your program area are
 compiled and linked.
 
+Note: Custom and Hook routines are added to \bmad on an as-needed basis. If you have a
+need that is not met by the existing set of custom and hook routines, please contact a
+\bmad maintainer.
+
 %-----------------------------------------------------------------------------
 \section{Custom Calculations}
 \label{s:custom.ele}
@@ -204,6 +208,7 @@ important if particles are to be allowed to travel outside the wall.
 \index{track1_preprocess}\index{track1_postprocess}
 \index{apply_element_edge_kick_hook}
 \index{ele_geometry_hook}
+\index{ele_to_fibre_hook}
 A \vn{hook} routine is like a \vn{custom} routine in that a \vn{hook} routine can be used
 for customizing a \bmad calculation by replacing the \vn{dummy} version of a \vn{hook}
 routine with customized code. The difference is that the \vn{hook} routine is always
@@ -213,6 +218,7 @@ There are three \vn{hook} routines that are available:
 \begin{example}
   \Hyperref{r:apply.element.edge.kick.hook}{apply_element_edge_kick_hook}
   \Hyperref{r:ele.geometry.hook}{ele_geometry_hook}
+  \zzz{ele_to_fibre}
   \Hyperref{r:time.runge.kutta.periodic.kick.hook}{time_runge_kutta_periodic_kick_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
@@ -226,6 +232,9 @@ geometry of an element. This is useful, for example, for a support table on a ki
 mount since \bmad does not have the knowledge to calculate the table orientation from the
 position of the mount points. See the documentation in the file \vn{ele_geometry_hook.f90}
 for more details.
+
+The {ele_to_fibre_hook} routine can be used to customize how the PTC fibre corresponding to a
+\bmad lattice element is constructed. 
 
 The \vn{time_runge_kutta_periodic_kick_hook} routine can be used to introduce a time
 dependent kick when doing tracking with \vn{time_runge_kutta}. This routine could be used,

@@ -1103,7 +1103,7 @@ if (init_ptc_needed .and. params_present) then
     call make_states(.false._lp)
   else
     call make_states (mass_of(particle)/mass_of(electron$), anomalous_moment_of(particle), real(charge_of(particle), dp))
-    call out_io (s_error$, r_name, 'Note: Radiation calculation in PTC not correct for particles with charge magnitude that is not one.')
+    call out_io (s_warn$, r_name, 'Note: Radiation calculation in PTC not correct for particles of type: ' // species_name(particle))
   endif
 
   ! Use PTC time tracking
@@ -3750,7 +3750,11 @@ if (ele%key == taylor$) then
    
   call kill(ptc_re8); call kill(ptc_c_damap)
 endif
- 
+
+! Customization if wanted
+
+call ele_to_fibre_hook (ele, ptc_fibre, param)
+
 end subroutine ele_to_fibre
 
 !------------------------------------------------------------------------

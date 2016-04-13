@@ -456,16 +456,16 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   return
 endif
 
-! Long-range wake
+! Long-range wake, r_custom
 
-if (word == 'LR' .and. delim == '(') then
-
+if ((word == 'LR' .or. word == 'R_CUSTOM') .and. delim == '(') then
+  word2 = trim(word) // '('
   call get_next_word (word, ix_word, '=', delim, delim_found)
   if (.not. delim_found) then
     call parser_error ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  call pointer_to_attribute (ele, 'LR(' // word, .false., a_ptr, err_flag, .false.)
+  call pointer_to_attribute (ele, trim(word2) // word, .true., a_ptr, err_flag, .false.)
   if (err_flag .or. .not. associated(a_ptr%r)) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return

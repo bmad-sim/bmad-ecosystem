@@ -466,21 +466,20 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
 \end{example}
 
 %---------------------------------------------------------------------------
-\section{Custom Element Attribute Names}
-\label{s:custom.attrib}
+\section{Custom Element Attributes}
+\label{s:cust.att}
 \index{element attributes!defining custom attributes}
 
-Real scalar custom element attributes may be defined for any class of
+Real scalar and vector custom element attributes may be defined for any class of
 element.  Custom element attributes are useful with programs that need
 to associate ``extra'' information with particular lattice elements
 and it is desired that this extra information be settable from within
 a lattice file. For example, a program might need error tolerance
 for the strength of quadrupoles.
 
-Adding custom attributes will not disrupt programs that are not
-designed to use the custom attributes. Currently, up to five custom
-attributes may be defined for any given element type. The syntax for
-defining custom attributes is:
+Adding custom attributes will not disrupt programs that are not designed to use the custom
+attributes. Currently, up to five scaler (that is, single valued) custom attributes may be
+defined for any given element type. The syntax for defining custom attributes is:
 \begin{example}
   parameter[custom_attributeN] = "\{class::\}attribute_name"
 \end{example}
@@ -511,6 +510,15 @@ to make the appropriate associations.
 Note: If custom string information needs to be associated with an
 element, the \vn{type}, \vn{alias} and \vn{descrip} element components
 (\sref{s:alias}) are available.
+
+\index{r_custom}
+There is a three dimensional vector custom attribute called \vn{r_custom} that can be set.
+For example:
+\begin{example}
+  qq: quadrupole, r_custom(-2,1,5) = 34.5, r_custom(-3) = 77.9
+\end{example}
+Negative indices are accepted and if only one or two indices are present, the others
+are assumed to be zero. Thus \vn{r_custom(-3)} is equivalent to \vn{r_custom(-3,0,0)}.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
