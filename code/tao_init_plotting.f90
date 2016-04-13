@@ -339,6 +339,10 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
         call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id)
       endif
+    case ('-')
+      if (e_shape%ele_id /= 'wall::building') then
+        call out_io (s_error$, r_name, 'ELE_SHAPE "-" CAN ONLY BE USED WITH WALL::BUILDING. NOT: ' // e_shape%ele_id)
+      endif
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape)
       call err_exit
