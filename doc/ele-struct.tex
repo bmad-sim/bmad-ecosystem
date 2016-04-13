@@ -801,8 +801,11 @@ someone writing a program. These components are \vn{ele%r(:,:,:)},
     ...
   end type
 \end{example}
+Values for \vn{ele%r} can be set in the lattice file (\sref{s:cust.att}).  If values are
+set for \vn{ele%r}, \vn{ele%r} will be expanded in size if needed. If \vn{ele%r} is
+expanded, values in the newly created part of \vn{ele%r} will be set to zero.
 
-Additionally, there are 5 slots in the \vn{%value(:)} array for
+Besides the above, there are 5 slots in the \vn{%value(:)} array for
 general use.  they have indexes labeled \vn{custom_attribute1\$}
 through \vn{custom_attribute5\$}. The index names can be
 redefined to fit a particular need. For example, suppose a program
@@ -815,7 +818,7 @@ like:
 \end{example}
 
 In the lattice file, a string can be associated with
-\vn{custom_attribueN\$} (\sref{s:custom.attrib}. Thus, in the lattice
+\vn{custom_attribueN\$} (\sref{s:cust.att}. Thus, in the lattice
 file, to associate \vn{"time_stamp"} with \vn{custom_attribute1}:
 \begin{example}
   parameter[custom_attribute1] = "time_stamp"

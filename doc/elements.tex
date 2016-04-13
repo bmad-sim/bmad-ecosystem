@@ -106,13 +106,13 @@ General \vn{ab_multipole} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \\ \midrule
-  a$n$, b$n$ multipoles      & \ref{s:multip}  & Length                     & \ref{s:l}       \\
-  Aperture limits            & \ref{s:limit}   & Offsets \& tilt            & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \\
-  
+  {\sl Attribute Class}      & \s               & {\sl Attribute Class}      & \s              \\ \midrule
+  a$n$, b$n$ multipoles      & \ref{s:multip}   & Length                     & \ref{s:l}       \\
+  Aperture limits            & \ref{s:limit}    & Offsets \& tilt            & \ref{s:offset}  \\
+  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\ 
+  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}    & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -153,11 +153,12 @@ General \vn{beambeam} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}    & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -293,13 +294,13 @@ General \vn{bend_sol_quad} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Mag \& Elec multipoles     & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \\
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Mag \& Elec multipoles     & \ref{s:multip}    & Hkick \& Vkick             & \ref{s:kick}    \\
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
   Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
-  Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Hkick \& Vkick             & \ref{s:kick}      &                            &                 \\
+  Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\   
   \bottomrule
 \end{tabular}
 \end{center}
@@ -389,11 +390,12 @@ General \vn{rbend} and \vn{sbend} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\ 
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Superposition              & \ref{s:super}   \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -662,10 +664,12 @@ General \vn{capillary} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Description strings    & \ref{s:alias}   & Capillary Wall         & \ref{s:wall}        \\
-  Reference energy       & \ref{s:energy}  & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\ 
-  Aperture limits        & \ref{s:limit}   & Tracking \& transfer map   & \ref{c:methods} \\ \bottomrule
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\ 
+  Capillary Wall             & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att} & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Description strings        & \ref{s:alias}    &                            &                 \\
+  \bottomrule
 \end{tabular}
 \end{center}
 \toffset
@@ -689,7 +693,6 @@ The length of the capillary is a dependent variable and is given by
 the value of \vn{s} of the last wall cross-section
 (\sref{s:wall.capillary}).
 
-
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator} 
 \label{s:col}
@@ -703,12 +706,13 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}    & Symplectify                & \ref{s:symp}    \\
-  Length                     & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
+  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Length                     & \ref{s:l}        &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -751,11 +755,11 @@ General \vn{crystal} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Description strings        & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
-  Reference energy           & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \\
-  Aperture limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \\
-  Surface Properties         & \ref{s:s.curve} &                            &                 \\ 
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Surface Properties         & \ref{s:s.curve} \\ 
+  Custom Attributes          & \ref{s:cust.att} & Symplectify                & \ref{s:symp}    \\
+  Description strings        & \ref{s:alias}    & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
+  Reference energy           & \ref{s:energy}   & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -951,10 +955,11 @@ General \vn{custom} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1011,9 +1016,9 @@ General \vn{detector} element attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Chamber Wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Detector Geometry          & \ref{s:surf.grid} & Tracking \& transfer map   & \ref{c:methods} \\
-  
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Detector Geometry          & \ref{s:surf.grid} &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1058,11 +1063,11 @@ General \vn{diffraction_plate} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Mask geometry              & \ref{s:wall}    \\
-  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \\
-  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \\
-  Offsets, pitches \& tilt   & \ref{s:offset}  &                            &                 \\ 
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets, pitches \& tilt   & \ref{s:offset}   \\ 
+  Custom Attributes          & \ref{s:cust.att} & Mask geometry              & \ref{s:wall}    \\
+  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \\
+  Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1134,11 +1139,11 @@ General \vn{drift} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}   & Symplectify                & \ref{s:symp}    \\ 
-  Length                     & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Offsets, pitches \& tilt   & \ref{s:offset}  &                            &                 \\
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}  \\ 
+  Description strings        & \ref{s:alias}    & Symplectify                & \ref{s:symp}    \\ 
+  Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1167,14 +1172,13 @@ General \vn{e_gun} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Chamber wall               & \ref{s:wall}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
-  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \\ 
-  Hkick \& Vkick             & \ref{s:kick}    & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Length                     & \ref{s:l}       &                            &                 \\
-
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Length                     & \ref{s:l}       \\
+  Chamber wall               & \ref{s:wall}     & Mag \& Elec multipoles     & \ref{s:multip}  \\
+  Custom Attributes          & \ref{s:cust.att} & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
+  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \\ 
+  Hkick \& Vkick             & \ref{s:kick}     & Symplectify                & \ref{s:symp}    \\
+  Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1274,11 +1278,12 @@ General \vn{elseparator} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1326,10 +1331,11 @@ attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\ 
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1353,10 +1359,10 @@ General \vn{fiducial} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Superposition              & \ref{s:super}   \\
-  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Reference energy           & \ref{s:energy}  &                            &                 \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1480,10 +1486,11 @@ General \vn{floor_shift} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Length                     & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1579,11 +1586,12 @@ General \vn{fork} and \vn{photon_fork} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
+  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1749,9 +1757,10 @@ General \vn{girder} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Description strings        & \ref{s:alias}   & Length                     & \ref{s:l}       \\
-  Is_on                      & \ref{s:is.on}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Length                     & \ref{s:l}       \\
+  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1948,8 +1957,8 @@ General \vn{girder} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Description strings    & \ref{s:alias}   &                            &                 \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Description strings        & \ref{s:alias}   \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2151,10 +2160,11 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
   {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}       & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
-  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}  \\
-  Hkick \& Vkick             & \ref{s:kick}        & Superposition              & \ref{s:super}   \\
-  Instrumental variables     & \ref{s:meas.attrib} & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}    & Reference energy           & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}       & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}    \\
+  Instrumental variables     & \ref{s:meas.attrib} & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}       &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2191,11 +2201,12 @@ General \vn{hkicker} \vn{vkicker} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2229,14 +2240,15 @@ General \vn{kicker} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}        & Section         \\ \midrule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Mag \& Elec multipoles     & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \\
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Fringe Fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Hkick \& Vkick             & \ref{s:kick}      &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2263,14 +2275,14 @@ General \vn{lcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}     \\ 
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
   Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}      \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}      & Wakes                      & \ref{s:wakes}      \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
-  Length                     & \ref{s:l}         &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2406,12 +2418,12 @@ General \vn{marker} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Offsets \& tilt            & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}        & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}       & Superposition              & \ref{s:super}   \\
-  Instrumental variables     & \ref{s:meas.attrib} & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Is_on                      & \ref{s:is.on}       &                            &                 \\ 
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}        & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}       &   Is_on                      & \ref{s:is.on}   \\ 
+  Chamber wall               & \ref{s:wall}        & Offsets \& tilt              & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att}    & Reference energy             & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}       & Superposition                & \ref{s:super}   \\
+  Instrumental variables     & \ref{s:meas.attrib} & Tracking \& transfer map     & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2460,11 +2472,12 @@ General \vn{mask} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \\
-  Is_on                      & \ref{s:is.on}   & Superposition              & \ref{s:super}   \\
-  Mask geometry              & \ref{s:wall}    & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Mask geometry              & \ref{s:wall}      &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2542,10 +2555,11 @@ General \vn{match} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \\
-  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \\ 
-  Is_on                      & \ref{s:is.on}   & Superposition              & \ref{s:super}   \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2684,11 +2698,11 @@ General \vn{mirror} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Superposition              & \ref{s:super}   \\
-  Description strings        & \ref{s:alias}   & Surface Properties         & \ref{s:s.curve} \\
-  Offsets, pitches \& tilt   & \ref{s:offset}  & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Reference energy           & \ref{s:energy}  &                            &                 \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:s.curve} \\
+  Offsets, pitches \& tilt   & \ref{s:offset}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2727,11 +2741,12 @@ General \vn{multipole} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \\
-  Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \\ 
-  Description strings        & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  K$n$L, T$n$ multipoles     & \ref{s:multip}  & Tracking \& transfer map   & \ref{c:methods} \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\ 
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  K$n$L, T$n$ multipoles     & \ref{s:multip}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2770,11 +2785,12 @@ General \vn{crystal} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \\
-  Description strings        & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Reference energy           & \ref{s:energy}  & Superposition              & \ref{s:super}   \\
-  Surface Properties         & \ref{s:s.curve} & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Symplectify                & \ref{s:symp}    \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Reference energy           & \ref{s:energy}    & Tracking \& transfer map   & \ref{c:methods} \\
+  Surface Properties         & \ref{s:s.curve}   &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2849,11 +2865,12 @@ General \vn{octupole} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   
   \bottomrule
 \end{tabular}
@@ -2896,8 +2913,8 @@ General \vn{girder} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Description strings    & \ref{s:alias}   &                            &                 \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  Description strings        & \ref{s:alias}     \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2998,11 +3015,12 @@ General \vn{patch} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Length                     & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
+  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3163,10 +3181,10 @@ General \vn{photon_init} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3423,14 +3441,14 @@ General \vn{rfcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}     \\ 
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
   Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}      \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods}    \\
   Is_on                      & \ref{s:is.on}     & Wakes                      & \ref{s:wakes}      \\
-  Length                     & \ref{s:l}         &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3529,8 +3547,9 @@ General \vn{sample} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Length                     & \ref{s:l}       \\
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Fringe Fields              & \ref{s:fringe}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3650,9 +3669,10 @@ General \vn{sample} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ \midrule
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:s.curve} \\
-  Integration settings       & \ref{s:integ}     & Superposition              & \ref{s:super}   \\
-  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Surface Properties         & \ref{s:s.curve} \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3702,12 +3722,12 @@ General \vn{sextupole} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
-  
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\  
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3746,11 +3766,12 @@ General \vn{solenoid} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3788,11 +3809,12 @@ General \vn{sol_quad} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3825,12 +3847,13 @@ General \vn{taylor} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}   & Superposition              & \ref{s:super}   \\
-  Is_on                      & \ref{s:is.on}   & Symplectify                & \ref{s:symp}    \\
-  Length                     & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \\
-  Offsets \& tilt            & \ref{s:offset}  &                            &                 \\
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Offsets \& tilt            & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}   \\
+  Is_on                      & \ref{s:is.on}    & Symplectify                & \ref{s:symp}    \\
+  Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods} \\
+
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3957,12 +3980,13 @@ General \vn{wiggler} attributes are:
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag. \& Elec. multipoles   & \ref{s:multip}  \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Custom Attributes          & \ref{s:cust.att}  & Mag. \& Elec. multipoles   & \ref{s:multip}  \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
+  Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}

@@ -46,13 +46,14 @@ type (wake_lr_struct), allocatable :: lr(:)
 type (em_field_mode_struct), pointer :: mode
 type (all_pointer_struct) a_ptr
 
-real(rp), pointer :: ptr_attrib
+real(rp), pointer :: ptr_attrib, r(:,:,:)
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i
-
+integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, ivec(3)
+integer lb0(3), ub0(3), lb(3), ub(3)
 character(*) attrib_name
 character(40) a_name
+character(40) str
 character(24) :: r_name = 'pointer_to_attribute'
 
 logical err_flag, do_allocation, do_print, err, out_of_bounds
@@ -95,6 +96,40 @@ if (associated (ele%control_var)) then
     return
   enddo
 
+endif
+
+! r_custom(...)
+
+if (a_name(1:9) == 'R_CUSTOM(') THEN
+  ix_d = index(a_name, ')')
+  if (ix_d == 0) goto 9000 ! Error message and return
+  str = a_name(10:ix_d-1) // ', -9999, 0, 0'  
+  read (str, *, iostat = ios) ivec
+  if (ios /= 0 .or. ivec(1) == -9999) goto 9000 ! ivec(1) must be present
+  lb0 = 0; ub0 = 0
+  if (associated(ele%r)) lb0 = lbound(ele%r)
+  if (associated(ele%r)) ub0 = ubound(ele%r)
+  if (ivec(2) == -9999) ivec(2) = 0
+  if (ivec(3) == -9999) ivec(3) = 0
+
+  lb = min(lb0, ivec)
+  ub = max(ub0, ivec)
+  if (associated(ele%r)) then
+    if (.not. all(lb == lb0) .or. .not. all (ub == ub0)) then
+      if (.not. do_allocation) goto 9100
+      r => ele%r
+      allocate(ele%r(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
+      ele%r = 0
+      ele%r(lb0(1):ub0(1), lb0(2):ub0(2), lb0(3):ub0(3)) = r
+      deallocate(r)
+    endif
+  else
+    if (.not. do_allocation) goto 9100
+    allocate(ele%r(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
+    ele%r = 0
+  endif
+
+  a_ptr%r => ele%r(ivec(1),ivec(2),ivec(3))
 endif
 
 !--------------------
