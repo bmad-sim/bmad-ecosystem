@@ -80,7 +80,7 @@ character(30), parameter :: r_name = 'odeint_bmad_time'
 ! init
 ds_safe = bmad_com%significant_length / 10
 dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
-call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, .true.)
+call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
 ! local s coordinates for vec(5)
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
@@ -232,13 +232,20 @@ do n_step = 1, max_step
   ! Single Runge-Kutta step. Updates orb% vec(6), s, and t 
 
   stop_time_limited = .false.
+  dt = dt_next
+
   if (stop_time /= real_garbage$ .and. dt > stop_time - orb%t) then
-    dt_next_save = dt_next
-    dt_next = stop_time - orb%t
-    stop_time_limited = .true.
+    if (stop_time < orb%t) then
+      call out_io (s_error$, r_name, 'STOP_TIME FROM TIME_RUNGE_KUTTA_PERIODIC_KICK_HOOK IS IN THE PAST!')
+      stop_time = real_garbage$
+    else
+      dt_next_save = dt_next
+      dt_next = stop_time - orb%t
+      dt = dt_next
+      stop_time_limited = .true.
+    endif
   endif
 
-  dt = dt_next
   orb_old = orb
   t_old = t_rel
 
@@ -247,7 +254,7 @@ do n_step = 1, max_step
   if (stop_time_limited) then
     dt_next = dt_next_save
     if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
-      call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, .false.)
+      call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
       if (orb%state /= alive$) return
     endif
   endif

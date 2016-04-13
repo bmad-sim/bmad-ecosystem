@@ -2783,7 +2783,7 @@ subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_off
 
 use s_tracking
 use mad_like, only: real_8, fibre
-use ptc_spin, only: track_probe_x
+use ptc_spin, only: track_probe_x, track_probe
 
 implicit none
 
@@ -2792,11 +2792,13 @@ type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) c0
 type (taylor_struct) bmad_taylor(6)
-
+type (probe_8) ptc_probe8
 type (fibre), pointer :: ptc_fibre
 type (real_8) y0(6), y2(6), y8(6), bet
+type (c_damap) ptc_cdamap
 
 real(dp) x(6), beta
+integer i
 
 logical, optional :: taylor_map_includes_offsets
 logical :: warning_given = .false.
@@ -2866,7 +2868,22 @@ else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
 endif
 ! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
-call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
+if (bmad_com%spin_tracking_on) then
+  call alloc(ptc_probe8)
+  call alloc(ptc_cdamap)
+  ptc_cdamap = 1
+  ptc_probe8 = ptc_cdamap
+  ptc_probe8%x = y8
+  call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = ptc_fibre)
+  y8 = ptc_probe8%x
+  do i = 1, 3
+    ele%spin_taylor(:,i) = ptc_probe8%s(i)%x
+  enddo
+  call kill(ptc_probe8)
+  call kill (ptc_cdamap)
+else
+  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
+endif
 
 ! Track exit end drift if PTC is using a hard edge model
 

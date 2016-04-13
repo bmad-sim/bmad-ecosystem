@@ -87,7 +87,7 @@ interface
     type (ele_struct) ele
     type (lat_param_struct) param
     real(rp) stop_time
-    logical :: init_needed
+    integer :: init_needed
   end subroutine
 
   subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)

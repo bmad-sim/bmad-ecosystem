@@ -7,10 +7,10 @@
 ! on a residual gas ion that is being tracked.
 !
 ! The time_runge_kutta routine will initially call this routine at the beginning
-! of tracking through an element with init_needed = True.
+! of tracking through an element with init_needed = True_int$
 ! This routine should then set stop_time to the time at which time_runge_kutta
 ! should again call this routine. 
-! When this routine is called with init_needed = False, this routine
+! When this routine is called with init_needed /= True_int$, this routine
 ! should give the appropriate kick to the orbit and set stop_time to the next time when
 ! time_runge_kutta should call this routine.
 !
@@ -21,7 +21,7 @@
 !   orbit       -- coord_struct: Particle orbit.
 !   ele         -- ele_struct: Element to propagate the geometry through.
 !   param       -- lat_param_struct: Branch parameters.
-!   init_needed -- logical: Initialization needed?
+!   init_needed -- integer: Initialization needed? See above for details.
 !
 ! Output:
 !   orbit       -- coord_struct: Possibly modified particle orbit.
@@ -40,11 +40,11 @@ type (ele_struct) ele
 type (lat_param_struct) param
 
 real(rp) stop_time
-logical init_needed
+integer init_needed
 
 ! Init needed?
 
-if (init_needed) then
+if (init_needed == true_int$) then
   stop_time = real_garbage$        ! Set stop_time
   return
 endif
