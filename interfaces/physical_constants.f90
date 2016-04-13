@@ -70,6 +70,7 @@ character(1), parameter :: lf$ = achar(10)
 ! True and false
 
 real(rp), parameter :: true$ = 1, false$ = 0
+integer, parameter :: true_int$ = 1, false_int$ = 0
 
 ! Color escape sequences
 
