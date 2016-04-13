@@ -95,7 +95,7 @@ endif
 orb_start = orb0
 call track1_spin_taylor (orb_start, lat%ele(2), lat%param, orb_end)
 spin_a = spinor_to_vec(orb_end%spin)
-write (1, '(a, 3f12.8)') '"spin_taylor" Abs 1e-10  ', spin_a
+write (1, '(a, 3f12.8)') '"spin_taylor" ABS 1e-10  ', spin_a
 
 close (1)
 
