@@ -1169,6 +1169,7 @@ CONTAINS
        EL%HE22%BN=>EL%BN
        EL%HE22%FREQ=>EL%FREQ
        EL%HE22%PHAS=>EL%PHAS
+       ALLOCATE(EL%HE22%N_BESSEL);EL%HE22%N_BESSEL=0
     CASE(KIND5)
        if(.not.ASSOCIATED(EL%S5)) THEN
           ALLOCATE(EL%S5)
@@ -1635,6 +1636,7 @@ CONTAINS
        EL%HE22%BN=>EL%BN
        EL%HE22%FREQ=>EL%FREQ
        EL%HE22%PHAS=>EL%PHAS
+       ALLOCATE(EL%HE22%N_BESSEL);EL%HE22%N_BESSEL=0
     CASE(KIND5)
        if(.not.ASSOCIATED(EL%S5)) THEN
           ALLOCATE(EL%S5)
@@ -2608,7 +2610,7 @@ ENDIF
        DEALLOCATE(EL%even);
        DEALLOCATE(EL%NAME);DEALLOCATE(EL%VORNAME);DEALLOCATE(EL%electric);
        DEALLOCATE(EL%L);
-       DEALLOCATE(EL%skip_ptc_f);       DEALLOCATE(EL%skip_ptc_b); DEALLOCATE(el%do1mapf,el%do1mapb);
+
        DEALLOCATE(EL%MIS); !DEALLOCATE(EL%EXACTMIS);
        call kill(EL%P)    ! AIMIN MS 4.0
 !       DEALLOCATE(EL%PERMFRINGE);
@@ -2730,20 +2732,20 @@ ENDIF
        IF(ASSOCIATED(EL%forward))        then
           call kill(EL%forward)     
           DEALLOCATE(EL%forward)
-          DEALLOCATE(EL%usef)
        ENDIF
 
 
        IF(ASSOCIATED(EL%backWARD))        then
           call kill(EL%backWARD)     
           DEALLOCATE(EL%backWARD)
-          DEALLOCATE(EL%useb)
        ENDIF
 
     IF(ASSOCIATED(EL%skip_ptc_f))DEALLOCATE(EL%skip_ptc_f)
     IF(ASSOCIATED(EL%skip_ptc_b))DEALLOCATE(EL%skip_ptc_b)
     IF(ASSOCIATED(el%do1mapf))DEALLOCATE(el%do1mapf)
     IF(ASSOCIATED(el%do1mapb))DEALLOCATE(el%do1mapb)
+    IF(ASSOCIATED(el%usef))DEALLOCATE(el%usef)
+    IF(ASSOCIATED(el%useb))DEALLOCATE(el%useb)
 
        IF(ASSOCIATED(EL%ramp))        then
           el%ramp=-1     !USER DEFINED MAGNET
@@ -2783,6 +2785,7 @@ ENDIF
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=.false. ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=.false.  ;
        ALLOCATE(el%do1mapf);   el%do1mapf=.false. ;   ALLOCATE(el%do1mapb);el%do1mapb=.false.  ;
+  ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
 
        EL%NAME=' ';EL%NAME=TRIM(ADJUSTL(EL%NAME));
        EL%VORNAME=' ';EL%VORNAME=TRIM(ADJUSTL(EL%VORNAME));
@@ -2953,19 +2956,19 @@ ENDIF
        IF(ASSOCIATED(EL%forward))        then
           call kill(EL%forward)     
           DEALLOCATE(EL%forward)
-          DEALLOCATE(EL%usef)
        ENDIF
 
        IF(ASSOCIATED(EL%backWARD))        then
           call kill(EL%backWARD)     
           DEALLOCATE(EL%backWARD)
-          DEALLOCATE(EL%useb)
        ENDIF
 
     IF(ASSOCIATED(EL%skip_ptc_f))DEALLOCATE(EL%skip_ptc_f)
     IF(ASSOCIATED(EL%skip_ptc_b))DEALLOCATE(EL%skip_ptc_b)    
     IF(ASSOCIATED(el%do1mapb))DEALLOCATE(el%do1mapb)
     IF(ASSOCIATED(el%do1mapf))DEALLOCATE(el%do1mapf)
+    IF(ASSOCIATED(el%usef))DEALLOCATE(el%usef)
+    IF(ASSOCIATED(el%useb))DEALLOCATE(el%useb)
 
        IF(ASSOCIATED(EL%ramp))        then
           el%ramp=-1     !USER DEFINED MAGNET
@@ -3053,6 +3056,7 @@ ENDIF
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=.false. ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=.false.  ;
        ALLOCATE(el%do1mapb);   el%do1mapb=.false. ;   ALLOCATE(el%do1mapf);el%do1mapf=.false.  ;
+  ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
 
        EL%NAME=' ';EL%NAME=TRIM(ADJUSTL(EL%NAME));
        EL%VORNAME=' ';EL%VORNAME=TRIM(ADJUSTL(EL%VORNAME));
@@ -3323,6 +3327,7 @@ ENDIF
        ELP%FREQ = EL%FREQ
        ELP%PHAS = EL%PHAS
        CALL SETFAMILY(ELP)
+       ELp%HE22%N_BESSEL=EL%HE22%N_BESSEL
     ENDIF
 
     IF(EL%KIND==KIND5) THEN         !
@@ -3471,9 +3476,9 @@ ENDIF
          call alloc_tree(ELp%backWARD(i),ELp%backWARD(i)%n,ELp%backWARD(i)%np)
          enddo
          call COPY_TREE_N(EL%backWARD,ELp%backWARD)
-         ELp%useb= EL%useb
+
        ENDIF
- 
+
 
        IF(ASSOCIATED(EL%forward))        then
          if(associated(elp%forward)) then
@@ -3485,14 +3490,14 @@ ENDIF
          call alloc_tree(elp%forward(i),el%forward(i)%n,elp%forward(i)%np)
          enddo
          call COPY_TREE_N(EL%forward,ELp%forward)
-         ELp%usef= EL%usef
+
        ENDIF
        ELp%skip_ptc_f=EL%skip_ptc_f
        ELp%skip_ptc_b=EL%skip_ptc_b
        elp%do1mapf=el%do1mapf
        elp%do1mapb=el%do1mapb
- 
-
+          ELp%usef= EL%usef
+          ELp%useb= EL%useb
   END SUBROUTINE copy_el_elp
 
 
@@ -3699,6 +3704,7 @@ ENDIF
        ELP%FREQ = EL%FREQ
        ELP%PHAS = EL%PHAS
        CALL SETFAMILY(ELP)
+       ELp%HE22%N_BESSEL=EL%HE22%N_BESSEL
     ENDIF
 
     IF(EL%KIND==KIND5) THEN         !
@@ -3845,7 +3851,7 @@ ENDIF
          call alloc_tree(ELp%backWARD(i),ELp%backWARD(i)%n,ELp%backWARD(i)%np)
          enddo
          call COPY_TREE_N(EL%backWARD,ELp%backWARD)
-         ELp%useb= EL%useb
+ 
        ENDIF
  
 
@@ -3859,12 +3865,14 @@ ENDIF
          call alloc_tree(ELp%forward(i),ELp%forward(i)%n,ELp%forward(i)%np)
          enddo
          call COPY_TREE_N(EL%forward,ELp%forward)
-         ELp%usef= EL%usef
+ 
        ENDIF
        ELp%skip_ptc_f=EL%skip_ptc_f
        ELp%skip_ptc_b=EL%skip_ptc_b
        elp%do1mapf=el%do1mapf
        elp%do1mapb=el%do1mapb
+          ELp%usef= EL%usef
+          ELp%useb= EL%useb
   END SUBROUTINE copy_elp_el
 
 
@@ -4074,6 +4082,7 @@ ENDIF
        ELP%FREQ = EL%FREQ
        ELP%PHAS = EL%PHAS
        CALL SETFAMILY(ELP)
+       ELp%HE22%N_BESSEL=EL%HE22%N_BESSEL
     ENDIF
 
     IF(EL%KIND==KIND5) THEN         !
@@ -4221,7 +4230,7 @@ ENDIF
          call alloc_tree(ELp%backWARD(i),ELp%backWARD(i)%n,ELp%backWARD(i)%np)
          enddo
          call COPY_TREE_N(EL%backWARD,ELp%backWARD)
-         ELp%useb= EL%useb
+
        ENDIF
  
 
@@ -4235,10 +4244,16 @@ ENDIF
          call alloc_tree(ELp%forward(i),ELp%forward(i)%n,ELp%forward(i)%np)
          enddo
          call COPY_TREE_N(EL%forward,ELp%forward)
-         ELp%usef= EL%usef
+
        ENDIF
+
+
        ELp%skip_ptc_f=EL%skip_ptc_f
        ELp%skip_ptc_b=EL%skip_ptc_b
+       elp%do1mapf=el%do1mapf
+       elp%do1mapb=el%do1mapb
+          ELp%usef= EL%usef
+          ELp%useb= EL%useb
   END SUBROUTINE copy_el_el
 
 

@@ -21,7 +21,7 @@ MODULE TPSA
   private allocda,KILLda,A_OPT,K_opt
   private dexpt,dcost,dsint,dsqrtt,dtant,datanht,dtanht
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,dsinHt,dCOSHt
-  private GETintnd2t
+  private GETintnd2t,print_for_bmad_parse
   PRIVATE DEQUAL,REQUAL,varf,varf001  !,CHARINT
   !  PUBLIC VAR,ASS
   private pbbra,full_absT,asstaylor,getcharnd2s,GETintnd2s,GETintk
@@ -69,6 +69,11 @@ private bessi_se,bessi0_se,poly_e,bessi1_se,I_nt,I_nr
      MODULE PROCEDURE refill_uni
   end  INTERFACE
 
+
+
+  INTERFACE print_for_bmad_parser
+     MODULE PROCEDURE print_for_bmad_parse
+  END INTERFACE
 
 
   INTERFACE print
@@ -3241,19 +3246,84 @@ endif
 
   !  i/o routines
 
-  SUBROUTINE  pri(S1,MFILE,DEPS)
+  SUBROUTINE  print_for_bmad_parse(S1,MFILE,prec,ind)
     implicit none
     INTEGER,INTENT(IN)::MFILE
-    REAL(DP),OPTIONAL,INTENT(IN)::DEPS
+    REAL(DP),OPTIONAL,INTENT(IN)::prec
+    integer ,OPTIONAL,INTENT(IN)::ind
     type (TAYLOR),INTENT(IN)::S1
-    REAL(DP) PREC,depst
 
-    IF(PRESENT(DEPS)) THEN
-       PREC=-1.0_dp
-       depst=deps
-       CALL taylor_eps(PREC)
+     bmadparser=1
+    call pri(S1,MFILE,prec,ind)
+     bmadparser=0
+  
+  end SUBROUTINE  print_for_bmad_parse
+
+  SUBROUTINE  pri(S1,MFILE,prec,ind)
+    implicit none
+    INTEGER,INTENT(IN)::MFILE
+    REAL(DP),OPTIONAL,INTENT(IN)::prec
+    integer ,OPTIONAL,INTENT(IN)::ind
+    type (TAYLOR),INTENT(IN)::S1
+    REAL(DP) PREC1,depst,value
+    integer i,j,it,n,indo,k
+    integer, allocatable :: jc(:)
+    character(255) line,line0
+
+    IF(PRESENT(prec)) THEN
+       PREC1=-1.0_dp
+       depst=prec
+       CALL taylor_eps(PREC1)
        CALL taylor_eps(depst)
     ENDIF
+
+ if(bmadparser>0) then
+    IF(PRESENT(ind)) THEN
+     indo=ind
+    else
+     indo=0
+    endif
+    allocate(jc(c_%nv))
+     call taylor_cycle(s1,size=n)
+    do i=1,n
+       call taylor_cycle(s1,ii=i,value=value,j=jc)
+
+       it=0
+       do j=c_%nd2+1,c_%nv
+          it=jc(i)+it
+       enddo
+       if(it==0.and.abs(value)>depst) then
+        write(line,*) "{",indo,":",value,","  
+        call context(line)
+        do j=1,c_%nd2
+         write(line(len_trim(line)+1:255),*)jc(j),"&"
+         call context(line)
+        enddo
+         write(line(len_trim(line)+1:255),*)"};"
+         call context(line)
+         k=0
+         line0=' '
+         do j=1,len_trim(line)
+          if(line(j:j)/=' ') then
+           !line(j:j)=' '
+           !else
+          k=k+1
+           line0(k:k)=line(j:j)
+          endif
+         enddo
+         do j=1,len_trim(line0)
+          if(line0(j:j)=='&') line0(j:j)=' '
+         enddo
+        write(mfile,*) line0(1:len_trim(line0))
+       endif
+
+    enddo
+
+    deallocate(jc)
+   else
+   
+
+
 
     ! if(old) then
     if(print77) then
@@ -3261,19 +3331,10 @@ endif
     else
        CALL DAPRI(s1%i,MFILE)
     endif
-    !    else
-    !       if(newprint) then
-    !          CALL newDAPRI(s1%j,MFILE)
-    !       else
-    !          if(print77) then
-    !             CALL oldDAPRI77(s1%j,MFILE)
-    !          else
-    !             CALL oldDAPRI(s1%j,MFILE)
-    !          endif
-    !       endif
-    !    endif
+
     !
-    IF(PRESENT(DEPS))  CALL taylor_eps(PREC)
+endif
+    IF(PRESENT(prec))  CALL taylor_eps(PREC1)
 
   END SUBROUTINE pri
 

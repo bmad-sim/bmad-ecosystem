@@ -2,7 +2,7 @@
      real(dp) GAMMA0I_GAMBET_MASS_AG(4)  !GAMMA0I,GAMBET,MASS ,AG  BETA0 is computed
      real(dp)  CHARGE
      integer  DIR !DIR,CHARGE
-     integer patch 
+     integer patch
   END TYPE fibrelist
 type(fibrelist) fib0
 namelist / fibrename / fib0
@@ -44,6 +44,9 @@ namelist / MAGLname / MAGL0
 	LOGICAL(LP) THIN 
     real(dp) fint_hgap_h1_h2_va_vs(6)
 	logical(lp) slowac_recut_even_electric_MIS(5)  
+     logical usebf_skipptcbf_do1bf(6)
+     character(204) filef
+      character(204) fileb
   END TYPE ele_list
 type(ele_list) ELE0
 namelist / ELEname / ELE0
@@ -59,6 +62,12 @@ namelist / ELEname / ELE0
   END TYPE cav_list
 type(cav_list) cav0
 namelist / CAVname / cav0
+ 
+  TYPE hel_list
+   integer N_BESSEL
+  END TYPE hel_list
+type(hel_list) hel0
+namelist / HELname / hel0
 
   TYPE thin3_list
    real(dp) thin_h_foc,thin_v_foc,thin_h_angle,thin_v_angle,hf,vf,ls
@@ -129,6 +138,7 @@ namelist / siamname / siam0
    real(dp) f(mode_max)   
    integer form(mode_max)
    real(dp) k(3,mode_max)
+   real(dp) ex(wiggler_suntao),ey(wiggler_suntao)
   END TYPE wig_list
 type(wig_list) wig0
 namelist / wigname / wig0

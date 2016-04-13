@@ -1282,6 +1282,7 @@ endif
           READ(MF,*) fixp,fact  !  SYMPLECTIC , factored
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           x_ref=0.0_DP
+          n_ac=0
           CALL CONTEXT(NAME)
           N_NAME=0
           IF(NAME(1:2)=='NO') THEN
@@ -1302,10 +1303,24 @@ endif
              IF(FOUND_IT) THEN
                 write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
                 call fill_tree_element(p,I1,x_REF,onemap,fact)
+                 n_ac=n_ac+1
+
                    IF(P%DIR==1) THEN
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
+                do i2=1,3
+                 write(p%mag%forward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%mag%forward(i2)%file)
+                 write(p%magp%forward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%magp%forward(i2)%file)
+                enddo
                    ELSE
+                do i2=1,3
+                 write(p%mag%backward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%mag%backward(i2)%file)
+                 write(p%magp%backward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%magp%backward(i2)%file)
+                enddo
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP
                    ENDIF
@@ -1320,7 +1335,7 @@ endif
           READ(MF,*) fixp,fact  !  SYMPLECTIC 
           READ(MF,*) skipcav  !  skip cavity 
           x_ref=0.0_DP
- 
+           n_ac=0
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           p=>my_ering%start
           do ii=1,my_ering%N
@@ -1329,14 +1344,28 @@ endif
              IF(p%mag%kind/=kind0) THEN
               if(.not.skipcav.or.(p%mag%kind/=kind4.and.p%mag%kind/=kind21)) then
                 write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
+                 n_ac=n_ac+1
                 call fill_tree_element(p,I1,x_REF,onemap,fact)
                    IF(P%DIR==1) THEN
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
+                do i2=1,3
+                 write(p%mag%forward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%mag%forward(i2)%file)
+                 write(p%magp%forward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%magp%forward(i2)%file)
+                enddo
                    ELSE
+                do i2=1,3
+                 write(p%mag%backward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%mag%backward(i2)%file)
+                 write(p%magp%backward(i2)%file,*) "map",n_ac,".txt"
+                 call context(p%magp%backward(i2)%file)
+                enddo
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP
                    ENDIF
+  
               endif
              ENDIF
 

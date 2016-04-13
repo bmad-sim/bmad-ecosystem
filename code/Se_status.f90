@@ -41,6 +41,7 @@ module S_status
   !  integer, parameter :: KINDFITTED = KIND23+1
   !  integer, parameter :: KINDUSER1 = KIND23+2
   !  integer, parameter :: KINDUSER2 = KIND23+3
+  integer, parameter :: KINDhel = KIND22
   integer, parameter :: KINDwiggler = KIND23+2
   !  integer, parameter :: KINDmu      = KIND23+3
   integer, parameter :: KINDpa     = KIND23+3
@@ -6512,6 +6513,75 @@ enddo
     deallocate(M)
 
   END SUBROUTINE SET_TREE_G_complex
+
+subroutine print_tree_element(t,mf)
+implicit none
+type(tree_element) t
+ 
+integer i,mf
+   write(mf,'(a204)') t%file
+write(mf,'(18(1X,i8))') t%N,t%NP,t%no
+do i=1,t%n
+ write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
+enddo
+write(mf,'(2(1X,L1))') t%symptrack,t%usenonsymp
+write(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
+do i=1,6
+ write(mf,'(6(1X,G20.13))') t%e_ij(i,1:6)
+enddo
+do i=1,6
+ write(mf,'(6(1X,G20.13))') t%rad(i,1:6)
+enddo
+ write(mf,'(3(1X,G20.13))') t%ds,t%beta0,t%eps
+
+end subroutine print_tree_element
+
+subroutine print_tree_elements(t,mf)
+implicit none
+type(tree_element) t(:)
+ 
+integer i,mf
+
+ do i=1,size(t)
+  call print_tree_element(t(i),mf)
+ enddo
+
+end subroutine print_tree_elements
+ 
+subroutine read_tree_element(t,mf)
+implicit none
+type(tree_element) t
+ 
+integer i,mf
+ 
+  read(mf,'(a204)') t%file
+read(mf,*) t%N,t%NP,t%no
+do i=1,t%n
+ read(mf,*)  t%cc(i),t%jl(i),t%jv(i)
+enddo
+write(mf,*) t%symptrack,t%usenonsymp
+read(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
+do i=1,6
+ read(mf,*) t%e_ij(i,1:6)
+enddo
+do i=1,6
+ read(mf,*) t%rad(i,1:6)
+enddo
+ read(mf,*) t%ds,t%beta0,t%eps
+
+end subroutine read_tree_element
+
+subroutine read_tree_elements(t,mf)
+implicit none
+type(tree_element) t(:)
+ 
+integer i,mf
+
+ do i=1,size(t)
+  call read_tree_element(t(i),mf)
+ enddo
+
+end subroutine read_tree_elements
 
   SUBROUTINE track_TREE_probe_complexr(T,xs,dofix0,dofix,sta,jump)
     use da_arrays

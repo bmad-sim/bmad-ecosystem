@@ -15458,13 +15458,16 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     SELECT CASE(EL%P%METHOD)
     CASE(4)
-       call conv_to_xp(EL,X,k)
+
+!       call conv_to_xp(EL,X,k)
        IF(EL%P%DIR==1) THEN
+       call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
              IF(.NOT.PRESENT(MID)) call rk4_m(IS,h,el,X,k)
              IF(PRESENT(MID)) CALL XMID(MID,X,I)
           ENDDO
+       call ADJUST_PANCAKE(EL,X,k,2)
        else
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
@@ -15473,7 +15476,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
           ENDDO
 
        ENDIF
-       call conv_to_px(EL,X,k)
+!       call conv_to_px(EL,X,k)
 
     CASE DEFAULT
        w_p=0
@@ -15509,12 +15512,15 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     SELECT CASE(EL%P%METHOD)
     CASE(4)
-       call conv_to_xp(EL,X,k)
+!       call conv_to_xp(EL,X,k)
+
        IF(EL%P%DIR==1) THEN
+       call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
              call rk4_m(IS,h,el,X,k)
           ENDDO
+       call ADJUST_PANCAKE(EL,X,k,2)
        else
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
@@ -15524,7 +15530,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        ENDIF
 
 
-       call conv_to_px(EL,X,k)
+!       call conv_to_px(EL,X,k)
        !       CASE(2)
        !          IS=1
        !          call DRIFT_pancake(EL,hh,is,1,X,k)

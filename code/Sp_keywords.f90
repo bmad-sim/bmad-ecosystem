@@ -2585,6 +2585,8 @@ if(ele0%slowac_recut_even_electric_MIS(5)) read(mf,NML=CHARTname)  ! reading mis
 
 
 
+
+
 n=n+1
 enddo
 
@@ -2630,7 +2632,7 @@ end subroutine read_lattice
 
 
     select case(kind)
-    CASE(KIND0,KIND1,kind2,kind6,kind7,kind8,kind9,KIND11:KIND15,kind17,KIND22)
+    CASE(KIND0,KIND1,kind2,kind6,kind7,kind8,kind9,KIND11:KIND15,kind17)
   case(kind3)
      read(mf,NML=thin30name)
     case(kind4)
@@ -2648,6 +2650,9 @@ end subroutine read_lattice
 
     case(kind19)
 
+
+    case(kindhel)
+      read(mf,NML=helname)
     case(kind21)
      read(mf,NML=tCAVname)
     case(KINDWIGGLER)
@@ -2680,8 +2685,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  fib0%DIR=f%DIR
  fib0%CHARGE=f%CHARGE
  fib0%patch=f%patch%patch+7*f%patch%energy+49*f%patch%time
- !fib0%pos=f%pos
- !fib0%loc=f%loc
+ 
     if(present(mf)) then
      write(mf,NML=fibrename)
     endif   
@@ -2700,6 +2704,7 @@ else
  !f%patch%patch=fib0%patch     ! f%patch%patch is not yet allocated
 endif
 endif
+
 end subroutine fib_fib0
 
 subroutine  patch_patch0(f,dir,mf)
@@ -2905,7 +2910,20 @@ ele0%slowac_recut_even_electric_MIS(2) = f%recut
 ele0%slowac_recut_even_electric_MIS(3) = f%even
 ele0%slowac_recut_even_electric_MIS(4) = f%electric
 ele0%slowac_recut_even_electric_MIS(5) = f%MIS
- 
+ ele0%usebf_skipptcbf_do1bf(1)=f%useb
+ ele0%usebf_skipptcbf_do1bf(2)=f%usef 
+ ele0%usebf_skipptcbf_do1bf(3)=f%skip_ptc_b 
+ ele0%usebf_skipptcbf_do1bf(4)=f%skip_ptc_f 
+ ele0%usebf_skipptcbf_do1bf(5)=f%do1mapb 
+ ele0%usebf_skipptcbf_do1bf(6)=f%do1mapf
+ ele0%filef=' '
+ ele0%fileb=' '
+if(associated(f%forward)) then
+ ele0%filef=f%forward(1)%file
+endif
+if(associated(f%backward)) then
+ ele0%fileb=f%backward(1)%file
+endif
     if(present(mf)) then
      write(mf,NML=ELEname)
     endif   
@@ -2969,6 +2987,13 @@ endif
  solve_electric=f%electric
    F%L=ele0%L
 
+ f%useb=ele0%usebf_skipptcbf_do1bf(1)
+ f%usef=ele0%usebf_skipptcbf_do1bf(2)
+ f%skip_ptc_b=ele0%usebf_skipptcbf_do1bf(3)
+ f%skip_ptc_f=ele0%usebf_skipptcbf_do1bf(4)
+ f%do1mapb=ele0%usebf_skipptcbf_do1bf(5) 
+ f%do1mapf=ele0%usebf_skipptcbf_do1bf(6)
+! dracula
    
     if(f%kind==kind3.or.f%kind==kind5) then   
         IF(.not.ASSOCIATED(f%B_SOL)) ALLOCATE(f%B_SOL);
@@ -2991,7 +3016,7 @@ end subroutine el_el0
 
 
     select case(el%kind)
-    CASE(KIND0,KIND1,kind2,kind6,kind7,kind8,kind9,KIND11:KIND15,kind17,KIND22)
+    CASE(KIND0,KIND1,kind2,kind6,kind7,kind8,kind9,KIND11:KIND15,kind17)
   case(kind3)
      call thin3_thin30(el,dir,mf)
     case(kind4)
@@ -3010,6 +3035,8 @@ end subroutine el_el0
     case(kind19)
 !       WRITE(MF,*) " ECOLLIMATOR HAS AN INTRINSIC APERTURE "
 !       CALL print_aperture(EL%ECOL19%A,mf)
+    case(kindhel)
+        call hel_hel0(EL,dir,mf)
     case(kind21)
         call tcav4_tcav40(EL,dir,mf)
 !       WRITE(MF,*) el%cav21%PSI,el%cav21%DPHAS,el%cav21%DVDS
@@ -3079,6 +3106,35 @@ endif
 endif
 end subroutine cav4_cav40
 
+subroutine  hel_hel0(f,dir,mf)
+implicit none
+type(element), target :: f
+logical(lp),optional ::  dir
+integer,optional :: mf
+
+if(present(dir)) then
+if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
+
+
+
+hel0%N_BESSEL=F%he22%N_BESSEL
+
+    if(present(mf)) then
+     write(mf,NML=helname)
+    endif   
+ 
+ else
+    if(present(mf)) then
+     read(mf,NML=helname)
+    endif   
+ 
+CALL SETFAMILY(f)
+ F%he22%N_BESSEL=hel0%N_BESSEL
+
+endif
+endif
+end subroutine hel_hel0
+
 subroutine  wig_wig0(f,dir,mf)
 implicit none
 type(element), target :: f
@@ -3101,6 +3157,8 @@ wig0%a(1:n)=f%wi%w%a(1:n)
 wig0%f(1:n)=f%wi%w%f(1:n)
 wig0%form(1:n)=f%wi%w%form(1:n)
 wig0%k(1:3,1:n)=f%wi%w%k(1:3,1:n)
+wig0%ex=f%wi%w%ex
+wig0%ey=f%wi%w%ey
     if(present(mf)) then
      write(mf,NML=wigname)
     endif   
@@ -3119,6 +3177,8 @@ wig0%k(1:3,1:n)=f%wi%w%k(1:3,1:n)
  F%wi%w%f(1:N)=wig0%f(1:N)
  F%wi%w%form(1:N)=wig0%form(1:N)
  F%wi%w%k(1:3,1:N)=wig0%k(1:3,1:N)
+ F%wi%w%ex=wig0%ex
+ F%wi%w%ey=wig0%ey
 
 endif
 endif

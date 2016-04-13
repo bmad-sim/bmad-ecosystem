@@ -24,7 +24,7 @@ integer, parameter :: hyper_y_family_y = 1, hyper_xy_family_y = 2, hyper_x_famil
 integer, parameter :: hyper_y_family_x = 4, hyper_xy_family_x = 5, hyper_x_family_x = 6
 integer, parameter :: hyper_y_family_qu = 7, hyper_xy_family_qu = 8, hyper_x_family_qu = 9
 integer, parameter :: hyper_y_family_sq = 10, hyper_xy_family_sq = 11, hyper_x_family_sq = 12
-integer, parameter :: wiggler_fringe=24
+
 
   integer :: limit_sag(2) =(/4,18/) 
  
@@ -1107,7 +1107,7 @@ end subroutine kick_integral_p
     EL%F=0.0_dp
     EL%offset=0.0_dp
     EL%FORM=0
-    ALLOCATE(EL%ex(wiggler_fringe),EL%ey(wiggler_fringe))
+    ALLOCATE(EL%ex(wiggler_suntao),EL%ey(wiggler_suntao))
     EL%ex=0
     EL%ey=0
   END SUBROUTINE INIT_SAGAN_POINTERS
@@ -1129,7 +1129,7 @@ end subroutine kick_integral_p
     ALLOCATE(EL%FORM(N))
     EL%FORM=0
     CALL ALLOC(EL)
-    ALLOCATE(EL%ex(wiggler_fringe),EL%ey(wiggler_fringe))
+    ALLOCATE(EL%ex(wiggler_suntao),EL%ey(wiggler_suntao))
     EL%ex=0
     EL%ey=0
     ! ALLOCATE INTERNAL POINTERS IF ANY
@@ -1303,8 +1303,8 @@ end subroutine kick_integral_p
        S2%W%A(I)=S2%W%A(I)*(P0C_OLD/P0C_NEW)**power
     ENDDO
 
-    S2%W%ex(1:wiggler_fringe)=S2%W%ex(1:wiggler_fringe)*(P0C_OLD/P0C_NEW)**power
-    S2%W%ey(1:wiggler_fringe)=S2%W%ey(1:wiggler_fringe)*(P0C_OLD/P0C_NEW)**power
+    S2%W%ex(1:wiggler_suntao)=S2%W%ex(1:wiggler_suntao)*(P0C_OLD/P0C_NEW)**power
+    S2%W%ey(1:wiggler_suntao)=S2%W%ey(1:wiggler_suntao)*(P0C_OLD/P0C_NEW)**power
 
   end SUBROUTINE  scale_SAGANR
 
@@ -1321,8 +1321,8 @@ end subroutine kick_integral_p
        S2%W%A(I)=S2%W%A(I)*(P0C_OLD/P0C_NEW)**power
     ENDDO
 
-    S2%W%ex(1:wiggler_fringe)=S2%W%ex(1:wiggler_fringe)*(P0C_OLD/P0C_NEW)**power
-    S2%W%ey(1:wiggler_fringe)=S2%W%ey(1:wiggler_fringe)*(P0C_OLD/P0C_NEW)**power
+    S2%W%ex(1:wiggler_suntao)=S2%W%ex(1:wiggler_suntao)*(P0C_OLD/P0C_NEW)**power
+    S2%W%ey(1:wiggler_suntao)=S2%W%ey(1:wiggler_suntao)*(P0C_OLD/P0C_NEW)**power
 
   end SUBROUTINE  scale_SAGANP
 
