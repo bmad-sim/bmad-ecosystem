@@ -1,18 +1,52 @@
 \chapter{Miscellaneous Programming}
 
 %-----------------------------------------------------------------------------
+\section{Custom and Hook Routines}
+\label{s:custom.hook}
+\index{custom}
+
+\bmad calculations can be customized using what are called ``\vn{custom}'' and
+``\vn{hook}'' routines. The general idea is that the \bmad library contains \vn{dummy}
+versions of the custom and hook routines which do nothing except to keep the linker happy
+when custom routines are not implemented by a program. Customization is done by copying
+the appropriate dummy routine to the same area where code files for the program to be
+customized are, modifying the dummy routine to do what you want it to do, and then
+relinking the program.
+
+The difference between \vn{custom} and \vn{hook} routines is that the \vn{hook} routine is
+always called at the appropriate time without regard to the type of lattice element under
+consideration or what tracking method is being used. See below for more details.
+
+Important: 
+\begin{itemize}
+\item
+Do not put the non-dummy version of a custom routine into a library that is linked to the
+program. This will generally result in the non-dummy version {\em not} being linked to.
+\item
+Do not modify directly any dummy routine in the \vn{bmad} directory. This is unnecessary
+and it complicates updating your local copy of the \bmad code as the \bmad code is
+developed over time.
+\end{itemize}
+
+While coding a custom routine, it is important to remember that it is {\em not}
+permissible to modify any routine argument that does not appear in the list of output
+arguments shown in the comment section at the top of the file.
+
+Note: Remember to modify the appropriate compile script file (typically named something
+like ``cmake.XXX'') so that any routines that you have added to your program area are
+compiled and linked.
+
+%-----------------------------------------------------------------------------
 \section{Custom Calculations}
 \label{s:custom.ele}
 \index{custom}
 
-Normally a ``custom'' calculation is a calculation, 
-done by \bmad, that is instead handled by having the appropriate \bmad
-code call the appropriate custom code. Implementing custom
-calculations involve writing custom code and linking this code into a
-program. There are essentially two ways to do custom calculations. One
-way involves using a \vn{custom} element (\sref{s:custom}). The
-other way involves setting the appropriate \vn{method} component of an element
-to \vn{custom}. An appropriate method component is one of
+Normally a ``custom'' calculation is a calculation, done by \bmad, that is instead handled
+by having the appropriate \bmad code call the appropriate custom code. Implementing custom
+calculations involve writing custom code and linking this code into a program. There are
+essentially two ways to do custom calculations. One way involves using a \vn{custom}
+element (\sref{s:custom}). The other way involves setting the appropriate \vn{method}
+component of an element to \vn{custom}. An appropriate method component is one of
 \begin{example}
   tracking_method       \sref{s:tkm}
   mat6_calc_method      \sref{s:xfer}
@@ -32,29 +66,11 @@ There are eight routines that implement custom calculations:
   \Hyperref{r:wall.hit.handler.custom}{wall_hit_handler_custom}
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
-routines.]  The \bmad library has ``dummy'' routines of the same name to
-keep the linker happy when custom routines are not implemented. These
-dummy routines, if called, will print an error message and stop the
-program. The exception is the dummy \vn{init_custom} routine which will
-simply do nothing when called.
+routines.]  
 
-If a particular custom routine is not called in a program, then, obviously, a non-dummy
-version does not have to be implemented. To link in a non-dummy version of a custom
-routine, put the code file in the same directory as the program code and
-relink. Important: 
-\begin{itemize}
-\item
-Do not put the non-dummy version of a custom routine into a library that is linked to the
-program. This will generally result in the non-dummy version {\em not} being linked to.
-\item
-Do not modify any subfile of the \vn{bmad} directory that holds the \bmad code. This is
-unnecessary and can make updating the \bmad code cumbersome.
-\end{itemize}
-
-While coding a custom routine, it is important to remember that it is
-{\em not} permissible to modify any routine argument that does not
-appear in the list of output arguments shown in the comment section at
-the top of the file.
+The dummy versions of these custom routines, if called, will print an error message and
+stop the program. The exception is the dummy \vn{init_custom} routine which will simply do
+nothing when called.
 
 \index{descrip}
 The \Hyperref{r:init.custom}{init_custom} routine is called by
@@ -211,7 +227,7 @@ mount since \bmad does not have the knowledge to calculate the table orientation
 position of the mount points. See the documentation in the file \vn{ele_geometry_hook.f90}
 for more details.
 
-The \vn{time_runge_kutta_periodic_kick_hook} routine can be used to indroduce a time
+The \vn{time_runge_kutta_periodic_kick_hook} routine can be used to introduce a time
 dependent kick when doing tracking with \vn{time_runge_kutta}. This routine could be used,
 for example, to add the kick due to a passing beam ! on a residual gas ion that is being
 tracked. See the documentation in the file \vn{time_runge_kutta_periodic_kick_hook.f90}
