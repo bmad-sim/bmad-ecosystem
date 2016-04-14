@@ -266,7 +266,7 @@ case (taylor$)   ! start with unit matrix
 
 case (wiggler$, undulator$) 
   ele%sub_key = periodic_type$   
-  ele%value(polarity$) = 1.0     
+  ele%value(polarity$) = 1.0
 
 end select
 

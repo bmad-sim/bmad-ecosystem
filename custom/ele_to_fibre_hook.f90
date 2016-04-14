@@ -45,8 +45,8 @@ ptc_fibre%mag%wi%w%ey(1:24) = ele%r(2, 1:24, 0) * ele%value(polarity$)
 
 wrk = ptc_fibre
 sfactor = wrk%gamma0i*suntao/ptc_fibre%mag%l
-ptc_fibre%mag%wi%w%ex = ptc_fibre%mag%wi%w%ex*sfactor
-ptc_fibre%mag%wi%w%ey = ptc_fibre%mag%wi%w%ey*sfactor
+ptc_fibre%mag%wi%w%ex(1:22:3) = ptc_fibre%mag%wi%w%ex(1:22:3) * sfactor
+ptc_fibre%mag%wi%w%ey(1:22:3) = ptc_fibre%mag%wi%w%ey(1:22:3) * sfactor
 
 ptc_fibre%magp%wi%w%ex = ptc_fibre%mag%wi%w%ex
 ptc_fibre%magp%wi%w%ey = ptc_fibre%mag%wi%w%ey

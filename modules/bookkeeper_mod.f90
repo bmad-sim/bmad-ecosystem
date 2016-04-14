@@ -2665,7 +2665,12 @@ case (wiggler$, undulator$)
     if (val(l$) == 0) then
       ele%wig%term(1)%ky = 0
     else
-      ele%wig%term(1)%ky = pi * val(n_pole$) / val(l$)
+      if (val(n_pole$) == 0) then
+        call out_io (s_error$, r_name, 'NUMBER OF POLES NOT SET FOR WIGGLER: ' // trim(ele%name))
+        ele%wig%term(1)%ky = pi / val(l$)
+      else
+        ele%wig%term(1)%ky = pi * val(n_pole$) / val(l$)
+      endif
     endif
     ele%wig%term(1)%coef   = val(b_max$)
     ele%wig%term(1)%kx     = 0
