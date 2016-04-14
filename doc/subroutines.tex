@@ -274,6 +274,12 @@ Used when \vn{ele%aperture_type} is set to \vn{custom\$}
 \item[ele_geometry_hook (floor0, ele, floor, finished, len_scale)] \Newline 
 Routine that can be customized to calculate the floor position of an element.
 
+\index[routine]{ele_to_fibre_hook}
+\label{r:ele.to.fibre.hook}
+\item[ele_to_fibre_hook (ele, ptc_fibre, param)] \Newline 
+Routine that can be customized for creating a PTC fibre from a Bmad element.
+This routine is always called by ele_to_fibre.
+
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
 \item[\protect\parbox{6in}{
@@ -3375,10 +3381,11 @@ Particle tracking through a bend element.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Tracking: Routines called by TRACK1}
+\section{Tracking: Routines called by track1}
 \label{r:track1.call}   
 
-Note: Generally you don't call these routines directly.
+Note: Unless you know what you are doing do not call these routines directly. Rather use
+track1.
 
 \begin{description}
 
@@ -3440,6 +3447,12 @@ taylor map (In PTC/FPP this is called a genfield).
 \label{r:track1.taylor}
 \item[track1_taylor (start_orb, ele, param, end_orb, taylor_in)] \Newline
 Routine to track through an element using the elements taylor series. 
+
+\index[routine]{track1_time_runge_kutta}
+\label{r:track1.time.runge.kutta}
+\item[track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track)] \Newline 
+Routine to track a particle through an element using 
+Runge-Kutta time-based tracking.
 
 \end{description}
 
