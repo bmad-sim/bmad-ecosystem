@@ -14,7 +14,7 @@
 
 subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
 
-use bmad
+use bmad, except_dummy => ele_to_fibre_hook
 use s_family, only: work, suntao, assignment(=)  ! PTC
 
 implicit none
