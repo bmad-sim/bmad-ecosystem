@@ -1302,6 +1302,7 @@ call init_attribute_name1 (multilayer_mirror$, diffraction_limited$,  'DIFFRACTI
 
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
 
 call init_attribute_name1 (wiggler$, k1$,                           'K1', dependent$)
 call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')

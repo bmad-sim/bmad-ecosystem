@@ -3861,6 +3861,7 @@ General \vn{taylor} attributes are:
 
 Attributes specific to a \vn{taylor} element are:
 \begin{example}
+  ref_orbit = (<x>, <px>, <y>, <py>, <z>, <pz>)     ! Reference orbit.
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
 \end{example}
@@ -3952,16 +3953,25 @@ but will affect the longitudinal $s$ position of succeeding elements
 and will affect the time it takes a particle to track through the
 element.
 
+The \vn{ref_orbit} attribute specifies the phase space $(x, px, y, py, z, pz)$ reference
+orbit at the start of the element used to construct the Taylor map. The reference orbit
+only has an effect when used in conjunction with PTC (\sref{c:ptc}). In this case, PTC
+uses the reference orbit when doing such things as normal form analysis. Note: when
+converting the map from \bmad to PTC, the interface routine will convert from Bmad phase
+space coordinates to PTC phase space coordinates and will convert the map to using the
+reference orbit as the map zero orbit. This does not affect tracking but will affect map
+analysis.
+
+A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set to False), is
+considered to be like a \vn{marker} element. That is, the orbit and twiss parameters are
+unchanged when tracking through a \vn{taylor} element that is turned off.
+
 Example \vn{taylor} element definition:
 \begin{example}
   tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
-              \{xz: 0.43 | 2 \}, ...
+              \{xz: 0.43 | 2 \}, ..., 
+              ref_orbit = (0.01, 0.003, 0.002, 0.001, 0.0, 0.2)
 \end{example}
-
-A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set
-to False), is considered to be like a \vn{marker} element. That is,
-the orbit and twiss parameters are unchanged when tracking through
-a \vn{taylor} element that is turned off.
 
 %-----------------------------------------------------------------
 \section{Wiggler and Undulator} 

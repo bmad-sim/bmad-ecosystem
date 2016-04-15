@@ -2477,7 +2477,6 @@ character(*), parameter :: r_name = 'calc_next_finge_edge'
 ! The routine apply_element_edge_kick will modify ele%ixx as appropriate when the particle is tracked through an edge.
 
 dir = track_direction
-if (track_ele%value(l$) < 0) dir = -dir
 
 if (logic_option(.false., init_needed)) then
   nullify(hard_ele)
