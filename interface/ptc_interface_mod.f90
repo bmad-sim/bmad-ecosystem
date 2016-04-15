@@ -1341,9 +1341,10 @@ end subroutine real_8_equal_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)
+! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, use_ref0)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
+! The PTC map will have the bmad_taylor%ref reference orbit removed from the map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
 !
 ! Modules needed:
@@ -1351,7 +1352,6 @@ end subroutine real_8_equal_taylor
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
-!   v0(6)    -- real(rp): Initial vector (in Bmad coords) around which bmad_taylor was made.
 !   beta0    -- real(rp): Reference particle velocity at beginning of map
 !   beta1    -- real(rp): Reference particle velocity at end of map
 !
@@ -1361,7 +1361,7 @@ end subroutine real_8_equal_taylor
 !                   respect to bmad_taylor%ref. Default is False.
 !-
 
-subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)
+subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, use_ref0)
 
 use s_fibre_bundle
 
@@ -1371,7 +1371,7 @@ type (taylor_struct) :: bmad_taylor(:)
 type (real_8) y8(:), rr(6), bet
 type (damap) bm, id, si
 
-real(dp) beta0, beta1, fix0(6), v0(:), v_ptc(6)
+real(dp) beta0, beta1, fix0(6), v_ptc(6)
 logical, optional :: use_ref0
 
 !
@@ -1386,7 +1386,7 @@ bm = y8
 fix0 = bm     ! Save zeroth order terms
 id = 1        ! Identity map
 
-call vec_bmad_to_ptc (v0, beta0, v_ptc)
+call vec_bmad_to_ptc (bmad_taylor%ref, beta0, v_ptc)
 rr = id + v_ptc
 
 y8 = rr
@@ -1424,7 +1424,7 @@ end subroutine taylor_to_real_8
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)
+! Subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
 !
 ! Routine to convert a PTC real_8 map to a Bmad Taylor map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1433,16 +1433,18 @@ end subroutine taylor_to_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(6) -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
-!   v0(6) -- real(rp): Initial vector (in Bmad coords) around which y8 was made.
-!   beta0 -- real(rp): Reference particle velocity at beginning of map
-!   beta1 -- real(rp): Reference particle velocity at end of map
+!   y8(6)           -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
+!   v0(6)           -- real(rp): Initial vector (in Bmad coords) around which y8 was made.
+!   beta0           -- real(rp): Reference particle velocity at beginning of map
+!   beta1           -- real(rp): Reference particle velocity at end of map
+!   bmad_taylor(6)  -- Taylor_struct:
+!     %ref            -- Reference orbit
 !
 ! Output:
 !   bmad_taylor(6) -- Taylor_struct: Bmad Taylor map.
 !-
 
-subroutine real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)
+subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
 
 use s_fibre_bundle
 
@@ -1452,7 +1454,7 @@ type (taylor_struct) :: bmad_taylor(:)
 type (real_8) y8(:), rr(6), bet
 type (damap) bm, id, si
 
-real(rp) beta0, beta1, fix0(6), v0(:)
+real(rp) beta0, beta1, fix0(6)
 
 !
 
@@ -1465,7 +1467,7 @@ bm = y8
 fix0 = bm
 id = 1
 
-rr = id+v0
+rr = id + bmad_taylor%ref
 
 y8 = rr 
 y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta0 + sqrt(1.d0/beta0**2+rr(6)**2+2.d0*rr(6)))
@@ -2645,7 +2647,7 @@ endif
 call dtiltd (tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
-call taylor_to_real_8 (ele%taylor, ele%taylor%ref, beta0, beta1, x_body)
+call taylor_to_real_8 (ele%taylor, beta0, beta1, x_body)
 
 call concat_real_8 (x_ele, x_body, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
@@ -2653,13 +2655,13 @@ call dtiltd (tilt, 2, x_ele)
 
 ! Concat with taylor1
 
-call taylor_to_real_8 (taylor1, taylor1%ref, beta0, beta0, x1)
+call taylor_to_real_8 (taylor1, beta0, beta0, x1)
 call concat_real_8 (x1, x_ele, x3)
 
 ! convert x3 to final result taylor3
 
-call real_8_to_taylor(x3, taylor1%ref, beta0, beta1, taylor3)
 taylor3(:)%ref = taylor1(:)%ref
+call real_8_to_taylor(x3, beta0, beta1, taylor3)
 
 ! Cleanup
 
@@ -2719,7 +2721,7 @@ beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
 call real_8_init (ptc_tlr)
-call taylor_to_real_8 (bmad_taylor, bmad_taylor%ref, beta0, beta0, ptc_tlr)
+call taylor_to_real_8 (bmad_taylor, beta0, beta0, ptc_tlr)
 
 ! Track entrance drift if PTC is using a hard edge model
 
@@ -2744,7 +2746,7 @@ endif
 
 ! transfer ptc map back to bmad map
 
-call real_8_to_taylor(ptc_tlr, bmad_taylor%ref, beta0, beta1, bmad_taylor)
+call real_8_to_taylor(ptc_tlr, beta0, beta1, bmad_taylor)
 
 ! cleanup
 
@@ -3633,9 +3635,12 @@ ptc_fibre%charge = rel_charge
 ! In theory can put in a taylor map for any element but for now only setup Bmad taylor elements.
 
 if (ele%key == taylor$) then
+!!if (associated(ele%taylor(1)%term)) then
   ! The map can be split into pieces by taking the log of the map.
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
+
+  !!print *, 'TESTING BMAD TO PTC CONVERSION...'
 
   onemap = .true.
 
@@ -3649,7 +3654,9 @@ if (ele%key == taylor$) then
 
   call vec_bmad_to_ptc (ele%taylor%ref, beta0, ref0)
 
-  call taylor_to_real_8 (ele%taylor, ele%taylor%ref, beta0, beta1,  ptc_re8, .true.)
+  ! taylor_to_real_8 will take out the entrance ref orbit.
+
+  call taylor_to_real_8 (ele%taylor, beta0, beta1,  ptc_re8, .true.)
   ptc_c_damap = ptc_re8
 
   ! The map must map zero to zero so take out any constant piece.

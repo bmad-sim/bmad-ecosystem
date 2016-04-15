@@ -1156,7 +1156,7 @@ integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 1
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
 integer, parameter :: wall_attribute$ = 114  ! Do not confuse this with wall3d$
-integer, parameter :: field$ = 115
+integer, parameter :: field$ = 115, ref_orbit$ = 115
 integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
 integer, parameter :: type$ = 117
 integer, parameter :: ref_origin$ = 118

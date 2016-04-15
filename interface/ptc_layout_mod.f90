@@ -803,7 +803,8 @@ ray = da_map + x
 call track_probe_x (ray, ptc_state, fibre1 = fib)
 
 call vec_ptc_to_bmad (x, fib%beta0, x_bmad)
-call real_8_to_taylor(ray, x_bmad, fib%beta0, fib%beta0, map)
+map%ref = x_bmad
+call real_8_to_taylor(ray, fib%beta0, fib%beta0, map)
 
 call kill(ray)
 call kill(da_map)

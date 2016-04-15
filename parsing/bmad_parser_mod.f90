@@ -1358,6 +1358,10 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
+case ('REF_ORBIT')
+  if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true.)) return
+  if (.not. expect_one_of (', ', .false.)) return
+
 case ('PTC_MAX_FRINGE_ORDER')
   call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', warn_only = .true.)
   call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
@@ -4363,8 +4367,8 @@ do
 
     ref_ele%logic = .false.  ! So only use this reference once
 
-    ! If superimposing on a multipass_lord then the superposition
-    ! must be done at all multipass locations.
+    ! If superimposing on a multipass_lord (only happens with bmad_parser2) 
+    ! then the superposition must be done at all multipass locations.
 
     if (ref_ele%lord_status == multipass_lord$) then
       allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
@@ -4491,6 +4495,7 @@ do
 
     !-----------------------
     ! Else not superimposing on a multipass_lord ...
+    ! [Note: Only will superimpose on a multipass_lord in bmad_parser2.]
 
     else
       call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
@@ -4707,12 +4712,15 @@ if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
 
 if (present(ref_ele)) then
   if (ref_ele%iyy /= 0) then     ! Ref element in multipass region
+    if (abs(super_ele%value(l$)) < eps .and. (ele1%iyy /= 0 .or. ele2%iyy /= 0)) return ! At multipass edge is OK
     if (ele1%iyy == 0 .or. ele2%iyy == 0) then
       call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
            'USES MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT OUT OF THE MULTIPASS REGION!')
       return
     endif
+
   else
+    if (abs(super_ele%value(l$)) < eps .and. (ele1%iyy == 0 .or. ele2%iyy == 0)) return  ! At multipass edge is OK
     if (ele1%iyy /= 0 .or. ele2%iyy /= 0) then
       call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
                          'USES NON-MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT IN A MULTIPASS REGION!')
