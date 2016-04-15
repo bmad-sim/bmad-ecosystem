@@ -767,9 +767,6 @@ if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patc
 m_particle = mass_of(start_orb%species)
 anomalous_moment = anomalous_moment_of(start_orb%species)
 
-key = ele%key
-if (.not. ele%is_on .and. key /= lcavity$) key = drift$
-
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
@@ -787,6 +784,12 @@ call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .tru
 if (hard_end == second_track_edge$ .and. s_edge_track /= ele%value(l$)) &
                                                   call track_a_drift (temp_end, s_edge_track - ele%value(l$))
 temp_end%spin = temp_start%spin
+
+! Notice that the effects of multipoles on spin is handled in offset_particle.
+
+key = ele%key
+if (.not. ele%is_on .and. key /= lcavity$) key = null_ele$
+if (ele%value(l$) == 0) key = null_ele$
 
 select case (key)
 
