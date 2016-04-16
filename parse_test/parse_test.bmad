@@ -17,7 +17,7 @@ call, file = sub_dir/sub.bmad
 
 parameter[custom_attribute1] = quadrupole::my_custom
 
-sbend0: sbend, field = { 
+sbend0: sbend, r_custom(3) = 4, field = { 
     mode = {
       m = 0,
       grid = {
