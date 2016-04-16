@@ -281,6 +281,7 @@ branch.
   beam_start[py]                  = <Real>   ! Vertical momentum.
   beam_start[z]                   = <Real>   ! Longitudinal position.
   beam_start[pz]                  = <Real>   ! Momentum deviation. Only used for non-photons
+  beam_start[direction]           = +/-1     ! Longitudinal direction of travel.
   beam_start[E_photon]            = <Real>   ! Energy (eV). Only used for photons.
   beam_start[emittance_a]         = <Real>   ! A-mode emittance
   beam_start[emittance_b]         = <Real>   ! B-mode emittance
@@ -305,6 +306,11 @@ parameter set by solving \Eq{zbctt} for $t$. The exception is when the
 initial velocity is zero. (This can happen if there is an \vn{e_gun}
 (\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
 zero and $t$ is an independent parameter that can be set.
+
+The logitudinal direction of travel is set by \vn{beam_start[direction]}.  This can be set
+to +1 (travel in the +s direction) or -1 for the reverse.  +1 is the default. Generally
+\vn{beam_start[direction]} should not be set to -1 since most programs will not be
+constructed to handle this situation.
 
 For particles with spin, the spin can be specified in one of two ways:
 One way is to specify the $(x, y, z)$ spin components using

@@ -822,6 +822,8 @@ call init_attribute_name1 (def_beam_start$, emittance_b$,             'EMITTANCE
 call init_attribute_name1 (def_beam_start$, emittance_z$,             'EMITTANCE_Z')
 call init_attribute_name1 (def_beam_start$, sig_e$,                   'SIG_E')
 call init_attribute_name1 (def_beam_start$, sig_z$,                   'SIG_Z')
+call init_attribute_name1 (def_beam_start$, direction_beam_start$,    'DIRECTION')
+
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1')
 call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2')

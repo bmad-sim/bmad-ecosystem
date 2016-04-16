@@ -10,10 +10,11 @@ contains
 !+
 ! Subroutine lat_reverse (lat_in, lat_rev, track_antiparticle, make_mats6)
 !
-!-------------------------------------------------------------------------
-! WARNING! THIS ROUTINE IS ANTEQUATED AND SHOULD NOT BE USED!
-! INSTEAD TRACK BACKWARDS IN AN UNREVERSED LATTICE.
-!-------------------------------------------------------------------------
+!#########################################################################
+! WARNING! THIS ROUTINE IS ANTIQUATED AND SHOULD NOT BE USED!
+! INSTEAD: TRACK BACKWARDS IN AN UNREVERSED LATTICE.
+! OR USE "--" ELEMENT REVERSAL IN YOUR LATTICE FILE
+!#########################################################################
 !
 ! Subroutine to construct a lat structure with the elements in reversed order
 ! and with the elements with reversed orientaiton.
