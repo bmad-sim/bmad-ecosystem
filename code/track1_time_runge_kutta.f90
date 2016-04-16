@@ -152,7 +152,12 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, local_ref_frame, err, track)
+if (end_orb%direction == 1) then
+  call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, local_ref_frame, err, track)
+else
+  call odeint_bmad_time(end_orb, ele, param, ele%value(l$), 0.0_rp, time, local_ref_frame, err, track)
+endif
+
 if (err) return
 
 !------

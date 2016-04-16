@@ -351,7 +351,7 @@ end subroutine rotate_spinor_given_field
 ! Subroutine rotate_spinor_a_step (orbit, field, ele, ds)
 !
 ! Routine to rotate a spinor an integration step.
-! Note: It is assumed that the orbit coords are in the element ref fram and not the lab frame.
+! Note: It is assumed that the orbit coords are in the element ref frame and not the lab frame.
 !
 ! Modules needed:
 !   use spin_mod
@@ -378,7 +378,12 @@ real(rp) ds, omega(3)
 
 !
 
-omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + [0.0_rp, ele%value(g$), 0.0_rp]
+if (ele%key == sbend$) then
+  omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + [0.0_rp, ele%value(g$)*ele%orientation*orbit%direction, 0.0_rp]
+else
+  omega = spin_omega (field, orbit)
+endif
+
 call rotate_spinor (ds * omega, orbit%spin)
 
 end subroutine rotate_spinor_a_step
@@ -553,7 +558,7 @@ if (logic_option(.true., phase_space_coords)) then
     omega = 0
     return
   endif
-  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sqrt(bz2)]
+  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), coord%direction * sqrt(bz2)]
 
 else
   e_particle = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / coord%beta
@@ -770,13 +775,13 @@ anomalous_moment = anomalous_moment_of(start_orb%species)
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
-call calc_next_fringe_edge (ele, +1, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., temp_start)
+call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., temp_start)
 
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
 if (hard_end == first_track_edge$) then
   if (s_edge_track /= 0) call track_a_drift (temp_start, s_edge_track)
   call apply_element_edge_kick (temp_start, s_edge_hard, temp_start%t, hard_ele, ele, param, first_track_edge$, .true.)
-  call calc_next_fringe_edge (ele, +1, s_edge_track, hard_ele, s_edge_hard, hard_end, .false.)
+  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .false.)
 endif
 
 temp_end   = end_orb
@@ -810,7 +815,7 @@ case (sbend$)
 
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, sbend_omega_func, spline_x, spline_y, temp_start, temp_end, param) + &
-                                                                      [0.0_rp, ele%value(g$)*ele%value(l$), 0.0_rp]
+                                            [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
   call rotate_spinor(omega, temp_end%spin)
 
 !-----------------------------------------------

@@ -629,7 +629,7 @@ endif
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   dvec_dt(7:9) = spin_omega (field, orbit, .false.) + &
-                      [-kappa_y, kappa_x, 0.0_rp] * vel(3) / (1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3))
+                      ele%orientation * [-kappa_y, kappa_x, 0.0_rp] * vel(3) / (1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3))
 else
   dvec_dt(7:9) = 0
 endif

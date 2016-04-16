@@ -181,6 +181,8 @@ case ('BEAM_START')
     ptr_array(1)%r => lat%beam_start%t
   case (e_photon$)
     ptr_array(1)%r => lat%beam_start%p0c
+  case (direction_beam_start$)
+    ptr_array(1)%i => lat%beam_start%direction
 
   case (spin_x$)
     ptr_array(1)%r => lat%ele(0)%value(spin_x$)

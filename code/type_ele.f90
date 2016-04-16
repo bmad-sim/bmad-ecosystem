@@ -385,12 +385,6 @@ if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 
   nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$) then
-  if (ele%orientation /= 1 .or. type_zero) then
-    nl=nl+1; write (li(nl), fmt_i) 'LONGITUDINAL ORIENTATION', '=', ele%orientation
-  endif
-endif
-
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif
@@ -405,6 +399,12 @@ endif
 
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
+endif
+
+if (ele%key /= overlay$ .and. ele%key /= group$) then
+  if (ele%orientation /= 1 .or. type_zero) then
+    nl=nl+1; write (li(nl), fmt_i) 'LONGITUDINAL ORIENTATION', '=', ele%orientation
+  endif
 endif
 
 ! RF field coefs
