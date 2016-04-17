@@ -1341,7 +1341,7 @@ end subroutine real_8_equal_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, use_ref0)
+! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, remove_constant)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
 ! The PTC map will have the bmad_taylor%ref reference orbit removed from the map.
@@ -1352,16 +1352,15 @@ end subroutine real_8_equal_taylor
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
-!   beta0    -- real(rp): Reference particle velocity at beginning of map
-!   beta1    -- real(rp): Reference particle velocity at end of map
+!   beta0          -- real(rp): Reference particle velocity at beginning of map
+!   beta1          -- real(rp): Reference particle velocity at end of map
 !
 ! Output:
-!   y8(6)     -- real_8: PTC Taylor map.
-!   use_ref0  -- logical, optional: If present and True then resulting PTC map will be with
-!                   respect to bmad_taylor%ref. Default is False.
+!   y8(6)           -- real_8: PTC Taylor map.
+!   remove_constant -- logical, optional: Remove the constant part of the map? Default is True.
 !-
 
-subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, use_ref0)
+subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, remove_constant)
 
 use s_fibre_bundle
 
@@ -1372,9 +1371,10 @@ type (real_8) y8(:), rr(6), bet
 type (damap) bm, id, si
 
 real(dp) beta0, beta1, fix0(6), v_ptc(6)
-logical, optional :: use_ref0
+integer i
+logical, optional :: remove_constant
 
-!
+! PTC map = map_bmad_to_ptc_to * bmad_map * map_ptc_to_bmad
 
 call alloc(bm, id, si)
 call alloc(rr)
@@ -1383,7 +1383,6 @@ call alloc (bet)
 y8 = bmad_taylor
 bm = y8
 
-fix0 = bm     ! Save zeroth order terms
 id = 1        ! Identity map
 
 call vec_bmad_to_ptc (bmad_taylor%ref, beta0, v_ptc)
@@ -1396,8 +1395,7 @@ y8(5) = -bet*rr(6)
 
 si = y8        ! ptc to bmad map
 
-bm = bm*si
-bm = fix0
+bm = bm .o. si
 
 rr = bm
 y8 = rr
@@ -1405,13 +1403,10 @@ y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+rr(6)**2+2.d0*rr(6
 bet = (1.d0+rr(6))/(1.d0/beta1+y8(5))
 y8(6) = -rr(5)/bet
 
-if (logic_option(.false., use_ref0)) then
-  bm = y8
-  call vec_bmad_to_ptc (bmad_taylor%ref, beta0, fix0) 
-  rr = id + fix0
-  si = rr
-  bm = bm .o. si
-  y8 = bm
+if (logic_option(.true., remove_constant)) then
+  do i = 1, 6
+    y8(i) = y8(i) - (y8(i) .sub. '0')
+  enddo
 endif
 
 call kill(bm, id, si)
@@ -3656,14 +3651,14 @@ if (ele%key == taylor$) then
 
   ! taylor_to_real_8 will take out the entrance ref orbit.
 
-  call taylor_to_real_8 (ele%taylor, beta0, beta1,  ptc_re8, .true.)
+  call taylor_to_real_8 (ele%taylor, beta0, beta1,  ptc_re8, .false.)
   ptc_c_damap = ptc_re8
 
   ! The map must map zero to zero so take out any constant piece.
 
   do i=1,6
     ref1(i) = ptc_c_damap%v(i)
-    ptc_c_damap%v(i)=ptc_c_damap%v(i) - (ptc_c_damap%v(i).sub.0)
+    ptc_c_damap%v(i)=ptc_c_damap%v(i) - (ptc_c_damap%v(i) .sub. 0)
   enddo 
 
   if (.not. onemap) then
