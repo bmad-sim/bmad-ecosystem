@@ -188,8 +188,8 @@ fi
 # Online computers should use the online compiler and debugger
 case $(uname -n) in
     cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
-           GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
-	   export LM_LICENSE_FILE="${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
+		       GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
+		 export LM_LICENSE_FILE="/opt/intel/licenses/l_N6CKW3X8.lic:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
 	   export PATH=${PATH}:${ONLINE_OPT_DIR}/totalview/bin
 	   ;;					 
         *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
