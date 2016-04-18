@@ -85,13 +85,13 @@ character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 
 ! Control element logicals
 ! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
 
-integer, parameter :: free$ = 1, super_slave$ = 2
+integer, parameter :: not_a_child$ = 1, super_slave$ = 2
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
 
 character(16), parameter :: control_name(12) = [ &
-            'FREE           ', 'SUPER_SLAVE    ', 'Garbage!       ', 'GROUP_LORD     ', &
+            'NOT_A_CHILD    ', 'SUPER_SLAVE    ', 'Garbage!       ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
             'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
 
@@ -744,7 +744,7 @@ type ele_struct
   integer :: sub_key = 0                          ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer :: slave_status = free$                 ! super_slave$, etc.
+  integer :: slave_status = not_a_child$          ! or multipass_slave$, super_slave$, slice_slave$
   integer :: n_slave = 0                          ! Number of slaves (except field slaves).
   integer :: n_slave_field = 0                    ! Number of field slaves of this element
   integer :: ix1_slave = 0                        ! Start index for slave elements

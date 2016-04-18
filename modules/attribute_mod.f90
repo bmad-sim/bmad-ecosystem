@@ -1171,7 +1171,7 @@ endif
 ! check if it is a dependent variable.
 
 free = .true.
-if (attrib_info%type == free$) return
+if (attrib_info%type == not_a_child$) return
 
 select case (ele%key)
 case (sbend$)

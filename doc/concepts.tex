@@ -159,7 +159,6 @@ The other class of \vn{lord} elements embody the separation of the
 physical element from the track that a particle takes when it passes
 through the element. There are two types
 
-
 An example will make this clear.
 \vn{Superposition} (\sref{s:super}) is the ability to overlap lattice
 elements spatially. \fig{f:super.ip} shows an example which is a
@@ -208,6 +207,14 @@ representing the physical element and \vn{multipass_slaves}
 representing the track can be constructed (\sref{s:multipass}).
 Superposition and multipass can be combined in situations where there
 are overlapping fields in elements where the particle passes through
+
+\index{not_a_child}\index{multipass_slave}\index{slice_slave}\index{super_slave}
+\index{not_a_lord}\index{group_lord}\index{girder_lord}\index{overlay_lord}
+\index{multipass_lord}\index{super_lord}\index{slave_status}\index{lord_status}
+Each lattice element is assigned a \vn{slave_status} indicating what kind of slave it is
+and a \vn{lord_status} indicating what kind of lord it is. Normally a user does not
+have to worry about this since these status attributes are handled automatically by \bmad.
+See Section~\sref{s:lat.control} for more details.
 
 For historical reasons, each \vn{branch} in a lattice has a
 \vn{tracking section} and a \vn{lord section} and the \vn{tracking
