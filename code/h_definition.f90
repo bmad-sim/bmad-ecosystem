@@ -258,7 +258,7 @@ module definition
 
   !@3 ---------------------------------------------</br>
   type  tree_element   !@1  USED FOR FAST TRACKING IN O_TREE_ELEMENT.F90
-     character(204) , pointer :: file
+  !   character(204) , pointer :: file
      real(dp) ,  DIMENSION(:), POINTER :: CC
      real(dp) ,  DIMENSION(:), POINTER :: fixr,fix,fix0
      integer,  DIMENSION(:), POINTER :: JL,JV

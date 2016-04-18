@@ -2864,6 +2864,7 @@ type(element), target :: f
 logical(lp),optional ::  dir
 integer,optional :: mf
 character(nlp+3) nname
+integer n,np,no,inf,i
 
 if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
@@ -2919,16 +2920,30 @@ ele0%slowac_recut_even_electric_MIS(5) = f%MIS
  ele0%filef=' '
  ele0%fileb=' '
 if(associated(f%forward)) then
- ele0%filef=f%forward(1)%file
+ ele0%filef=f%filef
+
+  if(present(mf)) then
+   call kanalnummer(inf,f%filef)
+    call print_tree_elements(f%forward,inf)
+   close(inf)
+ endif
 endif
 if(associated(f%backward)) then
- ele0%fileb=f%backward(1)%file
+ ele0%fileb=f%fileb
+ if(present(mf)) then
+   call kanalnummer(inf,f%fileb)
+    call print_tree_elements(f%backward,inf)
+   close(inf)
+ endif
 endif
     if(present(mf)) then
      write(mf,NML=ELEname)
     endif   
 else
- 
+ ele0%filef=' '
+ ele0%fileb=' '
+ele0%usebf_skipptcbf_do1bf=0
+
     if(present(mf)) then
      read(mf,NML=ELEname)
     endif   
@@ -2993,7 +3008,40 @@ endif
  f%skip_ptc_f=ele0%usebf_skipptcbf_do1bf(4)
  f%do1mapb=ele0%usebf_skipptcbf_do1bf(5) 
  f%do1mapf=ele0%usebf_skipptcbf_do1bf(6)
-! dracula
+
+if(ele0%filef/=' ') then
+ if(.not.associated(f%forward)) then 
+  allocate(f%forward(3))
+ endif
+ call kanalnummer(inf,ele0%filef)
+
+  do i=1,3
+    read(inf,*) n,np,no
+    CALL ALLOC_TREE(f%forward(i),N,NP)
+    f%forward(i)%N=n
+    f%forward(i)%NP=np
+    f%forward(i)%no=no
+    call read_tree_element(f%forward(i),inf)
+  enddo
+close(inf)
+endif
+
+if(ele0%fileb/=' ') then
+ if(.not.associated(f%backward)) then 
+  allocate(f%backward(3))
+ endif
+ call kanalnummer(inf,ele0%fileb)
+
+  do i=1,3
+    read(inf,*) n,np,no
+    CALL ALLOC_TREE(f%backward(i),N,NP)
+    f%backward(i)%N=n
+    f%backward(i)%NP=np
+    f%backward(i)%no=no
+    call read_tree_element(f%backward(i),inf)
+  enddo
+close(inf)
+ endif
    
     if(f%kind==kind3.or.f%kind==kind5) then   
         IF(.not.ASSOCIATED(f%B_SOL)) ALLOCATE(f%B_SOL);
@@ -3004,6 +3052,7 @@ endif
 endif
 endif
 end subroutine el_el0
+
 
 
   subroutine print_ElementLIST(el,dir,mf)

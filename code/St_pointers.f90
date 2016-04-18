@@ -1282,6 +1282,7 @@ endif
           READ(MF,*) fixp,fact  !  SYMPLECTIC , factored
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           x_ref=0.0_DP
+          READ(MF,*) x_ref
           n_ac=0
           CALL CONTEXT(NAME)
           N_NAME=0
@@ -1309,17 +1310,13 @@ endif
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
                 do i2=1,3
-                 write(p%mag%forward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%mag%forward(i2)%file)
-                 write(p%magp%forward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%magp%forward(i2)%file)
+                 write(p%mag%filef,*) "map",n_ac,".txt"
+                 call context(p%mag%filef)
                 enddo
                    ELSE
                 do i2=1,3
-                 write(p%mag%backward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%mag%backward(i2)%file)
-                 write(p%magp%backward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%magp%backward(i2)%file)
+                 write(p%mag%fileb,*) "map",n_ac,".txt"
+                 call context(p%mag%fileb)
                 enddo
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP
@@ -1350,17 +1347,15 @@ endif
                     p%mag%forward(3)%symptrack=FIXP
                     p%magP%forward(3)%symptrack=FIXP
                 do i2=1,3
-                 write(p%mag%forward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%mag%forward(i2)%file)
-                 write(p%magp%forward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%magp%forward(i2)%file)
+                 write(p%mag%filef,*) "map",n_ac,".txt"
+                 call context(p%mag%filef)
+ 
                 enddo
                    ELSE
                 do i2=1,3
-                 write(p%mag%backward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%mag%backward(i2)%file)
-                 write(p%magp%backward(i2)%file,*) "map",n_ac,".txt"
-                 call context(p%magp%backward(i2)%file)
+                 write(p%mag%fileb,*) "map",n_ac,".txt"
+                 call context(p%mag%fileb)
+
                 enddo
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP

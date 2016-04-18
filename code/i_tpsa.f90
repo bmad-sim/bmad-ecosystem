@@ -3266,7 +3266,7 @@ endif
     integer ,OPTIONAL,INTENT(IN)::ind
     type (TAYLOR),INTENT(IN)::S1
     REAL(DP) PREC1,depst,value
-    integer i,j,it,n,indo,k
+    integer i,j,it,n,indo,k,kt,kl
     integer, allocatable :: jc(:)
     character(255) line,line0
 
@@ -3283,6 +3283,8 @@ endif
     else
      indo=0
     endif
+
+    kt=0
     allocate(jc(c_%nv))
      call taylor_cycle(s1,size=n)
     do i=1,n
@@ -3293,13 +3295,36 @@ endif
           it=jc(i)+it
        enddo
        if(it==0.and.abs(value)>depst) then
+        kt=kt+1 
+       endif
+
+    enddo
+
+    deallocate(jc)
+
+    allocate(jc(c_%nv))
+    kl=0
+     call taylor_cycle(s1,size=n)
+    do i=1,n
+       call taylor_cycle(s1,ii=i,value=value,j=jc)
+
+       it=0
+       do j=c_%nd2+1,c_%nv
+          it=jc(i)+it
+       enddo
+       if(it==0.and.abs(value)>depst) then
+        kl=kl+1
         write(line,*) "{",indo,":",value,","  
         call context(line)
         do j=1,c_%nd2
          write(line(len_trim(line)+1:255),*)jc(j),"&"
          call context(line)
         enddo
-         write(line(len_trim(line)+1:255),*)"};"
+        if(kl==kt.and.indo==c_%nd2) then
+          write(line(len_trim(line)+1:255),*)"}"
+        else
+          write(line(len_trim(line)+1:255),*)"},"
+        endif
          call context(line)
          k=0
          line0=' '
@@ -3320,6 +3345,8 @@ endif
     enddo
 
     deallocate(jc)
+
+
    else
    
 

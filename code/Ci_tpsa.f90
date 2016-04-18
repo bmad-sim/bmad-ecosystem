@@ -13139,11 +13139,12 @@ end  subroutine normalise_vector_field_fourier
  
 end  subroutine normalise_vector_field_fourier_factored
 
-subroutine symplectify_for_sethna(m,ms,eps_and_norm)
+subroutine symplectify_for_sethna(m,ms,a1,a2,eps_and_norm)
 implicit none
 TYPE(c_damap),intent(inout):: m,ms
+TYPE(c_damap),optional,intent(inout):: a1,a2
 real(dp),optional:: eps_and_norm
-TYPE(c_damap) mt,l
+TYPE(c_damap) mt,l,b1,b2
 type(damap) mm
 type(c_vector_field) f,fs
 complex(dp) v
@@ -13157,9 +13158,18 @@ call c_get_indices(n,0)
 nv=n(4)
 nd2=n(3)
 
-call alloc(mt);call alloc(l); call alloc(f);call alloc(fs);
+call alloc(mt,l,b1,b2);call alloc(f);call alloc(fs);
 call alloc(mm);call alloc(t,dt)
 
+b1=1
+b2=1
+if(present(a1)) b1=a1
+if(present(a2)) then
+b2=a2
+else
+ b2=b1
+endif
+m=b2**(-1)*m*b1
 allocate(mat(m%n,m%n),matt(m%n,m%n),S(m%n,m%n),id(m%n,m%n))
 mat=0
 matt=0
@@ -13259,12 +13269,13 @@ do i=1,l%n
        
           normb=abs(m%v(i).sub.je)
           norm=abs(v)
-          if(norm>eps_and_norm) then
-          norma=norm/normb+norma
+  !        if(norm>eps_and_norm) then
+ !         norma=norm/normb+norma
+           norma=norm+norma
       !    write(16,*) je
       !    write(16,*) norma,norm,normb
           k=k+1
-          endif
+   !       endif
 
 
         enddo
@@ -13280,12 +13291,13 @@ endif
 ms=mt
 
 
-
+ms=b2*ms*b1**(-1)
+m=b2*m*b1**(-1)
 
 
 
 deallocate(je)
-call kill(mt);call kill(l); call kill(f);call kill(fs);
+call kill(mt,l,b1,b2); call kill(f);call kill(fs);
 call kill(mm);call kill(t,dt)
 
 end subroutine symplectify_for_sethna

@@ -79,7 +79,7 @@ module precision_constants
   real(dp),parameter::A_ELECTRON=1.15965218111e-3_dp  !frs NIST CODATA 2006
   real(dp),parameter::A_MUON=1.16592069e-3_dp         !frs NIST CODATA 2006
   real(dp),parameter::A_PROTON=1.79284735e-0_dp       !frs (approx) NIST CODATA 2006
-  real(dp),parameter:: pmaMUON = 105.6583668E-3_DP    !frs NIST CODATA 2006
+  real(dp),parameter:: pmaMUON = 105.6583745E-3_DP    !frs NIST CODATA 2016
   real(dp) :: e_muon = 0.d0, volt_c=1.0e-3_dp, volt_i=1.0_dp
  !  real(dp),parameter:: pmadt = 1.875612793e0_dp    ! sateesh
   !  real(dp),parameter:: pmah3 = 2.808391e0_dp    ! sateesh
@@ -88,10 +88,10 @@ module precision_constants
   logical(lp),  public :: longprint = my_true
 
   real(dp) :: A_particle = A_ELECTRON
-  real(dp),parameter::pmae=5.10998910e-4_dp           !frs NIST CODATA 2006
+  real(dp),parameter::pmae=5.1099894610e-4_dp           !frs NIST CODATA 2016
   real(dp),parameter::pmae_amu=5.4461702177e-4_dp     !frs NIST CODATA 2006
   ![GeV]
-  real(dp),parameter::pmap=0.938272013e0_dp           !frs NIST CODATA 2006
+  real(dp),parameter::pmap=0.9382720813e0_dp           !frs NIST CODATA 2016
   ![GeV]
   real(dp),parameter::CLIGHT=2.99792458e8_dp          ! exact
   ![m/s]

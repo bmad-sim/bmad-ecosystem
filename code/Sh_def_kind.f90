@@ -15530,32 +15530,6 @@ SUBROUTINE ZEROr_teapot(EL,I)
        ENDIF
 
 
-!       call conv_to_px(EL,X,k)
-       !       CASE(2)
-       !          IS=1
-       !          call DRIFT_pancake(EL,hh,is,1,X,k)
-       !          call DRIFT_pancake(EL,hh,is,2,X,k)
-       !          call KICKPATH(EL,hf,X,k)
-       !          DO I=1,el%p%NST-2
-       !             IS=is+1
-       !             call DRIFT_pancake(EL,hh,is,2,X,k)
-       !             call DRIFT_pancake(EL,hf,is,1,X,k)
-       !             call DRIFT_pancake(EL,hh,is,2,X,k)
-       !             call KICKPATH(EL,hf,X,k)
-       !          ENDDO
-       !          IS=is+1
-       !          call DRIFT_pancake(EL,hh,is,2,X,k)
-       !          call DRIFT_pancake(EL,hf,is,1,X,k)
-       !          a(1)=x(1)
-       !          a(2)=x(3)
-       !          CALL trackg(EL%ax(is),A)
-       !          X(2)=X(2)-EL%SCALE*el%p%charge*A(1)
-       !          a(1)=x(1)
-       !          a(2)=x(3)
-       !          CALL trackg(EL%ay(is),A)
-       !          X(4)=X(4)-EL%SCALE*el%p%charge*A(1)
-       !
-
     CASE DEFAULT
        w_p=0
        w_p%nc=1

@@ -6519,8 +6519,8 @@ implicit none
 type(tree_element) t
  
 integer i,mf
-   write(mf,'(a204)') t%file
-write(mf,'(18(1X,i8))') t%N,t%NP,t%no
+!   write(mf,'(a204)') t%file
+write(mf,'(3(1X,i8))') t%N,t%NP,t%no
 do i=1,t%n
  write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
 enddo
@@ -6554,12 +6554,12 @@ type(tree_element) t
  
 integer i,mf
  
-  read(mf,'(a204)') t%file
-read(mf,*) t%N,t%NP,t%no
+ ! read(mf,'(a204)') t%file
+!read(mf,*) t%N,t%NP,t%no
 do i=1,t%n
  read(mf,*)  t%cc(i),t%jl(i),t%jv(i)
 enddo
-write(mf,*) t%symptrack,t%usenonsymp
+read(mf,*) t%symptrack,t%usenonsymp
 read(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
 do i=1,6
  read(mf,*) t%e_ij(i,1:6)

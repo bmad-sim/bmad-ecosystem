@@ -1017,18 +1017,17 @@ contains
 
        if(pos>=0) OM(2)=P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
-       STOP 123   !  PATCH PROBLEMS???? CONVERTING TO PX ????
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        if(k%time) then
           beta0=p%beta0;GAMMA0I=p%GAMMA0I;
        else
           beta0=1.0_dp;GAMMA0I=0.0_dp;
        endif
-       d1=root(x(2)**2+x(4)**2+(1.0_dp+P%B0*x(1))**2)
+       d1=root(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
        d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
        d2=gamma0I/beta0/d2
        DLDS=root((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
-       OM(2)=P%b0
+       OM(2)=el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
@@ -1189,11 +1188,11 @@ contains
        else
           beta0=1.0_dp;GAMMA0I=0.0_dp;
        endif
-       d1=SQRT(x(2)**2+x(4)**2+(1.0_dp+P%B0*x(1))**2)
+       d1=sqrt(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
        d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
        d2=gamma0I/beta0/d2
-       DLDS=SQRT((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
-       OM(2)=P%b0
+       DLDS=sqrt((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
+       OM(2)=el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
@@ -1249,35 +1248,6 @@ contains
        !        B2=-CRADF(EL%P)*(one+X(5))**3*B2*DLDS
     ENDIF
 
-   !     write(16,*) " bpe "
-    !     do i=1,3
-    !      call print(bpe(i),16)
-    !     enddo
-    !     write(16,*) " bpa "
-    !     do i=1,3
-    !      call print(bpa(i),16)
-    !     enddo
-
-    !     DO I=1,3
-    !       write(30,*) 'b, bpe and bpa',i,el%name,el%kind
-    !       call print(b(i),30)
-    !       call print(bpe(i),30)
-    !       call print(bpa(i),30)
-    !     enddo
-    !    WRITE(24,*) C%PARENT_FIBRE%MAG%NAME
-    !    WRITE(24,*) C%POS, C%S(1)
-    !    WRITE(24,*) " B FIELD "
-    !    DO I=1,3
-    !     call clean_real_8(b(i),b(i),1.d-7)
-    !     CALL PRINT(B(I),24)
-    !    ENDDO
-    !    WRITE(24,*) " OMEGA "
-    !    DO I=1,3
-    !     call clean_real_8(om(i),om(i),1.d-7)
-    !     CALL PRINT(OM(I),24)
-    !    ENDDO
-
-    !    X=XS
 
     CALL KILL(B,3)
     CALL KILL(E,3)
@@ -1970,7 +1940,7 @@ call kill(e)
 
     !  this routines gives us  B parallel and B perpendicular
     ! Also if EF is present, E perpendicular times beta is return
-
+    
     call DIRECTION_V(k,EL,TEAPOT_LIKE,X,E,XP,XPA,POS)
 
     be=b(1)*e(1)+b(2)*e(2)+b(3)*e(3)
@@ -2124,7 +2094,7 @@ call kill(e)
        ENDIF
 
     ELSE    ! NON CANONICAL VARIABLES
-       H=1.0_dp+P%B0*TEAPOT_LIKE*X(1)
+       H=1.0_dp+el%pa%hc*X(1)
        N=root(H**2+X(2)**2+X(4)**2)
        E(1)=X(2)/N
        E(2)=X(4)/N
@@ -2230,7 +2200,7 @@ call kill(e)
        ENDIF
 
     ELSE    ! NON CANONICAL VARIABLES
-       H=1.0_dp+P%B0*TEAPOT_LIKE*X(1)
+       H=1.0_dp+el%pa%hc*X(1)
        N=SQRT(H**2+X(2)**2+X(4)**2)
        E(1)=X(2)/N
        E(2)=X(4)/N
@@ -2889,9 +2859,7 @@ call kill(e)
        endif
      endif
     endif ! cavity
-    !      ag=xs%s%g
-    !      if(associated(c%bb)) call BBKICK(c%BB,XS%X)
-!    bmad=use_bmad_units.and.(c%cas/=casep1.and.c%cas/=casep2)
+ 
     if(use_bmad_units) then 
       call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
     endif
@@ -2908,7 +2876,7 @@ call kill(e)
        if(useptc) then
        ds=c%parent_fibre%MAG%L/c%parent_fibre%MAG%p%nst
        fac=0.5_dp
-        call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-3)
+        call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-2)   ! -3 before....
         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
         call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-2)
        elseif(doonemap) then
@@ -2932,15 +2900,15 @@ call kill(e)
        IF(c%cas==caseP1) THEN
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
           if(k%spin) then
-!               If(use_bmad_units) call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
-!               If(use_bmad_units) call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
           endif
        ELSEif(c%cas==caseP2) THEN
           if(k%spin) then
-!               If(use_bmad_units) call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
-!               If(use_bmad_units) call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
      ENDIF
@@ -3009,8 +2977,7 @@ call kill(e)
        endif
      endif
     endif
-    !      ag=xs%s%g
- !   bmad=use_bmad_units.and.(c%cas/=casep1.and.c%cas/=casep2)
+ 
     if(use_bmad_units) then 
       call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
     endif
@@ -3020,10 +2987,7 @@ call kill(e)
        CALL TRACK_MODULATION(C,XS,K) !modulate
     ENDIF !modulate
 
-   !     if(ramp) then !modulate
-   !       if(c%parent_fibre%mag%slow_ac) CALL do_ramping_p(c,XS%ac%t,k) !modulate
-   !       if(.not.k%modulation) CALL TRACK_MODULATION(C,XS,K) 
-   !    endif !modulate
+ 
 
 
     CALL ALLOC(DS)
@@ -3035,7 +2999,7 @@ call kill(e)
        ds=c%parent_fibre%MAGp%L/c%parent_fibre%MAG%p%nst
        fac=0.5_dp
         if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,K)
-        call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-3)
+        call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-2)    ! -3 before
          if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
          if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
@@ -3063,25 +3027,20 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        IF(c%cas==caseP1) THEN
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
           if(k%spin) then
- !              If(use_bmad_units) call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
-!               If(use_bmad_units) call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
           endif
        ELSEif(c%cas==caseP2) THEN
           if(k%spin) then
-   !            If(use_bmad_units) call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+  
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
-  !             If(use_bmad_units) call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
      ENDIF
 
-!       IF(c%cas==caseP1) THEN
-!          if(k%spin) CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
-!       ELSE
-!          if(k%spin) CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
-!       ENDIF
-!       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+ 
     endif
 
 
@@ -3296,6 +3255,23 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ENDIF
 
+    case(KINDPA)
+       if(el%pa%hc==0.0_dp) then
+
+            IF(C%CAS==CASE1) THEN
+                CALL rot_spin_y(p,el%pa%angc)
+            else
+                CALL rot_spin_y(p,el%pa%angc)
+            endif
+        else
+   
+            IF(C%CAS==CASE1) THEN
+                CALL rot_spin_y(p,-el%pa%angc)
+            else
+                CALL rot_spin_y(p,-el%pa%angc)
+            endif
+
+       endif
     END SELECT
 
 
@@ -3324,7 +3300,22 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        ELSE
           CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ENDIF
+       if(el%pa%hc==0.0_dp) then
 
+            IF(C%CAS==CASE1) THEN
+                CALL rot_spin_y(p,el%pa%angc)
+            else
+                CALL rot_spin_y(p,el%pa%angc)
+            endif
+        else
+   
+            IF(C%CAS==CASE1) THEN
+                CALL rot_spin_y(p,-el%pa%angc)
+            else
+                CALL rot_spin_y(p,-el%pa%angc)
+            endif
+
+       endif
     END SELECT
 
 
@@ -4966,23 +4957,23 @@ endif
 if(f%dir==1) then
  if(.not.associated(f%mag%forward)) then 
   allocate(f%mag%forward(3))
-  allocate(f%mag%usef)
+ ! allocate(f%mag%usef)
  else
   call KILL(f%mag%forward)
  endif
 
-call SET_TREE_G_complex(f%mag%forward,m)
+call SET_TREE_G_complex(f%mag%forward,m,fact)
  f%mag%do1mapf=onemap
  f%mag%usef=.true.
  arbre=>f%mag%forward
 else
  if(.not.associated(f%mag%backward)) then 
   allocate(f%mag%backward(3))
-  allocate(f%mag%useb)
+ ! allocate(f%mag%useb)
  else
   call KILL(f%mag%backward)
  endif
- call SET_TREE_G_complex(f%mag%backward,m)
+ call SET_TREE_G_complex(f%mag%backward,m,fact)
  f%mag%do1mapb=onemap
  f%mag%useb=.true.
  arbre=>f%mag%backward
@@ -5002,7 +4993,7 @@ arbre(1)%beta0=f%beta0
 if(f%dir==1) then
  if(.not.associated(f%magp%forward)) then 
   allocate(f%magp%forward(3))
-  allocate(f%magp%usef)
+!  allocate(f%magp%usef)
  else
   call KILL(f%magp%forward)
  endif
@@ -5018,7 +5009,7 @@ else
 
  if(.not.associated(f%magp%backward)) then 
   allocate(f%magp%backward(3))
-  allocate(f%magp%useb)
+ ! allocate(f%magp%useb)
  else
   call KILL(f%magp%backward)
  endif

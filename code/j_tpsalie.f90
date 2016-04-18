@@ -176,7 +176,7 @@ module tpsalie
   END INTERFACE
 
 
-  INTERFACE print_for_bmad_parser
+  INTERFACE print_for_bmad
      MODULE PROCEDURE print_for_bmad_parsem
   END INTERFACE
 
@@ -762,16 +762,39 @@ contains
     ENDDO
   END SUBROUTINE DAPRINTMAP
 
-  SUBROUTINE  PRINT_for_bmad_parsem(S1,MFILE,PREC)
+  SUBROUTINE  PRINT_for_bmad_parsem(S1,MFILE,ref0,ref1,PREC)
     implicit none
     INTEGER,INTENT(IN)::MFILE
     type (damap),INTENT(IN)::S1
     REAL(DP),OPTIONAL,INTENT(IN)::PREC
+    REAL(DP),OPTIONAL,INTENT(IN)::ref0(6),ref1(6)
     INTEGER I
-    
+    type(damap) t,idf
+    character(255) line
+   
+    call alloc(t,idf)
+     t=s1
+     if(present(ref0)) then
+ !  adding orbit for bmad
+       do i=1,nd2
+        idf%v(i)=(1.d0.mono.i)-ref0(i)
+       enddo
+       do i=1,nd2 
+        t%v(i)=t%v(i)-(t%v(i).sub.'0')
+       enddo
+       t=t.o.idf 
+       do i=1,nd2 
+        t%v(i)=t%v(i)+ref1(i)
+       enddo
+       write(line,*) "ref_orbit=(",ref0(1),",",ref0(2),",",ref0(3),",",ref0(4),",",ref0(5),",",ref0(6),"),"
+     endif
+       call context(line)
+       line=adjustl(line)
+       write(MFILE,'(a255)') line
     DO I=1,ND2
-       CALL PRINT_for_bmad_parser(s1%V(I),MFILE,PREC,ind=i)
+       CALL PRINT_for_bmad_parser(t%V(I),MFILE,PREC,ind=i)
     ENDDO
+    call KILL(t,idf)
   END SUBROUTINE PRINT_for_bmad_parsem
 
   SUBROUTINE  DAPRINTgMAP(S1,MFILE,PREC)

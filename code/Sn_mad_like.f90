@@ -3314,15 +3314,11 @@ CONTAINS
     PROTON=.NOT.ELECTRON
     cl=(clight/1e8_dp)
     CU=55.0_dp/24.0_dp/SQRT(3.0_dp)
-    w_p=0
-    w_p%nc=8
-    w_p%fc='(7((1X,A72,/)),1X,A72)'
+
     if(electron) then
        XMC2=muon*pmae
-       w_p%c(1)=" This is an electron "
     elseif(proton) then
        XMC2=pmap
-       w_p%c(2)=" This is a proton! "
     endif
     if(energy<0) then
        energy=-energy
@@ -3341,14 +3337,6 @@ CONTAINS
     if(beta0<0) then
        beta0=-beta0
        p0c=(1.0_dp-beta0**2)
-       if(p0c<=0.0_dp) then
-          w_p=0
-          w_p%nc=2
-          w_p%fc='(((1X,A72,/)),1X,A72)'
-          write(w_p%c(1),'(a9,1x,g21.14)') " Beta0 = ",beta0
-          w_p%c(2) ="Beta0 is too close to 1 "
-          ! call !write_e(-567)
-       endif
        p0c=xmc2*beta0/SQRT(p0c)
     endif
     if(p0c<0) p0c=-p0c
@@ -3358,18 +3346,13 @@ CONTAINS
     beta0=SQRT(KINETIC**2+2.0_dp*KINETIC*XMC2)/erg
     beta0i=1.0_dp/beta0
     GAMMA=erg/XMC2
-    write(W_P%C(2),'(A16,g21.14)') ' Kinetic Energy ',kinetic
-    write(W_P%C(3),'(A7,g21.14)') ' gamma ',gamma
-    write(W_P%C(4),'(A7,g21.14)')' beta0 ',BETa0
+
     CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/XMC2**3
     CRAD=CGAM*TWOPII   !*ERG**3
     CFLUC=CON  !*ERG**5
     GAMMA2=erg**2/XMC2**2
     BRHO=SQRT(ERG**2-XMC2**2)*10.0_dp/cl
-    write(W_P%C(5),'(A7,g21.14)') ' p0c = ',p0c
-    write(W_P%C(6),'(A9,g21.14)')' GAMMA = ',SQRT(GAMMA2)
-    write(W_P%C(7),'(A8,g21.14)')' BRHO = ',brho
-    write(W_P%C(8),'(A15,G21.14,1X,g21.14)')"CRAD AND CFLUC ", crad ,CFLUC
+
     ! call ! WRITE_I
     !END OF SET RADIATION STUFF  AND TIME OF FLIGHT SUFF
 
@@ -3421,7 +3404,7 @@ CONTAINS
 
     DO I=1,NST
     read(mf,*) ii 
-write(6,*) ii,brho
+ 
        IF(I==1.or.(.not.repeat)) THEN
           CALL READ(B(1),mf);CALL READ(B(2),mf);CALL READ(B(3),mf);
           !          CALL READ(Ax(1),mf);CALL READ(Ay(1),mf);CALL READ(Ax(2),mf);CALL READ(Ay(2),mf);
