@@ -2922,7 +2922,7 @@ if (present(converted_lat)) then
   do ib = 0, ubound(converted_lat%branch, 1)
     branch => converted_lat%branch(ib)
     do i = 1, branch%n_ele_track
-      branch%ele(i)%slave_status = free$
+      branch%ele(i)%slave_status = not_a_child$
       branch%ele(i)%n_lord = 0
     enddo
   enddo

@@ -1672,7 +1672,7 @@ end subroutine set_attributes_status
 ! contains
 
 subroutine set_control_status
-  if (ele%lord_status == not_a_lord$ .and. ele%slave_status == free$) return
+  if (ele%lord_status == not_a_lord$ .and. ele%n_lord == 0) return
   ele%bookkeeping_state%control = stale$
   if (associated(state)) state%control = stale$
 end subroutine set_control_status
@@ -1972,7 +1972,7 @@ enddo
 slave%n_lord = slave%n_lord - 1
 if (slave%n_lord == 0) then
   slave%ic1_lord = 0
-  slave%slave_status = free$
+  slave%slave_status = not_a_child$
 endif
 
 lord%n_slave = lord%n_slave - 1

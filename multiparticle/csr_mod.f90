@@ -40,7 +40,7 @@ type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) I_int_csr     ! Integrated Kick integral.
   real(rp) k_csr         ! Kick.
   real(rp) L             ! Distance between source and kick points.
-  real(rp) dz_particles  ! Distance between source and kicked particles at constant time.
+  real(rp) dz_particles  ! kicked particle - source particle position at constant time.
   real(rp) s_source      ! source point location.
   real(rp) z_source      ! distance between source and referece particle.
   real(rp) theta_L       ! Angle of L vector
@@ -58,7 +58,7 @@ type csr_top_level_struct             ! Structurture for binning particle averag
   real(rp) :: dz_slice = 0      ! Bin width
   real(rp) ds_track_step        ! True step size
   real(rp) s_kick               ! Kick point longitudinal location
-  real(rp) z_kick               ! distance between kick and referece particle.
+  real(rp) z_kick               ! distance between kick and centroid reference particle.
   real(rp) y2                   ! Height of source particle.
   real(rp) kick_factor          ! Coefficient to scale the kick
   logical small_angle_approx
@@ -794,7 +794,7 @@ type (ele_struct), pointer :: s_ele
 type (floor_position_struct), pointer :: fk, f0, fs
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz, s0
-real(rp) z0, z1
+real(rp) z0, z1, sz_kick, sz0
 
 character(*), parameter :: r_name = 's_sourcecsr'
 
@@ -811,11 +811,14 @@ fs => kick1%floor_s
 
 if (s_ele%ix_ele == 0) then
   L0 = sqrt((fk%r(1) - f0%r(1))**2 + (fk%r(3) - f0%r(3))**2 + csr_top%y2**2)
-  Lz = L0 * cos(f0%theta)
-  a = 1 - beta2 * Lz**2
-  b = 2 * (csr_top%s_kick + csr_top%z_kick - dz - beta2 * Lz)
-  c = ((csr_top%s_kick + csr_top%z_kick) - (source_ele%orbit_c%s + source_ele%orbit_c%vec(5)) - dz)**2 - beta2 * L0
-  s_source = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+  Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta)
+  sz_kick = csr_top%s_kick + csr_top%z_kick 
+  sz0 = source_ele%ele%s + source_ele%orbit_c%vec(5)
+
+  a = 1/csr_top%gamma2
+  b = 2 * (sz_kick - sz0 - dz - beta2 * Lz)
+  c = (sz_kick - sz0 - dz)**2 - beta2 * L0**2
+  s_source = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) + source_ele%ele%s
 
   fs%r = [f0%r(1) + s_source * sin(f0%theta), csr_top%y2, f0%r(3) + s_source * cos(f0%theta)]
   kick1%L = sqrt(dot_product(fk%r-fs%r, fk%r-fs%r))

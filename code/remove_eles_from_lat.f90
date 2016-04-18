@@ -190,7 +190,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Correct slave_status
 
-    ele%slave_status = free$
+    ele%slave_status = not_a_child$
     do j = 1, ele%n_lord
       lord => pointer_to_lord(ele, j)
       select case(lord%lord_status)

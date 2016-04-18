@@ -1396,7 +1396,7 @@ case ('SUPERIMPOSE')  ! ele[superimpose] = False case
   if (logic) then
     ele%lord_status = super_lord$
   else
-    ele%lord_status = free$
+    ele%lord_status = not_a_child$
   endif
 
 case ('APERTURE_AT')
@@ -5336,7 +5336,7 @@ logical is_matched
 
 is_matched = match_wild(ele%name, input_slave_name)
 
-if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == free$)) then
+if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == not_a_child$)) then
 
   if (is_matched) ixs = ixs + 1  ! Next element in list
 
