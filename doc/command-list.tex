@@ -744,30 +744,30 @@ Examples:
 The \vn{set} command is used to set values for data,
 variables, etc. Format:
 \begin{example}
-  set beam_init \{n@\}<component> = <value>
-  set bmad_com <component> = <value>
-  set csr_param <component> = <value>
-  set curve <curve> <component> = <value>
-  set data <data_name>|<component> = <value>
-  set default <parameter> = <value>
-  set element <element_list> <attribute> = <value>
-  set floor_plan <component> = <value>
-  set geodesic_lm <component> = <value>
-  set global <component> = <value>
-  set graph <graph> <component> = <value>
-  set key <key> = <command>
-  set lat_layout <component> = <value>
-  set lattice \{n@\}<destination\_lat> = <source\_lat>
-  set opti_de_param <component> = <value>
-  set plot <plot> <component> = <value>
-  set plot_page <component> = <value1> \{<value2>\}
-  set ran_state = <random_number_generator_state>
-  set universe <what_universe> <on/off>
-  set universe <what_universe> recalculate
-  set universe <what_universe> mat6_recalc <on/off>
-  set universe <what_universe> track_recalc <on/off>
-  set variable <var_name>|<component> = <value>
-  set wave <component> = <value>
+  set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
+  set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
+  set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
+  set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
+  set data <data_name>|<component> = <value>                ! \sref{s:set.data}
+  set default <parameter> = <value>                         ! \sref{s:set.default}
+  set element <element_list> <attribute> = <value>          ! \sref{s:set.element}
+  set floor_plan <component> = <value>                      ! \sref{s:set.floor.plan}
+  set geodesic_lm <component> = <value>                     ! \sref{s:set.geodesic.lm}
+  set global <component> = <value>                          ! \sref{s:set.global}
+  set graph <graph> <component> = <value>                   ! \sref{s:set.graph}
+  set key <key> = <command>                                 ! \sref{s:set.key}
+  set lat_layout <component> = <value>                      ! \sref{s:set.lat.layout}
+  set lattice \{n@\}<destination\_lat> = <source\_lat>          ! \sref{s:set.lattice}
+  set opti_de_param <component> = <value>                   ! \sref{s:set.opti.de.param}
+  set plot <plot> <component> = <value>                     ! \sref{s:set.plot}
+  set plot_page <component> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
+  set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
+  set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
+  set universe <what_universe> recalculate                  ! \sref{s:set.universe}
+  set universe <what_universe> mat6_recalc <on/off>         ! \sref{s:set.universe}
+  set universe <what_universe> track_recalc <on/off>        ! \sref{s:set.universe}
+  set variable <var_name>|<component> = <value>             ! \sref{s:set.variable}
+  set wave <component> = <value>                            ! \sref{s:set.wave}
 \end{example}
 
 \vskip 0.2in 
@@ -1173,7 +1173,7 @@ Example:
 %% set opti_de_param --------------------------------------------------------------
 
 \subsection{set opti_de_param}
-\label{s:set.opti}
+\label{s:set.opti.de.param}
 
 Format:
 \begin{example}
@@ -1213,7 +1213,7 @@ Example:
 %% set plot_page --------------------------------------------------------------
 
 \subsection{set plot\_page}
-\label{s:set.plot}
+\label{s:set.plot.page}
 
 Format:
 \begin{example}
@@ -1238,7 +1238,7 @@ Example:
 %% set ran_state --------------------------------------------------------------
 
 \subsection{set ran\_state}
-\label{s:set.ran}
+\label{s:set.ran.state}
 
 Format:
 \begin{example}
@@ -1381,47 +1381,49 @@ Format:
 
 \vn{<what_to_show>} may be one of:
 \begin{example}
-  alias
-  beam \{<element_name_or_index>\}
-  branch \{-universe <universe>\} 
-  building_wall  
-  constraints
-  curve \{-line\} \{-no_header\} \{-symbol\} <curve_name> 
-  data \{<data_name>\} 
-  derivative <data_name(s)> <var_name(s)>
-  dynamic_aperture
-  element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
-        \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
-  field <ele> <x> <y> <z> \{t\}
-  global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
-  graph <graph_name>
-  hom
-  key_bindings
-  lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
+  show alias                                                          ! \sref{s:show.alias}
+  show beam \{<element_name_or_index>\}                                 ! \sref{s:show.beam}
+  show branch \{-universe <universe>\}                                  ! \sref{s:show.branch}
+  show building_wall                                                  ! \sref{s:show.building}
+  show constraints                                                    ! \sref{s:show.constraints}
+  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>              ! \sref{s:show.curve}
+  show data \{<data_name>\}                                             ! \sref{s:show.data}
+  show derivative <data_name(s)> <var_name(s)>                        ! \sref{s:show.derivative}
+  show dynamic_aperture                                               ! \sref{s:show.dynamic}
+  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
+        \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
+        \{-xfer_mat\} <ele_name>                                        ! \sref{s:show.element}
+  show field <ele> <x> <y> <z> \{t\}                                    ! \sref{s:show.field}
+  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}   ! \sref{s:show.global}
+  show graph <graph_name>                                             ! \sref{s:show.graph}
+  show hom                                                            ! \sref{s:show.hom}
+  show key_bindings                                                   ! \sref{s:show.key}
+  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
         \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
         \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves_lines\} \{-orbit\} 
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
-        \{-tracking_elements\} \{<elements>\} 
-  matrix \{-s\} \{loc1 \{loc2\}\}
-  normal_form \{-order <n_order>\} <type>
-  optimizer \{-geodesic_lm\}
-  particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
-        \{-element <element_name_or_index>\} \{-lost\} \{-all\}
-  plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
-  taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
-  top10 \{-derivative\}
-  twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
-        \{-universe <ix_uni>\} <s_position>
-  universe \{universe_number\}
-  use
-  value <expression>
-  variable \{-no_label_lines\} \{<var_name>\}
-  variable \{-no_label_lines\} <universe_number>@
-  variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
-  wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
-        \{-s <s1>:<s2>\} \{<n1>:<n2>\}
-  wave
+        \{-tracking_elements\} \{<elements>\}                             ! \sref{s:show.lattice}
+  show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
+  show normal_form \{-order <n_order>\} <type>                        ! \sref{s:show.normal}
+  show optimizer \{-geodesic_lm\}                                     ! \sref{s:show.optimizer}
+  show particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
+        \{-element <element_name_or_index>\} \{-lost\} \{-all\}           ! \sref{s:show.particle}
+  show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
+        \{<template_plot_name>\}                                      ! \sref{s:show.plot}
+  show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}             ! \sref{s:show.taylor}
+  show top10 \{-derivative\}                                          ! \sref{s:show.top10}
+  show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
+        \{-universe <ix_uni>\} <s_position>                           ! \sref{s:show.twiss}
+  show universe \{universe_number\}                                   ! \sref{s:show.universe}
+  show use                                                          ! \sref{s:show.use}
+  show value <expression>                                           ! \sref{s:show.value}
+  show variable \{-no_label_lines\} \{<var_name>\}                      ! \sref{s:show.variable}
+  show variable \{-no_label_lines\} <universe_number>@                ! \sref{s:show.variable}
+  show variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format     ! \sref{s:show.variable}
+  show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
+        \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                  ! \sref{s:show.wall}
+  show wave                                                         ! \sref{s:show.wave}
 \end{example}
 
 \vskip 0.2in 
@@ -1451,8 +1453,9 @@ for communicating with the parent process.
 %   help show plot
 
 %% show alias --------------------------------------------------------------
-\label{s:show.alias}
+
 \subsection{show alias}
+\label{s:show.alias}
 
 Syntax:
 \begin{example}
@@ -1463,8 +1466,9 @@ Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
 %% show beam --------------------------------------------------------------
-\label{s:show.beam}
+
 \subsection{show beam}
+\label{s:show.beam}
 
 Syntax:
 \begin{example}
@@ -1479,8 +1483,9 @@ beam} will show beam parameters at the selected element. Also see
 of the \vn{beam_init} structure.
 
 %% show branch --------------------------------------------------------------
-\label{s:show.branch}
+
 \subsection{show branch}
+\label{s:show.branch}
 
 Syntax:
 \begin{example}
@@ -1499,8 +1504,8 @@ Example:
 
 %% show building_wall --------------------------------------------------------------
 
-\label{s:show.building}
 \subsection{show building_wall}
+\label{s:show.building}
 
 Syntax:
 \begin{example}
@@ -1516,8 +1521,8 @@ For vacuum_chamber, capillary, and diffraction_plate walls use the
 
 %% show constraints --------------------------------------------------------------
 
-\label{s:show.constraints}
 \subsection{show constraints}
+\label{s:show.constraints}
 
 Syntax:
 \begin{example}
@@ -1529,8 +1534,8 @@ Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
-\label{s:show.curve}
 \subsection{show curve}
+\label{s:show.curve}
 
 Syntax:
 \begin{example}
@@ -1568,8 +1573,8 @@ Example:
 
 %% show data --------------------------------------------------------------
 
-\label{s:show.data}
 \subsection{show data}
+\label{s:show.data}
 
 Syntax:
 \begin{example}
@@ -1596,8 +1601,8 @@ Examples:
 
 %% show derivative --------------------------------------------------------------
 
-\label{s:show.derivative}
 \subsection{show derivative}
+\label{s:show.derivative}
 
 Syntax:
 \begin{example}
@@ -1619,8 +1624,8 @@ Example:
 
 %% show dynamic_aperture --------------------------------------------------------------
 
-\label{s:show.dynamic}
 \subsection{show dynamic_aperture}
+\label{s:show.dynamic}
 
 Syntax:
 \begin{example}
@@ -1633,8 +1638,8 @@ Shows parameters and results of the dynamic aperture calculation.
 
 %% show element --------------------------------------------------------------
 
-\label{s:show.element}
 \subsection{show element}
+\label{s:show.element}
 
 Syntax:
 \begin{example}
@@ -1719,8 +1724,8 @@ Example:
 
 %% show field --------------------------------------------------------------
 
-\label{s:show.field}
 \subsection{show field}
+\label{s:show.field}
 
 Syntax:
 \begin{example}
@@ -1735,8 +1740,8 @@ case, \vn{<ele>} must specify a single element.
 
 %% show global --------------------------------------------------------------
 
-\label{s:show.global}
 \subsection{show global}
+\label{s:show.global}
 
 Syntax:
 \begin{example}
@@ -1761,8 +1766,8 @@ Displays the state of the random number generator. Use this with the
 
 %% show graph --------------------------------------------------------------
 
-\label{s:show.graph}
 \subsection{show graph}
+\label{s:show.graph}
 
 Syntax:
 \begin{example}
@@ -1784,8 +1789,8 @@ Example:
 
 %% show hom --------------------------------------------------------------
 
-\label{s:show.hom}
 \subsection{show hom}
+\label{s:show.hom}
 
 Syntax:
 \begin{example}
@@ -1798,8 +1803,8 @@ cavities.
 
 %% show key_bindings  --------------------------------------------------------------
 
-\label{s:show.key}
 \subsection{show key_bindings}
+\label{s:show.key}
 
 Syntax:
 \begin{example}
@@ -1811,8 +1816,8 @@ Shows all key bindings.
 
 %% show lattice --------------------------------------------------------------
 
-\label{s:show.lattice}
 \subsection{show lattice}
+\label{s:show.lattice}
 
 Syntax:
 \begin{example}
@@ -2002,8 +2007,9 @@ Example:
 \end{example}
 
 %% show matrix --------------------------------------------------------------
-\label{s:show.matrix}
+
 \subsection{show matrix}
+\label{s:show.matrix}
 
 Syntax:
 \begin{example}
@@ -2019,8 +2025,8 @@ on the \vn{show matrix} arguments.
 
 %% show normal_form --------------------------------------------------------------
 
-\label{s:show.normal}
 \subsection{show normal_form}
+\label{s:show.normal}
 
 Syntax:
 \begin{example}
@@ -2035,8 +2041,8 @@ Shows normal form taylor maps (optionally truncated to <n\_order>) from Eq.~\ref
 
 %% show optimizer --------------------------------------------------------------
 
-\label{s:show.optimizer}
 \subsection{show optimizer}
+\label{s:show.optimizer}
 
 Syntax:
 \begin{example}
@@ -2054,8 +2060,8 @@ if the optimizer has been set to use \vn{geodesic_lm}.
 
 %% show opt_vars --------------------------------------------------------------
 
-\label{s:show.opt.vars}
 \subsection{show opt_vars}
+\label{s:show.opt.vars}
 
 Syntax:
 \begin{example}
@@ -2068,8 +2074,8 @@ Bmad standard lattice input format.
 
 %% show particle --------------------------------------------------------------
 
-\label{s:show.particle}
 \subsection{show particle}
+\label{s:show.particle}
 
 Syntax:
 \begin{example}
@@ -2100,8 +2106,8 @@ Examples:
 
 %% show plot --------------------------------------------------------------
 
-\label{s:show.plot}
 \subsection{show plot}
+\label{s:show.plot}
 
 Syntax:
 \begin{example}
@@ -2129,8 +2135,8 @@ Examples:
 
 %% show top10 --------------------------------------------------------------
 
-\label{s:show.top10}
 \subsection{show top10}
+\label{s:show.top10}
 
 Syntax:
 \begin{example}
@@ -2149,8 +2155,8 @@ be shown.
 
 %% show taylor_map --------------------------------------------------------------
 
-\label{s:show.taylor}
 \subsection{show taylor_map}
+\label{s:show.taylor}
 
 Syntax:
 \begin{example}
@@ -2194,9 +2200,8 @@ Examples:
 
 %% show twiss_and_orbit --------------------------------------------------------------
 
-\label{s:show.twiss}
 \subsection{show twiss_and_orbit}
-
+\label{s:show.twiss}
 
 Syntax:
 \begin{example}
@@ -2223,8 +2228,8 @@ Examples:
 
 %% show universe --------------------------------------------------------------
 
-\label{s:show.universe}
 \subsection{show universe}
+\label{s:show.universe}
 
 Syntax:
 \begin{example}
@@ -2239,8 +2244,8 @@ integrals, etc.
 
 %% show use --------------------------------------------------------------
 
-\label{s:show.use}
 \subsection{show use}
+\label{s:show.use}
 
 Syntax:
 \begin{example}
@@ -2253,8 +2258,8 @@ be read in with a \vn{call} command.
 
 %% show value --------------------------------------------------------------
 
-\label{s:show.value}
 \subsection{show value}
+\label{s:show.value}
 
 Syntax:
 \begin{example}
@@ -2269,8 +2274,9 @@ Shows the value of an expression. Examples:
 
 
 %% show variable --------------------------------------------------------------
-\label{s:show.varibale}
+
 \subsection{show variable}
+\label{s:show.variable}
 
 Syntax:
 \begin{example}
@@ -2305,8 +2311,9 @@ Examples:
 \end{example}
 
 %% show wall --------------------------------------------------------------
-\label{s:show.wall}
+
 \subsection{show wall}
+\label{s:show.wall}
 
 Syntax:
 \begin{example}
@@ -2346,8 +2353,9 @@ Examples:
 \end{example}
 
 %% show wave --------------------------------------------------------------
-\label{s:show.wave}
+
 \subsection{show wave}
+\label{s:show.wave}
 
 Syntax:
 \begin{example}
