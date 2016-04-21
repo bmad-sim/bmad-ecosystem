@@ -229,6 +229,15 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   fi
 
 
+  #--------------------------------------------------------------
+  #  Add the distribution's GNU Util bin area to user's PATH
+  #--------------------------------------------------------------
+  if [ "$(type cmake &> /dev/null ; echo $?)" -ne 0 ] ; then
+    PATH="${PATH}:${DIST_BASE_DIR}/production/gnu_utilities/bin:${DIST_BASE_DIR}/debug/gnu_utilities/bin"
+    export PATH
+  fi
+
+
 
   #--------------------------------------------------------------
   # Check for presence of MPI parallel computing headers in
