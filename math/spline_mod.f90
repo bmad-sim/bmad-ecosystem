@@ -4,11 +4,12 @@ use sim_utils
 
 ! Given a spline s and some point x_eval, y_spline is:
 !   y_spline = Sum: s%coef(i) * dx**i, i = [0:3]
-! where dx = x_eval - s%x 
+! where dx = x_eval - s%x0 
 
 type spline_struct
-  real(rp) x, y       ! Point at start of spline
-  real(rp) coef(0:3)  ! coefficients for cubic spline
+  real(rp) x0, y0       ! Point at start of spline
+  real(rp) x1           ! Point at end of spline
+  real(rp) coef(0:3)    ! coefficients for cubic spline
 end type
 
 private akima_spline_coef23_calc, akima_spline_slope_calc, end_akima_spline_calc 
@@ -49,8 +50,9 @@ character(*), parameter :: r_name = 'create_a_spline'
 
 !
 
-spline%x = r0(1)
-spline%y = r0(2)
+spline%x0 = r0(1)
+spline%y0 = r0(2)
+spline%x1 = r1(1)
 
 dx = r1(1) - r0(1)
 dy = r1(2) - r0(2)
@@ -94,7 +96,7 @@ end subroutine create_a_spline
 !   dy        -- Real(rp), optional: Spline derivative interpolation.
 !
 ! Note:
-!   The point x must lie between spline(1)%x and spline(max)%x
+!   The point x must lie between spline(1)%x0 and spline(max)%x0
 !-
 
 subroutine spline_evaluate (spline, x, ok, y, dy)
@@ -106,7 +108,7 @@ type (spline_struct), target :: spline(:)
 real(rp), intent(in) :: x
 real(rp), optional :: y, dy
 
-real(rp) dx       
+real(rp) eps
 
 integer ix0, ix_max
                   
@@ -118,21 +120,21 @@ character(16) :: r_name = 'spline_evaluate'
 ok = .false.
 
 ix_max = ubound(spline(:), 1)
-dx = 1d-6 * (spline(ix_max)%x - spline(1)%x)   ! something small
+eps = 1d-6 * (spline(ix_max)%x0 - spline(1)%x0)   ! something small
 
-if (x < spline(1)%x - dx) then
+if (x < spline(1)%x0 - eps) then
   call out_io (s_error$, r_name, 'X EVALUATION POINT LESS THAN LOWER BOUND OF SPLINE INTERVAL')
   return
 endif
                               
-if (x > spline(ix_max)%x + dx) then
+if (x > spline(ix_max)%x0 + eps) then
   call out_io (s_error$, r_name, 'X EVALUATION POINT GREATER THAN UPPER BOUND OF SPLINE INTERVAL')
   return
 endif
 
 ! Find correct interval and evaluate
 
-call bracket_index (spline%x, 1, ix_max, x, ix0)
+call bracket_index (spline%x0, 1, ix_max, x, ix0)
 call spline1_evaluate (spline(ix0), x, y, dy)
 
 ok = .true.
@@ -176,7 +178,7 @@ logical ok
 character(16) :: r_name = 'spline1_evaluate'
 
 
-dx = x - spline1%x
+dx = x - spline1%x0
 c = spline1%coef
 
 if (present(y)) then
@@ -210,8 +212,8 @@ end subroutine spline1_evaluate
 !
 ! Input:
 !   spline(:) -- Spline_struct: 
-!     %x  -- X-component of a point. Note: points must be in assending order.
-!     %y  -- Y-component of a point.
+!     %x0  -- X-component of a point. Note: points must be in assending order.
+!     %y0  -- Y-component of a point.
 !
 ! Output:
 !   spline(:) -- Spline_struct:
@@ -244,20 +246,20 @@ if (nmax < 2) then
 endif
 
 do i = 2, nmax
-  if (spline(i-1)%x .ge. spline(i)%x) then
+  if (spline(i-1)%x0 .ge. spline(i)%x0) then
     print *, 'ERROR IN SPLINE_AKIMA: DATA POINTS NOT IN ASENDING ORDER!'
-    print *, i-1, spline(i-1)%x, spline(i)%y
-    print *, i, spline(i)%x, spline(i)%y
+    print *, i-1, spline(i-1)%x0, spline(i)%y0
+    print *, i, spline(i)%x0, spline(i)%y0
     return
   endif
 enddo
 
-spline(:)%coef(0) = spline(:)%y  ! spline passes through all the data points
+spline(:)%coef(0) = spline(:)%y0  ! spline passes through all the data points
 
 ! special case for 2 two points: use a straight line
 
 if (nmax .eq. 2) then
-  spline(1)%coef(1) = (spline(2)%y - spline(1)%y) / (spline(2)%x - spline(1)%x)
+  spline(1)%coef(1) = (spline(2)%y0 - spline(1)%y0) / (spline(2)%x0 - spline(1)%x0)
   spline(1)%coef(2:3) = 0
   return
 endif
@@ -265,12 +267,12 @@ endif
 ! special case for 3 points: use a quadratic
 
 if (nmax .eq. 3) then
-  y21 = spline(2)%y - spline(1)%y
-  y32 = spline(3)%y - spline(2)%y
-  x21 = spline(2)%x - spline(1)%x
-  x32 = spline(3)%x - spline(2)%x
-  x221 = spline(2)%x**2 - spline(1)%x**2
-  x232 = spline(3)%x**2 - spline(2)%x**2
+  y21 = spline(2)%y0 - spline(1)%y0
+  y32 = spline(3)%y0 - spline(2)%y0
+  x21 = spline(2)%x0 - spline(1)%x0
+  x32 = spline(3)%x0 - spline(2)%x0
+  x221 = spline(2)%x0**2 - spline(1)%x0**2
+  x232 = spline(3)%x0**2 - spline(2)%x0**2
   spline(1)%coef(2) = 2 * (y21*x32 - y32*x21) / (x221*x32 - x232*x21)
   spline(2)%coef(1) = (x32*y21/x21 + x21*y32/x32) / (x32 + x21) 
   spline(1)%coef(1) = spline(2)%coef(1) - spline(1)%coef(2) * x21
@@ -325,8 +327,8 @@ real(rp) rk
 
 !                                                                 
 
-x => end(1:5)%x
-y => end(1:5)%y
+x => end(1:5)%x0
+y => end(1:5)%y0
 
 x(4) = x(3) - x(1) + x(2)
 x(5) = 2*x(3) - x(1)
@@ -353,8 +355,8 @@ real(rp) m(4), m43, m21
 
 !
 
-xx => spl(:)%x
-yy => spl(:)%y
+xx => spl(:)%x0
+yy => spl(:)%y0
 
 m(:) = (yy(2:5) - yy(1:4)) / (xx(2:5) - xx(1:4))
 
@@ -380,8 +382,8 @@ real(rp) x21, y21, t1, t2
                         
 !
 
-x21 = s2(2)%x - s2(1)%x
-y21 = s2(2)%y - s2(1)%y
+x21 = s2(2)%x0 - s2(1)%x0
+y21 = s2(2)%y0 - s2(1)%y0
 t1 = s2(1)%coef(1)
 t2 = s2(2)%coef(1)
 
