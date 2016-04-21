@@ -11,11 +11,19 @@ use beam_utils
 use spline_mod
 use nr, only: zbrent
 
-type csr_source_ele_struct
-  type (ele_struct), pointer :: ele     ! Source ele
-  type (coord_struct) orbit_c           ! centroid Orbit at exit end
-  type (floor_position_struct) floor_c  ! Floor position of centroid at exit end
-  type (spline_struct) spline           ! spline for centroid orbit. spline%x = s-position with x = 0 the beginning of the element.
+! csr_ele_struct holds info for a particular lattice element
+! The centroid "chord" is the line from the centroid position at the element entrance to
+! the centroid position at the element exit end.
+
+type csr_ele_struct
+  type (ele_struct), pointer :: ele            ! lattice element
+  type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
+  type (floor_position_struct) floor0, floor1  ! Floor position of centroid at entrance/exit ends
+  type (floor_position_struct) e_floor0, e_floor1  ! Floor position of element ref coords at entrance/exit ends
+  type (spline_struct) spline                  ! spline for centroid orbit. spline%x = distance along chord
+  real(rp) theta_chord                         ! Reference angle of chord in z-x plane
+  real(rp) L_chord                             ! Chord Length
+  real(rp) dL_s                                ! L_s(of element) - L_chord
 end type
 
 type csr_bunch_slice_struct   ! Structure for a single particle bin.
@@ -33,41 +41,44 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) kick_lsc    ! LSC Kick.
 end type
 
-! Kicks in this structure are a function of the particle separation
+! csr_kick1_struct stores the CSR kick, kick integral etc. for a give source and kick positions.
+! This structure also holds info on parameters that go into the kick calculation.
+! Since an integration step involves one kick position and many source positions,
+! the information that is only kick position dependent is held in the csr_struct and
+! the csr_struct holds an array of csr_kick1_structs, one for each dz.
 
 type csr_kick1_struct ! Sub-structure for csr calculation cache
-  real(rp) I_csr         ! Kick integral.
-  real(rp) I_int_csr     ! Integrated Kick integral.
-  real(rp) k_csr         ! Kick.
-  real(rp) L             ! Distance between source and kick points.
-  real(rp) dz_particles  ! kicked particle - source particle position at constant time.
-  real(rp) s_source      ! source point location.
-  real(rp) z_source      ! distance between source and referece particle.
-  real(rp) theta_L       ! Angle of L vector
-  real(rp) theta_sl      ! Angle between velocity of particle at source pt and L
-  real(rp) theta_tot     ! Angle between velocity of kicked particle and velocoty of source particle
-  real(rp) g_bend        ! Source point 1/bending_radius
-  integer ix_ele_source  ! source element index.
+  real(rp) I_csr          ! Kick integral.
+  real(rp) I_int_csr      ! Integrated Kick integral.
+  real(rp) k_csr          ! kick.
+  real(rp) L              ! Distance between source and kick points.
+  real(rp) dL             ! = epsilon_L = Ls - L
+  real(rp) dz_particles   ! Kicked particle - source particle position at constant time.
+  real(rp) s_chord_source ! Source point location.
+  real(rp) theta_L        ! Angle of L vector
+  real(rp) theta_sl       ! Angle between velocity of particle at source pt and L
+  real(rp) theta_lk       ! Angle between L and velocity of kicked particle
+  integer ix_ele_source   ! Source element index.
   type (floor_position_struct) floor_s  ! Floor position of source pt
 end type
 
-type csr_top_level_struct             ! Structurture for binning particle averages
+type csr_struct           ! Structurture for binning particle averages
   real(rp) gamma, gamma2        ! Relativistic gamma factor.
   real(rp) rel_mass             ! m_particle / m_electron
   real(rp) beta                 ! Relativistic beta factor.
   real(rp) :: dz_slice = 0      ! Bin width
   real(rp) ds_track_step        ! True step size
-  real(rp) s_kick               ! Kick point longitudinal location
-  real(rp) z_kick               ! distance between kick and centroid reference particle.
-  real(rp) y2                   ! Height of source particle.
+  real(rp) s_kick               ! Kick point longitudinal location (element ref coords) from entrance end
+  real(rp) s_chord_kick         ! Kick point along beam centroid line
+  real(rp) y_source             ! Height of source particle.
   real(rp) kick_factor          ! Coefficient to scale the kick
   logical small_angle_approx
   type(floor_position_struct) floor_k   ! Floor coords at kick point
-  integer ix_ele_kick           ! kicked element index.
-  integer particle              ! Particle type
+  integer species                       ! Particle type
+  integer ix_ele_kick                   ! Same as element being tracked through.
   type (csr_bunch_slice_struct), allocatable :: slice(:)    ! slice(i) refers to the i^th bunch slice.
   type (csr_kick1_struct), allocatable :: kick1(:)          ! kick1(i) referes to the kick between two slices i bins apart.
-  type (csr_source_ele_struct), allocatable :: source_ele(:)
+  type (csr_ele_struct), allocatable :: c_ele(:)
 end type
 
 contains
@@ -106,13 +117,14 @@ type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0, s_ele
-type (csr_top_level_struct), target :: csr_top
-type (csr_source_ele_struct), pointer :: source_ele
+type (csr_struct), target :: csr
+type (csr_ele_struct), pointer :: c_ele, c_ele0
 type (coord_struct), optional :: centroid(0:)
 type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
-real(rp) s0_step, vec0(6), vec(6)
+real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
+real(rp) e_tot, f1
 
 integer i, j, ie, ns, nb, n_step, n_live
 
@@ -123,7 +135,7 @@ logical err, auto_bookkeeper
 
 err = .true.
 branch => ele%branch
-csr_top%small_angle_approx = csr_param%small_angle_approx
+csr%small_angle_approx = csr_param%small_angle_approx
 
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.
@@ -142,7 +154,7 @@ if (ele%value(l$) == 0 .or. ele%key == taylor$) then
 endif
 
 ! n_step is the number of steps to take when tracking through the element.
-! csr_top%ds_step is the true step length.
+! csr%ds_step is the true step length.
 
 bunch_end = bunch_start
 
@@ -159,45 +171,65 @@ if (csr_param%ds_track_step == 0) then
   return
 endif
 
-! Calculate beam centroid info at element edges
+! Calculate beam centroid info at element edges, etc.
 
-allocate (csr_top%source_ele(0:ele%ix_ele))
+allocate (csr%c_ele(0:ele%ix_ele))
 
 do i = 0, ele%ix_ele
-  source_ele => csr_top%source_ele(i)
-  source_ele%ele => branch%ele(i)  ! Pointer to the P' element
-  s_ele => source_ele%ele
+  c_ele => csr%c_ele(i)
+  c_ele%ele => branch%ele(i)  ! Pointer to the P' element
+  s_ele => c_ele%ele
+  c_ele%floor1 = branch%ele(i)%floor
+  c_ele%floor1%r(2) = 0  ! Make sure in horizontal plane
+
+  if (i /= 0) then
+    c_ele%floor0   = csr%c_ele(i-1)%floor1
+    c_ele%e_floor0 = csr%c_ele(i-1)%e_floor1
+    c_ele%orbit0   = csr%c_ele(i-1)%orbit1
+  endif
 
   if (present(centroid)) then
-    source_ele%orbit_c = centroid(i)
-    vec = source_ele%orbit_c%vec
+    c_ele%orbit1 = centroid(i)
+    vec = c_ele%orbit1%vec
     floor%r = [vec(1), vec(3), s_ele%value(l$)]
-    source_ele%floor_c = coords_local_curvilinear_to_floor (floor, s_ele)
-    source_ele%floor_c%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
+    c_ele%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
+    c_ele%floor1%r(2) = 0  ! Make sure in horizontal plane
+    c_ele%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
   else
-    call init_coord (source_ele%orbit_c, ele = s_ele, element_end = downstream_end$)
-    source_ele%floor_c = s_ele%floor
+    call init_coord (c_ele%orbit1, ele = s_ele, element_end = downstream_end$)
+    c_ele%floor1 = s_ele%floor
   endif
 
-  vec = source_ele%orbit_c%vec
-  source_ele%floor_c%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
+  vec = c_ele%orbit1%vec
+  c_ele%floor1%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
 
   if (s_ele%value(l$) /= 0) then
-    vec0 = csr_top%source_ele(i-1)%orbit_c%vec
-    vec = source_ele%orbit_c%vec
-    call create_a_spline (source_ele%spline, [0.0_rp, vec0(1)], [s_ele%value(l$), vec(1)], &
-                          vec0(2) / sqrt((1+vec0(6))**2 - vec(2)**2), vec(2) / sqrt((1+vec(6))**2 - vec(2)**2))
+    vec0 = c_ele%orbit0%vec
+    vec = c_ele%orbit1%vec
+    theta_chord = atan2(c_ele%floor1%r(1)-c_ele0%floor1%r(1), c_ele%floor1%r(3)-c_ele0%floor1%r(3))
+    c_ele%theta_chord = theta_chord
+    theta0 = modulo2(asin(vec0(2) / sqrt((1+vec0(6))**2 - vec0(4)**2)) + c_ele0%floor1%theta - theta_chord, pi)
+    theta1 = modulo2(asin(vec(2) / sqrt((1+vec(6))**2 - vec(4)**2)) + c_ele%floor1%theta - theta_chord, pi)
+    c_ele%L_chord = sqrt((c_ele%floor1%r(1)-c_ele0%floor1%r(1))**2 + (c_ele%floor1%r(3)-c_ele0%floor1%r(3))**2)
+    call create_a_spline (c_ele%spline, [0.0_rp, 0.0_rp], [c_ele%L_chord, 0.0_rp], theta0, theta1)
+
+    c_ele%dL_s = dspline_len(0.0_rp, c_ele%L_chord, c_ele%spline)
   endif
+
+  c_ele0 => c_ele
 enddo
 
 ! make sure that ele_len / track_step is an integer.
 
 n_step = max (1, nint(ele%value(l$) / csr_param%ds_track_step))
-csr_top%ds_track_step = ele%value(l$) / n_step
+csr%ds_track_step = ele%value(l$) / n_step
+csr%species = bunch_start%particle(1)%species
+csr%ix_ele_kick = ele%ix_ele
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
+!----------------------------------------------------------------------------------------
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
@@ -211,7 +243,7 @@ do i = 0, n_step
     call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
   endif
 
-  s0_step = i * csr_top%ds_track_step
+  s0_step = i * csr%ds_track_step
   if (present(s_start)) s0_step = s0_step + s_start
 
   ! Cannot do a realistic calculation if there are less particles than bins
@@ -225,38 +257,43 @@ do i = 0, n_step
     return
   endif
 
-  ie = ele%ix_ele
-  csr_top%s_kick = s0_step + ele%s - ele%value(l$)
-  csr_top%z_kick = (csr_top%source_ele(ie-1)%orbit_c%vec(5) + &
-                      dz_from_ele_beginning(s0_step, ele, csr_top%source_ele(ie)%spline)) 
+  ! Assume a linear energy gain in a cavity
 
-  call csr_bin_particles (bunch_end%particle, csr_top)
+  csr%s_kick = s0_step
+  csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%c_ele(ele%ix_ele))
+  f1 = s0_step / ele%value(l$)
+  e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
+  call convert_total_energy_to (e_tot, branch%param%particle, csr%gamma, beta = csr%beta)
+  csr%gamma2 = csr%gamma**2
+  csr%rel_mass = mass_of(branch%param%particle) / m_electron 
+
+  call csr_bin_particles (bunch_end%particle, csr)
 
   ! ns = 0 is the unshielded kick.
   ! For the shielding image currents never use the small angle approximation
 
-  csr_top%slice(:)%kick_csr = 0
-  csr_top%slice(:)%kick_lsc = 0
+  csr%slice(:)%kick_csr = 0
+  csr%slice(:)%kick_lsc = 0
 
   do ns = 0, csr_param%n_shield_images
     ! The factor of -1^ns accounts for the sign of the image currents
     ! Take into account that at the endpoints we are only putting in a half kick.
     ! The factor of two is due to there being image currents both above and below.
 
-    csr_top%kick_factor = (-1)**ns
-    if (i == 0 .or. i == n_step) csr_top%kick_factor = csr_top%kick_factor / 2
-    if (ns /= 0) csr_top%kick_factor = 2* csr_top%kick_factor
+    csr%kick_factor = (-1)**ns
+    if (i == 0 .or. i == n_step) csr%kick_factor = csr%kick_factor / 2
+    if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
 
-    csr_top%y2 = ns * csr_param%beam_chamber_height
+    csr%y_source = ns * csr_param%beam_chamber_height
 
-    call csr_bin_kicks (ele, s0_step, csr_top)
+    call csr_bin_kicks (ele, s0_step, csr)
   enddo
 
   ! loop over all particles and give them a kick
 
   do j = 1, size(bunch_end%particle)
     if (bunch_end%particle(j)%state /= alive$) cycle
-    call csr_kick_calc (csr_top, bunch_end%particle(j))
+    call csr_kick_calc (csr, bunch_end%particle(j))
   enddo
 
   call save_bunch_track (bunch_end, ele, s0_step)
@@ -271,13 +308,13 @@ end subroutine track1_bunch_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_parcticles (particle, csr_top)
+! Subroutine csr_bin_parcticles (particle, csr)
 !
 ! Routine to bin the particles longitudinally in s. 
 !
 ! To avoid noise in the cacluation, every particle is considered to have a 
-! triangular distribution with a base length  given by 
-!   csr_param%particle_bin_span * csr_top%dz_slice. 
+! triangular distribution with a base length  given by
+!   csr_param%particle_bin_span * csr%dz_slice.
 ! That is, particles will, in general, overlap multiple bins. 
 !
 ! Input:
@@ -287,12 +324,12 @@ end subroutine track1_bunch_csr
 !     %particle_bin_span -- Particle length / dz_slice. 
 !
 ! Output:
-!   csr_top         -- Csr_top_level_struct: The bin structure.
+!   csr         -- Csr_struct: The bin structure.
 !     %dz_slice     -- Bin longitudinal length
 !     %slice(1:) -- Array of bins.
 !-
 
-subroutine csr_bin_particles (particle, csr_top)
+subroutine csr_bin_particles (particle, csr)
 
 implicit none
 
@@ -304,7 +341,7 @@ end type
 
 type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
-type (csr_top_level_struct), target :: csr_top
+type (csr_struct), target :: csr
 type (this_local_struct), allocatable :: tloc(:)
 type (csr_bunch_slice_struct), pointer :: slice
 
@@ -316,8 +353,8 @@ integer i, j, n, ix0, ib, ic
 character(20) :: r_name = 'csr_bin_particles'
 
 ! Init bins...
-! The left edge of csr_top%slice(1) is at z_min
-! The right edge of csr_top%slice(n_bin) is at z_max
+! The left edge of csr%slice(1) is at z_min
+! The right edge of csr%slice(n_bin) is at z_max
 ! The first and last bins are empty.
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
@@ -326,28 +363,28 @@ if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .an
 z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 z_minval = minval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 dz = z_maxval - z_minval
-csr_top%dz_slice = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
-csr_top%dz_slice = 1.0000001 * csr_top%dz_slice     ! to prevent round off problems
+csr%dz_slice = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
+csr%dz_slice = 1.0000001 * csr%dz_slice     ! to prevent round off problems
 z_center = (z_maxval + z_minval) / 2
-z_min = z_center - csr_param%n_bin * csr_top%dz_slice / 2
-z_max = z_center + csr_param%n_bin * csr_top%dz_slice / 2
-dz_particle = csr_param%particle_bin_span * csr_top%dz_slice
+z_min = z_center - csr_param%n_bin * csr%dz_slice / 2
+z_max = z_center + csr_param%n_bin * csr%dz_slice / 2
+dz_particle = csr_param%particle_bin_span * csr%dz_slice
 
 ! allocate memeory for the bins
 
-if (allocated(csr_top%slice)) then
-  if (size(csr_top%slice, 1) < csr_param%n_bin) deallocate (csr_top%slice)
+if (allocated(csr%slice)) then
+  if (size(csr%slice, 1) < csr_param%n_bin) deallocate (csr%slice)
 endif
 
-if (.not. allocated(csr_top%slice)) &
-    allocate (csr_top%slice(csr_param%n_bin), csr_top%kick1(-csr_param%n_bin:csr_param%n_bin))
+if (.not. allocated(csr%slice)) &
+    allocate (csr%slice(csr_param%n_bin), csr%kick1(-csr_param%n_bin:csr_param%n_bin))
 
 ! Fill in some z information
 
 do i = 1, csr_param%n_bin
-  csr_top%slice(i)%z0_edge  = z_min + (i - 1) * csr_top%dz_slice
-  csr_top%slice(i)%z_center = csr_top%slice(i)%z0_edge + csr_top%dz_slice / 2
-  csr_top%slice(i)%z1_edge  = csr_top%slice(i)%z0_edge + csr_top%dz_slice
+  csr%slice(i)%z0_edge  = z_min + (i - 1) * csr%dz_slice
+  csr%slice(i)%z_center = csr%slice(i)%z0_edge + csr%dz_slice / 2
+  csr%slice(i)%z1_edge  = csr%slice(i)%z0_edge + csr%dz_slice
 enddo
 
 ! Init the tloc structure...
@@ -360,12 +397,12 @@ tloc%ib = -1
 
 ! Compute the particle distribution center in each bin
 
-csr_top%slice(:)%charge = 0
-csr_top%slice(:)%x0 = 0
-csr_top%slice(:)%y0 = 0
-csr_top%slice(:)%sig_x = 0
-csr_top%slice(:)%sig_y = 0
-csr_top%slice(:)%dcharge_density_dz = 0
+csr%slice(:)%charge = 0
+csr%slice(:)%x0 = 0
+csr%slice(:)%y0 = 0
+csr%slice(:)%sig_x = 0
+csr%slice(:)%sig_y = 0
+csr%slice(:)%dcharge_density_dz = 0
 
 f = 2.0 / dz_particle**2
 
@@ -379,12 +416,12 @@ do i = 1, size(particle)
   zp_center = p%vec(5) ! center of particle
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
-  ix0 = nint((zp0 - z_min) / csr_top%dz_slice)  ! left most bin index
+  ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
   do j = 0, csr_param%particle_bin_span+1
     ib = j + ix0
-    slice => csr_top%slice(ib)
-    zb0 = csr_top%slice(ib)%z0_edge
-    zb1 = csr_top%slice(ib)%z1_edge   ! edges of the bin
+    slice => csr%slice(ib)
+    zb0 = csr%slice(ib)%z0_edge
+    zb1 = csr%slice(ib)%z1_edge   ! edges of the bin
     charge = charge_in_bin (zb0, zb1)
     slice%charge = slice%charge + charge
     slice%x0 = slice%x0 + p%vec(1) * charge
@@ -398,11 +435,11 @@ do i = 1, size(particle)
 enddo
 
 do ib = 1, csr_param%n_bin
-  if (ib /= 1) csr_top%slice(ib)%dcharge_density_dz = &
-                  (csr_top%slice(ib)%charge - csr_top%slice(ib-1)%charge) / csr_top%dz_slice**2
-  if (csr_top%slice(ib)%charge == 0) cycle
-  csr_top%slice(ib)%x0 = csr_top%slice(ib)%x0 / csr_top%slice(ib)%charge
-  csr_top%slice(ib)%y0 = csr_top%slice(ib)%y0 / csr_top%slice(ib)%charge
+  if (ib /= 1) csr%slice(ib)%dcharge_density_dz = &
+                  (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
+  if (csr%slice(ib)%charge == 0) cycle
+  csr%slice(ib)%x0 = csr%slice(ib)%x0 / csr%slice(ib)%charge
+  csr%slice(ib)%y0 = csr%slice(ib)%y0 / csr%slice(ib)%charge
 enddo
 
 ! Compute the particle distribution sigmas in each bin
@@ -411,14 +448,14 @@ enddo
 
 do ic = 1, size(tloc)
   if (tloc(ic)%ib < 0) cycle
-  slice => csr_top%slice(tloc(ic)%ib)
+  slice => csr%slice(tloc(ic)%ib)
   slice%sig_x = slice%sig_x + abs(tloc(ic)%x0 - slice%x0) * tloc(ic)%charge
   slice%sig_y = slice%sig_y + abs(tloc(ic)%y0 - slice%y0) * tloc(ic)%charge
 enddo
 
 f = sqrt(pi/2)
 do ib = 1, csr_param%n_bin
-  slice => csr_top%slice(ib)
+  slice => csr%slice(ib)
   if (slice%charge == 0) cycle
   slice%sig_x = f * slice%sig_x / slice%charge
   slice%sig_y = f * slice%sig_y / slice%charge
@@ -467,7 +504,7 @@ end subroutine csr_bin_particles
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_kicks (ele, ds_kick_pt, csr_top)
+! Subroutine csr_bin_kicks (ele, ds_kick_pt, csr)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
@@ -475,105 +512,89 @@ end subroutine csr_bin_particles
 !   ele          -- element_struct: Element being tracked through.
 !   ds_kick_pt   -- real(rp): Distance between the beginning of the element we are
 !                    tracking through and the kick point (which is within this element).
-!   csr_top      -- csr_top_level_struct: 
+!   csr      -- csr_struct: 
 !
 ! Output:
-!   csr_top         -- csr_top_level_struct: 
+!   csr         -- csr_struct: 
 !     %kick1(:)          -- CSR kick calculation bin array. 
 !     %slice(:)%kick_csr -- Integrated kick
 !-
 
-subroutine csr_bin_kicks (ele, ds_kick_pt, csr_top)
+subroutine csr_bin_kicks (ele, ds_kick_pt, csr)
 
 implicit none
 
-type (csr_top_level_struct), target :: csr_top
+type (csr_struct), target :: csr
 type (branch_struct), pointer :: branch
 type (ele_struct) ele
 type (csr_kick1_struct), pointer :: kick1
 
-real(rp) ds_kick_pt, s_kick, coef, e_tot, f1
+real(rp) ds_kick_pt, coef
 
-integer i, n_bin, ix_source
+integer i, n_bin
 
 character(16) :: r_name = 'csr_bin_kicks'
 
-! Assume a linear energy gain in a cavity
+! The kick point P is fixed.
+! Loop over all kick1 bins and compute the kick.
 
 branch => ele%branch
-f1 = ds_kick_pt / ele%value(l$)
-e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
-call convert_total_energy_to (e_tot, branch%param%particle, csr_top%gamma, beta = csr_top%beta)
-csr_top%gamma2 = csr_top%gamma**2
-csr_top%rel_mass = mass_of(branch%param%particle) / m_electron 
-csr_top%particle = branch%param%particle
-s_kick = ele%s + ds_kick_pt - ele%value(l$) ! absolute s value at point P.
-csr_top%s_kick = s_kick
 
-! The kick point P is fixed.
-! The source point P' varies from bin to bin.
-! As we go from bin to bin, P' will move backward
-! Initially source point assumed in same element that contains the kick point.
+do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
-ix_source = ele%ix_ele
+  kick1 => csr%kick1(i)
+  kick1%dz_particles = i * csr%dz_slice
 
-! Loop over all kick1 bins and compute the kick or kick integral.
-! The loop steps in increasing dz since that is what next_element_params_calc expects.
+  if (i == lbound(csr%kick1, 1)) then
+    kick1%ix_ele_source = ele%ix_ele  ! Initial guess where source point is
+  else
+    kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
+  endif
 
-do i = lbound(csr_top%kick1, 1), ubound(csr_top%kick1, 1)
+  ! Calculate what element the source point is in.
 
-  kick1 => csr_top%kick1(i)
-  kick1%dz_particles = i * csr_top%dz_slice
-  kick1%ix_ele_source = ix_source
-
-  ! Calculate what element the kick point is in.
-
-  do
-    kick1%s_source = s_source_calc(kick1, csr_top)
-    if (kick1%s_source /= real_garbage$) exit       ! If in source element exit loop
-    kick1%ix_ele_source = kick1%ix_ele_source - 1
-  enddo
+  kick1%s_chord_source = s_source_calc(kick1, csr)
 
   ! calculate csr.
   ! I_csr is only calculated for particles with y = 0 and not for image currents.
 
-  if (csr_top%y2 == 0) then
-    call I_csr (kick1, i, csr_top)
-    if (csr_top%kick1(i)%I_int_csr == 0 .and. i /= lbound(csr_top%kick1, 1)) then
-      csr_top%kick1(i)%I_int_csr = (csr_top%kick1(i)%I_csr + csr_top%kick1(i-1)%I_csr) * csr_top%dz_slice / 2
+  if (csr%y_source == 0) then
+    call I_csr (kick1, i, csr)
+    if (csr%kick1(i)%I_int_csr == 0 .and. i /= lbound(csr%kick1, 1)) then
+      csr%kick1(i)%I_int_csr = (csr%kick1(i)%I_csr + csr%kick1(i-1)%I_csr) * csr%dz_slice / 2
     endif
   else
-    call kick_image_charge (kick1, csr_top)
+    call kick_image_charge (kick1, csr)
   endif
 
 enddo
 
 ! 
 
-coef = csr_top%ds_track_step * r_e / (csr_top%rel_mass * e_charge * abs(charge_of(branch%param%particle)) * csr_top%gamma)
+coef = csr%ds_track_step * r_e / (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 n_bin = csr_param%n_bin
 
 ! CSR & Image charge kick
 
-if (csr_top%y2 == 0) then
+if (csr%y_source == 0) then
   if (csr_param%lcsr_component_on) then
     do i = 1, n_bin
-      csr_top%slice(i)%kick_csr = coef * dot_product(csr_top%kick1(i:1:-1)%I_int_csr, csr_top%slice(1:i)%dcharge_density_dz)
+      csr%slice(i)%kick_csr = coef * dot_product(csr%kick1(i:1:-1)%I_int_csr, csr%slice(1:i)%dcharge_density_dz)
     enddo
   endif
 
 else  ! Image charge
   do i = 1, n_bin
-    csr_top%slice(i)%kick_csr = csr_top%slice(i)%kick_csr + coef * &
-                  dot_product(csr_top%kick1(i-1:i-n_bin:-1)%k_csr, csr_top%slice(1:n_bin)%charge)
+    csr%slice(i)%kick_csr = csr%slice(i)%kick_csr + coef * &
+                  dot_product(csr%kick1(i-1:i-n_bin:-1)%k_csr, csr%slice(1:n_bin)%charge)
   enddo
 endif
 
 ! Space charge kick
 
 if (csr_param%lsc_component_on) then
-  if (csr_top%y2 == 0) then
-    call lsc_y0_kick_calc (csr_top)
+  if (csr%y_source == 0) then
+    call lsc_y0_kick_calc (csr)
   endif
 endif
 
@@ -583,7 +604,177 @@ end subroutine csr_bin_kicks
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_y0_kick_calc (csr_top)
+! Function s_source_calc (kick1, csr) result (s_source)
+!
+! Routine to calculate the distance between source and kick points.
+!
+! Input:
+!   kick1         -- csr_kick1_struct:
+!   csr           -- csr_struct:
+!
+! Output:
+!   s_source      -- real(rp): source s-position.
+!   c_ele         -- c_ele_struct: Geometric values.
+!-
+
+function s_source_calc (kick1, csr) result (s_source)
+
+implicit none
+
+type (csr_kick1_struct), target :: kick1
+type (csr_struct), target :: csr
+type (csr_ele_struct), pointer :: c_ele
+type (ele_struct), pointer :: s_ele
+type (floor_position_struct), pointer :: fk, f0, fs
+
+real(rp) a, b, c, dz, s_source, beta2, L0, Lz
+real(rp) z0, z1, sz_kick, sz0, Lsz0
+
+integer i
+
+character(*), parameter :: r_name = 's_source_calc'
+
+! Each interation of the loop looks for a possible source point in lattice element with index kick1%ix_ele_source.
+! If found, return. If not, move on to another element
+
+dz = kick1%dz_particles   ! Target distance.
+beta2 = csr%beta**2
+fk => csr%floor_k
+fs => kick1%floor_s
+
+do
+
+  c_ele => csr%c_ele(kick1%ix_ele_source)
+  s_ele => c_ele%ele
+  f0 => c_ele%floor1
+
+  ! If at beginning of lattice assume an infinite drift.
+  ! s_source will be negative
+
+  if (s_ele%ix_ele == 0) then
+    L0 = sqrt((fk%r(1) - f0%r(1))**2 + (fk%r(3) - f0%r(3))**2 + csr%y_source**2)
+    ! L_z is the z-component from lat start to the kick point.
+    Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta) 
+    ! Lsz0 is Ls from the lat start to the kick point
+    Lsz0 = dspline_len(0.0_rp, csr%s_chord_kick, csr%c_ele(csr%ix_ele_kick)%spline) + csr%s_chord_kick
+    do i = 1, csr%ix_ele_kick - 1
+      Lsz0 = Lsz0 + csr%c_ele(i)%dL_s + csr%c_ele(i)%L_chord
+    enddo
+
+    a = 1/csr%gamma2
+    b = 2 * (Lsz0 - dz - beta2 * Lz)
+    c = (Lsz0 - dz)**2 - beta2 * L0**2
+    s_source = c_ele%ele%s - (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+
+    fs%r = [f0%r(1) + s_source * sin(f0%theta), csr%y_source, f0%r(3) + s_source * cos(f0%theta)]
+    fs%theta = f0%theta
+    kick1%L = sqrt(dot_product(fk%r-fs%r, fk%r-fs%r))
+    kick1%dL = lsz0 - s_source - kick1%L  ! Remember s_source is negative
+    kick1%theta_sl = 0
+    kick1%theta_lk = f0%theta - (spline1(c_ele%spline, csr%s_chord_kick, 1) + c_ele%theta_chord)
+    return
+  endif
+
+  ! Look at ends of the source element to make sure that we are within the element
+
+  if (0 < ddz_calc_csr(c_ele%L_chord)) then
+    if (kick1%ix_ele_source == csr%ix_ele_kick) return
+    kick1%ix_ele_source = kick1%ix_ele_source + 1
+    cycle
+  endif
+
+  if (ddz_calc_csr(0.0_rp) < 0) then
+    kick1%ix_ele_source = kick1%ix_ele_source - 1
+    cycle
+  endif
+
+  s_source = zbrent (ddz_calc_csr, 0.0_rp, s_ele%value(l$), 1d-8)
+
+  return
+enddo
+
+!----------------------------------------------------------------------------
+contains
+
+!+
+! Function ddz_calc_csr (s_chord_source) result (ddz_this)
+!
+! Routine to calculate the distance between the source particle and the
+! kicked particle at constant time minus the target distance.
+!
+! Input:
+!   s_chord_source  -- real(rp): Chord distance from start of element.
+!
+! Output:
+!   ddz_this        -- real(rp): Distance between source and kick particles: Calculated - Wanted.
+!-
+
+function ddz_calc_csr (s_chord_source) result (ddz_this)
+
+implicit none
+
+type (floor_position_struct) fs
+type (csr_ele_struct), pointer :: ce
+real(rp), intent(in) :: s_chord_source
+real(rp) ddz_this, x, z, c, s, l_vec(3), dtheta_L
+real(rp) s0, s1, ds, theta_L, dL
+
+integer i
+
+character(*), parameter :: r_name = 'ddz_calc_csr'
+
+! 
+
+x = spline1(c_ele%spline, s_chord_source)
+c = cos(c_ele%theta_chord)
+s = sin(c_ele%theta_chord)
+fs%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c]  ! Floor coordinates
+
+l_vec = fk%r - fs%r
+kick1%L = sqrt(dot_product(L_vec, L_vec))
+theta_L = atan2(l_vec(1), l_vec(3))
+
+s0 = s_chord_source
+s1 = csr%s_chord_kick
+
+if (kick1%ix_ele_source == csr%ix_ele_kick) then
+  ds = s1 - s0
+  ! dtheta_L = angle of L line in centroid chord ref frame
+  dtheta_L = c_ele%spline%coef(1) + c_ele%spline%coef(2) * (2*s0 + ds) + c_ele%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
+  dL = dspline_len(s0, s1, c_ele%spline, dtheta_L) ! = Ls - L
+  ! Ls is negative if the source pt is ahead of the kick pt (ds < 0). But L is always positive. 
+  if (ds < 0) dL = dL + 2 * ds    ! Correct for L always being positive.
+  kick1%theta_sl = spline1(c_ele%spline, s0, 1) - dtheta_L
+  kick1%theta_lk = dtheta_L - spline1(c_ele%spline, s1, 1)
+
+else
+  dL = dspline_len(s0, c_ele%L_chord, c_ele%spline, modulo2(theta_L-c_ele%theta_chord, pi))
+  do i = kick1%ix_ele_source+1, csr%ix_ele_kick-1
+    ce => csr%c_ele(i)
+    dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
+  enddo
+  ce => csr%c_ele(csr%ix_ele_kick)
+  dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
+  kick1%theta_sl = modulo2((spline1(c_ele%spline, s0, 1) + c_ele%theta_chord) - theta_L, pi)
+  kick1%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi)
+endif
+
+! The above calc for dL neglected csr%y_source. So must correct for this.
+
+if (csr%y_source /= 0) dL = dL - (kick1%L - sqrt(l_vec(1)**2 + l_vec(3)**2))
+kick1%dL = dL 
+ddz_this = kick1%L / (2 * csr%gamma2) + dL
+ddz_this = ddz_this - kick1%dz_particles
+
+end function ddz_calc_csr
+
+end function s_source_calc
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine lsc_y0_kick_calc (csr)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -592,19 +783,19 @@ end subroutine csr_bin_kicks
 !   use lsc_mod
 !
 ! Input:
-!   csr_top       -- csr_top_level_struct: 
+!   csr       -- csr_struct: 
 !     %slice(:)   -- bin array of particle averages.
 !
 ! Output:
-!   bin     -- csr_top_level_struct: Binned particle averages.
+!   bin     -- csr_struct: Binned particle averages.
 !     %slice(:)%kick_lsc -- Integrated kick.
 !-
 
-subroutine lsc_y0_kick_calc (csr_top)
+subroutine lsc_y0_kick_calc (csr)
 
 implicit none
 
-type (csr_top_level_struct), target :: csr_top
+type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot
@@ -618,21 +809,21 @@ character(*), parameter :: r_name = 'lsc_y0_kick_calc'
 ! Therefore  ignore any bins with a very small sigma. 
 ! To know what is "small" is, compute the average sigma
 
-charge_tot = sum(csr_top%slice(:)%charge)
+charge_tot = sum(csr%slice(:)%charge)
 if (charge_tot == 0) return
 
-sig_x_ave = dot_product(csr_top%slice(:)%sig_x, csr_top%slice(:)%charge) / charge_tot
-sig_y_ave = dot_product(csr_top%slice(:)%sig_y, csr_top%slice(:)%charge) / charge_tot
+sig_x_ave = dot_product(csr%slice(:)%sig_x, csr%slice(:)%charge) / charge_tot
+sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
 
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
 
 ! Compute the kick at the center of each bin
 
-csr_top%slice(:)%kick_lsc = 0
+csr%slice(:)%kick_lsc = 0
 if (.not. csr_param%lsc_component_on) return
 
 do i = 1, csr_param%n_bin
-  slice => csr_top%slice(i)
+  slice => csr%slice(i)
   sx = slice%sig_x
   sy = slice%sig_y
   if (sx < sig_x_ave * csr_param%sigma_cutoff .or. sy < sig_y_ave * csr_param%sigma_cutoff) then
@@ -641,21 +832,21 @@ do i = 1, csr_param%n_bin
     cycle
   endif
   a = sx * sy
-  b = csr_top%gamma * (sx**2 + sy**2) / (sx + sy)
-  c = csr_top%gamma**2
+  b = csr%gamma * (sx**2 + sy**2) / (sx + sy)
+  c = csr%gamma**2
 
   do j = 1, csr_param%n_bin
     if (i == j) cycle
-    dz = csr_top%slice(j)%z_center - csr_top%slice(i)%z_center
-    csr_top%slice(j)%kick_lsc = csr_top%slice(j)%kick_lsc + &
+    dz = csr%slice(j)%z_center - csr%slice(i)%z_center
+    csr%slice(j)%kick_lsc = csr%slice(j)%kick_lsc + &
                    slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
   enddo
 
 enddo
 
-factor = csr_top%kick_factor * csr_top%ds_track_step * r_e / &
-          (csr_top%rel_mass * e_charge * abs(charge_of(csr_top%particle)) * csr_top%gamma)
-csr_top%slice(:)%kick_lsc = factor * csr_top%slice(:)%kick_lsc
+factor = csr%kick_factor * csr%ds_track_step * r_e / &
+          (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+csr%slice(:)%kick_lsc = factor * csr%slice(:)%kick_lsc
 
 end subroutine lsc_y0_kick_calc
 
@@ -663,14 +854,14 @@ end subroutine lsc_y0_kick_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine I_csr (kick1, i_bin, csr_top) 
+! Subroutine I_csr (kick1, i_bin, csr) 
 !
-! Routine to calculate the CSR kick integral.
+! Routine to calculate the CSR kick integral (at y = 0)
 !
 ! Input:
 !   kick1      -- csr_kick1_struct: 
 !   i_bin      -- integer: Bin index.
-!   csr_top    -- csr_top_level_struct:
+!   csr    -- csr_struct:
 !
 ! Output:
 !   kick1     -- csr_kick1_struct: 
@@ -678,14 +869,14 @@ end subroutine lsc_y0_kick_calc
 !     %I_int_csr -- real(rp): Integral of I_csr. Only calculated for i_bin = 1 since it is not needed otherwise.
 !-
 
-subroutine I_csr (kick1, i_bin, csr_top)
+subroutine I_csr (kick1, i_bin, csr)
 
 implicit none
 
 type (csr_kick1_struct) kick1
-type (csr_top_level_struct) csr_top
+type (csr_struct) csr
 
-real(rp) z, gam2, g, ds
+real(rp) z, g, dL
 integer i_bin
 
 ! 
@@ -698,13 +889,11 @@ if (z <= 0) then
   return
 endif
 
-gam2 = csr_top%gamma2
 
-kick1%I_csr = csr_top%kick_factor * (1 / (gam2 * z) - &
-    2 * (1 + gam2 * kick1%theta_tot * kick1%theta_sl) /(kick1%L * (1 + gam2 * kick1%theta_sl**2)))
+kick1%I_csr = -csr%kick_factor * 2 * (kick1%dL / (z * kick1%L) + kick1%theta_sl * kick1%theta_lk / (1 + kick1%theta_sl**2)) / kick1%L
+
 if (i_bin == 1) then
-  ds = (csr_top%s_kick + csr_top%z_kick) - (kick1%s_source + kick1%z_source)
-  kick1%I_int_csr = csr_top%kick_factor * (-kick1%theta_tot**2 / 4 + log(2*gam2 * z / ds) / gam2)
+  kick1%I_int_csr = real_garbage$
 endif
 
 end subroutine I_csr
@@ -713,45 +902,50 @@ end subroutine I_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kick_image_charge (kick1, csr_top) 
+! Subroutine kick_image_charge (kick1, csr) 
 !
 ! Routine to calculate the image charge kick.
 !
 ! Input:
 !   kick1    -- Csr_kick1_struct: 
-!   csr_top      -- Csr_top_level_struct:
+!   csr      -- Csr_struct:
 !
 ! Output:
 !   kick1    -- Csr_kick1_struct: 
 !     %k_csr -- Real(rp): Image charge kick.
 !-
 
-subroutine kick_image_charge (kick1, csr_top)
+subroutine kick_image_charge (kick1, csr)
 
 implicit none
 
 type (csr_kick1_struct), target :: kick1
+type (csr_struct), target :: csr
 type (csr_kick1_struct), pointer :: k
-type (csr_top_level_struct) csr_top
+type (spline_struct), pointer :: sp
 
 real(rp) N_vec(3), G_vec(3), B_vec(3), Bp_vec(3), NBp_vec(3), NBpG_vec(3), rad_cross_vec(3)
-real(rp) z, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, theta
+real(rp) z, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, theta, g_bend
 
 !
 
 k => kick1
+sp => csr%c_ele(kick1%ix_ele_source)%spline
+
+g_bend = -spline1(sp, kick1%s_chord_source, 2) / sqrt(1 + sqrt(spline1(sp, kick1%s_chord_source, 1))**2)**3
+theta = k%floor_s%theta
+
+Bp_vec = csr%beta * [sin(theta), 0.0_rp, cos(theta) ]             ! beta vector at source point
+G_vec = csr%beta**2 * g_bend * [-cos(theta), 0.0_rp, sin(theta) ] ! Acceleration vector
 
 k%k_csr = 0
 z = k%dz_particles
 
-N_vec = (csr_top%floor_k%r - k%floor_s%r) / k%L
+N_vec = (csr%floor_k%r - k%floor_s%r) / k%L
 
-theta = csr_top%floor_k%theta
+theta = csr%floor_k%theta
 B_vec = [sin(theta), 0.0_rp, cos(theta)]        ! Beta vector at kicked point
 
-theta = k%floor_s%theta
-Bp_vec = csr_top%beta * [sin(theta), 0.0_rp, cos(theta) ]  ! beta vector at source point
-G_vec = csr_top%beta**2 * k%g_bend * [-cos(theta), 0.0_rp, sin(theta) ] ! Acceleration vector
 
 OneNBp = 1 - sum(N_vec * Bp_vec)
 OneNBp3 = OneNBp**3
@@ -761,8 +955,8 @@ NBpG_vec = cross_product(NBp_vec, G_vec)
 rad_cross_vec = cross_product(N_vec, NBpG_vec)
 
 radiate  = dot_product (B_vec, rad_cross_vec) / (k%L * OneNBp3)
-coulomb1 = dot_product (B_vec, NBp_vec) / (csr_top%gamma2 * k%L**2 * OneNBp3)
-kick1%k_csr = csr_top%kick_factor * (radiate + coulomb1)
+coulomb1 = dot_product (B_vec, NBp_vec) / (csr%gamma2 * k%L**2 * OneNBp3)
+kick1%k_csr = csr%kick_factor * (radiate + coulomb1)
 
 end subroutine kick_image_charge
 
@@ -770,126 +964,11 @@ end subroutine kick_image_charge
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function s_source_calc (kick1, csr_top) result (s_source)
-!
-! Routine to calculate the distance between source and kick points.
-!
-! Input:
-!   kick1              -- csr_kick1_struct:
-!   csr_top            -- csr_top_level_struct:
-!
-! Output:
-!   s_source    -- real(rp): source s-position
-!   source_ele -- source_ele_struct: Geometric values
-!-
-
-function s_source_calc (kick1, csr_top) result (s_source)
-
-implicit none
-
-type (csr_kick1_struct), target :: kick1
-type (csr_top_level_struct), target :: csr_top
-type (csr_source_ele_struct), pointer :: source_ele
-type (ele_struct), pointer :: s_ele
-type (floor_position_struct), pointer :: fk, f0, fs
-
-real(rp) a, b, c, dz, s_source, beta2, L0, Lz, s0
-real(rp) z0, z1, sz_kick, sz0
-
-character(*), parameter :: r_name = 's_sourcecsr'
-
-! If at beginning of lattice assume an infinite drift.
-! s_source will be negative
-
-dz = kick1%dz_particles   ! Target distance.
-source_ele => csr_top%source_ele(kick1%ix_ele_source)
-s_ele => source_ele%ele
-beta2 = csr_top%beta**2
-f0 => source_ele%floor_c
-fk => csr_top%floor_k
-fs => kick1%floor_s
-
-if (s_ele%ix_ele == 0) then
-  L0 = sqrt((fk%r(1) - f0%r(1))**2 + (fk%r(3) - f0%r(3))**2 + csr_top%y2**2)
-  Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta)
-  sz_kick = csr_top%s_kick + csr_top%z_kick 
-  sz0 = source_ele%ele%s + source_ele%orbit_c%vec(5)
-
-  a = 1/csr_top%gamma2
-  b = 2 * (sz_kick - sz0 - dz - beta2 * Lz)
-  c = (sz_kick - sz0 - dz)**2 - beta2 * L0**2
-  s_source = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) + source_ele%ele%s
-
-  fs%r = [f0%r(1) + s_source * sin(f0%theta), csr_top%y2, f0%r(3) + s_source * cos(f0%theta)]
-  kick1%L = sqrt(dot_product(fk%r-fs%r, fk%r-fs%r))
-  return
-endif
-
-! Look at ends of the source element to make sure that we are within the element
-
-s_source = real_garbage$
-
-if (s_ele%value(l$) == 0) return  ! Source point cannot be here.
-if (0 < ddz_calc_csr(s_ele%value(l$)) .or. ddz_calc_csr(0.0_rp) < 0) return
-
-s_source = zbrent (ddz_calc_csr, 0.0_rp, s_ele%value(l$), 1d-8)
-
-!----------------------------------------------------------------------------
-contains
-
-!+
-! Function ddz_calc_csr (s) result (ddz_this)
-!
-! Routine to calculate the distance between the source particle and the
-! kicked particle at constant time minus the target distance.
-!
-! Input:
-!   s        -- Real(rp): Distance from start of element.
-!
-! Output:
-!   ddz_this -- Real(rp): Distance between source and kick particles: Calculated - Wanted.
-!-
-
-function ddz_calc_csr (s) result (ddz_this)
-
-implicit none
-
-type (floor_position_struct) fs
-real(rp), intent(in) :: s
-real(rp) :: ddz_this, x, z, l_vec(3)
-
-character(*), parameter :: r_name = 'ddz_calc_csr'
-
-! 
-
-call spline1_evaluate(source_ele%spline, s, x)
-fs%r = [x, csr_top%y2, s]
-fs = coords_local_curvilinear_to_floor (fs, s_ele)
-
-
-
-l_vec(1) = fk%r(1) - fs%r(1)
-l_vec(2) = csr_top%y2
-l_vec(3) = fk%r(3) - fs%r(3)
-kick1%L = sqrt(dot_product(L_vec, L_vec))
-
-z = (csr_top%s_kick + csr_top%z_kick) - (s + s_ele%s - s_ele%value(l$) + &
-                    dz_from_ele_beginning(s, s_ele, source_ele%spline)) - csr_top%beta * kick1%L
-ddz_this = z - kick1%dz_particles
-
-end function ddz_calc_csr
-
-end function s_source_calc
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine csr_kick_calc (csr_top, particle)
+! Subroutine csr_kick_calc (csr, particle)
 !
 ! Routine to calculate the longitudinal coherent synchrotron radiation kick.
 !
-!   csr_top  -- csr_top_level_struct: 
+!   csr  -- csr_struct: 
 !   particle -- coord_struct: Particle to kick.
 !     %vec(6) -- Initial particle energy.
 !
@@ -898,11 +977,11 @@ end function s_source_calc
 !     %vec(6) -- Final particle energy.
 !-
 
-subroutine csr_kick_calc (csr_top, particle)
+subroutine csr_kick_calc (csr, particle)
 
 implicit none
 
-type (csr_top_level_struct), target :: csr_top
+type (csr_struct), target :: csr
 type (coord_struct), target :: particle
 type (csr_bunch_slice_struct), pointer :: slice
 
@@ -913,11 +992,11 @@ integer i, i0, i_del
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
 ! so that the integral varies smoothly as a function of particle%vec(5).
 
-if (.not. allocated(csr_top%slice)) return  ! True if kicks are turned off.
+if (.not. allocated(csr%slice)) return  ! True if kicks are turned off.
 
 zp = particle%vec(5)
-i0 = int((zp - csr_top%slice(1)%z_center) / csr_top%dz_slice) + 1
-r1 = (zp - csr_top%slice(i0)%z_center) / csr_top%dz_slice
+i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
+r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
 r0 = 1 - r1
 vec => particle%vec
 
@@ -926,12 +1005,12 @@ if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-vec(6) = vec(6) + r0 * csr_top%slice(i0)%kick_csr + r1 * csr_top%slice(i0+1)%kick_csr
+vec(6) = vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
 
 ! Longitudinal space charge
 
 if (csr_param%lsc_component_on) then
-  vec(6) = vec(6) + r0 * csr_top%slice(i0)%kick_lsc + r1 * csr_top%slice(i0+1)%kick_lsc
+  vec(6) = vec(6) + r0 * csr%slice(i0)%kick_lsc + r1 * csr%slice(i0+1)%kick_lsc
 endif
 
 ! Must update beta and z due to the energy change
@@ -943,10 +1022,10 @@ vec(5) = vec(5) * particle%beta / beta0
 ! Transverse space charge.
 
 if (csr_param%tsc_component_on) then
-  f0 = csr_top%kick_factor * csr_top%ds_track_step * r_e / (twopi * &
-           csr_top%dz_slice * csr_top%rel_mass * e_charge * abs(charge_of(csr_top%particle)) * csr_top%gamma**3)
+  f0 = csr%kick_factor * csr%ds_track_step * r_e / (twopi * &
+           csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(particle%species)) * csr%gamma**3)
 
-  slice => csr_top%slice(i0)
+  slice => csr%slice(i0)
   if (slice%sig_x /= 0) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, &
                                                        slice%sig_y/slice%sig_x, kx, ky)
@@ -956,7 +1035,7 @@ if (csr_param%tsc_component_on) then
     vec(4) = vec(4) - ky * f
   endif
 
-  slice => csr_top%slice(i0+1)
+  slice => csr%slice(i0+1)
   if (slice%sig_x /= 0) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, &
                                                        slice%sig_y/slice%sig_x, kx, ky)
@@ -974,39 +1053,94 @@ end subroutine csr_kick_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function dz_from_ele_beginning(s, ele, spline) result (this_dz)
+! Function dspline_len (s_chord0, s_chord1, spline, dtheta_ref) result (dlen)
 !
-! Routine to calculate the change in particle z from the beginning of an element to a particular point.
+! Routine to calculate the difference in length between the spline curve length and a referece line.
+! Referece line is centroid chord (referece system of the spline) rotated by dtheta_ref.
 !
 ! Input:
-!   s       -- real(rp): s-position from beginning of element.
-!   ele     -- ele_struct: Element tracked through
-!   spline  -- spline_struct: Spline of x-position as a function of s.
+!   s_chord0    -- real(rp): Start position along centroid chord.
+!   s_chord1    -- real(rp): Stop position along central_chord.
+!   spline      -- spline_struct: Spline of x-position as a function of s.
+!   dtheta_ref  -- real(rp), optional: angle to rotate the reference line from the centroid chord.
+!                    Default is 0.
 !
 ! Output:
-!   this_dz -- real(rp): change in particle z.
+!   dlen -- real(rp): L_spline - L_chord
 !-
 
-function dz_from_ele_beginning(s, ele, spline) result (this_dz)
+function dspline_len (s_chord0, s_chord1, spline, dtheta_ref) result (dlen)
 
 implicit none
 
-type (ele_struct) ele
 type (spline_struct) spline
 
-real(rp) s, this_dz, c(0:3)
+real(rp) s_chord0, s_chord1, dlen
+real(rp), optional :: dtheta_ref
+real(rp) c(0:3), s0, ds
 
 ! x' = c(1) + 2*c2*s + 3*c3*s^2
-! dz = -Integral: x'^2/2 ds
+! dlen = Integral: x'^2/2 ds
 
 c = spline%coef
-this_dz = -(c(1)**2 * s + 2*c(1)*c(2) * s**2 + (6*c(1)*c(3) + 4*c(2)**2) * s**3/3 + 3*c(2)*c(3) * s**4 + 9*c(3)**2 * s**5/5) / 2
+s0 = s_chord0
+ds = s_chord1 - s_chord0
 
-! For bends add: dz = -Integral: x/rho ds
+if (present(dtheta_ref)) then
+  c(1) = c(1) - dtheta_ref
+endif
 
-if (ele%key /= sbend$) return
-this_dz = this_dz - ele%value(g$) * (c(0)*s + c(1)*s**2/2 + c(2)*s**3/3 + c(3)* s**4/4)
+dlen = (ds / 2) * ( &
+        c(1)**2 + &
+        (2*s0 + ds) * 2*c(1)*c(2) + &
+        (3*s0*s0 + 3*s0*ds + ds*ds) * (6*c(1)*c(3) + 4*c(2)**2) / 3 + &
+        (4*s0**3 + 6*s0*s0*ds + 4*s0*ds*ds + ds**3) * 3*c(2)*c(3) + &
+        (5*s0**4 + 10*s0**3*ds + 10*s0*s0*ds*ds + 5*s0*ds**3 + ds**4) * 9*c(3)**2 &
+       )
 
-end function dz_from_ele_beginning
+end function dspline_len
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function s_ref_to_s_chord (s_ref, c_ele) result (s_chord)
+!
+! Routine to calculate s_chord given s_ref.
+!
+! Input:
+!   s_ref     -- real(rp): s-position along element ref coords.
+!   c_ele     -- csr_ele_struct: Element info
+!
+! Output:
+!   s_chord   -- real(rp): s-posijtion along centroid chord.
+!-
+
+function s_ref_to_s_chord (s_ref, c_ele) result (s_chord)
+
+implicit none
+
+type (csr_ele_struct), target :: c_ele
+type (ele_struct), pointer :: ele
+
+real(rp) s_ref, s_chord, dtheta, dr(3), x, g, t
+
+!
+
+ele => c_ele%ele
+g = ele%value(g$)
+
+if (ele%key == sbend$ .and. abs(g) > 1d-5) then
+  dtheta = c_ele%floor0%theta - c_ele%e_floor0%theta
+  dr = c_ele%e_floor0%r - c_ele%floor0%r
+  t = c_ele%e_floor0%theta + pi/2
+  x = dr(1) * cos(t) + dr(3) * sin(t)
+  s_chord = abs(ele%value(rho$)) * atan2(s_ref * cos(dtheta), abs(ele%value(rho$) + x + s_ref * sin(dtheta)))
+
+else
+  s_chord = s_ref * c_ele%L_chord /ele%value(l$)
+endif
+
+end function s_ref_to_s_chord
 
 end module
