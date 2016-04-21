@@ -298,8 +298,7 @@ if (allocated(bin%bin1)) then
   if (size(bin%bin1, 1) < csr_param%n_bin) deallocate (bin%bin1)
 endif
 
-if (.not. allocated(bin%bin1)) &
-    allocate (bin%bin1(csr_param%n_bin), bin%kick1(-csr_param%n_bin:csr_param%n_bin))
+if (.not. allocated(bin%bin1)) allocate (bin%bin1(csr_param%n_bin), bin%kick1(-csr_param%n_bin:csr_param%n_bin))
 
 ! Fill in some z information
 
@@ -357,8 +356,7 @@ do i = 1, size(particle)
 enddo
 
 do ib = 1, csr_param%n_bin
-  if (ib /= 1) bin%bin1(ib)%dcharge_density_dz = &
-                  (bin%bin1(ib)%charge - bin%bin1(ib-1)%charge) / bin%dz_bin**2
+  if (ib /= 1) bin%bin1(ib)%dcharge_density_dz = (bin%bin1(ib)%charge - bin%bin1(ib-1)%charge) / bin%dz_bin**2
   if (bin%bin1(ib)%charge == 0) cycle
   bin%bin1(ib)%x0 = bin%bin1(ib)%x0 / bin%bin1(ib)%charge
   bin%bin1(ib)%y0 = bin%bin1(ib)%y0 / bin%bin1(ib)%charge
@@ -511,8 +509,7 @@ do i = lbound(bin%kick1, 1), ubound(bin%kick1, 1)
   if (bin%y2 == 0) then
     call I_csr (kick1, i, k_factor, bin)
     if (bin%kick1(i)%I_int_csr == 0 .and. i /= lbound(bin%kick1, 1)) then
-      bin%kick1(i)%I_int_csr = &
-                            (bin%kick1(i)%I_csr + bin%kick1(i-1)%I_csr) * bin%dz_bin / 2
+      bin%kick1(i)%I_int_csr = (bin%kick1(i)%I_csr + bin%kick1(i-1)%I_csr) * bin%dz_bin / 2
     endif
   else
     call kick_image_charge (kick1, k_factor, bin)
@@ -522,8 +519,7 @@ enddo
 
 ! 
 
-coef = bin%ds_track_step * r_e / &
-            (bin%rel_mass * e_charge * abs(charge_of(lat%param%particle)) * bin%gamma)
+coef = bin%ds_track_step * r_e / (bin%rel_mass * e_charge * abs(charge_of(lat%param%particle)) * bin%gamma)
 n_bin = csr_param%n_bin
 
 ! CSR & Image charge kick
@@ -531,8 +527,7 @@ n_bin = csr_param%n_bin
 if (bin%y2 == 0) then
   if (csr_param%lcsr_component_on) then
     do i = 1, n_bin
-      bin%bin1(i)%kick_csr = coef * &
-              dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
+      bin%bin1(i)%kick_csr = coef * dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
     enddo
   endif
 
@@ -611,8 +606,7 @@ do i = n_ele_pp, 1, -1
   k_factor%v1 = k_factor%v1 + d_i(i)
 
   if (small_angle_approx) then
-    k_factor%v3 = k_factor%v3 + d_i(i) * &
-                    (k_factor%theta**2 + k_factor%theta*dphi + dphi**2 / 3) / 2
+    k_factor%v3 = k_factor%v3 + d_i(i) * (k_factor%theta**2 + k_factor%theta*dphi + dphi**2 / 3) / 2
     k_factor%w2 = k_factor%w2 + d_i(i) * (k_factor%theta + dphi/2)
   else
     phi = k_factor%theta 
@@ -702,8 +696,7 @@ do i = 1, csr_param%n_bin
   do j = 1, csr_param%n_bin
     if (i == j) cycle
     dz = bin%bin1(j)%z_center - bin%bin1(i)%z_center
-    bin%bin1(j)%kick_lsc = bin%bin1(j)%kick_lsc + &
-                   bin1%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
+    bin%bin1(j)%kick_lsc = bin%bin1(j)%kick_lsc + bin1%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
   enddo
 
 enddo
@@ -1074,11 +1067,9 @@ if (small_angle_approx) then
 
   w2d = 2*k_factor%w2 - phi*d
   y22 = 4 * bin%y2**2
-  z_this = v1d / (2 * bin%gamma2) + &
-                      (k_factor%v3 + phi**2 * d / 6 - (w2d**2 + y22)/(8*v1d))
+  z_this = v1d / (2 * bin%gamma2) + (k_factor%v3 + phi**2 * d / 6 - (w2d**2 + y22)/(8*v1d))
 
-  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
-                      (phi**2/2 + phi*w2d/(2*v1d) + (w2d**2 + y22)/(8*v1d**2))
+  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + (phi**2/2 + phi*w2d/(2*v1d) + (w2d**2 + y22)/(8*v1d**2))
 
 ! General case without small angle approx
 
@@ -1099,8 +1090,7 @@ else
 
   z_this = v1d / (2 * bin%gamma2) + (v1d - kf%L)
 
-  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
-               1 - (kf%L_vec(1) * cos(phi) - kf%L_vec(2) * sin(phi)) / kf%L
+  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + 1 - (kf%L_vec(1) * cos(phi) - kf%L_vec(2) * sin(phi)) / kf%L
                 
 
 endif
@@ -1177,8 +1167,7 @@ if (csr_param%tsc_component_on) then
 
   bin1 => bin%bin1(i0)
   if (bin1%sig_x /= 0) then
-    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
-                                                       bin1%sig_y/bin1%sig_x, kx, ky)
+    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, bin1%sig_y/bin1%sig_x, kx, ky)
     f = f0 * r0 * bin1%charge / (bin1%sig_x + bin1%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
     vec(2) = vec(2) - kx * f
@@ -1187,8 +1176,7 @@ if (csr_param%tsc_component_on) then
 
   bin1 => bin%bin1(i0+1)
   if (bin1%sig_x /= 0) then
-    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
-                                                       bin1%sig_y/bin1%sig_x, kx, ky)
+    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, bin1%sig_y/bin1%sig_x, kx, ky)
     f = f0 * r1 * bin1%charge / (bin1%sig_x + bin1%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
     vec(2) = vec(2) - kx * f   

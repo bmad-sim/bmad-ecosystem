@@ -610,8 +610,8 @@ ixa0 = max(1, ixa-2)
 ixa1 = min(n_ang, ixa+3)
 
 n_a = ixa1 - ixa0 + 1
-ang_spline(1:n_a)%x = prt%angle(ixa0:ixa1)
-ang_spline(1:n_a)%y = prt%p_reflect_scratch(ixa0:ixa1)
+ang_spline(1:n_a)%x0 = prt%angle(ixa0:ixa1)
+ang_spline(1:n_a)%y0 = prt%p_reflect_scratch(ixa0:ixa1)
 call spline_akima(ang_spline(1:n_a), ok)
 if (.not. ok) call err_exit
 
