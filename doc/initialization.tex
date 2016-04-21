@@ -1443,7 +1443,7 @@ plots go. The syntax of this block is:
     plot_page%n_curve_pts            = <num>    ! Num points used to construct a 
                                                 !   smooth curve. Default = 401
     plot_page%box_plots              = <T/F>    ! For debugging. Default = F.
-    include_default_plots            = <T/F>    ! Include default plot templates? Def = F.
+    include_default_plots            = <T/F>    ! Include default plot templates? Def = T.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
     default_plot%...                            ! See below.
@@ -1530,9 +1530,8 @@ defined in the \vn{tao_template_plot} namelists
 (\sref{s:template}). In the example above, the default x-axis min and
 max are set to 100 and 200 respectively.
 
-If \vn{include_default_plots} is set to \vn{True}, the collection of
-default template plots (\sref{s:template}) that \tao uses by default
-when no template plots are defined are used along with the template
+If \vn{include_default_plots} is set to \vn{False}, the collection of default template
+plots (\sref{s:template}) that \tao uses by default are not used along with the template
 plots defined in the plotting file.
 
 %-----------------------------------------------------------------

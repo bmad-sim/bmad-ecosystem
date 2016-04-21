@@ -88,7 +88,7 @@ init_axis%max = 0
 
 place%region = ' '
 region%name  = ' '       ! a region exists only if its name is not blank 
-include_default_plots = .false.
+include_default_plots = .true.
 
 plot_page = plot_page_default
 plot_page%title(:)%draw_it = .false.
@@ -1213,6 +1213,41 @@ crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
+
+!---------------
+! alpha plot
+
+if (all(s%plot_page%template%name /= 'alpha')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'alpha'
+  plt%description          = 'Twiss alpha function'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Alpha Function'
+  grph%y%label             = '\ga\dA\u, \ga\dB\u [m]'
+
+
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'alpha.a'
+  crv%legend_text  = '\ga\dA\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'alpha.b'
+  crv%legend_text  = '\ga\dB\u'
+endif
 
 !---------------
 ! b_div_curl plot
