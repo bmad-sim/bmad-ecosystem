@@ -873,11 +873,14 @@ subroutine I_csr (kick1, i_bin, csr)
 
 implicit none
 
-type (csr_kick1_struct) kick1
-type (csr_struct) csr
+type (csr_kick1_struct), target :: kick1
+type (csr_struct), target :: csr
+type (csr_kick1_struct), pointer :: k
+type (csr_ele_struct), pointer :: c_ele
+type (spline_struct), pointer :: spl
 
-real(rp) z, g, dL
-integer i_bin
+real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
+integer i_bin, ix_ele_kick
 
 ! 
 
@@ -889,11 +892,41 @@ if (z <= 0) then
   return
 endif
 
+!
 
-kick1%I_csr = -csr%kick_factor * 2 * (kick1%dL / (z * kick1%L) + kick1%theta_sl * kick1%theta_lk / (1 + kick1%theta_sl**2)) / kick1%L
+k => kick1
+k%I_csr = -csr%kick_factor * 2 * (k%dL / (z * k%L) + csr%gamma2 * k%theta_sl * k%theta_lk / (1 + csr%gamma2 * k%theta_sl**2)) / k%L
+
+! I_csr Integral when source and kick points close.
 
 if (i_bin == 1) then
-  kick1%I_int_csr = real_garbage$
+  ix_ele_kick = csr%ix_ele_kick
+  s_chord_kick = csr%s_chord_kick
+  do
+    if (s_chord_kick /= 0) exit  ! Not at edge of element and element has finite length
+    ix_ele_kick = ix_ele_kick - 1
+    if (ix_ele_kick == 0) return  ! No kick from before beginning of lattice
+    s_chord_kick = csr%c_ele(ix_ele_kick)%L_chord
+  enddo
+
+  spl => csr%c_ele(ix_ele_kick)%spline
+  g_bend = -spline1(spl, s_chord_kick, 2) / sqrt(1 + spline1(spl, s_chord_kick, 1)**2)**3
+  if (k%ix_ele_source == ix_ele_kick) then
+    Ls = k%L + k%dL
+    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)  
+  else
+    ! Since source pt is in another element, split integral into pieces.
+    ! First integrate over element containing the kick point.
+    L = s_chord_kick
+    c_ele => csr%c_ele(ix_ele_kick)
+    dtheta_L = c_ele%spline%coef(1) + c_ele%spline%coef(2) * L + c_ele%spline%coef(3) * L**2
+    dL = dspline_len(0.0_rp, L, c_ele%spline, dtheta_L) ! = Ls - L
+    Ls = L + dL
+    zz = L / (2 * csr%gamma2) + dL
+    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)
+    ! Now add on rest of integral
+    k%I_int_csr = k%I_int_csr + k%I_csr * (z - zz) / z
+  endif
 endif
 
 end subroutine I_csr
@@ -930,9 +963,9 @@ real(rp) z, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, theta, g_bend
 !
 
 k => kick1
-sp => csr%c_ele(kick1%ix_ele_source)%spline
+sp => csr%c_ele(k%ix_ele_source)%spline
 
-g_bend = -spline1(sp, kick1%s_chord_source, 2) / sqrt(1 + sqrt(spline1(sp, kick1%s_chord_source, 1))**2)**3
+g_bend = -spline1(sp, k%s_chord_source, 2) / sqrt(1 + spline1(sp, k%s_chord_source, 1)**2)**3
 theta = k%floor_s%theta
 
 Bp_vec = csr%beta * [sin(theta), 0.0_rp, cos(theta) ]             ! beta vector at source point
