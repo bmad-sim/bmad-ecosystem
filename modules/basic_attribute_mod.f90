@@ -1494,7 +1494,6 @@ end function has_orientation_attributes
 ! Note: The "storage type" of an attribute is different from the "logical type" returned by
 ! this routine. For example, the logical type of attribute "n_slice" is integer. However, the 
 ! value of "n_slice" is stored as a real number in the ele_struct [in ele%value(n_slice$)]. 
-! Use the routine attribute_storage_type to determine an attributes storage type.
 !
 ! Modules needed:
 !   use bmad

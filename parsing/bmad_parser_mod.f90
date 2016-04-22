@@ -1670,9 +1670,6 @@ case default   ! normal attribute
 
       select case (attrib_word)
 
-      case ('NUM_STEPS')
-        ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
-
       case ('E_TOT')
         if (ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value
@@ -5442,17 +5439,15 @@ end subroutine parser_add_lord
 subroutine settable_dep_var_bookkeeping (ele)
 
 use random_mod
-use s_fitting, only: check_bend
 
 implicit none
 
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4), step_info(7), dz_dl_max_err
-real(rp) kick_magnitude
+real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4)
 
-integer n, ixm
+integer n
 logical kick_set, length_set, set_done, err_flag
 
 ! Wall3d init.
@@ -5650,49 +5645,6 @@ case (e_gun$)
   if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
 
 end select
-
-! Set ds_step and/or num_steps if not already set.
-
-dz_dl_max_err = 1d-10
-
-if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for this element...
-
-  if (ele%value(ds_step$) == 0 .and. ele%value(num_steps$) == 0) then
-    select case (ele%key)
-    case (wiggler$, undulator$) 
-      if (ele%value(l_pole$) /= 0) ele%value(ds_step$) = ele%value(l_pole$) / 10
-
-    case (sbend$)
-      if (ele%value(integrator_order$) == 0) then
-        call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ixm)
-        ele%value(integrator_order$) = ixm
-        ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
-      endif
-
-    case (kicker$, hkicker$, vkicker$)
-      if (ele%value(l$) /= 0) then
-        if (ele%key == kicker$) then
-          kick_magnitude = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) / ele%value(l$)
-        else
-          kick_magnitude = ele%value(kick$) / ele%value(l$)
-        endif
-        call check_bend (ele%value(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ixm)
-        ele%value(integrator_order$) = ixm
-        ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
-      endif
-
-    case (lcavity$, rfcavity$)
-      if (ele%value(l$) /= 0) ele%value(num_steps$) = 10
-    end select
-  endif
-
-  if (ele%value(num_steps$) > 0) then
-    ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
-  elseif (ele%value(ds_step$) == 0) then
-    ele%value(ds_step$) = bmad_com%default_ds_step
-  endif
-
-endif
 
 end subroutine settable_dep_var_bookkeeping 
 

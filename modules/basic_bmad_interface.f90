@@ -37,6 +37,14 @@ interface
     logical track_spin
   end subroutine
 
+  subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    type (lat_param_struct) param
+    logical, optional :: force_bookkeeping
+  end subroutine
+
   subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
     import
     implicit none
