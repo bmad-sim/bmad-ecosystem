@@ -376,6 +376,8 @@ type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity
+real(rp) value_saved(num_ele_attrib$)
+
 integer i, key
 logical err_flag, err, changed, saved_is_on
 
@@ -388,6 +390,7 @@ err_flag = .true.
 E_tot_start    = ele0%value(E_tot$)
 p0c_start      = ele0%value(p0c$)
 ref_time_start = ele0%ref_time
+value_saved = ele%value
 
 ele%value(E_tot_start$)    = E_tot_start
 ele%value(p0c_start$)      = p0c_start
@@ -409,6 +412,7 @@ case (lcavity$)
     ele%value(E_tot$) = ele%value(e_tot_start$)      
     ele%value(p0c$) = ele%value(p0c_start$)
     ele%ref_time = ref_time_start
+    call attribute_bookkeeper(ele, param, .true.)
   endif
 
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
@@ -473,6 +477,8 @@ case (patch$)
 case default
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
+  ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
+  call attribute_bookkeeper(ele, param, .true.) 
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
@@ -497,6 +503,7 @@ end select
 ! If delta_ref_time has shifted then any taylor map must be updated.
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+ele%old_value = value_saved
 
 if (abs(ele%value(delta_ref_time$) - ele%old_value(delta_ref_time$)) * c_light > bmad_com%significant_length) then
   if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor, ele%spin_taylor)

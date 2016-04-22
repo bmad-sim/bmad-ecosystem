@@ -83,6 +83,12 @@ else
   b = bn
   knl  = factorial(n) * sqrt(a**2 + b**2)
   tn = -atan2(a, b) / (n + 1)
+  ! In case the user looks at this, make tn to be in the range [-pi, pi]/(n+1)
+  if ((n + 1) * abs(tn) > pi) then
+    knl = -knl
+    tn = sign_of(tn) * (abs(tn) - pi/(n+1))
+  endif
+
 endif
 
 end subroutine multipole1_ab_to_kt
