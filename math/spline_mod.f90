@@ -79,7 +79,7 @@ end subroutine create_a_spline
 ! Subroutine spline_evaluate (spline, x, ok, y, dy)
 !
 ! Subroutine to evalueate a spline at a set of points. 
-! Also see: spline1_evaluate
+! Also see spline1
 !
 ! A spline may be generated using, for example, the spline_akima routine.
 !
@@ -105,7 +105,7 @@ implicit none
 
 type (spline_struct), target :: spline(:)
 
-real(rp), intent(in) :: x
+real(rp) :: x
 real(rp), optional :: y, dy
 
 real(rp) eps
@@ -135,7 +135,8 @@ endif
 ! Find correct interval and evaluate
 
 call bracket_index (spline%x0, 1, ix_max, x, ix0)
-call spline1_evaluate (spline(ix0), x, y, dy)
+if (present(y))  y  = spline1 (spline(ix0), x)
+if (present(dy)) dy = spline1 (spline(ix0), x, 1)
 
 ok = .true.
 
@@ -145,51 +146,59 @@ end subroutine spline_evaluate
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine spline1_evaluate (spline1, x, y, dy)
+! Function spline1 (a_spline, x, n) result (y)
 !
-! Subroutine to evalueate a single spline.
-! Also see: spline_evaluate.
+! Function for spline evaluation using a single spline (instead of a spline array).
+! Also see: spline_evaluate
 !
 ! Modules used:
 !   use spline_mod
 !
 ! Input:
-!   spline1   -- Spline_struct: Spline structure.
-!   x         -- Real(rp): point for evaluation.
+!   a_spline  -- spline_struct: Single spline structure.
+!   x         -- real(rp): Point for evaluation.
+!   n         -- integer, optional: Output derivative order. May be 0, 1, 2, or 3. Default is 0.
+!                   n = 1 => output is dy/dx, n = 2 => output is d^2y/dx^2, etc.
 !
 ! Output:
-!   y         -- Real(rp), optional: Spline interpolation.
-!   dy        -- Real(rp), optional: Spline derivative interpolation.
+!   y         -- real(rp), optional: Interpolated spline value or derivative.
 !-
 
-subroutine spline1_evaluate (spline1, x, y, dy)
+function spline1 (a_spline, x, n) result (y)
 
 implicit none
 
-type (spline_struct), target :: spline1
+type (spline_struct), target :: a_spline
 
-real(rp), intent(in) :: x
-real(rp), optional :: y, dy
+real(rp) :: x, y
 real(rp) :: c(0:3)
-
 real(rp) dx       
 
-logical ok       
-character(16) :: r_name = 'spline1_evaluate'
+integer, optional :: n
 
+character(16) :: r_name = 'spline1'
 
-dx = x - spline1%x0
-c = spline1%coef
+!
 
-if (present(y)) then
+dx = x - a_spline%x0
+c = a_spline%coef
+
+select case (integer_option(0, n))
+case (0)
   y = (((c(3) * dx) + c(2)) * dx + c(1)) * dx + c(0)
-endif
 
-if (present(dy)) then
- dy = ((3*c(3) * dx) + 2*c(2)) * dx + c(1)
-endif
+case (1)
+  y = ((3*c(3) * dx) + 2*c(2)) * dx + c(1)
 
-end subroutine spline1_evaluate
+case (2)
+  y = 6*c(3) * dx + 2*c(2)
+
+case (3)
+  y = 6*c(3)
+
+end select
+
+end function spline1
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
