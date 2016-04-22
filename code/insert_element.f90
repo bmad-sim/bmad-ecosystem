@@ -99,7 +99,7 @@ endif
 do ix = 0, ubound(lat%branch, 1)
   branch2 => lat%branch(ix)
   if (branch2%ix_from_ele >= insert_index .and. branch2%ix_from_branch == ix_br) &
-                                        branch2%ix_from_ele = branch2%ix_from_ele + 1
+                                                  branch2%ix_from_ele = branch2%ix_from_ele + 1
 enddo
 
 ! update fork info
@@ -110,7 +110,7 @@ do ix = 0, ubound(lat%branch, 1)
     ele0 => branch2%ele(i)
     if (ele0%key /= fork$ .and. ele0%key /= photon_fork$) cycle
     ele2 => pointer_to_next_ele(ele0, 1, follow_fork = .true.)
-    if (ele2%ix_branch /= ix_branch) cycle
+    if (ele2%ix_branch /= ix_br) cycle
     if (ele2%ix_ele >= insert_index) ele0%value(ix_to_element$) = ele2%ix_ele + 1
   enddo
 enddo
@@ -121,7 +121,7 @@ if (allocated(ele_loc_com%branch)) then
   do i = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
     do j = lbound(ele_loc_com%branch(i)%ele, 1), ubound(ele_loc_com%branch(i)%ele, 1)
       loc => ele_loc_com%branch(i)%ele(j)
-      if (loc%ix_branch /= ix_branch) cycle
+      if (loc%ix_branch /= ix_br) cycle
       if (loc%ix_ele >= insert_index) loc%ix_ele = loc%ix_ele + 1
     enddo
   enddo
