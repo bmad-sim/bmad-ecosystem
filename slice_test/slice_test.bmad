@@ -23,7 +23,7 @@ branch0[etap_x]  =  0.1
 ! Branch 1
 
 bend: sbend, rho = 1, angle = pi/10, y_pitch = 1e-4, ref_tilt = 0.7, roll = 2e-4,
-          x_offset = 0.1, y_offset = 0.2, e1 = 0.3, e2 = 0.5
+          x_offset = 0.01, y_offset = 0.02, e1 = 0.3, e2 = 0.5
 bend2: bend
 bend3: bend, rho = 1, angle = 1, b1 = 1
 
