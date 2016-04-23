@@ -11,11 +11,11 @@ use beam_utils
 use spline_mod
 use nr, only: zbrent
 
-! csr_ele_struct holds info for a particular lattice element
+! csr_ele_info_struct holds info for a particular lattice element
 ! The centroid "chord" is the line from the centroid position at the element entrance to
 ! the centroid position at the element exit end.
 
-type csr_ele_struct
+type csr_ele_info_struct
   type (ele_struct), pointer :: ele            ! lattice element
   type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
   type (floor_position_struct) floor0, floor1  ! Floor position of centroid at entrance/exit ends
@@ -51,6 +51,7 @@ type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr          ! Kick integral.
   real(rp) I_int_csr      ! Integrated Kick integral.
   real(rp) k_csr          ! kick.
+  real(rp) L_vec(3)       ! L vector in global coordinates.
   real(rp) L              ! Distance between source and kick points.
   real(rp) dL             ! = epsilon_L = Ls - L
   real(rp) dz_particles   ! Kicked particle - source particle position at constant time.
@@ -78,7 +79,7 @@ type csr_struct           ! Structurture for binning particle averages
   integer ix_ele_kick                   ! Same as element being tracked through.
   type (csr_bunch_slice_struct), allocatable :: slice(:)    ! slice(i) refers to the i^th bunch slice.
   type (csr_kick1_struct), allocatable :: kick1(:)          ! kick1(i) referes to the kick between two slices i bins apart.
-  type (csr_ele_struct), allocatable :: c_ele(:)
+  type (csr_ele_info_struct), allocatable :: eleinfo(:)     ! Element-by-element information.
 end type
 
 contains
@@ -118,13 +119,13 @@ type (branch_struct), pointer :: branch
 type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
-type (csr_ele_struct), pointer :: c_ele, c_ele0
+type (csr_ele_info_struct), pointer :: eleinfo, eleinfo0
 type (coord_struct), optional :: centroid(0:)
 type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
 real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
-real(rp) e_tot, f1
+real(rp) e_tot, f1, x, z
 
 integer i, j, ie, ns, nb, n_step, n_live
 
@@ -173,50 +174,50 @@ endif
 
 ! Calculate beam centroid info at element edges, etc.
 
-allocate (csr%c_ele(0:ele%ix_ele))
+allocate (csr%eleinfo(0:ele%ix_ele))
 
 do i = 0, ele%ix_ele
-  c_ele => csr%c_ele(i)
-  c_ele%ele => branch%ele(i)  ! Pointer to the P' element
-  s_ele => c_ele%ele
-  c_ele%floor1 = branch%ele(i)%floor
-  c_ele%floor1%r(2) = 0  ! Make sure in horizontal plane
+  eleinfo => csr%eleinfo(i)
+  eleinfo%ele => branch%ele(i)  ! Pointer to the P' element
+  s_ele => eleinfo%ele
+  eleinfo%floor1 = branch%ele(i)%floor
+  eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
 
   if (i /= 0) then
-    c_ele%floor0   = csr%c_ele(i-1)%floor1
-    c_ele%e_floor0 = csr%c_ele(i-1)%e_floor1
-    c_ele%orbit0   = csr%c_ele(i-1)%orbit1
+    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
+    eleinfo%e_floor0 = csr%eleinfo(i-1)%e_floor1
+    eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
   endif
 
   if (present(centroid)) then
-    c_ele%orbit1 = centroid(i)
-    vec = c_ele%orbit1%vec
+    eleinfo%orbit1 = centroid(i)
+    vec = eleinfo%orbit1%vec
     floor%r = [vec(1), vec(3), s_ele%value(l$)]
-    c_ele%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
-    c_ele%floor1%r(2) = 0  ! Make sure in horizontal plane
-    c_ele%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
+    eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
+    eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
+    eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
   else
-    call init_coord (c_ele%orbit1, ele = s_ele, element_end = downstream_end$)
-    c_ele%floor1 = s_ele%floor
+    call init_coord (eleinfo%orbit1, ele = s_ele, element_end = downstream_end$)
+    eleinfo%floor1 = s_ele%floor
   endif
 
-  vec = c_ele%orbit1%vec
-  c_ele%floor1%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
+  vec = eleinfo%orbit1%vec
+  eleinfo%floor1%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
 
   if (s_ele%value(l$) /= 0) then
-    vec0 = c_ele%orbit0%vec
-    vec = c_ele%orbit1%vec
-    theta_chord = atan2(c_ele%floor1%r(1)-c_ele0%floor1%r(1), c_ele%floor1%r(3)-c_ele0%floor1%r(3))
-    c_ele%theta_chord = theta_chord
-    theta0 = modulo2(asin(vec0(2) / sqrt((1+vec0(6))**2 - vec0(4)**2)) + c_ele0%floor1%theta - theta_chord, pi)
-    theta1 = modulo2(asin(vec(2) / sqrt((1+vec(6))**2 - vec(4)**2)) + c_ele%floor1%theta - theta_chord, pi)
-    c_ele%L_chord = sqrt((c_ele%floor1%r(1)-c_ele0%floor1%r(1))**2 + (c_ele%floor1%r(3)-c_ele0%floor1%r(3))**2)
-    call create_a_spline (c_ele%spline, [0.0_rp, 0.0_rp], [c_ele%L_chord, 0.0_rp], theta0, theta1)
+    vec0 = eleinfo%orbit0%vec
+    vec = eleinfo%orbit1%vec
+    theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo0%floor1%r(1), eleinfo%floor1%r(3)-eleinfo0%floor1%r(3))
+    eleinfo%theta_chord = theta_chord
+    theta0 = modulo2(asin(vec0(2) / sqrt((1+vec0(6))**2 - vec0(4)**2)) + eleinfo0%floor1%theta - theta_chord, pi)
+    theta1 = modulo2(asin(vec(2) / sqrt((1+vec(6))**2 - vec(4)**2)) + eleinfo%floor1%theta - theta_chord, pi)
+    eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo0%floor1%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo0%floor1%r(3))**2)
+    call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
 
-    c_ele%dL_s = dspline_len(0.0_rp, c_ele%L_chord, c_ele%spline)
+    eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
   endif
 
-  c_ele0 => c_ele
+  eleinfo0 => eleinfo
 enddo
 
 ! make sure that ele_len / track_step is an integer.
@@ -259,8 +260,6 @@ do i = 0, n_step
 
   ! Assume a linear energy gain in a cavity
 
-  csr%s_kick = s0_step
-  csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%c_ele(ele%ix_ele))
   f1 = s0_step / ele%value(l$)
   e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
   call convert_total_energy_to (e_tot, branch%param%particle, csr%gamma, beta = csr%beta)
@@ -269,8 +268,15 @@ do i = 0, n_step
 
   call csr_bin_particles (bunch_end%particle, csr)
 
+  csr%s_kick = s0_step
+  csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele))
+  z = csr%s_chord_kick
+  x = spline1(csr%eleinfo(ele%ix_ele)%spline, z)
+  theta_chord = csr%eleinfo(ele%ix_ele)%theta_chord
+  csr%floor_k%r = [x*cos(theta_chord)+z*sin(theta_chord), 0.0_rp, -x*sin(theta_chord)+z*cos(theta_chord)]
+  csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
+
   ! ns = 0 is the unshielded kick.
-  ! For the shielding image currents never use the small angle approximation
 
   csr%slice(:)%kick_csr = 0
   csr%slice(:)%kick_lsc = 0
@@ -614,7 +620,7 @@ end subroutine csr_bin_kicks
 !
 ! Output:
 !   s_source      -- real(rp): source s-position.
-!   c_ele         -- c_ele_struct: Geometric values.
+!   kick1         -- csr_kick1_struct:
 !-
 
 function s_source_calc (kick1, csr) result (s_source)
@@ -623,8 +629,7 @@ implicit none
 
 type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
-type (csr_ele_struct), pointer :: c_ele
-type (ele_struct), pointer :: s_ele
+type (csr_ele_info_struct), pointer :: einfo_s, einfo_k
 type (floor_position_struct), pointer :: fk, f0, fs
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz
@@ -639,45 +644,48 @@ character(*), parameter :: r_name = 's_source_calc'
 
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
-fk => csr%floor_k
-fs => kick1%floor_s
 
 do
 
-  c_ele => csr%c_ele(kick1%ix_ele_source)
-  s_ele => c_ele%ele
-  f0 => c_ele%floor1
+  einfo_s => csr%eleinfo(kick1%ix_ele_source)
 
   ! If at beginning of lattice assume an infinite drift.
   ! s_source will be negative
 
-  if (s_ele%ix_ele == 0) then
+  if (kick1%ix_ele_source == 0) then
+    fk => csr%floor_k
+    fs => kick1%floor_s
+    f0 => einfo_s%floor1
+
     L0 = sqrt((fk%r(1) - f0%r(1))**2 + (fk%r(3) - f0%r(3))**2 + csr%y_source**2)
     ! L_z is the z-component from lat start to the kick point.
     Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta) 
     ! Lsz0 is Ls from the lat start to the kick point
-    Lsz0 = dspline_len(0.0_rp, csr%s_chord_kick, csr%c_ele(csr%ix_ele_kick)%spline) + csr%s_chord_kick
+    Lsz0 = dspline_len(0.0_rp, csr%s_chord_kick, csr%eleinfo(csr%ix_ele_kick)%spline) + csr%s_chord_kick
     do i = 1, csr%ix_ele_kick - 1
-      Lsz0 = Lsz0 + csr%c_ele(i)%dL_s + csr%c_ele(i)%L_chord
+      Lsz0 = Lsz0 + csr%eleinfo(i)%dL_s + csr%eleinfo(i)%L_chord
     enddo
 
     a = 1/csr%gamma2
     b = 2 * (Lsz0 - dz - beta2 * Lz)
     c = (Lsz0 - dz)**2 - beta2 * L0**2
-    s_source = c_ele%ele%s - (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+    s_source = einfo_s%ele%s - (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
 
     fs%r = [f0%r(1) + s_source * sin(f0%theta), csr%y_source, f0%r(3) + s_source * cos(f0%theta)]
     fs%theta = f0%theta
-    kick1%L = sqrt(dot_product(fk%r-fs%r, fk%r-fs%r))
+    kick1%L_vec = fk%r - fs%r
+    kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
     kick1%dL = lsz0 - s_source - kick1%L  ! Remember s_source is negative
-    kick1%theta_sl = 0
-    kick1%theta_lk = f0%theta - (spline1(c_ele%spline, csr%s_chord_kick, 1) + c_ele%theta_chord)
+    kick1%theta_L = atan2(kick1%L_vec(1), kick1%L_vec(3))
+    kick1%theta_sl = f0%theta - kick1%theta_L
+    einfo_k => csr%eleinfo(csr%ix_ele_kick)
+    kick1%theta_lk = kick1%theta_L - (spline1(einfo_k%spline, csr%s_chord_kick, 1) + einfo_k%theta_chord)
     return
   endif
 
   ! Look at ends of the source element to make sure that we are within the element
 
-  if (0 < ddz_calc_csr(c_ele%L_chord)) then
+  if (0 < ddz_calc_csr(einfo_s%L_chord)) then
     if (kick1%ix_ele_source == csr%ix_ele_kick) return
     kick1%ix_ele_source = kick1%ix_ele_source + 1
     cycle
@@ -688,7 +696,7 @@ do
     cycle
   endif
 
-  s_source = zbrent (ddz_calc_csr, 0.0_rp, s_ele%value(l$), 1d-8)
+  s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
 
   return
 enddo
@@ -713,10 +721,9 @@ function ddz_calc_csr (s_chord_source) result (ddz_this)
 
 implicit none
 
-type (floor_position_struct) fs
-type (csr_ele_struct), pointer :: ce
+type (csr_ele_info_struct), pointer :: ce
 real(rp), intent(in) :: s_chord_source
-real(rp) ddz_this, x, z, c, s, l_vec(3), dtheta_L
+real(rp) ddz_this, x, z, c, s, dtheta_L
 real(rp) s0, s1, ds, theta_L, dL
 
 integer i
@@ -725,14 +732,14 @@ character(*), parameter :: r_name = 'ddz_calc_csr'
 
 ! 
 
-x = spline1(c_ele%spline, s_chord_source)
-c = cos(c_ele%theta_chord)
-s = sin(c_ele%theta_chord)
-fs%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c]  ! Floor coordinates
+x = spline1(einfo_s%spline, s_chord_source)
+c = cos(einfo_s%theta_chord)
+s = sin(einfo_s%theta_chord)
+kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c]  ! Floor coordinates
 
-l_vec = fk%r - fs%r
-kick1%L = sqrt(dot_product(L_vec, L_vec))
-theta_L = atan2(l_vec(1), l_vec(3))
+kick1%L_vec = csr%floor_k%r - kick1%floor_s%r
+kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
+kick1%theta_L = atan2(kick1%L_vec(1), kick1%L_vec(3))
 
 s0 = s_chord_source
 s1 = csr%s_chord_kick
@@ -740,28 +747,31 @@ s1 = csr%s_chord_kick
 if (kick1%ix_ele_source == csr%ix_ele_kick) then
   ds = s1 - s0
   ! dtheta_L = angle of L line in centroid chord ref frame
-  dtheta_L = c_ele%spline%coef(1) + c_ele%spline%coef(2) * (2*s0 + ds) + c_ele%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
-  dL = dspline_len(s0, s1, c_ele%spline, dtheta_L) ! = Ls - L
+  dtheta_L = einfo_s%spline%coef(1) + einfo_s%spline%coef(2) * (2*s0 + ds) + einfo_s%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
+  dL = dspline_len(s0, s1, einfo_s%spline, dtheta_L) ! = Ls - L
   ! Ls is negative if the source pt is ahead of the kick pt (ds < 0). But L is always positive. 
   if (ds < 0) dL = dL + 2 * ds    ! Correct for L always being positive.
-  kick1%theta_sl = spline1(c_ele%spline, s0, 1) - dtheta_L
-  kick1%theta_lk = dtheta_L - spline1(c_ele%spline, s1, 1)
+  kick1%theta_sl = spline1(einfo_s%spline, s0, 1) - dtheta_L
+  kick1%theta_lk = dtheta_L - spline1(einfo_s%spline, s1, 1)
 
 else
-  dL = dspline_len(s0, c_ele%L_chord, c_ele%spline, modulo2(theta_L-c_ele%theta_chord, pi))
+  theta_L = kick1%theta_L
+  dL = dspline_len(s0, einfo_s%L_chord, einfo_s%spline, modulo2(theta_L-einfo_s%theta_chord, pi))
   do i = kick1%ix_ele_source+1, csr%ix_ele_kick-1
-    ce => csr%c_ele(i)
+    ce => csr%eleinfo(i)
     dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
   enddo
-  ce => csr%c_ele(csr%ix_ele_kick)
+  ce => csr%eleinfo(csr%ix_ele_kick)
   dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
-  kick1%theta_sl = modulo2((spline1(c_ele%spline, s0, 1) + c_ele%theta_chord) - theta_L, pi)
+  kick1%theta_sl = modulo2((spline1(einfo_s%spline, s0, 1) + einfo_s%theta_chord) - theta_L, pi)
   kick1%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi)
 endif
 
+kick1%floor_s%theta = kick1%theta_sl + kick1%theta_L
+
 ! The above calc for dL neglected csr%y_source. So must correct for this.
 
-if (csr%y_source /= 0) dL = dL - (kick1%L - sqrt(l_vec(1)**2 + l_vec(3)**2))
+if (csr%y_source /= 0) dL = dL - (kick1%L - sqrt(kick1%L_vec(1)**2 + kick1%L_vec(3)**2))
 kick1%dL = dL 
 ddz_this = kick1%L / (2 * csr%gamma2) + dL
 ddz_this = ddz_this - kick1%dz_particles
@@ -876,7 +886,7 @@ implicit none
 type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
 type (csr_kick1_struct), pointer :: k
-type (csr_ele_struct), pointer :: c_ele
+type (csr_ele_info_struct), pointer :: eleinfo
 type (spline_struct), pointer :: spl
 
 real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
@@ -906,11 +916,12 @@ if (i_bin == 1) then
     if (s_chord_kick /= 0) exit  ! Not at edge of element and element has finite length
     ix_ele_kick = ix_ele_kick - 1
     if (ix_ele_kick == 0) return  ! No kick from before beginning of lattice
-    s_chord_kick = csr%c_ele(ix_ele_kick)%L_chord
+    s_chord_kick = csr%eleinfo(ix_ele_kick)%L_chord
   enddo
 
-  spl => csr%c_ele(ix_ele_kick)%spline
+  spl => csr%eleinfo(ix_ele_kick)%spline
   g_bend = -spline1(spl, s_chord_kick, 2) / sqrt(1 + spline1(spl, s_chord_kick, 1)**2)**3
+
   if (k%ix_ele_source == ix_ele_kick) then
     Ls = k%L + k%dL
     k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)  
@@ -918,14 +929,14 @@ if (i_bin == 1) then
     ! Since source pt is in another element, split integral into pieces.
     ! First integrate over element containing the kick point.
     L = s_chord_kick
-    c_ele => csr%c_ele(ix_ele_kick)
-    dtheta_L = c_ele%spline%coef(1) + c_ele%spline%coef(2) * L + c_ele%spline%coef(3) * L**2
-    dL = dspline_len(0.0_rp, L, c_ele%spline, dtheta_L) ! = Ls - L
+    eleinfo => csr%eleinfo(ix_ele_kick)
+    dtheta_L = eleinfo%spline%coef(1) + eleinfo%spline%coef(2) * L + eleinfo%spline%coef(3) * L**2
+    dL = dspline_len(0.0_rp, L, eleinfo%spline, dtheta_L) ! = Ls - L
     Ls = L + dL
     zz = L / (2 * csr%gamma2) + dL
-    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)
+    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * zz / Ls) / csr%gamma2)
     ! Now add on rest of integral
-    k%I_int_csr = k%I_int_csr + k%I_csr * (z - zz) / z
+    k%I_int_csr = k%I_int_csr + k%I_csr * (z - zz)
   endif
 endif
 
@@ -963,7 +974,7 @@ real(rp) z, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, theta, g_bend
 !
 
 k => kick1
-sp => csr%c_ele(k%ix_ele_source)%spline
+sp => csr%eleinfo(k%ix_ele_source)%spline
 
 g_bend = -spline1(sp, k%s_chord_source, 2) / sqrt(1 + spline1(sp, k%s_chord_source, 1)**2)**3
 theta = k%floor_s%theta
@@ -1137,41 +1148,41 @@ end function dspline_len
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function s_ref_to_s_chord (s_ref, c_ele) result (s_chord)
+! Function s_ref_to_s_chord (s_ref, eleinfo) result (s_chord)
 !
 ! Routine to calculate s_chord given s_ref.
 !
 ! Input:
 !   s_ref     -- real(rp): s-position along element ref coords.
-!   c_ele     -- csr_ele_struct: Element info
+!   eleinfo     -- csr_ele_info_struct: Element info
 !
 ! Output:
 !   s_chord   -- real(rp): s-posijtion along centroid chord.
 !-
 
-function s_ref_to_s_chord (s_ref, c_ele) result (s_chord)
+function s_ref_to_s_chord (s_ref, eleinfo) result (s_chord)
 
 implicit none
 
-type (csr_ele_struct), target :: c_ele
+type (csr_ele_info_struct), target :: eleinfo
 type (ele_struct), pointer :: ele
 
 real(rp) s_ref, s_chord, dtheta, dr(3), x, g, t
 
 !
 
-ele => c_ele%ele
+ele => eleinfo%ele
 g = ele%value(g$)
 
 if (ele%key == sbend$ .and. abs(g) > 1d-5) then
-  dtheta = c_ele%floor0%theta - c_ele%e_floor0%theta
-  dr = c_ele%e_floor0%r - c_ele%floor0%r
-  t = c_ele%e_floor0%theta + pi/2
+  dtheta = eleinfo%floor0%theta - eleinfo%e_floor0%theta
+  dr = eleinfo%e_floor0%r - eleinfo%floor0%r
+  t = eleinfo%e_floor0%theta + pi/2
   x = dr(1) * cos(t) + dr(3) * sin(t)
   s_chord = abs(ele%value(rho$)) * atan2(s_ref * cos(dtheta), abs(ele%value(rho$) + x + s_ref * sin(dtheta)))
 
 else
-  s_chord = s_ref * c_ele%L_chord /ele%value(l$)
+  s_chord = s_ref * eleinfo%L_chord /ele%value(l$)
 endif
 
 end function s_ref_to_s_chord
