@@ -121,9 +121,9 @@ type csr_parameter_struct                  ! Common block for csr calc
   logical :: lcsr_component_on = .true.    ! Longitudinal csr component
   logical :: lsc_component_on = .true.     ! Longitudinal space charge component
   logical :: tsc_component_on = .false.    ! Transverse space charge component
-  logical :: small_angle_approx = .true.   ! Use lcsr small angle approximation?
   logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
-  logical :: use_csr_old = .true.          ! Use old CSR tracking? The new one in in devel.
+  logical :: use_csr_old = .true.          ! Use old CSR tracking? THE NEW ONE IN IN DEVELEPMENT.
+  logical :: small_angle_approx = .true.   ! Use small angle approximation? ONLY USED WITH OLD CSR.
 end type
 
 type (csr_parameter_struct), save, target :: csr_param
