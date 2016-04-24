@@ -41,25 +41,25 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) kick_lsc    ! LSC Kick.
 end type
 
-! csr_kick1_struct stores the CSR kick, kick integral etc. for a give source and kick positions.
+! csr_kick1_struct stores the CSR kick, kick integral etc. for a given source and kick positions.
 ! This structure also holds info on parameters that go into the kick calculation.
 ! Since an integration step involves one kick position and many source positions,
 ! the information that is only kick position dependent is held in the csr_struct and
 ! the csr_struct holds an array of csr_kick1_structs, one for each dz.
 
 type csr_kick1_struct ! Sub-structure for csr calculation cache
-  real(rp) I_csr          ! Kick integral.
-  real(rp) I_int_csr      ! Integrated Kick integral.
-  real(rp) k_csr          ! kick.
-  real(rp) L_vec(3)       ! L vector in global coordinates.
-  real(rp) L              ! Distance between source and kick points.
-  real(rp) dL             ! = epsilon_L = Ls - L
-  real(rp) dz_particles   ! Kicked particle - source particle position at constant time.
-  real(rp) s_chord_source ! Source point location.
-  real(rp) theta_L        ! Angle of L vector
-  real(rp) theta_sl       ! Angle between velocity of particle at source pt and L
-  real(rp) theta_lk       ! Angle between L and velocity of kicked particle
-  integer ix_ele_source   ! Source element index.
+  real(rp) I_csr            ! Kick integral.
+  real(rp) I_int_csr        ! Integrated Kick integral.
+  real(rp) k_csr            ! kick.
+  real(rp) L_vec(3)         ! L vector in global coordinates.
+  real(rp) L                ! Distance between source and kick points.
+  real(rp) dL               ! = epsilon_L = Ls - L
+  real(rp) dz_particles     ! Kicked particle - source particle position at constant time.
+  real(rp) s_chord_source   ! Source point location.
+  real(rp) theta_L          ! Angle of L vector
+  real(rp) theta_sl         ! Angle between velocity of particle at source pt and L
+  real(rp) theta_lk         ! Angle between L and velocity of kicked particle
+  integer ix_ele_source     ! Source element index.
   type (floor_position_struct) floor_s  ! Floor position of source pt
 end type
 
@@ -73,13 +73,14 @@ type csr_struct           ! Structurture for binning particle averages
   real(rp) s_chord_kick         ! Kick point along beam centroid line
   real(rp) y_source             ! Height of source particle.
   real(rp) kick_factor          ! Coefficient to scale the kick
-  logical small_angle_approx
+  real(rp) actual_track_step    ! ds_track_step scalled by Length_centroid_chord / Length_element ratio
   type(floor_position_struct) floor_k   ! Floor coords at kick point
   integer species                       ! Particle type
   integer ix_ele_kick                   ! Same as element being tracked through.
   type (csr_bunch_slice_struct), allocatable :: slice(:)    ! slice(i) refers to the i^th bunch slice.
   type (csr_kick1_struct), allocatable :: kick1(:)          ! kick1(i) referes to the kick between two slices i bins apart.
   type (csr_ele_info_struct), allocatable :: eleinfo(:)     ! Element-by-element information.
+  type (ele_struct), pointer :: kick_ele                    ! Element where the kick pt is == ele tracked through.
 end type
 
 contains
@@ -135,8 +136,8 @@ logical err, auto_bookkeeper
 ! Init
 
 err = .true.
+csr%kick_ele => ele    ! Element where the kick pt is == ele tracked through.
 branch => ele%branch
-csr%small_angle_approx = csr_param%small_angle_approx
 
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.
@@ -213,7 +214,6 @@ do i = 0, ele%ix_ele
     theta1 = modulo2(asin(vec(2) / sqrt((1+vec(6))**2 - vec(4)**2)) + eleinfo%floor1%theta - theta_chord, pi)
     eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo0%floor1%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo0%floor1%r(3))**2)
     call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
-
     eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
   endif
 
@@ -226,6 +226,7 @@ n_step = max (1, nint(ele%value(l$) / csr_param%ds_track_step))
 csr%ds_track_step = ele%value(l$) / n_step
 csr%species = bunch_start%particle(1)%species
 csr%ix_ele_kick = ele%ix_ele
+csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / ele%value(l$))
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
@@ -293,7 +294,7 @@ do i = 0, n_step
 
     csr%y_source = ns * csr_param%beam_chamber_height
 
-    call csr_bin_kicks (ele, s0_step, csr)
+    call csr_bin_kicks (s0_step, csr)
   enddo
 
   ! loop over all particles and give them a kick
@@ -511,12 +512,11 @@ end subroutine csr_bin_particles
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_kicks (ele, ds_kick_pt, csr)
+! Subroutine csr_bin_kicks (ds_kick_pt, csr)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
 ! Input:
-!   ele          -- element_struct: Element being tracked through.
 !   ds_kick_pt   -- real(rp): Distance between the beginning of the element we are
 !                    tracking through and the kick point (which is within this element).
 !   csr      -- csr_struct: 
@@ -527,13 +527,12 @@ end subroutine csr_bin_particles
 !     %slice(:)%kick_csr -- Integrated kick
 !-
 
-subroutine csr_bin_kicks (ele, ds_kick_pt, csr)
+subroutine csr_bin_kicks (ds_kick_pt, csr)
 
 implicit none
 
 type (csr_struct), target :: csr
 type (branch_struct), pointer :: branch
-type (ele_struct) ele
 type (csr_kick1_struct), pointer :: kick1
 
 real(rp) ds_kick_pt, coef
@@ -545,15 +544,13 @@ character(16) :: r_name = 'csr_bin_kicks'
 ! The kick point P is fixed.
 ! Loop over all kick1 bins and compute the kick.
 
-branch => ele%branch
-
 do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
   kick1 => csr%kick1(i)
   kick1%dz_particles = i * csr%dz_slice
 
   if (i == lbound(csr%kick1, 1)) then
-    kick1%ix_ele_source = ele%ix_ele  ! Initial guess where source point is
+    kick1%ix_ele_source = csr%ix_ele_kick  ! Initial guess where source point is
   else
     kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
   endif
@@ -573,9 +570,9 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
 enddo
 
-! 
+! Approximate the actual step length by ds_track_step * L_chord / L_ele.
 
-coef = csr%ds_track_step * r_e / (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+coef = csr%actual_track_step * r_e / (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 n_bin = csr_param%n_bin
 
 ! CSR & Image charge kick
@@ -853,7 +850,7 @@ do i = 1, csr_param%n_bin
 
 enddo
 
-factor = csr%kick_factor * csr%ds_track_step * r_e / &
+factor = csr%kick_factor * csr%actual_track_step * r_e / &
           (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 csr%slice(:)%kick_lsc = factor * csr%slice(:)%kick_lsc
 
@@ -1067,13 +1064,12 @@ vec(5) = vec(5) * particle%beta / beta0
 ! Transverse space charge.
 
 if (csr_param%tsc_component_on) then
-  f0 = csr%kick_factor * csr%ds_track_step * r_e / (twopi * &
+  f0 = csr%kick_factor * csr%actual_track_step * r_e / (twopi * &
            csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(particle%species)) * csr%gamma**3)
 
   slice => csr%slice(i0)
   if (slice%sig_x /= 0) then
-    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, &
-                                                       slice%sig_y/slice%sig_x, kx, ky)
+    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
     vec(2) = vec(2) - kx * f
@@ -1082,8 +1078,7 @@ if (csr_param%tsc_component_on) then
 
   slice => csr%slice(i0+1)
   if (slice%sig_x /= 0) then
-    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, &
-                                                       slice%sig_y/slice%sig_x, kx, ky)
+    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
     vec(2) = vec(2) - kx * f   
