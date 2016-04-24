@@ -273,7 +273,8 @@ do i = 0, n_step
   z = csr%s_chord_kick
   x = spline1(csr%eleinfo(ele%ix_ele)%spline, z)
   theta_chord = csr%eleinfo(ele%ix_ele)%theta_chord
-  csr%floor_k%r = [x*cos(theta_chord)+z*sin(theta_chord), 0.0_rp, -x*sin(theta_chord)+z*cos(theta_chord)]
+  csr%floor_k%r = [x*cos(theta_chord)+z*sin(theta_chord), 0.0_rp, -x*sin(theta_chord)+z*cos(theta_chord)] + &
+                      csr%eleinfo(ele%ix_ele)%floor0%r
   csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
 
   ! ns = 0 is the unshielded kick.
@@ -566,9 +567,6 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
   if (csr%y_source == 0) then
     call I_csr (kick1, i, csr)
-    if (csr%kick1(i)%I_int_csr == 0 .and. i /= lbound(csr%kick1, 1)) then
-      csr%kick1(i)%I_int_csr = (csr%kick1(i)%I_csr + csr%kick1(i-1)%I_csr) * csr%dz_slice / 2
-    endif
   else
     call kick_image_charge (kick1, csr)
   endif
@@ -735,7 +733,8 @@ character(*), parameter :: r_name = 'ddz_calc_csr'
 x = spline1(einfo_s%spline, s_chord_source)
 c = cos(einfo_s%theta_chord)
 s = sin(einfo_s%theta_chord)
-kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c]  ! Floor coordinates
+kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + &
+                    einfo_s%floor0%r    ! Floor coordinates
 
 kick1%L_vec = csr%floor_k%r - kick1%floor_s%r
 kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
@@ -892,12 +891,11 @@ type (spline_struct), pointer :: spl
 real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
 integer i_bin, ix_ele_kick
 
-! 
-
-kick1%I_int_csr = 0
+! No kick when source particle is ahead of the kicked particle
 
 z = kick1%dz_particles
 if (z <= 0) then
+  kick1%I_int_csr = 0
   kick1%I_csr = 0
   return
 endif
@@ -905,9 +903,9 @@ endif
 !
 
 k => kick1
-k%I_csr = -csr%kick_factor * 2 * (k%dL / (z * k%L) + csr%gamma2 * k%theta_sl * k%theta_lk / (1 + csr%gamma2 * k%theta_sl**2)) / k%L
+k%I_csr = -csr%kick_factor * 2 * (k%dL / z + csr%gamma2 * k%theta_sl * k%theta_lk / (1 + csr%gamma2 * k%theta_sl**2)) / k%L
 
-! I_csr Integral when source and kick points close.
+! I_csr Integral 
 
 if (i_bin == 1) then
   ix_ele_kick = csr%ix_ele_kick
@@ -938,6 +936,9 @@ if (i_bin == 1) then
     ! Now add on rest of integral
     k%I_int_csr = k%I_int_csr + k%I_csr * (z - zz)
   endif
+
+else
+  kick1%I_int_csr = (kick1%I_csr + csr%kick1(i_bin-1)%I_csr) * csr%dz_slice / 2
 endif
 
 end subroutine I_csr
