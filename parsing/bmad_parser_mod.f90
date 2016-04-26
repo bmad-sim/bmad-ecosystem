@@ -255,12 +255,12 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
 
   word = word(2:)             ! strip off '{'
   call match_word (word, ['XX', 'XY', 'XZ', 'YX', 'YY', 'YZ', 'ZX', 'ZY', 'ZZ'], i_out, .true., .false.)
-  if (i_out > 1) then
+  if (i_out > 0) then
     i_out = i_out + 100 ! Make i_out not in range [1:6]
   else
     read (word, *, iostat = ios) i_out
     if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
-      call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name)
+      call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR ELEMENT: ' // ele%name)
       return
     endif
   endif
@@ -6750,6 +6750,13 @@ iz1 = maxval(array%ix(3))
 
 allocate(grid%pt(ix0:ix1, iy0:iy1, iz0:iz1))
 
+n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
+if (n /= pt_counter) then
+  call parser_error ('Number of grid points (\i0\) in the file not equal to grid array size (\i0\ x \i0\ x \i0\).', &
+                     'for element: ' // ele%name, warn_only = .true., &
+                    i_array = [pt_counter, (ix1+1-ix0), (iy1+1-iy0), (iz1+1-iz0)])
+endif
+
 ! Assign grid values
 do i = 1, pt_counter
   ix1 = array(i)%ix(1)
@@ -6758,12 +6765,6 @@ do i = 1, pt_counter
   grid%pt(ix1, iy1, iz1)%E(1:3) = array(i)%field(1:3)
   grid%pt(ix1, iy1, iz1)%B(1:3) = array(i)%field(4:6)
 end do
-
-n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
-if (n /= pt_counter) then
-  call parser_error ('Number of grid points (\i0\) in the file not equal to grid array size (\i0\).', &
-                     'for element: ' // ele%name, warn_only = .true., i_array = [pt_counter, n])
-endif
 
 ! Clear temporary array
 
