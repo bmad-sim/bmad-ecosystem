@@ -115,6 +115,7 @@ type tao_graph_input
   character(80) :: title = ''
   character(60) :: component = 'model'
   character(2) :: floor_plan_view = 'zx'
+  character(16) :: floor_plan_orbit_color = 'RED'
   integer :: box(4) = [1, 1, 1, 1]
   integer :: ix_universe = -1
   integer :: ix_branch = 0
@@ -122,6 +123,7 @@ type tao_graph_input
   real(rp) :: x_axis_scale_factor = 1
   real(rp) :: symbol_size_scale = 0
   real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  real(rp) :: floor_plan_orbit_scale = 0 ! Scale factor for drawing orbits. 0 -> Do not draw.
   logical :: clip = .true.
   logical :: correct_xy_distortion = .false.
   logical :: draw_axes = .true.

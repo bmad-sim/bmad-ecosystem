@@ -513,20 +513,22 @@ type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
 type (ele_struct), pointer :: ele1, ele2, lord
-type (floor_position_struct) end1, end2, floor, x_ray, floor1, floor2
+type (floor_position_struct) end1, end2, orbit1, orbit2, floor, x_ray, floor1, floor2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
+type (coord_struct), pointer :: orbit(:)
 
-integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid
+integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge, dat_var_value
-real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
+real(rp) x_bend(0:500), y_bend(0:500), dx_bend(0:500), dy_bend(0:500)
+real(rp) dx_orbit(0:500), dy_orbit(0:500)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
-real(rp) x_min, x_max, y_min, y_max
+real(rp) x_min, x_max, y_min, y_max, r1, xb, yb
 
 character(*) dat_var_name
 character(80) str
@@ -539,6 +541,9 @@ logical is_data_or_var, is_there
 logical shape_has_box, is_bend
 
 !
+
+isu = tao_universe_number(ix_uni)
+orbit => s%u(isu)%model%lat_branch(ele%ix_branch)%orbit
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
@@ -564,7 +569,6 @@ else
 endif
 
 if (is_data_or_var) floor1 = floor2 ! pretend this is zero length element
-
 
 call floor_to_screen_coords (graph, floor1, end1)
 call floor_to_screen_coords (graph, floor2, end2)
@@ -613,6 +617,15 @@ if (is_bend) then
     call floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
     call floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
 
+    if (graph%floor_plan_orbit_scale /= 0) then
+      ix = ele%ix_ele
+      r1 = real(j, rp) / n_bend
+      dr_vec = 0
+      dr_vec(1:2) = (1-r1) * orbit(ix-1)%vec(1:3:2) + r1 * orbit(ix)%vec(1:3:2)
+      dv_vec = matmul(w_old, dr_vec)
+      call floor_to_screen (graph, dv_vec, dx_orbit(j), dy_orbit(j))
+    endif
+
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
     ! the local y-axis.
 
@@ -639,6 +652,36 @@ if (is_bend) then
     endif
   enddo
 
+endif
+
+! Draw orbit?
+
+if (graph%floor_plan_orbit_scale /= 0) then
+  if (is_bend) then
+    do j = 0, n_bend
+      call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', xb, yb, draw_units)
+      call qp_convert_point_rel (dx_orbit(j), dy_orbit(j), 'DATA', dt_x, dt_y, draw_units)
+      dx_orbit(j) =  graph%floor_plan_orbit_scale * dt_y + xb
+      dy_orbit(j) = -graph%floor_plan_orbit_scale * dt_x + yb
+    enddo
+    call qp_draw_polyline(dx_orbit(:n_bend), dy_orbit(:n_bend), &
+            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
+
+  else
+    ix = ele%ix_ele
+
+    floor%r = [orbit(ix-1)%vec(1), orbit(ix-1)%vec(3), 0.0_rp]
+    floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+    call floor_to_screen_coords (graph, floor1, orbit1)
+
+    floor%r = [orbit(ix)%vec(1), orbit(ix)%vec(3), ele%value(l$)]
+    floor2 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+    call floor_to_screen_coords (graph, floor2, orbit2)
+
+    orbit1%r = graph%floor_plan_orbit_scale * orbit1%r + end1%r
+    orbit2%r = graph%floor_plan_orbit_scale * orbit2%r + end2%r
+    call qp_draw_line(orbit1%r(1), orbit2%r(1), orbit1%r(2), orbit2%r(2))
+  endif
 endif
 
 ! Only those elements with an associated ele_shape are to be drawn in full.

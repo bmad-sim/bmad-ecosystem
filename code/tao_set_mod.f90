@@ -1163,6 +1163,10 @@ select case (comp)
     call tao_real_set_value(this_graph%margin%y2, comp, value, error)
   case ('floor_plan_rotation')
     call tao_real_set_value(this_graph%floor_plan_rotation, comp, value, error)
+  case ('floor_plan_orbit_scale')
+    call tao_real_set_value(this_graph%floor_plan_orbit_scale, comp, value, error)
+  case ('floor_plan_orbit_color')
+    this_graph%floor_plan_orbit_color = value
   case ('scale_margin%x1')
     call tao_real_set_value(this_graph%scale_margin%x1, comp, value, error)
   case ('scale_margin%x2')
@@ -1182,7 +1186,7 @@ select case (comp)
       call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
       return
     end select
-    this_graph%floor_plan_view = value
+    this_graph%floor_plan_view = upcase(value)
 
   case default
     call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)

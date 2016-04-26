@@ -1236,7 +1236,7 @@ case ('data')
   call tao_evaluate_expression  (data_type, 0, .true., value_arr, scratch%good, err, &
                           stack = scratch%stack, dflt_component = graph%component, dflt_source = 'data')
   if (err) then
-    graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
+    graph%why_invalid = 'CANNOT FIND DATA CORRESPONDING: ' // data_type
     return
   end if
 

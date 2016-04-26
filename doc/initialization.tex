@@ -1697,6 +1697,8 @@ namelists should be placed directly after their respective
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
     graph%floor_plan_rotation    = <num>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
     graph%floor_plan_view        = <string>   ! View plane for floor plan plot. default = 'zx'
+    graph%floor_plan_orbit_scale = <real>     ! Scale for drawing orbits. Default: 0 -> Do not draw.
+    graph%floor_plan_orbit_color = <string>   ! Color of orbit. Default = 'RED'
     graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
                                  = <logical>  !   Default = T.
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
@@ -2186,6 +2188,12 @@ rotations. Example: (\sref{s:init.plot})
     graph%floor_plan_rotation = 0.5  ! Rotate 180 degrees
   /
 \end{example}
+
+The beam orbit can be drawn upon the floor plan. This is done by setting
+\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero surpresses the
+drawing of the orbit. This scale is used to scale the distance between the centerline of
+the elements and the orbit. The color of the drawn orbit is controlled by
+\vn{graph%floor_plan_orbit_color}. The default color is 'RED'.
 
 Alternatively, the global coordinates at the start of the lattice can
 be defined in the lattice file and this can rotate the floor plan.
