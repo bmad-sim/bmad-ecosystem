@@ -513,10 +513,11 @@ type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
 type (ele_struct), pointer :: ele1, ele2, lord
-type (floor_position_struct) end1, end2, orbit1, orbit2, floor, x_ray, floor1, floor2
+type (floor_position_struct) end1, end2, f_orb, floor, x_ray, floor1, floor2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 type (coord_struct), pointer :: orbit(:)
+type (coord_struct) orb_here
 
 integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
 
@@ -528,7 +529,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
-real(rp) x_min, x_max, y_min, y_max, r1, xb, yb
+real(rp) x_min, x_max, y_min, y_max, r1, xb, yb, l_here
 
 character(*) dat_var_name
 character(80) str
@@ -584,6 +585,14 @@ call qp_get_axis_attrib ('Y', y_min, y_max)
 
 if ((end1%r(1) < x_min .or. x_max < end1%r(1) .or. end1%r(2) < y_min .or. y_max < end1%r(2)) .and. &
     (end2%r(1) < x_min .or. x_max < end2%r(1) .or. end2%r(2) < y_min .or. y_max < end2%r(2))) return
+
+!
+
+if (s%plot_page%floor_plan_size_is_absolute) then
+  draw_units = 'DATA'
+else
+  draw_units = 'POINTS'
+endif
 
 ! Bends can be tricky if they are not in the X-Z plane. 
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
@@ -656,7 +665,7 @@ endif
 
 ! Draw orbit?
 
-if (graph%floor_plan_orbit_scale /= 0) then
+if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
     do j = 0, n_bend
       call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', xb, yb, draw_units)
@@ -664,23 +673,25 @@ if (graph%floor_plan_orbit_scale /= 0) then
       dx_orbit(j) =  graph%floor_plan_orbit_scale * dt_y + xb
       dy_orbit(j) = -graph%floor_plan_orbit_scale * dt_x + yb
     enddo
-    call qp_draw_polyline(dx_orbit(:n_bend), dy_orbit(:n_bend), &
+    call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), &
             color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
 
   else
     ix = ele%ix_ele
+    n = 10
+    do ic = 0, n
+      l_here = ic * ele%value(l$) / n
+      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, l_here, &
+                                                   .true., .true., orbit(ix-1), orb_here)
+      floor%r = [orb_here%vec(1), orb_here%vec(3), l_here]
+      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+      call floor_to_screen_coords (graph, floor1, f_orb)
+      dx_orbit(ic) = f_orb%r(1)
+      dy_orbit(ic) = f_orb%r(2)
+    enddo
 
-    floor%r = [orbit(ix-1)%vec(1), orbit(ix-1)%vec(3), 0.0_rp]
-    floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
-    call floor_to_screen_coords (graph, floor1, orbit1)
-
-    floor%r = [orbit(ix)%vec(1), orbit(ix)%vec(3), ele%value(l$)]
-    floor2 = coords_local_curvilinear_to_floor (floor, ele, .false.)
-    call floor_to_screen_coords (graph, floor2, orbit2)
-
-    orbit1%r = graph%floor_plan_orbit_scale * orbit1%r + end1%r
-    orbit2%r = graph%floor_plan_orbit_scale * orbit2%r + end2%r
-    call qp_draw_line(orbit1%r(1), orbit2%r(1), orbit1%r(2), orbit2%r(2))
+    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), &
+            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
   endif
 endif
 
@@ -729,12 +740,6 @@ case ('ASYM_VVAR_BOX')
   off1 = 0
   off2 = dat_var_value
 endselect
-
-if (s%plot_page%floor_plan_size_is_absolute) then
-  draw_units = 'DATA'
-else
-  draw_units = 'POINTS'
-endif
 
 ! x-ray line parameters if present
 
