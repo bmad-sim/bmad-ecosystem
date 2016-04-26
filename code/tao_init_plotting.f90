@@ -528,27 +528,30 @@ do  ! Loop over plot files
           endif
         enddo
       endif
-      grph%text_legend_origin    = graph%text_legend_origin
-      grph%curve_legend_origin   = graph%curve_legend_origin
-      grph%box                   = graph%box
-      grph%title                 = graph%title
-      grph%margin                = graph%margin
-      grph%scale_margin          = graph%scale_margin
-      grph%x                     = graph%x
-      grph%y                     = graph%y
-      grph%y2                    = graph%y2
-      grph%ix_universe           = graph%ix_universe
-      grph%ix_branch             = graph%ix_branch
-      grph%clip                  = graph%clip
-      grph%draw_axes             = graph%draw_axes
-      grph%draw_grid             = graph%draw_grid
-      grph%correct_xy_distortion = graph%correct_xy_distortion
-      grph%draw_only_good_user_data_or_vars = &
-                                   graph%draw_only_good_user_data_or_vars
-      grph%draw_curve_legend     = graph%draw_curve_legend
-      grph%title_suffix          = ''
-      grph%text_legend           = ''
-      grph%y2_mirrors_y          = .true.
+      grph%text_legend_origin     = graph%text_legend_origin
+      grph%curve_legend_origin    = graph%curve_legend_origin
+      grph%box                    = graph%box
+      grph%title                  = graph%title
+      grph%margin                 = graph%margin
+      grph%scale_margin           = graph%scale_margin
+      grph%x                      = graph%x
+      grph%y                      = graph%y
+      grph%y2                     = graph%y2
+      grph%ix_universe            = graph%ix_universe
+      grph%ix_branch              = graph%ix_branch
+      grph%clip                   = graph%clip
+      grph%draw_axes              = graph%draw_axes
+      grph%draw_grid              = graph%draw_grid
+      grph%correct_xy_distortion  = graph%correct_xy_distortion
+      grph%draw_only_good_user_data_or_vars = graph%draw_only_good_user_data_or_vars
+      grph%draw_curve_legend      = graph%draw_curve_legend
+      grph%floor_plan_view        = graph%floor_plan_view
+      grph%floor_plan_orbit_color = graph%floor_plan_orbit_color
+      grph%floor_plan_rotation    = graph%floor_plan_rotation
+      grph%floor_plan_orbit_scale = graph%floor_plan_orbit_scale
+      grph%title_suffix           = ''
+      grph%text_legend            = ''
+      grph%y2_mirrors_y           = .true.
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4

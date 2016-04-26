@@ -191,30 +191,32 @@ type tao_graph_struct
   character(60) component             ! Who to plot. Eg: 'meas - design'
   character(80) why_invalid           ! Informative string to print.
   character(2) :: floor_plan_view = 'zx'
+  character(16) :: floor_plan_orbit_color = 'RED'
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
-  type (qp_axis_struct) x             ! X-axis parameters.
-  type (qp_axis_struct) y             ! Y-axis attributes.
-  type (qp_axis_struct) y2            ! Y-axis attributes.
-  type (qp_rect_struct) margin        ! Margin around the graph.
-  type (qp_rect_struct) scale_margin  ! Margin for scaling
-  real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
-  real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
-  real(rp) :: floor_plan_rotation = 0 ! Rotation of floor plan plot: 1.0 -> 360^deg 
-  integer box(4)                      ! Defines which box the plot is put in.
-  integer :: ix_branch = 0            ! Branch in lattice.
-  integer :: ix_universe = -1         ! Used for lat_layout plots.
-  logical clip                        ! Clip plot at graph boundary.
-  logical valid                       ! valid if all curve y_dat computed OK.
-  logical :: y2_mirrors_y = .false.   ! Y2-axis same as Y-axis?
-  logical limited                     ! True if at least one data point past graph bounds.
-  logical draw_axes                   ! Draw axes, labels, etc?
-  logical correct_xy_distortion       ! T -> Shrink one axis in floor plan so x-scale = y-scale.
-  logical draw_curve_legend           ! Legend for displaying curve info.
-  logical draw_grid                   ! Draw a grid?
-  logical :: visible = .true.         ! To draw or not to draw.
+  type (qp_axis_struct) x                    ! X-axis parameters.
+  type (qp_axis_struct) y                    ! Y-axis attributes.
+  type (qp_axis_struct) y2                   ! Y-axis attributes.
+  type (qp_rect_struct) margin               ! Margin around the graph.
+  type (qp_rect_struct) scale_margin         ! Margin for scaling
+  real(rp) :: x_axis_scale_factor = 1        ! x-axis conversion from internal to plotting units.
+  real(rp) symbol_size_scale                 ! Symbol size scale factor for phase_space plots.
+  real(rp) :: floor_plan_rotation = 0        ! Rotation of floor plan plot: 1.0 -> 360^deg
+  real(rp) :: floor_plan_orbit_scale = 0     ! Scale factor for drawing orbits. 0 -> Do not draw.
+  integer box(4)                             ! Defines which box the plot is put in.
+  integer :: ix_branch = 0                   ! Branch in lattice.
+  integer :: ix_universe = -1                ! Used for lat_layout plots.
+  logical clip                               ! Clip plot at graph boundary.
+  logical valid                              ! valid if all curve y_dat computed OK.
+  logical :: y2_mirrors_y = .false.          ! Y2-axis same as Y-axis?
+  logical limited                            ! True if at least one data point past graph bounds.
+  logical draw_axes                          ! Draw axes, labels, etc?
+  logical correct_xy_distortion              ! T -> Shrink one axis in floor plan so x-scale = y-scale.
+  logical draw_curve_legend                  ! Legend for displaying curve info.
+  logical draw_grid                          ! Draw a grid?
+  logical :: visible = .true.                ! To draw or not to draw.
   logical :: draw_only_good_user_data_or_vars = .true.
 end type
 

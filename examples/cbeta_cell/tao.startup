@@ -46,5 +46,3 @@ alias phaseplots place r11 zphase;place r12 xphase;place r21 zhist;place r22 yph
 alias mat6on  set universe * mat6_recalc on
 alias mat6off set universe * mat6_recalc off
 
-x-a all s
-sc

@@ -44,7 +44,6 @@ the plot page) is broken up.
 
 
   place(1) = 'floor', 'floor'
-  !place(1) = 'floor', 'beta'
   place(2) = 'top', 'beta'
   place(3) = 'middle', 'eta'
   place(4) = 'bottom', 'layout'
@@ -2895,7 +2894,7 @@ curve(2)%legend_text = 'Y'
 &tao_template_plot
   plot%name = 'floor'
   plot%x%min =   -0.1
-  plot%x%max = 0.1
+  plot%x%max = 0.5
   !plot%x%major_div = 10
   plot%x%label = 'X (m)'
   plot%n_graph = 1
@@ -2910,8 +2909,8 @@ curve(2)%legend_text = 'Y'
   graph%title = 'floor_plan'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Y (m)'
-  graph%y%max = 0.1
-  graph%y%min = -0.1
+  graph%y%max = 0.3
+  graph%y%min = -0.3
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'lattice'
