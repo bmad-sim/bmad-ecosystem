@@ -2192,8 +2192,12 @@ rotations. Example: (\sref{s:init.plot})
 The beam orbit can be drawn upon the floor plan. This is done by setting
 \vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero surpresses the
 drawing of the orbit. This scale is used to scale the distance between the centerline of
-the elements and the orbit. The color of the drawn orbit is controlled by
-\vn{graph%floor_plan_orbit_color}. The default color is 'RED'.
+the elements and the orbit. Note: If \vn{graph%floor_plan_orbit_scale} is not unity, the
+plotted orbit when going through a \vn{patch} element with a finite transverse offset will
+show a discontinuity due to the discontinuity of the reference orbit.
+
+The color of a drawn beam orbit is controlled by \vn{graph%floor_plan_orbit_color}. The
+default color is 'RED'.
 
 Alternatively, the global coordinates at the start of the lattice can
 be defined in the lattice file and this can rotate the floor plan.
