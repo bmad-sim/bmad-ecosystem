@@ -512,14 +512,14 @@ type (tao_graph_struct) :: graph
 type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
-type (ele_struct), pointer :: ele1, ele2, lord
+type (ele_struct), pointer :: ele0, ele1, ele2, lord
 type (floor_position_struct) end1, end2, f_orb, floor, x_ray, floor1, floor2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here
 
-integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
+integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu, ix_ele
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge, dat_var_value
@@ -529,7 +529,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
-real(rp) x_min, x_max, y_min, y_max, r1, xb, yb, l_here
+real(rp) x_min, x_max, y_min, y_max, r1, xb, yb, s_here
 
 character(*) dat_var_name
 character(80) str
@@ -545,6 +545,7 @@ logical shape_has_box, is_bend
 
 isu = tao_universe_number(ix_uni)
 orbit => s%u(isu)%model%lat_branch(ele%ix_branch)%orbit
+ix_ele = ele%ix_ele
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
@@ -627,12 +628,13 @@ if (is_bend) then
     call floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
 
     if (graph%floor_plan_orbit_scale /= 0) then
-      ix = ele%ix_ele
-      r1 = real(j, rp) / n_bend
-      dr_vec = 0
-      dr_vec(1:2) = (1-r1) * orbit(ix-1)%vec(1:3:2) + r1 * orbit(ix)%vec(1:3:2)
-      dv_vec = matmul(w_old, dr_vec)
-      call floor_to_screen (graph, dv_vec, dx_orbit(j), dy_orbit(j))
+      s_here = j * ele%value(l$) / n_bend
+      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+                                                       .true., .true., orbit(ix_ele-1), orb_here)
+      f_orb%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+      f_orb%r(3) = s_here
+      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
+      call floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
     endif
 
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
@@ -667,23 +669,36 @@ endif
 
 if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
-    do j = 0, n_bend
-      call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', xb, yb, draw_units)
-      call qp_convert_point_rel (dx_orbit(j), dy_orbit(j), 'DATA', dt_x, dt_y, draw_units)
-      dx_orbit(j) =  graph%floor_plan_orbit_scale * dt_y + xb
-      dy_orbit(j) = -graph%floor_plan_orbit_scale * dt_x + yb
-    enddo
     call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), &
             color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
 
+  elseif (ele%key == patch$) then
+      ele0 => pointer_to_next_ele (ele, -1)
+      floor%r(1:2) = graph%floor_plan_orbit_scale * orbit(ix_ele-1)%vec(1:3:2)
+      floor%r(3) = ele0%value(l$)
+      floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
+      call floor_to_screen_coords (graph, floor1, f_orb)
+      dx_orbit(0) = f_orb%r(1)
+      dy_orbit(0) = f_orb%r(2)
+
+      floor%r(1:2) = graph%floor_plan_orbit_scale * orbit(ix_ele)%vec(1:3:2)
+      floor%r(3) = ele%value(l$)
+      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+      call floor_to_screen_coords (graph, floor1, f_orb)
+      dx_orbit(1) = f_orb%r(1)
+      dy_orbit(1) = f_orb%r(2)
+
+      call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
+            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
+
   else
-    ix = ele%ix_ele
     n = 10
     do ic = 0, n
-      l_here = ic * ele%value(l$) / n
-      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, l_here, &
-                                                   .true., .true., orbit(ix-1), orb_here)
-      floor%r = [orb_here%vec(1), orb_here%vec(3), l_here]
+      s_here = ic * ele%value(l$) / n
+      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+                                                 .true., .true., orbit(ix_ele-1), orb_here)
+      floor%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+      floor%r(3) = s_here
       floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
       call floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(ic) = f_orb%r(1)
@@ -695,8 +710,13 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   endif
 endif
 
+! coords_local_curvilinear_to_floor does not handle patch elements 
+! correctly (this will be fixed) so just ignore patch elements.
+
+if (ele%key == patch$) return
+
 ! Only those elements with an associated ele_shape are to be drawn in full.
-! All others are drawn with a simple line or arc
+! All others are drawn with a simple line or arc.
 
 is_there = .false.
 if (associated(ele_shape)) is_there = ele_shape%draw
