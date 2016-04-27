@@ -181,12 +181,12 @@ do i = 0, ele%ix_ele
   eleinfo => csr%eleinfo(i)
   eleinfo%ele => branch%ele(i)  ! Pointer to the P' element
   s_ele => eleinfo%ele
-  eleinfo%floor1 = branch%ele(i)%floor
-  eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
+  eleinfo%e_floor1 = branch%ele(i)%floor
+  eleinfo%e_floor1%r(2) = 0  ! Make sure in horizontal plane
 
   if (i /= 0) then
-    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
     eleinfo%e_floor0 = csr%eleinfo(i-1)%e_floor1
+    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
     eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
   endif
 
@@ -630,7 +630,7 @@ type (floor_position_struct), pointer :: fk, f0, fs
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz
 real(rp) z0, z1, sz_kick, sz0, Lsz0
 
-integer i
+integer i, last_step
 
 character(*), parameter :: r_name = 's_source_calc'
 
@@ -639,6 +639,7 @@ character(*), parameter :: r_name = 's_source_calc'
 
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
+last_step = 0             ! Have not stepped yet
 
 do
 
@@ -678,16 +679,27 @@ do
     return
   endif
 
-  ! Look at ends of the source element to make sure that we are within the element
+  ! Look at ends of the source element and check if the source point is within the element or not.
+  ! Generally dz decreases with increasing s but this may not be true for patch elements.
 
-  if (0 < ddz_calc_csr(einfo_s%L_chord)) then
-    if (kick1%ix_ele_source == csr%ix_ele_kick) return
-    kick1%ix_ele_source = kick1%ix_ele_source + 1
+  if (ddz_calc_csr(0.0_rp) < 0) then
+    if (last_step == 1) then ! Looks line dz increasing with increasing s so can use zbrent and return
+      s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
+      return
+    endif
+    kick1%ix_ele_source = kick1%ix_ele_source - 1
+    last_step = -1
     cycle
   endif
 
-  if (ddz_calc_csr(0.0_rp) < 0) then
-    kick1%ix_ele_source = kick1%ix_ele_source - 1
+  if (0 < ddz_calc_csr(einfo_s%L_chord)) then
+    if (last_step == -1) then ! Looks line dz increasing with increasing s so can use zbrent and return
+      s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
+      return
+    endif
+    if (kick1%ix_ele_source == csr%ix_ele_kick) return ! source ahead of kick pt => ignore.
+    kick1%ix_ele_source = kick1%ix_ele_source + 1
+    last_step = 1
     cycle
   endif
 
