@@ -204,6 +204,8 @@ integer i, j, n, im, ix_pass, ixs, ix, n_links
 
 logical csr_on, err
 
+character(*), parameter :: r_name = 'track1_bunch'
+
 !------------------------------------------------
 ! Tracking
 
@@ -215,7 +217,12 @@ if (csr_on) then
   if (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
   else
-    call track1_bunch_csr (bunch_start, ele, bunch_end, err, centroid = centroid)
+    if (.not. present(centroid)) then
+      call out_io (s_fatal$, r_name, 'BUNCH CENTROID MUST BE SUPPLIED FOR CSR CALCULATION!')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+    call track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err)
   endif
   bunch_end%ix_ele = ele%ix_ele
 
