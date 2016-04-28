@@ -89,7 +89,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, ele, bunch_end, err, s_start, s_end, centroid)
+! Subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
 !
@@ -97,19 +97,18 @@ contains
 !   use csr_mod
 !
 ! Input:
-!   bunch_start -- Bunch_struct: Starting bunch position.
-!   ele         -- Ele_struct: The element to track through. Must be part of a lattice.
-!   s_start     -- real(rp), optional: Starting position relative to ele. Default = 0
-!   s_end       -- real(rp), optional: Ending position. Default is ele length.
-!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if the
-!                     central orbit is far from the zero orbit.
+!   bunch_start  -- Bunch_struct: Starting bunch position.
+!   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
+!   centroid(0:) -- coord_struct, Beam centroid orbit for the lattice branch containing ele.
+!   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
+!   s_end        -- real(rp), optional: Ending position. Default is ele length.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, ele, bunch_end, err, s_start, s_end, centroid)
+subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
 
 implicit none
 
@@ -121,7 +120,7 @@ type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
 type (csr_ele_info_struct), pointer :: eleinfo, eleinfo0
-type (coord_struct), optional :: centroid(0:)
+type (coord_struct) :: centroid(0:)
 type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
@@ -190,17 +189,12 @@ do i = 0, ele%ix_ele
     eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
   endif
 
-  if (present(centroid)) then
-    eleinfo%orbit1 = centroid(i)
-    vec = eleinfo%orbit1%vec
-    floor%r = [vec(1), vec(3), s_ele%value(l$)]
-    eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
-    eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
-    eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
-  else
-    call init_coord (eleinfo%orbit1, ele = s_ele, element_end = downstream_end$)
-    eleinfo%floor1 = s_ele%floor
-  endif
+  eleinfo%orbit1 = centroid(i)
+  vec = eleinfo%orbit1%vec
+  floor%r = [vec(1), vec(3), s_ele%value(l$)]
+  eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
+  eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
+  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
 
   vec = eleinfo%orbit1%vec
   eleinfo%floor1%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
