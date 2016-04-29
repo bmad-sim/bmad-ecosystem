@@ -13,6 +13,12 @@
 cmake_policy (SET CMP0015 NEW)
 
 
+#-----------------------------------------------------------
+# Disable the inclusion of RPATH from the Acc Build System
+#-----------------------------------------------------------
+SET (CMAKE_SKIP_RPATH TRUE)
+
+
 #------------------------------------------
 # Honor requests for compiling with openmp
 # made via environment variable.
@@ -32,8 +38,8 @@ IF ($ENV{ACC_ENABLE_MPI})
   SET (ACC_ENABLE_MPI 1)
   SET (ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
   SET (ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
-  SET (ACC_MPI_INC_DIRS /usr/include/openmpi-x86_64 /usr/lib64/openmpi/lib)
-  SET (ACC_MPI_LIB_DIRS /usr/lib64/openmpi/lib)
+  SET (ACC_MPI_INC_DIRS /usr/include/compat-openmpi-x86_64 /usr/lib64/compat-openmpi/lib)
+  SET (ACC_MPI_LIB_DIRS /usr/lib64/compat-openmpi/lib)
 ELSE ()
   SET (ACC_ENABLE_MPI 0)
   SET (ACC_MPI_COMPILER_FLAGS)
@@ -150,17 +156,18 @@ ENDIF ()
 #-----------------------------------
 find_package(X11)
 
-#-----------------------------------                                                                                
-# For non-Linux or non-ifort or non-64-bit builds, do not                                                           
-# use unspported flag option "-mcmodel=medium"                                                                      
-#-----------------------------------                                                                                
-
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
 SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
+#-----------------------------------                                                                                
+# For non-Linux or non-ifort or 
+# non-64-bit builds, do not use
+# unspported flag option 
+# "-mcmodel=medium"                                                                      
+#-----------------------------------                                                                                
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
@@ -172,9 +179,14 @@ ENDIF ()
 #-----------------------------------
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
-  SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+  SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime pgplot)
+  SET (SHARED_LINK_LIBS cairo pango-1.0 pangocairo-1.0 gobject-2.0 "${SHARED_LINK_LIBS}")
   SET (ACC_PLOT_INC_DIRS)
-  SET (ACC_PLOT_LIB_DIRS)
+  IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET (ACC_PLOT_LIB_DIRS /usr/lib64)
+  ELSE (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    SET (ACC_PLOT_LIB_DIRS /opt/local/lib)
+  ENDIF ()
 ELSE ()
   SET (PLOT_LIBRARY_F_FLAG "")
   SET (PLOT_LINK_LIBS "pgplot")
@@ -198,9 +210,9 @@ ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
-ELSE()
+ELSE ()
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
-ENDIF()
+ENDIF ()
 
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
 SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS})
@@ -266,16 +278,19 @@ message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
 message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
 message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
+IF (DEFINED SHARED_LINK_LIBS)
+message("Shared Libraries     : ${SHARED_LINK_LIBS}")
+ENDIF()
 IF ($ENV{ACC_ENABLE_OPENMP})
   IF (${FORTRAN_COMPILER} MATCHES "ifort")
     message("OpenMP ifort Flag    : -openmp")
-  ELSE()
+  ELSE ()
     message("OpenMP gfortran Flag : -fopenmp")
     message("OpenMP Linker Libs   : ${OPENMP_LINK_LIBS}")
   ENDIF()
-ELSE()
+ELSE ()
   message("OpenMP Support       : Not Enabled")
-ENDIF()
+ENDIF ()
 IF ($ENV{ACC_ENABLE_MPI})
   message("MPI Support          : Enabled")
 ELSE()
@@ -288,10 +303,10 @@ message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LI
 #-----------------------------------
 # Output path definitions
 #-----------------------------------
-set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
-set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
-set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
-set (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
+SET (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
+SET (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
+SET (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
+SET (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 
 #-------------------------
 #   Include directories
@@ -320,7 +335,7 @@ SET (MASTER_INC_DIRS
 # of the distribution.
 
 IF (${DISTRIBUTION_BUILD})
-ELSE()
+ELSE ()
   SET (MASTER_INC_DIRS
     ${MASTER_INC_DIRS}
     ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
@@ -331,25 +346,25 @@ ELSE()
     ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
     ${PACKAGES_OUTPUT_BASEDIR}/modules
   )
-ENDIF()
+ENDIF ()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
-foreach(dir ${INC_DIRS})
-  STRING(FIND ${dir} "../" relative)
-  STRING(REPLACE "../" "" dirnew ${dir})
+foreach (dir ${INC_DIRS})
+  STRING (FIND ${dir} "../" relative)
+  STRING (REPLACE "../" "" dirnew ${dir})
   IF (${relative} EQUAL 0)
-    LIST(APPEND MASTER_INC_DIRS ${dir})
-    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
+    LIST (APPEND MASTER_INC_DIRS ${dir})
+    LIST (APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
   ELSE ()
-    LIST(APPEND MASTER_INC_DIRS ${dir})
+    LIST (APPEND MASTER_INC_DIRS ${dir})
   ENDIF ()
 endforeach(dir)
 
 
-LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
-INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
+LIST (REMOVE_DUPLICATES MASTER_INC_DIRS)
+INCLUDE_DIRECTORIES (${MASTER_INC_DIRS})
 
 #--------------------------------------------
 # To avoid a Link Lib path "not found" error,
@@ -360,7 +375,19 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 #--------------------------------------------
 
 IF (NOT EXISTS ${OUTPUT_BASEDIR}/lib)
-  file (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+  FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+ENDIF ()
+
+#--------------------------------------------
+# To avoid an include path "not found" error,
+# when a Distribution Build environment is
+# has been envoked and in a target project
+# directory not within the BMAD_DISTRIBUTION 
+# tree, create a empty include directory.
+#--------------------------------------------
+
+IF (NOT EXISTS ${OUTPUT_BASEDIR}/include)
+  FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/include)
 ENDIF ()
 
 #-----------------------------------
@@ -369,7 +396,7 @@ ENDIF ()
 # order of increasing abstraction.
 #-----------------------------------
 
-SET(MASTER_LINK_DIRS
+SET (MASTER_LINK_DIRS
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_OUTPUT_BASEDIR}/lib
@@ -379,15 +406,15 @@ SET(MASTER_LINK_DIRS
 
 IF (DEBUG)
   IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
-    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
-  ENDIF()
+    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
+  ENDIF ()
 ELSE ()
   IF (IS_DIRECTORY "${PACKAGES_DIR}/production/lib/root")
-    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
-  ENDIF()
+    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
+  ENDIF ()
 ENDIF ()
 
-LINK_DIRECTORIES(${MASTER_LINK_DIRS})
+LINK_DIRECTORIES (${MASTER_LINK_DIRS})
 
 
 #-------------------------------------------
@@ -485,7 +512,9 @@ ENDIF ()
 # set (CREATE_SHARED true) needs to be present in the individual
 #  project's CMakeLists.txt file.
 #----------------------------------------------------------------
-message("SHARED DEPS: ${SHARED_DEPS}")
+IF (DEFINED SHARED_LINK_LIBS)
+message("SHARED DEPS          : ${SHARED_DEPS}\n")
+ENDIF ()
 IF (ENABLE_SHARED AND CREATE_SHARED)
   add_library (${LIBNAME}-shared SHARED ${sources})
   LIST(APPEND TARGETS ${LIBNAME}-shared)
@@ -620,7 +649,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
@@ -639,7 +668,7 @@ foreach(exespec ${EXE_SPECS})
       # all Fortran source files.
       #-----------------------------------
       foreach (file ${f_sources})
-				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${f_sources})
 
@@ -712,10 +741,23 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
-  if (DEFINED LINKER_LANGUAGE_PROP)
+  IF (DEFINED LINKER_LANGUAGE_PROP)
     SET_TARGET_PROPERTIES (${EXENAME}-exe PROPERTIES LINKER_LANGUAGE ${LINKER_LANGUAGE_PROP})
-		unset (LINKER_LANGUAGE_PROP)
-  endif ()
+    UNSET (LINKER_LANGUAGE_PROP)
+  ENDIF ()
+
+  #----------------------------------------------
+  # When linking an executable using differnet 
+  # linker then the one used to build libraries 
+  # in the LINK_LIBS statement, the user must 
+  # set IMPLICIT_LINK_LIBS to the <lang> of the  
+  # libraries in LINK_LIBS. RT#37678 
+  #----------------------------------------------
+  IF (DEFINED IMPLICIT_LINK_LIBS)
+    SET (IMPLICIT_LINKER_LIBRARIES ${CMAKE_${IMPLICIT_LINK_LIBS}_IMPLICIT_LINK_LIBRARIES})
+    MESSAGE ("Implicit ${FORTRAN_COMPILER} Linker Flags   : ${IMPLICIT_LINKER_LIBRARIES}\n")
+    UNSET (IMPLICIT_LINK_LIBS)
+  ENDIF ()
 
   # Create map file output directory if it doesn't yet exist.
   IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
@@ -749,19 +791,13 @@ foreach(exespec ${EXE_SPECS})
           ${STATIC_FLAG} ${LINK_LIBS} 
           ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
           ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-          ${LINK_FLAGS} ${MAPLINE}
+          ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
   )
 
   SET(CFLAGS)
   SET(FFLAGS)
   SET(COMPILER_FLAGS)
   SET(LINK_FLAGS)
-
-  # Create include file output directory if it doesn't yet exist.
-  IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/include)
-  ELSE ()
-    FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/include)
-  ENDIF ()
 
   # Copy all header files from the project's specified include directory into the output include directory.
   SET (INCLUDE_INSTALL_DIR ${INCLUDE_OUTPUT_PATH})
