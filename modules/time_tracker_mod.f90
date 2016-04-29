@@ -85,8 +85,8 @@ call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 ! local s coordinates for vec(5)
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
 ! calc_next_fringe_edge.
+! WRONG: orb%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 
-orb%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
 call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb)
