@@ -20,17 +20,19 @@ use definition, only: genfield, fibre, layout
 
 integer, parameter :: bmad_inc_version$ = 179
 
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 !   hard_ele     -- ele_struct, pointer: Points to element with the hard edge.
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
-!   particle_at  -- Integer: Edge of hard_ele being tracked through. Used by apply_element_edge_kick. 
-!                     Set to first_track_edge$, second_track_edge$, or none$
+!   particle_at  -- Edge of hard_ele being tracked through. first_track_edge$, second_track_edge$, or none$
 
 type fringe_edge_info_struct
   type (ele_struct), pointer :: hard_ele
   real(rp) s_edge_hard
-  integer particle_at
+  integer particle_at                  !
   integer, pointer :: hard_location    ! Particle location wrt hard_ele.
   integer, allocatable :: location(:)  ! Particle location in an element.
                                        ! elements in list are the tracking element or its lords.

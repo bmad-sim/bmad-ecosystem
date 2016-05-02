@@ -45,8 +45,9 @@ type (ele_struct), pointer :: lord
 type (coord_struct), optional :: orbit
 
 real(rp) s_edge_track
-integer i, dir, track_direction
+integer i, dir, track_direction, num_lords
 logical, optional :: init_needed
+logical has_z_offset
 
 character(*), parameter :: r_name = 'calc_next_finge_edge'
 
@@ -66,12 +67,26 @@ dir = track_direction
 
 if (logic_option(.false., init_needed)) then
   nullify(fringe_info%hard_ele)
+
   if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
     call re_allocate(fringe_info%location, track_ele%n_lord)
+    num_lords = 0; has_z_offset = .false.
     do i = 1, track_ele%n_lord
       lord => pointer_to_lord(track_ele, i)
+      if (lord%key == overlay$ .or. lord%key == group$) cycle
+      num_lords = num_lords + 1
+      ! Can handle jumbo super_lord with z_offset but not regular super_lord.
+      if (lord%value(z_offset_tot$) /= 0 .and. lord%value(lord_pad1$) == 0 .and. &
+                                               lord%value(lord_pad2$) == 0) has_z_offset = .true.
       call init_this_ele (lord, i)
     enddo
+
+    if (num_lords > 1 .and. has_z_offset) then
+      call out_io (s_error$, r_name, 'TRACKING INTEGRATION THROUGH A SLAVE ELEMENT WITH MULTIPLE LORDS AND', &
+                                     'ANY LORD HAVING A FINITE Z_OFFSET WILL NOT BE ACCURATE!', &
+                                     'FOR ELEMENT: ' // track_ele%name)
+    endif
+
   else
     call re_allocate(fringe_info%location, 1)
     call init_this_ele (track_ele, 1)
@@ -122,13 +137,7 @@ ds_small = bmad_com%significant_length
 
 if (dir == 1) then
   if (orbit%location == upstream_end$) then
-    if (s_hard_upstream > s_orb - ds_small) then
-      fringe_info%location(ix_loc) = upstream_end$
-    elseif (s_hard_downstream > s_orb) then
-      fringe_info%location(ix_loc) = inside$
-    else
-      fringe_info%location(ix_loc) = downstream_end$
-    endif
+    fringe_info%location(ix_loc) = upstream_end$
 
   elseif (orbit%location == inside$) then
     if (s_hard_upstream > s_orb + ds_small) then
@@ -147,13 +156,7 @@ if (dir == 1) then
 
 else  ! dir = -1
   if (orbit%location == downstream_end$) then
-    if (s_hard_downstream < s_orb + ds_small) then
       fringe_info%location(ix_loc) = downstream_end$
-    elseif (s_hard_upstream < s_orb) then
-      fringe_info%location(ix_loc) = inside$
-    else
-      fringe_info%location(ix_loc) = upstream_end$
-    endif
 
   elseif (orbit%location == inside$) then
     if (s_hard_downstream < s_orb - ds_small) then
