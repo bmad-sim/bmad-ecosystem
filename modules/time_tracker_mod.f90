@@ -4,7 +4,7 @@ use beam_def_struct
 use em_field_mod
 use wall3d_mod
 use geometry_mod
-use runge_kutta_mod ! for common struct only
+use runge_kutta_mod
 use multipass_mod
 
 contains
@@ -65,7 +65,7 @@ real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
-real(rp) :: s_edge_track, ref_time, stop_time
+real(rp) :: s_fringe_edge, ref_time, stop_time
 
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, old_direction
@@ -84,11 +84,10 @@ call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 ! local s coordinates for vec(5)
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
 ! calc_next_fringe_edge.
-! WRONG: orb%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
-call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info, .true., orb)
+call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, .true., orb)
 old_direction = orb%direction
 
 if ( present(track) ) then
@@ -104,18 +103,23 @@ edge_kick_applied  = .false.
   
 do n_step = 1, max_step
 
-  ! overstepped edge?
-  if ((orb%vec(5) - s_edge_track)*orb%direction > -ds_safe) then
+  runge_kutta_com%num_steps_done = n_step
+
+  ! Overstepped edge?
+  ! Can happen that an edge overstep happens at the beginning of tracking. For example, an sbend with
+  ! a finite x_offset shifts the s-position of the element ends. In this case, do not track to edge.
+  if ((orb%vec(5) - s_fringe_edge)*orb%direction > -ds_safe) then
   
     zbrent_needed = .true.
-    if ((orb%vec(5)-s_edge_track)*orb%direction < ds_safe) zbrent_needed = .false.
+    if ((orb%vec(5)-s_fringe_edge)*orb%direction < ds_safe) zbrent_needed = .false.
+    if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
-    if (orb%direction == 1 .and. abs(s_edge_track - ele%value(l$)) < ds_safe) then
+    if (orb%direction == 1 .and. abs(s_fringe_edge - ele%value(l$)) < ds_safe) then
       orb%location = downstream_end$
       add_ds_safe = .false.
       exit_flag = .true.
-    elseif (orb%direction == -1 .and. abs(s_edge_track) < ds_safe) then
+    elseif (orb%direction == -1 .and. abs(s_fringe_edge) < ds_safe) then
       orb%location = upstream_end$
       add_ds_safe = .false.
       exit_flag = .true.
@@ -135,7 +139,7 @@ do n_step = 1, max_step
     edge_kick_applied = .false. 
     do 
       if (.not. associated(fringe_info%hard_ele)) exit
-      if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
+      if ((orb%vec(5)-s_fringe_edge)*orb%direction < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) then 
         old_wall_d_radius = ref_frame_wall3d_d_radius (orb)
@@ -152,7 +156,7 @@ do n_step = 1, max_step
       call apply_element_edge_kick (orb, fringe_info, t_rel, ele, param, track_spin)
       call convert_particle_coordinates_s_to_t(orb)
       orb%vec(5) = s_save
-      call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info)
+      call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
@@ -259,7 +263,7 @@ do n_step = 1, max_step
   endif
 
   if (orb%direction /= old_direction) then
-    call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info)
+    call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info)
     old_direction = orb%direction
   endif
 
@@ -285,7 +289,7 @@ real(rp) :: delta_s_target
 logical err_flag
 !
 call rk_time_step1 (ele, param, orb_old, t_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
-delta_s_target = orb%vec(5) - s_edge_track
+delta_s_target = orb%vec(5) - s_fringe_edge
 t_rel = t_old + this_dt
 	
 end function delta_s_target

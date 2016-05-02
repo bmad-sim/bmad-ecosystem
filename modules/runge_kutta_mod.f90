@@ -12,6 +12,7 @@ type runge_kutta_common_struct
   logical :: check_limits = .false.         ! Check x/y limits?
   logical :: check_wall_aperture = .false.  ! Check wall3d aperture?
   integer :: hit_when = outside_wall$       ! or wall_transition$
+  integer :: num_steps_done                 ! Number of integration steps done.
 end type
 
 type (runge_kutta_common_struct), save :: runge_kutta_com
@@ -147,6 +148,8 @@ err = .false.
 
 do n_step = 1, max_step
 
+  runge_kutta_com%num_steps_done = n_step
+  
   ! Check if we we need to apply a hard edge kick.
   ! For super_slaves there may be multiple hard edges at a single s-position.
 
