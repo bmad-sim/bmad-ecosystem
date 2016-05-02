@@ -1,8 +1,10 @@
 module runge_kutta_mod
 
-use em_field_mod
 use track1_mod
+use em_field_mod
+use fringe_edge_track_mod
 use wall3d_mod
+use spin_mod
 
 integer, parameter :: outside_wall$ = 1, wall_transition$ = 2
 
@@ -80,18 +82,18 @@ type (coord_struct), intent(in) :: orb_start
 type (coord_struct), intent(out) :: orb_end
 type (coord_struct) orb_save
 type (ele_struct) ele
-type (ele_struct), pointer :: hard_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
+type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(10), r_scal(10), t, s_edge_track, s_edge_hard, position(6), pol
+real(rp) :: dr_ds(10), r_scal(10), t, s_edge_track, position(6), pol
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
 integer, parameter :: max_step = 10000
-integer :: n_step, s_dir, hard_end, nr_max
+integer :: n_step, s_dir, nr_max
 
 logical local_ref_frame, err_flag, err, at_hard_edge, has_hit, track_spin
 
@@ -108,6 +110,7 @@ s = s1
 s_dir = sign(1.0_rp, s2-s1)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
 ds_tiny  = bmad_com%significant_length/100
+track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
 
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
 ! calc_next_fringe_edge.
@@ -124,7 +127,7 @@ call reference_energy_correction (ele, orb_end, first_track_edge$)
 ! to apply the appropriate hard edge kick.
 ! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
-call calc_next_fringe_edge (ele, s_dir, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb_end)
+call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, .true., orb_end)
 if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
@@ -148,11 +151,10 @@ do n_step = 1, max_step
   ! For super_slaves there may be multiple hard edges at a single s-position.
 
   do
-    if (.not. associated(hard_ele)) exit
+    if (.not. associated(fringe_info%hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
-    track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end, track_spin)
-    call calc_next_fringe_edge (ele, s_dir, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call apply_element_edge_kick (orb_end, fringe_info, t, ele, param, track_spin)
+    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_tiny * s_dir

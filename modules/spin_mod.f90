@@ -745,23 +745,24 @@ subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use ptc_interface_mod
+use fringe_edge_track_mod
 
 implicit none
 
 type (coord_struct) :: start_orb
 type (coord_struct) :: temp_start, temp_end, end_orb
 type (ele_struct) :: ele
-type (ele_struct), pointer :: hard_ele
 type (lat_param_struct) :: param
+type (fringe_edge_info_struct) fringe_info
 
 real(rp) a_quat(0:3) ! quaternion four-vector
 real(rp) omega1, xi, gamma0, gammaf, v, x, u, spline_x(0:3), spline_y(0:3)
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, omega(3)
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) anomalous_moment, m_particle, sign_k, abs_a, coef, s_edge_track, s_edge_hard
+real(rp) anomalous_moment, m_particle, sign_k, abs_a, coef, s_edge_track
 real(rp) vec0(6), ks, kss, length, kl, kl2, c, s, m21, m22, m23, m24
 
-integer key, hard_end
+integer key
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
@@ -775,18 +776,18 @@ anomalous_moment = anomalous_moment_of(start_orb%species)
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
-call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., temp_start)
+call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, .true., temp_start)
 
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
-if (hard_end == first_track_edge$) then
+if (fringe_info%particle_at == first_track_edge$) then
   if (s_edge_track /= 0) call track_a_drift (temp_start, s_edge_track)
-  call apply_element_edge_kick (temp_start, s_edge_hard, temp_start%t, hard_ele, ele, param, first_track_edge$, .true.)
-  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .false.)
+  call apply_element_edge_kick (temp_start, fringe_info, temp_start%t, ele, param, .true.)
+  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, .false.)
 endif
 
 temp_end   = end_orb
 call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .true., ele%value(l$))
-if (hard_end == second_track_edge$ .and. s_edge_track /= ele%value(l$)) &
+if (fringe_info%particle_at == second_track_edge$ .and. s_edge_track /= ele%value(l$)) &
                                                   call track_a_drift (temp_end, s_edge_track - ele%value(l$))
 temp_end%spin = temp_start%spin
 
@@ -863,8 +864,8 @@ end select
 
 !----------
 
-if (hard_end == second_track_edge$) then
-  call apply_element_edge_kick (temp_end, s_edge_hard, temp_end%t, hard_ele, ele, param, second_track_edge$, .true.)
+if (fringe_info%particle_at == second_track_edge$) then
+  call apply_element_edge_kick (temp_end, fringe_info, temp_end%t, ele, param, .true.)
 endif
 call offset_particle (ele, param, unset$, temp_end, .true., .true., .true., set_spin = .true.)
 

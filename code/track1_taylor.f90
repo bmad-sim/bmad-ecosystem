@@ -66,7 +66,7 @@ endif
 
 if (start_orb%direction /= 1) then
   if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
-    call out_io (s_fatal$, r_name, 'CANNOT BACKWARDS TRACK WITH A TAYLOR MAP ELEMENTS WITH RF FIELDS: ' // ele%name)
+    call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif

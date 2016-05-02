@@ -1,7 +1,5 @@
 module write_lat_file_mod
 
-use bmad_struct
-use bmad_interface
 use multipole_mod
 use multipass_mod
 use element_modeling_mod

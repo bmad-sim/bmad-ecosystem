@@ -4,14 +4,14 @@ use bmad_struct
 
 interface 
 
-  subroutine apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)
+  subroutine apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished)
     import
     implicit none
-    type (ele_struct) hard_ele, track_ele
     type (coord_struct) orb
+    type (fringe_edge_info_struct) fringe_info
+    type (ele_struct) track_ele
     type (lat_param_struct) param
-    real(rp) t_rel, s_edge
-    integer particle_at, physical_end
+    real(rp) t_rel
     logical finished
   end subroutine
 
