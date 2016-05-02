@@ -19,6 +19,7 @@ module boris_mod
 
 use em_field_mod
 use track1_mod
+use fringe_edge_track_mod
 
 contains
 
@@ -64,13 +65,13 @@ type (coord_struct), intent(out) :: orb_end
 type (ele_struct) ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
-type (ele_struct), pointer :: hard_ele
+type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
+real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target
 real(rp) dref_time, s0, ds_ref, beta0
 
-integer i, n_step, hard_end
+integer i, n_step
 
 character(16), parameter :: r_name = 'track1_boris'
 
@@ -95,7 +96,7 @@ endif
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
 
-call calc_next_fringe_edge (ele, orb_start%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb_start)
+call calc_next_fringe_edge (ele, orb_start%direction, s_edge_track, fringe_info, .true., orb_start)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
@@ -130,10 +131,10 @@ s = s1
 do 
 
   do
-    if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
+    if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(fringe_info%hard_ele)) exit
     track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end, track_spin)
-    call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call apply_element_edge_kick (orb_end, fringe_info, t, ele, param, track_spin)
+    call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, fringe_info)
   enddo
 
   if (abs(s - s2) < bmad_com%significant_length) exit

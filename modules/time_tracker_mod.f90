@@ -1,6 +1,5 @@
 module time_tracker_mod
 
-use bmad_struct
 use beam_def_struct
 use em_field_mod
 use wall3d_mod
@@ -56,20 +55,20 @@ type (coord_struct), intent(inout), target :: orb
 type (coord_struct), target :: orb_old
 type (coord_struct) :: orb_save
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: hard_ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
+type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1, s2
 real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
-real(rp) :: s_edge_track, s_edge_hard, ref_time, stop_time
+real(rp) :: s_edge_track, ref_time, stop_time
 
 integer, parameter :: max_step = 100000
-integer :: n_step, n_pt, old_direction, hard_end
+integer :: n_step, n_pt, old_direction
 
 logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
@@ -89,7 +88,7 @@ call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
-call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb)
+call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info, .true., orb)
 old_direction = orb%direction
 
 if ( present(track) ) then
@@ -135,7 +134,7 @@ do n_step = 1, max_step
     ! For super_slaves there may be multipole hard edges at a single s-position.
     edge_kick_applied = .false. 
     do 
-      if (.not. associated(hard_ele)) exit
+      if (.not. associated(fringe_info%hard_ele)) exit
       if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) then 
@@ -143,17 +142,17 @@ do n_step = 1, max_step
         edge_kick_applied = .true. 
       endif  
       if (orb%direction == +1) then 
-        ref_time = hard_ele%value(ref_time_start$)
+        ref_time = fringe_info%hard_ele%value(ref_time_start$)
       else 
-        ref_time = hard_ele%ref_time
+        ref_time = fringe_info%hard_ele%ref_time
       end if
       s_save = orb%vec(5)
       call convert_particle_coordinates_t_to_s(orb, ref_time) 
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-      call apply_element_edge_kick (orb, s_edge_hard, t_rel, hard_ele, ele, param, hard_end, track_spin)
+      call apply_element_edge_kick (orb, fringe_info, t_rel, ele, param, track_spin)
       call convert_particle_coordinates_s_to_t(orb)
       orb%vec(5) = s_save
-      call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+      call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
@@ -260,7 +259,7 @@ do n_step = 1, max_step
   endif
 
   if (orb%direction /= old_direction) then
-    call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call calc_next_fringe_edge (ele, orb%direction, s_edge_track, fringe_info)
     old_direction = orb%direction
   endif
 
