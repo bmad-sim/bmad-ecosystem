@@ -81,12 +81,6 @@ ds_safe = bmad_com%significant_length / 10
 dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
-! local s coordinates for vec(5)
-! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
-! calc_next_fringe_edge.
-
-orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
-
 call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, .true., orb)
 old_direction = orb%direction
 
