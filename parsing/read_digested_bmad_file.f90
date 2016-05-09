@@ -293,6 +293,7 @@ if (found_it) then
   if (extra%sad_eps_scale_set)                  bmad_com%sad_eps_scale                   = bmad_com_read%sad_eps_scale
   if (extra%sad_amp_max_set)                    bmad_com%sad_amp_max                     = bmad_com_read%sad_amp_max
   if (extra%sad_n_div_max_set)                  bmad_com%sad_n_div_max                   = bmad_com_read%sad_n_div_max
+  if (extra%max_num_runge_kutta_step_set)       bmad_com%max_num_runge_kutta_step        = bmad_com_read%max_num_runge_kutta_step
 endif
 
 ! Setup any attribute aliases in the global attribute name table.

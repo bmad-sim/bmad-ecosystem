@@ -67,7 +67,6 @@ real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
 real(rp) :: s_fringe_edge, ref_time, stop_time
 
-integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, old_direction
 
 logical, target :: local_ref_frame
@@ -95,7 +94,7 @@ err_flag = .true.
 has_hit = .false. 
 edge_kick_applied  = .false.
   
-do n_step = 1, max_step
+do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   runge_kutta_com%num_steps_done = n_step
 

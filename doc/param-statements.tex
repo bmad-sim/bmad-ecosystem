@@ -494,6 +494,7 @@ this structure along with the default values are:
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
     integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
+    integer max_num_runge_kutta_step = 10000   ! Max num RK steps before particle is lost.
     logical sr_wakes_on = T                    ! Short range wake fields?
     logical lr_wakes_on = T                    ! Long range wake fields
     logical mat6_track_symmetric = T           ! symmetric offsets
@@ -559,6 +560,16 @@ Absolute tolerance to use in adaptive tracking. This is used in
 \item[\vn{\%init_ds_adaptive_tracking}] \Newline
 Initial step to use for adaptive tracking. This is used in
 \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+
+\item[\vn{\%max_num_runge_kutta_step}] \Newline 
+The maximum number of steps to take through an element with \vn{runge_kutta} or
+\vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps
+reaches this value, the particle being tracked is marked as lost and a warning message is
+issued. Under ``normal'' circumstances, a particle will take far fewer steps to track
+through an element. If a particle is not through an element after 10,000 steps, it
+generally indicates that there is a problem with how the field is defined. That is, the
+field does not obey Maxwell's Equations. Especially: discontinuities in the field can
+cause problems.
 
 \item[\vn{\%min_ds_adaptive_tracking}] \Newline
 This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking

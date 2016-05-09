@@ -591,7 +591,6 @@ The methods that do not involve Taylor maps are
 \end{example}
 
 \index{ds_step}\index{num_steps}\index{integrator_order}
-\index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{field_calc}
 there are a number of element attributes that can affect the
 calculation. They are
@@ -643,12 +642,14 @@ independent of the setting of \vn{integrator_order}.
 
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
+\index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
-control independent of \vn{ds_step}. These methods use two \vn{bmad_com} parameters
+control independent of \vn{ds_step}. These methods use three \vn{bmad_com} parameters
 \sref{s:bmad.com}) namely:
 \begin{example}
   bmad_com[rel_tol_adaptive_tracking]
   bmad_com[abs_to_adaptive_tracking]
+  bmad_com[max_num_runge_kutta_step]
 \end{example}
 The estimated error of the integration is then bounded by
 \begin{example}

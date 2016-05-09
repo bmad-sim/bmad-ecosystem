@@ -1136,6 +1136,7 @@ integer, parameter :: abs_tol_adaptive_tracking$ = 87
 integer, parameter :: init_ds_adaptive_tracking$ = 88
 integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
+integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: lr_wake_file$ = 81, alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
@@ -1361,6 +1362,7 @@ type extra_parsing_info_struct
   logical :: sad_eps_scale_set                      = .false.
   logical :: sad_amp_max_set                        = .false.
   logical :: sad_n_div_max_set                      = .false.
+  logical :: max_num_runge_kutta_step_set           = .false.
 end type
 
 ! ptc_field_geometry for bends
@@ -1399,6 +1401,7 @@ type bmad_common_struct
   integer :: default_integ_order = 2                  ! PTC integration order. 
   integer :: ptc_max_fringe_order = 2                 ! PTC max fringe order (2  = > Quadrupole !). 
                                                       !   Must call set_ptc after changing.
+  integer :: max_num_runge_kutta_step = 10000         ! Maximum number of RK steps before particle is considered lost.
   logical :: use_hard_edge_drifts = .true.            ! Insert drifts when tracking through cavity?
   logical :: sr_wakes_on = .true.                     ! Short range wakefields?
   logical :: lr_wakes_on = .true.                     ! Long range wakefields
