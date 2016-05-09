@@ -93,7 +93,6 @@ real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_
 real(rp) :: dr_ds(10), r_scal(10), t, s_edge_track, position(6), pol
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
-integer, parameter :: max_step = 10000
 integer :: n_step, s_dir, nr_max
 
 logical local_ref_frame, err_flag, err, at_hard_edge, has_hit, track_spin
@@ -146,7 +145,7 @@ endif
 
 err = .false.
 
-do n_step = 1, max_step
+do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   runge_kutta_com%num_steps_done = n_step
   

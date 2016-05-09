@@ -1764,11 +1764,11 @@ is_eq = is_eq .and. (f1%lsc_component_on .eqv. f2%lsc_component_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%tsc_component_on .eqv. f2%tsc_component_on)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_csr_old .eqv. f2%use_csr_old)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
 
 end function eq_csr_parameter
 
@@ -1823,6 +1823,8 @@ is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order)
 is_eq = is_eq .and. (f1%default_integ_order == f2%default_integ_order)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc_max_fringe_order == f2%ptc_max_fringe_order)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%max_num_runge_kutta_step == f2%max_num_runge_kutta_step)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_hard_edge_drifts .eqv. f2%use_hard_edge_drifts)
 !! f_side.equality_test[logical, 0, NOT]

@@ -792,6 +792,7 @@ call init_attribute_name1 (def_bmad_com$, init_ds_adaptive_tracking$,  'INIT_DS_
 call init_attribute_name1 (def_bmad_com$, min_ds_adaptive_tracking$,   'MIN_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, fatal_ds_adaptive_tracking$, 'FATAL_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, aperture_limit_on$,          'APERTURE_LIMIT_ON')
+call init_attribute_name1 (def_bmad_com$, max_num_runge_kutta_step$,   'MAX_NUM_RUNGE_KUTTA_STEP')
 
 call init_attribute_name1 (def_mad_beam$, particle$,                      'PARTICLE')
 call init_attribute_name1 (def_mad_beam$, e_tot$,                         'ENERGY')

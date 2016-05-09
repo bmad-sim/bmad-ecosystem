@@ -16,9 +16,10 @@
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
 !
-!   bmad_com -- Bmad common block.
+!   bmad_com -- Bmad common block (not an argument).
 !     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1d-6.
 !     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1d-7.
+!     %max_num_runge_kutta_step  -- Maximum number of steps before particle is considered lost.
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.

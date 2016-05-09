@@ -84,6 +84,7 @@ default values are:
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
     integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
+    integer max_num_runge_kutta_step = 10000   ! Max num RK steps before particle is lost.
     logical sr_wakes_on = T                    ! Short range wake fields?
     logical lr_wakes_on = T                    ! Long range wake fields
     logical mat6_track_symmetric = T           ! symmetric offsets
@@ -109,16 +110,22 @@ affect every program that uses the lattice.
 Parameter description:
 \begin{description}
 \index{aperture_limit_on}
+\item[\vn{\%abs_tol_adaptive_tracking}] \Newline
+Absolute tolerance to use in adaptive tracking. This is used in
+\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+
+\item[\vn{\%abs_tol_tracking}] \Newline
+Absolute tolerance to use in tracking. Specifically, Tolerance to use
+when finding the closed orbit.
+
 \item[\vn{\%aperture_limit_on]}] \Newline
 Aperture limits may be set for elements in the lattice
 (\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
 disable all set apertures. \vn{True} is the default.
 
-\item[\vn{\%max_aperture_limit}] \Newline 
-Sets the maximum amplitude a particle can have
-during tracking. If this amplitude is exceeded, the particle is lost
-even if there is no element aperture set. Having a maximum aperture
-limit helps prevent numerical overflow in the tracking calculations.
+\item[\vn{\%auto_bookkeeper}] \Newline
+Toggles automatic or intelligent bookkeeping. See
+section~\sref{s:lat.bookkeeping} for more details.
 
 \item[\vn{\%d_orb}] \Newline 
 Sets the orbit displacement used in the routine that calculates the
@@ -131,26 +138,28 @@ that nonlinearities will affect the results. Also see
 Step size for tracking code \sref{c:methods} that uses a fixed step
 size. For example, \vn{symp_lie_ptc} and \vn{boris} tracking.
 
-\item[\vn{\%significant_length}] \Newline
-Sets the scale to decide if two length values are significantly
-different. For example, The superposition code will not create any
-super_slave elements that have a length less then this.
+\item[\vn{\%default_integ_order}] \Newline
+Order of the the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
 
-\item[\vn{\%rel_tol_tracking}] \Newline
-Relative tolerance to use in tracking. Specifically, Tolerance to use
-when finding the closed orbit.
+\item[\vn{\%max_aperture_limit}] \Newline 
+Sets the maximum amplitude a particle can have
+during tracking. If this amplitude is exceeded, the particle is lost
+even if there is no element aperture set. Having a maximum aperture
+limit helps prevent numerical overflow in the tracking calculations.
 
-\item[\vn{\%abs_tol_tracking}] \Newline
-Absolute tolerance to use in tracking. Specifically, Tolerance to use
-when finding the closed orbit.
+\item[\vn{\%max_num_runge_kutta_step}] \Newline 
+The maximum number of steps to take through an element with \vn{runge_kutta} or
+\vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps
+reaches this value, the particle being tracked is marked as lost and a warning message is
+issued. Under ``normal'' circumstances, a particle will take far fewer steps to track
+through an element. If a particle is not through an element after 10,000 steps, it
+generally indicates that there is a problem with how the field is defined. That is, the
+field does not obey Maxwell's Equations. Especially: discontinuities in the field can
+cause problems.
 
 \item[\vn{\%rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in adaptive tracking. This is used in
 \vn{runge_kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
-
-\item[\vn{\%abs_tol_adaptive_tracking}] \Newline
-Absolute tolerance to use in adaptive tracking. This is used in
-\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 
 \item[\vn{\%init_ds_adaptive_tracking}] \Newline
 Initial step to use for adaptive tracking. This is used in
@@ -171,14 +180,17 @@ This prevents a program from ``hanging'' due to taking a large number
 of exremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
 
-\item[\vn{\%taylor_order}] \Newline
-Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
-
-\item[\vn{\%default_integ_order}] \Newline
-Order of the the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
+\item[\vn{\%rel_tol_tracking}] \Newline
+Relative tolerance to use in tracking. Specifically, Tolerance to use
+when finding the closed orbit.
 
 \item{ptc_max_fringe_order} \Newline
 Maximum order for computing fringe field effects in PTC. 
+
+\item[\vn{\%significant_length}] \Newline
+Sets the scale to decide if two length values are significantly
+different. For example, The superposition code will not create any
+super_slave elements that have a length less then this.
 
 \item[\vn{\%sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wake field effects.
@@ -191,10 +203,6 @@ Toggle to turn off whether the transfer matrix from tracking routine
 (\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and
 minus \vn{%d_orb} values or only tracks 7 particles to save time.
 
-\item[\vn{\%auto_bookkeeper}] \Newline
-Toggles automatic or intelligent bookkeeping. See
-section~\sref{s:lat.bookkeeping} for more details.
-
 \item[\vn{\%space_charge_on}] \Newline
 Toggle to turn on or off high energy space charge effect in particle tracking.
 
@@ -203,6 +211,9 @@ Toggle to turn on or off the coherent space charge calculation.
 
 \item[\vn{\%spin_tracking_on}] \Newline
 Determines if spin tracking is performed or not.
+
+\item[\vn{\%taylor_order}] \Newline
+Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 
 \item[\vn{\%radiation_damping_on}] \Newline
 Toggle to turn on or off effects due to radiation dampling in particle tracking.

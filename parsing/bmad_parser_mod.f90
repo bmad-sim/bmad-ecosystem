@@ -429,6 +429,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
     if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
     if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
     call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag)
