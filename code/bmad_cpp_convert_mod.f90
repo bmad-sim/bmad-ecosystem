@@ -6584,12 +6584,12 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-      z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
-      z_print_taylor_warning, z_use_csr_old) bind(c)
+      z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
+      z_use_csr_old, z_small_angle_approx) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning, z_use_csr_old
+    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
   end subroutine
@@ -6610,7 +6610,7 @@ call c_f_pointer (Fp, F)
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, &
     c_logic(F%lcsr_component_on), c_logic(F%lsc_component_on), c_logic(F%tsc_component_on), &
-    c_logic(F%small_angle_approx), c_logic(F%print_taylor_warning), c_logic(F%use_csr_old))
+    c_logic(F%print_taylor_warning), c_logic(F%use_csr_old), c_logic(F%small_angle_approx))
 
 end subroutine csr_parameter_to_c
 
@@ -6632,8 +6632,8 @@ end subroutine csr_parameter_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-    z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
-    z_print_taylor_warning, z_use_csr_old) bind(c)
+    z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
+    z_use_csr_old, z_small_angle_approx) bind(c)
 
 
 implicit none
@@ -6642,7 +6642,7 @@ type(c_ptr), value :: Fp
 type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning, z_use_csr_old
+logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
 
@@ -6671,11 +6671,11 @@ F%lsc_component_on = f_logic(z_lsc_component_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%tsc_component_on = f_logic(z_tsc_component_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%small_angle_approx = f_logic(z_small_angle_approx)
-!! f_side.to_f2_trans[logical, 0, NOT]
 F%print_taylor_warning = f_logic(z_print_taylor_warning)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%use_csr_old = f_logic(z_use_csr_old)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%small_angle_approx = f_logic(z_small_angle_approx)
 
 end subroutine csr_parameter_to_f2
 
@@ -6705,11 +6705,12 @@ interface
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
       z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, &
       z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
-      z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, &
-      z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
-      z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
-      z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-      z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
+      z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step, &
+      z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, &
+      z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, z_spin_tracking_on, &
+      z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
+      z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, &
+      z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6719,7 +6720,7 @@ interface
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale
     real(c_double) :: z_sad_amp_max
-    integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
+    integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
   end subroutine
 end interface
 
@@ -6740,12 +6741,13 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
     F%fatal_ds_adaptive_tracking, F%electric_dipole_moment, F%ptc_cut_factor, F%sad_eps_scale, &
     F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%default_integ_order, &
-    F%ptc_max_fringe_order, c_logic(F%use_hard_edge_drifts), c_logic(F%sr_wakes_on), &
-    c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), &
-    c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), c_logic(F%spin_tracking_on), &
-    c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
-    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
-    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), c_logic(F%debug))
+    F%ptc_max_fringe_order, F%max_num_runge_kutta_step, c_logic(F%use_hard_edge_drifts), &
+    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), &
+    c_logic(F%auto_bookkeeper), c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), &
+    c_logic(F%spin_tracking_on), c_logic(F%radiation_damping_on), &
+    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
+    c_logic(F%absolute_time_tracking_default), c_logic(F%convert_to_kinetic_momentum), &
+    c_logic(F%aperture_limit_on), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -6770,11 +6772,11 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
     z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
     z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_default_integ_order, &
-    z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, &
-    z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, &
-    z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
-    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
-    z_aperture_limit_on, z_debug) bind(c)
+    z_ptc_max_fringe_order, z_max_num_runge_kutta_step, z_use_hard_edge_drifts, z_sr_wakes_on, &
+    z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
+    z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
+    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
+    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
 
 
 implicit none
@@ -6789,7 +6791,7 @@ logical(c_bool) :: z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale
 real(c_double) :: z_sad_amp_max
-integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
+integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
 
 call c_f_pointer (Fp, F)
 
@@ -6831,6 +6833,8 @@ F%taylor_order = z_taylor_order
 F%default_integ_order = z_default_integ_order
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ptc_max_fringe_order = z_ptc_max_fringe_order
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%max_num_runge_kutta_step = z_max_num_runge_kutta_step
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%use_hard_edge_drifts = f_logic(z_use_hard_edge_drifts)
 !! f_side.to_f2_trans[logical, 0, NOT]

@@ -5895,11 +5895,11 @@ rhs = 10 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 11 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 
@@ -6025,36 +6025,38 @@ rhs = 17 + offset; F%taylor_order = rhs
 rhs = 18 + offset; F%default_integ_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 19 + offset; F%ptc_max_fringe_order = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 20 + offset; F%max_num_runge_kutta_step = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 20 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 21 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 21 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 22 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 22 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 23 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 23 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
+rhs = 24 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 24 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
+rhs = 25 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 25 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

@@ -2354,9 +2354,9 @@ public:
   Bool lcsr_component_on;
   Bool lsc_component_on;
   Bool tsc_component_on;
-  Bool small_angle_approx;
   Bool print_taylor_warning;
   Bool use_csr_old;
+  Bool small_angle_approx;
 
   CPP_csr_parameter() :
     ds_track_step(0.0),
@@ -2370,9 +2370,9 @@ public:
     lcsr_component_on(true),
     lsc_component_on(true),
     tsc_component_on(false),
-    small_angle_approx(true),
     print_taylor_warning(true),
-    use_csr_old(true)
+    use_csr_old(true),
+    small_angle_approx(true)
     {}
 
   ~CPP_csr_parameter() {
@@ -2412,6 +2412,7 @@ public:
   Int taylor_order;
   Int default_integ_order;
   Int ptc_max_fringe_order;
+  Int max_num_runge_kutta_step;
   Bool use_hard_edge_drifts;
   Bool sr_wakes_on;
   Bool lr_wakes_on;
@@ -2448,6 +2449,7 @@ public:
     taylor_order(0),
     default_integ_order(2),
     ptc_max_fringe_order(2),
+    max_num_runge_kutta_step(10000),
     use_hard_edge_drifts(true),
     sr_wakes_on(true),
     lr_wakes_on(true),

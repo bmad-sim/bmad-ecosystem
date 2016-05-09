@@ -2553,8 +2553,8 @@ extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Bmad_csr_paramet
   // c_side.to_f2_call
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
       C.particle_bin_span, C.n_shield_images, C.ix1_ele_csr, C.ix2_ele_csr,
-      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.small_angle_approx,
-      C.print_taylor_warning, C.use_csr_old);
+      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.print_taylor_warning,
+      C.use_csr_old, C.small_angle_approx);
 
 }
 
@@ -2563,7 +2563,7 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
     z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
     c_Int& z_n_shield_images, c_Int& z_ix1_ele_csr, c_Int& z_ix2_ele_csr, c_Bool&
     z_lcsr_component_on, c_Bool& z_lsc_component_on, c_Bool& z_tsc_component_on, c_Bool&
-    z_small_angle_approx, c_Bool& z_print_taylor_warning, c_Bool& z_use_csr_old) {
+    z_print_taylor_warning, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -2588,11 +2588,11 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   // c_side.to_c2_set[logical, 0, NOT]
   C.tsc_component_on = z_tsc_component_on;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.small_angle_approx = z_small_angle_approx;
-  // c_side.to_c2_set[logical, 0, NOT]
   C.print_taylor_warning = z_print_taylor_warning;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_csr_old = z_use_csr_old;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.small_angle_approx = z_small_angle_approx;
 }
 
 //--------------------------------------------------------------------
@@ -2604,9 +2604,9 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 // c_side.to_f2_arg
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&);
+    c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2616,11 +2616,12 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.rel_tol_adaptive_tracking, C.abs_tol_adaptive_tracking, C.init_ds_adaptive_tracking,
       C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.electric_dipole_moment,
       C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
-      C.default_integ_order, C.ptc_max_fringe_order, C.use_hard_edge_drifts, C.sr_wakes_on,
-      C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper, C.space_charge_on,
-      C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
-      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
+      C.default_integ_order, C.ptc_max_fringe_order, C.max_num_runge_kutta_step,
+      C.use_hard_edge_drifts, C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric,
+      C.auto_bookkeeper, C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on,
+      C.radiation_damping_on, C.radiation_fluctuations_on, C.conserve_taylor_maps,
+      C.absolute_time_tracking_default, C.convert_to_kinetic_momentum, C.aperture_limit_on,
+      C.debug);
 
 }
 
@@ -2632,12 +2633,13 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Real&
     z_electric_dipole_moment, c_Real& z_ptc_cut_factor, c_Real& z_sad_eps_scale, c_Real&
     z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int& z_default_integ_order,
-    c_Int& z_ptc_max_fringe_order, c_Bool& z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on,
-    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
-    z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
-    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool& z_debug) {
+    c_Int& z_ptc_max_fringe_order, c_Int& z_max_num_runge_kutta_step, c_Bool&
+    z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
+    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_space_charge_on, c_Bool&
+    z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool& z_radiation_damping_on,
+    c_Bool& z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
+    z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
+    z_aperture_limit_on, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2677,6 +2679,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.default_integ_order = z_default_integ_order;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ptc_max_fringe_order = z_ptc_max_fringe_order;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.max_num_runge_kutta_step = z_max_num_runge_kutta_step;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_hard_edge_drifts = z_use_hard_edge_drifts;
   // c_side.to_c2_set[logical, 0, NOT]

@@ -1001,9 +1001,9 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.lcsr_component_on == y.lcsr_component_on);
   is_eq = is_eq && (x.lsc_component_on == y.lsc_component_on);
   is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
-  is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
   is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
   is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
+  is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
   return is_eq;
 };
 
@@ -1033,6 +1033,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
+  is_eq = is_eq && (x.max_num_runge_kutta_step == y.max_num_runge_kutta_step);
   is_eq = is_eq && (x.use_hard_edge_drifts == y.use_hard_edge_drifts);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);

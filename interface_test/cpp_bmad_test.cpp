@@ -3954,13 +3954,13 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   rhs = 11 + offset; C.tsc_component_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.small_angle_approx = (rhs % 2 == 0);
+  rhs = 12 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.print_taylor_warning = (rhs % 2 == 0);
+  rhs = 13 + offset; C.use_csr_old = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.use_csr_old = (rhs % 2 == 0);
+  rhs = 14 + offset; C.small_angle_approx = (rhs % 2 == 0);
 
 
 }
@@ -4067,50 +4067,53 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 19 + offset; C.ptc_max_fringe_order = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 20 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 20 + offset; C.max_num_runge_kutta_step = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 21 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 21 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 22 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 22 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 23 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 23 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 24 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 24 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.space_charge_on = (rhs % 2 == 0);
+  rhs = 25 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
+  rhs = 26 + offset; C.space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 27 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 28 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 29 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 30 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 31 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 32 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 34 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 35 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
