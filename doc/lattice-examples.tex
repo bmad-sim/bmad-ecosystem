@@ -28,7 +28,7 @@ simulate this is:
   P: patch, x_offset = -0.5, x_pitch = 0.15, z_offset = 0.3 
   BND: sbend, l = 6.2, g = 1/52
   BND2: BND, l = 4.7, tracking_method = runge_kutta,
-          field_calc = grid, field = \{...\}
+          field_calc = fieldmap, grid_field = \{...\}
   BR: fork, to_line = RING_L, to_element = M
   M: marker
   use, INJ_L
@@ -40,9 +40,9 @@ placed in the injection line \vn{INJ_L}. The \vn{tracking_method} for
 \vn{BND2} is set to \vn{runge_kutta} since the default
 \vn{bmad_standard} tracking is not able to handle these fringe
 fields. Additionally, the \vn{field_calc} parameter of \vn{BND2} is
-set to \vn{grid} so that the actual field profile of this particular
+set to \vn{field map} so that the actual field profile of this particular
 magnet can be used in the tracking. The field is specified in the
-\vn{field} parameter (\sref{s:em.fields}). 
+\vn{grid_field} parameter (\sref{s:fieldmap}). 
 
 After traversing element \vn{X} in the injection line, the particle
 goes through the patch \vn{P} which offsets the reference trajectory

@@ -49,7 +49,7 @@ particle experiences going through a multipole field is
              && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
 A positive $K_1L$ quadrupole component gives
-horizontal focusing and vertical defocussing. The general form is
+horizontal focusing and vertical defocusing. The general form is
 \begin{align}
   \Delta p_x &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
              \sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor}
@@ -196,134 +196,55 @@ Using the paraxial approximation, The kick given a particle due to the electric 
 \Endeq
 
 %-----------------------------------------------------------------
-\section{Magnetic and Electric Static Fields: Mode Decomposition}
-\label{s:field.mode}
-\index{electric fields!mode decomposition}
-\index{magnetic fields!mode decomposition}
+\section{Map Decomposition of Magnetic and Electric Fields}
+\label{s:field.map}
+\index{electric fields!map decomposition}
+\index{magnetic fields!map decomposition}
 
-Electric and magnetic fields can be parameterized as the sum over a
-number of ``modes''. The decomposition of RF fields is discussed in
-Sec.~\sref{s:rf.fields.phys}. There are two different mode forms used
-by \bmad. In both forms the modes are solutions to the Laplace
-equation. In the ``cylindrical mode'' form, each mode is of the form
-that is obtained when the Laplace equation is solved using separation
-of variables in cylindrical coordinates. In the ``Cartesian mode'' form,
-each mode is of the form that is obtained when the Laplace equation is solved
-in Cartesian coordinates.
+Electric and magnetic fields can be parameterized as the sum over a number of functions
+with each function satisfying Maxwell's equations. These functions are also referred to as
+``maps'', ``modes'', or ``terms''. \bmad has two parameterizations:
+\begin{example}
+  Cartesian_Map      ! \sref{s:cart.map.phys}.
+  Cylindrical_Map    ! \sref{s:cylind.map.phys}
+\end{example}
+These parameterizations are two of the four \vn{field map} parameterizations that \bmad
+defines \sref{s:fieldmap}.
 
-%-----------------------------------------------------------------
-\subsection{Cylindrical Mode Decomposition}
-\label{s:cylindrical.mode}
+The \vn{cartesian_map} decomposition involves a set of terms, each term a solution the
+Laplace equation solved using separation of variables in Cartesian coordinates. This
+decomposition can be used for DC but not AC fields. See \sref{s:cart.map.phys}.
+for more details. The syntax for specifying the \vn{cartesian_map} decomposition
+is discussed in \sref{s:cart.map}.
 
-The cylindrical mode parameterization used by \bmad essentially
-follows Venturini et al.\cite{b:vent.map}. The electric and magnetic
-fields are both described by a scaler potential
-\Begineq
-  \bfB = \nabla \, \psi_B, \qquad \bfE = \nabla \, \psi_E
-\Endeq
-The scaler potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
-
-The scaler potentials 
-\Begineq
-  \psi_B = \re \left[ \sum_{m = 0}^\infty \, \psi_{Bm} \right]
-\Endeq
-[Here and below, only equations for the magnetic field will be shown,
-the equations for the electric fields are similar.] Each $\psi_{Bm}$
-is a sum of a number of modes expressed in cylindrical coordinates as
-\Begineq
-  \psi_{Bm} = \sum_{n=1-N/2}^{N/2} \psi_{Bmn} =
-  \sum_{n=1-N/2}^{N/2} \frac{1}{k_n} \, e^{i \, k_n \, z} \,
-  e^{i \, m \, \phi} \, b_m(n) \, I_m(k_n \, \rho)
-  \label{psps1k}
-\Endeq
-where $I_m$ is a modified Bessel function of the first kind, and the
-$b_m(n)$ are complex coefficients. For electric fields, $e_m(n)$ is
-substituted for $b_m(n)$ in \Eq{psps1k}. In \Eq{psps1k} $k_n$ is
-given by
-\Begineq
-  k_n = \frac{2 \pi \, n}{N \, dz}
-\Endeq
-where $N$ is the number of modes of $\psi_m$, and $dz$ is the
-longitudinal ``distance between points''. That is, the the
-above equations will only be accurate over a longitudinal length
-$(N-1) \, dz$.
-
-
-The field associated with $\psi_{Bm}$ is for $m = 0$:
-\begin{align}
-  B_\rho &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} e^{i \, k_n \, z} \, b_0(n) \,
-    I_1(k_n \, \rho) \right] \CRNO
-  B_\phi &= 0 \\
-  B_z &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} i \, e^{i \, k_n \, z} \, b_0(n) \,
-    I_0(k_n \, \rho) \right]
-    \nonumber
-\end{align}
-
-And for $m \neq 0$:
-\begin{align}
-  B_\rho &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} \frac{1}{2} \, e^{i \, k_n \, z} \, 
-    e^{i \, m \, \phi} \, b_m(n) \,
-    \Big[ I_{m-1}(k_n \, \rho) + I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
-  B_\phi &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} \frac{i}{2} \, e^{i \, k_n \, z} \, 
-    e^{i \, m \, \phi} \, b_m(n) \,
-    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \\
-  B_z &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} i \, e^{i \, k_n \, z} \, 
-    e^{i \, m \, \phi} \, b_m(n) \,
-    I_m(k_n \, \rho) \right]
-    \nonumber
-\end{align}
-
-While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor
-that is present, the field itself is well behaved. Mathematically,
-\Eq{psps1k} can be corrected if, for $n = 0$, the term $I_m(k_n \,
-\rho) / k_n$ is replaced by
-\Begineq
-  \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
-  \begin{cases}
-    \rho   &\text{if } m = 0 \\
-    \rho/2 &\text{if } m = 1 \\
-    0      &\text{otherwise}
-  \end{cases}
-\Endeq
-
-The magnetic vector potential for $m = 0$ is constructed such that
-only $A_\phi$ is non-zero
-\begin{align}
-  A_\rho &= 0 \CRNO
-  A_\phi &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} \frac{i}{k_n} \, e^{i \, k_n \, z} \, b_0(n) \, I_1(k_n \, \rho) \right] \\
-  A_z    &= 0 \nonumber
-\end{align}
-For $m \ne 0$, the vector potential is chosen so that $A_\phi$ is zero.
-
-\begin{align}
-  A_\rho &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} \frac{-i \, \rho}{2 \, m} \, e^{i \, k_n \, z} \, 
-    e^{i \, m \, \phi} \, b_m(n) \,
-    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
-  A_\phi &= 0 \\
-  A_z    &= \re \left[ 
-    \sum_{n=1-N/2}^{N/2} \frac{-i \, \rho}{m} \, e^{i \, k_n \, z} \, 
-    e^{i \, m \, \phi} \, b_m(n) \,
-    I_m(k_n \, \rho) \right] \nonumber
-\end{align}
+The \vn{cylindrical_map} decomposition can be used for both DC and AC fields. See
+\sref{s:cylind.map.phys} for more details. The syntax for specifying the
+\vn{cylindircal_map} decomposition is discussed in \sref{s:cylind.map}.
 
 %-----------------------------------------------------------------
-\subsection{Cartesian Mode Decomposition}
-\label{s:cart.mode}
+\section{Cartesian Map Field Decomposition}
+\label{s:cart.map.phys}
+\index{cartesian_map}
 
-The \vn{Cartesian} mode decomposition for DC fields is modeled using
-an extension of the method of Sagan, Crittenden, and
-Rubin\cite{b:wiggler}. In this model the magnetic (or electric) field is written as
-a sum of terms $B_i$
+Electric and magnetic fields can be parameterized as the sum over a number of functions
+with each function satisfying Maxwell's equations. These functions are also referred to as
+``maps'', ``modes'', or ``terms''. \bmad has two types. The ``\vn{Cartesian}''
+decomposition is explained here. The other type is the \vn{cylindrical} decomposition
+(\sref{s:cylind.map.phys}).
+
+The \vn{Cartesian} decomposition implemented by \bmad involves a set of terms, each
+term a solution the Laplace equation solved using separation of variables in Cartesian
+coordinates. This decomposition is for DC electric or magnetic fields. No AC Cartesian Map
+decomposition is implemented by \bmad. In a lattice file, a \vn{Cartesian} map is specified using
+the \vn{cartesian_map} attribute as exaplined in Sec.~\sref{s:cart.map}.
+
+The \vn{Cartesian} decomposition is modeled using an extension of the method of Sagan,
+Crittenden, and Rubin\cite{b:wiggler}. In this decomposition, the magnetic(or electric
+field is written as a sum of terms $B_i$ (For concreteness the symbol $B_i$ is used but
+the equations below pertain equally well to both electric and magnetic fields) with:
 \Begineq
   \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; A, k_x, k_y, k_z, x_0, y_0, \phi_z, family)
-\Endeq 
+\Endeq
 Each term $B_i$ is specified using seven numbers $(A, k_x, k_y, k_z,
 x_0, y_0, \phi_z)$ and a switch called \vn{family} which can be one of:
 \begin{example}
@@ -441,15 +362,132 @@ forms. The magnetic field is always well defined even if one of the
 $k$'s is zero.
 
 %-----------------------------------------------------------------
-\section{RF Fields: Mode Decomposition}
-\label{s:rf.fields.phys}
+\section{Cylindrical Map Decomposition}
+\label{s:cylind.map.phys}
+\index{cylindrical map}
+
+Electric and magnetic fields can be parameterized as the sum over a number of functions
+with each function satisfying Maxwell's equations. These functions are also referred to as
+``maps'', ``modes'', or ``terms''. \bmad has two types. The ``\vn{cylindrical}''
+decomposition is explained here. The other type is the \vn{Cartesian} decomposition
+(\sref{s:cylind.map.phys}).
+
+In a lattice file, a \vn{cylindrical} map is specified using the \vn{cylindrical_map}
+attribute as exaplined in Sec.~\sref{s:cylind.map}.
+
+The \vn{cylindrical} decomposition takes one of two forms depending upon wheather the
+fields are time varying or not. The DC decomposition is explained in
+Sec.~\sref{s:cylind.dc} while the RF decomposition is exaplained in
+Sec.~\sref{s:cylind.ac}. 
+
+%-----------------------------------------------------------------
+\subsection{DC Cylindrical Map Decomposition}
+\label{s:cylind.dc}
+
+The DC \vn{cylindrical} parameterization used by \bmad essentially
+follows Venturini et al.\cite{b:vent.map}. The electric and magnetic
+fields are both described by a scaler potential
+\Begineq
+  \bfB = \nabla \, \psi_B, \qquad \bfE = \nabla \, \psi_E
+\Endeq
+The scaler potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
+
+The scaler potentials 
+\Begineq
+  \psi_B = \re \left[ \sum_{m = 0}^\infty \, \psi_{Bm} \right]
+\Endeq
+[Here and below, only equations for the magnetic field will be shown,
+the equations for the electric fields are similar.] Each $\psi_{Bm}$
+is a sum of a number of modes expressed in cylindrical coordinates as
+\Begineq
+  \psi_{Bm} = \sum_{n=1-N/2}^{N/2} \psi_{Bmn} =
+  \sum_{n=1-N/2}^{N/2} \frac{1}{k_n} \, e^{i \, k_n \, z} \,
+  e^{i \, m \, \theta} \, b_m(n) \, I_m(k_n \, \rho)
+  \label{psps1k}
+\Endeq
+where $I_m$ is a modified Bessel function of the first kind, and the
+$b_m(n)$ are complex coefficients. For electric fields, $e_m(n)$ is
+substituted for $b_m(n)$ in \Eq{psps1k}. In \Eq{psps1k} $k_n$ is
+given by
+\Begineq
+  k_n = \frac{2 \pi \, n}{N \, dz}
+\Endeq
+where $N$ is the number of modes of $\psi_m$, and $dz$ is the
+longitudinal ``distance between points''. That is, the the
+above equations will only be accurate over a longitudinal length
+$(N-1) \, dz$.
+
+The field associated with $\psi_{Bm}$ is for $m = 0$:
+\begin{align}
+  B_\rho &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} e^{i \, k_n \, z} \, b_0(n) \,
+    I_1(k_n \, \rho) \right] \CRNO
+  B_\theta &= 0 \\
+  B_z &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} i \, e^{i \, k_n \, z} \, b_0(n) \,
+    I_0(k_n \, \rho) \right]
+    \nonumber
+\end{align}
+
+And for $m \neq 0$:
+\begin{align}
+  B_\rho &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} \frac{1}{2} \, e^{i \, k_n \, z} \, 
+    e^{i \, m \, \theta} \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) + I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
+  B_\theta &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} \frac{i}{2} \, e^{i \, k_n \, z} \, 
+    e^{i \, m \, \theta} \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \\
+  B_z &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} i \, e^{i \, k_n \, z} \, 
+    e^{i \, m \, \theta} \, b_m(n) \,
+    I_m(k_n \, \rho) \right]
+    \nonumber
+\end{align}
+
+While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor
+that is present, the field itself is well behaved. Mathematically,
+\Eq{psps1k} can be corrected if, for $n = 0$, the term $I_m(k_n \,
+\rho) / k_n$ is replaced by
+\Begineq
+  \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
+  \begin{cases}
+    \rho   &\text{if } m = 0 \\
+    \rho/2 &\text{if } m = 1 \\
+    0      &\text{otherwise}
+  \end{cases}
+\Endeq
+
+The magnetic vector potential for $m = 0$ is constructed such that
+only $A_\theta$ is non-zero
+\begin{align}
+  A_\rho &= 0 \CRNO
+  A_\theta &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} \frac{i}{k_n} \, e^{i \, k_n \, z} \, b_0(n) \, I_1(k_n \, \rho) \right] \\
+  A_z    &= 0 \nonumber
+\end{align}
+For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
+
+\begin{align}
+  A_\rho &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} \frac{-i \, \rho}{2 \, m} \, e^{i \, k_n \, z} \, 
+    e^{i \, m \, \theta} \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
+  A_\theta &= 0 \\
+  A_z    &= \re \left[ 
+    \sum_{n=1-N/2}^{N/2} \frac{-i \, \rho}{m} \, e^{i \, k_n \, z} \, 
+    e^{i \, m \, \theta} \, b_m(n) \,
+    I_m(k_n \, \rho) \right] \nonumber
+\end{align}
+
+%-----------------------------------------------------------------
+\subsection{AC Cylindrical Map Decomposition}
+\label{s:cylind.ac}
 \index{rf fields|hyperbf}
 
-Electric and magnetic fields can be parameterized as the sum over a
-number of ``modes''. The decomposition of static fields is discussed
-in Sec.~\sref{s:field.mode}. For RF fields, the mode parameterization
-used by \bmad essentially follows Abell\cite{b:rf.abell}. The electric
-field is written in the form
+For RF fields, the \vn{cylindrical} mode parameterization used by \bmad essentially
+follows Abell\cite{b:rf.abell}. The electric field is written in the form
 \Begineq
   \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_{0j})}
   \label{eseei}
@@ -465,22 +503,22 @@ where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
 For a given mode, the electric field can be characterized by the values on 
 a cylindrical surface of some radius $R$. The field will be of the form
 \begin{align}
-  E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, \phi - \phi_0) \CRNO
-  E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, \phi - \phi_0) \\
+  E_\rho(R, \theta, z) &= E_{\rho c}(R, z) \, \cos(m \, \theta - \theta_0) \CRNO
+  E_\theta(R, \theta, z) &= E_{\theta s}(R, z) \, \sin(m \, \theta - \theta_0) \\
   \label{erpze}
-  E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, \phi - \phi_0) \nonumber
+  E_z(R, \theta, z)    &= E_{z c}(R, z)    \, \cos(m \, \theta - \theta_0) \nonumber
 \end{align}
 in this and in subsequent equations, the mode index $j$ has been
 dropped.
 
 The azimuthal mode number $m_j$ is a non-negative integer. If $m_j
-= 0$, there are two different modes, one with $\phi_{0j} = 0$ and
-the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
+= 0$, there are two different modes, one with $\theta_{0j} = 0$ and
+the other with $\theta_{0j} = -\pi/2$. The $\theta_{0j} = 0$ mode is an
 accelerating mode with the electric field is in the form
 \begin{align}
   E_\rho(\bfr) &= \sum_{n=1-N/2}^{N/2} -e^{i \, k_n \, z} \, 
     i \, k_n \, e_0(n) \, \wt I_1(\kappa_n, \rho) \CRNO
-  E_\phi(\bfr) &= 0 \\
+  E_\theta(\bfr) &= 0 \\
   E_z(\bfr) &= \sum_{n=1-N/2}^{N/2}e^{i \, k_n \, z} \, 
     e_0(n) \, \wt I_0(\kappa_n, \rho) \nonumber
 \end{align}
@@ -515,16 +553,16 @@ The $e_0$ coefficients are obtained from the equation
   &\equiv \frac{\wt E_{zc}(R, n)}{\wt I_0(\kappa_n, R)} 
 \end{align}
 
-The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
+The non-accelerating $m = 0$ mode with $\theta_0 = -\pi/2$ has an
 electric field in the form
 \begin{align}
   E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
-  E_\phi(\bfr) &= \sum_{n=1-N/2}^{N/2}e^{i \, k_n \, z} \, 
+  E_\theta(\bfr) &= \sum_{n=1-N/2}^{N/2}e^{i \, k_n \, z} \, 
     b_0(n) \, \wt I_1(\kappa_n, \rho)
 \end{align}
 where
 \Begineq
-  b_0(n) = \frac{\wt E_{\phi s}(R, n)}{\wt I_1(\kappa_n, R)} 
+  b_0(n) = \frac{\wt E_{\theta s}(R, n)}{\wt I_1(\kappa_n, R)} 
 \Endeq
 
 For positive $m$, the electric field is in the form
@@ -535,8 +573,8 @@ For positive $m$, the electric field is in the form
     k_n \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) +
     b_m(n) \, \frac{\wt I_m(\kappa_n, \rho)}{\rho}
     \right]
-    \cos(m \, \phi - \phi_0) \CRNO
-  E_\phi(\bfr) &= \sum_{n=1-N/2}^{N/2} 
+    \cos(m \, \theta - \theta_0) \CRNO
+  E_\theta(\bfr) &= \sum_{n=1-N/2}^{N/2} 
     -i \, e^{i \, k_n \, z} \, 
     \left[
     k_n \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) \, + \right. \\
@@ -544,9 +582,9 @@ For positive $m$, the electric field is in the form
     b_m(n) \, \left( \frac{\wt I_m(\kappa_n, \rho)}{\rho} - 
     \frac{1}{m} \, \wt I_{m-1}(\kappa_n, \rho) \right)
     \right] 
-    \sin(m \, \phi - \phi_0) \CRNO
+    \sin(m \, \theta - \theta_0) \CRNO
   E_z(\bfr) &= \sum_{n=1-N/2}^{N/2}e^{i \, k_n \, z} \, 
-    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, \phi - \phi_0) \nonumber
+    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, \theta - \theta_0) \nonumber
 \end{align}
 with
 \begin{align}
@@ -576,6 +614,49 @@ The vector potential can be analytically integrated using the identity
   \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
   \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
 \Endeq
+
+%-----------------------------------------------------------------
+\section{Field Modeling Using Taylor Maps}
+\label{s:taylor.field.phys}
+\index{taylor field modeling}
+
+\bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
+(\sref{s:fieldmap}). One model involves a set of Taylor maps. This model is restricted to
+modeling DC fields. In a lattice file, the \vn{Taylor} field model is specified using the
+\vn{taylor_field} attribute as exaplined in Sec.~\sref{s:taylor.field}.
+
+The Taylor field model specifies the field using a set of Taylor maps. Each map defines
+the field in the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each
+Taylor map is comprised of three Taylor series, one for each field component, and each
+Taylor series is a polynomial in $x$ and $y$:
+\Begineq
+  \Bf B = (B_x(x,y;i), B_y(x,y;i), B_z(x,y;i))
+\Endeq
+where the $B_x, B_y, B_z$ on the right hand side represent the tree Taylor series, $i$
+denotes the Taylor map at $z_i = i \cdot dz$ where $dz$ is the spacing between maps. The
+maps are restricted to be equally spaced to enable higher order integration schemes in PTC
+(See \vn{default_integ_order} in \sref{s:bmad.params}).  [Note: Each Taylor field model
+specifes either an electric or magnetic field. In this section, the symbol $B$ can refer
+to either magnetic or electric fields.]
+
+Interpolation of the field in \bmad is done using a cubic spline fit. Given a position
+$(x, y, z)$, the field $\Bf B$ and transverse field derivatives $\partial \Bf B / \partial
+\Bf r$, are evaluated at two positions $\Bf r_0 = (x, y, z_{i0})$ and $\Bf r_1 = (x, y,
+z_{i1})$ with $z_{i0}$ being the positions of the maps to either side of $z$.
+The longitudinal field derivatives are derived from the transverse ones using Maxwell's equations:
+\Begineq
+  \frac{\partial B_x}{\partial z} = \frac{\partial B_z}{\partial x}, \qquad
+  \frac{\partial B_y}{\partial z} = \frac{\partial B_z}{\partial y}, \qquad
+  \frac{\partial B_z}{\partial z} = 
+    - \left( \frac{\partial B_x}{\partial x} + \frac{\partial B_y}{\partial y} \right)
+\Endeq
+
+Once the field and longitudinal derivatives are known at $\Bf r_0$ and $\Bf r_1$, a
+standard cubic spline interpolation is done.
+
+Note: If the Taylor field model uses curved coordinates, There will be inaccuracies in the
+computed field to the extent that Maxwell's equations have to be modified to take into
+account the coordinate curvature.
 
 %-----------------------------------------------------------------
 \section{Wake fields}

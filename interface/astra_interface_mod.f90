@@ -199,8 +199,8 @@ case (lcavity$, rfcavity$, e_gun$)
   call get_astra_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, absmax_Ez, dimensions = i_dim)
   
   ! Frequency
-  if ( associated(ele%em_field)) then
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+  if ( associated(ele%grid_field)) then
+    freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
   else
     ! No grid present
     freq = ele%value(rf_frequency$) 
@@ -209,7 +209,7 @@ case (lcavity$, rfcavity$, e_gun$)
   ! Phase 
   phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
   ! adjust the lag for 'zero-crossing' 
-  if (ele%key == rfcavity$) phase_lag = twopi*( ele%em_field%mode(1)%phi0_ref - ele%value(phi0_max$) ) - phase_lag
+  if (ele%key == rfcavity$) phase_lag = twopi*( ele%grid_field(1)%phi0_fieldmap - ele%value(phi0_max$) ) - phase_lag
   if (ele%key == e_gun$) then 
     absmax_Ez = q_sign*absmax_Ez
   endif
@@ -416,8 +416,8 @@ i_dim = integer_option(1, dimensions)
 output_name = ''
 
 ! Check for field grid
-if (associated (ele%em_field)) then
-  unique_grid_file = ele%em_field%mode(1)%grid%file
+if (associated (ele%grid_field)) then
+  unique_grid_file = ele%grid_field(1)%ptr%file
 else
   ! Just us the element's index as an identifier
   write(unique_grid_file, '(a,i0)') 'ele_', ele%ix_ele
@@ -514,8 +514,8 @@ character(10)   ::  rfmt
 
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
-type (em_field_grid_pt_struct), allocatable :: pt(:)
-type (em_field_grid_pt_struct) :: ref_field
+type (grid_field_pt1_struct), allocatable :: pt(:)
+type (grid_field_pt1_struct) :: ref_field
 real(rp) :: z_step, z_min, z_max
 real(rp) :: freq,  z, phase_ref
 real(rp) :: gap, edge_range
@@ -564,8 +564,8 @@ select case (ele%key)
 ! LCavity, RFCavity, E_GUN
 !-----------
 case (lcavity$, rfcavity$, e_gun$) 
-  if ( associated(ele%em_field)) then
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+  if ( associated(ele%grid_field)) then
+    freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
   else
     ! No grid present
     freq = ele%value(rf_frequency$) 
@@ -726,8 +726,8 @@ character(10)   ::  rfmt
 
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
-type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
-type (em_field_grid_pt_struct) :: ref_field
+type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
+type (grid_field_pt1_struct) :: ref_field
 real(rp)        :: maxfield, test_field_value
 real(rp) :: x_step, x_min, x_max
 real(rp) :: y_step, y_min, y_max
@@ -789,8 +789,8 @@ ny = ceiling((y_max-y_min)/y_step) + 1
 !-----------
 select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$) 
-  if ( associated(ele%em_field)) then
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+  if ( associated(ele%grid_field)) then
+    freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
   else
     ! No grid present
     freq = ele%value(rf_frequency$) 
@@ -968,7 +968,7 @@ end subroutine
 !-
 function astra_max_field_reference(pt0, ele) result(field_value)
 implicit none
-type (em_field_grid_pt_struct) pt0 
+type (grid_field_pt1_struct) pt0 
 type (ele_struct) :: ele
 real(rp) :: field_value
 character(40), parameter :: r_name = 'astra_max_field_reference'

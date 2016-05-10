@@ -8,6 +8,7 @@ module em_field_mod
 
 use bmad_struct
 use bmad_interface
+use spline_mod
 
 implicit none
 
@@ -133,7 +134,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-!                                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
+!                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -162,7 +163,7 @@ end subroutine save_a_step
 !   calc_dfield      -- Logical, optional: If present and True then calculate the field derivatives.
 !   use_overlap      -- logical, optional: Add in overlap fields from other elements? Default is True.
 !   grid_allow_s_out_of_bounds -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
-!                                             and return zero instead of an error? Default: False.
+!                                     and return zero instead of an error? Default: False. Used internally for overlapping fields.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -172,7 +173,7 @@ end subroutine save_a_step
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
-                                                   err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
+                                          err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 
 use geometry_mod
 
@@ -181,33 +182,37 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb
 type (em_potential_struct), optional :: potential
-type (wig_term_struct), pointer :: wig
-type (em_field_struct) :: field, field2, lord_field, l1_field
-type (em_field_grid_pt_struct) :: local_field
-type (em_field_mode_struct), pointer :: mode
-type (em_field_cylindrical_map_term_struct), pointer :: term
+type (em_field_struct) :: field, field2, lord_field, l1_field, mode_field
+type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term1_struct), pointer :: ct_term
+type (cylindrical_map_struct), pointer :: cl_map
+type (cylindrical_map_term1_struct), pointer :: cl_term
+type (grid_field_struct), pointer :: g_field
+type (grid_field_pt1_struct) g_pt
+type (taylor_field_struct), pointer :: t_field
+type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
+type (spline_struct) spline
 
-real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, y, s, t, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
-real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
-real(rp) Er_dc, Ep_dc, Ez_dc, Br_dc, Bp_dc, Bz_dc
-real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z, sx_over_kx, sy_over_ky, sz_over_kz
+real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
+real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-real(rp) w_ele_mat(3,3), w_lord_mat(3,3)
+real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
+real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 
-complex(rp) Er, Ep, Ez, Br, Bp, Bz
-complex(rp) exp_kz, exp_m, expt, dEp, dEr
+complex(rp) exp_kz, exp_m, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
-integer i, j, m, n, trig_x, trig_y, status
+integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
 logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
-logical df_calc, err
+logical do_df_calc, err, dfield_computed
 
 character(20) :: r_name = 'em_field_calc'
 
@@ -217,7 +222,8 @@ character(20) :: r_name = 'em_field_calc'
 field = em_field_struct()
 if (present(potential)) potential = em_potential_struct()
 
-df_calc = logic_option (.false., calc_dfield)
+do_df_calc = logic_option (.false., calc_dfield)
+dfield_computed = .false.
 
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
@@ -263,7 +269,7 @@ if (ele%field_calc == refer_to_lords$) then
 
     field%E = field%E + field2%E
     field%B = field%B + field2%B
-    if (df_calc) then
+    if (do_df_calc) then
       field%dE = field%dE + field2%dE
       field%dB = field%dB + field2%dB
     endif
@@ -282,7 +288,7 @@ if (ele%field_calc == custom$) then
 end if
 
 !----------------------------------------------------------------------------
-!Set up common variables for all (non-custom) methods
+! Set up common variables for all (non-custom) methods
 
 ref_charge = charge_of(param%particle)
 
@@ -299,7 +305,10 @@ endif
 !----------------------------------------------------------------------------
 ! field_calc methods
 
-select case (ele%field_calc)
+field_calc = ele%field_calc
+if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) field_calc = fieldmap$
+
+select case (field_calc)
   
 !----------------------------------------------------------------------------
 ! Bmad_standard field calc 
@@ -317,7 +326,12 @@ case (bmad_standard$)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = e_accel_field (ele, gradient$)
+    if (ele%value(rf_frequency$) == 0) then
+      field%e(3) = e_accel_field (ele, gradient$)
+    else
+      phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
+      field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase))
+    endif
 
   !------------------------------------------
   ! Elseparator
@@ -367,7 +381,7 @@ case (bmad_standard$)
 
     if (ele%value(rf_frequency$) == 0) return
 
-    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
+    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
     orbit%phase(1) = phase  ! RF phase is needed by apply_element_edge_kick when calling rf_coupler_kick.
 
@@ -404,11 +418,6 @@ case (bmad_standard$)
     field%B(1) = -B_phi_coef * y
     field%B(2) =  B_phi_coef * x
 
-    if (df_calc) then
-      call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY AND RFCAVITY!')
-      if (global_com%exit_on_error) call err_exit
-    endif
-
   !------------------------------------------
   ! Octupole 
 
@@ -417,7 +426,8 @@ case (bmad_standard$)
     field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k3$) * f_p0c 
     field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k3$) * f_p0c 
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
       field%dB(1,1) =  x*y * ele%value(k3$) * f_p0c
       field%dB(1,2) = (x**2 - y**2) / 2 * ele%value(k3$) * f_p0c
       field%dB(2,1) = (x**2 - y**2) / 2 * ele%value(k3$) * f_p0c
@@ -437,7 +447,8 @@ case (bmad_standard$)
     field%b(1) = y * ele%value(k1$) * f_p0c 
     field%b(2) = x * ele%value(k1$) * f_p0c 
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
       field%dB(1,2) =  ele%value(k1$) * f_p0c
       field%dB(2,1) =  ele%value(k1$) * f_p0c
     endif
@@ -450,7 +461,8 @@ case (bmad_standard$)
     field%b(1) = x * y * ele%value(k2$) * f_p0c
     field%b(2) = (x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
       field%dB(1,1) =  y * ele%value(k2$) * f_p0c
       field%dB(1,2) =  x * ele%value(k2$) * f_p0c
       field%dB(2,1) =  x * ele%value(k2$) * f_p0c
@@ -471,7 +483,8 @@ case (bmad_standard$)
     field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
     field%b(2) = (x * ele%value(k1$) + ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
       field%dB(1,1) =  y * ele%value(k2$) * f_p0c
       field%dB(1,2) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
       field%dB(2,1) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
@@ -487,7 +500,8 @@ case (bmad_standard$)
     field%b(2) = x * ele%value(k1$) * f_p0c 
     field%b(3) = ele%value(ks$) * f_p0c
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
       field%dB(1,2) = ele%value(k1$) * f_p0c
       field%dB(2,1) = ele%value(k1$) * f_p0c
     endif
@@ -499,7 +513,8 @@ case (bmad_standard$)
 
     field%b(3) = ele%value(ks$) * f_p0c
 
-    if (df_calc) then
+    if (do_df_calc) then
+      dfield_computed = .true.
     endif
 
   !------------------------------------------
@@ -507,195 +522,6 @@ case (bmad_standard$)
 
   case(wiggler$, undulator$)
 
-    n = 0
-    if (associated(ele%wig)) n = size(ele%wig%term)
-
-    do i = 1, n
-      wig => ele%wig%term(i)
-      sgn_x = 1; sgn_y = 1; sgn_z = 1
-
-      select case (wig%type)
-      case (hyper_y_family_x$, hyper_y_family_y$, hyper_y_family_qu$, hyper_y_family_sq$)
-        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%ky
-        c_x = cos(wig%kx * (x + wig%x0))
-        s_x = sin(wig%kx * (x + wig%x0))
-        c_y = cosh (wig%ky * (y + wig%y0))
-        s_y = sinh (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_y_family_y$)  sgn_x = -1
-        if (wig%type == hyper_y_family_sq$) sgn_x = -1
-        if (wig%type == hyper_y_family_sq$) sgn_z = -1
-        trig_x = -1; trig_y = 1
-
-      case (hyper_xy_family_x$, hyper_xy_family_y$, hyper_xy_family_qu$, hyper_xy_family_sq$)
-        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kz
-        c_x = cosh(wig%kx * (x + wig%x0))
-        s_x = sinh(wig%kx * (x + wig%x0))
-        c_y = cosh (wig%ky * (y + wig%y0))
-        s_y = sinh (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_xy_family_sq$) sgn_z = -1
-        trig_x = 1; trig_y = 1
-
-      case (hyper_x_family_x$, hyper_x_family_y$, hyper_x_family_qu$, hyper_x_family_sq$)
-        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kx
-        c_x = cosh(wig%kx * (x + wig%x0))
-        s_x = sinh(wig%kx * (x + wig%x0))
-        c_y = cos (wig%ky * (y + wig%y0))
-        s_y = sin (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_x_family_x$)  sgn_y = -1
-        if (wig%type == hyper_x_family_sq$) sgn_x = -1
-        trig_x = 1; trig_y = -1
-      end select
-
-      c_z = cos (wig%kz * s_rel + wig%phi_z)
-      s_z = sin (wig%kz * s_rel + wig%phi_z)
-
-      select case (wig%type)
-      case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
-        field%B(1) = field%B(1) + coef  * wig%kx * c_x * c_y * c_z
-        field%B(2) = field%B(2) + coef  * wig%ky * s_x * s_y * c_z * sgn_y
-        field%B(3) = field%B(3) - coef  * wig%kz * s_x * c_y * s_z
-      case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
-        field%B(1) = field%B(1) + coef  * wig%kx * s_x * s_y * c_z * sgn_x
-        field%B(2) = field%B(2) + coef  * wig%ky * c_x * c_y * c_z
-        field%B(3) = field%B(3) - coef  * wig%kz * c_x * s_y * s_z
-      case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
-        field%B(1) = field%B(1) + coef  * wig%kx * c_x * s_y * c_z
-        field%B(2) = field%B(2) + coef  * wig%ky * s_x * c_y * c_z
-        field%B(3) = field%B(3) - coef  * wig%kz * s_x * s_y * s_z
-      case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
-        field%B(1) = field%B(1) + coef  * wig%kx * s_x * c_y * c_z * sgn_x
-        field%B(2) = field%B(2) + coef  * wig%ky * c_x * s_y * c_z
-        field%B(3) = field%B(3) + coef  * wig%kz * c_x * c_y * s_z * sgn_z
-      end select
-
-      if (df_calc) then
-        select case (wig%type)
-        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
-          f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f * wig%kx * s_x * c_y * c_z * trig_x
-          field%dB(2,1) = field%dB(2,1) + f * wig%ky * c_x * s_y * c_z * sgn_y
-          field%dB(3,1) = field%dB(3,1) - f * wig%kz * c_x * c_y * s_z 
-          f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f * wig%kx * c_x * s_y * c_z * trig_y
-          field%dB(2,2) = field%dB(2,2) + f * wig%ky * s_x * c_y * c_z * sgn_y
-          field%dB(3,2) = field%dB(3,2) - f * wig%kz * s_x * s_y * s_z * trig_y
-          f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f * wig%kx * c_x * c_y * s_z
-          field%dB(2,3) = field%dB(2,3) - f * wig%ky * s_x * s_y * s_z * sgn_y 
-          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * c_y * c_z
-        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
-          f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f * wig%kx * c_x * s_y * c_z * sgn_x
-          field%dB(2,1) = field%dB(2,1) + f * wig%ky * s_x * c_y * c_z * trig_x
-          field%dB(3,1) = field%dB(3,1) - f * wig%kz * s_x * s_y * s_z * trig_x
-          f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f * wig%kx * s_x * c_y * c_z * sgn_x
-          field%dB(2,2) = field%dB(2,2) + f * wig%ky * c_x * s_y * c_z * trig_y
-          field%dB(3,2) = field%dB(3,2) - f * wig%kz * c_x * c_y * s_z 
-          f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f * wig%kx * s_x * s_y * s_z * sgn_x
-          field%dB(2,3) = field%dB(2,3) - f * wig%ky * c_x * c_y * s_z 
-          field%dB(3,3) = field%dB(3,3) - f * wig%kz * c_x * s_y * c_z 
-        case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
-          f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f * wig%kx * s_x * s_y * c_z * trig_x
-          field%dB(2,1) = field%dB(2,1) + f * wig%ky * c_x * c_y * c_z 
-          field%dB(3,1) = field%dB(3,1) - f * wig%kz * c_x * s_y * s_z
-          f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f * wig%kx * c_x * c_y * c_z 
-          field%dB(2,2) = field%dB(2,2) + f * wig%ky * s_x * s_y * c_z * trig_y
-          field%dB(3,2) = field%dB(3,2) - f * wig%kz * s_x * c_y * s_z 
-          f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f * wig%kx * c_x * s_y * s_z
-          field%dB(2,3) = field%dB(2,3) - f * wig%ky * s_x * c_y * s_z 
-          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * s_y * c_z 
-        case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
-          f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f * wig%kx * c_x * c_y * c_z * sgn_x
-          field%dB(2,1) = field%dB(2,1) + f * wig%ky * s_x * s_y * c_z * trig_x
-          field%dB(3,1) = field%dB(3,1) + f * wig%kz * s_x * c_y * s_z * sgn_z * trig_x
-          f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f * wig%kx * s_x * s_y * c_z * sgn_x * trig_y
-          field%dB(2,2) = field%dB(2,2) + f * wig%ky * c_x * c_y * c_z 
-          field%dB(3,2) = field%dB(3,2) + f * wig%kz * c_x * s_y * s_z * sgn_z * trig_y
-          f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f * wig%kx * s_x * c_y * s_z * sgn_x
-          field%dB(2,3) = field%dB(2,3) - f * wig%ky * c_x * s_y * s_z 
-          field%dB(3,3) = field%dB(3,3) + f * wig%kz * c_x * c_y * c_z * sgn_z
-        end select
-      endif
-
-      if (present(potential)) then
-        coef = wig%coef * ele%value(polarity$) / ref_charge
-        select case (wig%type)
-        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
-          if (abs(wig%ky * (y + wig%y0)) < 1d-10) then
-            sy_over_ky = y + wig%y0
-          else
-            sy_over_ky = s_y / wig%ky
-          endif
-        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
-          if (abs(wig%kx * (x + wig%x0)) < 1d-10) then
-            sx_over_kx = x + wig%x0
-          else
-            sx_over_kx = s_x / wig%kx
-          endif
-        case default
-          if (abs(wig%kz * z + wig%phi_z) < 1d-10) then
-            if (wig%kz == 0) then
-              sz_over_kz = 0
-            else
-              sz_over_kz = z + wig%phi_z / wig%kz
-            endif
-          else
-            sz_over_kz = s_z / wig%kz
-          endif
-        end select
-
-        select case (wig%type)
-        case (hyper_y_family_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%ky
-          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%ky
-        case (hyper_xy_family_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
-          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%kz
-        case (hyper_x_family_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%kx
-          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
-
-        case (hyper_y_family_y$)
-          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%ky
-          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
-        case (hyper_xy_family_y$)
-          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
-          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kz
-        case (hyper_x_family_y$)
-          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%kx
-          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kx
-
-        case (hyper_y_family_qu$)
-          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
-          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * wig%kx / wig%ky
-        case (hyper_xy_family_qu$)
-          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * wig%ky / wig%kz
-          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * wig%kx / wig%kz
-        case (hyper_x_family_qu$)
-          potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * wig%ky / wig%kx
-          potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
-
-        case (hyper_y_family_sq$)
-          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
-          potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * wig%kx / wig%ky
-        case (hyper_xy_family_sq$)
-          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * wig%ky / wig%kz
-          potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * wig%kx / wig%kz
-        case (hyper_x_family_sq$)
-          potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * wig%ky / wig%kx
-          potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
-        end select
-      endif
-
-    enddo
 
   !------------------------------------------
   ! Error
@@ -723,14 +549,14 @@ case (bmad_standard$)
 
     do i = 0, n_pole_maxx
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-      if (df_calc) then
+      if (do_df_calc) then
         call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
       else
         call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
       endif
       field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
       field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
-      if (df_calc) then
+      if (do_df_calc) then
         field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
         field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
         field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
@@ -747,10 +573,10 @@ case (bmad_standard$)
   if (has_nonzero_pole) then
     do i = 0, n_pole_maxx
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, df_calc)
+      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
       field%E(1) = field%E(1) + Ex
       field%E(2) = field%E(2) + Ey
-      if (df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
+      if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
     enddo
   endif
 
@@ -777,338 +603,581 @@ case (bmad_standard$)
   endif
 
 !----------------------------------------------------------------------------
-! Map field calc...
+! FieldMap
 
-case(map$)
+case(fieldmap$)
 
-  if (.not. associated(ele%em_field)) then
-    call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
+  if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
+      .not. associated(ele%grid_field) .and. .not. associated(ele%taylor_field)) then
+    call out_io (s_fatal$, r_name, 'No associated fieldmap (cartesican_map, grid_field, etc) FOR: ' // ele%name) 
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
     return  
   endif
 
-  radius = sqrt(x**2 + y**2)
-  phi = atan2(y, x)
+  !----------------------------------------------------------------------------
+  ! Cartesian map field
 
-  ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
+  if (associated(ele%cartesian_map)) then
+    do im = 1, size(ele%cartesian_map)
+      ct_map => ele%cartesian_map(im)
 
-  select case (ele%key)
-  case (lcavity$, rfcavity$, em_field$)
-    freq0 = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
-    if (freq0 == 0 .and. ele%key /= em_field$) then
-      call out_io (s_fatal$, r_name, 'Frequency is zero for map in cavity: ' // ele%name)
-      if (ele%em_field%mode(1)%harmonic == 0) call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return  
-    endif
-    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq0
-    if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
+      fld = 0; dfld = 0
 
-  case default ! Where rf_frequency is not defined
-    if (any(ele%em_field%mode%harmonic /= 0)) then
-      call out_io (s_fatal$, r_name, 'RF FIELD MAPS NOT IMPLEMENTED FOR ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-  end select
+      call to_field_map_coords (local_orb, s_rel, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z)
 
-  !
+      n = size(ct_map%ptr%term)
+      do i = 1, n
+        ct_term => ct_map%ptr%term(i)
+        sgn_x = 1; sgn_y = 1; sgn_z = 1
 
-  E_rho = 0; E_phi = 0; E_z = 0
-  B_rho = 0; B_phi = 0; B_z = 0
+        select case (ct_term%type)
+        case (hyper_y_family_x$, hyper_y_family_y$, hyper_y_family_qu$, hyper_y_family_sq$)
+          coef = ct_term%coef / ct_term%ky
+          c_x = cos(ct_term%kx * (x + ct_term%x0))
+          s_x = sin(ct_term%kx * (x + ct_term%x0))
+          c_y = cosh (ct_term%ky * (y + ct_term%y0))
+          s_y = sinh (ct_term%ky * (y + ct_term%y0))
+          if (ct_term%type == hyper_y_family_y$)  sgn_x = -1
+          if (ct_term%type == hyper_y_family_sq$) sgn_x = -1
+          if (ct_term%type == hyper_y_family_sq$) sgn_z = -1
+          trig_x = -1; trig_y = 1
 
-  do i = 1, size(ele%em_field%mode)
-    mode => ele%em_field%mode(i)
-    m = mode%m
+        case (hyper_xy_family_x$, hyper_xy_family_y$, hyper_xy_family_qu$, hyper_xy_family_sq$)
+          coef = ct_term%coef / ct_term%kz
+          c_x = cosh(ct_term%kx * (x + ct_term%x0))
+          s_x = sinh(ct_term%kx * (x + ct_term%x0))
+          c_y = cosh (ct_term%ky * (y + ct_term%y0))
+          s_y = sinh (ct_term%ky * (y + ct_term%y0))
+          if (ct_term%type == hyper_xy_family_sq$) sgn_z = -1
+          trig_x = 1; trig_y = 1
 
-    Er = 0; Ep = 0; Ez = 0
-    Br = 0; Bp = 0; Bz = 0
+        case (hyper_x_family_x$, hyper_x_family_y$, hyper_x_family_qu$, hyper_x_family_sq$)
+          coef = ct_term%coef / ct_term%kx
+          c_x = cosh(ct_term%kx * (x + ct_term%x0))
+          s_x = sinh(ct_term%kx * (x + ct_term%x0))
+          c_y = cos (ct_term%ky * (y + ct_term%y0))
+          s_y = sin (ct_term%ky * (y + ct_term%y0))
+          if (ct_term%type == hyper_x_family_x$)  sgn_y = -1
+          if (ct_term%type == hyper_x_family_sq$) sgn_x = -1
+          trig_x = 1; trig_y = -1
+        end select
 
-    Er_dc = 0; Ep_dc = 0; Ez_dc = 0
-    Br_dc = 0; Bp_dc = 0; Bz_dc = 0
+        c_z = cos (ct_term%kz * z + ct_term%phi_z)
+        s_z = sin (ct_term%kz * z + ct_term%phi_z)
 
-    if (mode%harmonic /= 0) k_t = twopi * ele%value(rf_frequency$) * mode%harmonic / c_light
+        select case (ct_term%type)
+        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+          fld(1) = fld(1) + coef  * ct_term%kx * c_x * c_y * c_z
+          fld(2) = fld(2) + coef  * ct_term%ky * s_x * s_y * c_z * sgn_y
+          fld(3) = fld(3) - coef  * ct_term%kz * s_x * c_y * s_z
+        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+          fld(1) = fld(1) + coef  * ct_term%kx * s_x * s_y * c_z * sgn_x
+          fld(2) = fld(2) + coef  * ct_term%ky * c_x * c_y * c_z
+          fld(3) = fld(3) - coef  * ct_term%kz * c_x * s_y * s_z
+        case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+          fld(1) = fld(1) + coef  * ct_term%kx * c_x * s_y * c_z
+          fld(2) = fld(2) + coef  * ct_term%ky * s_x * c_y * c_z
+          fld(3) = fld(3) - coef  * ct_term%kz * s_x * s_y * s_z
+        case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+          fld(1) = fld(1) + coef  * ct_term%kx * s_x * c_y * c_z * sgn_x
+          fld(2) = fld(2) + coef  * ct_term%ky * c_x * s_y * c_z
+          fld(3) = fld(3) + coef  * ct_term%kz * c_x * c_y * s_z * sgn_z
+        end select
 
-    select case (mode%cylindrical_map%ele_anchor_pt)
-    case (anchor_beginning$); s0 = 0
-    case (anchor_center$);    s0 = ele%value(l$) / 2
-    case (anchor_end$);       s0 = ele%value(l$)
-    case default
-      call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD MODE IN ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-    end select
-
-    do n = 1, size(mode%cylindrical_map%term)
-
-      term => mode%cylindrical_map%term(n)
-      k_zn = twopi * (n - 1) / (size(mode%cylindrical_map%term) * mode%cylindrical_map%dz)
-      if (2 * n > size(mode%cylindrical_map%term)) k_zn = k_zn - twopi / mode%cylindrical_map%dz
-
-      cos_ks = cos(k_zn * (s_rel-s0))
-      sin_ks = sin(k_zn * (s_rel-s0))
-      exp_kz = cmplx(cos_ks, sin_ks, rp)
-
-      ! DC
-      if (mode%harmonic == 0) then
-
-        kap_rho = k_zn * radius
-        if (m == 0) then
-          Im_0    = I_bessel(0, kap_rho)
-          Im_plus = I_bessel(1, kap_rho)
-          Er_dc = Er_dc + real(term%e_coef * exp_kz * Im_plus)
-          Br_dc = Br_dc + real(term%b_coef * exp_kz * Im_plus)
-          Ez_dc = Ez_dc + real(term%e_coef * exp_kz * Im_0 * i_imaginary)
-          Bz_dc = Bz_dc + real(term%b_coef * exp_kz * Im_0 * i_imaginary)
-        else
-          Im_plus  = I_bessel(m+1, kap_rho)
-          Im_minus = I_bessel(m-1, kap_rho)
-          Im_0     = kap_rho * (Im_minus - Im_plus) / (2 * m)
-          exp_m = cmplx(cos(m * phi), sin(m * phi), rp)
-
-          q = exp_kz * exp_m * (Im_minus + Im_plus) / 2
-          Er_dc = Er_dc + real(term%e_coef * q)
-          Br_dc = Br_dc + real(term%b_coef * q)
-
-          q = i_imaginary * exp_kz * exp_m * (Im_minus - Im_plus) / 2
-          Ep_dc = Ep_dc + real(term%e_coef * q)
-          Bp_dc = Bp_dc + real(term%b_coef * q)
-
-          q = i_imaginary * exp_kz * exp_m * Im_0
-          Ez_dc = Ez_dc + real(term%e_coef * q)
-          Bz_dc = Bz_dc + real(term%b_coef * q)
+        if (do_df_calc) then
+          dfield_computed = .true.
+          select case (ct_term%type)
+          case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+            ff = coef * ct_term%kx
+            dfld(1,1) = dfld(1,1) + ff * ct_term%kx * s_x * c_y * c_z * trig_x
+            dfld(2,1) = dfld(2,1) + ff * ct_term%ky * c_x * s_y * c_z * sgn_y
+            dfld(3,1) = dfld(3,1) - ff * ct_term%kz * c_x * c_y * s_z 
+            ff = coef * ct_term%ky
+            dfld(1,2) = dfld(1,2) + ff * ct_term%kx * c_x * s_y * c_z * trig_y
+            dfld(2,2) = dfld(2,2) + ff * ct_term%ky * s_x * c_y * c_z * sgn_y
+            dfld(3,2) = dfld(3,2) - ff * ct_term%kz * s_x * s_y * s_z * trig_y
+            ff = coef * ct_term%kz
+            dfld(1,3) = dfld(1,3) - ff * ct_term%kx * c_x * c_y * s_z
+            dfld(2,3) = dfld(2,3) - ff * ct_term%ky * s_x * s_y * s_z * sgn_y 
+            dfld(3,3) = dfld(3,3) - ff * ct_term%kz * s_x * c_y * c_z
+          case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+            ff = coef * ct_term%kx
+            dfld(1,1) = dfld(1,1) + ff * ct_term%kx * c_x * s_y * c_z * sgn_x
+            dfld(2,1) = dfld(2,1) + ff * ct_term%ky * s_x * c_y * c_z * trig_x
+            dfld(3,1) = dfld(3,1) - ff * ct_term%kz * s_x * s_y * s_z * trig_x
+            ff = coef * ct_term%ky
+            dfld(1,2) = dfld(1,2) + ff * ct_term%kx * s_x * c_y * c_z * sgn_x
+            dfld(2,2) = dfld(2,2) + ff * ct_term%ky * c_x * s_y * c_z * trig_y
+            dfld(3,2) = dfld(3,2) - ff * ct_term%kz * c_x * c_y * s_z 
+            ff = coef * ct_term%kz
+            dfld(1,3) = dfld(1,3) - ff * ct_term%kx * s_x * s_y * s_z * sgn_x
+            dfld(2,3) = dfld(2,3) - ff * ct_term%ky * c_x * c_y * s_z 
+            dfld(3,3) = dfld(3,3) - ff * ct_term%kz * c_x * s_y * c_z 
+          case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+            ff = coef * ct_term%kx
+            dfld(1,1) = dfld(1,1) + ff * ct_term%kx * s_x * s_y * c_z * trig_x
+            dfld(2,1) = dfld(2,1) + ff * ct_term%ky * c_x * c_y * c_z 
+            dfld(3,1) = dfld(3,1) - ff * ct_term%kz * c_x * s_y * s_z
+            ff = coef * ct_term%ky
+            dfld(1,2) = dfld(1,2) + ff * ct_term%kx * c_x * c_y * c_z 
+            dfld(2,2) = dfld(2,2) + ff * ct_term%ky * s_x * s_y * c_z * trig_y
+            dfld(3,2) = dfld(3,2) - ff * ct_term%kz * s_x * c_y * s_z 
+            ff = coef * ct_term%kz
+            dfld(1,3) = dfld(1,3) - ff * ct_term%kx * c_x * s_y * s_z
+            dfld(2,3) = dfld(2,3) - ff * ct_term%ky * s_x * c_y * s_z 
+            dfld(3,3) = dfld(3,3) - ff * ct_term%kz * s_x * s_y * c_z 
+          case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+            ff = coef * ct_term%kx
+            dfld(1,1) = dfld(1,1) + ff * ct_term%kx * c_x * c_y * c_z * sgn_x
+            dfld(2,1) = dfld(2,1) + ff * ct_term%ky * s_x * s_y * c_z * trig_x
+            dfld(3,1) = dfld(3,1) + ff * ct_term%kz * s_x * c_y * s_z * sgn_z * trig_x
+            ff = coef * ct_term%ky
+            dfld(1,2) = dfld(1,2) + ff * ct_term%kx * s_x * s_y * c_z * sgn_x * trig_y
+            dfld(2,2) = dfld(2,2) + ff * ct_term%ky * c_x * c_y * c_z 
+            dfld(3,2) = dfld(3,2) + ff * ct_term%kz * c_x * s_y * s_z * sgn_z * trig_y
+            ff = coef * ct_term%kz
+            dfld(1,3) = dfld(1,3) - ff * ct_term%kx * s_x * c_y * s_z * sgn_x
+            dfld(2,3) = dfld(2,3) - ff * ct_term%ky * c_x * s_y * s_z 
+            dfld(3,3) = dfld(3,3) + ff * ct_term%kz * c_x * c_y * c_z * sgn_z
+          end select
         endif
 
-      ! RF mode 
-      else
-        kappa2_n = k_zn**2 - k_t**2
-        kappa_n = sqrt(abs(kappa2_n))
-        kap_rho = kappa_n * radius
-        if (kappa2_n < 0) then
-          kappa_n = -i_imaginary * kappa_n
-          kap_rho = -kap_rho
+        if (present(potential)) then
+          coef = ct_term%coef 
+          select case (ct_term%type)
+          case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+            if (abs(ct_term%ky * (y + ct_term%y0)) < 1d-10) then
+              sy_over_ky = y + ct_term%y0
+            else
+              sy_over_ky = s_y / ct_term%ky
+            endif
+          case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+            if (abs(ct_term%kx * (x + ct_term%x0)) < 1d-10) then
+              sx_over_kx = x + ct_term%x0
+            else
+              sx_over_kx = s_x / ct_term%kx
+            endif
+          case default
+            if (abs(ct_term%kz * z + ct_term%phi_z) < 1d-10) then
+              if (ct_term%kz == 0) then
+                sz_over_kz = 0
+              else
+                sz_over_kz = z + ct_term%phi_z / ct_term%kz
+              endif
+            else
+              sz_over_kz = s_z / ct_term%kz
+            endif
+          end select
+
+          select case (ct_term%type)
+          case (hyper_y_family_x$)
+            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
+            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
+          case (hyper_xy_family_x$)
+            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
+            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
+          case (hyper_x_family_x$)
+            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
+            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
+
+          case (hyper_y_family_y$)
+            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
+            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
+          case (hyper_xy_family_y$)
+            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
+            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
+          case (hyper_x_family_y$)
+            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
+            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
+
+          case (hyper_y_family_qu$)
+            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
+            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
+          case (hyper_xy_family_qu$)
+            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
+            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
+          case (hyper_x_family_qu$)
+            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
+            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
+
+          case (hyper_y_family_sq$)
+            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
+            potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
+          case (hyper_xy_family_sq$)
+            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
+            potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
+          case (hyper_x_family_sq$)
+            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
+            potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
+          end select
         endif
 
-        if (m == 0) then
-          Im_0    = I_bessel_extended(0, kap_rho)
-          Im_plus = I_bessel_extended(1, kap_rho) / kappa_n
+      enddo
 
-          Er = Er - term%e_coef * Im_plus * exp_kz * I_imaginary * k_zn
-          Ep = Ep + term%b_coef * Im_plus * exp_kz
-          Ez = Ez + term%e_coef * Im_0    * exp_kz
+      !
 
-          Br = Br - term%b_coef * Im_plus * exp_kz * k_zn
-          Bp = Bp - term%e_coef * Im_plus * exp_kz * k_t**2 * I_imaginary
-          Bz = Bz - term%b_coef * Im_0    * exp_kz * I_imaginary
+      fld = fld * ct_map%field_scale
+      if (ct_map%master_parameter > 0) fld = fld * ele%value(ct_map%master_parameter)
+      if (ele%key == sbend$) call restore_curvilinear_field(fld)
 
-        else
-          cm = exp_kz * cos(m * phi - mode%phi0_azimuth)
-          sm = exp_kz * sin(m * phi - mode%phi0_azimuth)
-          Im_plus  = I_bessel_extended(m+1, kap_rho) / kappa_n**(m+1)
-          Im_minus = I_bessel_extended(m-1, kap_rho) / kappa_n**(m-1)
+      select case (ct_map%field_type)
+      case (electric$)
+        field%E = field%E + fld
+      case (magnetic$)
+        field%B = field%B + fld
+      case default
+        if (global_com%exit_on_error) call err_exit
+      end select
 
-          ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
-          Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
-          Im_0    = radius * Im_0_R       
+      if (do_df_calc) then
+        dfld = dfld * ct_map%field_scale
+        if (ct_map%master_parameter > 0) dfld = dfld * ele%value(ct_map%master_parameter)
+        if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+          rot2(1,:) = [ cos_ang, sin_ang]
+          rot2(2,:) = [-sin_ang, cos_ang]
+          dfld(1:3:2,1:3:2) = matmul(dfld(1:3:2,1:3:2), rot2)
+          rot2(1,2) = -sin_ang
+          rot2(2,1) =  sin_ang
+          dfld(1:3:2,1:3:2) = matmul(rot2, dfld(1:3:2,1:3:2))
+        endif
 
-          Er = Er - i_imaginary * (k_zn * term%e_coef * Im_plus + term%b_coef * Im_0_R) * cm
-          Ep = Ep - i_imaginary * (k_zn * term%e_coef * Im_plus + term%b_coef * (Im_0_R - Im_minus / m)) * sm
-          Ez = Ez + term%e_coef * Im_0 * cm
-   
-          Br = Br + i_imaginary * sm * (term%e_coef * (m * Im_0_R + k_zn**2 * Im_plus) + &
-                                        term%b_coef * k_zn * (m * Im_0_R - Im_minus / m))
-          Bp = Bp + i_imaginary * cm * (term%e_coef * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
-                                        term%b_coef * k_zn * Im_0_R)
-          Bz = Bz +               sm * (-term%e_coef * k_zn * Im_0 + term%b_coef * kappa2_n * Im_0 / m)
-
-       endif
-      endif ! mode%harmonic /= 0
-        
-    enddo  ! mode%term
-
-    ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
-
-    if (mode%harmonic == 0) then
-      E_rho = E_rho + Er_dc
-      E_phi = E_phi + Ep_dc
-      E_z   = E_z   + Ez_dc
-
-      B_rho = B_rho + Br_dc
-      B_phi = B_phi + Bp_dc
-      B_z   = B_z   + Bz_dc
-    else
-      freq = ele%value(rf_frequency$) * mode%harmonic
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
-      if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
-      E_rho = E_rho + real(Er * expt)
-      E_phi = E_phi + real(Ep * expt)
-      E_z   = E_z   + real(Ez * expt)
-
-      expt = expt / (twopi * freq)
-      B_rho = B_rho + real(Br * expt)
-      B_phi = B_phi + real(Bp * expt)
-      B_z   = B_z   + real(Bz * expt)
-    endif
-
-  enddo
-
-  field%E = [cos(phi) * E_rho - sin(phi) * E_phi, sin(phi) * E_rho + cos(phi) * E_phi, E_z]
-  field%B = [cos(phi) * B_rho - sin(phi) * B_phi, sin(phi) * B_rho + cos(phi) * B_phi, B_z]
-
-!----------------------------------------------------------------------------
-! Grid field calc 
-
-case(grid$)
-
-  if (.not. associated(ele%em_field)) then
-    call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Grid', 'FOR: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    if (present(err_flag)) err_flag = .true.
-    return
-  endif
-  
-  !-------------------
-  ! First calc reference time for oscillating elements
-
-  select case (ele%key)
-  case(rfcavity$, lcavity$)
-    ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
-    if (freq == 0) then
-      call out_io (s_fatal$, r_name, 'Frequency is zero for grid in cavity: ' // ele%name)
-      if (ele%em_field%mode(1)%harmonic == 0) &
-            call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return  
-    endif
-    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
-    if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
-
-  case(e_gun$) 
-    ! Same as above, but no error checking for zero frequency
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
-    if (freq == 0) then
-      t_ref = 0
-    else
-      t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
-    endif
-
-  case default
-    t_ref = 0
-  end select
-
-  !-------------------
-  ! Now loop over grid modes
-
-  do i = 1, size(ele%em_field%mode)
-    mode => ele%em_field%mode(i)
-    m = mode%m
-
-    ! Check for grid
-    if (.not. associated(mode%grid)) then
-      call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return
-    endif
-
-    !
-
-    select case (mode%grid%ele_anchor_pt)
-    case (anchor_beginning$); s0 = 0
-    case (anchor_center$);    s0 = ele%value(l$) / 2
-    case (anchor_end$);       s0 = ele%value(l$)
-    case default
-      call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return
-    end select
-
-    z = s_rel-s0
-       
-    ! Sbend grids are in cartesian coordinates
-    if (ele%key == sbend$ .and. .not. mode%grid%curved_coords) call convert_curvilinear_to_cartesian()
-
-    ! radial coordinate
-    r = sqrt(x**2 + y**2)
-
-    ! DC modes should have mode%harmonic = 0
-
-    if (mode%harmonic == 0) then
-      expt = mode%field_scale
-    else
-      freq = ele%value(rf_frequency$) * mode%harmonic
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
-    endif
-
-    if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
-
-
-    ! calculate field based on grid type
-    select case(mode%grid%type)
-
-    case (xyz$)
-    
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z, &
-                              allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
-      if (err) then
-        if (present(err_flag)) err_flag = .true.
-        return
+        select case (ct_map%field_type)
+        case (electric$)
+          field%dE = field%dE + dfld
+        case (magnetic$)
+          field%dB = field%dB + dfld
+        end select
       endif
 
-      field%e = field%e + real(expt * local_field%e)
-      field%b = field%b + real(expt * local_field%B)
+    enddo
+  endif
 
+  !----------------------------------------------------------------------------
+  ! Cylindrical map field
 
-    case(rotationally_symmetric_rz$)
+  if (associated(ele%cylindrical_map)) then
+
+    do i = 1, size(ele%cylindrical_map)
+      cl_map => ele%cylindrical_map(i)
+
+      if (cl_map%harmonic /= 0) then
+        freq0 = ele%value(rf_frequency$)
+        freq = ele%value(rf_frequency$) * cl_map%harmonic
+
+        if (freq0 == 0) then
+          call out_io (s_fatal$, r_name, 'Element frequency is zero but cylindrical_map harmonic is not in: ' // ele%name)
+          if (global_com%exit_on_error) call err_exit
+          if (present(err_flag)) err_flag = .true.
+          return  
+        endif
+        t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
+                                             ele%value(phi0_autoscale$) + cl_map%phi0_fieldmap) / freq0
+        if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
+      endif
+
+      !
+
+      m = cl_map%m
+
+      if (cl_map%harmonic /= 0) k_t = twopi * freq / c_light
+
+      call to_field_map_coords (local_orb, s_rel, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z)
+
+      radius = sqrt(x**2 + y**2)
+      phi = atan2(y, x)
+
+      E_rho = 0; E_phi = 0; E_z = 0
+      B_rho = 0; B_phi = 0; B_z = 0
+
+      do n = 1, size(cl_map%ptr%term)
+
+        cl_term => cl_map%ptr%term(n)
+        k_zn = twopi * (n - 1) / (size(cl_map%ptr%term) * cl_map%dz)
+        if (2 * n > size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
+
+        cos_ks = cos(k_zn * (s_rel-s0))
+        sin_ks = sin(k_zn * (s_rel-s0))
+        exp_kz = cmplx(cos_ks, sin_ks, rp)
+
+        ! DC
+        if (cl_map%harmonic == 0) then
+
+          kap_rho = k_zn * radius
+          if (m == 0) then
+            Im_0    = I_bessel(0, kap_rho)
+            Im_plus = I_bessel(1, kap_rho)
+            E_rho = E_rho + real(cl_term%e_coef * exp_kz * Im_plus)
+            E_z   = E_z   + real(cl_term%e_coef * exp_kz * Im_0 * i_imaginary)
+            B_rho = B_rho + real(cl_term%b_coef * exp_kz * Im_plus)
+            B_z   = B_z   + real(cl_term%b_coef * exp_kz * Im_0 * i_imaginary)
+          else
+            Im_plus  = I_bessel(m+1, kap_rho)
+            Im_minus = I_bessel(m-1, kap_rho)
+            Im_0     = kap_rho * (Im_minus - Im_plus) / (2 * m)
+            exp_m = cmplx(cos(m * phi), sin(m * phi), rp)
+
+            q = exp_kz * exp_m * (Im_minus + Im_plus) / 2
+            E_rho = E_rho + real(cl_term%e_coef * q)
+            B_rho = B_rho + real(cl_term%b_coef * q)
+
+            q = i_imaginary * exp_kz * exp_m * (Im_minus - Im_plus) / 2
+            E_phi = E_phi + real(cl_term%e_coef * q)
+            B_phi = B_phi + real(cl_term%b_coef * q)
+
+            q = i_imaginary * exp_kz * exp_m * Im_0
+            E_z = E_z + real(cl_term%e_coef * q)
+            B_z = B_z + real(cl_term%b_coef * q)
+          endif
+
+        ! RF mode 
+        else
+          kappa2_n = k_zn**2 - k_t**2
+          kappa_n = sqrt(abs(kappa2_n))
+          kap_rho = kappa_n * radius
+          if (kappa2_n < 0) then
+            kappa_n = -i_imaginary * kappa_n
+            kap_rho = -kap_rho
+          endif
+
+          if (m == 0) then
+            Im_0    = I_bessel_extended(0, kap_rho)
+            Im_plus = I_bessel_extended(1, kap_rho) / kappa_n
+
+            E_rho = E_rho - cl_term%e_coef * Im_plus * exp_kz * I_imaginary * k_zn
+            E_phi = E_phi + cl_term%b_coef * Im_plus * exp_kz
+            E_z   = E_z   + cl_term%e_coef * Im_0    * exp_kz
+
+            B_rho = B_rho - cl_term%b_coef * Im_plus * exp_kz * k_zn
+            B_phi = B_phi - cl_term%e_coef * Im_plus * exp_kz * k_t**2 * I_imaginary
+            B_z   = B_z   - cl_term%b_coef * Im_0    * exp_kz * I_imaginary
+
+          else
+            cm = exp_kz * cos(m * phi - cl_map%theta0_azimuth)
+            sm = exp_kz * sin(m * phi - cl_map%theta0_azimuth)
+            Im_plus  = I_bessel_extended(m+1, kap_rho) / kappa_n**(m+1)
+            Im_minus = I_bessel_extended(m-1, kap_rho) / kappa_n**(m-1)
+
+            ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
+            Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
+            Im_0    = radius * Im_0_R       
+
+            E_rho = E_rho - i_imaginary * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * Im_0_R) * cm
+            E_phi = E_phi - i_imaginary * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * (Im_0_R - Im_minus / m)) * sm
+            E_z   = E_z +                         cl_term%e_coef * Im_0 * cm
+     
+            B_rho = B_rho + i_imaginary * sm * (cl_term%e_coef * (m * Im_0_R + k_zn**2 * Im_plus) + &
+                                          cl_term%b_coef * k_zn * (m * Im_0_R - Im_minus / m))
+            B_phi = B_phi + i_imaginary * cm * (cl_term%e_coef * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
+                                          cl_term%b_coef * k_zn * Im_0_R)
+            B_z   = B_z +                 sm * (-cl_term%e_coef * k_zn * Im_0 + cl_term%b_coef * kappa2_n * Im_0 / m)
+
+         endif
+        endif ! cl_map%harmonic /= 0
+          
+      enddo  ! cl_map%ptr%term
+
+      ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
+
+      if (cl_map%harmonic /= 0) then
+        expt = ele%value(field_autoscale$) * cl_map%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
+        if (cl_map%master_parameter > 0) expt = expt * ele%value(cl_map%master_parameter)
+        E_rho = E_rho * expt
+        E_phi = E_phi * expt
+        E_z   = E_z * expt
+
+        expt = expt / (twopi * freq)
+        B_rho = B_rho * expt
+        B_phi = B_phi * expt
+        B_z   = B_z * expt
+      endif
+
+      Er = real(E_rho, rp); Ep = real(E_phi, rp); Ez = real(E_z, rp)
+      Br = real(B_rho, rp); Bp = real(B_phi, rp); Bz = real(B_z, rp)
+
+      mode_field%E = mode_field%E + [cos(phi) * Er - sin(phi) * Ep, sin(phi) * Er + cos(phi) * Ep, Ez]
+      mode_field%B = mode_field%B + [cos(phi) * Br - sin(phi) * Bp, sin(phi) * Br + cos(phi) * Bp, Bz]
+
+      if (ele%key == sbend$) call restore_curvilinear_field(mode_field%E, mode_field%B)
+
+      field%E = field%E + mode_field%E
+      field%B = field%B + mode_field%B
+
+    enddo
+
+  endif
+
+  !----------------------------------------------------------------------------
+  ! Grid field calc 
+
+  if (associated(ele%grid_field)) then
+  
+    ! loop over grid modes
+
+    do i = 1, size(ele%grid_field)
+      g_field => ele%grid_field(i)
+
+      if (g_field%harmonic /= 0) then
+        freq0 = ele%value(rf_frequency$)
+        freq = freq0 * g_field%harmonic
+        if (freq0 == 0) then
+          call out_io (s_fatal$, r_name, 'ELEMENT FREQUENCY IS ZERO BUT GRID_FIELD HARMONIC IS NOT FOR: ' // ele%name)
+          if (global_com%exit_on_error) call err_exit
+          if (present(err_flag)) err_flag = .true.
+          return  
+        endif
+
+        t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
+                                                  ele%value(phi0_autoscale$) + g_field%phi0_fieldmap) / freq0
+        if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
+      endif
+
+      call to_field_map_coords (local_orb, s_rel, g_field%ele_anchor_pt, g_field%r0, g_field%curved_coords, x, y, z)
+
+      ! DC modes should have g_field%harmonic = 0
+
+      expt = ele%value(field_autoscale$) * g_field%field_scale
+      if (g_field%harmonic /= 0) expt = expt * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
+      if (g_field%master_parameter > 0) expt = expt * ele%value(g_field%master_parameter)
+
+      ! calculate field based on grid type
+      select case(g_field%geometry)
+
+      case (xyz$)
       
-      ! Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
-        
-      ! Interpolate 2D (r, z) grid
-      ! local_field is a em_field_pt_struct, which has complex E and B
+        call grid_field_linear_interpolate(ele, g_field, g_pt, err, x, y, z, &
+                                allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
+        if (err) then
+          if (present(err_flag)) err_flag = .true.
+          return
+        endif
 
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, z, &
-                              allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
-      if (err) then
+        mode_field%e = real(expt * g_pt%e)
+        mode_field%b = real(expt * g_pt%B)
+
+      case(rotationally_symmetric_rz$)
+        
+        ! Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
+          
+        ! Interpolate 2D (r, z) grid
+        ! g_pt is a grid_field_pt_struct, which has complex E and B
+
+        r = sqrt(x**2 + y**2)
+
+        call grid_field_linear_interpolate(ele, g_field, g_pt, err, r, z, &
+                                allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
+        if (err) then
+          if (global_com%exit_on_error) call err_exit
+          if (present(err_flag)) err_flag = .true.
+          return
+        endif
+
+        ! Transverse field is zero on axis. Otherwise:
+
+        if (r /= 0) then
+          ! Get non-rotated field
+          E_rho = real(expt * g_pt%E(1))
+          E_phi = real(expt * g_pt%E(2))
+          B_rho = real(expt * g_pt%B(1)) 
+          B_phi = real(expt * g_pt%B(2))
+
+          ! rotate field and output Ex, Ey, Bx, By
+          mode_field%e(1) = (x*E_rho - y*E_phi)/r
+          mode_field%e(2) = (y*E_rho + x*E_phi)/r
+          mode_field%b(1) = (x*B_rho - y*B_phi)/r
+          mode_field%b(2) = (y*B_rho + x*B_phi)/r
+        endif
+    
+        ! Ez, Bz 
+        mode_field%e(3) = real(expt*g_pt%E(3))
+        mode_field%b(3) = real(expt*g_pt%B(3)) 
+    
+      case default
+        call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
+                                       'FOR ELEMENT: ' // ele%name, i_array = [g_field%geometry])
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
         return
+      end select
+      
+      if (ele%key == sbend$ .and. .not. g_field%curved_coords) call restore_curvilinear_field(mode_field%E, field%B)
+
+      field%E = field%E + mode_field%E
+      field%B = field%B + mode_field%B
+
+    enddo
+  endif
+
+  !----------------------------------------------------------------------------
+  ! Taylor field calc 
+
+  if (associated(ele%taylor_field)) then
+  
+    ! loop over taylor modes
+
+    do i = 1, size(ele%taylor_field)
+      t_field => ele%taylor_field(i)
+
+      fld = 0
+
+      call to_field_map_coords (local_orb, s_rel, t_field%ele_anchor_pt, t_field%r0, t_field%curved_coords, x, y, z)
+
+      iz0 = lbound(t_field%ptr%plane, 1)
+      iz1 = ubound(t_field%ptr%plane, 1)
+      z_center = (iz0 + iz1) * t_field%dz / 2
+      if (abs(z - z_center) > (iz1 - iz0) * t_field%dz .and. &
+                        .not. logic_option(.false., grid_allow_s_out_of_bounds)) then
+        call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
+                                       'FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name, r_array = [s_pos])
+        return
       endif
 
-      ! Transverse field is zero on axis. Otherwise:
+      izp = floor(z / t_field%dz)
+      if (izp < iz0 - 1 .or. izp > iz1) cycle ! Outside of defined field region field is assumed zero.
 
-      if (r /= 0) then
-        ! Get non-rotated field
-        E_rho = real(expt*local_field%E(1))
-        E_phi = real(expt*local_field%E(2))
-        B_rho = real(expt*local_field%B(1)) 
-        B_phi = real(expt*local_field%B(2))
+      ! Taylor upsteam of particle
 
-        ! rotate field and output Ex, Ey, Bx, By
-        field%e(1) = field%e(1) +  (x*E_rho - y*E_phi)/r
-        field%e(2) = field%e(2) +  (y*E_rho + x*E_phi)/r
-        field%b(1) = field%b(1) +  (x*B_rho - y*B_phi)/r
-        field%b(2) = field%b(2) +  (y*B_rho + x*B_phi)/r
+      if (izp == iz0 - 1) then
+        fld0 = 0
+        dfld0 = 0
+      else
+        call evaluate_em_taylor ([x, y], t_field%ptr%plane(izp)%field, fld0, dfld0)
       endif
-  
-      ! Ez, Bz 
-      field%e(3) = field%e(3) + real(expt*local_field%E(3))
-      field%b(3) = field%b(3) + real(expt*local_field%B(3)) 
-  
-    case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
-                                     'FOR ELEMENT: ' // ele%name, i_array = [mode%grid%type])
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return
-    end select
-    
-    if (ele%key == sbend$ .and. .not. mode%grid%curved_coords) call restore_curvilinear()
 
-  enddo
+      ! Taylor downstream of particle
+
+      if (izp == iz1) then
+        fld1 = 0
+        dfld1 = 0
+      else
+        call evaluate_em_taylor ([x, y], t_field%ptr%plane(izp+1)%field, fld1, dfld1)
+      endif
+
+      ! Interpolate
+
+      do j = 1, 3
+        call create_a_spline (spline, fld0(j), fld1(j), dfld0(j,3), dfld1(j,3))
+        fld(j) = spline1 (spline, z - izp*t_field%dz)
+      enddo
+
+      !
+
+      fld = fld * t_field%field_scale
+      if (t_field%master_parameter > 0) fld = fld * ele%value(t_field%master_parameter)
+      if (ele%key == sbend$ .and. .not. t_field%curved_coords) call restore_curvilinear_field(fld)
+
+      select case (t_field%field_type)
+      case (electric$)
+        field%E = field%E + fld
+      case (magnetic$)
+        field%B = field%B + fld
+      case default
+        if (global_com%exit_on_error) call err_exit
+      end select
+
+    enddo
+
+  endif
 
 ! Beginning_ele, for example, has no field
 
@@ -1180,6 +1249,10 @@ endif
 
 if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_rel, .true., field)
 
+if (do_df_calc .and. .not. dfield_computed) then
+  call em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, field)
+endif
+
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! Convert fields: ele to lab coords
@@ -1224,56 +1297,78 @@ end subroutine convert_field_ele_to_lab
 !----------------------------------------------------------------------------
 ! contains
 
-! convert_curvilinear_to_cartesian()
+subroutine to_field_map_coords (local_orb, s_rel, ele_anchor_pt, r0, curved_coords, x, y, z)
+
+type (coord_struct) local_orb
+
+real(rp) :: s_rel, r0(3), x, y, z, x_save
+integer ele_anchor_pt
+logical curved_coords
+
 !
-! For sbend with Grid calculation.
 
-subroutine convert_curvilinear_to_cartesian()
-real(rp) :: temp
+select case (ele_anchor_pt)
+case (anchor_beginning$); s0 = 0
+case (anchor_center$);    s0 = ele%value(l$) / 2
+case (anchor_end$);       s0 = ele%value(l$)
+case default
+  call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  if (present(err_flag)) err_flag = .true.
+  return
+end select
 
-if (ele%value(g$) == 0) return
 
-cos_ang = cos((s_rel-s0)*ele%value(g$))
-sin_ang = sin((s_rel-s0)*ele%value(g$))
+!
 
-! Save values because modes may have different anchor points
-x_save = x
-x = (x_save + ele%value(rho$) )*cos_ang - ele%value(rho$)
-z = (x_save + ele%value(rho$) )*sin_ang 
+x = local_orb%vec(1)
+z = s_rel - s0
 
-! Rotate current field into this frame
-! Note that we are rotating the zx plane 
+!
+         
+if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_coords) then
+  cos_ang = cos(z*ele%value(g$))
+  sin_ang = sin(z*ele%value(g$))
 
-temp       = field%e(3)*cos_ang + field%e(1)*sin_ang
-field%e(1) = field%e(3)*sin_ang - field%e(1)*cos_ang
-field%e(3) = temp
-temp       = field%b(3)*cos_ang + field%b(1)*sin_ang
-field%b(1) = field%b(3)*sin_ang - field%b(1)*cos_ang
-field%b(3) = temp 
+  x_save = x
+  x = (x_save + ele%value(rho$) )*cos_ang - ele%value(rho$)
+  z = (x_save + ele%value(rho$) )*sin_ang 
+endif
 
-end subroutine convert_curvilinear_to_cartesian
+!
+
+x = x - r0(1)
+y = local_orb%vec(3) - r0(2)
+z = z - r0(3)
+
+end subroutine to_field_map_coords
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! restore_curvilinear()
+! restore_curvilinear_field(field)
 !
 ! For sbend with Grid calculation.
 
-subroutine restore_curvilinear()
+subroutine restore_curvilinear_field(field_a, field_b)
 
-real(rp) :: temp
+real(rp) temp, field_a(3)
+real(rp), optional :: field_b(3)
 
-!For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
+! For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
 
 if (ele%value(g$) == 0) return
-x = x_save
-temp       = field%e(3)*cos_ang - field%e(1)*sin_ang
-field%e(1) = field%e(3)*sin_ang + field%e(1)*cos_ang
-field%e(3) = temp
-temp       = field%b(3)*cos_ang - field%b(1)*sin_ang
-field%b(1) = field%b(3)*sin_ang + field%b(1)*cos_ang
-field%b(3) = temp 
-end subroutine restore_curvilinear
+
+temp       = field_a(3)*cos_ang - field_a(1)*sin_ang
+field_a(1) = field_a(3)*sin_ang + field_a(1)*cos_ang
+field_a(3) = temp
+
+if (present(field_b)) then
+  temp       = field_b(3)*cos_ang - field_b(1)*sin_ang
+  field_b(1) = field_b(3)*sin_ang + field_b(1)*cos_ang
+  field_b(3) = temp 
+endif
+
+end subroutine restore_curvilinear_field
 
 end subroutine em_field_calc 
 
@@ -1324,7 +1419,7 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+! Subroutine grid_field_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -1335,7 +1430,7 @@ end subroutine rotate_em_field
 !
 ! Input:
 !   ele      -- ele_struct: Element containing the grid
-!   grid     -- em_field_grid_struct: Grid to interpolate
+!   grid     -- grid_field_struct: Grid to interpolate
 !   err_flag -- Logical: Set to true if there is an error. False otherwise.
 !   x1       -- real(rp) : dimension 1 interpolation point
 !   x2       -- real(rp), optional : dimension 2 interpolation point
@@ -1344,14 +1439,14 @@ end subroutine rotate_em_field
 !                 zero field without an error. 
 !
 ! Output:
-!   field  -- em_field_pt_struct: Interpolated field (complex)
+!   field    -- grid_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+subroutine grid_field_linear_interpolate (ele, grid, g_field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 
 type (ele_struct) ele
-type (em_field_grid_struct) :: grid
-type (em_field_grid_pt_struct), intent(out) :: field
+type (grid_field_struct) :: grid
+type (grid_field_pt1_struct), intent(out) :: g_field
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
@@ -1359,7 +1454,7 @@ integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd
 logical err_flag
 logical :: allow_s_out_of_bounds
 
-character(32), parameter :: r_name = 'em_grid_linear_interpolate'
+character(32), parameter :: r_name = 'grid_field_linear_interpolate'
 
 integer, parameter :: allow_none$ = 1, allow_small$ = 2, allow_all$ = 3
 
@@ -1370,7 +1465,7 @@ err_flag = .false.
 allow_s = allow_small$
 if (allow_s_out_of_bounds) allow_s = allow_all$
 
-grid_dim = em_grid_dimension(grid%type)
+grid_dim = grid_field_dimension(grid%geometry)
 select case(grid_dim)
 
 case (2)
@@ -1380,31 +1475,31 @@ case (2)
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  lbnd = lbound(grid%pt, 2); ubnd = ubound(grid%pt, 2)
+  lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
   if (i2 == lbnd - 1) then  ! Just outside entrance end
-    field%E(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%E(:) 
+    g_field%E(:) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(:) &
+                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(:) 
 
-    field%B(:) = (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%B(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%B(:)  
+    g_field%B(:) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(:) &
+                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(:)  
 
   elseif (i2 == ubnd) then  ! Just outside exit end
-    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:)
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(:) &
+                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(:)
 
-    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%B(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%B(:)
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(:) &
+                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(:)
 
   elseif (lbnd <= i2 .and. i2 < ubnd) then   ! Inside 
-    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%E(:) &
-               + (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%E(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%E(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%E(:) 
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(:) &
+                 + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(:) &
+                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(:) &
+                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(:) 
 
-    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1,   i2,   1)%B(:) &
-               + (1-rel_x1)*(rel_x2)   * grid%pt(i1,   i2+1, 1)%B(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,   1)%B(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1, 1)%B(:)  
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(:) &
+                 + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(:) &
+                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(:) &
+                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(:)  
   endif
 
 case (3)
@@ -1415,51 +1510,51 @@ case (3)
     
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  lbnd = lbound(grid%pt, 3); ubnd = ubound(grid%pt, 3)
+  lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
   if (i3 == lbnd - 1) then  ! Just outside entrance end
-    field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%E(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%E(:)               
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%E(:) &
+                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%E(:) &
+                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%E(:) &
+                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%E(:)               
                
-    field%B(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%B(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%B(:)
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%B(:) &
+                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%B(:) &
+                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%B(:) &
+                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%B(:)
 
   elseif (i3 == ubnd) then  ! Just outside exit end
-    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%E(:)
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%E(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%E(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%E(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%E(:)
                
-    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%B(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%B(:) 
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%B(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%B(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%B(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%B(:) 
 
   elseif (lbnd <= i3 .and. i3 < ubnd) then   ! Inside
-    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%E(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%E(:) &
-               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%E(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%E(:)               
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%E(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%E(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%E(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%E(:) &
+                 + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%E(:) &
+                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%E(:) &
+                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%E(:) &
+                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%E(:)               
                
-    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1,   i2,   i3  )%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1,   i2+1, i3  )%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,   i3  )%B(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1, i3  )%B(:) &
-               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1,   i2,   i3+1)%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1,   i2+1, i3+1)%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,   i3+1)%B(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1, i3+1)%B(:) 
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%B(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%B(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%B(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%B(:) &
+                 + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%B(:) &
+                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%B(:) &
+                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%B(:) &
+                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%B(:) 
   endif
 
 case default
-  call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', em_grid_dimension(grid%type))
+  call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', grid_field_dimension(grid%geometry))
   if (global_com%exit_on_error) call err_exit
   err_flag = .true.
   return
@@ -1476,18 +1571,19 @@ logical err_flag
 
 !
 
-ig0 = lbound(grid%pt, ix_x)
-ig1 = ubound(grid%pt, ix_x)
+ig0 = lbound(grid%ptr%pt, ix_x)
+ig1 = ubound(grid%ptr%pt, ix_x)
 
-x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
+!!! x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
+x_norm = x / grid%dr(ix_x)
 i0 = floor(x_norm)     ! index of lower 1 data point
 rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
 
 ! Out of bounds?
 
 if (i0 < ig0 .or. i0 >= ig1) then
-  field%E = 0
-  field%B = 0
+  g_field%E = 0
+  g_field%B = 0
 
   select case (allow_out_of_bounds)
   case (allow_none$)
@@ -1504,14 +1600,14 @@ if (i0 < ig0 .or. i0 >= ig1) then
   end select
 
   err_flag = .true.
-  call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ (position = \f12.6\)', &
-                                 'For element: ' // ele%name, &
-                                 'Setting field to zero', i_array = [grid_dim, ix_x, i0], r_array = [x])
+  call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
+                                 'FOR ELEMENT: ' // ele%name, &
+                                 'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], r_array = [x])
 endif
 
 end subroutine get_this_index 
 
-end subroutine em_grid_linear_interpolate
+end subroutine grid_field_linear_interpolate
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -1644,25 +1740,25 @@ select case (ele%key)
 case (lcavity$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = (ele%value(voltage$) + ele%value(voltage_err$)) * ele%value(field_factor$)
+    field = (ele%value(voltage$) + ele%value(voltage_err$)) * ele%value(field_autoscale$)
   case (gradient$)
-    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_factor$)
+    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_autoscale$)
   end select
 
 case (rfcavity$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = ele%value(voltage$) * ele%value(field_factor$)
+    field = ele%value(voltage$) * ele%value(field_autoscale$)
   case (gradient$)
-    field = ele%value(gradient$) * ele%value(field_factor$)
+    field = ele%value(gradient$) * ele%value(field_autoscale$)
   end select
 
 case (e_gun$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = ele%value(voltage$) * ele%value(field_factor$)
+    field = ele%value(voltage$) * ele%value(field_autoscale$)
   case (gradient$)
-    field = ele%value(gradient$) * ele%value(field_factor$) 
+    field = ele%value(gradient$) * ele%value(field_autoscale$) 
   end select
 
 end select
@@ -1691,7 +1787,7 @@ end function e_accel_field
 !                                   as being with respect to the frame of referene of the element (ignore misalignments). 
 !
 ! Output:
-!   dfield       -- em_field_struct: E and B field derivatives.
+!   dfield       -- em_field_struct: E and B field derivatives. dfield%E and dfield%B are not touched.
 !-
 
 subroutine em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, dfield)

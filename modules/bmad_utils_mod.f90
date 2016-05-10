@@ -1028,18 +1028,9 @@ vnot = (ele_taylor%value /= ele2%value)
 vnot = vnot .and. vmask
 if (any(vnot)) return
 
-if (associated(ele_taylor%wig) .neqv. associated(ele2%wig)) return
-if (associated(ele_taylor%wig)) then
-  if (size(ele_taylor%wig%term) /= size(ele2%wig%term)) return
-  do it = 1, size(ele_taylor%wig%term)
-    if (ele_taylor%wig%term(it)%coef  /= ele2%wig%term(it)%coef)  cycle
-    if (ele_taylor%wig%term(it)%kx    /= ele2%wig%term(it)%kx)    cycle
-    if (ele_taylor%wig%term(it)%ky    /= ele2%wig%term(it)%ky)    cycle
-    if (ele_taylor%wig%term(it)%kz    /= ele2%wig%term(it)%kz)    cycle
-    if (ele_taylor%wig%term(it)%x0    /= ele2%wig%term(it)%x0)    cycle
-    if (ele_taylor%wig%term(it)%y0    /= ele2%wig%term(it)%y0)    cycle
-    if (ele_taylor%wig%term(it)%phi_z /= ele2%wig%term(it)%phi_z) cycle
-  enddo
+if (associated(ele_taylor%cartesian_map) .neqv. associated(ele2%cartesian_map)) return
+if (associated(ele_taylor%cartesian_map)) then
+  if (.not. all(ele_taylor%cartesian_map == ele2%cartesian_map)) return
 endif
 
 equiv = .true.

@@ -4,37 +4,7 @@
 
 \documentclass{book}
 
-\usepackage{setspace}
-\usepackage{graphicx}
-\usepackage{moreverb}    % Defines {listing} environment.
-\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
-\usepackage{alltt}
-\usepackage{rotating}
-\usepackage[TABBOTCAP]{subfigure}
-\usepackage{toc}
-\usepackage{xspace}
-%%\usepackage{makeidx}
-\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
-\usepackage{longtable}  % For splitting long vertical tables into pieces
-\usepackage{index}
-\usepackage{multirow}
-\usepackage{booktabs}   % For table layouts
-\usepackage{yhmath}     % For widehat
-
-\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
-\usepackage[strings]{underscore}    % to use "_" in text
-\usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
-
-%----------------------------------------------------------------
-
-\input{macros.tex}
-
-\setlength{\textwidth}{6.25in}
-\setlength{\hoffset}{0.0in}
-\setlength{\oddsidemargin}{0.25in}
-\setlength{\evensidemargin}{0.0in}
-\setlength{\textheight}{8.5in}
-\setlength{\topmargin}{0in}
+\input{document-setup}
 
 \makeindex
 \newindex{routine}{rdx}{rnd}{Routine Index}
@@ -66,11 +36,6 @@
 \index{knl|see{multipole, knl}}
 \index{tn|see{multipole, tn}}
 \index{coherent synchrotron radiation|see{CSR}}
-
-%----------------------------------------------------------------
-
-\renewcommand{\textfraction}{0.1}
-\renewcommand{\topfraction}{1.0}
 
 %----------------------------------------------------------------
 \include{cover-page}

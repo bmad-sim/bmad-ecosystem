@@ -20,7 +20,7 @@
 ! i_dim = 6 finds the closed orbit with energy variation. The RF needs to be
 ! turned on in this case. Additionally, to simulate cases where the RF frequency
 ! is not a multiple of the revolution harmonic (EG in a dispersion measurement), 
-! lat%absolute_time_tracking needs to be set to True and the phi0_ref attributes 
+! lat%absolute_time_tracking needs to be set to True and the phi0_fieldmap attributes 
 ! of the RF cavities should be adjusted using autoscale_phase_and_amp.
 !
 ! Note: This routine uses the 1-turn matrix lat%param%t1_no_RF or 

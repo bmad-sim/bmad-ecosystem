@@ -1103,7 +1103,7 @@ select case (a_name)
 case ('NUM_STEPS')
   return
 
-case ('FIELD_SCALE', 'PHI0_REF')
+case ('FIELD_SCALE', 'PHI0_FIELDMAP')
   free = .true.   ! This may not be true with autoscaling
   return
 
@@ -1179,8 +1179,10 @@ case (sbend$)
 case (rfcavity$)
   if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
   if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
+  if (ix_attrib == gradient$) free = .false.
 case (lcavity$)
-  if (ix_attrib == voltage$) free = .false.
+  if (ix_attrib == voltage$ .and. ele%value(l$) /= 0) free = .false.
+  if (ix_attrib == gradient$ .and. ele%value(l$) == 0) free = .false.
 case (elseparator$)
   if (ix_attrib == voltage$) free = .false.
 end select

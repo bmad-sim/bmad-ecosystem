@@ -3,10 +3,6 @@ module autoscale_mod
 use runge_kutta_mod
 use bookkeeper_mod
 
-real(rp), pointer, private :: field_scale, phi0_ref
-type (lat_param_struct), pointer, private :: param_com
-type (ele_struct), pointer, private :: ele_com
-
 integer, private, save :: n_call ! Used for debugging.
 logical, private, save :: is_lost
 
@@ -80,7 +76,7 @@ integer, parameter :: n_sample = 16
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(num_ele_attrib$), phi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
+real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
 real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
@@ -107,42 +103,30 @@ endif
 if (.not. do_scale_phase .and. .not. do_scale_amp) return
 
 ! Init.
-! Note: phi0_ref is set in neg_pz_calc
+! Note: phi0_autoscale is set in neg_pz_calc
 
 if (ele%tracking_method == mad$) return
 
-! bmad_standard just needs to set e_tot$, p0c$, and phi0_ref$
+! bmad_standard just needs to set e_tot$, p0c$, and phi0_autoscale$
 
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
     !Set e_tot$ and p0c$ 
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
     e_tot = ele%value(e_tot_start$) + &
-            ele%value(gradient$) * ele%value(field_factor$) * ele%value(l$) * cos(phi)
+            ele%value(gradient$) * ele%value(field_autoscale$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag)
     if (err_flag) return
     ele%value(e_tot$) = e_tot
   endif 
   
-  ele%value(phi0_ref$) = 0
+  ele%value(phi0_autoscale$) = 0
   return
 endif
 
-
-call pointers_to_autoscale_vars (ele, field_scale, phi0_ref)
-phi0_ref_original = phi0_ref
-
-if (.not. associated(field_scale)) then
-  call out_io (s_fatal$, r_name, 'CANNOT DETERMINE WHAT TO SCALE. NO FIELD MODE WITH HARMONIC = 1, M = 0', &
-                                 'FOR ELEMENT: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit ! exit on error.
-  return
-endif
+phi0_autoscale_original = ele%value(phi0_autoscale$)
 
 ! Compute Energy gain at peak (zero phase)
-
-ele_com => ele
-param_com => param
 
 select case (ele%key)
 case (rfcavity$)
@@ -168,19 +152,19 @@ if (do_scale_amp) then
   if (abs(dE_peak_wanted) < dE_cut) return
 endif
 
-if (field_scale == 0) then
-  ! Cannot autophase if not allowed to make the field_scale non-zero.
+if (ele%value(field_autoscale$) == 0) then
+  ! Cannot autophase if not allowed to make the ele%value(field_autoscale$) non-zero.
   if (.not. do_scale_amp) then
     call out_io (s_fatal$, &
             r_name, 'CANNOT AUTO PHASE IF NOT ALLOWED TO MAKE THE FIELD_SCALE NON-ZERO FOR: ' // ele%name)
     if (global_com%exit_on_error) call err_exit ! exit on error.
     return 
   endif
-  call set_field_scale(1.0_rp)  ! Initial guess.
+  ele%value(field_autoscale$) = (1.0_rp)  ! Initial guess.
 endif
 
-! scale_correct is the correction factor applied to field_scale on each iteration:
-!  field_scale(new) = field_scale(old) * scale_correct
+! scale_correct is the correction factor applied to ele%value(field_autoscale$) on each iteration:
+!  ele%value(field_autoscale$)(new) = ele%value(field_autoscale$)(old) * scale_correct
 ! scale_tol is the tolerance for scale_correct.
 ! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
 
@@ -200,7 +184,7 @@ if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
 
   pz_max = pz_calc(0.0_rp, err_flag)
   if (err_flag) return
-  if (is_lost) call set_field_scale(-field_scale) ! Maybe field in wrong direction?
+  if (is_lost) ele%value(field_autoscale$) = -ele%value(field_autoscale$) ! Maybe field in wrong direction?
 
   do i = 1, 100
     pz_max = pz_calc(0.0_rp, err_flag)
@@ -208,7 +192,7 @@ if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (abs(scale_correct) > 1000) scale_correct = scale_correct / 10
     if (abs(scale_correct) > 1000) scale_correct = sign(1000.0_rp, scale_correct)
-    call set_field_scale (field_scale * scale_correct)
+    ele%value(field_autoscale$) = ele%value(field_autoscale$) * scale_correct
     if (abs(scale_correct - 1) < scale_tol) exit
   enddo
 
@@ -242,12 +226,12 @@ if (ele%tracking_method == bmad_standard$) then
   endif
 endif
 
-phi_max = phi0_ref   ! Init guess
+phi_max = ele%value(phi0_autoscale$)   ! Init guess
 if (ele%key == rfcavity$) phi_max = ele%value(phi0_max$)
 
 phi_max_old = 100 ! Number far from unity
 
-! See if %phi0_ref and %field_scale are already set correctly.
+! See if ele%value(phi0_autoscale$) and ele%value(field_autoscale$) are already set correctly.
 ! If so we can quit.
 
 phase_scale_good = .true.
@@ -269,13 +253,13 @@ if (.not. is_lost) then
   endif
 
   if (phase_scale_good .and. amp_scale_good) then
-    call set_phi0_ref (phi0_ref_original)
+    ele%value(phi0_autoscale$) = phi0_autoscale_original
     call cleanup_this()
     return
   endif
 endif
 
-! The field_scale may be orders of magnitude off so do an initial guess
+! The ele%value(field_autoscale$) may be orders of magnitude off so do an initial guess
 ! based upon the integral of abs(voltage) through the element.
 
 if (do_scale_amp) then
@@ -288,9 +272,9 @@ if (do_scale_amp) then
     do i = 1, n_pts
       s = ele%value(l$) * (2*i - 1.0) / (2*n_pts)
       ! Sample field at two phases and take the max. This is crude but effective.
-      call set_phi0_ref (0.0_rp)
+      ele%value(phi0_autoscale$) = 0
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field1)
-      call set_phi0_ref (pi/2)
+      ele%value(phi0_autoscale$) = pi/2
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field2)
       integral = integral + max(abs(field1%e(3)), abs(field2%e(3))) * ele%value(l$) / n_pts
     enddo
@@ -306,7 +290,7 @@ if (do_scale_amp) then
       endif
 
       if (abs(int_tot - int_old) <= 0.2 * (int_tot + int_old)) then
-        call set_field_scale (field_scale * dE_peak_wanted / integral)
+        ele%value(field_autoscale$) = ele%value(field_autoscale$) * dE_peak_wanted / integral
         exit
       endif
     endif
@@ -316,7 +300,7 @@ if (do_scale_amp) then
   enddo
 endif
 
-! OK so the input %phi0_ref or %field_scale are not set correctly...
+! OK so the input ele%value(phi0_autoscale$) or ele%value(field_autoscale$) are not set correctly...
 ! First choose a starting phi_max by finding an approximate phase for max acceleration.
 ! We start by testing n_sample phases.
 ! pz_max1 gives the maximal acceleration. pz_max2 gives the second largest.
@@ -338,7 +322,7 @@ pz_max2 = pz_arr(i_max2)
 dE_max2 = dE_particle(pz_max2)
 
 ! If we do not have any phase that shows acceleration this generally means that the
-! initial particle energy is low and the field_scale is much to large.
+! initial particle energy is low and the ele%value(field_autoscale$) is much to large.
 
 if (dE_max1 < 0) then
   call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele%name)
@@ -361,7 +345,7 @@ else
   pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 endif
 
-! Now adjust %field_scale for the correct acceleration at the phase for maximum acceleration. 
+! Now adjust ele%value(field_autoscale$) for the correct acceleration at the phase for maximum acceleration. 
 
 n_call = 0  ! For debug purposes.
 n_loop_max = 10000
@@ -429,16 +413,16 @@ main_loop: do n_loop = 1, n_loop_max
   phi_max = phi_max - b * dphi / (2 * c)
   pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 
-  if (debug) print '(a, 3es18.10, f10.6)', 'MAX:', phi_max, pz_max, field_scale, dphi
+  if (debug) print '(a, 3es18.10, f10.6)', 'MAX:', phi_max, pz_max, ele%value(field_autoscale$), dphi
 
-  ! Now scale %field_scale
+  ! Now scale ele%value(field_autoscale$)
   ! scale_correct = dE(design) / dE (from tracking)
   ! Can overshoot so if scale_correct is too large then scale back by a factor of 10
 
   if (do_scale_amp) then
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
-    call set_field_scale (field_scale * scale_correct)
+    ele%value(field_autoscale$) = ele%value(field_autoscale$) * scale_correct
   else
     scale_correct = 1
   endif
@@ -465,7 +449,7 @@ enddo main_loop
 ! about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
-  value_saved(phi0_max$) = phi0_ref  ! Save for use with OPAL
+  value_saved(phi0_max$) = ele%value(phi0_autoscale$)  ! Save for use with OPAL
   if (do_scale_phase) then
     dphi = 0.1
     phi_max = phi_max - dphi
@@ -475,7 +459,7 @@ if (ele%key == rfcavity$) then
       if (pz < 0) exit
       phi_max = phi
     enddo
-    call set_phi0_ref (modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp))
+    ele%value(phi0_autoscale$) = modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp)
   endif
 endif
 
@@ -484,8 +468,8 @@ endif
 call cleanup_this()
 
 if (associated (ele%branch)) then
-  if (do_scale_amp)   call set_flags_for_changed_attribute (ele, field_scale)
-  if (do_scale_phase) call set_flags_for_changed_attribute (ele, phi0_ref)
+  if (do_scale_amp)   call set_flags_for_changed_attribute (ele, ele%value(field_autoscale$))
+  if (do_scale_phase) call set_flags_for_changed_attribute (ele, ele%value(phi0_autoscale$))
 endif
 
 if (logic_option(.true., call_bookkeeper) .and. ele%ix_ele > 0) call lattice_bookkeeper(ele%branch%lat)
@@ -495,20 +479,41 @@ contains
 
 subroutine cleanup_this ()
 
-select case (ele%field_calc)
-case (bmad_standard$) 
-  if (associated(field_scale, ele%value(field_factor$))) then
-    value_saved(field_factor$) = field_scale 
-    value_saved(phi0_ref$) = phi0_ref
-  endif
-end select
+value_saved(field_autoscale$) = ele%value(field_autoscale$) 
+value_saved(phi0_autoscale$) = ele%value(phi0_autoscale$)
 
 ele%value = value_saved
-if (.not. do_scale_phase) call set_phi0_ref (phi0_ref_original)
+if (.not. do_scale_phase) ele%value(phi0_autoscale$) = phi0_autoscale_original
 
 ele%tracking_method = tracking_method_saved
 
 end subroutine cleanup_this
+
+!----------------------------------------------------------------
+! contains
+
+function pz_calc (phi, err_flag) result (pz)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb
+real(rp), intent(in) :: phi
+real(rp) pz
+logical err_flag
+
+! 
+
+ele%value(phi0_autoscale$) = phi
+call init_coord (start_orb, ele = ele, element_end = upstream_end$)
+call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiation = .true.)
+
+pz = end_orb%vec(6)
+is_lost = .not. particle_is_moving_forward(end_orb)
+if (is_lost) pz = -1
+
+n_call = n_call + 1
+
+end function pz_calc
 
 !------------------------------------
 ! contains
@@ -523,63 +528,8 @@ de = e_tot - e_tot_start
 
 end function dE_particle
 
-end subroutine autoscale_phase_and_amp
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-
-subroutine set_field_scale (f_scale)
-
-real(rp) f_scale, f_scale_ratio
-integer i, ix
-
-!
-
-select case (ele_com%field_calc)
-case (bmad_standard$) 
-  field_scale = f_scale
-
-case (grid$, map$, custom$)
-  ix = ele_com%em_field%mode_to_autoscale
-  f_scale_ratio = f_scale / ele_com%em_field%mode(ix)%field_scale 
-  do i = 1, size(ele_com%em_field%mode)
-    if (ele_com%em_field%mode(i)%master_scale /= ele_com%em_field%mode(ix)%master_scale) cycle
-    ele_com%em_field%mode(i)%field_scale = ele_com%em_field%mode(i)%field_scale * f_scale_ratio
-  enddo
-end select
-
-end subroutine set_field_scale
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-
-subroutine set_phi0_ref (phase)
-
-real(rp) phase, dphase
-integer i, ix
-
-!
-
-select case (ele_com%field_calc)
-case (bmad_standard$) 
-  phi0_ref = phase
-
-case (grid$, map$, custom$)
-  ix = ele_com%em_field%mode_to_autoscale
-  dphase = phase - ele_com%em_field%mode(ix)%phi0_ref
-  do i = 1, size(ele_com%em_field%mode)
-    if (ele_com%em_field%mode(i)%master_scale /= ele_com%em_field%mode(ix)%master_scale) cycle
-    ele_com%em_field%mode(i)%phi0_ref = ele_com%em_field%mode(i)%phi0_ref + dphase
-  enddo
-end select
-
-end subroutine set_phi0_ref
-
 !----------------------------------------------------------------
-!----------------------------------------------------------------
-!----------------------------------------------------------------
+! contains
 
 function neg_pz_calc (phi) result (neg_pz)
 
@@ -595,75 +545,6 @@ neg_pz = -pz_calc(phi, err_flag)
 
 end function neg_pz_calc
 
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-
-function pz_calc (phi, err_flag) result (pz)
-
-implicit none
-
-type (coord_struct) start_orb, end_orb
-real(rp), intent(in) :: phi
-real(rp) pz
-logical err_flag
-
-! 
-
-call set_phi0_ref (phi)
-call init_coord (start_orb, ele = ele_com, element_end = upstream_end$)
-call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
-
-pz = end_orb%vec(6)
-is_lost = .not. particle_is_moving_forward(end_orb)
-if (is_lost) pz = -1
-
-n_call = n_call + 1
-
-end function pz_calc
-
-!--------------------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------------------
-!+
-! Subroutine pointers_to_autoscale_vars (ele, field_scale, phi0_ref)
-!
-! Routine to set pointers to the variables within an element used for auto scaling.
-!
-! Input:
-!   ele -- ele_struct: Element being scalled.
-!
-! Output:
-!   field_scale -- Real(rp), pointer: Pointer to the amplitude var.
-!                     Points to null if does not exist.
-!   phi0_ref   -- Real(rp), pointer: Pointer to the phase var. 
-!-
-
-
-Subroutine pointers_to_autoscale_vars (ele, field_scale, phi0_ref)
-
-implicit none
-
-type (ele_struct), target :: ele
-real(rp), pointer :: field_scale, phi0_ref
-integer i
-
-!
-
-nullify(field_scale)
-nullify(phi0_ref)
-
-select case (ele%field_calc)
-case (bmad_standard$) 
-  field_scale => ele%value(field_factor$)
-  phi0_ref => ele%value(phi0_ref$)
-
-case (grid$, map$, custom$)
-  i = ele%em_field%mode_to_autoscale
-  field_scale => ele%em_field%mode(i)%field_scale
-  phi0_ref => ele%em_field%mode(i)%phi0_ref
-end select
-
-end subroutine pointers_to_autoscale_vars
+end subroutine autoscale_phase_and_amp
 
 end module

@@ -43,7 +43,8 @@ implicit none
 
 type (ele_struct), target :: ele
 type (wake_lr_struct), allocatable :: lr(:)
-type (em_field_mode_struct), pointer :: mode
+type (cylindrical_map_struct), pointer :: cl_map
+type (grid_field_struct), pointer :: g_field
 type (all_pointer_struct) a_ptr
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
@@ -174,20 +175,38 @@ if (a_name(1:3) == 'LR(') then
 endif
 
 !--------------------
-! em_fields
+! cylindrical_map
 
-if (a_name(1:11) == 'FIELD.MODE(') then
-  if (.not. associated(ele%em_field)) goto 9130
-  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%em_field%mode))
+if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
+  if (.not. associated(ele%cylindrical_map)) goto 9130
+  n_cc = get_cross_index(a_name, 16, err, 1, size(ele%cylindrical_map))
   if (err) goto 9140
-  mode => ele%em_field%mode(n_cc)
+  cl_map => ele%cylindrical_map(n_cc)
 
   select case (a_name)
-  case ('F_DAMP');        a_ptr%r => mode%f_damp
-  case ('PHI0_REF');     a_ptr%r => mode%phi0_ref
-  case ('STORED_ENERGY'); a_ptr%r => mode%stored_energy
-  case ('PHI0_AZIMUTH');  a_ptr%r => mode%phi0_azimuth
-  case ('FIELD_SCALE');   a_ptr%r => mode%field_scale
+  case ('PHI0_FIELDMAP');  a_ptr%r => cl_map%phi0_fieldmap
+  case ('THETA0_AZIMUTH'); a_ptr%r => cl_map%theta0_azimuth
+  case ('FIELD_SCALE');    a_ptr%r => cl_map%field_scale
+  case default;           goto 9000
+  end select
+
+  err_flag = .false.
+  return
+
+endif
+
+!--------------------
+! grid_field
+
+if (a_name(1:16) == 'GRID_FIELD(') then
+  if (.not. associated(ele%grid_field)) goto 9130
+  n_cc = get_cross_index(a_name, 16, err, 1, size(ele%grid_field))
+  if (err) goto 9140
+  g_field => ele%grid_field(n_cc)
+
+  select case (a_name)
+  case ('PHI0_FIELDMAP'); a_ptr%r => g_field%phi0_fieldmap
+  case ('FIELD_SCALE');   a_ptr%r => g_field%field_scale
   case default;           goto 9000
   end select
 

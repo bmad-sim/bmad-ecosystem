@@ -795,15 +795,6 @@ if (associated (slave%wake)) then
   enddo
 endif
 
-! EM fields
-! Note: %em_field%mode%cylindrical_map, %em_field_mode%grid are in common between lord and slave.
-
-if (associated(slave%em_field)) then
-  do i = 1, size(lord%em_field%mode)
-    slave%em_field%mode(i) = lord%em_field%mode(i)
-  enddo
-endif
-
 ! methods
 
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
@@ -2409,7 +2400,8 @@ subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
-type (em_field_mode_struct), pointer :: mode
+type (grid_field_struct), pointer :: g_field
+type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
@@ -2615,7 +2607,7 @@ case (lcavity$, e_gun$)
 
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(voltage$)) .or. associated(a_ptr, ele%value(rf_frequency$)) .or. &
-      associated(a_ptr, ele%value(phi0_ref$))) then
+      associated(a_ptr, ele%value(phi0_autoscale$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 
@@ -2628,17 +2620,29 @@ case (lcavity$, e_gun$)
     endif
   endif
 
-  if (associated(ele%em_field)) then
-    found = .false.
-    do i = 1, size(ele%em_field%mode)
-      mode => ele%em_field%mode(i)
-      if (associated(a_ptr, mode%phi0_ref)) found = .true.
-      if (associated(a_ptr, mode%field_scale)) found = .true.
-      if (mode%master_scale > 0) found = found .or. (associated(a_ptr, ele%value(mode%master_scale)))
-      if (associated(a_ptr, mode%phi0_ref)) found = .true.
+  found = .false.
+
+  if (associated(ele%cylindrical_map)) then
+    do i = 1, size(ele%cylindrical_map)
+      cl_map => ele%cylindrical_map(i)
+      if (associated(a_ptr, cl_map%phi0_fieldmap)) found = .true.
+      if (associated(a_ptr, cl_map%field_scale)) found = .true.
+      if (cl_map%master_parameter > 0) found = (found .or. associated(a_ptr, ele%value(cl_map%master_parameter)))
+      if (associated(a_ptr, cl_map%phi0_fieldmap)) found = .true.
     enddo
-    if (found) call set_ele_status_stale (ele, ref_energy_group$)
   endif
+
+  if (associated(ele%grid_field)) then
+    do i = 1, size(ele%grid_field)
+      g_field => ele%grid_field(i)
+      if (associated(a_ptr, g_field%phi0_fieldmap)) found = .true.
+      if (associated(a_ptr, g_field%field_scale)) found = .true.
+      if (g_field%master_parameter > 0) found = (found .or. associated(a_ptr, ele%value(g_field%master_parameter)))
+      if (associated(a_ptr, g_field%phi0_fieldmap)) found = .true.
+    enddo
+  endif
+
+  if (found) call set_ele_status_stale (ele, ref_energy_group$)
 
 case (patch$)
   ! Any attribute change will shift the reference time.

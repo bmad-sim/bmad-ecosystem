@@ -105,7 +105,7 @@ case (diffraction_plate$)
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
-  ele%value(field_factor$) = 1
+  ele%value(field_autoscale$) = 1
   ele%value(fringe_at$) = exit_end$
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
@@ -119,7 +119,7 @@ case (em_field$)
   ele%tracking_method = runge_kutta$
   ele%mat6_calc_method = tracking$
   ele%value(fringe_type$) = full$
-  ele%value(field_factor$) = 1
+  ele%value(field_autoscale$) = 1
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -146,7 +146,7 @@ case (hybrid$)   ! start with unit matrix
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
-  ele%value(field_factor$) = 1
+  ele%value(field_autoscale$) = 1
   ele%value(n_cell$) = 1
   ele%value(cavity_type$) = standing_wave$
   ele%value(fringe_type$) = full$
@@ -228,7 +228,7 @@ case (rcollimator$)
 
 case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
-  ele%value(field_factor$) = 1
+  ele%value(field_autoscale$) = 1
   ele%value(n_cell$) = 1
   ele%value(cavity_type$) = standing_wave$
   ele%value(fringe_type$) = full$

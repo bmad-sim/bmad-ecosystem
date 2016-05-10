@@ -61,10 +61,16 @@ type (ele_struct), pointer :: lord, slave
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor
-type (wig_term_struct), pointer :: term
 type (wake_lr_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
-type (em_field_mode_struct), pointer :: rfm
+type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term1_struct), pointer :: ct_term
+type (cylindrical_map_struct), pointer :: cl_map
+type (cylindrical_map_term1_struct), pointer :: cl_term
+type (grid_field_struct), pointer :: g_field
+type (grid_field_pt1_struct), pointer :: g_pt
+type (taylor_field_struct), pointer :: t_field
+type (taylor_field_plane1_struct), pointer :: t_term
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -308,23 +314,6 @@ if (.not. ele%is_on) then
   nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
 endif
 
-! wiggler terms
-
-if (associated(ele%wig)) then
-  if (logic_option(.false., type_field)) then
-    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 3(12x, a), 3x, a)') ' Term#', &
-                                'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
-    do i = 1, size(ele%wig%term)
-      term => ele%wig%term(i)
-      write (li(nl+i), '(i4, 4f12.6, 3f14.6, 3x, a)') i, term%coef, term%kx, term%ky, term%kz, &
-                                 term%x0, term%y0, term%phi_z, wig_term_type_name(term%type)
-    enddo
-    nl = nl + size(ele%wig%term)
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig%term)
-  endif
-endif
-
 ! Encode methods, etc.
 
 nl=nl+1; write (li(nl), *) ' '
@@ -407,60 +396,149 @@ if (ele%key /= overlay$ .and. ele%key /= group$) then
   endif
 endif
 
-! RF field coefs
+! Cartesian map
 
-if (associated(ele%em_field)) then
+if (associated(ele%cartesian_map)) then
   if (logic_option(.false., type_field)) then
-    do i = 1, size(ele%em_field%mode)
-      rfm => ele%em_field%mode(i)
-      if (rfm%master_scale == 0) then
-        name = 'None'
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Cartesian_map:'
+    do i = 1, size(ele%cartesian_map)
+      ct_map => ele%cartesian_map(i)
+      if (ct_map%master_parameter == 0) then
+        name = '<None>'
       else
-        name = attribute_name(ele, rfm%master_scale)
-      endif
-      nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, i0)')        'Mode #:', i
-      nl=nl+1; write (li(nl), '(a, i0)')        '    m:             ', rfm%m
-      nl=nl+1; write (li(nl), '(a, i0)')        '    harmonic:      ', rfm%harmonic
-      nl=nl+1; write (li(nl), '(2a)')           '    master_scale:  ', trim(name)
-      nl=nl+1; write (li(nl), '(a, es16.8)')    '    f_damp:        ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_ref:     ', rfm%phi0_ref
-      nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_azimuth:  ', rfm%phi0_azimuth
-      nl=nl+1; write (li(nl), '(a, es16.8)')    '    field_scale:   ', rfm%field_scale
-
-      if (associated(rfm%cylindrical_map)) then
-        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%cylindrical_map%file)
-        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%cylindrical_map%ele_anchor_pt)
-        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%cylindrical_map%n_link
-        nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:            ', rfm%cylindrical_map%dz
-        nl=nl+1; write (li(nl), '(a)')          '  Term                e                           b'
-        do j = 1, min(10, size(rfm%cylindrical_map%term))
-          if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
-          nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
-                                             '(', rfm%cylindrical_map%term(j)%e_coef, ')  (', rfm%cylindrical_map%term(j)%b_coef, ')'
-        enddo
-        if (size(rfm%cylindrical_map%term) > 10) then
-          nl=nl+1; li(nl) = '     .... etc ...'
-        endif
+        name = attribute_name(ele, ct_map%master_parameter)
       endif
 
-      if (associated(rfm%grid)) then
-        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%grid%file)
-        nl=nl+1; write (li(nl), '(2a)')         '    Type:          ', em_grid_type_name(rfm%grid%type)
-        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%grid%ele_anchor_pt)
-        nl=nl+1; write (li(nl), '(a, l)')       '    curved_coords: ', rfm%grid%curved_coords
-        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%grid%n_link
-        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:            ', rfm%grid%dr
-        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:            ', rfm%grid%r0
-        nl=nl+1; write (li(nl), '(a, 3i14)')     '    Index_max:     ', ubound(rfm%grid%pt)
-        nl=nl+1; write (li(nl), '(a, 3i14)')     '    Index_min:     ', lbound(rfm%grid%pt)
-        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:         ', ubound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
-        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:         ', lbound(rfm%grid%pt)*rfm%grid%dr + rfm%grid%r0
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(ct_map%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type        ', trim(em_field_type_name(ct_map%field_type))
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(ct_map%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
+      nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 3(12x, a), 3x, a)') '     Term#', &
+                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
+      do j = 1, min(10, size(ct_map%ptr%term))
+        if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
+        ct_term => ct_map%ptr%term(j)
+        nl=nl+1; write (li(nl+i), '(i8, 4f12.6, 3f14.6, 3x, a)') i, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, &
+                               ct_term%x0, ct_term%y0, ct_term%phi_z, cartesian_map_term_name(ct_term%type)
+      enddo
+      if (size(ct_map%ptr%term) > 10) then
+        nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 
       endif
-
     enddo
   else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Field modes:', size(ele%em_field%mode)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cartesian_map modes:', size(ele%cartesian_map)
+  endif
+endif
+
+! Cylindrical_map
+
+if (associated(ele%cylindrical_map)) then
+  if (logic_option(.false., type_field)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Cylindrical_map:'
+    do i = 1, size(ele%cylindrical_map)
+      cl_map => ele%cylindrical_map(i)
+      if (cl_map%master_parameter == 0) then
+        name = '<None>'
+      else
+        name = attribute_name(ele, cl_map%master_parameter)
+      endif
+
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(cl_map%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
+      nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', cl_map%harmonic
+      nl=nl+1; write (li(nl), '(a, i0)')      '    m:                ', cl_map%m
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', cl_map%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:               ', cl_map%dz
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', cl_map%r0
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:    ', cl_map%phi0_fieldmap
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    theta0_azimuth:   ', cl_map%theta0_azimuth
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(cl_map%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', cl_map%ptr%n_link
+      nl=nl+1; write (li(nl), '(a)')          '    Term                E                           B'
+      do j = 1, min(10, size(cl_map%ptr%term))
+        if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
+        cl_term => cl_map%ptr%term(j)
+        nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, '(', cl_term%e_coef, ')  (', cl_term%b_coef, ')'
+      enddo
+      if (size(cl_map%ptr%term) > 10) then
+        nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(cl_map%ptr%term), ')' 
+      endif
+    enddo
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cylindrical_map modes:', size(ele%cylindrical_map)
+  endif
+endif
+
+! Grid_field
+
+if (associated(ele%grid_field)) then
+  if (logic_option(.false., type_field)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Grid_field:'
+    do i = 1, size(ele%grid_field)
+      g_field => ele%grid_field(i)
+      if (g_field%master_parameter == 0) then
+        name = '<None>'
+      else
+        name = attribute_name(ele, g_field%master_parameter)
+      endif
+
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(g_field%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:       ', em_field_type_name(g_field%field_type)
+      nl=nl+1; write (li(nl), '(2a)')         '    geometry:         ', grid_field_geometry_name(g_field%geometry)
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(g_field%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', g_field%harmonic
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', g_field%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:    ', g_field%phi0_fieldmap
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', g_field%ptr%n_link
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:               ', g_field%dr
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:               ', g_field%r0
+      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:        ', ubound(g_field%ptr%pt)
+      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:        ', lbound(g_field%ptr%pt)
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:            ', ubound(g_field%ptr%pt)*g_field%dr + g_field%r0
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:            ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
+    enddo
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Grid_field modes:', size(ele%grid_field)
+  endif
+endif
+
+! Taylor_field
+
+if (associated(ele%taylor_field)) then
+  if (logic_option(.false., type_field)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Taylor_field:'
+    do i = 1, size(ele%taylor_field)
+      t_field => ele%taylor_field(i)
+      if (t_field%master_parameter == 0) then
+        name = '<None>'
+      else
+        name = attribute_name(ele, t_field%master_parameter)
+      endif
+
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(t_field%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:       ', em_field_type_name(t_field%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', t_field%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:               ', t_field%dz
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', t_field%r0
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(t_field%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', t_field%ptr%n_link
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:          ', size(t_field%ptr%plane)
+    enddo
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
   endif
 endif
 

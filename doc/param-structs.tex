@@ -184,6 +184,11 @@ an ``unphysical'' magnetic or electric field.
 Relative tolerance to use in tracking. Specifically, Tolerance to use
 when finding the closed orbit.
 
+\item[\vn{\%default_integ_order}] \Newline
+Order of the the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
+The order of the PTC integrator is like the order of a Newton-Cotes method.
+Higher order means the error term involves a higher order derivative of the field.
+
 \item{ptc_max_fringe_order} \Newline
 Maximum order for computing fringe field effects in PTC. 
 

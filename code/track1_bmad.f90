@@ -407,7 +407,7 @@ case (lcavity$)
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
 
-  phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_ref$) + &
+  phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_autoscale$) + &
              ele%value(phi0$) + ele%value(phi0_multipass$) + &
              (particle_ref_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
@@ -698,7 +698,7 @@ case (rfcavity$)
 
   voltage = e_accel_field(ele, voltage$) * charge_dir
 
-  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - ele%value(phi0_ref$) - &
+  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
           (particle_ref_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
   phase = phase0
 

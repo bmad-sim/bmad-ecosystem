@@ -69,7 +69,7 @@ orbit%vec(1:5:2) = [ele%value(x_offset_tot$) + ele%value(sig_x$) * r(1), &
 
 ! Set direction
 
-if (ele%photon%target%type == grid$) then
+if (ele%photon%target%type == grided$) then
   call point_photon_emission (ele, param, orbit, +1, twopi)
 
 else
@@ -483,7 +483,7 @@ case (rectangular$)
 
 ! Grid target
 
-case (grid$)
+case (grided$)
   r_particle = orbit%vec(1:5:2)
   r = target%center%r - r_particle
   if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)

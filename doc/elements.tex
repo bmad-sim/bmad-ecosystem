@@ -163,6 +163,7 @@ General \vn{beambeam} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.beambeam} for a full list of element attributes.
 
 \index{sig_x}\index{sig_y}\index{sig_z}
 \index{n_slice}\index{charge}\index{bbi_constant}
@@ -180,7 +181,6 @@ Attributes specific to a \vn{beambeam} element are:
   alpha_b = <Real>     ! $b$-mode alpha Twiss parameter 
   bbi_constant         ! See below. Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.beambeam} for a full list of element attributes.
 
 \index{n_part!in BeamBeam element}
 The number of particles in the strong beam is set by
@@ -293,14 +293,15 @@ General \vn{bend_sol_quad} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Mag \& Elec multipoles     & \ref{s:multip}    & Hkick \& Vkick             & \ref{s:kick}    \\
-  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
-  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
-  Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\   
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
+  Mag \& Elec multipoles     & \ref{s:multip}    & Length                     & \ref{s:l}        \\
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}   \\
+  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}   \\
+  Description strings        & \ref{s:alias}     & Symplectify                & \ref{s:symp}     \\
+  Fringe fields              & \ref{s:fringe}    & Field Maps                 & \ref{s:fieldmap} \\
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods}  \\
+  Is_on                      & \ref{s:is.on}     &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -334,7 +335,7 @@ Attributes specific to a \vn{bend_sol_quad} element are:
   dks_ds      = <Real>    ! Solenoid field variation.      
   tilt        = <Real>    ! Overall tilt. See \sref{s:offset}
 \end{example}
-See \sref{s:list.bend} for a full list of element attributes.
+See \sref{s:list.bend.sol.quad} for a full list of element attributes.
 
 The magnetic
 field is:
@@ -387,19 +388,20 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\ 
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}   \\ 
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
+  Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap} \\
+  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}  \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.bend} for a full list of element attributes.
 
 \index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
@@ -429,7 +431,6 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   rho         = <Real>     ! Design bend radius. A settable dependent variable (\sref{s:depend}).
   roll        = <Real>     ! See \ref{s:offset}.
 \end{example}
-See \sref{s:list.bend} for a full list of element attributes.
 
 \begin{figure}[tb]
   \centering
@@ -673,14 +674,13 @@ General \vn{capillary} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.capillary} for a full list of element attributes.
 
 \index{critical_angle_factor|hyperbf}
 Attributes specific to a \vn{capillary} element are:
 \begin{example}
   critical_angle_factor = <Real>    ! Critical angle * Energy (rad * eV)
 \end{example}
-See \sref{s:list.capillary} for a full list of element attributes.
-
 
 The critical angle above which photons striking the capillary surface are
 refracted into the capillary material scales as 1/Energy. The
@@ -706,13 +706,14 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}    & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
-  Description strings        & \ref{s:alias}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}     & Tracking \& transfer map   & \ref{c:methods} \\
-  Length                     & \ref{s:l}        &                            &                 \\
+  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section          \\ \midrule
+  Aperture limits            & \ref{s:limit}    & Overlapping Fields         & \ref{s:overlap}  \\
+  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}   \\
+  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}    \\
+  Description strings        & \ref{s:alias}    & Symplectify                & \ref{s:symp}     \\
+  Hkick \& Vkick             & \ref{s:kick}     & Field Maps                 & \ref{s:fieldmap} \\
+  Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods}  \\
+  Offsets, Pitches \& Tilt   & \ref{s:offset}   &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -764,6 +765,7 @@ General \vn{crystal} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.crystal} for a full list of element attributes.
 
 \index{psi_angle}
 \index{b_param}\index{bragg_angle}\index{crystal_type}
@@ -799,7 +801,6 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   tilt_corr                  ! Tilt correction due to a finite psi_angle.
   v_unitcell                 ! Unit cell volume. 
 \end{example}
-See \sref{s:list.crystal} for a full list of element attributes.
 
 The \vn{crystal_type} attribute defines the crystal material and
 diffraction lattice plane. The syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ}
@@ -957,13 +958,14 @@ General \vn{custom} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Field Maps                 & \ref{s:fieldmap}  & Symplectify                & \ref{s:symp}    \\
   Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   Is_on                      & \ref{s:is.on}     &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.custom} for a full list of element attributes.
 
 \index{tracking_method}\index{mat6_calc_method}\index{field_calc}
 As an alternative to defining a custom element, standard elements can
@@ -975,8 +977,6 @@ to \vn{custom}:
   field_calc            \sref{s:integ}
   aperture_type         \sref{s:limit}
 \end{example}
-See \sref{s:list.custom} for a full list of element attributes.
-
 
 As with a custom element, setting one of these attributes to
 \vn{custom} necessitates the use of custom code to implement the
@@ -1072,6 +1072,7 @@ General \vn{diffraction_plate} element attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.diffraction.plate} for a full list of element attributes.
 
 \index{mode}\index{field_scale_factor}
 Attributes specific to a \vn{diffraction_plate} element are:
@@ -1080,7 +1081,6 @@ Attributes specific to a \vn{diffraction_plate} element are:
   field_scale_factor = <Real>   ! Factor to scale the photon field
   ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.diffraction.plate} for a full list of element attributes.
 
 The \vn{mode} switch sets whether X-rays are transmitted through the
 \vn{diffraction_plate} or or reflected. Possible values for the
@@ -1172,37 +1172,34 @@ General \vn{e_gun} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}    & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}     & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Custom Attributes          & \ref{s:cust.att} & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
-  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \\ 
-  Hkick \& Vkick             & \ref{s:kick}     & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods} \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section           \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}    \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}    \\ 
+  Custom attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}   \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}    \\ 
+  Field autoscaling          & \ref{s:autoscale} & Symplectify                & \ref{s:symp}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}  \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}   \\ 
+  Length                     & \ref{s:l}         &                            &                   \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.e.gun} for a full list of element attributes.
 
 The attributes specific to an \vn{e_gun} are 
 \index{voltage}\index{voltage_err}
 \index{gradient}\index{gradient_err}
-\index{autoscale_phase}\index{autoscale_amplitude}
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
-  gradient     = <Real>    ! Gradient.
-  gradient_err = <Real>    ! Gradient error.
-  phi0         = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
-                           !   respect to the RF. phi0 = 0 is on crest.
-  phi0_err     = <Real>    ! Phase error (rad/2\(\pi\))
-  phi0_ref     = <Real>    ! Phase offset used in auto-phasing (\sref{s:em.fields}).
-  rf_frequency = <Real>    ! Frequency of the RF field.
-  voltage      = <Real>    ! Voltage. Dependent attribute (\sref{s:depend}). 
-  voltage_err  = <Real>    ! Voltage error. Dependent attribute (\sref{s:depend}). 
+  gradient       = <Real>    ! Gradient.
+  gradient_err   = <Real>    ! Gradient error.
+  phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
+                             !   respect to the RF. phi0 = 0 is on crest.
+  phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
+  rf_frequency   = <Real>    ! Frequency of the RF field.
+  voltage        = <Real>    ! Voltage. Dependent attribute (\sref{s:depend}). 
+  voltage_err    = <Real>    ! Voltage error. Dependent attribute (\sref{s:depend}). 
 \end{example}
-See \sref{s:list.e.gun} for a full list of element attributes.
-
 
 The \vn{voltage} is simply related to the \vn{gradient} via the element length \vn{l}:
 \begin{example}
@@ -1215,8 +1212,18 @@ The acceleration will depend upon the charge of the particle being tracked
 and independent of the reference species. That is, to accelerate
 electrons, a negative voltage is needed.
 
-An \vn{e_gun} may either be DC if the \vn{rf_frequency} component is
-zero of AC if not.
+\index{phi0_autoscale}\vn{field_autoscale}
+The \vn{voltage} and \vn{gradient} are scaled by \vn{field_autoscale} and, if there is a
+finite \vn{rf_frequency}, the phase of the frequency is shifted by \vn{phi0_autoscale} as
+discussed in Section~\sref{s:autoscale}. Autoscaling can be toggled on/off by using the
+\vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+
+An \vn{e_gun} may either be DC if the \vn{rf_frequency} component is zero of AC if
+not. For an AC \vn{e_gun}, the phase of the \vn{e_gun}, The phase $\phi_{\text{ref}}$
+is 
+\begin{example} 
+  \(\phi_{\text{ref}}\) = phi0 + phi0_err + phi0_autoscale 
+\end{example}
 
 \index{marker}\index{null_ele}
 Electrons generated at the cathode can have zero initial momentum and
@@ -1245,17 +1252,16 @@ Note: The default \vn{tracking_method} (\sref{s:tkm}) setting for an
 \vn{mat6_calc_method} is \vn{tracking}.
 
 In this example the field of an e_gun is given by a grid of field
-values (\sref{s:grid}):
+values (\sref{s:grid.field}):
 \begin{example}
   apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
-    field = \{ mode = \{
-      m = 0, harmonic = 1,
-      master_scale = voltage,
-      grid = call::apex_gun_grid.bmad \}\}
+                field_grid = call::apex_gun_grid.bmad
 \end{example}
 with the file \vn{apex_gun_grid.bmad} being:
 \begin{example}
   \{
+    m = 0, harmonic = 1,
+    master_scale = voltage,
     type = rotationally_symmetric_rz,
     r0 = (0, 0),
     dr = (0.001, 0.001),
@@ -1275,19 +1281,20 @@ General \vn{elseparator} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}   \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
+  Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap} \\  
+  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}  \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.elseparator} for a full list of element attributes.
 
 \index{gap}
 \index{e_field}
@@ -1298,7 +1305,6 @@ Attributes specific to an \vn{elseparator} element are:
   voltage      ! Voltage between electrodes. This is a settable dependent variable (\sref{s:depend}).
   e_field      ! Electric field. This is a settable dependent variable (\sref{s:depend}).
 \end{example}
-See \sref{s:list.elseparator} for a full list of element attributes.
 
 \index{hkick}
 \index{vkick}
@@ -1333,7 +1339,7 @@ attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
+  Field Maps                 & \ref{s:fieldmap}  & Symplectify                & \ref{s:symp}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
   Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
@@ -1367,6 +1373,7 @@ General \vn{fiducial} element attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.fiducial} for a full list of element attributes.
 
 \index{origin_ele}\index{origin_ele_ref_pt}
 \index{x_origin}\index{y_origin}
@@ -1383,7 +1390,6 @@ Attributes specific to a \vn{fiducial} elements are:
   dphi_origin       = <Real>     ! orientation angle offset.
   dpsi_origin       = <Real>     ! orientation angle offset.
 \end{example}
-See \sref{s:list.fiducial} for a full list of element attributes.
 
 For tracking purposes, the \vn{fiducial} element is considered to be a
 zero length marker. That is, the transfer map through a \vn{fiducial}
@@ -1495,6 +1501,7 @@ General \vn{floor_shift} element attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.floor.shift} for a full list of element attributes.
 
 \index{l}\index{x_offset}\index{y_offset}
 \index{z_offset}\index{tilt}
@@ -1511,7 +1518,6 @@ Attributes specific to a \vn{floor_shift} elements are:
   origin_ele        = <Name>     ! Reference element.
   origin_ele_ref_pt = <location> ! Reference pt on reference ele.
 \end{example}
-See \sref{s:list.floor.shift} for a full list of element attributes.
 
 The \vn{floor_shift} element shifts the reference orbit relative to the
 \vn{origin_ele}. Unlike the \vn{patch element} \sref{s:patch}, the
@@ -1596,6 +1602,7 @@ General \vn{fork} and \vn{photon_fork} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.fork} for a full list of element attributes.
 
 Attributes specific to \vn{fork} and \vn{photon_fork} elements are:
 \begin{example}
@@ -1604,7 +1611,6 @@ Attributes specific to \vn{fork} and \vn{photon_fork} elements are:
   to_element   = <ElementID>  ! What element to attach to in the line being forked to.
   new_branch   = <T/F>        ! Make a new branch from the to_line? Default = True.
 \end{example}
-See \sref{s:list.fork} for a full list of element attributes.
 
 \index{patch}
 Branch lines can themselves have forking elements. A branch line
@@ -1765,6 +1771,7 @@ General \vn{girder} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.girder} for a full list of element attributes.
 
 Attributes specific to a \vn{girder} are:
 \index{origin_ele}\index{origin_ele_ref_pt}
@@ -1783,7 +1790,6 @@ Attributes specific to a \vn{floor_shift} elements are:
   dphi_origin       = <Real>     ! orientation angle offset.
   dpsi_origin       = <Real>     ! orientation angle offset.
 \end{example}
-See \sref{s:list.girder} for a full list of element attributes.
 
 A simple example of a girder is shown in \fig{f:girder}. Here a girder supports three
 elements labeled \vn{A}, \vn{B}, and \vn{C} where \vn{B} is a bend so the geometry is
@@ -2157,7 +2163,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section         \\ \midrule
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section          \\ \midrule
   Aperture limits            & \ref{s:limit}       & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
   Custom Attributes          & \ref{s:cust.att}    & Reference energy           & \ref{s:energy}  \\
@@ -2203,7 +2209,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
   Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
+  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
   Is_on                      & \ref{s:is.on}     &                            &                 \\
@@ -2240,15 +2246,15 @@ General \vn{kicker} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Mag \& Elec multipoles     & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \\
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Field customization        & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \\
-  Fringe Fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Hkick \& Vkick             & \ref{s:kick}      &                            &                 \\
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
+  Mag \& Elec multipoles     & \ref{s:multip}    & Length                     & \ref{s:l}        \\
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}   \\
+  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}  \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}   \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}    \\
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}     \\
+  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap} \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2265,9 +2271,8 @@ Example:
 \label{s:lcav}
 \index{lcavity|hyperbf}
 
-An \vn{lcavity} is a LINAC accelerating cavity.
-The main difference between an \vn{rfcavity} and an
-\vn{lcavity} is that, unlike an \vn{rfcavity}, the reference energy
+An \vn{lcavity} is a LINAC accelerating cavity.  The main difference between an
+\vn{rfcavity} and an \vn{lcavity} is that, unlike an \vn{rfcavity}, the reference energy
 (\sref{s:phase.space}) through an \vn{lcavity} is not constant.
 
 General \vn{lcavity} attributes are:
@@ -2275,43 +2280,38 @@ General \vn{lcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}      \\
+  Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{s:super}      \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}      & Wakes                      & \ref{s:wakes}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
+  Length                     & \ref{s:l}         & Wakes                      & \ref{s:wakes}      \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.lcavity} for a full list of element attributes.
 
 The attributes specific to an \vn{lcavity} are 
 \index{gradient}\index{phi0}\index{n_cell}
 \index{phi0_multipass}\index{e_loss}
 \index{rf_frequency}\index{voltage}\index{cavity_type}
-\index{autoscale_phase}\index{autoscale_amplitude}
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
-  cavity_type    = <Switch>  ! Type of cavity.
-  gradient       = <Real>    ! Accelerating gradient (V/m).
-  gradient_err   = <Real>    ! Accelerating gradient error (V/m).
-  field_factor   = <Real>    ! Used for auto scaling.
-  phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
-                             !   respect to the RF. phi0 = 0 is on crest.
-  phi0_multipass = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
-  phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
-  phi0_ref       = <Real>    ! Phase offset used to deal with absolute time tracking
-                             !  and other issues (see below).
-  e_loss         = <Real>    ! Loss parameter for short range wake fields (V/Coul).
-  rf_frequency   = <Real>    ! Rf frequency (Hz).
-  voltage                    ! Cavity voltage. Dependent attribute (\sref{s:depend}).
-  n_cell         = <Integer> ! Number of cavity cells. Default is 1.
+  cavity_type     = <Switch>  ! Type of cavity.
+  gradient        = <Real>    ! Accelerating gradient (V/m).
+  gradient_err    = <Real>    ! Accelerating gradient error (V/m).
+  phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
+                              !   respect to the RF. phi0 = 0 is on crest.
+  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
+  e_loss          = <Real>    ! Loss parameter for short range wake fields (V/Coul).
+  rf_frequency    = <Real>    ! Rf frequency (Hz).
+  voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+  n_cell          = <Integer> ! Number of cavity cells. Default is 1.
 \end{example}
-See \sref{s:list.lcavity} for a full list of element attributes.
 
 The dependent variable \vn{voltage} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{voltage} is a
@@ -2327,11 +2327,11 @@ The energy kick felt by a particle, assuming no phase slippage, is
 \index{multipass}
 where the total gradient is
 \begin{example}
-  gradient_tot = (gradient + gradient_err) * field_factor
+  gradient_tot = (gradient + gradient_err) * field_autoscale
 \end{example}
 The phase $\phi_{\text{ref}}$ is
 \begin{example}
-  \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_ref
+  \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives
 at the cavity and depends upon whether \vn{absolute time tracking} or 
@@ -2340,8 +2340,9 @@ at the cavity and depends upon whether \vn{absolute time tracking} or
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
 
-\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
-(\sref{s:em.fields}).
+\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale
+module. See Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off
+by using the \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
@@ -2356,9 +2357,6 @@ sign. Essentially the MAD8 documentation gives
   dE = gradient * L * cos(\(2\,\pi\) * (\(\phi_{\text{ref}}\) - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
-
-The \vn{field_factor} parameter is used with auto scaling
-(\sref{s:autoscale}). The default value for \vn{field_factor} is 1.
 
 When short-range wake fields are being simulated, with
 \vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.params}), the
@@ -2393,7 +2391,7 @@ an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
 HOM wakes (\sref{s:wakes}) can be modeled.
 
 When using \vn{boris} or \vn{runge_kutta}, tracking (\sref{s:tkm})
-through a field map (\sref{s:em.fields}), the \vn{bmad_standard} field
+through a field map (\sref{s:fieldmap}), the \vn{bmad_standard} field
 is \vn{n_cell} half wave resonators.
 
 Example:
@@ -2428,13 +2426,13 @@ General \vn{marker} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.marker} for a full list of element attributes.
 
 \index{x_ray_line_len}
 Attributes specific to a \vn{marker} element are:
 \begin{example}
   x_ray_line_len = <Real>
 \end{example}
-See \sref{s:list.marker} for a full list of element attributes.
 
 \vn{x_ray_line_len} is the length of an associated x-ray synchrotron
 light line measured from the marker element. This is used for
@@ -2482,6 +2480,7 @@ General \vn{mask} element attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.mask} for a full list of element attributes.
 
 Notice that, unlike a \vn{rcollimator} or a \vn{ecollimator}, a \vn{mask} element has zero length.
 
@@ -2492,7 +2491,6 @@ Attributes specific to a \vn{mask} element are:
   field_scale_factor = <Real>   ! Factor to scale the photon field
   ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.mask} for a full list of element attributes.
 
 Note: These attributes are only pertinent for photon tracking. Charged
 particle tracking assumes transmission mode and does not use
@@ -2564,6 +2562,7 @@ General \vn{match} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.match} for a full list of element attributes.
 
 Attributes specific to a \vn{match} element are:
 \begin{example}
@@ -2581,7 +2580,6 @@ Attributes specific to a \vn{match} element are:
   x1, px1, y1, py1, z1, pz1 = <Real>       ! Ending coordinates
   match_end_orbit = <Logic>                ! See below. Default is False.
 \end{example}
-See \sref{s:list.match} for a full list of element attributes.
 
 The transfer map for a \vn{match} element is a linear transformation 
 with a ``kick'':
@@ -2707,6 +2705,7 @@ General \vn{mirror} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.mirror} for a full list of element attributes.
 
 Attributes specific to a \vn{mirror} element are:
 \begin{example}
@@ -2714,7 +2713,6 @@ Attributes specific to a \vn{mirror} element are:
   critical_angle  = <Real>   ! Critical angle.
   ref_wavelength             ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.mirror} for a full list of element attributes.
 
 The reference trajectory for a
 \vn{mirror} is that of a zero length bend (\sref{s:mirror.coords}) and
@@ -2806,6 +2804,7 @@ The attributes specific to a \vn{multilayer_mirror} are
   n_cell           = <Integer> ! Number of cells (= Number of layers / 2)
   ref_wavelength               ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
+See \sref{s:list.multilayer.mirror} for a full list of element attributes.
 
 \index{graze_angle}
 \index{v1_unitcell}\index{v2_unitcell}
@@ -2815,7 +2814,6 @@ Dependent attributes (\sref{s:depend}) are
   v1_unitcell      ! Unit cell volume for layer 1
   v2_unitcell      ! Unit cell volume for layer 2 
 \end{example}
-See \sref{s:list.multilayer.mirror} for a full list of element attributes.
 
 A \vn{multilayer_mirror} is constructed of a number of ``cells''. The
 number of cells is set by \vn{n_cell}. Each cell consists of two
@@ -2862,20 +2860,20 @@ General \vn{octupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
-  
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.octupole} for a full list of element attributes.
 
 \index{k3}
 \index{b3_gradient}
@@ -2884,7 +2882,6 @@ Attributes specific to an \vn{octupole} element are:
   k3          = <Real>   ! Octupole strength.
   b3_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
-See \sref{s:list.octupole} for a full list of element attributes.
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of 
@@ -2909,7 +2906,7 @@ elements is that \vn{overlay} elements set the values of the
 attributes directly while \vn{group} elements make delta changes to
 attribute values.
 
-General \vn{girder} attributes are:
+General \vn{overlay} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
@@ -2919,13 +2916,13 @@ General \vn{girder} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.overlay} for a full list of element attributes.
 
 \index{var}
 Attributes specific to a \vn{Group} element are:
 \begin{example}
   var = \{<var1>, <var2>, ...\}   ! List of variables.
 \end{example}
-See \sref{s:list.overlay} for a full list of element attributes.
 
 The general syntax for a \vn{overlay} element is
 \begin{example}
@@ -3025,6 +3022,7 @@ General \vn{patch} element attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.patch} for a full list of element attributes.
 
 \index{flexible}\index{e_tot_offset}
 \index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
@@ -3043,7 +3041,6 @@ Attributes specific to a \vn{patch} elements are:
   l               = <Real>  ! Reference length. Dependent attribute (\sref{s:depend}). 
 \end{example}
 \index{x_offset}
-See \sref{s:list.patch} for a full list of element attributes.
 
 A straight line element like a \vn{drift} or a \vn{quadrupole} has the
 the exit face parallel to the entrance face. With a \vn{patch}
@@ -3189,6 +3186,7 @@ General \vn{photon_init} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.photon.init} for a full list of element attributes.
 
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{photon_init} element are:
@@ -3211,7 +3209,6 @@ Attributes specific to an \vn{photon_init} element are:
   ds_slice                 = <Real>
   ref_wavelength    ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.photon.init} for a full list of element attributes.
 
   \begin{description}
   \index{e_center}
@@ -3384,18 +3381,20 @@ General \vn{quadrupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Field customization        & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap}   \\ 
+  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Mag \& Elec multipoles     & \ref{s:multip}    &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.quadrupole} for a full list of element attributes.
 
 \index{f1}\index{f2}
 \index{k1}\index{b1_gradient}
@@ -3406,7 +3405,6 @@ Attributes specific to a \vn{quadrupole} element are:
   fq1            = <Real>    ! Soft edge fringe parameter.
   fq2            = <Real>    ! Soft edge fringe parameter.
  \end{example}
-See \sref{s:list.quadrupole} for a full list of element attributes.
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
@@ -3440,35 +3438,32 @@ General \vn{rfcavity} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}      \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods}    \\
-  Is_on                      & \ref{s:is.on}     & Wakes                      & \ref{s:wakes}      \\
+  {\sl Attribute Class}      & Section            & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
+  Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
+  Description strings        & \ref{s:alias}      & RF Couplers                & \ref{s:rf.coupler} \\
+  Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}     & Symplectify                & \ref{s:symp}       \\
+  Hkick \& Vkick             & \ref{s:kick}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}      & Tracking \& transfer map   & \ref{c:methods}    \\
+  Length                     & \ref{s:l}          & Wakes                      & \ref{s:wakes}      \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.rfcavity} for a full list of element attributes.
 
 \index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{phi0_multipass}\index{harmon_master}
-\index{autoscale_phase}\index{autoscale_amplitude}
 Attributes specific to an \vn{rfcavity} are:
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
-  rf_frequency   = <Real>    ! Frequency
-  harmon         = <Real>    ! Harmonic number
-  voltage        = <Real>    ! Cavity voltage
-  field_factor   = <Real>    ! Used for auto scaling.
-  phi0           = <Real>    ! Cavity phase
-  phi0_multipass = <Real>    ! Phase variation with multipass
-  gradient       = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
+  rf_frequency    = <Real>    ! Frequency
+  harmon          = <Real>    ! Harmonic number
+  voltage         = <Real>    ! Cavity voltage
+  phi0            = <Real>    ! Cavity phase
+  phi0_multipass  = <Real>    ! Phase variation with multipass
+  gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
 \end{example}
-See \sref{s:list.rfcavity} for a full list of element attributes.
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The integrated energy kick felt by a particle, assuming no phase slippage, is 
@@ -3478,7 +3473,7 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \index{multipass}
 where
 \begin{example}
-  \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_ref
+  \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_autoscale
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives
 at the cavity and depends upon whether \vn{absolute time tracking} or 
@@ -3489,8 +3484,9 @@ to a \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
 charge on an electron (Table~\ref{t:constants}). Notice that the
 energy kick is independent of the sign of the charge of the particle
 
-\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
-(\sref{s:em.fields}).
+\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale
+module. See Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off
+by using the \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
@@ -3503,12 +3499,12 @@ independent variable (\sref{s:depend}).
 
 Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
 be modeled. In addition, if a field map is specified
-(\sref{s:em.fields}), tracking using an integrator is possible.
+(\sref{s:fieldmap}), tracking using an integrator is possible.
 
 \index{RF field map}
 \index{runge_kutta!and field maps}\index{adaptive_runge_kutta!and field maps}
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
-If a field map is specified (\sref{s:em.fields}), tracking using an
+If a field map is specified (\sref{s:fieldmap}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
 \vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking
 (\sref{s:tkm}).  Only the fundamental mode has an analytical formula
@@ -3554,8 +3550,7 @@ General \vn{sample} attributes are:
 \end{tabular}
 \end{center}
 \toffset
-
-This element is in development.
+See \sref{s:list.sad.mult} for a full list of element attributes.
 
 \index{angle}\index{bs_field}\index{e1}\index{e2}\index{eps_step_scale}
 \index{f1}\index{f2}\index{g}\index{rf_frequency}\index{harmon}
@@ -3579,7 +3574,6 @@ Attributes specific to an \vn{sextupole} element are:
   fringe_type     = <Switch>  ! Type of fringe. SAD equivalent: DISFRIN.
   fringe_at       = <Switch>  ! Where fringe is applied. SAD equivalent: FRINGE.
 \end{example}
-See \sref{s:list.sad.mult} for a full list of element attributes.
 
 %  rf_frequency    = <Real>    ! Rf frequency (Hz). SAD equivalent: FREQ.
 %  harmon          = <Real>    ! Harmonic number. SAD equivalent: HARM.
@@ -3677,6 +3671,7 @@ General \vn{sample} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.sample} for a full list of element attributes.
 
 This element is in development.
 
@@ -3685,7 +3680,6 @@ Attributes specific to an \vn{solenoid} element are:
   mode       = <Switch> ! Reflection or transmission.
   material   = <type>   ! Type of material. \sref{s:cryst.list}
 \end{example}
-See \sref{s:list.sample} for a full list of element attributes.
 
 The \vn{mode} parameter can be set to:
 \begin{example}
@@ -3720,18 +3714,19 @@ General \vn{sextupole} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\  
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.sextupole} for a full list of element attributes.
 
 \index{k2}
 \index{b2_gradient}
@@ -3740,7 +3735,6 @@ Attributes specific to an \vn{sextupole} element are:
   k2          = <Real>   ! Sextupole strength.
   b2_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
-See \sref{s:list.sextupole} for a full list of element attributes.
 
 The \vn{bmad_standard}
 calculation treats a sextupole using a kick--drift--kick model.
@@ -3763,19 +3757,20 @@ General \vn{solenoid} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.solenoid} for a full list of element attributes.
 
 \index{ks}
 \index{bs_gradient}
@@ -3784,7 +3779,6 @@ Attributes specific to an \vn{solenoid} element are:
   ks         = <Real>   ! Solenoid strength.
   bs_field   = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
-See \sref{s:list.solenoid} for a full list of element attributes.
 
 The \vn{bmad_standard} tracking model (\sref{s:tkm}) uses a ``hard
 edge'' model where an impulse kick is applied at the entrance and exit
@@ -3806,19 +3800,20 @@ General \vn{sol_quad} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles      & \ref{s:multip} \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.sol.quad} for a full list of element attributes.
 
 \index{k1}\index{ks}\index{bs_field}\index{b1_gradient}
 Attributes specific to a \vn{sol_quad} element are:
@@ -3828,7 +3823,6 @@ Attributes specific to a \vn{sol_quad} element are:
   bs_field    = <Real>    ! Solenoid Field strength.
   b1_gradient = <Real>    ! Quadrupole Field strength.
 \end{example}
-See \sref{s:list.sol.quad} for a full list of element attributes.
 
 Example:
 \begin{example}
@@ -3858,6 +3852,7 @@ General \vn{taylor} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+See \sref{s:list.taylor} for a full list of element attributes.
 
 Attributes specific to a \vn{taylor} element are:
 \begin{example}
@@ -3865,7 +3860,6 @@ Attributes specific to a \vn{taylor} element are:
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
 \end{example}
-See \sref{s:list.taylor} for a full list of element attributes.
 
 Notice that the first form above uses a comma ``,'' to separate the
 \vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar
@@ -3989,15 +3983,15 @@ General \vn{wiggler} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Custom Attributes          & \ref{s:cust.att}  & Mag. \& Elec. multipoles   & \ref{s:multip}  \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field customization        & \ref{s:em.fields} & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -4013,15 +4007,16 @@ assuming a periodic field (``periodic type'').
 \label{s:wiggler.map}
 
 The \vn{map type} wigglers are modeled using the Cartesian mode
-decomposition of Sec.~\sref{s:cart.mode}. 
+decomposition of Sec.~\sref{s:cart.map}. 
 
 \index{polarity}
 \index{term (for a wiggler)}
 Attributes specific to a \vn{map type} \vn{wiggler} element are:
 \begin{example}
-  term(i)  = \{<Wig_Term>\} 
+  term(i)  = \{<Wig_Term>\}     ! Old syntax
   b_max    = <Real>   ! Maximum magnetic field (in T) on the wiggler centerline. 
                       !   Dependent attribute (\sref{s:depend}).
+  polarity = <Real>   ! For scaling the field.
 \end{example}
 
 A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{bsq}):

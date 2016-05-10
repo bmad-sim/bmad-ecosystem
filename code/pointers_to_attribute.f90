@@ -256,9 +256,9 @@ call re_allocate (ptrs, n_loc)
 n = 0
 do i = 1, n_loc
   call pointer_to_attribute (eles2(i)%ele, attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a)
-  if (err_flag .or. .not. associated(a_ptr%r)) cycle
+  if (err_flag) cycle
   n = n + 1
-  ptrs(n)%r => a_ptr%r
+  ptrs(n) = a_ptr
   eles2(n)%ele => eles2(i)%ele
   if (present(ix_attrib)) ix_attrib = ix_a
 enddo
@@ -280,7 +280,7 @@ endif
 
 call re_allocate (ptr_array, n)
 do i = 1, n
-  ptr_array(i)%r => ptrs(i)%r
+  ptr_array(i) = ptrs(i)
 enddo
 
 err_flag = .false.

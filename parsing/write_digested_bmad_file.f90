@@ -45,7 +45,7 @@ integer, allocatable :: ix_wake(:)
 character(*) digested_name
 character(*), optional :: file_names(:)
 character(200) fname, full_digested_name
-character(32) :: r_name = 'write_digested_bmad_file'
+character(*), parameter :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
 
 logical, optional :: err_flag
@@ -125,6 +125,8 @@ enddo
 
 call write_this_wall3d (lat%branch(0)%wall3d, associated(lat%branch(0)%wall3d))
 
+write (d_unit) lat%branch(0)%name
+
 do i = 1, ubound(lat%branch, 1)
   n_wake = 0  ! number of wakes written to the digested file for this branch.
   branch => lat%branch(i)
@@ -198,29 +200,36 @@ subroutine write_this_ele (ele)
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (wake_struct), pointer :: wake
-type (em_field_mode_struct), pointer :: mode, mode2
 type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
+type (cylindrical_map_struct), pointer :: cl_map
+type (cartesian_map_struct), pointer :: ct_map
+type (grid_field_struct), pointer :: g_field
+type (taylor_field_struct), pointer :: t_field
 
-integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var, ix_mode, im
-integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
+integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
+integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var, ix_ptr, im
+integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch
 
 logical write_wake, mode3
 
 !
 
-ix_wig = 0; ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
+ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr = 0; n_var = 0; ix_st = -1
-mode3 = .false.; ix_wall3d = 0; n_em_field_mode = 0; ix_wig_branch = 0
+mode3 = .false.; ix_wall3d = 0
+n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0
 
-if (associated(ele%mode3))          mode3 = .true.
-if (associated(ele%wig))            ix_wig = size(ele%wig%term)
-if (associated(ele%r))              ix_r = 1
-if (associated(ele%photon))         ix_s = 1
-if (associated(ele%descrip))        ix_d = 1
-if (associated(ele%a_pole))         ix_m = 1
-if (associated(ele%a_pole_elec))    ix_e = 1
+if (associated(ele%mode3))             mode3 = .true.
+if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
+if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
+if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
+if (associated(ele%taylor_field))      n_tay = size(ele%taylor_field)
+if (associated(ele%r))                 ix_r = 1
+if (associated(ele%photon))            ix_s = 1
+if (associated(ele%descrip))           ix_d = 1
+if (associated(ele%a_pole))            ix_m = 1
+if (associated(ele%a_pole_elec))       ix_e = 1
 do n = 1, size(ele%taylor)
   if (associated(ele%taylor(n)%term)) ix_t(n) = size(ele%taylor(n)%term)
 enddo
@@ -228,7 +237,6 @@ do i = 1, 3; do j = 1, 3
   if (associated(ele%spin_taylor(i,j)%term)) ix_st(i,j) = size(ele%spin_taylor(i,j)%term)
 enddo; enddo
 if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d)
-if (associated(ele%em_field))       n_em_field_mode = size(ele%em_field%mode)
 if (associated(ele%control_var))    n_var = size(ele%control_var)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing the wake info,
@@ -250,27 +258,6 @@ if (associated(ele%wake)) then
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
   endif
-endif
-
-! Wiggler
-! Go through all the elements before the current element and if some element has the same
-! wiggler model then just set ix_wig, ix_wig_branch to point to this element.
-! Negative sign for ix_wig will signal to read_digested_bmad_file that this is the situation.
-
-if (associated(ele%wig)) then
-  wig_branch_loop: do ib = 0, ele%ix_branch
-    ie_max = lat%branch(ib)%n_ele_max
-    if (ib == ele%ix_branch) ie_max = ele%ix_ele - 1
-    do ie = 1, ie_max
-      ele2 => lat%branch(ib)%ele(ie)
-      if (.not. associated(ele2%wig)) cycle
-      if (size(ele2%wig%term) /= size(ele%wig%term)) cycle
-      if (.not. all(ele2%wig%term == ele%wig%term)) cycle
-      ix_wig = -ie
-      ix_wig_branch = ib
-      exit wig_branch_loop
-    enddo
-  enddo wig_branch_loop
 endif
 
 ! Wall3d
@@ -302,9 +289,9 @@ endif
 ! Now write the element info. 
 ! The last zero is for future use.
 
-write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
+write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, &
           0, 0, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr, ix_wall3d, n_em_field_mode, n_var
+          ix_lr, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -342,93 +329,122 @@ if (n_var /= 0) then
   enddo
 endif
 
-! EM field def.
+! Cartesian map
+! If the field is the same as the field of a previous element then just reference the prior element's field
 
-if (n_em_field_mode > 0) then
+do i = 1, n_cart
+  ct_map => ele%cartesian_map(i)
 
-  write (d_unit) ele%em_field%mode_to_autoscale
+  if (ct_map%ptr%file == '') then
+    call out_io (s_error$, r_name, 'CARTESIAN_MAP FILE REFERENCE IS BLANK!!??. PLEASE REPORT THIS.')
+    write (ct_map%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
+  endif
 
-  ! If the field is the same as the field of a previous element then set ix_ele and ix_branch.
+  write (d_unit) ct_map%field_scale, ct_map%master_parameter, ct_map%ele_anchor_pt, ct_map%field_type, ct_map%r0
 
-  do i = 1, n_em_field_mode
-    mode => ele%em_field%mode(i)
-    if (.not. associated(mode%cylindrical_map) .and. .not. associated(mode%grid)) cycle
+  call find_matching_fieldmap (ct_map%ptr%file, ele, cartesian_map$, ele2, ix_ptr) 
+  if (ix_ptr > 0) then
+    write (d_unit) ele2%ix_ele, ele2%ix_branch, ix_ptr, size(ct_map%ptr%term)
+  else
+    write (d_unit) -1, -1, -1, size(ct_map%ptr%term)
+    write (d_unit) ct_map%ptr%file
+    do j = 1, size(ct_map%ptr%term)
+      write (d_unit) ct_map%ptr%term(j)
+    enddo
+  endif
+enddo
 
-    ix_ele = -1
-    ix_branch = -1
-    ix_mode = -1
+! Cylindrical map
+! If the field is the same as the field of a previous element then just reference the prior element's field
 
-    branch_loop: do ib = 0, ele%ix_branch
-      ie_max = lat%branch(ib)%n_ele_max
-      if (ib == ele%ix_branch) ie_max = ele%ix_ele - 1
-      do ie = 1, ie_max
-        ele2 => lat%branch(ib)%ele(ie)
-        if (.not. associated(ele2%em_field)) cycle
-        do im = 1, size(ele2%em_field%mode)
-          mode2 => ele2%em_field%mode(im)
-          if (associated(mode%cylindrical_map) .neqv. associated(mode2%cylindrical_map)) cycle
-          if (associated(mode%cartesian_map) .neqv. associated(mode2%cartesian_map)) cycle
-          if (associated(mode%taylor) .neqv. associated(mode2%taylor)) cycle
-          if (associated(mode%grid) .neqv. associated(mode2%grid)) cycle
-          if (associated(mode%cylindrical_map)) then
-            if (mode%cylindrical_map%file /= mode2%cylindrical_map%file) cycle
-          endif
-          if (associated(mode%cartesian_map)) then
-            if (mode%cartesian_map%file /= mode2%cartesian_map%file) cycle
-          endif
-          if (associated(mode%taylor)) then
-            if (mode%taylor%file /= mode2%taylor%file) cycle
-          endif
-          if (associated(mode%grid)) then
-            if (mode%grid%file /= mode2%grid%file) cycle
-          endif
-          ix_ele = ie
-          ix_branch = ib
-          ix_mode = im
-          exit branch_loop
+do i = 1, n_cyl
+  cl_map => ele%cylindrical_map(i)
+
+  if (cl_map%ptr%file == '') then
+    call out_io (s_error$, r_name, 'CYLINDRICAL_MAP FILE REFERENCE IS BLANK!!??. PLEASE REPORT THIS.')
+    write (cl_map%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
+  endif
+
+  write (d_unit) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
+                cl_map%phi0_fieldmap, cl_map%theta0_azimuth, cl_map%ele_anchor_pt, cl_map%m, cl_map%dz, cl_map%r0
+
+  call find_matching_fieldmap (cl_map%ptr%file, ele, cylindrical_map$, ele2, ix_ptr) 
+  if (ix_ptr > 0) then
+    write (d_unit) ele2%ix_ele, ele2%ix_branch, ix_ptr, size(cl_map%ptr%term)
+  else
+    write (d_unit) -1, -1, -1, size(cl_map%ptr%term)
+    write (d_unit) cl_map%ptr%file
+    do j = 1, size(cl_map%ptr%term)
+      write (d_unit) cl_map%ptr%term(j)
+    enddo
+  endif
+enddo
+
+! Grid field
+! If the field is the same as the field of a previous element then just reference the prior element's field
+
+do i = 1, n_grid
+  g_field => ele%grid_field(i)
+
+  if (g_field%ptr%file == '') then
+    call out_io (s_error$, r_name, 'GRID_FIELD FILE REFERENCE IS BLANK!!??. PLEASE REPORT THIS.')
+    write (g_field%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
+  endif
+
+  write (d_unit) g_field%field_scale, g_field%master_parameter, &
+                g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
+                g_field%r0, g_field%harmonic, g_field%geometry, &
+                g_field%curved_coords, g_field%field_type
+
+  call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr) 
+  if (ix_ptr > 0) then
+    write (d_unit) ele2%ix_ele, ele2%ix_branch, ix_ptr, lbound(g_field%ptr%pt), ubound(g_field%ptr%pt)
+  else
+    write (d_unit) -1, -1, -1, lbound(g_field%ptr%pt), ubound(g_field%ptr%pt)
+    write (d_unit) g_field%ptr%file
+    do j = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
+      write (d_unit) g_field%ptr%pt(:, :, j)
+    enddo
+  endif
+enddo
+
+! Taylor field
+! If the field is the same as the field of a previous element then just reference the prior element's field
+
+do i = 1, n_tay
+  t_field => ele%taylor_field(i)
+
+  if (t_field%ptr%file == '') then
+    call out_io (s_error$, r_name, 'TAYLOR_FIELD FILE REFERENCE IS BLANK!!??. PLEASE REPORT THIS.')
+    write (t_field%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
+  endif
+
+  write (d_unit) t_field%field_scale, t_field%master_parameter, &
+                t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0
+
+  call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr) 
+  if (ix_ptr > 0) then
+    write (d_unit) ele2%ix_ele, ele2%ix_branch, ix_ptr, &
+                lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+  else
+    write (d_unit) -1, -1, -1, &
+                lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+    write (d_unit) t_field%ptr%file
+    do j = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+      do k = 1, 3
+        write (d_unit) size(t_field%ptr%plane(j)%field(k)%term)
+        do n = 1, size(t_field%ptr%plane(j)%field(k)%term)
+          write (d_unit) t_field%ptr%plane(j)%field(k)%term(n)
         enddo
-      enddo  
-    enddo branch_loop
-
-    n_cyl = 0
-    if (associated(mode%cylindrical_map)) n_cyl = size(mode%cylindrical_map%term)
-    n_cart = 0
-    if (associated(mode%cartesian_map)) n_cart = size(mode%cartesian_map%term)
-    n_tay = 0
-    if (associated(mode%taylor)) n_tay = size(mode%taylor%pt)
-    n_grid = 0
-    if (associated(mode%grid)) n_grid = size(mode%grid%pt)
-
-    write (d_unit) n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_mode, &
-                   mode%harmonic, mode%f_damp, mode%phi0_ref, &
-                   mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
-
-    if (ix_ele == -1 .and. n_cyl > 0) then
-      write (d_unit) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
-      write (d_unit) mode%cylindrical_map%term
-    endif
-
-    if (ix_ele == -1 .and. n_grid > 0) then
-      write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
-                  mode%grid%type, mode%grid%file, &
-                  mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords
-      do j = lbound(mode%grid%pt, 3), ubound(mode%grid%pt, 3)
-        write (d_unit) mode%grid%pt(:,:,j)
       enddo
-    endif
+    enddo
 
-  enddo 
-endif
+  endif
+enddo
 
 !
 
 if (mode3) write (d_unit) ele%mode3
-
-if (ix_wig > 0) then
-  do j = 1, ix_wig
-    write (d_unit) ele%wig%term(j)
-  enddo
-endif
 
 if (associated(ele%r)) then
   write (d_unit) lbound(ele%r), ubound(ele%r)

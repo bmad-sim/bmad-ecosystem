@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 179
+integer, parameter :: bmad_inc_version$ = 181
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -85,9 +85,9 @@ character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map   
 ! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
 !   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
 
-integer, parameter :: map$ = 2, grid$ = 3, Refer_to_lords$ = 4, no_field$ = 5
+integer, parameter :: fieldmap$ = 2, Refer_to_lords$ = 4, no_field$ = 5
 character(16), parameter :: field_calc_name(0:7) = &
-    ['GARBAGE!       ', 'Bmad_Standard  ', 'Map            ', 'Grid           ', &
+    ['GARBAGE!       ', 'Bmad_Standard  ', 'FieldMap       ', 'GARBAGE!       ', &
      'Refer_to_Lords.', 'No_Field       ', 'GARBAGE!       ', 'Custom         ']
 
 ! Crystal sub_key values.
@@ -117,6 +117,7 @@ logical, parameter :: set$ = .true., unset$ = .false.
 
 !
 
+integer, parameter :: grided$ = 123
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
                                     ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
@@ -187,7 +188,8 @@ real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_u
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
 
-integer, parameter :: magnetic$ = 1, electric$ = 2
+integer, parameter :: magnetic$ = 1, electric$ = 2, mixed$ = 3
+character(8), parameter :: em_field_type_name(3) = ['Magnetic', 'Electric', 'Mixed   ']
 
 ! Diffraction
 
@@ -426,108 +428,110 @@ integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_fam
 integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
 integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
 integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
-character(16), parameter :: wig_term_type_name(0:12) = [ 'Garbage           ', &
+
+character(16), parameter :: cartesian_map_term_name(0:12) = [ 'Garbage           ', &
                                         'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
                                         'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
                                         'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
                                         'Hyper_Y_Family_SQ ', 'Hyper_XY_Family_SQ', 'Hyper_X_Family_SQ ']
 
-type wig_term_struct
+type cartesian_map_term1_struct
   real(rp) :: coef = 0
   real(rp) :: kx = 0, ky = 0, kz = 0
   real(rp) :: x0 = 0, y0 = 0, phi_z = 0
   integer :: type = 0        ! hyper_y_family_x$, etc.
 end type
 
-type wig_struct
-  integer :: n_link = 1                            ! For memory management of %term
-  type (wig_term_struct), allocatable :: term(:)   
+type cartesian_map_term_struct
+  character(200) :: file = ''      ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1            ! For memory management of %term
+  type (cartesian_map_term1_struct), allocatable :: term(:)  
 end type
 
-type em_field_cartesian_map_term_struct
-  real(rp) :: coef = 0
-  real(rp) :: kx = 0, ky = 0, kz = 0
-  real(rp) :: x0 = 0, y0 = 0, phi_z = 0
-  integer :: type = 0        ! hyper_y_family_x$, etc.
+type cartesian_map_struct
+  real(rp) :: field_scale = 1      ! Factor to scale the fields by
+  real(rp) :: r0(3) = 0            ! Field origin offset.
+  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: field_type = magnetic$
+  type (cartesian_map_term_struct), pointer :: ptr
 end type
 
-type em_field_cartesian_map_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
-  integer :: n_link = 1                            ! For memory management of %term
-  integer :: ele_anchor_pt = anchor_beginning$
-                                ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (em_field_cartesian_map_term_struct), allocatable :: term(:)   
-end type
+! Cylindrical map field 
 
-type em_field_cylindrical_map_term_struct
+type cylindrical_map_term1_struct
   complex(rp) :: e_coef = 0
   complex(rp) :: b_coef = 0
 end type
 
-type em_field_cylindrical_map_struct
+type cylindrical_map_term_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
-  integer :: ele_anchor_pt = anchor_beginning$
-                                ! anchor_beginning$, anchor_center$, or anchor_end$
-  real(rp) :: dz = 0            ! Distance between sampled field points.
-  type (em_field_cylindrical_map_term_struct), allocatable :: term(:)
+  type (cylindrical_map_term1_struct), allocatable :: term(:)
 end type
 
-type em_field_grid_pt_struct
+type cylindrical_map_struct
+  integer m                        ! Azimuthal Mode: varies as cos(m*phi - theta0_azimuth)
+  integer :: harmonic = 0          ! Harmonic of fundamental
+  real(rp) :: phi0_fieldmap = 0    ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
+  real(rp) :: theta0_azimuth = 0    ! Azimuthal ((x, y) plane) orientation of mode.
+  real(rp) :: field_scale = 1      ! Factor to scale the fields by
+  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  real(rp) :: dz = 0               ! Distance between sampled field points.
+  real(rp) :: r0(3) = 0            ! Field origin offset.
+  type (cylindrical_map_term_struct), pointer :: ptr
+end type
+
+! Grid field
+
+type grid_field_pt1_struct
   complex(rp) :: E(3) = 0
   complex(rp) :: B(3) = 0
 end type
 
-type em_field_grid_struct
+type grid_field_pt_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
-  integer :: type = 0           ! Type of grid structure
-  integer :: ele_anchor_pt = anchor_beginning$  
-                                ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
-  real(rp) :: dr(3) = 0   ! Grid spacing.
-  real(rp) :: r0(3) = 0   ! Grid origin.
-  logical :: curved_coords = .false.
+  type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 end type
 
-type em_field_taylor_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
-  integer :: n_link = 1         ! For memory management of this structure
-  integer :: ele_anchor_pt = anchor_beginning$  
-                                ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (taylor_struct), allocatable :: pt(:)
-  real(rp) :: dr = 0   ! Grid spacing.
-  real(rp) :: r0 = 0   ! Grid origin.
-  logical :: curved_coords = .false.
-end type
-
-! Electro-Magnetic mode structure
-! Note: Unlike most everything else, to save on space, different ele%field%mode%grid
-! and ele%field%mode%cylindrical_map pointers may point to the same memeory location. 
-! This being the case, these components are never deallocated.
-! Rule: If %cylindrical_map is associated then %cylindrical_map%term(:) will be allocated.
-! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
-
-type em_field_mode_struct
-  integer m                        ! Mode varies as cos(m*phi - phi0_azimuth)
+type grid_field_struct
+  integer :: geometry = 0          ! Type of grid structure
   integer :: harmonic = 0          ! Harmonic of fundamental
-  real(rp) :: f_damp = 0           ! 1/Q damping factor 
-  real(rp) :: phi0_ref = 0         ! Mode oscillates as: twopi * (f * t + phi0_ref)
-  real(rp) :: stored_energy = 0    ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  real(rp) :: phi0_azimuth = 0     ! Azimuthal orientation of mode.
+  real(rp) :: phi0_fieldmap = 0    ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
   real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  integer :: master_scale = 0      ! Master scaling parameter in ele%value(:) array.
-  type (em_field_grid_struct), pointer :: grid => null()
-  type (em_field_cylindrical_map_struct), pointer :: cylindrical_map => null()
-  type (em_field_cartesian_map_struct), pointer :: cartesian_map => null()
-  type (em_field_taylor_struct), pointer :: taylor => null()
+  integer :: field_type = mixed$
+  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  real(rp) :: dr(3) = 0   ! Grid spacing.
+  real(rp) :: r0(3) = 0   ! Field origin relative to ele_anchor_pt.
+  logical :: curved_coords = .false.
+  type (grid_field_pt_struct), pointer :: ptr
 end type
 
-! The RF field may be characterized by a collection of modes.
+! The Taylor field is a set of evenly spaced planes.
+! For each plane a taylor series is used to calculate the field components.
 
-type em_fields_struct
-  type (em_field_mode_struct), allocatable :: mode(:)
-  integer :: mode_to_autoscale = 1          ! Index of mode for autoscaling.
+type taylor_field_plane1_struct
+  type (em_taylor_struct) :: field(3)    ! [Bx, By, Bz] or [Ex, Ey, Ez]
+end type
+
+type taylor_field_plane_struct
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1         ! For memory management of this structure
+  type (taylor_field_plane1_struct), allocatable :: plane(:)
+end type
+
+type taylor_field_struct
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: field_type = magnetic$
+  real(rp) :: dz = 0               ! Plane spacing.
+  real(rp) :: r0(3) = 0            ! field origin relative to ele_anchor_pt.
+  real(rp) :: field_scale = 1      ! Factor to scale the fields by
+  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  logical :: curved_coords = .false.
+  type (taylor_field_plane_struct), pointer :: ptr
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -723,11 +727,14 @@ type ele_struct
   type (xy_disp_struct) :: x = xy_disp_struct()   ! Projected dispersions.
   type (xy_disp_struct) :: y = xy_disp_struct()   ! Projected dispersions.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
-  type (branch_struct), pointer :: branch => null()                  ! Pointer to branch containing element.
-  type (controller_var_struct), pointer :: control_var(:) => null()  ! group & overlay variables.
-  type (ele_struct), pointer :: lord => null()                       ! Pointer to a slice lord.
-  type (em_fields_struct), pointer :: em_field => null()             ! DC and AC E/M fields
-  type (fibre), pointer :: ptc_fibre => null()                       ! PTC tracking.
+  type (branch_struct), pointer :: branch => null()                          ! Pointer to branch containing element.
+  type (controller_var_struct), pointer :: control_var(:) => null()          ! group & overlay variables.
+  type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
+  type (ele_struct), pointer :: lord => null()                               ! Pointer to a slice lord.
+  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
+  type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
+  type (fibre), pointer :: ptc_fibre => null()                               ! PTC tracking.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
                                                                ! Reference position in global coords.
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
@@ -740,7 +747,6 @@ type ele_struct
   type (taylor_struct) :: spin_taylor(3,3) = taylor_struct()   ! Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
-  type (wig_struct), pointer :: wig => null()                  ! Wiggler field
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
   type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
@@ -1065,7 +1071,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 2
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
-integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
+integer, parameter :: phi0_autoscale$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28
@@ -1074,7 +1080,7 @@ integer, parameter :: cmat_21$ = 29
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
-integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
+integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, spinor_polarization$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
@@ -1166,7 +1172,7 @@ integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 1
 integer, parameter :: z_position$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
-integer, parameter :: psi_position$ = 107
+integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
 integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
@@ -1174,8 +1180,7 @@ integer, parameter :: to_line$ = 110, field_overlaps$ = 110
 integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
-integer, parameter :: wall_attribute$ = 114  ! Do not confuse this with wall3d$
-integer, parameter :: field$ = 115, ref_orbit$ = 115
+integer, parameter :: ref_orbit$ = 115
 integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
 integer, parameter :: type$ = 117
 integer, parameter :: ref_origin$ = 118
@@ -1183,15 +1188,13 @@ integer, parameter :: ele_origin$ = 119
 
 ! superimpose$ through create_jumbo_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
-integer, parameter :: superimpose$    = 120   
-integer, parameter :: offset$         = 121
-integer, parameter :: reference$      = 122
-integer, parameter :: ele_beginning$  = 123  ! Old syntax.
-integer, parameter :: ele_center$     = 124  ! Old syntax.
-integer, parameter :: ele_end$        = 125  ! Old syntax.
-integer, parameter :: ref_beginning$  = 126  ! Old syntax.
-integer, parameter :: ref_center$     = 127  ! Old syntax.
-integer, parameter :: ref_end$        = 128  ! Old syntax.
+integer, parameter :: superimpose$     = 120   
+integer, parameter :: offset$          = 121
+integer, parameter :: reference$       = 122
+integer, parameter :: cartesian_map$   = 123
+integer, parameter :: cylindrical_map$ = 124
+integer, parameter :: grid_field$      = 125
+integer, parameter :: taylor_field$    = 126
 integer, parameter :: create_jumbo_slave$ = 129
 
 integer, parameter :: a0$  = 130, a21$  = 151
@@ -1272,10 +1275,10 @@ type em_potential_struct
   real(rp) :: A(3) = 0        ! Magnetic vector potential
 end type
 
-! Grid of em_grid information
+! Grid of grid_field information
 integer, parameter :: rotationally_symmetric_rz$ = 1, xyz$ = 2
-character(30), parameter :: em_grid_type_name(2) = ['rotationally_symmetric_rz', 'xyz                      ']
-integer, parameter :: em_grid_dimension(2) = [2, 3] 
+character(30), parameter :: grid_field_geometry_name(2) = ['rotationally_symmetric_rz', 'xyz                      ']
+integer, parameter :: grid_field_dimension(2) = [2, 3] 
 
 
 ! Structure for saving the track through an element.
