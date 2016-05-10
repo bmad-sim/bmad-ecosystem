@@ -13,7 +13,7 @@ call bmad_parser ('autoscale.bmad', lat)
 open (1, file = 'output.now')
 
 ele => lat%ele(1)
-write (1, '(a, f16.12)') '"Auto_Phase" ABS 4e-5', ele%em_field%mode(1)%phi0_ref
-write (1, '(a, es18.10)') '"Auto_Amp"   REL 1e-6', ele%em_field%mode(1)%field_scale
+write (1, '(a, f16.12)') '"Auto_Phase" ABS 4e-5', ele%value(phi0_autoscale$)
+write (1, '(a, es18.10)') '"Auto_Amp"   REL 1e-6', ele%value(field_autoscale$)
 
 end program

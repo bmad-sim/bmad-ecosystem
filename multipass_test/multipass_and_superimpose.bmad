@@ -7,12 +7,9 @@ parameter[geometry] = open
 beginning[e_tot] = 1e9
 
 cavity2: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
-field_calc = grid, rf_frequency = 1.3e9,
+field_calc = fieldmap, rf_frequency = 1.3e9,
 L = 	0.568,
-field = { 
- mode = {
- m = 0,
-grid = call::grid.bmad  }}
+grid = call::grid.bmad 
 
 dri01: pipe, l = 6
 null_d: null_ele
