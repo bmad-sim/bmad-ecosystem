@@ -86,7 +86,7 @@ endif
 ! If grid defined...
 
 if (grid_defined) then 
-  target%type = grid$
+  target%type = grided$
   target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
   gr%type = diffract_target$
 

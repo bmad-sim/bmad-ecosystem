@@ -89,7 +89,7 @@ end_edge                    & r0_mag                      & y_offset            
 e_tot                       & reference                   & y_offset_tot                \\
 field                       & ref_origin                  & y_pitch                     \\
 field_calc                  & rho                         & y_pitch_tot                 \\
-field_factor                & scale_multipoles            & y_quad                      \\
+field_autoscale                & scale_multipoles            & y_quad                      \\
 field_master                & spin_fringe_on              & z_offset                    \\
 field_overlaps              & spin_tracking_method        & z_offset_tot                \\
 fringe_at                   & sr_wake_file                &                             \\
@@ -173,7 +173,7 @@ end_edge                    & start_edge                  & x_offset_tot        
 e_tot                       & superimpose                 & x_pitch                     \\
 e_tot_start                 & symplectify                 & x_pitch_tot                 \\
 field_calc                  & taylor_map_includes_offsets & y1_limit                    \\
-field_factor                & tilt                        & y2_limit                    \\
+field_autoscale                & tilt                        & y2_limit                    \\
 field_master                & tilt_tot                    & y_limit                     \\
 field_overlaps              & tracking_method             & y_offset                    \\
 integrator_order            & type                        & y_offset_tot                \\
@@ -257,7 +257,7 @@ ds_step                     & spin_tracking_method        & y_limit             
 ele_origin                  & start_edge                  & y_offset                    \\
 end_edge                    & superimpose                 & y_offset_tot                \\
 e_tot                       & symplectify                 & y_pitch                     \\
-field_factor                & taylor_map_includes_offsets & y_pitch_tot                 \\
+field_autoscale                & taylor_map_includes_offsets & y_pitch_tot                 \\
 integrator_order            & tilt                        & z_offset                    \\
 l                           & tilt_tot                    & z_offset_tot                \\
 lord_pad1                   & tracking_method             &                             \\
@@ -286,7 +286,7 @@ ds_step                     & reference                   & y1_limit            
 ele_origin                  & ref_origin                  & y2_limit                    \\
 end_edge                    & spin_fringe_on              & y_limit                     \\
 e_tot                       & spin_tracking_method        & y_offset                    \\
-field_factor                & sr_wake_file                & y_offset_tot                \\
+field_autoscale                & sr_wake_file                & y_offset_tot                \\
 field_overlaps              & start_edge                  & y_pitch                     \\
 fringe_at                   & superimpose                 & y_pitch_tot                 \\
 fringe_type                 & symplectify                 & z_offset                    \\
@@ -319,7 +319,7 @@ e_field                     & r0_elec                     & x_pitch_tot         
 e_tot                       & r0_mag                      & y1_limit                    \\
 field                       & reference                   & y2_limit                    \\
 field_calc                  & ref_origin                  & y_limit                     \\
-field_factor                & scale_multipoles            & y_offset                    \\
+field_autoscale                & scale_multipoles            & y_offset                    \\
 field_master                & spin_fringe_on              & y_offset_tot                \\
 field_overlaps              & spin_tracking_method        & y_pitch                     \\
 fringe_at                   & sr_wake_file                & y_pitch_tot                 \\
@@ -352,7 +352,7 @@ e_tot                       & reference                   & y1_limit            
 e_tot_start                 & ref_origin                  & y2_limit                    \\
 field                       & rf_frequency                & y_limit                     \\
 field_calc                  & spin_fringe_on              & y_offset                    \\
-field_factor                & spin_tracking_method        & y_offset_tot                \\
+field_autoscale                & spin_tracking_method        & y_offset_tot                \\
 field_overlaps              & sr_wake_file                & y_pitch                     \\
 fringe_at                   & start_edge                  & y_pitch_tot                 \\
 fringe_type                 & superimpose                 & z_offset                    \\
@@ -380,11 +380,11 @@ delta_ref_time              & offset_moves_aperture       & x2_limit            
 descrip                     & p0c                         & x_limit                     \\
 ds_step                     & phi0                        & x_offset                    \\
 ele_origin                  & phi0_err                    & x_offset_tot                \\
-end_edge                    & phi0_ref                    & x_pitch                     \\
+end_edge                    & phi0_autoscale                    & x_pitch                     \\
 e_tot                       & ptc_integration_type        & x_pitch_tot                 \\
 field                       & reference                   & y1_limit                    \\
 field_calc                  & ref_origin                  & y2_limit                    \\
-field_factor                & rf_frequency                & y_limit                     \\
+field_autoscale                & rf_frequency                & y_limit                     \\
 field_overlaps              & spin_fringe_on              & y_offset                    \\
 fringe_at                   & spin_tracking_method        & y_offset_tot                \\
 fringe_type                 & sr_wake_file                & y_pitch                     \\
@@ -506,7 +506,7 @@ ele_origin                  & ptc_integration_type        & y1_limit            
 end_edge                    & reference                   & y2_limit                    \\
 e_tot                       & ref_origin                  & y_limit                     \\
 field_calc                  & scale_multipoles            & y_offset                    \\
-field_factor                & spin_fringe_on              & y_offset_tot                \\
+field_autoscale                & spin_fringe_on              & y_offset_tot                \\
 field_master                & spin_tracking_method        & y_pitch                     \\
 field_overlaps              & sr_wake_file                & y_pitch_tot                 \\
 fringe_at                   & start_edge                  & z_offset                    \\
@@ -553,7 +553,7 @@ ele_origin                  & ref_origin                  & y2_limit            
 end_edge                    & spin_fringe_on              & y_gain_calib                \\
 e_tot                       & spin_tracking_method        & y_gain_err                  \\
 field_calc                  & sr_wake_file                & y_limit                     \\
-field_factor                & start_edge                  & y_offset                    \\
+field_autoscale                & start_edge                  & y_offset                    \\
 field_overlaps              & superimpose                 & y_offset_calib              \\
 fringe_at                   & symplectify                 & y_offset_tot                \\
 fringe_type                 & taylor_map_includes_offsets & y_pitch                     \\
@@ -586,7 +586,7 @@ ele_origin                  & r0_elec                     & x_pitch_tot         
 end_edge                    & r0_mag                      & y1_limit                    \\
 e_tot                       & reference                   & y2_limit                    \\
 field_calc                  & ref_origin                  & y_limit                     \\
-field_factor                & scale_multipoles            & y_offset                    \\
+field_autoscale                & scale_multipoles            & y_offset                    \\
 field_master                & spin_fringe_on              & y_offset_tot                \\
 field_overlaps              & spin_tracking_method        & y_pitch                     \\
 fringe_at                   & sr_wake_file                & y_pitch_tot                 \\
@@ -626,10 +626,10 @@ ele_origin                  & p0c_start                   & x_pitch_tot         
 end_edge                    & phi0                        & y1_limit                    \\
 e_loss                      & phi0_err                    & y2_limit                    \\
 e_tot                       & phi0_multipass              & y_limit                     \\
-e_tot_start                 & phi0_ref                    & y_offset                    \\
+e_tot_start                 & phi0_autoscale                    & y_offset                    \\
 field                       & ptc_integration_type        & y_offset_tot                \\
 field_calc                  & reference                   & y_pitch                     \\
-field_factor                & ref_origin                  & y_pitch_tot                 \\
+field_autoscale                & ref_origin                  & y_pitch_tot                 \\
 field_master                & rf_frequency                & z_offset                    \\
 field_overlaps              & spin_fringe_on              & z_offset_tot                \\
 fringe_at                   & spin_tracking_method        &                             \\
@@ -816,7 +816,7 @@ end_edge                    & r0_elec                     & y1_limit            
 e_tot                       & r0_mag                      & y2_limit                    \\
 field                       & reference                   & y_limit                     \\
 field_calc                  & ref_origin                  & y_offset                    \\
-field_factor                & scale_multipoles            & y_offset_tot                \\
+field_autoscale                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
 field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
@@ -913,7 +913,7 @@ end_edge                    & ptc_integration_type        & y1_limit            
 e_tot                       & r0_elec                     & y2_limit                    \\
 field                       & r0_mag                      & y_limit                     \\
 field_calc                  & reference                   & y_offset                    \\
-field_factor                & ref_origin                  & y_offset_tot                \\
+field_autoscale                & ref_origin                  & y_offset_tot                \\
 field_master                & scale_multipoles            & y_pitch                     \\
 field_overlaps              & spin_fringe_on              & y_pitch_tot                 \\
 fq1                         & spin_tracking_method        & z_offset                    \\
@@ -950,10 +950,10 @@ descrip                     & offset_moves_aperture       & x_pitch             
 ds_step                     & p0c                         & x_pitch_tot                 \\
 ele_origin                  & phi0                        & y1_limit                    \\
 end_edge                    & phi0_multipass              & y2_limit                    \\
-e_tot                       & phi0_ref                    & y_limit                     \\
+e_tot                       & phi0_autoscale                    & y_limit                     \\
 field                       & ptc_integration_type        & y_offset                    \\
 field_calc                  & reference                   & y_offset_tot                \\
-field_factor                & ref_origin                  & y_pitch                     \\
+field_autoscale                & ref_origin                  & y_pitch                     \\
 field_overlaps              & rf_frequency                & y_pitch_tot                 \\
 fringe_at                   & spin_fringe_on              & z_offset                    \\
 fringe_type                 & spin_tracking_method        & z_offset_tot                \\
@@ -1046,7 +1046,7 @@ end_edge                    & offset                      & x_pitch             
 e_tot                       & offset_moves_aperture       & x_pitch_tot                 \\
 field                       & p0c                         & y1_limit                    \\
 field_calc                  & ptc_field_geometry          & y2_limit                    \\
-field_factor                & ptc_fringe_geometry         & y_limit                     \\
+field_autoscale                & ptc_fringe_geometry         & y_limit                     \\
 field_master                & ptc_integration_type        & y_offset                    \\
 field_overlaps              & r0_elec                     & y_offset_tot                \\
 fint                        & r0_mag                      & y_pitch                     \\
@@ -1081,7 +1081,7 @@ end_edge                    & r0_elec                     & y1_limit            
 e_tot                       & r0_mag                      & y2_limit                    \\
 field                       & reference                   & y_limit                     \\
 field_calc                  & ref_origin                  & y_offset                    \\
-field_factor                & scale_multipoles            & y_offset_tot                \\
+field_autoscale                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
 field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
@@ -1115,7 +1115,7 @@ end_edge                    & r0_elec                     & y1_limit            
 e_tot                       & r0_mag                      & y2_limit                    \\
 field                       & reference                   & y_limit                     \\
 field_calc                  & ref_origin                  & y_offset                    \\
-field_factor                & scale_multipoles            & y_offset_tot                \\
+field_autoscale                & scale_multipoles            & y_offset_tot                \\
 field_master                & spin_fringe_on              & y_pitch                     \\
 field_overlaps              & spin_tracking_method        & y_pitch_tot                 \\
 fringe_at                   & sr_wake_file                & z_offset                    \\
@@ -1150,7 +1150,7 @@ end_edge                    & r0_elec                     & y2_limit            
 e_tot                       & r0_mag                      & y_limit                     \\
 field                       & reference                   & y_offset                    \\
 field_calc                  & ref_origin                  & y_offset_tot                \\
-field_factor                & scale_multipoles            & y_pitch                     \\
+field_autoscale                & scale_multipoles            & y_pitch                     \\
 field_master                & spin_fringe_on              & y_pitch_tot                 \\
 field_overlaps              & spin_tracking_method        & z_offset                    \\
 fringe_at                   & sr_wake_file                & z_offset_tot                \\
@@ -1208,7 +1208,7 @@ end_edge                    & ptc_integration_type        & x_pitch_tot         
 e_tot                       & r0_elec                     & x_ray_line_len              \\
 field                       & r0_mag                      & y1_limit                    \\
 field_calc                  & reference                   & y2_limit                    \\
-field_factor                & ref_origin                  & y_limit                     \\
+field_autoscale                & ref_origin                  & y_limit                     \\
 field_master                & rho                         & y_offset                    \\
 field_overlaps              & scale_multipoles            & y_offset_tot                \\
 fringe_at                   & spin_fringe_on              & y_pitch                     \\

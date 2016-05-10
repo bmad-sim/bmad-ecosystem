@@ -13,7 +13,7 @@ use sim_utils
 
 ! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
 ! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
-! %ref is the reference point about which the taylor expansion was made
+! %ref is the reference point about which the taylor expansion was made.
 
 type taylor_term_struct
   real(rp) :: coef = 0
@@ -25,11 +25,24 @@ type taylor_struct
   type (taylor_term_struct), pointer :: term(:) => null()
 end type
 
-!
+! For taylor_field maps describing EM fileds, the 2-vector of %expn(2) is (x, y).
+
+type em_taylor_term_struct
+  real(rp) :: coef = 0
+  integer :: expn(2) = 0
+end type
+
+type em_taylor_struct
+  real (rp) :: ref = 0
+  type (em_taylor_term_struct), allocatable :: term(:)
+end type
+
 
 interface assignment (=)
   module procedure taylor_equal_taylor
   module procedure taylors_equal_taylors
+  module procedure em_taylor_equal_em_taylor
+  module procedure em_taylors_equal_em_taylors
 end interface
 
 !+
@@ -77,13 +90,14 @@ end interface
 
 private taylor_coef1, taylor_coef2
 
+!----------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term (bmad_taylor, coef, exp)
-! Subroutine add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+! Subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
+! Subroutine add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
 !
 ! Routine to add a Taylor term to a Taylor series.
 !
-! If bmad_taylor does not have a term with the same exponents as expn then a new
+! If bmad_taylor does not have a term with the same exponents then a new
 ! term is added to bmad_taylor so the total number of terms is increased by one.
 !
 ! If bmad_taylor already has a term with the same exponents then
@@ -95,11 +109,10 @@ private taylor_coef1, taylor_coef2
 ! In both these cases, the number of terms in bmad_taylor remains the same.
 !
 ! Note: add_taylor_term is overloaded by:
-!   add_taylor_term1 (bmad_taylor, exp, replace)
-!   add_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-! Using the add_taylor_term2 form limits obtaining coefficients to 9th order
-! or less. Also: add_taylor_term2 does not check that all i1, ..., i9 are between
-! 1 and 6.
+!   add_taylor_term1 (bmad_taylor, coef, expn, replace)
+!   add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+! Using the add_taylor_term2 form limits obtaining coefficients to 9th order or less. 
+! Also: add_taylor_term2 does not check that all i1, ..., i9 are between 1 and 6.
 !
 ! For example: To add the 2nd order term corresponding to:
 !   y(out) = 1.34 * p_z(in)^2 
@@ -110,18 +123,10 @@ private taylor_coef1, taylor_coef2
 !   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, 6, 6)  ! 1st possibility or ...
 !   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, [0, 0, 0, 0, 0, 2 ])  
 !
-! Modules needed:
-!   use bmad
-!
-! Input (add_taylor_term1):
+! Input:
 !   bmad_taylor -- Taylor_struct: Taylor series.
 !   coef        -- Real(rp): Coefficient.
-!   exp(6)      -- Integer: Array of exponent indices.
-!   replace     -- Logical, optional: Replace existing term? Default is False.
-!
-! Input (add_taylor_term2):
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   coef        -- Real(rp): Coefficient.
+!   expn(6)     -- Integer: Array of exponent indices.
 !   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
 !   replace     -- Logical, optional: Replace existing term? Default is False.
 !
@@ -135,6 +140,89 @@ interface add_taylor_term
 end interface
 
 private add_taylor_term1, add_taylor_term2
+
+!----------------------------------------------------------------------
+!+
+! Subroutine remove_taylor_term (bmad_taylor, expn)
+! Subroutine remove_taylor_term (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+!
+! Routine to remove a Taylor term to a Taylor series.
+!
+! If bmad_taylor does not have a term with the same exponents then nothing is done.
+!
+! Note: remove_taylor_term is overloaded by:
+!   remove_taylor_term1 (bmad_taylor, expn)
+!   remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+! Using the remove_taylor_term2 form limits coefficients to 9th order or less. 
+! Also: remove_taylor_term2 does not check that all i1, ..., i9 are between 1 and 6.
+!
+! For example: To remove the 2nd order term corresponding to:
+!   y(out) = xxx * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = remove_taylor_term (bmad_taylor(3), 6, 6)  ! 1st possibility or ...
+!   coef = remove_taylor_term (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])  
+!
+! Input
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   expn(6)     -- Integer: Array of exponent indices.
+!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: New series with term removed
+!-
+
+interface remove_taylor_term
+  module procedure remove_taylor_term1
+  module procedure remove_taylor_term2
+end interface
+
+private remove_taylor_term1, remove_taylor_term2
+
+!----------------------------------------------------------------------
+!+
+! Subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
+! Subroutine add_em_taylor_term (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+!
+! Routine to add an em_taylor term to an em_taylor series.
+!
+! If em_taylor does not have a term with the same exponents then a new
+! term is added to em_taylor so the total number of terms is increased by one.
+!
+! If em_taylor already has a term with the same exponents then
+! the "replace" argument determines what happens:
+!   If replace = False (default) then
+!      coef is added to the coefficient of the old term.
+!   If replace = True then
+!      coef replaces the coefficient of the old term.
+! In both these cases, the number of terms in em_taylor remains the same.
+!
+! Note: add_em_taylor_term is overloaded by:
+!   add_em_taylor_term1 (em_taylor, coef, expn, replace)
+!   add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+! Using the add_em_taylor_term2 form limits obtaining coefficients to 9th order or less. 
+! Also: add_em_taylor_term2 does not check that all i1, ..., i9 are between 1 and 2.
+!
+!
+! Input:
+!   em_taylor   -- Em_taylor_struct: Em_taylor series.
+!   coef        -- Real(rp): Coefficient.
+!   expn(2)     -- Integer: Array of exponent indices.
+!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Output:
+!   em_taylor -- Em_taylor_struct: New series with term added
+!-
+
+interface add_em_taylor_term
+  module procedure add_em_taylor_term1
+  module procedure add_em_taylor_term2
+end interface
+
+private add_em_taylor_term1, add_em_taylor_term2
 
 contains
 
@@ -240,22 +328,22 @@ end function taylor_monomial
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function taylor_coef1 (bmad_taylor, exp)
+! Function taylor_coef1 (bmad_taylor, expn)
 !
 ! Function to return the coefficient for a particular taylor term
 ! from a Taylor Series. This routine is used by the overloaded function
 ! taylor_coef. See taylor_coef for more details.
 !-
 
-function taylor_coef1 (bmad_taylor, exp) result (coef)
+function taylor_coef1 (bmad_taylor, expn) result (coef)
 
 implicit none
 
-type (taylor_struct), intent(in) :: bmad_taylor
+type (taylor_struct) :: bmad_taylor
 
 real(rp) coef
 
-integer, intent(in) :: exp(:)
+integer, intent(in) :: expn(:)
 integer i
 
 !
@@ -263,7 +351,7 @@ integer i
 coef = 0
 
 do i = 1, size(bmad_taylor%term)
-  if (all(bmad_taylor%term(i)%expn == exp)) then
+  if (all(bmad_taylor%term(i)%expn == expn)) then
     coef = bmad_taylor%term(i)%coef
     return
   endif
@@ -287,30 +375,30 @@ function taylor_coef2 (bmad_taylor, i1, i2, i3, &
 
 implicit none
 
-type (taylor_struct), intent(in) :: bmad_taylor
+type (taylor_struct) :: bmad_taylor
 
 real(rp) coef
 
 integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-integer i, exp(6)
+integer i, expn(6)
 
 !
 
-exp = 0
-if (present (i1)) exp(i1) = exp(i1) + 1
-if (present (i2)) exp(i2) = exp(i2) + 1
-if (present (i3)) exp(i3) = exp(i3) + 1
-if (present (i4)) exp(i4) = exp(i4) + 1
-if (present (i5)) exp(i5) = exp(i5) + 1
-if (present (i6)) exp(i6) = exp(i6) + 1
-if (present (i7)) exp(i7) = exp(i7) + 1
-if (present (i8)) exp(i8) = exp(i8) + 1
-if (present (i9)) exp(i9) = exp(i9) + 1
+expn = 0
+if (present (i1)) expn(i1) = expn(i1) + 1
+if (present (i2)) expn(i2) = expn(i2) + 1
+if (present (i3)) expn(i3) = expn(i3) + 1
+if (present (i4)) expn(i4) = expn(i4) + 1
+if (present (i5)) expn(i5) = expn(i5) + 1
+if (present (i6)) expn(i6) = expn(i6) + 1
+if (present (i7)) expn(i7) = expn(i7) + 1
+if (present (i8)) expn(i8) = expn(i8) + 1
+if (present (i9)) expn(i9) = expn(i9) + 1
 
 coef = 0
 
 do i = 1, size(bmad_taylor%term)
-  if (all(bmad_taylor%term(i)%expn == exp)) then
+  if (all(bmad_taylor%term(i)%expn == expn)) then
     coef = bmad_taylor%term(i)%coef
     return
   endif
@@ -700,8 +788,7 @@ end subroutine add_taylor_term1
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term2 (bmad_taylor, coef, 
-!                        i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+! Subroutine add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
 !
 ! Routine to add a Taylor term to a Taylor series.
 !
@@ -709,8 +796,7 @@ end subroutine add_taylor_term1
 ! See add_taylor_term for more details.
 !-
 
-subroutine add_taylor_term2 (bmad_taylor, coef, &
-                        i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+subroutine add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
 
 implicit none
 
@@ -744,6 +830,85 @@ end subroutine add_taylor_term2
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine remove_taylor_term1 (bmad_taylor, expn)
+!
+! Routine to remove a Taylor term to a Taylor series.
+!
+! This routine is used by the overloaded function remove_taylor_term. 
+! See remove_taylor_term for more details.
+!-
+
+subroutine remove_taylor_term1 (bmad_taylor, expn)
+
+implicit none
+
+type (taylor_struct) bmad_taylor
+type (taylor_term_struct), pointer :: term(:)
+
+integer expn(:), i, j, k, n
+
+! Search for an existing term of the same type
+
+n = size(bmad_taylor%term)
+
+do i = 1, n
+  if (all(bmad_taylor%term(i)%expn /= expn)) cycle
+  term => bmad_taylor%term
+  allocate (bmad_taylor%term(n-1))
+  k = 0
+  do j = 1, n
+    if (j == i) cycle
+    k = k + 1
+    bmad_taylor%term(k) = term(j)
+  enddo
+  deallocate(term)
+  return
+enddo
+
+end subroutine remove_taylor_term1
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+!
+! Routine to remove a Taylor term to a Taylor series.
+!
+! This routine is used by the overloaded function remove_taylor_term. 
+! See remove_taylor_term for more details.
+!-
+
+subroutine remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+
+implicit none
+
+type (taylor_struct) bmad_taylor
+
+integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
+integer expn(6)
+
+! 
+
+expn = 0
+if (present (i1)) expn(i1) = expn(i1) + 1
+if (present (i2)) expn(i2) = expn(i2) + 1
+if (present (i3)) expn(i3) = expn(i3) + 1
+if (present (i4)) expn(i4) = expn(i4) + 1
+if (present (i5)) expn(i5) = expn(i5) + 1
+if (present (i6)) expn(i6) = expn(i6) + 1
+if (present (i7)) expn(i7) = expn(i7) + 1
+if (present (i8)) expn(i8) = expn(i8) + 1
+if (present (i9)) expn(i9) = expn(i9) + 1
+
+call remove_taylor_term1 (bmad_taylor, expn)
+
+end subroutine remove_taylor_term2
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 !
 ! Subroutine to initialize a Bmad Taylor series (6 of these series make
@@ -769,7 +934,7 @@ subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 implicit none
 
 type (taylor_struct) bmad_taylor
-type (taylor_term_struct), allocatable :: term(:)
+type (taylor_term_struct), pointer :: term(:)
 integer n_term
 integer n
 logical, optional :: save_old
@@ -792,11 +957,9 @@ if (size(bmad_taylor%term) == n_term) return
 
 if (logic_option (.false., save_old) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
   n = min (n_term, size(bmad_taylor%term))
-  allocate (term(n))
-  term = bmad_taylor%term(1:n)
-  deallocate (bmad_taylor%term)
+  term => bmad_taylor%term
   allocate (bmad_taylor%term(n_term))
-  bmad_taylor%term(1:n) = term
+  bmad_taylor%term(1:n) = term(1:n)
   deallocate (term)
 
 else
@@ -1286,5 +1449,326 @@ do i = 1, size(taylor_in)
 enddo
 
 end subroutine truncate_taylor_to_order
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine evaluate_em_taylor (r, em_taylor, field, dfield)
+!
+! Routine to evaluate the field using an em_taylor map.
+! Note: dField/dz values will be calculated using Maxwell's Equations for a static field.
+!
+! Input:
+!   r_pos(2)     -- real(rp): (x, y) position
+!   em_taylor(3) -- em_taylor_struct: em_taylor map.
+!
+! Output:
+!   field(3)     -- real(rp): Field.
+!   dfield(3,3)  -- real(rp), optional: Field derivatives.
+!-
+
+subroutine evaluate_em_taylor (r_pos, em_taylor, field, dfield)
+
+implicit none
+
+type (em_taylor_struct) :: em_taylor(3)
+
+real(rp) r_pos(2), field(3)
+real(rp), optional :: dfield(3,3)
+
+real(rp), allocatable :: expn(:, :)
+
+integer i, j, ie_max, iex, iey
+
+! size cache matrix
+
+ie_max = 0
+
+do i = 1, 3
+  do j = 1, size(em_taylor(i)%term)
+    ie_max = max (ie_max, maxval(em_taylor(i)%term(j)%expn)) 
+  enddo
+enddo
+
+allocate (expn(0:ie_max, 2))
+
+! Fill in cache matrix
+
+expn(0,:) = 1
+
+do j = 1, ie_max
+  expn(j,:) = expn(j-1,:) * r_pos(:)
+enddo
+
+! Compute taylor map
+
+field = 0
+
+do i = 1, 3
+  do j = 1, size(em_taylor(i)%term)
+    field(i) = field(i) + em_taylor(i)%term(j)%coef * &
+                            expn(em_taylor(i)%term(j)%expn(1), 1) * &
+                            expn(em_taylor(i)%term(j)%expn(2), 2)
+  enddo
+enddo
+
+if (present(dfield)) then
+  dfield = 0
+  do i = 1, 3
+    do j = 1, size(em_taylor(i)%term)
+      iex = em_taylor(i)%term(j)%expn(1)
+      iey = em_taylor(i)%term(j)%expn(2)
+      if (iex > 0) dfield(i,1) = dfield(i,1) + iex * em_taylor(i)%term(j)%coef * expn(iex-1, 1) * expn(iey, 2)
+      if (iey > 0) dfield(i,2) = dfield(i,2) + iey * em_taylor(i)%term(j)%coef * expn(iex, 1) * expn(iey-1, 2)
+    enddo
+  enddo
+
+  dfield(1,3) = dfield(3,1)   ! Curl is zero
+  dfield(2,3) = dfield(3,2)   ! Curl is zero
+  dfield(3,3) = -(dfield(1,1) + dfield(2,2))  ! Divergence is zero
+endif
+
+end subroutine evaluate_em_taylor
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+!
+! Subroutine that is used to set one em_taylor equal to another. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		em_taylor1 = em_taylor2
+!
+! Input:
+!   em_taylor2 -- Em_taylor_struct: Input em_taylor.
+!
+! Output:
+!   em_taylor1 -- Em_taylor_struct: Output em_taylor.
+!-
+
+subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+
+implicit none
+	
+type (em_taylor_struct), intent(inout) :: em_taylor1
+type (em_taylor_struct), intent(in) :: em_taylor2
+integer n2
+
+!
+
+em_taylor1%ref = em_taylor2%ref
+
+if (allocated(em_taylor2%term)) then
+  n2 = size(em_taylor2%term)
+  if (allocated(em_taylor1%term)) then
+    if (size(em_taylor1%term) /= n2) then
+      deallocate(em_taylor1%term)
+      allocate (em_taylor1%term(n2))
+    endif
+  else
+    allocate (em_taylor1%term(n2))
+  endif
+  em_taylor1%term = em_taylor2%term
+
+else
+  if (allocated(em_taylor1%term)) deallocate (em_taylor1%term)
+endif
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+!
+! Subroutine to transfer the values from one em_taylor map to another:
+!     Em_taylor1 <= Em_taylor2
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   em_taylor2(:) -- Em_taylor_struct: Em_taylor map.
+!
+! Output:
+!   em_taylor1(:) -- Em_taylor_struct: Em_taylor map. 
+!-
+
+subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+
+implicit none
+
+type (em_taylor_struct), intent(inout) :: em_taylor1(:)
+type (em_taylor_struct), intent(in)    :: em_taylor2(:)
+
+integer i
+
+!
+
+do i = 1, size(em_taylor1)
+  em_taylor1(i) = em_taylor2(i)
+enddo
+
+end subroutine em_taylors_equal_em_taylors
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine add_em_taylor_term1 (em_taylor, coef, expn, replace)
+!
+! Routine to add a Em_taylor term to a Em_taylor series.
+!
+! This routine is used by the overloaded function add_em_taylor_term. 
+! See add_em_taylor_term for more details.
+!-
+
+subroutine add_em_taylor_term1 (em_taylor, coef, expn, replace)
+
+implicit none
+
+type (em_taylor_struct) em_taylor
+
+real(rp) coef
+integer expn(:), i, n
+
+logical, optional :: replace
+
+! Search for an existing term of the same type
+
+n = size(em_taylor%term)
+
+do i = 1, n
+  if (all(em_taylor%term(i)%expn == expn)) then
+    if (logic_option(.false., replace)) then
+      em_taylor%term(i)%coef = coef
+    else
+      em_taylor%term(i)%coef = coef + em_taylor%term(i)%coef
+    endif
+    if (em_taylor%term(i)%coef == 0) then  ! Kill this term
+      em_taylor%term(i:n-1) = em_taylor%term(i+1:n)
+      call init_em_taylor_series (em_taylor, n-1, .true.)
+    endif
+    return
+  endif
+enddo
+
+! new term
+
+call init_em_taylor_series (em_taylor, n+1, .true.)
+em_taylor%term(n+1)%coef = coef
+em_taylor%term(n+1)%expn = expn
+
+end subroutine add_em_taylor_term1
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+!
+! Routine to add a Em_taylor term to a Em_taylor series.
+!
+! This routine is used by the overloaded function add_em_taylor_term. 
+! See add_em_taylor_term for more details.
+!-
+
+subroutine add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+
+implicit none
+
+type (em_taylor_struct) em_taylor
+
+real(rp) coef
+
+integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
+integer i, n, expn(2)
+
+logical, optional :: replace
+
+! 
+
+expn = 0
+if (present (i1)) expn(i1) = expn(i1) + 1
+if (present (i2)) expn(i2) = expn(i2) + 1
+if (present (i3)) expn(i3) = expn(i3) + 1
+if (present (i4)) expn(i4) = expn(i4) + 1
+if (present (i5)) expn(i5) = expn(i5) + 1
+if (present (i6)) expn(i6) = expn(i6) + 1
+if (present (i7)) expn(i7) = expn(i7) + 1
+if (present (i8)) expn(i8) = expn(i8) + 1
+if (present (i9)) expn(i9) = expn(i9) + 1
+
+call add_em_taylor_term1 (em_taylor, coef, expn, replace)
+
+end subroutine add_em_taylor_term2
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+!
+! Subroutine to initialize a Bmad Em_taylor series (6 of these series make
+! a Em_taylor map). Note: This routine does not zero the structure. The calling
+! routine is responsible for setting all values.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   em_taylor   -- Em_taylor_struct: Old structure.
+!   n_term      -- Integer: Number of terms to allocate. 
+!                   n_term < 0 => em_taylor%term pointer will be disassociated.
+!   save_old    -- Logical, optional: If True then save any old terms when
+!                   em_taylor is resized. Default is False.
+!
+! Output:
+!   em_taylor -- Em_taylor_struct: Initalized structure.
+!-
+
+subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+
+implicit none
+
+type (em_taylor_struct) em_taylor
+type (em_taylor_term_struct), allocatable :: term(:)
+integer n_term
+integer n
+logical, optional :: save_old
+
+!
+
+if (n_term < 0) then
+  if (allocated(em_taylor%term)) deallocate(em_taylor%term)
+  return
+endif
+
+if (.not. allocated (em_taylor%term)) then
+  allocate (em_taylor%term(n_term))
+  return
+endif
+
+if (size(em_taylor%term) == n_term) return
+
+!
+
+if (logic_option (.false., save_old) .and. n_term > 0 .and. size(em_taylor%term) > 0) then
+  n = min (n_term, size(em_taylor%term))
+  call move_alloc(em_taylor%term, term)
+  allocate (em_taylor%term(n_term))
+  em_taylor%term(1:n) = term(1:n)
+  deallocate (term)
+
+else
+  deallocate (em_taylor%term)
+  allocate (em_taylor%term(n_term))
+endif
+
+end subroutine init_em_taylor_series
 
 end module

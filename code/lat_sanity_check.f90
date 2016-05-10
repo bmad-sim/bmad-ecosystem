@@ -27,6 +27,9 @@ type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
 type (floor_position_struct) floor0, floor
 type (control_struct), pointer :: ctl, ctl1, ctl2
+type (cylindrical_map_struct), pointer :: cl_map
+type (grid_field_struct), pointer :: g_field
+type (taylor_field_struct), pointer :: t_field
 
 real(rp) s1, s2, ds, ds_small, l_lord
 
@@ -427,6 +430,87 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     endif
 
+    ! Cylindrical_map field
+
+    if (associated(ele%cylindrical_map)) then
+      do iw = 1, size(ele%cylindrical_map)
+        cl_map => ele%cylindrical_map(iw)
+        if (cl_map%harmonic == 0) then
+          if (cl_map%phi0_fieldmap /= 0) then
+            call out_io (s_fatal$, r_name, &
+                  'CYLINDRICAL_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS ZERO HARMONIC (THAT IS, REPRESENTS A DC FIELD) BUT HAS NON-ZERO PHI0_FIELDMAP.')
+            err_flag = .true.
+          endif
+
+        else
+          select case (ele%key)
+          case (lcavity$, rfcavity$, em_field$, e_gun$)
+          case default
+            call out_io (s_fatal$, r_name, &
+                  'CYLINDRICAL_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS NON-ZERO HARMONIC (THAT IS, REPRESENTS AN RF FIELD).', &
+                  'BUT THAT IS NOT ALLOWED FOR THIS TYPE OF ELEMENT: ' // key_name(ele%key))
+            err_flag = .true.
+          end select
+        endif
+      enddo
+    endif
+
+    ! Grid_field field
+
+    if (associated(ele%grid_field)) then
+      do iw = 1, size(ele%grid_field)
+        g_field => ele%grid_field(iw)
+        if (g_field%harmonic == 0) then
+          if (g_field%phi0_fieldmap /= 0) then
+            call out_io (s_fatal$, r_name, &
+                  'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                  'HAS ZERO HARMONIC (THAT IS, REPRESENTS A DC FIELD) BUT HAS NON-ZERO PHI0_FIELDMAP.')
+            err_flag = .true.
+          endif
+
+        else
+          select case (ele%key)
+          case (lcavity$, rfcavity$, em_field$, e_gun$)
+          case default
+            call out_io (s_fatal$, r_name, &
+                  'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                  'HAS NON-ZERO HARMONIC (THAT IS, REPRESENTS AN RF FIELD).', &
+                  'BUT THAT IS NOT ALLOWED FOR THIS TYPE OF ELEMENT: ' // key_name(ele%key))
+            err_flag = .true.
+          end select
+
+          if (g_field%field_type /= mixed$) then
+            call out_io (s_fatal$, r_name, &
+                  'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                  'HAS NON-ZERO HARMONIC (THAT IS, REPRESENTS AN RF FIELD).', &
+                  'BUT THE FIELD_TYPE IS NOT SET TO "MIXED".')
+            err_flag = .true.
+          endif
+
+        endif
+      enddo
+    endif
+
+    ! taylor_field
+
+    if (associated(ele%taylor_field)) then
+      do iw = 1, size(ele%taylor_field)
+        t_field => ele%taylor_field(iw)
+        do j = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+          do k = 1, 3
+            if (allocated(t_field%ptr%plane(j)%field(k)%term)) cycle
+            call out_io (s_fatal$, r_name, &
+                  'TAYLOR_FIELD IN ELEMENT: ' // ele%name, &
+                  'HAS NO TAYLOR TERMS FOR THE ' // trim(plane_name(k)) // ' FIELD COMPONENT OF PLANE WITH INDEX \i0\ ', &
+                  i_array = [j])
+            err_flag = .true.
+          enddo
+        enddo
+      enddo
+    endif
+
     ! match elements with match_end set should only appear in opens
 
     if (ele%key == match$) then
@@ -506,71 +590,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                     'THE %WALL3D OF BOTH DO NOT POINT TO THE SAME MEMORY LOCATION.')
           err_flag = .true.
         endif
-      enddo
-    endif
-
-    ! multipass lords/slaves must share %em_field%mode%... memory
-
-    if (l_stat == multipass_lord$) then
-      do is = 1, ele%n_slave
-        slave => pointer_to_slave(ele, is)
-
-        if (.not. associated(ele%em_field) .and. .not. associated(slave%em_field)) cycle
-
-        if (associated(ele%em_field) .neqv. associated(slave%em_field)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'WITH %EM_FIELD NOT BOTH ASSOCIATED.')
-          err_flag = .true.
-          cycle
-        endif
-
-        if (size(ele%em_field%mode) /= size(slave%em_field%mode)) then
-          call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'THE SIZE OF %EM_FIELD%MODE(:) OF BOTH IS NOT THE SAME.')
-          err_flag = .true.
-        endif
-
-        do i = 1, size(ele%em_field%mode)
-          if (associated(ele%em_field%mode(i)%cylindrical_map) .neqv. associated(slave%em_field%mode(i)%cylindrical_map)) then
-            call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'WITH %EM_FIELD%MODE(\i0\)%MAP NOT BOTH ASSOCIATED.', i_array = [i])
-            err_flag = .true.
-          endif
-           
-          if (associated(ele%em_field%mode(i)%cylindrical_map) .and. &
-              .not. associated(ele%em_field%mode(i)%cylindrical_map, slave%em_field%mode(i)%cylindrical_map)) then
-            call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'WITH %EM_FIELD%MODE(\i0\)%MAP NOT SHARING THE SAME MEMORY LOCATION.', i_array = [i])
-            err_flag = .true.
-          endif
-
-          if (associated(ele%em_field%mode(i)%grid) .neqv. &
-              associated(slave%em_field%mode(i)%grid)) then
-            call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'WITH %EM_FIELD%MODE(\i0\)%GRID NOT BOTH ASSOCIATED.', i_array = [i])
-            err_flag = .true.
-          endif
- 
-          if (associated(ele%em_field%mode(i)%grid) .and. &
-              .not. associated(ele%em_field%mode(i)%grid, slave%em_field%mode(i)%grid)) then
-            call out_io (s_fatal$, r_name, &
-                    'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
-                    'WITH %EM_FIELD%MODE(\i0\)%GRID NOT SHARING THE SAME MEMORY LOCATION.', i_array = [i])
-            err_flag = .true.
-          endif
-        enddo
-
       enddo
     endif
 
@@ -670,17 +689,31 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (s_stat == super_slave$ .and. associated(ele%em_field)) then
+    if (s_stat == super_slave$ .and. associated(ele%cartesian_map)) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %EM_FIELD COMPONENT.', i_array = [i_t] )
+                'HAS ASSOCIATED %CARTESIAN_MAP COMPONENT.', i_array = [i_t] )
       err_flag = .true.
     endif
 
-    if (s_stat == super_slave$ .and. associated(ele%wig)) then
+    if (s_stat == super_slave$ .and. associated(ele%cylindrical_map)) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %WIG COMPONENT.', i_array = [i_t] )
+                'HAS ASSOCIATED %CYLINDRICAL_MAP COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == super_slave$ .and. associated(ele%grid_field)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %GRID_FIELD COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == super_slave$ .and. associated(ele%taylor_field)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %TAYLOR_FIELD COMPONENT.', i_array = [i_t] )
       err_flag = .true.
     endif
 

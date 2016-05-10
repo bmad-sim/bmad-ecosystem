@@ -59,7 +59,8 @@ err_flag = .true.
 end_orb = start_orb
 time = particle_ref_time(start_orb, ele)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$ .and. &
-                is_true(ele%value(spin_fringe_on$)) .and. ele%field_calc == bmad_standard$)
+            (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$) .and. &
+            is_true(ele%value(spin_fringe_on$)))
 
 ! If element has zero length, skip tracking
 

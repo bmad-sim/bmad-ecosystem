@@ -427,62 +427,6 @@ end subroutine transfer_lat
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_wig (wig_in, wig_out)
-!
-! Subroutine to point wig_out => wig_in
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   wig_in  -- Wig_struct, pointer: Input wiggler field.
-!
-! Output:
-!   wig_out -- Wig_struct, pointer: Output wiggler field.
-!-
-
-subroutine transfer_wig (wig_in, wig_out)
-
-implicit none
-
-type (wig_struct), pointer :: wig_in, wig_out
-
-!
-
-if (.not. associated(wig_in) .and. .not. associated(wig_out)) return
-if (associated(wig_in, wig_out)) return
-
-! If both associated must be pointing to different memory locations
-
-if (associated(wig_in) .and. associated(wig_out)) then
-  wig_out%n_link = wig_out%n_link - 1
-  if (wig_out%n_link == 0) then
-    deallocate (wig_out%term)
-    deallocate (wig_out)
-  endif
-  wig_out => wig_in
-  wig_out%n_link = wig_out%n_link + 1
-
-elseif (associated(wig_out)) then 
-  wig_out%n_link = wig_out%n_link - 1
-  if (wig_out%n_link == 0) then
-    deallocate (wig_out%term)
-    deallocate (wig_out)
-  else
-    nullify (wig_out)
-  endif
-
-elseif (associated(wig_in)) then 
-  wig_out => wig_in
-  wig_out%n_link = wig_out%n_link + 1
-endif
-
-end subroutine transfer_wig
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
 ! Subroutine transfer_wall3d (wall3d_in, wall3d_out)
 !
 ! Subroutine to point wall3d_out => wall3d_in
@@ -523,101 +467,181 @@ end subroutine transfer_wall3d
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_em_field (field_in, field_out)
+! Subroutine transfer_fieldmap (ele_in, ele_out, who)
 !
-! Subroutine to transfer the field info from one struct to another.
+! Subroutine to transfer the field info from one element to another.
 ! In the end will have:
-!     field_out%cylindrical_map  => field_in%cylindrical_map
-!     field_out%grid => field_in%grid
-!
-! Modules needed:
-!   use bmad
+!     ele_out%cartesian_map    => ele_in%cartesian_map
+!     ele_out%cylindrical_map  => ele_in%cylindrical_map
+!     ele_out%grid_field       => ele_in%grid_field
+!     ele_out%taylor_field     => ele_in%taylor_field
 !
 ! Input:
-!   field_in -- Field_struct, pointer: Input RF field.
+!   ele_in -- Ele_struct, pointer: Input element.
+!   who    -- integer: Possibilities are: all$, cartesian_map$, cylindrical_map$, grid_field$, or taylor_field$
 !
 ! Output:
-!   field_out -- Field_struct, pointer: Output RF field.
+!   ele_out -- Ele_struct, pointer: Output element.
 !-
 
-subroutine transfer_em_field (field_in, field_out)
+subroutine transfer_fieldmap (ele_in, ele_out, who)
 
 implicit none
 
-type (em_fields_struct), pointer :: field_in, field_out
-type (em_field_mode_struct), pointer :: mode, mode_in, mode_out
+type (ele_struct) :: ele_in, ele_out
 
-integer i
+integer who
+integer i, nm
 
-! Rule: If field_in or field_out is associated then %mode must be allocated
+! Cartesian_map
 
-if (.not. associated(field_in) .and. .not. associated(field_out)) return
+if (who == all$ .or. who == cartesian_map$) then
+  if (associated(ele_in%cartesian_map) .and. associated(ele_out%cartesian_map)) then
+    if (size(ele_in%cartesian_map) /= size(ele_out%cartesian_map)) then
+      call unlink_fieldmap (cartesian_map = ele_out%cartesian_map)
+      nm = size(ele_in%cartesian_map)
+      allocate (ele_out%cartesian_map(nm))
+      do i = 1, nm
+        ele_out%cartesian_map(i) = ele_in%cartesian_map(i)
+        ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link + 1
+      enddo
 
-! field_in exists and field_out does not exist: Create field_out.
+    else
+      do i = 1, size(ele_in%cartesian_map)
+        if (.not. associated(ele_out%cartesian_map(i)%ptr, ele_in%cartesian_map(i)%ptr)) then
+          ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link - 1
+          if (ele_out%cartesian_map(i)%ptr%n_link == 0) deallocate (ele_out%cartesian_map(i)%ptr)
+        endif
+        ele_out%cartesian_map(i) = ele_in%cartesian_map(i)
+        ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link + 1
+      enddo
+    endif
 
-if (.not. associated(field_out)) then
-  call init_em_field (field_out, size(field_in%mode))
-  field_out%mode = field_in%mode
-  do i = 1, size(field_out%mode)
-    mode => field_out%mode(i)
-    if (associated(mode%cylindrical_map)) mode%cylindrical_map%n_link = mode%cylindrical_map%n_link + 1
-    if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
-  enddo
-  return
+  elseif (associated(ele_in%cartesian_map) .and. .not. associated(ele_out%cartesian_map)) then
+    nm = size(ele_in%cartesian_map)
+    allocate (ele_out%cartesian_map(nm))
+    do i = 1, nm
+      ele_out%cartesian_map(i) = ele_in%cartesian_map(i)
+      ele_out%cartesian_map(i)%ptr%n_link = ele_in%cartesian_map(i)%ptr%n_link + 1
+    enddo
+
+  elseif (.not. associated(ele_in%cartesian_map) .and. associated(ele_out%cartesian_map)) then
+    call unlink_fieldmap (cartesian_map = ele_out%cartesian_map)
+  endif
 endif
 
-! field_in does not exist and field_out exists: Deallocate field_out.
+! Cylindrical_map
 
-if (.not. associated(field_in)) then
-  call init_em_field (field_out, 0)
-  return
+if (who == all$ .or. who == cylindrical_map$) then
+  if (associated(ele_in%cylindrical_map) .and. associated(ele_out%cylindrical_map)) then
+    if (size(ele_in%cylindrical_map) /= size(ele_out%cylindrical_map)) then
+      call unlink_fieldmap (cylindrical_map = ele_out%cylindrical_map)
+      nm = size(ele_in%cylindrical_map)
+      allocate (ele_out%cylindrical_map(nm))
+      do i = 1, nm
+        ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
+        ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link + 1
+      enddo
+
+    else
+      do i = 1, size(ele_in%cylindrical_map)
+        if (.not. associated(ele_out%cylindrical_map(i)%ptr, ele_in%cylindrical_map(i)%ptr)) then
+          ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link - 1
+          if (ele_out%cylindrical_map(i)%ptr%n_link == 0) deallocate (ele_out%cylindrical_map(i)%ptr)
+        endif
+        ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
+        ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link + 1
+      enddo
+    endif
+
+  elseif (associated(ele_in%cylindrical_map) .and. .not. associated(ele_out%cylindrical_map)) then
+    nm = size(ele_in%cylindrical_map)
+    allocate (ele_out%cylindrical_map(nm))
+    do i = 1, nm
+      ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
+      ele_out%cylindrical_map(i)%ptr%n_link = ele_in%cylindrical_map(i)%ptr%n_link + 1
+    enddo
+
+  elseif (.not. associated(ele_in%cylindrical_map) .and. associated(ele_out%cylindrical_map)) then
+    call unlink_fieldmap (cylindrical_map = ele_out%cylindrical_map)
+  endif
 endif
 
-! Both field_in and field_out exist: If both point to the same memory then need
-! to do nothing. Otherwise need to transfer the data.
+! Grid_field
 
-call init_em_field (field_out, size(field_in%mode))
+if (who == all$ .or. who == grid_field$) then
+  if (associated(ele_in%grid_field) .and. associated(ele_out%grid_field)) then
+    if (size(ele_in%grid_field) /= size(ele_out%grid_field)) then
+      call unlink_fieldmap (grid_field = ele_out%grid_field)
+      nm = size(ele_in%grid_field)
+      allocate (ele_out%grid_field(nm))
+      do i = 1, nm
+        ele_out%grid_field(i) = ele_in%grid_field(i)
+        ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link + 1
+      enddo
 
-do i = 1, size(field_out%mode)
-
-  mode_in => field_in%mode(i)
-  mode_out => field_out%mode(i)
-
-  if (associated(mode_in%cylindrical_map) .and. associated(mode_out%cylindrical_map)) then
-    if (.not. associated(mode_in%cylindrical_map, mode_out%cylindrical_map)) then
-      mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link - 1
-      if (mode_out%cylindrical_map%n_link == 0) deallocate (mode_out%cylindrical_map)
-      mode_out%cylindrical_map => mode_in%cylindrical_map
-      mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link + 1
+    else
+      do i = 1, size(ele_in%grid_field)
+        if (.not. associated(ele_out%grid_field(i)%ptr, ele_in%grid_field(i)%ptr)) then
+          ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link - 1
+          if (ele_out%grid_field(i)%ptr%n_link == 0) deallocate (ele_out%grid_field(i)%ptr)
+        endif
+        ele_out%grid_field(i) = ele_in%grid_field(i)
+        ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link + 1
+      enddo
     endif
-  elseif (associated(mode_out%cylindrical_map) .and. .not. associated(mode_in%cylindrical_map)) then 
-    mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link - 1
-    if (mode_out%cylindrical_map%n_link == 0) deallocate (mode_out%cylindrical_map)
-  elseif (associated(mode_in%cylindrical_map) .and. .not. associated(mode_out%cylindrical_map)) then 
-    mode_out%cylindrical_map => mode_in%cylindrical_map
-    mode_out%cylindrical_map%n_link = mode_out%cylindrical_map%n_link + 1
-  endif
 
-  if (associated(mode_in%grid) .and. associated(mode_out%grid)) then
-    if (.not. associated(mode_in%grid, mode_out%grid)) then
-      mode_out%grid%n_link = mode_out%grid%n_link - 1
-      if (mode_out%grid%n_link == 0) deallocate (mode_out%grid)
-      mode_out%grid => mode_in%grid
-      mode_out%grid%n_link = mode_out%grid%n_link + 1
+  elseif (associated(ele_in%grid_field) .and. .not. associated(ele_out%grid_field)) then
+    nm = size(ele_in%grid_field)
+    allocate (ele_out%grid_field(nm))
+    do i = 1, nm
+      ele_out%grid_field(i) = ele_in%grid_field(i)
+      ele_out%grid_field(i)%ptr%n_link = ele_in%grid_field(i)%ptr%n_link + 1
+    enddo
+
+  elseif (.not. associated(ele_in%grid_field) .and. associated(ele_out%grid_field)) then
+    call unlink_fieldmap (grid_field = ele_out%grid_field)
+  endif
+endif
+
+! Taylor_field
+
+if (who == all$ .or. who == taylor_field$) then
+  if (associated(ele_in%taylor_field) .and. associated(ele_out%taylor_field)) then
+    if (size(ele_in%taylor_field) /= size(ele_out%taylor_field)) then
+      call unlink_fieldmap (taylor_field = ele_out%taylor_field)
+      nm = size(ele_in%taylor_field)
+      allocate (ele_out%taylor_field(nm))
+      do i = 1, nm
+        ele_out%taylor_field(i) = ele_in%taylor_field(i)
+        ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
+      enddo
+
+    else
+      do i = 1, size(ele_in%taylor_field)
+        if (.not. associated(ele_out%taylor_field(i)%ptr, ele_in%taylor_field(i)%ptr)) then
+          ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link - 1
+          if (ele_out%taylor_field(i)%ptr%n_link == 0) deallocate (ele_out%taylor_field(i)%ptr)
+        endif
+        ele_out%taylor_field(i) = ele_in%taylor_field(i)
+        ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
+      enddo
     endif
-  elseif (associated(mode_out%grid) .and. .not. associated(mode_in%grid)) then 
-    mode_out%grid%n_link = mode_out%grid%n_link - 1
-    if (mode_out%grid%n_link == 0) deallocate (mode_out%grid)
-  elseif (associated(mode_in%grid) .and. .not. associated(mode_out%grid)) then 
-    mode_out%grid => mode_in%grid
-    mode_out%grid%n_link = mode_out%grid%n_link + 1
+
+  elseif (associated(ele_in%taylor_field) .and. .not. associated(ele_out%taylor_field)) then
+    nm = size(ele_in%taylor_field)
+    allocate (ele_out%taylor_field(nm))
+    do i = 1, nm
+      ele_out%taylor_field(i) = ele_in%taylor_field(i)
+      ele_out%taylor_field(i)%ptr%n_link = ele_in%taylor_field(i)%ptr%n_link + 1
+    enddo
+
+  elseif (.not. associated(ele_in%taylor_field) .and. associated(ele_out%taylor_field)) then
+    call unlink_fieldmap (taylor_field = ele_out%taylor_field)
   endif
+endif
 
-  mode_out = mode_in
-
-enddo
-
-end subroutine transfer_em_field
+end subroutine transfer_fieldmap
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -689,7 +713,6 @@ subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_p
 implicit none
 
 type (ele_struct), target :: ele
-type (em_field_mode_struct), pointer :: mode
 logical, optional, intent(in) :: nullify_only, nullify_branch, dealloc_poles
 integer i
 
@@ -702,7 +725,6 @@ nullify (ele%lord)
 ! nullify
 
 if (logic_option (.false., nullify_only)) then
-  nullify (ele%wig)
   nullify (ele%rad_int_cache)
   nullify (ele%r)
   nullify (ele%descrip)
@@ -714,7 +736,10 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
   nullify (ele%wall3d)
-  nullify (ele%em_field)
+  nullify (ele%cartesian_map)
+  nullify (ele%cylindrical_map)
+  nullify (ele%taylor_field)
+  nullify (ele%grid_field)
   return
 endif
 
@@ -736,28 +761,20 @@ if (associated (ele%wake))        deallocate (ele%wake)
 
 call deallocate_wall3d_pointer (ele%wall3d)
 
-if (associated (ele%em_field)) then
-  do i = 1, size(ele%em_field%mode)
-    mode => ele%em_field%mode(i)
-    if (associated (mode%cylindrical_map)) then
-      mode%cylindrical_map%n_link = mode%cylindrical_map%n_link - 1
-      if (mode%cylindrical_map%n_link == 0) deallocate (ele%em_field%mode(i)%cylindrical_map)
-    endif
-    if (associated (mode%grid)) then
-      mode%grid%n_link = mode%grid%n_link - 1
-      if (mode%grid%n_link == 0) deallocate (ele%em_field%mode(i)%grid)
-    endif
-  enddo
-  deallocate (ele%em_field)
+if (associated (ele%cartesian_map)) then
+  call unlink_fieldmap (cartesian_map = ele%cartesian_map)
 endif
 
-if (associated(ele%wig)) then
-  ele%wig%n_link = ele%wig%n_link - 1
-  if (ele%wig%n_link == 0) then
-    deallocate (ele%wig)
-  else
-    nullify (ele%wig)
-  endif
+if (associated (ele%cylindrical_map)) then
+  call unlink_fieldmap (cylindrical_map = ele%cylindrical_map)
+endif
+
+if (associated (ele%taylor_field)) then
+  call unlink_fieldmap (taylor_field = ele%taylor_field)
+endif
+
+if (associated (ele%grid_field)) then
+  call unlink_fieldmap (grid_field = ele%grid_field)
 endif
 
 if (associated (ele%taylor(1)%term)) then
@@ -1404,62 +1421,71 @@ end subroutine multipole_init
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_em_field (em_field, n_mode)
+! Subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
 !
-! Subroutine to initialize a em_field_struct pointer.
-!
-! Modules needed:
-!   use bmad
+! Subroutine to unlink the field components of an element.
 !
 ! Input:
-!   n_mode   -- Integer: Size of %modes(:) to create. If 0, deallocate em_field
+!   cartesian_map(:)   -- cartesian_map_struct, pointer, optional: cartesian_map component.
+!   cylindrical_map(:) -- cylindrical_map_struct, pointer, optional: cylindrical_map component.
+!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
+!   grid_field(:)      -- grid_field_struct, pointer, optional: grid_field component.
 !
 ! Output:
-!   em_field -- em_field_struct, pointer: Initialized structure.
+!   cartesian_map(:)   -- cartesian_map_struct, pointer, optional: cartesian_map component.
+!   cylindrical_map(:) -- cylindrical_map_struct, pointer, optional: cylindrical_map component.
+!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
+!   grid_field(:)      -- grid_field_struct, pointer, optional: grid_field component.
 !-
 
-subroutine init_em_field (em_field, n_mode)
+subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
 
-type (em_fields_struct), pointer :: em_field
-type (em_field_mode_struct), pointer :: mode
-
-integer n_mode
+type (cartesian_map_struct), pointer, optional :: cartesian_map(:)
+type (cylindrical_map_struct), pointer, optional :: cylindrical_map(:)
+type (taylor_field_struct), pointer, optional :: taylor_field(:)
+type (grid_field_struct), pointer, optional :: grid_field(:)
 
 integer i
 
-! Cases where nothing is to be done
+! In theory, %prt should always be associated but a bad digested file can leave %ptr unassociated.
 
-if (n_mode < 1 .and. .not. associated(em_field)) return
-
-if (n_mode > 0 .and. associated(em_field)) then
-  if (size(em_field%mode) == n_mode) return
-endif
-
-! Must deallocate existing.
-
-if (associated(em_field)) then
-  do i = 1, size(em_field%mode)
-    mode => em_field%mode(i)
-    if (associated(mode%cylindrical_map)) then
-      mode%cylindrical_map%n_link = mode%cylindrical_map%n_link - 1
-      if (mode%cylindrical_map%n_link == 0) deallocate (mode%cylindrical_map)
-    endif
-    if (associated(mode%grid)) then
-      mode%grid%n_link = mode%grid%n_link - 1
-      if (mode%grid%n_link == 0) deallocate (mode%grid)
-    endif
+if (present(cartesian_map)) then
+  do i = 1, size(cartesian_map)
+    if (.not. associated(cartesian_map(i)%ptr)) cycle
+    cartesian_map(i)%ptr%n_link = cartesian_map(i)%ptr%n_link - 1
+    if (cartesian_map(i)%ptr%n_link == 0) deallocate (cartesian_map(i)%ptr)
   enddo
-  deallocate(em_field)
+  deallocate (cartesian_map)
 endif
-  
-if (n_mode < 1) return
 
-! n_mode > 0 case.
+if (present(cylindrical_map)) then
+  do i = 1, size(cylindrical_map)
+    if (.not. associated(cylindrical_map(i)%ptr)) cycle
+    cylindrical_map(i)%ptr%n_link = cylindrical_map(i)%ptr%n_link - 1
+    if (cylindrical_map(i)%ptr%n_link == 0) deallocate (cylindrical_map(i)%ptr)
+  enddo
+  deallocate (cylindrical_map)
+endif
 
-allocate(em_field)
-allocate(em_field%mode(n_mode))
+if (present(grid_field)) then
+  do i = 1, size(grid_field)
+    if (.not. associated(grid_field(i)%ptr)) cycle
+    grid_field(i)%ptr%n_link = grid_field(i)%ptr%n_link - 1
+    if (grid_field(i)%ptr%n_link == 0) deallocate (grid_field(i)%ptr)
+  enddo
+  deallocate (grid_field)
+endif
 
-end subroutine init_em_field
+if (present(taylor_field)) then
+  do i = 1, size(taylor_field)
+    if (.not. associated(taylor_field(i)%ptr)) cycle
+    taylor_field(i)%ptr%n_link = taylor_field(i)%ptr%n_link - 1
+    if (taylor_field(i)%ptr%n_link == 0) deallocate (taylor_field(i)%ptr)
+  enddo
+  deallocate (taylor_field)
+endif
+
+end subroutine unlink_fieldmap
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

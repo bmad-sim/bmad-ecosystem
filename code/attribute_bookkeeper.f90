@@ -75,6 +75,7 @@ type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
+type (cartesian_map_term1_struct), pointer :: term
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f
@@ -559,7 +560,7 @@ case (wiggler$, undulator$)
     val(n_pole$) = val(l$) / val(l_pole$)
   endif
 
-  ! Periodic_type wigglers have a single %wig%term for use with tracking, etc.
+  ! Periodic_type wigglers have a single term %cylindrical_map(1)%ptr%term(1) for use with tracking, etc.
   ! The phase of this term is set so that tracking with a particle starting
   ! on-axis ends on-axis. For this to be true, there must be an integer number
   ! of poles.
@@ -569,28 +570,32 @@ case (wiggler$, undulator$)
 
   if (ele%sub_key == periodic_type$ .and. ele%slave_status /= super_slave$ .and. &
       ele%slave_status /= multipass_slave$ .and. ele%slave_status /= slice_slave$) then
-    if (.not. associated(ele%wig)) then
-      allocate (ele%wig)
-      allocate (ele%wig%term(1))
+    if (.not. associated(ele%cartesian_map)) then
+      allocate (ele%cartesian_map(1))
+      allocate (ele%cartesian_map(1)%ptr)
+      allocate (ele%cartesian_map(1)%ptr%term(1))
+      ele%cartesian_map(1)%master_parameter = polarity$
+      write (ele%cartesian_map(1)%ptr%file, '(2i0)') ele%ix_branch, ele%ix_ele ! Unique name
     endif
 
+    term => ele%cartesian_map(1)%ptr%term(1)
     if (val(l$) == 0) then
-      ele%wig%term(1)%ky = 0
+      term%ky = 0
     else
       if (val(n_pole$) == 0) then
         call out_io (s_error$, r_name, 'NUMBER OF POLES NOT SET FOR WIGGLER: ' // trim(ele%name))
-        ele%wig%term(1)%ky = pi / val(l$)
+        term%ky = pi / val(l$)
       else
-        ele%wig%term(1)%ky = pi * val(n_pole$) / val(l$)
+        term%ky = pi * val(n_pole$) / val(l$)
       endif
     endif
-    ele%wig%term(1)%coef   = val(b_max$)
-    ele%wig%term(1)%kx     = 0
-    ele%wig%term(1)%kz     = ele%wig%term(1)%ky
-    ele%wig%term(1)%x0     = 0
-    ele%wig%term(1)%y0     = 0
-    ele%wig%term(1)%phi_z  = -ele%wig%term(1)%kz * val(l$) / 2 
-    ele%wig%term(1)%type   = hyper_y_family_y$
+    term%coef   = val(b_max$)
+    term%kx     = 0
+    term%kz     = term%ky
+    term%x0     = 0
+    term%y0     = 0
+    term%phi_z  = -term%kz * val(l$) / 2 
+    term%type   = hyper_y_family_y$
   endif
 
 end select

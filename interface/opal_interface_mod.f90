@@ -105,8 +105,6 @@ allocate ( fieldgrid_names%names(n) )
 allocate ( fieldgrid_names%indexx(n) )
 fieldgrid_names%n_max = 0
 
-
-
 !-------------------------------------------
 ! Write info to the output file...
 ! lat lattice name
@@ -126,20 +124,21 @@ ele_loop: do ie = ix_start, ix_end
   
   ! Skip these elements:
   if (ele%slave_status == super_slave$ .or. &
-      ele%slave_status == multipass_slave$ .or. &
-      ele%key == girder$ .or. &
-      ele%key == overlay$ .or. &
-      ele%key == group$) cycle
+    ele%slave_status == multipass_slave$ .or. &
+    ele%key == girder$ .or. &
+    ele%key == overlay$ .or. &
+    ele%key == group$) cycle
   
   ! point to value array for convenience
   val => ele%value
-  
+
   ! Clean up "#" and "\" symbols in element name
   call str_substitute (ele%name, "#", "_part_")
   call str_substitute (ele%name, "\", "_and_")  ! "
-  
+
   ! Make unique names  
   call find_indexx (ele%name, ele_names, ix_match)
+
   if (ix_match > 0) then
     ele_name_occurrences(ix_match) = ele_name_occurrences(ix_match) + 1
     ! Replace ele%name with a unique name
@@ -147,6 +146,7 @@ ele_loop: do ie = ix_start, ix_end
     ! Be careful with this internal write statement
     ! This only works because ele%name is first in the write list
   end if
+
   ! add name to list  
   call find_indexx (ele%name, ele_names, ix_match, add_to_list = .true.)
 
@@ -162,18 +162,18 @@ ele_loop: do ie = ix_start, ix_end
   !----------------------------------------------------------
   ! Marker -----------------------------------
   !----------------------------------------------------------
-    case (marker$, detector$)
-        write (line, '(a)' ) trim(ele%name) // ': marker'
-      ! Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+  case (marker$, detector$)
+    write (line, '(a)' ) trim(ele%name) // ': marker'
+    ! Write ELEMEDGE
+    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Drift -----------------------------------   
   !----------------------------------------------------------
-     case (drift$, pipe$, instrument$)
-        write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
-      ! Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+  case (drift$, pipe$, instrument$)
+    write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
+    ! Write ELEMEDGE
+    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Sbend -----------------------------------       
@@ -203,111 +203,95 @@ ele_loop: do ie = ix_start, ix_end
       !Add FMAPFN to line
       write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
     endif
-    
+
     call value_to_line (line, gap, 'GAP', rfmt, 'R')
 
-   
-
-
-
-  ! elemedge
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+    ! elemedge
+    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Solenoid -----------------------------------       
   !----------------------------------------------------------
   case (solenoid$)
-  ! Check that there is a map or grid associated to make a decent field grid for OPAL
-  if (.not. associated(ele%em_field)  )then
-    call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
-    if (global_com%exit_on_error) call err_exit
-  endif
-    
+    ! Check that there is a map or grid associated to make a decent field grid for OPAL
+    if (.not. associated(ele%grid_field)) then
+      call out_io (s_error$, r_name, 'No grid_field for: ' // key_name(ele%key))
+      if (global_com%exit_on_error) call err_exit
+    endif
+
     write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
 
     ! Get field grid name and scaling. This writes the file if needed. 
 
-    call get_opal_fieldgrid_name_and_scaling(&
-       ele, lat%param, fieldgrid_names, &
-       fieldgrid_output_name, absmax_bz)
+    call get_opal_fieldgrid_name_and_scaling(ele, lat%param, fieldgrid_names, fieldgrid_output_name, absmax_bz)
 
-   ! Add FMAPFN to line
+    ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 
     ! ks field strength TODO: check specification. Seems to be Tesla
     call value_to_line (line, absmax_bz, 'ks', rfmt, 'R')
 
-  ! elemedge
+    ! elemedge
     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)    
-    
-  !----------------------------------------------------------
-  ! Quadrupole -----------------------------------   
-  !----------------------------------------------------------
-     case (quadrupole$)
-        write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
-        ! Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
-        call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
-    
+  
+   !----------------------------------------------------------
+   ! Quadrupole -----------------------------------   
+   !----------------------------------------------------------
+   case (quadrupole$)
+     write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
+     ! Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
+     call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
+     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+
   !----------------------------------------------------------
   ! Lcavity, RFCavity, E_gun -----------------------------------
   !----------------------------------------------------------
-    case (lcavity$, rfcavity$, e_gun$)
+  case (lcavity$, rfcavity$, e_gun$)
     ! Check that there is a map or grid associated to make a decent field grid for OPAL
-    if (.not. associated(ele%em_field)  )then
-      call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
+    if (.not. associated(ele%grid_field)  )then
+      call out_io (s_error$, r_name, 'No grid_field for: ' // key_name(ele%key))
       if (global_com%exit_on_error) call err_exit
     endif
-    
-    if (.not. associated(ele%em_field%mode(1)%grid)  )then
-      call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
-                                     '----')
-        if (global_com%exit_on_error) call err_exit
-      endif
-      
+
     write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
 
     ! Get field grid name and scaling. This writes the file if needed. 
-    call get_opal_fieldgrid_name_and_scaling(&
-       ele, lat%param, fieldgrid_names,  &
-       fieldgrid_output_name, absmax_ez)
+    call get_opal_fieldgrid_name_and_scaling(ele, lat%param, fieldgrid_names, fieldgrid_output_name, absmax_ez)
 
-   ! Add FMAPFN to line
+    ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
-  
+
     ! Write field scaling in MV/m
     call value_to_line (line, 1d-6*absmax_ez, 'volt', rfmt, 'R')
-  
+
     ! Write frequency in MHz
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
     call value_to_line (line, 1d-6*freq, 'freq', rfmt, 'R')
-  
+
     ! Write phase in rad
     phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
     ! OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
-    if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(phi0_max$) - ele%em_field%mode(1)%phi0_ref )
+    if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(phi0_max$) - ele%grid_field(1)%phi0_fieldmap )
     ! The e_gun needs phase_lag to be pi/2 for some reason
     if (ele%key == e_gun$) phase_lag = 0  !used to be pi/2
     call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
  
     ! Write ELEMEDGE
     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
-      
 
   !----------------------------------------------------------
   ! Default -----------------------------------
   !----------------------------------------------------------
-     case default
-        call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
-             'CONVERTING TO DRIFT')
-        write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
-        ! Write ELEMEDGE
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R',ignore_if_zero = .false.)
+  case default
+    call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), 'CONVERTING TO DRIFT')
+     write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+     ! Write ELEMEDGE
+     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R',ignore_if_zero = .false.)
   end select
-  
+
   ! type (general attribute)
   ! if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
-  
+
   ! end line
   write (line, '(2a)') trim(line), trim(eol_char)
 
@@ -330,14 +314,15 @@ lat_loop: do ie = ix_start, ix_end
   ele => lat%ele(ie)
   ! Skip these elements:
   if (ele%slave_status == super_slave$ .or. &
-      ele%slave_status == multipass_slave$ .or. &
-      ele%key == girder$ .or. &
-      ele%key == overlay$ .or. &
-      ele%key == group$) cycle
-      
+    ele%slave_status == multipass_slave$ .or. &
+    ele%key == girder$ .or. &
+    ele%key == overlay$ .or. &
+    ele%key == group$) cycle
+
   write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
   if (len_trim(line) > 80) call write_lat_line(line, iu, .false., continue_char = continue_char)
 enddo lat_loop    
+
 ! write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
 call write_lat_line (line, iu, .true., continue_char = continue_char)
@@ -360,8 +345,7 @@ end subroutine write_opal_lattice_file
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine  get_opal_fieldgrid_name_and_scaling(&
-!               ele, param, name_indexx, output_name, field_scale)
+! Subroutine  get_opal_fieldgrid_name_and_scaling(ele, param, name_indexx, output_name, field_scale)
 !
 ! Subroutine to get a field grid filename and its scaling. Calls write_opal_field_grid_file.
 !   If the field grid file does not exist, it is written 
@@ -380,8 +364,7 @@ end subroutine write_opal_lattice_file
 !-
 
 
-subroutine get_opal_fieldgrid_name_and_scaling(&
-             ele, param, name_indexx, output_name, field_scale)
+subroutine get_opal_fieldgrid_name_and_scaling(ele, param, name_indexx, output_name, field_scale)
                                           
 implicit none
 
@@ -398,7 +381,7 @@ integer :: ix_match, iu_fieldgrid, ios
 output_name = ''
 
 ! Check field map file. If file has not been written, create a new file. 
-call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match)
+call find_indexx (ele%grid_field(1)%ptr%file, name_indexx, ix_match)
 ! Check for match with existing grid
 if (ix_match > 0) then
   ! File should exist  
@@ -408,7 +391,7 @@ if (ix_match > 0) then
 else
   ! File does not exist.
   ! Add name to list  
-  call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match, add_to_list = .true.)
+  call find_indexx (ele%grid_field(1)%ptr%file, name_indexx, ix_match, add_to_list = .true.)
   ix_match = name_indexx%n_max
   write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
   ! Write new fieldgrid file
@@ -458,8 +441,8 @@ character(10)   ::  rfmt
 
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
-type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
-type (em_field_grid_pt_struct) :: ref_field
+type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
+type (grid_field_pt1_struct) :: ref_field
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
 real(rp) :: freq, x, z, phase_ref
 real(rp) :: gap, edge_range
@@ -502,7 +485,7 @@ select case (ele%key)
 !-----------
 case (lcavity$, rfcavity$, e_gun$) 
 
-  freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+  freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
   ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Example:

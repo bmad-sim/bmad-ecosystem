@@ -121,13 +121,11 @@ tracking. It is called by the standard \bmad routine
 has the standard limit attributes (\sref{s:limit}) so a \vn{custom}
 element does not have to implement custom aperture checking code.
 
-The \Hyperref{r:em.field.custom}{em_field_custom} routine is called by
-the electro-magnetic field calculating routine
-\Hyperref{r:em.field.calc}{em_field_calc} when \vn{ele%field_calc} is
-set to \vn{custom\$}. As an alternative to \vn{em_field_custom}, a
-\vn{custom} element can use the \vn{field} attribute
-(\sref{s:em.fields}) to characterize the element's electromagnetic
-fields.
+The \Hyperref{r:em.field.custom}{em_field_custom} routine is called by the
+electro-magnetic field calculating routine \Hyperref{r:em.field.calc}{em_field_calc} when
+\vn{ele%field_calc} is set to \vn{custom\$}. As an alternative to \vn{em_field_custom}, a
+\vn{custom} element can use a field map (\sref{s:fieldmap}) to characterize the
+element's electromagnetic fields.
 
 Note: When tracking through a \vn{patch} element, the first step is to
 transform the particle's coordinates from the entrance frame to the

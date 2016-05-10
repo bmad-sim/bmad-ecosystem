@@ -148,7 +148,7 @@ logical target_found
 
 target_found = .false.
 if (.not. associated(ele%photon)) return
-if (ele%photon%target%type == grid$) target_found = .true.
+if (ele%photon%target%type == grided$) target_found = .true.
 
 end function grid_target_found
 

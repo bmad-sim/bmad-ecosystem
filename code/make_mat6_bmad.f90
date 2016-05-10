@@ -371,7 +371,7 @@ case (lcavity$)
   call offset_particle (ele, param, set$, c00)
 
   phase = twopi * (v(phi0$) + v(phi0_multipass$) + &
-                   v(phi0_ref$) +  v(phi0_err$) + &
+                   v(phi0_autoscale$) +  v(phi0_err$) + &
                    (particle_ref_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
 
   ! Coupler kick
@@ -884,7 +884,7 @@ case (rfcavity$)
 
   voltage = e_accel_field (ele, voltage$) * charge_dir
 
-  phase0 = twopi * (v(phi0$) + v(phi0_multipass$) - v(phi0_ref$) - &
+  phase0 = twopi * (v(phi0$) + v(phi0_multipass$) - v(phi0_autoscale$) - &
                   (particle_ref_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * v(rf_frequency$) * dt_ref
   phase = phase0

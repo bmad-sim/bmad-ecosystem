@@ -1,3 +1,4 @@
+
 !+
 ! Module ptc_interface_mod
 !
@@ -3116,7 +3117,8 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (ele_struct), pointer :: field_ele, ele2
-type (wig_term_struct), pointer :: wt
+type (cartesian_map_term1_struct), pointer :: wt
+type (cartesian_map_struct), pointer :: cm
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
@@ -3353,7 +3355,7 @@ case (rfcavity$, lcavity$)
   end select
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
   if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then
@@ -3576,9 +3578,10 @@ energy_work = 0
 call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
 
-! wiggler
+! FieldMap cartesian_map element. 
+! Include all wiggler elements even periodic_type with field_calc = bmad_standard$
 
-if (key == wiggler$ .or. key == undulator$) then
+if (ele%field_calc == fieldmap$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
 
   call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field
@@ -3589,33 +3592,56 @@ if (key == wiggler$ .or. key == undulator$) then
     endif
   enddo
 
-  n_term = size(ele2%wig%term)
-  call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
+  if (associated(ele2%cartesian_map) .or. ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
 
-  ptc_fibre%mag%wi%w%k(1,1:n_term)   = ele2%wig%term%kx
-  ptc_fibre%mag%wi%w%k(2,1:n_term)   = ele2%wig%term%ky
-  ptc_fibre%mag%wi%w%k(3,1:n_term)   = ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%f(1:n_term)     = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%x0(1:n_term)    = ele2%wig%term%x0
-  ptc_fibre%mag%wi%w%y0(1:n_term)    = ele2%wig%term%y0
-  ptc_fibre%mag%wi%w%form(1:n_term)  = ele2%wig%term%type
+    cm => ele2%cartesian_map(1)
 
-  if (ele%is_on) then
-    do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
-      wt => ele2%wig%term(i)
-      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
-    enddo
-  else
-    ptc_fibre%mag%wi%w%a(1:n_term) = 0
+    if (size(ele2%cartesian_map) /= 1) then
+      call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE MORE THAN ONE CARTESIAN_MAP. FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+
+    if (cm%field_type == electric$) then
+      call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE CARTESIAN_MAP WITH ELECTRIC FIELDS. FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif  
+
+    select case (cm%ele_anchor_pt)
+    case (anchor_beginning$); s_rel = s_rel - cm%r0(3)
+    case (anchor_center$);    s_rel = s_rel - cm%r0(3) + ele%value(l$) / 2
+    case (anchor_end$);       s_rel = s_rel - cm%r0(3) + ele%value(l$)
+    end select
+
+    n_term = size(cm%ptr%term)
+    call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
+
+    ptc_fibre%mag%wi%w%k(1,1:n_term)   = cm%ptr%term%kx
+    ptc_fibre%mag%wi%w%k(2,1:n_term)   = cm%ptr%term%ky
+    ptc_fibre%mag%wi%w%k(3,1:n_term)   = cm%ptr%term%kz
+    ptc_fibre%mag%wi%w%f(1:n_term)     = cm%ptr%term%phi_z + s_rel * cm%ptr%term%kz
+    ptc_fibre%mag%wi%w%x0(1:n_term)    = cm%ptr%term%x0
+    ptc_fibre%mag%wi%w%y0(1:n_term)    = cm%ptr%term%y0
+    ptc_fibre%mag%wi%w%form(1:n_term)  = cm%ptr%term%type
+
+    if (ele%is_on) then
+      do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
+        wt => cm%ptr%term(i)
+        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      enddo
+    else
+      ptc_fibre%mag%wi%w%a(1:n_term) = 0
+    endif
+
+    ! Correct z-position 
+
+    z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+    ptc_fibre%mag%wi%internal(6) = z_patch
+
+    call copy (ptc_fibre%mag, ptc_fibre%magp)
+
   endif
-
-  ! Correct z-position 
-
-  z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-  ptc_fibre%mag%wi%internal(6) = z_patch
-
-  call copy (ptc_fibre%mag, ptc_fibre%magp)
-
 endif
 
 ! Misalignments and patches...

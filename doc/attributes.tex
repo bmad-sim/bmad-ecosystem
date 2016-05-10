@@ -1973,215 +1973,265 @@ affected. The exception is \vn{multipole} and \vn{ab_multipole} elements do not 
 attribute.
 
 %-----------------------------------------------------------------
-\section{EM Field Customization}
-\label{s:em.fields}
+\section{Field Maps}
+\label{s:fieldmap}
+\index{field maps}
 
-Custom field profiles are used with integration type tracking methods (\sref{s:integ}).
-It is important to note that custom field profiles are {\em ignored} by \vn{bmad_standard}
-tracking.  Custom field profiles may be defined using \vn{grid} tables or \vn{maps}
-(\sref{s:field.tab.map}) and may extend longitudinally beyound the ends of an element
+There are two general ways to specify complicated electro-magnetic field configurations
+that cannot be simply modeled using multipoles. One way is to use \vn{custom}
+fields. Specifying a custom field is done by using custom code and linking this code with
+\bmad into a program. That is, custom fields are defined outside of the \bmad software
+(\sref{s:integ}).
+
+\index{cylindrical_map}\index{cartesian_map}\index{grid_field}\index{taylor_field}
+The other way to specify a complicated field is to use a ``\vn{field map}''. There
+are four types of field maps:
+\begin{example}
+  cartesian_map       ! \sref{s:cart.map}
+  cylindrical_map     ! \sref{s:cylind.map}
+  grid_field          ! \sref{s:grid.field}
+  taylor_field        ! \sref{s:taylor.field}
+\end{example}
+Essentially, \vn{cylindrical_map} and \vn{cartesian_map} define fields using a set of
+functions with user defined coefficients with the functions formulated to obey Maxwell's
+equations. The \vn{grid_field} type defines the field on a grid of points and
+interpolation is used to evaluate the field inbetween the points. Finally, the
+\vn{taylor_field} type defines a set of Taylor maps. Each map defines the field in the
+transverse $(x, y)$ plane at constant $z$. Interpolation is used to evaluate the field
+in between the planes.
+
+The \vn{cylindrical_map} and \vn{grid_field} types can be used with both RF and DC fields.
+The other two types can only be used with DC fields. RF fields may only be used with the following
+element classes:
+\begin{example}
+  e_gun         ! \sref{s:e.gun}
+  em_field      ! \sref{s:em.field}
+  lcavity       ! \sref{s:lcav}
+  rfcavity      ! \sref{s:rfcav}
+\end{example}
+
+An element may specify multiple fields of a given type and/or may define multiple fields
+of different types. In both these cases, the field in the element is taken to be the sum
+of the individual fields. For example:
+\begin{example}
+  sb: sbend, cylindrical_map = \{...\},  cylindrical_map = \{...\}
+\end{example}
+In this example an element has two \vn{cylindrical_map} fields and the total field is the
+sum of the fields of each one. Separating fields like this can be useful, for example, to
+decouple the specification of electric from magnetic fields, or to decouple the
+specification of AC and DC fields.
+
+The field of one element can overlap onto other elements. This is
+explained in Sec.~\sref{s:overlap}.
+
+Field maps are used with integration type tracking methods (\sref{s:integ}).
+It is important to note that field maps are {\em ignored} by \vn{bmad_standard}
+tracking. Field maps may extend longitudinally beyound the ends of an element
 (\sref{s:overlap}).
 
 %-----------------------------------------------------------------
-\subsection{Field Extending Beyond Element Boundary}
-\label{s:overlap}
+\subsection{Field Map Common attributes}
+\label{s:fieldmap.com}
 
-\index{field_overlaps} 
-The \vn{field_overlaps} element attribute can be used to indicate that the electric or
-magnetic fields of one element overlap another element. The syntax is:
+\begin{figure}[tb]
+  \centering
+  \includegraphics{bend-grid-coords.pdf}
+  \caption[\vn{Field map} coordinates when used with a bend element.]{
+When used with a bend element, by default, field map coordinates will be Cartesian and not
+curved like the reference orbit. The orientation of the field map coordinates is
+determined by the setting of \vn{ele_anchor_pt}. To use curvilinear coordinates instead,
+\vn{curved_coords} must be set to \vn{True} [Available in \vn{grid_field} and
+\vn{taylor_field} only].}
+  \label{f:bend.grid}
+\end{figure}
+
+This section explains some of the attributes that are common to the \vn{field map}
+types. Not all attributes are used in all field map types. See the documentation on the
+individual types for a list of the attributes pertainent to that type.
+
+\index{field_type}
+\index{field_scale}\index{master_parameter}
+  \begin{description}
+  \item[curved_coords] \Newline
+For bend elements (\vn{sbend}s, \vn{rbend}s), the field map coordinates, by default, are
+Cartesian and {\em not} curved. The orientation of the field map coordinates with respect
+to the bend is determined by the placement of the anchor point (specified by
+\vn{ele_anchor_pt}) as shown in \fig{f:bend.grid}. In this case, when tracking a particle,
+\bmad will convert particle coordinates (which are expressed in the bend's curvilinear
+coordinate system defined by the reference orbit) to the Cartesian coordinates of the
+field map and will rotate the computed field from the field map coordinates back to the
+particle coordinates.
+
+For \vn{grid_field} and \vn{taylor_field} types, the field map coordinates will follow the
+bend curved coordinate system if the the \vn{curved_coords} component of the field map is
+set to \vn{True}. The setting of \vn{curved_coords} is ignored for non-bend elements.
+  \item[ele_anchor_pt] \Newline
+The \vn{ele_anchor_pt}, along with \vn{r0}, determines the origin of the field with
+respect to the lattice element. Possible settings are:
 \begin{example}
-  <overlapping_ele>: ... field_overlaps = \{<overlapped_ele1>, <overlapped_ele2>, ...\}
+  beginning   ! Beginning of element (default).
+  center      ! Center of element.
+  end         ! Exit end of element.
 \end{example}
-The \{\} braces are optional if there is only one overlapped element.
+Example:
+\begin{example}
+  rfc0: rfcavity, taylor_field = \{ele_anchor_pt = center, ...\}, ...
+\end{example}
+  \item[field_type] \Newline
+The \vn{field_type} attribute sets the type of field described. Possible settings for
+\vn{field_type} are:
+\begin{example}
+  electric      ! Pure electric field. For DC fields only.
+  magnetic      ! Pure magnetic field. For DC fields only.
+  mixed         ! Mixed EM fields. For AC fields and DC \vn{grid_field}.
+\end{example}
+Example:
+\begin{example}
+  bb: sbend, cartesian_map = \{field_type = electric, ...\}, ...
+\end{example}
+The \vn{cylindrical_map} type does not have a \vn{field_type} since it has explicit arrays
+for the electric and magnetic fields.
+  \item[field_scale] \Newline
+The \vn{field_scale} attribute is used to scale the overall field magnitude. The default
+value is 1. A value of -1 will reverse the field. If the \vn{master_parameter} is
+defained, it is multiplied with the \vn{field_scale} to give the overall scale.
+Example:
+\begin{example}
+  qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
+\end{example}
+  \item[harmonic] \Newline
+The \vn{harmonic} attibute, along with \vn{rf_frequency} element attribute, sets the
+oscillation frequency of the field map. The \vn{harmonic} attribute is only used with
+\vn{cylindrical_map} and \vn{grid_field} types. The default value of \vn{harmonic} is 0.
+The \vn{harmonic} number needs to be 0 for DC fields. Example:
+\begin{example}
+  lc1: lcavity, rf_frequency = 500e6, grid_field = \{harmonic = 2, ...\}, ...
+\end{example}
+Notice that \vn{rf_frequency} is set outside of any field map and is common to all field maps.
+  \item[master_parameter] \Newline
+The \vn{master_parameter} defines a ``master'' element attribute for scaling the field. Example:
+\begin{example}
+  qq: quadrupole, taylor_field = \{master_parameter = 'K1', ...\}, k1 = ...
+\end{example}
+This example defines the \vn{master_parameter} for the \vn{taylor_field} to be the
+quadrupole strength \vn{k1}. By using the same master parameter for a set of field map
+instances within a given lattice element, the sum field of the set can be controled by a
+single attribute. The \vn{master_parameter} must be set to a valid element attribute. If
+the name is blank (""), no master parameter is used. The \vn{master_parameter}, if
+defined, is multiplied with the \vn{field_scale} to give the value used to scale the
+fields. The default \vn{master_parameter} is blank ("") except for \vn{wiggler} elements
+where, for historical reasons, the default is \vn{polarity}.
+  \item[phi0_fieldmap] \Newline
+For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the
+fundamental mode. [Note: Documentation on the phase of the fundamental mode is given in
+the appropriate section for the type of element under consideration (\vn{e_gun},
+\vn{lcavity}, etc.).] The phase \vn{phi0_fieldmap} is relative to the fundamental
+frequency and not the frequency of the field map mode. That is, the ``zero crossing'' time
+of the field map is shifted by \vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental
+mode frequency.
+  \item[r0] \Newline
+The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point
+that defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.
+The origin position of the field (\vn{r_origin}) is determined by 
+\begin{example}
+  r_origin = r0 + r_anchor
+\end{example}
+where \vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}:
+\begin{example}
+  ele_anchor_pt       r_anchor
+  -------------       ---------
+  beginning           (0, 0, 0)      ! Default
+  center              (0, 0, L/2)
+  end                 (0, 0, L)
+\end{example}
+with \vn{L} being the length of the element. 
 
 Example:
 \begin{example}
-  b1: sbend, l = 2.3, field_overlaps = \{q1, s2\}, ...
-  inj_line: line = (..., s2, b1, mark3, q1, ...)
+  rfc0: rfcavity, taylor_field = \{r0 = (-0.23, ...), ...\}, ...
 \end{example}
-In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and
-overlaps elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that
-are overlapped by any given element and overlapped elements do not have to be next to the
-overlapping element in the line. If there are multiple elements whose name matches the
-name of a overlapped element, the element closest to the overlapping element is
-choisen. Thus in the above example, if there are multiple elements named \vn{q1}, the
-closest \vn{q1} to \vn{b1} is designated as the overlapped element.
-
-There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
-Thus the following is equivalent to the above example:
-\begin{example}
-  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
-\end{example}
-
-The field overlap construct is only useful with integration type tracking methods and when the
-field is specified and when the setting of \vn{field_calc} (\sref{s:integ}) attribute for
-both the overlapping and overlapped elements is something other than \vn{bmad_standard}.
+  \end{description}
 
 %-----------------------------------------------------------------
-\subsection{Field Table or Map}
-\label{s:field.tab.map}
+\subsection{Cartesian_Map Field Map}
+\label{s:cart.map}
+\index{cartesian_map}
 
-\index{field_calc}
-Three dimensional electromagnetic fields can be specified in a number
-of ways. Setting a lattice element's \vn{field_calc} switch to
-\vn{custom} (\sref{s:integ}) alows for a custom calculation. The
-drawback here is that the appropriate custom code must be linked into
-any program that needs to do tracking (\sref{s:custom.ele}).
+The \vn{cartesian_map} field map is only used for DC fields. Each term of a
+\vn{cartesian_map} is a solution of Laplace's equation in cartesian coordinates.
+as described in Sec.~\sref{s:cart.map.phys}. 
 
-The other two possibilities are setting \vn{field_calc} to either
-\vn{grid} or \vn{map}. \vn{grid} defines the field using a three
-dimensional grid of points with interpolation used to evaluate the
-field between points. \vn{map} defines the field as a sum of a number of
-modes (functions). As dissused below, both \vn{grid} and \vn{map} use the 
-\vn{field} attribute of an element to specify the needed parameters.
-Examples:
+The lattice file syntax for the \vn{cartesian_map} type is:
 \begin{example}
-  q: quadrupole, field_calc = grid, field = \{grid = \{...\}\}, ...
-  r: rfcavity, field_calc = map, field = \{map = \{...\}\}, ...
+  cartesian_map = \{
+    field_type       = <String>,           ! Type of field: Default = Magnetic.
+    field_scale      = <Real>,             ! Scale factor for the E & B fields.
+    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    term = \{<A>, <k_x>, <k_y>, <k_z>, <x_0>, <y_0>, <phi_z>, <family>\}, 
+    term = \{....\}  \}
 \end{example}
-\index{lcavity}\index{rfcavity}\index{em_field}\index{field}
-Fields so specified can be used with, for example, \vn{runge_kutta}
-tracking (\sref{s:tkm}). Both RF and DC fields can be specified.
-However RF fields can only be associated with the following elements:
-\begin{example}
-  e_gun
-  em_field
-  lcavity
-  rfcavity
-\end{example}
-
-It is important to keep in mind that the fields specified by ``\vn{field
-= \{...\}}'' is only used with \vn{runge_kutta} and \vn{boris}
-tracking. Other tracking methods will ignore these fields.
-
-The syntax for specifying the electromagnetic fields is
-\label{v:field}
-\index{m}\index{field}\index{mode}\index{freq}\index{phi0_ref}
-\index{f_damp}\index{field_scale}\index{master_scale}\index{phi0_azimuth}
-\index{map}\index{grid}
-\begin{example}
-  field = \{
-    mode_to_autoscale = <Integer>, ! Default = 1.
-    mode = \{
-      m             = <Integer>,   ! Mode number
-      harmonic      = <Integer>,   ! Harmonic number 
-      phi0_ref      = <Real>,      ! Phase of oscillations.
-      f_damp        = <Real>,      ! Oscillation damping factor. Default = 0.
-      field_scale   = <Real>,      ! Scale factor for the E & B fields.
-      master_scale  = <Name>,      ! Master scaling parameter for E & B fields.
-      phi0_azimuth  = <Real>,      ! Azimuthal orientation.
-      map           = \{<EM_field_map>\},    ! EM field map data
-      grid          = \{<EM_field_grid>\} \}, ! EM field grid data
-    mode = \{...\}\}
-\end{example}
-The electromagnetic field is specified as a series of \vn{modes}. Each
-\vn{mode} has a \vn{harmonic} number which, if non-zero, identifies it
-as an RF field. The field associated with a mode can be specified
-using a \vn{grid} of data points or by a \vn{map} which specify the
-coefficients of an analytical form for the field. The
-\vn{mode_to_autoscale} parameter is explained in
-Section~sref{s:autoscale}
-
+The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.phys}.
 Example:
 \begin{example}
-  apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
-    field = \{ mode = \{
-      m = 0, harmonic = 1,
-      master_scale = voltage,
-      grid = call::apex_gun_grid.bmad \}\}
-\end{example}
-with the file \vn{apex_gun_grid.bmad} being:
-\begin{example}
-  \{
-    type = rotationally_symmetric_rz,
-    r0 = (0, 0),
-    dr = (0.001, 0.001),
-    pt(0,0) = ( (0, 0), (0, 0), (1, 0),  (0, 0), (0, 0), (0, 0)),
-    pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
-    ... \}
+  q01: quadrupole, l = 0.6, field_calc = taylored,
+        cartesian_map = \{
+          term = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\},
+          term = \{...\}, ...    \}
 \end{example}
 
-The field is scaled by two values specified by \vn{field_scale} and
-\vn{master_scale}. That is
-\begin{equation}
-  [E, B] (actual) = [E, B] \text{(from map or grid)} * 
-  \text{field_scale} * \text{master_scale_value}
-\end{equation}
-That is, the actual field is the value as determined from the \vn{map}
-or \vn{grid} data (see below) scaled by the value of \vn{field_scale}
-times the ``master_scale_value''. This master_scale_value is the value
-of the element parameter given by \vn{master_scale}. For example, for
-a quadrupole element, if \vn{master_scale} is set to "K1" then the
-fields are scaled by the quadrupole strength parameter. The purpose of
-this \vn{master_scale} is to provide a way to scale the 3D fields with
-the element strength parameter (K1 for a quadrupole) which is separate
-from auto scaling. The \vn{master_scale} also provides a way to scale
-separate \vn{mode}s jointly.
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types. 
 
-\index{em_field}\index{field_factor}
-For an \vn{em_field} element, the \vn{master_scale} defaults to the
-element parameter
-\begin{example}
-  field_factor
-\end{example}
-For all other elements, \vn{master_scale} defaults to \vn{none} which
-means that the \vn{master_scale_value} is taken to be unity when
-calculating the fields.
-
-The field of a given mode oscillates as given by Eq.~\ref{eseei}  
-\Begineq
-  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
-\Endeq
-The phase of the oscillation, $\theta_0$ comes from two
-sources: the phase \vn{phi0_ref} set for the mode and an overall phase
-\vn{phase_ref} given by
-\begin{example}
- phase_ref = phi0 + phi0_multipass
-\end{example}
-\index{lcavity!reference phase}\index{rfcavity!reference phase}
-Unfortunately, to be consistent with \mad, the definition of
-\vn{phase_ref} for an \vn{lcavity} (\sref{s:lcav}) and \vn{e_gun} differ in sign to
-that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
-$\theta_0$ is
-\Begineq
-  \theta_0 = 
-  \begin{cases}
-    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phase_ref} + \text{phi0_err}) & 
-    \text{lcavity \& e_gun element} \\
-    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phase_ref} & 
-    \text{rfcavity element}
-  \end{cases}
-\Endeq
-where $f$ is the mode frequency and $f_0$ is the frequency of the
-fundamental.
-
-The phase \vn{phi0_ref} of the fundamental mode can be auto-scaled by
-Bmad (\sref{s:autoscale}) so that a particle with $z = 0$ will go
-through the cavity on crest for an \vn{e_gun} or  \vn{lcavity} and on the
-zero-crossing for an \vn{rfcavity}. 
+To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
+restrictions: 
+  \begin{itemize}
+  \item 
+\vn{cartesian_map} may not be used with a bend.
+  \item
+Only magnetic fields may be used. 
+  \item
+Transverse terms in \vn{r0} must be zero.
+  \end{itemize}
 
 %-----------------------------------------------------------------
-\subsection{Field Map}
+\subsection{Cylindrical_Map Field Map}
+\label{s:cylind.map}
+\index{ccylindrical map}
 
-The \vn{map} specification has the form
+The \vn{cylindrical_map} field map is used for both DC and AC fields. Each term of a
+\vn{cylindrical_map} is a solution of Laplace's equation in cylindrical coordinates.
+as described in Sec.~\sref{s:cylind.map.phys}. 
+
+The lattice file syntax for the \vn{cylindrical_map} type is:
 \begin{example}
   map = \{
-    dz        = <Real>,    ! Distance between sampled field points.
-    e_coef_re = (<Real>, <Real>, ....),  ! Real part of e.
-    e_coef_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
-    b_coef_re = (<Real>, <Real>, ....),  ! Real part of b.
-    b_coef_im = (<Real>, <Real>, ....),  ! Imaginary part of b.
+    field_scale      = <Real>,             ! Scale factor for the E & B fields.
+    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
+    m                = <Integer>,          ! Mode number
+    harmonic         = <Integer>,          ! Harmonic number 
+    phi0_fieldmap    = <Real>,             ! Phase of oscillations.
+    theta0_azimuth   = <Real>,             ! Azimuthal orientation.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    dz        = <Real>,                    ! Distance between sampled field points.
+    e_coef_re = (<Real>, <Real>, ....),    ! Real part of E.
+    e_coef_im = (<Real>, <Real>, ....),    ! Imaginary part of E.
+    b_coef_re = (<Real>, <Real>, ....),    ! Real part of B.
+    b_coef_im = (<Real>, <Real>, ....),    ! Imaginary part of B.
   \}
 \end{example}
-The basic equations used for the map decomposition of
-the fields are given in Section~\sref{s:rf.fields.phys}. 
-\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
-\vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
-of these vectors must be present and have the same length. The
-exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
-omitted and will default to zero. The number of terms $N$ for the $e$
-or $b$ vectors must be a power of $2$ and all modes must have the same
-number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types.
+
+The basic equations used for the \vn{cylindrical_map} decomposition of the fields are
+given in Section~\sref{s:cylind.map.phys}.  \vn{e_re} and \vn{e_im} give the real an
+imaginary part of $e$ and \vn{b_re} and \vn{b_im} give the real and imaginary part of
+$b$. All of these vectors must be present and have the same length. The exception is with
+an $m = 0$ mode either the $e$ or $b$ arrays can be omitted and will default to zero. The
+number of terms $N$ for the $e$ or $b$ vectors must be a power of $2$ and all modes must
+have the same number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
 running from 0 to $N-1$, is associated with a wavelength $k_n$
 \begin{equation}
   k_n = \begin{cases}
@@ -2200,74 +2250,86 @@ this may be different from the length \vn{l} specified for the
 element.
 
 %-----------------------------------------------------------------
-\subsection {Field Grid}
-\label{s:grid}
+\subsection{Grid_Field Field Map}
+\label{s:grid.field}
+\index{grid field}
 
-A grid of field points in Cartesian coordinates can be specified using the general format:
+A \vn{grid_field} is grid of field points specified using the syntax:
 \begin{example}
-  field = \{
-    mode = \{
-      grid = \{ 
-        type = <String>,
-        curved_coords = <Logical>,        ! Use curved coords with bends?
-        r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
-        dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
-        ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
-        pt(<Integer>, \dots) = ( \ldots ),  ! Grid field points
-        \ldots \} \} \}
+  grid_field = \{ 
+    geometry         = <String>,    ! Geometry of the grid.
+    field_type       = <String>,    ! Type of field: Default = Mixed.
+    field_scale      = <Real>,      ! Scale factor for the E & B fields.
+    phi0_fieldmap    = <Real>,      ! Phase of oscillations.
+    master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
+    curved_coords    = <Logical>,   ! Use curved coords with bends?
+    r0   = (...),                   ! Grid origin. Syntax is \vn{geometry} dependent.
+    dr   = (...),                   ! Grid spacing. Syntax is \vn{geometry} dependent.
+    ele_anchor_pt = <Position>      ! BEGINNING, CENTER, or END
+    pt(<Integer>, \dots) = ( \ldots ), ! Field points. Syntax is \vn{geometry} dependent.
+    \ldots \} \} \}
 \end{example}
-The \vn{type} switch sets the type of the grid and must come before
-all the other components. The possible settings of \vn{type} are:
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types.
+
+For \vn{field_type} set to \vn{electric} or \vn{magnetic}, the field is DC. That is, For
+\vn{field_type} set to \vn{electric} or \vn{magnetic}, the value of \vn{harmonic} must be
+0. For \vn{field_type} set to \vn{mixed}, the field may be DC or AC. In this case, the
+individual field components are complex.  the syntax for specifying a complex number is:
+\begin{example}
+  (<Re>, <Im>)
+\end{example}
+where \vn{<Re>} and \vn{<Im>} are the real and imaginary parts of the
+component. Example:
+\begin{example}
+  pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
+  pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Imaginary components are zero
+\end{example}
+
+The \vn{geometry} switch sets the type of the grid and must come before
+any \vn{pt} is given. The possible settings of \vn{geometry} are:
 \begin{example} 
   rotationally_symmetric_rz
   xyz
 \end{example}
 
-The \vn{rotationally_symmetric_rz} setting for \vn{type} is for fields
+The \vn{rotationally_symmetric_rz} setting for \vn{geometry} is for fields
 that are rotationally symmetric around the $z$ axis. The format for
-this type of grid is
+this type of \vn{grid_field} is
 \begin{example}
-  field = \{mode = \{grid = \{ 
+  grid = \{ 
     type = rotationally_symmetric_rz,
-    r0   = (<r0>, <z0>),        ! Grid origin 
+    r0   = (<x0>, <y0>, <z0>),  ! Grid origin 
     dr   = (<dr>, <dz>),        ! Grid spacing
+    pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>) ! For field_type = Electric
+    pt(<ir>, <iz>) = (<B_r>, <B_phi>, <B_z>) ! For field_type = Magnetic
     pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
-    \ldots \} \} \}
+                                             ! For field_type = Mixed.
+    \ldots \} 
 \end{example}
-where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative.
+where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative.  
 
-The \vn{xyz} setting for \vn{type} can be used for all fields. The
-format for this type of grid is
+The \vn{xyz} setting for \vn{geometry} can be used for all rectangular field grids. The
+format for this type of \vn{grid_field} is
 \begin{example}
-  field = \{grid = \{ 
+  grid = \{ 
     type = xyz,
-    r0   = (<x0>,  <y0>, <z0>),   ! Grid origin 
+    r0   = (<x0>, <y0>, <z0>),    ! Grid origin 
     dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
-    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>),
-    \ldots \} \}
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>),  ! For field_type = Electric
+    pt(<ix>, <iy>, <iz>) = (<B_x>, <B_y>, <B_z>),  ! For field_type = Magnetic
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>), 
+                                                   ! For field_type = Mixed.
+    \ldots \}
 \end{example}
 where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
 
-field components like \vn{<E_z>} can be complex for RF
-fields or simply a real number for DC fields. When a field component
-is complex, the syntax for specifying it uses the form:
+[For clarity sake, the following discusses the \vn{xyz} case. Extension to other cases is
+straight forward.]  There is no restriction on the bounds of the indexes \vn{(ix, iy, iz)}
+of the \vn{pt(ix, iy, iz)} array. A point $(ix, iy, iz)$ corresponds in space to the point
+$(x, y, z)$:
 \begin{example}
-  (Re, Im)
-\end{example}
-where \vn{Re} and \vn{Im} are the real and imaginary parts of the
-component. Example:
-\begin{example}
-  pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
-  pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Real field
-\end{example}
-
-[For clarity sake, the following discusses the \vn{xyz}
-case. Extension to other cases is straight forward.]  There is no
-restriction on the bounds of the indexes \vn{(ix, iy, iz)} of the
-\vn{pt(ix, iy, iz)} array. Treating \vn{r0} and \vn{dr} as vectors, a
-point $(ix, iy, iz)$ corresponds in space to the point
-\begin{example}
-  (x, y, z) = r0 + dr * (ix, iy, iz) + r_anchor
+  (x, y, z) = dr * (ix, iy, iz) + r0 + r_anchor
 \end{example}
 where \vn{z} is measured from the beginning of the element and
 \vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}:
@@ -2280,100 +2342,80 @@ where \vn{z} is measured from the beginning of the element and
 \end{example}
 with \vn{L} being the length of the element. 
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics{bend-grid-coords.pdf}
-  \caption[Grid coordinates when used with a bend element.]{
-By default, grid coordinates, when used with a bend element, will be Cartesian and not
-curved like the reference orbit. The orientation of the grid coordinates is determined by
-the setting of \vn{ele_anchor_pt}. The grid uses curvilinear coordinates if
-\vn{curved_coords} is set to \vn{True}.}
-  \label{f:bend.grid}
-\end{figure}
-
-For bend elements (\vn{sbend}s, \vn{rbend}s), the grid coordinates, by default, are
-Cartesian and {\em not} curved. The orientation of the grid with respect to the bend is
-determined by the placement of the anchor point as shown in \fig{f:bend.grid}. In this
-case, when tracking a particle, \bmad will convert particle coordinates (which are
-expressed in the bend's curvilinear coordinate system defined by the reference orbit) to
-the Cartesian coordinates of the grid and will rotate the computed field from the grid
-coordinates back to the particle coordinates.
-
-For bend elements, to make the grid coordinates use the same curved coordinate system as
-the bend, the \vn{curved_coords} component of \vn{grid} can be set to \vn{True}. The
-setting of \vn{curved_coords} is ignored for non-bend elements.
-
-%-----------------------------------------------------------------
-\section{Automatic Scaling of Accelerating Fields}
-\label{s:autoscale}
-\index{automatic field scaling|hyperbf}
-
-\index{e_gun}\index{em_field}\index{lcavity}\index{rfcavity}
-The elements that can have accelerating fields are:
-\begin{example}
-  e_gun       ! \sref{s:e.gun}
-  lcavity     ! \sref{s:lcav}
-  rfcavity    ! \sref{s:rfcav}
-\end{example}
-
-The problem that arises with accelerating fields is how to set the
-overall amplitude (and phase if the fields are oscillating) of the
-field so that the reference particle has the desired acceleration. The
-problem becomes even more complicated at non-ultra relativistic
-energies where the velocity is not a constant. In this case, the
-proper amplitude and/or phase settings will depend upon what the
-incoming energy of the reference particle is.
-
-The scaling problem is not present when \vn{bmad_standard} tracking
-(\sref{s:tkm}) is used since \vn{bmad_standard} tracking uses an
-integrated formula that is designed to give the proper acceleration.
-
-To help with the scaling problem, \bmad has the capability to automatically
-scale an accelerating field's amplitude and/or phase. The two
-lattice element parameters that turn on/off auto scaling are (\sref{s:param}):
-\begin{example}
-  autoscale_phase      = <Logical>  ! Automatic phase scaling.
-  autoscale_amplitude  = <Logical>  ! Automatic amplitude scaling.
-\end{example}
 Example:
 \begin{example}
-  rf2: rfcavity, autoscale_phase = F
+  apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
+    grid_field = \{
+      m = 0, harmonic = 1,
+      master_parameter = voltage,
+      grid = call::apex_gun_grid.bmad \}\}
 \end{example}
-The default value is True for both parameters. 
-
-Scaling takes place during program execution when a lattice is
-initially created (that is, when the lattice file is parsed) and when
-parameters in the lattice that would change the scaling are varied.
-
-The parameters that are varied when the field is auto scaled depend
-upon how the field is calculated. When the fields are specified using
-modes (\sref{s:em.fields}), each mode has a \vn{field_scale} that
-varies the field amplitude and each mode has a phase offset
-\vn{phi0_ref}. Not all modes are involved with auto scaling. For
-example, an \vn{em_field} element may have an accelerating mode along
-with a mode for a solenoid field which is independently powered. In
-this instance, only the accelerating mode should be auto scaled. The
-``primary'' mode that is auto scaled is set by the
-\vn{mode_to_auto scale} component of the \vn{field}
-(\sref{v:field}). Additionally, any other mode (called ``secondary''
-modes) whose \vn{master_scale} is the same as the \vn{master_scale} of
-the primary auto scaled mode will be auto scaled. All modes involved in
-auto scaling have their \vn{field_scale} adjusted by the same ratio.
-Additionally, when the phase is auto scaled, all secondary modes will
-have their \vn{phi0_ref} phases adjusted by the same difference that
-the \vn{phi0_ref} of the primary mode is changed. Example:
+with the file \vn{apex_gun_grid.bmad} being:
 \begin{example}
-  rf2334: lcavity, field_calc = grid, field = \{
-    mode_to_autoscale = 1,
-    mode = \{master_scale = gradient, ...\},   ! Primary mode
-    mode = \{master_scale = gradient, ...\},   ! Secondary mode
-    mode = \{master_scale = none, ...\} \}      ! Not involved in auto scale
+  \{
+    type = rotationally_symmetric_rz,
+    r0 = (0, 0),
+    dr = (0.001, 0.001),
+    pt(0,0) = ( (0, 0), (0, 0), (1, 0),  (0, 0), (0, 0), (0, 0)),
+    pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
+    ... \}
 \end{example}
 
-When the fields are {\em not} specified using modes, the element's
-\vn{field_factor} parameter will be used for scaling the amplitude and
-the \vn{phi0_ref} parameter (which is distinct from the \vn{phi0_ref}
-associated with a mode) will be used for varying the phase.
+%-----------------------------------------------------------------
+\subsection{Taylor_Field Field Map}
+\label{s:taylor.field}
+\index{taylor field}
+
+The \vn{taylor_field} field map is only used for DC fields. A \vn{taylor_field} is comprised
+of a set of two dimensional Taylor maps.  
+
+The syntax for describing a \vn{taylor_field} is:
+\begin{example}
+  taylor_field = \{
+    field_type       = <String>,           ! Type of field: Default = Magnetic.
+    field_scale      = <Real>,             ! Scale factor for the E & B fields.
+    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
+    curved_coords    = <Logical>,          ! Use curved coords with bends?
+    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    dz               = <Real>,             ! Distance between sampled field points.
+    plane(<i>) = \{<term1>, <term2>, <term3>, ....\}, ! Taylor map at constant z.
+    plane(<j>) = \{....\}  \}
+\end{example}
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types.
+
+Each \vn{plane(<i>)} component specifies a Taylor map at constant z
+(\sref{s:taylor.field.phys}). The index \vn{<i>} for the different planes must be in
+consecutive order. The plane with <i> = 0 corresponds to the $z = 0$ origin. There is no
+restriction for the starting \vn{<i>} index of the first plane. That is, there does not
+have to be a plane with index \vn{<i>} = 0 (in this case, the origin needs to be outside
+of the element).
+
+The individual Taylor series terms follow the same syntax as the Taylor terms in a
+\vn{taylor} element (\sref{s:taylor}):
+\begin{example}
+  \{<out>: <coef>, <e1> <e2>\}           ! EM Taylor term. First form.
+  \{<out>: <coef> | <n1> <n2> ...\}      ! EM Taylor term. Second form.
+\end{example}
+except that 1) the \vn{<out>} output variable is restricted to \vn{x}, \vn{y}, or \vn{z} (for
+the three field components), 2) there are only two exponents \vn{<e1>} and \vn{<e2>}
+corresponding to \vn{x}, and \vn{y} respectively for the first form,  and 3) the integers
+\vn{<n1>}, \vn{<n2>}, etc., are restricted to being 1 or 2.
+
+To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
+restrictions: 
+  \begin{itemize}
+  \item 
+The number of planes must be odd. If you want to be able to track to the center of the
+element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an integer.
+  \item
+Only magnetic fields may be used. 
+  \item
+\vn{ele_anchor_pt} must be set to \vn{center} and \vn{z0} must be zero. That is, the
+plane locations are symmetric with respect to the center of the element.
+  \end{itemize}
+Note: The PTC name for a \vn{taylor_field} is ``pancake''.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
@@ -2416,6 +2458,97 @@ Example:
   rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends,
                                                   coupler_strength = 0.037
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Field Extending Beyond Element Boundary}
+\label{s:overlap}
+
+\index{field_overlaps} 
+The \vn{field_overlaps} element attribute can be used to indicate that the electric or
+magnetic fields of one element overlap another element. The syntax is:
+\begin{example}
+  <overlapping_ele>: ... field_overlaps = \{<overlapped_ele1>, <overlapped_ele2>, ...\}
+\end{example}
+The \{\} braces are optional if there is only one overlapped element.
+
+Example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = \{q1, s2\}, ...
+  inj_line: line = (..., s2, b1, mark3, q1, ...)
+\end{example}
+In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and
+overlaps elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that
+are overlapped by any given element and overlapped elements do not have to be next to the
+overlapping element in the line. If there are multiple elements whose name matches the
+name of a overlapped element, the element closest to the overlapping element is
+choisen. Thus in the above example, if there are multiple elements named \vn{q1}, the
+closest \vn{q1} to \vn{b1} is designated as the overlapped element.
+
+There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
+Thus the following is equivalent to the above example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
+\end{example}
+
+The field when \vn{field_calc} is set to \vn{bmad_standard} never extends beyond the
+element boundrary and so a \vn{bmad_standard} field will never overlap another element.
+
+%-----------------------------------------------------------------
+\section{Automatic Scaling of Accelerating Fields}
+\label{s:autoscale}
+\index{automatic field scaling|hyperbf}
+
+\index{e_gun}\index{em_field}\index{lcavity}\index{rfcavity}
+Elements that have accelerating fields are:
+\begin{example}
+  e_gun       ! \sref{s:e.gun}
+  em_field    ! \sref{s:em.field}
+  lcavity     ! \sref{s:lcav}
+  rfcavity    ! \sref{s:rfcav}
+\end{example}
+[Notice that \vn{rfcavity} elements by definition, have a constant reference energy while
+with all the other elements the entrance end reference energy will, in general, be
+different from the exit end reference energy.]
+
+The problem that arises with accelerating fields is how to set the overall amplitude (and
+phase if the fields are oscillating) of the field so that a particle, starting on the
+reference orbit and starting with the reference energy, has the desired energy gain at the
+exit end of the element where the ``desired'' is set by the \vn{voltage} or \vn{gradient}
+attribute of the element.
+
+The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used
+since \vn{bmad_standard} tracking uses an integrated formula that is designed to give the
+proper acceleration. Rather it is a problem for Runge-Kutta and other methods integration
+methods.
+
+The problem becomes even more complicated at non-ultra relativistic energies where the
+particle velocity is not a constant. In this case, the proper amplitude and/or phase
+settings will depend upon what the incoming energy of the reference particle is.
+
+To help with the scaling problem, \bmad has the capability to automatically
+scale an accelerating field's amplitude and/or phase. The two
+lattice element parameters that turn on/off auto scaling are (\sref{s:param}):
+\begin{example}
+  autoscale_phase      = <Logical>  ! Automatic phase scaling.
+  autoscale_amplitude  = <Logical>  ! Automatic amplitude scaling.
+\end{example}
+The default value is True for both parameters. Example:
+\begin{example}
+  rf2: rfcavity, autoscale_phase = F
+\end{example}
+
+Scaling takes place during program execution when a lattice is initially created (that is,
+when the lattice file is parsed) and when parameters in the lattice that would change the
+scaling are varied.  The element parameters varied wen autoscaling is done are:
+\begin{example}
+  field_autoscale       ! Amplitude scale
+  phi0_autoscale        ! phase scale
+\end{example}
+If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the
+default setting of \vn{phi0_autoscale} is 0.
+
+\vn{field_autoscale} and \vn{phi0_autoscale} are ignored when \vn{bmad_standard} tracking
+is done.
 
 %-----------------------------------------------------------------
 \section{Wakefields}

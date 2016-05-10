@@ -59,10 +59,10 @@ type (ele_pointer_struct), allocatable :: field_eles(:)
 type (coord_struct) :: start_orb, end_orb, start2_orb
 type (lat_param_struct)  param
 type (track_struct), optional :: track
-type (wig_term_struct), pointer :: wig_term(:)
-
+type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term1_struct), pointer :: wig_term(:)
+type (cartesian_map_term1_struct), pointer :: wt
 type (wiggler_computations_struct), allocatable, target :: tm(:)
-type (wig_term_struct), pointer :: wt
 
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
@@ -139,7 +139,7 @@ endif
 ! select the element
 
 key = ele%key
-if (associated(ele%wig)) key = wiggler$
+if (associated(ele%cartesian_map)) key = wiggler$
 
 select case (ele%key)
 
@@ -154,7 +154,8 @@ Case (wiggler$, undulator$)
     if (field_ele%key == ele%key) exit
   enddo
 
-  wig_term => field_ele%wig%term
+  ct_map => field_ele%cartesian_map(1)
+  wig_term => ct_map%ptr%term
   z_offset = dz_offset(i)
 
   num_wig_terms = size(wig_term)
@@ -666,7 +667,7 @@ real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = rel_tracking_charge * c_light * field_ele%value(polarity$) / ele%value(p0c$)
+factor = charge_of(start_orb%species) * c_light * field_ele%value(polarity$) / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
@@ -782,7 +783,7 @@ logical err
 
 !
 
-x = end_orb%vec(1)
+x = end_orb%vec(1) - ct_map%r0(1)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
@@ -862,7 +863,7 @@ logical err
 
 !
 
-y = end_orb%vec(3)
+y = end_orb%vec(3) - ct_map%r0(2)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
@@ -935,14 +936,21 @@ end subroutine update_wig_y_terms
 
 subroutine update_wig_s_terms
 
-real(rp) spz_offset
+real(rp) spz_offset, s0
 real(rp) kzz(1:num_wig_terms)
 
 integer j
 
 !
 
-spz_offset = s + z_offset
+select case (ct_map%ele_anchor_pt)
+case (anchor_beginning$); s0 = 0
+case (anchor_center$);    s0 = ele%value(l$) / 2
+case (anchor_end$);       s0 = ele%value(l$)
+end select
+
+spz_offset = s + z_offset - s0 - ct_map%r0(3)
+
 if (orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
 

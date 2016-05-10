@@ -53,172 +53,176 @@ end function em_field_plus_em_field
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ele_equal_ele (ele1, ele2)
+! Subroutine ele_equal_ele (ele_out, ele_in)
 !
 ! Subroutine that is used to set one element equal to another. 
-! This routine takes care of the pointers in ele1. 
+! This routine takes care of the pointers in ele_out. 
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		ele1 = ele2
+!		ele_out = ele_in
 !
 ! Input:
-!   ele2 -- Ele_struct: Input element.
+!   ele_in -- Ele_struct: Input element.
 !
 ! Output:
-!   ele1 -- Ele_struct: Output element.
+!   ele_out -- Ele_struct: Output element.
 !-
 
-subroutine ele_equal_ele (ele1, ele2)
+subroutine ele_equal_ele (ele_out, ele_in)
 
 implicit none
 	
-type (ele_struct), intent(inout) :: ele1
-type (ele_struct), intent(in) :: ele2
+type (ele_struct), intent(inout) :: ele_out
+type (ele_struct), intent(in) :: ele_in
 type (ele_struct) ele_save
 
 integer i, n, n2, ub(2), ub1
 
-! 1) Save ele1 pointers in ele_save
-! 2) Set ele1 = ele2.
+! 1) Save ele_out pointers in ele_save
+! 2) Set ele_out = ele_in.
 
-call transfer_ele (ele1, ele_save)
-call transfer_ele (ele2, ele1)
+call transfer_ele (ele_out, ele_save)
+call transfer_ele (ele_in, ele_out)
 
-! ele1%ix_ele and ele1%ix_branch should not change.
-! ele1%branch should not change if ele1 is a component of a lat_struct.
-!   Otherwise ele1%lat should point to ele2%lat (For cases where ele1 
-!   represents a sliced piece of ele2)
+! ele_out%ix_ele and ele_out%ix_branch should not change.
+! ele_out%branch should not change if ele_out is a component of a lat_struct.
+!   Otherwise ele_out%lat should point to ele_in%lat (For cases where ele_out 
+!   represents a sliced piece of ele_in)
 
-ele1%ix_ele    = ele_save%ix_ele    ! This should not change.
-ele1%ix_branch = ele_save%ix_branch ! This should not change.
-if (ele1%ix_ele > -1) then          ! If part of a lattice...
-  ele1%branch => ele_save%branch     !   then ele1%branch should not change.
+ele_out%ix_ele    = ele_save%ix_ele    ! This should not change.
+ele_out%ix_branch = ele_save%ix_branch ! This should not change.
+if (ele_out%ix_ele > -1) then          ! If part of a lattice...
+  ele_out%branch => ele_save%branch     !   then ele_out%branch should not change.
 endif
 
 ! Transfer pointer info.
-! When finished ele1's pointers will be pointing to a different memory
-! location from ele2's so that the elements are separate.
-! Exceptions: %em_field%mode%cylindrical_map, %em_field%mode%grid and %wig.
+! When finished ele_out's pointers will be pointing to a different memory
+! location from ele_in's so that the elements are separate.
+! Exceptions: %em_field%mode%cylindrical_map, %em_field%mode%grid.
 
-! %wig%term exception: The problem with having ele1%wig and ele2%wig point to the same 
-! memory location is when we have a periodic_wiggler and ele1 is not a slave or ele2. 
+! %cartesian_map exception: The problem with having ele_out%cartesian_map and ele_in%cartesian_map point
+! to the same memory location is when we have a periodic_wiggler and ele_out is not a slave of ele_in. 
 ! In this case, the wiggler field depends upon the setting of
 ! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
 ! lead to trouble if these attributes are modified in one element but not the other.
 
-! If the memory allocated for the wiggler field for ele1 and ele2 are different
+! If the memory allocated for the wiggler field for ele_out and ele_in are different
 ! then must adjust the number of links and deallocate if necessary.
 
-if ((ele1%key == wiggler$ .or. ele1%key == undulator$) .and. ele1%sub_key == periodic_type$ .and. &
+! Note: A periodic_type wiggler always has one cartesian_map createded in attribute_bookkeeper.
+
+if ((ele_out%key == wiggler$ .or. ele_out%key == undulator$) .and. ele_out%sub_key == periodic_type$ .and. &
     ele_save%slave_status /= super_slave$ .and. ele_save%slave_status /= multipass_slave$ .and. &
     ele_save%slave_status /= slice_slave$) then
 
-  nullify(ele1%wig)
-
-  if (associated(ele_save%wig) .and. .not. associated(ele2%wig)) then
-    ele_save%wig%n_link = ele_save%wig%n_link - 1
-    if (ele_save%wig%n_link == 0) deallocate (ele_save%wig)
-
-  elseif (.not. associated(ele_save%wig) .and. associated(ele2%wig)) then
-    allocate(ele1%wig)
-    n2 = size(ele2%wig%term)
-    allocate(ele1%wig%term(n2))
-    ele1%wig = ele2%wig
-
-  elseif (associated(ele_save%wig) .and. associated(ele2%wig)) then
-    n2 = size(ele2%wig%term)
-    if (associated(ele_save%wig, ele2%wig)) then
-      ele_save%wig%n_link = ele_save%wig%n_link - 1
-      allocate(ele1%wig)
-      allocate(ele1%wig%term(n2))
-    elseif (size(ele_save%wig%term) /= n2) then
-      ele_save%wig%n_link = ele_save%wig%n_link - 1
-      if (ele_save%wig%n_link == 0) deallocate (ele_save%wig)
-      allocate(ele1%wig)
-      allocate(ele1%wig%term(n2))
-    else
-      ele1%wig => ele_save%wig
+  if (associated(ele_save%cartesian_map)) then
+    if (size(ele_save%cartesian_map) /= 1 .or. .not. associated(ele_in%cartesian_map)) then
+      call unlink_fieldmap (cartesian_map = ele_save%cartesian_map)
     endif
-    ele1%wig = ele2%wig
+  endif
+
+  nullify(ele_out%cartesian_map)
+
+  if (associated(ele_in%cartesian_map)) then
+    n2 = size(ele_in%cartesian_map(1)%ptr%term)  ! Should be 1
+
+    if (associated(ele_save%cartesian_map)) then
+      ele_out%cartesian_map => ele_save%cartesian_map
+      if (associated(ele_out%cartesian_map(1)%ptr, ele_in%cartesian_map(1)%ptr)) &
+                            ele_out%cartesian_map(1)%ptr%n_link = ele_out%cartesian_map(1)%ptr%n_link - 1
+    else
+      allocate(ele_out%cartesian_map(1))
+    endif
+
+    ele_out%cartesian_map = ele_in%cartesian_map
+    allocate(ele_out%cartesian_map(1)%ptr)
+    allocate(ele_out%cartesian_map(1)%ptr%term(n2))
+    ele_out%cartesian_map(1)%ptr%term = ele_in%cartesian_map(1)%ptr%term
   endif
 
 else
-  ele1%wig => ele_save%wig ! Reinstate for transfer call 
-  call transfer_wig (ele2%wig, ele1%wig)
+  ele_out%cartesian_map => ele_save%cartesian_map ! Reinstate for transfer call 
+  call transfer_fieldmap (ele_in, ele_out, cartesian_map$)
 endif
 
-! %em_field
+! %cylindrical_map, etc.
 
-ele1%em_field => ele_save%em_field ! Reinstate for transfer call 
-call transfer_em_field (ele2%em_field, ele1%em_field)
+ele_out%cylindrical_map => ele_save%cylindrical_map ! Reinstate for transfer call 
+call transfer_fieldmap (ele_in, ele_out, cylindrical_map$)
+
+ele_out%grid_field => ele_save%grid_field ! Reinstate for transfer call 
+call transfer_fieldmap (ele_in, ele_out, grid_field$)
+
+ele_out%taylor_field => ele_save%taylor_field ! Reinstate for transfer call
+call transfer_fieldmap (ele_in, ele_out, taylor_field$)
 
 ! %rad_int_cache
 
-if (associated(ele2%rad_int_cache)) then
+if (associated(ele_in%rad_int_cache)) then
   if (associated (ele_save%rad_int_cache)) then
-      ele1%rad_int_cache => ele_save%rad_int_cache
+      ele_out%rad_int_cache => ele_save%rad_int_cache
   else
-    allocate (ele1%rad_int_cache)
+    allocate (ele_out%rad_int_cache)
   endif
-  ele1%rad_int_cache = ele2%rad_int_cache
+  ele_out%rad_int_cache = ele_in%rad_int_cache
 else
   if (associated (ele_save%rad_int_cache)) deallocate (ele_save%rad_int_cache)
 endif
 
 ! %r
 
-if (associated(ele2%r)) then
+if (associated(ele_in%r)) then
   if (associated (ele_save%r)) then
-    if (all(lbound(ele_save%r) == lbound(ele2%r)) .and. &
-        all(ubound(ele_save%r) == ubound(ele2%r)) ) then
-      ele1%r => ele_save%r
+    if (all(lbound(ele_save%r) == lbound(ele_in%r)) .and. &
+        all(ubound(ele_save%r) == ubound(ele_in%r)) ) then
+      ele_out%r => ele_save%r
     else
       deallocate (ele_save%r)
-      allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
-                       lbound(ele2%r,2):ubound(ele2%r,2), &
-                       lbound(ele2%r,3):ubound(ele2%r,3)))
+      allocate (ele_out%r(lbound(ele_in%r,1):ubound(ele_in%r,1), &
+                       lbound(ele_in%r,2):ubound(ele_in%r,2), &
+                       lbound(ele_in%r,3):ubound(ele_in%r,3)))
     endif
   else
-    allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
-                     lbound(ele2%r,2):ubound(ele2%r,2), &
-                     lbound(ele2%r,3):ubound(ele2%r,3)))
+    allocate (ele_out%r(lbound(ele_in%r,1):ubound(ele_in%r,1), &
+                     lbound(ele_in%r,2):ubound(ele_in%r,2), &
+                     lbound(ele_in%r,3):ubound(ele_in%r,3)))
   endif
-  ele1%r = ele2%r
+  ele_out%r = ele_in%r
 else
   if (associated (ele_save%r)) deallocate (ele_save%r)
 endif
 
 ! %photon
 
-if (associated(ele2%photon)) then
-  ele1%photon => ele_save%photon  ! reinstate
-  if (.not. associated(ele1%photon)) allocate(ele1%photon)
+if (associated(ele_in%photon)) then
+  ele_out%photon => ele_save%photon  ! reinstate
+  if (.not. associated(ele_out%photon)) allocate(ele_out%photon)
 
-  if (allocated (ele2%photon%surface%grid%pt)) then
-    ub = ubound(ele2%photon%surface%grid%pt)
-    if (allocated (ele1%photon%surface%grid%pt)) then
-      if (any(ub /= ubound(ele1%photon%surface%grid%pt))) deallocate (ele1%photon%surface%grid%pt)
+  if (allocated (ele_in%photon%surface%grid%pt)) then
+    ub = ubound(ele_in%photon%surface%grid%pt)
+    if (allocated (ele_out%photon%surface%grid%pt)) then
+      if (any(ub /= ubound(ele_out%photon%surface%grid%pt))) deallocate (ele_out%photon%surface%grid%pt)
     endif
-    if (.not. allocated (ele1%photon%surface%grid%pt)) allocate (ele1%photon%surface%grid%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%surface%grid%pt)) allocate (ele_out%photon%surface%grid%pt(0:ub(1), 0:ub(2)))
   else
-    if (allocated(ele1%photon%surface%grid%pt)) deallocate (ele1%photon%surface%grid%pt)
+    if (allocated(ele_out%photon%surface%grid%pt)) deallocate (ele_out%photon%surface%grid%pt)
   endif
 
-  ele1%photon = ele2%photon
+  ele_out%photon = ele_in%photon
 else
   if (associated (ele_save%photon)) deallocate (ele_save%photon)
 endif
 
 ! %control_var
 
-if (associated(ele2%control_var)) then
-  n = size(ele2%control_var)
-  ele1%control_var => ele_save%control_var   ! reinstate
-  if (associated(ele1%control_var)) then
-    if (size(ele1%control_var) /= n) deallocate(ele1%control_var)
+if (associated(ele_in%control_var)) then
+  n = size(ele_in%control_var)
+  ele_out%control_var => ele_save%control_var   ! reinstate
+  if (associated(ele_out%control_var)) then
+    if (size(ele_out%control_var) /= n) deallocate(ele_out%control_var)
   endif
-  if (.not. associated(ele1%control_var)) allocate(ele1%control_var(n))
-  ele1%control_var = ele2%control_var
+  if (.not. associated(ele_out%control_var)) allocate(ele_out%control_var(n))
+  ele_out%control_var = ele_in%control_var
 
 else
   if (associated (ele_save%control_var)) deallocate(ele_save%control_var)
@@ -227,88 +231,88 @@ endif
 ! %taylor
 
 do i = 1, 6
-  ele1%taylor(i)%term => ele_save%taylor(i)%term ! reinstate
-  ele1%taylor(i) = ele2%taylor(i)      ! use overloaded taylor_equal_taylor
+  ele_out%taylor(i)%term => ele_save%taylor(i)%term ! reinstate
+  ele_out%taylor(i) = ele_in%taylor(i)      ! use overloaded taylor_equal_taylor
 enddo
 
 ! %wall3d
 
-ele1%wall3d => ele_save%wall3d        ! reinstate
-call transfer_wall3d (ele2%wall3d, ele1%wall3d)
+ele_out%wall3d => ele_save%wall3d        ! reinstate
+call transfer_wall3d (ele_in%wall3d, ele_out%wall3d)
 
 ! %a_pole, and %b_pole
 
-if (associated(ele2%a_pole)) then
-  ele1%a_pole => ele_save%a_pole   ! reinstate
-  ele1%b_pole => ele_save%b_pole   ! reinstate
-  call multipole_init (ele1)
-  ele1%a_pole = ele2%a_pole
-  ele1%b_pole = ele2%b_pole
+if (associated(ele_in%a_pole)) then
+  ele_out%a_pole => ele_save%a_pole   ! reinstate
+  ele_out%b_pole => ele_save%b_pole   ! reinstate
+  call multipole_init (ele_out)
+  ele_out%a_pole = ele_in%a_pole
+  ele_out%b_pole = ele_in%b_pole
 else
   if (associated (ele_save%a_pole)) deallocate (ele_save%a_pole, ele_save%b_pole)
 endif
 
 ! %a_pole_elec, and %b_pole_elec
 
-if (associated(ele2%a_pole_elec)) then
-  ele1%a_pole_elec => ele_save%a_pole_elec   ! reinstate
-  ele1%b_pole_elec => ele_save%b_pole_elec   ! reinstate
-  call elec_multipole_init (ele1)
-  ele1%a_pole_elec = ele2%a_pole_elec
-  ele1%b_pole_elec = ele2%b_pole_elec
+if (associated(ele_in%a_pole_elec)) then
+  ele_out%a_pole_elec => ele_save%a_pole_elec   ! reinstate
+  ele_out%b_pole_elec => ele_save%b_pole_elec   ! reinstate
+  call elec_multipole_init (ele_out)
+  ele_out%a_pole_elec = ele_in%a_pole_elec
+  ele_out%b_pole_elec = ele_in%b_pole_elec
 else
   if (associated (ele_save%a_pole_elec)) deallocate (ele_save%a_pole_elec, ele_save%b_pole_elec)
 endif
 
 ! %descrip
 
-if (associated(ele2%descrip)) then
+if (associated(ele_in%descrip)) then
   if (associated (ele_save%descrip)) then
-    ele1%descrip => ele_save%descrip
+    ele_out%descrip => ele_save%descrip
   else
-    allocate (ele1%descrip)
+    allocate (ele_out%descrip)
   endif
-  ele1%descrip = ele2%descrip
+  ele_out%descrip = ele_in%descrip
 else
   if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
 endif
 
 ! %mode3
 
-if (associated(ele2%mode3)) then
+if (associated(ele_in%mode3)) then
   if (associated (ele_save%mode3)) then
-    ele1%mode3 => ele_save%mode3
+    ele_out%mode3 => ele_save%mode3
   else
-    allocate (ele1%mode3)
+    allocate (ele_out%mode3)
   endif
-  ele1%mode3 = ele2%mode3
+  ele_out%mode3 = ele_in%mode3
 else
   if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
 endif
 
 ! %space_charge
 
-if (associated(ele2%space_charge)) then
+if (associated(ele_in%space_charge)) then
   if (associated (ele_save%space_charge)) then
-    ele1%space_charge => ele_save%space_charge
+    ele_out%space_charge => ele_save%space_charge
   else
-    allocate (ele1%space_charge)
+    allocate (ele_out%space_charge)
   endif
-  ele1%space_charge = ele2%space_charge
+  ele_out%space_charge = ele_in%space_charge
 else
   if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
 ! %wake
 
-ele1%wake => ele_save%wake  ! reinstate
-call transfer_wake (ele2%wake, ele1%wake)
+ele_out%wake => ele_save%wake  ! reinstate
+call transfer_wake (ele_in%wake, ele_out%wake)
 
 ! %ptc_genfield%fields are hard because it involves pointers in PTC.
-! just kill the ptc_genfield in ele1 for now.
+! just kill the ptc_genfield in ele_out for now.
 
 if (associated(ele_save%ptc_genfield%field)) call kill_ptc_genfield (ele_save%ptc_genfield%field)
-if (associated(ele1%ptc_genfield%field)) nullify (ele1%ptc_genfield%field)
+if (associated(ele_out%ptc_genfield%field)) nullify (ele_out%ptc_genfield%field)
 
 end subroutine ele_equal_ele
 

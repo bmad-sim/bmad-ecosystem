@@ -666,15 +666,13 @@ Possible values for \vn{field_calc} are:
 \begin{example}
   bmad_standard     ! This is the default
   custom
-  grid
-  map  
+  taylored
 \end{example}
 \index{custom}\index{runge_kutta}
-\vn{Custom} means that the field calculations are done outside of the
-\bmad software. A program doing \vn{custom} field calculations will
-need the appropriate custom routine (\sref{s:custom.ele}). Elements
-that set \vn{field_calc} to \vn{grid} or \vn{map} need the appropriate
-\vn{field} attribute (\sref{s:em.fields}).  
+\vn{Custom} means that the field calculations are done outside of the \bmad software. A
+program doing \vn{custom} field calculations will need the appropriate custom routine
+(\sref{s:custom.ele}). Elements that set \vn{field_calc} to \vn{taylored} need to have a
+taylored field defined (\sref{s:fieldmap}).
 
 \vn{Warning:} When tracking a particle through a custom field using
 \vn{runge_kutta}, it is important that the field obey Maxwell's

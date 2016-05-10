@@ -1,4 +1,4 @@
-\chapter{Introduction to Bmad programming}
+\chapter{Introduction to Bmad Programming}
 \label{c:program.info}
 
 To get the general feel for how \bmad works before
@@ -11,11 +11,16 @@ chapter analyzes an example test program.
 \index{programming!example program}
 
 Consider the example program shown in \fig{f:program}.  This program
-is provided with the \bmad distribution in a file called
-\vn{simple_bmad_program.f90}. \vn{simple_bmad_program.f90} is in the
-library area in a directory called
-\vn{examples/simple_bmad_program}. Directions on how to compile and
-run the program are given on the \bmad web page\cite{b:bmad.web}. 
+is provided with \bmad in the directory:
+\begin{example}
+  \$ACC_ROOT_DIR/examples/simple_bmad_program
+\end{example}
+The executable is at:
+\begin{example}
+  \$ACC_ROOT_DIR/production/bin/simple_bmad_program
+\end{example}
+When you run the program, be in the \vn{examples/simple_bmad_program} directory since
+the program will look for the \vn{lat.bmad} lattice file that is there.
 
 \begin{figure}[htp]
 \index[routine]{bmad_parser}
@@ -229,18 +234,7 @@ solenoid strength by 1\%
 automatically called when transfer matrices are remade so the direct call
 to \vn{control_bookkeeper} may not be necessary.
 
-Making \vn{examples} the working directory, the \vn{mk} command will
-compiling and link the program.  The executable,
-\vn{simple_bmad_program} is to be found in \vn{../production/bin/}
-directory. Go to the directory 
-\begin{example}
-  simple_bmad_program
-\end{example}
-and run the program with the command
-\begin{example}
-  ../../production/bin/simple_bmad_program
-\end{example} 
-This gives the output as shown in \fig{f:output}.
+Running the program gives the output as shown in \fig{f:output}.
 
 \begin{figure}[ht]
 \small

@@ -17,7 +17,7 @@ use track1_mod
 
 implicit none
 
-private parse_rf_grid, parse_rf_map
+private parse_grid_field, parse_cylindrical_map, parser_get_integer, parser_get_logical
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -142,6 +142,8 @@ type bp_common_struct
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
+  character(200) line1_file_name               ! Name of file from which input_line1 was read
+  character(200) line2_file_name               ! Name of file from which input_line1 was read
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
@@ -213,22 +215,24 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
-type (wig_term_struct), pointer :: wig_term(:)
-type (wig_term_struct), pointer :: wt
 type (all_pointer_struct), allocatable :: a_ptrs(:)
 type (wall3d_struct), pointer :: wall3d_arr(:), wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
-type (em_field_mode_struct), pointer :: em_modes(:)
-type (em_field_mode_struct), pointer :: em_mode
 type (photon_surface_struct), pointer :: surf
 type (all_pointer_struct) a_ptr
+type (cylindrical_map_struct), pointer :: cl_map
+type (cartesian_map_term1_struct), pointer :: ct_term
+type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
+type (grid_field_struct), pointer :: g_field
+type (taylor_field_struct), pointer :: t_field
+type (cartesian_map_struct), pointer :: ct_map
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
-integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), family, n_sec, key
 
 character(40) :: word, str_ix, attrib_word, word2, name
@@ -283,12 +287,12 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
 
   do j = 1, 100 
     if (delim == '}') exit
-    call get_integer (n, err_flag, 'BAD EXPONENT');   if (err_flag) return
-    if (.not. expect_one_of ('} ', .true.)) return
+    call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
+    if (.not. expect_one_of ('} ', .true., ele, delim, delim_found)) return
     if (delim2 == ',') then
       select case (j)
-      case (6);      if( .not. expect_one_of ('}', .true.)) return
-      case default;  if (.not. expect_one_of (' ', .true.)) return
+      case (6);      if( .not. expect_one_of ('}', .true., ele, delim, delim_found)) return
+      case default;  if (.not. expect_one_of (' ', .true., ele, delim, delim_found)) return
       end select
       expn(j) = n
     else
@@ -548,28 +552,71 @@ if (ix_word == 0) then  ! no word
   return
 endif
 
-if (word == 'TILT' .and. (ele%key == sbend$ .or. ele%key == rbend$)) then
-  call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
-endif
 
-if (word == 'DPHI0') then
+! All old cesr lattices need to be converted before this warning can be activated...
+!  select case (attrib_word)
+!  case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', 'REF_END')
+!    call parser_error ('OLD SUPERPOSITION SYNTAX: ' // attrib_word, &
+!              'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+!  end select
+
+select case (word)
+case ('TILT')
+  if (ele%key == sbend$ .or. ele%key == rbend$) then
+    call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
+  endif
+
+case ('DPHI0')
   call parser_error ('THE ATTRIBUTE NAME "DPHI0" HAS BEEN CHANGED TO "PHI0_MULTIPASS"', &
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
                      '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
   word = 'PHI0_MULTIPASS'
-endif
 
-if (word == 'REL_TRACKING_CHARGE') then
+case ('REL_TRACKING_CHARGE') 
   call parser_error ('THE ATTRIBUTE NAME "REL_TRACKING_CHARGE" HAS BEEN CHANGED TO "DEFAULT_TRACKING_SPECIES"', &
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
-endif
 
-if (word == 'RADIUS') then
+case ('RADIUS')
   call parser_error ('THE ATTRIBUTE "RADIUS" HAS BEEN CHANGED TO "R0_MAG"', &
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
                      '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
   word = 'R0_MAG'
-endif
+
+case ('FIELD')
+  call parser_error ('THE "FIELD = {...}" SYNTAX HAS BEEN CHANGED TO "GRID_FIELD = {...} AND/OR CYLINDRICAL_MAP = {...}.', &
+                     'NOTE: THIS INVOLVES MORE THAN CHANGING "FIELD" TO "GRID_FIELD" OR "CYLINDRICAL_MAP".', &
+                     'PLEASE SEE THE BMAD MANUAL FOR MORE DETAILS')
+
+case ('REF_BEGINNING')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ref_pt = anchor_beginning$
+  return
+
+case ('REF_CENTER')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ref_pt = anchor_center$
+  return
+
+case ('REF_END')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ref_pt = anchor_end$
+  return
+
+case ('ELE_BEGINNING')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ele_pt = anchor_beginning$
+  return
+
+case ('ELE_CENTER')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ele_pt = anchor_center$
+  return
+
+case ('ELE_END')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  pele%ele_pt = anchor_end$
+  return
+end select
 
 word = parser_translate_attribute_name (ele%key, word)
 
@@ -592,13 +639,13 @@ endif
 if (attrib_word == 'WALL') then
 
   i_section = 0
-  if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
   ! "ele1[wall] = ele2[wall]" construct
 
   if (delim == '[') then
-    call parser_ele1_attribute_equal_ele2_attribute ('WALL')
+    call parser_find_ele_for_attrib_transfer ('WALL')
     if (.not. associated(eles(1)%ele%wall3d)) then
       call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
@@ -609,7 +656,7 @@ if (attrib_word == 'WALL') then
 
   !
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "WALL"')) return
+  if (.not. expect_this ('{', .true., .true., 'AFTER "WALL"', ele, delim, delim_found)) return
 
   ! Loop wall3d_struct components.
 
@@ -641,7 +688,7 @@ if (attrib_word == 'WALL') then
 
     ! Possible "}" is end of wall 
     if (delim /= '}' .and. word == '') exit
-    if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
+    if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT', ele, delim, delim_found)) return
 
     select case (word)
 
@@ -659,7 +706,7 @@ if (attrib_word == 'WALL') then
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
-      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), wall3d%ele_anchor_pt, err_flag2, ele)
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), wall3d%ele_anchor_pt, err_flag2, ele, delim, delim_found)
       if (err_flag2) return
 
     case ('SUPERIMPOSE')
@@ -671,7 +718,7 @@ if (attrib_word == 'WALL') then
 
       ! Read in section
 
-      if (.not. expect_this ('{', .false., .true., 'AFTER "SECTION =" IN WALL CONSTRUCT')) return
+      if (.not. expect_this ('{', .false., .true., 'AFTER "SECTION =" IN WALL CONSTRUCT', ele, delim, delim_found)) return
 
       i_section = i_section + 1
       ix_v = 0
@@ -685,15 +732,15 @@ if (attrib_word == 'WALL') then
         ! Possible "}" is end of wall 
         if (delim /= '}' .and. word == '') exit
         if (word == 'V') then
-          if (.not. expect_this ('(', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
+          if (.not. expect_this ('(', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT', ele, delim, delim_found)) return
         else
-          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
+          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT', ele, delim, delim_found)) return
         endif
 
         select case (word)
 
         case ('TYPE') 
-          call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2, ele)
+          call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2, ele, delim, delim_found)
           if (err_flag2) return
 
         case ('MATERIAL') 
@@ -743,7 +790,7 @@ if (attrib_word == 'WALL') then
             return
           endif
 
-          if (.not. expect_this (')={', .true., .false., 'AFTER "V(n)" IN WALL CONSTRUCT')) return
+          if (.not. expect_this (')={', .true., .false., 'AFTER "V(n)" IN WALL CONSTRUCT', ele, delim, delim_found)) return
 
           call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
           if (err_flag) return
@@ -777,9 +824,9 @@ if (attrib_word == 'WALL') then
           return
         end select   ! section components
 
-        if (.not. expect_one_of (',}', .true.)) return
+        if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
         if (delim == '}') then
-          if (.not. expect_one_of(',}', .false.)) return
+          if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
           exit
         endif
       enddo wall3d_section_loop
@@ -789,14 +836,14 @@ if (attrib_word == 'WALL') then
       return
     end select   ! wall components
 
-    if (.not. expect_one_of (',}', .true.)) return
+    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
     if (delim == '}') exit
 
   enddo wall3d_loop
 
   ! Next thing on line should be either a "," or end-of-line
 
-  logic = expect_one_of(', ', .false.)
+  logic = expect_one_of(', ', .false., ele, delim, delim_found)
   return
 
 endif
@@ -807,13 +854,13 @@ endif
 if (attrib_word == 'SURFACE') then
   surf => ele%photon%surface
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "SURFACE"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "SURFACE"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
   ! "ele1[surface] = ele2[surface]" construct
 
   if (delim == '[') then
-    call parser_ele1_attribute_equal_ele2_attribute ('SURFACE')
+    call parser_find_ele_for_attrib_transfer ('SURFACE')
     if (.not. associated(eles(1)%ele%photon)) then
       call parser_error ('NO SURFACE ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
@@ -824,7 +871,7 @@ if (attrib_word == 'SURFACE') then
 
   !
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "SURFACE"')) return
+  if (.not. expect_this ('{', .true., .true., 'AFTER "SURFACE"', ele, delim, delim_found)) return
 
   surface_loop: do
 
@@ -836,13 +883,13 @@ if (attrib_word == 'SURFACE') then
 
     case ('GRID')
 
-      if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"')) return
+      if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"', ele, delim, delim_found)) return
       ix_bounds = int_garbage$; iy_bounds = int_garbage$
 
       do
         call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
         if (word /= 'PT') then
-          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT')) return
+          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT', ele, delim, delim_found)) return
         endif
 
         select case (word)
@@ -878,12 +925,12 @@ if (attrib_word == 'SURFACE') then
             call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
             return
           endif
-          if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
+          if (.not. expect_this ('=', .false., .false., 'GRID PT', ele, delim, delim_found)) return
           if (.not. parse_real_list (lat, trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
           surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele)
+          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
           if (err_flag2) return
           bp_com%parse_line = delim // bp_com%parse_line
 
@@ -892,9 +939,9 @@ if (attrib_word == 'SURFACE') then
           return
         end select
 
-        if (.not. expect_one_of (',}', .false.)) return
+        if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
         if (delim == '}') then
-          if (.not. expect_one_of (',}', .false.)) return
+          if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
           exit
         endif
 
@@ -909,191 +956,178 @@ if (attrib_word == 'SURFACE') then
 
   enddo surface_loop
 
-  if (.not. expect_one_of(', ', .false.)) return
+  if (.not. expect_one_of(', ', .false., ele, delim, delim_found)) return
   err_flag = .false.
   return
 
 endif
 
 !-------------------------------
-! RF field
+! Cartesian_map field
 
-if (attrib_word == 'FIELD') then
+if (attrib_word == 'CARTESIAN_MAP') then
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "FIELD"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "ele1[field] = ele2[field]" construct
+  ! "ele1[cartesian_map] = ele2[cartesian_map]" construct
 
   if (delim == '[') then
-    call parser_ele1_attribute_equal_ele2_attribute ('FIELD')
+    call parser_find_ele_for_attrib_transfer ('CARTESIAN_MAP')
     if (err_flag) return
-    if (.not. associated(eles(1)%ele%em_field)) then
-      call parser_error ('NO FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+    if (.not. associated(eles(1)%ele%cartesian_map)) then
+      call parser_error ('NO CARTESIAN_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_em_field(eles(1)%ele%em_field, ele%em_field)
+    call transfer_fieldmap(eles(1)%ele, ele, cartesian_map$)
     return
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "FIELD"')) return
+  if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
 
-  ! Loop over all modes
-
-  do
-
-    if (associated(ele%em_field)) then
-      i_mode = size(ele%em_field%mode) + 1
-      em_modes => ele%em_field%mode
-      nullify(ele%em_field)
-      call init_em_field (ele%em_field, i_mode)
-      ele%em_field%mode(1:i_mode-1) = em_modes 
-    else
-      call init_em_field (ele%em_field, 1)
-      i_mode = 1
-    endif
-
-    if (ele%key == em_field$) ele%em_field%mode(i_mode)%master_scale = field_factor$
-
-    em_mode => ele%em_field%mode(i_mode)
-    if (ele%key == lcavity$ .or. ele%key == rfcavity$) em_mode%harmonic = 1 ! Default
-
-    ! Expect "MODE = {" or "MODE_TO_AUTOSCALE ="
-
-    call get_next_word (word2, ix_word, '{}=,()', delim, delim_found)
-    if (word2 /= 'MODE' .and. word2 /= 'MODE_TO_AUTOSCALE') then
-      call parser_error ('EXPECTED "MODE" OR , "MODE_TO_AUTOSCALE" IN FIELD DEFINITION BUT FOUND: ' // word2, &
-                         'FOR ELEMENT: ' // ele%name)
-      return
-    endif 
-
-    ! MODE_TO_AUTOSCALE 
-
-    if (word2 == 'MODE_TO_AUTOSCALE') then
-      if (.not. expect_this ('=', .true., .true., 'AFTER "MODE_TO_AUTOSCALE"')) return
-      call get_integer (ele%em_field%mode_to_autoscale, err_flag, 'BAD MODE_TO_AUTOSCALE VALUE')
-      if (err_flag) return
-    endif
-
-    ! MODE = { 
-
-    if (.not. expect_this ('={', .true., .true., 'AFTER "MODE"')) return
-    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
-    do
-
-      ! Expect "<component> = "
-
-      if (delim /= '=') then
-        call parser_error ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-        return
-      endif
-
-      do_evaluate = .true.
-      word2 = word
-
-      select case (word2)
-
-      case ('F_DAMP');         r_ptr => em_mode%f_damp
-      case ('PHI0_REF');       r_ptr => em_mode%phi0_ref
-      case ('STORED_ENERGY');  r_ptr => em_mode%stored_energy
-      case ('PHI0_AZIMUTH');   r_ptr => em_mode%phi0_azimuth
-      case ('FIELD_SCALE');    r_ptr => em_mode%field_scale
-      case ('DPHI0_REF')
-        r_ptr => em_mode%phi0_ref  ! For backwards compatibility
-        call parser_error ('THE ATTRIBUTE NAME "DPHI0_REF" HAS BEEN CHANGED TO "PHI0_REF"', &
-                           'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
-                           '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
-
-      case ('GRID') 
-        call parse_rf_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag)
-        if (err_flag) return
-        do_evaluate = .false.
-
-      case ('MAP') 
-        call parse_rf_map(em_mode%cylindrical_map, ele, lat, delim, delim_found, err_flag)
-        if (err_flag) return
-        do_evaluate = .false.
-
-      case ('M', 'HARMONIC')
-
-        select case (word2)
-        case ('M');        call get_integer (em_mode%m, err_flag, &
-                                      'BAD "FIELD MODE M = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
-        case ('HARMONIC'); call get_integer (em_mode%harmonic, err_flag, &
-                                      'BAD "FIELD MODE HARMONIC = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
-        end select
-
-        if (err_flag) return
-        do_evaluate = .false.
-
-      case ('MASTER_SCALE')
-        call get_next_word (word, ix_word, ',}', delim, delim_found)
-        if (word == 'NONE') then
-          ix = 0
-        else
-          ix = attribute_index(ele, word)
-          if (ix < 1 .or. ix > num_ele_attrib$) then
-            call parser_error ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
-                                 'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-            return
-          endif
-        endif
-        em_mode%master_scale = ix
-        do_evaluate = .false.
-
-      case default
-        call parser_error ('UNKNOWN MODE COMPONENT: ' // word, &
-                             'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-        return
-      end select
-
-      if (do_evaluate) call evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag, ',}')
-
-      ! Possible "}" is end of mode
-      if (delim == '}') exit
-
-      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
+  if (associated(ele%cartesian_map)) then
+    i_ptr = size(ele%cartesian_map) + 1
+    ele0%cartesian_map => ele%cartesian_map
+    allocate(ele%cartesian_map(i_ptr))
+    do i = 1, i_ptr-1
+     ele%cartesian_map(i)%ptr => ele0%cartesian_map(i)%ptr
     enddo
+  else
+    allocate(ele%cartesian_map(1))
+    i_ptr = 1
+  endif
 
-    ! Check if map data has already been read in for another element.
-    ! If so, save space by pointing to the existing map.
+  allocate (ele%cartesian_map(i_ptr)%ptr)
+  call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
+  return
+endif
 
-    branch_loop: do ib = 0, ubound(lat%branch, 1)
-      branch => lat%branch(ib)
-      do ie = 1, branch%n_ele_max
-        bele => branch%ele(ie)
-        if (.not. associated(bele%em_field)) cycle    
-        if (bele%ix_ele == ele%ix_ele .and. bele%ix_branch == ele%ix_branch) cycle
-        do im = 1, size(bele%em_field%mode)
-          if (.not. associated(bele%em_field%mode(im)%cylindrical_map)) cycle
-          if (bele%em_field%mode(im)%cylindrical_map%file /= em_mode%cylindrical_map%file) cycle
-          deallocate(em_mode%cylindrical_map)
-          em_mode%cylindrical_map => bele%em_field%mode(im)%cylindrical_map
-          em_mode%cylindrical_map%n_link = em_mode%cylindrical_map%n_link + 1        
-          exit branch_loop
-        end do
-      enddo 
-    enddo branch_loop
+!-------------------------------
+! Cylindrical_map field
 
-    ! Expect "," or "}"
-    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+if (attrib_word == 'CYLINDRICAL_MAP') then
 
-    if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
-      call parser_error ('NO "," OR "}" FOUND AFTER MODE DEFINITION', &
-                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+  if (.not. expect_this ('=', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "ele1[cylindrical_map] = ele2[cylindrical_map]" construct
+
+  if (delim == '[') then
+    call parser_find_ele_for_attrib_transfer ('CYLINDRICAL_MAP')
+    if (err_flag) return
+    if (.not. associated(eles(1)%ele%cylindrical_map)) then
+      call parser_error ('NO CYLINDRICAL_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
+    call transfer_fieldmap(eles(1)%ele, ele, cylindrical_map$)
+    return
+  endif
 
-    if (delim == '}') exit
+  if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
 
-  enddo
+  if (associated(ele%cylindrical_map)) then
+    i_ptr = size(ele%cylindrical_map) + 1
+    ele0%cylindrical_map => ele%cylindrical_map
+    allocate(ele%cylindrical_map(i_ptr))
+    do i = 1, i_ptr-1
+     ele%cylindrical_map(i)%ptr => ele0%cylindrical_map(i)%ptr
+    enddo
+  else
+    allocate(ele%cylindrical_map(1))
+    i_ptr = 1
+  endif
 
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-  err_flag = .false.
+  allocate (ele%cylindrical_map(i_ptr)%ptr)
+  cl_map => ele%cylindrical_map(i_ptr)
+  if (ele%key == lcavity$ .or. ele%key == rfcavity$) cl_map%harmonic = 1 ! Default
+
+  call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
   return
+endif
 
+!-------------------------------
+! grid_field field
+
+if (attrib_word == 'GRID_FIELD') then
+
+  if (.not. expect_this ('=', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "ele1[grid_field] = ele2[grid_field]" construct
+
+  if (delim == '[') then
+    call parser_find_ele_for_attrib_transfer ('GRID_FIELD')
+    if (err_flag) return
+    if (.not. associated(eles(1)%ele%grid_field)) then
+      call parser_error ('NO GRID_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    call transfer_fieldmap(eles(1)%ele, ele, grid_field$)
+    return
+  endif
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
+
+  if (associated(ele%grid_field)) then
+    i_ptr = size(ele%grid_field) + 1
+    ele0%grid_field => ele%grid_field
+    allocate(ele%grid_field(i_ptr))
+    do i = 1, i_ptr-1
+     ele%grid_field(i)%ptr => ele0%grid_field(i)%ptr
+    enddo
+  else
+    allocate(ele%grid_field(1))
+    i_ptr = 1
+  endif
+
+  allocate (ele%grid_field(i_ptr)%ptr)
+  g_field => ele%grid_field(i_ptr)
+  if (ele%key == lcavity$ .or. ele%key == rfcavity$) g_field%harmonic = 1 ! Default
+
+  call parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
+  return
+endif
+
+!-------------------------------
+! Taylor_field field
+
+if (attrib_word == 'TAYLOR_FIELD') then
+
+  if (.not. expect_this ('=', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "ele1[taylor_field] = ele2[taylor_field]" construct
+
+  if (delim == '[') then
+    call parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD')
+    if (err_flag) return
+    if (.not. associated(eles(1)%ele%taylor_field)) then
+      call parser_error ('NO TAYLOR_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    call transfer_fieldmap(eles(1)%ele, ele, taylor_field$)
+    return
+  endif
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+
+  if (associated(ele%taylor_field)) then
+    i_ptr = size(ele%taylor_field) + 1
+    ele0%taylor_field => ele%taylor_field
+    allocate(ele%taylor_field(i_ptr))
+    do i = 1, i_ptr-1
+     ele%taylor_field(i)%ptr => ele0%taylor_field(i)%ptr
+    enddo
+  else
+    allocate(ele%taylor_field(1))
+    i_ptr = 1
+  endif
+
+  allocate (ele%taylor_field(i_ptr)%ptr)
+  t_field => ele%taylor_field(i_ptr)
+
+  call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
+  return
 endif
 
 !------------------------------
@@ -1108,7 +1142,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     return
   endif
 
-  call get_integer (ix, err_flag, 'BAD WIGGLER "TERM(IX)" CONSTRUCT'); if (err_flag) return
+  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD WIGGLER "TERM(IX)" CONSTRUCT'); if (err_flag) return
 
   if (delim /= ')') then
     call parser_error ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
@@ -1117,16 +1151,21 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
 
   write (str_ix, '(a, i3, a)') 'TERM(', ix, ')'
 
-  if (.not. associated(ele%wig)) then
-    allocate(ele%wig)
-    allocate(ele%wig%term(ix))
-  elseif (ix > size(ele%wig%term)) then
-    allocate (wig_term(size(ele%wig%term)))
-    wig_term = ele%wig%term
-    deallocate (ele%wig%term)
-    allocate (ele%wig%term(ix))
-    ele%wig%term(1:size(wig_term)) = wig_term
-    deallocate (wig_term)
+  if (.not. associated(ele%cartesian_map)) then
+    allocate(ele%cartesian_map(1))
+    ct_map => ele%cartesian_map(1)
+    allocate(ct_map%ptr)
+    allocate(ct_map%ptr%term(ix))
+    ct_map%ptr%file = bp_com%line1_file_name
+    ct_map%master_parameter = polarity$
+  else
+    ct_map => ele%cartesian_map(1)
+    if (ix > size(ct_map%ptr%term)) then
+      call move_alloc (ct_map%ptr%term, ct_terms)
+      allocate (ct_map%ptr%term(ix))
+      ct_map%ptr%term(1:size(ct_terms)) = ct_terms
+      deallocate (ct_terms)
+    endif
   endif
 
   ! 1) chop "=", 2) chop to "{", 3) chop to "}", 4) chop to "," if it exists
@@ -1140,68 +1179,68 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   endif
 
   err_str = trim(ele%name) // ' ' // str_ix
-  wt => ele%wig%term(ix)
+  ct_term => ct_map%ptr%term(ix)
 
-  call evaluate_value (err_str, wt%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
-  call evaluate_value (err_str, wt%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, wt%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, wt%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
+  call evaluate_value (err_str, ct_term%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
+  call evaluate_value (err_str, ct_term%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ct_term%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ct_term%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
   old_style_input = .true.
   family = y_family$
 
   if (delim == ',') then
-    wt%x0 = wt%phi_z
-    call evaluate_value (err_str, wt%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele); if (err_flag) return
-    if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH')) return
+    ct_term%x0 = ct_term%phi_z
+    call evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
+    if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
   endif
 
-  kx = wt%kx
-  ky = wt%ky
-  kz = wt%kz
+  kx = ct_term%kx
+  ky = ct_term%ky
+  kz = ct_term%kz
   tol = 1d-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
     select case (family)
-    case (x_family$);   wt%type = hyper_y_family_x$
-    case (y_family$);   wt%type = hyper_y_family_y$
-    case (qu_family$);  wt%type = hyper_y_family_qu$
-    case (sq_family$);  wt%type = hyper_y_family_sq$
+    case (x_family$);   ct_term%type = hyper_y_family_x$
+    case (y_family$);   ct_term%type = hyper_y_family_y$
+    case (qu_family$);  ct_term%type = hyper_y_family_qu$
+    case (sq_family$);  ct_term%type = hyper_y_family_sq$
     end select
 
     if (old_style_input) then
-      if (wt%kx == 0) wt%kx = 1d-30  ! Something small to prevent divide by zero problems.
+      if (ct_term%kx == 0) ct_term%kx = 1d-30  ! Something small to prevent divide by zero problems.
     endif
 
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
     select case (family)
-    case (x_family$);   wt%type = hyper_xy_family_x$
-    case (y_family$);   wt%type = hyper_xy_family_y$
-    case (qu_family$);  wt%type = hyper_xy_family_qu$
-    case (sq_family$);  wt%type = hyper_xy_family_sq$
+    case (x_family$);   ct_term%type = hyper_xy_family_x$
+    case (y_family$);   ct_term%type = hyper_xy_family_y$
+    case (qu_family$);  ct_term%type = hyper_xy_family_qu$
+    case (sq_family$);  ct_term%type = hyper_xy_family_sq$
     end select
 
     if (old_style_input) then
-      wt%coef = wt%coef * wt%kz / wt%ky
-      if (wt%kx == 0) wt%kx = 1d-30  ! Something small to prevent divide by zero problems.
-      if (wt%ky == 0) wt%ky = 1d-30  ! Something small to prevent divide by zero problems.
+      ct_term%coef = ct_term%coef * ct_term%kz / ct_term%ky
+      if (ct_term%kx == 0) ct_term%kx = 1d-30  ! Something small to prevent divide by zero problems.
+      if (ct_term%ky == 0) ct_term%ky = 1d-30  ! Something small to prevent divide by zero problems.
     endif
 
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
     select case (family)
-    case (x_family$);   wt%type = hyper_x_family_x$
-    case (y_family$);   wt%type = hyper_x_family_y$
-    case (qu_family$);  wt%type = hyper_x_family_qu$
-    case (sq_family$);  wt%type = hyper_x_family_sq$
+    case (x_family$);   ct_term%type = hyper_x_family_x$
+    case (y_family$);   ct_term%type = hyper_x_family_y$
+    case (qu_family$);  ct_term%type = hyper_x_family_qu$
+    case (sq_family$);  ct_term%type = hyper_x_family_sq$
     end select
 
     if (old_style_input) then
-      wt%coef = wt%coef * wt%kx / wt%ky
-      if (wt%ky == 0) wt%ky = 1d-30  ! Something small to prevent divide by zero problems.
+      ct_term%coef = ct_term%coef * ct_term%kx / ct_term%ky
+      if (ct_term%ky == 0) ct_term%ky = 1d-30  ! Something small to prevent divide by zero problems.
     endif
 
   else
@@ -1219,6 +1258,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   endif
 
   ele%sub_key = map_type$
+  ele%field_calc = fieldmap$
   return
 
 endif
@@ -1265,41 +1305,10 @@ if (delim /= '=')  then
     end select
   endif
 
-!  select case (attrib_word)
-!  case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', 'REF_END')
-!    call parser_error ('OLD SUPERPOSITION SYNTAX: ' // attrib_word, &
-!              'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
-!  end select
-
-
   select case (attrib_word)
 
   case ('SUPERIMPOSE')
     ele%lord_status = super_lord$
-
-  case ('REF_BEGINNING')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = anchor_beginning$
-
-  case ('REF_CENTER')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = anchor_center$
-
-  case ('REF_END')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = anchor_end$
-
-  case ('ELE_BEGINNING')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = anchor_beginning$
-
-  case ('ELE_CENTER')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = anchor_center$
-
-  case ('ELE_END')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = anchor_end$
 
   case default
     call parser_error ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
@@ -1361,15 +1370,15 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
 
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true.)) return
-  if (.not. expect_one_of (', ', .false.)) return
+  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 
 case ('PTC_MAX_FRINGE_ORDER')
   call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', warn_only = .true.)
-  call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
+  call parser_get_integer (bmad_com%ptc_max_fringe_order, word, ix_word, delim, delim_found, err_flag)
   bp_com%extra%ptc_max_fringe_order_set = .true.
 
 case ('TAYLOR_ORDER')
-  call get_integer (ix, err_flag)
+  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag)
   if (ix <= 0) then
     call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
     return
@@ -1401,20 +1410,20 @@ case ('SUPERIMPOSE')  ! ele[superimpose] = False case
   endif
 
 case ('APERTURE_AT')
-  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
+  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele, delim, delim_found)
 
 case ('APERTURE_TYPE')
-  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele)
+  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found)
 
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
 
 case ('CAVITY_TYPE')
-  call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(cavity_type$) = ix
 
 case ('COUPLER_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(coupler_at$) = ix
 
 case ('CREATE_JUMBO_SLAVE')
@@ -1434,7 +1443,7 @@ case ('DEFAULT_TRACKING_SPECIES')
   ele%value(default_tracking_species$) = ix
 
 case ('ENERGY_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(energy_distribution$) = ix
 
 case ('PTC_EXACT_MODEL')
@@ -1456,32 +1465,32 @@ case ('SCALE_MULTIPOLES')
   call get_logical (attrib_word, ele%scale_multipoles, err_flag)
 
 case ('FIELD_CALC')
-  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele)
+  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found)
 
 case ('REF_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found)
 
 case ('ELE_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found)
 
 case ('PTC_FRINGE_GEOMETRY')
-  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(ptc_fringe_geometry$) = ix
 
 case ('FRINGE_TYPE')
   if (ele%key == rbend$ .or. ele%key == sbend$) then
-    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele)
+    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
   else
-    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele)
+    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele, delim, delim_found)
   endif
   ele%value(fringe_type$) = ix
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(higher_order_fringe_type$) = ix
 
 case ('MAT6_CALC_METHOD')
-  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele)
+  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found)
   if (err_flag) return
   if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then
     if (wild_key0) then
@@ -1495,19 +1504,19 @@ case ('MAT6_CALC_METHOD')
   ele%mat6_calc_method = switch
 
 case ('REF_COORDINATES')
-  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele)
+  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found)
   ele%value(ref_coordinates$) = ix
 
 case ('REF_ORBIT_FOLLOWS')
-  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(ref_orbit_follows$) = ix
 
 case ('MODE')
-  call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(mode$) = ix
 
 case ('PTC_INTEGRATION_TYPE')
-  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele)
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found)
 
 case ('PARTICLE')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1521,7 +1530,7 @@ case ('PARTICLE')
   ele%value(particle$) = ix
 
 case ('PTC_FIELD_GEOMETRY')
-  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(ptc_field_geometry$) = ix
 
   if (ele%key == sbend$ .and. ix == true_rbend$) then
@@ -1530,32 +1539,32 @@ case ('PTC_FIELD_GEOMETRY')
   endif
 
 case ('GEOMETRY')
-  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found)
   branch => pointer_to_branch(ele%name, lat, .true.)
   if (associated(branch)) branch%param%geometry = ix
   ele%value(geometry$) = ix
 
 case ('PHOTON_TYPE')
-  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found)
   lat%photon_type = ix   ! photon_type has been set.
 
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
                      'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
                      'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
-  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(geometry$) = ix
 
 case ('FRINGE_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(fringe_at$) = ix
 
 case ('ORIGIN_ELE_REF_PT')
-  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(origin_ele_ref_pt$) = ix
 
 case ('SPATIAL_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(spatial_distribution$) = ix
 
 case ('SPIN_TRACKING_METHOD')
@@ -1565,7 +1574,7 @@ case ('SPIN_TRACKING_METHOD')
                      'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
     attrib_word = 'TRACKING'
   endif
-  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
+  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
   if (err_flag) return
   if (.not. valid_spin_tracking_method (ele, switch)) then
     if (wild_key0) then
@@ -1582,7 +1591,7 @@ case ('TAYLOR_MAP_INCLUDES_OFFSETS')
   call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag)
 
 case ('TRACKING_METHOD')
-  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele)
+  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
   if (err_flag) return
   if (.not. valid_tracking_method (ele, not_set$, switch)) then
     if (wild_key0) then
@@ -1596,7 +1605,7 @@ case ('TRACKING_METHOD')
   ele%tracking_method = switch
 
 case ('VELOCITY_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(velocity_distribution$) = ix
 
 case default   ! normal attribute
@@ -1728,103 +1737,28 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
-! delim_list    -- character(*): String of tokens expected. 
-! check_delim   -- logical: If True then use "delim" character as first token to check.
-!                    A blank character indicates end of command is expected.
-! call_check    -- Logical: If True then check for 'call::<filename>' construct.
-
-function expect_this (expecting, check_delim, call_check, err_str) result (is_ok)
-
-implicit none
-
-character(*) expecting, err_str
-character(40) word
-logical is_ok, check_delim, call_check
-integer ix
-
-!
-
-is_ok = .false.
-
-do ix = 1, len(expecting)
-  if (ix == 1 .and. check_delim) then
-    word = ''
-  else
-    call get_next_word (word, ix_word, expecting(ix:ix), delim, delim_found, call_check = call_check)
-  endif
-
-  if (expecting(ix:ix) == ' ') then
-    if (delim_found .or. word /= '') then
-      call parser_error ('EXTRA STUFF ON LINE.', err_str)
-      return
-    endif
-  elseif (delim /= expecting(ix:ix) .or. word /= '') then
-    call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-enddo
-
-is_ok = .true.
-
-end function expect_this
-
 !--------------------------------------------------------
 ! contains
 
-! delim_list -- character(*): List of valid tokens. If list contains a space character
-!                 then no token (indicating the end of the command) is a valid possibility.
-!
+subroutine parser_find_ele_for_attrib_transfer (attribute)
 
-function expect_one_of (delim_list, check_delim) result (is_ok)
-
-character(*) delim_list
-logical check_delim, is_ok, must_have_delim
-
-!
-
-is_ok = .false.
-must_have_delim = (index(delim_list, ' ') == 0)
-
-if (check_delim) then
-  if ((must_have_delim .and. .not. delim_found) .or. &
-      (delim /= '' .and. index(delim_list, delim) == 0)) then
-    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-
-else
-  call get_next_word (word, ix_word, '{}=,()[]', delim, delim_found)
-  if (word /= '' .or. (must_have_delim .and. .not. delim_found) .or. &
-      (delim /= '' .and. index(delim_list, delim) == 0)) then
-    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-endif
-
-is_ok = .true.
-
-end function expect_one_of
-
-!--------------------------------------------------------
-! contains
-
-subroutine parser_ele1_attribute_equal_ele2_attribute (who)
-
-character(*) who
+character(*) attribute
 
 call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
-if (delim2 /= ']' .or. word2 /= who) then
-  call parser_error ('BAD ' // who // ' CONSTRUCT')
+if (delim2 /= ']' .or. word2 /= attribute) then
+  call parser_error ('BAD ' // attribute // ' CONSTRUCT')
   return
 endif
-if (.not. expect_this (' ', .false., .false., '')) return
+if (.not. expect_this (' ', .false., .false., '', ele, delim, delim_found)) return
 call lat_ele_locator (word, lat, eles, n, err_flag)
 if (err_flag .or. n /= 1) then
   call parser_error ('LATTICE ELEMENT NOT FOUND: ' // word)
   return
 endif
 
-end subroutine parser_ele1_attribute_equal_ele2_attribute
+
+
+end subroutine parser_find_ele_for_attrib_transfer
 
 !--------------------------------------------------------
 ! contains
@@ -1881,80 +1815,6 @@ else
 endif
 
 end subroutine get_logical
-
-!--------------------------------------------------------
-! contains
-
-subroutine get_integer (int_val, err, str1, str2)
-
-integer int_val
-logical err
-character(*), optional :: str1, str2
-
-!
-
-call get_next_word (word, ix_word, ':,=(){} ', delim, delim_found, .true.)
-if (.not. is_integer(word) ) then
-  if (present(str1)) then
-    call parser_error (str1, str2)
-  else
-    call parser_error ('INTEGER EXPECTED, I DO NOT UNDERSTAND: ' // word)
-  endif
-  err = .true.
-
-else
-  read (word, *) int_val
-  err = .false.
-endif
-
-end subroutine get_integer
-
-!--------------------------------------------------------
-! contains
-
-subroutine get_switch (name, name_list, switch, err, ele)
-
-type (ele_struct) :: ele
-character(*) name, name_list(:)
-integer this_switch, switch
-logical err
-
-!
-
-call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
-
-!
-
-if (name == 'FRINGE_TYPE') then
-  if (word == 'FULL_BEND') then
-    word = 'FULL'
-    call parser_error ('Changed syntax: "FRINGE_TYPE = FULL_BEND" needs to be changed to "FRINGE_TYPE = FULL"', &
-                       'Program will execute as normal...', warn_only = .true.)
-  endif
-
-  if (word == 'FULL_STRAIGHT') then
-    word = 'FULL'
-    call parser_error ('Changed syntax: "FRINGE_TYPE = FULL_STRAIGHT" needs to be changed to "FRINGE_TYPE = FULL"', &
-                       'Program will execute as normal...', warn_only = .true.)
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
-      ele%value(ptc_fringe_geometry$) = multipole_symmetry$
-      call parser_error ('... Additionally, "PTC_FRINGE_GEOMETRY = MULTIPOLE_SYMMETRY" needs to be set for this element.', warn_only = .true.)
-    endif
-  endif
-endif
-
-!
-
-call match_word (word, name_list, this_switch, can_abbreviate = .false.)
-if (this_switch < 1) then
-  call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
-  err = .true.
-else
-  err = .false.
-  switch = this_switch
-endif
-
-end subroutine get_switch
 
 !--------------------------------------------------------
 ! contains
@@ -2119,7 +1979,7 @@ integer i, j, i_out, expn(6)
 
 !
 
-if (i_out > 100) then 
+if (i_out > 100) then
   i_out = i_out - 101
   i = i_out / 3
   j = i_out - 3 * i
@@ -2506,9 +2366,13 @@ do
   if (action == 'continue') then
     bp_com%input_line1 = bp_com%input_line2
     bp_com%input_line2 = line
+    bp_com%line1_file_name = bp_com%line2_file_name
+    write (bp_com%line2_file_name, '(2a, i0)') trim(bp_com%current_file%full_name), ':', bp_com%current_file%i_line
   elseif (action == 'new_command') then
-    bp_com%input_line1 = ' '
+    bp_com%input_line1 = ''
     bp_com%input_line2 = line
+    bp_com%line1_file_name = ''
+    write (bp_com%line2_file_name, '(2a, i0)') trim(bp_com%current_file%full_name), ':', bp_com%current_file%i_line
   else
     call parser_error ('INTERNAL ERROR #4: CALL HELP')
     if (global_com%exit_on_error) call err_exit
@@ -5568,7 +5432,11 @@ case (lcavity$)
   if (ele%value(voltage$) /= 0) then
     if (ele%value(gradient$) /= 0) call parser_error &
                 ('BOTH VOLTAGE AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
-    ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    if (ele%value(l$) == 0) then
+      ele%value(gradient$) = 0
+    else
+      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    endif
   endif
 
 ! 
@@ -6372,9 +6240,9 @@ end subroutine parser_debug_print_info
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_rf_map (grid, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_cartesian_map (ct_map, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "map = {}" construct
+! Subroutine to parse a "cartesian_map = {}" construct
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
@@ -6388,39 +6256,246 @@ end subroutine parser_debug_print_info
 !    . ) },
 !-
 
-subroutine parse_rf_map (map, ele, lat, delim, delim_found, err_flag)
+subroutine parse_cartesian_map (ct_map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (em_field_cylindrical_map_struct), pointer :: map
+type (cartesian_map_struct) :: ct_map
 type (ele_struct), target :: ele
-type (lat_struct) lat
+type (ele_struct), pointer :: match_ele
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (cartesian_map_term1_struct), allocatable :: term(:)
+type (cartesian_map_term1_struct), pointer :: tm
 
-real(rp), allocatable :: array(:)
+real(rp) kx, ky, kz, tol
 
 complex(rp), pointer :: c_ptr(:)
 
-integer ix_word, i_term
+integer n, ix_word, i_term, ib, ie, im, ix, family
 
-character(1) delim, delim2
+character(80) err_str
 character(40) word, word2, name, attrib_name
+character(1) delim, delim2
 
 logical err_flag, delim_found
 
 !
 
+name = 'xxx'
 err_flag = .true.
-if (.not. associated(map)) allocate (map)
-allocate (array(1024))
 
-! Expect {
-
-call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true.)
-if ((word /= '') .or. (delim /= '{')) then
-  call parser_error ('NO { SIGN FOUND IN MAP DEFINITION',  &
-                    'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-  return
+if (ele%key == wiggler$) then
+  ct_map%master_parameter = polarity$
+  ele%sub_key = map_type$
 endif
+
+!
+
+do
+
+  ! Read attriubute
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
+  if (.not. expect_this ('=', .true., .false., 'NO EQUAL SIGN IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
+
+  select case (attrib_name)
+
+  case ('FIELD_SCALE')
+    call evaluate_value (ele%name, ct_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+
+  case ('R0')
+    if (.not. equal_sign_here(ele, delim)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true.)) return
+    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+
+
+  case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
+    ! Expect "<component> = "
+    if (delim /= '=') then
+      call parser_error ('NO "=" SIGN FOUND AFTER ' // attrib_name,  &
+                         'IN ELEMENT: ' // ele%name)
+      return
+    endif
+    call get_next_word (word2, ix_word, ',}', delim, delim_found)
+
+    !
+
+    select case (attrib_name)
+ 
+    case ('MASTER_PARAMETER')
+      if (word2 == 'NONE') then
+        ix = 0
+      else
+        ix = attribute_index(ele, word2)
+        if (ix < 1 .or. ix > num_ele_attrib$) then
+          call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
+                               'FOUND IN ELEMENT: ' // ele%name)
+          return
+        endif
+      endif
+      ct_map%master_parameter = ix
+
+    case ('ELE_ANCHOR_PT')
+      call match_word(word2, anchor_pt_name(1:), ct_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+  
+    case ('FIELD_TYPE')
+      call match_word(word2, em_field_type_name(1:), ct_map%field_type, can_abbreviate = .false., matched_name = name)
+  
+    end select
+
+    !
+
+    if (name == '') then
+      call parser_error ('UNKNKOWN ' // trim(attrib_name) // ' VALUE:' // word2, &
+                         'IN ELEMENT: ' // ele%name)
+      return        
+    endif      
+      
+  case ('TERM')
+
+    if (.not. allocated(term)) then
+      allocate (ct_map%ptr%term(1))
+      tm => ct_map%ptr%term(1)
+      ! Set %file to be the last called file:<line_number>. 
+      ct_map%ptr%file = bp_com%line1_file_name
+    else
+      n = size(ct_map%ptr%term) + 1
+      call move_alloc(ct_map%ptr%term, term)
+      allocate (ct_map%ptr%term(n))
+      ct_map%ptr%term(1:n-1) = term
+      deallocate (term)
+      tm => ct_map%ptr%term(n)
+    endif
+
+    err_str = trim(ele%name) // ' CARTESIAN_MAP TERM'
+
+    if (.not. expect_this ('{', .false., .false., 'NO "{" AFTER "TERM =" IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
+    call evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+    call evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call evaluate_value (err_str, tm%kz, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
+    if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
+    if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
+
+    kx = tm%kx
+    ky = tm%ky
+    kz = tm%kz
+    tol = 1d-5 * (kx**2 + ky**2 + kz**2)
+
+    if (abs(ky**2 - kx**2 - kz**2) < tol) then
+      select case (family)
+      case (x_family$);   tm%type = hyper_y_family_x$
+      case (y_family$);   tm%type = hyper_y_family_y$
+      case (qu_family$);  tm%type = hyper_y_family_qu$
+      case (sq_family$);  tm%type = hyper_y_family_sq$
+      end select
+
+    elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
+      select case (family)
+      case (x_family$);   tm%type = hyper_xy_family_x$
+      case (y_family$);   tm%type = hyper_xy_family_y$
+      case (qu_family$);  tm%type = hyper_xy_family_qu$
+      case (sq_family$);  tm%type = hyper_xy_family_sq$
+      end select
+
+    elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
+      select case (family)
+      case (x_family$);   tm%type = hyper_x_family_x$
+      case (y_family$);   tm%type = hyper_x_family_y$
+      case (qu_family$);  tm%type = hyper_x_family_qu$
+      case (sq_family$);  tm%type = hyper_x_family_sq$
+      end select
+
+    else
+      call parser_error ('CARTESIAN_MAP TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &
+                    'FOR ELEMENT: ' // ele%name)
+      err_flag = .true.
+      return
+    endif
+
+  case default
+    if (attrib_name == '') then
+      call parser_error ('MANGLED CARTESIAN_MAP DEFINITION FOR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('UNKNOWN CARTESIAN_MAP COMPONENT: ' // attrib_name, &
+                         'FOR ELEMENT: ' // ele%name)
+    endif
+    return
+
+  end select
+
+  ! Possible "}" is end of mode
+  if (delim == '}') exit
+
+enddo
+
+!
+
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+err_flag = .false.
+
+! Check if data has already been read in for another element.
+! If so, save space by pointing to the data.
+
+call find_matching_fieldmap(ct_map%ptr%file, ele, cartesian_map$, match_ele, im)
+if (im > 0) then
+  deallocate(ct_map%ptr)
+  ct_map%ptr => match_ele%cartesian_map(im)%ptr
+  ct_map%ptr%n_link = ct_map%ptr%n_link + 1        
+endif
+
+end subroutine parse_cartesian_map
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! parse_cylindrical_map (cl_map, ele, lat, delim, delim_found, err_flag)
+!
+! Subroutine to parse a "cylindrical_map = {}" construct
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is private to bmad_parser_mod.
+! This must read in:
+! {type = ,
+!    dr = , 
+!    r0 = , 
+!    pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
+!    .
+!    .
+!    . ) },
+!-
+
+subroutine parse_cylindrical_map (cl_map, ele, lat, delim, delim_found, err_flag)
+
+implicit none
+
+type (cylindrical_map_struct), pointer :: cl_map
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: match_ele
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+
+real(rp), allocatable :: array(:)
+
+complex(rp), pointer :: c_ptr(:)
+
+integer ix_word, i_term, ib, ie, im, ix
+
+character(1) delim, delim2
+character(40) word, word2, name, attrib_name
+
+logical err_flag, delim_found, file_name_set
+
+! Init
+
+err_flag = .true.
+allocate (array(1024))
+file_name_set = .false.
 
 !
 
@@ -6431,32 +6506,80 @@ do
 
   select case (attrib_name)
 
+  case ('DPHI0_REF')
+    call parser_error ('THE ATTRIBUTE NAME "DPHI0_REF" HAS BEEN CHANGED TO "PHI0_FIELDMAP"', &
+                       'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
+
+  case ('PHI0_FIELDMAP')
+    call evaluate_value (ele%name, cl_map%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+
+  case ('THETA0_AZIMUTH')
+    call evaluate_value (ele%name, cl_map%theta0_azimuth, lat, delim, delim_found, err_flag, ',}')
+
+  case ('FIELD_SCALE')
+    call evaluate_value (ele%name, cl_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+
+  case ('DZ')            
+    call evaluate_value (trim(ele%name), cl_map%dz, lat, delim, delim_found, err_flag, ',}')
+
+  case ('R0')
+    if (.not. equal_sign_here(ele, delim)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', cl_map%r0, .true.)) return
+    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+
+  case ('M')
+   call parser_get_integer (cl_map%m, word, ix_word, delim, delim_found, err_flag, 'BAD CYLINDRICAL_MAP M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+
+  case ('HARMONIC')
+    call parser_get_integer (cl_map%harmonic, word, ix_word, delim, delim_found, err_flag, 'BAD CYLINDRICAL_MAP HARMONIC CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+
+  case ('MASTER_PARAMETER')
+    call get_next_word (word, ix_word, ',}', delim, delim_found)
+    if (word == 'NONE') then
+      ix = 0
+    else
+      ix = attribute_index(ele, word)
+      if (ix < 1 .or. ix > num_ele_attrib$) then
+        call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
+                             'FOUND IN ELEMENT: ' // ele%name)
+        return
+      endif
+    endif
+    cl_map%master_parameter = ix
+
+
   case ('ELE_ANCHOR_PT')
     ! Expect "<component> = "
     if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER MAP ' // attrib_name,  &
-                         'IN MAP STRUCTURE IN ELEMENT: ' // ele%name)
+      call parser_error ('NO "=" SIGN FOUND AFTER ELE_ANCHOR_PT ' // attrib_name,  &
+                         'IN ELEMENT: ' // ele%name)
       return
     endif
     call get_next_word (word2, ix_word, ',}', delim, delim_found)
 
     ! Evaluate string into integer.
 
-    call match_word(word2, anchor_pt_name(1:), map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+    call match_word(word2, anchor_pt_name(1:), cl_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     if (name == '') then
-      call parser_error ('UNKNKOWN MAP ' // trim(word) // ': ' // word2, &
-                         'FOUND IN MODE MAP DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('UNKNKOWN ELE_ANCHOR_PT ' // trim(word) // ': ' // word2, &
+                         'FOUND IN ELEMENT: ' // ele%name)
       return        
     endif      
       
   case ('E_COEF_RE', 'E_COEF_IM', 'B_COEF_RE', 'B_COEF_IM')
 
+    if (.not. file_name_set) then
+      ! Set %file to be the last called file:<line_number>. 
+      cl_map%ptr%file = bp_com%line1_file_name
+      file_name_set = .true.
+    endif
+
     ! Expect "("
     call get_next_word (word, ix_word, ',({', delim, delim_found)
     if (word /= '' .or. delim /= '(') then
       call parser_error ('NO "(" FOUND AFTER "' // trim(attrib_name) // ' =" ', &
-                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'IN ELEMENT: ' // ele%name)
       return
     endif
 
@@ -6465,8 +6588,8 @@ do
     do i_term = 1, 100000
       call get_next_word (word, ix_word, '{},()', delim, delim_found)
       if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
-        call parser_error ('ERROR PARSING ARRAY FOR: ' // word2, &
-                             'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        call parser_error ('ERROR PARSING CYLINDRICAL_MAP ARRAY: ' // word2, &
+                             'IN ELEMENT: ' // ele%name)
         return
       endif
       if (i_term > size(array)) call re_allocate(array, 2*size(array))
@@ -6474,25 +6597,25 @@ do
       if (delim == ')') exit
     enddo
 
-    if (allocated(map%term)) then
-      if (size(map%term) /= i_term) then
+    if (allocated(cl_map%ptr%term)) then
+      if (size(cl_map%ptr%term) /= i_term) then
         call parser_error ('ARRAY SIZE MISMATCH FOR: ' // word2, &
-                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'IN CYLINDRICAL_MAP DEFINITION IN ELEMENT: ' // ele%name)
         return
       endif
     else
-      allocate(map%term(i_term))
+      allocate(cl_map%ptr%term(i_term))
     endif
 
     select case (attrib_name)
-    case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => map%term%e_coef 
-    case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => map%term%b_coef
+    case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => cl_map%ptr%term%e_coef 
+    case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => cl_map%ptr%term%b_coef
     end select
 
     if (attrib_name(8:9) == 'RE') then
       if (any(real(c_ptr) /= 0)) then
         call parser_error ('DUPLICATE ARRAY FOR: ' // attrib_name, &
-                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'IN CYLINDRICAL_MAP IN ELEMENT: ' // ele%name)
         return
       endif
       c_ptr = c_ptr + array(1:i_term)
@@ -6500,7 +6623,7 @@ do
     else
       if (any(aimag(c_ptr) /= 0)) then
         call parser_error ('DUPLICATE ARRAY FOR: ' // attrib_name, &
-                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'IN CYLINDRICAL_MAP IN ELEMENT: ' // ele%name)
         return
       endif
       c_ptr = c_ptr + i_imaginary * array(1:i_term)
@@ -6510,14 +6633,19 @@ do
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
       call parser_error ('BAD ' // trim(attrib_name) // ' = (...) CONSTRUCT', &
-                           'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'FOUND IN CYLINDRICAL_MAP DEFINITION IN ELEMENT: ' // ele%name)
       return
     endif
 
-  case ('DZ');            
-    if (.not. associated(map)) allocate (map)
-    call evaluate_value (trim(ele%name), map%dz, lat, delim, delim_found, err_flag, ',}')
-
+  case default
+    if (attrib_name == '') then
+      call parser_error ('MANGLED CYLINDRICAL_MAP DEFINITION FOR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('UNKNOWN CYLINDRICAL_MAP COMPONENT: ' // attrib_name, &
+                         'FOR ELEMENT: ' // ele%name)
+    endif
+    return
+    
   end select
 
   ! Possible "}" is end of mode
@@ -6527,28 +6655,30 @@ enddo
 
 ! Get final separator after grid construct.
  
-call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
-if (ix_word /= 0) then
-    call parser_error ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
-                         'FOR ELEMENT: ' // ele%name)
-    return 
-endif
-
-! Deallocate
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 
 deallocate(array)
 err_flag = .false.
 
-end subroutine parse_rf_map
+! Check if data has already been read in for another element.
+! If so, save space by pointing to the data.
+
+call find_matching_fieldmap(cl_map%ptr%file, ele, cylindrical_map$, match_ele, im)
+if (im > 0) then
+  deallocate(cl_map%ptr)
+  cl_map%ptr => match_ele%cylindrical_map(im)%ptr
+  cl_map%ptr%n_link = cl_map%ptr%n_link + 1        
+endif
+
+end subroutine parse_cylindrical_map
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_rf_grid (grid, ele, lat, delim, delim_found, err_flag)
+! parse_grid_field (grid, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "grid = {}" construct
+! Subroutine to parse a "grid_field = {}" construct
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
@@ -6562,17 +6692,16 @@ end subroutine parse_rf_map
 !    . ) },
 !-
 
-subroutine parse_rf_grid(grid, ele, lat, delim, delim_found, err_flag)
+subroutine parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
 
 type grid_pt_struct
   integer :: ix(3) = [1, 1, 1]
   complex(rp) :: field(6) = 0
 end type
 
-
-type (em_field_grid_struct), pointer :: grid
+type (grid_field_struct), pointer :: g_field
 type (ele_struct) :: ele
-type (ele_struct), pointer :: bele
+type (ele_struct), pointer :: match_ele
 type (lat_struct),  target :: lat
 type (branch_struct), pointer :: branch
 type (grid_pt_struct), allocatable :: array(:), array2(:)
@@ -6580,30 +6709,13 @@ type (grid_pt_struct), allocatable :: array(:), array2(:)
 character(1) delim, delim2
 character(40) :: word, word2, name
 
-integer ix_word, ix_word2
+integer ix_word, ix_word2, ix
 integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1
 integer grid_dim,  num_dr, num_r0, ios
 
 logical delim_found, delim_found2, err_flag, err_flag2
 
-!
-
-if (.not. associated(grid)) allocate (grid)
-
-! Expect {
-
-call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true.)
-if ((word /= '') .or. (delim /= '{')) then
-  call parser_error ('NO { SIGN FOUND IN GRID DEFINITION',  &
-                    'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-  return
-endif
-
-! Set %file to be the last called file with 
-
-write(grid%file, '(2a, i0)') trim(bp_com%current_file%full_name),  ':', bp_com%current_file%i_line
-
-! Init
+! Init. Last thing read in was initial "{"
 
 allocate(array(1024))
 pt_counter = 0
@@ -6616,56 +6728,79 @@ do
 
   select case (word)
 
-  case ('TYPE', 'ELE_ANCHOR_PT')
-    if (.not. equal_sign_here()) return
+  case ('PHI0_FIELDMAP')
+    call evaluate_value (ele%name, g_field%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+
+  case ('FIELD_SCALE')
+    call evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+
+  case ('HARMONIC')
+    call parser_get_integer (g_field%harmonic, word, ix_word, delim, delim_found, err_flag, 'BAD GRID_FIELD HARMONIC CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+
+  case ('MASTER_PARAMETER')
+    call get_next_word (word, ix_word, ',}', delim, delim_found)
+    if (word == 'NONE') then
+      ix = 0
+    else
+      ix = attribute_index(ele, word)
+      if (ix < 1 .or. ix > num_ele_attrib$) then
+        call parser_error ('BAD NAME FOR GRID_FIELD MASTER_PARAMETER', 'FOUND IN ELEMENT: ' // ele%name)
+        return
+      endif
+    endif
+    g_field%master_parameter = ix
+
+  case ('FIELD_TYPE', 'ELE_ANCHOR_PT', 'GEOMETRY')
+    if (.not. equal_sign_here(ele, delim)) return
 
     call get_next_word (word2, ix_word, ',}', delim, delim_found)
-    ! Check to see if this is a valid type by checking against em_grid_type_name(:)
+    ! Check to see if this is a valid type by checking against grid_field_geometry_name(:)
 
-    if (word == 'TYPE') then
-      call match_word(word2, em_grid_type_name, grid%type, can_abbreviate = .false., matched_name = name)
+    if (word == 'FIELD_TYPE') then
+      call match_word(word2, em_field_type_name, g_field%field_type, can_abbreviate = .false., matched_name = name)
+    elseif (word == 'GEOMETRY') then
+      call match_word(word2, grid_field_geometry_name(1:), g_field%geometry, can_abbreviate = .false., matched_name = name)
     else
-      call match_word(word2, anchor_pt_name(1:), grid%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), g_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
     endif
   
     if (name == '') then
-      call parser_error ('UNKNKOWN GRID ' // trim(word) // ': ' // word2, &
-                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('UNKNKOWN GRID_FIELD ' // trim(word) // ': ' // word2, &
+                         'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
       return        
     endif      
       
   case ('CURVED_COORDS')
-    if (.not. equal_sign_here()) return
+    if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    grid%curved_coords = evaluate_logical (word2, ios)
+    g_field%curved_coords = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD "' // trim(word) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word2)
+      call parser_error ('BAD GRID_FIELD CURVED_COORDS SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
   case ('R0')
-    if (.not. equal_sign_here()) return
-    ! expect ( 1. ) or (1. , 2.) or (1., 2., 3.)
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%r0, .false.)) return
-    ! Expect , or }
-    call get_next_word (word, ix_word, ',}', delim, delim_found)     
-    if (word /= '') then
-      call parser_error ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
-                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-      return
-    end if
+    if (.not. equal_sign_here(ele, delim)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', g_field%r0, .false.)) return
+    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
     case ('DR')
-    if (.not. equal_sign_here()) return
+    if (.not. equal_sign_here(ele, delim)) return
     ! expect ( 1.) or (1. , 2.) or (1., 2., 3.)
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%dr, .false.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', g_field%dr, .false.)) return
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER DR DEFINITION: ' // word , &
-                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+                                 'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
 
   case ('PT')
+
+    if (pt_counter == 0) then
+      ! Set %file to be the last called file:<line_number>.
+      g_field%ptr%file = bp_com%line1_file_name
+    endif
+
     ! Increment 
     pt_counter = pt_counter + 1
     ! Reallocate temporary structure if needed
@@ -6679,13 +6814,13 @@ do
 
     ! Get indices
     bp_com%parse_line = delim // bp_com%parse_line
-    if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, array(pt_counter)%ix, .false.)) return
+    if (.not. parse_integer_list (trim(ele%name) // ' GRID_FIELD PT', lat, array(pt_counter)%ix, .false.)) return
       
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
     if ((word /= '') .or. (word2 /= '') .or. (delim /= '=') .or. (delim2 /= '(')) then
-      call parser_error ('BAD GRID PT CONSTRUCT, NO  = "(" ', &
-                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('BAD GRID_FIELD PT CONSTRUCT, NO  = "(" ', &
+                 'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
     ! Get as many field components as listed
@@ -6694,102 +6829,106 @@ do
       if (err_flag2) return
       if (delim == ')') exit
       if (delim /= ',') then
-        call parser_error ('BAD GRID PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
-            'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        call parser_error ('BAD GRID_FIELD PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
+            'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
         return
-      end if    
+      end if
     end do
-    ! Expect , or }
-    call get_next_word (word, ix_word, ',}', delim, delim_found) 
-    if (word /= '') then
-      call parser_error ('BAD INPUT AFTER PT DEFINITION: ' // word , &
-                           'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+
+    select case (i)
+    case (3)
+      if (g_field%field_type == mixed$) then
+        call parser_error ('FIELD_GRID WITH FIELD_TYPE = MIXED IN ELEMENT: ' // ele%name, 'DOES NOT SPECIFY BOTH E AND B FIELDS.')
+        return
+      endif        
+    case (6)
+      if (g_field%field_type /= mixed$) then
+        call parser_error ('FIELD_GRID WITH FIELD_TYPE = ELECTRIC OR MAGNETIC IN ELEMENT: ' // ele%name, 'CANNOT SPECIFY BOTH E AND B FIELDS.')
+        return
+      endif
+    case default
+      call parser_error ('FIELD_GRID IN ELEMENT: ' // ele%name, 'DOES NOT HAVE THE CORRECT NUMBER OF FIELD COMPOENTS IN PT = (...) CONSTRUCT')
       return
-    end if
+    end select
+
+    ! Expect , or }
+    if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
   
   case default
-    call parser_error ('UNKNOWN GRID ATTRIBUTE: ' // word, &
-                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-    return 
-        
+    if (word == '') then
+      call parser_error ('MANGLED GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('UNKNOWN GRID_FIELD COMPONENT: ' // word, &
+                         'FOR ELEMENT: ' // ele%name)
+    endif
+    return
+    
   end select 
 
   if (delim == '}') exit   
 
 enddo
 
-! Get final separator after grid construct.
+! Get final separator after grid_field construct.
  
-call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
-if (ix_word /= 0) then
-    call parser_error ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
-                         'FOR ELEMENT: ' // ele%name)
-    return 
-endif
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 
 ! Clear pts
 
-if (allocated(grid%pt)) deallocate(grid%pt)
+if (allocated(g_field%ptr%pt)) deallocate(g_field%ptr%pt)
 
-! Allocate grid for different dimensions
+! Allocate grid_field for different dimensions
 
-grid_dim = em_grid_dimension(grid%type)
+grid_dim = grid_field_dimension(g_field%geometry)
 
 if (grid_dim < 1 .or. grid_dim > 3) then
-  call parser_error ('BAD GRID DIMENSION', &
-             'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+  call parser_error ('BAD GRID_FIELD DIMENSION', &
+             'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
   return
 endif
 
-ix0 = minval(array%ix(1))
-ix1 = maxval(array%ix(1))
-iy0 = minval(array%ix(2))
-iy1 = maxval(array%ix(2))
-iz0 = minval(array%ix(3))
-iz1 = maxval(array%ix(3))
+ix0 = minval(array(1:pt_counter)%ix(1))
+ix1 = maxval(array(1:pt_counter)%ix(1))
+iy0 = minval(array(1:pt_counter)%ix(2))
+iy1 = maxval(array(1:pt_counter)%ix(2))
+iz0 = minval(array(1:pt_counter)%ix(3))
+iz1 = maxval(array(1:pt_counter)%ix(3))
 
-allocate(grid%pt(ix0:ix1, iy0:iy1, iz0:iz1))
+allocate(g_field%ptr%pt(ix0:ix1, iy0:iy1, iz0:iz1))
 
 n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
 if (n /= pt_counter) then
-  call parser_error ('Number of grid points (\i0\) in the file not equal to grid array size (\i0\ x \i0\ x \i0\).', &
+  call parser_error ('Number of grid_field points (\i0\) in the file not equal to grid_field array size (\i0\ x \i0\ x \i0\).', &
                      'for element: ' // ele%name, warn_only = .true., &
                     i_array = [pt_counter, (ix1+1-ix0), (iy1+1-iy0), (iz1+1-iz0)])
 endif
 
-! Assign grid values
+! Assign grid_field values
 do i = 1, pt_counter
   ix1 = array(i)%ix(1)
   iy1 = array(i)%ix(2)
   iz1 = array(i)%ix(3)
-  grid%pt(ix1, iy1, iz1)%E(1:3) = array(i)%field(1:3)
-  grid%pt(ix1, iy1, iz1)%B(1:3) = array(i)%field(4:6)
+  if (g_field%field_type == magnetic$) then
+    g_field%ptr%pt(ix1, iy1, iz1)%B = array(i)%field(1:3)
+  else
+    g_field%ptr%pt(ix1, iy1, iz1)%E = array(i)%field(1:3)
+    g_field%ptr%pt(ix1, iy1, iz1)%B = array(i)%field(4:6)
+  endif
 end do
 
 ! Clear temporary array
 
 deallocate(array)
 
-! Check if grid data has already been read in for another element.
+! Check if grid_field data has already been read in for another element.
 ! If so, save space by pointing to the existing grid.
 
-branch_loop: do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  do ie = 1, branch%n_ele_max
-    bele => branch%ele(ie)
-    if (.not. associated(bele%em_field)) cycle    
-    if (bele%ix_ele == ele%ix_ele .and. bele%ix_branch == ele%ix_branch) cycle
-    do im = 1, size(bele%em_field%mode)
-      if (.not. associated(bele%em_field%mode(im)%grid)) cycle
-      if (bele%em_field%mode(im)%grid%file /= grid%file) cycle
-      deallocate(grid)
-      grid => bele%em_field%mode(im)%grid
-      grid%n_link = grid%n_link + 1        
-      exit branch_loop
-    end do
-  enddo 
-enddo branch_loop
+call find_matching_fieldmap(g_field%ptr%file, ele, grid_field$, match_ele, im)
+if (im > 0) then
+  deallocate(g_field%ptr)
+  g_field%ptr => match_ele%grid_field(im)%ptr
+  g_field%ptr%n_link = g_field%ptr%n_link + 1        
+endif
 
 err_flag = .false.
 
@@ -6827,7 +6966,7 @@ else if (delim == '(') then
     .or. (delim /= ',') .or. (delim2 /= ')') &
     .or. (.not. delim_found) .or. (.not. delim_found2)) then
     call parser_error ('BAD COMPLEX COMPONENT CONSTRUCT', &
-                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+                         'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
     return
    end if
    !
@@ -6842,29 +6981,249 @@ err_flag2 = .false.
 
 end subroutine parse_complex_component
 
-!-----------------------------------------------------------
-! contains 
+end subroutine parse_grid_field
 
-function equal_sign_here() result (is_here)
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parse_taylor_field (grid, ele, lat, delim, delim_found, err_flag)
+!
+! Subroutine to parse a "taylor_field = {}" construct
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is private to bmad_parser_mod.
+! This must read in:
+! {type = ,
+!    dr = , 
+!    r0 = , 
+!    pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
+!    .
+!    .
+!    . ) },
+!-
 
-logical is_here
+subroutine parse_taylor_field (t_field, ele, lat, delim, delim_found, err_flag)
 
-! Expect "<component> = "
+implicit none
 
-is_here = .false.
+type (taylor_field_struct), pointer :: t_field
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: match_ele
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (em_taylor_term_struct), allocatable :: term(:)
+type (em_taylor_term_struct), pointer :: tm
+type (taylor_field_plane1_struct), allocatable :: plane(:)
+type (taylor_field_plane1_struct), pointer :: t_plane
 
-if (delim /= '=') then
-call parser_error ('NO "=" SIGN FOUND AFTER: ' // word,  &
-                   'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
-  return
+real(rp) coef
+
+complex(rp), pointer :: c_ptr(:)
+
+integer i, j, expn(2), nn, n, i_term, ib, ie, im, ix, family, ios
+integer ub, i_out, ix_word
+
+character(80) err_str
+character(40) word, word2, name, attrib_name
+character(1) delim, delim2
+
+logical err_flag, delim_found
+
+! Init
+
+name = 'xxx'
+err_flag = .true.
+
+!
+
+do
+
+  ! Read attriubute
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
+
+  select case (attrib_name)
+
+  case ('FIELD_SCALE')
+    call evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+
+  case ('R0')
+    if (.not. equal_sign_here(ele, delim)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true.)) return
+    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+
+  case ('DZ')
+    call evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}')
+
+  case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
+    ! Expect "<component> = "
+    if (delim /= '=') then
+      call parser_error ('NO "=" SIGN FOUND AFTER ' // attrib_name,  &
+                         'IN ELEMENT: ' // ele%name)
+      return
+    endif
+    call get_next_word (word2, ix_word, ',}', delim, delim_found)
+
+    !
+
+    select case (attrib_name)
+ 
+    case ('MASTER_PARAMETER')
+      if (word2 == 'NONE') then
+        ix = 0
+      else
+        ix = attribute_index(ele, word2)
+        if (ix < 1 .or. ix > num_ele_attrib$) then
+          call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
+                               'FOUND IN ELEMENT: ' // ele%name)
+          return
+        endif
+      endif
+      t_field%master_parameter = ix
+
+    case ('ELE_ANCHOR_PT')
+      call match_word(word2, anchor_pt_name(1:), t_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+  
+    case ('FIELD_TYPE')
+      call match_word(word2, em_field_type_name(1:), t_field%field_type, can_abbreviate = .false., matched_name = name)
+  
+    end select
+
+    !
+
+    if (name == '') then
+      call parser_error ('UNKNKOWN ' // trim(attrib_name) // ' VALUE:' // word2, &
+                         'IN ELEMENT: ' // ele%name)
+      return        
+    endif      
+      
+  case ('CURVED_COORDS')
+    if (.not. equal_sign_here(ele, delim)) return
+    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
+    t_field%curved_coords = evaluate_logical (word2, ios)
+    if (ios /= 0 .or. ix_word == 0) then
+      call parser_error ('BAD TAYLOR_FIELD CURVED_COORDS SETTING ' // word2, 'FOR: ' // ele%name)
+    endif
+
+  case ('PLANE')
+
+    ! Expect "("
+    if (.not.  expect_this ('(', .true., .false., 'NO "(" FOUND AFTER "PLANE" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+    call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD PLANE INDEX IN TAYLOR_FIELD')
+    if (.not.  expect_this (')={', .true., .false., 'NO ") = {" FOUND AFTER "PLANE(IX" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+
+    if (allocated(t_field%ptr%plane)) then
+      if (ix /= ubound(t_field%ptr%plane, 1) + 1) then
+        call parser_error ('PLANE INDEX OUT OF ORDER IN TAYLOR_FIELD DEFININITION', 'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      call move_alloc(t_field%ptr%plane, plane)
+      ub = ubound(plane, 1)
+      allocate (t_field%ptr%plane(ub:ix))
+      t_field%ptr%plane(ub:ix-1) = plane
+      deallocate(plane)
+    else
+      ! Set %file to be the last called file:<line_number>. 
+      t_field%ptr%file = bp_com%line1_file_name
+      allocate(t_field%ptr%plane(ix:ix))
+    endif
+
+    t_plane => t_field%ptr%plane(ix)
+
+    do
+      if (.not.  expect_this ('{', .false., .false., 'NO OPENING "{" FOUND FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+      call get_next_word (word, ix_word, ':{}=,()', delim, delim_found)
+      if (.not.  expect_this (':', .true., .false., 'NO ":" FOUND FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+      call match_word (word, ['X', 'Y', 'Z'], i_out, .true., .false.)
+      if (i_out < 1) then
+        call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name)
+        return
+      endif
+
+      call evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+      delim2 = delim   ! Save
+      expn = 0
+
+      ! Need to check for "{x: 3.4 |}" case where there are no exponents.
+      if (delim2 == '|') then
+        call get_next_word (word, ix_word, '}', delim, delim_found)
+        ! If there are exponents then rewind the get_next_word call.
+        if (ix_word /= 0 .or. delim /= '}') then
+          bp_com%parse_line = trim(word) // delim // bp_com%parse_line
+          delim = delim2
+        endif
+      endif
+
+      ! Parse exponents
+
+      do j = 1, 100 
+        if (delim == '}') exit
+        call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
+        if (.not. expect_one_of ('} ', .true., ele, delim, delim_found)) return
+        if (delim2 == ',') then
+          select case (j)
+          case (2);      if( .not. expect_one_of ('}', .true., ele, delim, delim_found)) return
+          case default;  if (.not. expect_one_of (' ', .true., ele, delim, delim_found)) return
+          end select
+          expn(j) = n
+        else
+          ! Where, for example, n = 34, must separate into 3 and 4.
+          do
+            nn = modulo(n, 10)
+            if (nn < 1 .or. nn > 2) then
+              call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT IN TAYLOR_FIELD DEPFINITION IN: ' // ele%name)
+              return
+            endif
+            expn(nn) = expn(nn) + 1
+            n = (n - nn) / 10
+            if (n == 0) exit
+          enddo
+        endif
+      enddo
+
+      call add_em_taylor_term (t_plane%field(i_out), coef, expn)
+
+      if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+
+      if (delim == '}') then
+        if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+        exit
+      endif
+
+    enddo
+
+  case default
+    if (attrib_name == '') then
+      call parser_error ('MANGLED GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('UNKNOWN GRID_FIELD COMPONENT: ' // attrib_name, &
+                         'FOR ELEMENT: ' // ele%name)
+    endif
+    return
+
+  end select
+
+  ! Possible "}" is end of mode
+  if (delim == '}') exit
+
+enddo
+
+! Get final separator after grid construct.
+ 
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+err_flag = .false.
+
+! Check if data has already been read in for another element.
+! If so, save space by pointing to the data.
+
+call find_matching_fieldmap(t_field%ptr%file, ele, taylor_field$, match_ele, im)
+if (im > 0) then
+  deallocate(t_field%ptr)
+  t_field%ptr => match_ele%taylor_field(im)%ptr
+  t_field%ptr%n_link = t_field%ptr%n_link + 1        
 endif
 
-is_here = .true.
-
-end function equal_sign_here
-
-end subroutine parse_rf_grid
-
+end subroutine parse_taylor_field
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -6882,7 +7241,7 @@ end subroutine parse_rf_grid
 !-
 
 function parse_integer_list (err_str, lat, int_array, exact_size, open_delim, &
-                          separator, close_delim, default_value) result (is_ok)
+                                    separator, close_delim, default_value) result (is_ok)
 
 implicit none
 
@@ -7187,9 +7546,9 @@ is_ok = .true.
 
 end function parse_real_list2
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine parser_set_spin (bs_ele, orbit)
 !
@@ -7222,5 +7581,241 @@ endif
 orbit%spin = polar_to_spinor (polar)
 
 end subroutine parser_set_spin
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+
+subroutine parser_get_integer (int_val, word, ix_word, delim, delim_found, err, str1, str2)
+
+integer int_val, ix_word
+logical err
+character(*) word, delim
+character(*), optional :: str1, str2
+logical delim_found
+
+!
+
+call get_next_word (word, ix_word, ':,=(){} ', delim, delim_found, .true.)
+if (.not. is_integer(word) ) then
+  if (present(str1)) then
+    call parser_error (str1, str2)
+  else
+    call parser_error ('INTEGER EXPECTED, I DO NOT UNDERSTAND: ' // word)
+  endif
+  err = .true.
+
+else
+  read (word, *) int_val
+  err = .false.
+endif
+
+end subroutine parser_get_integer
+
+!--------------------------------------------------------------------------------------
+
+subroutine parser_get_logical (ele, attrib_name, this_logic, word, ix_word, delim, delim_found, err)
+
+type (ele_struct) ele
+character(*) attrib_name, word, delim
+integer ix_word, ios
+logical this_logic, err
+logical delim_found
+
+!
+
+call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+this_logic = evaluate_logical (word, ios)
+if (ios /= 0 .or. ix_word == 0) then
+  call parser_error ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  err = .true.
+else
+  err = .false.
+endif
+
+end subroutine parser_get_logical
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+! delim_list    -- character(*): String of tokens expected. 
+! check_delim   -- logical: If True then use "delim" character as first token to check.
+!                    A blank character indicates end of command is expected.
+! call_check    -- Logical: If True then check for 'call::<filename>' construct.
+
+function expect_this (expecting, check_delim, call_check, err_str, ele, delim, delim_found) result (is_ok)
+
+implicit none
+
+type (ele_struct) ele
+character(*) expecting, err_str
+character(1) delim
+character(40) word
+logical is_ok, delim_found, check_delim, call_check
+integer ix, ix_word
+
+!
+
+is_ok = .false.
+
+do ix = 1, len(expecting)
+  if (ix == 1 .and. check_delim) then
+    word = ''
+  else
+    call get_next_word (word, ix_word, expecting(ix:ix), delim, delim_found, call_check = call_check)
+  endif
+
+  if (expecting(ix:ix) == ' ') then
+    if (delim_found .or. word /= '') then
+      call parser_error ('EXTRA STUFF ON LINE.', err_str)
+      return
+    endif
+  elseif (delim /= expecting(ix:ix) .or. word /= '') then
+    call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+is_ok = .true.
+
+end function expect_this
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+
+subroutine get_switch (name, name_list, switch, err, ele, delim, delim_found)
+
+type (ele_struct) :: ele
+type (all_pointer_struct), allocatable :: ptr(:)
+
+character(*) name, name_list(:)
+character(1) delim
+character(60) word
+character(40) ele_name, attrib_name 
+integer this_switch, switch, ix_word, ixp, ixp2
+logical err, delim_found
+
+!
+
+err = .true.
+call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+
+!
+
+if (name == 'FIELD_CALC') then
+  if (word == 'GRID' .or. word == 'MAP') then
+    
+    call parser_error ('FIELD_CALC = ' // word, 'HAS BEEN CHANGED TO FIELD_CALC = FIELDMAP', &
+                       'Program will execute as normal...', &
+                       '[But eventually this warning will be converted to an error. You have been warned!]', warn_only = .true.)
+    word = 'FIELDMAP'
+  endif
+endif
+
+! If word is something like "q1[tracking_method]" then need retrieve this value.
+
+ixp = index(word, '[')
+if (ixp == 0) then
+  call match_word (word, name_list, this_switch, can_abbreviate = .false.)
+  if (this_switch < 1) then
+    call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+    return
+  else
+    switch = this_switch
+  endif
+
+else
+  ixp2 = len_trim(word)
+  if (word(ixp2:ixp2) /= ']' .or. word(ixp+1:ixp2-1) /= name) then
+    call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+    return
+  endif
+
+  ele_name = word(:ixp-1)
+  attrib_name = word(ixp+1:ixp2-1)
+  call pointers_to_attribute (ele%branch%lat, ele_name, attrib_name, .true., ptr, err, .false.)
+  if (size(ptr) == 0) then
+    call parser_error ('NO ELEMENT FOUND TO EVALUATE: ' // word, 'EVALUATING SWITCH IN ELEMENT: ' // ele%name)
+    return
+  endif
+  if (size(ptr) > 1) then
+    call parser_error ('MULTIPLE ELEMENTS FOUND FOR EVALUATING: ' // word, 'EVALUATING SWITCH IN ELEMENT: ' // ele%name)
+    return
+  endif
+  if (associated(ptr(1)%i)) switch = ptr(1)%i
+  if (associated(ptr(1)%r)) switch = nint(ptr(1)%r)
+endif
+
+err = .false.
+
+end subroutine get_switch
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+
+! delim_list -- character(*): List of valid tokens. If list contains a space character
+!                 then no token (indicating the end of the command) is a valid possibility.
+!
+
+function expect_one_of (delim_list, check_delim, ele, delim, delim_found) result (is_ok)
+
+type (ele_struct) ele
+integer ix_word
+character(*) delim_list
+character(1) delim
+character(40) word
+logical check_delim, delim_found, is_ok, must_have_delim
+
+!
+
+is_ok = .false.
+must_have_delim = (index(delim_list, ' ') == 0)
+
+if (check_delim) then
+  if ((must_have_delim .and. .not. delim_found) .or. &
+      (delim /= '' .and. index(delim_list, delim) == 0)) then
+    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+else
+  call get_next_word (word, ix_word, '{}=,()[]', delim, delim_found)
+  if (word /= '' .or. (must_have_delim .and. .not. delim_found) .or. &
+      (delim /= '' .and. index(delim_list, delim) == 0)) then
+    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+endif
+
+is_ok = .true.
+
+end function expect_one_of
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+
+function equal_sign_here(ele, delim) result (is_here)
+
+type (ele_struct) ele
+character(40) word
+character(1) delim
+logical is_here
+
+! Expect "<component> = "
+
+is_here = .false.
+
+if (delim /= '=') then
+call parser_error ('NO "=" SIGN FOUND AFTER: ' // word,  &
+                   'IN GRID_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+  return
+endif
+
+is_here = .true.
+
+end function equal_sign_here
 
 end module

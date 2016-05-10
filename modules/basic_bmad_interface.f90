@@ -245,6 +245,15 @@ subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
   integer, optional :: ix_multipass
 end subroutine
 
+subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (ele_struct), pointer :: match_ele
+  integer t_type, ix_field
+  character(*) file_name
+end subroutine
+
 subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
   import
   implicit none

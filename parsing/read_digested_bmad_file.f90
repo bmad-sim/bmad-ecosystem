@@ -200,6 +200,8 @@ call allocate_branch_array (lat, n_branch)  ! Initial allocation
 call read_this_wall3d (lat%branch(0)%wall3d, error)
 if (error) return
 
+read (d_unit, err = 9070) lat%branch(0)%name
+
 do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
@@ -419,17 +421,20 @@ contains
 subroutine read_this_ele (ele, ix_ele_in, error)
 
 type (ele_struct), target :: ele
-type (em_field_mode_struct), pointer :: mode
 type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
+type (cylindrical_map_struct), pointer :: cl_map
+type (cartesian_map_struct), pointer :: ct_map
+type (grid_field_struct), pointer :: g_field
+type (taylor_field_struct), pointer :: t_field
 
 real(rp) rdum
 
-integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_taylor, n_grid, ix_ele, ix_branch, ix_wall3d
-integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, n_var, ix_d, ix_m
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
+integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
+integer ix_r, ix_s, idum1, idum2, idum3, n_var, ix_d, ix_m
 integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch, ix_st(3,3)
-integer i0, i1, j0, j1, j2, ix_mode
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1
 
 logical error, is_alloc_pt
 
@@ -438,9 +443,10 @@ logical error, is_alloc_pt
 error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
-        mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
+        mode3, ix_r, ix_s, ix_wall3d_branch, &
         idum2, idum3, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr, ix_wall3d, n_em_field_mode, n_var
+        ix_lr, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
+
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
         ele%a, ele%b, ele%z, rdum, ele%vec0, ele%mat6, &
@@ -474,46 +480,113 @@ if (n_var /= 0) then
   enddo
 endif
 
-! EM field def
+! Cartesian_map
 
-call init_em_field (ele%em_field, n_em_field_mode)
+if (n_cart > 0) then
+  allocate (ele%cartesian_map(n_cart))
 
-if (n_em_field_mode > 0) then
-
-  read (d_unit, err = 9140) ele%em_field%mode_to_autoscale
-
-  do i = 1, n_em_field_mode
-    mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) n_cyl, n_cart, n_taylor, n_grid, ix_ele, ix_branch, ix_mode, &
-                         mode%harmonic, mode%f_damp, mode%phi0_ref, &
-                         mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
+  do i = 1, n_cart
+    ct_map => ele%cartesian_map(i)
+    read (d_unit, err = 9120) ct_map%field_scale, ct_map%master_parameter, ct_map%ele_anchor_pt, ct_map%field_type, ct_map%r0
+    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n
 
     if (ix_ele > 0) then
-      mode%cylindrical_map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%cylindrical_map
-      if (associated(mode%cylindrical_map)) mode%cylindrical_map%n_link = mode%cylindrical_map%n_link + 1
-      mode%grid => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(ix_mode)%grid
-      if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
-      cycle
-    endif
-
-    if (n_cyl > 0) then
-      allocate (mode%cylindrical_map)
-      allocate (mode%cylindrical_map%term(n_cyl))
-      read (d_unit, err = 9140) mode%cylindrical_map%file, mode%cylindrical_map%dz, mode%cylindrical_map%ele_anchor_pt
-      read (d_unit, err = 9140) mode%cylindrical_map%term
-    endif
-
-    if (n_grid > 0) then
-      allocate (mode%grid)
-      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
-                        mode%grid%type, mode%grid%file, &
-                        mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords
-      allocate (mode%grid%pt(lb1:ub1, lb2:ub2, lb3:ub3))
-      do j = lb3, ub3
-        read (d_unit, err = 9140) mode%grid%pt(:,:,j)
+      ele%cartesian_map(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%cartesian_map(ix_ptr)%ptr
+      ele%cartesian_map(i)%ptr%n_link = ele%cartesian_map(i)%ptr%n_link + 1
+    else
+      allocate (ele%cartesian_map(i)%ptr)
+      read (d_unit, err = 9120) ct_map%ptr%file
+      allocate (ct_map%ptr%term(n))
+      do j = 1, n
+        read (d_unit, err = 9120) ct_map%ptr%term(j)
       enddo
     endif
+  enddo
+endif
 
+! Cylindrical map
+
+if (n_cyl > 0) then
+  allocate (ele%cylindrical_map(n_cyl))
+
+  do i = 1, n_cyl
+    cl_map => ele%cylindrical_map(i)
+    read (d_unit, err = 9120) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
+                cl_map%phi0_fieldmap, cl_map%theta0_azimuth, cl_map%ele_anchor_pt, cl_map%m, cl_map%dz, cl_map%r0
+    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n
+
+    if (ix_ele > 0) then
+      ele%cylindrical_map(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%cylindrical_map(ix_ptr)%ptr
+      ele%cylindrical_map(i)%ptr%n_link = ele%cylindrical_map(i)%ptr%n_link + 1
+    else
+      allocate (ele%cylindrical_map(i)%ptr)
+      read (d_unit, err = 9120) cl_map%ptr%file
+      allocate (cl_map%ptr%term(n))
+      do j = 1, n
+        read (d_unit, err = 9120) cl_map%ptr%term(j)
+      enddo
+    endif
+  enddo
+endif
+
+
+! Grid_field
+
+if (n_grid > 0) then
+  allocate (ele%grid_field(n_grid))
+
+
+  do i = 1, n_grid
+    g_field => ele%grid_field(i)
+    read (d_unit, err = 9120) g_field%field_scale, g_field%master_parameter, &
+                g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
+                g_field%r0, g_field%harmonic, g_field%geometry, &
+                g_field%curved_coords, g_field%field_type
+    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, lb, ub
+
+    if (ix_ele > 0) then
+      ele%grid_field(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%grid_field(ix_ptr)%ptr
+      ele%grid_field(i)%ptr%n_link = ele%grid_field(i)%ptr%n_link + 1
+    else
+      allocate (ele%grid_field(i)%ptr)
+      read (d_unit, err = 9120) g_field%ptr%file
+      allocate (g_field%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
+      do j = lb(3), ub(3)
+        read (d_unit, err = 9120) g_field%ptr%pt(:, :, j)
+      enddo
+    endif
+  enddo
+endif
+
+! Taylor_field
+
+if (n_tay > 0) then
+  allocate (ele%taylor_field(n_tay))
+
+
+  do i = 1, n_tay
+    t_field => ele%taylor_field(i)
+    read (d_unit, err = 9120) t_field%field_scale, t_field%master_parameter, &
+                t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0
+    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n0, n1
+
+    if (ix_ele > 0) then
+      ele%taylor_field(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%taylor_field(ix_ptr)%ptr
+      ele%taylor_field(i)%ptr%n_link = ele%taylor_field(i)%ptr%n_link + 1
+    else
+      allocate (ele%taylor_field(i)%ptr)
+      read (d_unit, err = 9120) t_field%ptr%file
+      allocate (t_field%ptr%plane(n0:n1))
+      do j = n0, n1
+        do k = 1, 3
+          read (d_unit, err = 9120) nt
+          allocate (t_field%ptr%plane(j)%field(k)%term(nt))
+          do n = 1, nt
+           read (d_unit, err = 9120) t_field%ptr%plane(j)%field(k)%term(n)
+          enddo
+        enddo
+      enddo
+    endif
   enddo
 endif
 
@@ -522,18 +595,6 @@ endif
 if (mode3) then
   allocate(ele%mode3)
   read (d_unit, err = 9150) ele%mode3
-endif
-
-if (ix_wig > 0) then
-  allocate (ele%wig)
-  ele%wig%n_link = 1
-  allocate (ele%wig%term(ix_wig))
-  do j = 1, ix_wig
-    read (d_unit, err = 9200) ele%wig%term(j)
-  enddo
-elseif (ix_wig < 0) then  ! Points to another wiggler with same field
-  ele%wig => lat%branch(ix_wig_branch)%ele(abs(ix_wig))%wig
-  ele%wig%n_link = ele%wig%n_link + 1
 endif
 
 if (ix_r /= 0) then
@@ -672,12 +733,6 @@ return
 9150  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
         'ERROR READING MODE3 COMPONENT FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9200  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-        'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 

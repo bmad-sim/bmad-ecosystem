@@ -591,6 +591,8 @@ Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 
 \item[\vn{\%default_integ_order}] \Newline
 Order of the the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
+The order of the PTC integrator is like the order of a Newton-Cotes method.
+Higher order means the error term involves a higher order derivative of the field.
 
 \item{ptc_max_fringe_order} \Newline
 Maximum order for computing fringe field effects in PTC. 
