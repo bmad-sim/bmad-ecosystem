@@ -9,8 +9,8 @@ beginning[e_tot]  = 7e6
 ! branch 3
 
 em: em_field, l = 2,
-    field = {mode = {grid = {
-      type = xyz,
+    grid_field = {
+      geometry = xyz,
       ele_anchor_pt = center,
       r0 = (0.1, 0.2, -1),
       dr = (1,1,2),
@@ -32,7 +32,7 @@ em: em_field, l = 2,
       pt( 1,-1, 1) = (1,  1, -1, 1,  0,  1),
       pt( 1, 0, 1) = (1,  1,  0, 1,  2,  2),
       pt( 1, 1, 1) = (1,  1,  1, 1,  4,  3) &
-    }}}, field_calc = grid
+    }, field_calc = fieldmap
 
 mm: marker, superimpose, ref = em, offset = -0.1
 m:marker

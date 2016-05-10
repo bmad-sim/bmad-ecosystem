@@ -17,14 +17,57 @@ type (ele_struct), pointer :: ele
 type (ele_struct) ele2
 type (all_pointer_struct) a_ptr
 type (coord_struct), allocatable :: orbit(:)
+type (coord_struct) orb
+type (em_field_struct) field
+
 real(rp) value
-integer i
+integer i, j, inc_version
+character(200) digested_file
 character(1) delim
 logical err, delim_found
 
 ! 
 
 open (1, file = 'output.now')
+
+!
+
+orb%vec = [0.1_rp, 0.2_rp, 0.3_rp, 0.4_rp, 0.5_rp, 0.6_rp]
+orb%species = electron$
+
+call bmad_parser ('em_field.bmad', lat)
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%key == taylor$) cycle
+  if (ele%key == marker$) cycle
+  call em_field_calc (ele, lat%param, 0.1_rp, 1.0_rp, orb, .false., field, .true.)
+  write (1, '(a, i0, a, 6es16.8)') '"Field:', i, '" REL 1e-7', field%E, field%B
+  do j = 1, 3
+    write (1, '(2(a, i0), a, 6es16.8)') '"dField:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+  enddo
+enddo
+
+call write_bmad_lattice_file ('z.bmad', lat)
+call bmad_parser ('z.bmad', lat)
+call form_digested_bmad_file_name ('z.bmad', digested_file)
+call read_digested_bmad_file (digested_file, lat, inc_version, err)
+call write_bmad_lattice_file ('z2.bmad', lat)
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%key == taylor$) cycle
+  if (ele%key == marker$) cycle
+  call em_field_calc (ele, lat%param, 0.1_rp, 1.0_rp, orb, .false., field, .true.)
+  write (1, '(a, i0, a, 6es16.8)') '"Field2:', i, '" REL 1e-7', field%E, field%B
+  do j = 1, 3
+    write (1, '(2(a, i0), a, 6es16.8)') '"dField2:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+  enddo
+enddo
+
+!!! Test: curved coords...
+
+!
 
 call bmad_parser ('overlap.bmad', lat)
 

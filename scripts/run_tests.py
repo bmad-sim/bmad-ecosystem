@@ -122,7 +122,8 @@ for test_dir in test_dir_list:
     program = exe_file.readline().strip().split()[0]
   program = bin_dir + program
 
-  print_all ('\nStarting testing in subdirectory: ' + dir_split[0])
+  print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  print_all ('Starting testing in subdirectory: ' + dir_split[0])
   print_all ('     Running program: ' + program)
   
   if not os.path.isfile(program):
