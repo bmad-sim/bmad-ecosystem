@@ -132,60 +132,75 @@ typedef valarray<CPP_taylor>          CPP_taylor_ARRAY;
 typedef valarray<CPP_taylor_ARRAY>    CPP_taylor_MATRIX;
 typedef valarray<CPP_taylor_MATRIX>   CPP_taylor_TENSOR;
 
-class CPP_wig_term;
-typedef valarray<CPP_wig_term>          CPP_wig_term_ARRAY;
-typedef valarray<CPP_wig_term_ARRAY>    CPP_wig_term_MATRIX;
-typedef valarray<CPP_wig_term_MATRIX>   CPP_wig_term_TENSOR;
+class CPP_em_taylor_term;
+typedef valarray<CPP_em_taylor_term>          CPP_em_taylor_term_ARRAY;
+typedef valarray<CPP_em_taylor_term_ARRAY>    CPP_em_taylor_term_MATRIX;
+typedef valarray<CPP_em_taylor_term_MATRIX>   CPP_em_taylor_term_TENSOR;
 
-class CPP_wig;
-typedef valarray<CPP_wig>          CPP_wig_ARRAY;
-typedef valarray<CPP_wig_ARRAY>    CPP_wig_MATRIX;
-typedef valarray<CPP_wig_MATRIX>   CPP_wig_TENSOR;
+class CPP_em_taylor;
+typedef valarray<CPP_em_taylor>          CPP_em_taylor_ARRAY;
+typedef valarray<CPP_em_taylor_ARRAY>    CPP_em_taylor_MATRIX;
+typedef valarray<CPP_em_taylor_MATRIX>   CPP_em_taylor_TENSOR;
 
-class CPP_em_field_cartesian_map_term;
-typedef valarray<CPP_em_field_cartesian_map_term>          CPP_em_field_cartesian_map_term_ARRAY;
-typedef valarray<CPP_em_field_cartesian_map_term_ARRAY>    CPP_em_field_cartesian_map_term_MATRIX;
-typedef valarray<CPP_em_field_cartesian_map_term_MATRIX>   CPP_em_field_cartesian_map_term_TENSOR;
+class CPP_cartesian_map_term1;
+typedef valarray<CPP_cartesian_map_term1>          CPP_cartesian_map_term1_ARRAY;
+typedef valarray<CPP_cartesian_map_term1_ARRAY>    CPP_cartesian_map_term1_MATRIX;
+typedef valarray<CPP_cartesian_map_term1_MATRIX>   CPP_cartesian_map_term1_TENSOR;
 
-class CPP_em_field_cartesian_map;
-typedef valarray<CPP_em_field_cartesian_map>          CPP_em_field_cartesian_map_ARRAY;
-typedef valarray<CPP_em_field_cartesian_map_ARRAY>    CPP_em_field_cartesian_map_MATRIX;
-typedef valarray<CPP_em_field_cartesian_map_MATRIX>   CPP_em_field_cartesian_map_TENSOR;
+class CPP_cartesian_map_term;
+typedef valarray<CPP_cartesian_map_term>          CPP_cartesian_map_term_ARRAY;
+typedef valarray<CPP_cartesian_map_term_ARRAY>    CPP_cartesian_map_term_MATRIX;
+typedef valarray<CPP_cartesian_map_term_MATRIX>   CPP_cartesian_map_term_TENSOR;
 
-class CPP_em_field_cylindrical_map_term;
-typedef valarray<CPP_em_field_cylindrical_map_term>          CPP_em_field_cylindrical_map_term_ARRAY;
-typedef valarray<CPP_em_field_cylindrical_map_term_ARRAY>    CPP_em_field_cylindrical_map_term_MATRIX;
-typedef valarray<CPP_em_field_cylindrical_map_term_MATRIX>   CPP_em_field_cylindrical_map_term_TENSOR;
+class CPP_cartesian_map;
+typedef valarray<CPP_cartesian_map>          CPP_cartesian_map_ARRAY;
+typedef valarray<CPP_cartesian_map_ARRAY>    CPP_cartesian_map_MATRIX;
+typedef valarray<CPP_cartesian_map_MATRIX>   CPP_cartesian_map_TENSOR;
 
-class CPP_em_field_cylindrical_map;
-typedef valarray<CPP_em_field_cylindrical_map>          CPP_em_field_cylindrical_map_ARRAY;
-typedef valarray<CPP_em_field_cylindrical_map_ARRAY>    CPP_em_field_cylindrical_map_MATRIX;
-typedef valarray<CPP_em_field_cylindrical_map_MATRIX>   CPP_em_field_cylindrical_map_TENSOR;
+class CPP_cylindrical_map_term1;
+typedef valarray<CPP_cylindrical_map_term1>          CPP_cylindrical_map_term1_ARRAY;
+typedef valarray<CPP_cylindrical_map_term1_ARRAY>    CPP_cylindrical_map_term1_MATRIX;
+typedef valarray<CPP_cylindrical_map_term1_MATRIX>   CPP_cylindrical_map_term1_TENSOR;
 
-class CPP_em_field_taylor;
-typedef valarray<CPP_em_field_taylor>          CPP_em_field_taylor_ARRAY;
-typedef valarray<CPP_em_field_taylor_ARRAY>    CPP_em_field_taylor_MATRIX;
-typedef valarray<CPP_em_field_taylor_MATRIX>   CPP_em_field_taylor_TENSOR;
+class CPP_cylindrical_map_term;
+typedef valarray<CPP_cylindrical_map_term>          CPP_cylindrical_map_term_ARRAY;
+typedef valarray<CPP_cylindrical_map_term_ARRAY>    CPP_cylindrical_map_term_MATRIX;
+typedef valarray<CPP_cylindrical_map_term_MATRIX>   CPP_cylindrical_map_term_TENSOR;
 
-class CPP_em_field_grid_pt;
-typedef valarray<CPP_em_field_grid_pt>          CPP_em_field_grid_pt_ARRAY;
-typedef valarray<CPP_em_field_grid_pt_ARRAY>    CPP_em_field_grid_pt_MATRIX;
-typedef valarray<CPP_em_field_grid_pt_MATRIX>   CPP_em_field_grid_pt_TENSOR;
+class CPP_cylindrical_map;
+typedef valarray<CPP_cylindrical_map>          CPP_cylindrical_map_ARRAY;
+typedef valarray<CPP_cylindrical_map_ARRAY>    CPP_cylindrical_map_MATRIX;
+typedef valarray<CPP_cylindrical_map_MATRIX>   CPP_cylindrical_map_TENSOR;
 
-class CPP_em_field_grid;
-typedef valarray<CPP_em_field_grid>          CPP_em_field_grid_ARRAY;
-typedef valarray<CPP_em_field_grid_ARRAY>    CPP_em_field_grid_MATRIX;
-typedef valarray<CPP_em_field_grid_MATRIX>   CPP_em_field_grid_TENSOR;
+class CPP_grid_field_pt1;
+typedef valarray<CPP_grid_field_pt1>          CPP_grid_field_pt1_ARRAY;
+typedef valarray<CPP_grid_field_pt1_ARRAY>    CPP_grid_field_pt1_MATRIX;
+typedef valarray<CPP_grid_field_pt1_MATRIX>   CPP_grid_field_pt1_TENSOR;
 
-class CPP_em_field_mode;
-typedef valarray<CPP_em_field_mode>          CPP_em_field_mode_ARRAY;
-typedef valarray<CPP_em_field_mode_ARRAY>    CPP_em_field_mode_MATRIX;
-typedef valarray<CPP_em_field_mode_MATRIX>   CPP_em_field_mode_TENSOR;
+class CPP_grid_field_pt;
+typedef valarray<CPP_grid_field_pt>          CPP_grid_field_pt_ARRAY;
+typedef valarray<CPP_grid_field_pt_ARRAY>    CPP_grid_field_pt_MATRIX;
+typedef valarray<CPP_grid_field_pt_MATRIX>   CPP_grid_field_pt_TENSOR;
 
-class CPP_em_fields;
-typedef valarray<CPP_em_fields>          CPP_em_fields_ARRAY;
-typedef valarray<CPP_em_fields_ARRAY>    CPP_em_fields_MATRIX;
-typedef valarray<CPP_em_fields_MATRIX>   CPP_em_fields_TENSOR;
+class CPP_grid_field;
+typedef valarray<CPP_grid_field>          CPP_grid_field_ARRAY;
+typedef valarray<CPP_grid_field_ARRAY>    CPP_grid_field_MATRIX;
+typedef valarray<CPP_grid_field_MATRIX>   CPP_grid_field_TENSOR;
+
+class CPP_taylor_field_plane1;
+typedef valarray<CPP_taylor_field_plane1>          CPP_taylor_field_plane1_ARRAY;
+typedef valarray<CPP_taylor_field_plane1_ARRAY>    CPP_taylor_field_plane1_MATRIX;
+typedef valarray<CPP_taylor_field_plane1_MATRIX>   CPP_taylor_field_plane1_TENSOR;
+
+class CPP_taylor_field_plane;
+typedef valarray<CPP_taylor_field_plane>          CPP_taylor_field_plane_ARRAY;
+typedef valarray<CPP_taylor_field_plane_ARRAY>    CPP_taylor_field_plane_MATRIX;
+typedef valarray<CPP_taylor_field_plane_MATRIX>   CPP_taylor_field_plane_TENSOR;
+
+class CPP_taylor_field;
+typedef valarray<CPP_taylor_field>          CPP_taylor_field_ARRAY;
+typedef valarray<CPP_taylor_field_ARRAY>    CPP_taylor_field_MATRIX;
+typedef valarray<CPP_taylor_field_MATRIX>   CPP_taylor_field_TENSOR;
 
 class CPP_floor_position;
 typedef valarray<CPP_floor_position>          CPP_floor_position_ARRAY;
@@ -936,11 +951,63 @@ bool operator== (const CPP_taylor&, const CPP_taylor&);
 
 
 //--------------------------------------------------------------------
-// CPP_wig_term
+// CPP_em_taylor_term
 
-class Bmad_wig_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_em_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_wig_term {
+class CPP_em_taylor_term {
+public:
+  Real coef;
+  Int_ARRAY expn;
+
+  CPP_em_taylor_term() :
+    coef(0.0),
+    expn(0, 2)
+    {}
+
+  ~CPP_em_taylor_term() {
+  }
+
+};   // End Class
+
+extern "C" void em_taylor_term_to_c (const Bmad_em_taylor_term_class*, CPP_em_taylor_term&);
+extern "C" void em_taylor_term_to_f (const CPP_em_taylor_term&, Bmad_em_taylor_term_class*);
+
+bool operator== (const CPP_em_taylor_term&, const CPP_em_taylor_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_taylor
+
+class Bmad_em_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_taylor {
+public:
+  Real ref;
+  CPP_em_taylor_term_ARRAY term;
+
+  CPP_em_taylor() :
+    ref(0.0),
+    term(CPP_em_taylor_term_ARRAY(CPP_em_taylor_term(), 0))
+    {}
+
+  ~CPP_em_taylor() {
+  }
+
+};   // End Class
+
+extern "C" void em_taylor_to_c (const Bmad_em_taylor_class*, CPP_em_taylor&);
+extern "C" void em_taylor_to_f (const CPP_em_taylor&, Bmad_em_taylor_class*);
+
+bool operator== (const CPP_em_taylor&, const CPP_em_taylor&);
+
+
+//--------------------------------------------------------------------
+// CPP_cartesian_map_term1
+
+class Bmad_cartesian_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_cartesian_map_term1 {
 public:
   Real coef;
   Real kx;
@@ -951,7 +1018,7 @@ public:
   Real phi_z;
   Int type;
 
-  CPP_wig_term() :
+  CPP_cartesian_map_term1() :
     coef(0.0),
     kx(0.0),
     ky(0.0),
@@ -962,343 +1029,365 @@ public:
     type(0)
     {}
 
-  ~CPP_wig_term() {
+  ~CPP_cartesian_map_term1() {
   }
 
 };   // End Class
 
-extern "C" void wig_term_to_c (const Bmad_wig_term_class*, CPP_wig_term&);
-extern "C" void wig_term_to_f (const CPP_wig_term&, Bmad_wig_term_class*);
+extern "C" void cartesian_map_term1_to_c (const Bmad_cartesian_map_term1_class*, CPP_cartesian_map_term1&);
+extern "C" void cartesian_map_term1_to_f (const CPP_cartesian_map_term1&, Bmad_cartesian_map_term1_class*);
 
-bool operator== (const CPP_wig_term&, const CPP_wig_term&);
-
-
-//--------------------------------------------------------------------
-// CPP_wig
-
-class Bmad_wig_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_wig {
-public:
-  Int n_link;
-  CPP_wig_term_ARRAY term;
-
-  CPP_wig() :
-    n_link(1),
-    term(CPP_wig_term_ARRAY(CPP_wig_term(), 0))
-    {}
-
-  ~CPP_wig() {
-  }
-
-};   // End Class
-
-extern "C" void wig_to_c (const Bmad_wig_class*, CPP_wig&);
-extern "C" void wig_to_f (const CPP_wig&, Bmad_wig_class*);
-
-bool operator== (const CPP_wig&, const CPP_wig&);
+bool operator== (const CPP_cartesian_map_term1&, const CPP_cartesian_map_term1&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_cartesian_map_term
+// CPP_cartesian_map_term
 
-class Bmad_em_field_cartesian_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_cartesian_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_cartesian_map_term {
-public:
-  Real coef;
-  Real kx;
-  Real ky;
-  Real kz;
-  Real x0;
-  Real y0;
-  Real phi_z;
-  Int type;
-
-  CPP_em_field_cartesian_map_term() :
-    coef(0.0),
-    kx(0.0),
-    ky(0.0),
-    kz(0.0),
-    x0(0.0),
-    y0(0.0),
-    phi_z(0.0),
-    type(0)
-    {}
-
-  ~CPP_em_field_cartesian_map_term() {
-  }
-
-};   // End Class
-
-extern "C" void em_field_cartesian_map_term_to_c (const Bmad_em_field_cartesian_map_term_class*, CPP_em_field_cartesian_map_term&);
-extern "C" void em_field_cartesian_map_term_to_f (const CPP_em_field_cartesian_map_term&, Bmad_em_field_cartesian_map_term_class*);
-
-bool operator== (const CPP_em_field_cartesian_map_term&, const CPP_em_field_cartesian_map_term&);
-
-
-//--------------------------------------------------------------------
-// CPP_em_field_cartesian_map
-
-class Bmad_em_field_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_em_field_cartesian_map {
+class CPP_cartesian_map_term {
 public:
   string file;
   Int n_link;
-  Int ele_anchor_pt;
-  CPP_em_field_cartesian_map_term_ARRAY term;
+  CPP_cartesian_map_term1_ARRAY term;
 
-  CPP_em_field_cartesian_map() :
+  CPP_cartesian_map_term() :
     file(),
     n_link(1),
-    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    term(CPP_em_field_cartesian_map_term_ARRAY(CPP_em_field_cartesian_map_term(), 0))
+    term(CPP_cartesian_map_term1_ARRAY(CPP_cartesian_map_term1(), 0))
     {}
 
-  ~CPP_em_field_cartesian_map() {
+  ~CPP_cartesian_map_term() {
   }
 
 };   // End Class
 
-extern "C" void em_field_cartesian_map_to_c (const Bmad_em_field_cartesian_map_class*, CPP_em_field_cartesian_map&);
-extern "C" void em_field_cartesian_map_to_f (const CPP_em_field_cartesian_map&, Bmad_em_field_cartesian_map_class*);
+extern "C" void cartesian_map_term_to_c (const Bmad_cartesian_map_term_class*, CPP_cartesian_map_term&);
+extern "C" void cartesian_map_term_to_f (const CPP_cartesian_map_term&, Bmad_cartesian_map_term_class*);
 
-bool operator== (const CPP_em_field_cartesian_map&, const CPP_em_field_cartesian_map&);
+bool operator== (const CPP_cartesian_map_term&, const CPP_cartesian_map_term&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_cylindrical_map_term
+// CPP_cartesian_map
 
-class Bmad_em_field_cylindrical_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_cylindrical_map_term {
+class CPP_cartesian_map {
+public:
+  Real field_scale;
+  Real_ARRAY r0;
+  Int master_parameter;
+  Int ele_anchor_pt;
+  Int field_type;
+  CPP_cartesian_map_term* ptr;
+
+  CPP_cartesian_map() :
+    field_scale(1),
+    r0(0.0, 3),
+    master_parameter(0),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    field_type(Bmad::MAGNETIC),
+    ptr(NULL)
+    {}
+
+  ~CPP_cartesian_map() {
+    delete ptr;
+  }
+
+};   // End Class
+
+extern "C" void cartesian_map_to_c (const Bmad_cartesian_map_class*, CPP_cartesian_map&);
+extern "C" void cartesian_map_to_f (const CPP_cartesian_map&, Bmad_cartesian_map_class*);
+
+bool operator== (const CPP_cartesian_map&, const CPP_cartesian_map&);
+
+
+//--------------------------------------------------------------------
+// CPP_cylindrical_map_term1
+
+class Bmad_cylindrical_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_cylindrical_map_term1 {
 public:
   Complex e_coef;
   Complex b_coef;
 
-  CPP_em_field_cylindrical_map_term() :
+  CPP_cylindrical_map_term1() :
     e_coef(0.0),
     b_coef(0.0)
     {}
 
-  ~CPP_em_field_cylindrical_map_term() {
+  ~CPP_cylindrical_map_term1() {
   }
 
 };   // End Class
 
-extern "C" void em_field_cylindrical_map_term_to_c (const Bmad_em_field_cylindrical_map_term_class*, CPP_em_field_cylindrical_map_term&);
-extern "C" void em_field_cylindrical_map_term_to_f (const CPP_em_field_cylindrical_map_term&, Bmad_em_field_cylindrical_map_term_class*);
+extern "C" void cylindrical_map_term1_to_c (const Bmad_cylindrical_map_term1_class*, CPP_cylindrical_map_term1&);
+extern "C" void cylindrical_map_term1_to_f (const CPP_cylindrical_map_term1&, Bmad_cylindrical_map_term1_class*);
 
-bool operator== (const CPP_em_field_cylindrical_map_term&, const CPP_em_field_cylindrical_map_term&);
+bool operator== (const CPP_cylindrical_map_term1&, const CPP_cylindrical_map_term1&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_cylindrical_map
+// CPP_cylindrical_map_term
 
-class Bmad_em_field_cylindrical_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_cylindrical_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_cylindrical_map {
+class CPP_cylindrical_map_term {
 public:
   string file;
   Int n_link;
+  CPP_cylindrical_map_term1_ARRAY term;
+
+  CPP_cylindrical_map_term() :
+    file(),
+    n_link(1),
+    term(CPP_cylindrical_map_term1_ARRAY(CPP_cylindrical_map_term1(), 0))
+    {}
+
+  ~CPP_cylindrical_map_term() {
+  }
+
+};   // End Class
+
+extern "C" void cylindrical_map_term_to_c (const Bmad_cylindrical_map_term_class*, CPP_cylindrical_map_term&);
+extern "C" void cylindrical_map_term_to_f (const CPP_cylindrical_map_term&, Bmad_cylindrical_map_term_class*);
+
+bool operator== (const CPP_cylindrical_map_term&, const CPP_cylindrical_map_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_cylindrical_map
+
+class Bmad_cylindrical_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_cylindrical_map {
+public:
+  Int m;
+  Int harmonic;
+  Real phi0_fieldmap;
+  Real theta0_azimuth;
+  Real field_scale;
+  Int master_parameter;
   Int ele_anchor_pt;
   Real dz;
-  CPP_em_field_cylindrical_map_term_ARRAY term;
+  Real_ARRAY r0;
+  CPP_cylindrical_map_term* ptr;
 
-  CPP_em_field_cylindrical_map() :
-    file(),
-    n_link(1),
+  CPP_cylindrical_map() :
+    m(0),
+    harmonic(0),
+    phi0_fieldmap(0.0),
+    theta0_azimuth(0.0),
+    field_scale(1),
+    master_parameter(0),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     dz(0.0),
-    term(CPP_em_field_cylindrical_map_term_ARRAY(CPP_em_field_cylindrical_map_term(), 0))
+    r0(0.0, 3),
+    ptr(NULL)
     {}
 
-  ~CPP_em_field_cylindrical_map() {
+  ~CPP_cylindrical_map() {
+    delete ptr;
   }
 
 };   // End Class
 
-extern "C" void em_field_cylindrical_map_to_c (const Bmad_em_field_cylindrical_map_class*, CPP_em_field_cylindrical_map&);
-extern "C" void em_field_cylindrical_map_to_f (const CPP_em_field_cylindrical_map&, Bmad_em_field_cylindrical_map_class*);
+extern "C" void cylindrical_map_to_c (const Bmad_cylindrical_map_class*, CPP_cylindrical_map&);
+extern "C" void cylindrical_map_to_f (const CPP_cylindrical_map&, Bmad_cylindrical_map_class*);
 
-bool operator== (const CPP_em_field_cylindrical_map&, const CPP_em_field_cylindrical_map&);
-
-
-//--------------------------------------------------------------------
-// CPP_em_field_taylor
-
-class Bmad_em_field_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_em_field_taylor {
-public:
-  string file;
-  Int n_link;
-  Int ele_anchor_pt;
-  CPP_taylor_ARRAY pt;
-  Real dr;
-  Real r0;
-  Bool curved_coords;
-
-  CPP_em_field_taylor() :
-    file(),
-    n_link(1),
-    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    pt(CPP_taylor_ARRAY(CPP_taylor(), 0)),
-    dr(0.0),
-    r0(0.0),
-    curved_coords(false)
-    {}
-
-  ~CPP_em_field_taylor() {
-  }
-
-};   // End Class
-
-extern "C" void em_field_taylor_to_c (const Bmad_em_field_taylor_class*, CPP_em_field_taylor&);
-extern "C" void em_field_taylor_to_f (const CPP_em_field_taylor&, Bmad_em_field_taylor_class*);
-
-bool operator== (const CPP_em_field_taylor&, const CPP_em_field_taylor&);
+bool operator== (const CPP_cylindrical_map&, const CPP_cylindrical_map&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_grid_pt
+// CPP_grid_field_pt1
 
-class Bmad_em_field_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_grid_field_pt1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_grid_pt {
+class CPP_grid_field_pt1 {
 public:
   Complex_ARRAY e;
   Complex_ARRAY b;
 
-  CPP_em_field_grid_pt() :
+  CPP_grid_field_pt1() :
     e(0.0, 3),
     b(0.0, 3)
     {}
 
-  ~CPP_em_field_grid_pt() {
+  ~CPP_grid_field_pt1() {
   }
 
 };   // End Class
 
-extern "C" void em_field_grid_pt_to_c (const Bmad_em_field_grid_pt_class*, CPP_em_field_grid_pt&);
-extern "C" void em_field_grid_pt_to_f (const CPP_em_field_grid_pt&, Bmad_em_field_grid_pt_class*);
+extern "C" void grid_field_pt1_to_c (const Bmad_grid_field_pt1_class*, CPP_grid_field_pt1&);
+extern "C" void grid_field_pt1_to_f (const CPP_grid_field_pt1&, Bmad_grid_field_pt1_class*);
 
-bool operator== (const CPP_em_field_grid_pt&, const CPP_em_field_grid_pt&);
+bool operator== (const CPP_grid_field_pt1&, const CPP_grid_field_pt1&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_grid
+// CPP_grid_field_pt
 
-class Bmad_em_field_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_grid_field_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_grid {
+class CPP_grid_field_pt {
 public:
   string file;
   Int n_link;
-  Int type;
+  CPP_grid_field_pt1_TENSOR pt;
+
+  CPP_grid_field_pt() :
+    file(),
+    n_link(1),
+    pt(CPP_grid_field_pt1_MATRIX(CPP_grid_field_pt1_ARRAY(CPP_grid_field_pt1(), 0), 0), 0)
+    {}
+
+  ~CPP_grid_field_pt() {
+  }
+
+};   // End Class
+
+extern "C" void grid_field_pt_to_c (const Bmad_grid_field_pt_class*, CPP_grid_field_pt&);
+extern "C" void grid_field_pt_to_f (const CPP_grid_field_pt&, Bmad_grid_field_pt_class*);
+
+bool operator== (const CPP_grid_field_pt&, const CPP_grid_field_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_grid_field
+
+class Bmad_grid_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_grid_field {
+public:
+  Int geometry;
+  Int harmonic;
+  Real phi0_fieldmap;
+  Real field_scale;
+  Int field_type;
+  Int master_parameter;
   Int ele_anchor_pt;
-  CPP_em_field_grid_pt_TENSOR pt;
   Real_ARRAY dr;
   Real_ARRAY r0;
   Bool curved_coords;
+  CPP_grid_field_pt* ptr;
 
-  CPP_em_field_grid() :
-    file(),
-    n_link(1),
-    type(0),
+  CPP_grid_field() :
+    geometry(0),
+    harmonic(0),
+    phi0_fieldmap(0.0),
+    field_scale(1),
+    field_type(Bmad::MIXED),
+    master_parameter(0),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    pt(CPP_em_field_grid_pt_MATRIX(CPP_em_field_grid_pt_ARRAY(CPP_em_field_grid_pt(), 0), 0), 0),
     dr(0.0, 3),
     r0(0.0, 3),
-    curved_coords(false)
+    curved_coords(false),
+    ptr(NULL)
     {}
 
-  ~CPP_em_field_grid() {
+  ~CPP_grid_field() {
+    delete ptr;
   }
 
 };   // End Class
 
-extern "C" void em_field_grid_to_c (const Bmad_em_field_grid_class*, CPP_em_field_grid&);
-extern "C" void em_field_grid_to_f (const CPP_em_field_grid&, Bmad_em_field_grid_class*);
+extern "C" void grid_field_to_c (const Bmad_grid_field_class*, CPP_grid_field&);
+extern "C" void grid_field_to_f (const CPP_grid_field&, Bmad_grid_field_class*);
 
-bool operator== (const CPP_em_field_grid&, const CPP_em_field_grid&);
+bool operator== (const CPP_grid_field&, const CPP_grid_field&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_field_mode
+// CPP_taylor_field_plane1
 
-class Bmad_em_field_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_taylor_field_plane1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_field_mode {
+class CPP_taylor_field_plane1 {
 public:
-  Int m;
-  Int harmonic;
-  Real f_damp;
-  Real phi0_ref;
-  Real stored_energy;
-  Real phi0_azimuth;
+  CPP_em_taylor_ARRAY field;
+
+  CPP_taylor_field_plane1() :
+    field(CPP_em_taylor_ARRAY(CPP_em_taylor(), 3))
+    {}
+
+  ~CPP_taylor_field_plane1() {
+  }
+
+};   // End Class
+
+extern "C" void taylor_field_plane1_to_c (const Bmad_taylor_field_plane1_class*, CPP_taylor_field_plane1&);
+extern "C" void taylor_field_plane1_to_f (const CPP_taylor_field_plane1&, Bmad_taylor_field_plane1_class*);
+
+bool operator== (const CPP_taylor_field_plane1&, const CPP_taylor_field_plane1&);
+
+
+//--------------------------------------------------------------------
+// CPP_taylor_field_plane
+
+class Bmad_taylor_field_plane_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_taylor_field_plane {
+public:
+  string file;
+  Int n_link;
+  CPP_taylor_field_plane1_ARRAY plane;
+
+  CPP_taylor_field_plane() :
+    file(),
+    n_link(1),
+    plane(CPP_taylor_field_plane1_ARRAY(CPP_taylor_field_plane1(), 0))
+    {}
+
+  ~CPP_taylor_field_plane() {
+  }
+
+};   // End Class
+
+extern "C" void taylor_field_plane_to_c (const Bmad_taylor_field_plane_class*, CPP_taylor_field_plane&);
+extern "C" void taylor_field_plane_to_f (const CPP_taylor_field_plane&, Bmad_taylor_field_plane_class*);
+
+bool operator== (const CPP_taylor_field_plane&, const CPP_taylor_field_plane&);
+
+
+//--------------------------------------------------------------------
+// CPP_taylor_field
+
+class Bmad_taylor_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_taylor_field {
+public:
+  Int ele_anchor_pt;
+  Int field_type;
+  Real dz;
+  Real_ARRAY r0;
   Real field_scale;
-  Int master_scale;
-  CPP_em_field_grid* grid;
-  CPP_em_field_cylindrical_map* cylindrical_map;
-  CPP_em_field_cartesian_map* cartesian_map;
-  CPP_em_field_taylor* taylor;
+  Int master_parameter;
+  Bool curved_coords;
+  CPP_taylor_field_plane* ptr;
 
-  CPP_em_field_mode() :
-    m(0),
-    harmonic(0),
-    f_damp(0.0),
-    phi0_ref(0.0),
-    stored_energy(0.0),
-    phi0_azimuth(0.0),
+  CPP_taylor_field() :
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    field_type(Bmad::MAGNETIC),
+    dz(0.0),
+    r0(0.0, 3),
     field_scale(1),
-    master_scale(0),
-    grid(NULL),
-    cylindrical_map(NULL),
-    cartesian_map(NULL),
-    taylor(NULL)
+    master_parameter(0),
+    curved_coords(false),
+    ptr(NULL)
     {}
 
-  ~CPP_em_field_mode() {
-    delete grid;
-    delete cylindrical_map;
-    delete cartesian_map;
-    delete taylor;
+  ~CPP_taylor_field() {
+    delete ptr;
   }
 
 };   // End Class
 
-extern "C" void em_field_mode_to_c (const Bmad_em_field_mode_class*, CPP_em_field_mode&);
-extern "C" void em_field_mode_to_f (const CPP_em_field_mode&, Bmad_em_field_mode_class*);
+extern "C" void taylor_field_to_c (const Bmad_taylor_field_class*, CPP_taylor_field&);
+extern "C" void taylor_field_to_f (const CPP_taylor_field&, Bmad_taylor_field_class*);
 
-bool operator== (const CPP_em_field_mode&, const CPP_em_field_mode&);
-
-
-//--------------------------------------------------------------------
-// CPP_em_fields
-
-class Bmad_em_fields_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_em_fields {
-public:
-  CPP_em_field_mode_ARRAY mode;
-  Int mode_to_autoscale;
-
-  CPP_em_fields() :
-    mode(CPP_em_field_mode_ARRAY(CPP_em_field_mode(), 0)),
-    mode_to_autoscale(1)
-    {}
-
-  ~CPP_em_fields() {
-  }
-
-};   // End Class
-
-extern "C" void em_fields_to_c (const Bmad_em_fields_class*, CPP_em_fields&);
-extern "C" void em_fields_to_f (const CPP_em_fields&, Bmad_em_fields_class*);
-
-bool operator== (const CPP_em_fields&, const CPP_em_fields&);
+bool operator== (const CPP_taylor_field&, const CPP_taylor_field&);
 
 
 //--------------------------------------------------------------------
@@ -2601,7 +2690,10 @@ public:
   CPP_xy_disp y;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_controller_var_ARRAY control_var;
-  CPP_em_fields* em_field;
+  CPP_cartesian_map_ARRAY cartesian_map;
+  CPP_cylindrical_map_ARRAY cylindrical_map;
+  CPP_taylor_field_ARRAY taylor_field;
+  CPP_grid_field_ARRAY grid_field;
   CPP_floor_position floor;
   CPP_ptc_genfield ptc_genfield;
   CPP_mode3* mode3;
@@ -2612,7 +2704,6 @@ public:
   CPP_taylor_MATRIX spin_taylor;
   CPP_wake* wake;
   CPP_wall3d_ARRAY wall3d;
-  CPP_wig* wig;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
   CPP_coord time_ref_orb_in;
@@ -2671,13 +2762,13 @@ public:
 
     if (key == Bmad::LCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_FACTOR] = 1;
+      value[Bmad::FIELD_AUTOSCALE] = 1;
       value[Bmad::N_CELL] = 1;
     }
 
     if (key == Bmad::RFCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_FACTOR] = 1;
+      value[Bmad::FIELD_AUTOSCALE] = 1;
       value[Bmad::N_CELL] = 1;
     }
 
@@ -2701,7 +2792,10 @@ public:
     y(),
     bookkeeping_state(),
     control_var(CPP_controller_var_ARRAY(CPP_controller_var(), 0)),
-    em_field(NULL),
+    cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
+    cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
+    taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
+    grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
     floor(),
     ptc_genfield(),
     mode3(NULL),
@@ -2712,7 +2806,6 @@ public:
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 3), 3),
     wake(NULL),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
-    wig(NULL),
     map_ref_orb_in(),
     map_ref_orb_out(),
     time_ref_orb_in(),
@@ -2734,7 +2827,7 @@ public:
     sub_key(0),
     ix_ele(-1),
     ix_branch(0),
-    slave_status(Bmad::FREE),
+    slave_status(Bmad::NOT_A_CHILD),
     n_slave(0),
     n_slave_field(0),
     ix1_slave(0),
@@ -2772,13 +2865,11 @@ public:
 
   ~CPP_ele() {
     delete descrip;
-    delete em_field;
     delete mode3;
     delete photon;
     delete rad_int_cache;
     delete space_charge;
     delete wake;
-    delete wig;
   }
 
 };   // End Class

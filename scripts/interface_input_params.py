@@ -35,17 +35,20 @@ struct_list = [
     'wake_struct',
     'taylor_term_struct',
     'taylor_struct',
-    'wig_term_struct',
-    'wig_struct',
-    'em_field_cartesian_map_term_struct',
-    'em_field_cartesian_map_struct',
-    'em_field_cylindrical_map_term_struct',
-    'em_field_cylindrical_map_struct',
-    'em_field_taylor_struct',
-    'em_field_grid_pt_struct',
-    'em_field_grid_struct',
-    'em_field_mode_struct',
-    'em_fields_struct',
+    'em_taylor_term_struct',
+    'em_taylor_struct',
+    'cartesian_map_term1_struct',
+    'cartesian_map_term_struct',
+    'cartesian_map_struct',
+    'cylindrical_map_term1_struct',
+    'cylindrical_map_term_struct',
+    'cylindrical_map_struct',
+    'grid_field_pt1_struct',
+    'grid_field_pt_struct',
+    'grid_field_struct',
+    'taylor_field_plane1_struct',
+    'taylor_field_plane_struct',
+    'taylor_field_struct',
     'floor_position_struct',
     'space_charge_struct',
     'xy_disp_struct',
@@ -147,7 +150,7 @@ c_custom_constructors = {
     'ele%value' : 'value(double(0), Bmad::NUM_ELE_ATTRIB+1)',
     'ele%old_value' : 'old_value(double(0), Bmad::NUM_ELE_ATTRIB+1)', 
     'ele%ix_ele' : 'ix_ele(-1)',
-    'ele%slave_status' : 'slave_status(Bmad::FREE)', 
+    'ele%slave_status' : 'slave_status(Bmad::NOT_A_CHILD)', 
     'ele%ix2_slave' : 'ix2_slave(-1)',
     'ele%lord_status' : 'lord_status(Bmad::NOT_A_LORD)', 
     'ele%ic2_lord' : 'ic2_lord(-1)',
@@ -182,13 +185,13 @@ def customize(struct_definitions):
 
     if (key == Bmad::LCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_FACTOR] = 1;
+      value[Bmad::FIELD_AUTOSCALE] = 1;
       value[Bmad::N_CELL] = 1;
     }
 
     if (key == Bmad::RFCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_FACTOR] = 1;
+      value[Bmad::FIELD_AUTOSCALE] = 1;
       value[Bmad::N_CELL] = 1;
     }
 

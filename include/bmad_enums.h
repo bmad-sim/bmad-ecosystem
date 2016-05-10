@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 178;
+  const int BMAD_INC_VERSION = 181;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -33,13 +33,14 @@ namespace Bmad {
   const int N_METHODS = 15;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
   const int MAP_TYPE = 1, PERIODIC_TYPE = 3, CONST_REF_ENERGY = 4, NONCONST_REF_ENERGY = 5;
-  const int MAP = 2, GRID = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
+  const int FIELDMAP = 2, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int BRAGG = 1, LAUE = 2;
   const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3;
-  const int FREE = 1, SUPER_SLAVE = 2;
+  const int NOT_A_CHILD = 1, SUPER_SLAVE = 2;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
   const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
   const int NOT_A_LORD = 10, SLICE_SLAVE = 11, CONTROL_LORD = 12;
+  const int GRIDED = 123;
   const int AUTO_APERTURE = 1, RECTANGULAR = 2, ELLIPTICAL = 3, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_FULL = 5, LINEAR_EDGE = 6, BASIC_BEND = 7, TEST_EDGE = 8;
@@ -50,7 +51,7 @@ namespace Bmad {
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
-  const int MAGNETIC = 1, ELECTRIC = 2;
+  const int MAGNETIC = 1, ELECTRIC = 2, MIXED = 3;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int REFLECTION = 1, TRANSMISSION = 2;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
@@ -148,7 +149,7 @@ namespace Bmad {
   const int FQ2 = 17, SIG_VX = 17;
   const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
   const int SIG_E = 19, AUTOSCALE_PHASE = 19;
-  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20;
+  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20, DIRECTION_BEAM_START = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20, E_CENTER = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int E_LOSS = 21, DKS_DS = 21, GAP = 21, E_CENTER_RELATIVE_TO_REF = 21, SPIN_X = 21;
@@ -161,7 +162,7 @@ namespace Bmad {
   const int QUAD_TILT = 25, DE_ETA_MEAS = 25, ALPHA_A = 25, E_FIELD_X = 25;
   const int GEOMETRY = 26, BEND_TILT = 26, MODE = 26, ALPHA_B = 26, E_FIELD_Y = 26;
   const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26;
-  const int PHI0_REF = 27, DX_ORIGIN =  27, CMAT_11 = 27, SCALE_FIELD_TO_ONE = 27;
+  const int PHI0_AUTOSCALE = 27, DX_ORIGIN =  27, CMAT_11 = 27, SCALE_FIELD_TO_ONE = 27;
   const int LATTICE_TYPE = 27, X_QUAD = 27, DS_PHOTON_SLICE = 27;
   const int PHI0_MAX = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
   const int CMAT_12 = 28;
@@ -170,7 +171,7 @@ namespace Bmad {
   const int DTHETA_ORIGIN = 30, B_PARAM = 30, TRANSVERSE_SIGMA_CUT = 30;
   const int DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30, SPINOR_THETA = 30;
   const int L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31, DS_SLICE = 31, SPINOR_PHI = 31;
-  const int FIELD_FACTOR = 32, DPSI_ORIGIN = 32, SPINOR_XI = 32;
+  const int FIELD_AUTOSCALE = 32, DPSI_ORIGIN = 32, SPINOR_XI = 32;
   const int ANGLE = 33, N_CELL = 33, X_RAY_LINE_LEN = 33, SPINOR_POLARIZATION = 33;
   const int X_PITCH = 34;
   const int Y_PITCH = 35;
@@ -256,28 +257,25 @@ namespace Bmad {
   const int Z_POSITION = 104;
   const int IS_ON = 105, THETA_POSITION = 105;
   const int FIELD_CALC = 106, PHI_POSITION = 106;
-  const int PSI_POSITION = 107;
+  const int PSI_POSITION = 107, WALL = 107;
   const int APERTURE_AT = 108, BETA_A_BEGIN = 108;
   const int RAN_SEED = 109, BETA_B_BEGIN = 109, ORIGIN_ELE = 109;
   const int TO_LINE = 110, FIELD_OVERLAPS = 110;
   const int FIELD_MASTER = 111, HARMON_MASTER = 111, TO_ELEMENT = 111;
   const int DESCRIP = 112;
   const int SCALE_MULTIPOLES = 113;
-  const int WALL_ATTRIBUTE = 114;
-  const int FIELD = 115;
+  const int REF_ORBIT = 115;
   const int PHI_B = 116, CRYSTAL_TYPE = 116, MATERIAL_TYPE = 116;
   const int TYPE = 117;
   const int REF_ORIGIN = 118;
   const int ELE_ORIGIN = 119;
-  const int SUPERIMPOSE    = 120;
-  const int OFFSET         = 121;
-  const int REFERENCE      = 122;
-  const int ELE_BEGINNING  = 123;
-  const int ELE_CENTER     = 124;
-  const int ELE_END        = 125;
-  const int REF_BEGINNING  = 126;
-  const int REF_CENTER     = 127;
-  const int REF_END        = 128;
+  const int SUPERIMPOSE     = 120;
+  const int OFFSET          = 121;
+  const int REFERENCE       = 122;
+  const int CARTESIAN_MAP   = 123;
+  const int CYLINDRICAL_MAP = 124;
+  const int GRID_FIELD      = 125;
+  const int TAYLOR_FIELD    = 126;
   const int CREATE_JUMBO_SLAVE = 129;
   const int A0  = 130, A21  = 151;
   const int B0  = 160, B21 = 181;
@@ -339,6 +337,7 @@ namespace Bmad {
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
   const double TRUE = 1, FALSE = 0;
+  const int TRUE_INT = 1, FALSE_INT = 0;
   const int INVALID = -666;
   const int NOT_SET = -999;
   const int DEUTERON   = 8;
