@@ -1156,7 +1156,7 @@ case(fieldmap$)
       ! Interpolate
 
       do j = 1, 3
-        call create_a_spline (spline, fld0(j), fld1(j), dfld0(j,3), dfld1(j,3))
+        call create_a_spline (spline, [0.0_rp, fld0(j)], [t_field%dz, fld1(j)], dfld0(j,3), dfld1(j,3))
         fld(j) = spline1 (spline, z - izp*t_field%dz)
       enddo
 
