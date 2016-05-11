@@ -44,7 +44,7 @@ subroutine create_a_spline (spline, r0, r1, slope0, slope1)
 implicit none
 
 type (spline_struct) spline
-real(rp) r0(2), r1(2), slope0, slope1, dx, dy
+real(rp) r0(:), r1(:), slope0, slope1, dx, dy
 
 character(*), parameter :: r_name = 'create_a_spline'
 
