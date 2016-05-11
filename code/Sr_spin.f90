@@ -991,7 +991,7 @@ contains
           DLDS=1.0_dp/root((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
 
-       if(pos>=0) OM(2)=P%b0   ! not fake fringe
+       if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KIND4) ! CAVITY
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
        IF(k%TIME) THEN
@@ -1015,7 +1015,7 @@ contains
           DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
 
-       if(pos>=0) OM(2)=P%b0   ! not fake fringe
+       if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        if(k%time) then
@@ -1027,7 +1027,7 @@ contains
        d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
        d2=gamma0I/beta0/d2
        DLDS=root((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
-       OM(2)=el%pa%hc
+       OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
@@ -1144,7 +1144,7 @@ contains
        ELSE
           DLDS=1.0_dp/SQRT((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
-       if(pos>=0) OM(2)=P%b0   ! not fake fringe
+       if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KIND4) ! CAVITY
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
        IF(k%TIME) THEN
@@ -1180,7 +1180,7 @@ contains
        ELSE
           DLDS=1.0_dp/SQRT((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
-       if(pos>=0) OM(2)=P%b0   ! not fake fringe
+       if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        if(k%time) then
@@ -1192,7 +1192,7 @@ contains
        d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
        d2=gamma0I/beta0/d2
        DLDS=sqrt((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
-       OM(2)=el%pa%hc
+       OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
@@ -2106,8 +2106,8 @@ call kill(e)
 
     ENDIF
 
-    E(1)=EL%P%dir*E(1)
-    E(2)=EL%P%dir*E(2)
+!    E(1)=EL%P%dir*E(1)
+!    E(2)=EL%P%dir*E(2)    etienne 2016_5_9
     E(3)=EL%P%dir*E(3)
 
 
@@ -2212,8 +2212,9 @@ call kill(e)
 
     ENDIF
 
-    E(1)=EL%P%dir*E(1)
-    E(2)=EL%P%dir*E(2)
+
+!    E(1)=EL%P%dir*E(1)
+!    E(2)=EL%P%dir*E(2)    etienne 2016_5_9
     E(3)=EL%P%dir*E(3)
 
 
@@ -3244,31 +3245,31 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     SELECT CASE(EL%KIND)
     case(KIND16,KIND10)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%EDGE(1))
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(1))
        ELSE
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%EDGE(2))
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(2))
        ENDIF
     case(KIND20)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ELSE
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ENDIF
 
     case(KINDPA)
        if(el%pa%hc==0.0_dp) then
 
             IF(C%CAS==CASE1) THEN
-                CALL rot_spin_y(p,el%pa%angc)
+                CALL rot_spin_y(p,el%p%dir*el%pa%angc)
             else
-                CALL rot_spin_y(p,el%pa%angc)
+                CALL rot_spin_y(p,el%p%dir*el%pa%angc)
             endif
         else
    
             IF(C%CAS==CASE1) THEN
-                CALL rot_spin_y(p,-el%pa%angc)
+                CALL rot_spin_y(p,-el%p%dir*el%pa%angc)
             else
-                CALL rot_spin_y(p,-el%pa%angc)
+                CALL rot_spin_y(p,-el%p%dir*el%pa%angc)
             endif
 
        endif
@@ -3290,29 +3291,29 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     SELECT CASE(EL%KIND)
     case(KIND16,KIND10)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%EDGE(1))
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(1))
        ELSE
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%EDGE(2))
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(2))
        ENDIF
     case(KIND20)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ELSE
-          CALL rot_spin_y(p,C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
+          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ENDIF
        if(el%pa%hc==0.0_dp) then
 
             IF(C%CAS==CASE1) THEN
-                CALL rot_spin_y(p,el%pa%angc)
+                CALL rot_spin_y(p,el%p%dir*el%pa%angc)
             else
-                CALL rot_spin_y(p,el%pa%angc)
+                CALL rot_spin_y(p,el%p%dir*el%pa%angc)
             endif
         else
    
             IF(C%CAS==CASE1) THEN
-                CALL rot_spin_y(p,-el%pa%angc)
+                CALL rot_spin_y(p,-el%p%dir*el%pa%angc)
             else
-                CALL rot_spin_y(p,-el%pa%angc)
+                CALL rot_spin_y(p,-el%p%dir*el%pa%angc)
             endif
 
        endif
@@ -3590,7 +3591,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     IF(ENTERING) THEN
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
        call rot_spin_x(P,da)
-       call rot_spin_y(P,C%PATCH%A_ANG(2))
+       call rot_spin_y(P,c%dir*C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
        da=((C%PATCH%A_X2-1)/2)*pi
        call rot_spin_x(P,da)
@@ -3599,7 +3600,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        call rot_spin_x(P,da)
        ! error etienne
        !      call rot_spin_y(P,C%PATCH%A_ANG(2))
-       call rot_spin_y(P,C%PATCH%b_ANG(2))
+       call rot_spin_y(P,c%dir*C%PATCH%b_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%b_ANG(3))
        da=((C%PATCH%B_X2-1)/2)*pi
        call rot_spin_x(P,da)
@@ -3620,7 +3621,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
 
        call rot_spin_x(P,da)
-       call rot_spin_y(P,C%PATCH%A_ANG(2))
+       call rot_spin_y(P,c%dir*C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
 
 
@@ -3632,7 +3633,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        call rot_spin_x(P,da)
        ! error etienne
        !       call rot_spin_y(P,C%PATCH%A_ANG(2))
-       call rot_spin_y(P,C%PATCH%b_ANG(2))
+       call rot_spin_y(P,c%dir*C%PATCH%b_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%b_ANG(3))
 
 
@@ -3670,7 +3671,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
              C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
              C%CHART%ANG_OUT(3)=-C%CHART%ANG_OUT(3)
              call rot_spin_Z(P,C%CHART%ANG_OUT(3))
-             call rot_spin_Y(P,C%CHART%ANG_OUT(2))
+             call rot_spin_Y(P,-C%CHART%ANG_OUT(2))   !2016_5_9
              call rot_spin_X(P,C%CHART%ANG_OUT(1))
              C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
              C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
@@ -3680,7 +3681,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
              C%CHART%D_IN(2)=-C%CHART%D_IN(2)
              C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
              call rot_spin_Z(P,C%CHART%ANG_IN(3))
-             call rot_spin_Y(P,C%CHART%ANG_IN(2))
+             call rot_spin_Y(P,-C%CHART%ANG_IN(2))   !2016_5_9
              call rot_spin_X(P,C%CHART%ANG_IN(1))
              C%CHART%D_IN(1)=-C%CHART%D_IN(1)
              C%CHART%D_IN(2)=-C%CHART%D_IN(2)
@@ -3716,7 +3717,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
 
              call rot_spin_Z(P,C%CHART%ANG_OUT(3))
-             call rot_spin_Y(P,C%CHART%ANG_OUT(2))
+             call rot_spin_Y(P,-C%CHART%ANG_OUT(2))   !2016_5_9
              call rot_spin_X(P,C%CHART%ANG_OUT(1))
 
              C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
@@ -3728,7 +3729,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
              C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
 
              call rot_spin_Z(P,C%CHART%ANG_IN(3))
-             call rot_spin_Y(P,C%CHART%ANG_IN(2))
+             call rot_spin_Y(P,-C%CHART%ANG_IN(2))    !2016_5_9
              call rot_spin_X(P,C%CHART%ANG_IN(1))
 
              C%CHART%D_IN(1)=-C%CHART%D_IN(1)
@@ -3829,10 +3830,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     Nullify(C);
 
     if(.not.ring%closed) then
-       w_p=0
-       w_p%nc=1
-       w_p%fc='((1X,a72))'
-       w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='((1X,a72))'
+       !w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
        ! call !write_e(100)
     endif
     dix(:)=0.0_dp
@@ -3989,10 +3990,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
           !!       y=xs%x
           !          if(.not.check_stable) then
-          !             w_p=0
-          !             w_p%nc=1
-          !             w_p%fc='((1X,a72))'
-          !             write(w_p%c(1),'(a30,i4)') " Lost in Fixed Point Searcher ",3
+          !             !w_p=0
+          !             !w_p%nc=1
+          !             !w_p%fc='((1X,a72))'
+          !             write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",3
           !             ! call ! WRITE_I
 
           !             return
@@ -4137,10 +4138,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     Nullify(C);
 
     if(.not.ring%closed) then
-       w_p=0
-       w_p%nc=1
-       w_p%fc='((1X,a72))'
-       w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='((1X,a72))'
+       !w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
        ! call !write_e(100)
     endif
     dix(:)=0.0_dp
@@ -4294,10 +4295,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
           !!       y=xs%x
           !          if(.not.check_stable) then
-          !             w_p=0
-          !             w_p%nc=1
-          !             w_p%fc='((1X,a72))'
-          !             write(w_p%c(1),'(a30,i4)') " Lost in Fixed Point Searcher ",3
+          !             !w_p=0
+          !             !w_p%nc=1
+          !             !w_p%fc='((1X,a72))'
+          !             write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",3
           !             ! call ! WRITE_I
 
           !             return
@@ -4904,6 +4905,7 @@ state=time0
 xs0=fix0
 m=1
 xs=xs0+m
+write(6,*) t1c%parent_fibre%mag%name,t1c%parent_fibre%mag%p%nst
 call propagate(xs,state,node1=t1c,node2=t2c)
 fix=xs%x
 ! For David

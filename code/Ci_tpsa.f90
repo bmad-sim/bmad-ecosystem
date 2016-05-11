@@ -1138,10 +1138,9 @@ end subroutine c_get_indices
 
     !    IF(first_time) THEN
     IF(last_tpsa==0) THEN
-       w_p=0
-       w_p%nc=1
-       w_p=(/" No TPSA package ever initialized "/)
-       w_p%fc='(1((1X,A72),/))'
+ 
+      write(6,*) " No TPSA package ever initialized c_allocda " 
+ 
        ! call !write_e(111)
     ENDIF
     !    if(old) then
@@ -5130,10 +5129,8 @@ cgetvectorfield=0
     !do i=nd2+ndel+1,nv
     do i=nd2par+1,nv
        if(jfil(i)/=0) then
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1((1X,A72),/))'
-          w_p%c(1)=" error in getchar for .para. "
+ 
+            write(6,*)" error in getchar for .para. "
           ! call !write_e(0)
           stop
        endif
@@ -5196,10 +5193,8 @@ cgetvectorfield=0
     !do i=nd2+ndel+1,nv
     do i=nd2par+1,nv
        if(jfil(i)/=0) then
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1((1X,A72),/))'
-          w_p%c(1)=" error in GETintnd2 for .para. "
+ 
+            write(6,*)" error in GETintnd2 for .para. "
           ! call !write_e(0)
           stop
        endif
@@ -5263,10 +5258,8 @@ cgetvectorfield=0
     !do i=nd2+ndel+1,nv
     do i=nd2partt+1,nv
        if(jfilt(i)/=0) then
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1((1X,A72),/))'
-          w_p%c(1)=" error in GETintnd2t for .part_taylor. "
+ 
+            write(6,*)" error in GETintnd2t for .part_taylor. "
           ! call !write_e(0)
           stop
        endif
@@ -5343,21 +5336,17 @@ cgetvectorfield=0
     select case (c_master)
     case(1:c_ndumt)
        if(c_iass0user(c_master)>c_scratchda(c_master)%n.or.c_scratchda(c_master)%n>newscheme_max) then
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1((1X,A72),/))'
-          w_p%fi='(3((1X,i4)))'
-          w_p%c(1)= "c_iass0user(c_master),c_scratchda(c_master)%n,newscheme_max"
-          w_p=(/c_iass0user(c_master),c_scratchda(c_master)%n,newscheme_max/)
+ 
+            write(6,*) "c_iass0user(c_master),c_scratchda(c_master)%n,newscheme_max"
+          write(6,*) c_iass0user(c_master),c_scratchda(c_master)%n,newscheme_max 
           ! call !write_e
           call c_ndum_warning_user
        endif
        c_iass0user(c_master)=0
     case(c_ndumt+1:)
-       w_p=0
-       w_p%nc=1
-       w_p=(/"Should not be here"/)
-       w_p%fc='(1((1X,A72),/))'
+ 
+       write(6,*) "Should not be here" 
+ 
        ! call !write_e(101)
     end select
     C_master=C_master-1
@@ -5754,11 +5743,9 @@ cgetvectorfield=0
     implicit none
     CHARACTER(*) STRING
 
-    w_p=0
-    w_p%nc=2
-    w_p%fc='((1X,A72,/),(1X,A72))'
-    w_p%c(1)= "ERROR IN :"
-    w_p%c(2)= STRING
+    
+     write(6,*) "ERROR IN :"
+    write(6,*)  STRING
     ! call !write_e(3478)
 
   end subroutine c_crap1
@@ -5768,12 +5755,10 @@ cgetvectorfield=0
     implicit none
     integer i(1),j
 
-    w_p=0
-    w_p%nc=3
+ 
     write(6,*) " You are using a kind(1.0_dp) "
     write(6,*)" set c_real_warning to false to permit this "
-    write(6,*)" write 1 to continue or -1 for a crash "
-    call read(j)
+    stop 
     i(j)=0
     c_real_warning=.false.
 
@@ -5786,18 +5771,12 @@ cgetvectorfield=0
     integer ipause,II(0:1)
 
 
-    w_p=0
-    w_p%nc=3
-    w_p%fc='(3((1X,A72),/))'
-    w_p%c(1)=  " *****************************************************************"
-    w_p%c(2)=  " *  Should never be here in New Linked List Scheme               *"
-    w_p%c(3)=  " *****************************************************************"
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72),/))'
-    w_p%c(1)= " do you want a crash? "
+ 
+    write(6,*) " *  Should never be here in New Linked List Scheme               *"
+ 
+      write(6,*) " do you want a crash? "
     ! call !write_e
-    call read(ipause)
+     stop
     ii(2000*ipause)=0
 
   end SUBROUTINE  c_ndum_warning_user
@@ -5992,9 +5971,7 @@ cgetvectorfield=0
     integer i
     if(associated(c_scratchda(1)%n)) then
        do i=1,c_ndumt
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1((1X,A72)))'
+ 
           write(6,'(a6,1x,i4,a5,1x,i4,1x,a7)') "Level ",i, " has ",c_scratchda(i)%n, "Taylors"
           !          write(w_p%c(1),'(a6,1x,i4,a5,1x,i4,1x,a7)') "Level ",i, " has ",scratchda(i)%n, "Taylors"
           !          ! call !write_e
@@ -6357,7 +6334,7 @@ cgetvectorfield=0
 
    ! order_gofix=no1
 
- W_P=>W_I
+ 
      C_STABLE_DA=.true.
      C_watch_user=.true.
      read77=.true.
@@ -10817,12 +10794,8 @@ endif
     enddo
     do i=1,nd2harm    !nd2t !-ndc2t
        if(abs(reval(i)**2+aieval(i)**2 -1.0_dp).gt.1e-10_dp) then
-          w_p=0
-          w_p%nc=1
-          w_p%fc='((1X,A120))'
-          w_p%c(1) =' EIG6: Eigenvalues off the unit circle!'
-          if(lielib_print(4)==1) then
-             !CALL !WRITE_a
+           if(lielib_print(4)==1) then
+          write(6,*) ' EIG6: Eigenvalues off the unit circle!'
              write(6,*) sqrt(reval(i)**2+aieval(i)**2)
           endif
        endif

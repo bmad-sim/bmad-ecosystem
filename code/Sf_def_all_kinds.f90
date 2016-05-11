@@ -6,7 +6,27 @@ module S_def_all_kinds
   implicit none
   public
   private XMIDR,GMIDR,ALLOC_FIBRE
-  include "a_def_worm.inc"
+
+
+TYPE INNER_FRAME
+   INTEGER, POINTER ::   NST           => null()
+   REAL(DP), POINTER :: ORIGIN(:,:)    => null()
+   REAL(DP), POINTER :: FRAME(:,:,:)   => null()
+   type(fibre), POINTER :: F           => null()
+   REAL(DP),POINTER :: L(:)            => null()
+   logical(LP),POINTER :: DO_SURVEY    => null()
+END TYPE INNER_FRAME
+
+
+TYPE worm
+   INTEGER, POINTER ::   NST           => null()
+   INTEGER, POINTER ::   POS(:)        => null()
+   REAL(DP), POINTER :: RAY(:,:)       => null()
+   TYPE(INNER_FRAME), POINTER :: E     => null()
+   type(fibre), POINTER :: F           => null()
+END TYPE worm	
+
+  !include "a_def_worm.inc"
   !  include "a_def_all_kind.inc"
   !  include "a_def_sagan.inc"
   !  include "a_def_user1.inc"

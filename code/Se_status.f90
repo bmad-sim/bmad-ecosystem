@@ -666,7 +666,7 @@ CONTAINS
     integer i,lda_old
     logical :: change_first=.true.
 
-    W_P=>W_I
+!    W_P=>W_I
     NULLIFY(ACC);       
     NULLIFY(ACCfirst);       
     NULLIFY(paccfirst);       

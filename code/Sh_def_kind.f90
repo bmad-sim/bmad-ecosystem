@@ -25,7 +25,7 @@ MODULE S_DEF_KIND
   PRIVATE FRINGE2QUADR,FRINGE2QUADP,FRINGE2QUAD
   PRIVATE INTESOLR,INTESOLP,INTESOL
   PRIVATE FACER,FACEP !,FACE
-  PRIVATE NEWFACER,NEWFACEP
+  PRIVATE NEWFACER,NEWFACEP,fake_shiftr,fake_shiftp
   PRIVATE EDGE_TRUE_PARALLELR,EDGE_TRUE_PARALLELP
 
   PRIVATE ZEROR_KTK,ZEROP_KTK,ZEROR_STREX,ZEROP_STREX,ZEROR_CAV4,ZEROP_CAV4,ZEROr_enge,ZEROp_enge
@@ -183,7 +183,11 @@ MODULE S_DEF_KIND
      MODULE PROCEDURE INTEP_superDRIFT1
   END INTERFACE
 
-
+  
+  INTERFACE fake_shift
+     MODULE PROCEDURE fake_shiftr
+     MODULE PROCEDURE fake_shiftp
+  END INTERFACE
   
   INTERFACE PATCH_drift
      MODULE PROCEDURE PATCH_driftR
@@ -838,10 +842,8 @@ contains
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -870,10 +872,8 @@ contains
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -898,10 +898,8 @@ contains
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -928,10 +926,10 @@ contains
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -1591,10 +1589,8 @@ endif
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -1693,10 +1689,8 @@ endif
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -2745,10 +2739,10 @@ CALL FRINGECAV(EL,X,k,2)
 
        call rk6_cav(z0,d1,el,X,k)
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -2797,10 +2791,8 @@ CALL FRINGECAV(EL,X,k,2)
        call rk6_cav(z0,d1,el,X,k)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -4666,10 +4658,8 @@ integer :: kkk=0
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+ 
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -4772,10 +4762,10 @@ integer :: kkk=0
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -5199,10 +5189,10 @@ integer :: kkk=0
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -5290,10 +5280,10 @@ integer :: kkk=0
        CALL KILL(DF,4);CALL KILL(DK,4);
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -5639,10 +5629,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -5712,10 +5702,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -5779,10 +5769,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -5841,10 +5831,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -5937,10 +5927,10 @@ integer :: kkk=0
        CALL KICKKTK(EL,DK,X,k)   ! NEW
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -6036,10 +6026,10 @@ integer :: kkk=0
        CALL KILL(DK,DK2,DK4,DK5,DK6)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
     CALL kill(EL)
@@ -7297,10 +7287,10 @@ integer :: kkk=0
        CALL KICKTKT7(EL,DK,X,k)  ! NEW
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
     !       if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE) &
@@ -7499,10 +7489,10 @@ integer :: kkk=0
        CALL KILL(DK,DK2,DK6,DK4,DK5)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -7669,10 +7659,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -7755,10 +7745,10 @@ integer :: kkk=0
 
     ENDDO
 
-    w_p=0
-    w_p%nc=1
-    w_p%fc='(1(1X,A72))'
-    write(w_p%c(1),'(A31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
+    !w_p=0
+    !w_p%nc=1
+    !w_p%fc='(1(1X,A72))'
+      write(6,'(a31,1X,I4,1X,A11)') " EXPSOLR FAILED TO CONVERGE IN ",NMAXI," ITERATIONS"
     ! call !write_e(0)
 
 100 CONTINUE
@@ -10620,10 +10610,10 @@ integer :: kkk=0
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -10654,10 +10644,10 @@ integer :: kkk=0
        call rk6_teapot(d,el,x,k)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -10754,10 +10744,10 @@ integer :: kkk=0
        CALL KILL(DF,4);CALL KILL(DK,4);
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -10792,10 +10782,10 @@ integer :: kkk=0
        CALL kill(DF,4);CALL kill(DK,4);
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -10976,18 +10966,18 @@ integer :: kkk=0
           ENDDO
           DEALLOCATE (AN, STAT = error)
           IF(ERROR/=0) THEN
-             w_p=0
-             w_p%nc=1
-             w_p%fc='(1(1X,A72))'
-             w_p%c(1)= " AN ARRAY not DEALLOCATED : PROBLEMS"
+             !w_p=0
+             !w_p%nc=1
+             !w_p%fc='(1(1X,A72))'
+             !w_p%c(1)= " AN ARRAY not DEALLOCATED : PROBLEMS"
              ! call !write_e(357)
           ENDIF
           DEALLOCATE (BN, STAT = error)
           IF(ERROR/=0) THEN
-             w_p=0
-             w_p%nc=1
-             w_p%fc='(1(1X,A72))'
-             w_p%c(1)= " BN ARRAY not DEALLOCATED : PROBLEMS"
+             !w_p=0
+             !w_p%nc=1
+             !w_p%fc='(1(1X,A72))'
+             !w_p%c(1)= " BN ARRAY not DEALLOCATED : PROBLEMS"
              ! call !write_e(357)
           ENDIF
        ENDIF
@@ -12165,10 +12155,10 @@ integer :: kkk=0
           ENDDO
 
        CASE DEFAULT
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1(1X,A72))'
-          WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
           ! call !write_e(357)
        END SELECT
     ELSE
@@ -12218,10 +12208,10 @@ integer :: kkk=0
           ENDDO
 
        CASE DEFAULT
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1(1X,A72))'
-          WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
           ! call !write_e(357)
        END SELECT
 
@@ -12311,10 +12301,10 @@ integer :: kkk=0
           CALL KILL(DF,4);CALL KILL(DK,4);
 
        CASE DEFAULT
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1(1X,A72))'
-          WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
           ! call !write_e(357)
        END SELECT
     ELSE
@@ -12370,10 +12360,10 @@ integer :: kkk=0
           CALL KILL(DF,4);CALL KILL(DK,4);
 
        CASE DEFAULT
-          w_p=0
-          w_p%nc=1
-          w_p%fc='(1(1X,A72))'
-          WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
           ! call !write_e(357)
        END SELECT
 
@@ -12796,10 +12786,10 @@ integer :: kkk=0
        time=k%TIME
        b=EL2%P%BETA0
     ELSE
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       w_p%c(1)= " ERROR IN WEDGER "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+       !w_p%c(1)= " ERROR IN WEDGER "
        ! call !write_e(101)
     ENDIF
 
@@ -12880,10 +12870,10 @@ integer :: kkk=0
        time=k%TIME
        b=EL2%P%BETA0
     ELSE
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       w_p%c(1)= " ERROR IN WEDGEP "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+       !w_p%c(1)= " ERROR IN WEDGEP "
        ! call !write_e(102)
     ENDIF
 
@@ -13001,10 +12991,10 @@ integer :: kkk=0
 
        call rk6_cav(z0,d1,el,X,k)
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -13052,10 +13042,10 @@ integer :: kkk=0
        call rk6_cav(z0,d1,el,X,k)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -15293,41 +15283,34 @@ SUBROUTINE ZEROr_teapot(EL,I)
     IMPLICIT NONE
     real(dp), INTENT(INOUT) :: X(6)
     TYPE(PANCAKE),INTENT(INOUT):: EL
-    real(dp) d(3),a
+    real(dp) d(3) 
     INTEGER, INTENT(IN) :: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    d=0
     if(el%hc==0.0_dp) then
-    d=0
-    d(1)=-el%xc
-    d(3)=-el%dc
+    d(1)=el%xc; d(3)=el%dc;
     IF(J==1) then
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
        call conv_to_xp(el,x,k)
     else
+    d(1)=-el%xc ;d(3)=el%dc;
        call conv_to_px(el,x,k)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
     endif
     else
-    d=0
     IF(J==1) then
-    d(1)=-el%xc
-    d(3)=-el%dc
-    a=-el%angc
+    d(1)=el%xc; d(3)=el%dc;
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        CALL ROT_XZ(a,x,el%p%BETA0,el%p%exact,k%time)
+        CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
        call conv_to_xp(el,x,k)
     else
-    d(1)=el%xc
-    d(3)=el%dc
-    a=el%angc
+    d(1)=-el%xc; d(3)=el%dc;
        call conv_to_px(el,x,k)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
     endif
-
     endif
   END SUBROUTINE ADJUST_PANCAKER
 
@@ -15335,43 +15318,35 @@ SUBROUTINE ZEROr_teapot(EL,I)
     IMPLICIT NONE
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
     TYPE(PANCAKEP),INTENT(INOUT):: EL
-    real(dp) d(3),a
+    real(dp) d(3) 
     INTEGER, INTENT(IN) :: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    d=0
     if(el%hc==0.0_dp) then
-    d=0
-    d(1)=-el%xc
-    d(3)=-el%dc
+    d(1)=el%xc;   d(3)=el%dc;
     IF(J==1) then
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
        call conv_to_xp(el,x,k)
     else
+    d(1)=-el%xc ;d(3)=el%dc;
        call conv_to_px(el,x,k)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
     endif
     else
-    d=0
     IF(J==1) then
-    d(1)=-el%xc
-    d(3)=-el%dc
-    a=-el%angc
+    d(1)=el%xc ; d(3)=el%dc;
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        CALL ROT_XZ(a,x,el%p%BETA0,el%p%exact,k%time)
+        CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
        call conv_to_xp(el,x,k)
     else
-    d(1)=el%xc
-    d(3)=el%dc
-    a=el%angc
+    d(1)=-el%xc; d(3)=el%dc;
        call conv_to_px(el,x,k)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
     endif
-
     endif
-
   END SUBROUTINE ADJUST_PANCAKEP
 
   SUBROUTINE INTER_PANCAKE(EL,X,k,POS)
@@ -15396,10 +15371,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
        ENDIF
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -15431,10 +15406,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
        ENDIF
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -15479,10 +15454,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
 !       call conv_to_px(EL,X,k)
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -15531,10 +15506,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
 
     CASE DEFAULT
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1(1X,A72))'
-       WRITE(w_p%c(1),'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
     END SELECT
 
@@ -16202,11 +16177,13 @@ SUBROUTINE ZEROr_teapot(EL,I)
     !integer k
     IF(I==-1) THEN
        if(ASSOCIATED(EL%N_BESSEL)) then
+          deallocate(el%fake_shift)   
           deallocate(EL%N_BESSEL)
        endif
     elseif(i==0)       then          ! nullifies
 
        NULLIFY(EL%N_BESSEL)
+       NULLIFY(el%fake_shift)
     endif
 
   END SUBROUTINE ZEROR_HE22
@@ -16219,9 +16196,11 @@ SUBROUTINE ZEROr_teapot(EL,I)
     IF(I==-1) THEN
        if(ASSOCIATED(EL%N_BESSEL)) then
           deallocate(EL%N_BESSEL)
+          call kill(el%fake_shift)
+          deallocate(el%fake_shift)  
        endif
     elseif(i==0)       then          ! nullifies
-
+       NULLIFY(el%fake_shift)  
        NULLIFY(EL%N_BESSEL)
     endif
 
@@ -16282,7 +16261,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        DA2(1)=(F+R2*DFR)*(-EL%BN(1)*CO)+PHIZ*(2.0_dp*DFR+DFR2)*X(1)
        DA2(2)=(F+R2*DFR)*(EL%AN(1)*SI)+ PHIZ*(2.0_dp*DFR+DFR2)*X(3)
     ENDIF
-
+!  On axis B_x=EL%AN(1)*sin(k*Z+EL%PHAS) and B_y=EL%BN(1)*cos(k*Z+EL%PHAS)
     IF(PRESENT(B)) THEN
        B(1)=DA(3,2)-DA(2,3)
        B(2)=DA(1,3)-DA(3,1)
@@ -16692,6 +16671,27 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
   END SUBROUTINE INTP_HE
 
+  subroutine fake_shiftr(EL,X)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(HELICAL_DIPOLE),INTENT(INOUT):: EL
+
+    x=x-el%fake_shift
+
+  end subroutine fake_shiftr
+
+  subroutine fake_shiftp(EL,X)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(HELICAL_DIPOLEP),INTENT(INOUT):: EL
+    integer i
+
+    do i=1,6
+     x(i)=x(i)-el%fake_shift(i)
+    enddo
+
+  end subroutine fake_shiftp
+
   SUBROUTINE INTR_HE_TOT(EL,X,k,mid)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
@@ -16699,7 +16699,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
     TYPE(WORM),OPTIONAL,INTENT(INOUT):: mid
     INTEGER I
     TYPE(INTERNAL_STATE)  K
-
+    if(EL%P%DIR==-1) call fake_shift(el,x)
     !    CALL SET_W(EL%W)
     IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
@@ -16708,7 +16708,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        IF(PRESENT(MID)) CALL XMID(MID,X,i)
     ENDDO
 
-
+    if(EL%P%DIR==1) call fake_shift(el,x)
   END SUBROUTINE INTR_HE_TOT
 
   SUBROUTINE INTP_HE_TOT(EL,X,k)
@@ -16721,11 +16721,13 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     !    CALL SET_W(EL%W)
 
+    if(EL%P%DIR==-1) call fake_shift(el,x)
 
     DO I=1,EL%P%NST
        call track_slice(el,x,k,i)
     ENDDO
-
+    
+    if(EL%P%DIR==1) call fake_shift(el,x)
 
   END SUBROUTINE INTP_HE_TOT
   ! ETIENNE

@@ -403,7 +403,7 @@ END  TYPE PANCAKEP
 TYPE HELICAL_DIPOLE
    TYPE(MAGNET_CHART), POINTER:: P => null()
    real(dp), POINTER ::L => null()
-   real(dp),  DIMENSION(:), POINTER :: AN => null(), BN => null()         !Multipole component
+   real(dp),  DIMENSION(:), POINTER :: AN => null(), BN => null(),fake_shift=> null()         !Multipole component
    real(dp), POINTER :: FREQ => null(), PHAS => null()
    integer, POINTER :: N_BESSEL => null()
 END  TYPE HELICAL_DIPOLE
@@ -412,6 +412,7 @@ TYPE HELICAL_DIPOLEP
    TYPE(MAGNET_CHART), POINTER:: P => null()
    TYPE(REAL_8), POINTER ::L => null()
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN => null(), BN => null()
+   TYPE(REAL_8),  DIMENSION(:), POINTER :: fake_shift=> null()   
    TYPE(REAL_8),  POINTER :: FREQ => null(), PHAS => null()
    integer, POINTER :: N_BESSEL => null()
 END  TYPE HELICAL_DIPOLEP

@@ -52,6 +52,7 @@ module definition
   integer, parameter :: ndim2t=10   ! maximum complex size
   integer, parameter :: wiggler_suntao=24
   integer :: bmadparser = 0
+  logical :: tangent = .false.,force_rescale=.false.   ! force_rescale for vorname=HELICAL see fibre_work routine
   TYPE sub_taylor
      INTEGER j(lnv)
      INTEGER min,max
@@ -662,3 +663,4 @@ contains
 
 
 end module definition
+

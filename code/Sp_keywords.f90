@@ -290,6 +290,9 @@ contains
     CASE("HELICALDIPOLE  ")
        if(sixtrack_compatible) stop 13
        BLANK=HELICAL(KEY%LIST%NAME,LIST=KEY%LIST)
+    CASE("PANCAKE        ")
+       if(sixtrack_compatible) stop 13
+       BLANK=pancake(KEY%LIST%NAME,KEY%LIST%file)
        !    CASE("TAYLORMAP      ")
        !       IF(KEY%LIST%file/=' '.and.KEY%LIST%file_rev/=' ') THEN
        !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE=KEY%LIST%file,FILE_REV=KEY%LIST%file_REV,t=tilt.is.KEY%tiltd)
@@ -2508,26 +2511,33 @@ call read_initial_chart(mf)
 
 n=0
 do while(.true.) 
- 
+    call zero_ele0
    read(mf,NML=ELEname,end=999) !!  basic stuff : an,bn,L, b_sol, etc...
 !write(6,*) ELE0%name_vorname
 
    if(ELE0%NAME_VORNAME(1)== "endhere".or.ELE0%NAME_VORNAME(1)=="alldone") goto 99
  !write(6,NML=ELEname)
+   call zero_fib0
    read(mf,NML=FIBRENAME,end=999) !
 !     real(dp) GAMMA0I_GAMBET_MASS_AG(4)  !GAMMA0I,GAMBET,MASS ,AG  BETA0 is computed
  !    real(dp)  CHARGE
  !    integer  DIR !DIR,CHARGE
  !    integer patch 
-
+   call zero_MAGL0
    read(mf,NML=MAGLNAME,end=999) ! reads magnet frame: kill_fringe, nst, method, etc... 
  !write(6,NML=MAGLNAME)
  call read_ElementLIST(ELE0%kind,MF)  ! read individual elments and aperture at the end
 
- if(fib0%patch/=0) read(mf,NML=patchname,end=999)    ! patch read if present
+                   
+ if(fib0%patch/=0) then
+  call zero_patch0
+  read(mf,NML=patchname,end=999)    ! patch read if present
+ endif
 
-if(ele0%slowac_recut_even_electric_MIS(5)) read(mf,NML=CHARTname)  ! reading misalignment
-
+if(ele0%slowac_recut_even_electric_MIS(5)) then
+ call zero_CHART0
+ read(mf,NML=CHARTname)  ! reading misalignment
+endif
 
 
  read(mf,'(a120)') line
@@ -2942,7 +2952,7 @@ endif
 else
  ele0%filef=' '
  ele0%fileb=' '
-ele0%usebf_skipptcbf_do1bf=0
+ele0%usebf_skipptcbf_do1bf=.false.
 
     if(present(mf)) then
      read(mf,NML=ELEname)
@@ -3165,7 +3175,7 @@ if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
 
 
-
+hel0%fake_shift=F%he22%fake_shift
 hel0%N_BESSEL=F%he22%N_BESSEL
 
     if(present(mf)) then
@@ -3179,6 +3189,7 @@ hel0%N_BESSEL=F%he22%N_BESSEL
  
 CALL SETFAMILY(f)
  F%he22%N_BESSEL=hel0%N_BESSEL
+ F%he22%fake_shift=hel0%fake_shift
 
 endif
 endif
@@ -3822,6 +3833,66 @@ enddo
 deallocate(here)
 
 end subroutine create_dna
+
+subroutine zero_ele0
+implicit none
+
+    ele0%name_vorname=' ' 
+	ele0%L=0;ele0%B_SOL=0;
+	ele0%an=0;ele0%bn=0;
+    ele0%VOLT_FREQ_PHAS=0
+    ele0%THIN=.false. 
+    ele0%fint_hgap_h1_h2_va_vs=0
+	ele0%slowac_recut_even_electric_MIS=.false.
+    ele0%usebf_skipptcbf_do1bf=.false.
+    ele0%filef=' '
+    ele0%fileb=' '
+
+end subroutine zero_ele0
+
+subroutine zero_fib0
+implicit none
+
+    fib0%GAMMA0I_GAMBET_MASS_AG=0 
+    fib0%CHARGE=0
+    fib0%DIR=0
+    fib0%patch=0
+
+end subroutine zero_fib0
+
+subroutine zero_CHART0
+implicit none
+    CHART0%D_IN=0; CHART0%D_OUT=0;CHART0%ANG_IN=0; CHART0%ANG_OUT=0;
+
+end subroutine zero_CHART0
+
+subroutine zero_MAGL0
+implicit none
+ 
+    MAGL0%LC_LD_B0_P0=0  ! LC LD B0 P0C
+    MAGL0%TILTD_EDGE=0   ! TILTD EDGE
+    MAGL0%KIN_KEX_BENDFRINGE_EXACT=.false. ! KILL_ENT_FRINGE, KILL_EXI_FRINGE, bend_fringe,EXACT
+	MAGL0%METHOD_NST_NMUL_permfringe_highest=0  ! METHOD,NST,NMUL,permfringr, highest_fringe
+    MAGL0%kill_spin=.false. 
+
+end subroutine zero_MAGL0
+
+subroutine zero_patch0
+implicit none
+ 
+ 
+     patch0%A_X1=0;patch0%A_X2=0;patch0%B_X1=0;patch0%B_X2=0
+     patch0%A_D=0
+     patch0%B_D=0
+     patch0%A_ANG=0
+     patch0%B_ANG=0 
+     patch0%A_T=0
+     patch0%B_T=0
+     patch0%ENERGY=0
+     patch0%TIME=0
+     patch0%GEOMETRY=0
+
+end subroutine zero_patch0
 
 subroutine specify_element_type(f,mf)
 implicit none

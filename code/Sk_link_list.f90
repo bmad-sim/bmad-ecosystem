@@ -339,11 +339,11 @@ CONTAINS
     !    CALL LINE_L(L,doneit)  !TGV
     I=mod_n(POS,L%N)
     IF(L%LASTPOS==0) THEN
-       w_p=0
-       w_p%nc=2
-       w_p%fc='((1X,a72,/),(1X,a72))'
-       w_p%c(1)= " L%LASTPOS=0 : ABNORMAL UNLESS LINE EMPTY"
-       write(w_p%c(2),'(a7,i4)')" L%N = ",L%N
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1X,a72))'
+       write(6,*) " L%LASTPOS=0 : ABNORMAL UNLESS LINE EMPTY"
+       write(*,'(a7,i4)')" L%N = ",L%N
        ! call !write_e(-124)
     ENDIF
 
@@ -672,10 +672,10 @@ CONTAINS
     !   nullify(L%PREVIOUS )! STORE THE GROUNDED VALUE OF END DURING CIRCULAR SCANNING
     !  nullify(L%parent_universe ) ! left out
     !  else
-    !    w_p=0
-    !    w_p%nc=1
-    !    w_p%fc='(1((1X,a72)))'
-    !    w_p%c(1)= " Only =0 permitted (nullify) "
+    !    !w_p=0
+    !    !w_p%nc=1
+    !    !w_p%fc='(1((1X,a72)))'
+    !    write(6,*) " Only =0 permitted (nullify) "
     !    ! call !write_e(100)
     ! endif
   END SUBROUTINE nullIFY_LAYOUT
@@ -1035,10 +1035,10 @@ CONTAINS
        ENDIF
 
     else
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1((1X,a72)))'
-       w_p%c(1)= "Error in zero_fibre "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1((1X,a72)))'
+       write(6,*) "Error in zero_fibre "
        ! call !write_e(100)
     endif
   end SUBROUTINE zero_fibre
@@ -1120,10 +1120,10 @@ CONTAINS
        IF(ASSOCIATED(c%loc)) deallocate(c%loc);
 
     else
-       w_p=0
-       w_p%nc=1
-       w_p%fc='(1((1X,a72)))'
-       w_p%c(1)= "Error in zero_fibre "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1((1X,a72)))'
+       write(6,*) "Error in zero_fibre "
        ! call !write_e(100)
     endif
   end SUBROUTINE SUPER_zero_fibre
@@ -1490,12 +1490,12 @@ CONTAINS
        ENDIF
     ELSE ! NO FRAME
 
-       W_P=0
-       W_P%NC=3
-       W_P%FC='(2(1X,A72,/),(1X,A72))'
-       W_P%C(1)= " NO GEOMETRIC PATCHING POSSIBLE : EITHER NO FRAMES IN PTC OR NO PATCHES "
-       WRITE(W_P%C(2),'(A16,1X,L1,1X,L1)')  " CHARTS 1 AND 2 ", ASSOCIATED(EL1%CHART%F), ASSOCIATED(EL2%CHART%F)
-       WRITE(W_P%C(3),'(A16,1X,L1,1X,L1)')  "PATCHES 1 AND 2 ", ASSOCIATED(EL1%PATCH), ASSOCIATED(EL2%PATCH)
+       !w_p=0
+       !w_p%NC=3
+       !w_p%FC='(2(1X,A72,/),(1X,A72))'
+       write(6,*) " NO GEOMETRIC PATCHING POSSIBLE : EITHER NO FRAMES IN PTC OR NO PATCHES "
+       write(6,'(A16,1X,L1,1X,L1)')  " CHARTS 1 AND 2 ", ASSOCIATED(EL1%CHART%F), ASSOCIATED(EL2%CHART%F)
+       WRITE(6,'(A16,1X,L1,1X,L1)')  "PATCHES 1 AND 2 ", ASSOCIATED(EL1%PATCH), ASSOCIATED(EL2%PATCH)
        ! call ! WRITE_I
 
        IF(DIR==1) THEN
@@ -2547,11 +2547,11 @@ CONTAINS
     !    CALL LINE_L_THIN(L,doneit)   ! TGV
 
     IF(L%LASTPOS==0) THEN
-       w_p=0
-       w_p%nc=2
-       w_p%fc='((1X,a72,/),(1X,a72))'
-       w_p%c(1)= " L%LASTPOS=0 : ABNORMAL UNLESS LINE EMPTY"
-       write(w_p%c(2),'(a7,i4)')" L%N = ",L%N
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1X,a72))'
+       write(6,*) " L%LASTPOS=0 : ABNORMAL UNLESS LINE EMPTY"
+       write(*,'(a7,i4)')" L%N = ",L%N
        ! call !write_e(-124)
     ENDIF
 

@@ -1869,10 +1869,10 @@ eta2=0.0_dp
     IF(PRESENT(TURNS)) TURNS0=TURNS
     Nullify(C);
     if(.not.ring%closed) then
-       w_p=0
-       w_p%nc=1
-       w_p%fc='((1X,a72))'
-       w_p%c(1)= " This line is not ring : FIND_ORBIT_LAYOUT "
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='((1X,a72))'
+       !w_p%c(1)= " This line is not ring : FIND_ORBIT_LAYOUT "
        ! call !write_e(100)
     endif
     dix(:)=0.0_dp
@@ -1892,11 +1892,11 @@ eta2=0.0_dp
              if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
              C=>C%NEXT
           enddo
-          w_p=0
-          w_p%nc=2
-          w_p%fc='((1X,a72,/),(1X,a72))'
-          w_p%c(1)=  " No Cavity in the Line "
-          w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
+          !w_p=0
+          !w_p%nc=2
+          !w_p%fc='((1X,a72,/),(1X,a72))'
+          !w_p%c(1)=  " No Cavity in the Line "
+          !w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
           ! call !write_e(111)
        ENDIF
     else
@@ -1911,11 +1911,11 @@ eta2=0.0_dp
              if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
              C=>C%NEXT
           enddo
-          w_p=0
-          w_p%nc=2
-          w_p%fc='((1X,a72,/),(1X,a72))'
-          w_p%c(1)=  " No Cavity in the Line "
-          w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
+          !w_p=0
+          !w_p%nc=2
+          !w_p%fc='((1X,a72,/),(1X,a72))'
+          !w_p%c(1)=  " No Cavity in the Line "
+          !w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
           ! call !write_e(112)
        ENDIF
     endif
@@ -1943,11 +1943,11 @@ eta2=0.0_dp
           i=i+1
        enddo
        if(freq==0.0_dp) then
-          w_p=0
-          w_p%nc=2
-          w_p%fc='((1X,a72,/),(1X,a72))'
-          w_p%c(1)=  " No Cavity in the Line or Frequency = 0 "
-          w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
+          !w_p=0
+          !w_p%nc=2
+          !w_p%fc='((1X,a72,/),(1X,a72))'
+          !w_p%c(1)=  " No Cavity in the Line or Frequency = 0 "
+          !w_p%c(2)=  " FIND_ORBIT_LAYOUT will crash "
           ! call !write_e(113)
        endif
        IF(RING%HARMONIC_NUMBER>0) THEN
@@ -1984,10 +1984,10 @@ eta2=0.0_dp
           CALL KILL(SX)
           CALL KILL(SXI)
           CALL KILL(IS)
-          w_p=0
-          w_p%nc=1
-          w_p%fc='((1X,a72))'
-          write(w_p%c(1),'(a30,i4)') " Lost in Fixed Point Searcher ",1
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='((1X,a72))'
+          write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",1
           messagelost(len_trim(messagelost)+1:255)=" -> Lost in Fixed Point Searcher "
           ! call ! WRITE_I
 
@@ -2018,7 +2018,7 @@ eta2=0.0_dp
        xdix=abs(dix(iu))+xdix
     enddo
 
-    if(verbose) write(w_p%c(1),'(a22,g21.14)') " Convergence Factor = ",xdix
+    if(verbose) write(6,'(a22,g21.14)') " Convergence Factor = ",xdix
     !    if(verbose) ! call ! WRITE_I
     if(xdix.gt.deps_tracking) then
        ite=1
@@ -2181,10 +2181,10 @@ eta2=0.0_dp
           return
        endif
        !       if(.not.check_stable) then
-       !          w_p=0
-       !          w_p%nc=1
-       !          w_p%fc='((1X,a72))'
-       !          write(w_p%c(1),'(a30,i4)') " Lost in Fixed Point Searcher ",2
+       !          !w_p=0
+       !          !w_p%nc=1
+       !          !w_p%fc='((1X,a72))'
+       !          write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",2
        !          ! call ! WRITE_I
 
        !          return
@@ -2793,7 +2793,7 @@ endif
        doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
        doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
        DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
-       DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler)
+       DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
        doit=doit.and.C%MAG%recut
 
        if(doit) then
@@ -2889,7 +2889,7 @@ endif
           doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
           doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
           DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
-          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler)
+          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
           doit=doit.and.C%MAG%recut
           if(doit) then
              xl=C%MAG%L
@@ -2995,7 +2995,7 @@ endif
           doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
           doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
           DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
-          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler)
+          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
           doit=doit.and.C%MAG%recut
 
           if(doit) then
@@ -3111,7 +3111,7 @@ endif
           doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
           doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
           DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
-          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler)
+          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
           doit=doit.and.C%MAG%recut
 
           if(doit) then

@@ -65,6 +65,7 @@ namelist / CAVname / cav0
  
   TYPE hel_list
    integer N_BESSEL
+   real(dp) fake_shift(6)
   END TYPE hel_list
 type(hel_list) hel0
 namelist / HELname / hel0

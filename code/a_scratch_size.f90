@@ -24,7 +24,6 @@ module precision_constants
   public
   integer,parameter  :: newscheme_max =200
   integer,private,parameter::n_read_max=20,NCAR=120
-  private EQUAL_i,EQUAL_Si,EQUAL_r,EQUAL_c !,WRITE_G
   private read_d,read_int,read_int_a,read_d_a
   !Double precision
   real(kind(1d0)) :: doublenum = 0d0
@@ -220,17 +219,12 @@ module precision_constants
   !  lielib_print(11)=1  print warning about Teng-Edwards
   !  lielib_print(12)=1  print info in make_node_layout
 
-
-  type info_window
-     character(3) adv
-     integer nc,nr,ni
-     character(NCAR) c(n_read_max)
-     character(NCAR) Fc
-     real(dp) r(n_read_max)
-     character(NCAR) FR
-     integer i(n_read_max)
-     character(NCAR) FI
-  end type info_window
+  INTERFACE read
+     MODULE PROCEDURE read_d
+     MODULE PROCEDURE read_int
+     MODULE PROCEDURE read_int_a
+     MODULE PROCEDURE read_d_a
+  END INTERFACE
 
   type CONTROL
      ! Da stuff
@@ -317,35 +311,40 @@ module precision_constants
   end type CONTROL
 
   type(control) c_
+ 
 
-  type(info_window),TARGET:: w_i
-  type(info_window),TARGET:: w_ii
-  type(info_window),TARGET::  r_i
-  type(info_window),pointer:: W_P => null()
-  type(info_window),pointer:: R_P => null()
-
-  INTERFACE assignment (=)
-     MODULE PROCEDURE EQUAL_Si
-     MODULE PROCEDURE EQUAL_i
-     MODULE PROCEDURE EQUAL_r
-     MODULE PROCEDURE EQUAL_c
-  end  INTERFACE
-
-  !  INTERFACE ! WRITE_I
-  !     MODULE PROCEDURE WRITE_G  ! not private
-  !  END INTERFACE
-  !  INTERFACE WRITE_E
-  !     MODULE PROCEDURE WRITE_G  ! not private
-  !  END INTERFACE
-
-  INTERFACE read
-     MODULE PROCEDURE read_d
-     MODULE PROCEDURE read_int
-     MODULE PROCEDURE read_int_a
-     MODULE PROCEDURE read_d_a
-  END INTERFACE
+ 
 
 contains
+
+  SUBROUTINE read_int(IEX)
+    IMPLICIT NONE
+    integer, intent(inout):: iex
+    read(5,*)  iex
+  END SUBROUTINE read_int
+
+  SUBROUTINE read_int_a(IEX,n)
+    IMPLICIT NONE
+    integer, intent(inout):: iex(:)
+    integer, intent(in):: n
+    integer i
+    read(5,*) (iex(i),i=1,n)
+  END SUBROUTINE read_int_a
+
+  SUBROUTINE read_d(IEX)
+    IMPLICIT NONE
+    real(dp), intent(inout)::   iex
+    read(5,*) iex
+  END SUBROUTINE read_d
+
+  SUBROUTINE read_d_a(IEX,n)
+    IMPLICIT NONE
+    real(dp), intent(inout)::   iex(:)
+    integer, intent(in):: n
+    integer i
+    read(5,*) (iex(i),i=1,n)
+  END SUBROUTINE read_d_a
+
 
  real(dp) function bran(xran)
     implicit none
@@ -443,91 +442,11 @@ contains
     n=ncar
   end subroutine  get_ncar
 
-  SUBROUTINE  EQUAL_Si(S2,S1)
-    implicit none
-    type (info_window),INTENT(inOUT)::S2
-    integer,INTENT(IN)::S1
-    integer i
-    if(s1==1)then
-       s2%adv='NO'
-    else
-       s2%adv='YES'
-    endif
-    s2%ni=0
-    s2%nC=0
-    s2%nR=0
-    s2%Fi=' '
-    s2%FC=' '
-    s2%FR=' '
-    do i=1,n_read_max
-       s2%i(i)=0
-       s2%R(i)=0.0_dp
-       s2%C(i)=' '
-    enddo
-  END SUBROUTINE EQUAL_Si
+ 
 
-  SUBROUTINE  EQUAL_i(S2,S1)
-    implicit none
-    type (info_window),INTENT(inOUT)::S2
-    integer,INTENT(IN)::S1(:)
-    integer n,i
-    n=size(s1)
-    s2%ni=n
-    do i=1,n
-       s2%i(i)=s1(i)
-    enddo
-  END SUBROUTINE EQUAL_i
 
-  SUBROUTINE  EQUAL_r(S2,S1)
-    implicit none
-    type (info_window),INTENT(inOUT)::S2
-    real(dp),INTENT(IN)::S1(:)
-    integer n,i
-    n=size(s1)
-    s2%nr=n
-    do i=1,n
-       s2%r(i)=s1(i)
-    enddo
-  END SUBROUTINE EQUAL_r
 
-  SUBROUTINE  EQUAL_c(S2,S1)
-    implicit none
-    type (info_window),INTENT(inOUT)::S2
-    character(*),INTENT(IN)::S1(*)
-    integer i
-    do i=1,s2%nc
-       s2%c(i)=' '
-       s2%c(i)=s1(i)
-    enddo
-  END SUBROUTINE EQUAL_c
-  !
-  SUBROUTINE read_int(IEX)
-    IMPLICIT NONE
-    integer, intent(inout):: iex
-    read(5,*)  iex
-  END SUBROUTINE read_int
-
-  SUBROUTINE read_int_a(IEX,n)
-    IMPLICIT NONE
-    integer, intent(inout):: iex(:)
-    integer, intent(in):: n
-    integer i
-    read(5,*) (iex(i),i=1,n)
-  END SUBROUTINE read_int_a
-
-  SUBROUTINE read_d(IEX)
-    IMPLICIT NONE
-    real(dp), intent(inout)::   iex
-    read(5,*) iex
-  END SUBROUTINE read_d
-
-  SUBROUTINE read_d_a(IEX,n)
-    IMPLICIT NONE
-    real(dp), intent(inout)::   iex(:)
-    integer, intent(in):: n
-    integer i
-    read(5,*) (iex(i),i=1,n)
-  END SUBROUTINE read_d_a
+ 
 
 !!!!!!!!!!!!!!!!!! old   special for lielib: others in sa_extend_poly
   REAL(DP) FUNCTION  ARCCOS_lielib(X)  ! REPLACES ACOS(X)
@@ -1351,6 +1270,8 @@ contains
 
 end module gauss_dis
 
+ 
+ 
 integer function mypause(i)
   use precision_constants
   implicit none
@@ -1359,16 +1280,12 @@ integer function mypause(i)
   !
   integer i
   !
-  !  write (*,'(A,i6)') ' PAUSE: ',i
-  w_p=1
-  w_p=(/i/); w_p%fi='(1x,i4)'
-  w_p%nc=1
-  w_p%c(1)=' ipause=mypause(0)  ';w_p%fc='((A8,1x))'
+ 
+write(6,*) ' ipause=mypause(0)  '
 
-  ! call ! WRITE_I
    read(5,*) I
   mypause=i
-  ! mypause=sqrt(dble(-i))
+ 
 end function mypause
 
 integer function mypauses(i,string)
@@ -1380,18 +1297,10 @@ integer function mypauses(i,string)
   integer i,l,n
   character(*) string
   !
-  !  write (*,'(A,i6)') ' PAUSE: ',i
-  w_p=1
-  w_p=(/i/); w_p%fi='(1x,i4)'
-  w_p%nc=2
-  l=len(string)
-  call get_ncar(n)
-  if(l>n) l=120
-  w_p%c(1)=string(1:l)
-  w_p%c(2)=' ipause=mypause(0)  ';w_p%fc='((A120,1x,/,a8,1x,))'
-
-  ! call ! WRITE_I
-  !  read(*,*) I
+ 
+ write(6,*) string
+write(6,*) ' ipause=mypause(0)  ' 
+ read(*,*) I
   mypauses=i
-  !  mypauses=sqrt(dble(-i))
+ 
 end function mypauses

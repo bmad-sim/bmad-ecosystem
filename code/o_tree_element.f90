@@ -24,7 +24,7 @@ module tree_element_MODULE
   private  read_spinor_8
   !  private smatp,smatmulp
 
-  PRIVATE EQUAL_PROBE8_PROBE8,PRINT_probe8
+  PRIVATE EQUAL_PROBE8_PROBE8,PRINT_probe8,PRINT_probe
   PRIVATE assprobe_8
   private read_probe8
 
@@ -94,6 +94,7 @@ module tree_element_MODULE
   INTERFACE PRINT
      MODULE PROCEDURE PRINT6
 !!!
+     MODULE PROCEDURE PRINT_probe
      MODULE PROCEDURE PRINT_probe8
      MODULE PROCEDURE PRINT_spinor_8
      MODULE PROCEDURE print_rf_phasor_8
@@ -710,10 +711,9 @@ CONTAINS
     case(0:ndumt-1)
        master=master+1
     case(ndumt)
-       w_p=0
-       w_p%nc=1
-       w_p=(/" cannot indent anymore "/)
-       w_p%fc='(1((1X,A72),/))'
+ 
+       write(6,*) " cannot indent anymore assprobe_8" 
+ 
        ! call !write_e(100)
     end select
 
@@ -1098,7 +1098,31 @@ CONTAINS
 
   END subroutine EQUAL_DAMAP_RAY8
  
+   subroutine print_probe(DS,MF)
+    implicit none
+    TYPE(probe), INTENT(INOUT) :: DS
+    INTEGER MF,I
  
+
+    WRITE(MF,*) " ORBIT "
+    do i=1,6
+       write(mf,*) ' Variable ',i
+       write(mf,'(6(1X,G20.13))') ds%x(i) 
+    enddo
+ 
+    WRITE(MF,*) " SPIN X "
+       write(mf,'(3(1X,G20.13))') ds%s(1)%x 
+ 
+    WRITE(MF,*) " SPIN Y "
+       write(mf,'(3(1X,G20.13))') ds%s(2)%x 
+ 
+    WRITE(MF,*) " SPIN Z "
+       write(mf,'(3(1X,G20.13))') ds%s(3)%x 
+
+ 
+
+  END subroutine print_probe
+
  
   subroutine print_probe8(DS,MF)
     implicit none

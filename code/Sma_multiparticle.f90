@@ -1005,7 +1005,7 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
             call check_S_APERTURE_out(el%p,t%POS_IN_FIBRE-2,x)
 
        SELECT CASE(EL%KIND)
-       CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19,kind22)
+       CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19)
        case(KIND2)
           CALL TRACK_FRINGE(EL=EL%K2,X=X,k=k,J=T%CAS)
        case(KIND4)
@@ -1015,6 +1015,10 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
           ELSE
              CALL FRINGECAV(EL%C4,X,k=k,J=2)
              CALL ADJUST_TIME_CAV4(EL%C4,X,k,2)
+          ENDIF
+       case(KINDhel)
+          IF(T%CAS==CASE2) THEN
+            call fake_shift(el%he22,x)
           ENDIF
        case(KIND5)
           CALL TRACK_FRINGE(EL5=EL%S5,X=X,k=k,J=T%CAS)
@@ -1188,7 +1192,7 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
 
 
        SELECT CASE(EL%KIND)
-       CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19,kind22)
+       CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19)
        case(KIND2)
           CALL TRACK_FRINGE(EL=EL%K2,X=X,k=k,J=T%CAS)
        case(KIND4)
@@ -1198,6 +1202,10 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
           ELSE
              CALL FRINGECAV(EL%C4,X,k=k,J=2)
              CALL ADJUST_TIME_CAV4(EL%C4,X,k,2)
+          ENDIF
+       case(KINDhel)
+          IF(T%CAS==CASE2) THEN
+            call fake_shift(el%he22,x)
           ENDIF
        case(KIND5)
           CALL TRACK_FRINGE(EL5=EL%S5,X=X,k=k,J=T%CAS)
@@ -1982,10 +1990,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
      b0=1
     endif 
 
+     if(tangent) then
+      t=sqrt(1.0_dp+2.0_dp*z(5)/b0+z(5)**2)/sqrt(1.0_dp+z(2)**2+z(4)**2) 
+      z(2)=z(2)*t
+      z(4)=z(4)*t
+     else
      t=z(6)
-     z(6)=-z(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.d0+t)
-     z(5)=sqrt(1.d0/b0**2+2*t+t**2)-1.d0/b0
-
+     z(6)=-z(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
+     z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+     endif
      end subroutine convert_bmad_to_ptcar
 
     subroutine convert_bmad_to_ptcap(z,b1,time)
@@ -2002,11 +2015,17 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     endif 
 
      call alloc(t)
+
+     if(tangent) then
+      t=sqrt(1.0_dp+2.0_dp*z(5)/b0+z(5)**2)/sqrt(1.0_dp+z(2)**2+z(4)**2) 
+      z(2)=z(2)*t
+      z(4)=z(4)*t
+     else
      t=z(6)
 
-     z(6)=-z(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.d0+t)
-     z(5)=sqrt(1.d0/b0**2+2*t+t**2)-1.d0/b0
-    
+     z(6)=-z(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
+     z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+     endif
      call kill(t)
 
      end subroutine convert_bmad_to_ptcap 
@@ -2026,10 +2045,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
      b0=1
     endif 
 
-     t=z(5)
+     if(tangent) then
+      t=1.0_dp/sqrt(1.0_dp+2.0_dp*z(5)/b0+z(5)**2-z(2)**2-z(4)**2) 
+      z(2)=z(2)*t
+      z(4)=z(4)*t
+     else
+      t=z(5)
       z(5)=-(z(6)-l)*sqrt(1.d0 +2*t/b0+t**2)/(1.d0/b0+t)
-      z(6)=sqrt(1.d0 +2*t/b0+t**2)-1.d0 
-
+      z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
+     endif
      end subroutine convert_ptc_to_bmadar   
 
 
@@ -2052,10 +2076,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
 
     
      call alloc(t)
+     if(tangent) then
+      t=1.0_dp/sqrt(1.0_dp+2.0_dp*z(5)/b0+z(5)**2-z(2)**2-z(4)**2) 
+      z(2)=z(2)*t
+      z(4)=z(4)*t
+     else
       t=z(5)
-      z(5)=-(z(6)-l)*sqrt(1.d0 +2*t/b0+t**2)/(1.d0/b0+t)
-      z(6)=sqrt(1.d0 +2*t/b0+t**2)-1.d0 
-    
+      z(5)=-(z(6)-l)*sqrt(1.0_dp+2*t/b0+t**2)/(1.0_dp/b0+t)
+      z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.0_dp 
+     endif
      call kill(t)
 
      end subroutine convert_ptc_to_bmadap  
@@ -2072,11 +2101,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     else
      b0=1
     endif 
-
-     t=z%x(6)
-     z%x(6)=-z%x(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.d0+t)
-     z%x(5)=sqrt(1.d0/b0**2+2*t+t**2)-1.d0/b0
-
+     if(tangent) then
+      t=sqrt(1.0_dp+2.0_dp*z%x(5)/b0+z%x(5)**2)/sqrt(1.0_dp+z%x(2)**2+z%x(4)**2) 
+      z%x(2)=z%x(2)*t
+      z%x(4)=z%x(4)*t
+     else
+      t=z%x(6)
+      z%x(6)=-z%x(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
+      z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+     endif
      end subroutine convert_bmad_to_ptcr   
 
 
@@ -2092,11 +2125,18 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
      b0=1
     endif 
      call alloc(t)
+
+     if(tangent) then
+      t=sqrt(1.0_dp+2.0_dp*z%x(5)/b0+z%x(5)**2)/sqrt(1.0_dp+z%x(2)**2+z%x(4)**2) 
+      z%x(2)=z%x(2)*t
+      z%x(4)=z%x(4)*t
+     else
      t=z%x(6)
 
-     z%x(6)=-z%x(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.d0+t)
-     z%x(5)=sqrt(1.d0/b0**2+2*t+t**2)-1.d0/b0
-    
+     z%x(6)=-z%x(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.0_dp+t)
+     z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+    endif 
+
      call kill(t)
 
      end subroutine convert_bmad_to_ptcp   
@@ -2116,10 +2156,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     else
      b0=1
     endif 
+     if(tangent) then
+      t=1.0_dp/sqrt(1.0_dp+2.0_dp*z%x(5)/b0+z%x(5)**2-z%x(2)**2-z%x(4)**2) 
+      z%x(2)=z%x(2)*t
+      z%x(4)=z%x(4)*t
+     else
      t=z%x(5)
-      z%x(5)=-(z%x(6)-l)*sqrt(1.d0 +2*t/b0+t**2)/(1.d0/b0+t)
-      z%x(6)=sqrt(1.d0 +2*t/b0+t**2)-1.d0 
-
+      z%x(5)=-(z%x(6)-l)*sqrt(1.0_dp +2*t/b0+t**2)/(1.0_dp/b0+t)
+      z%x(6)=sqrt(1.0_dp+2*t/b0+t**2)-1.0_dp 
+     endif
      end subroutine convert_ptc_to_bmadr   
 
 
@@ -2141,10 +2186,15 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     endif 
      call alloc(t)
 
+     if(tangent) then
+      t=1.0_dp/sqrt(1.0_dp+2.0_dp*z%x(5)/b0+z%x(5)**2-z%x(2)**2-z%x(4)**2) 
+      z%x(2)=z%x(2)*t
+      z%x(4)=z%x(4)*t
+     else
       t=z%x(5)
-      z%x(5)=-(z%x(6)-l)*sqrt(1.d0 +2*t/b0+t**2)/(1.d0/b0+t)
-      z%x(6)=sqrt(1.d0 +2*t/b0+t**2)-1.d0 
-    
+      z%x(5)=-(z%x(6)-l)*sqrt(1.0_dp +2*t/b0+t**2)/(1.0_dp/b0+t)
+      z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
+     endif
      call kill(t)
 
 
@@ -2161,5 +2211,19 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
       use_bmad_units=.false.
       ndpt_bmad=0
      end subroutine in_ptc_units
+
+     subroutine in_noncanonical_units
+     implicit none  
+      use_bmad_units=.true.
+      tangent=.true.
+      ndpt_bmad=0
+     end subroutine in_noncanonical_units
+
+     subroutine in_canonical_units
+     implicit none  
+      use_bmad_units=.false.
+      tangent=.false.
+      ndpt_bmad=0
+     end subroutine in_canonical_units
 
 end module ptc_multiparticle
