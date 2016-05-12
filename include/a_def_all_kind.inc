@@ -388,7 +388,7 @@ TYPE PANCAKE
    TYPE(MAGNET_CHART), POINTER:: P => null()
    real(dp),  POINTER ::L => null()
    type(tree_element),  POINTER :: B(:) => null()
-   REAL(DP), POINTER :: SCALE,angc,dc,hc,xc => null()
+   REAL(DP), POINTER :: SCALE=> null(),angc=> null(),dc=> null(),hc=> null(),xc => null()
 END  TYPE PANCAKE
 
 TYPE PANCAKEP
@@ -396,7 +396,7 @@ TYPE PANCAKEP
    TYPE(REAL_8),  POINTER ::L => null()
    type(tree_element),  POINTER :: B(:) => null()
    TYPE(REAL_8), POINTER :: SCALE => null()
-   real(dp),pointer :: angc,dc,hc,xc => null()
+   real(dp),pointer :: angc=> null(),dc=> null(),hc=> null(),xc => null()
 END  TYPE PANCAKEP
 
 

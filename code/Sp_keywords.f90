@@ -293,6 +293,9 @@ contains
     CASE("PANCAKE        ")
        if(sixtrack_compatible) stop 13
        BLANK=pancake(KEY%LIST%NAME,KEY%LIST%file)
+    CASE("INTERNALPANCAKE")
+       if(sixtrack_compatible) stop 13
+       BLANK=pancake(KEY%LIST%NAME)
        !    CASE("TAYLORMAP      ")
        !       IF(KEY%LIST%file/=' '.and.KEY%LIST%file_rev/=' ') THEN
        !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE=KEY%LIST%file,FILE_REV=KEY%LIST%file_REV,t=tilt.is.KEY%tiltd)

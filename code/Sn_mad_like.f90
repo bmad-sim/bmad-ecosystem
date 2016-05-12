@@ -48,9 +48,9 @@ module Mad_like
   integer :: symplectic_order = 0
   REAL(DP) :: symplectic_eps = -1.0_dp
   REAL(DP)  MAD_TREE_LD , MAD_TREE_ANGLE
-  type(tree_element), private, allocatable :: t_e(:) !,t_ax(:),t_ay(:)
+  type(tree_element), allocatable :: t_em(:) !,t_ax(:),t_ay(:)
 
-  real(dp), private ::  angc,xc,dc,hc,LC
+  real(dp), private ::  angc,xc,dc,hc,LC,HD,LD
    character(vp) , private :: filec
   logical(lp) :: set_ap=my_false
   TYPE EL_LIST
@@ -1819,7 +1819,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,a72,/),(1x,a72))'
           !w_p%c(1)=name
-          ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '  DCS
+          ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
           ! call ! WRITE_I
 
        endif
@@ -1829,7 +1829,7 @@ CONTAINS
        !w_p%nc=2
        !w_p%fc='((1X,a72,/),(1x,a72))'
        !w_p%c(1)=name
-       ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK ' DCS
+       ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
        ! call ! WRITE_I
     ENDIF
 
@@ -2840,14 +2840,14 @@ CONTAINS
     if(s2%kind/=kindpa) then
        CALL SETFAMILY(S2)  !,NTOT=ntot,ntot_rad=ntot_rad,NTOT_REV=ntot_REV,ntot_rad_REV=ntot_rad_REV,ND2=6)
     else
-       CALL SETFAMILY(S2,t=T_E)  !,T_ax=T_ax,T_ay=T_ay)
+       CALL SETFAMILY(S2,t=t_em)  !,T_ax=T_ax,T_ay=T_ay)
        S2%P%METHOD=4
        s2%pa%angc=angc
        s2%pa%xc=xc
        s2%pa%dc=dc
        s2%pa%hc=hc
        s2%vorname=filec
-       deallocate(T_E)
+       deallocate(t_em)
     endif
 
     IF(S2%KIND==KIND4) THEN
@@ -3361,21 +3361,36 @@ CONTAINS
     MC2=XMC2
   END SUBROUTINE Set_mad_v
 
-
+   subroutine set_pancake_constants(angc0,xc0,dc0,hc0,LC0,hd0,ld0,filec0)
+   implicit none
+   real(dp) angc0,xc0,dc0,hc0,LC0,hd0,ld0
+   character(vp) filec0
+   angc=angc0
+   xc=xc0
+   dc=dc0
+   hc=hc0
+   lc=lc0
+   hd=hd0
+   ld=ld0
+   filec=filec0
+   end subroutine set_pancake_constants 
 
   FUNCTION  pancake_tilt(NAME,file,no,T)
     implicit none
     type (EL_LIST) pancake_tilt
-    CHARACTER(*), INTENT(IN):: NAME,file
+    CHARACTER(*),optional, INTENT(IN):: NAME,file
     type (TILTING),optional, INTENT(IN):: T
-    real(dp) L,ANGLE,HD,LD
+    real(dp) L,ANGLE
     integer mf,nst,I,ORDER,ii
     integer, optional :: no
     LOGICAL(LP) REPEAT
     TYPE(TAYLOR) B(3)  !,ax(2),ay(2)
 
    ! file_fitted=file
+
     pancake_tilt=0
+    if(present(file)) then
+
     if(len(file)<=vp) then
      filec=file
     else
@@ -3399,7 +3414,7 @@ CONTAINS
 
     IF(REPEAT.AND.NST==0) NST=NSTD
 
-    ALLOCATE(T_E(NST))  !,T_ax(NST),T_ay(NST))
+    ALLOCATE(t_em(NST))  !,T_ax(NST),T_ay(NST))
 
     DO I=1,NST
     read(mf,*) ii 
@@ -3415,7 +3430,7 @@ CONTAINS
          ! Ay(1)=Ay(1)/BRHO
          ! Ay(2)=Ay(2)/BRHO
        ENDIF
-       CALL SET_TREE_g(T_E(i),B)
+       CALL SET_TREE_g(t_em(i),B)
        !       CALL SET_TREE_g(T_ax(i),ax)
        !       CALL SET_TREE_g(T_ay(i),ay)
     enddo
@@ -3424,8 +3439,9 @@ CONTAINS
   !  CALL KILL(ay)
 
     close(MF)
-
-
+   else
+     NST=size(t_em)
+   endif
     ANGLE=LD*HD
 
 
