@@ -96,11 +96,11 @@ if (start2_orb%species /= photon$ .and. start2_orb%state == alive$) then
   err = .false.
 
   if (ele%key == beginning_ele$) then
-    if (ele%value(p0c$) /= start2_orb%p0c) err = .true. ! For e_gun case
+    if (abs(ele%value(p0c$) - start2_orb%p0c) > 1d-15*start2_orb%p0c) err = .true. ! For e_gun case
   else if (start2_orb%location == upstream_end$) then
-    if (ele%value(p0c_start$) /= start2_orb%p0c) err = .true.
+    if (abs(ele%value(p0c_start$) - start2_orb%p0c) > 1d-15*start2_orb%p0c) err = .true.
   else if (start2_orb%location == downstream_end$) then
-    if (ele%value(p0c$) /= start2_orb%p0c) err = .true. ! For e_gun case
+    if (abs(ele%value(p0c$) - start2_orb%p0c) > 1d-15*start2_orb%p0c) err = .true. ! For e_gun case
   endif
 
   if (err) then
