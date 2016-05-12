@@ -925,8 +925,8 @@ if (attrib_word == 'SURFACE') then
             call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
             return
           endif
-          if (.not. expect_this ('=', .false., .false., 'GRID PT', ele, delim, delim_found)) return
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
+          if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true.)) return
           surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
@@ -6296,7 +6296,7 @@ do
 
   ! Read attriubute
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
-  if (.not. expect_this ('=', .true., .false., 'NO EQUAL SIGN IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .false., 'IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
 
   select case (attrib_name)
 
@@ -6369,7 +6369,7 @@ do
 
     err_str = trim(ele%name) // ' CARTESIAN_MAP TERM'
 
-    if (.not. expect_this ('{', .false., .false., 'NO "{" AFTER "TERM =" IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
+    if (.not. expect_this ('{', .false., .false., 'AFTER "TERM =" IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
     call evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
     call evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
     call evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
@@ -7022,7 +7022,7 @@ real(rp) coef
 complex(rp), pointer :: c_ptr(:)
 
 integer i, j, expn(2), nn, n, i_term, ib, ie, im, ix, family, ios
-integer ub, i_out, ix_word
+integer lb, i_out, ix_word
 
 character(80) err_str
 character(40) word, word2, name, attrib_name
@@ -7108,9 +7108,9 @@ do
   case ('PLANE')
 
     ! Expect "("
-    if (.not.  expect_this ('(', .true., .false., 'NO "(" FOUND AFTER "PLANE" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+    if (.not.  expect_this ('(', .true., .false., 'AFTER "PLANE" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
     call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD PLANE INDEX IN TAYLOR_FIELD')
-    if (.not.  expect_this (')={', .true., .false., 'NO ") = {" FOUND AFTER "PLANE(IX" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+    if (.not.  expect_this (')={', .true., .false., 'AFTER "PLANE(IX" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
 
     if (allocated(t_field%ptr%plane)) then
       if (ix /= ubound(t_field%ptr%plane, 1) + 1) then
@@ -7118,9 +7118,9 @@ do
         return
       endif
       call move_alloc(t_field%ptr%plane, plane)
-      ub = ubound(plane, 1)
-      allocate (t_field%ptr%plane(ub:ix))
-      t_field%ptr%plane(ub:ix-1) = plane
+      lb = lbound(plane, 1)
+      allocate (t_field%ptr%plane(lb:ix))
+      t_field%ptr%plane(lb:ix-1) = plane
       deallocate(plane)
     else
       ! Set %file to be the last called file:<line_number>. 
@@ -7131,9 +7131,9 @@ do
     t_plane => t_field%ptr%plane(ix)
 
     do
-      if (.not.  expect_this ('{', .false., .false., 'NO OPENING "{" FOUND FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+      if (.not.  expect_this ('{', .false., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
       call get_next_word (word, ix_word, ':{}=,()', delim, delim_found)
-      if (.not.  expect_this (':', .true., .false., 'NO ":" FOUND FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
+      if (.not.  expect_this (':', .true., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
       call match_word (word, ['X', 'Y', 'Z'], i_out, .true., .false.)
       if (i_out < 1) then
         call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name)
