@@ -3108,7 +3108,7 @@ end subroutine type_map
 !+
 
 subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, &
-                         for_layout, tracking_species, use_hard_edge_drifts)
+                                       for_layout, tracking_species, use_hard_edge_drifts)
 
 use madx_ptc_module
 
@@ -3123,7 +3123,6 @@ type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
-type (el_list) ptc_el_list
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
 type (real_8) ptc_re8(6)
@@ -3567,7 +3566,7 @@ if (ele%key == sad_mult$) then
 
     ptc_fibre%magp%k3%dx = dx
     ptc_fibre%magp%k3%dy = dy
-  else 
+  else
     call out_io (s_fatal$, r_name, 'INTERNAL ERROR SETTING MULT OFFSET. PLEASE CONTACT DAVID SAGAN.')
   endif
 endif
@@ -3591,6 +3590,28 @@ if (ele%field_calc == fieldmap$ .or. ele%key == wiggler$ .or. ele%key == undulat
       exit
     endif
   enddo
+
+  !
+
+  if (associated(ele2%cylindrical_map)) then
+    call out_io (s_fatal$, r_name, 'CYLINDRICAL_MAP WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+
+  if (associated(ele2%taylor_field)) then
+    call out_io (s_fatal$, r_name, 'TAYLOR_FIELD WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+
+  if (associated(ele2%grid_field)) then
+    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+
+  !
 
   if (associated(ele2%cartesian_map) .or. ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
 

@@ -2187,6 +2187,8 @@ other field map types.
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
 restrictions: 
   \begin{itemize}
+  \item
+There can be only one \vn{cartesian_map} field map and there cannot be any other field maps.
   \item 
 \vn{cartesian_map} may not be used with a bend.
   \item
@@ -2406,14 +2408,15 @@ corresponding to \vn{x}, and \vn{y} respectively for the first form,  and 3) the
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
 restrictions: 
   \begin{itemize}
+  \item
+There can be only one \vn{taylor_field} field map and there can not be any other field maps.
   \item 
 The number of planes must be odd. If you want to be able to track to the center of the
 element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an integer.
   \item
 Only magnetic fields may be used. 
   \item
-\vn{ele_anchor_pt} must be set to \vn{center} and \vn{z0} must be zero. That is, the
-plane locations are symmetric with respect to the center of the element.
+The plane locations must be symmetric with respect to the center of the element.
   \end{itemize}
 Note: The PTC name for a \vn{taylor_field} is ``pancake''.
 
