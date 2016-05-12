@@ -57,6 +57,8 @@ character(*), parameter :: r_name = 'calc_next_finge_edge'
 !   - super_slaves with multiple lords.
 !   - an x_offset in an sbend will shift the s-position of the ends of the bend.
 !   - An element with edge drifts (RF cavity, eg) will have fringes not at the element ends.
+!   - With time Runge-Kutta a particle can turn around.
+!   - An element may have negative length.
 
 ! Init if needed.
 ! Keep track of where particle is with respect to element edge using ele%ixx = upsteam_end$, downstream_end$, inside$
@@ -161,7 +163,7 @@ else  ! dir = -1
   elseif (orbit%location == inside$) then
     if (s_hard_downstream < s_orb - ds_small) then
       fringe_info%location(ix_loc) = downstream_end$
-    elseif (s_hard_downstream < s_orb) then
+    elseif (s_hard_upstream < s_orb) then
       fringe_info%location(ix_loc) = inside$
     else
       fringe_info%location(ix_loc) = upstream_end$
