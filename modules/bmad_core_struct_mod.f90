@@ -66,6 +66,8 @@ interface init_coord
   module procedure init_coord2
 end interface
 
+private init_coord1, init_coord2
+
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -102,6 +104,8 @@ interface reallocate_coord
   module procedure reallocate_coord_n
   module procedure reallocate_coord_lat
 end interface
+
+private reallocate_coord_n, reallocate_coord_lat
 
 contains
 
@@ -1802,9 +1806,17 @@ type (coord_struct), allocatable :: old(:)
 integer, intent(in) :: n_coord
 integer i, n_old
 
+character(*), parameter :: r_name = 'reallocate_coord_n'
+
 !
 
 if (allocated (coord)) then
+
+  if (lbound(coord, 1) /= 0) then
+    call out_io (s_fatal$, r_name, 'ORBIT ARRAY LOWER BOUND NOT EQUAL TO ZERO!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
 
   n_old = ubound(coord, 1)
   if (n_old >= n_coord) return
