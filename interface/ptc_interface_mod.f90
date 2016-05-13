@@ -3126,6 +3126,10 @@ type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
 type (real_8) ptc_re8(6)
+type (taylor_field_struct), pointer :: tf
+type (taylor_field_plane1_struct), pointer :: plane
+type (em_taylor_term_struct), pointer :: tm
+type(taylor) bf(3)
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
@@ -3134,14 +3138,17 @@ real(rp) beta0, beta1, ref0(6), ref1(6)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) ld, hd, lc, hc, angc, xc, dc
 
 integer, optional :: tracking_species
 integer, optional :: integ_order, steps
-integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
+integer i, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
+integer np
 
 logical use_offsets, has_nonzero_pole, kill_spin_fringe, onemap
 logical, optional :: for_layout, use_hard_edge_drifts
 
+character(vp), parameter :: filec = ''
 character(16) :: r_name = 'ele_to_fibre'
 
 ! 
@@ -3386,7 +3393,7 @@ case (ab_multipole$, multipole$)
 
 case (beambeam$)
   ptc_key%magnet = 'beambeam'
-  call out_io (s_fatal$, r_name,  'BEAMBEAM ELEMENT NOT YET IMPLEMENTED!')
+  call out_io (s_fatal$, r_name, 'BEAMBEAM ELEMENT NOT YET IMPLEMENTED!')
   if (global_com%exit_on_error) call err_exit
 
 case (wiggler$, undulator$)
@@ -3450,6 +3457,108 @@ endif
 ! Multipole components
 
 call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+
+! field map
+
+ele2 => ele
+
+if (ele%field_calc == fieldmap$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+
+  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
+  do i = 1, n_field
+    ele2 => field_eles(i)%ele
+    if (ele2%key == ele%key) then
+      s_rel = dz_offset(i)
+      exit
+    endif
+  enddo
+
+  if (associated(ele2%grid_field)) then
+    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  if (associated(ele2%cylindrical_map)) then
+    call out_io (s_fatal$, r_name, 'CYLINDRICAL_MAP WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  n = 0
+  if (associated(ele2%cylindrical_map)) n = n + size(ele2%cylindrical_map)
+  if (associated(ele2%cartesian_map)) n = n + size(ele2%cartesian_map)
+  if (associated(ele2%taylor_field)) n = n + size(ele2%taylor_field)
+
+  if (n /= 1) then
+    call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
+                                   'ELEMENT HAS MULTIPLE FIELD MAPS: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+endif
+
+! taylor_field
+
+if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
+  tf => ele2%taylor_field(1)
+
+  np = size(tf%ptr%plane)
+  allocate(t_em(np))
+  call alloc(bf)
+
+  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
+    plane => tf%ptr%plane(i)
+    do j = 1, 3
+      bf(j)=0.d0
+      do k = 1, size(plane%field(j)%term)
+        tm => plane%field(j)%term(k)
+        coef = tm%coef * tf%field_scale * c_light / ele2%value(p0c$)
+        if (tf%master_parameter > 0) coef = coef * ele%value(tf%master_parameter)
+        bf(j)=bf(j)+(coef .mono. tm%expn)
+      enddo
+    enddo
+    n = i - lbound(tf%ptr%plane, 1) + 1
+    call set_tree_g (t_em(n), bf)
+  enddo
+
+  call kill (bf)
+
+  if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+    ld = ele%value(l$)
+    hd = ele%value(g$)
+
+    lc = (np-1) * tf%dz   ! Integration length
+
+    if (tf%curved_coords) then
+      hc = ele%value(g$) ! pancake curvature = ele curvature
+      angc = (ele%value(angle$) - (np-1) * tf%dz * ele%value(g$)) / 2
+      xc = tf%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
+      dc = tf%r0(1) * sin(ele%value(angle$)/2) + ele%value(rho$) * sin(angc)
+    else
+      hc = 0.d0     ! pancake curvature
+      angc = ele%value(angle$) / 2
+      xc = tf%r0(1) + ele%value(rho$) * (1 - cos(ele%value(angle$)/2))
+      dc = (ele%value(l$) - (np-1) * tf%dz) / 2
+    endif
+
+  else
+    ld = ele%value(l$)
+    lc = (np-1) * tf%dz   ! Integration length
+
+    hd = 0
+    hc = 0                ! pancake curvature
+
+    angc = 0
+    xc = tf%r0(1)
+    dc = (ele%value(l$) - (np-1) * tf%dz) / 2
+  endif
+
+call set_pancake_constants(angc, xc, dc, hc, lc, hd, ld, filec)
+
+ ptc_key%magnet = 'INTERNALPANCAKE'
+
+endif
 
 !-----------------------------
 ! Create ptc_fibre
@@ -3580,89 +3689,55 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even periodic_type with field_calc = bmad_standard$
 
-if (ele%field_calc == fieldmap$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+if ((associated(ele2%cartesian_map) .and. ele%field_calc == fieldmap$) .or. ele%key == wiggler$ .or. ele%key == undulator$) then
 
-  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
-  do i = 1, n_field
-    ele2 => field_eles(i)%ele
-    if (ele2%key == ele%key) then
-      s_rel = dz_offset(i)
-      exit
-    endif
-  enddo
+  cm => ele2%cartesian_map(1)
 
-  !
-
-  if (associated(ele2%cylindrical_map)) then
-    call out_io (s_fatal$, r_name, 'CYLINDRICAL_MAP WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
+  if (size(ele2%cartesian_map) /= 1) then
+    call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE MORE THAN ONE CARTESIAN_MAP. FOR ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
-  endif  
-
-  if (associated(ele2%taylor_field)) then
-    call out_io (s_fatal$, r_name, 'TAYLOR_FIELD WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif  
-
-  if (associated(ele2%grid_field)) then
-    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif  
-
-  !
-
-  if (associated(ele2%cartesian_map) .or. ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
-
-    cm => ele2%cartesian_map(1)
-
-    if (size(ele2%cartesian_map) /= 1) then
-      call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE MORE THAN ONE CARTESIAN_MAP. FOR ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-
-    if (cm%field_type == electric$) then
-      call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE CARTESIAN_MAP WITH ELECTRIC FIELDS. FOR ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif  
-
-    select case (cm%ele_anchor_pt)
-    case (anchor_beginning$); s_rel = s_rel - cm%r0(3)
-    case (anchor_center$);    s_rel = s_rel - cm%r0(3) + ele%value(l$) / 2
-    case (anchor_end$);       s_rel = s_rel - cm%r0(3) + ele%value(l$)
-    end select
-
-    n_term = size(cm%ptr%term)
-    call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
-
-    ptc_fibre%mag%wi%w%k(1,1:n_term)   = cm%ptr%term%kx
-    ptc_fibre%mag%wi%w%k(2,1:n_term)   = cm%ptr%term%ky
-    ptc_fibre%mag%wi%w%k(3,1:n_term)   = cm%ptr%term%kz
-    ptc_fibre%mag%wi%w%f(1:n_term)     = cm%ptr%term%phi_z + s_rel * cm%ptr%term%kz
-    ptc_fibre%mag%wi%w%x0(1:n_term)    = cm%ptr%term%x0
-    ptc_fibre%mag%wi%w%y0(1:n_term)    = cm%ptr%term%y0
-    ptc_fibre%mag%wi%w%form(1:n_term)  = cm%ptr%term%type
-
-    if (ele%is_on) then
-      do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
-        wt => cm%ptr%term(i)
-        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
-      enddo
-    else
-      ptc_fibre%mag%wi%w%a(1:n_term) = 0
-    endif
-
-    ! Correct z-position 
-
-    z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-    ptc_fibre%mag%wi%internal(6) = z_patch
-
-    call copy (ptc_fibre%mag, ptc_fibre%magp)
-
   endif
+
+  if (cm%field_type == electric$) then
+    call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE CARTESIAN_MAP WITH ELECTRIC FIELDS. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+
+  select case (cm%ele_anchor_pt)
+  case (anchor_beginning$); s_rel = s_rel - cm%r0(3)
+  case (anchor_center$);    s_rel = s_rel - cm%r0(3) + ele%value(l$) / 2
+  case (anchor_end$);       s_rel = s_rel - cm%r0(3) + ele%value(l$)
+  end select
+
+  n_term = size(cm%ptr%term)
+  call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
+
+  ptc_fibre%mag%wi%w%k(1,1:n_term)   = cm%ptr%term%kx
+  ptc_fibre%mag%wi%w%k(2,1:n_term)   = cm%ptr%term%ky
+  ptc_fibre%mag%wi%w%k(3,1:n_term)   = cm%ptr%term%kz
+  ptc_fibre%mag%wi%w%f(1:n_term)     = cm%ptr%term%phi_z + s_rel * cm%ptr%term%kz
+  ptc_fibre%mag%wi%w%x0(1:n_term)    = cm%ptr%term%x0
+  ptc_fibre%mag%wi%w%y0(1:n_term)    = cm%ptr%term%y0
+  ptc_fibre%mag%wi%w%form(1:n_term)  = cm%ptr%term%type
+
+  if (ele%is_on) then
+    do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
+      wt => cm%ptr%term(i)
+      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+    enddo
+  else
+    ptc_fibre%mag%wi%w%a(1:n_term) = 0
+  endif
+
+  ! Correct z-position 
+
+  z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+  ptc_fibre%mag%wi%internal(6) = z_patch
+
+  call copy (ptc_fibre%mag, ptc_fibre%magp)
+
 endif
 
 ! Misalignments and patches...
