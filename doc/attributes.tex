@@ -2188,13 +2188,14 @@ To use with PTC dependent tracking methods (\sref{s:integ}) there are a number o
 restrictions: 
   \begin{itemize}
   \item
-There can be only one \vn{cartesian_map} field map and there cannot be any other field maps.
+There can be only one \vn{cartesian_map} field map and there cannot be any other field
+maps of any kind.
   \item 
 \vn{cartesian_map} may not be used with a bend.
   \item
 Only magnetic fields may be used. 
   \item
-Transverse terms in \vn{r0} must be zero.
+The transverse terms in \vn{r0} must be zero.
   \end{itemize}
 
 %-----------------------------------------------------------------
@@ -2409,16 +2410,33 @@ To use with PTC dependent tracking methods (\sref{s:integ}) there are a number o
 restrictions: 
   \begin{itemize}
   \item
-There can be only one \vn{taylor_field} field map and there can not be any other field maps.
+There can be only one \vn{taylor_field} field map and there cannot be any other field
+maps of any kind.
   \item 
-The number of planes must be odd. If you want to be able to track to the center of the
-element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an integer.
+The number of planes must be odd. If you want to be able to track with PTC to the center
+of the element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an
+integer.
   \item
-Only magnetic fields may be used. 
+Only magnetic fields may be used.
   \item
-The plane locations must be symmetric with respect to the center of the element.
+The plane locations must be symmetric with respect to the center of the element. That is,
+the first plane and the last plane must be equadistant from the element center.
+  \item
+The element may not be superimposed upon (\sref{s:super}). [PTC tracks from plane to plane
+so there is no good way to cut an element at an arbitrary position.]
+  \item
+In a bend with \vn{curved_coords} = False, The setting of \vn{ele_anchor_pt} must be
+\vn{center}.
   \end{itemize}
-Note: The PTC name for a \vn{taylor_field} is ``pancake''.
+If the edges of the \vn{taylor_field}, which are defined by the first and last planes, is
+different than the edges of the element, \bmad and PTC will do tracking differently. With
+\bmad, the tracking will start at one edge of the element and will end at the other
+end. That is, \bmad will ignore the field outside of the element (but this can be modified
+using field overlap (\sref{s:overlap})). PTC, on the other hand, will start at an element
+end and then track from the element end backwards to the first plane like in a drift. It
+will then track to the ending plane and finally track backards from the ending plane to
+the ending element edge line in a drift. That is, PTC does not ignore the field outside of
+the element.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
