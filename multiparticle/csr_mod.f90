@@ -130,7 +130,7 @@ real(rp) e_tot, f1, x, z
 integer i, j, ie, ns, nb, n_step, n_live
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
-logical err, auto_bookkeeper
+logical err, auto_bookkeeper, err_flag
 
 ! Init
 
@@ -288,7 +288,8 @@ do i = 0, n_step
 
     csr%y_source = ns * csr_param%beam_chamber_height
 
-    call csr_bin_kicks (s0_step, csr)
+    call csr_bin_kicks (s0_step, csr, err_flag)
+    if (err_flag) return
   enddo
 
   ! loop over all particles and give them a kick
@@ -506,7 +507,7 @@ end subroutine csr_bin_particles
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_kicks (ds_kick_pt, csr)
+! Subroutine csr_bin_kicks (ds_kick_pt, csr, err_flag)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
@@ -519,9 +520,10 @@ end subroutine csr_bin_particles
 !   csr         -- csr_struct: 
 !     %kick1(:)          -- CSR kick calculation bin array. 
 !     %slice(:)%kick_csr -- Integrated kick
+!   err_flag    -- logical: Set True if there is an error. False otherwise
 !-
 
-subroutine csr_bin_kicks (ds_kick_pt, csr)
+subroutine csr_bin_kicks (ds_kick_pt, csr, err_flag)
 
 implicit none
 
@@ -532,11 +534,14 @@ type (csr_kick1_struct), pointer :: kick1
 real(rp) ds_kick_pt, coef
 
 integer i, n_bin
+logical err_flag
 
 character(16) :: r_name = 'csr_bin_kicks'
 
 ! The kick point P is fixed.
 ! Loop over all kick1 bins and compute the kick.
+
+err_flag = .false.
 
 do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
@@ -551,7 +556,8 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
   ! Calculate what element the source point is in.
 
-  kick1%s_chord_source = s_source_calc(kick1, csr)
+  kick1%s_chord_source = s_source_calc(kick1, csr, err_flag)
+  if (err_flag) return
 
   ! calculate csr.
   ! I_csr is only calculated for particles with y = 0 and not for image currents.
@@ -599,7 +605,7 @@ end subroutine csr_bin_kicks
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function s_source_calc (kick1, csr) result (s_source)
+! Function s_source_calc (kick1, csr, err_flag) result (s_source)
 !
 ! Routine to calculate the distance between source and kick points.
 !
@@ -610,9 +616,10 @@ end subroutine csr_bin_kicks
 ! Output:
 !   s_source      -- real(rp): source s-position.
 !   kick1         -- csr_kick1_struct:
+!   err_flag      -- logical: Set True if there is an error. Untouched otherwise.
 !-
 
-function s_source_calc (kick1, csr) result (s_source)
+function s_source_calc (kick1, csr, err_flag) result (s_source)
 
 implicit none
 
@@ -620,11 +627,13 @@ type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
 type (csr_ele_info_struct), pointer :: einfo_s, einfo_k
 type (floor_position_struct), pointer :: fk, f0, fs
+type (ele_struct), pointer :: ele
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz
 real(rp) z0, z1, sz_kick, sz0, Lsz0
 
 integer i, last_step
+logical err_flag
 
 character(*), parameter :: r_name = 's_source_calc'
 
@@ -670,6 +679,29 @@ do
     kick1%theta_sl = f0%theta - kick1%theta_L
     einfo_k => csr%eleinfo(csr%ix_ele_kick)
     kick1%theta_lk = kick1%theta_L - (spline1(einfo_k%spline, csr%s_chord_kick, 1) + einfo_k%theta_chord)
+    return
+  endif
+
+  !
+
+  ele => einfo_s%ele
+
+  if (ele%key == match$ .and. (abs(ele%value(x1$) - ele%value(x0$)) > 0 .or. &
+                               abs(ele%value(y1$) - ele%value(y0$)) > 0)) then
+    call out_io (s_fatal$, r_name, &
+        'CSR CALC IS NOT ABLE TO HANDLE A MATCH ELEMENT WITH FINITE ORBIT OFFSETS: ' // ele%name, &
+        'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
+    if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
+    return
+  endif
+
+  if (ele%key == floor_shift$) then
+    call out_io (s_fatal$, r_name, &
+        'CSR CALC IS NOT ABLE TO HANDLE A FLOOR_SHIFT ELEMENT: ' // ele%name, &
+        'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
+    if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
     return
   endif
 
