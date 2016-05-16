@@ -25,7 +25,6 @@ subroutine tao_init_data (data_file)
 use tao_data_and_eval_mod
 use tao_lattice_calc_mod
 use tao_input_struct
-use bmad_parser_mod
 use random_mod
   
 implicit none
