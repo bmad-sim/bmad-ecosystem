@@ -364,6 +364,7 @@ if (u%calc%track) then
           exit
         endif
         call twiss_propagate1(branch%ele(n-1), ele)
+        branch%ele(n-1)%value(match_end_orbit$) = false$
       enddo
 
     else
