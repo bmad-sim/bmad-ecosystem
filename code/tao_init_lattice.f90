@@ -285,7 +285,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     u%model%lat_branch(ib)%has_open_match_element = .false.
     do ie = 1, branch%n_ele_track
       if (branch%ele(ie)%key /= match$) cycle
-      if (.not. is_true(branch%ele(ie)%value(match_end$))) cycle
+      if (.not. is_true(branch%ele(ie)%value(match_end$)) .and. &
+          .not. is_true(branch%ele(ie)%value(match_end_orbit$))) cycle
       u%model%lat_branch(ib)%has_open_match_element = .true.
       exit
     enddo
