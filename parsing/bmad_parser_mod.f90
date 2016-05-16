@@ -553,9 +553,9 @@ if (ix_word == 0) then  ! no word
 endif
 
 
-select case (attrib_word)
+select case (word)
 case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', 'REF_END')
-  call parser_error ('OLD SUPERPOSITION SYNTAX: ' // attrib_word, &
+  call parser_error ('OLD SUPERPOSITION SYNTAX: ' // word, &
               'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
 end select
 
