@@ -575,7 +575,8 @@ case (wiggler$, undulator$)
       allocate (ele%cartesian_map(1)%ptr)
       allocate (ele%cartesian_map(1)%ptr%term(1))
       ele%cartesian_map(1)%master_parameter = polarity$
-      write (ele%cartesian_map(1)%ptr%file, '(2i0)') ele%ix_branch, ele%ix_ele ! Unique name
+      write (ele%cartesian_map(1)%ptr%file, '(a, i0, a, i0)') 'attribute_bookkeeper:', &
+                                                       ele%ix_branch, '>>', ele%ix_ele ! Unique name
     endif
 
     term => ele%cartesian_map(1)%ptr%term(1)

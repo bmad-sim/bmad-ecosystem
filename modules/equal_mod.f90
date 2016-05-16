@@ -138,6 +138,8 @@ if ((ele_out%key == wiggler$ .or. ele_out%key == undulator$) .and. ele_out%sub_k
     allocate(ele_out%cartesian_map(1)%ptr)
     allocate(ele_out%cartesian_map(1)%ptr%term(n2))
     ele_out%cartesian_map(1)%ptr%term = ele_in%cartesian_map(1)%ptr%term
+    write (ele_out%cartesian_map(1)%ptr%file, '(a, i0, a, i0)') 'ele_equal_ele:', &
+                                                       ele_out%ix_branch, '>>', ele_out%ix_ele ! Unique name
   endif
 
 else
