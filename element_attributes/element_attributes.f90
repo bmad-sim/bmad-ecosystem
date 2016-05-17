@@ -207,25 +207,25 @@ do it = 1, n_table, 1
 
   select case (tab%key)
   case (sbend$)
-    write (1, *) '\section{Attributes for bends: Rbend and Sbend}'
+    write (1, *) '\section{Bends: Rbend and Sbend Attributes}'
     write (1, *) '\label{s:list.bend}'
   case (ecollimator$)
-    write (1, *) '\section{Attributes for collimators: Ecollimator and Rcollimator}'
+    write (1, *) '\section{Collimators: Ecollimator and Rcollimator Attributes}'
     write (1, *) '\label{s:list.collimator}'
   case (fork$)
-    write (1, *) '\section{Attributes for: Fork and Photon_Fork}'
+    write (1, *) '\section{Fork and Photon_Fork Attributes}'
     write (1, *) '\label{s:list.fork}'
   case (instrument$)
-    write (1, *) '\section{Attributes for: Instrument, Monitor, and Pipe}'
+    write (1, *) '\section{Instrument, Monitor, and Pipe Attributes}'
     write (1, *) '\label{s:list.instrument}'
   case (hkicker$)
-    write (1, *) '\section{Attributes for kickers: Hkicker and Vkicker}'
+    write (1, *) '\section{Kickers: Hkicker and Vkicker Attributes}'
     write (1, *) '\label{s:list.hvkicker}'
   case (wiggler$)
-    write (1, *) '\section{Attributes for: Wiggler and Undulator}'
+    write (1, *) '\section{:Wiggler and Undulator Attributes}'
     write (1, *) '\label{s:list.wiggler}'
   case default
-    write (1, *) '\section{Attributes for: ', trim(tab%name), '}'
+    write (1, *) '\section{', trim(tab%name), 'Attributes}'
     name = downcase(key_name(tab%key))
     call str_substitute (name, '_', '.')
     write (1, *) '\label{s:list.', trim(name), '}'
