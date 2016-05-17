@@ -88,16 +88,21 @@ type beam_init_struct
                                              !   If false, z describes the s distribution
 end type
 
+! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
+
 type bunch_params_struct
-  type (twiss_struct) :: x, y, z, a, b, c
+  type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
+  type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(6,6)              ! beam size matrix
+  real(rp) rel_max(6)              ! Max orbit relative to centroid
+  real(rp) rel_min(6)              ! Min orbit relative to_centroid
   real(rp) s                       ! Longitudinal position.
   real(rp) charge_live             ! Charge of all non-lost particle
-  integer n_particle_tot
-  integer n_particle_live          ! all non-lost particles
-  integer n_particle_lost_in_ele
+  integer n_particle_tot           ! Total number of particles
+  integer n_particle_live          ! Number of non-lost particles
+  integer n_particle_lost_in_ele   ! Number lost in element (not calculated by Bmad)
 end type
 
 !-------------------------------------------------------------------------
