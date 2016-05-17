@@ -375,7 +375,7 @@ type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
-real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity
+real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, rel_tol(2)
 real(rp) value_saved(num_ele_attrib$)
 
 integer i, key
@@ -515,7 +515,11 @@ endif
 ! Example: A lattice with bends with field_master = True, flexible patch, and absolute time tracking has
 ! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
 
-if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], [1e-3_rp, bmad_com%significant_length/c_light], .true.)) then
+rel_tol = [1e-3_rp, bmad_com%significant_length/c_light]
+if (ele%tracking_method == runge_kutta$ .or. ele%tracking_method == time_runge_kutta$) &
+                  rel_tol(1) = rel_tol(1) + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
+
+if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], rel_tol, .true.)) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord

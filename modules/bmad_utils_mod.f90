@@ -2682,6 +2682,7 @@ end subroutine angle_to_canonical_coords
 ! Function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
 !
 ! Routine to see if a parameter value in a lattice element has changed significantly.
+! A relative tolerance of small_rel_change$ = 1d-14 is also added to abs_tol.
 !
 ! Input:
 !   ele         -- ele_struct: Element under consideration.
