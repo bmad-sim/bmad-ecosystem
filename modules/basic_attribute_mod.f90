@@ -439,7 +439,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, custom_attribute5$,  'CUSTOM_ATTRIBUTE5', private$)
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
 
-  if (i == hybrid$)         cycle
   if (i == beginning_ele$)  cycle
 
   call init_attribute_name1 (i, type$,      'TYPE')
@@ -483,6 +482,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, aperture_type$,          'APERTURE_TYPE')
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
 
+  if (i == hybrid$)   cycle
   if (i == match$) cycle
   if (i == photon_fork$)   cycle
   if (i == fork$)          cycle
@@ -1315,12 +1315,8 @@ call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')
 
 call init_attribute_name1 (hybrid$, l$,                             'L')
 call init_attribute_name1 (hybrid$, delta_e$,                       'DELTA_E')
-call init_attribute_name1 (hybrid$, delta_ref_time$,                'DELTA_REF_TIME')
-call init_attribute_name1 (hybrid$, ref_time_start$,                'ref_time_start', private$)
 call init_attribute_name1 (hybrid$, e_tot_start$,                   'E_TOT_START', dependent$)
 call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START', dependent$)
-call init_attribute_name1 (hybrid$, mat6_calc_method$,              'MAT6_CALC_METHOD')
-call init_attribute_name1 (hybrid$, tracking_method$,               'TRACKING_METHOD')
 
 call init_attribute_name1 (mirror$, l$,                             'L', dependent$)
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')
