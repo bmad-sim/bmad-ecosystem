@@ -1490,21 +1490,6 @@ end subroutine calc_bunch_params_slice
 !
 ! Output     
 !   bunch_params -- bunch_params_struct:
-!     %x,%y,%z       -- Projected parameters
-!       %alpha; %beta; %gamma
-!       %eta, %etap, %norm_emit
-!     %a,%b,%c       -- Normal-Mode parameters
-!       %alpha; %beta; %gamma
-!       %eta, %etap, %norm_emit
-!     %sigma(1:21)   -- Projected Sigma Matrix
-!     %centroid
-!     %spin      
-!       %polarization -- Polarization
-!       %theta        -- Polar Angle of polarization vector
-!       %phi          -- Polar Angle of polarization vector
-!     %n_particle_tot
-!     %n_particle_live
-!     %charge_live
 !   err   -- Logical: Set True if there is an error in mat_eigen routine.
 !-
 
@@ -1594,7 +1579,7 @@ avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
-call find_bunch_sigma_matrix (bunch%particle, charge, bunch_params%centroid%vec, bunch_params%sigma, sigma_s)
+call find_bunch_sigma_matrix (bunch%particle, charge, bunch_params, sigma_s)
 
 ! X, Y, & Z Projected Parameters
 call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(1,1), bunch_params%sigma(2,2), &
@@ -1853,7 +1838,7 @@ end subroutine calc_spin_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine find_bunch_sigma_matrix (particle, charge, ave, sigma, sigma_s)
+! Subroutine find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
@@ -1863,20 +1848,26 @@ end subroutine calc_spin_params
 ! Input:
 !   particle(:) -- Coord_struct: Array of particles.
 !   charge(:)   -- real(rp): Particle charge or photon intensity.
+!
 ! Output:
-!   sigma(21)    -- Real(rp): Sigma matrix elements.
-!   ave(6)       -- Real(rp): Bunch Centroid.
+!   bunch_params -- bunch_params_struct: Bunch parameters.
+!     %sigma(21)   
+!     %centroid%vec(6)
+!     %rel_max(6)
+!     %rel_min(6)
 !   sigma_S(6,6) -- Sigma x S matrix for Wolski normal-modes
 !-
 
-subroutine find_bunch_sigma_matrix (particle, charge, avg, sigma, sigma_s)
+subroutine find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)
 
 implicit none
 
 type (coord_struct) :: particle(:)
+type (bunch_params_struct), target :: bunch_params
 
-real(rp) charge_live, avg(6), sigma(6,6)
+real(rp) charge_live
 real(rp) sigma_s(6,6), s(6,6), charge(:)
+real(rp), pointer :: avg(:), sigma(:,:)
 
 integer i
 
@@ -1891,8 +1882,13 @@ if (charge_live == 0) then
   return
 endif
 
+avg => bunch_params%centroid%vec
+sigma => bunch_params%sigma
+
 do i = 1, 6
   avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%state == alive$)) / charge_live
+  bunch_params%rel_max(i) = maxval(particle(:)%vec(i), mask = (particle(:)%state == alive$)) - avg(i)
+  bunch_params%rel_min(i) = minval(particle(:)%vec(i), mask = (particle(:)%state == alive$)) - avg(i)
 enddo
 
 sigma(1,1) = exp_calc (particle, charge, 1, 1, avg)
