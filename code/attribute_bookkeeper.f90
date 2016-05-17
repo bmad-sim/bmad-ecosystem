@@ -508,7 +508,7 @@ case (sbend$)
     val(rho$) = 1 / val(g$)
   endif
 
-  if (ele%old_value(g$) /= val(g$)) then
+  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
 
