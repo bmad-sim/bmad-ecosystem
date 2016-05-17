@@ -975,15 +975,16 @@ The \vn{set element} command sets the attributes of an element. Use the
 
 \vn{<attribute>} and \vn{<value>} many
 
-
 Although the \vn{set element} command can be used for setting real (as
 opposed to logical or integer) attributes, the \vn{change element}
 command will generally be better for setting these attributes.
 
 Examples:
 \begin{example}
-  set ele *@rfcav::* is_on = F  ! Turns off all rfcavity elements in all universes.
-  set ele q10w tracking_method = linear ! Set the tracking method
+  set ele *@rfcav::* is_on = F      ! Turn off all rfcavity elements in all universes.
+  set ele A:B track_method = linear ! Set tracking_method for all elements between 
+                                    !   elements A and B
+  set ele q10w k1 = 0.7             ! Set element q10w k1.
 \end{example}
 
 %% set floor_plan --------------------------------------------------------------

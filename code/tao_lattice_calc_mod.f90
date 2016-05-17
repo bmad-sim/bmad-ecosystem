@@ -739,7 +739,7 @@ logical err, init_ok
 
 ! If using beam info from a file then no init necessary.
 
-init_ok = .true.
+init_ok = .false.
 ix_ele0 = 0
 
 if (s%com%use_saved_beam_in_tracking) return
@@ -752,13 +752,15 @@ branch => model%lat%branch(ix_branch)
 if (ix_branch > 0) then
   ib = branch%ix_from_branch
   ie = branch%ix_from_ele
+
   if (.not. allocated (u%uni_branch(ib)%ele(ie)%beam%bunch)) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ie)%name)
-    init_ok = .false.
-  else
-    ix_ele0 = nint(model%lat%branch(ib)%ele(ie)%value(ix_to_element$))
-    uni_branch%ele(ix_ele0)%beam = u%uni_branch(ib)%ele(ie)%beam
+    return
   endif
+
+  ix_ele0 = nint(model%lat%branch(ib)%ele(ie)%value(ix_to_element$))
+  uni_branch%ele(ix_ele0)%beam = u%uni_branch(ib)%ele(ie)%beam
+  init_ok = .true.
   return
 endif
 
@@ -772,10 +774,10 @@ beam => uni_branch%ele(ix_ele0)%beam
 if (u%beam%beam0_file /= "") then
   if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
     call tao_open_beam_file (u%beam%beam0_file, err)
-    if (err) call err_exit
+    if (err) return
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
     call tao_read_beam (beam, err)
-    if (err) call err_exit
+    if (err) return
     call tao_close_beam_file()
     n = 0
     do i = 1, size(beam%bunch)
@@ -796,9 +798,10 @@ if (u%beam%beam0_file /= "") then
 
   if (tao_no_beam_left (beam, branch%param%particle)) then
     call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
-    call err_exit
+    return
   endif
 
+  init_ok = .true.
   return
 endif
 
@@ -809,16 +812,18 @@ if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
   call init_beam_distribution (model%lat%ele(ix_ele0), model%lat%param, beam_init, beam, err)
   if (err) then
     call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
-    call err_exit
+    return
   endif
 
   if (tao_no_beam_left(beam, branch%param%particle)) then
     call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
-    call err_exit
+    return
   endif
 
   u%beam%init_beam0 = .false.
 endif
+
+init_ok = .true.
 
 end subroutine tao_inject_beam
  
