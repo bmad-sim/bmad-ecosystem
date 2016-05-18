@@ -8,7 +8,7 @@ use lat_ele_loc_mod
 type(ele_struct), private, pointer, save :: ele0 ! For Error message purposes
 character(40), private, save :: attrib_name0     ! For Error message purposes
 
-private check_this_attribute_free, print_error
+private check_this_attribute_free
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -950,7 +950,6 @@ logical, optional :: err_print_flag, except_overlay
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
-free = .false.
 
 call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, &
                                              do_print, do_except_overlay, free, 0)
@@ -991,7 +990,6 @@ endif
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
-free = .false.
 
 call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, free, 0)
 
@@ -1024,7 +1022,6 @@ logical, optional :: err_print_flag, except_overlay
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
-free = .false.
 
 call check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
                                              lat, do_print, do_except_overlay, free, 0)
@@ -1035,7 +1032,7 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
+subroutine check_this_attribute_free (ele, attrib_name, lat, &
                             do_print, do_except_overlay, free, ix_recursion, ix_lord)
 
 implicit none
@@ -1055,7 +1052,9 @@ character(40) a_name
 
 logical free, do_print, do_except_overlay
 
-! If this is first time then set pointers used in error message printing.
+!
+
+free = .true.
 
 branch => lat%branch(ele%ix_branch)
 
@@ -1072,8 +1071,7 @@ attrib_info = attribute_info(ele, ix_attrib)
 a_name = attribute_name (ele, ix_attrib)
 
 if (attrib_info%type == does_not_exist$ .or. attrib_info%type == private$) then
-  if (do_print) call print_error (ele, ix_attrib, &
-          'THIS NAME DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+  call it_is_not_free (ele, ix_attrib, 'THIS NAME DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
   return
 endif
 
@@ -1081,10 +1079,8 @@ endif
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (all(attrib_name /= ele%control_var%name)) then
-    if (do_print) call print_error (ele, ix_attrib, &
-           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
-  else
-    free = .true.
+    call it_is_not_free (ele, ix_attrib, &
+                     'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
   endif
   return
 endif
@@ -1092,62 +1088,40 @@ endif
 ! Here if checking something that is not an overlay or group lord... 
 
 if (attrib_info%type == dependent$) then
-  if (do_print) call print_error (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
   return
 endif
 
-! csr_calc_on, etc. are always free.
-! x_offset_tot, etc are never free.
-
-select case (a_name)
-case ('NUM_STEPS')
-  return
-
-case ('FIELD_SCALE', 'PHI0_FIELDMAP')
-  free = .true.   ! This may not be true with autoscaling
-  return
-
-case ('E_TOT', 'P0C')
-  if (ele%key == beginning_ele$) then
-    free = .true.
-    return
-  endif
-
-  if (ele%lord_status /= multipass_lord$) return
-  if (ele%field_master) return
-  if (ele%value(n_ref_pass$) /= 0) return
-  select case (ele%key)
-  case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-        hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
-    free = .true.
-  end select
-  return
-
-end select
-
-! if the attribute is controled by an overlay lord then it cannot be varied.
+! If the attribute is controled by an overlay lord then it cannot be varied.
 ! Exception: Multiple overlays can control the same attribute.
 
 if (.not. do_except_overlay) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i, control)
+
     if (present(ix_lord)) then
       if (ix_lord == lord%ix_ele) cycle
       if (lat%ele(ix_lord)%key == overlay$) cycle
     endif
+
     if (lord%key == overlay$) then
       if (control%ix_attrib == ix_attrib) then 
-        if (do_print) call print_error (ele, ix_attrib, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
+        call it_is_not_free (ele, ix_attrib, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif
     endif
+
   enddo
 endif
 
-! Super_slaves attributes cannot be varied except for L.
+! With a few exceptions, super_slaves attributes cannot be varied.
 
-if (ele%slave_status == super_slave$ .and. a_name /= 'L') then
-  if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
+if (ele%slave_status == super_slave$) then
+  select case (a_name)
+  case ('L', 'CSR_CALC_ON')
+  case default
+    call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
+  end select
   return
 endif
 
@@ -1155,7 +1129,7 @@ endif
 ! Exception: phi0_multipass can be varied for lcavity and rfcavity slaves, etc.
 
 if (ele%slave_status == multipass_slave$) then
-  free = .true.
+  if (a_name == 'CSR_CALC_ON') return
   select case (ele%key)
   case (lcavity$, rfcavity$) 
     if (ix_attrib == phi0_multipass$) return
@@ -1163,14 +1137,37 @@ if (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
   end select
 
-  free = .false.
-  if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.')
+  call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.')
   return
 endif
 
+! 
+
+select case (a_name)
+case ('NUM_STEPS')
+  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  return
+
+case ('FIELD_SCALE', 'PHI0_FIELDMAP', 'CSR_CALC_ON')
+  return
+
+case ('E_TOT', 'P0C')
+  if (ele%key == beginning_ele$) return
+
+  if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
+    select case (ele%key)
+    case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+          hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
+      return  ! Is free
+    end select
+  endif
+
+  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  return
+end select
+
 ! check if it is a dependent variable.
 
-free = .true.
 if (attrib_info%type == not_a_child$) return
 
 select case (ele%key)
@@ -1191,7 +1188,7 @@ if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
 
 if (.not.free) then
-  if (do_print) call print_error (ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
+  call it_is_not_free (ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
   return
 endif
 
@@ -1252,21 +1249,19 @@ else
     if (ix_attrib == bl_hkick$) free = .false.
     if (ix_attrib == bl_vkick$) free = .false.
   endif
-
 endif
 
 if (.not. free) then
-  if (do_print) call print_error (ele, ix_attrib, &
+  call it_is_not_free (ele, ix_attrib, &
        "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
        "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
   return
 endif
 
-end subroutine check_this_attribute_free
-
 !-------------------------------------------------------
+contains
 
-subroutine print_error (ele, ix_attrib, l1, l2)
+subroutine it_is_not_free (ele, ix_attrib, l1, l2)
 
 type (ele_struct) ele
 
@@ -1278,6 +1273,10 @@ character(100) li(8)
 character (20) :: r_name = 'attribute_free'
 
 !
+
+free = .false.
+
+if (.not. do_print) return
 
 nl = 0
 
@@ -1300,6 +1299,8 @@ endif
 
 call out_io (s_error$, r_name, li(1:nl))   
 
-end subroutine print_error
+end subroutine it_is_not_free
+
+end subroutine check_this_attribute_free
 
 end module
