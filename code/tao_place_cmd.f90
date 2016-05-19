@@ -89,27 +89,6 @@ do i = 1, size(region%plot%graph)
   enddo
 enddo
 
-! If a graph uses 's' for the x-axis and min/max have not been set then use the scale for 
-! an existing 's' graph. First find an existing graph.
-
-nullify(ax)
-do i = 1, size(s%plot_page%region)
-  if (.not. s%plot_page%region(i)%visible) cycle
-  if (s%plot_page%region(i)%plot%x_axis_type /= 's') cycle
-  ax => s%plot_page%region(i)%plot%graph(1)%x
-  exit
-enddo
-
-! Now do the set.
-
-if (associated(ax) .and. region%plot%x_axis_type == 's' .and. &
-                                              allocated(region%plot%graph)) then
-  do i = 1, size(region%plot%graph)
-    if (region%plot%graph(i)%x%min /= region%plot%graph(i)%x%max) cycle
-    region%plot%graph(i)%x = ax
-  enddo
-endif
-
 ! Check to see if radiation integrals need be computed
 
 call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting()
