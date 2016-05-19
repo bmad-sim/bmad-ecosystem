@@ -527,9 +527,16 @@ integrator_order            & taylor_field                &                     
  \label{s:list.hybrid}
  
  \begin{tabular}{lll} \toprule
-delta_e                     & l                           & tracking_method             \\
-delta_ref_time              & mat6_calc_method            &                             \\
-e_tot_start                 & p0c_start                   &                             \\
+alias                       & e_tot_start                 & spin_tracking_method        \\
+aperture                    & l                           & superimpose                 \\
+aperture_at                 & mat6_calc_method            & tracking_method             \\
+aperture_type               & offset                      & type                        \\
+create_jumbo_slave          & offset_moves_aperture       & x1_limit                    \\
+delta_e                     & p0c                         & x2_limit                    \\
+delta_ref_time              & p0c_start                   & x_limit                     \\
+descrip                     & ptc_integration_type        & y1_limit                    \\
+ele_origin                  & reference                   & y2_limit                    \\
+e_tot                       & ref_origin                  & y_limit                     \\
  \bottomrule
  \end{tabular}
  \vfill

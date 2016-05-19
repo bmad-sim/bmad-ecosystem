@@ -1254,8 +1254,8 @@ Note: The default \vn{tracking_method} (\sref{s:tkm}) setting for an
 In this example the field of an e_gun is given by a grid of field
 values (\sref{s:grid.field}):
 \begin{example}
-  apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
-                field_grid = call::apex_gun_grid.bmad
+  apex: e_gun, l = 0.23, field_calc = fieldmap, rf_frequency = 187e6, 
+                grid_field = call::apex_gun_grid.bmad
 \end{example}
 with the file \vn{apex_gun_grid.bmad} being:
 \begin{example}
