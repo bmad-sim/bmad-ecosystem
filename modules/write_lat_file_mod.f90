@@ -950,7 +950,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     call write_lat_line (line, iu, .false.)  
 
-    ! Encode taylor
+    ! Encode taylor map. Hybrid elements do not have default terms.
 
     if (ele%key == taylor$ .or. (ele%key == hybrid$ .and. ele%tracking_method == taylor$)) then
       do j = 1, 6
@@ -966,7 +966,8 @@ do ib = 0, ubound(lat%branch, 1)
           else
             write_term = .true.
           endif
-          if (write_term) then
+
+          if (write_term .or. ele%key == hybrid$) then
             if (sum(tm%expn) < 6) then
               name = ''
               do ix = 1, 6
@@ -980,7 +981,8 @@ do ib = 0, ubound(lat%branch, 1)
             endif
           endif
         enddo
-        if (.not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
+
+        if (ele%key == taylor$ .and. .not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
 
       do j1 = 1, 3;  do j2 = 1, 3
