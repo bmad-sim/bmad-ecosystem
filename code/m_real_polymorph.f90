@@ -1472,7 +1472,7 @@ contains
     case default
 
        write(6,*) " trouble in ilessthansc "
-       write(6,*) "s1%kind ,s2%kind ",s1%kind ,s2%kind 
+       write(6,*) "s1%kind ,s2%kind ",s1%kind ,s2
  
  
     end select
