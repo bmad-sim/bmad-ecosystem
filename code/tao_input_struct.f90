@@ -125,6 +125,8 @@ type tao_graph_input
   real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) :: floor_plan_orbit_scale = 0 ! Scale factor for drawing orbits. 0 -> Do not draw.
   logical :: clip = .true.
+  logical :: floor_plan_size_is_absolute = .false.
+  logical :: floor_plan_draw_only_first_pass = .false.
   logical :: correct_xy_distortion = .false.
   logical :: draw_axes = .true.
   logical :: draw_grid = .true.
@@ -132,7 +134,6 @@ type tao_graph_input
   logical :: draw_only_good_user_data_or_vars = .true.
   type (qp_point_struct) :: text_legend_origin = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
   type (qp_point_struct) :: curve_legend_origin = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
-  type (tao_data_var_component_struct) :: who(n_who_maxx) = tao_data_var_component_struct()
   type (qp_rect_struct) :: margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
   type (qp_rect_struct) :: scale_margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
   type (qp_axis_struct) :: x = qp_axis_struct()
@@ -194,7 +195,6 @@ type tao_plot_page_input
   real(rp) :: curve_legend_line_len  = 50   ! Points
   real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  logical :: floor_plan_size_is_absolute = .false.
   type (tao_title_struct) :: title(2)       ! Titles at top of page.
   type (qp_rect_struct) :: border           ! Border around plots edge of page.
 end type
@@ -238,7 +238,6 @@ if (logic_option(.false., reverse)) then
   plot_page%graph_title_text_scale       = plot_input%graph_title_text_scale
   plot_page%axis_number_text_scale       = plot_input%axis_number_text_scale
   plot_page%axis_label_text_scale        = plot_input%axis_label_text_scale
-  plot_page%floor_plan_size_is_absolute  = plot_input%floor_plan_size_is_absolute
   plot_page%floor_plan_shape_scale       = plot_input%floor_plan_shape_scale
   plot_page%lat_layout_shape_scale       = plot_input%lat_layout_shape_scale
   plot_page%legend_text_scale            = plot_input%legend_text_scale
@@ -260,7 +259,6 @@ plot_input%main_title_text_scale        = plot_page%main_title_text_scale
 plot_input%graph_title_text_scale       = plot_page%graph_title_text_scale
 plot_input%axis_number_text_scale       = plot_page%axis_number_text_scale
 plot_input%axis_label_text_scale        = plot_page%axis_label_text_scale
-plot_input%floor_plan_size_is_absolute  = plot_page%floor_plan_size_is_absolute
 plot_input%floor_plan_shape_scale       = plot_page%floor_plan_shape_scale
 plot_input%lat_layout_shape_scale       = plot_page%lat_layout_shape_scale
 plot_input%legend_text_scale            = plot_page%legend_text_scale
