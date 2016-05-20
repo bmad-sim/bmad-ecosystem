@@ -1508,57 +1508,59 @@ case ('graph')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write(lines(nl), amt)  'type                    = ', g%type
-    nl=nl+1; write(lines(nl), amt)  'title                   = ', g%title
-    nl=nl+1; write(lines(nl), amt)  'title_suffix            = ', g%title_suffix
-    nl=nl+1; write(lines(nl), amt)  'component               = ', g%component
+    nl=nl+1; write(lines(nl), amt)  'type                             = ', g%type
+    nl=nl+1; write(lines(nl), amt)  'title                            = ', g%title
+    nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', g%title_suffix
+    nl=nl+1; write(lines(nl), amt)  'component                        = ', g%component
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'margin                  = ', g%margin
+                                    'margin                           = ', g%margin
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'scale_margin            = ', g%scale_margin
-    nl=nl+1; write(lines(nl), imt)  'box                     = ', g%box
-    nl=nl+1; write(lines(nl), imt)  'ix_universe             = ', g%ix_universe
-    nl=nl+1; write(lines(nl), lmt)  'valid                   = ', g%valid
+                                    'scale_margin                     = ', g%scale_margin
+    nl=nl+1; write(lines(nl), imt)  'box                              = ', g%box
+    nl=nl+1; write(lines(nl), imt)  'ix_universe                      = ', g%ix_universe
+    nl=nl+1; write(lines(nl), lmt)  'valid                            = ', g%valid
 
-    nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor     = ', g%x_axis_scale_factor
-    nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale       = ', g%symbol_size_scale
-    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view        = ', g%floor_plan_view
-    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation    = ', g%floor_plan_rotation
-    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_orbit_scale = ', g%floor_plan_orbit_scale
-    nl=nl+1; write(lines(nl), amt)  'x%label                 = ', g%x%label
-    nl=nl+1; write(lines(nl), rmt)  'x%max                   = ', g%x%max
-    nl=nl+1; write(lines(nl), rmt)  'x%min                   = ', g%x%min
-    nl=nl+1; write(lines(nl), imt)  'x%major_div             = ', g%x%major_div
-    nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal     = ', g%x%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'x%places                = ', g%x%places
-    nl=nl+1; write(lines(nl), lmt)  'x%draw_label            = ', g%x%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers          = ', g%x%draw_numbers
+    nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
+    nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
+    nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', g%floor_plan_view
+    nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
+    nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
+    nl=nl+1; write(lines(nl), amt)  'x%label                          = ', g%x%label
+    nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
+    nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
+    nl=nl+1; write(lines(nl), imt)  'x%major_div                      = ', g%x%major_div
+    nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal              = ', g%x%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'x%places                         = ', g%x%places
+    nl=nl+1; write(lines(nl), lmt)  'x%draw_label                     = ', g%x%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
 
-    nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y            = ', g%y2_mirrors_y
-    nl=nl+1; write(lines(nl), amt)  'y%label                 = ', g%y%label
-    nl=nl+1; write(lines(nl), rmt)  'y%label_offset          = ', g%y%label_offset
-    nl=nl+1; write(lines(nl), rmt)  'y%max                   = ', g%y%max
-    nl=nl+1; write(lines(nl), rmt)  'y%min                   = ', g%y%min
-    nl=nl+1; write(lines(nl), imt)  'y%major_div             = ', g%y%major_div
-    nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal     = ', g%y%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'y%places                = ', g%y%places
-    nl=nl+1; write(lines(nl), lmt)  'y%draw_label            = ', g%y%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers          = ', g%y%draw_numbers
+    nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
+    nl=nl+1; write(lines(nl), amt)  'y%label                          = ', g%y%label
+    nl=nl+1; write(lines(nl), rmt)  'y%label_offset                   = ', g%y%label_offset
+    nl=nl+1; write(lines(nl), rmt)  'y%max                            = ', g%y%max
+    nl=nl+1; write(lines(nl), rmt)  'y%min                            = ', g%y%min
+    nl=nl+1; write(lines(nl), imt)  'y%major_div                      = ', g%y%major_div
+    nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal              = ', g%y%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'y%places                         = ', g%y%places
+    nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
 
-    nl=nl+1; write(lines(nl), amt)  'y2%label                = ', g%y2%label
-    nl=nl+1; write(lines(nl), rmt)  'y2%label_offset         = ', g%y2%label_offset
-    nl=nl+1; write(lines(nl), rmt)  'y2%max                  = ', g%y2%max
-    nl=nl+1; write(lines(nl), rmt)  'y2%min                  = ', g%y2%min
-    nl=nl+1; write(lines(nl), imt)  'y2%major_div            = ', g%y2%major_div
-    nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal    = ', g%y2%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'y2%places               = ', g%y2%places
-    nl=nl+1; write(lines(nl), lmt)  'y2%draw_label           = ', g%y2%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers         = ', g%y2%draw_numbers
-    nl=nl+1; write(lines(nl), lmt)  'limited                 = ', g%limited
-    nl=nl+1; write(lines(nl), lmt)  'clip                    = ', g%clip
-    nl=nl+1; write(lines(nl), lmt)  'draw_axes               = ', g%draw_axes
-    nl=nl+1; write(lines(nl), lmt)  'draw_grid               = ', g%draw_grid
-    nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion   = ', g%correct_xy_distortion
+    nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', g%y2%label
+    nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
+    nl=nl+1; write(lines(nl), rmt)  'y2%max                           = ', g%y2%max
+    nl=nl+1; write(lines(nl), rmt)  'y2%min                           = ', g%y2%min
+    nl=nl+1; write(lines(nl), imt)  'y2%major_div                     = ', g%y2%major_div
+    nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal             = ', g%y2%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'y2%places                        = ', g%y2%places
+    nl=nl+1; write(lines(nl), lmt)  'y2%draw_label                    = ', g%y2%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
+    nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
+    nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
+    nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
+    nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
+    nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion            = ', g%correct_xy_distortion
     nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
     if (allocated(g%curve)) then
       nl=nl+1; lines(nl) = 'Curves:'
@@ -2612,7 +2614,6 @@ case ('plot')
     nl=nl+1; write(lines(nl), '(a, f8.3, 3x, a)') &
                                     '  %legend_text_scale            = ', s%plot_page%legend_text_scale, &
                                                                         '! For legends, plot_page, and lat_layout' 
-    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_size_is_absolute  = ', s%plot_page%floor_plan_shape_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale       = ', s%plot_page%floor_plan_shape_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
 

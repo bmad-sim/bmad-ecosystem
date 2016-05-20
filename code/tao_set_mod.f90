@@ -1102,9 +1102,9 @@ character(20) :: r_name = 'tao_set_graph_cmd'
 integer i, j, ios
 logical err
 
-!
+! 'BOTH' was 'REGION'. Not sure why.
 
-call tao_find_plots (err, graph_name, 'REGION', plot = plot, graph = graph)
+call tao_find_plots (err, graph_name, 'BOTH', plot = plot, graph = graph)
 if (err) return
 
 if (allocated(graph)) then
@@ -1161,6 +1161,10 @@ select case (comp)
     call tao_real_set_value(this_graph%margin%y1, comp, value, error)
   case ('margin%y2')
     call tao_real_set_value(this_graph%margin%y2, comp, value, error)
+  case ('floor_plan_size_is_absolute')
+    call tao_logical_set_value(this_graph%floor_plan_size_is_absolute, comp, value, error)
+  case ('floor_plan_draw_only_first_pass')
+    call tao_logical_set_value(this_graph%floor_plan_draw_only_first_pass, comp, value, error)
   case ('floor_plan_rotation')
     call tao_real_set_value(this_graph%floor_plan_rotation, comp, value, error)
   case ('floor_plan_orbit_scale')

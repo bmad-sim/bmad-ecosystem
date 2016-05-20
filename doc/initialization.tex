@@ -1435,8 +1435,6 @@ plots go. The syntax of this block is:
     plot_page%axis_label_text_scale  = <num>    ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num>    ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num>    ! Relative to text_height. Def = 0.9
-    plot_page%floor_plan_size_is_absolute = <logical>  ! Floor plan shape sizes
-                                                       ! scaled to absolute dimensions?
     plot_page%floor_plan_shape_scale = <num>    ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale = <num>    ! Lat_layout shape size scaling.
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
@@ -1699,6 +1697,8 @@ namelists should be placed directly after their respective
     graph%floor_plan_view        = <string>   ! View plane for floor plan plot. default = 'zx'
     graph%floor_plan_orbit_scale = <real>     ! Scale for drawing orbits. Default: 0 -> Do not draw.
     graph%floor_plan_orbit_color = <string>   ! Color of orbit. Default = 'RED'
+    graph%floor_plan_size_is_absolute = <logical>     ! Shape sizes scaled to absolute dimensions?
+    graph%floor_plan_draw_only_first_pass = <logical> ! Draw only first pass with multipass elements?
     graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
                                  = <logical>  !   Default = T.
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
@@ -2328,7 +2328,7 @@ transverse to the longitudinal dimension. For \vn{lat_layout}
 drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
 \vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For For
 {floor_plan} drawings, to determine the size of a shape, \vn{<size>}
-is combined with the \vn{plot_page} (\sref{s:init.plot}) parameter
+is combined with the \vn{graph} parameter
 \begin{example}
   floor_plan_size_is_absolute  ! Default: False.
 \end{example}
@@ -2340,6 +2340,9 @@ approximately 1 pixel). If \vn{floor_plan_size_is_absolute} is True,
 affect the size of an element shape while if
 \vn{floor_plan_size_is_absolute} is True then the size of an element
 will scale with the zoom.
+
+The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, surpresses
+drawing of \vn{multipass_slave} lattice elements that are associated with 
 
 The overall size of all the shapes can be scaled using the
 \vn{plot_page} (\sref{s:init.plot}) parameters

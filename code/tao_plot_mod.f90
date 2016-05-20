@@ -314,7 +314,7 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (qp_axis_struct) x_ax, y_ax
 type (lat_struct), pointer :: lat
-type (tao_ele_shape_struct), pointer :: ele_shape
+type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (floor_position_struct) end1, end2, floor
 type (tao_building_wall_point_struct), pointer :: pt(:)
@@ -325,6 +325,7 @@ real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
 integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape, ix_shape_min
+integer ix_pass, n_links
 
 character(40) dat_var_name
 character(20) :: r_name = 'tao_draw_floor_plan'
@@ -375,9 +376,18 @@ do n = 0, ubound(lat%branch, 1)
       ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape(ix_shape_min:), &
                                                                              dat_var_name, dat_var_value, ix_shape)
       if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
+
+      if (graph%floor_plan_draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
+        call multipass_chain (ele, ix_pass, n_links)
+        if (ix_pass > 1) exit
+      endif
+
       if (ele%lord_status == multipass_lord$) then
         do j = 1, ele%n_slave
+          if (graph%floor_plan_draw_only_first_pass .and. j > 1) exit
           slave => pointer_to_slave(ele, j)
+          ele_shape2 => tao_pointer_to_ele_shape (isu, slave, s%plot_page%floor_plan%ele_shape)
+          if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
           call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, slave, dat_var_name, dat_var_value, ele_shape)
         enddo
       else
@@ -591,7 +601,7 @@ if ((end1%r(1) < x_min .or. x_max < end1%r(1) .or. end1%r(2) < y_min .or. y_max 
 
 !
 
-if (s%plot_page%floor_plan_size_is_absolute) then
+if (graph%floor_plan_size_is_absolute) then
   draw_units = 'DATA'
 else
   draw_units = 'POINTS'

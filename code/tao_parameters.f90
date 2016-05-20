@@ -14,11 +14,6 @@ integer, parameter :: n_var_maxx      = 1000   ! max index of datum per v1_var
 integer, parameter :: n_var_minn      = -100   ! min index of datum per v1_var 
 integer, parameter :: n_region_maxx   = 50     ! number of plotting regions.
 integer, parameter :: n_curve_maxx    = 20     ! number of curves per graph
-integer, parameter :: n_who_maxx      = 10
-
-! tracking type
-integer, parameter :: single_tracking$ = 1
-integer, parameter :: many_tracking$ = 2
 
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy
