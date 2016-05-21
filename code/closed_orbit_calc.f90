@@ -81,7 +81,6 @@ use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 use reverse_mod, only: lat_reverse
 use super_recipes_mod
-use eigen_mod
 
 implicit none
 
@@ -102,11 +101,9 @@ type (matrix_save), allocatable :: m(:)
 
 real(rp) t1(6,6), del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
-real(rp) max_eigen, z0, dz_max, dz, z_here, this_amp, dz_norm
+real(rp) z0, dz_max, dz, z_here, this_amp, dz_norm
 real(rp) a_lambda, chisq, old_chisq, rf_freq
 real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:), covar(:,:), alpha(:,:)
-
-complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
 integer j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status
@@ -266,6 +263,12 @@ do i_loop = 1, i_max
   else
     amp_co = abs(start%vec)
     dorb = end%vec - start%vec
+
+    if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
+      dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
+      dorb(5) = -end%beta * c_light * dt
+    endif
+
     amp_del = abs(dorb)
     if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) exit
   endif
@@ -295,29 +298,6 @@ do i_loop = 1, i_max
     enddo
 
     old_start = co_saved(0)%vec
-  endif
-
-  ! For i_dim = 6, there are longitudinally unstable fixed points which we want to avoid.
-  ! Note: Due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
-  ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
-
-  if (n_dim == 6 .and. chisq == old_chisq) then    ! If not converging
-    call mat_eigen (t1, eigen_val, eigen_vec, error)
-    if (maxval(abs(eigen_val)) - 1 > 1d-5) then
-      amp = 1d10  ! Something large
-      z0 = start%vec(5)
-      dz_max = 0
-      dz = start%beta * c_light / (8 * rf_freq)
-      do j = 1, 8
-        z_here = z0 + j * dz
-        call track_this_lat(z_here, this_amp, max_eigen)
-        if (max_eigen - 1 > 1d-5) cycle
-        if (this_amp > amp) cycle
-        dz_max = z_here
-        amp = this_amp
-      enddo
-      call track_this_lat(dz_max, this_amp, max_eigen)
-    endif
   endif
 
   old_chisq = chisq
@@ -357,44 +337,6 @@ if (dir == -1) then
 endif
 
 end subroutine
-
-!------------------------------------------------------------------------------
-! contains
-
-subroutine track_this_lat(z_set, del, max_eigen)
-
-real(rp) z_set, del, dorb(6), max_eigen, mat(6,6), t11_inv(6,6)
-logical ok
-
-!
-
-start%vec(5) = z_set
-
-call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
-
-if (track_state == moving_forward$) then
-  dorb = end%vec - start%vec
-  if (branch%lat%absolute_time_tracking) then
-    dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
-    dorb(5) = -end%beta * c_light * dt
-  endif
-  del = maxval(abs(dorb))
-else
-  max_eigen = 10
-  return
-endif
-
-call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
-call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
-
-call mat_make_unit (mat(1:n_dim,1:n_dim))
-mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
-call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok)
-
-call mat_eigen (t1, eigen_val, eigen_vec, error)
-max_eigen = maxval(abs(eigen_val))
-
-end subroutine track_this_lat
 
 !------------------------------------------------------------------------------
 ! contains
