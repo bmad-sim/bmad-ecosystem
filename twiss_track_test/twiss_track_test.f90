@@ -35,9 +35,28 @@ lat = lat2
 
 allocate (orb(0:lat%n_ele_max))     
 
-bmad_com%rel_tol_tracking = 1e-7
-bmad_com%abs_tol_tracking = 1e-10
 bmad_com%radiation_damping_on = .true.
+
+lat%absolute_time_tracking = .true.
+call closed_orbit_calc (lat, orb, 6)
+write (2, '(a, 6es16.6)') '"Closed Orb 6T Start"  ABS 1e-12', orb(0)%vec
+write (2, '(a, 6es12.4)') '"Closed Orb 6T Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
+
+lat%absolute_time_tracking = .false.
+call closed_orbit_calc (lat, orb, 6)
+write (2, '(a, 6es16.6)') '"Closed Orb 6 Start"  ABS 1e-12', orb(0)%vec
+write (2, '(a, 6es12.4)') '"Closed Orb 6 Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
+
+call set_on_off (rfcavity$, lat, off$)
+call closed_orbit_calc (lat, orb, 5)
+write (2, '(a, 6es16.6)') '"Closed Orb 5 Start"  ABS 1e-12', orb(0)%vec
+write (2, '(a, 6es12.4)') '"Closed Orb 5 Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
+
+call closed_orbit_calc (lat, orb, 4)
+write (2, '(a, 6es16.6)') '"Closed Orb 4 Start"  ABS 1e-12', orb(0)%vec
+write (2, '(a, 6es12.4)') '"Closed Orb 4 Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
+call set_on_off (rfcavity$, lat, on$)
+
 
 orb(0)%vec = 0
 call twiss_at_start (lat)
