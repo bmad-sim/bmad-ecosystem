@@ -13,7 +13,7 @@ type (normal_modes_struct) mode, mode2
 type (rad_int_all_ele_struct) rad_int, rad_int2, rad_int3
 
 real(rp) chrom_x, chrom_y, delta_e
-real(rp) m6(6,6)
+real(rp) m6(6,6), dorb(6), dt, rf_freq
 
 integer i, j, n, n_lines, version, ix_cache, n_track
 
@@ -40,7 +40,11 @@ bmad_com%radiation_damping_on = .true.
 lat%absolute_time_tracking = .true.
 call closed_orbit_calc (lat, orb, 6)
 write (2, '(a, 6es16.6)') '"Closed Orb 6T Start"  ABS 1e-12', orb(0)%vec
-write (2, '(a, 6es12.4)') '"Closed Orb 6T Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
+dorb = orb(lat%n_ele_track)%vec - orb(0)%vec
+dt = orb(lat%n_ele_track)%t - orb(0)%t
+rf_freq = lat%ele(76)%value(rf_frequency$)
+dorb(5) = -orb(0)%beta * c_light * (dt - nint(dt * rf_freq) / rf_freq)
+write (2, '(a, 6es12.4)') '"Closed Orb 6T Del"    ABS 1e-12', dorb
 
 lat%absolute_time_tracking = .false.
 call closed_orbit_calc (lat, orb, 6)
