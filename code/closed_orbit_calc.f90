@@ -31,8 +31,8 @@
 ! The closed orbit calculation stops when the following condition is satisfied:
 !   amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking
 ! Where:
-!   amp_co = sum(abs(closed_orb[at beginning of lattice]))
-!   amp_del = sum(abs(closed_orb[at beginning] - closed_orb[at end]))
+!   amp_co = abs(closed_orb[at beginning of lattice])
+!   amp_del = abs(closed_orb[at beginning] - closed_orb[at end])
 !   closed_orb = vector: (x, px, y, py, z, pz)
 ! closed_orb[at end] is calculated by tracking through the lattice starting 
 ! from closed_orb[at start].
@@ -79,8 +79,9 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
-use eigen_mod
 use reverse_mod, only: lat_reverse
+use super_recipes_mod
+use eigen_mod
 
 implicit none
 
@@ -89,8 +90,7 @@ type (lat_struct), target, save :: rev_lat
 type (lat_struct), pointer :: this_lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
-type (coord_struct)  del_co, del_orb
-type (coord_struct), allocatable, target ::  closed_orb(:)
+type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
 type (coord_struct), pointer :: start, end
 type (bmad_common_struct) bmad_com_saved
 
@@ -100,18 +100,20 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-real(rp) t11_inv(6,6), t1(6,6)
-real(rp) :: amp_co, amp_del, amp_del_old, i1_int, rf_freq, dt
+real(rp) t1(6,6), del_orb(6)
+real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) max_eigen, z0, dz_max, dz, z_here, this_amp, dz_norm
-real(rp), allocatable :: on_off_state(:)
+real(rp) a_lambda, chisq, old_chisq, rf_freq
+real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:), covar(:,:), alpha(:,:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
-integer j, ie, i_loop, n_dim, n_ele, i_max, dir, nc, track_state, n
+integer j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status
 
 logical, optional, intent(out) :: err_flag
-logical err, error, allocate_m_done
+logical err, error, allocate_m_done, stable_orbit_found
+logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
 
@@ -160,8 +162,6 @@ else
   n_dim = 4
 endif
 
-nc = n_dim ! number of dimensions to compare.
-
 select case (n_dim)
 
 ! Constant energy case
@@ -188,24 +188,6 @@ case (4, 5)
 
   call set_on_off (rfcavity$, this_lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 
-  call make_t11_inv (err)
-  if (err) then
-    call end_cleanup
-    return
-  endif
-
-  if (n_dim == 5) then  ! crude I1 integral calculation
-    n_dim = 4  ! Still only compute the transfer matrix for the transverse
-    nc = 6  ! compare all 6 coords.
-    i1_int = 0
-    do ie = 1, branch%n_ele_track
-      ele => branch%ele(ie)
-      if (ele%key == sbend$) then
-        i1_int = i1_int + ele%value(l$) * ele%value(g$) * (branch%ele(ie-1)%x%eta + ele%x%eta) / 2
-      endif
-    enddo
-  endif
-
 ! Variable energy case: i_dim = 6
 
 case (6)
@@ -216,12 +198,6 @@ case (6)
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!')
-    return
-  endif
-
-  call make_t11_inv (err)
-  if (err) then
-    call end_cleanup
     return
   endif
 
@@ -249,67 +225,57 @@ end select
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
 
-amp_del_old = 1d20  ! something large
-i_max = 100  
+allocate(co_saved(0:ubound(closed_orb, 1)))
 call init_coord (start, start, ele_start, start_end$, start%species)
 
+allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim), covar(n_dim, n_dim), alpha(n_dim, n_dim))
+vec0 = 0
+maska = .false.
+stable_orbit_found = .false.
+a_lambda = -1
+old_chisq = 1d30   ! Something large
+old_start = 1d30
+old_end = 1d30
+a = start%vec(1:n_dim)
+if (n_dim == 5) a(5) = start%vec(6)
+
+!
+
+i_max = 100  
 do i_loop = 1, i_max
 
-  call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
+  weight(1:n_dim) = 1 / (start%vec(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  if (n_dim == 5) weight(5) = 1 / (start%vec(6) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
 
-  if (i_loop == i_max .or. track_state /= moving_forward$) then
-    if (track_state /= moving_forward$) then
-      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.')
-    else
-      call out_io (s_error$, r_name, &
-                'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
-                'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
-                'bmad_com%abs_tol_tracking (\es10.2\)', &
-                r_array = [amp_del, bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
-    endif
+  call super_mrqmin (vec0, weight, a, covar, alpha, chisq, co_func, a_lambda, status)
+
+  if (a_lambda < 1d-10) a_lambda = 1d-10
+
+  if (status < 0) then  
+    call out_io (s_error$, r_name, 'Singular matrix Encountered!')
     call end_cleanup
     return
   endif
 
-  del_orb%vec = end%vec - start%vec
-
-  if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
-    dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
-    del_orb%vec(5) = -end%beta * c_light * dt
+  if (i_loop == 1 .and. .not. stable_orbit_found) then
+    a(1:4) = 0  ! Desperation move.
+  elseif (i_loop == 2 .and. .not. stable_orbit_found) then
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.')
+    call end_cleanup
+    return
+  else
+    amp_co = abs(start%vec)
+    dorb = end%vec - start%vec
+    amp_del = abs(dorb)
+    if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) exit
   endif
 
-  del_co%vec(1:n_dim) = matmul(t11_inv(1:n_dim,1:n_dim), del_orb%vec(1:n_dim)) 
+  if (track_state == moving_forward$ .and. chisq < old_chisq) co_saved = closed_orb
 
-  if (n_dim == 5) then
-    del_co%vec(5) = 0
-    del_co%vec(6) = del_orb%vec(5) / i1_int      
-  endif
+  ! If not converging fast enough remake the transfer matrix.
+  ! This is computationally intensive so only do this if orbit has shifted significantly.
 
-  ! For i_dim = 6, if at peak of RF then del_co(5) may be singularly large. 
-  ! To avoid this, limit z step to be no more than lambda_rf/10
-
-  if (n_dim == 6) then
-    dz_norm = abs(del_co%vec(5)) / (start%beta * c_light / (10 * rf_freq))
-    if (dz_norm > 1) then
-      del_co%vec = del_co%vec / dz_norm
-    endif
-  endif
-
-  !
-
-  amp_co = sum(abs(start%vec(1:nc)))
-  amp_del = sum(abs(del_co%vec(1:nc)))
-
-  ! We want to do at least one iteration to prevent problems when 
-  ! only a small change is made to the machine and the closed orbit recalculated.
-
-  if (i_loop > 1 .and. amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking) exit
-
-  if (amp_del < amp_del_old/2 .and. modulo(i_loop, 10) /= 0) then
-    start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
-    call init_coord (start, start, ele_start, start_end$, start%species)
-    amp_del_old = amp_del
-  else  ! not converging so remake t11_inv matrix
+  if (chisq > old_chisq/2 .and. maxval(abs(old_start(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
     if (.not. allocate_m_done) then
       allocate (m(branch%n_ele_max))
       allocate_m_done = .true.
@@ -320,7 +286,7 @@ do i_loop = 1, i_max
       m(n)%vec0 = branch%ele(n)%vec0
     enddo
 
-    call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
+    call lat_make_mat6 (lat, -1, co_saved, branch%ix_branch)
     call transfer_matrix_calc (lat, t1, ix_branch = branch%ix_branch)
 
     do n = 1, branch%n_ele_max
@@ -328,38 +294,42 @@ do i_loop = 1, i_max
       branch%ele(n)%vec0 = m(n)%vec0
     enddo
 
-    call make_t11_inv (err)
-    if (err) then
-      call end_cleanup
-      return
+    old_start = co_saved(0)%vec
+  endif
+
+  ! For i_dim = 6, there are longitudinally unstable fixed points which we want to avoid.
+  ! Note: Due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
+  ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
+
+  if (n_dim == 6 .and. chisq == old_chisq) then    ! If not converging
+    call mat_eigen (t1, eigen_val, eigen_vec, error)
+    if (maxval(abs(eigen_val)) - 1 > 1d-5) then
+      amp = 1d10  ! Something large
+      z0 = start%vec(5)
+      dz_max = 0
+      dz = start%beta * c_light / (8 * rf_freq)
+      do j = 1, 8
+        z_here = z0 + j * dz
+        call track_this_lat(z_here, this_amp, max_eigen)
+        if (max_eigen - 1 > 1d-5) cycle
+        if (this_amp > amp) cycle
+        dz_max = z_here
+        amp = this_amp
+      enddo
+      call track_this_lat(dz_max, this_amp, max_eigen)
     endif
+  endif
 
-    amp_del_old = 1d20  ! something large
+  old_chisq = chisq
 
-    ! For i_dim = 6, there are longitudinally unstable fixed points which we want to avoid.
-    ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
-    ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
-
-    if (n_dim == 6) then
-      call mat_eigen (t1, eigen_val, eigen_vec, error)
-      if (maxval(abs(eigen_val)) - 1 > 1d-5) then
-        amp_co = 1d10  ! Something large
-        z0 = start%vec(5)
-        dz_max = 0
-        dz = start%beta * c_light / (8 * rf_freq)
-        do j = 1, 8
-          z_here = z0 + j * dz
-          call track_this_lat(z_here, this_amp, max_eigen)
-          if (max_eigen - 1 > 1d-5) cycle
-          if (this_amp > amp_co) cycle
-          dz_max = z_here
-          amp_co = this_amp
-        enddo
-        call track_this_lat(dz_max, this_amp, max_eigen)
-        
-      endif
-    endif
-
+  if (i_loop == i_max) then
+    call out_io (s_error$, r_name, &
+              'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+              'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
+              'bmad_com%abs_tol_tracking (\es10.2\)', &
+              r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
+    call end_cleanup
+    return
   endif
 
 enddo
@@ -393,7 +363,8 @@ end subroutine
 
 subroutine track_this_lat(z_set, del, max_eigen)
 
-real(rp) z_set, del, dorb(6), max_eigen
+real(rp) z_set, del, dorb(6), max_eigen, mat(6,6), t11_inv(6,6)
+logical ok
 
 !
 
@@ -415,7 +386,10 @@ endif
 
 call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
 call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
-call make_t11_inv (err)
+
+call mat_make_unit (mat(1:n_dim,1:n_dim))
+mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok)
 
 call mat_eigen (t1, eigen_val, eigen_vec, error)
 max_eigen = maxval(abs(eigen_val))
@@ -425,27 +399,52 @@ end subroutine track_this_lat
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine make_t11_inv (err)
+subroutine co_func (a, y_fit, dy_da, status)
 
-real(rp) mat(6,6)
-logical ok1, ok2, err
+real(rp), intent(in) :: a(:)
+real(rp), intent(out) :: y_fit(:)
+real(rp), intent(out) :: dy_da(:, :)
+real(rp) del_orb(6)
+
+integer status, i
 
 !
 
-err = .true.
-
-ok1 = .true.
-call mat_make_unit (mat(1:n_dim,1:n_dim))
-mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
-call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
-
-if (.not. ok1 .or. .not. ok2) then 
-  call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
-  return
+if (n_dim == 5) then
+  start%vec(1:4) = a(1:4)
+  start%vec(6)   = a(5)
+else
+  start%vec(1:n_dim) = a
 endif
 
-err = .false.
+call init_coord (start, start, ele_start, start_end$, start%species)
+call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
 
-end subroutine
+status = 0
+
+!
+
+del_orb = end%vec - start%vec
+
+if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
+  dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
+  del_orb(5) = -end%beta * c_light * dt
+endif
+
+if (track_state == moving_forward$) then
+  stable_orbit_found = .true.
+  y_fit = del_orb(1:n_dim)
+else
+  y_fit = track_state   ! Some large number
+endif
+
+dy_da = t1(1:n_dim,1:n_dim)
+forall (i = 1:n_dim) dy_da(i,i) = dy_da(i,i) - 1
+
+if (n_dim == 5) then
+  dy_da(:,5) = t1(1:5,6)
+endif
+
+end subroutine co_func
 
 end subroutine
