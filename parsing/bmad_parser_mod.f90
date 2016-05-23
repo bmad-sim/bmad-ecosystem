@@ -2546,7 +2546,7 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------      
 !+
-! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
+! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
 !
 ! This routine evaluates as a real number the characters at the beginning of bp_com%parse_line.
 !
@@ -2563,6 +2563,8 @@ end function evaluate_logical
 !   delim       -- character(1): Actual delimiter found. Set to blank is no delim found
 !   delim_found -- logical: Set False if end-of-line found instead of a delimiter.
 !   err_flag    -- logical:
+!   string_out  -- character(*), optional: If present then parsed expression is returned but not evaluated.
+!                   Useful for group and overlay control expressions.
 !-
 
 subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
@@ -2580,11 +2582,11 @@ integer i, ix_word, ix_str, n_parens, n_stk
 
 character(*) err_str
 character(*), optional :: end_delims
+character(*), optional :: string_out
 character(1) delim
 character(200) str
 character(100) err_str2
 character(200) word
-character(*), optional :: string_out
 
 logical delim_found, ran_function_pending
 logical err_flag, call_check
