@@ -76,9 +76,9 @@ if (finished) return
 if (hard_ele%field_calc /= bmad_standard$) return
 
 physical_end = physical_ele_end (fringe_info%particle_at, orb%direction, track_ele%orientation)
-fringe_at = nint(track_ele%value(fringe_at$))
+fringe_at = nint(hard_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
-track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(track_ele%value(spin_fringe_on$)))
+track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
 if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
 
@@ -108,28 +108,28 @@ endif
 
 ! Static magnetic and electromagnetic fringes
 
-select case (track_ele%key)
+select case (hard_ele%key)
 case (quadrupole$)
   if (fringe_info%particle_at == first_track_edge$) then
-    call hard_multipole_edge_kick (track_ele, param, fringe_info%particle_at, orb)
-    call soft_quadrupole_edge_kick (track_ele, param, fringe_info%particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
+    call soft_quadrupole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
   else
-    call soft_quadrupole_edge_kick (track_ele, param, fringe_info%particle_at, orb)
-    call hard_multipole_edge_kick (track_ele, param, fringe_info%particle_at, orb)
+    call soft_quadrupole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
   endif
 
 case (sbend$)
-  call bend_edge_kick (track_ele, param, fringe_info%particle_at, orb, track_spin = track_spn)
+  call bend_edge_kick (hard_ele, param, fringe_info%particle_at, orb, track_spin = track_spn)
 
-! Note: Cannot trust track_ele%value(ks$) here since element may be superimposed with an lcavity.
-! So use track_ele%value(bs_field$).
+! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
+! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = at_sign * relative_tracking_charge(orb, param) * track_ele%value(bs_field$) * c_light / orb%p0c
+  ks = at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
   orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spn) then
-    f = at_sign * relative_tracking_charge(orb, param) * track_ele%value(bs_field$) / 2
+    f = at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) / 2
     call rotate_spinor_given_field (orb, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
   endif
 
@@ -137,10 +137,10 @@ case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
   f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
-  t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
+  t = t_rel + hard_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
-  if (at_this_ele_end(physical_end, nint(track_ele%value(fringe_at$)))) then
+  if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$)))) then
     if (fringe_info%particle_at == first_track_edge$) then
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
