@@ -204,6 +204,7 @@ real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
+real(rp) phi0_autoscale, field_autoscale
 
 complex(rp) exp_kz, exp_m, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
@@ -615,6 +616,15 @@ case(fieldmap$)
     return  
   endif
 
+  select case (ele%key)
+  case (e_gun$, em_field$, lcavity$, rfcavity$)
+    phi0_autoscale = ele%value(phi0_autoscale$)
+    field_autoscale = ele%value(field_autoscale$)
+  case default
+    phi0_autoscale = 0
+    field_autoscale = 1
+  end select
+
   !----------------------------------------------------------------------------
   ! Cartesian map field
 
@@ -872,7 +882,7 @@ case(fieldmap$)
           return  
         endif
         t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
-                                             ele%value(phi0_autoscale$) + cl_map%phi0_fieldmap) / freq0
+                                             phi0_autoscale + cl_map%phi0_fieldmap) / freq0
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
@@ -980,7 +990,7 @@ case(fieldmap$)
       ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
 
       if (cl_map%harmonic /= 0) then
-        expt = ele%value(field_autoscale$) * cl_map%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
+        expt = field_autoscale * cl_map%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
         if (cl_map%master_parameter > 0) expt = expt * ele%value(cl_map%master_parameter)
         E_rho = E_rho * expt
         E_phi = E_phi * expt
@@ -1028,7 +1038,7 @@ case(fieldmap$)
         endif
 
         t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
-                                                  ele%value(phi0_autoscale$) + g_field%phi0_fieldmap) / freq0
+                                                  phi0_autoscale + g_field%phi0_fieldmap) / freq0
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
@@ -1036,7 +1046,7 @@ case(fieldmap$)
 
       ! DC modes should have g_field%harmonic = 0
 
-      expt = ele%value(field_autoscale$) * g_field%field_scale
+      expt = field_autoscale * g_field%field_scale
       if (g_field%harmonic /= 0) expt = expt * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
       if (g_field%master_parameter > 0) expt = expt * ele%value(g_field%master_parameter)
 
@@ -1745,22 +1755,13 @@ case (lcavity$)
     field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_autoscale$)
   end select
 
-case (rfcavity$)
+case (rfcavity$, e_gun$, em_field$)
   select case (voltage_or_gradient)
   case (voltage$)
     field = ele%value(voltage$) * ele%value(field_autoscale$)
   case (gradient$)
     field = ele%value(gradient$) * ele%value(field_autoscale$)
   end select
-
-case (e_gun$)
-  select case (voltage_or_gradient)
-  case (voltage$)
-    field = ele%value(voltage$) * ele%value(field_autoscale$)
-  case (gradient$)
-    field = ele%value(gradient$) * ele%value(field_autoscale$) 
-  end select
-
 end select
 
 end function e_accel_field

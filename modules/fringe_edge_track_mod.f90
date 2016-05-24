@@ -206,8 +206,14 @@ ds_small = bmad_com%significant_length / 100
 if (dir == 1) then
   select case (fringe_info%location(ix_loc))
   case (upstream_end$)
-    s_this_edge = s_hard_upstream
-    this_end = first_track_edge$
+    ! e_gun does not have an entrance edge
+    if (this_ele%key == e_gun$) then
+      s_this_edge = s_hard_downstream
+      this_end = second_track_edge$
+    else
+      s_this_edge = s_hard_upstream
+      this_end = first_track_edge$
+    endif
   case (inside$)
     s_this_edge = s_hard_downstream
     this_end = second_track_edge$
@@ -216,7 +222,10 @@ if (dir == 1) then
   case default
     call err_exit
   end select
+
   if (s_this_edge > s_edge_track + ds_small) return
+
+!
 
 else
   select case (fringe_info%location(ix_loc))
