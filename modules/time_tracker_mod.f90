@@ -120,8 +120,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     ! zbrent
 
-    dt_tol = ds_safe / (orb%beta * c_light)
     if (zbrent_needed) then
+      dt_tol = ds_safe / (orb%beta * c_light)
       dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
       dummy = delta_s_target(dt) ! Final call to set orb
       dt_did = dt
@@ -129,6 +129,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     ! Need to apply hard edge kick. 
     ! For super_slaves there may be multipole hard edges at a single s-position.
+
     edge_kick_applied = .false. 
     do 
       if (.not. associated(fringe_info%hard_ele)) exit
