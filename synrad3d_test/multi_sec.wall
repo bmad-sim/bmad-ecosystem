@@ -6,7 +6,7 @@
 &multi_place
   name = "zigzag"
   section(1) = 0.00, "inzig", 'dip1'
-  section(2) = 0.02, "outzag", "rect_zag", 0.0901, 0.04
+  section(2) = 0.02, "outzag", "rect_zag"
   section(3) = 0.08, "closed", "end_marker"
 /
 
