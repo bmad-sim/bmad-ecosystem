@@ -229,10 +229,10 @@ character(16) :: show_what, show_names(32) = [ &
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
-integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
+integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type
 
-logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic, aligned
+logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
@@ -1642,7 +1642,7 @@ case ('lattice')
   replacement_for_blank = ''
   ix_branch = s%com%default_branch
   undef_str = '---'
-  show_lords = .false.
+  print_lords = maybe$
   what_to_print = 'standard'
   ix_remove = -1
   lat_type = model$
@@ -1670,7 +1670,7 @@ case ('lattice')
       undef_str = '  0'
 
     case ('-tracking_elements')
-      show_lords = .false.
+      print_lords = no$
 
     case ('-all')
       all_lat = .true. 
@@ -1726,7 +1726,7 @@ case ('lattice')
       what_to_print = 'floor_coords'
 
     case ('-lords')
-      show_lords = .true.
+      print_lords = yes$
 
     case ('-middle')
       at_ends = .false.
@@ -1930,7 +1930,7 @@ case ('lattice')
 
   end select
 
-  if (what_to_print /= 'custom' .and. show_lords) then
+  if (what_to_print /= 'custom' .and. print_lords /= no$) then
     n = size(column)
     column(8:n) = column(6:n-2)
     column(6)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
@@ -1971,13 +1971,6 @@ case ('lattice')
 
   if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:branch%n_ele_max))
-  if (show_lords) then
-    picked_ele(0:branch%n_ele_track) = .false.
-    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .true.
-  else
-    picked_ele(0:branch%n_ele_track) = .true.
-    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
-  endif
 
   if (by_s) then
     ix_s2 = index(stuff2, ':')
@@ -2003,7 +1996,7 @@ case ('lattice')
     enddo
 
   elseif (stuff2(1:ix_s2) == '*' .or. all_lat) then
-    ! picked_ele already set
+    picked_ele = .true.
 
   elseif (ix_s2 /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, &
@@ -2011,17 +2004,25 @@ case ('lattice')
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
-      if (show_lords .and. eles(i)%ele%lord_status == not_a_lord$) cycle
+      if (print_lords == yes$ .and. eles(i)%ele%lord_status == not_a_lord$) cycle
       picked_ele(eles(i)%ele%ix_ele) = .true.
     enddo
 
-
-  elseif (.not. show_lords) then
+  else
+    picked_ele = .true.
     if (count(picked_ele) > 300) then
       picked_ele(201:) = .false.
       limited = .true.
     endif
 
+  endif
+
+  !
+
+  if (print_lords == yes$) then
+    picked_ele(0:branch%n_ele_track) = .false.
+  elseif (print_lords == no$) then
+    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
   endif
 
   !
