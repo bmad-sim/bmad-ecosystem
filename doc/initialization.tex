@@ -2341,8 +2341,10 @@ affect the size of an element shape while if
 \vn{floor_plan_size_is_absolute} is True then the size of an element
 will scale with the zoom.
 
-The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, surpresses
-drawing of \vn{multipass_slave} lattice elements that are associated with 
+The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, surpresses drawing of
+\vn{multipass_slave} lattice elements that are associated with the second and higher
+passes. This logical defaults to False. Setting to True is only useful in some extreme
+circumstances where the plotting of additional passes leads to large pdf/ps file sizes.
 
 The overall size of all the shapes can be scaled using the
 \vn{plot_page} (\sref{s:init.plot}) parameters
