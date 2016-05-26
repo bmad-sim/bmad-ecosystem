@@ -512,12 +512,14 @@ if (who == all$ .or. who == cartesian_map$) then
 
     else
       do i = 1, size(ele_in%cartesian_map)
-        if (.not. associated(ele_out%cartesian_map(i)%ptr, ele_in%cartesian_map(i)%ptr)) then
+        if (associated(ele_out%cartesian_map(i)%ptr, ele_in%cartesian_map(i)%ptr)) then
+          ele_out%cartesian_map(i) = ele_in%cartesian_map(i) ! Make sure same info
+        else
           ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link - 1
           if (ele_out%cartesian_map(i)%ptr%n_link == 0) deallocate (ele_out%cartesian_map(i)%ptr)
+          ele_out%cartesian_map(i) = ele_in%cartesian_map(i)
+          ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link + 1
         endif
-        ele_out%cartesian_map(i) = ele_in%cartesian_map(i)
-        ele_out%cartesian_map(i)%ptr%n_link = ele_out%cartesian_map(i)%ptr%n_link + 1
       enddo
     endif
 
@@ -549,12 +551,14 @@ if (who == all$ .or. who == cylindrical_map$) then
 
     else
       do i = 1, size(ele_in%cylindrical_map)
-        if (.not. associated(ele_out%cylindrical_map(i)%ptr, ele_in%cylindrical_map(i)%ptr)) then
+        if (associated(ele_out%cylindrical_map(i)%ptr, ele_in%cylindrical_map(i)%ptr)) then
+          ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
+        else
           ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link - 1
           if (ele_out%cylindrical_map(i)%ptr%n_link == 0) deallocate (ele_out%cylindrical_map(i)%ptr)
+          ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
+          ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link + 1
         endif
-        ele_out%cylindrical_map(i) = ele_in%cylindrical_map(i)
-        ele_out%cylindrical_map(i)%ptr%n_link = ele_out%cylindrical_map(i)%ptr%n_link + 1
       enddo
     endif
 
@@ -586,12 +590,14 @@ if (who == all$ .or. who == grid_field$) then
 
     else
       do i = 1, size(ele_in%grid_field)
-        if (.not. associated(ele_out%grid_field(i)%ptr, ele_in%grid_field(i)%ptr)) then
+        if (associated(ele_out%grid_field(i)%ptr, ele_in%grid_field(i)%ptr)) then
+          ele_out%grid_field(i) = ele_in%grid_field(i)
+        else
           ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link - 1
           if (ele_out%grid_field(i)%ptr%n_link == 0) deallocate (ele_out%grid_field(i)%ptr)
+          ele_out%grid_field(i) = ele_in%grid_field(i)
+          ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link + 1
         endif
-        ele_out%grid_field(i) = ele_in%grid_field(i)
-        ele_out%grid_field(i)%ptr%n_link = ele_out%grid_field(i)%ptr%n_link + 1
       enddo
     endif
 
@@ -623,12 +629,14 @@ if (who == all$ .or. who == taylor_field$) then
 
     else
       do i = 1, size(ele_in%taylor_field)
-        if (.not. associated(ele_out%taylor_field(i)%ptr, ele_in%taylor_field(i)%ptr)) then
+        if (associated(ele_out%taylor_field(i)%ptr, ele_in%taylor_field(i)%ptr)) then
+          ele_out%taylor_field(i) = ele_in%taylor_field(i)
+        else
           ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link - 1
           if (ele_out%taylor_field(i)%ptr%n_link == 0) deallocate (ele_out%taylor_field(i)%ptr)
+          ele_out%taylor_field(i) = ele_in%taylor_field(i)
+          ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
         endif
-        ele_out%taylor_field(i) = ele_in%taylor_field(i)
-        ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
       enddo
     endif
 
