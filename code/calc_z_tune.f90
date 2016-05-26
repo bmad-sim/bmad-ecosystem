@@ -30,7 +30,7 @@ type (lat_struct) lat
 
 real(rp) a(6,6), wr(6), wi(6), cos_z, denom
 
-integer i
+integer i, sgn
 
 !
 
@@ -44,6 +44,7 @@ if (denom == 0) then
 endif
 
 cos_z = (a(5,5) + a(6,6)) / denom
+sgn = sign_of(a(5,6))
 
 if (cos_z > 0.9999999) then
   lat%z%tune = 0
@@ -57,6 +58,6 @@ call hqr(a,wr,wi)
 ! we need to find which eigen-value is closest to the z_tune
 
 i = minloc(abs(wr-cos_z), 1)
-lat%z%tune = -abs(atan2(wi(i),wr(i)))
+lat%z%tune = sgn * abs(atan2(wi(i),wr(i)))
 
 end subroutine
