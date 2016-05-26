@@ -71,7 +71,7 @@ ONLINE_RELEASE_MGMT_DIR=${ONLINE_ARCHIVE_BASE_DIR}'/util'
 ONLINE_IFORT_SETUP_DIR=${ONLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
 ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
-ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-2/'
+ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-3/'
 ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
 #--------------------------------------------------------------
@@ -86,7 +86,7 @@ OFFLINE_RELEASE_MGMT_DIR=${OFFLINE_ARCHIVE_BASE_DIR}'/util'
 OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
 OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
-OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-2/'
+OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-3/'
 OFFLINE_GFORTRAN_SETUP_COMMAND=(${OFFLINE_GFORTRAN_SETUP_DIR}/enable)
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
@@ -188,15 +188,15 @@ fi
 # Online computers should use the online compiler and debugger
 case $(uname -n) in
     cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
-		       GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
-		 export LM_LICENSE_FILE="/opt/intel/licenses/l_N6CKW3X8.lic:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
-	   export PATH=${PATH}:${ONLINE_OPT_DIR}/totalview/bin
-	   ;;					 
-        *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
-           GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND}
-	   export LM_LICENSE_FILE="${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
-	   export PATH=${PATH}:${OFFLINE_OPT_DIR}/totalview/bin
-	   ;;					 
+	GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
+	export LM_LICENSE_FILE="/opt/intel/licenses/l_N6CKW3X8.lic:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
+	export PATH=${PATH}:${ONLINE_OPT_DIR}/totalview/bin
+	;;					 
+    *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
+        GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND}
+	export LM_LICENSE_FILE="${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
+	export PATH=${PATH}:${OFFLINE_OPT_DIR}/totalview/bin
+	;;					 
 esac
 
 
