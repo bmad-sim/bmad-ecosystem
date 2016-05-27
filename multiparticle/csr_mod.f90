@@ -119,7 +119,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
-type (csr_ele_info_struct), pointer :: eleinfo, eleinfo0
+type (csr_ele_info_struct), pointer :: eleinfo
 type (coord_struct) :: centroid(0:)
 type (floor_position_struct) floor
 
@@ -194,24 +194,19 @@ do i = 0, ele%ix_ele
   floor%r = [vec(1), vec(3), s_ele%value(l$)]
   eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
   eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
-  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / sqrt((1+vec(6)**2 - vec(2)**2)))
-
-  vec = eleinfo%orbit1%vec
-  eleinfo%floor1%theta = s_ele%floor%theta - asin(vec(2) / sqrt((1 + vec(6))**2 - vec(2)**2 - vec(4)**2))
+  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1+vec(6)))
 
   if (s_ele%value(l$) /= 0) then
     vec0 = eleinfo%orbit0%vec
     vec = eleinfo%orbit1%vec
-    theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo0%floor1%r(1), eleinfo%floor1%r(3)-eleinfo0%floor1%r(3))
+    theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
     eleinfo%theta_chord = theta_chord
-    theta0 = modulo2(asin(vec0(2) / sqrt((1+vec0(6))**2 - vec0(4)**2)) + eleinfo0%floor1%theta - theta_chord, pi)
-    theta1 = modulo2(asin(vec(2) / sqrt((1+vec(6))**2 - vec(4)**2)) + eleinfo%floor1%theta - theta_chord, pi)
-    eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo0%floor1%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo0%floor1%r(3))**2)
+    theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi)
+    theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi)
+    eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
     call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
     eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
   endif
-
-  eleinfo0 => eleinfo
 enddo
 
 ! make sure that ele_len / track_step is an integer.
