@@ -80,16 +80,16 @@ select case (action)
 case ('beam')
 
   ascii = .false.
-  file_name0 = 'beam_#.dat'
   is_open = .false.
   at_switch = .false.
   ix_word = 0
+  file_name0 = ''
 
   do 
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-ascii', '-at   '], switch, err, ix)
+    call tao_next_switch (word(ix_word), ['-ascii', '-at   '], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -100,16 +100,16 @@ case ('beam')
       call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
       if (err .or. size(eles) == 0) return
       at_switch = .true.
+    case default
+      if (file_name0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name0 = switch
     end select
   enddo
 
-  if (word(ix_word) /= '') then
-    file_name0 = word(ix_word)
-    if (word(ix_word+1) /= '' .or. file_name0(1:1) == '-') then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-      return
-    endif
-  endif
+  if (file_name0 == '') file_name0 = 'beam_#.dat'
 
   if (.not. at_switch) then
     call out_io (s_error$, r_name, 'YOU NEED TO SPECIFY "-at".')
@@ -520,18 +520,15 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
     return
   endif
 
-  file_name = "tao.ps"
-  if (action(1:3) == 'gif') file_name = 'tao.gif'
-  if (action(1:3) == 'pdf') file_name = 'tao.pdf'
-  call str_upcase (action, action)
-
   ix_word = 0
   scale = 0
+  file_name = ''
+
   do
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-scale'], switch, err, ix)
+    call tao_next_switch (word(ix_word), ['-scale'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -543,6 +540,12 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
         call out_io (s_error$, r_name, 'BAD SCALE NUMBER.')
         return
       endif
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
     end select
   enddo
 
@@ -554,7 +557,15 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
     endif
   endif
 
-  if (action(1:3) == 'gif') then
+  if (file_name == '') then
+    file_name = "tao.ps"
+    if (action(1:3) == 'gif') file_name = 'tao.gif'
+    if (action(1:3) == 'pdf') file_name = 'tao.pdf'
+  endif
+
+  call str_upcase (action, action)
+
+  if (action(1:3) == 'GIF') then
     call qp_open_page (action, plot_file = file_name, x_len = s%plot_page%size(1), y_len = s%plot_page%size(2), scale = scale)
   else
     call qp_open_page (action, plot_file = file_name, scale = scale)
@@ -571,52 +582,58 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 
 case ('ptc')
 
-which = '-old'
-u => tao_pointer_to_universe(-1)
-branch => u%model%lat%branch(0)
+  which = '-old'
+  u => tao_pointer_to_universe(-1)
+  branch => u%model%lat%branch(0)
+  file_name = ''
 
-do 
-  call tao_next_switch (what2, ['-old   ', '-new   ', '-branch', '-all   '], switch, err, ix_w2)
-  if (err) return
-  if (switch == '') exit
+  do 
+    call tao_next_switch (what2, ['-old   ', '-new   ', '-branch', '-all   '], .true., switch, err, ix_w2)
+    if (err) return
+    if (switch == '') exit
 
-  select case (switch)
-  case ('-old', '-new', '-all')
-    which = switch
-  case ('-branch')
-    branch => pointer_to_branch (what2(1:ix_w2), u%model%lat)
-    if (.not. associated(branch)) then
-      call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // what2(:ix_w2))
+    select case (switch)
+    case ('-old', '-new', '-all')
+      which = switch
+    case ('-branch')
+      branch => pointer_to_branch (what2(1:ix_w2), u%model%lat)
+      if (.not. associated(branch)) then
+        call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // what2(:ix_w2))
+        return
+      endif
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  if (file_name == '') file_name = 'ptc.flatfile'
+
+  select case (which)
+  case ('-old', '-new')
+    if (.not. associated(branch%ptc%m_t_layout)) then
+      call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
+                                    'You must use the command "ptc init" before creating a flat file.')
       return
     endif
+
+    if (which == '-old') then
+      call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
+    else
+      call print_new_flat (branch%ptc%m_t_layout, file_name)
+    endif
+
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+
+  case ('-all')
+    call print_universe (M_u, trim(file_name) // '.m_u')
+    call print_universe_pointed (M_u, M_t, trim(file_name) // '.m_t')
+    call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_u')
+    call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_t')
   end select
-enddo
-
-file_name = what2(:ix_w2)
-if (file_name == '') file_name = 'ptc.flatfile'
-
-select case (which)
-case ('-old', '-new')
-  if (.not. associated(branch%ptc%m_t_layout)) then
-    call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
-                                  'You must use the command "ptc init" before creating a flat file.')
-    return
-  endif
-
-  if (which == '-old') then
-    call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
-  else
-    call print_new_flat (branch%ptc%m_t_layout, file_name)
-  endif
-
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
-
-case ('-all')
-  call print_universe (M_u, trim(file_name) // '.m_u')
-  call print_universe_pointed (M_u, M_t, trim(file_name) // '.m_t')
-  call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_u')
-  call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_t')
-end select
 
 !---------------------------------------------------
 ! variables
@@ -625,22 +642,29 @@ case ('variable')
 
   good_opt_only = .false.
   ix_word = 0
+  file_name = ''
 
   do 
     ix_word = ix_word + 1
     if (ix_word >= size(word)-1) exit
-    call tao_next_switch (word(ix_word), ['-good_opt_only'], switch, err, ix)
+    call tao_next_switch (word(ix_word), ['-good_opt_only'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case (''); exit
     case ('-good_opt_only'); good_opt_only = .true.
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
     end select
   enddo  
 
-  if (word(ix_word) == ' ') then
+  if (file_name == '') then
     call tao_var_write (s%global%var_out_file, good_opt_only)
   else
-    call tao_var_write (word(ix_word), good_opt_only)
+    call tao_var_write (file_name, good_opt_only)
   endif
 
 !---------------------------------------------------
