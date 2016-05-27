@@ -303,36 +303,43 @@ end subroutine tao_cmd_split
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine tao_next_switch (line, switch_list, switch, err, ix_word)
+! Subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word)
 !
-! Subroutine return the next switch on the command line.
-! A switch is assumed to begin with the '-' character so that
-! if the first word on the command line starts with '-' it must
-! match something on the switch_list list.
+! Subroutine look at the next word on the command line and match this word to a list of "switches"
+! given by the switch_list argument.
+! 
 ! Switch abbreviations are permitted.
 !
+! If return_next_word = True then, when a non-switch word is encountered, the switch argument 
+! will be set to that word and that word will be removed from the line argument.
+!
+! If return_next_word = False then, when a non-switch word is encountered, the switch argument 
+! will be set to '' and the non-switch word will be left on the line argument.
+!
 ! Input:
-!   line            -- Character(*): Command line
-!   switch_list(*)  -- Character(*): List of valid switches. 
+!   line              -- character(*): Command line
+!   switch_list(*)    -- character(*): List of valid switches. 
+!   return_next_word  -- logical: See above.
 !
 ! Output:
-!   line            -- Character(*): Line with switch word removed. If the first word
+!   line            -- character(*): Line with switch word removed. If the first word
 !                       does not look like a switch then nothing is removed.
-!   switch          -- Character(*): Switch present. This is the full name
+!   switch          -- character(*): Switch found. This is the full name
 !                       even if what was on the command line was an abbreviation.
-!                       Return '' if not a switch.
-!   err             -- Logical: Set True if switch is not recognized.
-!                       An error message will be printed.
-!   ix_word         -- Integer: Character length of first word left on line.
+!                       See above for more details.
+!   err             -- logical: Set True if the next word begins with '-' but there is no match
+!                       to anything in switch_list. An error message will be printed.
+!   ix_word         -- integer: Character length of first word left on line.
 !-
 
-subroutine tao_next_switch (line, switch_list, switch, err, ix_word)
+subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word)
 
 character(*) line, switch, switch_list(:)
 character(20) :: r_name = 'tao_next_switch'
 logical err
 
 integer ix, n, ix_word
+logical return_next_word
 
 !
 
@@ -341,7 +348,15 @@ switch = ''
 
 call string_trim(line, line, ix_word)
 if (ix_word == 0) return
-if (line(1:1) /= '-') return
+if (line(1:1) /= '-') then
+  if (return_next_word) then
+    switch = line(1:ix_word)
+    call string_trim(line(ix_word+1:), line, ix_word)
+  endif
+  return
+endif
+
+!
 
 call match_word (line(:ix_word), switch_list, n, .true., matched_name=switch)
 if (n < 1) then

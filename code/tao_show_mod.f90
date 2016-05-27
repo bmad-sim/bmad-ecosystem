@@ -58,7 +58,7 @@ doprint = s%com%print_to_terminal
 ! See if the results need to be written to a file.
 
 do
-  call tao_next_switch (what2, ['-append ', '-write  ', '-noprint'], switch, err, ix)
+  call tao_next_switch (what2, ['-append ', '-write  ', '-noprint'], .false., switch, err, ix)
   if (err) return
   if (switch == '') exit
 
@@ -213,7 +213,7 @@ character(40) ele_name, sub_name, ele1_name, ele2_name, switch
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, fmt, fmt2, fmt3
-character(100) file_name, name, why_invalid
+character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
@@ -489,7 +489,7 @@ case ('branch')
 
   do 
 
-    call tao_next_switch (stuff2, ['-universe   '], switch, err, ix_s2)
+    call tao_next_switch (stuff2, ['-universe   '], .false., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -609,19 +609,28 @@ case ('curve')
   show_sym = .false.
   show_line = .false.
   print_header = .true.
+  attrib0 = ''
 
   do
-    call tao_next_switch (stuff2, ['-symbol   ', '-line     ', '-no_header'], switch, err, ix)
+    call tao_next_switch (stuff2, ['-symbol   ', '-line     ', '-no_header'], .true., switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-symbol')    show_sym = .true.
-    if (switch == '-line')      show_line = .true.
-    if (switch == '-no_header') print_header = .false.
+    select case (switch)
+    case ('');           exit
+    case ('-symbol');    show_sym = .true.
+    case ('-line');      show_line = .true.
+    case ('-no_header'); print_header = .false.
+    case default
+      if (attrib0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        return
+      endif
+      attrib0 = switch
+    end select
   enddo
 
   ! Find particular plot
 
-  call tao_find_plots (err, stuff2, 'BOTH', curve = curve, always_allocate = .true.)
+  call tao_find_plots (err, attrib0, 'BOTH', curve = curve, always_allocate = .true.)
   if (err) return
 
   ! print info on particular plot, graph, or curve
@@ -1102,13 +1111,14 @@ case ('element')
   print_slaves = .true.
   lat_type = model$
   print_ptc = .false.
+  attrib0 = ''
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all           ', '-data          ', '-design        ', &
                 '-no_slaves     ', '-wall          ', '-base          ', &
                 '-field         ', '-floor_coords  ', '-xfer_mat      ', &
-                '-ptc           ', '-everything    ', '-attributes    '], switch, err, ix)
+                '-ptc           ', '-everything    ', '-attributes    '], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                exit
@@ -1132,12 +1142,15 @@ case ('element')
       print_em_field = .true.
       print_wall = .true.
     case default
-      call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND: ' // switch)
-      return
+      if (attrib0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        return
+      endif
+      attrib0 = switch
     end select
   enddo
 
-  call str_upcase (ele_name, stuff2)
+  call str_upcase (ele_name, attrib0)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
   if (err) return
   u => s%u(ix_u)
@@ -1286,10 +1299,11 @@ case ('global')
   print_bmad_com = .false.
   print_csr_param = .false.
   print_ran_state = .false.
+  attrib0 = ''
 
   do
     call tao_next_switch (stuff2, ['-optimization', '-bmad_com    ', &
-                                   '-csr_param   ', '-ran_state   '], switch, err, ix)
+                                   '-csr_param   ', '-ran_state   '], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
     print_global = .false.
@@ -1303,6 +1317,9 @@ case ('global')
     case ('-ran_state')
       print_ran_state = .true.
       print_global = .false.
+    case default
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      return
     end select
   enddo
 
@@ -1647,6 +1664,7 @@ case ('lattice')
   ix_remove = -1
   lat_type = model$
   n_attrib = 0
+  attrib0 = ''
 
   column(:)%name = ""
   column(:)%label = ""
@@ -1661,7 +1679,7 @@ case ('lattice')
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
         '-attribute          ', '-all                ', '-no_slaves          ', '-energy             '], &
-            switch, err, ix_s2)
+            .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1757,6 +1775,9 @@ case ('lattice')
 
     case ('-s')
       by_s = .true.
+
+    case default
+      attrib0 = trim(attrib0) // ' ' // trim(switch)
     end select
 
   enddo
@@ -1973,15 +1994,15 @@ case ('lattice')
   allocate (picked_ele(0:branch%n_ele_max))
 
   if (by_s) then
-    ix_s2 = index(stuff2, ':')
+    ix_s2 = index(attrib0, ':')
     if (ix_s2 == 0) then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (stuff2(1:ix_s2-1), *, iostat = ios1) s1
-    read (stuff2(ix_s2+1:), *, iostat = ios2) s2
+    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
+    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
-      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
     endif
 
@@ -1995,11 +2016,11 @@ case ('lattice')
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
 
-  elseif (stuff2(1:ix_s2) == '*' .or. all_lat) then
+  elseif (attrib0(1:ix_s2) == '*' .or. all_lat) then
     picked_ele = .true.
 
   elseif (ix_s2 /= 0) then
-    call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, &
+    call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
                   ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
     if (err) return
     picked_ele = .false.
@@ -2331,23 +2352,32 @@ case ('normal_form')
     return
   endif
 
-  call tao_next_switch (stuff2, ['-order'], switch, err, ix)
+  attrib0 = ''
+
+  call tao_next_switch (stuff2, ['-order'], .true., switch, err, ix)
   if (err) return
   
   n_order = ptc_com%taylor_order_ptc
   select case (switch)
-    case ('-order')
-      read (stuff2(:ix), *, iostat = ios) n_order
-      if (ios /= 0) then
-        nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
-        return
-      endif
+  case ('-order')
+    read (stuff2(:ix), *, iostat = ios) n_order
+    if (ios /= 0) then
+      nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
+      return
+    endif
     call string_trim (stuff2(ix+1:), stuff2, ix)
+
+  case default
+    if (attrib0 /= '') then
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      return
+    endif
+    attrib0 = switch
   end select
   
-  nl=nl+1; lines(nl) = 'normal_form: '//stuff2(1:5)
+  nl=nl+1; lines(nl) = 'normal_form: '//attrib0(1:5)
   
-  select case(stuff2(1:5))
+  select case(attrib0(1:5))
     case ('dhdj ')
       call type_taylors (normal_form%dhdj, max_order = n_order, lines = lines, n_lines = nl)
     case ('A    ')
@@ -2361,7 +2391,7 @@ case ('normal_form')
     case ('L  ')
       call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl)      
     case default 
-      nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(stuff2)
+      nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(attrib0)
       nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
   end select
 
@@ -2426,7 +2456,7 @@ case ('particle')
 
   do
 
-    call tao_next_switch (stuff2, ['-element ', '-particle', '-bunch   ', '-lost    ', '-all     '], switch, err, ix_word)
+    call tao_next_switch (stuff2, ['-element ', '-particle', '-bunch   ', '-lost    ', '-all     '], .true., switch, err, ix_word)
     if (err) return
 
     select case (switch)
@@ -2466,6 +2496,9 @@ case ('particle')
       endif
       call string_trim (stuff2(ix_word+1:), stuff2, ix_word)
 
+    case default
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      return
     end select
 
   enddo
@@ -2547,12 +2580,26 @@ case ('plot')
   ! Look for switches
 
   what = ''
+  attrib0 = ''
 
   do
-    call tao_next_switch (stuff2, ['-floor_plan', '-lat_layout'], switch, err, ix)
+    call tao_next_switch (stuff2, ['-floor_plan', '-lat_layout'], .true., switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    what = switch
+    select case (switch)
+    case ('') 
+      exit
+
+    case default
+      if (switch(1:1) == '-') Then
+        what = switch
+      else 
+        if (attrib0 /= '') then
+          call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+          return
+        endif
+        attrib0 = switch
+      endif
+    end select
   enddo
 
   ! Floor plan info
@@ -2599,9 +2646,9 @@ case ('plot')
     return 
   endif
 
-  ! stuff2 is blank => print overall info
+  ! attrib0 is blank => print overall info
 
-  if (stuff2 == ' ') then
+  if (attrib0 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
     nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
@@ -2651,7 +2698,7 @@ case ('plot')
 
   ! Find particular plot
 
-  call tao_find_plots (err, stuff2, 'BOTH', plot, print_flag = .false.)
+  call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false.)
   if (err) return
 
   if (allocated(plot)) then
@@ -2699,8 +2746,10 @@ case ('taylor_map', 'matrix')
     n_order = -1
   endif
 
+  attrib0 = ''
+
   do
-    call tao_next_switch (stuff2, ['-order', '-s    '], switch, err, ix)
+    call tao_next_switch (stuff2, ['-order', '-s    '], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -2718,14 +2767,16 @@ case ('taylor_map', 'matrix')
                   'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS \i0\ ', &
                   ptc_com%taylor_order_ptc
         return
-      endif        
+      endif
+    case default
+      attrib0 = trim(attrib0) // ' ' // trim(switch)
     end select
   enddo
 
-  ele1_name = stuff2(:ix)
-  call string_trim(stuff2(ix+1:), stuff2, ix)
-  ele2_name = stuff2(:ix)
-  if (stuff2(ix+1:) /= '') then
+  ele1_name = attrib0(:ix)
+  call string_trim(attrib0(ix+1:), attrib0, ix)
+  ele2_name = attrib0(:ix)
+  if (attrib0(ix+1:) /= '') then
     nl=1; lines(1) = 'EXTRA STUFF ON LINE!'
     return
   endif
@@ -2885,12 +2936,13 @@ case ('twiss_and_orbit')
   tao_lat => u%model
   branch => tao_lat%lat%branch(s%com%default_branch)
   lat_type = model$
+  attrib0 = ''
 
   do 
 
-    call tao_next_switch (stuff2, [ &
+    call tao_next_switch (attrib0, [ &
         '-branch     ', '-universe   ', '-design     ', '-base       '], &
-              switch, err, ix_s2)
+              .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -2899,25 +2951,31 @@ case ('twiss_and_orbit')
       lat_type = base$
 
     case ('-branch')
-      branch => pointer_to_branch(stuff2(1:ix_s2), lat)
+      branch => pointer_to_branch(attrib0(1:ix_s2), lat)
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
-      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+      call string_trim(attrib0(ix_s2+1:), attrib0, ix_s2)
 
     case ('-design')
       lat_type = design$
 
     case ('-universe')
-      read (stuff2(1:ix_s2), *, iostat = ios) ix
+      read (attrib0(1:ix_s2), *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
       if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
         return
       endif
-      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+      call string_trim(attrib0(ix_s2+1:), attrib0, ix_s2)
 
+    case default
+      if (attrib0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        return
+      endif
+      attrib0 = switch
     end select
 
   enddo
@@ -2929,15 +2987,15 @@ case ('twiss_and_orbit')
   branch => lat%branch(branch%ix_branch)
   ix_branch = branch%ix_branch
 
-  call string_trim(stuff2, stuff2, ix)
+  call string_trim(attrib0, attrib0, ix)
   if (ix == 0) then
     s_pos = 0
   else
-    if (.not. is_real(stuff2)) then
-      nl=1; lines(1) = 'NOT A REAL NUMBER: ' // stuff2
+    if (.not. is_real(attrib0)) then
+      nl=1; lines(1) = 'NOT A REAL NUMBER: ' // attrib0
       return
     endif
-    read (stuff2, *) s_pos
+    read (attrib0, *) s_pos
   endif
 
   call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%lat_branch(ix_branch)%orbit, orb, ix_branch, err)
@@ -3202,10 +3260,11 @@ case ('variable')
   good_opt_only = .false.
   bmad_format = .false.
   print_header_lines = .true.
+  attrib0 = ''
 
   do
     call tao_next_switch (stuff2, [ '-bmad_format     ', '-good_opt_only   ', & 
-                                    '-no_label_lines  '], switch, err, ix_word)
+                                    '-no_label_lines  '], .true., switch, err, ix_word)
     if (err) return
 
     select case (switch)  
@@ -3217,11 +3276,17 @@ case ('variable')
       good_opt_only = .true.
     case ('-no_label_lines')
       print_header_lines = .false.
+    case default
+      if (attrib0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        return
+      endif
+      attrib0 = switch
     end select
 
   enddo
 
-  word1 = stuff2(1:ix_word)
+  word1 = attrib0(1:ix_word)
   
   if (.not. allocated (s%v1_var)) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
@@ -3433,10 +3498,11 @@ case ('wall')
   ix_sec = -1
   angle = 0
   sub_name = ''
+  attrib0 = ''
 
   do
     call tao_next_switch (stuff2, ['-section  ', '-element  ', &
-                                   '-angle    ', '-s        '], switch, err, ix_s2)
+                                   '-angle    ', '-s        '], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -3468,8 +3534,10 @@ case ('wall')
 
     case ('-s')
       by_s = .true.
-    end select
 
+    case default
+      attrib0 = trim(attrib0) // ' ' // trim(switch)
+    end select
   enddo
 
   !-------
@@ -3514,15 +3582,15 @@ case ('wall')
   !-------
 
   if (by_s) then
-    ix_s2 = index(stuff2, ':')
+    ix_s2 = index(attrib0, ':')
     if (ix_s2 == 0) then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (stuff2(1:ix_s2-1), *, iostat = ios1) s1
-    read (stuff2(ix_s2+1:), *, iostat = ios2) s2
+    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
+    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
-      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
     endif
 
@@ -3531,15 +3599,15 @@ case ('wall')
     ix1 = ix1 + 1
 
   elseif (ix_s2 /= 0) then
-    ix_s2 = index(stuff2, ':')
+    ix_s2 = index(attrib0, ':')
     if (ix_s2 == 0) then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (stuff2(1:ix_s2-1), *, iostat = ios1) ix1
-    read (stuff2(ix_s2+1:), *, iostat = ios2) ix2
+    read (attrib0(1:ix_s2-1), *, iostat = ios1) ix1
+    read (attrib0(ix_s2+1:), *, iostat = ios2) ix2
     if (ios1 /= 0 .or. ios2 /= 0) then
-      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
     endif
 
