@@ -453,6 +453,7 @@ integer i, j, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref
 integer n_size, ix0, which, expnt(6), n_track, n_max
 
 character(*), optional :: why_invalid
+character(6) expn_str
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
@@ -1528,7 +1529,12 @@ case ('normal.')
   endif
  
   ! Get exponent
-  expnt = taylor_monomial(sub_data_type(iz+2:))
+  expn_str = sub_data_type(iz+2:iz+7)
+  expnt = 0
+  do j = 1, 6
+    if (expn_str(j:j) == ' ') exit
+    expnt(j) = index('0123456789', expn_str(j:j)) - 1
+  enddo
   
   ! Coefficient
   if (taylor_is_complex) then
@@ -1740,7 +1746,7 @@ case ('periodic.')
     endif
 
     do i = 1, 4
-      call add_taylor_term (taylor(i), -1.0_rp, i)
+      call add_taylor_term (taylor(i), -1.0_rp, taylor_expn([i]))
     enddo
     call taylor_inverse (taylor, taylor, err)
     if (err) then

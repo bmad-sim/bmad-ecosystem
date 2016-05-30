@@ -2086,7 +2086,7 @@ do ii = 1, size(curve%x_line)
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     k = tao_read_this_index (data_type, 5); if (k == 0) return
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
-    value = taylor_coef (t_map(i), j, k)
+    value = taylor_coef (t_map(i), taylor_expn([j, k]))
   case ('tt.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
