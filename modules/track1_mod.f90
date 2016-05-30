@@ -145,10 +145,8 @@ y0 = (ele%value(y2_limit$) - ele%value(y1_limit$)) / 2
 x_particle = x_particle - x0
 y_particle = y_particle - y0
 
-if (.not. bmad_com%aperture_limit_on .or. x_lim == 0 .or. y_lim == 0) then
-  x_lim = bmad_com%max_aperture_limit
-  y_lim = bmad_com%max_aperture_limit
-endif
+if (.not. bmad_com%aperture_limit_on .or. x_lim == 0) x_lim = bmad_com%max_aperture_limit
+if (.not. bmad_com%aperture_limit_on .or. y_lim == 0) y_lim = bmad_com%max_aperture_limit
 
 !
 
