@@ -32,6 +32,7 @@
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
 !                     attribute in the ele%value(:), ele%control_var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
+!                     Set to 0 if not in any of these arrays.
 !-
 
 subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
@@ -50,7 +51,8 @@ type (all_pointer_struct) a_ptr
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, ivec(3)
+integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3)
+integer expn(6)
 integer lb0(3), ub0(3), lb(3), ub(3)
 character(*) attrib_name
 character(40) a_name
@@ -347,6 +349,32 @@ endif
 ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
 if (ix_a < 1 .and. a_name /= 'KEY') goto 9000 ! Error message and return
+
+! Taylor term?
+
+if (a_name(1:2) == 'TT') then
+  n = index('123456', a_name(3:3))
+  if (.not. associated(ele%taylor(1)%term)) then
+    if (.not. do_allocation) return
+    do i = 1, 6
+      call init_taylor_series(ele%taylor(i), 0)
+    enddo
+  endif
+
+  expn = 0
+  do i = 4, len_trim(a_name)
+    j = index('123456', a_name(i:i))
+    expn(j) = expn(j) + 1
+  enddo
+
+  i = taylor_term_index(ele%taylor(n), expn, do_allocation)
+  if (i /= 0) then
+    a_ptr%r => ele%taylor(n)%term(i)%coef
+    err_flag = .false.
+  endif
+  return
+endif
+
 
 select case (a_name)
 ! attrib_type = is_real$

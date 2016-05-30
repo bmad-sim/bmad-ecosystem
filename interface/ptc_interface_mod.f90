@@ -2403,7 +2403,8 @@ type (damap) da
 real(rp), optional :: ref_pt(:)
 real(rp) c0(size(taylor_in))
 
-integer i, n_taylor, expn(size(taylor_in))
+integer i, n_taylor
+integer :: expn0(6) = 0
 
 real(dp) c8(size(taylor_in)), c_ref(size(taylor_in))
 
@@ -2481,7 +2482,7 @@ taylor_inv = y
 
 if (present(ref_pt)) then
   do i = 1, n_taylor
-    call add_taylor_term (taylor_inv(i), ref_pt(i))
+    call add_taylor_term (taylor_inv(i), ref_pt(i), expn0)
   enddo
 endif
 

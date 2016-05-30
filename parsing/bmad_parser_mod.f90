@@ -1664,7 +1664,8 @@ case default   ! normal attribute
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
     elseif (ix_attrib > num_ele_attrib$) then
-      call pointer_to_attribute (ele, attrib_word, .false., a_ptr, err_flag, .false.)
+      ! TT* Taylor Terms need do_allocation = True.
+      call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.)
       if (err_flag .or. .not. associated(a_ptr%r)) then
         call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
         return
