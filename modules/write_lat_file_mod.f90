@@ -2034,7 +2034,7 @@ do
         orb_start%vec(4) = orb_start%vec(4) - kicker_ele%value(vkick$)
         call track1 (orb_start, ele, branch%param, orb_end) 
         f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) - (orb_end%vec(5) - orb_start%vec(5))
-        call add_taylor_term (taylor_ele%taylor(5), f)
+        call add_taylor_term (taylor_ele%taylor(5), f, [0, 0, 0, 0, 0, 0])
         call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
         call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
         call insert_element (lat_out, taylor_ele, ix_ele+3, branch%ix_branch, orbit_out)

@@ -45,185 +45,6 @@ interface assignment (=)
   module procedure em_taylors_equal_em_taylors
 end interface
 
-!+
-! Function taylor_coef (bmad_taylor, exp)
-! Function taylor_coef (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-!
-! Function to return the coefficient for a particular taylor term
-! from a Taylor Series.
-!
-! Note: taylor_coef is overloaded by:
-!   taylor_coef1 (bmad_taylor, exp)
-!   taylor_coef2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-! Using the taylor_coef2 form limits obtaining coefficients to 9th order
-! or less. Also: taylor_coef2 does not check that all i1, ..., i9 are between
-! 1 and 6.
-!
-! For example: To get the 2nd order term corresponding to 
-!   y(out) = Coef * p_z(in)^2 
-! [This is somtimes refered to as the T_366 term]
-! The call would be:
-!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
-!   ...
-!   coef = taylor_coef (bmad_taylor(3), 6, 6)  ! 1st possibility or ...
-!   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])  
-!
-! Modules needed:
-!   use bmad
-!
-! Input (taylor_coef1):
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   exp(6)      -- Integer: Array of exponent indices.
-!
-! Input (taylor_coef2):
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   i1, ..., i9 -- Integer, optional: indexes (each between 1 and 6).
-!
-! Output:
-!   taylor_coef -- Real(rp): Coefficient.
-!-
-
-interface taylor_coef
-  module procedure taylor_coef1
-  module procedure taylor_coef2
-end interface
-
-private taylor_coef1, taylor_coef2
-
-!----------------------------------------------------------------------
-!+
-! Subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
-! Subroutine add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-!
-! Routine to add a Taylor term to a Taylor series.
-!
-! If bmad_taylor does not have a term with the same exponents then a new
-! term is added to bmad_taylor so the total number of terms is increased by one.
-!
-! If bmad_taylor already has a term with the same exponents then
-! the "replace" argument determines what happens:
-!   If replace = False (default) then
-!      coef is added to the coefficient of the old term.
-!   If replace = True then
-!      coef replaces the coefficient of the old term.
-! In both these cases, the number of terms in bmad_taylor remains the same.
-!
-! Note: add_taylor_term is overloaded by:
-!   add_taylor_term1 (bmad_taylor, coef, expn, replace)
-!   add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-! Using the add_taylor_term2 form limits obtaining coefficients to 9th order or less. 
-! Also: add_taylor_term2 does not check that all i1, ..., i9 are between 1 and 6.
-!
-! For example: To add the 2nd order term corresponding to:
-!   y(out) = 1.34 * p_z(in)^2 
-! [This is somtimes refered to as the T_366 term]
-! The call would be:
-!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
-!   ...
-!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, 6, 6)  ! 1st possibility or ...
-!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, [0, 0, 0, 0, 0, 2 ])  
-!
-! Input:
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   coef        -- Real(rp): Coefficient.
-!   expn(6)     -- Integer: Array of exponent indices.
-!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
-!   replace     -- Logical, optional: Replace existing term? Default is False.
-!
-! Output:
-!   bmad_taylor -- Taylor_struct: New series with term added
-!-
-
-interface add_taylor_term
-  module procedure add_taylor_term1
-  module procedure add_taylor_term2
-end interface
-
-private add_taylor_term1, add_taylor_term2
-
-!----------------------------------------------------------------------
-!+
-! Subroutine remove_taylor_term (bmad_taylor, expn)
-! Subroutine remove_taylor_term (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-!
-! Routine to remove a Taylor term to a Taylor series.
-!
-! If bmad_taylor does not have a term with the same exponents then nothing is done.
-!
-! Note: remove_taylor_term is overloaded by:
-!   remove_taylor_term1 (bmad_taylor, expn)
-!   remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-! Using the remove_taylor_term2 form limits coefficients to 9th order or less. 
-! Also: remove_taylor_term2 does not check that all i1, ..., i9 are between 1 and 6.
-!
-! For example: To remove the 2nd order term corresponding to:
-!   y(out) = xxx * p_z(in)^2 
-! [This is somtimes refered to as the T_366 term]
-! The call would be:
-!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
-!   ...
-!   coef = remove_taylor_term (bmad_taylor(3), 6, 6)  ! 1st possibility or ...
-!   coef = remove_taylor_term (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])  
-!
-! Input
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   expn(6)     -- Integer: Array of exponent indices.
-!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
-!
-! Output:
-!   bmad_taylor -- Taylor_struct: New series with term removed
-!-
-
-interface remove_taylor_term
-  module procedure remove_taylor_term1
-  module procedure remove_taylor_term2
-end interface
-
-private remove_taylor_term1, remove_taylor_term2
-
-!----------------------------------------------------------------------
-!+
-! Subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
-! Subroutine add_em_taylor_term (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-!
-! Routine to add an em_taylor term to an em_taylor series.
-!
-! If em_taylor does not have a term with the same exponents then a new
-! term is added to em_taylor so the total number of terms is increased by one.
-!
-! If em_taylor already has a term with the same exponents then
-! the "replace" argument determines what happens:
-!   If replace = False (default) then
-!      coef is added to the coefficient of the old term.
-!   If replace = True then
-!      coef replaces the coefficient of the old term.
-! In both these cases, the number of terms in em_taylor remains the same.
-!
-! Note: add_em_taylor_term is overloaded by:
-!   add_em_taylor_term1 (em_taylor, coef, expn, replace)
-!   add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-! Using the add_em_taylor_term2 form limits obtaining coefficients to 9th order or less. 
-! Also: add_em_taylor_term2 does not check that all i1, ..., i9 are between 1 and 2.
-!
-!
-! Input:
-!   em_taylor   -- Em_taylor_struct: Em_taylor series.
-!   coef        -- Real(rp): Coefficient.
-!   expn(2)     -- Integer: Array of exponent indices.
-!   i1, ..., i9 -- Integer, optional: Exponent indexes (each between 1 and 6).
-!   replace     -- Logical, optional: Replace existing term? Default is False.
-!
-! Output:
-!   em_taylor -- Em_taylor_struct: New series with term added
-!-
-
-interface add_em_taylor_term
-  module procedure add_em_taylor_term1
-  module procedure add_em_taylor_term2
-end interface
-
-private add_em_taylor_term1, add_em_taylor_term2
-
 contains
 
 !----------------------------------------------------------------------
@@ -305,37 +126,32 @@ end subroutine taylors_equal_taylors
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function taylor_monomial(monomial) result(expn)
+! Function taylor_coef (bmad_taylor, expn) result (taylor_coef)
 !
-! Converts a monomial string 'abcdef' to integers [a, b, c, d, e, f] for use in taylor_coef
+! Function to return the coefficient for a particular taylor term from a Taylor Series.
 !
+! For example: To get the 2nd order term corresponding to 
+!   y(out) = Coef * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ]) or  
+!   coef = taylor_coef (bmad_taylor(3), taylor_expn([6,6]))
+!
+! Modules needed:
+!   use bmad
+!
+! Input (taylor_coef1):
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   exp(6)      -- Integer: Array of exponent indices.
+!
+! Output:
+!   taylor_coef -- Real(rp): Coefficient.
 !-
-function taylor_monomial (monomial) result(expn)
-implicit none
-character(6) :: monomial
-integer :: i, expn(6)
-! Read monomial 
-do i=1, 6
-  if (monomial(i:i) == ' ') then
-    expn(i:6) = 0
-    exit
-  endif
-  expn(i) = index('0123456789', monomial(i:i)) - 1
-enddo
-end function taylor_monomial
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function taylor_coef1 (bmad_taylor, expn)
-!
-! Function to return the coefficient for a particular taylor term
-! from a Taylor Series. This routine is used by the overloaded function
-! taylor_coef. See taylor_coef for more details.
 !-
 
-function taylor_coef1 (bmad_taylor, expn) result (coef)
+function taylor_coef (bmad_taylor, expn) result (coef)
 
 implicit none
 
@@ -357,54 +173,42 @@ do i = 1, size(bmad_taylor%term)
   endif
 enddo
 
-end function taylor_coef1
+end function taylor_coef
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function taylor_coef2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+! Function taylor_expn (coord_array) result (expn_array)
 !
-! Function to return the coefficient for a particular taylor term
-! from a Taylor Series. This routine is used by the overloaded function
-! taylor_coef. See taylor_coef for more details.
+! Function to return the exponantial 6-vector for a taylor term given the "coordinate array".
+! For example:
+!   taylor_expn([3,4]) = [0, 0, 1, 1, 0, 0]
+!   taylor_expn([2,5,5]) = [0, 1, 0, 0, 2, 0]
+!
+! Input:
+!   coord_array(:)    -- integer, series of coordinates.
+!
+! Output:
+!   expn_array(6)     -- integer, array of exponents.
 !-
 
-function taylor_coef2 (bmad_taylor, i1, i2, i3, &
-                          i4, i5, i6, i7, i8, i9) result (coef)
+function taylor_expn (coord_array) result (expn_array)
 
 implicit none
 
-type (taylor_struct) :: bmad_taylor
-
-real(rp) coef
-
-integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-integer i, expn(6)
+integer coord_array(:), expn_array(6)
+integer i, j
 
 !
 
-expn = 0
-if (present (i1)) expn(i1) = expn(i1) + 1
-if (present (i2)) expn(i2) = expn(i2) + 1
-if (present (i3)) expn(i3) = expn(i3) + 1
-if (present (i4)) expn(i4) = expn(i4) + 1
-if (present (i5)) expn(i5) = expn(i5) + 1
-if (present (i6)) expn(i6) = expn(i6) + 1
-if (present (i7)) expn(i7) = expn(i7) + 1
-if (present (i8)) expn(i8) = expn(i8) + 1
-if (present (i9)) expn(i9) = expn(i9) + 1
-
-coef = 0
-
-do i = 1, size(bmad_taylor%term)
-  if (all(bmad_taylor%term(i)%expn == expn)) then
-    coef = bmad_taylor%term(i)%coef
-    return
-  endif
+expn_array = 0
+do i = 1, size(coord_array)
+  j = coord_array(i)
+  expn_array(j) = expn_array(j) + 1
 enddo
 
-end function taylor_coef2
+end function taylor_expn
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -738,107 +542,149 @@ end subroutine taylor_make_unit
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term1 (bmad_taylor, coef, expn, replace)
+! Function taylor_term_index (bmad_taylor, expn, create) result (ix_term)
 !
-! Routine to add a Taylor term to a Taylor series.
+! Routine to return the index of a particular taylor term.
 !
-! This routine is used by the overloaded function add_taylor_term. 
-! See add_taylor_term for more details.
+! Input:
+!   bmad_taylor   -- taylor_struct: Taylor series to search.
+!   expn(6)       -- integer: Exponents to match to.
+!   create        -- logical: If True, crate taylor term if it does not exist.
+!
+! Output:
+!   ix_term       -- integer: Index of taylor term in bmad_taylor%term(:). Will be 0 if 
+!                      create = False and the term does not exist.
 !-
 
-subroutine add_taylor_term1 (bmad_taylor, coef, expn, replace)
+function taylor_term_index (bmad_taylor, expn, create) result (ix_term)
 
 implicit none
 
 type (taylor_struct) bmad_taylor
 
-real(rp) coef
-integer expn(:), i, n
+integer expn(6), ix_term
+integer i, n
 
-logical, optional :: replace
+logical create 
 
-! Search for an existing term of the same type
+! First search for existing term.
 
 n = size(bmad_taylor%term)
 
 do i = 1, n
-  if (all(bmad_taylor%term(i)%expn == expn)) then
-    if (logic_option(.false., replace)) then
-      bmad_taylor%term(i)%coef = coef
-    else
-      bmad_taylor%term(i)%coef = coef + bmad_taylor%term(i)%coef
-    endif
-    if (bmad_taylor%term(i)%coef == 0) then  ! Kill this term
-      bmad_taylor%term(i:n-1) = bmad_taylor%term(i+1:n)
-      call init_taylor_series (bmad_taylor, n-1, .true.)
-    endif
-    return
-  endif
+  if (.not. all(bmad_taylor%term(i)%expn == expn)) cycle
+  ix_term = i
+  return
 enddo
 
-! new term
+! Not found.
 
-call init_taylor_series (bmad_taylor, n+1, .true.)
-bmad_taylor%term(n+1)%coef = coef
-bmad_taylor%term(n+1)%expn = expn
+if (create) then
+  call init_taylor_series (bmad_taylor, n+1, .true.)
+  bmad_taylor%term(n+1)%expn = expn
+  ix_term = n+1
+else
+  ix_term = 0
+endif
 
-end subroutine add_taylor_term1
+end function taylor_term_index
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+! Subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
 !
 ! Routine to add a Taylor term to a Taylor series.
 !
-! This routine is used by the overloaded function add_taylor_term. 
-! See add_taylor_term for more details.
+! If bmad_taylor does not have a term with the same exponents then a new
+! term is added to bmad_taylor so the total number of terms is increased by one.
+!
+! If bmad_taylor already has a term with the same exponents then
+! the "replace" argument determines what happens:
+!   If replace = False (default) then
+!      coef is added to the coefficient of the old term.
+!   If replace = True then
+!      coef replaces the coefficient of the old term.
+! In both these cases, the number of terms in bmad_taylor remains the same.
+!
+! For example: To add the 2nd order term corresponding to:
+!   y(out) = 1.34 * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, [0, 0, 0, 0, 0, 2 ])    ! or
+!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, taylor_expn([6,6]))  
+!
+! Input:
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   coef        -- Real(rp): Coefficient.
+!   expn(6)     -- Integer: Array of exponent indices.
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: New series with term added.
 !-
 
-subroutine add_taylor_term2 (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
+subroutine add_taylor_term (bmad_taylor, coef, expn, replace)
 
 implicit none
 
 type (taylor_struct) bmad_taylor
 
 real(rp) coef
-
-integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-integer i, n, expn(6)
+integer expn(:), n, nn
 
 logical, optional :: replace
 
 ! 
 
-expn = 0
-if (present (i1)) expn(i1) = expn(i1) + 1
-if (present (i2)) expn(i2) = expn(i2) + 1
-if (present (i3)) expn(i3) = expn(i3) + 1
-if (present (i4)) expn(i4) = expn(i4) + 1
-if (present (i5)) expn(i5) = expn(i5) + 1
-if (present (i6)) expn(i6) = expn(i6) + 1
-if (present (i7)) expn(i7) = expn(i7) + 1
-if (present (i8)) expn(i8) = expn(i8) + 1
-if (present (i9)) expn(i9) = expn(i9) + 1
+n = taylor_term_index(bmad_taylor, expn, .true.)
 
-call add_taylor_term1 (bmad_taylor, coef, expn, replace)
+if (logic_option(.false., replace)) then
+  bmad_taylor%term(n)%coef = coef
+else
+  bmad_taylor%term(n)%coef = coef + bmad_taylor%term(n)%coef
+endif
 
-end subroutine add_taylor_term2
+nn = size(bmad_taylor%term)
+if (bmad_taylor%term(n)%coef == 0) then  ! Kill this term
+  bmad_taylor%term(n:nn-1) = bmad_taylor%term(n+1:nn)
+  call init_taylor_series (bmad_taylor, nn-1, .true.)
+endif
+
+end subroutine add_taylor_term
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine remove_taylor_term1 (bmad_taylor, expn)
+! Subroutine remove_taylor_term (bmad_taylor, expn)
 !
 ! Routine to remove a Taylor term to a Taylor series.
 !
-! This routine is used by the overloaded function remove_taylor_term. 
-! See remove_taylor_term for more details.
+! If bmad_taylor does not have a term with the same exponents then nothing is done.
+!
+! For example: To remove the 2nd order term corresponding to:
+!   y(out) = xxx * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = remove_taylor_term (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])  ! or
+!   coef = remove_taylor_term (bmad_taylor(3), taylor_expn([6, 6]))  
+!
+! Input
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   expn(6)     -- Integer: Array of exponent indices.
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: New series with term removed
+!-
 !-
 
-subroutine remove_taylor_term1 (bmad_taylor, expn)
+subroutine remove_taylor_term (bmad_taylor, expn)
 
 implicit none
 
@@ -865,45 +711,7 @@ do i = 1, n
   return
 enddo
 
-end subroutine remove_taylor_term1
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-!
-! Routine to remove a Taylor term to a Taylor series.
-!
-! This routine is used by the overloaded function remove_taylor_term. 
-! See remove_taylor_term for more details.
-!-
-
-subroutine remove_taylor_term2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-
-implicit none
-
-type (taylor_struct) bmad_taylor
-
-integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-integer expn(6)
-
-! 
-
-expn = 0
-if (present (i1)) expn(i1) = expn(i1) + 1
-if (present (i2)) expn(i2) = expn(i2) + 1
-if (present (i3)) expn(i3) = expn(i3) + 1
-if (present (i4)) expn(i4) = expn(i4) + 1
-if (present (i5)) expn(i5) = expn(i5) + 1
-if (present (i6)) expn(i6) = expn(i6) + 1
-if (present (i7)) expn(i7) = expn(i7) + 1
-if (present (i8)) expn(i8) = expn(i8) + 1
-if (present (i9)) expn(i9) = expn(i9) + 1
-
-call remove_taylor_term1 (bmad_taylor, expn)
-
-end subroutine remove_taylor_term2
+end subroutine remove_taylor_term
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1619,15 +1427,33 @@ end subroutine em_taylors_equal_em_taylors
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_em_taylor_term1 (em_taylor, coef, expn, replace)
+! Subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
 !
 ! Routine to add a Em_taylor term to a Em_taylor series.
 !
-! This routine is used by the overloaded function add_em_taylor_term. 
-! See add_em_taylor_term for more details.
+! If em_taylor does not have a term with the same exponents then a new
+! term is added to em_taylor so the total number of terms is increased by one.
+!
+! If em_taylor already has a term with the same exponents then
+! the "replace" argument determines what happens:
+!   If replace = False (default) then
+!      coef is added to the coefficient of the old term.
+!   If replace = True then
+!      coef replaces the coefficient of the old term.
+! In both these cases, the number of terms in em_taylor remains the same.
+!
+! Input:
+!   em_taylor   -- Em_taylor_struct: Em_taylor series.
+!   coef        -- Real(rp): Coefficient.
+!   expn(2)     -- Integer: Array of exponent indices.
+!   replace     -- Logical, optional: Replace existing term? Default is False.
+!
+! Output:
+!   em_taylor -- Em_taylor_struct: New series with term added
+!-
 !-
 
-subroutine add_em_taylor_term1 (em_taylor, coef, expn, replace)
+subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
 
 implicit none
 
@@ -1663,49 +1489,7 @@ call init_em_taylor_series (em_taylor, n+1, .true.)
 em_taylor%term(n+1)%coef = coef
 em_taylor%term(n+1)%expn = expn
 
-end subroutine add_em_taylor_term1
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-!
-! Routine to add a Em_taylor term to a Em_taylor series.
-!
-! This routine is used by the overloaded function add_em_taylor_term. 
-! See add_em_taylor_term for more details.
-!-
-
-subroutine add_em_taylor_term2 (em_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)
-
-implicit none
-
-type (em_taylor_struct) em_taylor
-
-real(rp) coef
-
-integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
-integer i, n, expn(2)
-
-logical, optional :: replace
-
-! 
-
-expn = 0
-if (present (i1)) expn(i1) = expn(i1) + 1
-if (present (i2)) expn(i2) = expn(i2) + 1
-if (present (i3)) expn(i3) = expn(i3) + 1
-if (present (i4)) expn(i4) = expn(i4) + 1
-if (present (i5)) expn(i5) = expn(i5) + 1
-if (present (i6)) expn(i6) = expn(i6) + 1
-if (present (i7)) expn(i7) = expn(i7) + 1
-if (present (i8)) expn(i8) = expn(i8) + 1
-if (present (i9)) expn(i9) = expn(i9) + 1
-
-call add_em_taylor_term1 (em_taylor, coef, expn, replace)
-
-end subroutine add_em_taylor_term2
+end subroutine add_em_taylor_term
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1770,5 +1554,39 @@ else
 endif
 
 end subroutine init_em_taylor_series
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function em_taylor_expn (coord_array) result (expn_array)
+!
+! Function to return the exponantial 6-vector for a em_taylor term given the "coordinate array".
+! For example:
+!   em_taylor_expn([1,1,2,2,2]) = [2,3]
+!
+! Input:
+!   expn_series(*)  -- integer, series of 
+!
+! Output:
+!   expn_array(2)     -- integer, array of exponents.
+!-
+
+function em_taylor_expn (coord_array) result (expn_array)
+
+implicit none
+
+integer coord_array(:), expn_array(2)
+integer i, j
+
+!
+
+expn_array = 0
+do i = 1, size(coord_array)
+  j = coord_array(i)
+  expn_array(j) = expn_array(j) + 1
+enddo
+
+end function em_taylor_expn
 
 end module

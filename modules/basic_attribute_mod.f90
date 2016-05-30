@@ -155,6 +155,8 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_va
   endif
 endif
 
+!
+
 attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate)
 
 end function attribute_index1
@@ -182,7 +184,6 @@ logical, optional :: can_abbreviate
 
 if (attribute_array_init_needed) call init_attribute_name_array
 
-name40 = name           ! make sure we have 40 characters
 attrib_index = 0        ! match not found
 if (present(full_name)) full_name = ''
 
@@ -190,6 +191,14 @@ ilen = len_trim(name)
 if (ilen == 0) return
 if (ilen < 3) ilen = 3  ! Need at least three characters.
 n_abbrev = 0            ! number of abbreviation matches.
+
+name40 = name           ! make sure we have 40 characters
+if (ilen > 3 .and. name40(1:2) == 'TT') then
+  do i = 3, ilen
+    if (index('123456', name(i:i)) == 0) return
+  enddo
+  name40 = 'TT*'
+endif
 
 !-----------------------------------------------------------------------
 ! search for name
@@ -200,7 +209,10 @@ if (key == 0) then
 
       if (short_attrib_array(k, i) == name40) then
         attrib_index = attrib_ix(k, i)
-        if (present(full_name)) full_name = short_attrib_array(k, i)
+        if (present(full_name)) then
+          full_name = short_attrib_array(k, i)
+          if (name40 == 'TT*') full_name = name
+        endif
         return
       endif
 
@@ -222,7 +234,10 @@ elseif (key > 0 .and. key <= n_key$) then
 
     if (short_attrib_array(key, i) == name40) then
       attrib_index = attrib_ix(key, i)
-      if (present(full_name)) full_name = short_attrib_array(key, i)
+      if (present(full_name)) then
+        full_name = short_attrib_array(key, i)
+          if (name40 == 'TT*') full_name = name
+        endif
       return
     endif
 
@@ -1345,6 +1360,7 @@ call init_attribute_name1 (multilayer_mirror$, diffraction_limited$,  'DIFFRACTI
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
+call init_attribute_name1 (taylor$, tt$,                            'TT*')
 
 call init_attribute_name1 (wiggler$, k1$,                           'K1', dependent$)
 call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')

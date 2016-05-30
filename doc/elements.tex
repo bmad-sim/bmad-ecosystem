@@ -3859,11 +3859,13 @@ Attributes specific to a \vn{taylor} element are:
   ref_orbit = (<x>, <px>, <y>, <py>, <z>, <pz>)     ! Reference orbit.
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
+  tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
 \end{example}
 
-Notice that the first form above uses a comma ``,'' to separate the
-\vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar
-``|'' to separate \vn{<coef>} from \vn{<n1>}.
+For historical reasons, there are three differnt forms that can be used to specify a
+taylor term.  Notice that the first form (above) uses a comma ``,'' to separate the
+\vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar ``|'' to separate
+\vn{<coef>} from \vn{<n1>}.
 
 A Taylor term has a coefficient \vn{<coef>} which is a real number,
 integer exponents \vn{<e1>}, \vn{<n1>}, etc., and \vn{<out>} signifies
@@ -3899,6 +3901,12 @@ the second form as
   \{4: 2.73 | 336\}
 \end{example}
 Notice that with the second form, spaces between exponent terms is optional.
+
+The third form is like the second form. For example, the term of the above examples
+would be written unsing the third form as:
+\begin{example}
+  tt4336 = 2.73
+\end{example}
 
 By default a \vn{taylor} element starts out as the unit map. 
 That is, a \vn{taylor} element starts with the following 6 terms
