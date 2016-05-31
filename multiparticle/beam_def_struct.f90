@@ -129,6 +129,7 @@ type csr_parameter_struct                  ! Common block for csr calc
   logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
   logical :: use_csr_old = .true.          ! Use old CSR tracking? THE NEW ONE IN IN DEVELEPMENT.
   logical :: small_angle_approx = .true.   ! Use small angle approximation? ONLY USED WITH OLD CSR.
+  logical :: write_csr_wake = .false.      ! Write the CSR wake to csr_wake.dat / old_csr_wake.dat?
 end type
 
 type (csr_parameter_struct), save, target :: csr_param
