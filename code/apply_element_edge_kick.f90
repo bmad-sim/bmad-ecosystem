@@ -76,7 +76,7 @@ if (finished) return
 if (hard_ele%field_calc /= bmad_standard$) return
 
 physical_end = physical_ele_end (fringe_info%particle_at, orb%direction, track_ele%orientation)
-fringe_at = nint(hard_ele%value(fringe_at$))
+fringe_at = nint(track_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
