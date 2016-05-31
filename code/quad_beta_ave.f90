@@ -36,7 +36,7 @@ character(16), parameter :: r_name = 'quad_beta_ave'
 
 if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
       ele%key /= wiggler$ .and. ele%key /= undulator$) then
-  call out_io (s_fatal$, r_name, 'ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER: [\i0\] ' // ele%name, key_name(ele%key))
+  call out_io (s_fatal$, r_name, 'ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER: [\i0\] ' // trim(ele%name) // '   ' // key_name(ele%key), ele%ix_ele)
   if (global_com%exit_on_error) call err_exit
 endif
 
