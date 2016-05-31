@@ -137,7 +137,7 @@ case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
   f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
-  t = t_rel + hard_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
+  t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
   if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$)))) then
