@@ -432,12 +432,6 @@ Function to return a free file unit number to be used with an open statement.
 \item[milli_sleep (milli_sec)] \Newline 
 Routine to pause the program for a given number of milli-seconds.
 
-\index[routine]{output_direct}
-\label{r:output.direct}
-\item[output_direct (file_unit, do_print, to_routine, min_level, max_level)] \Newline 
-Routine to set where the output goes when out_io is called.
-Output may be sent to the terminal screen, written to a file, or both.
-
 \index[routine]{out_io}
 \label{r:out.io}
 \item[out_io (...)] \Newline 
@@ -462,6 +456,13 @@ See out_io for more details.
 \item[out_io_line (line)] \Newline 
 Dummy routine for linker.
 See out_io for more details.
+
+\index[routine]{output_direct}
+\label{r:output.direct}
+\item[output_direct (file_unit, do_print, to_routine, min_level, max_level)] \Newline 
+Routine to set where the output goes when out_io is called.
+Output may be sent to the terminal screen, written to a file, or both.
+Also can be used to restrict output verbosity.
 
 \index[routine]{read_a_line}
 \label{r:read.a.line}

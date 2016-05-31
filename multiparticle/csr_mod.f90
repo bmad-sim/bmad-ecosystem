@@ -50,12 +50,12 @@ end type
 type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr            ! Kick integral.
   real(rp) I_int_csr        ! Integrated Kick integral.
-  real(rp) k_csr            ! kick.
+  real(rp) image_kick_csr   ! kick.
   real(rp) L_vec(3)         ! L vector in global coordinates.
   real(rp) L                ! Distance between source and kick points.
   real(rp) dL               ! = epsilon_L = Ls - L
   real(rp) dz_particles     ! Kicked particle - source particle position at constant time.
-  real(rp) s_chord_source   ! Source point location.
+  real(rp) s_chord_source   ! Source point coordinate along chord.
   real(rp) theta_L          ! Angle of L vector
   real(rp) theta_sl         ! Angle between velocity of particle at source pt and L
   real(rp) theta_lk         ! Angle between L and velocity of kicked particle
@@ -308,10 +308,12 @@ do i_step = 0, n_step
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
     write (iu_wake, '(a, i4, f12.6)') '! ', i_step, ele%s - ele%value(l$) + s0_step
-    write (iu_wake, '(a)') '!  z   Charge/meter   csr_wake' 
+    write (iu_wake, '(a)') '!         Z   Charge/Meter     CSR_Kick         I_CSR      S_Source' 
     do j = 1, csr_param%n_bin
-      write (iu_wake, '(f12.6, 2es14.6)') csr%slice(j)%z_center, &
-                                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr 
+      ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
+      write (iu_wake, '(f12.6, 4es14.6)') csr%slice(j)%z_center, &
+                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr, &
+                  csr%kick1(j)%I_csr, ele0%s - ele0%value(l$) + csr%kick1(j)%s_chord_source
     enddo
     close (iu_wake)
   endif
@@ -581,7 +583,7 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
   if (csr%y_source == 0) then
     call I_csr (kick1, i, csr)
   else
-    call kick_image_charge (kick1, csr)
+    call image_charge_kick_calc (kick1, csr)
   endif
 
 enddo
@@ -603,7 +605,7 @@ if (csr%y_source == 0) then
 else  ! Image charge
   do i = 1, n_bin
     csr%slice(i)%kick_csr = csr%slice(i)%kick_csr + coef * &
-                  dot_product(csr%kick1(i-1:i-n_bin:-1)%k_csr, csr%slice(1:n_bin)%charge)
+                  dot_product(csr%kick1(i-1:i-n_bin:-1)%image_kick_csr, csr%slice(1:n_bin)%charge)
   enddo
 endif
 
@@ -998,20 +1000,20 @@ end subroutine I_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kick_image_charge (kick1, csr) 
+! Subroutine image_charge_kick_calc (kick1, csr) 
 !
 ! Routine to calculate the image charge kick.
 !
 ! Input:
-!   kick1    -- Csr_kick1_struct: 
-!   csr      -- Csr_struct:
+!   kick1    -- csr_kick1_struct: 
+!   csr      -- csr_struct:
 !
 ! Output:
-!   kick1    -- Csr_kick1_struct: 
-!     %k_csr -- Real(rp): Image charge kick.
+!   kick1             -- csr_kick1_struct: 
+!     %image_kick_csr -- real(rp): Image charge kick.
 !-
 
-subroutine kick_image_charge (kick1, csr)
+subroutine image_charge_kick_calc (kick1, csr)
 
 implicit none
 
@@ -1034,7 +1036,7 @@ theta = k%floor_s%theta
 Bp_vec = csr%beta * [sin(theta), 0.0_rp, cos(theta) ]             ! beta vector at source point
 G_vec = csr%beta**2 * g_bend * [-cos(theta), 0.0_rp, sin(theta) ] ! Acceleration vector
 
-k%k_csr = 0
+k%image_kick_csr = 0
 z = k%dz_particles
 
 N_vec = (csr%floor_k%r - k%floor_s%r) / k%L
@@ -1052,9 +1054,9 @@ rad_cross_vec = cross_product(N_vec, NBpG_vec)
 
 radiate  = dot_product (B_vec, rad_cross_vec) / (k%L * OneNBp3)
 coulomb1 = dot_product (B_vec, NBp_vec) / (csr%gamma2 * k%L**2 * OneNBp3)
-kick1%k_csr = csr%kick_factor * (radiate + coulomb1)
+kick1%image_kick_csr = csr%kick_factor * (radiate + coulomb1)
 
-end subroutine kick_image_charge
+end subroutine image_charge_kick_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

@@ -227,7 +227,7 @@ do i = 0, n_step
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
     write (iu_wake, '(a, i4, f12.6)') '! ', i, ele%s - ele%value(l$) + s0_step
-    write (iu_wake, '(a)') '!  z   Charge/meter   csr_wake' 
+    write (iu_wake, '(a)') '!         Z   Charge/Meter     CSR_Wake' 
     do j = 1, csr_param%n_bin
       write (iu_wake, '(f12.6, 2es14.6)') bin%bin1(j)%z_center, &
                                   bin%bin1(j)%charge/bin%dz_bin, bin%bin1(j)%kick_csr
