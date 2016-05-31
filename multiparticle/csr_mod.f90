@@ -127,7 +127,8 @@ real(rp), optional :: s_start, s_end
 real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
 real(rp) e_tot, f1, x, z
 
-integer i, j, ie, ns, nb, n_step, n_live
+integer i, j, ie, ns, nb, n_step, n_live, i_step
+integer :: iu_wake
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
 logical err, auto_bookkeeper, err_flag
@@ -224,17 +225,17 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
-do i = 0, n_step
+do i_step = 0, n_step
 
   ! track through the runt
 
-  if (i /= 0) then
-    call create_uniform_element_slice (ele, branch%param, i, n_step, runt, s_start, s_end)
+  if (i_step /= 0) then
+    call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
     runt%csr_calc_on = .false.
     call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
   endif
 
-  s0_step = i * csr%ds_track_step
+  s0_step = i_step * csr%ds_track_step
   if (present(s_start)) s0_step = s0_step + s_start
 
   ! Cannot do a realistic calculation if there are less particles than bins
@@ -278,7 +279,7 @@ do i = 0, n_step
     ! The factor of two is due to there being image currents both above and below.
 
     csr%kick_factor = (-1)**ns
-    if (i == 0 .or. i == n_step) csr%kick_factor = csr%kick_factor / 2
+    if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
     if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
 
     csr%y_source = ns * csr_param%beam_chamber_height
@@ -295,6 +296,26 @@ do i = 0, n_step
   enddo
 
   call save_bunch_track (bunch_end, ele, s0_step)
+
+  ! Record to file?
+
+  if (csr_param%write_csr_wake) then
+    iu_wake = lunget()
+    open (iu_wake, file = 'csr_wake.dat', access = 'append')
+    if (i_step == 0) then
+      write (iu_wake, '(a)') '!------------------------------------------------------------'
+      write (iu_wake, '(a, i6, 2x, a)') '! ', ele%ix_ele, trim(ele%name)
+    endif
+    write (iu_wake, '(a)') '!#-----------------------------'
+    write (iu_wake, '(a, i4, f12.6)') '! ', i_step, ele%s - ele%value(l$) + s0_step
+    write (iu_wake, '(a)') '!  z   Charge/meter   csr_wake' 
+    do j = 1, csr_param%n_bin
+      write (iu_wake, '(f12.6, 2es14.6)') csr%slice(j)%z_center, &
+                                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr 
+    enddo
+    close (iu_wake)
+  endif
+
 enddo
 
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
