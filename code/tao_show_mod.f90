@@ -2016,10 +2016,10 @@ case ('lattice')
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
 
-  elseif (attrib0(1:ix_s2) == '*' .or. all_lat) then
+  elseif (attrib0 == '*' .or. all_lat) then
     picked_ele = .true.
 
-  elseif (ix_s2 /= 0) then
+  elseif (attrib0 /= '') then
     call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
                   ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
     if (err) return
@@ -3598,7 +3598,7 @@ case ('wall')
     call bracket_index (wall%section%s, 1, size(wall%section), s2 + 1d-10, ix2)
     ix1 = ix1 + 1
 
-  elseif (ix_s2 /= 0) then
+  elseif (attrib0 /= '') then
     ix_s2 = index(attrib0, ':')
     if (ix_s2 == 0) then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
