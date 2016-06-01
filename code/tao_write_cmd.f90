@@ -34,7 +34,7 @@ real(rp) scale
 
 character(*) what
 character(20) action, name, lat_type, which
-character(40) switch
+character(200) switch
 character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
