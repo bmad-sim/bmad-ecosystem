@@ -201,8 +201,10 @@ do i = 0, ele%ix_ele
   vec = eleinfo%orbit1%vec
   theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
   eleinfo%theta_chord = theta_chord
-  theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi)
-  theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi)
+  ! An element with a negative step length (EG off-center beam in a patch which just has an x-pitch), can
+  ! have floor%theta and theta_chord 180 degress off. Hence, restrict theta0 & theta1 to be within [-pi/2,pi/2]
+  theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi/2)
+  theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi/2)
   eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
   if (eleinfo%L_chord == 0) cycle
   call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
@@ -829,16 +831,18 @@ if (kick1%ix_ele_source == csr%ix_ele_kick) then
   kick1%theta_lk = dtheta_L - spline1(einfo_s%spline, s1, 1)
 
 else
+  ! In an element where the beam centroid takes a backstep, %theta_chord will be anti-parallel to
+  ! other angles. This is why pi/2 is used with modulo2 to make sure angles are in the range [-pi/2, pi/2]
   theta_L = kick1%theta_L
-  dL = dspline_len(s0, einfo_s%L_chord, einfo_s%spline, modulo2(theta_L-einfo_s%theta_chord, pi))
+  dL = dspline_len(s0, einfo_s%L_chord, einfo_s%spline, modulo2(theta_L-einfo_s%theta_chord, pi/2))
   do i = kick1%ix_ele_source+1, csr%ix_ele_kick-1
     ce => csr%eleinfo(i)
-    dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
+    dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
   enddo
   ce => csr%eleinfo(csr%ix_ele_kick)
-  dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi))
-  kick1%theta_sl = modulo2((spline1(einfo_s%spline, s0, 1) + einfo_s%theta_chord) - theta_L, pi)
-  kick1%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi)
+  dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
+  kick1%theta_sl = modulo2((spline1(einfo_s%spline, s0, 1) + einfo_s%theta_chord) - theta_L, pi/2)
+  kick1%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi/2)
 endif
 
 kick1%floor_s%theta = kick1%theta_sl + kick1%theta_L
