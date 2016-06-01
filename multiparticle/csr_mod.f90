@@ -197,17 +197,16 @@ do i = 0, ele%ix_ele
   eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
   eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1+vec(6)))
 
-  if (s_ele%value(l$) /= 0) then
-    vec0 = eleinfo%orbit0%vec
-    vec = eleinfo%orbit1%vec
-    theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
-    eleinfo%theta_chord = theta_chord
-    theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi)
-    theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi)
-    eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
-    call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
-    eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
-  endif
+  vec0 = eleinfo%orbit0%vec
+  vec = eleinfo%orbit1%vec
+  theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
+  eleinfo%theta_chord = theta_chord
+  theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi)
+  theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi)
+  eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
+  if (eleinfo%L_chord == 0) cycle
+  call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
+  eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
 enddo
 
 ! make sure that ele_len / track_step is an integer.
@@ -648,7 +647,7 @@ type (floor_position_struct), pointer :: fk, f0, fs
 type (ele_struct), pointer :: ele
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz
-real(rp) z0, z1, sz_kick, sz0, Lsz0
+real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1
 
 integer i, last_step
 logical err_flag
@@ -660,7 +659,7 @@ character(*), parameter :: r_name = 's_source_calc'
 
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
-last_step = 0             ! Have not stepped yet
+last_step = 0
 
 do
 
@@ -726,31 +725,54 @@ do
   ! Look at ends of the source element and check if the source point is within the element or not.
   ! Generally dz decreases with increasing s but this may not be true for patch elements.
 
-  if (ddz_calc_csr(0.0_rp) < 0) then
-    if (last_step == 1) then ! Looks line dz increasing with increasing s so can use zbrent and return
-      s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
-      return
-    endif
-    kick1%ix_ele_source = kick1%ix_ele_source - 1
+  if (einfo_s%L_chord == 0) then
+    kick1%ix_ele_source = kick1%ix_ele_source + last_step
+    cycle
+  endif
+    
+  ddz0 = ddz_calc_csr(0.0_rp)
+  ddz1 = ddz_calc_csr(einfo_s%L_chord)
+
+  if (ddz0 < 0 .and. ddz1 < 0) then
+    if (last_step == 1) exit       ! Round off error can cause problems
     last_step = -1
+    kick1%ix_ele_source = kick1%ix_ele_source - 1
     cycle
   endif
 
-  if (0 < ddz_calc_csr(einfo_s%L_chord)) then
-    if (last_step == -1) then ! Looks line dz increasing with increasing s so can use zbrent and return
-      s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
-      return
-    endif
-    if (kick1%ix_ele_source == csr%ix_ele_kick) return ! source ahead of kick pt => ignore.
-    kick1%ix_ele_source = kick1%ix_ele_source + 1
+  if (ddz0 > 0 .and. ddz1 > 0) then
+    if (kick1%ix_ele_source == csr%ix_ele_kick) return  ! Source ahead of kick pt => ignore.
+    if (last_step == -1) exit      ! Round off error can cause problems
     last_step = 1
+    kick1%ix_ele_source = kick1%ix_ele_source + 1
     cycle
   endif
+
+  ! Only possibility left is that root is bracketed.
 
   s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
-
   return
+    
 enddo
+
+! Roundoff errors can cause the search for the source point to not converge.
+! If we are close enough, use the appropriate point.
+
+if (abs(ddz0) < 1d-7) then
+  s_source = ddz_calc_csr(0.0_rp)
+  return
+endif
+
+if (abs(ddz1) < 1d-7) then
+  s_source = ddz_calc_csr(einfo_s%L_chord)
+  return
+endif
+
+call out_io (s_fatal$, r_name, &
+    'CSR CALCCULATION ERROR. PLEASE REPORT THIS...', &
+    'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
+if (global_com%exit_on_error) call err_exit
+err_flag = .true.
 
 !----------------------------------------------------------------------------
 contains
