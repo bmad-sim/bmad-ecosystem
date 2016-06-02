@@ -22,7 +22,7 @@ type csr_ele_info_struct
   type (floor_position_struct) e_floor0, e_floor1  ! Floor position of element ref coords at entrance/exit ends
   type (spline_struct) spline                  ! spline for centroid orbit. spline%x = distance along chord
   real(rp) theta_chord                         ! Reference angle of chord in z-x plane
-  real(rp) L_chord                             ! Chord Length
+  real(rp) L_chord                             ! Chord Length. Negative if bunch moves backwards in element.
   real(rp) dL_s                                ! L_s(of element) - L_chord
 end type
 
@@ -131,7 +131,7 @@ integer i, j, ie, ns, nb, n_step, n_live, i_step
 integer :: iu_wake
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
-logical err, auto_bookkeeper, err_flag
+logical err, auto_bookkeeper, err_flag, parallel0, parallel1
 
 ! Init
 
@@ -201,12 +201,24 @@ do i = 0, ele%ix_ele
   vec = eleinfo%orbit1%vec
   theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
   eleinfo%theta_chord = theta_chord
+
   ! An element with a negative step length (EG off-center beam in a patch which just has an x-pitch), can
   ! have floor%theta and theta_chord 180 degress off. Hence, restrict theta0 & theta1 to be within [-pi/2,pi/2]
   theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi/2)
   theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi/2)
   eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
   if (eleinfo%L_chord == 0) cycle
+
+  ! With a negative step length, %L_chord is negative
+  parallel0 = (abs(modulo2(eleinfo%floor0%theta - theta_chord, pi)) < pi/2)
+  parallel1 = (abs(modulo2(eleinfo%floor1%theta - theta_chord, pi)) < pi/2)
+  if (parallel0 .neqv. parallel1) then
+    call out_io (s_fatal$, r_name, 'VERY CONFUSED CSR CALCULATION! PLEASE SEAK HELP')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  if (.not. parallel0) eleinfo%L_chord = -eleinfo%L_chord
+
   call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
   eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
 enddo
