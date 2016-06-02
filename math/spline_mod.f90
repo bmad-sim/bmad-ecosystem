@@ -7,9 +7,9 @@ use sim_utils
 ! where dx = x_eval - s%x0 
 
 type spline_struct
-  real(rp) x0, y0       ! Point at start of spline
-  real(rp) x1           ! Point at end of spline
-  real(rp) coef(0:3)    ! coefficients for cubic spline
+  real(rp) :: x0 = 0, y0 = 0     ! Point at start of spline
+  real(rp) :: x1 = 0             ! Point at end of spline
+  real(rp) :: coef(0:3) = 0      ! coefficients for cubic spline
 end type
 
 private akima_spline_coef23_calc, akima_spline_slope_calc, end_akima_spline_calc 
