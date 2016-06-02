@@ -175,9 +175,9 @@ endif
 
 ! Calculate beam centroid info at element edges, etc.
 
-allocate (csr%eleinfo(0:ele%ix_ele))
+allocate (csr%eleinfo(0:ele%ix_ele+10))
 
-do i = 0, ele%ix_ele
+do i = 0, ele%ix_ele+10
   eleinfo => csr%eleinfo(i)
   eleinfo%ele => branch%ele(i)  ! Pointer to the P' element
   s_ele => eleinfo%ele
@@ -207,7 +207,11 @@ do i = 0, ele%ix_ele
   theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi/2)
   theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi/2)
   eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
-  if (eleinfo%L_chord == 0) cycle
+  if (eleinfo%L_chord == 0) then
+    eleinfo%spline = spline_struct()
+    eleinfo%dL_s = 0
+    cycle
+  endif
 
   ! With a negative step length, %L_chord is negative
   parallel0 = (abs(modulo2(eleinfo%floor0%theta - theta_chord, pi)) < pi/2)
@@ -739,11 +743,6 @@ do
   ! Look at ends of the source element and check if the source point is within the element or not.
   ! Generally dz decreases with increasing s but this may not be true for patch elements.
 
-  if (einfo_s%L_chord == 0) then
-    kick1%ix_ele_source = kick1%ix_ele_source + last_step
-    cycle
-  endif
-    
   ddz0 = ddz_calc_csr(0.0_rp)
   ddz1 = ddz_calc_csr(einfo_s%L_chord)
 
