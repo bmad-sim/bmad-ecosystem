@@ -127,7 +127,7 @@ real(rp), optional :: s_start, s_end
 real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
 real(rp) e_tot, f1, x, z
 
-integer i, j, ie, ns, nb, n_step, n_live, i_step
+integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 integer :: iu_wake
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
@@ -175,9 +175,10 @@ endif
 
 ! Calculate beam centroid info at element edges, etc.
 
-allocate (csr%eleinfo(0:ele%ix_ele+10))
+n = min(ele%ix_ele+10, branch%n_ele_track)
+allocate (csr%eleinfo(0:n))
 
-do i = 0, ele%ix_ele+10
+do i = 0, n
   eleinfo => csr%eleinfo(i)
   eleinfo%ele => branch%ele(i)  ! Pointer to the P' element
   s_ele => eleinfo%ele
