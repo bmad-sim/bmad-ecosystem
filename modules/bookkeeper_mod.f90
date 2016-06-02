@@ -119,7 +119,7 @@ character(20), parameter :: r_name = 'lattice_bookkeeper'
 E_MUON = bmad_com%electric_dipole_moment
 
 ! Turn on intelligent bookkeeping while this routine is running
-! If bookkeeping has nt been intelligent then mark everything as stale.
+! If bookkeeping has not been intelligent then mark everything as stale.
 
 auto_saved = bmad_com%auto_bookkeeper
 if (auto_saved) then
