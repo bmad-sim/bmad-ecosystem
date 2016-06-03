@@ -31,6 +31,7 @@ subroutine tao_lm_optimizer (abort)
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (super_mrqmin_storage_struct) storage
 
 real(rp), allocatable, save :: y(:), weight(:), a(:)
 real(rp), allocatable, save :: y_fit(:)
@@ -113,7 +114,10 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call super_mrqmin (y, weight, a, s%com%covar, s%com%alpha, chi_sq, tao_mrq_func, a_lambda, status) 
+  call super_mrqmin (y, weight, a, chi_sq, tao_mrq_func, storage, a_lambda, status) 
+  s%com%covar = storage%covar
+  s%com%alpha = storage%alpha
+
   call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
