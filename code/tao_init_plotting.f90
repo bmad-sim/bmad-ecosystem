@@ -591,6 +591,9 @@ do  ! Loop over plot files
         crv%data_source          = curve(j)%data_source
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
+        crv%data_type_z          = curve(j)%data_type_z
+        crv%z_color0             = curve(j)%z_color0
+        crv%z_color1             = curve(j)%z_color1
         crv%data_type            = curve(j)%data_type
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
         crv%symbol_every         = curve(j)%symbol_every
@@ -599,6 +602,7 @@ do  ! Loop over plot files
         crv%draw_symbols         = curve(j)%draw_symbols
         crv%draw_symbol_index    = curve(j)%draw_symbol_index
         crv%use_y2               = curve(j)%use_y2
+        crv%use_z_color          = curve(j)%use_z_color
         crv%symbol               = curve(j)%symbol
         crv%line                 = curve(j)%line
         crv%smooth_line_calc     = curve(j)%smooth_line_calc
@@ -647,8 +651,7 @@ do  ! Loop over plot files
         do
           ix = index(crv%name, '.')
           if (ix == 0) exit
-          call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, &
-                       'SUBSTITUTING "-"')
+          call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, 'SUBSTITUTING "-"')
           crv%name(ix:ix) = '-'
         enddo
 
@@ -660,7 +663,7 @@ do  ! Loop over plot files
             crv%data_type_x = crv%data_type(1:ix-1)
             crv%data_type   = crv%data_type(ix+1:)
           endif
-        endif  
+        endif
 
         ! Turn on the y2 axis numbering if needed.
 

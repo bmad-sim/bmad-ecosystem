@@ -951,6 +951,9 @@ case ('smooth_line_calc')
 case ('use_y2')
   call tao_logical_set_value (this_curve%use_y2, component, set_value, error)
 
+case ('use_z_color')
+  call tao_logical_set_value (this_curve%use_z_color, component, set_value, error)
+
 case ('data_source')
   this_curve%data_source = set_value
 
@@ -962,6 +965,15 @@ case ('data_type')
 
 case ('data_type_x')
   this_curve%data_type_x = set_value
+
+case ('data_type_z')
+  this_curve%data_type_z = set_value
+
+case ('z_color0')
+  call tao_real_set_value (this_curve%z_color0, component, set_value, error)  
+
+case ('z_color1')
+  call tao_real_set_value (this_curve%z_color1, component, set_value, error)  
 
 case ('hist%number')
   this_curve%hist%width = 0

@@ -88,16 +88,19 @@ type tao_curve_input
   character(40) :: name = ''
   character(40) :: data_source = 'lat'
   character(100) :: data_type_x = ''
+  character(100) :: data_type_z = ''
   character(100) :: data_type = ''
   character(100) :: data_index = ''
   character(40) :: legend_text = ''
   real(rp) :: y_axis_scale_factor = 1
+  real(rp) :: z_color0 = 0, z_color1 = 0
   integer :: symbol_every = 1
   integer :: ix_universe = -1
   logical :: draw_line = .true.
   logical :: draw_symbols = .true.
   logical :: draw_symbol_index = .false.
   logical :: use_y2 = .false.
+  logical :: use_z_color = .false.
   logical :: draw_interpolated_curve = .true.
   logical :: smooth_line_calc = .true.
   character(40) :: ele_ref_name = ''
