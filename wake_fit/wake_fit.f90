@@ -19,11 +19,12 @@ type wake_mode_struct
 end type
 
 type (wake_mode_struct) mode(100)
+type (super_mrqmin_storage_struct) storage
 
 real(rp) amp_weight, chisq, a_lambda, merit_min, merit_now, negligible_merit
 real(rp), allocatable :: y(:),  weight(:), a(:)
 real(rp), allocatable :: y_fit(:)
-real(rp), allocatable :: dy_da(:,:), alpha(:,:), covar(:,:)
+real(rp), allocatable :: dy_da(:,:)
 
 integer i, j, n_mode, n_var, n_data, n_cycles, n_pts, ix_data_start, ix_min
 integer status, n_y, id, iv, iv0
@@ -49,7 +50,6 @@ n_var = 4 * n_mode
 n_y = n_mode + n_data
 
 allocate (weight(n_y), y(n_y), y_fit(n_y), a(n_var))
-allocate (covar(n_var, n_var), alpha(n_var, n_var))
 allocate (dy_da(n_y, n_var))
 
 weight = 1
@@ -75,7 +75,7 @@ ix_min = 0
 a_lambda = -1
 
 do i = 1, 1000000
-  call super_mrqmin (y, weight, a, covar, alpha, chisq, mrq_func, a_lambda, status)
+  call super_mrqmin (y, weight, a, chisq, mrq_func, storage, a_lambda, status)
   if (status /= 0) then
     a_lambda = 2 * a_lambda
     cycle
