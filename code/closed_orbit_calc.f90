@@ -93,6 +93,7 @@ type (branch_struct), pointer :: branch
 type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
 type (coord_struct), pointer :: start, end
 type (bmad_common_struct) bmad_com_saved
+type (super_mrqmin_storage_struct) storage
 
 type matrix_save
   real(rp) mat6(6,6)
@@ -104,7 +105,7 @@ real(rp) t1(6,6), del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_del, this_del, max_eigen
 real(rp) a_lambda, chisq, old_chisq, rf_freq
-real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:), covar(:,:), alpha(:,:)
+real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
@@ -228,7 +229,7 @@ end select
 allocate(co_saved(0:ubound(closed_orb, 1)))
 call init_coord (start, start, ele_start, start_end$, start%species)
 
-allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim), covar(n_dim, n_dim), alpha(n_dim, n_dim))
+allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim))
 vec0 = 0
 maska = .false.
 stable_orbit_found = .false.
@@ -249,7 +250,7 @@ do i_loop = 1, i_max
   weight(1:n_dim) = 1 / (start%vec(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
   if (n_dim == 5) weight(5) = 1 / (start%vec(6) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
 
-  call super_mrqmin (vec0, weight, a, covar, alpha, chisq, co_func, a_lambda, status)
+  call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
 
   if (a_lambda < 1d-10) a_lambda = 1d-10
 

@@ -125,11 +125,12 @@ type (lat_param_struct) param
 type (coord_struct) here
 type (em_field_struct) field
 type (wiggler_modeling_common_struct), pointer :: c
+type (super_mrqmin_storage_struct) storage
 
 real(rp) s, B_y, b2_int, b3_int, B_max, r, len_bend, sum_angle
 real(rp) g_max, g2_int, g3_int, g_factor, a_lambda, chisq_old, chisq
 real(rp) mat6(6,6), vec0(6)
-real(rp), allocatable :: y(:), yfit(:), weight(:), a(:), covar(:,:), alpha(:,:)
+real(rp), allocatable :: y(:), yfit(:), weight(:), a(:)
 
 integer i, k, n_pole, last_peak_polarity
 integer i_max, n_var, n_data, status
@@ -368,8 +369,7 @@ else
   n_data = 14
 endif
 
-allocate (y(n_data), yfit(n_data), weight(n_data))
-allocate (a(n_var), covar(n_var, n_var), alpha(n_var,n_var))
+allocate (y(n_data), yfit(n_data), weight(n_data), a(n_var))
 
 a(1:4) = [g_max, 0.0_rp, len_bend, len_bend/4 ]
 if (even_pole_num) a(5) = len_bend/4
@@ -391,7 +391,7 @@ a_lambda = -1
 chisq_old = 1d10
 
 do i = 1, 100
-  call super_mrqmin (y, weight, a, covar, alpha, chisq, wig_func, a_lambda, status)
+  call super_mrqmin (y, weight, a, chisq, wig_func, storage, a_lambda, status)
   if (c%print_results) then
     if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1d10) then
       print *, '---------------------------'
@@ -431,7 +431,7 @@ if (any(wig_model_com%len_drifts < 0)) then
 
 endif
 
-deallocate (y, yfit, weight, a, covar, alpha)
+deallocate (y, yfit, weight, a)
 
 end subroutine
 
