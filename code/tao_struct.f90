@@ -1,3 +1,4 @@
+
 !+
 ! Module tao_struct
 !
@@ -145,8 +146,9 @@ type tao_curve_struct
   character(40) :: name = ''             ! Name identifying the curve.
   character(40) :: data_source  = ''     ! 'lat', 'data' (deprecated: 'dat'), 'var', etc.
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
-  character(200) :: data_type_x = ''     ! Used for data slices and phase space plots.
-  character(200) :: data_type   = ''     ! 'orbit.x', etc.
+  character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
+  character(100) :: data_type_z = ''     ! Used for data phase space plots.
+  character(100) :: data_type   = ''     ! 'orbit.x', etc.
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
@@ -158,10 +160,12 @@ type tao_curve_struct
   integer, allocatable :: ix_line(:)     ! Branch index for multi lattice branch curves.
   real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
+  real(rp), allocatable :: z_symb(:) 
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
   real(rp) :: s = 0                      ! longitudinal position
+  real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%com%default_universe
@@ -176,6 +180,7 @@ type tao_curve_struct
   logical :: draw_symbols = .true.       ! Draw a symbol at the data points?
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
+  logical :: use_z_color = .false.       ! For phase space plots.
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.

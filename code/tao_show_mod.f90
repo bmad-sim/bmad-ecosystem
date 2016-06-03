@@ -650,6 +650,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'data_source          = ', c1%data_source
       nl=nl+1; write(lines(nl), amt)  'data_index           = ', c1%data_index
       nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', c1%data_type_x
+      nl=nl+1; write(lines(nl), amt)  'data_type_z          = ', c1%data_type_z
       nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
@@ -660,7 +661,10 @@ case ('curve')
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
       nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
       nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
+      nl=nl+1; write(lines(nl), rmt)  'z_color0             = ', c1%z_color0
+      nl=nl+1; write(lines(nl), rmt)  'z_color1             = ', c1%z_color1
       nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
+      nl=nl+1; write(lines(nl), lmt)  'use_z_color          = ', c1%use_z_color
       nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
       nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
