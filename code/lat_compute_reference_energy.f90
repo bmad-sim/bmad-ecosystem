@@ -420,13 +420,17 @@ case (lcavity$)
     if (err) return
   endif
 
-  ! Track
+  ! Track. With runge_kutta, a shift in the end energy can cause small changes in the tracking.
+  ! So if there has been a shift in end energy, track again.
 
-  call track_this_ele (.false., err); if (err) return
-
-  ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
-  call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-  if (err) return
+  do i = 1, 2
+    call track_this_ele (.false., err); if (err) return
+    ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
+    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
+    if (err) return
+    if (ele%tracking_method == bmad_standard$ .or. &
+            abs(ele%value(p0c$) - ele%old_value(p0c$)) < 0.01 * (ele%value(p0c$) + ele%old_value(p0c$))) exit
+  enddo
 
   call calc_time_ref_orb_out
 
