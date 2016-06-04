@@ -132,12 +132,10 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
     ! Since p0c_ref_init the voltage may both be zero, just use a dummy number in this case.
-    if (gun_ele%value(p0c_start$) == 0 .and. gun_ele%value(voltage$) == 0) then
-      gun_ele%value(e_tot$) = gun_ele%value(e_tot_ref_init$) + 1d5
-    else
-      gun_ele%value(e_tot$) = gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$)
+    if (gun_ele%value(p0c$) == 0) then
+      gun_ele%value(p0c$) = 1d5 + gun_ele%value(voltage$)
     endif
-    call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
+    call convert_pc_to (gun_ele%value(p0c$), branch%param%particle, E_tot= gun_ele%value(E_tot$))
     gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
     gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
@@ -161,7 +159,7 @@ do ib = 0, ubound(lat%branch, 1)
     do ie = 1, ix_e_gun
       ele => branch%ele(ie)
       ele%value(p0c_start$)   = init_elem%value(p0c$)
-      ele%value(e_tot_start$) = init_elem%value(e_tot_start$)
+      ele%value(e_tot_start$) = init_elem%value(e_tot$)
       ele%value(p0c$)         = init_elem%value(p0c$)
       ele%value(e_tot$)       = init_elem%value(e_tot$)
     enddo
