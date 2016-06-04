@@ -1099,10 +1099,10 @@ integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
-integer, parameter :: p0c_start$ = 51
-integer, parameter :: e_tot_start$ = 52   
-integer, parameter :: p0c$ = 53         ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$ = 54       ! Assumed unique. Do not overload.
+integer, parameter :: p0c_start$ = 51      ! Assumed unique. Do not overload.
+integer, parameter :: e_tot_start$ = 52    ! Assumed unique. Do not overload.
+integer, parameter :: p0c$ = 53            ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$ = 54          ! Assumed unique. Do not overload.
 integer, parameter :: x_pitch_tot$ = 55, no_end_marker$ = 55
 integer, parameter :: y_pitch_tot$ = 56
 integer, parameter :: x_offset_tot$ = 57
