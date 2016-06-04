@@ -623,8 +623,15 @@ v_mask([x_offset$, y_offset$, z_offset$, &
 offset_mask = .not. v_mask
 v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
 
+! With runge_kutta tracking, must use a less stringent tolerance for what is a significant change.
+
 dval = abs(val - ele%old_value)
 dval_change = (dval > small_rel_change$ * abs(val))
+dval_change(p0c_start$)   = (dval(p0c_start$)   > (1d-3 + bmad_com%rel_tol_adaptive_tracking * val(p0c_start$)))
+dval_change(E_tot_start$) = (dval(E_tot_start$) > (1d-3 + bmad_com%rel_tol_adaptive_tracking * val(E_tot_start$)))
+dval_change(p0c$)         = (dval(p0c$)         > (1d-3 + bmad_com%rel_tol_adaptive_tracking * val(p0c$)))
+dval_change(E_tot$)       = (dval(E_tot$)       > (1d-3 + bmad_com%rel_tol_adaptive_tracking * val(E_tot$)))
+
 ! delta_ref_time can have relatively large changes since this is computed 
 ! as an absolute time difference. Also it is a dependent attribute.
 dval_change(delta_ref_time$) = .false.  

@@ -31,7 +31,7 @@ type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, 
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
-real(rp) pc
+real(rp) pc, abs_tol(2)
 real(rp), parameter :: zero6(6) = 0
 
 integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
@@ -194,7 +194,6 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
 
     if (.not. stale .and. ele%bookkeeping_state%ref_energy /= stale$) cycle
-
     stale = .true.
 
     !
@@ -330,8 +329,10 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
-  if (abs(lord%value(p0c$) - lord%old_value(p0c$)) > small_rel_change$ * lord%value(p0c$) .or. &
-      abs(lord%value(p0c_start$) - lord%old_value(p0c_start$)) > small_rel_change$ * lord%value(p0c_start$)) then
+  abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c_start$)
+  abs_tol(2) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
+
+  if (ele_value_has_changed(lord, [p0c$, delta_ref_time$], abs_tol, .true.)) then
     call set_ele_status_stale (lord, attribute_group$)
   endif
 
@@ -375,7 +376,7 @@ type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
-real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, rel_tol(2)
+real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(2)
 real(rp) value_saved(num_ele_attrib$)
 
 integer i, key
@@ -428,8 +429,9 @@ case (lcavity$)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
+
     if (ele%tracking_method == bmad_standard$ .or. &
-            abs(ele%value(p0c$) - ele%old_value(p0c$)) < 0.01 * (ele%value(p0c$) + ele%old_value(p0c$))) exit
+            abs(ele%value(p0c$) - ele%old_value(p0c$)) < 1d-6 * (ele%value(p0c$) + ele%old_value(p0c$))) exit
   enddo
 
   call calc_time_ref_orb_out
@@ -514,16 +516,14 @@ if (abs(ele%value(delta_ref_time$) - ele%old_value(delta_ref_time$)) * c_light >
   ele%bookkeeping_state%mat6 = stale$
 endif
 
-! %old_value(delta_ref_time$) is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
-! However changes in the reference energy should trigger bookkeeping. 
+! Changes in the reference energy should trigger bookkeeping. 
 ! Example: A lattice with bends with field_master = True, flexible patch, and absolute time tracking has
-! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
+! the reference energy dependent upon the geometry and the geometry depends upon the ref energy.
 
-rel_tol = [1e-3_rp, bmad_com%significant_length/c_light]
-if (ele%tracking_method == runge_kutta$ .or. ele%tracking_method == time_runge_kutta$) &
-                  rel_tol(1) = rel_tol(1) + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
+abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
+abs_tol(2) = bmad_com%significant_length/c_light
 
-if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], rel_tol, .true.)) then
+if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.)) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord
