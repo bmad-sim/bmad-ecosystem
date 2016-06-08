@@ -1,318 +1,318 @@
  
-"NH3+:mass"      17.030518791
-"NH3+:charge"  1
-"CH3++:mass"      15.034498933
-"CH3++:charge"  2
-"CH3++:mass"      15.034498933
-"CH3++:charge"  2
-"NH3@M37.5-:mass"      17.030518791
-"NH3@M37.5-:charge"  -1
-"C+:mass"      12.009600000
-"C+:charge"  1
-"#12C+:mass"      12.000000000
-"#12C+:charge"  1
-"H2O-4:mass"      18.015278722
-"H2O-4:charge"  -4
-"Electron:mass"       0.000548580
-"Electron:charge"  -1
+"NH3+:mass" ABS  1E-10     17.030518791
+"NH3+:charge" ABS  0      1
+"CH3++:mass" ABS  1E-10     15.034498933
+"CH3++:charge" ABS  0      2
+"CH3++:mass" ABS  1E-10     15.034498933
+"CH3++:charge" ABS  0      2
+"NH3@M37.5-:mass" ABS  1E-10     17.030518791
+"NH3@M37.5-:charge" ABS  0     -1
+"C+:mass" ABS  1E-10     12.009600000
+"C+:charge" ABS  0      1
+"#12C+:mass" ABS  1E-10     12.000000000
+"#12C+:charge" ABS  0      1
+"H2O-4:mass" ABS  1E-10     18.015278722
+"H2O-4:charge" ABS  0     -4
+"Electron:mass" ABS  1E-10      0.000548580
+"Electron:charge" ABS  0     -1
  
-"Pion-:mass"      1.3957018000E+08
-"Pion-:charge"  -1
-"Muon:mass"      1.0565837450E+08
-"Muon:charge"  -1
-"Antiproton:mass"      9.3827208130E+08
-"Antiproton:charge"  -1
-"Electron:mass"      5.1099894610E+05
-"Electron:charge"  -1
-"Photon:mass"      0.0000000000E+00
-"Photon:charge"  0
-"Positron:mass"      5.1099894610E+05
-"Positron:charge"  1
-"Proton:mass"      9.3827208130E+08
-"Proton:charge"  1
-"Antimuon:mass"      1.0565837450E+08
-"Antimuon:charge"  1
-"Pion+:mass"      1.3957018000E+08
-"Pion+:charge"  1
-"Pion0:mass"      1.3497660000E+08
-"Pion0:charge"  0
-"Ref_Particle:mass"      0.0000000000E+00
-"Ref_Particle:charge"  0
-"Anti_Ref_Particle:mass"      0.0000000000E+00
-"Anti_Ref_Particle:charge"  0
-"Deuteron:mass"      1.8756129280E+09
-"Deuteron:charge"  1
+"Pion-:mass" ABS  1E-10     1.3957018000E+08
+"Pion-:charge" ABS  0     -1
+"Muon:mass" ABS  1E-10     1.0565837450E+08
+"Muon:charge" ABS  0     -1
+"Antiproton:mass" ABS  1E-10     9.3827208130E+08
+"Antiproton:charge" ABS  0     -1
+"Electron:mass" ABS  1E-10     5.1099894610E+05
+"Electron:charge" ABS  0     -1
+"Photon:mass" ABS  1E-10     0.0000000000E+00
+"Photon:charge" ABS  0      0
+"Positron:mass" ABS  1E-10     5.1099894610E+05
+"Positron:charge" ABS  0      1
+"Proton:mass" ABS  1E-10     9.3827208130E+08
+"Proton:charge" ABS  0      1
+"Antimuon:mass" ABS  1E-10     1.0565837450E+08
+"Antimuon:charge" ABS  0      1
+"Pion+:mass" ABS  1E-10     1.3957018000E+08
+"Pion+:charge" ABS  0      1
+"Pion0:mass" ABS  1E-10     1.3497660000E+08
+"Pion0:charge" ABS  0      0
+"Ref_Particle:mass" ABS  1E-10     0.0000000000E+00
+"Ref_Particle:charge" ABS  0      0
+"Anti_Ref_Particle:mass" ABS  1E-10     0.0000000000E+00
+"Anti_Ref_Particle:charge" ABS  0      0
+"Deuteron:mass" ABS  1E-10     1.8756129280E+09
+"Deuteron:charge" ABS  0      1
  
-"H:mass"       1.007840000
-"H:charge"  0
-"He:mass"       4.002602000
-"He:charge"  0
-"Li:mass"       6.938000000
-"Li:charge"  0
-"Be:mass"       9.012183100
-"Be:charge"  0
-"B:mass"      10.806000000
-"B:charge"  0
-"C:mass"      12.009600000
-"C:charge"  0
-"N:mass"      14.006430000
-"N:charge"  0
-"O:mass"      15.999030000
-"O:charge"  0
-"F:mass"      18.998403163
-"F:charge"  0
-"Ne:mass"      20.179700000
-"Ne:charge"  0
-"Na:mass"      22.989769280
-"Na:charge"  0
-"Mg:mass"      24.304000000
-"Mg:charge"  0
-"Al:mass"      26.981538500
-"Al:charge"  0
-"Si:mass"      28.084000000
-"Si:charge"  0
-"P:mass"      30.973761998
-"P:charge"  0
-"S:mass"      32.059000000
-"S:charge"  0
-"Cl:mass"      35.446000000
-"Cl:charge"  0
-"Ar:mass"      39.948000000
-"Ar:charge"  0
-"K:mass"      39.098300000
-"K:charge"  0
-"Ca:mass"      40.078000000
-"Ca:charge"  0
-"Sc:mass"      44.955908000
-"Sc:charge"  0
-"Ti:mass"      47.867000000
-"Ti:charge"  0
-"V:mass"      50.941500000
-"V:charge"  0
-"Cr:mass"      51.996100000
-"Cr:charge"  0
-"Mn:mass"      54.938044000
-"Mn:charge"  0
-"Fe:mass"      55.845000000
-"Fe:charge"  0
-"Co:mass"      58.933194000
-"Co:charge"  0
-"Ni:mass"      58.693400000
-"Ni:charge"  0
-"Cu:mass"      63.546000000
-"Cu:charge"  0
-"Zn:mass"      65.380000000
-"Zn:charge"  0
-"Ga:mass"      69.723000000
-"Ga:charge"  0
-"Ge:mass"      72.630000000
-"Ge:charge"  0
-"As:mass"      74.921595000
-"As:charge"  0
-"Se:mass"      78.971000000
-"Se:charge"  0
-"Br:mass"      79.901000000
-"Br:charge"  0
-"Kr:mass"      83.798000000
-"Kr:charge"  0
-"Rb:mass"      85.467800000
-"Rb:charge"  0
-"Sr:mass"      87.620000000
-"Sr:charge"  0
-"Y:mass"      88.905840000
-"Y:charge"  0
-"Zr:mass"      91.224000000
-"Zr:charge"  0
-"Nb:mass"      92.906370000
-"Nb:charge"  0
-"Mo:mass"      95.950000000
-"Mo:charge"  0
-"Tc:mass"      98.000000000
-"Tc:charge"  0
-"Ru:mass"     101.070000000
-"Ru:charge"  0
-"Rh:mass"     102.905500000
-"Rh:charge"  0
-"Pd:mass"     106.420000000
-"Pd:charge"  0
-"Ag:mass"     107.868200000
-"Ag:charge"  0
-"Cd:mass"     112.414000000
-"Cd:charge"  0
-"In:mass"     114.818000000
-"In:charge"  0
-"Sn:mass"     118.710000000
-"Sn:charge"  0
-"Sb:mass"     121.760000000
-"Sb:charge"  0
-"Te:mass"     127.600000000
-"Te:charge"  0
-"I:mass"     126.904470000
-"I:charge"  0
-"Xe:mass"     131.293000000
-"Xe:charge"  0
-"Cs:mass"     132.905451960
-"Cs:charge"  0
-"Ba:mass"     137.327000000
-"Ba:charge"  0
-"La:mass"     138.905470000
-"La:charge"  0
-"Ce:mass"     140.116000000
-"Ce:charge"  0
-"Pr:mass"     140.907660000
-"Pr:charge"  0
-"Nd:mass"     144.242000000
-"Nd:charge"  0
-"Pm:mass"     145.000000000
-"Pm:charge"  0
-"Sm:mass"     150.360000000
-"Sm:charge"  0
-"Eu:mass"     151.964000000
-"Eu:charge"  0
-"Gd:mass"     157.250000000
-"Gd:charge"  0
-"Tb:mass"     158.925350000
-"Tb:charge"  0
-"Dy:mass"     162.500000000
-"Dy:charge"  0
-"Ho:mass"     164.930330000
-"Ho:charge"  0
-"Er:mass"     167.259000000
-"Er:charge"  0
-"Tm:mass"     168.934220000
-"Tm:charge"  0
-"Yb:mass"     173.054000000
-"Yb:charge"  0
-"Lu:mass"     174.966800000
-"Lu:charge"  0
-"Hf:mass"     178.490000000
-"Hf:charge"  0
-"Ta:mass"     180.947880000
-"Ta:charge"  0
-"W:mass"     183.840000000
-"W:charge"  0
-"Re:mass"     186.207000000
-"Re:charge"  0
-"Os:mass"     190.230000000
-"Os:charge"  0
-"Ir:mass"     192.217000000
-"Ir:charge"  0
-"Pt:mass"     195.084000000
-"Pt:charge"  0
-"Au:mass"     196.966569000
-"Au:charge"  0
-"Hg:mass"     200.592000000
-"Hg:charge"  0
-"Tl:mass"     204.382000000
-"Tl:charge"  0
-"Pb:mass"     207.200000000
-"Pb:charge"  0
-"Bi:mass"     208.980400000
-"Bi:charge"  0
-"Po:mass"     209.000000000
-"Po:charge"  0
-"At:mass"     210.000000000
-"At:charge"  0
-"Rn:mass"     222.000000000
-"Rn:charge"  0
-"Fr:mass"     223.000000000
-"Fr:charge"  0
-"Ra:mass"     226.000000000
-"Ra:charge"  0
-"Ac:mass"     227.000000000
-"Ac:charge"  0
-"Th:mass"     232.037700000
-"Th:charge"  0
-"Pa:mass"     231.035880000
-"Pa:charge"  0
-"U:mass"     238.028910000
-"U:charge"  0
-"Np:mass"     237.000000000
-"Np:charge"  0
-"Pu:mass"     244.000000000
-"Pu:charge"  0
-"Am:mass"     241.056829300
-"Am:charge"  0
-"Cm:mass"     243.061389300
-"Cm:charge"  0
-"Bk:mass"     247.070307300
-"Bk:charge"  0
-"Cf:mass"     249.074853900
-"Cf:charge"  0
-"Es:mass"     252.082980000
-"Es:charge"  0
-"Fm:mass"     257.095106100
-"Fm:charge"  0
-"Md:mass"     258.098431500
-"Md:charge"  0
-"No:mass"     259.101030000
-"No:charge"  0
-"Lr:mass"     262.109610000
-"Lr:charge"  0
-"Rf:mass"     267.121790000
-"Rf:charge"  0
-"Db:mass"     268.125670000
-"Db:charge"  0
-"Sg:mass"     271.133930000
-"Sg:charge"  0
-"Bh:mass"     272.138260000
-"Bh:charge"  0
-"Hs:mass"     270.134290000
-"Hs:charge"  0
-"Mt:mass"     276.151590000
-"Mt:charge"  0
-"Ds:mass"     281.164510000
-"Ds:charge"  0
-"Rg:mass"     280.165140000
-"Rg:charge"  0
-"Cn:mass"     285.177120000
-"Cn:charge"  0
-"Uut:mass"     284.178730000
-"Uut:charge"  0
-"Fl:mass"     289.190420000
-"Fl:charge"  0
-"Uup:mass"     288.192740000
-"Uup:charge"  0
-"Lv:mass"     293.204490000
-"Lv:charge"  0
-"Uus:mass"     292.207460000
-"Uus:charge"  0
-"Uuo:mass"     294.213920000
-"Uuo:charge"  0
+"H:mass" ABS  1E-10      1.007840000
+"H:charge" ABS  0      0
+"He:mass" ABS  1E-10      4.002602000
+"He:charge" ABS  0      0
+"Li:mass" ABS  1E-10      6.938000000
+"Li:charge" ABS  0      0
+"Be:mass" ABS  1E-10      9.012183100
+"Be:charge" ABS  0      0
+"B:mass" ABS  1E-10     10.806000000
+"B:charge" ABS  0      0
+"C:mass" ABS  1E-10     12.009600000
+"C:charge" ABS  0      0
+"N:mass" ABS  1E-10     14.006430000
+"N:charge" ABS  0      0
+"O:mass" ABS  1E-10     15.999030000
+"O:charge" ABS  0      0
+"F:mass" ABS  1E-10     18.998403163
+"F:charge" ABS  0      0
+"Ne:mass" ABS  1E-10     20.179700000
+"Ne:charge" ABS  0      0
+"Na:mass" ABS  1E-10     22.989769280
+"Na:charge" ABS  0      0
+"Mg:mass" ABS  1E-10     24.304000000
+"Mg:charge" ABS  0      0
+"Al:mass" ABS  1E-10     26.981538500
+"Al:charge" ABS  0      0
+"Si:mass" ABS  1E-10     28.084000000
+"Si:charge" ABS  0      0
+"P:mass" ABS  1E-10     30.973761998
+"P:charge" ABS  0      0
+"S:mass" ABS  1E-10     32.059000000
+"S:charge" ABS  0      0
+"Cl:mass" ABS  1E-10     35.446000000
+"Cl:charge" ABS  0      0
+"Ar:mass" ABS  1E-10     39.948000000
+"Ar:charge" ABS  0      0
+"K:mass" ABS  1E-10     39.098300000
+"K:charge" ABS  0      0
+"Ca:mass" ABS  1E-10     40.078000000
+"Ca:charge" ABS  0      0
+"Sc:mass" ABS  1E-10     44.955908000
+"Sc:charge" ABS  0      0
+"Ti:mass" ABS  1E-10     47.867000000
+"Ti:charge" ABS  0      0
+"V:mass" ABS  1E-10     50.941500000
+"V:charge" ABS  0      0
+"Cr:mass" ABS  1E-10     51.996100000
+"Cr:charge" ABS  0      0
+"Mn:mass" ABS  1E-10     54.938044000
+"Mn:charge" ABS  0      0
+"Fe:mass" ABS  1E-10     55.845000000
+"Fe:charge" ABS  0      0
+"Co:mass" ABS  1E-10     58.933194000
+"Co:charge" ABS  0      0
+"Ni:mass" ABS  1E-10     58.693400000
+"Ni:charge" ABS  0      0
+"Cu:mass" ABS  1E-10     63.546000000
+"Cu:charge" ABS  0      0
+"Zn:mass" ABS  1E-10     65.380000000
+"Zn:charge" ABS  0      0
+"Ga:mass" ABS  1E-10     69.723000000
+"Ga:charge" ABS  0      0
+"Ge:mass" ABS  1E-10     72.630000000
+"Ge:charge" ABS  0      0
+"As:mass" ABS  1E-10     74.921595000
+"As:charge" ABS  0      0
+"Se:mass" ABS  1E-10     78.971000000
+"Se:charge" ABS  0      0
+"Br:mass" ABS  1E-10     79.901000000
+"Br:charge" ABS  0      0
+"Kr:mass" ABS  1E-10     83.798000000
+"Kr:charge" ABS  0      0
+"Rb:mass" ABS  1E-10     85.467800000
+"Rb:charge" ABS  0      0
+"Sr:mass" ABS  1E-10     87.620000000
+"Sr:charge" ABS  0      0
+"Y:mass" ABS  1E-10     88.905840000
+"Y:charge" ABS  0      0
+"Zr:mass" ABS  1E-10     91.224000000
+"Zr:charge" ABS  0      0
+"Nb:mass" ABS  1E-10     92.906370000
+"Nb:charge" ABS  0      0
+"Mo:mass" ABS  1E-10     95.950000000
+"Mo:charge" ABS  0      0
+"Tc:mass" ABS  1E-10     98.000000000
+"Tc:charge" ABS  0      0
+"Ru:mass" ABS  1E-10    101.070000000
+"Ru:charge" ABS  0      0
+"Rh:mass" ABS  1E-10    102.905500000
+"Rh:charge" ABS  0      0
+"Pd:mass" ABS  1E-10    106.420000000
+"Pd:charge" ABS  0      0
+"Ag:mass" ABS  1E-10    107.868200000
+"Ag:charge" ABS  0      0
+"Cd:mass" ABS  1E-10    112.414000000
+"Cd:charge" ABS  0      0
+"In:mass" ABS  1E-10    114.818000000
+"In:charge" ABS  0      0
+"Sn:mass" ABS  1E-10    118.710000000
+"Sn:charge" ABS  0      0
+"Sb:mass" ABS  1E-10    121.760000000
+"Sb:charge" ABS  0      0
+"Te:mass" ABS  1E-10    127.600000000
+"Te:charge" ABS  0      0
+"I:mass" ABS  1E-10    126.904470000
+"I:charge" ABS  0      0
+"Xe:mass" ABS  1E-10    131.293000000
+"Xe:charge" ABS  0      0
+"Cs:mass" ABS  1E-10    132.905451960
+"Cs:charge" ABS  0      0
+"Ba:mass" ABS  1E-10    137.327000000
+"Ba:charge" ABS  0      0
+"La:mass" ABS  1E-10    138.905470000
+"La:charge" ABS  0      0
+"Ce:mass" ABS  1E-10    140.116000000
+"Ce:charge" ABS  0      0
+"Pr:mass" ABS  1E-10    140.907660000
+"Pr:charge" ABS  0      0
+"Nd:mass" ABS  1E-10    144.242000000
+"Nd:charge" ABS  0      0
+"Pm:mass" ABS  1E-10    145.000000000
+"Pm:charge" ABS  0      0
+"Sm:mass" ABS  1E-10    150.360000000
+"Sm:charge" ABS  0      0
+"Eu:mass" ABS  1E-10    151.964000000
+"Eu:charge" ABS  0      0
+"Gd:mass" ABS  1E-10    157.250000000
+"Gd:charge" ABS  0      0
+"Tb:mass" ABS  1E-10    158.925350000
+"Tb:charge" ABS  0      0
+"Dy:mass" ABS  1E-10    162.500000000
+"Dy:charge" ABS  0      0
+"Ho:mass" ABS  1E-10    164.930330000
+"Ho:charge" ABS  0      0
+"Er:mass" ABS  1E-10    167.259000000
+"Er:charge" ABS  0      0
+"Tm:mass" ABS  1E-10    168.934220000
+"Tm:charge" ABS  0      0
+"Yb:mass" ABS  1E-10    173.054000000
+"Yb:charge" ABS  0      0
+"Lu:mass" ABS  1E-10    174.966800000
+"Lu:charge" ABS  0      0
+"Hf:mass" ABS  1E-10    178.490000000
+"Hf:charge" ABS  0      0
+"Ta:mass" ABS  1E-10    180.947880000
+"Ta:charge" ABS  0      0
+"W:mass" ABS  1E-10    183.840000000
+"W:charge" ABS  0      0
+"Re:mass" ABS  1E-10    186.207000000
+"Re:charge" ABS  0      0
+"Os:mass" ABS  1E-10    190.230000000
+"Os:charge" ABS  0      0
+"Ir:mass" ABS  1E-10    192.217000000
+"Ir:charge" ABS  0      0
+"Pt:mass" ABS  1E-10    195.084000000
+"Pt:charge" ABS  0      0
+"Au:mass" ABS  1E-10    196.966569000
+"Au:charge" ABS  0      0
+"Hg:mass" ABS  1E-10    200.592000000
+"Hg:charge" ABS  0      0
+"Tl:mass" ABS  1E-10    204.382000000
+"Tl:charge" ABS  0      0
+"Pb:mass" ABS  1E-10    207.200000000
+"Pb:charge" ABS  0      0
+"Bi:mass" ABS  1E-10    208.980400000
+"Bi:charge" ABS  0      0
+"Po:mass" ABS  1E-10    209.000000000
+"Po:charge" ABS  0      0
+"At:mass" ABS  1E-10    210.000000000
+"At:charge" ABS  0      0
+"Rn:mass" ABS  1E-10    222.000000000
+"Rn:charge" ABS  0      0
+"Fr:mass" ABS  1E-10    223.000000000
+"Fr:charge" ABS  0      0
+"Ra:mass" ABS  1E-10    226.000000000
+"Ra:charge" ABS  0      0
+"Ac:mass" ABS  1E-10    227.000000000
+"Ac:charge" ABS  0      0
+"Th:mass" ABS  1E-10    232.037700000
+"Th:charge" ABS  0      0
+"Pa:mass" ABS  1E-10    231.035880000
+"Pa:charge" ABS  0      0
+"U:mass" ABS  1E-10    238.028910000
+"U:charge" ABS  0      0
+"Np:mass" ABS  1E-10    237.000000000
+"Np:charge" ABS  0      0
+"Pu:mass" ABS  1E-10    244.000000000
+"Pu:charge" ABS  0      0
+"Am:mass" ABS  1E-10    241.056829300
+"Am:charge" ABS  0      0
+"Cm:mass" ABS  1E-10    243.061389300
+"Cm:charge" ABS  0      0
+"Bk:mass" ABS  1E-10    247.070307300
+"Bk:charge" ABS  0      0
+"Cf:mass" ABS  1E-10    249.074853900
+"Cf:charge" ABS  0      0
+"Es:mass" ABS  1E-10    252.082980000
+"Es:charge" ABS  0      0
+"Fm:mass" ABS  1E-10    257.095106100
+"Fm:charge" ABS  0      0
+"Md:mass" ABS  1E-10    258.098431500
+"Md:charge" ABS  0      0
+"No:mass" ABS  1E-10    259.101030000
+"No:charge" ABS  0      0
+"Lr:mass" ABS  1E-10    262.109610000
+"Lr:charge" ABS  0      0
+"Rf:mass" ABS  1E-10    267.121790000
+"Rf:charge" ABS  0      0
+"Db:mass" ABS  1E-10    268.125670000
+"Db:charge" ABS  0      0
+"Sg:mass" ABS  1E-10    271.133930000
+"Sg:charge" ABS  0      0
+"Bh:mass" ABS  1E-10    272.138260000
+"Bh:charge" ABS  0      0
+"Hs:mass" ABS  1E-10    270.134290000
+"Hs:charge" ABS  0      0
+"Mt:mass" ABS  1E-10    276.151590000
+"Mt:charge" ABS  0      0
+"Ds:mass" ABS  1E-10    281.164510000
+"Ds:charge" ABS  0      0
+"Rg:mass" ABS  1E-10    280.165140000
+"Rg:charge" ABS  0      0
+"Cn:mass" ABS  1E-10    285.177120000
+"Cn:charge" ABS  0      0
+"Uut:mass" ABS  1E-10    284.178730000
+"Uut:charge" ABS  0      0
+"Fl:mass" ABS  1E-10    289.190420000
+"Fl:charge" ABS  0      0
+"Uup:mass" ABS  1E-10    288.192740000
+"Uup:charge" ABS  0      0
+"Lv:mass" ABS  1E-10    293.204490000
+"Lv:charge" ABS  0      0
+"Uus:mass" ABS  1E-10    292.207460000
+"Uus:charge" ABS  0      0
+"Uuo:mass" ABS  1E-10    294.213920000
+"Uuo:charge" ABS  0      0
  
-"CH2:mass"      14.026579005
-"CH2:charge"  0
-"CH3:mass"      15.034498933
-"CH3:charge"  0
-"CH4:mass"      16.042498862
-"CH4:charge"  0
-"CO:mass"      28.010098012
-"CO:charge"  0
-"CO2:mass"      44.009496877
-"CO2:charge"  0
-"D2:mass"       4.028203270
-"D2:charge"  0
-"D2O:mass"      20.027598579
-"D2O:charge"  0
-"H2:mass"       2.015879857
-"H2:charge"  0
-"H2O:mass"      18.015278722
-"H2O:charge"  0
-"N2:mass"      28.013398012
-"N2:charge"  0
-"HF:mass"      20.006341580
-"HF:charge"  0
-"OH:mass"      17.007338793
-"OH:charge"  0
-"O2:mass"      31.998797729
-"O2:charge"  0
-"NH2:mass"      16.022800000
-"NH2:charge"  0
-"NH3:mass"      17.030518791
-"NH3:charge"  0
-"C2H3:mass"      27.045700000
-"C2H3:charge"  0
-"C2H4:mass"      28.053600000
-"C2H4:charge"  0
-"C2H5:mass"      29.061500000
-"C2H5:charge"  0
+"CH2:mass" ABS  1E-10     14.026579005
+"CH2:charge" ABS  0      0
+"CH3:mass" ABS  1E-10     15.034498933
+"CH3:charge" ABS  0      0
+"CH4:mass" ABS  1E-10     16.042498862
+"CH4:charge" ABS  0      0
+"CO:mass" ABS  1E-10     28.010098012
+"CO:charge" ABS  0      0
+"CO2:mass" ABS  1E-10     44.009496877
+"CO2:charge" ABS  0      0
+"D2:mass" ABS  1E-10      4.028203270
+"D2:charge" ABS  0      0
+"D2O:mass" ABS  1E-10     20.027598579
+"D2O:charge" ABS  0      0
+"H2:mass" ABS  1E-10      2.015879857
+"H2:charge" ABS  0      0
+"H2O:mass" ABS  1E-10     18.015278722
+"H2O:charge" ABS  0      0
+"N2:mass" ABS  1E-10     28.013398012
+"N2:charge" ABS  0      0
+"HF:mass" ABS  1E-10     20.006341580
+"HF:charge" ABS  0      0
+"OH:mass" ABS  1E-10     17.007338793
+"OH:charge" ABS  0      0
+"O2:mass" ABS  1E-10     31.998797729
+"O2:charge" ABS  0      0
+"NH2:mass" ABS  1E-10     16.022800000
+"NH2:charge" ABS  0      0
+"NH3:mass" ABS  1E-10     17.030518791
+"NH3:charge" ABS  0      0
+"C2H3:mass" ABS  1E-10     27.045700000
+"C2H3:charge" ABS  0      0
+"C2H4:mass" ABS  1E-10     28.053600000
+"C2H4:charge" ABS  0      0
+"C2H5:mass" ABS  1E-10     29.061500000
+"C2H5:charge" ABS  0      0

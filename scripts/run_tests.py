@@ -235,7 +235,7 @@ for test_dir in test_dir_list:
 
     elif now_end[0] == 'ABS' or now_end[0] == 'REL':
       now2_split = now_split[2].strip().split()
-      correct2_split = correct_split[2].strip().split()
+      correct2_split = correct_split[2].strip().split()[2:]   # [2:] -> Throw away EG: "ABS 2E-7"
       
       if len(now2_split) < 3:
         print_all ('     Bad line line "output.now": ' + now_line, True, color = True)

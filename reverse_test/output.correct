@@ -1,595 +1,595 @@
-"AB_MULTIPOLE1@Bmad_Standard:dorb_r"                2.3066E-17
-"AB_MULTIPOLE1@Bmad_Standard:c*dt_r"                0.0000E+00
-"AB_MULTIPOLE1@Bmad_Standard:dorb_b"                2.3066E-17
-"AB_MULTIPOLE1@Bmad_Standard:c*dt_b"                0.0000E+00
-"AB_MULTIPOLE1@Bmad_Standard:xmat"                   0.0000E+00
-"AB_MULTIPOLE1@Symp_Lie_PTC:dorb_r"                 3.6917E-17
-"AB_MULTIPOLE1@Symp_Lie_PTC:c*dt_r"                 0.0000E+00
-"AB_MULTIPOLE1@Symp_Lie_PTC:dorb_b"                   1.0062E+00
-"AB_MULTIPOLE1@Symp_Lie_PTC:c*dt_b"                 0.0000E+00
-"AB_MULTIPOLE1@Symp_Lie_PTC:xmat"                    3.3307E-16
-"BEAMBEAM1@Bmad_Standard:dorb_r"                    0.0000E+00
-"BEAMBEAM1@Bmad_Standard:c*dt_r"                    0.0000E+00
-"BEAMBEAM1@Bmad_Standard:dorb_b"                    0.0000E+00
-"BEAMBEAM1@Bmad_Standard:c*dt_b"                    0.0000E+00
-"BEAMBEAM1@Bmad_Standard:xmat"                       0.0000E+00
-"DRIFT1@Bmad_Standard:dorb_r"                       4.0793E-18
-"DRIFT1@Bmad_Standard:c*dt_r"                       6.2071E-24
-"DRIFT1@Bmad_Standard:dorb_b"                       4.0793E-18
-"DRIFT1@Bmad_Standard:c*dt_b"                       6.2071E-24
-"DRIFT1@Bmad_Standard:xmat"                          4.3368E-19
-"DRIFT1@Runge_Kutta:dorb_r"                          4.0793E-18
-"DRIFT1@Runge_Kutta:c*dt_r"                          6.2071E-24
-"DRIFT1@Runge_Kutta:dorb_b"                          4.0793E-18
-"DRIFT1@Runge_Kutta:c*dt_b"                          6.2071E-24
-"DRIFT1@Runge_Kutta:xmat"                            2.0002E-12
-"DRIFT1@Symp_Lie_PTC:dorb_r"                        1.0989E-15
-"DRIFT1@Symp_Lie_PTC:c*dt_r"                        6.2071E-24
-"DRIFT1@Symp_Lie_PTC:dorb_b"                          5.8846E-09
-"DRIFT1@Symp_Lie_PTC:c*dt_b"                       -1.0857E-21
-"DRIFT1@Symp_Lie_PTC:xmat"                           9.9920E-16
-"ECOLLIMATOR1@Bmad_Standard:dorb_r"                 6.0986E-19
-"ECOLLIMATOR1@Bmad_Standard:c*dt_r"                 6.6174E-24
-"ECOLLIMATOR1@Bmad_Standard:dorb_b"                 6.0986E-19
-"ECOLLIMATOR1@Bmad_Standard:c*dt_b"                 6.6174E-24
-"ECOLLIMATOR1@Bmad_Standard:xmat"                    0.0000E+00
-"ECOLLIMATOR1@Runge_Kutta:dorb_r"                    7.5488E-18
-"ECOLLIMATOR1@Runge_Kutta:c*dt_r"                    6.6174E-24
-"ECOLLIMATOR1@Runge_Kutta:dorb_b"                    7.5488E-18
-"ECOLLIMATOR1@Runge_Kutta:c*dt_b"                    6.6174E-24
-"ECOLLIMATOR1@Runge_Kutta:xmat"                      2.0002E-12
-"ECOLLIMATOR1@Symp_Lie_PTC:dorb_r"                  1.0989E-15
-"ECOLLIMATOR1@Symp_Lie_PTC:c*dt_r"                  6.6174E-24
-"ECOLLIMATOR1@Symp_Lie_PTC:dorb_b"                    5.8846E-09
-"ECOLLIMATOR1@Symp_Lie_PTC:c*dt_b"                 -1.0853E-21
-"ECOLLIMATOR1@Symp_Lie_PTC:xmat"                     1.3323E-15
-"ELSEPARATOR1@Bmad_Standard:dorb_r"                   1.7086E-13
-"ELSEPARATOR1@Bmad_Standard:c*dt_r"                -6.6174E-24
-"ELSEPARATOR1@Bmad_Standard:dorb_b"                   1.7086E-13
-"ELSEPARATOR1@Bmad_Standard:c*dt_b"                -6.6174E-24
-"ELSEPARATOR1@Bmad_Standard:xmat"                    1.3145E-13
-"ELSEPARATOR1@Runge_Kutta:dorb_r"                    3.3307E-16
-"ELSEPARATOR1@Runge_Kutta:c*dt_r"                    6.6174E-24
-"ELSEPARATOR1@Runge_Kutta:dorb_b"                    3.3307E-16
-"ELSEPARATOR1@Runge_Kutta:c*dt_b"                   -6.6174E-24
-"ELSEPARATOR1@Runge_Kutta:xmat"                      7.5583E-11
-"ELSEPARATOR1@Symp_Lie_PTC:dorb_r"                    3.1848E-11
-"ELSEPARATOR1@Symp_Lie_PTC:c*dt_r"                 -2.3161E-22
-"ELSEPARATOR1@Symp_Lie_PTC:dorb_b"                    2.7417E-07
-"ELSEPARATOR1@Symp_Lie_PTC:c*dt_b"                  2.5944E-19
-"ELSEPARATOR1@Symp_Lie_PTC:xmat"                     1.3245E-02
-"ELSEPARATOR2@Bmad_Standard:dorb_r"                   3.8025E-14
-"ELSEPARATOR2@Bmad_Standard:c*dt_r"                 6.6174E-24
-"ELSEPARATOR2@Bmad_Standard:dorb_b"                   3.8025E-14
-"ELSEPARATOR2@Bmad_Standard:c*dt_b"                 6.6174E-24
-"ELSEPARATOR2@Bmad_Standard:xmat"                    2.9257E-14
-"ELSEPARATOR2@Runge_Kutta:dorb_r"                    3.7557E-16
-"ELSEPARATOR2@Runge_Kutta:c*dt_r"                   -6.6174E-24
-"ELSEPARATOR2@Runge_Kutta:dorb_b"                    3.7557E-16
-"ELSEPARATOR2@Runge_Kutta:c*dt_b"                   -6.6174E-24
-"ELSEPARATOR2@Runge_Kutta:xmat"                      7.4765E-11
-"ELSEPARATOR2@Symp_Lie_PTC:dorb_r"                    3.1843E-11
-"ELSEPARATOR2@Symp_Lie_PTC:c*dt_r"                 -2.4485E-22
-"ELSEPARATOR2@Symp_Lie_PTC:dorb_b"                    2.9459E-07
-"ELSEPARATOR2@Symp_Lie_PTC:c*dt_b"                 -2.1895E-18
-"ELSEPARATOR2@Symp_Lie_PTC:xmat"                     1.3248E-02
-"HKICKER1@Bmad_Standard:dorb_r"                     1.1018E-17
-"HKICKER1@Bmad_Standard:c*dt_r"                     0.0000E+00
-"HKICKER1@Bmad_Standard:dorb_b"                     1.1018E-17
-"HKICKER1@Bmad_Standard:c*dt_b"                     0.0000E+00
-"HKICKER1@Bmad_Standard:xmat"                        8.8818E-16
-"HKICKER1@Runge_Kutta:dorb_r"                        3.1633E-16
-"HKICKER1@Runge_Kutta:c*dt_r"                        0.0000E+00
-"HKICKER1@Runge_Kutta:dorb_b"                        3.1633E-16
-"HKICKER1@Runge_Kutta:c*dt_b"                       -1.3235E-23
-"HKICKER1@Runge_Kutta:xmat"                          1.9560E-11
-"HKICKER1@Symp_Lie_PTC:dorb_r"                      1.0998E-15
-"HKICKER1@Symp_Lie_PTC:c*dt_r"                     -1.3235E-23
-"HKICKER1@Symp_Lie_PTC:dorb_b"                        1.7221E-02
-"HKICKER1@Symp_Lie_PTC:c*dt_b"                        2.3266E-13
-"HKICKER1@Symp_Lie_PTC:xmat"                         9.9925E-16
-"INSTRUMENT1@Bmad_Standard:dorb_r"                  5.4210E-20
-"INSTRUMENT1@Bmad_Standard:c*dt_r"                  0.0000E+00
-"INSTRUMENT1@Bmad_Standard:dorb_b"                  5.4210E-20
-"INSTRUMENT1@Bmad_Standard:c*dt_b"                  0.0000E+00
-"INSTRUMENT1@Bmad_Standard:xmat"                     0.0000E+00
-"INSTRUMENT1@Runge_Kutta:dorb_r"                     5.4210E-20
-"INSTRUMENT1@Runge_Kutta:c*dt_r"                    -2.6470E-23
-"INSTRUMENT1@Runge_Kutta:dorb_b"                     2.1684E-19
-"INSTRUMENT1@Runge_Kutta:c*dt_b"                    -2.6470E-23
-"INSTRUMENT1@Runge_Kutta:xmat"                       2.0002E-12
-"INSTRUMENT1@Symp_Lie_PTC:dorb_r"                   1.1111E-15
-"INSTRUMENT1@Symp_Lie_PTC:c*dt_r"                  -1.3235E-23
-"INSTRUMENT1@Symp_Lie_PTC:dorb_b"                   1.1111E-15
-"INSTRUMENT1@Symp_Lie_PTC:c*dt_b"                  -1.3235E-23
-"INSTRUMENT1@Symp_Lie_PTC:xmat"                      9.9920E-16
-"KICKER1@Bmad_Standard:dorb_r"                      2.8596E-18
-"KICKER1@Bmad_Standard:c*dt_r"                      0.0000E+00
-"KICKER1@Bmad_Standard:dorb_b"                      2.8596E-18
-"KICKER1@Bmad_Standard:c*dt_b"                      0.0000E+00
-"KICKER1@Bmad_Standard:xmat"                         2.6021E-18
-"KICKER1@Runge_Kutta:dorb_r"                         1.1108E-16
-"KICKER1@Runge_Kutta:c*dt_r"                         0.0000E+00
-"KICKER1@Runge_Kutta:dorb_b"                         1.1194E-16
-"KICKER1@Runge_Kutta:c*dt_b"                         0.0000E+00
-"KICKER1@Runge_Kutta:xmat"                           2.4113E-11
-"KICKER1@Symp_Lie_PTC:dorb_r"                       1.0981E-15
-"KICKER1@Symp_Lie_PTC:c*dt_r"                       0.0000E+00
-"KICKER1@Symp_Lie_PTC:dorb_b"                         1.1369E-02
-"KICKER1@Symp_Lie_PTC:c*dt_b"                         1.7631E-13
-"KICKER1@Symp_Lie_PTC:xmat"                          2.2204E-15
-"MONITOR1@Bmad_Standard:dorb_r"                     5.4210E-20
-"MONITOR1@Bmad_Standard:c*dt_r"                     0.0000E+00
-"MONITOR1@Bmad_Standard:dorb_b"                     5.4210E-20
-"MONITOR1@Bmad_Standard:c*dt_b"                     0.0000E+00
-"MONITOR1@Bmad_Standard:xmat"                        0.0000E+00
-"MONITOR1@Runge_Kutta:dorb_r"                        5.4210E-20
-"MONITOR1@Runge_Kutta:c*dt_r"                        0.0000E+00
-"MONITOR1@Runge_Kutta:dorb_b"                        2.1684E-19
-"MONITOR1@Runge_Kutta:c*dt_b"                        0.0000E+00
-"MONITOR1@Runge_Kutta:xmat"                          2.0002E-12
-"MONITOR1@Symp_Lie_PTC:dorb_r"                      1.1111E-15
-"MONITOR1@Symp_Lie_PTC:c*dt_r"                      0.0000E+00
-"MONITOR1@Symp_Lie_PTC:dorb_b"                      1.1111E-15
-"MONITOR1@Symp_Lie_PTC:c*dt_b"                      0.0000E+00
-"MONITOR1@Symp_Lie_PTC:xmat"                         9.9920E-16
-"MULTIPOLE1@Bmad_Standard:dorb_r"                   3.5237E-18
-"MULTIPOLE1@Bmad_Standard:c*dt_r"                   0.0000E+00
-"MULTIPOLE1@Bmad_Standard:dorb_b"                   3.5237E-18
-"MULTIPOLE1@Bmad_Standard:c*dt_b"                   0.0000E+00
-"MULTIPOLE1@Bmad_Standard:xmat"                      0.0000E+00
-"MULTIPOLE1@Symp_Lie_PTC:dorb_r"                    2.8596E-18
-"MULTIPOLE1@Symp_Lie_PTC:c*dt_r"                    0.0000E+00
-"MULTIPOLE1@Symp_Lie_PTC:dorb_b"                      9.9670E-02
-"MULTIPOLE1@Symp_Lie_PTC:c*dt_b"                    0.0000E+00
-"MULTIPOLE1@Symp_Lie_PTC:xmat"                       3.3307E-16
-"OCTUPOLE1@Bmad_Standard:dorb_r"                    4.0793E-18
-"OCTUPOLE1@Bmad_Standard:c*dt_r"                    0.0000E+00
-"OCTUPOLE1@Bmad_Standard:dorb_b"                    4.0793E-18
-"OCTUPOLE1@Bmad_Standard:c*dt_b"                    0.0000E+00
-"OCTUPOLE1@Bmad_Standard:xmat"                       8.8818E-16
-"OCTUPOLE1@Runge_Kutta:dorb_r"                       5.7418E-11
-"OCTUPOLE1@Runge_Kutta:c*dt_r"                       1.0588E-22
-"OCTUPOLE1@Runge_Kutta:dorb_b"                       5.7418E-11
-"OCTUPOLE1@Runge_Kutta:c*dt_b"                       1.0588E-22
-"OCTUPOLE1@Runge_Kutta:xmat"                         2.5995E-06
-"OCTUPOLE1@Symp_Lie_PTC:dorb_r"                     1.1059E-15
-"OCTUPOLE1@Symp_Lie_PTC:c*dt_r"                    -2.6470E-23
-"OCTUPOLE1@Symp_Lie_PTC:dorb_b"                       1.9522E-03
-"OCTUPOLE1@Symp_Lie_PTC:c*dt_b"                     5.3730E-15
-"OCTUPOLE1@Symp_Lie_PTC:xmat"                        3.9968E-15
-"PATCH1@Bmad_Standard:dorb_r"                       1.1536E-16
-"PATCH1@Bmad_Standard:c*dt_r"                       0.0000E+00
-"PATCH1@Bmad_Standard:dorb_b"                       1.1536E-16
-"PATCH1@Bmad_Standard:c*dt_b"                       0.0000E+00
-"PATCH1@Bmad_Standard:xmat"                          2.2204E-16
-"PATCH1@Runge_Kutta:dorb_r"                          1.7347E-18
-"PATCH1@Runge_Kutta:c*dt_r"                         -5.2940E-23
-"PATCH1@Runge_Kutta:dorb_b"                          1.7347E-18
-"PATCH1@Runge_Kutta:c*dt_b"                         -5.2940E-23
-"PATCH1@Runge_Kutta:xmat"                            7.5278E-12
-"PATCH1@Symp_Lie_PTC:dorb_r"                          1.8104E-05
-"PATCH1@Symp_Lie_PTC:c*dt_r"                       -2.7057E-18
-"PATCH1@Symp_Lie_PTC:dorb_b"                          1.8200E-04
-"PATCH1@Symp_Lie_PTC:c*dt_b"                       -2.7886E-18
-"PATCH1@Symp_Lie_PTC:xmat"                           1.3926E-05
-"QUADRUPOLE1@Bmad_Standard:dorb_r"                  1.6737E-17
-"QUADRUPOLE1@Bmad_Standard:c*dt_r"                  0.0000E+00
-"QUADRUPOLE1@Bmad_Standard:dorb_b"                  1.6737E-17
-"QUADRUPOLE1@Bmad_Standard:c*dt_b"                  0.0000E+00
-"QUADRUPOLE1@Bmad_Standard:xmat"                     2.2204E-16
-"QUADRUPOLE1@Runge_Kutta:dorb_r"                     3.5610E-11
-"QUADRUPOLE1@Runge_Kutta:c*dt_r"                     3.9705E-22
-"QUADRUPOLE1@Runge_Kutta:dorb_b"                     3.5610E-11
-"QUADRUPOLE1@Runge_Kutta:c*dt_b"                     3.9705E-22
-"QUADRUPOLE1@Runge_Kutta:xmat"                       9.6937E-10
-"QUADRUPOLE1@Symp_Lie_PTC:dorb_r"                   1.7347E-16
-"QUADRUPOLE1@Symp_Lie_PTC:c*dt_r"                   0.0000E+00
-"QUADRUPOLE1@Symp_Lie_PTC:dorb_b"                     5.9676E-02
-"QUADRUPOLE1@Symp_Lie_PTC:c*dt_b"                     1.0745E-12
-"QUADRUPOLE1@Symp_Lie_PTC:xmat"                      1.3323E-15
-"QUADRUPOLE1@Symp_Lie_Bmad:dorb_r"                  1.0517E-17
-"QUADRUPOLE1@Symp_Lie_Bmad:c*dt_r"                  0.0000E+00
-"QUADRUPOLE1@Symp_Lie_Bmad:dorb_b"                  1.0517E-17
-"QUADRUPOLE1@Symp_Lie_Bmad:c*dt_b"                  0.0000E+00
-"QUADRUPOLE1@Symp_Lie_Bmad:xmat"                     4.1633E-16
-"QUADRUPOLE2@Bmad_Standard:dorb_r"                  7.0473E-18
-"QUADRUPOLE2@Bmad_Standard:c*dt_r"                  0.0000E+00
-"QUADRUPOLE2@Bmad_Standard:dorb_b"                  7.0473E-18
-"QUADRUPOLE2@Bmad_Standard:c*dt_b"                  0.0000E+00
-"QUADRUPOLE2@Bmad_Standard:xmat"                     2.2204E-16
-"QUADRUPOLE2@Runge_Kutta:dorb_r"                     3.6588E-11
-"QUADRUPOLE2@Runge_Kutta:c*dt_r"                     1.5882E-22
-"QUADRUPOLE2@Runge_Kutta:dorb_b"                     3.6588E-11
-"QUADRUPOLE2@Runge_Kutta:c*dt_b"                     1.5882E-22
-"QUADRUPOLE2@Runge_Kutta:xmat"                       1.0426E-09
-"QUADRUPOLE2@Symp_Lie_PTC:dorb_r"                   1.3357E-16
-"QUADRUPOLE2@Symp_Lie_PTC:c*dt_r"                  -2.6470E-23
-"QUADRUPOLE2@Symp_Lie_PTC:dorb_b"                     5.9668E-02
-"QUADRUPOLE2@Symp_Lie_PTC:c*dt_b"                     1.0435E-12
-"QUADRUPOLE2@Symp_Lie_PTC:xmat"                      1.4433E-15
-"QUADRUPOLE2@Symp_Lie_Bmad:dorb_r"                  1.6737E-17
-"QUADRUPOLE2@Symp_Lie_Bmad:c*dt_r"                  0.0000E+00
-"QUADRUPOLE2@Symp_Lie_Bmad:dorb_b"                  1.6737E-17
-"QUADRUPOLE2@Symp_Lie_Bmad:c*dt_b"                  0.0000E+00
-"QUADRUPOLE2@Symp_Lie_Bmad:xmat"                     4.9960E-16
-"QUADRUPOLE3@Bmad_Standard:dorb_r"                  7.0473E-18
-"QUADRUPOLE3@Bmad_Standard:c*dt_r"                  0.0000E+00
-"QUADRUPOLE3@Bmad_Standard:dorb_b"                  7.0473E-18
-"QUADRUPOLE3@Bmad_Standard:c*dt_b"                  0.0000E+00
-"QUADRUPOLE3@Bmad_Standard:xmat"                     5.4210E-20
-"QUADRUPOLE3@Runge_Kutta:dorb_r"                     1.6737E-17
-"QUADRUPOLE3@Runge_Kutta:c*dt_r"                     0.0000E+00
-"QUADRUPOLE3@Runge_Kutta:dorb_b"                     1.6737E-17
-"QUADRUPOLE3@Runge_Kutta:c*dt_b"                     0.0000E+00
-"QUADRUPOLE3@Runge_Kutta:xmat"                       2.0002E-12
-"QUADRUPOLE3@Symp_Lie_PTC:dorb_r"                   1.3704E-16
-"QUADRUPOLE3@Symp_Lie_PTC:c*dt_r"                  -2.6470E-23
-"QUADRUPOLE3@Symp_Lie_PTC:dorb_b"                     7.8462E-10
-"QUADRUPOLE3@Symp_Lie_PTC:c*dt_b"                  -1.5882E-22
-"QUADRUPOLE3@Symp_Lie_PTC:xmat"                      6.1063E-16
-"QUADRUPOLE3@Symp_Lie_Bmad:dorb_r"                  9.7985E-18
-"QUADRUPOLE3@Symp_Lie_Bmad:c*dt_r"                  0.0000E+00
-"QUADRUPOLE3@Symp_Lie_Bmad:dorb_b"                  9.7985E-18
-"QUADRUPOLE3@Symp_Lie_Bmad:c*dt_b"                  0.0000E+00
-"QUADRUPOLE3@Symp_Lie_Bmad:xmat"                     2.7692E-21
-"QUADRUPOLE4@Bmad_Standard:dorb_r"                    8.6006E-10
-"QUADRUPOLE4@Bmad_Standard:c*dt_r"                  2.2102E-20
-"QUADRUPOLE4@Bmad_Standard:dorb_b"                    8.6006E-10
-"QUADRUPOLE4@Bmad_Standard:c*dt_b"                  2.2102E-20
-"QUADRUPOLE4@Bmad_Standard:xmat"                     2.1992E-07
-"QUADRUPOLE4@Runge_Kutta:dorb_r"                     8.6056E-10
-"QUADRUPOLE4@Runge_Kutta:c*dt_r"                     1.3791E-20
-"QUADRUPOLE4@Runge_Kutta:dorb_b"                     8.6056E-10
-"QUADRUPOLE4@Runge_Kutta:c*dt_b"                     1.3791E-20
-"QUADRUPOLE4@Runge_Kutta:xmat"                       2.1953E-07
-"QUADRUPOLE4@Symp_Lie_PTC:dorb_r"                     8.5986E-10
-"QUADRUPOLE4@Symp_Lie_PTC:c*dt_r"                   2.2129E-20
-"QUADRUPOLE4@Symp_Lie_PTC:dorb_b"                     5.9683E-02
-"QUADRUPOLE4@Symp_Lie_PTC:c*dt_b"                     1.0744E-12
-"QUADRUPOLE4@Symp_Lie_PTC:xmat"                      2.1989E-07
-"QUADRUPOLE4@Symp_Lie_Bmad:dorb_r"                    8.5866E-10
-"QUADRUPOLE4@Symp_Lie_Bmad:c*dt_r"                  2.2049E-20
-"QUADRUPOLE4@Symp_Lie_Bmad:dorb_b"                    8.5866E-10
-"QUADRUPOLE4@Symp_Lie_Bmad:c*dt_b"                  2.2049E-20
-"QUADRUPOLE4@Symp_Lie_Bmad:xmat"                     2.1970E-07
-"QUADRUPOLE5@Bmad_Standard:dorb_r"                   7.6605E-10
-"QUADRUPOLE5@Bmad_Standard:c*dt_r"                  1.8105E-20
-"QUADRUPOLE5@Bmad_Standard:dorb_b"                    7.6605E-10
-"QUADRUPOLE5@Bmad_Standard:c*dt_b"                  1.8105E-20
-"QUADRUPOLE5@Bmad_Standard:xmat"                     2.1916E-07
-"QUADRUPOLE5@Runge_Kutta:dorb_r"                     7.6659E-10
-"QUADRUPOLE5@Runge_Kutta:c*dt_r"                     1.1250E-20
-"QUADRUPOLE5@Runge_Kutta:dorb_b"                     7.6659E-10
-"QUADRUPOLE5@Runge_Kutta:c*dt_b"                     1.1250E-20
-"QUADRUPOLE5@Runge_Kutta:xmat"                       2.1876E-07
-"QUADRUPOLE5@Symp_Lie_PTC:dorb_r"                     7.6586E-10
-"QUADRUPOLE5@Symp_Lie_PTC:c*dt_r"                   1.8105E-20
-"QUADRUPOLE5@Symp_Lie_PTC:dorb_b"                     5.9675E-02
-"QUADRUPOLE5@Symp_Lie_PTC:c*dt_b"                     1.0435E-12
-"QUADRUPOLE5@Symp_Lie_PTC:xmat"                      2.1914E-07
-"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r"                   7.6476E-10
-"QUADRUPOLE5@Symp_Lie_Bmad:c*dt_r"                  1.8052E-20
-"QUADRUPOLE5@Symp_Lie_Bmad:dorb_b"                    7.6476E-10
-"QUADRUPOLE5@Symp_Lie_Bmad:c*dt_b"                  1.8052E-20
-"QUADRUPOLE5@Symp_Lie_Bmad:xmat"                     2.1895E-07
-"RCOLLIMATOR1@Bmad_Standard:dorb_r"                 6.0986E-19
-"RCOLLIMATOR1@Bmad_Standard:c*dt_r"                 0.0000E+00
-"RCOLLIMATOR1@Bmad_Standard:dorb_b"                 6.0986E-19
-"RCOLLIMATOR1@Bmad_Standard:c*dt_b"                 0.0000E+00
-"RCOLLIMATOR1@Bmad_Standard:xmat"                    0.0000E+00
-"RCOLLIMATOR1@Runge_Kutta:dorb_r"                    7.5488E-18
-"RCOLLIMATOR1@Runge_Kutta:c*dt_r"                    0.0000E+00
-"RCOLLIMATOR1@Runge_Kutta:dorb_b"                    7.5488E-18
-"RCOLLIMATOR1@Runge_Kutta:c*dt_b"                    0.0000E+00
-"RCOLLIMATOR1@Runge_Kutta:xmat"                      2.0002E-12
-"RCOLLIMATOR1@Symp_Lie_PTC:dorb_r"                  1.0989E-15
-"RCOLLIMATOR1@Symp_Lie_PTC:c*dt_r"                 -2.6470E-23
-"RCOLLIMATOR1@Symp_Lie_PTC:dorb_b"                    5.8846E-09
-"RCOLLIMATOR1@Symp_Lie_PTC:c*dt_b"                 -1.1117E-21
-"RCOLLIMATOR1@Symp_Lie_PTC:xmat"                     1.3323E-15
-"RFCAVITY1@Bmad_Standard:dorb_r"                      1.0892E-07
-"RFCAVITY1@Bmad_Standard:c*dt_r"                    1.1117E-19
-"RFCAVITY1@Bmad_Standard:dorb_b"                      1.0892E-07
-"RFCAVITY1@Bmad_Standard:c*dt_b"                    1.1117E-19
-"RFCAVITY1@Bmad_Standard:xmat"                       8.0339E-04
-"RFCAVITY1@Runge_Kutta:dorb_r"                       6.2935E-05
-"RFCAVITY1@Runge_Kutta:c*dt_r"                      -1.1915E-18
-"RFCAVITY1@Runge_Kutta:dorb_b"                       6.2935E-05
-"RFCAVITY1@Runge_Kutta:c*dt_b"                      -5.8202E-19
-"RFCAVITY1@Runge_Kutta:xmat"                         8.1437E-04
-"RFCAVITY1@Symp_Lie_PTC:dorb_r"                       5.9958E-01
-"RFCAVITY1@Symp_Lie_PTC:c*dt_r"                      -2.0000E-09
-"RFCAVITY1@Symp_Lie_PTC:dorb_b"                       6.2935E-05
-"RFCAVITY1@Symp_Lie_PTC:c*dt_b"                     9.9129E-20
-"RFCAVITY1@Symp_Lie_PTC:xmat"                        4.6121E-01
-"RFCAVITY2@Bmad_Standard:dorb_r"                     1.0739E-07
-"RFCAVITY2@Bmad_Standard:c*dt_r"                    1.0966E-19
-"RFCAVITY2@Bmad_Standard:dorb_b"                      1.0739E-07
-"RFCAVITY2@Bmad_Standard:c*dt_b"                    1.0966E-19
-"RFCAVITY2@Bmad_Standard:xmat"                       8.1116E-04
-"RFCAVITY2@Runge_Kutta:dorb_r"                       6.2935E-05
-"RFCAVITY2@Runge_Kutta:c*dt_r"                      -1.1954E-18
-"RFCAVITY2@Runge_Kutta:dorb_b"                       6.2935E-05
-"RFCAVITY2@Runge_Kutta:c*dt_b"                      -5.8453E-19
-"RFCAVITY2@Runge_Kutta:xmat"                         8.1437E-04
-"RFCAVITY2@Symp_Lie_PTC:dorb_r"                       5.9958E-01
-"RFCAVITY2@Symp_Lie_PTC:c*dt_r"                      -2.0000E-09
-"RFCAVITY2@Symp_Lie_PTC:dorb_b"                       6.2935E-05
-"RFCAVITY2@Symp_Lie_PTC:c*dt_b"                     9.9129E-20
-"RFCAVITY2@Symp_Lie_PTC:xmat"                        4.6121E-01
-"SBEND1@Bmad_Standard:dorb_r"                       1.7957E-17
-"SBEND1@Bmad_Standard:c*dt_r"                       0.0000E+00
-"SBEND1@Bmad_Standard:dorb_b"                       1.7957E-17
-"SBEND1@Bmad_Standard:c*dt_b"                       0.0000E+00
-"SBEND1@Bmad_Standard:xmat"                          2.2204E-16
-"SBEND1@Runge_Kutta:dorb_r"                          1.9981E-11
-"SBEND1@Runge_Kutta:c*dt_r"                          2.6470E-23
-"SBEND1@Runge_Kutta:dorb_b"                          1.9981E-11
-"SBEND1@Runge_Kutta:c*dt_b"                          2.6470E-23
-"SBEND1@Runge_Kutta:xmat"                            1.3294E-09
-"SBEND1@Symp_Lie_PTC:dorb_r"                        1.2518E-16
-"SBEND1@Symp_Lie_PTC:c*dt_r"                        0.0000E+00
-"SBEND1@Symp_Lie_PTC:dorb_b"                          1.7557E-02
-"SBEND1@Symp_Lie_PTC:c*dt_b"                          9.6205E-14
-"SBEND1@Symp_Lie_PTC:xmat"                           1.6653E-15
-"SBEND2@Bmad_Standard:dorb_r"                       4.0793E-18
-"SBEND2@Bmad_Standard:c*dt_r"                       0.0000E+00
-"SBEND2@Bmad_Standard:dorb_b"                       4.0793E-18
-"SBEND2@Bmad_Standard:c*dt_b"                       0.0000E+00
-"SBEND2@Bmad_Standard:xmat"                          6.6613E-16
-"SBEND2@Runge_Kutta:dorb_r"                          4.1173E-12
-"SBEND2@Runge_Kutta:c*dt_r"                          2.6470E-23
-"SBEND2@Runge_Kutta:dorb_b"                          4.1173E-12
-"SBEND2@Runge_Kutta:c*dt_b"                          2.6470E-23
-"SBEND2@Runge_Kutta:xmat"                            7.9986E-10
-"SBEND2@Symp_Lie_PTC:dorb_r"                        1.6653E-16
-"SBEND2@Symp_Lie_PTC:c*dt_r"                        0.0000E+00
-"SBEND2@Symp_Lie_PTC:dorb_b"                          4.2528E-03
-"SBEND2@Symp_Lie_PTC:c*dt_b"                        5.1475E-15
-"SBEND2@Symp_Lie_PTC:xmat"                           1.5543E-15
-"SBEND3@Bmad_Standard:dorb_r"                       1.7957E-17
-"SBEND3@Bmad_Standard:c*dt_r"                       0.0000E+00
-"SBEND3@Bmad_Standard:dorb_b"                       1.7957E-17
-"SBEND3@Bmad_Standard:c*dt_b"                       0.0000E+00
-"SBEND3@Bmad_Standard:xmat"                          8.8818E-16
-"SBEND3@Runge_Kutta:dorb_r"                          8.3884E-11
-"SBEND3@Runge_Kutta:c*dt_r"                          7.4115E-22
-"SBEND3@Runge_Kutta:dorb_b"                          8.3884E-11
-"SBEND3@Runge_Kutta:c*dt_b"                          7.4115E-22
-"SBEND3@Runge_Kutta:xmat"                            8.0366E-09
-"SBEND3@Symp_Lie_PTC:dorb_r"                        1.5699E-16
-"SBEND3@Symp_Lie_PTC:c*dt_r"                        0.0000E+00
-"SBEND3@Symp_Lie_PTC:dorb_b"                          1.3306E-02
-"SBEND3@Symp_Lie_PTC:c*dt_b"                          5.5529E-14
-"SBEND3@Symp_Lie_PTC:xmat"                           2.3315E-15
-"SBEND4@Bmad_Standard:dorb_r"                        1.3944E-10
-"SBEND4@Bmad_Standard:c*dt_r"                       4.6513E-19
-"SBEND4@Bmad_Standard:dorb_b"                        1.3944E-10
-"SBEND4@Bmad_Standard:c*dt_b"                       4.6513E-19
-"SBEND4@Bmad_Standard:xmat"                          2.0949E-09
-"SBEND4@Runge_Kutta:dorb_r"                          5.0328E-10
-"SBEND4@Runge_Kutta:c*dt_r"                         -1.9770E-18
-"SBEND4@Runge_Kutta:dorb_b"                          5.0328E-10
-"SBEND4@Runge_Kutta:c*dt_b"                         -1.9770E-18
-"SBEND4@Runge_Kutta:xmat"                            5.4046E-05
-"SBEND4@Symp_Lie_PTC:dorb_r"                          3.1770E-09
-"SBEND4@Symp_Lie_PTC:c*dt_r"                        1.1146E-19
-"SBEND4@Symp_Lie_PTC:dorb_b"                          5.7503E-07
-"SBEND4@Symp_Lie_PTC:c*dt_b"                       -7.2673E-19
-"SBEND4@Symp_Lie_PTC:xmat"                           1.0590E-08
-"SBEND5@Bmad_Standard:dorb_r"                         4.4171E-10
-"SBEND5@Bmad_Standard:c*dt_r"                       3.0340E-19
-"SBEND5@Bmad_Standard:dorb_b"                         4.4171E-10
-"SBEND5@Bmad_Standard:c*dt_b"                       3.0340E-19
-"SBEND5@Bmad_Standard:xmat"                          4.4376E-07
-"SBEND5@Runge_Kutta:dorb_r"                          4.4173E-10
-"SBEND5@Runge_Kutta:c*dt_r"                          2.4135E-19
-"SBEND5@Runge_Kutta:dorb_b"                          4.4173E-10
-"SBEND5@Runge_Kutta:c*dt_b"                          2.4135E-19
-"SBEND5@Runge_Kutta:xmat"                            1.0438E-09
-"SBEND5@Symp_Lie_PTC:dorb_r"                          5.6104E-14
-"SBEND5@Symp_Lie_PTC:c*dt_r"                        0.0000E+00
-"SBEND5@Symp_Lie_PTC:dorb_b"                          1.2223E-02
-"SBEND5@Symp_Lie_PTC:c*dt_b"                          4.2860E-14
-"SBEND5@Symp_Lie_PTC:xmat"                           1.8709E-13
-"SBEND6@Bmad_Standard:dorb_r"                         9.2715E-11
-"SBEND6@Bmad_Standard:c*dt_r"                       2.9829E-19
-"SBEND6@Bmad_Standard:dorb_b"                         9.2715E-11
-"SBEND6@Bmad_Standard:c*dt_b"                       2.9829E-19
-"SBEND6@Bmad_Standard:xmat"                          1.9689E-10
-"SBEND6@Runge_Kutta:dorb_r"                          9.2713E-11
-"SBEND6@Runge_Kutta:c*dt_r"                          2.6470E-23
-"SBEND6@Runge_Kutta:dorb_b"                          9.2713E-11
-"SBEND6@Runge_Kutta:c*dt_b"                          2.6470E-23
-"SBEND6@Runge_Kutta:xmat"                            6.8631E-10
-"SBEND6@Symp_Lie_PTC:dorb_r"                          3.1770E-09
-"SBEND6@Symp_Lie_PTC:c*dt_r"                        1.1146E-19
-"SBEND6@Symp_Lie_PTC:dorb_b"                          5.7503E-07
-"SBEND6@Symp_Lie_PTC:c*dt_b"                       -7.2673E-19
-"SBEND6@Symp_Lie_PTC:xmat"                           1.0590E-08
-"SBEND7@Bmad_Standard:dorb_r"                         4.3985E-10
-"SBEND7@Bmad_Standard:c*dt_r"                       3.0374E-19
-"SBEND7@Bmad_Standard:dorb_b"                         4.3985E-10
-"SBEND7@Bmad_Standard:c*dt_b"                       3.0374E-19
-"SBEND7@Bmad_Standard:xmat"                          5.2966E-07
-"SBEND7@Runge_Kutta:dorb_r"                          4.3987E-10
-"SBEND7@Runge_Kutta:c*dt_r"                          2.4164E-19
-"SBEND7@Runge_Kutta:dorb_b"                          4.3987E-10
-"SBEND7@Runge_Kutta:c*dt_b"                          2.4164E-19
-"SBEND7@Runge_Kutta:xmat"                            1.3650E-09
-"SBEND7@Symp_Lie_PTC:dorb_r"                          5.6104E-14
-"SBEND7@Symp_Lie_PTC:c*dt_r"                        0.0000E+00
-"SBEND7@Symp_Lie_PTC:dorb_b"                          1.2223E-02
-"SBEND7@Symp_Lie_PTC:c*dt_b"                          4.2860E-14
-"SBEND7@Symp_Lie_PTC:xmat"                           1.8709E-13
-"SEXTUPOLE1@Bmad_Standard:dorb_r"                   4.0793E-18
-"SEXTUPOLE1@Bmad_Standard:c*dt_r"                   0.0000E+00
-"SEXTUPOLE1@Bmad_Standard:dorb_b"                   4.0793E-18
-"SEXTUPOLE1@Bmad_Standard:c*dt_b"                   0.0000E+00
-"SEXTUPOLE1@Bmad_Standard:xmat"                      2.9382E-16
-"SEXTUPOLE1@Runge_Kutta:dorb_r"                      5.2219E-12
-"SEXTUPOLE1@Runge_Kutta:c*dt_r"                      0.0000E+00
-"SEXTUPOLE1@Runge_Kutta:dorb_b"                      5.2219E-12
-"SEXTUPOLE1@Runge_Kutta:c*dt_b"                      0.0000E+00
-"SEXTUPOLE1@Runge_Kutta:xmat"                        4.1919E-10
-"SEXTUPOLE1@Symp_Lie_PTC:dorb_r"                    1.0755E-16
-"SEXTUPOLE1@Symp_Lie_PTC:c*dt_r"                   -2.6470E-23
-"SEXTUPOLE1@Symp_Lie_PTC:dorb_b"                      1.4911E-03
-"SEXTUPOLE1@Symp_Lie_PTC:c*dt_b"                    3.0764E-16
-"SEXTUPOLE1@Symp_Lie_PTC:xmat"                       6.6613E-16
-"SOLENOID1@Bmad_Standard:dorb_r"                    1.1018E-17
-"SOLENOID1@Bmad_Standard:c*dt_r"                    0.0000E+00
-"SOLENOID1@Bmad_Standard:dorb_b"                    1.1018E-17
-"SOLENOID1@Bmad_Standard:c*dt_b"                    0.0000E+00
-"SOLENOID1@Bmad_Standard:xmat"                       4.4409E-16
-"SOLENOID1@Runge_Kutta:dorb_r"                       6.9649E-11
-"SOLENOID1@Runge_Kutta:c*dt_r"                       3.9969E-21
-"SOLENOID1@Runge_Kutta:dorb_b"                       6.9649E-11
-"SOLENOID1@Runge_Kutta:c*dt_b"                       3.9969E-21
-"SOLENOID1@Runge_Kutta:xmat"                         2.8171E-09
-"SOLENOID1@Symp_Lie_PTC:dorb_r"                     5.7593E-16
-"SOLENOID1@Symp_Lie_PTC:c*dt_r"                    -2.6470E-23
-"SOLENOID1@Symp_Lie_PTC:dorb_b"                       2.4998E-03
-"SOLENOID1@Symp_Lie_PTC:c*dt_b"                      -1.3137E-13
-"SOLENOID1@Symp_Lie_PTC:xmat"                        5.5511E-15
-"SOLENOID1@Symp_Lie_Bmad:dorb_r"                    2.8596E-18
-"SOLENOID1@Symp_Lie_Bmad:c*dt_r"                    0.0000E+00
-"SOLENOID1@Symp_Lie_Bmad:dorb_b"                    2.8596E-18
-"SOLENOID1@Symp_Lie_Bmad:c*dt_b"                    0.0000E+00
-"SOLENOID1@Symp_Lie_Bmad:xmat"                       7.7716E-16
-"SOLENOID2@Bmad_Standard:dorb_r"                    1.1018E-17
-"SOLENOID2@Bmad_Standard:c*dt_r"                    0.0000E+00
-"SOLENOID2@Bmad_Standard:dorb_b"                    1.1018E-17
-"SOLENOID2@Bmad_Standard:c*dt_b"                    0.0000E+00
-"SOLENOID2@Bmad_Standard:xmat"                       2.2204E-16
-"SOLENOID2@Runge_Kutta:dorb_r"                       2.8596E-18
-"SOLENOID2@Runge_Kutta:c*dt_r"                       0.0000E+00
-"SOLENOID2@Runge_Kutta:dorb_b"                       2.8596E-18
-"SOLENOID2@Runge_Kutta:c*dt_b"                       0.0000E+00
-"SOLENOID2@Runge_Kutta:xmat"                         2.0002E-12
-"SOLENOID2@Symp_Lie_PTC:dorb_r"                     5.3950E-16
-"SOLENOID2@Symp_Lie_PTC:c*dt_r"                     0.0000E+00
-"SOLENOID2@Symp_Lie_PTC:dorb_b"                       3.4000E-09
-"SOLENOID2@Symp_Lie_PTC:c*dt_b"                    -6.3527E-22
-"SOLENOID2@Symp_Lie_PTC:xmat"                        1.3323E-15
-"SOLENOID2@Symp_Lie_Bmad:dorb_r"                    2.8596E-18
-"SOLENOID2@Symp_Lie_Bmad:c*dt_r"                    0.0000E+00
-"SOLENOID2@Symp_Lie_Bmad:dorb_b"                    2.8596E-18
-"SOLENOID2@Symp_Lie_Bmad:c*dt_b"                    0.0000E+00
-"SOLENOID2@Symp_Lie_Bmad:xmat"                       2.2204E-16
-"SOL_QUAD1@Bmad_Standard:dorb_r"                    2.3676E-17
-"SOL_QUAD1@Bmad_Standard:c*dt_r"                   -2.6470E-23
-"SOL_QUAD1@Bmad_Standard:dorb_b"                    2.3676E-17
-"SOL_QUAD1@Bmad_Standard:c*dt_b"                   -2.6470E-23
-"SOL_QUAD1@Bmad_Standard:xmat"                       3.1086E-15
-"SOL_QUAD1@Runge_Kutta:dorb_r"                       1.2573E-10
-"SOL_QUAD1@Runge_Kutta:c*dt_r"                       1.8132E-20
-"SOL_QUAD1@Runge_Kutta:dorb_b"                       1.2573E-10
-"SOL_QUAD1@Runge_Kutta:c*dt_b"                       1.8132E-20
-"SOL_QUAD1@Runge_Kutta:xmat"                         2.4605E-09
-"SOL_QUAD1@Symp_Lie_PTC:dorb_r"                     2.7582E-16
-"SOL_QUAD1@Symp_Lie_PTC:c*dt_r"                    -2.6470E-23
-"SOL_QUAD1@Symp_Lie_PTC:dorb_b"                       1.5078E-01
-"SOL_QUAD1@Symp_Lie_PTC:c*dt_b"                      -1.1882E-12
-"SOL_QUAD1@Symp_Lie_PTC:xmat"                        2.9754E-14
-"SOL_QUAD1@Symp_Lie_Bmad:dorb_r"                    1.8811E-17
-"SOL_QUAD1@Symp_Lie_Bmad:c*dt_r"                   -2.6470E-23
-"SOL_QUAD1@Symp_Lie_Bmad:dorb_b"                    1.8811E-17
-"SOL_QUAD1@Symp_Lie_Bmad:c*dt_b"                   -2.6470E-23
-"SOL_QUAD1@Symp_Lie_Bmad:xmat"                       4.4409E-15
-"SOL_QUAD2@Bmad_Standard:dorb_r"                    1.1018E-17
-"SOL_QUAD2@Bmad_Standard:c*dt_r"                   -2.6470E-23
-"SOL_QUAD2@Bmad_Standard:dorb_b"                    1.1018E-17
-"SOL_QUAD2@Bmad_Standard:c*dt_b"                   -2.6470E-23
-"SOL_QUAD2@Bmad_Standard:xmat"                       4.4409E-16
-"SOL_QUAD2@Runge_Kutta:dorb_r"                       6.9650E-11
-"SOL_QUAD2@Runge_Kutta:c*dt_r"                       4.1558E-21
-"SOL_QUAD2@Runge_Kutta:dorb_b"                       6.9650E-11
-"SOL_QUAD2@Runge_Kutta:c*dt_b"                       4.1558E-21
-"SOL_QUAD2@Runge_Kutta:xmat"                         2.8190E-09
-"SOL_QUAD2@Symp_Lie_PTC:dorb_r"                     4.3108E-16
-"SOL_QUAD2@Symp_Lie_PTC:c*dt_r"                    -2.6470E-23
-"SOL_QUAD2@Symp_Lie_PTC:dorb_b"                       2.4996E-03
-"SOL_QUAD2@Symp_Lie_PTC:c*dt_b"                      -1.3130E-13
-"SOL_QUAD2@Symp_Lie_PTC:xmat"                        6.8834E-15
-"SOL_QUAD2@Symp_Lie_Bmad:dorb_r"                    1.7957E-17
-"SOL_QUAD2@Symp_Lie_Bmad:c*dt_r"                   -2.6470E-23
-"SOL_QUAD2@Symp_Lie_Bmad:dorb_b"                    1.7957E-17
-"SOL_QUAD2@Symp_Lie_Bmad:c*dt_b"                   -2.6470E-23
-"SOL_QUAD2@Symp_Lie_Bmad:xmat"                       8.8818E-16
-"VKICKER1@Bmad_Standard:dorb_r"                     4.0793E-18
-"VKICKER1@Bmad_Standard:c*dt_r"                     0.0000E+00
-"VKICKER1@Bmad_Standard:dorb_b"                     4.0793E-18
-"VKICKER1@Bmad_Standard:c*dt_b"                     0.0000E+00
-"VKICKER1@Bmad_Standard:xmat"                        8.8818E-16
-"VKICKER1@Runge_Kutta:dorb_r"                        3.3052E-16
-"VKICKER1@Runge_Kutta:c*dt_r"                       -5.2940E-23
-"VKICKER1@Runge_Kutta:dorb_b"                        3.3139E-16
-"VKICKER1@Runge_Kutta:c*dt_b"                       -5.2940E-23
-"VKICKER1@Runge_Kutta:xmat"                          1.1840E-11
-"VKICKER1@Symp_Lie_PTC:dorb_r"                      1.1024E-15
-"VKICKER1@Symp_Lie_PTC:c*dt_r"                      5.2940E-23
-"VKICKER1@Symp_Lie_PTC:dorb_b"                        1.7221E-02
-"VKICKER1@Symp_Lie_PTC:c*dt_b"                        2.3883E-13
-"VKICKER1@Symp_Lie_PTC:xmat"                         1.7764E-15
-"SAD_MULT1@Bmad_Standard:dorb_r"                    1.5043E-18
-"SAD_MULT1@Bmad_Standard:c*dt_r"                    0.0000E+00
-"SAD_MULT1@Bmad_Standard:dorb_b"                    1.5043E-18
-"SAD_MULT1@Bmad_Standard:c*dt_b"                    0.0000E+00
-"SAD_MULT1@Bmad_Standard:xmat"                       3.6660E-15
-"SAD_MULT1@Symp_Lie_PTC:dorb_r"                     7.8063E-18
-"SAD_MULT1@Symp_Lie_PTC:c*dt_r"                     5.2940E-23
-"SAD_MULT1@Symp_Lie_PTC:dorb_b"                       1.3298E-08
-"SAD_MULT1@Symp_Lie_PTC:c*dt_b"                     5.2940E-22
-"SAD_MULT1@Symp_Lie_PTC:xmat"                        8.8818E-16
-"SAD_MULT2@Bmad_Standard:dorb_r"                    0.0000E+00
-"SAD_MULT2@Bmad_Standard:c*dt_r"                    0.0000E+00
-"SAD_MULT2@Bmad_Standard:dorb_b"                    0.0000E+00
-"SAD_MULT2@Bmad_Standard:c*dt_b"                    0.0000E+00
-"SAD_MULT2@Bmad_Standard:xmat"                       0.0000E+00
-"SAD_MULT2@Symp_Lie_PTC:dorb_r"                     0.0000E+00
-"SAD_MULT2@Symp_Lie_PTC:c*dt_r"                     0.0000E+00
-"SAD_MULT2@Symp_Lie_PTC:dorb_b"                       1.2640E-08
-"SAD_MULT2@Symp_Lie_PTC:c*dt_b"                     0.0000E+00
-"SAD_MULT2@Symp_Lie_PTC:xmat"                        3.3307E-16
-"WIGGLER_MAP1@Taylor:dorb_r"                          2.8055E-07
-"WIGGLER_MAP1@Taylor:c*dt_r"                        1.0947E-18
-"WIGGLER_MAP1@Taylor:dorb_b"                          1.9624E-12
-"WIGGLER_MAP1@Taylor:c*dt_b"                        0.0000E+00
-"WIGGLER_MAP1@Taylor:xmat"                           4.3627E-06
-"WIGGLER_MAP1@Runge_Kutta:dorb_r"                    4.0521E-12
-"WIGGLER_MAP1@Runge_Kutta:c*dt_r"                    5.2940E-23
-"WIGGLER_MAP1@Runge_Kutta:dorb_b"                    4.0521E-12
-"WIGGLER_MAP1@Runge_Kutta:c*dt_b"                    5.2940E-23
-"WIGGLER_MAP1@Runge_Kutta:xmat"                      3.4982E-12
-"WIGGLER_MAP1@Symp_Lie_PTC:dorb_r"                  0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_PTC:c*dt_r"                  0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_PTC:dorb_b"                    1.1343E-04
-"WIGGLER_MAP1@Symp_Lie_PTC:c*dt_b"                 -1.5721E-18
-"WIGGLER_MAP1@Symp_Lie_PTC:xmat"                     1.3323E-15
-"WIGGLER_MAP1@Symp_Lie_Bmad:dorb_r"                 0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_Bmad:c*dt_r"                 0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_Bmad:dorb_b"                 0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_Bmad:c*dt_b"                 0.0000E+00
-"WIGGLER_MAP1@Symp_Lie_Bmad:xmat"                    6.6613E-16
-"WIGGLER_PERIODIC1@Bmad_Standard:dorb_r"            2.3446E-18
-"WIGGLER_PERIODIC1@Bmad_Standard:c*dt_r"            0.0000E+00
-"WIGGLER_PERIODIC1@Bmad_Standard:dorb_b"            2.3446E-18
-"WIGGLER_PERIODIC1@Bmad_Standard:c*dt_b"            0.0000E+00
-"WIGGLER_PERIODIC1@Bmad_Standard:xmat"               4.3028E-09
-"WIGGLER_PERIODIC1@Runge_Kutta:dorb_r"               6.5572E-12
-"WIGGLER_PERIODIC1@Runge_Kutta:c*dt_r"              -1.0588E-22
-"WIGGLER_PERIODIC1@Runge_Kutta:dorb_b"               6.5572E-12
-"WIGGLER_PERIODIC1@Runge_Kutta:c*dt_b"              -1.5882E-22
-"WIGGLER_PERIODIC1@Runge_Kutta:xmat"                 2.9218E-07
-"WIGGLER_PERIODIC1@Symp_Lie_PTC:dorb_r"             2.6156E-18
-"WIGGLER_PERIODIC1@Symp_Lie_PTC:c*dt_r"             5.2940E-23
-"WIGGLER_PERIODIC1@Symp_Lie_PTC:dorb_b"               4.4800E-09
-"WIGGLER_PERIODIC1@Symp_Lie_PTC:c*dt_b"            -3.2823E-21
-"WIGGLER_PERIODIC1@Symp_Lie_PTC:xmat"                1.9984E-15
-"WIGGLER_PERIODIC1@Symp_Lie_Bmad:dorb_r"            9.7985E-18
-"WIGGLER_PERIODIC1@Symp_Lie_Bmad:c*dt_r"            0.0000E+00
-"WIGGLER_PERIODIC1@Symp_Lie_Bmad:dorb_b"            9.7985E-18
-"WIGGLER_PERIODIC1@Symp_Lie_Bmad:c*dt_b"            0.0000E+00
-"WIGGLER_PERIODIC1@Symp_Lie_Bmad:xmat"               3.6637E-15
+"AB_MULTIPOLE1@Bmad_Standard:dorb_r"          ABS 1e-14      2.3066E-17
+"AB_MULTIPOLE1@Bmad_Standard:c*dt_r"          ABS 1e-14      0.0000E+00
+"AB_MULTIPOLE1@Bmad_Standard:dorb_b"          ABS 1e-14      2.3066E-17
+"AB_MULTIPOLE1@Bmad_Standard:c*dt_b"          ABS 1e-14      0.0000E+00
+"AB_MULTIPOLE1@Bmad_Standard:xmat"            ABS 1e-8       0.0000E+00
+"AB_MULTIPOLE1@Symp_Lie_PTC:dorb_r"           ABS 1e-14      3.6917E-17
+"AB_MULTIPOLE1@Symp_Lie_PTC:c*dt_r"           ABS 1e-14      0.0000E+00
+"AB_MULTIPOLE1@Symp_Lie_PTC:dorb_b"           REL 0.1        1.0062E+00
+"AB_MULTIPOLE1@Symp_Lie_PTC:c*dt_b"           ABS 1e-14      0.0000E+00
+"AB_MULTIPOLE1@Symp_Lie_PTC:xmat"             ABS 1e-8       3.3307E-16
+"BEAMBEAM1@Bmad_Standard:dorb_r"              ABS 1e-14      0.0000E+00
+"BEAMBEAM1@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"BEAMBEAM1@Bmad_Standard:dorb_b"              ABS 1e-14      0.0000E+00
+"BEAMBEAM1@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"BEAMBEAM1@Bmad_Standard:xmat"                ABS 1e-8       0.0000E+00
+"DRIFT1@Bmad_Standard:dorb_r"                 ABS 1e-14      4.0793E-18
+"DRIFT1@Bmad_Standard:c*dt_r"                 ABS 1e-14      6.6174E-24
+"DRIFT1@Bmad_Standard:dorb_b"                 ABS 1e-14      4.0793E-18
+"DRIFT1@Bmad_Standard:c*dt_b"                 ABS 1e-14      6.6174E-24
+"DRIFT1@Bmad_Standard:xmat"                   ABS 1e-8       4.3368E-19
+"DRIFT1@Runge_Kutta:dorb_r"                   ABS 1e-9       4.0793E-18
+"DRIFT1@Runge_Kutta:c*dt_r"                   ABS 1e-9       6.6174E-24
+"DRIFT1@Runge_Kutta:dorb_b"                   ABS 1e-9       4.0793E-18
+"DRIFT1@Runge_Kutta:c*dt_b"                   ABS 1e-9       6.6174E-24
+"DRIFT1@Runge_Kutta:xmat"                     ABS 1e-8       2.0002E-12
+"DRIFT1@Symp_Lie_PTC:dorb_r"                  ABS 1e-14      1.0989E-15
+"DRIFT1@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      6.6174E-24
+"DRIFT1@Symp_Lie_PTC:dorb_b"                  REL 0.1        5.8846E-09
+"DRIFT1@Symp_Lie_PTC:c*dt_b"                  ABS 1e-14     -1.0853E-21
+"DRIFT1@Symp_Lie_PTC:xmat"                    ABS 1e-8       9.9920E-16
+"ECOLLIMATOR1@Bmad_Standard:dorb_r"           ABS 1e-14      6.0986E-19
+"ECOLLIMATOR1@Bmad_Standard:c*dt_r"           ABS 1e-14      6.6174E-24
+"ECOLLIMATOR1@Bmad_Standard:dorb_b"           ABS 1e-14      6.0986E-19
+"ECOLLIMATOR1@Bmad_Standard:c*dt_b"           ABS 1e-14      6.6174E-24
+"ECOLLIMATOR1@Bmad_Standard:xmat"             ABS 1e-8       0.0000E+00
+"ECOLLIMATOR1@Runge_Kutta:dorb_r"             ABS 1e-9       7.5488E-18
+"ECOLLIMATOR1@Runge_Kutta:c*dt_r"             ABS 1e-9       6.6174E-24
+"ECOLLIMATOR1@Runge_Kutta:dorb_b"             ABS 1e-9       7.5488E-18
+"ECOLLIMATOR1@Runge_Kutta:c*dt_b"             ABS 1e-9       6.6174E-24
+"ECOLLIMATOR1@Runge_Kutta:xmat"               ABS 1e-8       2.0002E-12
+"ECOLLIMATOR1@Symp_Lie_PTC:dorb_r"            ABS 1e-14      1.0989E-15
+"ECOLLIMATOR1@Symp_Lie_PTC:c*dt_r"            ABS 1e-14      6.6174E-24
+"ECOLLIMATOR1@Symp_Lie_PTC:dorb_b"            REL 0.1        5.8846E-09
+"ECOLLIMATOR1@Symp_Lie_PTC:c*dt_b"            ABS 1e-14     -1.0853E-21
+"ECOLLIMATOR1@Symp_Lie_PTC:xmat"              ABS 1e-8       1.3323E-15
+"ELSEPARATOR1@Bmad_Standard:dorb_r"           REL 0.1        1.7086E-13
+"ELSEPARATOR1@Bmad_Standard:c*dt_r"           ABS 1e-14     -6.6174E-24
+"ELSEPARATOR1@Bmad_Standard:dorb_b"           REL 0.1        1.7086E-13
+"ELSEPARATOR1@Bmad_Standard:c*dt_b"           ABS 1e-14     -6.6174E-24
+"ELSEPARATOR1@Bmad_Standard:xmat"             ABS 1e-8       1.3145E-13
+"ELSEPARATOR1@Runge_Kutta:dorb_r"             ABS 1e-9       3.3307E-16
+"ELSEPARATOR1@Runge_Kutta:c*dt_r"             ABS 1e-9       6.6174E-24
+"ELSEPARATOR1@Runge_Kutta:dorb_b"             ABS 1e-9       3.3307E-16
+"ELSEPARATOR1@Runge_Kutta:c*dt_b"             ABS 1e-9      -6.6174E-24
+"ELSEPARATOR1@Runge_Kutta:xmat"               ABS 1e-8       7.5583E-11
+"ELSEPARATOR1@Symp_Lie_PTC:dorb_r"            REL 0.1        3.1848E-11
+"ELSEPARATOR1@Symp_Lie_PTC:c*dt_r"            ABS 1e-14     -2.1838E-22
+"ELSEPARATOR1@Symp_Lie_PTC:dorb_b"            REL 0.1        2.7417E-07
+"ELSEPARATOR1@Symp_Lie_PTC:c*dt_b"            ABS 1e-14      2.5945E-19
+"ELSEPARATOR1@Symp_Lie_PTC:xmat"              ABS 1e-8       1.3245E-02
+"ELSEPARATOR2@Bmad_Standard:dorb_r"           REL 0.1        3.8027E-14
+"ELSEPARATOR2@Bmad_Standard:c*dt_r"           ABS 1e-14      6.6174E-24
+"ELSEPARATOR2@Bmad_Standard:dorb_b"           REL 0.1        3.8027E-14
+"ELSEPARATOR2@Bmad_Standard:c*dt_b"           ABS 1e-14      6.6174E-24
+"ELSEPARATOR2@Bmad_Standard:xmat"             ABS 1e-8       2.9257E-14
+"ELSEPARATOR2@Runge_Kutta:dorb_r"             ABS 1e-9       3.7557E-16
+"ELSEPARATOR2@Runge_Kutta:c*dt_r"             ABS 1e-9      -6.6174E-24
+"ELSEPARATOR2@Runge_Kutta:dorb_b"             ABS 1e-9       3.7557E-16
+"ELSEPARATOR2@Runge_Kutta:c*dt_b"             ABS 1e-9      -6.6174E-24
+"ELSEPARATOR2@Runge_Kutta:xmat"               ABS 1e-8       7.4765E-11
+"ELSEPARATOR2@Symp_Lie_PTC:dorb_r"            REL 0.1        3.1843E-11
+"ELSEPARATOR2@Symp_Lie_PTC:c*dt_r"            ABS 1e-14     -2.4485E-22
+"ELSEPARATOR2@Symp_Lie_PTC:dorb_b"            REL 0.1        2.9459E-07
+"ELSEPARATOR2@Symp_Lie_PTC:c*dt_b"            ABS 1e-14     -2.1895E-18
+"ELSEPARATOR2@Symp_Lie_PTC:xmat"              ABS 1e-8       1.3248E-02
+"HKICKER1@Bmad_Standard:dorb_r"               ABS 1e-14      1.1018E-17
+"HKICKER1@Bmad_Standard:c*dt_r"               ABS 1e-14      0.0000E+00
+"HKICKER1@Bmad_Standard:dorb_b"               ABS 1e-14      1.1018E-17
+"HKICKER1@Bmad_Standard:c*dt_b"               ABS 1e-14      0.0000E+00
+"HKICKER1@Bmad_Standard:xmat"                 ABS 1e-8       8.8818E-16
+"HKICKER1@Runge_Kutta:dorb_r"                 ABS 1e-9       3.1633E-16
+"HKICKER1@Runge_Kutta:c*dt_r"                 ABS 1e-9       0.0000E+00
+"HKICKER1@Runge_Kutta:dorb_b"                 ABS 1e-9       3.1633E-16
+"HKICKER1@Runge_Kutta:c*dt_b"                 ABS 1e-9      -1.3235E-23
+"HKICKER1@Runge_Kutta:xmat"                   ABS 1e-8       1.9560E-11
+"HKICKER1@Symp_Lie_PTC:dorb_r"                ABS 1e-14      1.0998E-15
+"HKICKER1@Symp_Lie_PTC:c*dt_r"                ABS 1e-14     -1.3235E-23
+"HKICKER1@Symp_Lie_PTC:dorb_b"                REL 0.1        1.7221E-02
+"HKICKER1@Symp_Lie_PTC:c*dt_b"                REL 0.1        2.3266E-13
+"HKICKER1@Symp_Lie_PTC:xmat"                  ABS 1e-8       9.9925E-16
+"INSTRUMENT1@Bmad_Standard:dorb_r"            ABS 1e-14      5.4210E-20
+"INSTRUMENT1@Bmad_Standard:c*dt_r"            ABS 1e-14      0.0000E+00
+"INSTRUMENT1@Bmad_Standard:dorb_b"            ABS 1e-14      5.4210E-20
+"INSTRUMENT1@Bmad_Standard:c*dt_b"            ABS 1e-14      0.0000E+00
+"INSTRUMENT1@Bmad_Standard:xmat"              ABS 1e-8       0.0000E+00
+"INSTRUMENT1@Runge_Kutta:dorb_r"              ABS 1e-9       5.4210E-20
+"INSTRUMENT1@Runge_Kutta:c*dt_r"              ABS 1e-9      -2.6470E-23
+"INSTRUMENT1@Runge_Kutta:dorb_b"              ABS 1e-9       2.1684E-19
+"INSTRUMENT1@Runge_Kutta:c*dt_b"              ABS 1e-9      -2.6470E-23
+"INSTRUMENT1@Runge_Kutta:xmat"                ABS 1e-8       2.0002E-12
+"INSTRUMENT1@Symp_Lie_PTC:dorb_r"             ABS 1e-14      1.1111E-15
+"INSTRUMENT1@Symp_Lie_PTC:c*dt_r"             ABS 1e-14     -1.3235E-23
+"INSTRUMENT1@Symp_Lie_PTC:dorb_b"             ABS 1e-14      1.1111E-15
+"INSTRUMENT1@Symp_Lie_PTC:c*dt_b"             ABS 1e-14     -1.3235E-23
+"INSTRUMENT1@Symp_Lie_PTC:xmat"               ABS 1e-8       9.9920E-16
+"KICKER1@Bmad_Standard:dorb_r"                ABS 1e-14      2.8596E-18
+"KICKER1@Bmad_Standard:c*dt_r"                ABS 1e-14      0.0000E+00
+"KICKER1@Bmad_Standard:dorb_b"                ABS 1e-14      2.8596E-18
+"KICKER1@Bmad_Standard:c*dt_b"                ABS 1e-14      0.0000E+00
+"KICKER1@Bmad_Standard:xmat"                  ABS 1e-8       2.6021E-18
+"KICKER1@Runge_Kutta:dorb_r"                  ABS 1e-9       1.1108E-16
+"KICKER1@Runge_Kutta:c*dt_r"                  ABS 1e-9       0.0000E+00
+"KICKER1@Runge_Kutta:dorb_b"                  ABS 1e-9       1.1194E-16
+"KICKER1@Runge_Kutta:c*dt_b"                  ABS 1e-9       0.0000E+00
+"KICKER1@Runge_Kutta:xmat"                    ABS 1e-8       2.4113E-11
+"KICKER1@Symp_Lie_PTC:dorb_r"                 ABS 1e-14      1.0981E-15
+"KICKER1@Symp_Lie_PTC:c*dt_r"                 ABS 1e-14     -2.6470E-23
+"KICKER1@Symp_Lie_PTC:dorb_b"                 REL 0.1        1.1369E-02
+"KICKER1@Symp_Lie_PTC:c*dt_b"                 REL 0.1        1.7631E-13
+"KICKER1@Symp_Lie_PTC:xmat"                   ABS 1e-8       2.2204E-15
+"MONITOR1@Bmad_Standard:dorb_r"               ABS 1e-14      5.4210E-20
+"MONITOR1@Bmad_Standard:c*dt_r"               ABS 1e-14      0.0000E+00
+"MONITOR1@Bmad_Standard:dorb_b"               ABS 1e-14      5.4210E-20
+"MONITOR1@Bmad_Standard:c*dt_b"               ABS 1e-14      0.0000E+00
+"MONITOR1@Bmad_Standard:xmat"                 ABS 1e-8       0.0000E+00
+"MONITOR1@Runge_Kutta:dorb_r"                 ABS 1e-9       5.4210E-20
+"MONITOR1@Runge_Kutta:c*dt_r"                 ABS 1e-9       0.0000E+00
+"MONITOR1@Runge_Kutta:dorb_b"                 ABS 1e-9       2.1684E-19
+"MONITOR1@Runge_Kutta:c*dt_b"                 ABS 1e-9       0.0000E+00
+"MONITOR1@Runge_Kutta:xmat"                   ABS 1e-8       2.0002E-12
+"MONITOR1@Symp_Lie_PTC:dorb_r"                ABS 1e-14      1.1111E-15
+"MONITOR1@Symp_Lie_PTC:c*dt_r"                ABS 1e-14      0.0000E+00
+"MONITOR1@Symp_Lie_PTC:dorb_b"                ABS 1e-14      1.1111E-15
+"MONITOR1@Symp_Lie_PTC:c*dt_b"                ABS 1e-14      0.0000E+00
+"MONITOR1@Symp_Lie_PTC:xmat"                  ABS 1e-8       9.9920E-16
+"MULTIPOLE1@Bmad_Standard:dorb_r"             ABS 1e-14      3.5237E-18
+"MULTIPOLE1@Bmad_Standard:c*dt_r"             ABS 1e-14      0.0000E+00
+"MULTIPOLE1@Bmad_Standard:dorb_b"             ABS 1e-14      3.5237E-18
+"MULTIPOLE1@Bmad_Standard:c*dt_b"             ABS 1e-14      0.0000E+00
+"MULTIPOLE1@Bmad_Standard:xmat"               ABS 1e-8       0.0000E+00
+"MULTIPOLE1@Symp_Lie_PTC:dorb_r"              ABS 1e-14      2.8596E-18
+"MULTIPOLE1@Symp_Lie_PTC:c*dt_r"              ABS 1e-14      0.0000E+00
+"MULTIPOLE1@Symp_Lie_PTC:dorb_b"              REL 0.1        9.9670E-02
+"MULTIPOLE1@Symp_Lie_PTC:c*dt_b"              ABS 1e-14      0.0000E+00
+"MULTIPOLE1@Symp_Lie_PTC:xmat"                ABS 1e-8       3.3307E-16
+"OCTUPOLE1@Bmad_Standard:dorb_r"              ABS 1e-14      4.0793E-18
+"OCTUPOLE1@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"OCTUPOLE1@Bmad_Standard:dorb_b"              ABS 1e-14      4.0793E-18
+"OCTUPOLE1@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"OCTUPOLE1@Bmad_Standard:xmat"                ABS 1e-8       8.8818E-16
+"OCTUPOLE1@Runge_Kutta:dorb_r"                ABS 1e-9       5.7418E-11
+"OCTUPOLE1@Runge_Kutta:c*dt_r"                ABS 1e-9       1.0588E-22
+"OCTUPOLE1@Runge_Kutta:dorb_b"                ABS 1e-9       5.7418E-11
+"OCTUPOLE1@Runge_Kutta:c*dt_b"                ABS 1e-9       1.0588E-22
+"OCTUPOLE1@Runge_Kutta:xmat"                  ABS 1e-8       2.5995E-06
+"OCTUPOLE1@Symp_Lie_PTC:dorb_r"               ABS 1e-14      1.1059E-15
+"OCTUPOLE1@Symp_Lie_PTC:c*dt_r"               ABS 1e-14     -2.6470E-23
+"OCTUPOLE1@Symp_Lie_PTC:dorb_b"               REL 0.1        1.9522E-03
+"OCTUPOLE1@Symp_Lie_PTC:c*dt_b"               ABS 1e-14      5.3730E-15
+"OCTUPOLE1@Symp_Lie_PTC:xmat"                 ABS 1e-8       3.9968E-15
+"PATCH1@Bmad_Standard:dorb_r"                 ABS 1e-14      2.2638E-16
+"PATCH1@Bmad_Standard:c*dt_r"                 ABS 1e-14      0.0000E+00
+"PATCH1@Bmad_Standard:dorb_b"                 ABS 1e-14      2.2638E-16
+"PATCH1@Bmad_Standard:c*dt_b"                 ABS 1e-14      0.0000E+00
+"PATCH1@Bmad_Standard:xmat"                   ABS 1e-8       2.2204E-16
+"PATCH1@Runge_Kutta:dorb_r"                   ABS 1e-9       1.7347E-18
+"PATCH1@Runge_Kutta:c*dt_r"                   ABS 1e-9      -5.2940E-23
+"PATCH1@Runge_Kutta:dorb_b"                   ABS 1e-9       1.7347E-18
+"PATCH1@Runge_Kutta:c*dt_b"                   ABS 1e-9      -5.2940E-23
+"PATCH1@Runge_Kutta:xmat"                     ABS 1e-8       7.5278E-12
+"PATCH1@Symp_Lie_PTC:dorb_r"                  REL 0.1        1.8104E-05
+"PATCH1@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14     -2.7057E-18
+"PATCH1@Symp_Lie_PTC:dorb_b"                  REL 0.1        1.8200E-04
+"PATCH1@Symp_Lie_PTC:c*dt_b"                  ABS 1e-14     -2.7886E-18
+"PATCH1@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.3926E-05
+"QUADRUPOLE1@Bmad_Standard:dorb_r"            ABS 1e-14      1.6737E-17
+"QUADRUPOLE1@Bmad_Standard:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE1@Bmad_Standard:dorb_b"            ABS 1e-14      1.6737E-17
+"QUADRUPOLE1@Bmad_Standard:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE1@Bmad_Standard:xmat"              ABS 1e-8       2.2204E-16
+"QUADRUPOLE1@Runge_Kutta:dorb_r"              ABS 1e-9       3.5610E-11
+"QUADRUPOLE1@Runge_Kutta:c*dt_r"              ABS 1e-9       3.9705E-22
+"QUADRUPOLE1@Runge_Kutta:dorb_b"              ABS 1e-9       3.5610E-11
+"QUADRUPOLE1@Runge_Kutta:c*dt_b"              ABS 1e-9       3.9705E-22
+"QUADRUPOLE1@Runge_Kutta:xmat"                ABS 1e-8       9.6986E-10
+"QUADRUPOLE1@Symp_Lie_PTC:dorb_r"             ABS 1e-14      1.3878E-16
+"QUADRUPOLE1@Symp_Lie_PTC:c*dt_r"             ABS 1e-14      0.0000E+00
+"QUADRUPOLE1@Symp_Lie_PTC:dorb_b"             REL 0.1        5.9676E-02
+"QUADRUPOLE1@Symp_Lie_PTC:c*dt_b"             REL 0.1        1.0745E-12
+"QUADRUPOLE1@Symp_Lie_PTC:xmat"               ABS 1e-8       1.3323E-15
+"QUADRUPOLE1@Symp_Lie_Bmad:dorb_r"            ABS 1e-14      1.0517E-17
+"QUADRUPOLE1@Symp_Lie_Bmad:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE1@Symp_Lie_Bmad:dorb_b"            ABS 1e-14      1.0517E-17
+"QUADRUPOLE1@Symp_Lie_Bmad:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE1@Symp_Lie_Bmad:xmat"              ABS 1e-8       4.1633E-16
+"QUADRUPOLE2@Bmad_Standard:dorb_r"            ABS 1e-14      7.0473E-18
+"QUADRUPOLE2@Bmad_Standard:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE2@Bmad_Standard:dorb_b"            ABS 1e-14      7.0473E-18
+"QUADRUPOLE2@Bmad_Standard:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE2@Bmad_Standard:xmat"              ABS 1e-8       2.2204E-16
+"QUADRUPOLE2@Runge_Kutta:dorb_r"              ABS 1e-9       3.6588E-11
+"QUADRUPOLE2@Runge_Kutta:c*dt_r"              ABS 1e-9       1.3235E-22
+"QUADRUPOLE2@Runge_Kutta:dorb_b"              ABS 1e-9       3.6588E-11
+"QUADRUPOLE2@Runge_Kutta:c*dt_b"              ABS 1e-9       1.3235E-22
+"QUADRUPOLE2@Runge_Kutta:xmat"                ABS 1e-8       1.0423E-09
+"QUADRUPOLE2@Symp_Lie_PTC:dorb_r"             ABS 1e-14      1.3878E-16
+"QUADRUPOLE2@Symp_Lie_PTC:c*dt_r"             ABS 1e-14     -2.6470E-23
+"QUADRUPOLE2@Symp_Lie_PTC:dorb_b"             REL 0.1        5.9668E-02
+"QUADRUPOLE2@Symp_Lie_PTC:c*dt_b"             REL 0.1        1.0435E-12
+"QUADRUPOLE2@Symp_Lie_PTC:xmat"               ABS 1e-8       1.4433E-15
+"QUADRUPOLE2@Symp_Lie_Bmad:dorb_r"            ABS 1e-14      1.6737E-17
+"QUADRUPOLE2@Symp_Lie_Bmad:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE2@Symp_Lie_Bmad:dorb_b"            ABS 1e-14      1.6737E-17
+"QUADRUPOLE2@Symp_Lie_Bmad:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE2@Symp_Lie_Bmad:xmat"              ABS 1e-8       4.9960E-16
+"QUADRUPOLE3@Bmad_Standard:dorb_r"            ABS 1e-14      7.0473E-18
+"QUADRUPOLE3@Bmad_Standard:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE3@Bmad_Standard:dorb_b"            ABS 1e-14      7.0473E-18
+"QUADRUPOLE3@Bmad_Standard:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE3@Bmad_Standard:xmat"              ABS 1e-8       5.4210E-20
+"QUADRUPOLE3@Runge_Kutta:dorb_r"              ABS 1e-9       1.6737E-17
+"QUADRUPOLE3@Runge_Kutta:c*dt_r"              ABS 1e-9       0.0000E+00
+"QUADRUPOLE3@Runge_Kutta:dorb_b"              ABS 1e-9       1.6737E-17
+"QUADRUPOLE3@Runge_Kutta:c*dt_b"              ABS 1e-9       0.0000E+00
+"QUADRUPOLE3@Runge_Kutta:xmat"                ABS 1e-8       2.0002E-12
+"QUADRUPOLE3@Symp_Lie_PTC:dorb_r"             ABS 1e-14      1.3965E-16
+"QUADRUPOLE3@Symp_Lie_PTC:c*dt_r"             ABS 1e-14     -2.6470E-23
+"QUADRUPOLE3@Symp_Lie_PTC:dorb_b"             REL 0.1        7.8462E-10
+"QUADRUPOLE3@Symp_Lie_PTC:c*dt_b"             ABS 1e-14     -1.5882E-22
+"QUADRUPOLE3@Symp_Lie_PTC:xmat"               ABS 1e-8       6.1063E-16
+"QUADRUPOLE3@Symp_Lie_Bmad:dorb_r"            ABS 1e-14      9.7985E-18
+"QUADRUPOLE3@Symp_Lie_Bmad:c*dt_r"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE3@Symp_Lie_Bmad:dorb_b"            ABS 1e-14      9.7985E-18
+"QUADRUPOLE3@Symp_Lie_Bmad:c*dt_b"            ABS 1e-14      0.0000E+00
+"QUADRUPOLE3@Symp_Lie_Bmad:xmat"              ABS 1e-8       2.7692E-21
+"QUADRUPOLE4@Bmad_Standard:dorb_r"            REL 0.1        8.6006E-10
+"QUADRUPOLE4@Bmad_Standard:c*dt_r"            ABS 1e-14      2.2102E-20
+"QUADRUPOLE4@Bmad_Standard:dorb_b"            REL 0.1        8.6006E-10
+"QUADRUPOLE4@Bmad_Standard:c*dt_b"            ABS 1e-14      2.2102E-20
+"QUADRUPOLE4@Bmad_Standard:xmat"              ABS 1e-8       2.1992E-07
+"QUADRUPOLE4@Runge_Kutta:dorb_r"              ABS 1e-9       8.6056E-10
+"QUADRUPOLE4@Runge_Kutta:c*dt_r"              ABS 1e-9       1.3791E-20
+"QUADRUPOLE4@Runge_Kutta:dorb_b"              ABS 1e-9       8.6056E-10
+"QUADRUPOLE4@Runge_Kutta:c*dt_b"              ABS 1e-9       1.3791E-20
+"QUADRUPOLE4@Runge_Kutta:xmat"                ABS 1e-8       2.1953E-07
+"QUADRUPOLE4@Symp_Lie_PTC:dorb_r"             REL 0.1        8.5986E-10
+"QUADRUPOLE4@Symp_Lie_PTC:c*dt_r"             ABS 1e-14      2.2129E-20
+"QUADRUPOLE4@Symp_Lie_PTC:dorb_b"             REL 0.1        5.9683E-02
+"QUADRUPOLE4@Symp_Lie_PTC:c*dt_b"             REL 0.1        1.0744E-12
+"QUADRUPOLE4@Symp_Lie_PTC:xmat"               ABS 1e-8       2.1989E-07
+"QUADRUPOLE4@Symp_Lie_Bmad:dorb_r"            REL 0.1        8.5866E-10
+"QUADRUPOLE4@Symp_Lie_Bmad:c*dt_r"            ABS 1e-14      2.2049E-20
+"QUADRUPOLE4@Symp_Lie_Bmad:dorb_b"            REL 0.1        8.5866E-10
+"QUADRUPOLE4@Symp_Lie_Bmad:c*dt_b"            ABS 1e-14      2.2049E-20
+"QUADRUPOLE4@Symp_Lie_Bmad:xmat"              ABS 1e-8       2.1970E-07
+"QUADRUPOLE5@Bmad_Standard:dorb_r"            ABS 1e-9       7.6605E-10
+"QUADRUPOLE5@Bmad_Standard:c*dt_r"            ABS 1e-14      1.8105E-20
+"QUADRUPOLE5@Bmad_Standard:dorb_b"            REL 0.1        7.6605E-10
+"QUADRUPOLE5@Bmad_Standard:c*dt_b"            ABS 1e-14      1.8105E-20
+"QUADRUPOLE5@Bmad_Standard:xmat"              ABS 1e-8       2.1916E-07
+"QUADRUPOLE5@Runge_Kutta:dorb_r"              ABS 1e-9       7.6659E-10
+"QUADRUPOLE5@Runge_Kutta:c*dt_r"              ABS 1e-9       1.1250E-20
+"QUADRUPOLE5@Runge_Kutta:dorb_b"              ABS 1e-9       7.6659E-10
+"QUADRUPOLE5@Runge_Kutta:c*dt_b"              ABS 1e-9       1.1250E-20
+"QUADRUPOLE5@Runge_Kutta:xmat"                ABS 1e-8       2.1876E-07
+"QUADRUPOLE5@Symp_Lie_PTC:dorb_r"             REL 0.1        7.6586E-10
+"QUADRUPOLE5@Symp_Lie_PTC:c*dt_r"             ABS 1e-14      1.8105E-20
+"QUADRUPOLE5@Symp_Lie_PTC:dorb_b"             REL 0.1        5.9675E-02
+"QUADRUPOLE5@Symp_Lie_PTC:c*dt_b"             REL 0.1        1.0435E-12
+"QUADRUPOLE5@Symp_Lie_PTC:xmat"               ABS 1e-8       2.1914E-07
+"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r"            ABS 1e-9       7.6476E-10
+"QUADRUPOLE5@Symp_Lie_Bmad:c*dt_r"            ABS 1e-14      1.8052E-20
+"QUADRUPOLE5@Symp_Lie_Bmad:dorb_b"            REL 0.1        7.6476E-10
+"QUADRUPOLE5@Symp_Lie_Bmad:c*dt_b"            ABS 1e-14      1.8052E-20
+"QUADRUPOLE5@Symp_Lie_Bmad:xmat"              ABS 1e-8       2.1895E-07
+"RCOLLIMATOR1@Bmad_Standard:dorb_r"           ABS 1e-14      6.0986E-19
+"RCOLLIMATOR1@Bmad_Standard:c*dt_r"           ABS 1e-14      0.0000E+00
+"RCOLLIMATOR1@Bmad_Standard:dorb_b"           ABS 1e-14      6.0986E-19
+"RCOLLIMATOR1@Bmad_Standard:c*dt_b"           ABS 1e-14      0.0000E+00
+"RCOLLIMATOR1@Bmad_Standard:xmat"             ABS 1e-8       0.0000E+00
+"RCOLLIMATOR1@Runge_Kutta:dorb_r"             ABS 1e-9       7.5488E-18
+"RCOLLIMATOR1@Runge_Kutta:c*dt_r"             ABS 1e-9       0.0000E+00
+"RCOLLIMATOR1@Runge_Kutta:dorb_b"             ABS 1e-9       7.5488E-18
+"RCOLLIMATOR1@Runge_Kutta:c*dt_b"             ABS 1e-9       0.0000E+00
+"RCOLLIMATOR1@Runge_Kutta:xmat"               ABS 1e-8       2.0002E-12
+"RCOLLIMATOR1@Symp_Lie_PTC:dorb_r"            ABS 1e-14      1.0989E-15
+"RCOLLIMATOR1@Symp_Lie_PTC:c*dt_r"            ABS 1e-14     -2.6470E-23
+"RCOLLIMATOR1@Symp_Lie_PTC:dorb_b"            REL 0.1        5.8846E-09
+"RCOLLIMATOR1@Symp_Lie_PTC:c*dt_b"            ABS 1e-14     -1.1117E-21
+"RCOLLIMATOR1@Symp_Lie_PTC:xmat"              ABS 1e-8       1.3323E-15
+"RFCAVITY1@Bmad_Standard:dorb_r"              REL 0.1        1.0892E-07
+"RFCAVITY1@Bmad_Standard:c*dt_r"              ABS 1e-14      1.1117E-19
+"RFCAVITY1@Bmad_Standard:dorb_b"              REL 0.1        1.0892E-07
+"RFCAVITY1@Bmad_Standard:c*dt_b"              ABS 1e-14      1.1117E-19
+"RFCAVITY1@Bmad_Standard:xmat"                ABS 1e-8       8.0339E-04
+"RFCAVITY1@Runge_Kutta:dorb_r"                ABS 3e-9       6.2935E-05
+"RFCAVITY1@Runge_Kutta:c*dt_r"                ABS 1e-9      -1.1915E-18
+"RFCAVITY1@Runge_Kutta:dorb_b"                ABS 1e-9       6.2935E-05
+"RFCAVITY1@Runge_Kutta:c*dt_b"                ABS 1e-9      -5.8191E-19
+"RFCAVITY1@Runge_Kutta:xmat"                  ABS 1e-8       8.1437E-04
+"RFCAVITY1@Symp_Lie_PTC:dorb_r"               REL 0.1        5.9958E-01
+"RFCAVITY1@Symp_Lie_PTC:c*dt_r"               REL 0.1       -2.0000E-09
+"RFCAVITY1@Symp_Lie_PTC:dorb_b"               REL 0.1        6.2935E-05
+"RFCAVITY1@Symp_Lie_PTC:c*dt_b"               ABS 1e-14      9.9129E-20
+"RFCAVITY1@Symp_Lie_PTC:xmat"                 ABS 1e-8       4.6121E-01
+"RFCAVITY2@Bmad_Standard:dorb_r"              ABS 1e-6       1.0739E-07
+"RFCAVITY2@Bmad_Standard:c*dt_r"              ABS 1e-14      1.0966E-19
+"RFCAVITY2@Bmad_Standard:dorb_b"              REL 0.1        1.0739E-07
+"RFCAVITY2@Bmad_Standard:c*dt_b"              ABS 1e-14      1.0966E-19
+"RFCAVITY2@Bmad_Standard:xmat"                ABS 1e-8       8.1116E-04
+"RFCAVITY2@Runge_Kutta:dorb_r"                ABS 1e-9       6.2935E-05
+"RFCAVITY2@Runge_Kutta:c*dt_r"                ABS 1e-9      -1.1953E-18
+"RFCAVITY2@Runge_Kutta:dorb_b"                ABS 1e-9       6.2935E-05
+"RFCAVITY2@Runge_Kutta:c*dt_b"                ABS 1e-9      -5.8451E-19
+"RFCAVITY2@Runge_Kutta:xmat"                  ABS 1e-8       8.1437E-04
+"RFCAVITY2@Symp_Lie_PTC:dorb_r"               REL 0.1        5.9958E-01
+"RFCAVITY2@Symp_Lie_PTC:c*dt_r"               REL 0.1       -2.0000E-09
+"RFCAVITY2@Symp_Lie_PTC:dorb_b"               REL 0.1        6.2935E-05
+"RFCAVITY2@Symp_Lie_PTC:c*dt_b"               ABS 1e-14      9.9129E-20
+"RFCAVITY2@Symp_Lie_PTC:xmat"                 ABS 1e-8       4.6121E-01
+"SBEND1@Bmad_Standard:dorb_r"                 ABS 1e-14      1.1018E-17
+"SBEND1@Bmad_Standard:c*dt_r"                 ABS 1e-14      0.0000E+00
+"SBEND1@Bmad_Standard:dorb_b"                 ABS 1e-14      1.1018E-17
+"SBEND1@Bmad_Standard:c*dt_b"                 ABS 1e-14      0.0000E+00
+"SBEND1@Bmad_Standard:xmat"                   ABS 1e-8       2.2204E-16
+"SBEND1@Runge_Kutta:dorb_r"                   ABS 1e-9       1.9981E-11
+"SBEND1@Runge_Kutta:c*dt_r"                   ABS 1e-9       2.6470E-23
+"SBEND1@Runge_Kutta:dorb_b"                   ABS 1e-9       1.9981E-11
+"SBEND1@Runge_Kutta:c*dt_b"                   ABS 1e-9       2.6470E-23
+"SBEND1@Runge_Kutta:xmat"                     ABS 1e-8       1.3294E-09
+"SBEND1@Symp_Lie_PTC:dorb_r"                  ABS 1e-14      1.4138E-16
+"SBEND1@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      0.0000E+00
+"SBEND1@Symp_Lie_PTC:dorb_b"                  REL 0.1        1.7557E-02
+"SBEND1@Symp_Lie_PTC:c*dt_b"                  REL 0.1        9.6205E-14
+"SBEND1@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.6653E-15
+"SBEND2@Bmad_Standard:dorb_r"                 ABS 1e-14      4.0793E-18
+"SBEND2@Bmad_Standard:c*dt_r"                 ABS 1e-14      0.0000E+00
+"SBEND2@Bmad_Standard:dorb_b"                 ABS 1e-14      4.0793E-18
+"SBEND2@Bmad_Standard:c*dt_b"                 ABS 1e-14      0.0000E+00
+"SBEND2@Bmad_Standard:xmat"                   ABS 1e-8       6.6613E-16
+"SBEND2@Runge_Kutta:dorb_r"                   ABS 1e-9       4.1173E-12
+"SBEND2@Runge_Kutta:c*dt_r"                   ABS 1e-9       2.6470E-23
+"SBEND2@Runge_Kutta:dorb_b"                   ABS 1e-9       4.1173E-12
+"SBEND2@Runge_Kutta:c*dt_b"                   ABS 1e-9       2.6470E-23
+"SBEND2@Runge_Kutta:xmat"                     ABS 1e-8       7.9986E-10
+"SBEND2@Symp_Lie_PTC:dorb_r"                  ABS 1e-14      1.4138E-16
+"SBEND2@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      0.0000E+00
+"SBEND2@Symp_Lie_PTC:dorb_b"                  REL 0.1        4.2528E-03
+"SBEND2@Symp_Lie_PTC:c*dt_b"                  ABS 1e-14      5.1475E-15
+"SBEND2@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.5543E-15
+"SBEND3@Bmad_Standard:dorb_r"                 ABS 1e-14      1.7957E-17
+"SBEND3@Bmad_Standard:c*dt_r"                 ABS 1e-14      0.0000E+00
+"SBEND3@Bmad_Standard:dorb_b"                 ABS 1e-14      1.7957E-17
+"SBEND3@Bmad_Standard:c*dt_b"                 ABS 1e-14      0.0000E+00
+"SBEND3@Bmad_Standard:xmat"                   ABS 1e-8       8.8818E-16
+"SBEND3@Runge_Kutta:dorb_r"                   ABS 1e-9       8.3884E-11
+"SBEND3@Runge_Kutta:c*dt_r"                   ABS 1e-9       7.4115E-22
+"SBEND3@Runge_Kutta:dorb_b"                   ABS 1e-9       8.3884E-11
+"SBEND3@Runge_Kutta:c*dt_b"                   ABS 1e-9       7.4115E-22
+"SBEND3@Runge_Kutta:xmat"                     ABS 1e-8       8.0366E-09
+"SBEND3@Symp_Lie_PTC:dorb_r"                  ABS 1e-14      1.3965E-16
+"SBEND3@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      0.0000E+00
+"SBEND3@Symp_Lie_PTC:dorb_b"                  REL 0.1        1.3306E-02
+"SBEND3@Symp_Lie_PTC:c*dt_b"                  REL 0.1        5.5529E-14
+"SBEND3@Symp_Lie_PTC:xmat"                    ABS 1e-8       2.3315E-15
+"SBEND4@Bmad_Standard:dorb_r"                 ABS 2e-8       1.3944E-10
+"SBEND4@Bmad_Standard:c*dt_r"                 ABS 1e-14      4.6513E-19
+"SBEND4@Bmad_Standard:dorb_b"                 ABS 2e-8       1.3944E-10
+"SBEND4@Bmad_Standard:c*dt_b"                 ABS 1e-14      4.6513E-19
+"SBEND4@Bmad_Standard:xmat"                   ABS 1e-8       2.0949E-09
+"SBEND4@Runge_Kutta:dorb_r"                   ABS 1e-7       5.0328E-10
+"SBEND4@Runge_Kutta:c*dt_r"                   ABS 1e-9      -1.9770E-18
+"SBEND4@Runge_Kutta:dorb_b"                   ABS 1e-7       5.0328E-10
+"SBEND4@Runge_Kutta:c*dt_b"                   ABS 1e-9      -1.9770E-18
+"SBEND4@Runge_Kutta:xmat"                     ABS 2e-5       5.4046E-05
+"SBEND4@Symp_Lie_PTC:dorb_r"                  REL 0.1        3.1770E-09
+"SBEND4@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      1.1146E-19
+"SBEND4@Symp_Lie_PTC:dorb_b"                  REL 0.1        5.7503E-07
+"SBEND4@Symp_Lie_PTC:c*dt_b"                  ABS 1e-14     -7.2673E-19
+"SBEND4@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.0590E-08
+"SBEND5@Bmad_Standard:dorb_r"                 REL 0.1        4.4171E-10
+"SBEND5@Bmad_Standard:c*dt_r"                 ABS 1e-14      3.0340E-19
+"SBEND5@Bmad_Standard:dorb_b"                 REL 0.1        4.4171E-10
+"SBEND5@Bmad_Standard:c*dt_b"                 ABS 1e-14      3.0340E-19
+"SBEND5@Bmad_Standard:xmat"                   ABS 1e-8       4.4376E-07
+"SBEND5@Runge_Kutta:dorb_r"                   ABS 1e-9       4.4173E-10
+"SBEND5@Runge_Kutta:c*dt_r"                   ABS 1e-9       2.4135E-19
+"SBEND5@Runge_Kutta:dorb_b"                   ABS 1e-9       4.4173E-10
+"SBEND5@Runge_Kutta:c*dt_b"                   ABS 1e-9       2.4135E-19
+"SBEND5@Runge_Kutta:xmat"                     ABS 1e-8       1.0438E-09
+"SBEND5@Symp_Lie_PTC:dorb_r"                  REL 0.1        5.6104E-14
+"SBEND5@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      0.0000E+00
+"SBEND5@Symp_Lie_PTC:dorb_b"                  REL 0.1        1.2223E-02
+"SBEND5@Symp_Lie_PTC:c*dt_b"                  REL 0.1        4.2860E-14
+"SBEND5@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.8709E-13
+"SBEND6@Bmad_Standard:dorb_r"                 REL 0.1        9.2715E-11
+"SBEND6@Bmad_Standard:c*dt_r"                 ABS 1e-14      2.9829E-19
+"SBEND6@Bmad_Standard:dorb_b"                 REL 0.1        9.2715E-11
+"SBEND6@Bmad_Standard:c*dt_b"                 ABS 1e-14      2.9829E-19
+"SBEND6@Bmad_Standard:xmat"                   ABS 1e-8       1.9689E-10
+"SBEND6@Runge_Kutta:dorb_r"                   ABS 1e-9       9.2713E-11
+"SBEND6@Runge_Kutta:c*dt_r"                   ABS 1e-9       2.6470E-23
+"SBEND6@Runge_Kutta:dorb_b"                   ABS 1e-9       9.2713E-11
+"SBEND6@Runge_Kutta:c*dt_b"                   ABS 1e-9       2.6470E-23
+"SBEND6@Runge_Kutta:xmat"                     ABS 1e-8       6.8632E-10
+"SBEND6@Symp_Lie_PTC:dorb_r"                  REL 0.1        3.1770E-09
+"SBEND6@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      1.1146E-19
+"SBEND6@Symp_Lie_PTC:dorb_b"                  REL 0.1        5.7503E-07
+"SBEND6@Symp_Lie_PTC:c*dt_b"                  ABS 1e-14     -7.2673E-19
+"SBEND6@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.0590E-08
+"SBEND7@Bmad_Standard:dorb_r"                 REL 0.1        4.3985E-10
+"SBEND7@Bmad_Standard:c*dt_r"                 ABS 1e-14      3.0374E-19
+"SBEND7@Bmad_Standard:dorb_b"                 REL 0.1        4.3985E-10
+"SBEND7@Bmad_Standard:c*dt_b"                 ABS 1e-14      3.0374E-19
+"SBEND7@Bmad_Standard:xmat"                   ABS 1e-8       5.2966E-07
+"SBEND7@Runge_Kutta:dorb_r"                   ABS 1e-9       4.3987E-10
+"SBEND7@Runge_Kutta:c*dt_r"                   ABS 1e-9       2.4164E-19
+"SBEND7@Runge_Kutta:dorb_b"                   ABS 1e-9       4.3987E-10
+"SBEND7@Runge_Kutta:c*dt_b"                   ABS 1e-9       2.4164E-19
+"SBEND7@Runge_Kutta:xmat"                     ABS 1e-8       1.3653E-09
+"SBEND7@Symp_Lie_PTC:dorb_r"                  REL 0.1        5.6104E-14
+"SBEND7@Symp_Lie_PTC:c*dt_r"                  ABS 1e-14      0.0000E+00
+"SBEND7@Symp_Lie_PTC:dorb_b"                  REL 0.1        1.2223E-02
+"SBEND7@Symp_Lie_PTC:c*dt_b"                  REL 0.1        4.2860E-14
+"SBEND7@Symp_Lie_PTC:xmat"                    ABS 1e-8       1.8709E-13
+"SEXTUPOLE1@Bmad_Standard:dorb_r"             ABS 1e-14      4.0793E-18
+"SEXTUPOLE1@Bmad_Standard:c*dt_r"             ABS 1e-14      0.0000E+00
+"SEXTUPOLE1@Bmad_Standard:dorb_b"             ABS 1e-14      4.0793E-18
+"SEXTUPOLE1@Bmad_Standard:c*dt_b"             ABS 1e-14      0.0000E+00
+"SEXTUPOLE1@Bmad_Standard:xmat"               ABS 1e-8       2.9382E-16
+"SEXTUPOLE1@Runge_Kutta:dorb_r"               ABS 1e-9       5.2219E-12
+"SEXTUPOLE1@Runge_Kutta:c*dt_r"               ABS 1e-9       0.0000E+00
+"SEXTUPOLE1@Runge_Kutta:dorb_b"               ABS 1e-9       5.2219E-12
+"SEXTUPOLE1@Runge_Kutta:c*dt_b"               ABS 1e-9       0.0000E+00
+"SEXTUPOLE1@Runge_Kutta:xmat"                 ABS 1e-8       4.1919E-10
+"SEXTUPOLE1@Symp_Lie_PTC:dorb_r"              ABS 1e-14      1.3878E-16
+"SEXTUPOLE1@Symp_Lie_PTC:c*dt_r"              ABS 1e-14     -2.6470E-23
+"SEXTUPOLE1@Symp_Lie_PTC:dorb_b"              REL 0.1        1.4911E-03
+"SEXTUPOLE1@Symp_Lie_PTC:c*dt_b"              ABS 1e-14      3.0764E-16
+"SEXTUPOLE1@Symp_Lie_PTC:xmat"                ABS 1e-8       6.6613E-16
+"SOLENOID1@Bmad_Standard:dorb_r"              ABS 1e-14      1.1018E-17
+"SOLENOID1@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"SOLENOID1@Bmad_Standard:dorb_b"              ABS 1e-14      1.1018E-17
+"SOLENOID1@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"SOLENOID1@Bmad_Standard:xmat"                ABS 1e-8       4.4409E-16
+"SOLENOID1@Runge_Kutta:dorb_r"                ABS 1e-9       6.9649E-11
+"SOLENOID1@Runge_Kutta:c*dt_r"                ABS 1e-9       3.9705E-21
+"SOLENOID1@Runge_Kutta:dorb_b"                ABS 1e-9       6.9649E-11
+"SOLENOID1@Runge_Kutta:c*dt_b"                ABS 1e-9       3.9705E-21
+"SOLENOID1@Runge_Kutta:xmat"                  ABS 1e-8       2.8196E-09
+"SOLENOID1@Symp_Lie_PTC:dorb_r"               ABS 1e-14      5.7593E-16
+"SOLENOID1@Symp_Lie_PTC:c*dt_r"               ABS 1e-14     -2.6470E-23
+"SOLENOID1@Symp_Lie_PTC:dorb_b"               REL 0.1        2.4998E-03
+"SOLENOID1@Symp_Lie_PTC:c*dt_b"               REL 0.1       -1.3137E-13
+"SOLENOID1@Symp_Lie_PTC:xmat"                 ABS 1e-8       5.5511E-15
+"SOLENOID1@Symp_Lie_Bmad:dorb_r"              ABS 1e-14      2.8596E-18
+"SOLENOID1@Symp_Lie_Bmad:c*dt_r"              ABS 1e-14      0.0000E+00
+"SOLENOID1@Symp_Lie_Bmad:dorb_b"              ABS 1e-14      2.8596E-18
+"SOLENOID1@Symp_Lie_Bmad:c*dt_b"              ABS 1e-14      0.0000E+00
+"SOLENOID1@Symp_Lie_Bmad:xmat"                ABS 1e-8       7.7716E-16
+"SOLENOID2@Bmad_Standard:dorb_r"              ABS 1e-14      1.1018E-17
+"SOLENOID2@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"SOLENOID2@Bmad_Standard:dorb_b"              ABS 1e-14      1.1018E-17
+"SOLENOID2@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"SOLENOID2@Bmad_Standard:xmat"                ABS 1e-8       2.2204E-16
+"SOLENOID2@Runge_Kutta:dorb_r"                ABS 1e-9       2.8596E-18
+"SOLENOID2@Runge_Kutta:c*dt_r"                ABS 1e-9       0.0000E+00
+"SOLENOID2@Runge_Kutta:dorb_b"                ABS 1e-9       2.8596E-18
+"SOLENOID2@Runge_Kutta:c*dt_b"                ABS 1e-9       0.0000E+00
+"SOLENOID2@Runge_Kutta:xmat"                  ABS 1e-8       2.0002E-12
+"SOLENOID2@Symp_Lie_PTC:dorb_r"               ABS 1e-14      5.3950E-16
+"SOLENOID2@Symp_Lie_PTC:c*dt_r"               ABS 1e-14      0.0000E+00
+"SOLENOID2@Symp_Lie_PTC:dorb_b"               REL 0.1        3.4000E-09
+"SOLENOID2@Symp_Lie_PTC:c*dt_b"               ABS 1e-14     -6.3527E-22
+"SOLENOID2@Symp_Lie_PTC:xmat"                 ABS 1e-8       1.3323E-15
+"SOLENOID2@Symp_Lie_Bmad:dorb_r"              ABS 1e-14      2.8596E-18
+"SOLENOID2@Symp_Lie_Bmad:c*dt_r"              ABS 1e-14      0.0000E+00
+"SOLENOID2@Symp_Lie_Bmad:dorb_b"              ABS 1e-14      2.8596E-18
+"SOLENOID2@Symp_Lie_Bmad:c*dt_b"              ABS 1e-14      0.0000E+00
+"SOLENOID2@Symp_Lie_Bmad:xmat"                ABS 1e-8       2.2204E-16
+"SOL_QUAD1@Bmad_Standard:dorb_r"              ABS 1e-14      3.0615E-17
+"SOL_QUAD1@Bmad_Standard:c*dt_r"              ABS 1e-14      2.6470E-23
+"SOL_QUAD1@Bmad_Standard:dorb_b"              ABS 1e-14      3.0615E-17
+"SOL_QUAD1@Bmad_Standard:c*dt_b"              ABS 1e-14      2.6470E-23
+"SOL_QUAD1@Bmad_Standard:xmat"                ABS 1e-8       5.7732E-15
+"SOL_QUAD1@Runge_Kutta:dorb_r"                ABS 1e-9       1.2573E-10
+"SOL_QUAD1@Runge_Kutta:c*dt_r"                ABS 1e-9       1.8132E-20
+"SOL_QUAD1@Runge_Kutta:dorb_b"                ABS 1e-9       1.2573E-10
+"SOL_QUAD1@Runge_Kutta:c*dt_b"                ABS 1e-9       1.8132E-20
+"SOL_QUAD1@Runge_Kutta:xmat"                  ABS 1e-8       2.4600E-09
+"SOL_QUAD1@Symp_Lie_PTC:dorb_r"               ABS 1e-14      2.7582E-16
+"SOL_QUAD1@Symp_Lie_PTC:c*dt_r"               ABS 1e-14      2.6470E-23
+"SOL_QUAD1@Symp_Lie_PTC:dorb_b"               REL 0.1        1.5078E-01
+"SOL_QUAD1@Symp_Lie_PTC:c*dt_b"               REL 0.1       -1.1882E-12
+"SOL_QUAD1@Symp_Lie_PTC:xmat"                 ABS 1e-8       2.9754E-14
+"SOL_QUAD1@Symp_Lie_Bmad:dorb_r"              ABS 1e-14      1.8811E-17
+"SOL_QUAD1@Symp_Lie_Bmad:c*dt_r"              ABS 1e-14     -2.6470E-23
+"SOL_QUAD1@Symp_Lie_Bmad:dorb_b"              ABS 1e-14      1.8811E-17
+"SOL_QUAD1@Symp_Lie_Bmad:c*dt_b"              ABS 1e-14     -2.6470E-23
+"SOL_QUAD1@Symp_Lie_Bmad:xmat"                ABS 1e-8       4.4409E-15
+"SOL_QUAD2@Bmad_Standard:dorb_r"              ABS 1e-14      1.1018E-17
+"SOL_QUAD2@Bmad_Standard:c*dt_r"              ABS 1e-14      2.6470E-23
+"SOL_QUAD2@Bmad_Standard:dorb_b"              ABS 1e-14      1.1018E-17
+"SOL_QUAD2@Bmad_Standard:c*dt_b"              ABS 1e-14      2.6470E-23
+"SOL_QUAD2@Bmad_Standard:xmat"                ABS 1e-8       4.4409E-16
+"SOL_QUAD2@Runge_Kutta:dorb_r"                ABS 1e-9       6.9650E-11
+"SOL_QUAD2@Runge_Kutta:c*dt_r"                ABS 1e-9       4.1558E-21
+"SOL_QUAD2@Runge_Kutta:dorb_b"                ABS 1e-9       6.9650E-11
+"SOL_QUAD2@Runge_Kutta:c*dt_b"                ABS 1e-9       4.1558E-21
+"SOL_QUAD2@Runge_Kutta:xmat"                  ABS 1e-8       2.8191E-09
+"SOL_QUAD2@Symp_Lie_PTC:dorb_r"               ABS 1e-14      4.3108E-16
+"SOL_QUAD2@Symp_Lie_PTC:c*dt_r"               ABS 1e-14     -2.6470E-23
+"SOL_QUAD2@Symp_Lie_PTC:dorb_b"               REL 0.1        2.4996E-03
+"SOL_QUAD2@Symp_Lie_PTC:c*dt_b"               REL 0.1       -1.3130E-13
+"SOL_QUAD2@Symp_Lie_PTC:xmat"                 ABS 1e-8       6.8834E-15
+"SOL_QUAD2@Symp_Lie_Bmad:dorb_r"              ABS 1e-14      1.7957E-17
+"SOL_QUAD2@Symp_Lie_Bmad:c*dt_r"              ABS 1e-14      2.6470E-23
+"SOL_QUAD2@Symp_Lie_Bmad:dorb_b"              ABS 1e-14      1.7957E-17
+"SOL_QUAD2@Symp_Lie_Bmad:c*dt_b"              ABS 1e-14      2.6470E-23
+"SOL_QUAD2@Symp_Lie_Bmad:xmat"                ABS 1e-8       8.8818E-16
+"VKICKER1@Bmad_Standard:dorb_r"               ABS 1e-14      4.0793E-18
+"VKICKER1@Bmad_Standard:c*dt_r"               ABS 1e-14      0.0000E+00
+"VKICKER1@Bmad_Standard:dorb_b"               ABS 1e-14      4.0793E-18
+"VKICKER1@Bmad_Standard:c*dt_b"               ABS 1e-14      0.0000E+00
+"VKICKER1@Bmad_Standard:xmat"                 ABS 1e-8       8.8818E-16
+"VKICKER1@Runge_Kutta:dorb_r"                 ABS 1e-9       3.3052E-16
+"VKICKER1@Runge_Kutta:c*dt_r"                 ABS 1e-9      -5.2940E-23
+"VKICKER1@Runge_Kutta:dorb_b"                 ABS 1e-9       3.3139E-16
+"VKICKER1@Runge_Kutta:c*dt_b"                 ABS 1e-9      -5.2940E-23
+"VKICKER1@Runge_Kutta:xmat"                   ABS 1e-8       1.1840E-11
+"VKICKER1@Symp_Lie_PTC:dorb_r"                ABS 1e-14      1.1024E-15
+"VKICKER1@Symp_Lie_PTC:c*dt_r"                ABS 1e-14      5.2940E-23
+"VKICKER1@Symp_Lie_PTC:dorb_b"                REL 0.1        1.7221E-02
+"VKICKER1@Symp_Lie_PTC:c*dt_b"                REL 0.1        2.3883E-13
+"VKICKER1@Symp_Lie_PTC:xmat"                  ABS 1e-8       1.7764E-15
+"SAD_MULT1@Bmad_Standard:dorb_r"              ABS 1e-14      1.5043E-18
+"SAD_MULT1@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"SAD_MULT1@Bmad_Standard:dorb_b"              ABS 1e-14      1.5043E-18
+"SAD_MULT1@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"SAD_MULT1@Bmad_Standard:xmat"                ABS 1e-8       3.6660E-15
+"SAD_MULT1@Symp_Lie_PTC:dorb_r"               ABS 1e-14      7.8063E-18
+"SAD_MULT1@Symp_Lie_PTC:c*dt_r"               ABS 1e-14      5.2940E-23
+"SAD_MULT1@Symp_Lie_PTC:dorb_b"               REL 0.1        1.3298E-08
+"SAD_MULT1@Symp_Lie_PTC:c*dt_b"               ABS 1e-14      5.2940E-22
+"SAD_MULT1@Symp_Lie_PTC:xmat"                 ABS 1e-8       8.8818E-16
+"SAD_MULT2@Bmad_Standard:dorb_r"              ABS 1e-14      0.0000E+00
+"SAD_MULT2@Bmad_Standard:c*dt_r"              ABS 1e-14      0.0000E+00
+"SAD_MULT2@Bmad_Standard:dorb_b"              ABS 1e-14      0.0000E+00
+"SAD_MULT2@Bmad_Standard:c*dt_b"              ABS 1e-14      0.0000E+00
+"SAD_MULT2@Bmad_Standard:xmat"                ABS 1e-8       0.0000E+00
+"SAD_MULT2@Symp_Lie_PTC:dorb_r"               ABS 1e-14      0.0000E+00
+"SAD_MULT2@Symp_Lie_PTC:c*dt_r"               ABS 1e-14      0.0000E+00
+"SAD_MULT2@Symp_Lie_PTC:dorb_b"               REL 0.1        1.2640E-08
+"SAD_MULT2@Symp_Lie_PTC:c*dt_b"               ABS 1e-14      0.0000E+00
+"SAD_MULT2@Symp_Lie_PTC:xmat"                 ABS 1e-8       3.3307E-16
+"WIGGLER_MAP1@Taylor:dorb_r"                  REL 0.1        2.8055E-07
+"WIGGLER_MAP1@Taylor:c*dt_r"                  ABS 1e-14      1.0947E-18
+"WIGGLER_MAP1@Taylor:dorb_b"                  REL 0.1        1.9624E-12
+"WIGGLER_MAP1@Taylor:c*dt_b"                  ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Taylor:xmat"                    ABS 1e-8       4.3627E-06
+"WIGGLER_MAP1@Runge_Kutta:dorb_r"             ABS 1e-9       4.0521E-12
+"WIGGLER_MAP1@Runge_Kutta:c*dt_r"             ABS 1e-9       5.2940E-23
+"WIGGLER_MAP1@Runge_Kutta:dorb_b"             ABS 1e-9       4.0521E-12
+"WIGGLER_MAP1@Runge_Kutta:c*dt_b"             ABS 1e-9       5.2940E-23
+"WIGGLER_MAP1@Runge_Kutta:xmat"               ABS 1e-8       3.4982E-12
+"WIGGLER_MAP1@Symp_Lie_PTC:dorb_r"            ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_PTC:c*dt_r"            ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_PTC:dorb_b"            REL 0.1        1.1343E-04
+"WIGGLER_MAP1@Symp_Lie_PTC:c*dt_b"            ABS 1e-14     -1.5721E-18
+"WIGGLER_MAP1@Symp_Lie_PTC:xmat"              ABS 1e-8       1.3323E-15
+"WIGGLER_MAP1@Symp_Lie_Bmad:dorb_r"           ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_Bmad:c*dt_r"           ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_Bmad:dorb_b"           ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_Bmad:c*dt_b"           ABS 1e-14      0.0000E+00
+"WIGGLER_MAP1@Symp_Lie_Bmad:xmat"             ABS 1e-8       6.6613E-16
+"WIGGLER_PERIODIC1@Bmad_Standard:dorb_r"      ABS 1e-14      2.3446E-18
+"WIGGLER_PERIODIC1@Bmad_Standard:c*dt_r"      ABS 1e-14      0.0000E+00
+"WIGGLER_PERIODIC1@Bmad_Standard:dorb_b"      ABS 1e-14      2.3446E-18
+"WIGGLER_PERIODIC1@Bmad_Standard:c*dt_b"      ABS 1e-14      0.0000E+00
+"WIGGLER_PERIODIC1@Bmad_Standard:xmat"        ABS 1e-8       4.3028E-09
+"WIGGLER_PERIODIC1@Runge_Kutta:dorb_r"        ABS 1e-9       6.5572E-12
+"WIGGLER_PERIODIC1@Runge_Kutta:c*dt_r"        ABS 1e-9      -1.5882E-22
+"WIGGLER_PERIODIC1@Runge_Kutta:dorb_b"        ABS 1e-9       6.5572E-12
+"WIGGLER_PERIODIC1@Runge_Kutta:c*dt_b"        ABS 1e-9       5.2940E-23
+"WIGGLER_PERIODIC1@Runge_Kutta:xmat"          ABS 1e-8       2.9218E-07
+"WIGGLER_PERIODIC1@Symp_Lie_PTC:dorb_r"       ABS 1e-14      2.6156E-18
+"WIGGLER_PERIODIC1@Symp_Lie_PTC:c*dt_r"       ABS 1e-14      5.2940E-23
+"WIGGLER_PERIODIC1@Symp_Lie_PTC:dorb_b"       REL 0.1        4.4800E-09
+"WIGGLER_PERIODIC1@Symp_Lie_PTC:c*dt_b"       ABS 1e-14     -3.2823E-21
+"WIGGLER_PERIODIC1@Symp_Lie_PTC:xmat"         ABS 1e-8       1.9984E-15
+"WIGGLER_PERIODIC1@Symp_Lie_Bmad:dorb_r"      ABS 1e-14      9.7985E-18
+"WIGGLER_PERIODIC1@Symp_Lie_Bmad:c*dt_r"      ABS 1e-14      0.0000E+00
+"WIGGLER_PERIODIC1@Symp_Lie_Bmad:dorb_b"      ABS 1e-14      9.7985E-18
+"WIGGLER_PERIODIC1@Symp_Lie_Bmad:c*dt_b"      ABS 1e-14      0.0000E+00
+"WIGGLER_PERIODIC1@Symp_Lie_Bmad:xmat"        ABS 1e-8       3.6637E-15
