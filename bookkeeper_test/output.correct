@@ -1,122 +1,122 @@
-"lat%ic"          1   3   2   4   5   7   6   8   9  11  10  12  13  15  14  16  17  18  19  20  22  23  24  25  26  27  28  31  32  29  33  21  30  34  35
-"lat%con1"           1   0  17   0
-"lat%con2"           2   0  17   0
-"lat%con3"           3   0  17   0
-"lat%con4"           2   0  18   0
-"lat%con5"           9   0  19   0
-"lat%con6"          10   0  19   0
-"lat%con7"          11   0  19   0
-"lat%con8"          10   0  20   0
-"lat%con9"           4   0  21   0
-"lat%con10"           5   0  21   0
-"lat%con11"           6   0  21   0
-"lat%con12"           5   0  22   0
-"lat%con13"          12   0  23   0
-"lat%con14"          13   0  23   0
-"lat%con15"          14   0  23   0
-"lat%con16"          13   0  24   0
-"lat%con17"           7   0  25   0
-"lat%con18"          15   0  25   0
-"lat%con19"          17   0  26   0
-"lat%con20"          19   0  26   0
-"lat%con21"          28   0  26   0
-"lat%con22"          18   0  27   0
-"lat%con23"          20   0  27   0
-"lat%con24"          21   0  28   0
-"lat%con25"          23   0  28   0
-"lat%con26"          22   0  29   0
-"lat%con27"          24   0  29   0
-"lat%con28"          26   0  30   0
-"lat%con29"          28   0  30   0
-"lat%con30"          25   0  30   0
-"lat%con31"          26   0  31   0
-"lat%con32"          26   0  32   0
-"lat%con33"          28   0  32   0
-"lat%con34"          25   0  32   0
-"lat%con35"          32   0  33   0
-"ele1"           0   0   0   1   1   0
-"ele2"           0   0   0   3   2   0
-"ele3"           0   0   0   2   1   0
-"ele4"           0   0   0   9   1   0
-"ele5"           0   0   0  11   2   0
-"ele6"           0   0   0  10   1   0
-"ele7"           0   0   0  17   1   0
-"ele8"           0   0   0   0   0   0
-"ele9"           0   0   0   5   1   0
-"ele10"           0   0   0   7   2   0
-"ele11"           0   0   0   6   1   0
-"ele12"           0   0   0  13   1   0
-"ele13"           0   0   0  15   2   0
-"ele14"           0   0   0  14   1   0
-"ele15"           0   0   0  18   1   0
-"ele16"           0   0   0   0   0   0
-"ele17"           1   3   0  19   1   0
-"ele18"           4   1   0  21   1   0
-"ele19"           5   3   0  20   1   0
-"ele20"           8   1   0  22   1   0
-"ele21"           9   3   0  23   1   0
-"ele22"          12   1   0  25   1   0
-"ele23"          13   3   0  24   1   0
-"ele24"          16   1   0  26   1   0
-"ele25"          17   2   0  33   2   0
-"ele26"          19   2   1  27   3   0
-"ele27"          22   2   0   0   0   0
-"ele28"          24   2   0  30   2   1
-"ele29"          26   2   0   0   0   0
-"ele30"          28   3   0   0   0   0
-"ele31"          31   1   0   0   0   0
-"ele32"          32   3   0  35   1   0
-"ele33"          35   1   0   0   0   0
-"ON_OFF_SAVE"       0.100     0.100     0.200     0.300
-"Q1#1[L]"          1.5000
-"Q1\Q4[L]"          0.5000
-"Q2\Q4[L]"          6.0000
-"Q3\Q4[L]"          1.5000
-"Q3#1[L]"          1.7000
-"S\LC[L]"         17.0000
-"END[L]"          0.0000
-"Q1[K1]"        -0.0020
-"Q1[TILT]"      18.0000
-"Q1[HKICK]"      2.0000
-"Q1[Y_OFF]"      0.0000
-"Q1[L]"          2.0000
-"Q3[L]"          3.2000
-"Q4[L]"          8.0000
-"Q2[L]"          6.0000
-"LC[L]"         13.0000
-"S[L]"         17.0000
-"OV1[L]"          0.0000
-"OV2[L]"          0.0000
-"OV3[L]"          0.0000
-"GR1[L]"          0.0000
-"GR2[L]"          0.0000
-"GR3[L]"          0.0000
-"GR4[L]"          0.0000
-"GRN[L]"          0.0000
-"Q1[L]"          2.0000
-"Q3[L]"          3.2000
-"Q4[L]"          8.0000
-"Q2[L]"          6.0000
-"LC[L]"         13.0000
-"S[L]"         17.0000
-"OV1[HKICK]"          8.0000
-"OV2[HKICK]"          2.0000
-"OV3[L]"          6.0000
-"GR1[COMMAND]"          7.0000
-"GR2[COMMAND]"          1.0000
-"GR3[COMMAND]"          0.2000
-"GR4[COMMAND]"          8.0000
-"GRN[A]"          0.0100
-"GRN[B]"          2.0000
-"GRN[string]"  "(tan(A)+B)*(0.1/C_LIGHT)^(A+0.2)-A-(1+2)"
-"Next-1"    0
-"Next-2"    1
-"Next-3"    2
-"Next-4"    1
-"Aperture-1"    "Alive"
-"Aperture-2"    "Hit +X Side"
-"Aperture-3"    "Hit -X Side"
-"Aperture-4"    "Hit +Y Side"
-"Aperture-5"    "Hit -Y Side"
-"Aperture-6"    "Hit +Y Side"
-"Aperture-7"    "Hit -X Side"
+"lat%ic"   ABS 0       1   3   2   4   5   7   6   8   9  11  10  12  13  15  14  16  17  18  19  20  22  23  24  25  26  27  28  31  32  29  33  21  30  34  35
+"lat%con1"    ABS 0       1   0  17   0
+"lat%con2"    ABS 0       2   0  17   0
+"lat%con3"    ABS 0       3   0  17   0
+"lat%con4"    ABS 0       2   0  18   0
+"lat%con5"    ABS 0       9   0  19   0
+"lat%con6"    ABS 0      10   0  19   0
+"lat%con7"    ABS 0      11   0  19   0
+"lat%con8"    ABS 0      10   0  20   0
+"lat%con9"    ABS 0       4   0  21   0
+"lat%con10"    ABS 0       5   0  21   0
+"lat%con11"    ABS 0       6   0  21   0
+"lat%con12"    ABS 0       5   0  22   0
+"lat%con13"    ABS 0      12   0  23   0
+"lat%con14"    ABS 0      13   0  23   0
+"lat%con15"    ABS 0      14   0  23   0
+"lat%con16"    ABS 0      13   0  24   0
+"lat%con17"    ABS 0       7   0  25   0
+"lat%con18"    ABS 0      15   0  25   0
+"lat%con19"    ABS 0      17   0  26   0
+"lat%con20"    ABS 0      19   0  26   0
+"lat%con21"    ABS 0      28   0  26   0
+"lat%con22"    ABS 0      18   0  27   0
+"lat%con23"    ABS 0      20   0  27   0
+"lat%con24"    ABS 0      21   0  28   0
+"lat%con25"    ABS 0      23   0  28   0
+"lat%con26"    ABS 0      22   0  29   0
+"lat%con27"    ABS 0      24   0  29   0
+"lat%con28"    ABS 0      26   0  30   0
+"lat%con29"    ABS 0      28   0  30   0
+"lat%con30"    ABS 0      25   0  30   0
+"lat%con31"    ABS 0      26   0  31   0
+"lat%con32"    ABS 0      26   0  32   0
+"lat%con33"    ABS 0      28   0  32   0
+"lat%con34"    ABS 0      25   0  32   0
+"lat%con35"    ABS 0      32   0  33   0
+"ele1"    ABS 0       0   0   0   1   1   0
+"ele2"    ABS 0       0   0   0   3   2   0
+"ele3"    ABS 0       0   0   0   2   1   0
+"ele4"    ABS 0       0   0   0   9   1   0
+"ele5"    ABS 0       0   0   0  11   2   0
+"ele6"    ABS 0       0   0   0  10   1   0
+"ele7"    ABS 0       0   0   0  17   1   0
+"ele8"    ABS 0       0   0   0   0   0   0
+"ele9"    ABS 0       0   0   0   5   1   0
+"ele10"    ABS 0       0   0   0   7   2   0
+"ele11"    ABS 0       0   0   0   6   1   0
+"ele12"    ABS 0       0   0   0  13   1   0
+"ele13"    ABS 0       0   0   0  15   2   0
+"ele14"    ABS 0       0   0   0  14   1   0
+"ele15"    ABS 0       0   0   0  18   1   0
+"ele16"    ABS 0       0   0   0   0   0   0
+"ele17"    ABS 0       1   3   0  19   1   0
+"ele18"    ABS 0       4   1   0  21   1   0
+"ele19"    ABS 0       5   3   0  20   1   0
+"ele20"    ABS 0       8   1   0  22   1   0
+"ele21"    ABS 0       9   3   0  23   1   0
+"ele22"    ABS 0      12   1   0  25   1   0
+"ele23"    ABS 0      13   3   0  24   1   0
+"ele24"    ABS 0      16   1   0  26   1   0
+"ele25"    ABS 0      17   2   0  33   2   0
+"ele26"    ABS 0      19   2   1  27   3   0
+"ele27"    ABS 0      22   2   0   0   0   0
+"ele28"    ABS 0      24   2   0  30   2   1
+"ele29"    ABS 0      26   2   0   0   0   0
+"ele30"    ABS 0      28   3   0   0   0   0
+"ele31"    ABS 0      31   1   0   0   0   0
+"ele32"    ABS 0      32   3   0  35   1   0
+"ele33"    ABS 0      35   1   0   0   0   0
+"ON_OFF_SAVE"  ABS 0     0.100     0.100     0.200     0.300
+"Q1#1[L]"      ABS 0    1.5000
+"Q1\Q4[L]"      ABS 0    0.5000
+"Q2\Q4[L]"      ABS 0    6.0000
+"Q3\Q4[L]"      ABS 0    1.5000
+"Q3#1[L]"      ABS 0    1.7000
+"S\LC[L]"      ABS 0   17.0000
+"END[L]"      ABS 0    0.0000
+"Q1[K1]"     ABS 0   -0.0020
+"Q1[TILT]"   ABS 0   18.0000
+"Q1[HKICK]"  ABS 0    2.0000
+"Q1[Y_OFF]"  ABS 0    0.0000
+"Q1[L]"      ABS 0    2.0000
+"Q3[L]"      ABS 0    3.2000
+"Q4[L]"      ABS 0    8.0000
+"Q2[L]"      ABS 0    6.0000
+"LC[L]"      ABS 0   13.0000
+"S[L]"      ABS 0   17.0000
+"OV1[L]"      ABS 0    0.0000
+"OV2[L]"      ABS 0    0.0000
+"OV3[L]"      ABS 0    0.0000
+"GR1[L]"      ABS 0    0.0000
+"GR2[L]"      ABS 0    0.0000
+"GR3[L]"      ABS 0    0.0000
+"GR4[L]"      ABS 0    0.0000
+"GRN[L]"      ABS 0    0.0000
+"Q1[L]"      ABS 0    2.0000
+"Q3[L]"      ABS 0    3.2000
+"Q4[L]"      ABS 0    8.0000
+"Q2[L]"      ABS 0    6.0000
+"LC[L]"      ABS 0   13.0000
+"S[L]"      ABS 0   17.0000
+"OV1[HKICK]"      ABS 0    8.0000
+"OV2[HKICK]"      ABS 0    2.0000
+"OV3[L]"      ABS 0    6.0000
+"GR1[COMMAND]"      ABS 0    7.0000
+"GR2[COMMAND]"      ABS 0    1.0000
+"GR3[COMMAND]"      ABS 0    0.2000
+"GR4[COMMAND]"      ABS 0    8.0000
+"GRN[A]"      ABS 0    0.0100
+"GRN[B]"      ABS 0    2.0000
+"GRN[string]" STR "(tan(A)+B)*(0.1/C_LIGHT)^(A+0.2)-A-(1+2)"
+"Next-1" ABS 0   0
+"Next-2" ABS 0   1
+"Next-3" ABS 0   2
+"Next-4" ABS 0   1
+"Aperture-1"   STR "Alive"
+"Aperture-2"   STR "Hit +X Side"
+"Aperture-3"   STR "Hit -X Side"
+"Aperture-4"   STR "Hit +Y Side"
+"Aperture-5"   STR "Hit -Y Side"
+"Aperture-6"   STR "Hit +Y Side"
+"Aperture-7"   STR "Hit -X Side"
