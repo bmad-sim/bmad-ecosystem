@@ -9,6 +9,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
 ! Init
+call bmad_parser ('multipass_and_superimpose.bmad', lat)
 
 open (1, file = 'output.now')
 
