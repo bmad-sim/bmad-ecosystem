@@ -3290,8 +3290,6 @@ case ('variable')
 
   enddo
 
-  word1 = attrib0(1:ix_word)
-  
   if (.not. allocated (s%v1_var)) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
     return 
@@ -3299,12 +3297,12 @@ case ('variable')
 
   ! If 'n@' is present then write out stuff for universe n
 
-  ix = index(word1, '@')
+  ix = index(attrib0, '@')
   if (ix /= 0) then
     if (ix == 1) then
       ix_u = s%com%default_universe
     else
-      read (word1(:ix-1), *, iostat = ios) ix_u
+      read (attrib0(:ix-1), *, iostat = ios) ix_u
       if (ios /= 0) then
         nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
         return
@@ -3337,7 +3335,7 @@ case ('variable')
 
   ! If just "show var" then show all names
 
-  if (word1 == '') then
+  if (attrib0 == '') then
     ! Bmad format
     if (bmad_format) then
       call tao_print_vars_bmad_format (0, 0, good_opt_only)
@@ -3365,7 +3363,7 @@ case ('variable')
 
   ! are we looking at a range of locations?
 
-  call tao_find_var(err, word1, v1_array, v_array) 
+  call tao_find_var(err, attrib0, v1_array, v_array) 
   if (err) return
   n_size = 0
   if (allocated(v_array)) n_size = size(v_array)
@@ -3449,7 +3447,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), lmt)  '%useit_plot       = ', v_ptr%useit_plot
     nl=nl+1; write(lines(nl), lmt)  '%key_bound        = ', v_ptr%key_bound
 
-    result_id = 'variable:1:' // word1
+    result_id = 'variable:1:' // attrib0
 
   ! check if there is a variable number
   ! if no variable number requested, show a range
