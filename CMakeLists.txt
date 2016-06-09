@@ -13,7 +13,8 @@ set(SRC_DIRS
   io 
   math 
   matrix 
-  misc 
+  misc
+  optimizers
   plot 
   string
   geodesic_lm

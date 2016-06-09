@@ -581,14 +581,14 @@ e = 0.0
 fx = func(x)
 fv = fx
 fw = fx
-do iter = 1,ITMAX
+do iter = 1, ITMAX
   xm = 0.5_rp*(a+b)
   tol1 = rel_tol*abs(x)+abs_tol
   tol2 = 2.0_rp*tol1
   if (abs(x-xm) <= (tol2-0.5_rp*(b-a))) then
     xmin = x
     f_max = fx
-    RETURN
+    return
   end if
   if (abs(e) > tol1) then
     r = (x-w)*(fx-fv)
@@ -637,6 +637,15 @@ do iter = 1,ITMAX
       fv = fu
     end if
   end if
+
+  ! Test to see if FX is not significantly different
+
+  if (iter > 4 .and. fx >= max(fu, fv, fw) * 0.999999) then
+    xmin = x
+    f_max = fx
+    return
+  endif
+
 end do
 
 call out_io (s_fatal$, r_name, 'EXCEED MAXIMUM ITERATIONS.')
