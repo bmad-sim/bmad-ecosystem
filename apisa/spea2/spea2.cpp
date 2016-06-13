@@ -149,7 +149,7 @@ void write_flag(char* filename, int flag)
 {
   FILE *fp;
   
-  assert(0 <= flag <= 11);
+  assert(0 <= (flag <= 11));
   
   fp = fopen(filename, "w");
   assert(fp != NULL);
