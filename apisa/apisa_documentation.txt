@@ -1,0 +1,141 @@
+APISA - Alternative Platform and Programming Language Independent
+Interface for Search Algorithms
+
+
+I. Background
+Multi-objective evolutionary optimizers use stochastic approach to
+explore multidimensional parameter space seeking to attain a so-called
+optimal Pareto front (e.g. in the case of two objectives - 1) minimize
+price of the house, and 2) maximize the size of the house - each point
+of Pareto front will represent the largest house for a given price)
+subject to additional constraints (of inequality type). These
+algorithms do not use any gradient information (i.e. unlike steepest
+decent method), can tolerate 'noisy' data, and, if left running long
+enough, will not be trapped in a local minimum. On the other hand, if
+the problem is that of a classical single objective optimization
+(well-behaved function extremum search), more conventional approaches
+(e.g. conjugate gradient or simplex) are likely to result in faster
+convergence.
+
+Original code containing genetic algorithms was taken from
+http://www.tik.ee.ethz.ch/pisa and modified for the current use (hence
+the word Alternative). The modifications included adding of constraints
+handling as well as rewriting the code to be C++ compatible. Variator
+was extensively rewritten to make handling of parallel jobs possible.
+
+The idea behind PISA (and APISA) is that two codes must be running at
+the same time: variator and selector. The variator contains the
+problem definition and evaluates objective and constraint functions
+for values provided by the selector. The two codes exchange
+information via disk space. The selector, knowing nothing about the
+particular problem, carries out data sorting and generates new 'trial'
+solutions.
+
+
+II. Example of optimization on a single Linux computer
+Obtain the freshest version of the code from
+http://www.lns.cornell.edu/~ib38/apisa/apisa.tar.gz
+One needs to compile variator (found in var/ directory) and at least
+one selector (spea2 is recommended, found in spea2/ directory). For
+documentation on var and spea2 refer to [var,spea]_documentation.txt
+files found in each directory. Typing 'make install' in each of the
+two directories should produce executables and copy them to $HOME/bin
+directory.
+
+To speed up calculations, each generation of optimization is carried
+out in a semi-parallel fashion. Taking advantage of the fact that
+there is no message-passing between 'individuals' in each generation,
+each 'trial solution' can be evaluated independently on a separate
+computer. The information from each computer is then collected on a
+single 'master node', where this information is used in selector for
+sorting and subsequent generation of new guess points (next generation).
+
+As far as the current implementation of the variator, for additional
+computers (nodes) to be used in optimization they are required to have
+the following:
+1) shared disk area where the results of Astra runs are written to
+(e.g. most places with Linux systems have NFS shared area, e.g. /home
+directory);
+2) passwordless ssh login (google 'ssh passwordless' for instructions
+on how to set it up) -- all instructions to individual 'nodes' are
+passed through ssh and no prompt for password should appear in this
+case. 
+
+A single Linux computer can serve to be both the 'master' and the
+'slave'. E.g. typing 'ssh localhost' should enable one to 'log in' to
+his/her own computer. After enabling passwordless ssh login to
+localhost, the optimizer can be run on such computer. Once the
+optimizer is known to successfully work, extension to multiple
+computers on the network becomes trivial.
+
+
+III. Preparation steps
+There are several preparation steps which needs to be followed both
+with respect to the optimizer as well as Astra input files. The
+extracted directory example/ contains the following
+var_param    - parameter file for variator
+spea2_param  - parameter file for spea2
+optexch/     - directory where var and spea2 exchange data
+astconf/     - optimizer's settings for Astra, parallel job handling
+astinp/      - directory with Astra input file (where optimizer
+               creates temporal files for evaluation by Astra)
+
+To avoid problems with paths it is HIHGLY recommended to enter all
+paths to misc. files in both optimizer's configuration files as well
+as Astra input files in absolute form (i.e. starting with /). In the
+example/ directory this involves modifying the following files in
+multiple places:
+var_param
+astconf/ast_param
+astinp/gun.in
+In all these files substitute '/home/ib38/devel/src/apisa' for your
+location of apisa/ directory.
+
+
+IV. Running the optimizer
+Issue:
+cd /path/to/example
+Assuming var and spea2 are found in your PATH type: 
+var var_param optexch/RUN01_ 0.2 &
+spea2 spea2_param optexch/RUN01_ 0.2 &
+IMPORTANT: make sure there is only one copy running of both var and
+spea2.
+
+If everything proceeds well you should start seeing files created in
+astinp/ directory. Various status & diagnostics messages are being
+written to spea2_diag.log and var_diag.log. Another file to watch is
+optexch/RUN01_his where current generation results are being written
+to (if for some reason the run is interrupted, RUN01_his contains the
+best found solutions and can be used to start simulations from that
+point). Once the optimizer is done working you should see output.txt
+file. The example provided is only a toy one. Population size, number
+of generations etc. needs to be adjusted to fit the user's
+problem. Refer to var/var_documentation.txt for details on var_param
+file.
+
+
+V. How to speed up the calculations?
+1) use fewer macroparticles. E.g. 1K (or even 500) particles still
+captures most features of beam dynamics, but it takes much less
+time. As you reduce the number of particles, play with the mesh number
+(Nlong_in, Nrad in Astra input) -- a rule of thumb is to have 5
+particles in a given mesh (e.g. Nparticles/(Nlong_in*Nrad) = 5). After
+one is done optimizing, he/she should go back to the same (optimized)
+Astra inputs and replace the initial distribution with a better
+populated one (as well as smaller mesh size) -- typically what one
+will see that emittance becomes smaller when more particles are being
+used (with the same field settings, etc.). Starting optimization from
+scratch with large number of macroparticles is not wise -- always
+start with a smaller number.
+2) increase the (Runge-Kutta) integration steps (H_min,
+H_max). E.g. once you begin to notice a change in the precision of
+calculation -- choose half of this value to be your step. This way one
+can shorten the time it takes for any given simulation substantially
+without sacrificing precision much.
+3) use several computers -- in file ast_node add addresses of
+additional Linux systems with shared disk space (i.e. results of Astra
+runs on one computer are accessible on the other via a given
+directory). One could use Windows machines with some additional
+programming (to handle passing on of input data, collecting the
+output, job management -- not to overwhelm a given PC) -- at the
+moment this is not possible.
