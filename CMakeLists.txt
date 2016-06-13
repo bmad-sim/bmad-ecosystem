@@ -13,6 +13,7 @@ set (FFLAGS "-coarray")
 
 set (EXE_SPECS 
   cmake.moga
+  cmake.moga_distributed
   cmake.ansga2
   cmake.aspea2
   cmake.wake_fit
