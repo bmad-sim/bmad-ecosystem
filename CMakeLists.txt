@@ -10,10 +10,11 @@ set(SRC_DIRS
 )
 
 set (FFLAGS "-coarray")
-set (LINK_FLAGS "-coarray")
 
 set (EXE_SPECS 
-  # cmake.moga
+  cmake.moga
+  cmake.ansga2
+  cmake.aspea2
   cmake.wake_fit
   cmake.bmad_to_autocad
   cmake.bmad_to_csrtrack
