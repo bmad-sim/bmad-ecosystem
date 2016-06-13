@@ -43,7 +43,7 @@ int kth; /* k-th neighbor in niching operator */
 bool kth_is_sqrt; /* k-th is equal to sqrt of merged population if true */
 bool verbose;
 
-char* diag_file = "spea2_diag.log";
+char const* diag_file = "spea2_diag.log";
 
 /* other variables */
 char cfgfile[FILE_NAME_LENGTH];  /* 'cfg' file (common parameters) */

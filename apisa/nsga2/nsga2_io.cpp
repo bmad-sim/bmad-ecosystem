@@ -92,7 +92,7 @@ void write_pop(char* filename, pop* pp, int size)
   int i;
   FILE *fp;
   
-  assert(0 <= size <= pp->size);
+  assert(0 <= (size <= pp->size));
   
   fp = fopen(filename, "w");
   assert(fp != NULL);

@@ -58,7 +58,7 @@ int** front;
 double* dist;
 
 bool verbose; /* whether to print out diagnostics messages */
-char* diag_file = "nsga2_diag.log";
+char const* diag_file = "nsga2_diag.log";
 
 /*-----------------------| initialization |------------------------------*/
 
