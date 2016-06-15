@@ -44,6 +44,15 @@ logical err_flag, set_spin
 
 character(*), parameter :: r_name = 'track1_runge_kutta'
 
+! Runge Kuta is not able to handle a zero length element.
+! In this case use bmad_standard. 
+
+if (ele%key /= patch$ .and. ele%value(l$) == 0) then
+  call track1_bmad (start_orb, ele, param, end_orb, err_flag)
+  if (present(track)) call save_a_step (track, ele, param, .false., 0.0_rp, start_orb, s1)
+  return
+endif
+
 ! Convert to element coords.
 ! For a patch, convert to the downstream coords so that the downstream face 
 ! can be simply described as being at s = s1. Additionally, with a patch, s 

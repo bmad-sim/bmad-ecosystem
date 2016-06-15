@@ -126,7 +126,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
 
   else
     if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
-    call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
+    call set_ptc (1.0e12_rp, lat%param%particle)  ! Energy value used does not matter here
     if (present(digested_read_ok)) digested_read_ok = .true.
     call parser_init_custom_elements ()
     call parser_end_stuff (.false.)
