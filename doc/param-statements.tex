@@ -488,6 +488,8 @@ this structure along with the default values are:
     real init_ds_adaptive_tracking = 1e-3      ! Initial step size.
     real min_ds_adaptive_tracking = 0          ! Minimum step size to use.
     real fatal_ds_adaptive_tracking = 1e-8     ! Threshold for loosing particles.
+    real electric_dipole_moment = 0            ! Particle's EDM.
+    real ptc_cut_factor = 0.006                ! Used in calculated step sizes.
     real sad_eps_scale = 5.0d-3                ! Used in sad_mult step length calc.
     real sad_amp_max = 5.0d-2                  ! Used in sad_mult step length calc.
     integer sad_n_div_max = 1000               ! Used in sad_mult step length calc.
@@ -495,6 +497,7 @@ this structure along with the default values are:
     integer default_integ_order = 2            ! PTC integration order
     integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
     integer max_num_runge_kutta_step = 10000   ! Max num RK steps before particle is lost.
+    logical use_hard_edge_drifts = T           ! Use drifts to make cavity length commensurate with freq?
     logical sr_wakes_on = T                    ! Short range wake fields?
     logical lr_wakes_on = T                    ! Long range wake fields
     logical mat6_track_symmetric = T           ! symmetric offsets
