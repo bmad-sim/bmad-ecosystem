@@ -10,6 +10,98 @@ contains
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_spin_polar (ok)
+
+implicit none
+
+type(spin_polar_struct), target :: f_spin_polar, f2_spin_polar
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_spin_polar (c_spin_polar, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_spin_polar
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_spin_polar_test_pattern (f2_spin_polar, 1)
+
+call test_c_spin_polar(c_loc(f2_spin_polar), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_spin_polar_test_pattern (f_spin_polar, 4)
+if (f_spin_polar == f2_spin_polar) then
+  print *, 'spin_polar: C side convert C->F: Good'
+else
+  print *, 'spin_polar: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_spin_polar
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_spin_polar (c_spin_polar, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_spin_polar
+type(spin_polar_struct), target :: f_spin_polar, f2_spin_polar
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call spin_polar_to_f (c_spin_polar, c_loc(f_spin_polar))
+
+call set_spin_polar_test_pattern (f2_spin_polar, 2)
+if (f_spin_polar == f2_spin_polar) then
+  print *, 'spin_polar: F side convert C->F: Good'
+else
+  print *, 'spin_polar: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_spin_polar_test_pattern (f2_spin_polar, 3)
+call spin_polar_to_c (c_loc(f2_spin_polar), c_spin_polar)
+
+end subroutine test2_f_spin_polar
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_spin_polar_test_pattern (F, ix_patt)
+
+implicit none
+
+type(spin_polar_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%polarization = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%theta = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%phi = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%xi = rhs
+
+end subroutine set_spin_polar_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_surface_orientation (ok)
 
 implicit none
@@ -6167,6 +6259,8 @@ rhs = 12 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 rhs = 13 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 14 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 15 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 
@@ -7822,96 +7916,6 @@ end subroutine set_bunch_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_beam_spin (ok)
-
-implicit none
-
-type(beam_spin_struct), target :: f_beam_spin, f2_beam_spin
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_beam_spin (c_beam_spin, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_beam_spin
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_beam_spin_test_pattern (f2_beam_spin, 1)
-
-call test_c_beam_spin(c_loc(f2_beam_spin), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_beam_spin_test_pattern (f_beam_spin, 4)
-if (f_beam_spin == f2_beam_spin) then
-  print *, 'beam_spin: C side convert C->F: Good'
-else
-  print *, 'beam_spin: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_beam_spin
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_beam_spin (c_beam_spin, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_beam_spin
-type(beam_spin_struct), target :: f_beam_spin, f2_beam_spin
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call beam_spin_to_f (c_beam_spin, c_loc(f_beam_spin))
-
-call set_beam_spin_test_pattern (f2_beam_spin, 2)
-if (f_beam_spin == f2_beam_spin) then
-  print *, 'beam_spin: F side convert C->F: Good'
-else
-  print *, 'beam_spin: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_beam_spin_test_pattern (f2_beam_spin, 3)
-call beam_spin_to_c (c_loc(f2_beam_spin), c_beam_spin)
-
-end subroutine test2_f_beam_spin
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_beam_spin_test_pattern (F, ix_patt)
-
-implicit none
-
-type(beam_spin_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%polarization = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%theta = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%phi = rhs
-
-end subroutine set_beam_spin_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_bunch_params (ok)
 
 implicit none
@@ -8004,23 +8008,33 @@ call set_twiss_test_pattern (F%c, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_coord_test_pattern (F%centroid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
-call set_beam_spin_test_pattern (F%spin, ix_patt)
+call set_spin_polar_test_pattern (F%spin, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%sigma,1); lb1 = lbound(F%sigma,1) - 1
 do jd2 = 1, size(F%sigma,2); lb2 = lbound(F%sigma,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 9 + offset
   F%sigma(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%rel_max,1); lb1 = lbound(F%rel_max,1) - 1
+  rhs = 100 + jd1 + 10 + offset
+  F%rel_max(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%rel_min,1); lb1 = lbound(F%rel_min,1) - 1
+  rhs = 100 + jd1 + 11 + offset
+  F%rel_min(jd1+lb1) = rhs
+enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%s = rhs
+rhs = 12 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%charge_live = rhs
+rhs = 13 + offset; F%charge_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%n_particle_tot = rhs
+rhs = 14 + offset; F%n_particle_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%n_particle_live = rhs
+rhs = 15 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%n_particle_lost_in_ele = rhs
+rhs = 16 + offset; F%n_particle_lost_in_ele = rhs
 
 end subroutine set_bunch_params_test_pattern
 

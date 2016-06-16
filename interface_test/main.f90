@@ -8,6 +8,7 @@ logical ok, all_ok
 !
 
 all_ok = .true.
+call test1_f_spin_polar(ok); if (.not. ok) all_ok = .false.
 call test1_f_surface_orientation(ok); if (.not. ok) all_ok = .false.
 call test1_f_interval1_coef(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_reflect_table(ok); if (.not. ok) all_ok = .false.
@@ -79,7 +80,6 @@ call test1_f_normal_form(ok); if (.not. ok) all_ok = .false.
 call test1_f_branch(ok); if (.not. ok) all_ok = .false.
 call test1_f_lat(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch(ok); if (.not. ok) all_ok = .false.
-call test1_f_beam_spin(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch_params(ok); if (.not. ok) all_ok = .false.
 call test1_f_beam(ok); if (.not. ok) all_ok = .false.
 

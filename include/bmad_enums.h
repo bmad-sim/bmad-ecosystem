@@ -230,7 +230,8 @@ namespace Bmad {
   const int INIT_DS_ADAPTIVE_TRACKING = 88;
   const int MIN_DS_ADAPTIVE_TRACKING = 89;
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
-  const int LR_WAKE_FILE = 81, ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81;
+  const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
+  const int LR_WAKE_FILE = 81, ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
   const int START_EDGE  = 83, ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83;
   const int END_EDGE  = 84, ETAP_X = 84;
@@ -338,6 +339,7 @@ namespace Bmad {
   const double REAL_GARBAGE = -987654.3;
   const double TRUE = 1, FALSE = 0;
   const int TRUE_INT = 1, FALSE_INT = 0;
+  const int YES = 1, NO = 0, MAYBE = 2;
   const int INVALID = -666;
   const int NOT_SET = -999;
   const int DEUTERON   = 8;

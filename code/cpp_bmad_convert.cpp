@@ -161,6 +161,36 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_spin_polar
+
+extern "C" void spin_polar_to_c (const Bmad_spin_polar_class*, CPP_spin_polar&);
+
+// c_side.to_f2_arg
+extern "C" void spin_polar_to_f2 (Bmad_spin_polar_class*, c_Real&, c_Real&, c_Real&, c_Real&);
+
+extern "C" void spin_polar_to_f (const CPP_spin_polar& C, Bmad_spin_polar_class* F) {
+
+  // c_side.to_f2_call
+  spin_polar_to_f2 (F, C.polarization, C.theta, C.phi, C.xi);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void spin_polar_to_c2 (CPP_spin_polar& C, c_Real& z_polarization, c_Real& z_theta,
+    c_Real& z_phi, c_Real& z_xi) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.polarization = z_polarization;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.theta = z_theta;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi = z_phi;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.xi = z_xi;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_surface_orientation
 
 extern "C" void surface_orientation_to_c (const Bmad_surface_orientation_class*, CPP_surface_orientation&);
@@ -2610,7 +2640,7 @@ extern "C" void csr_parameter_to_c (const Bmad_csr_parameter_class*, CPP_csr_par
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Bmad_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&);
+    c_Bool&, c_Bool&);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Bmad_csr_parameter_class* F) {
 
@@ -2618,7 +2648,7 @@ extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Bmad_csr_paramet
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
       C.particle_bin_span, C.n_shield_images, C.ix1_ele_csr, C.ix2_ele_csr,
       C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.print_taylor_warning,
-      C.use_csr_old, C.small_angle_approx);
+      C.use_csr_old, C.small_angle_approx, C.write_csr_wake);
 
 }
 
@@ -2627,7 +2657,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
     z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
     c_Int& z_n_shield_images, c_Int& z_ix1_ele_csr, c_Int& z_ix2_ele_csr, c_Bool&
     z_lcsr_component_on, c_Bool& z_lsc_component_on, c_Bool& z_tsc_component_on, c_Bool&
-    z_print_taylor_warning, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx) {
+    z_print_taylor_warning, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx, c_Bool&
+    z_write_csr_wake) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -2657,6 +2688,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.use_csr_old = z_use_csr_old;
   // c_side.to_c2_set[logical, 0, NOT]
   C.small_angle_approx = z_small_angle_approx;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.write_csr_wake = z_write_csr_wake;
 }
 
 //--------------------------------------------------------------------
@@ -3803,34 +3836,6 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_beam_spin
-
-extern "C" void beam_spin_to_c (const Bmad_beam_spin_class*, CPP_beam_spin&);
-
-// c_side.to_f2_arg
-extern "C" void beam_spin_to_f2 (Bmad_beam_spin_class*, c_Real&, c_Real&, c_Real&);
-
-extern "C" void beam_spin_to_f (const CPP_beam_spin& C, Bmad_beam_spin_class* F) {
-
-  // c_side.to_f2_call
-  beam_spin_to_f2 (F, C.polarization, C.theta, C.phi);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void beam_spin_to_c2 (CPP_beam_spin& C, c_Real& z_polarization, c_Real& z_theta,
-    c_Real& z_phi) {
-
-  // c_side.to_c2_set[real, 0, NOT]
-  C.polarization = z_polarization;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.theta = z_theta;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.phi = z_phi;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_bunch_params
 
 extern "C" void bunch_params_to_c (const Bmad_bunch_params_class*, CPP_bunch_params&);
@@ -3838,15 +3843,17 @@ extern "C" void bunch_params_to_c (const Bmad_bunch_params_class*, CPP_bunch_par
 // c_side.to_f2_arg
 extern "C" void bunch_params_to_f2 (Bmad_bunch_params_class*, const CPP_twiss&, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
-    CPP_coord&, const CPP_beam_spin&, c_RealArr, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
+    CPP_coord&, const CPP_spin_polar&, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&,
+    c_Int&, c_Int&, c_Int&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Bmad_bunch_params_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_sigma[6*6]; matrix_to_vec(C.sigma, z_sigma);
 
   // c_side.to_f2_call
-  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, C.spin, z_sigma, C.s,
-      C.charge_live, C.n_particle_tot, C.n_particle_live, C.n_particle_lost_in_ele);
+  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, C.spin, z_sigma,
+      &C.rel_max[0], &C.rel_min[0], C.s, C.charge_live, C.n_particle_tot, C.n_particle_live,
+      C.n_particle_lost_in_ele);
 
 }
 
@@ -3854,8 +3861,9 @@ extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Bmad_bunch_params_
 extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Bmad_twiss_class* z_x, const
     Bmad_twiss_class* z_y, const Bmad_twiss_class* z_z, const Bmad_twiss_class* z_a, const
     Bmad_twiss_class* z_b, const Bmad_twiss_class* z_c, const Bmad_coord_class* z_centroid,
-    const Bmad_beam_spin_class* z_spin, c_RealArr z_sigma, c_Real& z_s, c_Real& z_charge_live,
-    c_Int& z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele) {
+    const Bmad_spin_polar_class* z_spin, c_RealArr z_sigma, c_RealArr z_rel_max, c_RealArr
+    z_rel_min, c_Real& z_s, c_Real& z_charge_live, c_Int& z_n_particle_tot, c_Int&
+    z_n_particle_live, c_Int& z_n_particle_lost_in_ele) {
 
   // c_side.to_c2_set[type, 0, NOT]
   twiss_to_c(z_x, C.x);
@@ -3872,9 +3880,13 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Bmad_twiss_class*
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_centroid, C.centroid);
   // c_side.to_c2_set[type, 0, NOT]
-  beam_spin_to_c(z_spin, C.spin);
+  spin_polar_to_c(z_spin, C.spin);
   // c_side.to_c2_set[real, 2, NOT]
   C.sigma << z_sigma;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.rel_max << z_rel_max;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.rel_min << z_rel_min;
   // c_side.to_c2_set[real, 0, NOT]
   C.s = z_s;
   // c_side.to_c2_set[real, 0, NOT]

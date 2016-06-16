@@ -7,7 +7,7 @@ struct_def_files = [
     '../bmad/modules/taylor_mod.f90',
     '../bmad/multiparticle/beam_def_struct.f90',
     '../bmad/multiparticle/csr_mod.f90',
-    '../bmad/modules/complex_taylor_mod.f90'
+    '../bmad/modules/complex_taylor_mod.f90',
 ]
 
 # List of use statements needed in various Fortran modules
@@ -19,6 +19,7 @@ use_statements = ['use beam_def_struct']
 # then A must be before B in the list.
 
 struct_list = [
+    'spin_polar_struct',
     'surface_orientation_struct',
     'interval1_coef_struct',
     'photon_reflect_table_struct',
@@ -90,7 +91,6 @@ struct_list = [
     'branch_struct',
     'lat_struct',
     'bunch_struct',
-    'beam_spin_struct',
     'bunch_params_struct',
     'beam_struct',
 ]

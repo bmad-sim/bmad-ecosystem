@@ -52,6 +52,11 @@ typedef valarray<Real_MATRIX>      Real_TENSOR;
 typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 
+class CPP_spin_polar;
+typedef valarray<CPP_spin_polar>          CPP_spin_polar_ARRAY;
+typedef valarray<CPP_spin_polar_ARRAY>    CPP_spin_polar_MATRIX;
+typedef valarray<CPP_spin_polar_MATRIX>   CPP_spin_polar_TENSOR;
+
 class CPP_surface_orientation;
 typedef valarray<CPP_surface_orientation>          CPP_surface_orientation_ARRAY;
 typedef valarray<CPP_surface_orientation_ARRAY>    CPP_surface_orientation_MATRIX;
@@ -407,11 +412,6 @@ typedef valarray<CPP_bunch>          CPP_bunch_ARRAY;
 typedef valarray<CPP_bunch_ARRAY>    CPP_bunch_MATRIX;
 typedef valarray<CPP_bunch_MATRIX>   CPP_bunch_TENSOR;
 
-class CPP_beam_spin;
-typedef valarray<CPP_beam_spin>          CPP_beam_spin_ARRAY;
-typedef valarray<CPP_beam_spin_ARRAY>    CPP_beam_spin_MATRIX;
-typedef valarray<CPP_beam_spin_MATRIX>   CPP_beam_spin_TENSOR;
-
 class CPP_bunch_params;
 typedef valarray<CPP_bunch_params>          CPP_bunch_params_ARRAY;
 typedef valarray<CPP_bunch_params_ARRAY>    CPP_bunch_params_MATRIX;
@@ -421,6 +421,36 @@ class CPP_beam;
 typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
+
+//--------------------------------------------------------------------
+// CPP_spin_polar
+
+class Bmad_spin_polar_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_spin_polar {
+public:
+  Real polarization;
+  Real theta;
+  Real phi;
+  Real xi;
+
+  CPP_spin_polar() :
+    polarization(1),
+    theta(0.0),
+    phi(0.0),
+    xi(0.0)
+    {}
+
+  ~CPP_spin_polar() {
+  }
+
+};   // End Class
+
+extern "C" void spin_polar_to_c (const Bmad_spin_polar_class*, CPP_spin_polar&);
+extern "C" void spin_polar_to_f (const CPP_spin_polar&, Bmad_spin_polar_class*);
+
+bool operator== (const CPP_spin_polar&, const CPP_spin_polar&);
+
 
 //--------------------------------------------------------------------
 // CPP_surface_orientation
@@ -2446,6 +2476,7 @@ public:
   Bool print_taylor_warning;
   Bool use_csr_old;
   Bool small_angle_approx;
+  Bool write_csr_wake;
 
   CPP_csr_parameter() :
     ds_track_step(0.0),
@@ -2461,7 +2492,8 @@ public:
     tsc_component_on(false),
     print_taylor_warning(true),
     use_csr_old(true),
-    small_angle_approx(true)
+    small_angle_approx(true),
+    write_csr_wake(false)
     {}
 
   ~CPP_csr_parameter() {
@@ -3140,34 +3172,6 @@ bool operator== (const CPP_bunch&, const CPP_bunch&);
 
 
 //--------------------------------------------------------------------
-// CPP_beam_spin
-
-class Bmad_beam_spin_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_beam_spin {
-public:
-  Real polarization;
-  Real theta;
-  Real phi;
-
-  CPP_beam_spin() :
-    polarization(1.0),
-    theta(0.0),
-    phi(0.0)
-    {}
-
-  ~CPP_beam_spin() {
-  }
-
-};   // End Class
-
-extern "C" void beam_spin_to_c (const Bmad_beam_spin_class*, CPP_beam_spin&);
-extern "C" void beam_spin_to_f (const CPP_beam_spin&, Bmad_beam_spin_class*);
-
-bool operator== (const CPP_beam_spin&, const CPP_beam_spin&);
-
-
-//--------------------------------------------------------------------
 // CPP_bunch_params
 
 class Bmad_bunch_params_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -3181,8 +3185,10 @@ public:
   CPP_twiss b;
   CPP_twiss c;
   CPP_coord centroid;
-  CPP_beam_spin spin;
+  CPP_spin_polar spin;
   Real_MATRIX sigma;
+  Real_ARRAY rel_max;
+  Real_ARRAY rel_min;
   Real s;
   Real charge_live;
   Int n_particle_tot;
@@ -3199,6 +3205,8 @@ public:
     centroid(),
     spin(),
     sigma(Real_ARRAY(0.0, 6), 6),
+    rel_max(0.0, 6),
+    rel_min(0.0, 6),
     s(0.0),
     charge_live(0.0),
     n_particle_tot(0),

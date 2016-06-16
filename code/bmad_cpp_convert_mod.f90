@@ -17,6 +17,15 @@ use, intrinsic :: iso_c_binding
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine spin_polar_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine surface_orientation_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -656,15 +665,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine beam_spin_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine bunch_params_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -681,6 +681,91 @@ interface
 end interface
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine spin_polar_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad spin_polar_struct to a C++ CPP_spin_polar structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad spin_polar_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_spin_polar struct.
+!-
+
+subroutine spin_polar_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine spin_polar_to_c2 (C, z_polarization, z_theta, z_phi, z_xi) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_polarization, z_theta, z_phi, z_xi
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(spin_polar_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call spin_polar_to_c2 (C, F%polarization, F%theta, F%phi, F%xi)
+
+end subroutine spin_polar_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine spin_polar_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_spin_polar structure to a Bmad spin_polar_struct structure.
+! This routine is called by spin_polar_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the spin_polar_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad spin_polar_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine spin_polar_to_f2 (Fp, z_polarization, z_theta, z_phi, z_xi) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(spin_polar_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_polarization, z_theta, z_phi, z_xi
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%polarization = z_polarization
+!! f_side.to_f2_trans[real, 0, NOT]
+F%theta = z_theta
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi = z_phi
+!! f_side.to_f2_trans[real, 0, NOT]
+F%xi = z_xi
+
+end subroutine spin_polar_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6839,11 +6924,11 @@ interface
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
       z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
-      z_use_csr_old, z_small_angle_approx) bind(c)
+      z_use_csr_old, z_small_angle_approx, z_write_csr_wake) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
+    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx, z_write_csr_wake
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
   end subroutine
@@ -6864,7 +6949,8 @@ call c_f_pointer (Fp, F)
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, &
     c_logic(F%lcsr_component_on), c_logic(F%lsc_component_on), c_logic(F%tsc_component_on), &
-    c_logic(F%print_taylor_warning), c_logic(F%use_csr_old), c_logic(F%small_angle_approx))
+    c_logic(F%print_taylor_warning), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
+    c_logic(F%write_csr_wake))
 
 end subroutine csr_parameter_to_c
 
@@ -6887,7 +6973,7 @@ end subroutine csr_parameter_to_c
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
     z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
-    z_use_csr_old, z_small_angle_approx) bind(c)
+    z_use_csr_old, z_small_angle_approx, z_write_csr_wake) bind(c)
 
 
 implicit none
@@ -6896,7 +6982,7 @@ type(c_ptr), value :: Fp
 type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
+logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx, z_write_csr_wake
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
 
@@ -6930,6 +7016,8 @@ F%print_taylor_warning = f_logic(z_print_taylor_warning)
 F%use_csr_old = f_logic(z_use_csr_old)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%small_angle_approx = f_logic(z_small_angle_approx)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%write_csr_wake = f_logic(z_write_csr_wake)
 
 end subroutine csr_parameter_to_f2
 
@@ -9083,89 +9171,6 @@ end subroutine bunch_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine beam_spin_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad beam_spin_struct to a C++ CPP_beam_spin structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad beam_spin_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_beam_spin struct.
-!-
-
-subroutine beam_spin_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine beam_spin_to_c2 (C, z_polarization, z_theta, z_phi) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    real(c_double) :: z_polarization, z_theta, z_phi
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(beam_spin_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call beam_spin_to_c2 (C, F%polarization, F%theta, F%phi)
-
-end subroutine beam_spin_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine beam_spin_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_beam_spin structure to a Bmad beam_spin_struct structure.
-! This routine is called by beam_spin_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the beam_spin_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad beam_spin_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine beam_spin_to_f2 (Fp, z_polarization, z_theta, z_phi) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(beam_spin_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_polarization, z_theta, z_phi
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%polarization = z_polarization
-!! f_side.to_f2_trans[real, 0, NOT]
-F%theta = z_theta
-!! f_side.to_f2_trans[real, 0, NOT]
-F%phi = z_phi
-
-end subroutine beam_spin_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine bunch_params_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad bunch_params_struct to a C++ CPP_bunch_params structure
@@ -9184,14 +9189,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_params_to_c2 (C, z_x, z_y, z_z, z_a, z_b, z_c, z_centroid, z_spin, z_sigma, &
-      z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele) &
-      bind(c)
+      z_rel_max, z_rel_min, z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, &
+      z_n_particle_lost_in_ele) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_x, z_y, z_z, z_a, z_b, z_c, z_centroid
     type(c_ptr), value :: z_spin
-    real(c_double) :: z_sigma(*), z_s, z_charge_live
+    real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_charge_live
     integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
   end subroutine
 end interface
@@ -9209,8 +9214,9 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call bunch_params_to_c2 (C, c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), c_loc(F%b), &
-    c_loc(F%c), c_loc(F%centroid), c_loc(F%spin), mat2vec(F%sigma, 6*6), F%s, F%charge_live, &
-    F%n_particle_tot, F%n_particle_live, F%n_particle_lost_in_ele)
+    c_loc(F%c), c_loc(F%centroid), c_loc(F%spin), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, &
+    6), fvec2vec(F%rel_min, 6), F%s, F%charge_live, F%n_particle_tot, F%n_particle_live, &
+    F%n_particle_lost_in_ele)
 
 end subroutine bunch_params_to_c
 
@@ -9231,7 +9237,8 @@ end subroutine bunch_params_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_params_to_f2 (Fp, z_x, z_y, z_z, z_a, z_b, z_c, z_centroid, z_spin, z_sigma, &
-    z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele) bind(c)
+    z_rel_max, z_rel_min, z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, &
+    z_n_particle_lost_in_ele) bind(c)
 
 
 implicit none
@@ -9242,7 +9249,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_x, z_y, z_z, z_a, z_b, z_c, z_centroid
 type(c_ptr), value :: z_spin
-real(c_double) :: z_sigma(*), z_s, z_charge_live
+real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_charge_live
 integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
 
 call c_f_pointer (Fp, F)
@@ -9262,9 +9269,13 @@ call twiss_to_f(z_c, c_loc(F%c))
 !! f_side.to_f2_trans[type, 0, NOT]
 call coord_to_f(z_centroid, c_loc(F%centroid))
 !! f_side.to_f2_trans[type, 0, NOT]
-call beam_spin_to_f(z_spin, c_loc(F%spin))
+call spin_polar_to_f(z_spin, c_loc(F%spin))
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_sigma, F%sigma)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%rel_max = z_rel_max(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%rel_min = z_rel_min(1:6)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
 !! f_side.to_f2_trans[real, 0, NOT]

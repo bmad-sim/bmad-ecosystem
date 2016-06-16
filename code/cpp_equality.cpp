@@ -72,6 +72,20 @@ template bool is_all_equal (const Int_TENSOR&,      const Int_TENSOR&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_spin_polar& x, const CPP_spin_polar& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.polarization == y.polarization);
+  is_eq = is_eq && (x.theta == y.theta);
+  is_eq = is_eq && (x.phi == y.phi);
+  is_eq = is_eq && (x.xi == y.xi);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_spin_polar_ARRAY&, const CPP_spin_polar_ARRAY&);
+template bool is_all_equal (const CPP_spin_polar_MATRIX&, const CPP_spin_polar_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_surface_orientation& x, const CPP_surface_orientation& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x_pitch == y.x_pitch);
@@ -1038,6 +1052,7 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
   is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
   is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
+  is_eq = is_eq && (x.write_csr_wake == y.write_csr_wake);
   return is_eq;
 };
 
@@ -1374,19 +1389,6 @@ template bool is_all_equal (const CPP_bunch_MATRIX&, const CPP_bunch_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_beam_spin& x, const CPP_beam_spin& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.polarization == y.polarization);
-  is_eq = is_eq && (x.theta == y.theta);
-  is_eq = is_eq && (x.phi == y.phi);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_beam_spin_ARRAY&, const CPP_beam_spin_ARRAY&);
-template bool is_all_equal (const CPP_beam_spin_MATRIX&, const CPP_beam_spin_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x == y.x);
@@ -1398,6 +1400,8 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && (x.centroid == y.centroid);
   is_eq = is_eq && (x.spin == y.spin);
   is_eq = is_eq && is_all_equal(x.sigma, y.sigma);
+  is_eq = is_eq && is_all_equal(x.rel_max, y.rel_max);
+  is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.charge_live == y.charge_live);
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
