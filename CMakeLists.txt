@@ -1,4 +1,4 @@
-set (LIBNAME util_programs)
+## set (LIBNAME util_programs)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS 
@@ -6,16 +6,16 @@ set(INC_DIRS
 )
 
 set(SRC_DIRS 
-  modules
+  ## modules
 )
 
-set (FFLAGS "-coarray")
+## set (FFLAGS "-coarray")
 
 set (EXE_SPECS 
-  cmake.moga
-  cmake.moga_distributed
-  cmake.ansga2
-  cmake.aspea2
+  ## cmake.moga
+  ## cmake.moga_distributed
+  ## cmake.ansga2
+  ## cmake.aspea2
   cmake.wake_fit
   cmake.bmad_to_autocad
   cmake.bmad_to_csrtrack
