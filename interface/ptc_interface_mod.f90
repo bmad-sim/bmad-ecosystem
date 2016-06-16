@@ -3226,7 +3226,7 @@ endif
 select case (key)
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
-  ptc_key%magnet = 'quadrupole'
+  ptc_key%magnet = 'drift'
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
