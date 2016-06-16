@@ -2,16 +2,6 @@ module spin_mod
 
 use em_field_mod
 
-! This includes the phase of the spinor.
-! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
-
-type spin_polar_struct
-  real(rp) :: polarization = 1
-  real(rp) :: theta = 0
-  real(rp) :: phi   = 0
-  real(rp) :: xi    = 0
-end type
-
 ! Pauli matrices
 
 complex(rp), parameter :: pauli_1(2,2) = reshape([(1,0), (0,0), (0,0), (1,0)], [2,2])
@@ -189,10 +179,10 @@ end function vec_to_polar
 !   use spin_mod
 !
 ! Input:
-!   spinor  -- complex(rp): Spinor
+!   spinor(2)  -- complex(rp): Spinor
 !
 ! Output
-!   vec(3) -- Real(rp): spin vector in cartesian coordinates
+!   vec(3)     -- Real(rp): spin vector in cartesian coordinates
 !-
 
 function spinor_to_vec (spinor) result (vec)

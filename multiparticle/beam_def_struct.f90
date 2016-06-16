@@ -2,12 +2,6 @@ module beam_def_struct
 
 use bmad_struct
 
-type beam_spin_struct
-  real(rp) :: polarization = 1.0 ! 100% polarized is default.
-  real(rp) :: theta = 0.0        ! polarization direction in polar coordinates
-  real(rp) :: phi = 0.0          ! polarization direction in polar coordinates
-end type
-
 type bunch_struct
   type (coord_struct), allocatable :: particle(:)
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
@@ -65,7 +59,7 @@ type beam_init_struct
                                             ! Or 'quick'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
   !!! The following are used  by all distribution types
-  type(beam_spin_struct)  spin               ! Initialize the spin
+  type(spin_polar_struct) spin               ! Initialize the spin
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
   real(rp) :: a_emit = 0                     ! a-mode emittance
@@ -94,7 +88,7 @@ type bunch_params_struct
   type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
   type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
   type (coord_struct) :: centroid  ! Lab frame
-  type (beam_spin_struct) :: spin  ! polarization
+  type (spin_polar_struct) :: spin ! polarization
   real(rp) sigma(6,6)              ! beam size matrix
   real(rp) rel_max(6)              ! Max orbit relative to centroid
   real(rp) rel_min(6)              ! Min orbit relative to_centroid

@@ -181,7 +181,15 @@ end type
 
 integer, parameter :: num_ele_attrib$ = 80
 
-! Misc
+! This includes the phase of the spinor.
+! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
+
+type spin_polar_struct
+  real(rp) :: polarization = 1
+  real(rp) :: theta = 0
+  real(rp) :: phi   = 0
+  real(rp) :: xi    = 0
+end type
 
 real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_unit_vec(3) = [0, 0, 1]
 
