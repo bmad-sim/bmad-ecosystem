@@ -14,24 +14,48 @@ module equality_mod
 use beam_def_struct
 
 interface operator (==)
-  module procedure eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var
-  module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_mode
-  module procedure eq_wake_sr, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
-  module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
-  module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
-  module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
-  module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
-  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
-  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_track_map, eq_track, eq_synch_rad_common, eq_csr_parameter
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield, eq_ele
-  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch, eq_lat
-  module procedure eq_bunch, eq_beam_spin, eq_bunch_params, eq_beam
+  module procedure eq_spin_polar, eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface
+  module procedure eq_controller_var, eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom
+  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_lat_ele_loc, eq_wake
+  module procedure eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1
+  module procedure eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map
+  module procedure eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane
+  module procedure eq_taylor_field, eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss
+  module procedure eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
+  module procedure eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material
+  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch
+  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam
 end interface
 
 contains
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_spin_polar (f1, f2) result (is_eq)
+
+implicit none
+
+type(spin_polar_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%polarization == f2%polarization)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%theta == f2%theta)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi == f2%phi)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%xi == f2%xi)
+
+end function eq_spin_polar
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1821,6 +1845,8 @@ is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
 is_eq = is_eq .and. (f1%use_csr_old .eqv. f2%use_csr_old)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%write_csr_wake .eqv. f2%write_csr_wake)
 
 end function eq_csr_parameter
 
@@ -2518,28 +2544,6 @@ end function eq_bunch
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_beam_spin (f1, f2) result (is_eq)
-
-implicit none
-
-type(beam_spin_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%polarization == f2%polarization)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%theta == f2%theta)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%phi == f2%phi)
-
-end function eq_beam_spin
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_bunch_params (f1, f2) result (is_eq)
 
 implicit none
@@ -2568,6 +2572,10 @@ is_eq = is_eq .and. (f1%centroid == f2%centroid)
 is_eq = is_eq .and. (f1%spin == f2%spin)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%sigma == f2%sigma)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%rel_max == f2%rel_max)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%rel_min == f2%rel_min)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
