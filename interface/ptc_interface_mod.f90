@@ -3226,7 +3226,11 @@ endif
 select case (key)
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
-  ptc_key%magnet = 'drift'
+  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+    ptc_key%magnet = 'drift'
+  else
+    ptc_key%magnet = 'quadrupole'
+  endif
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
