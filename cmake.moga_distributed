@@ -4,8 +4,8 @@ set (SRC_FILES
   moga/moga_distributed.f90
 )
 
-set (FFLAGS "-coarray=distributed -switch no_launch -coarray-config-file=caf.cfg")
-set (LINK_FLAGS "-coarray=distributed -switch no_launch -coarray-config-file=caf.cfg")
+## set (FFLAGS "-coarray=distributed -switch no_launch -coarray-config-file=caf.cfg")
+## set (LINK_FLAGS "-coarray=distributed -switch no_launch -coarray-config-file=caf.cfg")
 
 set (LINK_LIBS
   util_programs
