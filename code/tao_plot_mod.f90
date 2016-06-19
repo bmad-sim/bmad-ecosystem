@@ -1273,7 +1273,7 @@ end subroutine draw_ele_for_lat_layout
 subroutine draw_shape_for_lat_layout (name_in, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
-real(rp) s_pos, r_dum, y_off
+real(rp) :: s_pos, y_off, r_dum = 0
 integer icol
 character(*) name_in
 character(20) shape_name

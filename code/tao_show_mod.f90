@@ -193,7 +193,7 @@ end type
 type (show_lat_column_struct) column(50)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), pc, e_tot
+real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
@@ -1267,12 +1267,21 @@ case ('element')
       dt = orb%t - ele%ref_time
       pc = orb%p0c * (1 + orb%vec(6))
       call convert_pc_to (pc, orb%species, e_tot = e_tot) 
-      fmt  = '(2x, a, 2f15.8, a, es16.8, 2x, a, es12.4)'
-      fmt2 = '(2x, a, 2f15.8, a, es16.8, 2x, a, f11.6)'
-      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                          '
-      nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
-      nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
-      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
+      vec3 = spinor_to_vec(orb%spin)
+      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]        Spin  |'
+      if (bmad_com%spin_tracking_on) then
+        fmt  = '(2x, a, 2f15.8, f13.8, a, es16.8, 2x, a, es12.4)'
+        fmt2 = '(2x, a, 2f15.8, f13.8, a, es16.8, 2x, a, f11.6)'
+        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), vec3(1), '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
+        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), vec3(2), '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
+        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), vec3(3), '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
+      else
+        fmt  = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, es12.4)'
+        fmt2 = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, f11.6)'
+        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
+        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
+        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
+      endif
     endif
   endif
 

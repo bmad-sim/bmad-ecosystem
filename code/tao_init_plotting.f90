@@ -891,7 +891,7 @@ endif
 
 !---------------------------------
 
-n_plots = 38
+n_plots = 40
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -2278,6 +2278,78 @@ if (all(s%plot_page%template%name /= 'pz')) then
 endif
 
 !---------------
+! spin angles
+
+if (all(s%plot_page%template%name /= 'spin_angles')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(3))
+
+  plt = default_plot_g1c3
+  plt%name                 = 'spin_angles'
+  plt%description          = 'Spin angles & amplitude'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Spin Angles & Amplitude'
+  grph%y%label       = '\gh, \gf, Amp'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'spin.theta'
+
+  crv => grph%curve(2)
+  crv%g => grph
+  crv%data_type     = 'spin.phi'
+
+  crv => grph%curve(3)
+  crv%g => grph
+  crv%data_type     = 'spin.amp'
+endif
+
+!---------------
+! spin xyz
+
+if (all(s%plot_page%template%name /= 'spin_xyz')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(4))
+
+  plt = default_plot_g1c4
+  plt%name                 = 'spin_xyz'
+  plt%description          = 'Spin x, y, z components & amplitude'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Spin x, y, z & Amplitude'
+  grph%y%label       = 'X, Y, Z, Amp'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'spin.x'
+
+  crv => grph%curve(2)
+  crv%g => grph
+  crv%data_type     = 'spin.y'
+
+  crv => grph%curve(3)
+  crv%g => grph
+  crv%data_type     = 'spin.z'
+
+  crv => grph%curve(4)
+  crv%g => grph
+  crv%data_type     = 'spin.amp'
+endif
+
+!---------------
 ! sr energy loss
 
 if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
@@ -2289,7 +2361,7 @@ if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
   allocate (plt%graph(1))
   allocate (plt%graph(1)%curve(1))
 
-  plt = default_plot_g1c1 
+  plt = default_plot_g1c1
   plt%name                 = 'sr_energy_loss'
   plt%description          = 'Synch Radiation energy loss'
 
