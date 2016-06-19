@@ -1707,10 +1707,11 @@ type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
 type (em_field_struct) field
+type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign
+real(rp) comp_sign, vec3(3)
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
 
@@ -1767,10 +1768,12 @@ orb_ref => orb(ix_ref)
 s_last = ele_ref%s
 orbit_last = orbit
 
-data_type_select = data_type
-if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
-if (data_type_select(1:2) == 't.') data_type_select = 't.'
-if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
+ix = index(data_type, '.')
+if (ix == 0) then
+  data_type_select = data_type
+else
+  data_type_select = data_type(:ix)
+endif
 
 !
 
@@ -1864,94 +1867,150 @@ do ii = 1, size(curve%x_line)
   !-------------------------------
 
   select case (data_type_select)
-  case ('alpha.a')
-    value = ele%a%alpha
-  case ('alpha.b')
-    value = ele%b%alpha
-  case ('apparent_emit.x', 'norm_apparent_emit.x')
-    if (curve%data_source == 'beam') then
-      value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
-    else
-      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_lat%modes)
-    endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-  case ('apparent_emit.y', 'norm_apparent_emit.y')
-    if (curve%data_source == 'beam') then
-      value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
-    else
-      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes)
-    endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-  case ('b_curl.x')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dB(2,3) - field%dB(3,2)
-  case ('b_curl.y')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dB(3,1) - field%dB(1,3)
-  case ('b_curl.z')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dB(1,2) - field%dB(2,1)
+  case ('alpha.')
+    select case (data_type)
+    case ('alpha.a')
+      value = ele%a%alpha
+    case ('alpha.b')
+      value = ele%b%alpha
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('apparent_emit.', 'norm_apparent_emit.')
+    select case (data_type)
+    case ('apparent_emit.x', 'norm_apparent_emit.x')
+      if (curve%data_source == 'beam') then
+        value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
+      else
+        value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_lat%modes)
+      endif
+      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    case ('apparent_emit.y', 'norm_apparent_emit.y')
+      if (curve%data_source == 'beam') then
+        value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
+      else
+        value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes)
+      endif
+      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('b_curl.')
+    select case (data_type)
+    case ('b_curl.x')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dB(2,3) - field%dB(3,2)
+    case ('b_curl.y')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dB(3,1) - field%dB(1,3)
+    case ('b_curl.z')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dB(1,2) - field%dB(2,1)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('b_div')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
-  case ('b_field.x')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%b(1)
-  case ('b_field.y')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%b(2)
-  case ('b_field.z')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%b(3)
-  case ('beta.a')
-    value = ele%a%beta
-  case ('beta.b')
-    value = ele%b%beta
-  case ('cbar.11')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,1)
-  case ('cbar.12')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2)
-  case ('cbar.21')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,1)
-  case ('cbar.22')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,2)
-  case ('coupling.11b')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
-  case ('coupling.12a')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
-  case ('coupling.12b')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
-  case ('coupling.22a')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
-  case ('e_curl.x')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dE(2,3) - field%dE(3,2)
-  case ('e_curl.y')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dE(3,1) - field%dE(1,3)
-  case ('e_curl.z')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%dE(1,2) - field%dE(2,1)
+
+  case ('b_field.')
+    select case (data_type)
+    case ('b_field.x')
+      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%b(1)
+    case ('b_field.y')
+      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%b(2)
+    case ('b_field.z')
+      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%b(3)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('beta.')
+    select case (data_type)
+    case ('beta.a')
+      value = ele%a%beta
+    case ('beta.b')
+      value = ele%b%beta
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('cbar.')
+    select case (data_type)
+    case ('cbar.11')
+      call c_to_cbar (ele, cbar)
+      value = cbar(1,1)
+    case ('cbar.12')
+      call c_to_cbar (ele, cbar)
+      value = cbar(1,2)
+    case ('cbar.21')
+      call c_to_cbar (ele, cbar)
+      value = cbar(2,1)
+    case ('cbar.22')
+      call c_to_cbar (ele, cbar)
+      value = cbar(2,2)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('coupling.')
+    select case (data_type)
+    case ('coupling.11b')
+      call c_to_cbar (ele, cbar)
+      value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
+    case ('coupling.12a')
+      call c_to_cbar (ele, cbar)
+      value = cbar(1,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+    case ('coupling.12b')
+      call c_to_cbar (ele, cbar)
+      value = cbar(1,2) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
+    case ('coupling.22a')
+      call c_to_cbar (ele, cbar)
+      value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('e_curl.')
+    select case (data_type)
+    case ('e_curl.x')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dE(2,3) - field%dE(3,2)
+    case ('e_curl.y')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dE(3,1) - field%dE(1,3)
+    case ('e_curl.z')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%dE(1,2) - field%dE(2,1)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('e_div')
     call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
-  case ('e_field.x')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%e(1)
-  case ('e_field.y')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%e(2)
-  case ('e_field.z')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
-    value = field%e(3)
+
+  case ('e_field.')
+    select case (data_type)
+    case ('e_field.x')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%e(1)
+    case ('e_field.y')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%e(2)
+    case ('e_field.z')
+      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+      value = field%e(3)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('element_attrib.')
     name = upcase(curve%data_source(16:))
     ele_dum%key = overlay$  ! so entire attribute name table will be searched
@@ -1962,64 +2021,92 @@ do ii = 1, size(curve%x_line)
     endif
     call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
     if (associated (a_ptr%r)) value = a_ptr%r
-  case ('emit.a')
-    value = bunch_params%a%emit
-  case ('emit.b')
-    value = bunch_params%b%emit
-  case ('emit.x', 'norm_emit.x')
-    if (curve%data_source == 'beam') then
-      value = bunch_params%x%emit
-    else
-      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_lat%modes)
-    endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-  case ('emit.y', 'norm_emit.y')
-    if (curve%data_source == 'beam') then
-      value = bunch_params%y%emit
-    else
-      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_lat%modes)
-    endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-  case ('eta.x')
-    value = ele%x%eta
-  case ('eta.y')
-    value = ele%y%eta
-  case ('eta.z')
-    value = ele%z%eta
-  case ('etap.x')
-    value = ele%x%etap
-  case ('etap.y')
-    value = ele%y%etap
-  case ('eta.a')
-    value = ele%a%eta
-  case ('eta.b')
-    value = ele%b%eta
-  case ('etap.a')
-    value = ele%a%etap
-  case ('etap.b')
-    value = ele%b%etap
+
+  case ('emit.')
+    select case (data_type)
+    case ('emit.a')
+      value = bunch_params%a%emit
+    case ('emit.b')
+      value = bunch_params%b%emit
+    case ('emit.x', 'norm_emit.x')
+      if (curve%data_source == 'beam') then
+        value = bunch_params%x%emit
+      else
+        value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_lat%modes)
+      endif
+      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    case ('emit.y', 'norm_emit.y')
+      if (curve%data_source == 'beam') then
+        value = bunch_params%y%emit
+      else
+        value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_lat%modes)
+      endif
+      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('eta.')
+    select case (data_type)
+    case ('eta.x')
+      value = ele%x%eta
+    case ('eta.y')
+      value = ele%y%eta
+    case ('eta.z')
+      value = ele%z%eta
+    case ('eta.a')
+      value = ele%a%eta
+    case ('eta.b')
+      value = ele%b%eta
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('etap.')
+    select case (data_type)
+    case ('etap.x')
+      value = ele%x%etap
+    case ('etap.y')
+      value = ele%y%etap
+    case ('etap.a')
+      value = ele%a%etap
+    case ('etap.b')
+      value = ele%b%etap
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('ref_time')
     value = ele%ref_time
-  case ('floor.x')
-    value = ele%floor%r(1)
-  case ('floor.y')
-    value = ele%floor%r(2)
-  case ('floor.z')
-    value = ele%floor%r(3)
-  case ('floor.theta')
-    value = ele%floor%theta
-  case ('floor.phi')
-    value = ele%floor%phi
-  case ('floor.psi')
-    value = ele%floor%psi
+
+  case ('floor.')
+    select case (data_type)
+    case ('floor.x')
+      value = ele%floor%r(1)
+    case ('floor.y')
+      value = ele%floor%r(2)
+    case ('floor.z')
+      value = ele%floor%r(3)
+    case ('floor.theta')
+      value = ele%floor%theta
+    case ('floor.phi')
+      value = ele%floor%phi
+    case ('floor.psi')
+      value = ele%floor%psi
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('e_tot')
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
     else
       value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
     endif
+
   case ('momentum')
     value = orbit%p0c * (1 + orbit%vec(6)) 
+
   case ('momentum_compaction')
     call make_v_mats (ele_ref, v_mat, v_inv_mat)
     eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
@@ -2028,36 +2115,55 @@ do ii = 1, size(curve%x_line)
     eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
     eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
     value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
-  case ('norm_emit.a')
-    value = bunch_params%a%norm_emit
-  case ('norm_emit.b')
-    value = bunch_params%b%norm_emit
-  case ('norm_emit.z')
-    value = bunch_params%z%norm_emit
-  case ('orbit.x')
-    value = orbit%vec(1)
-  case ('orbit.y')
-    value = orbit%vec(3)
-  case ('orbit.z')
-    value = orbit%vec(5)
-  case ('orbit.px')
-    value = orbit%vec(2)
-  case ('orbit.py')
-    value = orbit%vec(4)
-  case ('orbit.pz')
-    value = orbit%vec(6)
-  case ('orbit.amp_a')
-    call orbit_amplitude_calc (ele, orbit, amp_a = value)
-  case ('orbit.amp_b')
-    call orbit_amplitude_calc (ele, orbit, amp_b = value)
-  case ('orbit.norm_amp_a')
-    call orbit_amplitude_calc (ele, orbit, amp_na = value)
-  case ('orbit.norm_amp_b')
-    call orbit_amplitude_calc (ele, orbit, amp_nb = value)
-  case ('phase.a')
-    value = ele%a%phi
-  case ('phase.b')
-    value = ele%b%phi
+
+  case ('norm_emit.')
+    select case (data_type)
+    case ('norm_emit.a')
+      value = bunch_params%a%norm_emit
+    case ('norm_emit.b')
+      value = bunch_params%b%norm_emit
+    case ('norm_emit.z')
+      value = bunch_params%z%norm_emit
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('orbit.')
+    select case (data_type)
+    case ('orbit.x')
+      value = orbit%vec(1)
+    case ('orbit.y')
+      value = orbit%vec(3)
+    case ('orbit.z')
+      value = orbit%vec(5)
+    case ('orbit.px')
+      value = orbit%vec(2)
+    case ('orbit.py')
+      value = orbit%vec(4)
+    case ('orbit.pz')
+      value = orbit%vec(6)
+    case ('orbit.amp_a')
+      call orbit_amplitude_calc (ele, orbit, amp_a = value)
+    case ('orbit.amp_b')
+      call orbit_amplitude_calc (ele, orbit, amp_b = value)
+    case ('orbit.norm_amp_a')
+      call orbit_amplitude_calc (ele, orbit, amp_na = value)
+    case ('orbit.norm_amp_b')
+      call orbit_amplitude_calc (ele, orbit, amp_nb = value)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('phase.')
+    select case (data_type)
+    case ('phase.a')
+      value = ele%a%phi
+    case ('phase.b')
+      value = ele%b%phi
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
@@ -2065,20 +2171,52 @@ do ii = 1, size(curve%x_line)
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
     value = mat6(i, j)
-  case ('sigma.x')
-    value = sqrt(bunch_params%sigma(1,1))
-  case ('sigma.px')
-    value = sqrt(bunch_params%sigma(2,2))
-  case ('sigma.y')
-    value = sqrt(bunch_params%sigma(3,3))
-  case ('sigma.py')
-    value = sqrt(bunch_params%sigma(4,4))
-  case ('sigma.z')
-    value = sqrt(bunch_params%sigma(5,5))
-  case ('sigma.pz')
-    value = sqrt(bunch_params%sigma(6,6))
+
+  case ('sigma.')
+    select case (data_type)
+    case ('sigma.x')
+      value = sqrt(bunch_params%sigma(1,1))
+    case ('sigma.px')
+      value = sqrt(bunch_params%sigma(2,2))
+    case ('sigma.y')
+      value = sqrt(bunch_params%sigma(3,3))
+    case ('sigma.py')
+      value = sqrt(bunch_params%sigma(4,4))
+    case ('sigma.z')
+      value = sqrt(bunch_params%sigma(5,5))
+    case ('sigma.pz')
+      value = sqrt(bunch_params%sigma(6,6))
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
+  case ('spin.')
+    select case (data_type)
+    case ('spin.theta')
+      polar = spinor_to_polar(orbit%spin)
+      value = polar%theta
+    case ('spin.phi')
+      polar = spinor_to_polar(orbit%spin)
+      value = polar%phi
+    case ('spin.amp')
+      polar = spinor_to_polar(orbit%spin)
+      value = polar%polarization
+    case ('spin.x')
+      vec3 = spinor_to_vec(orbit%spin)
+      value = vec3(1)
+    case ('spin.y')
+      vec3 = spinor_to_vec(orbit%spin)
+      value = vec3(2)
+    case ('spin.z')
+      vec3 = spinor_to_vec(orbit%spin)
+      value = vec3(3)
+    case default
+      goto 9000  ! Error message & Return
+    end select
+
   case ('time')
     value = orbit%t
+
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
@@ -2087,6 +2225,7 @@ do ii = 1, size(curve%x_line)
     k = tao_read_this_index (data_type, 5); if (k == 0) return
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), taylor_expn([j, k]))
+
   case ('tt.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
@@ -2099,19 +2238,25 @@ do ii = 1, size(curve%x_line)
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
-
+  
   case default
-    call out_io (s_warn$, r_name, &
-                  'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
-    call out_io (s_blank$, r_name, "Will not perform any smoothing.")
-    good = .false.
-    return
+    goto 9000  ! Error message & Return
   end select
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
 
 enddo
+
+return
+
+! Error message
+
+9000 continue
+call out_io (s_warn$, r_name, &
+                    'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
+call out_io (s_blank$, r_name, "Will not perform any smoothing.")
+good = .false.
 
 end subroutine tao_calc_data_at_s
 

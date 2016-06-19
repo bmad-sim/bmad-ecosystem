@@ -436,6 +436,7 @@ type (normal_form_struct), pointer :: normal_form
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
+type (spin_polar_struct) polar_spin
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
@@ -2167,31 +2168,67 @@ case ('spin.')
 
   select case (datum%data_type)
 
-  case ('spin.theta')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%spin%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    else
-      polar = spinor_to_polar (orbit(ix_ele)%spin)
-      datum_value = polar%theta
-      valid_value = .true.
+  case ('spin.x', 'spin.y', 'spin.z')
+    do i = ix_start, ix_ele
+      if (data_source == 'beam') then
+        vec3 = polar_to_vec(bunch_params(i)%spin)
+      else
+        vec3 = spinor_to_vec(orbit(i)%spin)
+      endif
+
+      select case (datum%data_type)
+      case ('spin.x');  value_vec(i) = vec3(1)
+      case ('spin.y');  value_vec(i) = vec3(2)
+      case ('spin.z');  value_vec(i) = vec3(3)
+      end select
+    enddo
+
+    if (ix_ref > -1) then
+      if (data_source == 'beam') then
+        vec3 = polar_to_vec(bunch_params(ix_ref)%spin)
+      else
+        vec3 = spinor_to_vec(orbit(ix_ref)%spin)
+      endif
+
+      select case (datum%data_type)
+      case ('spin.x');  value_vec(ix_ref) = vec3(1)
+      case ('spin.y');  value_vec(ix_ref) = vec3(2)
+      case ('spin.z');  value_vec(ix_ref) = vec3(3)
+      end select
     endif
-    
-  case ('spin.phi')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%spin%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    else
-      polar = spinor_to_polar (orbit(ix_ele)%spin)
-      datum_value = polar%phi
-      valid_value = .true.
+
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+  case ('spin.theta', 'spin.phi', 'spin.amplitude')
+    do i = ix_start, ix_ele
+      if (data_source == 'beam') then
+        polar_spin = bunch_params(i)%spin
+      else
+        polar_spin = spinor_to_polar(orbit(i)%spin)
+      endif
+
+      select case (datum%data_type)
+      case ('spin.theta');   value_vec(i) = polar_spin.theta
+      case ('spin.phi');     value_vec(i) = polar_spin.phi
+      case ('spin.amp');     value_vec(i) = polar_spin.polarization
+      end select
+    enddo
+
+    if (ix_ref > -1) then
+      if (data_source == 'beam') then
+        polar_spin = bunch_params(ix_ref)%spin
+      else
+        polar_spin = spinor_to_polar(orbit(ix_ref)%spin)
+      endif
+
+      select case (datum%data_type)
+      case ('spin.theta');   value_vec(ix_ref) = polar_spin.theta
+      case ('spin.phi');     value_vec(ix_ref) = polar_spin.phi
+      case ('spin.amp');     value_vec(ix_ref) = polar_spin.polarization
+      end select
     endif
-    
-  case ('spin.polarity')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%spin%polarization, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    else
-      datum_value = 1.0
-      valid_value = .true.
-    endif
+
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)

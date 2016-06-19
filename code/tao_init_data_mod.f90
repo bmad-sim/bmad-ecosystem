@@ -592,8 +592,7 @@ do j = n1, n2
     endif
   endif
 
-  if (dat%data_type(1:11) == 'expression:' .or. &
-              u%design%lat%param%geometry == closed$ .and. &
+  if (u%design%lat%param%geometry == closed$ .and. &
               (dat%data_type(1:12)  == 'chrom.dtune.' .or. dat%data_type(1:5)  == 'damp.' .or. &
                dat%data_type(1:17) == 'multi_turn_orbit.' .or. dat%data_type(1:5) == 'tune.' .or. &
                dat%data_type(1:13) == 'unstable.ring' .or. index(dat%data_type, 'emit.') /= 0)) then
