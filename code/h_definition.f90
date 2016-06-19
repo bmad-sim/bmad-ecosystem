@@ -157,6 +157,7 @@ module definition
 
   !&4
   TYPE vecfield
+  !
      type (taylor) v(ndim2)          !@1 <font face="Times New Roman">V<sub>i</sub>&#8706;<sub>i</sub></font> Operator
      integer ifac                    !@1 Type of Factorization 0,1,-1 (One exponent, Dragt-Finn, Reversed Dragt-Finn)
   END TYPE vecfield
@@ -360,12 +361,13 @@ module definition
 
 
 
-  TYPE c_DAMAP
-     TYPE (c_TAYLOR) V(LNV) !@1 Orbital part of the map 
-     integer :: N=0  !@1 Number of plane allocated
-     type(c_spinmatrix) s !@1 Spin matrix
-     complex(dp) e_ij(6,6) !@1 Stochastic fluctuation in radiation theory
-  END TYPE c_DAMAP
+type c_damap
+ type (c_taylor) v(lnv) !@1 orbital part of the map 
+ integer :: n=0 !@1 number of plane allocated
+ type(c_spinmatrix) s !@1 spin matrix
+ complex(dp) e_ij(6,6) !@1 stochastic fluctuation in radiation theory
+end type c_damap
+
   !@3 ---------------------------------------------</br>
   TYPE c_vector_field  !@1 
       integer :: n=0,nrmax !@1 n dimension used v(1:n) (nd2 by default) ; nrmax some big integer if eps<1 
@@ -393,6 +395,7 @@ module definition
       type(c_damap) a_t !@1 transformation a (m=a n a^-1) 
       type(c_damap) n   !@1 transformation n (m=a n a^-1)      
       type(c_damap) As  !@1  For Spin   (m = As a n a^-1 As^-1)  
+      type(c_damap) Atot  !@1  For Spin   (m = Atot n Atot^-1)  
       integer NRES,M(NDIM2t/2,NRESO),ms(NRESO) !@1 stores resonances to be left in the map, including spin (ms)
       real(dp) tune(NDIM2t/2),damping(NDIM2t/2),spin_tune !@1 Stores simple information
       logical positive ! forces positive tunes (close to 1 if <0)
@@ -405,9 +408,10 @@ module definition
   !@2 at= a_cs o rotation(phase) where  a_cs = a0 o a1 o a2 ; this gives the phase advance even nonlinear!
   !@3 ---------------------------------------------</br>
 type(c_taylor) c_temp
+
  TYPE c_ray
-  complex(dp) x(lnv)
-  complex(dp) s1(3),s2(3),s3(3)
+  complex(dp) x(lnv)            !# orbital and/or magnet modulation clocks
+  complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
  end type c_ray
 
 

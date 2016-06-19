@@ -2518,6 +2518,7 @@ do while(.true.)
    read(mf,NML=ELEname,end=999) !!  basic stuff : an,bn,L, b_sol, etc...
 !write(6,*) ELE0%name_vorname
 
+
    if(ELE0%NAME_VORNAME(1)== "endhere".or.ELE0%NAME_VORNAME(1)=="alldone") goto 99
  !write(6,NML=ELEname)
    call zero_fib0
@@ -2562,12 +2563,17 @@ endif
      S2 = MAGL0%METHOD_NST_NMUL_permfringe_highest(3)    
      
 
+
 !write(6,*) associated(s2%p)
  !pause 78
     call MC_MC0(s2%p,my_false)
 
+
+
  !pause 79
     call el_el0(s2,my_false)
+
+
 
     if(s2%kind/=kindpa) then
        CALL SETFAMILY(S2) 
@@ -2930,10 +2936,9 @@ ele0%slowac_recut_even_electric_MIS(5) = f%MIS
  ele0%usebf_skipptcbf_do1bf(4)=f%skip_ptc_f 
  ele0%usebf_skipptcbf_do1bf(5)=f%do1mapb 
  ele0%usebf_skipptcbf_do1bf(6)=f%do1mapf
- ele0%filef=' '
- ele0%fileb=' '
-if(associated(f%forward)) then
  ele0%filef=f%filef
+ ele0%fileb=f%fileb
+if(associated(f%forward)) then
 
   if(present(mf)) then
    call kanalnummer(inf,f%filef)
@@ -2949,17 +2954,22 @@ if(associated(f%backward)) then
    close(inf)
  endif
 endif
+
+
     if(present(mf)) then
      write(mf,NML=ELEname)
-    endif   
+    endif  
+
+
 else
- ele0%filef=' '
- ele0%fileb=' '
-ele0%usebf_skipptcbf_do1bf=.false.
+
+
 
     if(present(mf)) then
      read(mf,NML=ELEname)
     endif   
+
+
  F%KIND=ELE0%KIND  
   call context(ELE0%name_vorname(1))
   call context(ELE0%name_vorname(2))
@@ -3014,6 +3024,10 @@ endif
  f%MIS = ele0%slowac_recut_even_electric_MIS(5)
  solve_electric=f%electric
    F%L=ele0%L
+
+
+
+
 
  f%useb=ele0%usebf_skipptcbf_do1bf(1)
  f%usef=ele0%usebf_skipptcbf_do1bf(2)

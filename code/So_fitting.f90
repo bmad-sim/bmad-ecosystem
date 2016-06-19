@@ -3546,19 +3546,20 @@ endif
 !idi%v(nn)=idi%v(nn)-idh%v(nn)
 !call print(idi%v(nn),6)
 
-  SUBROUTINE  THIN_LENS_restart(R,fib,useknob,universe) ! A re-splitting routine
+  SUBROUTINE  THIN_LENS_restart(R,fib,useknob,universe,ignore_recut) ! A re-splitting routine
     IMPLICIT NONE
     INTEGER NTE
     TYPE(layout),target, intent(inout) :: R
     INTEGER M1,M2,M3, MK1,MK2,MK3,nst_tot,ii,nt  !,limit0(2)
     type(fibre), OPTIONAL, target :: fib
-    logical(lp), OPTIONAL :: useknob,universe
+    logical(lp), OPTIONAL :: useknob,universe,ignore_recut
     logical(lp) doit,uni,m_t_pres
     TYPE (fibre), POINTER :: C
     TYPE (layout), POINTER :: l
-    !    logical(lp) doneit
+     logical(lp) ignore 
     nullify(C)
-
+ignore=.false.
+if(present(ignore_recut)) ignore=ignore_recut
     !    CALL LINE_L(R,doneit)
 m_t_pres=my_false
 if(associated(m_u)) then
@@ -3635,7 +3636,9 @@ endif
      C=>R%START
     endif
     do  ii=1,nt    ! WHILE(ASSOCIATED(C))
-       doit=.true.
+
+       doit=c%mag%recut.or.(ignore)
+
        if(present(useknob)) then
           if(useknob) then
              doit=c%magp%knob

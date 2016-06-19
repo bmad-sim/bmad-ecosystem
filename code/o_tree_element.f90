@@ -46,7 +46,7 @@ module tree_element_MODULE
   logical :: firstfac=.true.
   integer, private, parameter :: nfac=20
   real(dp), private :: fac(0:nfac)
-
+  integer :: nbe=8
 
   INTERFACE assignment (=)
      !
@@ -326,6 +326,9 @@ CONTAINS
 
     ALLOCATE(T%CC(N),T%fix0(np),T%fix(np),T%fixr(np),T%JL(N),T%JV(N),T%N,T%ds,T%beta0,T%np,T%no, & 
     t%e_ij(c_%nd2,c_%nd2),T%rad(c_%nd2,c_%nd2),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
+    t%cc=0
+    t%jl=0
+    t%jv=0
     T%N=N
     T%np=np
     T%no=0

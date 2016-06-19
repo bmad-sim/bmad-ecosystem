@@ -3,7 +3,7 @@
 !    ndct=iabs(ndpt-ndptb)  ! 1 if coasting, otherwise 0
 !    ndc2t=2*ndct  ! 2 if coasting, otherwise 0
 !    nd2t=nd2-2*rf-ndc2t   !  size of harmonic oscillators minus modulated clocks
-!    ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
+!    ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks(*)
 !    nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
 !    ndharm=ndt+rf  !!!! total number of harmonic planes
 !
@@ -57,7 +57,7 @@ MODULE c_TPSA
  private c_trxspinmatrix,c_inv_as,sqrtt,alloc_c_spinor,kill_c_spinor,c_complex_spinmatrix,c_trxspinmatrixda
  private c_spinmatrix_add_spinmatrix,c_exp_spinmatrix,unarySUB_spinor,c_spinor_add_spinor,c_taylor_spinor
  private c_IdentityEQUALSPINOR,c_spinmatrix_spinor,c_logt,c_pri_factored_lie,equalc_map_cmap
- private c_expflo_fac_inv,c_logc,c_complex_spinor,GETORDERSPINMATRIX,c_pri_spinor
+ private c_expflo_fac_inv,c_logc,c_complex_spinor,c_real_spinor,GETORDERSPINMATRIX,c_pri_spinor
  private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da,c_spinmatrix_sub_spinmatrix
  PRIVATE CUTORDERMAP,CUTORDERspin,CUTORDERspinor,c_concat_tpsa,c_concat_spinor_ray
   type(C_dalevel) c_scratchda(ndumt)   !scratch levels of DA using linked list
@@ -66,7 +66,7 @@ integer, private :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
 logical(lp), private ::   c_similarity=my_false
 logical(lp) :: symp =my_false
 logical(lp) :: c_normal_auto=my_true,c_verbose=my_true
-integer :: spin_def_tune=1,spin_def_L=1, spin_def_cor=1;   !, private 
+integer :: spin_def_tune=1   !, private 
 integer :: order_gofix=1
 logical(lp) :: time_lie_choice=my_false,courant_snyder_teng_edwards=my_true,dosymp=my_false
   private copy_damap_matrix,copy_matrix_matrix,invert_22,ALLOC_33t,kill_33t,matmul_33
@@ -86,7 +86,8 @@ complex(dp) :: n_cai=-2*i_
 integer :: complex_extra_order=0
 logical :: special_extra_order_1=.true.
 real(dp) :: epso_factor =1000.d0 ! for log
-  logical(lp):: extra_terms_log=.false. 
+logical(lp):: extra_terms_log=.false. 
+logical :: add_constant_part_concat=.true.
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUAL
@@ -97,17 +98,18 @@ real(dp) :: epso_factor =1000.d0 ! for log
      MODULE PROCEDURE Dequaldacon
      MODULE PROCEDURE equaldacon
      MODULE PROCEDURE Iequaldacon
-     MODULE PROCEDURE equalc_t_ct   ! complex Taylor
+     MODULE PROCEDURE equalc_t_ct   !# complex Taylor
      MODULE PROCEDURE equalc_ct_c
-     MODULE PROCEDURE equalc_t   ! Taylor
+     MODULE PROCEDURE equalc_t   !# Taylor
      MODULE PROCEDURE equalt_c
-     MODULE PROCEDURE equal_real8_cmap  ! put cmap in real_8(6)
+     MODULE PROCEDURE equal_real8_cmap  !# put cmap in real_8(6)
      MODULE PROCEDURE equal_cmap_real8  ! put real_8(6) in cmap
-     MODULE PROCEDURE c_EQUALMAP  !  c_damap=c_damap
+     MODULE PROCEDURE c_EQUALMAP  !#  c_damap=c_damap
     MODULE PROCEDURE c_IdentityEQUALMAP
     MODULE PROCEDURE c_IdentityEQUALSPIN
-    MODULE PROCEDURE c_IdentityEQUALSPINOR   !c_spinor = 0,1,2, or 3
-    MODULE PROCEDURE c_IdentityEQUALVEC,c_IdentityEQUALfactored
+    MODULE PROCEDURE c_IdentityEQUALSPINOR   !# c_spinor = 0,1,2, or 3
+    MODULE PROCEDURE c_IdentityEQUALVEC
+    MODULE PROCEDURE c_IdentityEQUALfactored
     MODULE PROCEDURE c_IdentityEQUALVECfourier
 
     MODULE PROCEDURE matrixMAPr
@@ -118,22 +120,22 @@ real(dp) :: epso_factor =1000.d0 ! for log
      MODULE PROCEDURE c_DPOKMAP
      MODULE PROCEDURE EQUALspinmatrix
 
-     MODULE PROCEDURE EQUAL_c_map_RAY8   !  c_damap=probe_8
-     MODULE PROCEDURE EQUAL_RAY8_c_map   !  probe_8=c_damap
+     MODULE PROCEDURE EQUAL_c_map_RAY8   !#  c_damap=probe_8
+     MODULE PROCEDURE EQUAL_RAY8_c_map   !#  probe_8=c_damap
 
       MODULE PROCEDURE equalc_cmap_map 
       MODULE PROCEDURE equalc_map_cmap
 
       MODULE PROCEDURE equalc_cvec_vec
 
-      MODULE PROCEDURE c_EQUALVEC   ! c_vector_field=c_vector_field
+      MODULE PROCEDURE c_EQUALVEC   !# c_vector_field=c_vector_field
       MODULE PROCEDURE equalc_cspinor_cspinor
       MODULE PROCEDURE equalc_ray_r6
       MODULE PROCEDURE equalc_r6_ray
       MODULE PROCEDURE equalc_ray_ray
       MODULE PROCEDURE equal_c_vector_field_fourier
       MODULE PROCEDURE equalc_spinor_cspinor
-      MODULE PROCEDURE flatten_c_factored_lie_r ! same as       flatten_c_factored_lie
+      MODULE PROCEDURE flatten_c_factored_lie_r !# same as flatten_c_factored_lie
   end  INTERFACE
 
 
@@ -141,10 +143,10 @@ real(dp) :: epso_factor =1000.d0 ! for log
      MODULE PROCEDURE unaryADD  !@2 This is a unary operation
      MODULE PROCEDURE add
 
-     MODULE PROCEDURE daddsco   ! c_damap + real(6)
-     MODULE PROCEDURE scdaddo   ! real(6) + c_damap
-     MODULE PROCEDURE daddsc    ! c_damap + probe_8
-     MODULE PROCEDURE scdadd    ! probe_8 + c_damap
+     MODULE PROCEDURE daddsco   !# c_damap + real(6)
+     MODULE PROCEDURE scdaddo   !# real(6) + c_damap
+     MODULE PROCEDURE daddsc    !# c_damap + probe_8
+     MODULE PROCEDURE scdadd    !# probe_8 + c_damap
 
      MODULE PROCEDURE cdaddsc
      MODULE PROCEDURE daddsca
@@ -157,7 +159,7 @@ real(dp) :: epso_factor =1000.d0 ! for log
      MODULE PROCEDURE iaddsc
      MODULE PROCEDURE c_spinmatrix_add_spinmatrix
      MODULE PROCEDURE c_spinor_add_spinor  ! adding c_spinor
-     MODULE PROCEDURE c_add_vf  !  adding vector field for exp(ad VF)
+     MODULE PROCEDURE c_add_vf  !#  adding vector field for exp(ad VF)
      MODULE PROCEDURE c_add_map
  
   END INTERFACE
@@ -186,6 +188,7 @@ real(dp) :: epso_factor =1000.d0 ! for log
   END INTERFACE
 
   INTERFACE OPERATOR (*)
+ !    MODULE PROCEDURE transform_vector_field_by_map
      MODULE PROCEDURE mul
      MODULE PROCEDURE dmulsc
      MODULE PROCEDURE cdmulsc
@@ -198,38 +201,40 @@ real(dp) :: epso_factor =1000.d0 ! for log
 
 
 
-     MODULE PROCEDURE c_concat      !
-     MODULE PROCEDURE c_trxtaylor   !
-     MODULE PROCEDURE c_bra_v_ct     ! F.grad taylor
-     MODULE PROCEDURE c_bra_v_dm     ! map=(exp(F.grad) map
+     MODULE PROCEDURE c_concat      !# c_damap o  c_damap
+     MODULE PROCEDURE c_trxtaylor   !  c_taylor o  c_damap
+     MODULE PROCEDURE c_bra_v_ct     !# F.grad taylor
+     MODULE PROCEDURE c_bra_v_dm     !# c_damap=(exp(F.grad) c_damap
 !     MODULE PROCEDURE c_bra_v_v     !   (exp(F.grad) H) . grad
-     MODULE PROCEDURE c_spinmatrix_mul_cray !  spin_matrix.c_ray
-     MODULE PROCEDURE c_spinmatrix_spinmatrix !  Spinmatrix*Spinmatrix
-     MODULE PROCEDURE c_complex_spinmatrix  ! c*Spinmatrix
-     MODULE PROCEDURE c_taylor_spinor    ! taylor * spinor
-     MODULE PROCEDURE c_complex_spinor   !  complex * spinor
-     MODULE PROCEDURE c_spinor_spinor    ! spinor x spinor 
-     MODULE PROCEDURE c_trxspinmatrix    ! c_spinmatrix=  c_spinmatrix * c_map
-     MODULE PROCEDURE c_spinmatrix_spinor  ! matrix * spinor
-     MODULE PROCEDURE c_spinor_cmap        ! spinor * cmap
+     MODULE PROCEDURE c_spinmatrix_mul_cray !#  spin_matrix.c_ray
+     MODULE PROCEDURE c_spinmatrix_spinmatrix !#  Spinmatrix*Spinmatrix
+     MODULE PROCEDURE c_complex_spinmatrix  !# c*Spinmatrix
+     MODULE PROCEDURE c_taylor_spinor    !# taylor * spinor
+     MODULE PROCEDURE c_complex_spinor   !#  complex * spinor
+     MODULE PROCEDURE c_real_spinor      !#  real(dp) * spinor
+     MODULE PROCEDURE c_spinor_spinor    !# spinor x spinor 
+     MODULE PROCEDURE c_trxspinmatrix    !# c_spinmatrix=  c_spinmatrix * c_damap
+     MODULE PROCEDURE c_spinmatrix_spinor  !# matrix * spinor
+     MODULE PROCEDURE c_spinor_cmap        !# spinor * c_damap
      MODULE PROCEDURE real_mul_vec  ! real(dp)*vf
-     MODULE PROCEDURE complex_mul_vec  ! complex(dp)*vf
-     MODULE PROCEDURE real_mul_map
-     MODULE PROCEDURE map_mul_vec      ! map(vector_field)   ! same as transform_vector_field_by_map
- !    MODULE PROCEDURE c_concat_vec_map  !!   vector_field = (f.grad m**(-1)) * m
-     MODULE PROCEDURE c_spinor_spinmatrix    ! spinor.L   spinmatrix
-     MODULE PROCEDURE c_vector_field_spinmatrix  ! (f.grad + spinor.L)spinmatrix
+     MODULE PROCEDURE complex_mul_vec  !# complex(dp)*vf
+     MODULE PROCEDURE real_mul_map     !# real(dp)*c_damap
+     MODULE PROCEDURE c_spinor_spinmatrix    !# spinor.L   spinmatrix
+     MODULE PROCEDURE c_vector_field_spinmatrix  !# (f.grad + spinor.L)spinmatrix
+
+     MODULE PROCEDURE map_mul_vec  !   c_damap * c_vector_field means "transform field by map" 
   END INTERFACE
 
-  INTERFACE OPERATOR (.o.)
-     MODULE PROCEDURE c_concat_c_ray    ! c_taylor .o. c_ray
-     MODULE PROCEDURE c_concat_map_ray  ! c_ray= map o c_ray
-     MODULE PROCEDURE c_trxtaylor_da   ! c_taylor= c_taylor .o. c_map
-     MODULE PROCEDURE c_concat_tpsa     ! c_map o  c_map
-     module procedure c_concat_spinor_ray   ! c_spinor= c_spinor o  c_ray
-     module procedure c_concat_spinmatrix_ray ! c_spinmatrix= c_spinmatrix o  c_ray
-     module procedure c_concat_vector_field_ray  ! c_vector_field o  cray
-     module procedure c_trxspinmatrixda
+  INTERFACE OPERATOR (.o.) 
+  !
+     module procedure c_concat_c_ray    !# c_taylor .o. c_ray
+     module procedure c_concat_map_ray  !# c_ray= c_damap o c_ray
+     module procedure c_trxtaylor_da   !# c_taylor= c_taylor .o. c_damap
+     module procedure c_concat_tpsa     !# c_damap o  c_damap
+     module procedure c_concat_spinor_ray   !# c_spinor= c_spinor o  c_ray
+     module procedure c_concat_spinmatrix_ray !# c_spinmatrix= c_spinmatrix o  c_ray
+     module procedure c_concat_vector_field_ray  !# c_vector_field o  cray
+     module procedure c_trxspinmatrixda     !# c_spinmatrix=c_spinmatrix o  c_damap
    END INTERFACE 
  
   INTERFACE OPERATOR (/)
@@ -251,53 +256,6 @@ real(dp) :: epso_factor =1000.d0 ! for log
   END INTERFACE
 
 
-  INTERFACE clean
-!     MODULE PROCEDURE c_clean
-     MODULE PROCEDURE c_clean_taylor
-     MODULE PROCEDURE c_clean_spinmatrix
-     MODULE PROCEDURE c_clean_damap
-     MODULE PROCEDURE c_clean_vector_field
-  end INTERFACE clean
-  ! Exponential of Lie Operators
-
- 
-  INTERFACE c_simil
-     MODULE PROCEDURE c_adjoint
-     MODULE PROCEDURE c_adjoint_vec
-  end INTERFACE c_simil
-
-  INTERFACE texp_inv
-     MODULE PROCEDURE c_expflo_fac_inv
-  END INTERFACE
-
-  INTERFACE exp_inv
-     MODULE PROCEDURE c_expflo_fac_inv
-  END INTERFACE
-
-  INTERFACE real
-     MODULE PROCEDURE c_real
-  END INTERFACE
-
-  INTERFACE aimag
-     MODULE PROCEDURE c_AIMAG
-  END INTERFACE
-
-  INTERFACE exp
-     MODULE PROCEDURE c_expflo    ! flow on c_taylor
-     MODULE PROCEDURE c_expflo_map
-     MODULE PROCEDURE c_expflo_fac
-     MODULE PROCEDURE c_exp_spinmatrix
-     MODULE PROCEDURE c_exp_vectorfield_on_spinmatrix
-  END INTERFACE
-
-
-  INTERFACE texp
-     MODULE PROCEDURE c_expflo   
-     MODULE PROCEDURE c_expflo_map
-     MODULE PROCEDURE c_expflo_fac
-     MODULE PROCEDURE c_exp_spinmatrix
-     MODULE PROCEDURE c_exp_vectorfield_on_spinmatrix
-  END INTERFACE
 
   ! New Operators
 
@@ -381,12 +339,62 @@ real(dp) :: epso_factor =1000.d0 ! for log
     END INTERFACE
     
   INTERFACE OPERATOR (.lb.)
-     MODULE PROCEDURE liebra    !  F=<G,H> includes spin now 
-     MODULE PROCEDURE liebraspinor  ! used by liebra 
+  !
+     MODULE PROCEDURE liebra    !#  F=<G,H> includes spin now 
+     MODULE PROCEDURE liebraspinor  !# used by liebra 
   END INTERFACE
 
   ! intrisic functions overloaded
 
+  INTERFACE clean
+!     MODULE PROCEDURE c_clean
+     MODULE PROCEDURE c_clean_spinor
+     MODULE PROCEDURE c_clean_taylor
+     MODULE PROCEDURE c_clean_spinmatrix
+     MODULE PROCEDURE c_clean_damap
+     MODULE PROCEDURE c_clean_vector_field
+  end INTERFACE clean
+  ! Exponential of Lie Operators
+
+ 
+  INTERFACE c_simil
+     MODULE PROCEDURE c_adjoint
+     MODULE PROCEDURE c_adjoint_vec
+  end INTERFACE c_simil
+
+  INTERFACE texp_inv
+     MODULE PROCEDURE c_expflo_fac_inv
+  END INTERFACE
+
+  INTERFACE exp_inv
+     MODULE PROCEDURE c_expflo_fac_inv
+  END INTERFACE
+
+  INTERFACE real
+     MODULE PROCEDURE c_real
+  END INTERFACE
+
+  INTERFACE aimag
+     MODULE PROCEDURE c_AIMAG
+  END INTERFACE
+
+  INTERFACE exp
+     MODULE PROCEDURE c_expflo    ! flow on c_taylor
+     MODULE PROCEDURE c_expflo_map
+     MODULE PROCEDURE c_expflo_fac
+     MODULE PROCEDURE c_exp_spinmatrix
+     MODULE PROCEDURE c_exp_vectorfield_on_spinmatrix
+  END INTERFACE
+
+
+  INTERFACE texp
+     MODULE PROCEDURE c_expflo   
+     MODULE PROCEDURE c_expflo_map
+     MODULE PROCEDURE c_expflo_fac
+     MODULE PROCEDURE c_exp_spinmatrix
+     MODULE PROCEDURE c_exp_vectorfield_on_spinmatrix
+  END INTERFACE
+  
   INTERFACE abs
      MODULE PROCEDURE DAABSEQUAL  ! remove 2002.10.17
   END INTERFACE
@@ -410,8 +418,8 @@ real(dp) :: epso_factor =1000.d0 ! for log
   INTERFACE log
      MODULE PROCEDURE c_logt
      MODULE PROCEDURE c_logc
-     MODULE PROCEDURE c_logf  ! log of a map see subroutine c_flofacg
-     MODULE PROCEDURE c_log_spinmatrix  ! spinor=log(s)
+     MODULE PROCEDURE c_logf  !# log of a map see subroutine c_flofacg
+     MODULE PROCEDURE c_log_spinmatrix  !#  spinor=log(s)
   END INTERFACE
 
 
@@ -1367,6 +1375,7 @@ end subroutine c_get_indices
     call alloc(s1%a1)
     call alloc(s1%a_t)
     call alloc(s1%AS)
+    call alloc(s1%Atot)
     s1%as=1
     s1%nres=0
     s1%positive=.true.
@@ -1394,6 +1403,7 @@ end subroutine c_get_indices
     call kill(s1%a2)
     call kill(s1%a1)
     call kill(s1%AS)
+    call kill(s1%Atot)
     s1%positive=.true.
     s1%nres=0
     s1%m=0  ! orbital resonance
@@ -2347,7 +2357,7 @@ end  SUBROUTINE  flatten_c_factored_lie_r
     else
      epsone= xnorm1/epso_factor
     endif
- 
+       if(lielib_print(3)==1) write(6,*) epsone,xnorm1
 !     eps=abs(epsone)/2  !1.d5
     xn=1e36_dp
 
@@ -2368,8 +2378,9 @@ end  SUBROUTINE  flatten_c_factored_lie_r
       call c_full_norm_vector_field(t,xnorm1)
       if(lielib_print(3)==1) write(6,*) i,xn,xnorm1
 
+  !    c_logf_spin=c_logf_spin+t+0.5e0_dp*(c_logf_spin.lb.t)
     if(xnorm1.lt.epsone) then !.and.i>=10) then
- !     call c_full_norm_vector_field(t2,xnorm2)
+     call c_full_norm_vector_field(t2,xnorm2)
  
       c_logf_spin=c_logf_spin+t+0.5e0_dp*(c_logf_spin.lb.t)
       if(xnorm1>=xn.and.(.not.present(n))) exit
@@ -2422,7 +2433,7 @@ end  SUBROUTINE  flatten_c_factored_lie_r
      call alloc(s1t)
     s1t=s1
     da=.true.
-    if(present(tpsa)) da=tpsa
+    if(present(tpsa)) da=.not.tpsa
     if(da) then
      do i=1,s1t%n
          s1t%v(i)=s1t%v(i)-(s1t%v(i).sub.'0')
@@ -2433,7 +2444,7 @@ end  SUBROUTINE  flatten_c_factored_lie_r
     call c_ass_vector_field(c_logf)
     c_logf=0
      if(present(h)) c_logf=h
-     call c_flofacg(s1,c_logf,epso,n)
+     call c_flofacg(s1t,c_logf,epso,n)
     call kill(s1t)
     c_master=localmaster
   if(complex_extra_order==1.and.special_extra_order_1) c_logf=c_logf.cut.no
@@ -5430,15 +5441,18 @@ cgetvectorfield=0
   !  i/o routines
 
 
-  SUBROUTINE  c_pri_map(S1,MFILE,DEPS)
+  SUBROUTINE  c_pri_map(S1,MFILE,DEPS,dospin)
     implicit none
     INTEGER,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_damap),INTENT(IN)::S1
+    logical, optional :: dospin
     integer i,j,k
-    logical(lp) rad_in
+    logical(lp) rad_in,dos
     real(dp) norm
-     
+     dos=.true.
+
+     if(present(dospin)) dos=dospin
 
     write(mfile,*) "  "
     write(mfile,*) s1%n, " Dimensional map "
@@ -5446,6 +5460,7 @@ cgetvectorfield=0
      call c_pri(s1%v(i),mfile,deps)
     enddo
     
+if(dos) then
         call c_full_norm_spin(s1%s,k,norm)
         if(k==-1) then
           write(mfile,*) " Spin Matrix "
@@ -5457,6 +5472,9 @@ cgetvectorfield=0
         if(k==1) then
          write(mfile,*) " Spin Matrix is identity "
         endif
+else
+         write(mfile,*) " Spin Matrix is not printed per user's request "
+endif
             call c_check_rad(s1%e_ij,rad_in)
         if(rad_in) then
          write(mfile,*) "Stochastic Radiation "
@@ -6226,17 +6244,25 @@ cgetvectorfield=0
 
  end function c_clean
 
-  SUBROUTINE  c_clean_taylor(S1,S2,prec)
+  SUBROUTINE  c_clean_taylor(S1,S2,prec,r)
     implicit none
     type (c_taylor),INTENT(INOUT)::S2
     type (c_taylor), intent(INOUT):: s1
     real(dp) prec
-    INTEGER ipresent,n,I,illa
-    complex(dp) value,v
-    real(dp) x
+    INTEGER ipresent,n,I,illa,k
+    complex(dp) value,v,y
+    real(dp) x,xx
     INTEGER, allocatable :: j(:)
+    type(c_ray),optional :: r
     type (c_taylor) t
-
+    type(c_ray) s
+    
+    s%x=0
+    s%s1=0
+    s%s2=0
+    s%s3=0
+    s%x=1.0_dp
+    if(present(r)) s=r
     call alloc(t)
     t=0.0_dp
     ipresent=1
@@ -6247,10 +6273,20 @@ cgetvectorfield=0
     do i=1,N
        call c_dacycle(S1%I,i,value,illa,j)
        v=0.0_dp
+    if(present(r)) then
+       y=value
+      do k=1,nv
+       y=y*r%x(k)**j(k)
+      enddo
+     else
+      y=value
+    endif
+       xx=y
        x=value
-       if(abs(x)>prec) v=x
-       x=aimag(value)
-       if(abs(x)>prec) v=v+i_*x
+       if(abs(xx)>prec) v=x
+       xx=aimag(y)
+       x=aimag(value)      
+       if(abs(xx)>prec) v=v+i_*x
 !       if(abs(value)>prec) then
           t=t+(v.cmono.j)
 !       endif
@@ -6262,44 +6298,46 @@ cgetvectorfield=0
   END SUBROUTINE c_clean_taylor
 
 
-  SUBROUTINE  c_clean_spinmatrix(S1,S2,prec) ! spin routine
+  SUBROUTINE  c_clean_spinmatrix(S1,S2,prec,r) ! spin routine
     implicit none
     type (c_spinmatrix),INTENT(INOUT)::S2
     type (c_spinmatrix), intent(INOUT):: s1
     real(dp) prec
     integer i,j
-
+    type(c_ray),optional :: r
     do i=1,3
     do j=1,3
-       call clean(s1%s(i,j),s2%s(i,j),prec)
+       call clean(s1%s(i,j),s2%s(i,j),prec,r)
     enddo
     enddo
 
 
   END SUBROUTINE c_clean_spinmatrix
 
-  SUBROUTINE  c_clean_spinor(S1,S2,prec) ! spin routine
+  SUBROUTINE  c_clean_spinor(S1,S2,prec,r) ! spin routine
     implicit none
     type (c_spinor),INTENT(INOUT)::S2
     type (c_spinor), intent(INOUT):: s1
     real(dp) prec
+    type(c_ray),optional :: r
     integer i
 
     do i=1,3
-       call c_clean_taylor(s1%v(i),s2%v(i),prec)
+       call c_clean_taylor(s1%v(i),s2%v(i),prec,r)
     enddo
 
   END SUBROUTINE c_clean_spinor
 
-  SUBROUTINE  c_clean_damap(S1,S2,prec)
+  SUBROUTINE  c_clean_damap(S1,S2,prec,r)
     implicit none
     type (c_damap),INTENT(INOUT)::S2
     type (c_damap), intent(INOUT):: s1
     real(dp) prec
     integer i
+    type(c_ray),optional :: r
 
     do i=1,nd2
-       call c_clean_taylor(s1%v(i),s2%v(i),prec)
+       call c_clean_taylor(s1%v(i),s2%v(i),prec,r)
     enddo
     
     call c_clean_spinmatrix(s1%s,s2%s,prec)
@@ -6307,12 +6345,13 @@ cgetvectorfield=0
   END SUBROUTINE c_clean_damap
 
 
-  SUBROUTINE  c_clean_vector_field(S1,S2,prec)
+  SUBROUTINE  c_clean_vector_field(S1,S2,prec,r)
     implicit none
     type (c_vector_field),INTENT(INOUT)::S2
     type (c_vector_field), intent(INOUT):: s1
     real(dp) prec
     integer i
+    type(c_ray),optional :: r
 
     do i=1,nd2
        call c_clean_taylor(s1%v(i),s2%v(i),prec)
@@ -6562,8 +6601,13 @@ endif
     ! if(old) then
 
     call c_etcct(t1%v%i,t1%n,t2%v%i,t2%n,tempnew%v%i)
+    
+    if(add_constant_part_concat) then
+     do i=1,t1%n
+      tempnew%v(i)=tempnew%v(i)+(s1%v(i).sub.'0')
+     enddo
+    endif
 
- 
      t1%s = t1%s*t2
  
     
@@ -6793,11 +6837,12 @@ endif
     TYPE (c_ray) c_spinmatrix_mul_cray 
     TYPE (c_spinmatrix), INTENT (IN) :: S1
     TYPE (c_ray), INTENT (IN) :: S2 
-
+    TYPE (c_spinmatrix) temp
     integer i,j
 
-    
- 
+    call alloc(temp)
+    temp=s1
+    temp=temp.o.s2
     c_spinmatrix_mul_cray%s1=0.0_dp
     c_spinmatrix_mul_cray%s2=0.0_dp
     c_spinmatrix_mul_cray%s3=0.0_dp
@@ -6805,15 +6850,15 @@ endif
      do i=1,3
       do j=1,3
  
-          c_spinmatrix_mul_cray%s1(i)=s1%s(i,j)*s2%s1(j)+c_spinmatrix_mul_cray%s1(i)
-          c_spinmatrix_mul_cray%s2(i)=s1%s(i,j)*s2%s2(j)+c_spinmatrix_mul_cray%s2(i)
-          c_spinmatrix_mul_cray%s3(i)=s1%s(i,j)*s2%s3(j)+c_spinmatrix_mul_cray%s3(i)
+          c_spinmatrix_mul_cray%s1(i)=temp%s(i,j)*s2%s1(j)+c_spinmatrix_mul_cray%s1(i)
+          c_spinmatrix_mul_cray%s2(i)=temp%s(i,j)*s2%s2(j)+c_spinmatrix_mul_cray%s2(i)
+          c_spinmatrix_mul_cray%s3(i)=temp%s(i,j)*s2%s3(j)+c_spinmatrix_mul_cray%s3(i)
  
       enddo
      enddo
      c_spinmatrix_mul_cray%x=s2%x
  
-
+     call kill(temp)
   END FUNCTION c_spinmatrix_mul_cray
 
  FUNCTION c_spinmatrix_spinor(S1,S2) ! spin routine function
@@ -7105,6 +7150,29 @@ endif
 
   END FUNCTION c_complex_spinor
 
+ FUNCTION c_real_spinor(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_spinor) c_real_spinor 
+    TYPE (c_spinor), INTENT (IN) ::  S2
+    real(dp), INTENT (IN) :: S1
+    integer i
+
+    integer localmaster
+     IF(.NOT.C_STABLE_DA) then
+     c_real_spinor%v%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    call c_ass_spinor(c_real_spinor)
+
+     do i=1,3
+          c_real_spinor%v(i)=s1*s2%v(i) 
+     enddo
+    
+    c_master=localmaster
+
+  END FUNCTION c_real_spinor
 
  FUNCTION c_spinor_spinor(S1,S2) ! spin routine function
     implicit none
@@ -7384,26 +7452,16 @@ endif
 
 
      
+
+    
+ !    c_concat_map_ray%s1=s2%s1   ! added spin 2016.6.29
+ !    c_concat_map_ray%s2=S2%s2
+ !    c_concat_map_ray%s3=S2%s3
+      c_concat_map_ray=s1%s*s2
+ ! order important because the first one puts s2%x into c_concat_map_ray%x
      do i=1,s1%n
       c_concat_map_ray%x(i)=s1%v(i).o.temp
      enddo
-    
-     c_concat_map_ray%s1=S2%s1
-     c_concat_map_ray%s2=S2%s2
-     c_concat_map_ray%s3=S2%s3
-
-!         temp%s=s1%s.dot.s2
-   !   temp%s=c_concat_spinmatrix_ray( S1%s, S2 )
-      
-   !  do i=1,3
-   !  do j=1,3
-   !    c_concat_map_ray%s1(i)=temp%s%s(i,j)*s2%s1(j)+c_concat_map_ray%s1(i)
-   !    c_concat_map_ray%s2(i)=temp%s%s(i,j)*s2%s2(j)+c_concat_map_ray%s2(i)
-   !    c_concat_map_ray%s3(i)=temp%s%s(i,j)*s2%s3(j)+c_concat_map_ray%s3(i)
-   !  enddo
-   !  enddo
-
-!     call orthogonalise_ray(c_concat_map_ray)
 
     call kill(temp)
     c_master=localmaster
@@ -7930,8 +7988,10 @@ subroutine c_linear_a(xy,a1)
      if(ndpt==0) then
        fm0(1:nd2,1:nd2)=transpose(fm(1:nd2,1:nd2))
      else
-write(6,*) " nd2t,nd2,nd2harm "
-write(6,*) nd2t,nd2,nd2harm
+      if(c_verbose) then
+       write(6,*) " nd2t,nd2,nd2harm "
+       write(6,*) nd2t,nd2,nd2harm
+      endif
 ! Consider the following example
 ! ndc2t,nd2t,nd2harm,nd2
 !           2           4           6           8
@@ -8635,7 +8695,7 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
 end subroutine c_full_canonise
 
 
- subroutine c_normal(xy,n,dospin,no_used)
+ subroutine c_normal(xy,n,dospin,no_used,rot,phase,nu_spin)
 !#general:  normal
 !# This routine normalises the map xy
 !# xy = n%a_t**(-1)*r*n%a_t 
@@ -8649,6 +8709,8 @@ end subroutine c_full_canonise
     type(c_damap) , intent(inout) :: xy
     type(c_damap) m1,ri,nonl,a1,a2,mt,AS
     type(c_normal_form), intent(inout) ::  n
+    type(c_damap), optional :: rot
+    type(c_taylor), optional :: phase(:),nu_spin
     integer,optional :: no_used
     integer i,j,k,l,kr,not
     integer, allocatable :: je(:)
@@ -8745,6 +8807,11 @@ end subroutine c_full_canonise
                  lam=lam*eg(l)**je(l)
                enddo
              je(k)=je(k)+1
+!     write(6,*) k
+!     write(6,'(6(1x,i4))') je(1:6)
+!     write(6,*) v
+!     write(6,*) abs(v/(1-lam))
+!pause 1112
              n%g%f(i)%v(k)=n%g%f(i)%v(k)+(v.cmono.je)/(1.0_dp-lam)
             else ! Put in the kernel
              n%ker%f(i)%v(k)=n%ker%f(i)%v(k)+(v.cmono.je)
@@ -8879,6 +8946,20 @@ end subroutine c_full_canonise
       
 
         n%n=c_simil(from_phasor(),m1,1)
+        n%Atot=n%as*n%a_t
+
+        if(present(rot)) then
+         rot=n%Atot**(-1)*xy*n%Atot
+        endif
+
+        if(present(phase)) then
+            if(present(rot)) then
+              m1=rot
+            else
+              m1=n%Atot**(-1)*xy*n%Atot
+            endif
+         call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin) 
+        endif
 
      call c_check_rad(m1%e_ij,rad_in)
      if(rad_in) call c_normal_radiation(m1,n)
@@ -9330,9 +9411,9 @@ end subroutine c_full_canonise
     
     call c_full_norm_spin(s1%s,i,norm)
     if(i/=0) then
-     c_1_vf%om%v(1)=s1%s%s(3,2)*spin_def_L
-     c_1_vf%om%v(2)=s1%s%s(1,3)*spin_def_L
-     c_1_vf%om%v(3)=s1%s%s(2,1)*spin_def_L*spin_def_cor
+     c_1_vf%om%v(1)=s1%s%s(3,2) 
+     c_1_vf%om%v(2)=s1%s%s(1,3) 
+     c_1_vf%om%v(3)=s1%s%s(2,1) 
     endif
     
     c_master=localmaster
@@ -10141,37 +10222,56 @@ prec=1.d-8
     integer, optional :: n
     TYPE(c_spinmatrix) h
     integer i,nr
-    TYPE(c_spinmatrix) dh,dhn
+    TYPE(c_spinmatrix) dh,dhn,di
     complex(dp) c,cl
+    real(dp) depsb,depsa
+    logical pre
     call alloc(h)
     call alloc(dh)
     call alloc(dhn)
+    call alloc(di)
     !  this only works with a da-map
     nr=no
-    if(present(n)) nr=n
+      pre=present(n)
+    if(present(n)) then 
+      nr=n
+    endif
     dh=S
     h=0
     dhn=1
     dh%s(1,1)=dh%s(1,1)-1.0_dp
     dh%s(2,2)=dh%s(2,2)-1.0_dp
     dh%s(3,3)=dh%s(3,3)-1.0_dp
-
+    depsb=1.e38_dp
     c=1.0_dp
     do i=1,nr
        dhn=dhn*dh
        cl=c/i
-       h=h+cl*dhn
+       di=cl*dhn
+       h=h+di
        c=-c
+        call c_norm_spinmatrix(di,depsa)
+       if(lielib_print(3)==1) write(6,*) i,depsa
+       if(pre.and.i>nr/2) then
+        if(depsa>=depsb) exit
+           depsb=depsa
+       endif
     enddo
 
-    om%v(1)=spin_def_L*h%s(3,2)
-    om%v(2)=spin_def_L*h%s(1,3)
-    om%v(3)=spin_def_L*h%s(2,1)*spin_def_cor
+    if(pre.and.i>nr-1) then
+      write(6,*) " did not converged in c_find_om_da ",i
+      write(6,*) " Norms ",depsb,depsa
+      stop
+     endif
+
+    om%v(1)=h%s(3,2)
+    om%v(2)=h%s(1,3)
+    om%v(3)=h%s(2,1) 
 
     call kill(h)
     call kill(dh)
     call kill(dhn)
-
+    call kill(di)
   end subroutine c_find_om_da
 
   subroutine c_find_as(n2,a) 
@@ -10307,38 +10407,43 @@ endif
       if(present(radian)) rad=radian
      tune=S%s(1,1)+i_*S%s(1,3)
 
-     tune=-i_*log(tune)*spin_def_L
+     tune=-i_*log(tune) 
 
      if(.not.rad) tune=tune/twopi
 
   end subroutine c_find_spin_angle
 
-  function c_log_spinmatrix(s,exact) ! spin routine
+  function c_log_spinmatrix(s,exact,n) ! spin routine
     implicit none
     TYPE(c_spinor) c_log_spinmatrix
     TYPE(c_spinmatrix), INTENT(INout) :: s
     type(c_taylor) tune 
     type(c_damap) as
     logical(lp), optional :: exact
+    integer, optional :: n
     logical(lp) exa
     integer localmaster
     real(dp) d
-    integer k,n
+    integer k,n1
     IF(.NOT.C_STABLE_DA) then
      c_log_spinmatrix%v%i=0
      RETURN
      endif
     exa=my_false
-    n=no
+    n1=no
    if(present(exact)) exa=exact    
     localmaster=c_master
 
     call c_ass_spinor(c_log_spinmatrix)
-        
+
+    if(present(n)) then
+      call c_find_om_da(s,c_log_spinmatrix,n)
+    else    
+
      if(.not.exa) then
         call c_norm_spin(s,k,EPS=d)
-        if(d<1.d-7) then
-         n=no+20
+        if(d<1.d-2) then
+         n1=no+20000
          k=1
         endif
      else
@@ -10348,7 +10453,7 @@ endif
 !pause 
 !etienne
     if(k==1) then
-      call c_find_om_da(s,c_log_spinmatrix,n)
+      call c_find_om_da(s,c_log_spinmatrix,n1)
     else
         call alloc(as)
         call alloc(tune)
@@ -10371,6 +10476,8 @@ endif
           call kill(as)
           call kill(tune)
      endif
+
+  endif
          c_master=localmaster
 
   end function c_log_spinmatrix
@@ -10396,12 +10503,12 @@ endif
       call c_ass_spinmatrix(c_spinor_spinmatrix)
       call alloc(dh)
 
-    dh%s(3,1)=-spin_def_L*h_axis%v(2)
-    dh%s(2,1)=spin_def_L*h_axis%v(3)*spin_def_cor
-    dh%s(1,3)=spin_def_L*h_axis%v(2)
-    dh%s(3,2)=spin_def_L*h_axis%v(1)
-    dh%s(1,2)=-spin_def_L*h_axis%v(3)*spin_def_cor
-    dh%s(2,3)=-spin_def_L*h_axis%v(1)
+    dh%s(3,1)=-h_axis%v(2)
+    dh%s(2,1)=h_axis%v(3)
+    dh%s(1,3)=h_axis%v(2)
+    dh%s(3,2)=h_axis%v(1)
+    dh%s(1,2)=-h_axis%v(3)
+    dh%s(2,3)=-h_axis%v(1)
     
 !    c_spinor_spinmatrix=dh*ds
 !    Lie operator order
@@ -10486,12 +10593,12 @@ endif
      c_exp_spinmatrix=1
   
     dh=0
-    dh%s(2,1)=spin_def_L*h_axis%v(3)*spin_def_cor
-    dh%s(1,3)=spin_def_L*h_axis%v(2)
-    dh%s(3,2)=spin_def_L*h_axis%v(1)
-    dh%s(1,2)=-spin_def_L*h_axis%v(3)*spin_def_cor
-    dh%s(3,1)=-spin_def_L*h_axis%v(2)
-    dh%s(2,3)=-spin_def_L*h_axis%v(1)
+    dh%s(2,1)=h_axis%v(3)
+    dh%s(1,3)=h_axis%v(2)
+    dh%s(3,2)=h_axis%v(1)
+    dh%s(1,2)=-h_axis%v(3)
+    dh%s(3,1)=-h_axis%v(2)
+    dh%s(2,3)=-h_axis%v(1)
 
     dhn=1
     c=1.0_dp
@@ -12440,7 +12547,7 @@ end subroutine extract_a2
     endif
        if(present(tune)) then
         tune=0.0_dp
-        tune=spin_def_tune*spin_def_L*tune0%v(2)   ! in phasors
+        tune=spin_def_tune*tune0%v(2)   ! in phasors
        endif
 
     call kill(n_expo)
@@ -12906,15 +13013,16 @@ subroutine mulc_vector_field_fourier(s1,fac,r)
 
 end subroutine mulc_vector_field_fourier
 
-  SUBROUTINE  c_clean_vector_field_fourier(S1,S2,prec)
+  SUBROUTINE  c_clean_vector_field_fourier(S1,S2,prec,r)
     implicit none
     type (c_vector_field_fourier),INTENT(INOUT)::S2
     type (c_vector_field_fourier), intent(INOUT):: s1
     real(dp) prec
+    type(c_ray), optional :: r
     integer i
 
     do i=-n_fourier,n_fourier
-       call c_clean_vector_field(s1%f(i),s2%f(i),prec)
+       call c_clean_vector_field(s1%f(i),s2%f(i),prec,r)
     enddo
 
   END SUBROUTINE c_clean_vector_field_fourier

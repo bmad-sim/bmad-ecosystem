@@ -50,7 +50,8 @@ module Mad_like
   REAL(DP)  MAD_TREE_LD , MAD_TREE_ANGLE
   type(tree_element), allocatable :: t_em(:) !,t_ax(:),t_ay(:)
 
-  real(dp), private ::  angc,xc,dc,hc,LC,HD,LD
+  real(dp), private ::  angc,xc,dc,hc,LC,HD,LD,vc
+  logical ::   xprime_pancake = .true.
    character(vp) , private :: filec
   logical(lp) :: set_ap=my_false
   TYPE EL_LIST
@@ -1819,7 +1820,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,a72,/),(1x,a72))'
           !w_p%c(1)=name
-          ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
+          write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
           ! call ! WRITE_I
 
        endif
@@ -1829,7 +1830,7 @@ CONTAINS
        !w_p%nc=2
        !w_p%fc='((1X,a72,/),(1x,a72))'
        !w_p%c(1)=name
-       ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
+       write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
        ! call ! WRITE_I
     ENDIF
 
@@ -2840,14 +2841,19 @@ CONTAINS
     if(s2%kind/=kindpa) then
        CALL SETFAMILY(S2)  !,NTOT=ntot,ntot_rad=ntot_rad,NTOT_REV=ntot_REV,ntot_rad_REV=ntot_rad_REV,ND2=6)
     else
+
        CALL SETFAMILY(S2,t=t_em)  !,T_ax=T_ax,T_ay=T_ay)
+
        S2%P%METHOD=4
        s2%pa%angc=angc
        s2%pa%xc=xc
        s2%pa%dc=dc
        s2%pa%hc=hc
+       s2%pa%vc=vc
+       s2%pa%xprime=xprime_pancake
        s2%vorname=filec
        deallocate(t_em)
+
     endif
 
     IF(S2%KIND==KIND4) THEN
@@ -2882,7 +2888,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,a72,/),(1x,a72))'
           !w_p%c(1)=S2%name
-          ! write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', S2%name,' CHANGED TO DRIFT-KICK '
+          write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', S2%name,' CHANGED TO DRIFT-KICK '
           ! call ! WRITE_I
        endif
     endif
@@ -2948,6 +2954,7 @@ CONTAINS
        endif
      set_ap=MY_FALSE
     endif
+
     call copy(s2,s2p)
 
     ! end of machida stuff here
@@ -3361,10 +3368,11 @@ CONTAINS
     MC2=XMC2
   END SUBROUTINE Set_mad_v
 
-   subroutine set_pancake_constants(angc0,xc0,dc0,hc0,LC0,hd0,ld0,filec0)
+   subroutine set_pancake_constants(angc0,xc0,dc0,vc0,hc0,LC0,hd0,ld0,xprime0,filec0)
    implicit none
-   real(dp) angc0,xc0,dc0,hc0,LC0,hd0,ld0
+   real(dp) angc0,xc0,dc0,hc0,LC0,hd0,ld0,vc0
    character(vp) filec0
+   logical xprime0
    angc=angc0
    xc=xc0
    dc=dc0
@@ -3372,20 +3380,26 @@ CONTAINS
    lc=lc0
    hd=hd0
    ld=ld0
+   vc=vc0
    filec=filec0
+   xprime_pancake=xprime0
    end subroutine set_pancake_constants 
 
-  FUNCTION  pancake_tilt(NAME,file,no,T)
+  
+  ! linked
+
+ FUNCTION  pancake_tilt(NAME,file,no,T)
     implicit none
     type (EL_LIST) pancake_tilt
     CHARACTER(*),optional, INTENT(IN):: NAME,file
     type (TILTING),optional, INTENT(IN):: T
-    real(dp) L,ANGLE
+    real(dp) L,ANGLE,ds,a
     integer mf,nst,I,ORDER,ii
     integer, optional :: no
-    LOGICAL(LP) REPEAT
-    TYPE(TAYLOR) B(3)  !,ax(2),ay(2)
+!    LOGICAL(LP) REPEAT
+    TYPE(TAYLOR) B(nbe),ba(nbe),bf(nbe),bn(nbe),it  !,ax(2),ay(2)
 
+    a=0.0_dp
    ! file_fitted=file
 
     pancake_tilt=0
@@ -3403,40 +3417,112 @@ CONTAINS
     read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
     read(mf,*) nst, ORDER 
     read(mf,*) LC,hc
-    read(mf,*) dc,xc,angc
-
+    read(mf,*) dc,vc,xc
+    read(mf,*) angc
+    ds=LC/nst
 
     if(present(no)) order=no
-    CALL INIT(ORDER,2)
+ 
+    order=order+1
+
+ !   CALL INIT(ORDER,2)
+    CALL INIT(ORDER,1,0,0)
+
+
     CALL ALLOC(B)
-  !  CALL ALLOC(ax)
-   ! CALL ALLOC(ay)
+    CALL ALLOC(Bf)
+    CALL ALLOC(Ba)
+    CALL ALLOC(Bn)
+    call alloc(it) 
+bf(1)=0.0_dp;bf(2)=0.0_dp;bf(3)=0.0_dp;
+ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
 
-    IF(REPEAT.AND.NST==0) NST=NSTD
 
-    ALLOCATE(t_em(NST))  !,T_ax(NST),T_ay(NST))
+!    IF(REPEAT.AND.NST==0) NST=NSTD
 
-    DO I=1,NST
+    ALLOCATE(t_em(NST))  
+
+    read(mf,*) ii 
+          CALL READ(Bf(1),mf);CALL READ(Bf(2),mf);CALL READ(Bf(3),mf);
+          Bf(1)=Bf(1)/BRHO
+          Bf(2)=Bf(2)/BRHO
+          Bf(3)=Bf(3)/BRHO
+    read(mf,*) ii 
+          CALL READ(Ba(1),mf);CALL READ(Ba(2),mf);CALL READ(Ba(3),mf);
+          Ba(1)=Ba(1)/BRHO
+          Ba(2)=Ba(2)/BRHO
+          Ba(3)=Ba(3)/BRHO
+
+    DO I=3,NST 
     read(mf,*) ii 
  
-       IF(I==1.or.(.not.repeat)) THEN
+ 
           CALL READ(B(1),mf);CALL READ(B(2),mf);CALL READ(B(3),mf);
-          !          CALL READ(Ax(1),mf);CALL READ(Ay(1),mf);CALL READ(Ax(2),mf);CALL READ(Ay(2),mf);
+ 
           B(1)=B(1)/BRHO
           B(2)=B(2)/BRHO
           B(3)=B(3)/BRHO
-         ! Ax(1)=Ax(1)/BRHO
-         ! Ax(2)=Ax(2)/BRHO
-         ! Ay(1)=Ay(1)/BRHO
-         ! Ay(2)=Ay(2)/BRHO
-       ENDIF
-       CALL SET_TREE_g(t_em(i),B)
-       !       CALL SET_TREE_g(T_ax(i),ax)
-       !       CALL SET_TREE_g(T_ay(i),ay)
+
+         if(i==3) then
+          Bn(1)=Bf(1)
+          Bn(2)=Bf(2)
+          Bn(3)=Bf(3)
+          bn(4)=-(bn(3).i.2)  ! ax
+          it=1.0_dp+hc*(1.0_dp.mono.1)
+          bn(5)=(4*b(4)-ba(4)-3*bf(4))/ds/2-it*bn(2)   !  d/dx (1+hx)A_s 
+          bn(6)= it*bn(1)   !  d/dy (1+hx)A_s  
+          bn(7)=bn(4).d.1   !  d/dx Ax
+          bn(8)=bn(4).d.2   !  d/dy Ax   
+          CALL SET_TREE_g(t_em(1),Bn)
+         elseif(i==nst) then
+          Bn(1)=B(1)
+          Bn(2)=B(2)
+          Bn(3)=B(3)
+          bn(4)=-(bn(3).i.2)  ! ax
+          it=1.0_dp+hc*(1.0_dp.mono.1)
+          bn(5)=(3*b(4)+bf(4)-4*ba(4))/ds/2-it*bn(2)   !  d/dx (1+hx)A_s 
+          bn(6)= it*bn(1)   !  d/dy (1+hx)A_s  
+          bn(7)=bn(4).d.1   !  d/dx Ax
+          bn(8)=bn(4).d.2   !  d/dy Ax   
+          CALL SET_TREE_g(t_em(i),Bn)
+         endif
+
+          Bn(1)=Ba(1)
+          Bn(2)=Ba(2)
+          Bn(3)=Ba(3)
+          bn(4)=-(bn(3).i.2)  ! ax
+          it=1.0_dp+hc*(1.0_dp.mono.1)
+          bn(5)=(b(4)-bf(4))/ds/2-it*bn(2)   !  d/dx (1+hx)A_s 
+          bn(6)= it*bn(1)   !  d/dy (1+hx)A_s  
+          bn(7)=bn(4).d.1   !  d/dx Ax
+          bn(8)=bn(4).d.2   !  d/dy Ax   
+          CALL SET_TREE_g(t_em(i-1),Bn)
+ 
+          Bf(1)=Ba(1)
+          Bf(2)=Ba(2)
+          Bf(3)=Ba(3)  
+          Bf(4)=Ba(4)
+          Bf(5)=Ba(5)
+          Bf(6)=Ba(6)
+          Bf(7)=Ba(7)
+          Bf(8)=Ba(8)    
+  
+          Ba(1)=B(1)
+          Ba(2)=B(2)
+          Ba(3)=B(3)
+          Ba(4)=B(4)
+          Ba(5)=B(5)
+          Ba(6)=B(6)
+          Ba(7)=B(7)
+          Ba(8)=B(8)
+
     enddo
     call KILL(B)
-  !  CALL KILL(ax)
-  !  CALL KILL(ay)
+    call KILL(Bf)
+    call KILL(Ba)
+    call KILL(Bn)
+    call KILL(it) 
+
 
     close(MF)
    else
@@ -3482,7 +3568,6 @@ CONTAINS
     ENDIF
   END FUNCTION pancake_tilt
   ! linked
-
 
   SUBROUTINE  EQUAL_L(R,S1)
     implicit none

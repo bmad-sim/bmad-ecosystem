@@ -1891,17 +1891,17 @@ call kill(e)
     INTEGER, INTENT(IN) :: POS
     TYPE(PANCAKE),  INTENT(INOUT) :: EL
     real(dp) , INTENT(INOUT) ::B(3)
+    real(dp) BE(nbe)
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
 
-    B(1)=X(1);
-    B(2)=X(3);
-    B(3)=0.0_dp;
+    CALL trackg(EL%B(POS),BE)
 
-    CALL trackg(EL%B(POS),B)
-
-    b(1)=EL%SCALE*b(1)
-    b(2)=EL%SCALE*b(2)
+    b(1)=EL%SCALE*be(1)
+    b(2)=EL%SCALE*be(2)
     !    b(3)=EL%SCALE*el%p%charge*el%p%dir*b(3)
-    b(3)=EL%SCALE*b(3)
+    b(3)=EL%SCALE*be(3)
 
   END subroutine B_PANCAkEr
 
@@ -1911,18 +1911,19 @@ call kill(e)
     INTEGER, INTENT(IN) :: POS
     TYPE(PANCAKEP),  INTENT(INOUT) :: EL
     type(real_8), INTENT(INOUT) ::B(3)
+    type(real_8) be(nbe)
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+    call alloc(be)
 
-    B(1)=X(1);
-    B(2)=X(3);
-    B(3)=0.0_dp;
+    CALL trackg(EL%B(POS),Be)
 
-    CALL trackg(EL%B(POS),B)
-
-    b(1)=EL%SCALE*b(1)
-    b(2)=EL%SCALE*b(2)
+    b(1)=EL%SCALE*be(1)
+    b(2)=EL%SCALE*be(2)
     !    b(3)=EL%SCALE*el%p%charge*el%p%dir*b(3)
-    b(3)=EL%SCALE*b(3)
-
+    b(3)=EL%SCALE*be(3)
+    call kill(be)
   END subroutine B_PANCAkEp
 
   subroutine B_PARA_PERPr(k,EL,TEAPOT_LIKE,X,B,BPA,BPE,XP,XPA,e,EF,EFB,EFD,POS)
@@ -4874,7 +4875,7 @@ call init_all(state,1,0)
 
 call alloc(xs);call alloc(m,mr)
 
- 
+
 ! radiation
  
 xs0=fix0
@@ -5040,7 +5041,231 @@ call kill(xs);call kill(m)
  
 end subroutine fill_tree_element
 
+subroutine fill_tree_element_line(f1,f2,f,no,fix0,factor,nocav)   ! fix0 is the initial condition for the maps
+implicit none
+type(fibre), target :: f1,f2,f
+type(layout), pointer :: r
+TYPE(INTEGRATION_NODE),POINTER:: t1c,t2c
+TYPE (NODE_LAYOUT), POINTER :: t
+TYPE (tree_element), POINTER :: arbre(:)
+type(internal_state) state
+real(dp) fixr(6),fixs(6),fix(6),fix0(6),mat(6,6),e_ij(6,6),xn
+type(probe) xs0
+type(probe_8) xs
+type(c_damap) m,mr
+logical :: fact,noca
+logical,optional :: factor,nocav
+integer no,i
+type(fibre), pointer :: p
 
+fact=.false. 
+noca=.false. 
+
+if(present(factor)) fact=factor
+if(present(factor)) noca=nocav
+
+if(.not.associated(f1%parent_layout)) then
+ write(6,*) " parent layout not associated "
+ stop
+else
+ r=>f1%parent_layout
+endif
+
+if(.not.associated(f%parent_layout%t)) then
+ write(6,*) " parent node layout not associated "
+ stop
+else
+ t=>f1%parent_layout%t
+ t1c=>f1%t1 !%next
+ t2c=>f2%t1
+endif
+
+! Classical radiation with stochastic envelope
+
+state=radiation0+envelope0+time0
+state%NOCAVITY=noca
+
+call init_all(state,1,0)
+
+call alloc(xs);call alloc(m,mr)
+
+
+! radiation
+ 
+xs0=fix0
+mr=1
+xs=xs0+mr
+if(associated(t1c,t2c)) then
+ call propagate(xs,state,node1=t1c)
+else
+ call propagate(xs,state,node1=t1c,node2=t2c)
+endif
+
+! For David
+!!  mr: linear map with radiation would be read here instead of being computed, 
+!! and must be stored in fixr
+
+fixr=xs%x    ! <---
+mr=xs   ! <---
+
+do i=1,6
+ mr%v(i)=mr%v(i)-(mr%v(i).sub.0)   
+enddo
+
+! For David
+!!  The stochastic kicks are stored at e_ij
+
+e_ij=xs%e_ij         ! <---
+! no radiation
+
+
+state=time0
+state%NOCAVITY=noca
+xs0=fix0
+m=1
+
+if(associated(t1c,t2c)) then
+ call propagate(xs,state,node1=t1c)
+else
+ call propagate(xs,state,node1=t1c,node2=t2c)
+endif
+
+fix=xs%x
+! For David
+!!  The same linear map is computed WITHOUT radiation : result put into m, the constant part is removed
+!!  
+m=xs   ! <---   
+do i=1,6
+ m%v(i)=m%v(i)-(m%v(i).sub.0)
+enddo
+
+m=m**(-1)*mr
+
+
+
+mat=m
+
+
+call kill(xs);call kill(m)
+
+state=spin0+time0
+state%NOCAVITY=noca
+call init_all(state,no,0)
+call alloc(xs);call alloc(m,mr)
+ 
+
+
+xs0=fix0
+m=1
+xs=xs0+m
+if(associated(t1c,t2c)) then
+ call propagate(xs,state,node1=t1c)
+else
+ call propagate(xs,state,node1=t1c,node2=t2c)
+endif
+ 
+
+! For David
+!!  The full nonlinear map m is computed and the final orbit
+!!  
+fix=xs%x  ! <---   
+m=xs  ! <---   
+
+m%e_ij=e_ij
+do i=1,6
+ m%v(i)=m%v(i)-(m%v(i).sub.0)
+enddo 
+
+
+
+ 
+if(f%dir==1) then
+ if(.not.associated(f%mag%forward)) then 
+  allocate(f%mag%forward(3))
+ ! allocate(f%mag%usef)
+ else
+  call KILL(f%mag%forward)
+ endif
+
+call SET_TREE_G_complex(f%mag%forward,m,fact)
+ f%mag%do1mapf=.false.
+ f%mag%usef=.true.
+ arbre=>f%mag%forward
+else
+ if(.not.associated(f%mag%backward)) then 
+  allocate(f%mag%backward(3))
+ ! allocate(f%mag%useb)
+ else
+  call KILL(f%mag%backward)
+ endif
+ call SET_TREE_G_complex(f%mag%backward,m,fact)
+ f%mag%do1mapb=.false.
+ f%mag%useb=.true.
+ arbre=>f%mag%backward
+endif
+
+arbre(1)%rad=mat
+arbre(1)%fix0(1:6)=fix0
+arbre(1)%fixr(1:6)=fixr
+arbre(1)%fix(1:6)=fix
+
+ arbre(1)%ds=0.0_dp
+ p=>f1
+ do while(associated(p,f2))
+  arbre(1)%ds=p%mag%p%ld +arbre(1)%ds
+  p=>p%next
+ enddo
+
+arbre(1)%beta0=f1%beta0
+
+if(f%dir==1) then
+ if(.not.associated(f%magp%forward)) then 
+  allocate(f%magp%forward(3))
+!  allocate(f%magp%usef)
+ else
+  call KILL(f%magp%forward)
+ endif
+ !call SET_TREE_G_complex(f%magp%forward,m)
+do i=1,3
+ call alloc_tree(f%magp%forward(i),f%mag%forward(i)%n,f%mag%forward(i)%np)
+ call copy_tree(f%mag%forward(i),f%magp%forward(i))
+enddo
+ f%magp%do1mapf=.false.
+ f%magp%usef=.true.
+ arbre=>f%magp%forward
+else
+
+ if(.not.associated(f%magp%backward)) then 
+  allocate(f%magp%backward(3))
+ ! allocate(f%magp%useb)
+ else
+  call KILL(f%magp%backward)
+ endif
+ !call SET_TREE_G_complex(f%magp%backward,m)
+do i=1,3
+ call alloc_tree(f%magp%backward(i),f%mag%backward(i)%n,f%mag%backward(i)%np)
+ call copy_tree(f%mag%backward(i),f%magp%backward(i))
+enddo
+ f%magp%do1mapb=.false.
+ f%magp%useb=.true.
+ arbre=>f%magp%backward
+endif
+
+arbre(1)%rad=mat
+arbre(1)%fix0(1:6)=fix0
+arbre(1)%fixr(1:6)=fixr
+arbre(1)%fix(1:6)=fix
+ arbre(1)%ds=0.0_dp
+ p=>f1
+ do while(associated(p,f2))
+  arbre(1)%ds=p%mag%p%ld +arbre(1)%ds
+  p=>p%next
+ enddo
+arbre(1)%beta0=f1%beta0
+ 
+call kill(xs);call kill(m)
+ 
+end subroutine fill_tree_element_line
 
 !!! extract moments using initial moment and the probe_8 containing fluctuations and map
   subroutine extract_moments(p8,s_ij_in,s_ij_out)

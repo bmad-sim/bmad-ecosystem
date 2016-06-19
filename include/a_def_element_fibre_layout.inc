@@ -168,8 +168,8 @@ TYPE ELEMENT
    logical(lp), POINTER :: recut,even => null()
    LOGICAL(LP), POINTER :: PLOT => null()
    LOGICAL(LP), POINTER :: electric => null()
-   character(204), pointer :: filef
-   character(204), pointer ::  fileb
+   character(120), pointer :: filef
+   character(120), pointer ::  fileb
    ! common stuff to all element
    type(MAGNET_CHART), pointer :: P => null()
    CHARACTER(nlp), POINTER ::  NAME  => null()   ! Identification

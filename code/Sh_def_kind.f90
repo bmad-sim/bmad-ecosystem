@@ -89,7 +89,7 @@ MODULE S_DEF_KIND
   PRIVATE POINTERS_pancakeR,POINTERS_pancakep
   PRIVATE ZEROr_PANCAKE,ZEROP_PANCAKE
   PRIVATE rk4_pancaker,rk4_pancakeP
-  PRIVATE FEVAL_pancaker,FEVAL_pancakeP
+  PRIVATE FEVAL_pancaker,FEVAL_pancakeP,rks_pancaker,rks_pancakep,rks_pancake
   PRIVATE INTPANCAKER,INTPANCAKEP,conv_to_xpr,conv_to_xpp,conv_to_pxr
   private conv_to_pxp
   private ADJUSTR_TIME_CAV4,ADJUSTp_TIME_CAV4,INTER_CAV4,INTEp_CAV4
@@ -106,7 +106,7 @@ MODULE S_DEF_KIND
   INTEGER, PRIVATE :: TOTALPATH_FLAG
   !  private DRIFT_pancaker,DRIFT_pancakep,KICKPATH_pancaker,KICKPATH_pancakep
   ! using x and x'
-  private fxr,fxp,f_m
+  private fxr,fxp,f_m,fxr_canonical,fxp_canonical,f_mc,step_symp_p_PANCAkEr,step_symp_p_PANCAkEp,step_symp_p_PANCAkE
   PRIVATE feval       !,rk4_m
   !  FOR CAV_TRAV
   PRIVATE A_TRANSR,A_TRANSP
@@ -154,6 +154,9 @@ MODULE S_DEF_KIND
   private  ZEROr_sol5,ZEROp_sol5
   logical(lp) :: tpsa_quad_sad=my_false
  logical :: piotr_freq=.false.
+
+!logical :: SYMP_X=.TRUE.
+
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
 !     MODULE PROCEDURE INTEP_CAV4
@@ -740,10 +743,25 @@ MODULE S_DEF_KIND
      MODULE PROCEDURE wedgeR
      MODULE PROCEDURE wedgeP       ! USE IN EXACT SECTOR BEND (INTEGRATION)
   END INTERFACE
+
   INTERFACE F_M
      MODULE PROCEDURE FXR
      MODULE PROCEDURE FXP
   END INTERFACE
+
+  INTERFACE f_mc
+     MODULE PROCEDURE fxr_canonical
+     MODULE PROCEDURE fxp_canonical
+  END INTERFACE
+
+  INTERFACE step_symp_p_PANCAkE
+     MODULE PROCEDURE step_symp_p_PANCAkEr
+     MODULE PROCEDURE step_symp_p_PANCAkEp
+  END INTERFACE
+
+!  INTERFACE step_symp_x_PANCAkE
+!     MODULE PROCEDURE step_symp_x_PANCAkEr
+!  END INTERFACE
 
   INTERFACE feval
      MODULE PROCEDURE FEVAL_pancaker
@@ -763,6 +781,11 @@ MODULE S_DEF_KIND
   INTERFACE RK4_M
      MODULE PROCEDURE rk4_pancaker
      MODULE PROCEDURE rk4_pancakeP
+  END INTERFACE
+
+  INTERFACE rks_pancake
+     MODULE PROCEDURE rks_pancaker
+     MODULE PROCEDURE rks_pancakep
   END INTERFACE
 
 !!!!!!!  HELICAL
@@ -14715,6 +14738,97 @@ SUBROUTINE ZEROr_teapot(EL,I)
   END SUBROUTINE KILLTEAPOT
 
 !!!!!!!!!!!!!! Pancake starts here !!!!!!!!!!!!!!!
+ subroutine fxr_canonical(f,x,k,b,p,hc,g,h)
+    implicit none
+
+    real(dp)  d(3),BETA0,hc 
+    real(dp) ,intent(in) :: b(nbe)
+    type(MAGNET_CHART), pointer:: p
+    real(dp) ,intent(inout) :: x(6)
+    real(dp), intent(out):: f(6)
+    real(dp),optional, intent(out):: g(2,2),h(2,2)   
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    if(k%time) then
+       beta0=p%beta0; 
+    else
+       beta0=1.0_dp; 
+    endif
+
+    d(1)=1.0_dp+hc*x(1)
+    d(2)=x(2)-b(4)
+    d(3)=root(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-x(4)**2)
+   
+
+    f(1)=d(1)*d(2)/d(3)
+    f(3)=d(1)*x(4)/d(3)
+
+    f(2)=hc*d(3)+d(1)*d(2)*b(7)/d(3)+b(5)
+    f(4)=        d(1)*d(2)*b(8)/d(3)+b(6)
+    f(5)=0.0_dp
+    f(6)=d(1)*(x(5)+1.0_dp/beta0)/d(3)
+    if(present(g)) then
+     g(1,1)= (-hc*d(2)/d(3)+d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3)) 
+     g(1,2)= (-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
+     g(2,1)= (d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     g(2,2)=  d(1)*b(8)*(x(4)*d(2)/d(3)**3) 
+    endif
+    if(present(h)) then
+     h(1,1)=  (hc*d(2)/d(3)-d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3)) 
+     h(2,1)=  -(-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
+     h(1,2)=  -(d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     h(2,2)=  -d(1)*b(8)*(x(4)*d(2)/d(3)**3) 
+    endif
+  end subroutine fxr_canonical
+
+ subroutine fxp_canonical(f,x,k,b,p,hc,g,h)
+    implicit none
+
+    type(real_8)  d(3)
+    type(real_8) ,intent(inout) :: x(6)
+    type(real_8) ,intent(in) :: b(nbe)
+    real(dp)   BETA0,hc 
+    type(real_8), intent(out):: f(6)
+    type(real_8),optional, intent(out):: g(2,2) ,h(2,2)    
+    type(MAGNET_CHART), pointer:: p
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    call alloc(d)
+
+    if(k%time) then
+       beta0=p%beta0; 
+    else
+       beta0=1.0_dp; 
+    endif
+
+    d(1)=1.0_dp+hc*x(1)
+    d(2)=x(2)-b(4)
+    d(3)=sqrt(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-x(4)**2)
+   
+
+    f(1)=d(1)*d(2)/d(3)
+    f(3)=d(1)*x(4)/d(3)
+
+    f(2)=hc*d(3)+d(1)*d(2)*b(7)/d(3)+b(5)
+    f(4)=        d(1)*d(2)*b(8)/d(3)+b(6)
+    f(5)=0.0_dp
+    f(6)=d(1)*(x(5)+1.0_dp/beta0)/d(3)
+
+    if(present(g)) then
+     g(1,1)= (-hc*d(2)/d(3)+d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3)) 
+     g(1,2)= (-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
+     g(2,1)= (d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     g(2,2)= d(1)*b(8)*(x(4)*d(2)/d(3)**3) 
+    endif
+    if(present(h)) then
+     h(1,1)=  -(-hc*d(2)/d(3)+d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     h(2,1)=  -(-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
+     h(1,2)=  -(d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     h(2,2)=  -d(1)*b(8)*(x(4)*d(2)/d(3)**3) 
+    endif
+    call kill(d)
+
+  end subroutine fxp_canonical
 
   subroutine fxr(f,x,k,b,p,hcurv)
     implicit none
@@ -14752,20 +14866,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
     d(2)=gamma0I/beta0/d(2)
     f(6)=root((1+d(2)**2))*d(1)  ! (time)-prime = dt/dz
 
-    !    if(p%radiation) then
-    !       c(1)=x(2)/d(1)
-    !       c(2)=x(4)/d(1)
-    !       c(3)=one/d(1)
-    !       B2=zero
-    !       B2=(B(2)*c(3)-B(3)*c(2))**2+B2
-    !       B2=(B(1)*c(2)-B(2)*c(1))**2+B2
-    !       B2=(B(3)*c(1)-B(1)*c(3))**2+B2
-    !       f(5)=-CRADF(P)*(one+X(5))**2*B2*f(6)
-    !    else
     f(5)=0.0_dp
-    !    endif
-
-
+ 
   end subroutine fxr
 
   subroutine fxp(f,x,k,b,p,hcurv)
@@ -14833,7 +14935,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
           !          deallocate(EL%Ax)
           !          deallocate(EL%Ay)
 
-          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc)
+          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
           !          deallocate(EL%D_IN)
           !          deallocate(EL%D_OUT)
           !          deallocate(EL%ANG_IN)
@@ -14843,7 +14945,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
     elseif(i==0)       then          ! nullifies
 
        NULLIFY(EL%B)
-       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc)
+       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
        !       NULLIFY(EL%Ax)
        !       NULLIFY(EL%Ay)
        !       NULLIFY(EL%D_IN)
@@ -14869,7 +14971,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
           !          deallocate(EL%Ax)
           !          deallocate(EL%Ay)
           deallocate(EL%B)
-          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc)
+          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
           !          deallocate(EL%D_IN)
           !          deallocate(EL%D_OUT)
           !          deallocate(EL%ANG_IN)
@@ -14881,7 +14983,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        NULLIFY(EL%B)
        !       NULLIFY(EL%Ax)
        !       NULLIFY(EL%Ay)
-       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc)
+       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
        !       NULLIFY(EL%D_IN)
        !       NULLIFY(EL%D_OUT)
        !       NULLIFY(EL%ANG_IN)
@@ -14899,7 +15001,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
     ALLOCATE(EL%B(2*el%p%NST+1))
     !    ALLOCATE(EL%Ax(el%p%NST))
     !    ALLOCATE(EL%Ay(el%p%NST))
-    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc ,el%xc)
+    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc ,el%xc,el%vc,el%xprime)
     !    ALLOCATE(  EL%D_IN(3) )
     !    ALLOCATE(  EL%D_OUT(3) )
     !    ALLOCATE(  EL%ANG_IN(3) )
@@ -14921,7 +15023,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
 
     EL%SCALE=1.0_dp
-    el%angc=0.0_dp; el%dc=0.0_dp; el%hc=0.0_dp; el%xc=0.0_dp
+    el%angc=0.0_dp; el%dc=0.0_dp; el%hc=0.0_dp; el%xc=0.0_dp;el%vc=0.0_dp;
+    el%xprime=.true.
     !    EL%D_IN=ZERO
     !    EL%D_OUT=ZERO
     !    EL%ANG_IN=ZERO
@@ -14939,8 +15042,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
     ALLOCATE(EL%B(2*el%p%NST+1))
 
-    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc,el%xc )
-
+    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc,el%xc,el%vc,el%xprime )
+    call alloc(EL%SCALE)
     DO I=1,2*el%p%NST+1
        CALL ALLOC_TREE(EL%B(I),T(I)%N,3)
        EL%B(I)%CC=T(I)%CC
@@ -14957,7 +15060,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
     el%dc=0.0_dp; 
      el%hc=0.0_dp; 
     el%xc=0.0_dp;
-
+    el%vc=0.0_dp
+    el%xprime=.true.
   END SUBROUTINE POINTERS_PANCAKEP
 
   SUBROUTINE copyPANCAKE_el_elp(EL,ELP)
@@ -14972,7 +15076,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
     ELP%dc  = EL%dc
     ELP%xc  = EL%xc
     ELP%hc  = EL%hc
- 
+    elp%vc=el%vc
+    elp%xprime=el%xprime
   END SUBROUTINE copyPANCAKE_el_elp
 
   SUBROUTINE copyPANCAKE_el_el(EL,ELP)
@@ -14987,6 +15092,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
     ELP%dc  = EL%dc
      ELP%xc  = EL%xc
     ELP%hc  = EL%hc
+    elp%vc=el%vc
+    elp%xprime=el%xprime
   END SUBROUTINE copyPANCAKE_el_el
 
   SUBROUTINE copyPANCAKE_elP_el(EL,ELP)
@@ -15001,6 +15108,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
     ELP%dc  = EL%dc
      ELP%xc  = EL%xc
     ELP%hc  = EL%hc
+    elp%vc=el%vc
+    elp%xprime=el%xprime
   END SUBROUTINE copyPANCAKE_elP_el
 
   SUBROUTINE reset_pa(EL)
@@ -15012,29 +15121,412 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
   END SUBROUTINE reset_pa
 
+!  subroutine get_xp_matrix(ds,g,POS,X,k,EL)
+!    IMPLICIT NONE
+!    real(dp), INTENT(INout) :: X(6)
+!    INTEGER, INTENT(INOUT) :: POS
+!    real(dp)  F(6)
+!    TYPE(PANCAKE),  INTENT(INOUT) :: EL
+!    real(dp) be(nbe),g(6,6),f0(6),epst,xt(6),ds
+!    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!    integer i,j,ier
+!
+!     epst=1.d-8
+!
+!    Be(1)=Xt(1);
+!    Be(2)=Xt(3);
+!    Be(3)=0.0_dp;
+!    CALL trackg(EL%B(POS),Be)
+!       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+!       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+!       be(3)=EL%SCALE*el%p%charge*be(3)
+!       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+!       be(5)=EL%SCALE*el%p%charge*be(5)
+!       be(6)=EL%SCALE*el%p%charge*be(6)
+!       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+!       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+!       CALL f_Mc(f0,xt,k,be,EL%p,el%hc)
+!
+!    do i=1,6
+!    xt=x
+!    xt(i)=xt(i)+epst
+!
+!    Be(1)=Xt(1);
+!    Be(2)=Xt(3);
+!    Be(3)=0.0_dp;
+!    CALL trackg(EL%B(POS),Be)
+!       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+!       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+!       be(3)=EL%SCALE*el%p%charge*be(3)
+!       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+!       be(5)=EL%SCALE*el%p%charge*be(5)
+!       be(6)=EL%SCALE*el%p%charge*be(6)
+!       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+!       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+
+
+
+!       CALL f_Mc(f,xt,k,be,EL%p,el%hc)
+!    do j=1,6
+!     g(j,i)=ds*(f(j)-f0(j))/epst/2.0_dp
+!    enddo
+!  enddo
+!  do i=1,6
+!   g(i,i)=g(i,i)-1.0_dp
+!  enddo
+!  call matinv(g,g,6,6,ier)
+!
+! if(ier/=0) stop 999
+!
+!end subroutine get_xp_matrix
+!
+!  subroutine step_symp_xp_PANCAkEr(ds,POS,X,k,EL)
+!    IMPLICIT NONE
+!    real(dp), INTENT(INout) :: X(6)
+!    INTEGER, INTENT(INOUT) :: POS
+!    real(dp)  F(6)
+!    TYPE(PANCAKE),  INTENT(INOUT) :: EL
+!    real(dp) be(nbe),g(6,6),ds,xt(6),e(6),v(6),normb,norma,epst,f0(6),xh(6),beh(nbe)
+!    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!    integer i,n,ns,j
+!     n=1000
+!     ns=50
+!       normb=1.d38
+!       
+!       do i=1,n
+!
+!   xh=0.5_dp*(xt+x)
+
+!    be=0.0_dp
+!    Be(1)=xh(1);
+!    Be(2)=Xh(3);
+!  !  Be(3)=0.0_dp;
+!    CALL trackg(EL%B(POS),Be)
+!       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+!       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+!       be(3)=EL%SCALE*el%p%charge*be(3)
+!       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+!       be(5)=EL%SCALE*el%p%charge*be(5)
+!       be(6)=EL%SCALE*el%p%charge*be(6)
+!       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+!       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+!    beh=0.0_dp
+!    Beh(1)=xh(1);
+!    Beh(2)=Xh(3);
+!    CALL trackg(EL%B(POS+1),Beh)
+!       beh(1)=EL%SCALE*el%p%charge*el%p%dir*beh(1)
+!       beh(2)=EL%SCALE*el%p%charge*el%p%dir*beh(2)
+!       beh(3)=EL%SCALE*el%p%charge*beh(3)
+!       beh(4)=EL%SCALE*el%p%charge*el%p%dir*beh(4)
+!       beh(5)=EL%SCALE*el%p%charge*beh(5)
+!       beh(6)=EL%SCALE*el%p%charge*beh(6)
+!       beh(7)=EL%SCALE*el%p%charge*el%p%dir*beh(7)
+!       beh(8)=EL%SCALE*el%p%charge*el%p%dir*beh(8)
+!beh=0.5_dp*(be+beh)
+!
+!       CALL f_Mc(f,xh,k,beh,EL%p,el%hc)
+! 
+!       v=xt(1:6)-x(1:6)-ds*f(1:6)
+!       call  get_xp_matrix(ds,g,POS,X,k,EL)
+
+!       e=matmul(g,v)
+! 
+!       xt(1:6)=xt(1:6)+e(1:6)
+!
+!       norma=abs(e(1)+e(2)+e(3)+e(4)+e(5)+e(6))
+!       if(i>ns) then 
+!        if(norma>=normb) exit
+!        normb=norma
+!       endif
+!     
+!!        write(6,*) i,norma
+!    
+!        enddo
+!        if(i>n-10) then
+!         write(6,*) " convergence not reached in step_symp_x_PANCAkEr "
+!        endif 
+!  !      WRITE(6,*) X(1),XT(1)-DS*F(1)
+!   !     WRITE(6,*) X(3),XT(3)-DS*F(3)
+
+ !       x(1:6)=xt(1:6) 
+
+!  END subroutine step_symp_xp_PANCAkEr
+
+!  subroutine step_symp_x_PANCAkEr(ds,POS,X,k,EL)
+!    IMPLICIT NONE
+!    real(dp), INTENT(INout) :: X(6)
+!    INTEGER, INTENT(INOUT) :: POS
+!    real(dp)  F(6)
+!    TYPE(PANCAKE),  INTENT(INOUT) :: EL
+!    real(dp) be(nbe),g(2,2),ds,xt(6),e(2),det,v(2),normb,norma
+!    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!    integer i,n,ns
+!     n=1000
+!     ns=50
+!
+!    Be(1)=X(1);
+!    Be(2)=X(3);
+!    Be(3)=0.0_dp;
+!    CALL trackg(EL%B(POS),Be)
+!       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+!       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+!       be(3)=EL%SCALE*el%p%charge*be(3)
+!       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+!       be(5)=EL%SCALE*el%p%charge*be(5)
+!       be(6)=EL%SCALE*el%p%charge*be(6)
+!       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+!       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+!       xt=x
+!
+!       CALL f_Mc(f,xt,k,be,EL%p,el%hc)
+!    
+!        xt(1)=xt(1)+ds*f(1)
+!        xt(3)=xt(3)+ds*f(3)
+
+!       normb=1.d38
+!       
+!       do i=1,n
+!    be=0.0_dp
+!    Be(1)=Xt(1);
+!    Be(2)=Xt(3);
+!  !  Be(3)=0.0_dp;
+!    CALL trackg(EL%B(POS),Be)
+!       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+!       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+!       be(3)=EL%SCALE*el%p%charge*be(3)
+!       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+!       be(5)=EL%SCALE*el%p%charge*be(5)
+!       be(6)=EL%SCALE*el%p%charge*be(6)
+!       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+!       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+!
+!       CALL f_Mc(f,xt,k,be,EL%p,el%hc,h=g)
+!       g(1,1)=ds*g(1,1)-1.0_dp
+!       g(2,2)=ds*g(2,2)-1.0_dp
+!
+!       det=g(1,1)*g(2,2)-g(1,2)*g(2,1)
+!
+!       v(1)=(xt(1)-x(1)-ds*f(1)) 
+!       v(2)=(xt(3)-x(3)-ds*f(3)) 
+!
+!       e(1)= (g(2,2)*v(1)-g(1,2)*v(2))/det
+!       e(2)=(-g(2,1)*v(1)+g(1,1)*v(2))/det
+!  
+!       xt(1)=xt(1)+e(1)
+!       xt(3)=xt(3)+e(2)
+!       norma=abs(e(1)+e(2))
+!       if(i>ns) then 
+!        if(norma>=normb) exit
+!        normb=norma
+!       endif
+     
+!        write(6,*) i,norma
+    
+!        enddo
+!        if(i>n-10) then
+!         write(6,*) " convergence not reached in step_symp_x_PANCAkEr "
+!        endif 
+!  !      WRITE(6,*) X(1),XT(1)-DS*F(1)
+!   !     WRITE(6,*) X(3),XT(3)-DS*F(3)
+
+!        x(1)=xt(1) 
+!        x(2)=xt(2)+ds*f(2)
+!        x(3)=xt(3) 
+!        x(4)=xt(4)+ds*f(4)
+!        x(5)=xt(5)+ds*f(5)
+!        x(6)=xt(6)+ds*f(6)   ! because no dependence on 6
+ 
+!  END subroutine step_symp_x_PANCAkEr
+
+
+
+  subroutine step_symp_p_PANCAkEr(ds,POS,X,k,EL)
+    IMPLICIT NONE
+    real(dp), INTENT(INout) :: X(6)
+    INTEGER, INTENT(INOUT) :: POS
+    real(dp)  F(6)
+    TYPE(PANCAKE),  INTENT(INOUT) :: EL
+    real(dp) be(nbe),g(2,2),ds,xt(6),e(2),det,v(2),normb,norma
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer i,n,ns
+     n=1000
+     ns=5
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+    CALL trackg(EL%B(POS),Be)
+       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       be(3)=EL%SCALE*el%p%charge*be(3)
+       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+       be(5)=EL%SCALE*el%p%charge*be(5)
+       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+
+
+
+       xt=x
+
+       normb=1.d38
+       
+       do i=1,n
+
+       CALL f_Mc(f,xt,k,be,EL%p,el%hc,g=G)
+       g(1,1)=ds*g(1,1)-1.0_dp
+       g(2,2)=ds*g(2,2)-1.0_dp
+
+       det=g(1,1)*g(2,2)-g(1,2)*g(2,1)
+
+       v(1)=(xt(2)-x(2)-ds*f(2)) 
+       v(2)=(xt(4)-x(4)-ds*f(4)) 
+
+       e(1)= (g(2,2)*v(1)-g(1,2)*v(2))/det
+       e(2)=(-g(2,1)*v(1)+g(1,1)*v(2))/det
+  
+       xt(2)=xt(2)+e(1)
+       xt(4)=xt(4)+e(2)
+       norma=abs(e(1)+e(2))
+
+       if(i>ns) then 
+        if(norma>=normb) exit
+        normb=norma
+       endif
+     
+!        write(6,*) i,norma
+    
+        enddo
+        if(i>n-10) then
+        check_stable = .false.
+        ! write(6,*) " convergence not reached in step_symp_p_PANCAkEr "
+        endif
+        x(1)=xt(1)+ds*f(1)
+        x(2)=xt(2)
+        x(3)=xt(3)+ds*f(3)
+        x(4)=xt(4)
+        x(5)=xt(5)+ds*f(5)
+        x(6)=xt(6)+ds*f(6)   ! because no dependence on 6
+ 
+  END subroutine step_symp_p_PANCAkEr
+
+ subroutine step_symp_p_PANCAkEp(ds,POS,X,k,ELP)
+    IMPLICIT NONE
+    type(real_8), INTENT(INout) :: X(6),ds
+    INTEGER, INTENT(INOUT) :: POS
+    TYPE(PANCAKEP),  INTENT(INOUT) :: ELP
+    type(real_8) be(nbe),g(2,2),xt(6),e(2),det,v(2),F(6)
+    real(dp) normb,norma,x0(6)
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer i,n,ns,j
+     n=1000
+     ns=5
+    call alloc(be);call alloc(xt); call alloc(e); call alloc(v);call alloc(det);call alloc(f);
+    do i=1,2
+    do j=1,2
+     call alloc(g(i,j))
+    enddo
+    enddo
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+    CALL trackg(ELP%B(POS),Be)
+       be(1)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(1)
+       be(2)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(2)
+       be(3)=ELP%SCALE*ELP%p%charge*be(3)
+       be(4)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(4)
+       be(5)=ELP%SCALE*ELP%p%charge*be(5)
+       be(6)=ELP%SCALE*ELP%p%charge*be(6)
+       be(7)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(7)
+       be(8)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(8)
+    
+
+        xt=x
+
+
+       normb=1.d38
+       
+       do i=1,n
+
+       CALL f_Mc(f,xt,k,be,ELP%p,ELP%hc,g=G)
+       g(1,1)=ds*g(1,1)-1.0_dp
+       g(2,2)=ds*g(2,2)-1.0_dp
+
+       det=g(1,1)*g(2,2)-g(1,2)*g(2,1)
+
+       v(1)=(xt(2)-x(2)-ds*f(2))
+       v(2)=(xt(4)-x(4)-ds*f(4))
+
+       e(1)= (g(2,2)*v(1)-g(1,2)*v(2))/det
+       e(2)=(-g(2,1)*v(1)+g(1,1)*v(2))/det
+  
+       xt(2)=xt(2)+e(1)
+       xt(4)=xt(4)+e(2)  
+        e(1)=e(1)+e(2)
+       norma=full_abs(e(1))
+
+       if(i>ns) then 
+        if(norma>=normb) exit
+        normb=norma
+       endif
+     
+ !       write(6,*) i,norma 
+    
+        enddo
+  
+        if(i>n-10) then
+        check_stable = .false.
+         write(6,*) " convergence not reached in step_symp_p_PANCAkEp "
+        endif
+
+        x(1)=xt(1)+ds*f(1)
+        x(2)=xt(2)
+        x(3)=xt(3)+ds*f(3)
+        x(4)=xt(4)
+        x(5)=xt(5)+ds*f(5)
+        x(6)=xt(6)+ds*f(6)   ! because no dependence on 6
+
+    call kill(be);call kill(xt); call kill(e); call kill(v);call kill(det);call kill(f);
+    do i=1,2
+    do j=1,2
+     call kill(g(i,j))
+    enddo
+    enddo
+
+ 
+  END subroutine step_symp_p_PANCAkEp
+
+
   subroutine feval_PANCAkEr(POS,X,k,f,EL)
     IMPLICIT NONE
     real(dp), INTENT(INout) :: X(6)
     INTEGER, INTENT(INOUT) :: POS
     real(dp), INTENT(OUT) :: F(6)
     TYPE(PANCAKE),  INTENT(INOUT) :: EL
-    real(dp) B(3)
+    real(dp) B(3),be(nbe)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    B(1)=X(1);
-    B(2)=X(3);
-    B(3)=0.0_dp;
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
 
-    !       CALL track3(EL%B(POS),B)
-    CALL trackg(EL%B(POS),B)
+    CALL trackg(EL%B(POS),Be)
+    if(el%xprime) then
+       b(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       b(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       b(3)=EL%SCALE*el%p%charge*be(3)
 
-    b(1)=EL%SCALE*el%p%charge*el%p%dir*b(1)
-    b(2)=EL%SCALE*el%p%charge*el%p%dir*b(2)
-    !    b(3)=EL%SCALE*el%p%charge*el%p%dir*b(3)
-    b(3)=EL%SCALE*el%p%charge*b(3)
-
-    CALL f_M(f,x,k,b,EL%p,el%hc)
-
+       CALL f_M(f,x,k,b,EL%p,el%hc)
+    else
+       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       be(3)=EL%SCALE*el%p%charge*be(3)
+       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+       be(5)=EL%SCALE*el%p%charge*be(5)
+       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       CALL f_Mc(f,x,k,be,EL%p,el%hc)
+    endif
   END subroutine feval_PANCAkEr
 
   subroutine feval_PANCAkEP(POS,X,k,f,EL)
@@ -15043,27 +15535,102 @@ SUBROUTINE ZEROr_teapot(EL,I)
     INTEGER, INTENT(INOUT) :: POS
     TYPE(REAL_8), INTENT(OUT) :: F(6)
     TYPE(PANCAKEP),  INTENT(INOUT) :: EL
-    TYPE(REAL_8) B(3)
+    TYPE(REAL_8) B(3),be(nbe)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    CALL ALLOC(B)
-    B(1)=X(1);
-    B(2)=X(3);
-    B(3)=0.0_dp;
+    CALL ALLOC(B); call alloc(be)
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
 
     !       CALL track3(EL%B(POS),B)
-    CALL trackg(EL%B(POS),B)
+    CALL trackg(EL%B(POS),Be)
 
-    b(1)=EL%SCALE*el%p%charge*el%p%dir*b(1)
-    b(2)=EL%SCALE*el%p%charge*el%p%dir*b(2)
-    !    b(3)=EL%SCALE*el%p%charge*el%p%dir*b(3)
-    b(3)=EL%SCALE*el%p%charge*b(3)
+    if(el%xprime) then
+       b(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       b(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       b(3)=EL%SCALE*el%p%charge*be(3)
 
-    CALL f_M(f,x,k,b,EL%p,el%hc)
+       CALL f_M(f,x,k,b,EL%p,el%hc)
+    else
+       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       be(3)=EL%SCALE*el%p%charge*be(3)
+       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+       be(5)=EL%SCALE*el%p%charge*be(5)
+       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       CALL f_Mc(f,x,k,be,EL%p,el%hc)
+    endif
 
-    CALL KILL(B)
+    CALL KILL(B); call kill(be)
 
   END subroutine feval_PANCAkEP
 
+subroutine rks_pancaker(ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    real(dp), INTENT(INOUT)::  y(ne)
+    type (pancake) ,INTENT(INOUT)::  GR
+    real(dp), intent(inout) :: h
+    integer, intent(inout) :: ti
+    real(dp) HH
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+  
+    hh=h/2
+ 
+call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
+
+    tI=ti+GR%p%dir
+call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
+
+    tI=ti+GR%p%dir
+ 
+    if(k%TIME) then
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+  end  subroutine rks_pancaker
+
+
+subroutine rks_pancakep(ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    TYPE(REAL_8), INTENT(INOUT)::  y(ne)
+    TYPE(REAL_8)  hh
+    type (pancakeP) ,INTENT(INOUT)::  GR
+    TYPE(REAL_8), intent(inout) :: h
+    integer, intent(inout) :: ti
+    INTEGER TT
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    call alloc(hh)
+    
+  
+    hh=h/2
+ 
+call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
+
+    tI=ti+GR%p%dir
+call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
+
+    tI=ti+GR%p%dir
+
+    if(k%TIME) then
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+    call kill(hh)
+
+  end  subroutine rks_pancakep
   ! 4 order Runge
   subroutine rk4_pancaker(ti,h,GR,y,k)
     IMPLICIT none
@@ -15288,26 +15855,26 @@ SUBROUTINE ZEROr_teapot(EL,I)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     d=0
     if(el%hc==0.0_dp) then
-    d(1)=el%xc; d(3)=el%dc;
+    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc;
     IF(J==1) then
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-       call conv_to_xp(el,x,k)
+       if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
     else
-    d(1)=-el%xc ;d(3)=el%dc;
-       call conv_to_px(el,x,k)
+    d(1)=-el%xc ;d(3)=el%dc;d(2)=-el%vc;
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
     endif
     else
     IF(J==1) then
-    d(1)=el%xc; d(3)=el%dc;
+    d(1)=el%xc; d(3)=el%dc;d(2)=el%vc;
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-       call conv_to_xp(el,x,k)
+        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
     else
-    d(1)=-el%xc; d(3)=el%dc;
-       call conv_to_px(el,x,k)
+    d(1)=-el%xc; d(3)=el%dc;d(2)=-el%vc;
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
     endif
@@ -15323,30 +15890,31 @@ SUBROUTINE ZEROr_teapot(EL,I)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     d=0
     if(el%hc==0.0_dp) then
-    d(1)=el%xc;   d(3)=el%dc;
+    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc;
     IF(J==1) then
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-       call conv_to_xp(el,x,k)
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_xp(el,x,k)
     else
-    d(1)=-el%xc ;d(3)=el%dc;
-       call conv_to_px(el,x,k)
+    d(1)=-el%xc ;d(3)=el%dc;d(2)=-el%vc;
+        if(el%xprime.and.EL%p%method/=1) call conv_to_px(el,x,k)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
     endif
     else
     IF(J==1) then
-    d(1)=el%xc ; d(3)=el%dc;
+    d(1)=el%xc; d(3)=el%dc;d(2)=el%vc;
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-       call conv_to_xp(el,x,k)
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_xp(el,x,k)
     else
-    d(1)=-el%xc; d(3)=el%dc;
-       call conv_to_px(el,x,k)
+    d(1)=-el%xc; d(3)=el%dc;d(2)=-el%vc;
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
     endif
     endif
+
   END SUBROUTINE ADJUST_PANCAKEP
 
   SUBROUTINE INTER_PANCAKE(EL,X,k,POS)
@@ -15361,6 +15929,16 @@ SUBROUTINE ZEROr_teapot(EL,I)
     H=el%L/el%p%NST
 
     SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       IF(EL%P%DIR==1) THEN
+          IS=-1+2*POS    ! POS=3 BEGINNING
+          call rks_pancake(IS,h,el,X,k)
+       else
+          IS=2*el%p%NST+3-2*pos
+          call rks_pancake(IS,h,el,X,k)
+       ENDIF
+
+
     CASE(4)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
@@ -15395,6 +15973,16 @@ SUBROUTINE ZEROr_teapot(EL,I)
     H=el%L/el%p%NST
 
     SELECT CASE(EL%P%METHOD)
+
+    CASE(1)
+       IF(EL%P%DIR==1) THEN
+          IS=-1+2*POS    ! POS=3 BEGINNING
+          call rks_pancake(IS,h,el,X,k)
+       else
+          IS=2*el%p%NST+3-2*pos
+          call rks_pancake(IS,h,el,X,k)
+       ENDIF
+
     CASE(4)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
@@ -15432,6 +16020,25 @@ SUBROUTINE ZEROr_teapot(EL,I)
     IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     SELECT CASE(EL%P%METHOD)
+    CASE(1)
+
+       IF(EL%P%DIR==1) THEN
+       call ADJUST_PANCAKE(EL,X,k,1)
+          IS=1
+          DO I=1,el%p%NST
+             IF(.NOT.PRESENT(MID)) call rks_pancake(IS,h,el,X,k)
+             IF(PRESENT(MID)) CALL XMID(MID,X,I)
+          ENDDO
+       call ADJUST_PANCAKE(EL,X,k,2)
+       else
+          IS=2*el%p%NST+1
+          DO I=1,el%p%NST
+             IF(.NOT.PRESENT(MID)) call rks_pancake(IS,h,el,X,k)
+             IF(PRESENT(MID)) CALL XMID(MID,X,I)
+          ENDDO
+
+       ENDIF
+
     CASE(4)
 
 !       call conv_to_xp(EL,X,k)
@@ -15481,11 +16088,29 @@ SUBROUTINE ZEROr_teapot(EL,I)
     H=el%L/el%p%NST
 
 
-
-
     !    IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     SELECT CASE(EL%P%METHOD)
+
+    CASE(1)
+!       call conv_to_xp(EL,X,k)
+
+       IF(EL%P%DIR==1) THEN
+       call ADJUST_PANCAKE(EL,X,k,1)
+          IS=1
+          DO I=1,el%p%NST
+             call rks_pancake(IS,h,el,X,k)
+          ENDDO
+       call ADJUST_PANCAKE(EL,X,k,2)
+       else
+          IS=2*el%p%NST+1
+          DO I=1,el%p%NST
+             call rks_pancake(IS,h,el,X,k)
+          ENDDO
+
+       ENDIF
+
+
     CASE(4)
 !       call conv_to_xp(EL,X,k)
 
