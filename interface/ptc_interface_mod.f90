@@ -3559,7 +3559,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     dc = (ele%value(l$) - (np-1) * tf%dz) / 2
   endif
 
-call set_pancake_constants(angc, xc, dc, hc, lc, hd, ld, filec)
+call set_pancake_constants(angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .true., filec)
 
  ptc_key%magnet = 'INTERNALPANCAKE'
 
