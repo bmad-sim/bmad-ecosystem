@@ -166,7 +166,6 @@ type tao_design_lat_input
   character(40) :: use_line = ''
   logical :: one_turn_map_calc = .false.
   logical :: dynamic_aperture_calc = .false.
-  logical :: reverse_element_order = .false.  ! Reverse the order of elements in the lattice?
 end type
 
 type tao_key_input
