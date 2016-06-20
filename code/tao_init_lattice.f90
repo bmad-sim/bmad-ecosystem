@@ -16,7 +16,6 @@ subroutine tao_init_lattice (input_file_name)
 use tao_mod, except => tao_init_lattice
 use tao_input_struct
 use ptc_interface_mod
-use reverse_mod, only: lat_reverse
 
 implicit none
 
@@ -160,7 +159,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ix = index(design_lat%file, '#reverse')
   if (ix /= 0) then
-    design_lat%reverse_element_order = .true.
+    u%reverse_tracking = .true.
     design_lat%file = design_lat%file(1:ix-1) // design_lat%file(ix+8:)
   endif
 
@@ -197,10 +196,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
     call err_exit
   end select
-
-  if (design_lat%reverse_element_order) then
-    call lat_reverse (u%design%lat, u%design%lat)
-  endif
 
   ! When reading digested files there are parser errors associated with, for example, the file
   ! having been moved. Do not exit for such stuff.

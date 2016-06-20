@@ -823,6 +823,7 @@ type tao_universe_struct
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used                 ! Number of used %d2_data(:) components.
   integer n_data_used                    ! Number of used %data(:) components.
+  logical :: reverse_tracking = .false.  ! Reverse tracking direction?
   logical is_on                          ! universe turned on
   logical picked_uni                     ! Scratch logical.
   logical picked2_uni                    ! Scratch logical.
