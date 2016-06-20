@@ -2208,9 +2208,9 @@ case ('spin.')
       endif
 
       select case (datum%data_type)
-      case ('spin.theta');   value_vec(i) = polar_spin.theta
-      case ('spin.phi');     value_vec(i) = polar_spin.phi
-      case ('spin.amp');     value_vec(i) = polar_spin.polarization
+      case ('spin.theta');   value_vec(i) = polar_spin%theta
+      case ('spin.phi');     value_vec(i) = polar_spin%phi
+      case ('spin.amp');     value_vec(i) = polar_spin%polarization
       end select
     enddo
 
@@ -2222,9 +2222,9 @@ case ('spin.')
       endif
 
       select case (datum%data_type)
-      case ('spin.theta');   value_vec(ix_ref) = polar_spin.theta
-      case ('spin.phi');     value_vec(ix_ref) = polar_spin.phi
-      case ('spin.amp');     value_vec(ix_ref) = polar_spin.polarization
+      case ('spin.theta');   value_vec(ix_ref) = polar_spin%theta
+      case ('spin.phi');     value_vec(ix_ref) = polar_spin%phi
+      case ('spin.amp');     value_vec(ix_ref) = polar_spin%polarization
       end select
     endif
 
