@@ -69,9 +69,8 @@ if (ele%value(l$) .eq. 0) then
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then
     !Convert to global-s to local-t coordinates
-    call convert_particle_coordinates_s_to_t(end_orb)
     !Tracks use vec(5) = s_rel
-    end_orb%vec(5) = 0.0_rp
+    call convert_particle_coordinates_s_to_t(end_orb, 0.0_rp)
     call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
   endif
 
@@ -133,8 +132,7 @@ endif
 
 ! ele(s-based) -> ele(t-based)
 
-call convert_particle_coordinates_s_to_t(end_orb)
-end_orb%vec(5) = s_rel
+call convert_particle_coordinates_s_to_t(end_orb, s_rel)
 
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates

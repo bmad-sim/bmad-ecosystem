@@ -185,18 +185,22 @@ do i = 0, n
   eleinfo%e_floor1 = branch%ele(i)%floor
   eleinfo%e_floor1%r(2) = 0  ! Make sure in horizontal plane
 
-  if (i /= 0) then
-    eleinfo%e_floor0 = csr%eleinfo(i-1)%e_floor1
-    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
-    eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
-  endif
-
   eleinfo%orbit1 = centroid(i)
   vec = eleinfo%orbit1%vec
   floor%r = [vec(1), vec(3), s_ele%value(l$)]
   eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
   eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
   eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1+vec(6)))
+
+  if (i == 0) then
+    eleinfo%e_floor0 = csr%eleinfo(i)%e_floor1
+    eleinfo%floor0   = csr%eleinfo(i)%floor1
+    eleinfo%orbit0   = csr%eleinfo(i)%orbit1
+  else
+    eleinfo%e_floor0 = csr%eleinfo(i-1)%e_floor1
+    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
+    eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
+  endif
 
   vec0 = eleinfo%orbit0%vec
   vec = eleinfo%orbit1%vec
