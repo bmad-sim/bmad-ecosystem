@@ -10,7 +10,7 @@ set(SRC_DIRS
 )
 
 set (EXE_SPECS 
-  cmake.moga
+  #  cmake.moga
   #  cmake.ansga2
   #  cmake.aspea2
   cmake.wake_fit
