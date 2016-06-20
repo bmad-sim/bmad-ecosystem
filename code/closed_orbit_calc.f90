@@ -79,19 +79,18 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
-use reverse_mod, only: lat_reverse
+use spin_mod, only: spinor_to_vec, vec_to_spinor
 use super_recipes_mod
 use eigen_mod
+use rotation_3d_mod
 
 implicit none
 
 type (lat_struct), target ::  lat
-type (lat_struct), target, save :: rev_lat
-type (lat_struct), pointer :: this_lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
 type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
-type (coord_struct), pointer :: start, end
+type (coord_struct), pointer :: orb_start, orb_end
 type (bmad_common_struct) bmad_com_saved
 type (super_mrqmin_storage_struct) storage
 
@@ -104,13 +103,14 @@ type (matrix_save), allocatable :: m(:)
 real(rp) t1(6,6), del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_del, this_del, max_eigen
-real(rp) a_lambda, chisq, old_chisq, rf_freq
+real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), angle
 real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
-integer j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
+integer i, j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
+integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
 logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking
@@ -130,27 +130,29 @@ if (dir /= 1 .and. dir /= -1) then
   return
 endif
 
-if (dir == 1) then
-  this_lat => lat
-else
-  call lat_reverse(lat, rev_lat)
-  this_lat => rev_lat
-endif  
-
 if (present(err_flag)) err_flag = .true.
-branch => this_lat%branch(integer_option(0, ix_branch))
+branch => lat%branch(integer_option(0, ix_branch))
 
 call reallocate_coord (closed_orb, branch%n_ele_max)  ! allocate if needed
 
 bmad_com_saved = bmad_com
 bmad_com%radiation_fluctuations_on = .false.  
 bmad_com%aperture_limit_on = .false.
+bmad_com%spin_tracking_on = .false.
 
 n_ele = branch%n_ele_track
 
-start => closed_orb(0)
-end   => closed_orb(n_ele)
-ele_start => branch%ele(0)
+if (dir == 1) then
+  ix_ele_start = 0
+  ix_ele_end   = n_ele
+else
+  ix_ele_start = n_ele
+  ix_ele_end   = 0
+endif
+
+orb_start => closed_orb(ix_ele_start)
+orb_end   => closed_orb(ix_ele_end)
+ele_start => branch%ele(ix_ele_start)
 
 !----------------------------------------------------------------------
 ! Further init
@@ -179,22 +181,26 @@ case (4, 5)
   !
 
   bmad_com%radiation_damping_on = .false.  ! Want constant energy
+  call set_on_off (rfcavity$, lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 
-  if (all(branch%param%t1_no_RF == 0)) &
-              call transfer_matrix_calc (this_lat, branch%param%t1_no_RF, ix_branch = branch%ix_branch)
-  t1 = branch%param%t1_no_RF
-  start%vec(5) = 0
+  if (any(branch%param%t1_no_RF /= 0) .and. dir == 1) then
+    t1 = branch%param%t1_no_RF
+  else
+    call this_t1_calc(branch, dir, .false., t1)
+    if (dir == 1) branch%param%t1_no_RF = t1
+  endif
 
-  !
-
-  call set_on_off (rfcavity$, this_lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = on_off_state)
+  orb_start%vec(5) = 0
 
 ! Variable energy case: i_dim = 6
 
 case (6)
-  if (all(branch%param%t1_with_RF == 0)) &
-              call transfer_matrix_calc (this_lat, branch%param%t1_with_RF, ix_branch = branch%ix_branch)
-  t1 = branch%param%t1_with_RF
+  if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
+    t1 = branch%param%t1_with_RF
+  else
+    call this_t1_calc(branch, dir, .false., t1)
+    if (dir == 1)  branch%param%t1_with_RF = t1
+  endif
 
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
@@ -226,7 +232,7 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-call init_coord (start, start, ele_start, start_end$, start%species)
+call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
 
 allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim))
 vec0 = 0
@@ -236,8 +242,8 @@ a_lambda = -1
 old_chisq = 1d30   ! Something large
 old_start = 1d30
 old_end = 1d30
-a = start%vec(1:n_dim)
-if (n_dim == 5) a(5) = start%vec(6)
+a = orb_start%vec(1:n_dim)
+if (n_dim == 5) a(5) = orb_start%vec(6)
 
 !
 
@@ -246,8 +252,8 @@ i_max = 100
 
 do i_loop = 1, i_max
 
-  weight(1:n_dim) = 1 / (start%vec(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
-  if (n_dim == 5) weight(5) = 1 / (start%vec(6) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  weight(1:n_dim) = 1 / (orb_start%vec(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  if (n_dim == 5) weight(5) = 1 / (orb_start%vec(6) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
 
   call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
 
@@ -266,12 +272,12 @@ do i_loop = 1, i_max
     call end_cleanup
     return
   else
-    amp_co = abs(start%vec)
-    dorb = end%vec - start%vec
+    amp_co = abs(orb_start%vec)
+    dorb = orb_end%vec - orb_start%vec
 
     if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
-      dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
-      dorb(5) = -end%beta * c_light * dt
+      dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
+      dorb(5) = -orb_end%beta * c_light * dt
     endif
 
     amp_del = abs(dorb)
@@ -296,8 +302,7 @@ do i_loop = 1, i_max
       m(n)%vec0 = branch%ele(n)%vec0
     enddo
 
-    call lat_make_mat6 (lat, -1, co_saved, branch%ix_branch)
-    call transfer_matrix_calc (lat, t1, ix_branch = branch%ix_branch)
+    call this_t1_calc (branch, dir, .true., t1)
     t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
 
     do n = 1, branch%n_ele_max
@@ -318,11 +323,10 @@ do i_loop = 1, i_max
     if (maxval(abs(eigen_val)) - 1 > 1d-5) then    ! Is unstable
       max_del = 1d10  ! Something large
       z0 = a(5)
-      dz = start%beta * c_light / (8 * rf_freq)
+      dz = orb_start%beta * c_light / (8 * rf_freq)
       do j = -3, 4
         z_here = z0 + j * dz
         call track_this_lat(z_here, this_del, max_eigen)
-        if (max_eigen - 1 > 1d-5) cycle
         if (this_del > max_del) cycle
         j_max = j
         max_del = this_del
@@ -356,6 +360,21 @@ do i_loop = 1, i_max
 
 enddo
 
+! Calc invarient spin axis.
+
+if (bmad_com_saved%spin_tracking_on) then
+  bmad_com%spin_tracking_on = .true.
+  do i = 1, 3
+    svec = 0;  svec(i) = 1
+    orb_start%spin = vec_to_spinor(svec)
+    call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
+    mat3(:,i) = spinor_to_vec(orb_end%spin)
+  enddo
+  call w_mat_to_axis_angle(mat3, svec, angle)
+  orb_start%spin = vec_to_spinor(svec)
+  call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
+endif
+
 ! Cleanup
 
 call end_cleanup
@@ -371,11 +390,7 @@ subroutine end_cleanup
 bmad_com = bmad_com_saved  ! Restore
 
 if (n_dim == 4 .or. n_dim == 5) then
-  call set_on_off (rfcavity$, this_lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
-endif
-
-if (dir == -1) then
-  closed_orb(1:n_dim) = closed_orb(n_dim:1:-1)
+  call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
 
 end subroutine
@@ -389,23 +404,22 @@ real(rp) z_set, dt, del, dorb(6), max_eigen
 
 !
 
-start%vec(5) = z_set
-call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
+orb_start%vec(5) = z_set
+call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
 if (track_state /= moving_forward$) then
   max_eigen = 10
   return
 endif
 
-dorb = end%vec - start%vec
+dorb = orb_end%vec - orb_start%vec
 if (branch%lat%absolute_time_tracking) then
-  dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
-  dorb(5) = -end%beta * c_light * dt
+  dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
+  dorb(5) = -orb_end%beta * c_light * dt
 endif
 del = maxval(abs(dorb))
 
-call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
-call transfer_matrix_calc (this_lat, t1, ix_branch = branch%ix_branch)
+call this_t1_calc (branch, dir, .true., t1)
 call mat_eigen (t1, eigen_val, eigen_vec, error)
 
 max_eigen = maxval(abs(eigen_val))
@@ -428,7 +442,7 @@ integer status, i
 ! To avoid this, veto any step where z changes by more than lambda_rf/10.
 
 if (n_dim == 6) then
-  dz_norm = abs(a_try(5)-a(5)) / (start%beta * c_light / (10 * rf_freq))
+  dz_norm = abs(a_try(5)-a(5)) / (orb_start%beta * c_light / (10 * rf_freq))
   if (dz_norm > 1) then
     status = 1  ! Veto step
     return
@@ -438,24 +452,24 @@ endif
 !
 
 if (n_dim == 5) then
-  start%vec(1:4) = a_try(1:4)
-  start%vec(6)   = a_try(5)
+  orb_start%vec(1:4) = a_try(1:4)
+  orb_start%vec(6)   = a_try(5)
 else
-  start%vec(1:n_dim) = a_try
+  orb_start%vec(1:n_dim) = a_try
 endif
 
-call init_coord (start, start, ele_start, start_end$, start%species)
-call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
+call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
 status = 0
 
 !
 
-del_orb = end%vec - start%vec
+del_orb = orb_end%vec - orb_start%vec
 
 if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
-  dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
-  del_orb(5) = -end%beta * c_light * dt
+  dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
+  del_orb(5) = -orb_end%beta * c_light * dt
 endif
 
 if (track_state == moving_forward$) then
@@ -474,4 +488,36 @@ endif
 
 end subroutine co_func
 
-end subroutine
+!------------------------------------------------------------------------------
+! contains
+
+subroutine this_t1_calc (branch, dir, make_mat6, t1)
+
+type (branch_struct) branch
+type (coord_struct) start_saved, end_saved
+
+real(rp) t1(6,6), delta
+integer dir, i
+logical make_mat6
+
+!
+
+if (dir == 1) then
+  if (make_mat6) call lat_make_mat6 (branch%lat, -1, closed_orb, branch%ix_branch)
+  call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
+
+else
+  start_saved = orb_start
+  end_saved   = orb_end
+  delta = 1d-6
+  do i = 1, 6
+    orb_start%vec(i) = start_saved%vec(i) + delta
+    call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch)
+    t1(:,i) = (orb_end%vec - end_saved%vec) / delta
+    orb_start%vec = start_saved%vec
+  enddo
+endif
+
+end subroutine this_t1_calc
+
+end subroutine closed_orbit_calc
