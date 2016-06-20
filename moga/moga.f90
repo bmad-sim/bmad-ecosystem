@@ -1,4 +1,5 @@
-program dynap_pisa
+program moga
+  use mpi
   use ifport, ifport_seed=>seed
   use bmad
   use bmad_parser_mod, only: bp_com
@@ -56,8 +57,8 @@ program dynap_pisa
 
   integer n_omega
 
-  real(rp), allocatable :: ApC(:)[:]
-  real(rp), allocatable :: Q1(:,:)[:]
+  real(rp), allocatable :: ApC(:)
+  real(rp), allocatable :: Q1(:,:)
   real(rp), allocatable :: Q1t(:,:)
   real(rp), allocatable :: etax_base(:)
   real(rp), allocatable :: etay_base(:)
@@ -88,29 +89,35 @@ program dynap_pisa
 
   !moga vars
   type(pool_struct), allocatable :: pool(:)
-  type(smart_pop_struct), allocatable :: pop(:)
+  type(pop_struct), allocatable :: pop(:)
   integer, allocatable :: arc(:)
   integer, allocatable :: last_arc(:)
   integer, allocatable :: sel(:)
   real(rp) omega_bound_lir
   real(rp) omega_bound_uir
-  real(rp), allocatable :: vars_at_hand(:)
   real(rp), allocatable :: K2(:)
   real(rp) r
   logical fp_flag
 
+  !mpi housekeeping
+  integer myrank, from_id
+  integer n_slave, cluster_size
+  integer mpierr
+  integer mpistatus(MPI_STATUS_SIZE)
+  integer mpistatus_probe(MPI_STATUS_SIZE)
+  logical master
+
   !coarray housekeeping
-  integer num_procs, my_worker_num
-  integer, allocatable :: tasker(:)[:]
-  real(rp), allocatable :: vars(:)[:]
-  real(rp), allocatable :: objs(:)[:]
-  real(rp), allocatable :: cons(:)[:]
+  real(rp), allocatable :: vars(:)
+  real(rp), allocatable :: objs(:)
+  real(rp), allocatable :: cons(:)
+  real(rp), allocatable :: objscons(:) ! concatenate the two vectors to make MPI easy
   integer worker_id, worker_status
   integer n_harmo, n_mags
   integer n_chrom
   integer n_vars, n_loc
-  integer pop_id, pool_ptr, pool_ptr_b, lambda_recv
-  integer n_recv, slot_id
+  integer name, pool_ptr, pool_ptr_b, lambda_recv
+  integer n_recv, slot_num
   integer, allocatable :: lambda_vec(:)
   integer cr_dim
 
@@ -122,18 +129,34 @@ program dynap_pisa
   ! reduce number of error messages
   call output_direct(do_print=.false.,min_level=-1,max_level=7)
 
-  ! coarray stuff
-  num_procs = num_images() 
-  my_worker_num = this_image()
-  pool_gap = num_procs-1
-
   ! read command line arguments
   call getarg(1,in_file)
   call getarg(2,prefix)
   call getarg(3,poll_str)
   read(poll_str,*) poll
   polli = floor(poll*1000)
-  if(my_worker_num .eq. 1) call write_state(prefix,0)
+
+  call mpi_init(mpierr)                             ! Introduce yourself to the MPI daemon
+  call mpi_comm_rank(MPI_COMM_WORLD,myrank,mpierr)  ! Get your rank number, store in myrank.  Master is rank 0.
+  if(myrank .eq. 0) then
+    master=.true.
+  else
+    master=.false.
+  endif
+
+  if(master) then
+    !Check that cluster has at least two nodes
+    call mpi_comm_size(MPI_COMM_WORLD,cluster_size,mpierr)
+    n_slave=cluster_size-1
+    pool_gap = cluster_size-1
+    if(n_slave .eq. 0) then
+      write(*,*) "ERROR: no slaves found in cluster.  At least two nodes"
+      write(*,*) "must be available to run this program."
+      stop
+    endif
+    !Clear PISA state file
+    call write_state(prefix,0)
+  endif
 
   ! parse parameters file and check for necessary initializations.
   use_hybrid = .false.  !default
@@ -142,11 +165,11 @@ program dynap_pisa
   open (unit = 10, file = in_file, readonly)
   read (10, nml = general)
   read (10, nml = da)
-  read (10, nml = moga)
+  read (10, nml = nl_moga)
   close (10)
-  if(my_worker_num .eq. 1) call check_params_bomb()
+  if(master) call check_params_bomb()
 
-  ! intake parameters
+  ! process parameters
   n_chrom = 0
   n_harmo = 0
   i=0
@@ -168,7 +191,6 @@ program dynap_pisa
   n_omega = n_chrom - cr_dim   !the subspace in chromatic multipole strengths with some chromaticity chi_x, chi_y
   n_vars = n_omega + n_harmo
 
-
   do i=1,max_de
     if( de(i) .lt. -998. ) then
       exit
@@ -189,11 +211,10 @@ program dynap_pisa
     error stop
   endif
 
-  if( my_worker_num == 1) write(*,*) "preparing lattice..."
+  if( master ) write(*,*) "preparing lattice..."
 
   bp_com%always_parse = .true.
   call bmad_parser(lat_file,ring)
-
 
   allocate(co(0:ring%n_ele_track))
   allocate(orb(0:ring%n_ele_track))
@@ -233,8 +254,8 @@ program dynap_pisa
     enddo
   endif
 
-  !+ setup chromaticity response matrix and vector
-  if( my_worker_num == 1 ) then
+  !+ Allocate space in master for storing gene pool
+  if( master ) then
     ! allocate memory for storing vector pool
     allocate(pool(alpha+pool_gap))
     pool(:)%name = -1
@@ -242,22 +263,27 @@ program dynap_pisa
       allocate(pool(i)%x(n_vars))
     enddo
   endif
-  allocate(apc(n_chrom)[*])
-  allocate(q1(n_chrom,n_omega)[*])
-  allocate(q1t(n_omega,n_chrom))
+  !+ setup chromaticity response matrix and vector
+  allocate(ApC(n_chrom)) !coarray
+  allocate(Q1(n_chrom,n_omega)) !coarray
+  allocate(Q1t(n_omega,n_chrom))
 
   ! build chromaticity matrices
-  ring0=ring
-  call build_chrom_mat(ring0, set_chrom_x, set_chrom_y, c_mags, apc, q1, err_flag)
-  if(err_flag) then
-    write(*,*) "could not build chromaticity matrices at program start.  aborting."
-    stop
+  if( master ) then
+    ring0=ring
+    call build_chrom_mat(ring0, set_chrom_x, set_chrom_y, c_mags, ApC, Q1, err_flag)
+    if(err_flag) then
+      write(*,*) "could not build chromaticity matrices at program start.  aborting."
+      stop
+    endif
   endif
+  call mpi_bcast(ApC, n_chrom, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpierr)
+  call mpi_bcast(Q1, n_chrom*n_omega, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpierr)
 
   ! transform mutator on k2 into mutator on chromatic subspace omega.
   do i=1,n_omega
-    q1t = transpose(q1)
-    breeder_params%mutate_delta(i) = norm2(q1t(i,:)*c_mags(:)%mutate_delta)  !fortran * is element-wise multiplication
+    Q1t = transpose(Q1)
+    breeder_params%mutate_delta(i) = norm2(Q1t(i,:)*c_mags(:)%mutate_delta)  !fortran * is element-wise multiplication
   enddo
   ! mutator on harmonic multipoles are simply copied over
   do i=1, n_harmo 
@@ -293,19 +319,16 @@ program dynap_pisa
 
   !-
   allocate(k2(n_chrom))
-  allocate(tasker(num_procs)[*])  !array used for managing workers
-  allocate(vars(n_vars)[*])
-  allocate(vars_at_hand(n_vars))
-  allocate(objs(dim)[*])
-  allocate(cons(con)[*])  !zero length arrays are ok in fortran
+  allocate(vars(n_vars))
+  allocate(objs(dim))
+  allocate(cons(con))  !zero length arrays are ok in fortran
   allocate(lambda_vec(mu))
 
   ! alpha is population size
   ! mu is number of parents picked out by selector
   ! lambda is number of children created by breeder
 
-  tasker(:) = 0
-  if( my_worker_num == 1 ) then
+  if( master ) then
     ! manager
     write(*,*) "starting simulation..."
     call random_seed(put=seed)
@@ -317,8 +340,6 @@ program dynap_pisa
       allocate(pop(i)%o(dim))
       allocate(pop(i)%x(n_vars))
       allocate(pop(i)%c(con))
-      allocate(pop(i)%apc(n_chrom))
-      allocate(pop(i)%q1(n_chrom,n_omega))
     enddo
     allocate(arc(alpha))
     allocate(last_arc(alpha))
@@ -329,17 +350,17 @@ program dynap_pisa
     if ( trim(initial_pop) == 'random' ) then
       do i=1,size(pool)
         ! transform bound on k2 into bounds on omega.
-        q1t = transpose(q1)
+        Q1t = transpose(Q1)
         do j=1,n_omega
           omega_bound_lir = 0.0d0
           omega_bound_uir = 0.0d0
           do k=1,n_chrom
-            if(q1t(j,k) < 0.0d0) then
-              omega_bound_lir = omega_bound_lir + q1t(j,k)*c_mags(k)%uir
-              omega_bound_uir = omega_bound_uir + q1t(j,k)*c_mags(k)%lir
+            if(Q1t(j,k) < 0.0d0) then
+              omega_bound_lir = omega_bound_lir + Q1t(j,k)*c_mags(k)%uir
+              omega_bound_uir = omega_bound_uir + Q1t(j,k)*c_mags(k)%lir
             else
-              omega_bound_lir = omega_bound_lir + q1t(j,k)*c_mags(k)%lir
-              omega_bound_uir = omega_bound_uir + q1t(j,k)*c_mags(k)%uir
+              omega_bound_lir = omega_bound_lir + Q1t(j,k)*c_mags(k)%lir
+              omega_bound_uir = omega_bound_uir + Q1t(j,k)*c_mags(k)%uir
             endif
           enddo
           call random_number(r)
@@ -364,51 +385,37 @@ program dynap_pisa
     endif
     pool_ptr_b = alpha+pool_gap
 
-    sync all  ! sync initialization complete
-
     ! seed each worker with a trial vector
     write(*,*) "seeding generation 1"
     pool_ptr = 0
-    do worker_id=2, min(num_procs,alpha)
+    do worker_id=1, min(n_slave,alpha)
       call increment_ptr(pool_ptr,size(pool))
-      vars(:)[worker_id] = pool(pool_ptr)%x(:)  !send trial vector to slave
-      tasker(worker_id)[worker_id] = pool(pool_ptr)%name  !signal new trial vector ready
-      sync images(worker_id) ! sync label "worker go"
+      call mpi_send(pool(pool_ptr)%name, 1, MPI_INTEGER, worker_id, 1, MPI_COMM_WORLD, mpierr)
+      call mpi_send(pool(pool_ptr)%x(:), n_vars, MPI_DOUBLE_PRECISION, worker_id, 2, MPI_COMM_WORLD, mpierr)
     enddo
 
     ! receive objectives from workers
     ! refresh worker with new trial vector
     n_recv = 0
-    worker_id = 2
     do while (n_recv .lt. alpha)
-      do while(.true.)
-        worker_status = tasker(worker_id)[1]
-        if(worker_status .lt. 0) then
-          !a worker is reporting back that it has completed a work unit
-          call find_empty_pop_slot(pop(:)%pop_struct,slot_id)
-          pop(slot_id)%name = -worker_status
-          pop(slot_id)%x(:)    = vars(:)[worker_id]  !get variable values from worker
-          pop(slot_id)%o(:)    = objs(:)[worker_id]  !get objective values from worker
-          pop(slot_id)%c(:)    = cons(:)[worker_id]  !get constraint values from worker
-          pop(slot_id)%apc(:)  = apc(:)[worker_id]   ! receive apc and q1 from the worker, so the master does not
-          pop(slot_id)%q1(:,:) = q1(:,:)[worker_id]  ! have to recalculate when writing results.
-          n_recv = n_recv + 1
+      call mpi_probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, mpistatus, mpierr)  !blocking
+      from_id = mpistatus(MPI_SOURCE)
+      call mpi_recv(name, 1, MPI_INTEGER, from_id, 3, MPI_COMM_WORLD, mpistatus, mpierr)
+      call find_empty_pop_slot(pop(:),slot_num)
+      pop(slot_num)%name = name
+      call mpi_recv(pop(slot_num)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 4, MPI_COMM_WORLD, mpistatus, mpierr)
+      call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
+      call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
 
-          !refresh worker with new trial vector
-          call increment_ptr(pool_ptr,size(pool))
-          vars(:)[worker_id] = pool(pool_ptr)%x(:)    !send new trial vector to worker
-          tasker(worker_id)[worker_id] = pool(pool_ptr)%name
-          tasker(worker_id)[1] = pool(pool_ptr)%name
-          sync images(worker_id) ! sync label "worker go"
+      n_recv = n_recv + 1
 
-          exit
-        endif
-        worker_id = worker_id + 1
-        if(worker_id .gt. num_procs) worker_id = 2
-        call sleepqq(10)
-      enddo
+      !refresh worker with new trial vector
+      call increment_ptr(pool_ptr,size(pool))
+      call mpi_send(pool(pool_ptr)%name, 1, MPI_INTEGER, from_id, 1, MPI_COMM_WORLD, mpierr)
+      call mpi_send(pool(pool_ptr)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 2, MPI_COMM_WORLD, mpierr)
     enddo
-    call write_pop_pisa(pop(1:alpha)%pop_struct,trim(prefix)//'ini')
+
+    call write_pop_pisa(pop(1:alpha),trim(prefix)//'ini')
     call write_state(prefix,1)
     call date_and_time(values=time_stamp)
     write(*,'(a,i4,a,3i5)') "generation ", 1, " complete at ", time_stamp(5:7)
@@ -489,11 +496,11 @@ program dynap_pisa
       call read_pisa_indexes(prefix,'sel',nsel,sel)
       last_arc = arc
       call read_pisa_indexes(prefix,'arc',narc,arc)
-      call delete_the_dead(pop(:)%pop_struct,arc,narc)
-      call write_population(pop, generate_feasible_seeds_only, n_chrom, gen_num-1,moga_output_file)
-      call write_population(pop, generate_feasible_seeds_only, n_chrom, gen_num-1,thin_file, prec=2)
-      call write_constraint_report(pop(:)%pop_struct,gen_num-1,'constraint_report.out')
-      call write_objective_report(pop(:)%pop_struct,gen_num-1,'objective_report.out')
+      call delete_the_dead(pop(:),arc,narc)
+      call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, gen_num-1,moga_output_file)
+      call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, gen_num-1,thin_file, prec=2)
+      call write_constraint_report(pop(:),gen_num-1,'constraint_report.out')
+      call write_objective_report(pop(:),gen_num-1,'objective_report.out')
       if( generate_feasible_seeds_only .gt. 0 ) then
         call count_feasible_in_pop(pop, n_feasible)
         write(*,'(a,i6,a)') "population contains ", n_feasible, " feasible seeds."
@@ -504,48 +511,35 @@ program dynap_pisa
         endif
       endif
 
-
-      call kangal_breeder(pop(:)%pop_struct, sel, pool, pool_ptr_b, breeder_params)
+      call kangal_breeder(pop(:), sel, pool, pool_ptr_b, breeder_params)
 
       ! receive objectives from workers
       ! refresh worker with new trial vector
       n_recv = 0
       stats_feasible = 0
       do while (n_recv .lt. mu)
-        do while(.true.)
-          !check if workers reporting in
-          worker_status = tasker(worker_id)[1]
-          if(worker_status .lt. 0) then
-            !a worker is reporting back that it has completed a work unit
-            call find_empty_pop_slot(pop(:)%pop_struct,slot_id)
-            pop(slot_id)%name = -worker_status
-            pop(slot_id)%x(:) = vars(:)[worker_id]  !get variable values from worker
-            pop(slot_id)%o(:) = objs(:)[worker_id]  !get objective values from worker
-            pop(slot_id)%c(:) = cons(:)[worker_id]  !get constraint values from worker
-            pop(slot_id)%apc(:)  = apc(:)[worker_id]   ! receive apc and q1 from the worker, so the master does not
-            pop(slot_id)%q1(:,:) = q1(:,:)[worker_id]  ! have to recalculate when writing results.
+        call mpi_probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, mpistatus, mpierr)  !blocking
+        from_id = mpistatus(MPI_SOURCE)
+        call find_empty_pop_slot(pop(:),slot_num)
+        call mpi_recv(pop(slot_num)%name, 1, MPI_INTEGER, from_id, 3, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 4, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
 
-            feasible = all( pop(slot_id)%c(:) .ge. 0.0d0 )
-            if(feasible) then
-              stats_feasible = stats_feasible + 1
-            endif
-            n_recv = n_recv + 1
-            lambda_vec(n_recv) = slot_id
 
-            !refresh worker with new trial vector
-            call increment_ptr(pool_ptr,size(pool))
-            vars(:)[worker_id] = pool(pool_ptr)%x(:)    !send new trial vector to worker
-            tasker(worker_id)[worker_id] = pool(pool_ptr)%name
-            tasker(worker_id)[1] = pool(pool_ptr)%name
-            sync images(worker_id) ! sync label "worker go"
+        feasible = all( pop(slot_num)%c(:) .ge. 0.0d0 )
+        if(feasible) then
+          stats_feasible = stats_feasible + 1
+        endif
+        n_recv = n_recv + 1
+        lambda_vec(n_recv) = slot_num
 
-            exit
-          endif
-          worker_id = worker_id + 1
-          if(worker_id .gt. num_procs) worker_id = 2
-          call sleepqq(10)
-        enddo
+        !refresh worker with new trial vector
+        call increment_ptr(pool_ptr,size(pool))
+        call mpi_send(pool(pool_ptr)%name, 1, MPI_INTEGER, from_id, 1, MPI_COMM_WORLD, mpierr)
+        call mpi_send(pool(pool_ptr)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 2, MPI_COMM_WORLD, mpierr)
       enddo
+
 
       stats_surviving = alpha
       do i=1,alpha
@@ -558,7 +552,7 @@ program dynap_pisa
       enddo
       write(23,'(i6,2f18.3)') gen_num, (100.0*stats_surviving)/mu, (100.0*stats_feasible)/mu
 
-      call write_pop_pisa(pop(lambda_vec)%pop_struct,trim(prefix)//'var')
+      call write_pop_pisa(pop(lambda_vec),trim(prefix)//'var')
       call write_state(prefix,3)
       call date_and_time(values=time_stamp)
       write(*,*) "************************************************************"
@@ -575,18 +569,17 @@ program dynap_pisa
     !read final population archive from selector
     call block_on_pisa_status(polli,prefix)
     call read_pisa_indexes(prefix,'arc',narc,arc)
-    call delete_the_dead(pop(:)%pop_struct,arc,narc)
-    call write_population(pop, generate_feasible_seeds_only, n_chrom, max_gen, moga_output_file) !write final population to log file
-    call write_population(pop, generate_feasible_seeds_only, n_chrom, max_gen, thin_file, prec=2) !write final population to log file
-    call write_constraint_report(pop(:)%pop_struct,max_gen,'constraint_report.out')
-    call write_objective_report(pop(:)%pop_struct,max_gen,'objective_report.out')
+    call delete_the_dead(pop(:),arc,narc)
+    call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, max_gen, moga_output_file) !write final population to log file
+    call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, max_gen, thin_file, prec=2) !write final population to log file
+    call write_constraint_report(pop(:),max_gen,'constraint_report.out')
+    call write_objective_report(pop(:),max_gen,'objective_report.out')
     call write_state(prefix,5) !tell pisa selector to shut down
 
     !tell workers to shut down
-    do i=1,num_procs
-      tasker(i)[i] = 0
+    do i=1,n_slave
+      call mpi_send(0, 1, MPI_INTEGER, i, 1, MPI_COMM_WORLD, mpierr)
     enddo
-    sync images(*)
     close(23)
   else
     ! worker
@@ -604,39 +597,43 @@ program dynap_pisa
       enddo
     endif
 
-    sync all !sync label "initial"
     ring0 = ring  !stash original, unaltered lattice
     first_loop = .true.
     do while(.true.)
       if( .not. first_loop ) then
-        write(*,'(a,i5,a,i8)') "worker ", my_worker_num, " processed name ", pop_id
-        tasker(my_worker_num)[1] = -pop_id
+        write(*,'(a,i5,a,i8)') "worker ", myrank, " processed name ", name
+        call mpi_send(name, 1, MPI_INTEGER, 0, 3, MPI_COMM_WORLD, mpierr)
+        call mpi_send(vars, n_vars, MPI_DOUBLE_PRECISION, 0, 4, MPI_COMM_WORLD, mpierr)
+        call mpi_send(objs, dim, MPI_DOUBLE_PRECISION, 0, 5, MPI_COMM_WORLD, mpierr)
+        call mpi_send(cons, con, MPI_DOUBLE_PRECISION, 0, 6, MPI_COMM_WORLD, mpierr)
       else
         first_loop = .false.
       endif
 
       ring = ring0
-      sync images(1) !sync label "worker go"
 
       ! receive magnet strengths from master
-      vars_at_hand(:) = vars(:)[my_worker_num]
-      pop_id = tasker(my_worker_num)[my_worker_num]
-      if( pop_id .eq. 0 ) exit
+      call mpi_recv(name, 1, MPI_INTEGER, 0, 1, MPI_COMM_WORLD, mpistatus, mpierr)
+      if( name .eq. 0 ) then
+        call mpi_finalize(mpierr)
+        exit
+      endif
+      call mpi_recv(vars, n_vars, MPI_DOUBLE_PRECISION, 0, 2, MPI_COMM_WORLD, mpistatus, mpierr)
 
-      objs(1)[my_worker_num] =   1.0d0
-      objs(2)[my_worker_num] =   1.0d0
-      objs(3)[my_worker_num] =   1.0d0
+      objs(1) = 1.0d0
+      objs(2) = 1.0d0
+      objs(3) = 1.0d0
 
       !- apply magnet strengths to lattice
-      call omega_to_k2(vars_at_hand(1:n_omega),apc,q1,k2)
-
+      call omega_to_k2(vars(1:n_omega),ApC,Q1,k2)
       call set_magnet_strengths(c_mags,ring,k2)
-      call set_magnet_strengths(h_mags,ring,vars_at_hand(1+n_omega:n_harmo+n_omega))
+
+      call set_magnet_strengths(h_mags,ring,vars(1+n_omega:n_harmo+n_omega))
 
       call lattice_bookkeeper(ring)
 
       !- screen magnet strengths
-      cons(1)[my_worker_num] = -10.0    !sextupole moments
+      cons(1) = -10.0    !sextupole moments
       str_cons = 0.00000001d0
       do i=1, n_chrom
         if(k2(i) .lt. c_mags(i)%lb) then
@@ -646,17 +643,17 @@ program dynap_pisa
         endif
       enddo
       do i=1, n_harmo
-        if(vars_at_hand(i+n_omega) .lt. h_mags(i)%lb) then
-          str_cons = str_cons + (vars_at_hand(i+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
-        elseif(vars_at_hand(i+n_omega) .gt. h_mags(i)%ub) then
-          str_cons = str_cons + (h_mags(i)%ub - vars_at_hand(i+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+        if(vars(i+n_omega) .lt. h_mags(i)%lb) then
+          str_cons = str_cons + (vars(i+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+        elseif(vars(i+n_omega) .gt. h_mags(i)%ub) then
+          str_cons = str_cons + (h_mags(i)%ub - vars(i+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
         endif
       enddo
-      cons(1)[my_worker_num] = str_cons
+      cons(1) = str_cons
 
       ! screen closed orbit (assumed flat for i=1, which is assumed to be on-energy)
-      cons(2)[my_worker_num] = -10.0    !nonlinear dispersion at -de
-      cons(3)[my_worker_num] = -10.0    !nonlinear dispersion at +de
+      cons(2) = -10.0    !nonlinear dispersion at -de
+      cons(3) = -10.0    !nonlinear dispersion at +de
       do i=2,3
         co(0)%vec = 0.0d0
         co(0)%vec(6) = de(i)
@@ -675,16 +672,16 @@ program dynap_pisa
             endif
           enddo
           co_screen = max(co_screen_x,co_screen_y)
-          cons(i)[my_worker_num] = (co_limit - co_screen)/co_limit
+          cons(i) = (co_limit - co_screen)/co_limit
         endif
       enddo
 
-      cons(4)[my_worker_num] = -10.0    !x tune at -de or a-mode trace
-      cons(5)[my_worker_num] = -10.0    !x tune at +de or b-mode trace
+      cons(4) = -10.0    !x tune at -de or a-mode trace
+      cons(5) = -10.0    !x tune at +de or b-mode trace
       if(chrom_mode == 'trace') then
         ! screen matrix traces
-        cons(4)[my_worker_num] = 1.0d0
-        cons(5)[my_worker_num] = 1.0d0
+        cons(4) = 1.0d0
+        cons(5) = 1.0d0
         do i=1,2
           call clear_lat_1turn_mats(ring)
           do j=1,n_fp_steps
@@ -703,16 +700,16 @@ program dynap_pisa
               tr_a = 500.0
               tr_b = 500.0
             endif
-            cons(4)[my_worker_num] = min(tr_a-tr_a_min,cons(4)[my_worker_num])
-            cons(4)[my_worker_num] = min(tr_a_max-tr_a,cons(4)[my_worker_num])
-            cons(5)[my_worker_num] = min(tr_b-tr_b_min,cons(5)[my_worker_num])
-            cons(5)[my_worker_num] = min(tr_b_max-tr_b,cons(5)[my_worker_num])
+            cons(4) = min(tr_a-tr_a_min,cons(4))
+            cons(4) = min(tr_a_max-tr_a,cons(4))
+            cons(5) = min(tr_b-tr_b_min,cons(5))
+            cons(5) = min(tr_b_max-tr_b,cons(5))
           enddo
         enddo
       elseif(chrom_mode == 'tunes') then
         ! screen chromatic tune footprint
-        cons(4)[my_worker_num] = 1.0d0
-        cons(5)[my_worker_num] = 1.0d0
+        cons(4) = 1.0d0
+        cons(5) = 1.0d0
         do i=1,2
           call clear_lat_1turn_mats(ring)
           fp_flag = .false.
@@ -737,9 +734,9 @@ program dynap_pisa
             endif
             if(fp_flag) then
               if(i==1) then !negative chromatic footprint constraint
-                cons(4)[my_worker_num] = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                cons(4) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
               elseif(i==2) then !positive chromatic footprint constraint
-                cons(5)[my_worker_num] = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                cons(5) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
               endif
               exit
             endif
@@ -751,7 +748,7 @@ program dynap_pisa
       endif
 
       ! feasible if all constraints met, otherwise infeasible
-      feasible = all( cons(:)[my_worker_num] .ge. 0.0d0 )
+      feasible = all( cons(:) .ge. 0.0d0 )
 
       ! tracking study begins here
       ! if lattice is infeasible, then the optimizer ignores the objectives, so no point in tracking if infeasible.
@@ -821,17 +818,14 @@ program dynap_pisa
             enddo
           endif
 
-          objs(i)[my_worker_num] = metric
+          objs(i) = metric
         enddo
       endif
     enddo
   endif
 
-  sync all
-  write(*,*) "image ", my_worker_num, " made it!"
-  if( my_worker_num == 1 ) then
-    write(*,*) "it's over!"
-  endif
+  call mpi_finalize(mpierr)
+  write(*,*) "image ", myrank, " made it!"
 
   contains
 

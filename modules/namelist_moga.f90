@@ -33,7 +33,7 @@ real(rp) la_overshoot
 integer n_fp_steps
 type(mag_struct) mags_in(max_mags)
 
-namelist / moga /       moga_output_file, &
+namelist / nl_moga /       moga_output_file, &
                         generate_feasible_seeds_only, &
                         set_chrom_x, &
                         set_chrom_y, &

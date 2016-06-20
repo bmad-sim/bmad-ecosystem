@@ -4,9 +4,6 @@ set (SRC_FILES
   moga/moga.f90
 )
 
-## set (FFLAGS "-coarray")
-## set (LINK_FLAGS "-coarray")
-
 set (LINK_LIBS
   util_programs
   bmad
