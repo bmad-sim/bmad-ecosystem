@@ -5,6 +5,9 @@
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
 ! solution. 
 !
+! If bmad_com%spin_tracking_on = True, the invariant spin direction will be calculated and
+! put in closed_orb(:)%spin.
+!
 ! For i_dim = 4 this routine tracks through the lattice with the RF turned off.
 ! and the particle energy will be determined by closed_orb(0)%vec(6) for direction = 1
 ! and closed_orb(n0)%vec(6) with n0 = lat%n_ele_track for direction = -1.
