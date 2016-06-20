@@ -286,9 +286,7 @@ which are $s$-based (that is, use longitudinal position $s$ as the
 independent coordinate), are not designed to handle particles that
 reverse direction. To properly handle this situation, time-based
 tracking needs to be used (\sref{s:time.tracking}). Notice that this is
-different from tracking a particle in the reversed ($-s$) direction
-which can be handled by constructing a ``reversed'' lattice
-(\sref{s:reverse.track}).
+different from tracking a particle in the reversed ($-s$) direction.
 
 Alternatively to \vn{track_all}, the routine
 \Hyperref{r:track.many}{track_many} can be used to track through a
@@ -692,12 +690,6 @@ PTC (\sref{c:ptc}) currently implements integrators of order 2, 4, or 6.
 Reverse tracking in when a particle goes in the direction of
 decreasing \vn{s}. The \Hyperref{r:track.many}{track_many} routine can
 be used for this. See the \vn{track_many} routine for more details.
-
-Another way to track in the reverse direction is to create a
-``reversed'' lattice with the elements in reverse order and with
-each lattice element's orientation reversed. The routine for this
-is \Hyperref{r:lat.reverse}{lat_reverse}.
-
 
 %----------------------------------------------------------------
 \section{Beam (Particle Distribution) Tracking}
