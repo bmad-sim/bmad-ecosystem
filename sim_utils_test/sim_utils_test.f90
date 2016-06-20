@@ -46,9 +46,9 @@ do i = 1, size(cdata)
 enddo
 
 call naff (cdata, freq, amp)
-write (1, '(a, 3es16.8)') '"naff-freq1" REL 1E-6   ', freq(1), real(amp(1)), aimag(amp(1))
-write (1, '(a, 3es16.8)') '"naff-freq2" REL 1E-6   ', freq(2), real(amp(2)), aimag(amp(2))
-write (1, '(a, 3es16.8)') '"naff-freq3" REL 1E-6   ', freq(3), real(amp(3)), aimag(amp(3))
+write (1, '(a, 3es16.8)') '"naff-freq1" REL 2E-6   ', freq(1), real(amp(1)), aimag(amp(1))
+write (1, '(a, 3es16.8)') '"naff-freq2" REL 2E-6   ', freq(2), real(amp(2)), aimag(amp(2))
+write (1, '(a, 3es16.8)') '"naff-freq3" REL 2E-6   ', freq(3), real(amp(3)), aimag(amp(3))
 
 ! Random test
 

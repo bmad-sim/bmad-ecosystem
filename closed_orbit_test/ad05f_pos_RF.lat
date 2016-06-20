@@ -210,7 +210,6 @@ sbend[ds_step] = 0.005
 sextupole[num_steps] = 16
 quad::*[num_steps] = 16
 
-parameter[taylor_order] = 11
 parameter[ptc_exact_model] = .false.
 
 use, ring
