@@ -5,11 +5,6 @@ use pisa_mod, only: pop_struct, pool_struct
 
 implicit none
 
-type, extends(pop_struct) :: smart_pop_struct
-  real(rp), allocatable :: ApC(:)
-  real(rp), allocatable :: Q1(:,:)
-end type
-
 type mag_struct
   character(1) type  ! 'c' for chromatic, 'h' for harmonic
   character(18) name
@@ -337,7 +332,7 @@ subroutine count_feasible_in_pop(pop,n_feasible)
   implicit none
 
   integer n_feasible
-  type(smart_pop_struct) pop(:)
+  type(pop_struct) pop(:)
   integer i
   
   n_feasible = 0
@@ -350,11 +345,12 @@ subroutine count_feasible_in_pop(pop,n_feasible)
   enddo
 end subroutine
 
-subroutine write_population(pop, generate_feasible_seeds_only, n_chrom, gen_num, filename, prec)
+subroutine write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, gen_num, filename, prec)
   use bmad
   implicit none
 
-  type(smart_pop_struct) pop(:)
+  type(pop_struct) pop(:)
+  real(rp) ApC(:), Q1(:,:)
   integer gen_num
   integer generate_feasible_seeds_only
   integer n_chrom
@@ -384,7 +380,7 @@ subroutine write_population(pop, generate_feasible_seeds_only, n_chrom, gen_num,
   do i=1,size(pop)
     if(pop(i)%name .gt. 0) then
       if( all(pop(i)%c(:) .ge. 0.0) .or. (generate_feasible_seeds_only .le. 0) ) then
-        call omega_to_K2(pop(i)%x(1:n_omega),pop(i)%ApC,pop(i)%Q1,K2)
+        call omega_to_K2(pop(i)%x(1:n_omega),ApC,Q1,K2)
         if(any(pop(i)%c(:) .lt. 0)) then
           feasible = 0.0
         else

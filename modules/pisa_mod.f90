@@ -25,45 +25,6 @@ end type
 
 contains
 
-subroutine block_on_slaves_ready(tasker,num_procs)
-  implicit none
-
-  integer tasker(:)[*]
-  integer num_procs
-  logical slaves_done
-  integer worker_id, worker_status
-
-  do while(.true.)
-    slaves_done = .true.
-    do worker_id=2,num_procs
-      worker_status = tasker(worker_id)[1]
-      if(worker_status .ge. 1) then
-        slaves_done = .false.
-      endif
-      call sleepqq(100)
-    enddo
-    if(slaves_done) exit
-  enddo
-end subroutine
-
-subroutine send_job_to_slave(pop,vars,tasker,worker_id,pop_id_send)
-  implicit none
-
-  type(pop_struct) pop(:)
-  real(rp) vars(:)[*]
-  integer tasker(:)[*]
-  integer worker_id
-  integer pop_id_send
-  integer ix
-
-  ix = name_to_ix(pop,pop_id_send)
-  vars(:)[worker_id] = pop(ix)%x(:)  !send trial vector to slave
-  tasker(worker_id)[worker_id] = ix
-  tasker(worker_id)[1] = ix
-  sync images(worker_id) ! sync label "worker go"
-  pop_id_send = pop_id_send + 1
-end subroutine
-
 subroutine find_empty_pop_slot(pop,ix)
   implicit none
 
