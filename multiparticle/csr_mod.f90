@@ -683,6 +683,7 @@ character(*), parameter :: r_name = 's_source_calc'
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
 last_step = 0
+s_source = 0   ! To prevent uninitalized complaints from the compiler.
 
 do
 
