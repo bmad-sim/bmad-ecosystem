@@ -7137,6 +7137,7 @@ do
     endif
 
     t_plane => t_field%ptr%plane(ix)
+    allocate (t_plane%field(1)%term(0), t_plane%field(2)%term(0), t_plane%field(3)%term(0))
 
     do
       if (.not.  expect_this ('{', .false., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
