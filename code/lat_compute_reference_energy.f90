@@ -327,8 +327,8 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
-  abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c_start$)
-  abs_tol(2) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
+  abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * lord%value(p0c_start$)
+  abs_tol(2) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * lord%value(p0c$)
 
   if (ele_value_has_changed(lord, [p0c$, delta_ref_time$], abs_tol, .true.)) then
     call set_ele_status_stale (lord, attribute_group$)
