@@ -200,9 +200,10 @@ ele%name = 'BMAD_COM'           ! Global bmad parameters
 ele%key = def_bmad_com$
 call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
-
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
+
+call load_parse_line ('init', 1, end_of_file)
 
 !-----------------------------------------------------------
 ! main parsing loop
