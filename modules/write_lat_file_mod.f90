@@ -523,6 +523,7 @@ do ib = 0, ubound(lat%branch, 1)
           enddo
 
           write (iu2, '(a)') '}'
+          close (iu2)
         endif
       enddo
     endif
@@ -565,6 +566,7 @@ do ib = 0, ubound(lat%branch, 1)
           if (any(aimag(cl_map%ptr%term%b_coef) /= 0)) call write_map_coef ('B_coef_im', aimag(cl_map%ptr%term%b_coef))
 
           write (iu2, '(2x, a)') '}'
+          close (iu2)
         endif
       enddo
     endif
@@ -664,6 +666,7 @@ do ib = 0, ubound(lat%branch, 1)
           end select
 
           write (iu2, '(4x, a)') '}'
+          close (iu2)
         endif
       enddo
     endif
@@ -722,7 +725,7 @@ do ib = 0, ubound(lat%branch, 1)
           enddo
 
           write (iu2, '(a)') '}'
-
+          close (iu2)
         endif
       enddo
     endif
