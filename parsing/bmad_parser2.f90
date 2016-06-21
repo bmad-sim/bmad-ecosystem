@@ -155,6 +155,8 @@ n_plat_ele = n_def_ele
 n_max_old = n_max
 n_max = n_max + n_def_ele
 
+if (.not. bp_com%bmad_parser_calling) call load_parse_line ('init', 1, end_of_file)
+
 !-----------------------------------------------------------
 ! main parsing loop
 
