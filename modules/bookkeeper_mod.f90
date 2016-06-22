@@ -766,15 +766,13 @@ if (slave%key == sbend$ .and. lord%value(p0c$) /= 0) then
   slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) - slave%value(g$)
 endif
 
-! Multipoles
+! Multipoles. Note: p0c = 0 Can happen if not finished parsing lattice file.
 
-if (associated (slave%a_pole)) then
-  if (slave%value(p0c$) /= 0) then  ! Can happen if not finished parsing lattice file
-    slave%a_pole           = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
-    slave%b_pole           = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
-    slave%multipoles_on    = lord%multipoles_on
-    slave%scale_multipoles = lord%scale_multipoles
-  endif
+if (associated (slave%a_pole) .and. slave%value(p0c$) /= 0 .and. .not. lord%field_master) then  
+  slave%a_pole           = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
+  slave%b_pole           = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
+  slave%multipoles_on    = lord%multipoles_on
+  slave%scale_multipoles = lord%scale_multipoles
 endif
 
 ! Electric Multipoles
