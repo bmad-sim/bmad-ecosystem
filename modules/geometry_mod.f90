@@ -427,7 +427,20 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
   
   ! Update floor angles
   floor%w = w_mat
-  call update_floor_angles(floor, floor0)
+
+  if (ele%key == fiducial$) then
+    ! floor0 for a fiducial element is meaningless. Instead use approximate floor_ref to try to
+    ! have the angles come out without annoying factors of 2pi offsets
+    floor_ref%theta = theta; floor_ref%phi = phi; floor_ref%psi = psi
+    if (associated(ele0)) then
+      floor_ref%theta = floor_ref%theta + ele0%floor%theta
+      floor_ref%phi   = floor_ref%phi   + ele0%floor%phi
+      floor_ref%psi   = floor_ref%psi   + ele0%floor%psi
+    endif
+    call update_floor_angles(floor, floor_ref)
+  else
+    call update_floor_angles(floor, floor0)
+  endif
 
   if (any(floor%r /= floor_ref%r) .or. floor%theta /= floor_ref%theta .or. &
       floor%phi /= floor_ref%phi .or. floor%psi /= floor_ref%psi) then
