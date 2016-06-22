@@ -11,15 +11,13 @@ For a listing of element attributes for each type of element, see Chapter~\sref{
 
 \index{parameter statement}
 \index{dependent attribute}
-For convenience, \bmad computes the values of some attributes based
-upon the values of other attributes. Some of these dependent variables are
-listed in Table~\ref{t:dependent}. Also shown in
-Table~\ref{t:dependent} are the independent variables they are
-calculated from.  In the table \vn{n_part} and \vn{l_lattice} (lattice
-length) are lattice attributes, not element attributes. The first two
-are set by the \vn{parameter} statement (See
-\sref{s:param}). \vn{l_lattice} is calculated when the lattice is read
-in.
+For convenience, \bmad computes the values of some attributes based upon the values of
+other attributes. Some of these dependent variables are listed in
+Table~\ref{t:dependent}. Also shown in Table~\ref{t:dependent} are the independent
+variables they are calculated from.  In the table \vn{n_part} and \vn{l_lattice} (lattice
+length) are lattice attributes, not element attributes. The first two are set by the
+\vn{parameter} statement (See \sref{s:param}). \vn{l_lattice} is calculated when the
+lattice is read in.
 
 \index{bbi_constant}\index{charge}\index{sig_x}\index{sig_y}
 \index{e_tot}\index{n_part}\index{e_field}\index{voltage}
@@ -51,19 +49,21 @@ in.
 \label{t:dependent}
 \end{table}
 
+For electric and magnetic field strength parameters, the \vn{field_master} parameter
+(\sref{s:field.master}) can be used to determine if the be normalized or unnormalized,
+values are dependent or independent.
+
 \index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
 \index{rho}\index{g}\index{angle}\index{rf_frequency}
-No attempt should be made to set or vary within a program dependent
-attributes. It should be remarked that this is not an iron clad rule.
-If a program properly bypasses \bmad's attribute bookkeeping routine
-then anything is possible. In a lattice file, before lattice expansion
-(\sref{s:expand}), \bmad allows the setting of a select group of
-dependent attributes if the appropriate independent attributes are
-not set. The list of settable dependent variables is given in
-Table~\ref{t:dep.except}.  After reading in the lattice \bmad will set
-the appropriate independent variable based upon the value of the
-dependent variable. \vn{harmon} is the exception in that it will never
-be set by the bookkeeping routine.
+No attempt should be made to set or vary within a program dependent attributes. It should
+be remarked that this is not an iron clad rule.  If a program properly bypasses \bmad's
+attribute bookkeeping routine then anything is possible. In a lattice file, before lattice
+expansion (\sref{s:expand}), \bmad allows the setting of a select group of dependent
+attributes if the appropriate independent attributes are not set. The list of settable
+dependent variables is given in Table~\ref{t:dep.except}.  After reading in the lattice
+\bmad will set the appropriate independent variable based upon the value of the dependent
+variable. \vn{harmon} is the exception in that it will never be set by the bookkeeping
+routine.
 \index{lcavity}\index{rbend}
 \index{sbend}\index{rfcavity}
 \begin{table}[ht]
@@ -81,65 +81,65 @@ be set by the bookkeeping routine.
 \label{t:dep.except}
 \end{table}
 
+%-----------------------------------------------------------------
+\section{Field_Master}
+\label{s:field.master}
+\index{field_master}
+
+The \vn{field_master} attribute of an element sets whether the element's normalized
+(normalized by the reference energy) field strengths or the unnormalized strengths are the
+independent variables (\sref{s:depend}).  The setting of \vn{field_master} also sets
+whether an element's magnetic multipoles (\sref{s:multip}) are interpreted as normalized or
+unnormalized (electric multipoles are always treated as unnormalized).
+
+Table~\ref{t:dep.field} shows some normalized and unnormalized field strength attributes.
+The default value of \vn{field_master} for an element is False if there are no field
+values set in the lattice file for that element. If normalized field values are present
+then the default is also False and if there are unnormalized field values present then
+the default is True.
+
+For example:
+\begin{example}
+  Q1: quadrupole, b1_gradient = 0   ! Field strengths are the independent variables
+  Q1: quadrupole, field_master = T  ! Same as above
+  Q2: quadrupole        ! Define Q2.
+  Q2[b1_gradient] = 0   ! Field strengths now the independent variables.
+  Q2[field_master] = T  ! Same as above.
+\end{example}
+
+Specifying both normalized and unnormalized strengths for a given element is not
+permitted. For example:
+\begin{example}
+  Q3: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
+\end{example}
+
 \index{g}\index{g_err}\index{b_field}\index{bs_field}\index{b_field_err}
 \index{b1_gradient}\index{b2_gradient}\index{b3_gradient}\index{ks}
 \index{k1}\index{k2}\index{k3}
 \index{bl_kick}\index{bl_hkick}\index{bl_vkick}
 \index{kick}\index{hkick}\index{vkick}
-The normal attribute used to vary the strength of, say, a
-\vn{quadrupole} is \vn{k1}.  It is sometimes convenient to be able to
-vary the magnetic field strength directly instead. To do this \bmad
-has a rule that if the appropriate field attribute appears in the
-primary lattice file then it becomes an independent variable and the
-normalized strength attribute (the strength attribute normalized by
-the reference energy) becomes a dependent variable as tabulated in
-Table~\ref{t:dep.field}.
 \index{sbend}\index{rbend}\index{solenoid}\index{quadrupole}
 \index{sol_quad}\index{sextupole}\index{octupole}
 \begin{table}[ht]
 \centering {
 \begin{tabular}{lll} \toprule
-  {\em Element} & {\em Normalized Strength} & {\em Field Attribute} \\ \midrule
-  \vn{Sbend}, \vn{Rbend}     & \vn{g}      &  \vn{b_field}        \\
-  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}  &  \vn{b_field_err}    \\
-  \vn{Solenoid, Sol_quad}    & \vn{ks}     &  \vn{bs_field}       \\
+  {\em Element}              & {\em Normalized} & {\em Unnormalized}   \\ \midrule
+  \vn{Sbend}, \vn{Rbend}     & \vn{g}           &  \vn{b_field}        \\
+  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}       &  \vn{b_field_err}    \\
+  \vn{Solenoid, Sol_quad}    & \vn{ks}          &  \vn{bs_field}       \\
   \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
-                             & \vn{k1}     &  \vn{b1_gradient}    \\
+                             & \vn{k1}          &  \vn{b1_gradient}    \\
   \vn{Sextupole, Sbend, Rbend}             
-                             & \vn{k2}     &  \vn{b2_gradient}    \\
-  \vn{Octupole}              & \vn{k3}     &  \vn{b3_gradient}    \\
-  \vn{HKicker}, \vn{VKicker} & \vn{kick}   &  \vn{bl_kick}        \\
-  Most                       & \vn{hkick}  &  \vn{bl_hkick}       \\
-  Most                       & \vn{vkick}  &  \vn{bl_vkick}       \\ \bottomrule
+                             & \vn{k2}          &  \vn{b2_gradient}    \\
+  \vn{Octupole}              & \vn{k3}          &  \vn{b3_gradient}    \\
+  \vn{HKicker}, \vn{VKicker} & \vn{kick}        &  \vn{bl_kick}        \\
+  Most                       & \vn{hkick}       &  \vn{bl_hkick}       \\
+  Most                       & \vn{vkick}       &  \vn{bl_vkick}       \\ \bottomrule
 \end{tabular}
 }
-\caption {Field and Strength Attributes.}
+\caption {Example normalized and unnormalized field strength attributes.}
 \label{t:dep.field}
 \end{table}
-Using both field strength and normalized strength as the independent
-variable for a given element is not permitted. For example, for a quadrupole the 
-normalized strengths \vn{k1}, \vn{hkick}, and \vn{vkick} can be used as the
-independent variable or the field strengths \vn{b1_gradient}, \vn{bl_hkick} and
-\vn{bl_vkick}. but the mixing of the two is not valid
-\begin{example}
-  Q1: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
-\end{example}
-\index{field_master}
-To define an element with the field strength as the independent
-attribute without setting the strength just set the strength to zero
-or, alternatively, the \vn{field_master} logical can be set. For
-example
-\begin{example}
-  Q1: quadrupole, b1_gradient = 0   ! Field strengths now the independent variables
-  Q1: quadrupole, field_master = T  ! Same as above
-\end{example}
-The same effect can be obtained by setting the field or \vn{field_master} attributes
-after the element has been defined.
-\begin{example}
-  q1: quadrupole        ! Define q1.
-  q1[b1_gradient] = 0   ! Field strengths now the independent variables.
-  q1[field_master] = T  ! Same as above.
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Type, Alias and Descrip Attributes}
@@ -1883,8 +1883,9 @@ The following elements cannot be ``turned off:''
 \section{Multipole Attributes: Magnetic and Electric}
 \label{s:multip}
 
-Multipole formulas for are given in \sref{s:mag.field} and
-\sref{s:elec.field}.
+Multipole formulas for are given in \sref{s:mag.field} and \sref{s:elec.field}. Note that
+the setting of \vn{field_master} (\sref{s:field.master}) will determine if multipoles
+are interpreted as normalized or unnormalized.
 
 \index{multipole!knl, tn|hyperbf} 
 \index{multipole}
@@ -1915,7 +1916,7 @@ using normal (\vn{Bn}) and skew (\vn{An}) components:
 \end{example}
 Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \begin{example}
-  q1: ab_multipole, b2 = 0.12, a20 = 1e7
+  q1: ab_multipole, b2 = 0.12, a20 = 1e7, field_master = T
 \end{example}
 
 \index{r0_mag}\index{scale_multipoles}

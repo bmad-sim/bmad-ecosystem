@@ -74,6 +74,11 @@ as
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
+\index{multipole}
+Note that, for compatibility with MAD, the $K0L$ component of a \vn{Multipole} element
+rotates the reference orbit essentially acting as a zero length bend. This is not true
+for multipoles of any other type of element.
+
 Instead of using magnitude $K_n$ and rotation angle $\theta_n$,
 Another representation is using normal $\wt K_n$ and skew $\wt
 KS_n$. The conversion between the two are
@@ -90,6 +95,8 @@ these components the magnetic field for the $n$\Th\ order multipole is
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
   \label{qlpbb}
 \Endeq
+The $a_n$, $b_n$ representation of multipole fields can be used in elements such as
+quadrupoles, sextupoles, etc. to allow ``error'' fields to be represented.  
 The conversion between $(a_n, b_n)$ and $(K_nL, \theta_n)$ is
 \Begineq
   b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\theta_n}
@@ -108,37 +115,31 @@ about its longitudinal axis with a rotation angle of
 For example, a normal quadrupole rotated by $45^\circ$ becomes a
 skew quadrupole.
 
-\index{ab_multipole}
 \index{r0_mag}
-The $a_n$, $b_n$ representation of multipole fields is in
-\vn{AB_Multipole} elements (\sref{s:ab.m}) as well as in other types
-of elements such as quadrupoles, sextupoles, etc. This allows error
-fields to be represented.  When $a_n$ and $b_n$ multipole values are
-associated with an element that is not an \vn{AB_Multipole} element,
-and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is not
-set to \vn{False}, a measurement radius $r_0$ and a scale factor $F$
-are used to scale the effect of the $a_n$ and $b_n$ so that the
-multipole strength scales as the element strength. The scaling formula
-is
+\index{F (multipole scale factor)}
+The actual $a_n$, $b_n$ values used in particle tracking are scaled from the input values
+given in the lattice file. There are two scale factors that are applied. The first scale
+factor is used if the \vn{field_master} attribute (\sref{s:field.master}) is True for an
+element so that the multipole values specified in the lattice file are not reference
+energy normalized
 \Begineq
-  \bigl[ a_n (\text{actual}), b_n (\text{actual}) \bigr] =
-  \bigl[ a_n (\text{input}), b_n (\text{input}) \bigr] 
-  \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} 
+  \bigl[ a_n, b_n \bigr] \longrightarrow
+  \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
   \label{ababf}
 \Endeq
-$a_n(\text{input})$ and $b_n(\text{input})$ are the multipole values as given in the
-lattice file. $a_n(\text{actual})$ and $b_n(\text{actual})$ are the multipole values
-that are used in any simulation calculations. $r_0$ is set by the
-\vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ are set
-automatically depending upon the type of element as shown in
-Table~\ref{t:ab}.
 
-\index{ab_multipole}
-\index{multipole}
-Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
-element rotates the reference orbit essentially acting as a zero length bend.
-This is not true for multipoles that are associated with 
-non-multipole elements.
+The second scaling is applied when the multipoles are associated with a non
+\vn{AB_Multipole} element and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is
+\vn{True}. This scaling uses a measurement radius $r_0$ and a scale factor $F$:
+\Begineq
+  \bigl[ a_n, b_n \bigr] =
+  \bigl[ a_n, b_n \bigr]
+  \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
+  \label{ababf}
+\Endeq
+$r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ are set
+automatically depending upon the type of element as shown in Table~\ref{t:ab}. The
+$\gamma_p$ term is
 
 \index{kicker}\index{hkicker}\index{vkicker}
 \index{rbend}\index{sbend}\index{elseparator}
