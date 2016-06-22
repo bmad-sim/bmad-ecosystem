@@ -184,27 +184,21 @@ branch => lat%branch(ix_branch)
 ! need to know the Twiss parameters. This situation is only allowed for linear lattices.
 
 if (branch%param%geometry == closed$) then
-  if (ix_branch /= 0) then
-    call out_io (s_fatal$, r_name, 'CIRCULAR NON-MAIN BRANCHES NOT YET IMPLEMENTED!')
-    if (global_com%exit_on_error) call err_exit
-  endif
-
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)
-  call twiss_at_start (lat, status)
+  call twiss_at_start (lat, status, ix_branch)
   if (status /= ok$) return
   if (rf_is_on(branch)) then
-    call closed_orbit_calc (lat, orb, 6, err_flag = err)
+    call closed_orbit_calc (lat, orb, 6, 1, ix_branch, err_flag = err)
   else
-    call closed_orbit_calc (lat, orb, 4, err_flag = err)
+    call closed_orbit_calc (lat, orb, 4, 1, ix_branch, err_flag = err)
   endif
   if (err) return
 
 else
   do i = 1, branch%n_ele_track
-    if (branch%ele(i)%key == match$ .and. branch%ele(i)%value(match_end$) /= 0) then
-      call twiss_propagate_all (lat, ix_branch)
-      exit
-    endif
+    if (branch%ele(i)%key /= match$ .or. branch%ele(i)%value(match_end$) == 0) cycle
+    call twiss_propagate_all (lat, ix_branch)
+    exit
   enddo
   call track_all (lat, orb, ix_branch)
 endif
