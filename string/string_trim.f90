@@ -42,6 +42,7 @@ subroutine string_trim (in_string, out_string, word_len)
 implicit none
 
 character(*) in_string, out_string
+character(len(in_string)) temp_str   ! In case in_str and out_str are the same actual arg
 character(1) tab
 
 integer i, j, word_len, len_in, len_out
@@ -68,7 +69,8 @@ endif
 ! Left shift in_string and put in out_string. 
 
 j = min(len_in, len_out + i - 1)
-out_string = in_string(i:j)
+temp_str = in_string(i:j)
+out_string = temp_str
 
 ! Count characters in first word
 
