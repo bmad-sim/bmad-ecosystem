@@ -361,6 +361,7 @@ contains
 subroutine convert_this_ab (this_ele, this_a, this_b)
 
 type (ele_struct) this_ele
+type (branch_struct), pointer :: branch
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 logical has_nonzero
 logical a, b ! protect symbols
@@ -389,6 +390,20 @@ if (use_ele_tilt .and. this_ele%value(tilt_tot$) /= 0) then
       this_a(n) = -bn * sin_t + an * cos_t
     endif
   enddo
+endif
+
+! field_master = T -> Convert to normalized strength.
+
+if (this_ele%field_master .and. this_ele%value(p0c$) /= 0) then
+  branch => pointer_to_branch(this_ele)
+  if (.not. associated(branch)) then
+    call out_io (s_fatal$, r_name, 'ELEMENT WITH MULTIPOLES AND FIELD_MASTER = T NOT ASSOCIATED WITH ANY LATTICE!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  factor = charge_of(branch%param%particle) / this_ele%value(p0c$)
+  this_a = factor * this_a
+  this_b = factor * this_b
 endif
 
 ! radius = 0 defaults to radius = 1

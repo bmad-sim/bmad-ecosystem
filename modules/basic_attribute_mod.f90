@@ -696,7 +696,6 @@ call init_attribute_name1 (beambeam$, charge$,                      'CHARGE')
 call init_attribute_name1 (beambeam$, n_slice$,                     'N_SLICE')
 call init_attribute_name1 (beambeam$, symplectify$,                 'N_SLICE')
 call init_attribute_name1 (beambeam$, field_calc$,                  'FIELD_CALC')
-call init_attribute_name1 (beambeam$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (beambeam$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (beambeam$, beta_a$,                      'BETA_A')
 call init_attribute_name1 (beambeam$, beta_b$,                      'BETA_B')
@@ -1288,12 +1287,14 @@ attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
                                'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
 attrib_array(multipole$, k0l$:t21$)%type = is_free$
 call init_attribute_name1 (multipole$, l$,                          'L')
+call init_attribute_name1 (multipole$, field_master$,               'FIELD_MASTER')
 call init_attribute_name1 (multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, y_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, x_pitch_tot$,      null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, y_pitch_tot$,      null_name$, does_not_exist$, .true.)
 
 call init_attribute_name1 (ab_multipole$, l$,                       'L')
+call init_attribute_name1 (ab_multipole$, field_master$,            'FIELD_MASTER')
 call init_attribute_name1 (ab_multipole$, x_pitch$,       null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
