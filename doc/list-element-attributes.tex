@@ -14,19 +14,20 @@ internal reference number is:
  \label{s:list.ab.multipole}
  
  \begin{tabular}{lll} \toprule
-a0 - a20, b0 - b20          & multipoles_on               & wall                        \\
-alias                       & offset                      & x1_limit                    \\
-aperture                    & offset_moves_aperture       & x2_limit                    \\
-aperture_at                 & p0c                         & x_limit                     \\
-aperture_type               & ptc_integration_type        & x_offset                    \\
-create_jumbo_slave          & reference                   & x_offset_tot                \\
-delta_ref_time              & ref_origin                  & y1_limit                    \\
-descrip                     & spin_tracking_method        & y2_limit                    \\
-ele_origin                  & superimpose                 & y_limit                     \\
-e_tot                       & tilt                        & y_offset                    \\
-is_on                       & tilt_tot                    & y_offset_tot                \\
-l                           & tracking_method             & z_offset                    \\
-mat6_calc_method            & type                        & z_offset_tot                \\
+a0 - a20, b0 - b20          & multipoles_on               & x1_limit                    \\
+alias                       & offset                      & x2_limit                    \\
+aperture                    & offset_moves_aperture       & x_limit                     \\
+aperture_at                 & p0c                         & x_offset                    \\
+aperture_type               & ptc_integration_type        & x_offset_tot                \\
+create_jumbo_slave          & reference                   & y1_limit                    \\
+delta_ref_time              & ref_origin                  & y2_limit                    \\
+descrip                     & spin_tracking_method        & y_limit                     \\
+ele_origin                  & superimpose                 & y_offset                    \\
+e_tot                       & tilt                        & y_offset_tot                \\
+field_master                & tilt_tot                    & z_offset                    \\
+is_on                       & tracking_method             & z_offset_tot                \\
+l                           & type                        &                             \\
+mat6_calc_method            & wall                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -36,26 +37,25 @@ mat6_calc_method            & type                        & z_offset_tot        
  \label{s:list.beambeam}
  
  \begin{tabular}{lll} \toprule
-alias                       & field_master                & type                        \\
-alpha_a                     & is_on                       & wall                        \\
-alpha_b                     & l                           & x1_limit                    \\
-aperture                    & mat6_calc_method            & x2_limit                    \\
-aperture_at                 & n_slice                     & x_limit                     \\
-aperture_type               & n_slice                     & x_offset                    \\
-bbi_constant                & offset                      & x_offset_tot                \\
-beta_a                      & offset_moves_aperture       & x_pitch                     \\
-beta_b                      & p0c                         & x_pitch_tot                 \\
-charge                      & ptc_integration_type        & y1_limit                    \\
-cmat_11                     & reference                   & y2_limit                    \\
-cmat_12                     & ref_origin                  & y_limit                     \\
-cmat_21                     & sig_x                       & y_offset                    \\
-cmat_22                     & sig_y                       & y_offset_tot                \\
-create_jumbo_slave          & sig_z                       & y_pitch                     \\
-delta_ref_time              & spin_tracking_method        & y_pitch_tot                 \\
-descrip                     & superimpose                 & z_offset                    \\
-ele_origin                  & tilt                        & z_offset_tot                \\
-e_tot                       & tilt_tot                    &                             \\
-field_calc                  & tracking_method             &                             \\
+alias                       & field_calc                  & tracking_method             \\
+alpha_a                     & is_on                       & type                        \\
+alpha_b                     & l                           & wall                        \\
+aperture                    & mat6_calc_method            & x1_limit                    \\
+aperture_at                 & n_slice                     & x2_limit                    \\
+aperture_type               & n_slice                     & x_limit                     \\
+bbi_constant                & offset                      & x_offset                    \\
+beta_a                      & offset_moves_aperture       & x_offset_tot                \\
+beta_b                      & p0c                         & x_pitch                     \\
+charge                      & ptc_integration_type        & x_pitch_tot                 \\
+cmat_11                     & reference                   & y1_limit                    \\
+cmat_12                     & ref_origin                  & y2_limit                    \\
+cmat_21                     & sig_x                       & y_limit                     \\
+cmat_22                     & sig_y                       & y_offset                    \\
+create_jumbo_slave          & sig_z                       & y_offset_tot                \\
+delta_ref_time              & spin_tracking_method        & y_pitch                     \\
+descrip                     & superimpose                 & y_pitch_tot                 \\
+ele_origin                  & tilt                        & z_offset                    \\
+e_tot                       & tilt_tot                    & z_offset_tot                \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -789,19 +789,19 @@ n_cell                      & v2_unitcell                 &                     
  \label{s:list.multipole}
  
  \begin{tabular}{lll} \toprule
-alias                       & offset                      & x1_limit                    \\
-aperture                    & offset_moves_aperture       & x2_limit                    \\
-aperture_at                 & p0c                         & x_limit                     \\
-aperture_type               & ptc_integration_type        & x_offset                    \\
-create_jumbo_slave          & reference                   & x_offset_tot                \\
-delta_ref_time              & ref_origin                  & y1_limit                    \\
-descrip                     & spin_tracking_method        & y2_limit                    \\
-ele_origin                  & superimpose                 & y_limit                     \\
-e_tot                       & tilt                        & y_offset                    \\
+alias                       & mat6_calc_method            & wall                        \\
+aperture                    & offset                      & x1_limit                    \\
+aperture_at                 & offset_moves_aperture       & x2_limit                    \\
+aperture_type               & p0c                         & x_limit                     \\
+create_jumbo_slave          & ptc_integration_type        & x_offset                    \\
+delta_ref_time              & reference                   & x_offset_tot                \\
+descrip                     & ref_origin                  & y1_limit                    \\
+ele_origin                  & spin_tracking_method        & y2_limit                    \\
+e_tot                       & superimpose                 & y_limit                     \\
+field_master                & tilt                        & y_offset                    \\
 is_on                       & tilt_tot                    & y_offset_tot                \\
 k0l - k20l, t0 - t20        & tracking_method             & z_offset                    \\
 l                           & type                        & z_offset_tot                \\
-mat6_calc_method            & wall                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
