@@ -52,8 +52,7 @@
 !     out_str = ',,    '
 !-
 
-subroutine word_read (in_str, delim_list, word, &
-                                     ix_word, delim, delim_found, out_str)
+subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str)
 
 implicit none
 
@@ -111,7 +110,8 @@ do i = 1, n_len
     endif
     delim = in_str(i:i)
     if (i /= n_len) then
-      out_str = in_str(i+1:)
+      out_str = in_str  ! Needed in case both actual args are the same.
+      out_str = out_str(i+1:)
     else
       out_str = ' '
     endif
@@ -159,10 +159,12 @@ do j = i+1, n_len
       if (j == n_len) then
         out_str = ' '
       else
-        out_str = in_str(j+1:)
+        out_str = in_str  ! Needed in case both actual args are the same.
+        out_str = out_str(j+1:)
       endif
     else
-      out_str = in_str(j:)
+      out_str = in_str  ! Needed in case both actual args are the same.
+      out_str = out_str(j:)
     endif
 
     return
