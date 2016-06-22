@@ -23,19 +23,19 @@
 
 function match_wild (string, template) result (this_match)
 
-  use sim_utils, except => match_wild
+use sim_utils, except => match_wild
 
-  implicit none
+implicit none
 
-  character(*) string, template
-  integer is, it
-  logical this_match
+character(*) string, template
+integer is, it
+logical this_match
 
 !
 
-  is = max(1, len_trim(string))
-  it = max(1, len_trim(template))
+is = max(1, len_trim(string))
+it = max(1, len_trim(template))
 
-  this_match = str_match_wild (string(:is), template(:it))
+this_match = str_match_wild (string(:is), template(:it))
 
 end function match_wild

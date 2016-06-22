@@ -15,12 +15,12 @@
 
 function upcase(str_in) result (str_out)
 
-  implicit none
+implicit none
 
-  integer string_len, i, ix
+integer string_len, i, ix
 
-  character(*) str_in
-  character(len(str_in)) str_out
+character(*) str_in
+character(len(str_in)) str_out
 
 !
 
