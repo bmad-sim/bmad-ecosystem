@@ -17,33 +17,33 @@
 
 subroutine query_string (query_str, do_upcase, return_str, ix, ios)
 
-  use sim_utils, except => query_string
-  use precision_def
+use sim_utils, except => query_string
+use precision_def
 
-  implicit none
+implicit none
 
-  character(*) return_str
-  character(*) query_str
-  integer ix, ios
-  logical do_upcase
+character(*) return_str
+character(*) query_str
+integer ix, ios
+logical do_upcase
 
-  integer traceflag
-  common / traceback / traceflag
+integer traceflag
+common / traceback / traceflag
 
 !
 
-  write (*, '(1x, 2a)', advance = 'NO') trim(query_str), ' '
-  read (*, '(a)', iostat = ios) return_str
+write (*, '(1x, 2a)', advance = 'NO') trim(query_str), ' '
+read (*, '(a)', iostat = ios) return_str
 
-  if (ios /= 0) then
-    ix = 0
-    return_str = ""
-    return
-  endif
+if (ios /= 0) then
+  ix = 0
+  return_str = ""
+  return
+endif
 
-  call string_trim (return_str, return_str, ix)
+call string_trim (return_str, return_str, ix)
 
-  if (do_upcase) call str_upcase (return_str, return_str)
+if (do_upcase) call str_upcase (return_str, return_str)
 
 end subroutine
 

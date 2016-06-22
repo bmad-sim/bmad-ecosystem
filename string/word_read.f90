@@ -1,6 +1,5 @@
 !+
-! Subroutine word_read (in_str, delim_list, word,
-!                                     ix_word, delim, delim_found, out_str)
+! Subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str)
 !
 ! Subroutine to extract the first word and its length from a string
 ! Also: Subroutine returns the delimiter between the words

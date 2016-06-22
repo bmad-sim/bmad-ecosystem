@@ -12,21 +12,21 @@
 
 subroutine upcase_string(string)
 
-  implicit none
+implicit none
 
-  integer string_len, i, ix
+integer string_len, i, ix
 
-  character(*) string
-  character(26), parameter :: lower_case = 'abcdefghijklmnopqrstuvwxyz'
-  character(26), parameter :: upper_case = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+character(*) string
+character(26), parameter :: lower_case = 'abcdefghijklmnopqrstuvwxyz'
+character(26), parameter :: upper_case = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 !
 
-  string_len = len(string)
+string_len = len(string)
 
-  do i = 1, string_len
-    ix = index(lower_case, string(i:i))
-    if (ix /= 0) string(i:i) = upper_case(ix:ix)
-  enddo
+do i = 1, string_len
+  ix = index(lower_case, string(i:i))
+  if (ix /= 0) string(i:i) = upper_case(ix:ix)
+enddo
 
 end subroutine

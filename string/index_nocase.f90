@@ -17,17 +17,17 @@
 
 function index_nocase(string, match_str) result (indx)
 
-  implicit none
+implicit none
 
-  character(*) string, match_str
-  character(len(string)) string_1
-  character(len(match_str)) string_2
-  integer indx
+character(*) string, match_str
+character(len(string)) string_1
+character(len(match_str)) string_2
+integer indx
 
 !
 
-  call str_upcase(string_1, string)
-  call str_upcase(string_2, match_str)
-  indx = index(string_1, string_2)
+call str_upcase(string_1, string)
+call str_upcase(string_2, match_str)
+indx = index(string_1, string_2)
 
 end function

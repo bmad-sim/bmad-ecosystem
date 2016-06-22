@@ -14,25 +14,25 @@
 
 subroutine string_to_int (line, default, value, err_flag)
 
-  implicit none
+implicit none
 
-  integer default, value, ix, ios
-  character*(*) line
-  logical err_flag
+integer default, value, ix, ios
+character*(*) line
+logical err_flag
 
 !
 
-  err_flag = .false.
+err_flag = .false.
 
-  call string_trim (line, line, ix)
-  if (ix .eq. 0) then 
-    value = default
-  else
-    read (line, *, iostat = ios) value
-    if (ios /= 0) then
-      err_flag = .true.
-      print *, 'ERROR DECODING NUMBER: ', trim(line)
-    endif
+call string_trim (line, line, ix)
+if (ix .eq. 0) then 
+  value = default
+else
+  read (line, *, iostat = ios) value
+  if (ios /= 0) then
+    err_flag = .true.
+    print *, 'ERROR DECODING NUMBER: ', trim(line)
   endif
+endif
 
 end subroutine
