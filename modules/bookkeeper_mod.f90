@@ -768,9 +768,14 @@ endif
 
 ! Multipoles. Note: p0c = 0 Can happen if not finished parsing lattice file.
 
-if (associated (slave%a_pole) .and. slave%value(p0c$) /= 0 .and. .not. lord%field_master) then  
-  slave%a_pole           = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
-  slave%b_pole           = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
+if (associated (slave%a_pole) .and. slave%value(p0c$) /= 0) then
+  if (lord%field_master) then  
+    slave%a_pole = lord%a_pole
+    slave%b_pole = lord%b_pole
+  else
+    slave%a_pole = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
+    slave%b_pole = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
+  endif
   slave%multipoles_on    = lord%multipoles_on
   slave%scale_multipoles = lord%scale_multipoles
 endif
