@@ -1183,7 +1183,7 @@ end subroutine transfer_mat_from_twiss
 ! Subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag, twiss_ele)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
-! at the entrance and exit ends of the element.
+! at the entrance and exit ends of a match element.
 !
 ! Modules Needed:
 !   use bmad
@@ -1211,9 +1211,17 @@ real(rp) orb0(6), orb1(6)
 
 logical err_flag
 
+! Error Check
+
+if (ele%value(beta_a1$) == 0 .or. ele%value(beta_b1$) == 0) then
+  mat6 = 0
+  err_flag = .true.
+  return
+endif
+
 ! Match_end
 
-if (ele%key == match$ .and. is_true(ele%value(match_end$))) then
+if (is_true(ele%value(match_end$))) then
   if (present(twiss_ele)) then
     t_ele => twiss_ele
   else
@@ -1232,11 +1240,20 @@ if (ele%key == match$ .and. is_true(ele%value(match_end$))) then
 endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.
-! In this case, just return the unit matrix and set the err_flag.
+! In this case, just return the unit matrix. 
+! This is not an error since it is important for lat_make_mat6 to keep on computing matrices.
 
 if (is_true(ele%value(match_end$)) .and. (ele%value(beta_a0$) == 0 .or. ele%value(beta_b0$) == 0)) then
   call mat_make_unit (mat6)
   vec0 = 0
+  err_flag = .false.
+  return
+endif
+
+!
+
+if (ele%value(beta_a0$) == 0 .or. ele%value(beta_b0$) == 0) then
+  mat6 = 0
   err_flag = .true.
   return
 endif

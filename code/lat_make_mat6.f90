@@ -200,7 +200,6 @@ if (i_ele < 0) then
 
     call set_lords_status_stale (ele, mat6_group$)
     ele%bookkeeping_state%mat6 = ok$
-
   enddo
 
   if (branch%param%bookkeeping_state%mat6 == stale$) branch%param%bookkeeping_state%mat6 = ok$
@@ -226,11 +225,9 @@ if (i_ele < 0) then
     if (zero_orbit .or. i_branch /= slave0%ix_branch) then
       call make_mat6(lord, lat%branch(slave0%ix_branch)%param, err_flag = err)
     else
-      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, &
-                                        ref_orb(i0-1), ref_orb(i1), .true., err)
+      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, ref_orb(i0-1), ref_orb(i1), .true., err)
     endif
     if (err) return
-
   enddo 
 
   lat%lord_state%mat6 = ok$
