@@ -798,7 +798,7 @@ end subroutine convert_particle_coordinates_s_to_t
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine drift_orbit_time(orbit, mc2, delta_s)
+! Subroutine drift_orbit_time(orbit, delta_s)
 !
 ! Simple routine to drift a particle orbit in time-based coordinates by a distance delta_s
 !   If the particle has zero longitudinal velocity, then the particle is not drifted
@@ -809,7 +809,6 @@ end subroutine convert_particle_coordinates_s_to_t
 !
 ! Input:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates
-!   mc2        -- real(rp): particle mass in eV
 !   delta_s    -- real(rp): s-coordinate distance to drift particle
 !                  .
 !
@@ -817,19 +816,19 @@ end subroutine convert_particle_coordinates_s_to_t
 !   orbit      -- coord_struct: particle orbit in time-based coordinates
 !                                     
 !-
-subroutine drift_orbit_time(orbit, mc2, delta_s)
+subroutine drift_orbit_time(orbit, delta_s)
 use bmad_struct
   
 implicit none
   
 type (coord_struct) :: orbit
-real(rp) :: mc2, delta_s, delta_t, v_s, e_tot, vel(3)
+real(rp) :: delta_s, delta_t, v_s, e_tot, vel(3)
 
 character(28), parameter :: r_name = 'drift_orbit_time'
   
 ! Get e_tot from momentum
 
-e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mc2**2) 
+e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mass_of(orbit%species)**2) 
 
 ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
 
