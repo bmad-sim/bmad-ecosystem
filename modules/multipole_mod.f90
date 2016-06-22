@@ -401,7 +401,7 @@ if (this_ele%field_master .and. this_ele%value(p0c$) /= 0) then
     if (global_com%exit_on_error) call err_exit
     return
   endif
-  factor = charge_of(branch%param%particle) / this_ele%value(p0c$)
+  factor = charge_of(branch%param%particle) * c_light / this_ele%value(p0c$)
   this_a = factor * this_a
   this_b = factor * this_b
 endif

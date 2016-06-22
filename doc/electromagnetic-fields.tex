@@ -125,7 +125,7 @@ energy normalized
 \Begineq
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
-  \label{ababf}
+  \label{ababq}
 \Endeq
 
 The second scaling is applied when the multipoles are associated with a non
@@ -220,7 +220,7 @@ is discussed in \sref{s:cart.map}.
 
 The \vn{cylindrical_map} decomposition can be used for both DC and AC fields. See
 \sref{s:cylind.map.phys} for more details. The syntax for specifying the
-\vn{cylindircal_map} decomposition is discussed in \sref{s:cylind.map}.
+\vn{cylindrical_map} decomposition is discussed in \sref{s:cylind.map}.
 
 %-----------------------------------------------------------------
 \section{Cartesian Map Field Decomposition}
@@ -237,7 +237,7 @@ The \vn{Cartesian} decomposition implemented by \bmad involves a set of terms, e
 term a solution the Laplace equation solved using separation of variables in Cartesian
 coordinates. This decomposition is for DC electric or magnetic fields. No AC Cartesian Map
 decomposition is implemented by \bmad. In a lattice file, a \vn{Cartesian} map is specified using
-the \vn{cartesian_map} attribute as exaplined in Sec.~\sref{s:cart.map}.
+the \vn{cartesian_map} attribute as explained in Sec.~\sref{s:cart.map}.
 
 The \vn{Cartesian} decomposition is modeled using an extension of the method of Sagan,
 Crittenden, and Rubin\cite{b:wiggler}. In this decomposition, the magnetic(or electric
@@ -374,18 +374,18 @@ decomposition is explained here. The other type is the \vn{Cartesian} decomposit
 (\sref{s:cylind.map.phys}).
 
 In a lattice file, a \vn{cylindrical} map is specified using the \vn{cylindrical_map}
-attribute as exaplined in Sec.~\sref{s:cylind.map}.
+attribute as explained in Sec.~\sref{s:cylind.map}.
 
-The \vn{cylindrical} decomposition takes one of two forms depending upon wheather the
+The \vn{cylindrical} decomposition takes one of two forms depending upon whether the
 fields are time varying or not. The DC decomposition is explained in
-Sec.~\sref{s:cylind.dc} while the RF decomposition is exaplained in
+Sec.~\sref{s:cylind.dc} while the RF decomposition is explained in
 Sec.~\sref{s:cylind.ac}. 
 
 %-----------------------------------------------------------------
 \subsection{DC Cylindrical Map Decomposition}
 \label{s:cylind.dc}
 
-The DC \vn{cylindrical} parameterization used by \bmad essentially
+The DC \vn{cylindrical} parametrization used by \bmad essentially
 follows Venturini et al.\cite{b:vent.map}. The electric and magnetic
 fields are both described by a scaler potential
 \Begineq
