@@ -5,7 +5,6 @@
 program math_test
 
 use bmad
-use str_find_first_substring_module
 use random_mod
 use nr
 use naff_mod
@@ -59,16 +58,6 @@ do i = 1, 10
 enddo
 
 write (1, '(a, 4es20.10)') '"QuasiRan" ABS  0', array
-
-! str matching test
-
-str = ' Hello world testing s3 '
-sub1 = 's1' ; sub2 = 's2' ; sub3 = 's3'
-match = str_find_first_substring(str, where, which, sub1, sub2, sub3)
-
-write (1, *)
-write (1, '(a, i0)') '"Which-Find" ABS 0   ', which
-write (1, '(a, i0)') '"Where-Find" ABS 0   ', where
 
 ! 
 
