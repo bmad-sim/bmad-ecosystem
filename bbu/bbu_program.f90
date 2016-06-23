@@ -1,6 +1,7 @@
 program bbu_program
 
 use bbu_track_mod
+use write_lat_file_mod
 
 implicit none
 
@@ -22,7 +23,13 @@ real(rp) growth_rate
 logical err
 logical lost
 
+integer :: file_unit, file_unit2
+integer k
+logical :: ok
+
+type (coord_struct), allocatable :: orb(:) 
 namelist / bbu_params / bbu_param, beam_init, bmad_com
+
 
 ! Defaults for namelist
 beam_init%n_particle = 1
@@ -35,8 +42,9 @@ close (1)
 
 ! Define distance between bunches
 beam_init%dt_bunch = 1 / bbu_param%bunch_freq
-call ran_seed_put (bbu_param%ran_seed)
 
+! Seed random number generator
+call ran_seed_put (bbu_param%ran_seed)
 if (bbu_param%ran_gauss_sigma_cut > 0) then
   call ran_gauss_converter (set_sigma_cut = bbu_param%ran_gauss_sigma_cut)
 endif
@@ -44,16 +52,18 @@ endif
 ! Init and parse
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
 call bmad_parser (bbu_param%lat_filename, lat_in) !! lat_in is the parsed lattice
-call twiss_propagate_all (lat_in)
-call lat_make_mat6(lat_in)  ! Necessary if a match lattice element is present.
+
 
 call run_timer ('START')
 
-!Parse additional settings (lattice2) for drscan
+!For DR-scan, parse additional lattice (lat2) 
 if (bbu_param%lat2_filename /= '') then
-  print *, 'Parsing: ',bbu_param%lat2_filename
+  print *, 'DR-scan or Phase-scan, parsing: ',bbu_param%lat2_filename
   call bmad_parser2 (bbu_param%lat2_filename, lat_in)
 endif
+
+!! Closed orbit computed
+call twiss_and_track(lat_in,orb,ok,0,.true.)
 
 ! Remove HOMs of higher order
 if (bbu_param%hom_order_cutoff > 0) then
@@ -81,7 +91,8 @@ if (bbu_param%hom_order_cutoff > 0) then
   enddo
 endif
 
-!! ele%select == true means the element will NOT be hybridized (to be "kept")
+!!!!!!!!!!!!!!!!!! HYBRIDIZATION !!!!!!!!!!!!!!!!!!!!!!!!
+!! ele%select == true means the element will be kept, NOT hybridized 
 if (bbu_param%hybridize) then
 !  print *, 'CANT HYBRIDIZE -- SET THIS TO FALSE'
 !  print *, 'WILL TRY ANYWAY'
@@ -89,14 +100,29 @@ if (bbu_param%hybridize) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
     ele%select = .false.
-    ! Keep element if defined as end of tracking
+    ! Keep the element at the end of tracking, if specified by user
     if (ele%name == bbu_param%ele_track_end) then
       ele%select = .true.
       cycle
     endif
-    ! Any non-cavity elements are hybridized
+
+    !! Specify the element (names) to be kept from hybridization
+    !! Avoid choosing the patch elements 
+
+    !if(ele%name=='taylorW') then
+    !  ele%select = .true.
+    !  cycle
+    !endif    
+    
+    if(ele%key==8) then !! Taylor
+      ele%select = .true.
+      cycle
+    endif    
+    
+    ! Any non-cavity elements are hybridized (unless user gives exemption above) 
     ! If user chooses not to keep all cavities,
     ! check and keep cavities with lr_wake
+    
     if (ele%key /= lcavity$) cycle
     if (.not. bbu_param%keep_all_lcavities) then
       if (.not. associated (ele%wake)) cycle
@@ -105,15 +131,56 @@ if (bbu_param%hybridize) then
     ele%select = .true.
   enddo
   call make_hybrid_lat (lat_in, lat, bbu_param%use_taylor_for_hybrids)
+  print *, 'Hybridization complete !!!'
 else
+  ! If not hybridizing, keep the original lattice
   lat = lat_in
 endif
 
+!!!!!!!!!!!!!!!!!!!!!  END OF HYBRIDIZATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! Keep the original hybridized lattice
+
+!!!!!!!!   Helpful functions to investigate the (hybridized) lattice !!!!!!!!!!!!!!!
+!!!!!!!!   Only use these for testing purpose, since they can slow down or even stop the program !!!!!!!!!! 
+
+!!! Print the element names of the hybridized lattice 
+!if (bbu_param%hybridize) then
+!  do i = 1, lat%n_ele_track
+!     print *, lat%ele(i)%name
+!  enddo
+!!!endif
+
+!!! Output the lattice file for the  hybridize lattice
+!call write_bmad_lattice_file ('/home/wl528/nfs/linux_lib/bsim/bbu/h0.dat', lat)
+!call write_bmad_lattice_file ('/home/wl528/nfs/linux_lib/bsim/bbu/pscan.dat', lat)
+
+!!! Output properties of  hybridized elements, or the mat6s between all elements
+!!! of the hybridized lattice
+!! This line will stop the program during its 2nd run
+!open(newunit = file_unit, file = '/home/wl528/nfs/linux_lib/bsim/bbu/mat6.dat', status = "new", action= "write")
+!! This line will NOT stop the program. the file will be overwritten every BBU run
+!open(newunit = file_unit, file = '/home/wl528/nfs/linux_lib/bsim/bbu/mat6.dat')
+! do k = 1, lat%n_ele_track
+!   if (lat%ele(k)%key == 16) then     !!key=16 means the element is a hybrid 
+!     write(file_unit,"(A20)") "haha"
+!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(L$)
+!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(E_TOT_START$)
+!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(DELTA_E$)
+!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(delta_ref_time$)
+!
+!   endif
+!   !do i =1,6
+!   !  write(file_unit,'(6F14.7,1es18.8)')(lat%ele(k)%mat6(i,j),j=1,6), lat%ele(k)%vec0(i)
+   !enddo
+ !enddo  
+!close (file_unit)
+
+
+
+! Keep the lattice ready to use?
 lat0 = lat 
 
-! Define element at which tracking ends
+! Define element at which tracking ends, if user didn't specify one
 if (bbu_param%ele_track_end.ne.' ') then
   call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
   ! eles: (output) Ele_pointer_struct, allocatable: Array of matching elements
@@ -137,34 +204,55 @@ if (bbu_param%ele_track_end.ne.' ') then
 endif
 
 !! Record cavity names in hom_info.txt
-if (bbu_param%write_hom_info) then
-  call rf_cav_names (lat)
-endif
+!! hom_info.txt can be useful if the user intends to assign HOM files randomly
+!! to the cavities
+!if (bbu_param%write_hom_info) then
+!  call rf_cav_names (lat)
+!endif
 
+!print *, 'bbu_setup running...'
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
+print *, 'bbu_setup complete !!!'
 
-n_ele = 0
-do i = 1, size(bbu_beam%stage)
-  j = bbu_beam%stage(i)%ix_ele_lr_wake ! j = index of THE lr_wake in stag i
-  call multipass_chain (lat%ele(j), ix_pass, n_links = n)
-  ! ix_pass = Multipass pass number of the input lr_wake
-  if (ix_pass /= 1 .and. n /= 0) cycle
-  n_ele = n_ele + 1
-enddo
+!! This computes n_ele, which is not used at all?
+!n_ele = 0
+!do i = 1, size(bbu_beam%stage)
+!  j = bbu_beam%stage(i)%ix_ele_lr_wake ! j = index of THE lr_wake in stage i
+!  call multipass_chain (lat%ele(j), ix_pass, n_links = n)
+!  ! ix_pass  -- Integer: Multipass pass number of the input element ( can be an lr wake ). 
+!  !                        -1 if input element is not in a multipass section.
+!  ! n_links  -- Integer: Number of times the physical element is  passed through.
+!  !print *, ix_pass, n
+!  
+!  if (ix_pass /= 1 .and. n /= 0) cycle
+!  n_ele = n_ele + 1
+!enddo
+!  print *, n_ele
 
 beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
-print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
-
-print *, 'Number of elements in lattice:      ', lat%n_ele_track
+print *, 'Number of stages and elements in the (hybridized) lattice: ' &
+, size(bbu_beam%stage),  lat%n_ele_track
 
 lat = lat0 ! Restore lr wakes
-call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
+!print *, 'bbu_track_all running...'
+call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
+print *, 'bbu_track_all complete !!!'
+ 
+!! these are not accurate
+!! These only tell the greatest hom voltage at the end period of tracking
+!print *, 'Target cavity number with max volt:', bbu_beam%ix_stage_voltage_max                             ! Target cavity (stage)
+!print *, 'Target hom wake number with max volt:', bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  ! Target hom wake
+!print *,  bbu_beam%hom_voltage_max  
+
+!print *, 'LostBool:', lost                                            
+print *, 'HOM VOLT GAIN: ', hom_voltage_gain
+print *, 'growth_rate: ', growth_rate
+! Output the BBU results, store them in "for_py.txt" to be analyzed by Python
 o = lunget() 
 open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
-print *, 'HOM VOLT: ',hom_voltage_gain
 write(o,'(a, es18.8E3)') 'v_gain = ', hom_voltage_gain
 write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
 write(o,'(a,es14.6)') 'bunch_dt = ', beam_init%dt_bunch

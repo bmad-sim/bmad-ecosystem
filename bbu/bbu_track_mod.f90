@@ -48,13 +48,14 @@ type bbu_param_struct
   logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
   logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
   logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
+  !logical :: use_taylor_for_hybrids = .true.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
   logical :: stable_orbit_anal = .false.         ! Write stable_orbit.out and hom_voltage.out?
   real(rp) :: limit_factor = 2                   ! Init_hom_amp * limit_factor = simulation unstable limit
   real(rp) :: simulation_turns_max = 20          ! Sets the duration of the simulation.
   real(rp) :: bunch_freq = 1.3e9                 ! Freq in Hz.
   real(rp) :: init_particle_offset = 1e-8        ! Initial particle offset for particles born in the first turn period.
   real(rp) :: current = 20e-3                    ! Starting current (amps)
-  real(rp) :: rel_tol = 1e-2                     ! Final threshold current accuracy.
+  real(rp) :: rel_tol = 1e-2                     ! Final threshold current accuracy. 
   logical :: drscan = .true.                     ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
   logical :: use_interpolated_threshold = .true.
   logical :: write_hom_info = .true.             ! Write HOM parameters to main output file?
@@ -125,7 +126,7 @@ allocate (bbu_beam%stage(n_stage))
 ! A given stage has one and only one lcavity.
 ! The first stage starts at the beginning of the lattice.
 ! The last stage ends at the end of the lattice.
-! All stages except the last end at an lcavity.
+! All stages, except the last one, end at an lcavity.
 
 ! bbu_beam%stage(i)%ix_ele_lr_wake holds the index in lat%ele(:) of the lcavity of the i^th stage.
 
@@ -136,18 +137,26 @@ allocate (bbu_beam%stage(n_stage))
 bbu_beam%stage%ix_head_bunch = -1    ! Indicates there are no bunches ready for a stage.
 bbu_beam%stage(1)%ix_head_bunch = 1
 
-j = 0
+j = 0   !The "stage" index
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (.not. associated(ele%wake)) cycle
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
-
+  
+  !stage j holds the index of the "wake element", i
   bbu_beam%stage(j)%ix_ele_lr_wake = i
 
+  ! Returns the chain of multipass elements that represent the SAME physical element 
+  ! ix_pass: multipass number of the element, -1 if not a multipass element
+  ! n_links: number of pass through the element
   call multipass_chain (ele, ix_pass, n_links, chain_ele)
   bbu_beam%stage(j)%ix_pass = ix_pass
 
+  ! This fills out bbu_beam%stage(j)%ix_stage_pass1, the indes of the
+  ! corresponding STAGE on it's first pass 
+  ! That is, a multipass stage with pass number >1 has ix_stage_pass1 set to
+  ! the corresponding stage with pass number = 1
   if (ix_pass > 0) then
     do k = 1, j
       if (bbu_beam%stage(k)%ix_ele_lr_wake == chain_ele(1)%ele%ix_ele) then
@@ -192,7 +201,7 @@ subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_norma
 implicit none
 
 type (lat_struct) lat
-!type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
@@ -211,13 +220,17 @@ character(16) :: r_name = 'bbu_track_all'
 
 ! Setup.
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
+print *, 'bbu_setup complete.'
 
 call lattice_bookkeeper (lat)
 bmad_com%auto_bookkeeper = .false. ! To speed things up.
 
+!! Populate bunches into the lattice
+!print *,'Initial number of bunches:', size(bbu_beam%bunch)
 do i = 1, size(bbu_beam%bunch)
   call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 enddo
+print *, 'initial bunch population complete.'
 
 call reallocate_coord (orbit, lat%n_ele_track)
 
@@ -227,7 +240,8 @@ bbu_beam%hom_voltage_max = 0
 bbu_beam%ix_stage_voltage_max = 1
 growth_rate = real_garbage$
 
-open(28, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
+!open(28, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
+!open(29, file = '/home/wl528/nfs/linux_lib/bsim/bbu/examples/volt_v_turn.txt', status = 'unknown', access = 'append')
 
 bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
 ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
@@ -244,10 +258,16 @@ n_period_old = 1
 hom_voltage_sum = 0
 n_count = 0
 
-do
+print *, 'bbu_track_all main loop begins !!!'
+print *, 'Test Current is: ', bbu_param%current
 
+do
+  ! Track the beam until beam loss or gain too small or large 
   call bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
-  if (lost) exit
+  if (lost) then
+    print *, 'Beam is lost after tracking a stage. (HOM voltage computed might be garbage)'
+    exit
+  endif
 
   ! If the head bunch is finished then remove it and seed a new one.
   if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
@@ -255,12 +275,17 @@ do
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
   endif
 
+  !print *, bbu_beam%time_now,bbu_beam%one_turn_time
   ! Test for the end of the period
-  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
-  n_period = int(r_period) + 1
+  r_period = bbu_beam%time_now / bbu_beam%one_turn_time  !! Ticking up "continuously" (dt based on bbu_track_a_stage) 
+  n_period = int(r_period) + 1                           !! Ticking up at integer steps
 
+  !!! This huge IF statement is activated only at the beginning of a new period, when n_period ticks up
+  ! n_period_old is updated to n_period at the end of the statement, so the 
+  ! IF statement is not entered until n_period ticks up by 1 
   if (n_period /= n_period_old) then
-
+    !print *, n_period
+    ! computing orb for this period ?
     do i = 1, size(bbu_beam%stage)
       if (bbu_beam%stage(i)%n_orb == 0) cycle
       bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
@@ -268,6 +293,7 @@ do
       where (orb < 0) orb = 0
       bbu_beam%stage(i)%rms_orb = sqrt(orb)
     enddo
+    !print *, "sqrt:",size(orb),sqrt(orb)
 
     if (n_period_old == 3) then
       ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
@@ -290,16 +316,26 @@ do
 !         '   over ', n_count, ' bunch passages', &
 !         ' HOM normalized voltage (gain factor): ', hom_voltage_normalized
 
-
     if (n_period_old > 3) then
-      if (.not. bbu_param%stable_orbit_anal) then
-        if (hom_voltage_normalized < 1/bbu_param%limit_factor) exit
-        if (hom_voltage_normalized > bbu_param%limit_factor) exit      
+      if (.not. bbu_param%stable_orbit_anal) then  ! default stable_orbit_anal is false
+        if (hom_voltage_normalized < 1/bbu_param%limit_factor) then
+          print *, 'Tracking stops b/c hom_voltage_normalized BELOW 1/limit_factor'
+          exit  ! default limit_factor is 2
+        endif
+        if (hom_voltage_normalized > bbu_param%limit_factor) then
+          print *, 'Tracking stops b/c hom_voltage_normalized ABOVE limit_factor'
+          exit
+        endif  
       else
-!        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_normalized
+!  write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_normalized
       endif
     endif
 
+    if (r_period > bbu_param%simulation_turns_max - 3)  then  !! loop ends when r_period > simulation_turns_max = 1000
+      print *, 'r_period: ', r_period
+      print *, 'Stage #:', bbu_beam%ix_stage_voltage_max, 'HOM #: ', bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  
+    endif
+    
     ! Exit loop over periods of max period reached
     if (r_period > bbu_param%simulation_turns_max) then
       call out_io (s_warn$, r_name, 'Simulation turns max exceeded -- Ending Tracking  \f10.2\ ', &
@@ -307,6 +343,7 @@ do
       exit
     endif
 
+    ! Reset parameters for the next n_period 
     hom_voltage_sum = 0
     n_count = 0
     n_period_old = n_period
@@ -319,19 +356,27 @@ do
     enddo
   endif
 
-  ! Compute integrated voltage. 
+  ! Compute integrated voltage.
+  ! Specifically, update bbu_beam%voltage_max after every track_a_stage
+  ! and sum them over for each n_period
+  ! The sum is reset when n_period ticks up by 1
   call bbu_hom_voltage_calc (lat, bbu_beam)
   hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
-  n_count = n_count + 1
-  ! Write to file for Voltage v Turns plot for first cavity
+  n_count = n_count + 1 ! Number of track_a_stage in one period 
+  
+  ! Write to file for Voltage sum  v.s. Turns (or any wanted information in one
+  ! track_a_stage) for first cavity
 !  do i=1, lat%n_ele_track
 !    ele=> lat%ele(i)
 !    if (ele%key == lcavity$) then
-!      write(28,'(i10, es15.6)') n_period_old, hom_voltage_sum
+!      !write(28,'(a12, i10, es15.6)') ele%name, n_period_old, hom_voltage_sum
+!      !write(29,'(i10, es15.6)') n_period_old, hom_voltage_sum
+!      !write(29,'(i4, i4, es15.6)') n_count, n_period_old, bbu_beam%hom_voltage_max
+!      write(29,'(i4, es12.4, es12.4, es12.4)') n_period_old, bbu_beam%time_now, bbu_beam%hom_voltage_max, bbu_param%current
 !      exit
 !    endif
-!  end do
-  
+!  enddo
+
 enddo
 
 ! Finalize
@@ -363,12 +408,12 @@ character(20) :: r_name = 'bbu_track_a_stage'
 
 logical err, lost
 
-! Look at each stage track the bunch with the earliest time to finish and track this stage.
+! Look at each stage, track the bunch with the earliest time to finish, and track this stage.
 i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
 this_stage => bbu_beam%stage(i_stage_min)
 bbu_beam%time_now = this_stage%time_at_wake_ele
 
-! With the last stage track to the end of the lattice
+! With the last stage, track to the end of the lattice
 ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = bbu_param%ix_ele_track_end
 ie = bbu_param%ix_ele_track_end
@@ -483,41 +528,43 @@ endif
 bunch => bbu_beam%bunch(ixb)
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
 
-! Vary the bunch current if desired
-if (bbu_param%current_vary%variation_on) then
-  t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
-  d_charge = 0
-  if (t_rel > 0) then
-    if (t_rel < bbu_param%current_vary%dt_ramp) then
-      d_charge = bbu_param%current_vary%d_charge * t_rel / bbu_param%current_vary%dt_ramp
-      t_rel = -1
-    else
-      t_rel = t_rel - bbu_param%current_vary%dt_ramp
-    endif 
-  endif
+!!! Vary the bunch current if desired
+!!! Since variation_on is false by default, this IF statement is commented out ( May 9 2016 )
+!if (bbu_param%current_vary%variation_on) then
+!  t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
+!  d_charge = 0
+!  if (t_rel > 0) then
+!    if (t_rel < bbu_param%current_vary%dt_ramp) then
+!      d_charge = bbu_param%current_vary%d_charge * t_rel / bbu_param%current_vary%dt_ramp
+!      t_rel = -1
+!    else
+!      t_rel = t_rel - bbu_param%current_vary%dt_ramp
+!    endif 
+!  endif
+!
+!  if (t_rel > 0) then
+!    if (t_rel < bbu_param%current_vary%dt_plateau) then
+!      d_charge = bbu_param%current_vary%d_charge 
+!      t_rel = -1
+!    else
+!      t_rel = t_rel - bbu_param%current_vary%dt_plateau
+!    endif 
+!  endif
+!
+!  if (t_rel > 0) then
+!    if (t_rel < bbu_param%current_vary%dt_ramp) then
+!      d_charge = bbu_param%current_vary%d_charge * (1 - t_rel / bbu_param%current_vary%dt_ramp)
+!    endif 
+!  endif
+!
+!  if (d_charge /= 0) then
+!    bunch%charge_tot = bunch%charge_tot * d_charge
+!    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
+!  endif
+!endif
 
-  if (t_rel > 0) then
-    if (t_rel < bbu_param%current_vary%dt_plateau) then
-      d_charge = bbu_param%current_vary%d_charge 
-      t_rel = -1
-    else
-      t_rel = t_rel - bbu_param%current_vary%dt_plateau
-    endif 
-  endif
-
-  if (t_rel > 0) then
-    if (t_rel < bbu_param%current_vary%dt_ramp) then
-      d_charge = bbu_param%current_vary%d_charge * (1 - t_rel / bbu_param%current_vary%dt_ramp)
-    endif 
-  endif
-
-  if (d_charge /= 0) then
-    bunch%charge_tot = bunch%charge_tot * d_charge
-    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
-  endif
-endif
-
-! If this is not the first bunch need to correct some of the bunch information
+! If this is not the first bunch (most of time),
+! we need to correct some of the bunch information
 if (ixb /= bbu_beam%ix_bunch_head) then
   ix0 = bbu_beam%ix_bunch_end
   bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
@@ -527,7 +574,8 @@ endif
 
 bbu_beam%ix_bunch_end = ixb
 
-! Offset particles if the particle is born within the first turn period.
+! Offset particles if the particle is born within 
+!"the first turn period" (initial population of bunches in the lattice).
 if (bunch%t_center < bbu_beam%one_turn_time) then
   do i = 1, size(bunch%particle)
     call ran_gauss (r)
@@ -566,6 +614,7 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! Calculates voltage in mode with maximal amplitude
+! Specifically, update bbu_beam%ix_stage_voltage_max and bbu_beam%hom_voltage_max 
 subroutine bbu_hom_voltage_calc (lat, bbu_beam)
 
 implicit none
@@ -581,314 +630,47 @@ integer i, j, i1, ixm, ix
 ! Only need to update the last stage tracked
 hom_voltage_max = -1
 i = bbu_beam%ix_last_stage_tracked
-i1 = bbu_beam%stage(i)%ix_stage_pass1
-ix = bbu_beam%stage(i1)%ix_ele_lr_wake
-do j = 1, size(lat%ele(ix)%wake%lr)
+i1 = bbu_beam%stage(i)%ix_stage_pass1    ! Find the corresponding stage of 1st pass 
+ix = bbu_beam%stage(i1)%ix_ele_lr_wake   ! Find the wake element (cavity) of that corresponding stage
+!! Find which wake of the stage has the max voltage
+do j = 1, size(lat%ele(ix)%wake%lr)  ! Number of lr wakes assigned to the cavity
   lr => lat%ele(ix)%wake%lr(j)
-  hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
+  hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2) 
   if (hom_voltage_max < hom_voltage2) then
-    hom_voltage_max = hom_voltage2
-    bbu_beam%stage(i1)%ix_hom_max = j
+    hom_voltage_max = hom_voltage2                 ! store the max voltage
+    bbu_beam%stage(i1)%ix_hom_max = j              ! store the target wake index 
   endif
 enddo
 
-! Update the new hom voltage.
+! Update the new max hom voltage in that cavity only
 hom_voltage_max = sqrt(hom_voltage_max)
-bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max
+bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max        
 
+! Compare the voltage with the stored universal max-voltage:  bbu_beam%hom_voltage_max
 ! Find the maximum hom voltage in any element.
-if (hom_voltage_max > bbu_beam%hom_voltage_max) then
-  bbu_beam%ix_stage_voltage_max = i1
-  bbu_beam%hom_voltage_max = hom_voltage_max
+!if (hom_voltage_max > bbu_beam%hom_voltage_max) then
+!  bbu_beam%ix_stage_voltage_max = i1
+!  bbu_beam%hom_voltage_max = hom_voltage_max
 
-elseif (i1 == bbu_beam%ix_stage_voltage_max) then
-  ixm = maxloc(bbu_beam%stage%hom_voltage_max, 1)
-  bbu_beam%ix_stage_voltage_max = ixm
-  bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
-endif
 
+!! If not, get the maximum 
+!! This only matters when the stage tracked IS the stage holding the old maximum
+!elseif (i1 == bbu_beam%ix_stage_voltage_max) then
+!  ixm = maxloc(bbu_beam%stage%hom_voltage_max, 1)
+!  bbu_beam%ix_stage_voltage_max = ixm
+!  bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
+!endif
+
+ixm = maxloc(bbu_beam%stage%hom_voltage_max, 1)
+bbu_beam%ix_stage_voltage_max = ixm
+bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
+
+!print *,  bbu_beam%ix_stage_voltage_max, bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  
 end subroutine bbu_hom_voltage_calc
 
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
 
-subroutine write_homs (lat, bunch_freq, trtb, currth)
-
-! Write out information on lattice and HOMs
-! Adapted from Changsheng's Get_Info.f90
-! 19 March 2009 J.A.Crittenden
-
-implicit none
-
-type (bbu_param_struct) bbu_param
-
-type (lat_struct) lat
-
-
-! Arrays used to store lattice information
-real(rp), Dimension(6,6) :: mat, oldmat,imat, testmat
-real(rp), Dimension(:,:,:), allocatable :: erlmat
-real(rp), Dimension(:),     allocatable :: erltime
-
-
-integer i, j, k, kk, l, u
-real(rp)  time, Vz, P0i, P0f, gamma
-logical anavalid
-logical judge
-integer :: matrixsize = 4
-real(rp) cnumerator,trtb,currth,currthc,rovq,matc,poltheta
-real(rp) epsilon,kappa
-real(rp) stest
-integer nr
-real(rp) bunch_freq
-allocate(erlmat(800, matrixsize, matrixsize))
-allocate(erltime(800))
-
- 
-! Initialize the identity matrix
-call mat_make_unit(imat)
-
-! Find the time between each cavity in the low energy lattice
-! The time between two cavities is stored in erltime(k)
-
-time=0
-k=1     
-
-do i = 1, lat%n_ele_track
-  gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
-  Vz=c_light*sqrt(1.-1./gamma**2)
-   
-  if (lat%ele(i)%key == LCAVITY$ ) then
-    time=time+(lat%ele(i)%value(l$))/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
-    judge=.false.  ! True if the rf cavity has wake fields
-    if (associated(lat%ele(i)%wake)) then
-      do j=1, size(lat%ele(i)%wake%lr)
-        if (lat%ele(i)%wake%lr(j)%R_over_Q > 1E-10) judge=.true.
-      enddo
-    endif
-    if (judge) then
-!      write(20, *) ' Storing time for HOM cavity',k,time
-      erltime(k)=time
-      time=0
-      k=k+1       
-    endif
-  elseif (lat%ele(i)%key == hybrid$) then
-    time = time + lat%ele(i)%value(delta_ref_time$)
-  else
-    time=time+(lat%ele(i)%value(l$)) / Vz
-  endif
-   
-enddo
-
-
-
-! Calculate Transport Matrices for the low energy lattice
-! Matrix elements are stored in erlmat(i,j,k)
-oldmat=imat
-testmat = imat
-P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
-judge =.false.
-anavalid = .true.
-
-do i=0, lat%n_ele_track
-   
-   mat=matmul(lat%ele(i)%mat6, oldmat) 
-  
-   if (lat%ele(i)%key == LCAVITY$ ) then
-     if(associated(lat%ele(i)%wake)) then
-       do j=1, size(lat%ele(i)%wake%lr)
-          if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
-            judge =.true.
-          endif
-       enddo
-     endif
-
-     if (judge) then
-
-      P0f=lat%ele(i)%value(p0c$)
-      mat(1,2)=mat(1,2)/P0i
-      mat(1,4)=mat(1,4)/P0i
-      mat(2,1)=mat(2,1)*P0f
-      mat(2,2)=mat(2,2)*P0f/P0i
-      mat(2,3)=mat(2,3)*P0f
-      mat(2,4)=mat(2,4)*P0f/P0i
-      mat(3,2)=mat(3,2)/P0i
-      mat(3,4)=mat(3,4)/P0i
-      mat(4,1)=mat(4,1)*P0f
-      mat(4,2)=mat(4,2)*P0f/P0i
-      mat(4,3)=mat(4,3)*P0f
-      mat(4,4)=mat(4,4)*P0f/P0i
-
-      do l=1, matrixsize
-        do u=1, matrixsize
-           erlmat(k,l,u)=mat(l,u)
-        enddo
-      enddo
-
-
-! Index of the HOM for which an analytic approximation
-! to the threshold current is to be calculated.
-! Skip the first one, since it will not contribute,
-! owing to lack of beam offset there. 
-k=2
-
-! Counter for the number of cavities for which analytic approximations
-! to the threshold current are calculated
-kk=1
-
-      if(erltime(k).gt.0.)then
-
-        do j=1, size(lat%ele(i)%wake%lr)
-
-           ! Analytic approximation is not valid if any cavity has more than one HOM
-           if (j.gt.1)anavalid=.false.
-
-           ! This code uses the "linac definition" of R/Q, which is
-           ! a factor of two larger than the "circuit definition." 
-           ! The HOM files are in the "circuit definition" and
-           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%wake%lr(j)%R_over_Q is in Ohms.
-
-           rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
-           !write(20, *) ' RovQ in Ohms',rovq
-
-           ! Follow PRSTAB 7, 054401 (2004) (some bug here)
-           !kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
-!!!OUT
-           cnumerator = 2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
-
-           stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) 
-
-           epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
-           nr = int(erltime(k)*bunch_freq) + 1
-           trtb = erltime(k)*bunch_freq
-
-
-           if (nr*epsilon.lt.0.5)then
-            if (stest.le.0.)then
-              ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr < 0
-              currth = - cnumerator / stest
-            else
-              ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr > 0
-              currth = cnumerator / ( epsilon * abs(mat(1,2)) )
-              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) .le. pi/2 )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
-              !write(20, *) ' First half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )
-              else
-               currth = currth * sqrt ( epsilon**2 + ( (pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )) / nr )**2 )
-               !write(20, *) ' Second half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )
-              endif
-            endif
-           elseif (nr*epsilon.gt.2.)then
-              ! Threshold current for case epsilon * nr >> 1
-              currth = cnumerator / ( epsilon * abs(mat(1,2)) )
-
-              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )  .le. pi )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi ) / nr )**2 )
-               !write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
-              else
-               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )) / nr )**2 )
-               !write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
-              endif
-!
-              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
-               !write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
-              else
-               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
-               !write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
-              endif
-             currth = abs ( cnumerator / mat(1,2) )
-           else
-            currth=0.
-          endif
-
-
-          ! Threshold current for coupling
-          poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
-          matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
-          currthc = -1
-          if (matc /= 0) currthc = currth * abs ( mat(1,2) / matc )
-
-          write (20, *) '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq    R/Q(ohms/m^2)     Q       Pol Angle       T12         sin omega*tr     tr/tb'
-    !      write(20, *) k, j, currth, currthc, erltime(k), &
-     !                     lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
-   !                       mat(1,2),&
-      !                    sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
-
-!          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
-
-          if(kk.ne.1)anavalid=.false.
-
-        enddo
-        kk=kk+1 ! Count nr of cavities for which analytic approximations are calculated
-
-      endif   
-
-      
-      mat=imat     ! Re-initialize the transfer matrix
-      k=k+1        ! Count cavities with HOMs
-      P0i=P0f 
-
-      endif ! End of judge selection
-   endif ! End of cavity selection
-   
-   judge =.false.
-   oldmat = mat
-  
-enddo
-
-! Analytic approxmation is valid only for a single HOM in a single cavity
-if (.not. anavalid) currth = 0.0
-deallocate (erlmat, erltime)
-
-end subroutine write_homs
-!-------------------------------------------
-!-------------------------------------------
-!-------------------------------------------
-subroutine lr_wake_info (lat)
-implicit none
-
-type (bbu_param_struct) bbu_param
-type (lat_struct) lat
-type (ele_struct), pointer :: ele
-
-real(rp) rovq, RoQ, freq, Q
-integer i, j, p, n
-character(25) cav_name
-
-open(20, file = 'hom_info.txt', status = 'unknown')
-write(20,'(6a15)') 'cavity#','HOM_n','R/Q (Ohms/m^2)','Q','HOM_freq','cavity_name'
-
-do i = 1, lat%n_ele_track
-cav_name = lat%ele(i)%name 
-n = lat%ele(i)%n_lord
-ele => lat%ele(i)
-if (ele%key /= lcavity$) cycle
-if (ele%slave_status == multipass_slave$)   ele => pointer_to_lord(ele, 1)
-if (associated(ele%wake))then 
-  if (allocated(ele%wake%lr))then 
-    do j=1, size(ele%wake%lr)
-     RoQ = ele%wake%lr(j)%R_over_Q      
-           ! This code uses the "linac definition" of R/Q, which is
-           ! a factor of two larger than the "circuit definition." 
-           ! The HOM files are in the "circuit definition" and
-           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%wake%lr(j)%R_over_Q
-           ! is in Ohms.
-      rovq = 2*ele%wake%lr(j)%R_over_Q * (c_light/(2*pi*ele%wake%lr(j)%freq))**2
-      freq = ele%wake%lr(j)%freq 
-      Q = ele%wake%lr(j)%Q 
-      write(20,'(2i15, 3F25.8, a25, $)') i, j, RoQ, Q, freq, trim(adjustl(cav_name))   ! 3es30.8,
-      write(20,*)  
-    enddo
-  endif
-endif
-enddo
-
-end subroutine lr_wake_info
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
+!!! If user didn't pre-assign the HOMs --------
+!!! output 'hom_info.txt' so that HOMs can be assigned starting next bbu run --------
 subroutine rf_cav_names (lat)
 implicit none
 type (bbu_param_struct) bbu_param
@@ -909,7 +691,6 @@ do i = 1, lat%n_ele_track
 enddo
 
 end subroutine rf_cav_names
-!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
