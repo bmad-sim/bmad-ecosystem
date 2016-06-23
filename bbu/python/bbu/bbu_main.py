@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import subprocess
-from bbu import find_threshold, drscan
+from bbu import find_threshold, drscan, phase_scan
 import os
 import math
 
@@ -31,16 +31,20 @@ def single_threshold( py_par ):
   # Define dictionay t for threshold calculation
   t = {'charge0':0,'charge1':-1,'charge_old':-1,'charge_try':-1,'growth_rate0':-1,'growthrate1':-1,'growth_rate_set0':False,'growth_rate_set1':False,'growth_rate':0,'growth_rate_old':0,'bunch_charge':0,'charge_threshold':0}
   temp_curr = py_par['threshold_start_curr']
+
+  print('Start running BBU for first current')
   find_threshold.run_bbu( temp_curr, py_par, 'current' )   # Run bbu for first tempory current
+  print('Finish running BBU for first current') 
   d = parse_for_py(os.path.join(py_par['temp_dir'],'for_py.txt'))
-  t['bunch_charge'] = temp_curr * d['bunch_dt']   # Calculate() will vary bunch charge (~current)
+  t['bunch_charge'] = temp_curr * d['bunch_dt']   
   keep_looking = 1
   while ( keep_looking ):   # Nudge stable current very close to higher, unstable current. Threshold is between the two.
     t['growth_rate_set0'] = d['growth_rate_set']
     t['growth_rate'] = d['growth_rate']
     bool_stable = find_threshold.get_stability(d['v_gain'], d['lostbool'])
-    find_threshold.calc_new_charge( t, bool_stable, d['rel_tol'] )
+    find_threshold.calc_new_charge( t, bool_stable, d['rel_tol'] ) # clac_new_charge() updates many things in t
     temp_curr = t['bunch_charge'] / d['bunch_dt']    # Bunch charge updated in calc_new_charge()
+    print('current0:',t['charge0']/d['bunch_dt'],'(A), current1:',t['charge1']/d['bunch_dt'], '(A)')
     find_threshold.run_bbu( temp_curr, py_par, 'current' )    #Run BBU on new trail current
     d.clear()
     d = parse_for_py(os.path.join(py_par['temp_dir'],'for_py.txt'))
@@ -57,6 +61,10 @@ def single_threshold( py_par ):
       keep_looking = 0
       print('==!!==!!==!!==')
       print('	THRESHOLD DID NOT CONVERGE WITHIN BOUNDS')
+      if (temp_curr < 10**-15):
+        print('Test current below 10^-15 A, no stable current found')
+      else:
+        print('Test current above 10^5 A, no unstable current found')
       histo = open(os.path.join(py_par['temp_dir'],'thresholds.txt'), 'a')
       histo.write('DID NOT CONVERGE\n')
       histo.close()
@@ -75,9 +83,9 @@ def drscanner( py_par ):
 
   # Create thres_v_trotb.txt in temp_dir to store the computed Ith for each tr/tb 
   my_file = open(os.path.join(py_par['temp_dir'],'thresh_v_trotb.txt'),'w')
-  step_size = (py_par['end_dr_arctime']-py_par['start_dr_arctime'])/(py_par['ndata_pnts']-1)
+  step_size = (py_par['end_dr_arctime']-py_par['start_dr_arctime'])/(py_par['ndata_pnts_DR']-1)
 
-  for n in range (0, py_par['ndata_pnts']):
+  for n in range (0, py_par['ndata_pnts_DR']):
     #t=t0 # reset t to t0 for each new arctime
     t  = {'charge0':0,'charge1':-1,'charge_old':-1,'charge_try':-1,'growth_rate0':-1,'growthrate1':-1,'growth_rate_set0':False,'growth_rate_set1':False,'growth_rate':0,'growth_rate_old':0,'bunch_charge':0,'charge_threshold':0}
     temp_arctime = py_par['start_dr_arctime'] + n*(step_size)
@@ -122,5 +130,70 @@ def drscanner( py_par ):
   if (py_par['plot_drscan']):
     print('Producing plot(s). To continue, exit the plots.') 
     drscan.make_dr_plot(py_par)  
+    
+
+
+def phase_scanner( py_par ):
+  # Define dictionary t for threshold calculation
+  t={}
+
+  # Create thres_v_phase.txt in temp_dir to store the computed Ith for each phase
+  my_file = open(os.path.join(py_par['temp_dir'],'thresh_v_phase.txt'),'w')
+  
+  # Define step size
+  if(py_par['ndata_pnts_PHASE'] >= 2):
+    print('Caution: Too many ndata_pnts_PHASE may take a long time!!')
+    step_size = (py_par['end_phase']-py_par['start_phase'])/(py_par['ndata_pnts_PHASE']-1)
+  elif(py_par['ndata_pnts_PHASE'] == 1):
+    print('Just one data point.')
+    step_size = 0
+  else:
+    print('Invalid ndata_pnts_PHASE specified!!! ')
+
+  # Looping over phases 
+  for n in range (0, py_par['ndata_pnts_PHASE']):
+    t  = {'charge0':0,'charge1':-1,'charge_old':-1,'charge_try':-1,'growth_rate0':-1,'growthrate1':-1,'growth_rate_set0':False,'growth_rate_set1':False,'growth_rate':0,'growth_rate_old':0,'bunch_charge':0,'charge_threshold':0}
+    
+    if (step_size > 0):  # If step_size is not defined, user has given invalid ndata_pnts_PHASE
+      temp_phase = py_par['start_phase'] + n*(step_size)    # For scan (more than one data point, can be slow)
+    elif (step_size == 0):
+      temp_phase = py_par['ONE_phase']                      # For one data point
+    
+    # Make lat2 file with the temp_phase
+    phase_scan.setup_phase_scan( temp_phase, py_par ) 
+
+    # Run bbu first time with the test_curr at this phase 
+    find_threshold.run_bbu( py_par['threshold_start_curr'], py_par, 'phase_scan' )
+    d = parse_for_py(os.path.join(py_par['temp_dir'],'for_py.txt')) # parse the result (from Fortran to Python)
+    t['bunch_charge'] = py_par['threshold_start_curr'] * d['bunch_dt']   
+    keep_looking = 1
+
+    # For a specific phase, find the Ith
+    while ( keep_looking ):   # Nudge stable current very close to the higher, unstable current
+      t['growth_rate_set0'] = d['growth_rate_set']
+      t['growth_rate'] = d['growth_rate']
+      bool_stable = find_threshold.get_stability(d['v_gain'], d['lostbool']) #check stability 
+      find_threshold.calc_new_charge( t, bool_stable, d['rel_tol'] ) #update t based on the stability of previous trial currents
+      temp_curr = t['bunch_charge'] / d['bunch_dt']    # compute the new trial current using updated t[bunch_charge]
+      find_threshold.run_bbu( temp_curr, py_par, 'phase_scan' )    # Try the new guessed current
+      d.clear()
+      d = parse_for_py(os.path.join(py_par['temp_dir'],'for_py.txt'))
+      t['growth_rate_set1'] = d['growth_rate_set']
+      if ( abs(t['charge1'] - t['charge0']) < abs(t['charge1']*d['rel_tol']) ): 
+      # If the difference between min_I_unstable and max_I_stable is within the tolerance, Ith is considered found 
+        keep_looking = 0 
+        print('= = = = = = = = =')
+        print('	STEP IN PHASE_SCAN COMPLETE')
+        # Record tr/tb, Log(Ith, 10), and  Ith for plotting
+        my_file.write(str(temp_phase)+'	'+str(math.log(temp_curr,10))+'	'+str(temp_curr)+'\n')
+        print('JUST WROTE TO thresh_v_phase.txt in the temporary directory')
+    d.clear()
+  my_file.close()
+
+  
+  # If requested, plot Log(Ith) vs phase 
+  #if (py_par['plot_phase_scan']):
+    #print('Producing plot(s). To continue, exit the plots.') 
+    #phase_scan.make_phase_plot(py_par)  
     
 
