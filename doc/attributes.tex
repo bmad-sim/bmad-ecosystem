@@ -179,13 +179,13 @@ below. The name ``\vn{controller}'' will be used to denote either a
 The general syntax for a \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
-                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
+          VAR = \{var1, var2, ...\}, var1 = init_val1, GANG = logical, ...
 \end{example}
 For an \vn{overlay} element the syntax is identical except OVERLAY is
 substituted for GROUP:
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
-                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
+          VAR = \{var1, var2, ...\}, var1 = init_val1, GANG = logical, ...
 \end{example}
 \vn{Name} is the name of the controller element, \vn{ele1}, \vn{ele2},
 ... are the elements whose attributes are to be controlled,
@@ -207,9 +207,21 @@ the slave attributes are the \vn{k1} attribute of element \vn{q1} and
 the \vn{tilt} attribute of element \vn{q2}. The arithmetic expressions
 used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
 
-A \vn{controller} will control all elements of a given name. Thus, in
-the above example, if there are multiple elements named \vn{q1}
-then \vn{gr1} will control the \vn{k1}  attribute of all of them.
+If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will
+control all elements of a given name. Thus, in the above example, if there are multiple
+elements named \vn{q1} then \vn{gr1} will control the \vn{k1} attribute of all of them.
+If \vn{gang} is set to \vn{False}, then a separate controller is created for each element
+in the lattice of a given name. For example:
+\begin{example}
+  gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}, gang = False
+\end{example}
+In this example, suppose there are five \vn{q1} and five \vn{q2} elements in the lattice.
+In this case, there will be five \vn{gr1} group elements created. The first \vn{gr1} will
+control the first \vn{q1} and \vn{q2} to appear in the lattice, etc. With \vn{gang} set to
+\vn{False}, it is an error if the number of instances in the lattice for a given slave
+name is different from any other slave name. In this example, it would be an error if the
+number of \vn{q1} elements in the lattice is different from the number of \vn{q2} elements
+in the lattice.
 
 The syntax for specifying an attribute \vn{attrib} of element \vn{ele}
 to be controlled is \vn{ele[attrib]}. The attribute part \vn{[attrib]}

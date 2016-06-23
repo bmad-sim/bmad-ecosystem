@@ -1057,7 +1057,7 @@ integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
 integer, parameter :: l_chord$ = 9, voltage$ = 9
 integer, parameter :: fringe_type$ = 10
-integer, parameter :: fringe_at$ = 11
+integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
 integer, parameter :: spin_fringe_on$ = 13
 integer, parameter :: fb1$ = 14, sig_x$ = 14

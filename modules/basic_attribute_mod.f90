@@ -949,8 +949,10 @@ call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN
 call init_attribute_name1 (girder$, is_on$,                         'IS_ON')
 
 call init_attribute_name1 (overlay$, var$,                          'VAR')
+call init_attribute_name1 (overlay$, gang$,                         'GANG')
 
 call init_attribute_name1 (group$, var$,                            'VAR')
+call init_attribute_name1 (group$, gang$,                           'GANG')
 call init_attribute_name1 (group$, start_edge$,                     'START_EDGE')
 call init_attribute_name1 (group$, end_edge$,                       'END_EDGE')
 call init_attribute_name1 (group$, accordion_edge$,                 'ACCORDION_EDGE')
@@ -1572,7 +1574,7 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
-      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &

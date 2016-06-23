@@ -326,13 +326,13 @@ endif
 if (ele%key == overlay$ .or. ele%key == group$) then
   i = attribute_index(ele, word)       ! general attribute search
 
-  if (i == type$ .or. i == alias$ .or. i == descrip$) then
+  select case (i)
+  case (type$, alias$, descrip$)
     call bmad_parser_type_get (ele, word, delim, delim_found)
     err_flag = .false.
     return
-  endif
 
-  if (i == var$) then
+  case (var$)
     if (how == redef$ .or. associated(ele%control_var)) then
       call parser_error ('RESETTING VAR = {...} IS NOT PERMITTED', 'FOR: ' // ele%name)
       return
@@ -341,7 +341,11 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     pele%default_attrib = ele%control_var(1)%name
     err_flag = .false.
     return
-  endif
+
+  case (gang$)
+    call get_logical_real ('GANG', ele%value(gang$), err_flag)
+    return
+  end select
 
   ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordian_edge for example.
 
@@ -1742,9 +1746,6 @@ err_flag = .false.
 
 !--------------------------------------------------------
 contains
-
-!--------------------------------------------------------
-! contains
 
 subroutine parser_find_ele_for_attrib_transfer (attribute)
 
@@ -4921,13 +4922,19 @@ subroutine parser_add_lord (in_lat, n_ele_max, plat, lat)
 
 implicit none
 
+type multi_ele_pointer_struct
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc
+end type  
+
 type (lat_struct), target :: in_lat, lat
 type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable, target :: cs(:)
 type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: eles(:)
+type (multi_ele_pointer_struct), allocatable :: m_eles(:)
+type (ele_pointer_struct), allocatable :: in_eles(:)
 type (parser_controller_struct), pointer :: pc
 type (control_struct), pointer :: con
 
@@ -4960,15 +4967,19 @@ main_loop: do n_in = 1, n_ele_max
     n_in_loc = 1
     n_slave = 0
 
+    if (allocated(m_eles)) deallocate (m_eles)
+    allocate (m_eles(size(pele%control)))
+
     do i = 1, size(pele%control)
       pc => pele%control(i)
-      call lat_ele_locator (pc%name, lat, eles, n_loc, err)
+      call lat_ele_locator (pc%name, lat, m_eles(i)%eles, m_eles(i)%n_loc, err)
+      n_loc = m_eles(i)%n_loc
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
         slave_not_in_lat = .true.
         missing_slave_name = pc%name
-        call lat_ele_locator (pc%name, in_lat, eles, n_in_loc, err)
+        call lat_ele_locator (pc%name, in_lat, in_eles, n_in_loc, err)
       endif
 
       if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
@@ -4981,99 +4992,27 @@ main_loop: do n_in = 1, n_ele_max
 
     if (n_slave == 0) cycle main_loop
 
-    ! Create the lord in lat
+    ! Create the lord(s)
 
-    call new_control (lat, ix_lord)  ! get index in lat where lord goes
-    lat%ele(ix_lord) = lord
-
-    if (allocated(cs)) then
-      if (size(cs) < n_slave) deallocate(cs)
-    endif
-    if (.not. allocated(cs)) allocate (cs(n_slave))
-
-    ! Slave setup
-
-    n_slave = 0 ! number of slaves found
-    do i = 1, size(pele%control)
-
-      pc => pele%control(i)
-
-      ! There might be more than 1 element with same name. 
-      ! Loop over all elements whose name matches name.
-      ! Put the info into the cs structure.
-
-      call lat_ele_locator (pc%name, lat, eles, n_loc, err)
-
-      do k = 1, n_loc
-        n_slave = n_slave + 1
-        call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
-        cs(n_slave)%stack = pc%stack(1:pc%n_stk)
-        cs(n_slave)%slave = lat_ele_loc_struct(eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
-        cs(n_slave)%lord%ix_ele = -1             ! dummy value
-        attrib_name = pc%attrib_name
-        if (attrib_name == blank_name$) attrib_name = pele%default_attrib
-        slave => pointer_to_ele (lat, eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
-        ix = attribute_index(slave, attrib_name)
-        ! If attribute not found it may be a special attribute like accordian_edge$.
-        ! A special attribute will have ix > num_ele_attrib$
-        if (ix < 1 .and. lord%key == group$) then
-          ix = attribute_index(lord, attrib_name)
-          if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
-        endif
-        cs(n_slave)%ix_attrib = ix
-        if (ix < 1) then
+    if (is_true(lord%value(gang$))) then
+      call make_this_overlay_group_lord(0, err_flag)
+    else
+      do i = 2, size(pele%control)
+        if (m_eles(1)%n_loc /= m_eles(i)%n_loc) then
           call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
-                        'ATTRIBUTE: ' // attrib_name, &
-                        'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &
-                        pele = pele)
+                    'WITH GANG = FALSE NEED ALL SLAVES WITH A GIVEN NAME TO HAVE THE SAME NUMBER OF', &
+                    'ELEMENTS IN THE LATTICE. BUT ' // trim(pele%control(1)%name) // ' HAS \i0\ ELEMENTS', &
+                    'WHILE ' // trim(pele%control(I)%name) // ' HAS \i0\ ELEMENTS', &
+                    i_array = [m_eles(1)%n_loc, m_eles(I)%n_loc])
           cycle main_loop
         endif
       enddo
 
-    enddo
-
-    ! If the lord has no slaves then discard it
-
-    if (n_slave == 0) then
-      lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
-      cycle main_loop
-    endif
-
-    ! create the lord
-
-    select case (lord%key)
-    case (overlay$)
-      call create_overlay (lat%ele(ix_lord), cs(1:n_slave), err)
-    case (group$)
-      call create_group (lat%ele(ix_lord), cs(1:n_slave), err)
-    end select
-    if (err) call parser_error ('MALFORMED OVERLAY OR GROUP: ' // lord%name, &
-                           'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
-                           pele = pele)
-
-    ! Evaluate any variable values.
-
-    lord2 => lat%ele(ix_lord)
-    do k = lord2%ix1_slave, lord2%ix1_slave+lord2%n_slave-1
-      con => lat%control(k)
-      do ic = 1, size(con%stack)
-        select case (con%stack(ic)%type)
-        case (ran$, ran_gauss$)
-          call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
-                             'FOR ELEMENT: ' // lord%name)
-        case (variable$)
-          call word_to_value (con%stack(ic)%name, lat, con%stack(ic)%value)
-          ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
-          ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
-          ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
-          ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
-          if (index(con%stack(ic)%name, '[') /= 0) then
-            con%stack(ic)%type = numeric$
-            con%stack(ic)%name = ''
-          endif
-        end select
+      do nn = 1, m_eles(1)%n_loc
+        call make_this_overlay_group_lord(nn, err_flag)
+        if (err_flag) exit
       enddo
-    enddo
+    endif
 
   !-----------------------------------------------------
   ! girder
@@ -5294,6 +5233,118 @@ else                      ! One is wrapped but not the other case
 endif
 
 end function ix_far_index
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine make_this_overlay_group_lord (ix_pick, err_flag)
+
+integer ix_pick
+logical err_flag
+
+!
+
+err_flag = .true.
+
+call new_control (lat, ix_lord)  ! get index in lat where lord goes
+lat%ele(ix_lord) = lord
+
+if (allocated(cs)) then
+  if (size(cs) < n_slave) deallocate(cs)
+endif
+if (.not. allocated(cs)) allocate (cs(n_slave))
+
+! Slave setup
+
+n_slave = 0 ! number of slaves found
+do i = 1, size(pele%control)
+
+  pc => pele%control(i)
+
+  ! There might be more than 1 element with same name. 
+  ! Loop over all elements whose name matches name.
+  ! Put the info into the cs structure.
+
+  do k = 1, m_eles(i)%n_loc
+    if (ix_pick /= 0 .and. k /= ix_pick) cycle
+    slave => m_eles(i)%eles(k)%ele
+    n_slave = n_slave + 1
+    call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
+    cs(n_slave)%stack = pc%stack(1:pc%n_stk)
+    cs(n_slave)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
+    cs(n_slave)%lord%ix_ele = -1             ! dummy value
+    attrib_name = pc%attrib_name
+    if (attrib_name == blank_name$) attrib_name = pele%default_attrib
+    ix = attribute_index(slave, attrib_name)
+    ! If attribute not found it may be a special attribute like accordian_edge$.
+    ! A special attribute will have ix > num_ele_attrib$
+    if (ix < 1 .and. lord%key == group$) then
+      ix = attribute_index(lord, attrib_name)
+      if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
+    endif
+    cs(n_slave)%ix_attrib = ix
+    if (ix < 1) then
+      call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
+                    'ATTRIBUTE: ' // attrib_name, &
+                    'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &
+                    pele = pele)
+      return
+    endif
+  enddo
+
+enddo
+
+! If the lord has no slaves then discard it
+
+if (n_slave == 0) then
+  lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
+  return
+endif
+
+! create the lord
+
+select case (lord%key)
+case (overlay$)
+  call create_overlay (lat%ele(ix_lord), cs(1:n_slave), err)
+case (group$)
+  call create_group (lat%ele(ix_lord), cs(1:n_slave), err)
+end select
+if (err) then
+  call parser_error ('MALFORMED OVERLAY OR GROUP: ' // lord%name, &
+                     'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
+                       pele = pele)
+  return
+endif
+
+lat%ele(ix_lord)%value(gang$) = lord%value(gang$)
+
+! Evaluate any variable values.
+
+lord2 => lat%ele(ix_lord)
+do k = lord2%ix1_slave, lord2%ix1_slave+lord2%n_slave-1
+  con => lat%control(k)
+  do ic = 1, size(con%stack)
+    select case (con%stack(ic)%type)
+    case (ran$, ran_gauss$)
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                         'FOR ELEMENT: ' // lord%name)
+    case (variable$)
+      call word_to_value (con%stack(ic)%name, lat, con%stack(ic)%value)
+      ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
+      ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
+      ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
+      ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
+      if (index(con%stack(ic)%name, '[') /= 0) then
+        con%stack(ic)%type = numeric$
+        con%stack(ic)%name = ''
+      endif
+    end select
+  enddo
+enddo
+
+err_flag = .false.
+
+end subroutine make_this_overlay_group_lord
 
 end subroutine parser_add_lord
 
