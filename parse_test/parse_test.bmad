@@ -2,7 +2,7 @@ no_digested
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-parameter[particle] = He@M28.4++
+parameter[particle] = He++
 beam, energy =   5.28900
 parameter[p0c] = 1e12
 
@@ -16,6 +16,9 @@ bmad_com[conserve_taylor_maps] = False
 call, file = sub_dir/sub.bmad
 
 parameter[custom_attribute1] = quadrupole::my_custom
+
+gang0: group = {aa[tilt], bb[tilt]}, var = {t}
+gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
 
 sbend0: sbend, r_custom(3) = 4, 
       grid_field = {
@@ -108,7 +111,7 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
 ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt)
-use, ll, phot
+use, ll, phot, tag_line
 
 phot: line = (ddd, cap, cry, ff)
 phot[E_tot] = 1e4
@@ -125,6 +128,14 @@ qq: quadrupole, l = 1
 f_line: line = (qq)
 f_line[particle] = photon
 mk: marker, superimpose, ref = qq, offset = 0.3
+
+!
+
+sub_l: line = (cc, qq)
+tag_line: line = (sub_l[t1], sub_l[t2])
+tag_line[geometry] = open
+tag_line[beta_a] = 10
+tag_line[beta_b] = 10
 
 ! Group using element not in constructed lattice is ok
 

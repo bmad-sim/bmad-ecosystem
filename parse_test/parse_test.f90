@@ -19,9 +19,10 @@ type (all_pointer_struct) a_ptr
 type (coord_struct), allocatable :: orbit(:)
 type (coord_struct) orb
 type (em_field_struct) field
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) value
-integer i, j, inc_version
+integer i, j, inc_version, n_loc
 character(200) digested_file
 character(1) delim
 logical err, delim_found
@@ -80,13 +81,13 @@ lat%branch(1)%ele(1)%key = -1
 lat%branch(2)%ele(1)%key = -1
 
 call remove_eles_from_lat (lat, .true.)
-call write_bmad_lattice_file ('out_overlap.bmad', lat)
+call write_bmad_lattice_file ('overlap_out.bmad', lat)
 
 !
 
 call bmad_parser ('parse_test.bmad', lat)
-call write_bmad_lattice_file ('out.bmad', lat)
-call bmad_parser ('out.bmad', lat)
+call write_bmad_lattice_file ('write_parser_test.bmad', lat)
+call bmad_parser ('write_parser_test.bmad', lat)
 
 call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
@@ -96,6 +97,12 @@ ele2%key = overlay$
 call pointer_to_attribute (ele2, 'CALIB', .false., a_ptr, err)
 a_ptr%r = 7
 write (1, '(a, f8.4)')  '"calib"                                 ABS 0', a_ptr%r
+
+call lat_ele_locator ('gang0', lat, eles, n_loc)
+write (1, '(a, 2i4)') '"gang0"  ABS 0 ', n_loc, eles(1)%ele%n_slave
+
+call lat_ele_locator ('gang1', lat, eles, n_loc)
+write (1, '(a, 3i4)') '"gang1"  ABS 0 ', n_loc, eles(1)%ele%n_slave, eles(2)%ele%n_slave
 
 !
 
