@@ -342,10 +342,10 @@ do ib = 0, ubound(lat%branch, 1)
         endif
       enddo
 
+      if (is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
       if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
       if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-      if (associated(ele%descrip)) line = trim(line) // &
-                              ', descrip = "' // trim(ele%descrip) // '"'
+      if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
       call write_lat_line (line, iu, .true.)
       cycle
     endif

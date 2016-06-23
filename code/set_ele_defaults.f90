@@ -278,6 +278,7 @@ case (group$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
   ele%field_calc = no_field$
+  ele%value(gang$) = true$
 
 case (overlay$)
   ele%bookkeeping_state%attributes     = ok$
@@ -285,6 +286,7 @@ case (overlay$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
   ele%field_calc = no_field$
+  ele%value(gang$) = true$
 
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$
