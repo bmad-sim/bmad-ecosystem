@@ -161,29 +161,27 @@ Names for the fundamental particles are {\em not} case sensitive.
 
 Another group are atoms. The general syntax for atoms is:
 \begin{example}
-  \{\#xxx\}AA\{@Mmmmm\}\{ccc\}
+  \{\#nnn\}AA\{ccc\}
 \end{example}
 The curly brackets \{...\} denote optional prefixes and suffixes. \vn{AA} here is the
-atomic symbol, \vn{\#xxx} is the number of nucleons, \vn{@Mmmmm} is the mass in AMU, and \vn{ccc}
-is the charge. Examples:
+atomic symbol, \vn{\#nnn} is the number of nucleons, and \vn{ccc} is the charge. Examples:
 \begin{example}
   parameter[particle] = \#12C+3       ! Triply charged carbon-12
-  parameter[particle] = Hg@M200.6--  ! Doubly charged mercury with mass = 200.6
+  parameter[particle] = He--          ! Doubly charged He.
 \end{example}
-The mass may to specified to hundridths of an AMU. If the mass is not given, but the
-number of nucleons is, the appropriate weight for that isotope is used. If both the mass
-and the number of nucleons is not present, the mass is an average weighted by the isotopic
+If the number of nucleons is given, the appropriate weight for that isotope is used. If
+the number of nuceons is not present, the mass is an average weighted by the isotopic
 abondances of the element. The charge may be given by using the appropriate number of plus
 (+) or minus (-) signs or by using a plus or minus sign followed by a number. Thus
-``\vn{-{-}-}'' is equivalent to ``-3''. Names here are case sensitive including using ``@M''
-but not ``@m'' for specifying the mass.
+``\vn{-{-}-}'' is equivalent to ``-3''. Names here are case sensitive. ``@M'' must be used
+and not ``@m'' for specifying the mass.
 
 Another group of particles are the ``known'' molecules. The syntax for these are:
 \begin{example}
   BBB\{@Mmmmm\}\{ccc\}
 \end{example}
-\vn{@Mmmmm} and \vn{ccc} are the same as for atoms.
-\vn{BBB} is the molecular formulas. The known molecules are:
+\vn{@Mmmmm} is the mass in AMU, \vn{ccc} is the charge, and \vn{BBB} is the molecular
+formula. The mass may to specified to hundridths of an AMU. The known molecules are:
 \begin{example}
 CO       CO2      
 D2       D2O      
@@ -193,7 +191,7 @@ N2       NH2      NH3
 CH2      CH3      CH4      
 C2H3     C2H4     C2H5
 \end{example}
-Again, if the mass is not specified, the average mass is used. Examples:
+Like with atoms, if the mass is not specified, the average isotopic mass is used. Examples:
 \begin{example}
   C2H3@M28.4+     ! Singly charged C2H3 with mass of 28.4
   CH2             ! Neutral CH2
