@@ -3472,11 +3472,34 @@ multi_line_07: line[multipass] = ( T1.DEMER.MAR.BEG, T1.BEN07, T1.MAR.BEG, &
    slave_drift_511, x__T1.QUA02, slave_drift_512, slave_drift_513, T1.BEN01, &
    x__T1.PIP01, slave_drift_514, x__T1.QUA01, slave_drift_515, slave_drift_516, &
    T1.MAR.END, T1.BEN00, T1.PIP00, T1.MERGE.MAR.END, T1.MERGE_PATCH)
- 
+
+
+!-------------------------------------------------------
+
+!! William adding Taylor behind certain cavity
+
+bW = 13.58259507    ! retrived from original lattice
+aW = -0.78076767    ! retrived from original lattice
+gW = (1+aW*aW)/bW
+
+pW = 0.00
+
+m11W = cos(pW) + aW*sin(pW)
+m12W = bW*sin(pW)
+m21W = -gW*sin(pW)
+m22W = cos(pW) - aW*sin(pW) 
+
+
+taylorW: Taylor, {1: m11W | 1}, {1:  m12W | 2}, {2: m21W | 1}, {2:  m22W | 2}
+!!-------------------------------------------   
+
+
 lat_line: line = ( MAGIC, IN.MERGE.MAR.BEG, IN.MERGE.BEN01, x__IN.MERGE.PIP01, &
    slave_drift_1, x__IN.MERGE.QUA01, slave_drift_2, slave_drift_3, IN.MERGE.BEN02, &
    x__IN.MERGE.PIP02, slave_drift_4, x__IN.MERGE.QUA02, slave_drift_5, slave_drift_6, &
-   multi_line_01, MAR.BEG, multi_line_02, LA.MATCH1, multi_line_03, S1.MAR.BEG, &
+   multi_line_01, MAR.BEG, multi_line_02, &
+   taylorW, &
+   LA.MATCH1, multi_line_03, S1.MAR.BEG, &
    x__S1.PIP01, slave_drift_7, x__S1.QUA01, slave_drift_8, slave_drift_9, S1.BEN01, &
    x__S1.PIP02, slave_drift_10, x__S1.QUA02, slave_drift_11, slave_drift_12, S1.BEN02, &
    x__S1.PIP03, slave_drift_13, x__S1.QUA03, slave_drift_14, slave_drift_15, &

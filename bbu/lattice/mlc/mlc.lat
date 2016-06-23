@@ -1,5 +1,7 @@
 call, file = './la.lat.bmad' 
-call, file = './mlc_assignHOMs.bmad'  
+!call, file = './mlc_assignHOMs.bmad'  
+!! FOR DR_SCAN, HOMs have to be pre-assigned
+
 
 !call, file = '~/nfs/linux_lib/bsim/bbu/la.lat.bmad' 
 !call, file = '~/nfs/linux_lib/bsim/bbu/mlc_assignHOMs.bmad'  
