@@ -9,27 +9,25 @@
 ! IMPORTANT: The particular integers used for IDs can change. 
 ! Do use hard coded numbers in your code. For example, the association of positrons with ID = 1 is not assured.
 
-! If |species| < 1000 —-> Use existing mapping (electron$ = -1, etc.)
+! If |species| < 1000 -> Use elementary particle mapping (electron$ = -1, etc.)
 ! Else if |species| > 1000 mapping is:
 ! integer species = +/-CCPPPMMMMM
 ! Where:
 ! +/-CC = Charge (up to +/-21)
 ! PPP  = Particle ID.
-!         if 0 < PPP < 200 —-> Atom with PPP = # Protons 
-!         if PPP = 200  —-> Molecule of unknown type.
-!         if PPP > 200  —-> Molecule with PPP = Species ID  [EG: nh2$ = 201, etc.]
+!         if 0 < PPP < 200 --> Atom with PPP = # Protons 
+!         if PPP = 200     --> Molecule of unknown type.
+!         if PPP > 200     --> Molecule with PPP = Species ID  [EG: nh2$ = 201, etc.]
 ! MMMMM = For atoms: MMMMM = number of nucleons.
 !         For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 => Use default.
 !
 ! Example external input names:
 !   NH3+            Molecule                           01 201 00000
 !   CH3++ or CH3+2  Molecule                           02 204 00000
-!   NH3@M37.5-      Molecule With specified mass      -01 201 03750
+!   CH2@M37.5-      Molecule With specified mass      -01 201 03750
 !   @M37.5+         Unknown Molecule with given mass   01 200 03750
 !   C+              Atom:                              01 006 00000
 !   #12C+           Atom: Carbon-12                    01 006 00012 
-
-
 !-
 
 module particle_species_mod
@@ -408,6 +406,8 @@ character(40), parameter :: r_name = 'species_id'
 species = invalid$
 iso = 0
 nam = name
+mol_mass = 0
+n_nuc = 0
 
 if (upcase(nam) == 'PION_PLUS')  nam = 'pion+'  ! Old style
 if (upcase(nam) == 'PION_0')     nam = 'pion0'  ! Old style
@@ -443,7 +443,6 @@ endif
 
 ! Isotopic number (e.g. #12C)
 
-n_nuc = 0
 if (nam(1:1) == '#') then
  do i = 2, 10
    if (index('0123456789', nam(i:i)) == 0) exit
@@ -464,11 +463,17 @@ if (ix > 0) then
   if (n_nuc /= 0) return  ! Isotopic number not allowed with molecules
   ! Only 3+2 digits are allowed
   if (mol_mass*100 > 99999) then
-    call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR '//name)
+    call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR ' // name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  if (n_nuc /= 0) then
+    call out_io (s_abort$, r_name, 'SPECIFYING THE NUMBER OF NUCLEONS FOR A MOLECULE IS INVALID: ' // name)
     if (global_com%exit_on_error) call err_exit
     return
   endif  
-    
+
   species = abs(charge*100000000) + (ix+200) * 100000 + mol_mass*100
   if (charge < 0) species = -species
   return  
@@ -479,6 +484,12 @@ endif
 
 call match_word(nam, atomic_name, ix, .true., .false.)
 if (ix > 0) then
+  if (mol_mass /= 0) then
+    call out_io (s_abort$, r_name, 'SPECIFYING A MASS FOR AN ATOM IS INVALID: ' // name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif  
+
   species =  abs(charge*100000000) + ix * 100000 + n_nuc
   if (charge < 0) species = -species
   return  
@@ -558,7 +569,6 @@ logical is_ok
 !
 
 is_ok = .false.
-mol_mass = 0
 
 ix = index(nam, '@M')
 if (ix /= 0) then
