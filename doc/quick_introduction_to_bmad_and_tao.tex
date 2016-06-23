@@ -30,6 +30,8 @@
 
 \input{macros.tex}
 
+\newcommand{\BF}[1]{{\normalfont\textbf{#1}}}
+
 \renewcommand{\ttdefault}{txtt}
 
 \renewcommand{\textfraction}{0.1}
@@ -102,7 +104,7 @@ site. If everything is setup correctly, the environmental variable \vn{ACC_ROOT_
 point to the root directory of the Distribution or Release you are using. For a
 Distribution, this directory looks something like:
 \begin{alltt}
-  ~> ls \$ACC_ROOT_DIR
+  \BF{~> ls \$ACC_ROOT_DIR}
 
   PGPLOT                debug       h5hut        plplot                tao
   bmad                  examples    hdf5         production            util
@@ -199,7 +201,7 @@ After \tao is started, commands may be entered on the command line. The section
 \tao \vn{Line Mode Commands} in the \tao manual lists the possible commands. The list
 of commands may also be viewd by typing \vn{help} on the command line:
 \begin{alltt}
-  {\normalfont\textbf{Tao> help}}
+  \BF{Tao> help}
 
   Type 'help <command>' for help on an individual command
   Available commands:
@@ -228,9 +230,9 @@ of commands may also be viewd by typing \vn{help} on the command line:
 
 \begin{figure}[t]
 \begin{centering}
-\includegraphics[width=3in]{tao-start.pdf}
-\hfill
-\includegraphics[width=3in]{tao-x-scale.pdf}
+\includegraphics[width=2.5in]{tao-start.pdf}
+\hfil
+\includegraphics[width=2.5in]{tao-x-scale.pdf}
 \caption{Left: Initial \tao plot window with the bmad_L9A18A000-_MOVEREC.lat lattice.
 Right: Plot window after horizontal scaling.}
 \label{f:tao-start}
@@ -249,14 +251,14 @@ To prevent any plotting, use the \vn{-noplot} option.
 The plot can be scalled vertically using the \vn{scale} command. To scale the plot horizontally, 
 the command \vn{x_scale} is used. Thus to scale all the plots horizontally in our present example use
 \begin{alltt}
-  Tao> x_sca all 100 150
+  \BF{Tao> x_sca all 100 150}
 \end{alltt}
 This scales all the horizontal scale to go from 100~meters to 150~meters.  Notice that
 commands can be abbreviated.
 
 The \vn{show plot} command will give some details on plotting:
 \begin{alltt}
-  {\normalfont\textbf{Tao> show plot}}
+  \BF{Tao> show plot}
 
     plot_page parameters:
     %size                         =      500     600
@@ -308,7 +310,7 @@ have names like \vn{r13}, \vn{r22}, etc. By default, the \vn{beta} plot, for exa
 placed in the \vn{r13} region and the \vn{r13} regions inhabits roughly the top of third
 of the plot window. To change what plots are displayed, use the \vn{place} comand:
 \begin{alltt}
-  Tao> place r23 energy  ! Put an energy plot in the r23 region
+  \BF{Tao> place r23 energy  ! Put an energy plot in the r23 region}
 \end{alltt}
 
 %------------------------------------------------------------------------------

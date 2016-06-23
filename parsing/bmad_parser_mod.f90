@@ -6303,7 +6303,7 @@ endif
 do
 
   ! Read attriubute
-  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
   if (.not. expect_this ('=', .true., .false., 'IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
 
   select case (attrib_name)
@@ -6510,7 +6510,7 @@ file_name_set = .false.
 do
 
   ! Read attriubute
-  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
 
   select case (attrib_name)
 
@@ -6732,7 +6732,7 @@ err_flag = .true.
 do    
 
   ! Read attriubute
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
 
   select case (word)
 
@@ -7048,7 +7048,7 @@ err_flag = .true.
 do
 
   ! Read attriubute
-  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
 
   select case (attrib_name)
 
