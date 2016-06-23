@@ -1,0 +1,8 @@
+
+For threshold # 0 the assignments were:
+LA.CRMOD.RFC01[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_198.dat
+LA.CRMOD.RFC02[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_212.dat
+LA.CRMOD.RFC03[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_110.dat
+LA.CRMOD.RFC04[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_256.dat
+LA.CRMOD.RFC05[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_173.dat
+LA.CRMOD.RFC06[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_265.dat

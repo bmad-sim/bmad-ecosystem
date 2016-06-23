@@ -1,0 +1,16 @@
+
+For threshold # 0 the assignments were:
+LA.CRMOD.RFC01[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_215.dat
+LA.CRMOD.RFC02[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_137.dat
+LA.CRMOD.RFC03[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_323.dat
+LA.CRMOD.RFC04[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_242.dat
+LA.CRMOD.RFC05[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_13.dat
+LA.CRMOD.RFC06[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_347.dat
+
+For threshold # 1 the assignments were:
+LA.CRMOD.RFC01[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_6.dat
+LA.CRMOD.RFC02[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_274.dat
+LA.CRMOD.RFC03[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_220.dat
+LA.CRMOD.RFC04[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_179.dat
+LA.CRMOD.RFC05[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_85.dat
+LA.CRMOD.RFC06[lr_wake] = /home/wl528/nfs/linux_lib/bsim/bbu/test/cut_HOM_lists/cut_vhoms_cavity_221.dat
