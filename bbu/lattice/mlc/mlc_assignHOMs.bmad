@@ -1,6 +1,0 @@
-LA.CRMOD.RFC01[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
-LA.CRMOD.RFC02[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
-LA.CRMOD.RFC03[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
-LA.CRMOD.RFC04[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
-LA.CRMOD.RFC05[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
-LA.CRMOD.RFC06[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat

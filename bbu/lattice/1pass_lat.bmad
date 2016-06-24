@@ -1,6 +1,0 @@
-!call, file= '~/nfs/linux_lib/bsim/bbu/lattice/cbeta_1pass_20160125.lat'
-call, file= '~/nfs/linux_lib/bsim/bbu/lattice/cbeta_1pass_20160125_PHASE.lat'
-!call, file= '~/nfs/CornellBNL/lattice/cbeta_1pass_20160125.lat'
-
-!! HOM assignment 
-call, file= '../cbeta_test/assignHOMs.bmad'
