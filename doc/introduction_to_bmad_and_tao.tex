@@ -2,7 +2,7 @@
 % Note: Use pdflatex to process this file.
 %-----------------------------------------
 
-%\documentclass{report}
+%\documentclass{article}
 \documentclass{hitec}
 
 \usepackage{setspace}
@@ -38,16 +38,25 @@
 \renewcommand{\topfraction}{1.0}
 \renewcommand{\bottomfraction}{1.0}
 
-\settextfraction{0.9}
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
 
-\title{Quick Introduction to Accelerator \& X-Ray \\ Simulations Using Bmad and Tao}
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+\title{Introduction to Accelerator \& X-Ray Modeling Using Bmad and Tao}
 \author{}
 \date{David Sagan \\ June 21, 2016}
 \begin{document}
 \maketitle
 
+\tableofcontents
+
 %------------------------------------------------------------------------------
-\section{Overview}
+\Section{Overview}
 
 First off, let's define some terms:
   \begin{description}
@@ -56,67 +65,68 @@ First off, let's define some terms:
 and X-rays. \bmad is not a program itself but is used by programs for doing
 calculations. 
   \item[Tao] \Newline
-\tao is a general purpose simulation program, based upon \bmad. \tao can be used to
-view lattices, design lattices, track particles through lattices, etc.
+\tao is a general purpose simulation program, based upon \bmad. \tao can be used to view
+lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
+Additionally, \tao's object oriented design makes it relatively easy to extend it. For
+example, it can be used for orbit flattening in a machine control system.
   \end{description}
 
 %------------------------------------------------------------------------------
-\section{Resources}
+\Section{Resources}
 
 More information is readily available at the \bmad and \tao web site:
-\begin{alltt}
+\begin{display}
   \url{http://www.lepp.cornell.edu/~dcs/bmad}
-\end{alltt}
+\end{display}
 Links to the \bmad and \tao manuals can be found there as well as instructions for
-downloading and setup.
+downloading and setup if needed, etc.
 
 %------------------------------------------------------------------------------
-\section{What Can Bmad Do?}
+\Section{What Can Bmad Do?}
 
 Over the years, \bmad has been used for a wide range of charged-particle and X-ray
 simulations. The following list gives some idea as to the range that \bmad has been put to use
 for:
-\begin{alltt}
+\begin{display}
   Lattice design                              X-ray simulations
   Spin tracking                               Wakefields and HOMs
   Beam breakup simulations in ERLs            Touschek Simulations
   Intra-beam scattering (IBS) simulations     Dark current tracking
   Coherent Synchrotron Radiation (CSR)        Frequency map analysis
-\end{alltt}
+\end{display}
 
 
 %------------------------------------------------------------------------------
-\section{Orientation}
+\Section{Orientation}
 
   \begin{description}
   \item[Distributions and Releases] \Newline
 A \vn{Release} is a build of \bmad and associated libraries and programs (including \tao)
 that is done on the Linux computer system at CLASSE (Cornell's Laboratory for
 Accelerator-based Sciences and Education). A \vn{Distribution} is like a \vn{Release},
-except it is done outside of the CLASSE Linux computer system.  For the purpose
+except it is done outside of the CLASSE Linux computer system. For the purpose
 of this introduction, \vn{Releases} and \vn{Distributions} are considered to be the same.
   \end{description}
 
 It is assumed that you already of access to a \vn{Distribution} or a \vn{Release} and that
 you have setup the requisite environmental variables. If this is not true, and there is no
-local Guru to gide you, download and setup instructions can be found on the \bmad web
+local Guru to guide you, download and setup instructions can be found on the \bmad web
 site. If everything is setup correctly, the environmental variable \vn{ACC_ROOT_DIR} will
 point to the root directory of the Distribution or Release you are using. For a
 Distribution, this directory looks something like:
-\begin{alltt}
+\begin{display}
   \BF{~> ls \$ACC_ROOT_DIR}
-
   PGPLOT                debug       h5hut        plplot                tao
   bmad                  examples    hdf5         production            util
   bsim                  fgsl        include      recipes_f-90_LEPP     util_programs
   build_system          forest      lapack       regression_tests      xraylib
   cpp_bmad_interface    gsl         lattice      sim_utils             xsif
-\end{alltt}
+\end{display}
 
 For an expanation of what directories contain what, see:
-\begin{alltt}
+\begin{display}
   \url{https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#DistDirs}
-\end{alltt}
+\end{display}
 
 A quick introduction to the most important directories:
   \begin{description}
@@ -128,7 +138,7 @@ synchrotron radiation (programs: \vn{synrad} and \vn{synrad3d}), dynamic_apertur
 (program: \vn{dynamic_aperture}), intra beam scattering (programs: \vn{ibs_linac} and
 \vn{ibs_ring}), etc.
   \item[examples] \Newline
-The \vn{alltts} directory holds example programs along with example lattice files.
+The \vn{examples} directory holds example programs along with example lattice files.
   \item[production] \Newline
 The \vn{production/bin} directory contains executable files for \tao, etc. [This
 directory is created in a \vn{distribution} when the \bmad code is compiled.]
@@ -138,7 +148,7 @@ files.
   \end{description}
 
 %------------------------------------------------------------------------------
-\section{The Lattice}
+\Section{Lattice Files}
 
 The first thing you will need when working with \bmad is a \bmad compatable lattice file.
 If you have a file suitable for MAD-8, MAD-X, or SAD, these can be translated to \bmad
@@ -146,25 +156,25 @@ format.
 
 For MAD-8 or MAD-X, the translator is via the Accelerator Markup Language /
 Universal Accelerator Parser Project. Details about AML/UAP are at:
-\begin{alltt}
+\begin{display}
   \url{http://www.lepp.cornell.edu/~dcs/aml/}
-\end{alltt}
+\end{display}
 
 For translation from SAD, there is a python script for this at:
-\begin{alltt}
+\begin{display}
    \$ACC_ROOT_DIR/util_programs/sad_to_bmad/
-\end{alltt}
+\end{display}
 
 If you want to create a \bmad lattice from scratch, documentation is in the \bmad manual
 in the \vn{Language Reference} section. Also look at the examples in:
-\begin{alltt}
+\begin{display}
   \$ACC_ROOT_DIR/examples/lattice_file_examples
   \$ACC_ROOT_DIR/lattice           # Cornell centric lattices
-\end{alltt}
+\end{display}
 
 Here is a very simple example just to illustrate what a lattice file looks
 like. Everything here is explained in much more detail in the \bmad manual
-\begin{alltt}
+\begin{display}
   parameter[geometry] = open     ! open geometry => Linac, transfer line, etc.
   parameter[e_tot] = 1e6         ! Reference particle total energy (eV).
   beginning[beta_a] = 10         ! Horizontal mode starting Twiss parameter.
@@ -174,33 +184,30 @@ like. Everything here is explained in much more detail in the \bmad manual
   lc: lcavity, l = 2, voltage = 1e7 ! Define an accelerating cavity.
   my_line: line = (q1, lc)          ! ordered list of elements to track through.
   use, my_line                      ! The line to be used.
-\end{alltt}
+\end{display}
 This example creates a lattice with two elements named \vn{q1} AND \vn{lc}
 
 %------------------------------------------------------------------------------
-\section{Using Tao to Examine Lattices}
-
-%------------------------------------------------------------------------------
-\subsection{Starting Tao}
+\section{Starting Tao}
 
 The \tao program is useful for examining lattices. As an example, run \tao with
 the following command
-\begin{alltt}
+\begin{display}
   \$ACC_ROOT_DIR/production/bin/tao -noinit -lat \B
               \$ACC_ROOT_DIR/tao/examples/cesr/bmad_L9A18A000-_MOVEREC.lat
-\end{alltt}
+\end{display}
 The \vn{-noinit} option prevents a \tao initialization file from being read in (more
 on this later). The \vn{-lat} option is used to specify a lattice file. In this case,
 a lattice file for Cornell's Cesr ring is used. For a list of options when starting
 up \tao see the \tao manual or start \tao with the command:
-\begin{alltt}
+\begin{display}
   \$ACC_ROOT_DIR/production/bin/tao -help
-\end{alltt}
+\end{display}
 
 After \tao is started, commands may be entered on the command line. The section
 \tao \vn{Line Mode Commands} in the \tao manual lists the possible commands. The list
 of commands may also be viewd by typing \vn{help} on the command line:
-\begin{alltt}
+\begin{display}
   \BF{Tao> help}
 
   Type 'help <command>' for help on an individual command
@@ -223,10 +230,10 @@ of commands may also be viewd by typing \vn{help} on the command line:
     ptc                               x_axis
     python                            x_scale
     quit                              xy_scale
-\end{alltt}
+\end{display}
 
 %------------------------------------------------------------------------------
-\subsection{Tao Plotting}
+\section{Tao Plotting}
 
 \begin{figure}[t]
 \begin{centering}
@@ -242,22 +249,22 @@ Right: Plot window after horizontal scaling.}
 If all goes well, \tao will pop up a plotting window as shown on the left in
 \fig{f:tao-start}. If the plot window is too small or two large, the \vn{-geometry} option
 can be used at startup to specify the window size. For example:
-\begin{alltt}
+\begin{display}
   \$ACC_ROOT_DIR/production/bin/tao -geometry 300x500 -lat ....
-\end{alltt}
+\end{display}
 With this example, \tao would open a plotting window 300 pixels wide by 500 pixels tall.
 To prevent any plotting, use the \vn{-noplot} option.
 
 The plot can be scalled vertically using the \vn{scale} command. To scale the plot horizontally, 
 the command \vn{x_scale} is used. Thus to scale all the plots horizontally in our present example use
-\begin{alltt}
+\begin{display}
   \BF{Tao> x_sca all 100 150}
-\end{alltt}
+\end{display}
 This scales all the horizontal scale to go from 100~meters to 150~meters.  Notice that
 commands can be abbreviated.
 
 The \vn{show plot} command will give some details on plotting:
-\begin{alltt}
+\begin{display}
   \BF{Tao> show plot}
 
     plot_page parameters:
@@ -302,36 +309,36 @@ The \vn{show plot} command will give some details on plotting:
   r23                 <-->  dispersion          0.00  1.00  0.43  0.72
   r33                 <-->  orbit               0.00  1.00  0.15  0.43
     ... ETC., ETC ...
-\end{alltt}
+\end{display}
 See the \vn{Plotting} chapter in the \tao manual as well as the \vn{Initializing
 Plotting} section of the \vn{Tao Initialization} chapter. Essentially, the plot window is
 divided into \vn{regions}. By default (without any initialization file), these regions
 have names like \vn{r13}, \vn{r22}, etc. By default, the \vn{beta} plot, for example, is
 placed in the \vn{r13} region and the \vn{r13} regions inhabits roughly the top of third
 of the plot window. To change what plots are displayed, use the \vn{place} comand:
-\begin{alltt}
+\begin{display}
   \BF{Tao> place r23 energy  ! Put an energy plot in the r23 region}
-\end{alltt}
+\end{display}
 
 %------------------------------------------------------------------------------
-\subsection{Tao Initialization Files}
+\section{Tao Initialization Files}
 
 
 
 %------------------------------------------------------------------------------
-\subsection{Examining Elements in Tao}
+\section{Examining Elements in Tao}
 
 show universe
 
 %------------------------------------------------------------------------------
-\subsection{Changing Element Attributes in Tao}
+\section{Changing Element Attributes in Tao}
 
 %------------------------------------------------------------------------------
-\subsection{Lattice Optimization in Tao}
+\section{Lattice Optimization in Tao}
 
 
 %------------------------------------------------------------------------------
-\subsection{Customizing Tao}
+\section{Customizing Tao}
 
 Besides the custimizaiton that can be done via \tao input files, \tao custom code
 can be linked with \tao to extend \tao capabilities. For example, custom code can
@@ -343,20 +350,20 @@ For more details on using custom code with \tao, see the \vn{Customizing Tao} ch
 in the \tao manual.
 
 %------------------------------------------------------------------------------
-\section{Creating Your Own programs}
+\Section{Creating Your Own programs}
 
 At some point you might want to start creating you own programs. Documentation for this is
 at:
-\begin{alltt}
+\begin{display}
   \url{https://wiki.classe.cornell.edu/ACC/ACL/BuildSystem}
-\end{alltt}
+\end{display}
 
 As a simple example, consider setting things up to compile the simple bmad program
 discussed in the \vn{Introduction ot Bmad Programming} chapter of the \bmad manual.
 The program code and lattice input file is in the directory:
-\begin{alltt}
+\begin{display}
   \$ACC_ROOT_DIR/examples/simple_bmad_program/
-\end{alltt}
+\end{display}
 
 The first thing to do is to create a \vn{base} directory for your code and executables. This
 directory will be named \vn{base_dir} in this example but you can name it anything you
@@ -365,13 +372,13 @@ separate greatly simplifies maintainance.
 
 After you have created \vn{base_dir}, cd to that directory. Now copy the
 simple_bmad_program directory to a new directory called \vn{base_dir/my_prog_dir}:
-\begin{alltt}
+\begin{display}
   base_dir> cp -r \$ACC_ROOT_DIR/examples/simple_bmad_program/ my_prog_dir
   base_dir> cd my_prog_dir
   my_prog_dir> ls
 
   lat.bmad   layout.bmad   simple_bmad_program.f90
-\end{alltt}
+\end{display}
 
 The \vn{my_prog_dir} directory has the program code and lattice files but is
 missing the \vn{cmake} scripts for compiling and linking the program.  [\vn{cmake} is the
@@ -380,23 +387,23 @@ open-source tool used to compile \bmad.] The scripts used by the \vn{Distributio
 are not appropriate here. Rather, the ``template'' scripts in
 examples/cmake_template_scripts work well so copy them into the my_prog_dir
 directory:
-\begin{alltt}
+\begin{display}
   my_prog_dir> cp \$ACC_ROOT_DIR/examples/cmake_template_scripts/* .
   my_prog_dir> ls
 
   CMakeLists.txt  cmake.test  lat.bmad  layout.bmad simple_bmad_program.f90
-\end{alltt}
+\end{display}
 
 The scripts are setup to create an executable:
-\begin{alltt}
+\begin{display}
   base_dir/production/bin/test
-\end{alltt}
+\end{display}
 If you don't like the name \vn{test} then this can be changed by editing the
 \vn{cmake.test} file and changing \vn{EXENAME}. In any case, to create the executable,
 make sure you are still in the my_prog_dir directory and issue the \vn{mk} command:
-\begin{alltt}
+\begin{display}
   my_prog_dir> mk
-\end{alltt}
+\end{display}
 
 After the \vn{mk} command is finished there should be an executable at
 \vn{base_dir/production/bin/test}. There will also be a \vn{my_prog_dir/production}
@@ -406,11 +413,11 @@ There is nothing in the \vn{my_prog_dir/production} of interest so it can be ign
 
 Now you can run the program. While still in the \vn{my_prog_dir} directory (since the
 program will look for the lattice file in the default directory), run the program:
-\begin{alltt}
+\begin{display}
   ../production/bin/test
-\end{alltt}
+\end{display}
 The result:
-\begin{alltt}
+\begin{display}
   [INFO] bmad_parser:
       Parsing lattice file(s). This might take a minute or so...
   [INFO] bmad_parser:
@@ -444,6 +451,6 @@ The result:
        31   L_HARD_EDGE                  =  3.5100000E+00
        49   BS_FIELD                     = -1.4823578E+00
   ... etc., etc...
-\end{alltt}
+\end{display}
 
 \end{document}
