@@ -276,10 +276,10 @@ end subroutine
 !+
 
 subroutine qp_set_line_width_basic (line_width)
-  implicit none
+  implicit none  
   integer line_width
-
-  call plwid (line_width/2) ! set line width
+ 
+  call plwid (line_width/4) ! set line width
 
   !Save this state
   pl_com%line_width = line_width
