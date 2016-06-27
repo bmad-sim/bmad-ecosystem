@@ -160,14 +160,12 @@
 \newlength{\dPar}
 \setlength{\dPar}{1.5ex}
 
-% \ExampleNum is for numbering "example" blocks using the same numbering counter
-% as the "equation" counter
+% Since a non-zero parskip is used, the alltt environment needs to be modified to keep
+% the white space before and after from being too large.
 
 % Note: Use \( ... \) for inline equations in example mode. 
 % Use \[ ... \] for display equations.
 %\sb{} and \sp{} need to be used for subscripts and superscripts instead of "_" and "^".
-
-\newcommand{\ExampleNum}[1]{\hfill \refstepcounter{equation} \((\arabic{equation})\protect\label{#1}\)}
 
 \newenvironment{example}
   {\vspace{-3.0ex} \begin{alltt}}
@@ -184,6 +182,11 @@
     }
   }
   {\end{list} \vspace*{1ex}}
+
+% \ExampleNum is for numbering "example" blocks using the same numbering counter
+% as the "equation" counter
+
+\newcommand{\ExampleNum}[1]{\hfill \refstepcounter{equation} \((\arabic{equation})\protect\label{#1}\)}
 
 % From pg 64 of The LaTex Companion.
 
