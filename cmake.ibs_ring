@@ -13,7 +13,6 @@ set (LINK_LIBS
   fgsl
   gsl
   gslcblas
-  util
   xrlf03
   xrl
   lapack95
