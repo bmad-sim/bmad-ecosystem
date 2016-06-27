@@ -5267,7 +5267,7 @@ do i = 1, size(pele%control)
 
   do k = 1, m_eles(i)%n_loc
     if (ix_pick /= 0 .and. k /= ix_pick) cycle
-    slave => m_eles(i)%eles(k)%ele
+    slave => pointer_to_ele (lat, m_eles(i)%eles(k)%loc)
     n_slave = n_slave + 1
     call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
     cs(n_slave)%stack = pc%stack(1:pc%n_stk)
