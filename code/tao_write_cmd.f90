@@ -566,7 +566,8 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
   call str_upcase (action, action)
 
   if (action(1:3) == 'GIF') then
-    call qp_open_page (action, plot_file = file_name, x_len = s%plot_page%size(1), y_len = s%plot_page%size(2), scale = scale)
+    call qp_open_page (action, plot_file = file_name, x_len = s%plot_page%size(1), y_len = s%plot_page%size(2), &
+                                                                                    units = 'POINTS', scale = scale)
   else
     call qp_open_page (action, plot_file = file_name, scale = scale)
   endif
