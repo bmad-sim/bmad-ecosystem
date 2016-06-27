@@ -204,6 +204,7 @@ do
       if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key) cycle
       n_loc2 = n_loc2 + 1
       eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
+      eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
     enddo
 
     n_loc = n_loc + n_loc2
@@ -323,6 +324,7 @@ if (is_integer(name)) then
     return
   endif
   eles(1)%ele => lat%branch(ix_branch)%ele(ix_ele)
+  eles(1)%loc = lat_ele_loc_struct(ix_ele, ix_branch)
   n_loc = 1
   err = .false.
   return
@@ -354,6 +356,7 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
     n_loc = n_loc + 1
     if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
     eles(n_loc)%ele => lat%branch(k)%ele(i)
+    eles(n_loc)%loc = lat_ele_loc_struct(i, k)
   enddo
 enddo 
 

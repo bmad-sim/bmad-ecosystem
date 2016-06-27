@@ -570,21 +570,25 @@ type xy_disp_struct
   real(rp) :: eta = 0, etap = 0
 end type
 
-! Structure to be used for an array of pointers to elements.
-! The id component is not set by any Bmad routines and can be used by 
-! programs that handle multiple lattices to indicate which lattice 
-! the element pointer is pointing to.
-
-type ele_pointer_struct
-  type (ele_struct), pointer :: ele => null()
-  integer id          
-end type
-
 ! Structure to hold the information of where an individual element is in the lattice.
 
 type lat_ele_loc_struct
   integer :: ix_ele = -1
   integer :: ix_branch = 0
+end type
+
+! Structure to be used for an array of pointers to elements.
+! The id component is not set by any Bmad routines and can be used, for example, by 
+! programs that handle multiple lattices to indicate which lattice 
+! the element pointer is pointing to.
+! A pointer to an element in a lattice is not usable if the number of elements in the 
+! lattice is modified (so that the lattice element array is reallocated). In this case,
+! the %loc component is potentially useful (as long as the element pointed to does not move).
+
+type ele_pointer_struct
+  type (ele_struct), pointer :: ele => null()
+  type (lat_ele_loc_struct) loc
+  integer id          
 end type
 
 ! Structure for ptc genfield
