@@ -10,7 +10,6 @@ set(SRC_DIRS
 )
 
 set (EXE_SPECS 
-  #  cmake.moga
   #  cmake.ansga2
   #  cmake.aspea2
   cmake.wake_fit
@@ -24,6 +23,10 @@ set (EXE_SPECS
   cmake.lattice_cleaner
   cmake.sad_to_bmad_postprocess
 )
+
+if($ENV{ACC_ENABLE_MPI})
+  list(APPEND EXE_SPECS "cmake.moga")
+endif()
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 
