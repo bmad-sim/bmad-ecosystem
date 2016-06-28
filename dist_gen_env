@@ -240,20 +240,14 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
 
 
   #--------------------------------------------------------------
-  # Check for presence of MPI parallel computing headers in
-  # the following paths only:
+  # Check for presence of OpenMPI parallel computing, set PATH
   #
-  # If the appropriate header exists, enable build system MPI
-  # support
   #--------------------------------------------------------------
-  [ -e /usr/include/openmpi-x86_64/mpif.h ] || [ -e /usr/include/mpif.h ]
-
-  if ( [ $? = 0 ] ) then
-    MPI="TRUE"
-  else
-    MPI="FALSE"
+  if [ "${ACC_ENABLE_MPI}" == "Y" ] ; then
+    [ -e ${DIST_BASE_DIR}/production/bin/ompi_info ] && PATH=${DIST_BASE_DIR}/production/bin:${PATH}
+    [ -e ${DIST_BASE_DIR}/debug/bin/ompi_info ] && PATH=${DIST_BASE_DIR}/debug/bin:${PATH}
+    export PATH
   fi
-  export MPI
 
 
 

@@ -12,7 +12,10 @@ DIRLIST=( hdf5 h5hut xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_ut
 
 # Build PLplot, if requested
 [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
-    
+
+# Build OpenMPI, if requested
+[ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
+
 # General Distribution Build Function
 func_dist_build () { 
 

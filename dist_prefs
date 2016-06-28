@@ -62,11 +62,12 @@ export ACC_ENABLE_OPENMP="N"
 
 #-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_MPI here to "Y"
-# will enable Open MPI support during the production build.
+# will enable OpenMPI support during the production build.
 #
-# NOTE: To enable this option, Open MPI must already be 
-#       installed on your system, since the Open MPI package 
-#       is not inculded in this distribution.
+# NOTE: To enable this option, OpenMPI must already be 
+#       installed on your system and be compatible with the
+#       requested Fortran compiler, or it will be built
+#       from included source code in this distribution.
 #-----------------------------------------------------------
 export ACC_ENABLE_MPI="N"
 
