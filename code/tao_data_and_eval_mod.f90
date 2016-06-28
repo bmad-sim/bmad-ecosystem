@@ -1328,7 +1328,7 @@ case ('expression:')
   !! else ! Only do this first time through...
     write (dflt_dat_index, '(i0)') datum%ix_d1
     call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, good_exp, err, .true., &
-               datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, datum%d1%d2%ix_uni)
+               datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
     if (err) return
     select case (datum%merit_type)
     case ('min')
@@ -1361,8 +1361,8 @@ case ('expression:')
       call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
       if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
       dp => d_array(1)%d
-      if (dp%d1%d2%ix_uni < datum%d1%d2%ix_uni) cycle ! OK
-      if (dp%d1%d2%ix_uni == datum%d1%d2%ix_uni .and. dp%ix_data < datum%ix_data) cycle
+      if (dp%d1%d2%ix_uni < u%ix_uni) cycle ! OK
+      if (dp%d1%d2%ix_uni == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
       call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
                                      'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
                                      'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
@@ -3015,7 +3015,7 @@ end subroutine
 !                  orbit.x[23]|good_user is False.
 !   err_flag  -- Logical: True on an error. EG: Invalid expression.
 !                  A divide by zero is not an error but good(:) will be set to False.
-!   stack(:)  -- Tao_eval_stack1_struct, optional: Evaluation stack for the
+!   stack(:)  -- Tao_eval_stack1_struct, allocatable, optional: Evaluation stack for the
 !                  expression. This is useful to save if the same expression is
 !                  to be evaluated repeatedly. 
 !                  With this, tao_evaluate_stack can be called directly.

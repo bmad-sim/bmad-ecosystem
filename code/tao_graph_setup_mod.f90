@@ -201,6 +201,23 @@ end subroutine tao_graph_data_slice_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+!+
+! Subroutine tao_data_type_substitute (template, str_out, ref_name, component)
+!
+! Routine substitute the appropriate data type string for instances of "#ref" and 
+! "#comp" in template. 
+!
+! Additionally, if template does not have a "|" character,
+! the string "|" + component will be added at the end of str_out.
+!
+! Input:
+!   templace    -- character(*): String template.
+!   ref_name    -- character(*): String to substitute for all instances of "#ref".
+!   component   -- character(*): String to substitute for all instances of "#comp".
+!
+! Output:
+!   str_out     -- character(*): String with substitutions.
+!-
 
 subroutine tao_data_type_substitute (template, str_out, ref_name, component)
 
