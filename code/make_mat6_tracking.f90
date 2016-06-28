@@ -50,7 +50,9 @@ else
   abs_p = max(abs(c0%vec(2) + del_orb(2)), abs(c0%vec(4) + del_orb(4)), -del_orb(6)) 
 endif
 
-dorb6 = max(0.0_rp, abs_p - (1 + c0%vec(6)))   ! Shift in start%vec(6) to apply.
+! The factor of 1.01 is used to avoid roundoff problems.
+
+dorb6 = max(0.0_rp, 1.01 * (abs_p - (1 + c0%vec(6))))   ! Shift in start%vec(6) to apply.
 
 c00 = c0
 call init_coord(c00, c00%vec, ele, upstream_end$, c0%species, shift_vec6 = .false.)
