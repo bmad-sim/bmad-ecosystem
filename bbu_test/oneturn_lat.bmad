@@ -1,0 +1,2 @@
+call, file = '~/nfs/linux_lib/regression_tests/bbu_test/oneturn_lat_examp.bmad' 
+call, file = '~/nfs/linux_lib/regression_tests/bbu_test/oneturn_assignHOMs.bmad'  

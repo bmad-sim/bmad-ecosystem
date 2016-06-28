@@ -1,0 +1,25 @@
+set (EXENAME bbu_test)
+
+set (SRC_FILES
+  bbu_test/bbu_test.f90
+  bbu_test/bbu_track_mod.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+  lapack95
+  lapack
+  blas
+  fgsl
+  gsl
+  gslcblas
+)
