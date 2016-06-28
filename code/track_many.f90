@@ -6,18 +6,10 @@
 ! Tracking with direction = -1 means the particle is traveling in the negative s-direction.
 ! Tracking is always forward in time independent of the direction of travel.
 ! 
-! Note: With reversed tracking, Taylor maps need to be inverted. This can waste time.
-!  Thus consider using lat_reverse to create a reversed lattice instead.
-!
-! Note: The particle coordinates are independent of the direction of travel. 
-! That is, it is always true that:
-!   vec(2) = dx/dz    ! positive dx/dz means negative dx/dt for direction = -1
-!   vec(4) = dy/dz
-!   vec(5) = z        ! +z points in the +s direction.
-! For normally oriented ((non-reversed) elements (that is, ele%orientation = 1): 
-!   +z points in +s direction
-!   sign of dz/dt = particle direction 
-! And vice versa for reversed elements.
+! Note: For both forward and reverse tracking:
+!   Positive px (= vec(2)) -> dx/dt is positive.
+!   Positive py (= vec(4)) -> dy/dt is positive.
+!   Positive z (= vec(5) = beta * c (t_ref - t_particle)) -> particle is ahead in time of reference particle.
 !
 ! Note: Starting and ending points are at the downstream (+s) end of elements with index
 !   ix_start and ix_end. Thus:
@@ -48,8 +40,8 @@
 !   ix_start         -- Integer: Start index (See Note).
 !   ix_end           -- Integer: End index (See Note).
 !   direction        -- Integer: Direction to track.
-!                            = +1  -> Track forward
-!                            = -1  -> Track backward
+!                            = +1 -> Track forward (+s)
+!                            = -1 -> Track backward (-s)
 !   ix_branch        -- Integer, optional: Branch to track. Default is 0 (main lattice).
 !
 ! Output:
