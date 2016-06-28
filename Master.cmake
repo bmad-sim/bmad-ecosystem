@@ -36,16 +36,8 @@ ENDIF ()
 #------------------------------------------
 IF ($ENV{ACC_ENABLE_MPI})
   SET (ACC_ENABLE_MPI 1)
-  SET (ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
-  SET (ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
-  SET (ACC_MPI_INC_DIRS /usr/include/compat-openmpi-x86_64 /usr/lib64/compat-openmpi/lib)
-  SET (ACC_MPI_LIB_DIRS /usr/lib64/compat-openmpi/lib)
 ELSE ()
   SET (ACC_ENABLE_MPI 0)
-  SET (ACC_MPI_COMPILER_FLAGS)
-  SET (ACC_MPI_LINKER_FLAGS)
-  SET (ACC_MPI_INC_DIRS "")
-  SET (ACC_MPI_LIB_DIRS "")
 ENDIF ()
 
 
@@ -105,7 +97,7 @@ ELSE ()
   SET (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
   SET (CMAKE_Fortran_COMPILER ifort)
      IF ("${ACC_ENABLE_OPENMP}")
-       SET (OPENMP_LINK_LIBS "")
+       SET (OPENMP_LINK_LIBS "-liomp5")
        EXEC_PROGRAM (ifort ARGS -v OUTPUT_VARIABLE INTEL_VERSION_OUPUT)
        IF (( ${INTEL_VERSION_OUPUT} MATCHES "16" ) OR ( ${INTEL_VERSION_OUPUT} MATCHES "17" ))
 	 SET (IFORT_OPENMP_FLAG "-qopenmp")
@@ -113,7 +105,7 @@ ELSE ()
 	 SET (IFORT_OPENMP_FLAG "-openmp")
        ENDIF ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp ${IFORT_OPENMP_FLAG}")
-       SET (ACC_LINK_FLAGS "${IFORT_OPENMP_FLAG}")
+#       SET (ACC_LINK_FLAGS "${IFORT_OPENMP_FLAG}")
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
      ENDIF ()
@@ -121,6 +113,14 @@ ELSE ()
 
 ENDIF ()
 
+IF (${ACC_ENABLE_MPI})
+  SET (CMAKE_Fortran_COMPILER mpifort)
+  EXEC_PROGRAM (mpifort ARGS --showme:compile OUTPUT_VARIABLE MPI_COMPILE_FLAGS)
+  EXEC_PROGRAM (mpifort ARGS --showme:link OUTPUT_VARIABLE MPI_LINK_FLAGS)
+  EXEC_PROGRAM (mpifort ARGS --showme:incdirs OUTPUT_VARIABLE MPI_INC_DIR)
+  EXEC_PROGRAM (mpifort ARGS --showme:libdirs OUTPUT_VARIABLE MPI_LIB_DIR)
+  EXEC_PROGRAM (mpifort ARGS --showme:libs OUTPUT_VARIABLE MPI_LIBS)
+ENDIF ()
 
 #----------------------------------------------------------------
 # If any pre-build script is specified, run it before building
@@ -162,11 +162,13 @@ ENDIF ()
 #-----------------------------------
 find_package(X11)
 
+
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
 SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+
 
 #-----------------------------------                                                                                
 # For non-Linux or non-ifort or 
@@ -204,7 +206,7 @@ ENDIF ()
 #--------------------------------------
 enable_language( Fortran )
 
-SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
+SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${MPI_COMPILE_FLAGS}")
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
@@ -215,13 +217,13 @@ IF ($ENV{ACC_ENABLE_FPIC})
 ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ELSE ()
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ENDIF ()
 
-SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
-SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS})
+SET (ACC_INC_DIRS ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
+SET (ACC_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
 
 
 #--------------------------------------
@@ -302,7 +304,7 @@ IF ($ENV{ACC_ENABLE_MPI})
 ELSE()
   message("MPI Support          : Not Enabled")
 ENDIF()
-message("FFLAGS               : ${FFLAGS}")
+message("FFLAGS               : ${FFLAGS} ${FCFLAGS}")
 message("${FORTRAN_COMPILER} Compiler Flags : ${BASE_Fortran_FLAGS}")
 message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
 
