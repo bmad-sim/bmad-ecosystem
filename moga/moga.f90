@@ -1,6 +1,6 @@
 program moga
   use mpi
-  use ifport, ifport_seed=>seed
+  use ifport, ifport_seed => seed
   use bmad
   use bmad_parser_mod, only: bp_com
   use custom_dynamic_aperture_mod
@@ -214,7 +214,9 @@ program moga
   if( master ) write(*,*) "preparing lattice..."
 
   bp_com%always_parse = .true.
+  write(*,*) "FOO slave W", lat_file
   call bmad_parser(lat_file,ring)
+  write(*,*) "FOO slave X"
 
   allocate(co(0:ring%n_ele_track))
   allocate(orb(0:ring%n_ele_track))
@@ -331,7 +333,11 @@ program moga
   if( master ) then
     ! manager
     write(*,*) "starting simulation..."
-    call random_seed(put=seed)
+    if(seed(1) .gt. 0) then
+      call random_seed(put=seed)
+    else
+      call random_seed()
+    endif
 
     ! allocate memory for storing population
     allocate(pop(alpha+lambda))
@@ -854,7 +860,6 @@ program moga
       fp_de_pos = -999.0
       n_fp_steps = -999
       seed(1) = -999
-      seed(2) = -999
       max_gen = -999
       n_turn = -999
       n_angle = -999
@@ -896,8 +901,7 @@ program moga
       fail = fail .or. check_bomb(track_dims,'track_dims')
       fail = fail .or. check_bomb(n_turn,'n_turn')
       fail = fail .or. check_bomb(n_angle,'n_angle')
-      fail = fail .or. check_bomb(seed(1),'seed(1)')
-      fail = fail .or. check_bomb(seed(2),'seed(2)')
+      fail = fail .or. check_bomb(seed(1),'seed')
       fail = fail .or. check_bomb(tracking_method,'tracking_method')
       fail = fail .or. check_bomb(lat_file,'lat_file')
       fail = fail .or. check_bomb(moga_output_file,'moga_output_file')
