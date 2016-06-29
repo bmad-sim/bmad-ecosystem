@@ -105,7 +105,7 @@ DIRCHECK=`is_dir_toplevel ${CWD}`
 
 if ( [ "${DIRCHECK}" == "Y" ] ); then
   "echo" "Current working directory is the root of a distribution tree." >> ${DIST_SETUP_LOG}
-  USE_CWD_BASEDIR="Y"
+  export USE_CWD_BASEDIR="Y"
   export DIST_BASE_DIR="${CWD}"
   export ACC_ROOT_DIR="${DIST_BASE_DIR}"
 else
@@ -147,7 +147,7 @@ fi
 # environment.  Otherwise, print error mesasge and do
 # nothing else.
 #----------------------------------------------------------
-if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
+if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; then
 
   "echo" "Directory appears to be the top level of a source distribution... GOOD." >> $DIST_SETUP_LOG
   "echo" "" >> $DIST_SETUP_LOG
@@ -207,10 +207,10 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   #--------------------------------------------------------------
   # For Mac OS X "Darwin", force MacPorts gcc/g++ as compiler
   #--------------------------------------------------------------
-  [ -e /opt/local/bin/gcc ] && [ -z "$(system_profiler SPInstallHistoryDataType | grep MacPorts)" ] && [ "${DIST_PLATFORM_VERSION}" -gt 12 ]
-  export CC=gcc
-  export CXX=g++
-
+  if ( [ -e /opt/local/bin/gcc ] && [ -z "$(system_profiler SPInstallHistoryDataType | grep MacPorts)" ] && [ "${DIST_PLATFORM_VERSION}" -gt 12 ] ) ; then
+    export CC=gcc
+    export CXX=g++
+  fi
 
 
   #--------------------------------------------------------------
@@ -229,12 +229,12 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   fi
 
 
+
   #--------------------------------------------------------------
   #  Add the distribution's GNU Util bin area to user's PATH
   #--------------------------------------------------------------
   if [ "$(type cmake &> /dev/null ; echo $?)" -ne 0 ] ; then
-    PATH="${PATH}:${DIST_BASE_DIR}/production/gnu_utilities/bin:${DIST_BASE_DIR}/debug/gnu_utilities/bin"
-    export PATH
+    export PATH="${PATH}:${DIST_BASE_DIR}/production/gnu_utilities/bin:${DIST_BASE_DIR}/debug/gnu_utilities/bin"
   fi
 
 
@@ -244,9 +244,13 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   #
   #--------------------------------------------------------------
   if [ "${ACC_ENABLE_MPI}" == "Y" ] ; then
-    [ -e ${DIST_BASE_DIR}/production/bin/ompi_info ] && PATH=${DIST_BASE_DIR}/production/bin:${PATH}
-    [ -e ${DIST_BASE_DIR}/debug/bin/ompi_info ] && PATH=${DIST_BASE_DIR}/debug/bin:${PATH}
-    export PATH
+    if [ -e ${DIST_BASE_DIR}/production/bin/ompi_info ] ; then 
+      export PATH=${DIST_BASE_DIR}/production/bin:${PATH}
+      export LD_LIBRARY_PATH=${DIST_BASE_DIR}/production/lib:${LD_LIBRARY_PATH}
+    elif [ -e ${DIST_BASE_DIR}/debug/bin/ompi_info ] ; then
+      export PATH=${DIST_BASE_DIR}/debug/bin:${PATH}
+      export LD_LIBRARY_PATH=${DIST_BASE_DIR}/debug/lib:${LD_LIBRARY_PATH}
+    fi
   fi
 
 
@@ -300,6 +304,3 @@ else
   "echo" "distribution source tree." >> $DIST_SETUP_LOG
 
 fi  
-
-
-

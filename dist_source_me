@@ -77,7 +77,7 @@
 #----------------------------------------------------------
 # Apply the changes generated above.
 #----------------------------------------------------------
- source ${HOME}/.dist_env_setup.tmp
+source ${HOME}/.dist_env_setup.tmp
 
 
 
@@ -89,6 +89,8 @@ if ( [ "${DIST_F90}" == "gfortran" ] ) ; then
     export GCC_VER_STR=$(gfortran --version | head -1 | cut -d. -f1)
     export GCC_MAJOR_VER="${GCC_VER_STR: -1}"
     export GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d. -f2)
+    [ `uname` == "Darwin" ] && export GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d. -f1 | awk ' { print $5} ')
+    [ `uname` == "Darwin" ] && export GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d. -f2)
       if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
         echo -e "\nPlease upgrade your version of GCC/gfortran or set your PATH to where a minimum 4.9 version of GCC/gfortran is located.\n"
       elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
@@ -111,15 +113,22 @@ if ( [ "${DIST_F90}" == "gfortran" ] ) ; then
         fi
       fi
         echo -e "\nUsing: $(gfortran --version | head -1)"
-        "cat" ${HOME}/.dist_setup_log.tmp
   else
     echo -e "\nPlease install GNU GCC/gfortran (version 4.9 or greater is recommended) or set your PATH to where GNU GCC is located.\n"
   fi
+elif ( [ "$(type ifort &> /dev/null ; echo $?)" -eq 0 ] ) ; then
+  echo -e "\nUsing: $(ifort --version | head -1)"
+else
+  echo -e "\nYour requested Fortran compiler, ${DIST_F90}, is not installed on your system.  Please check your PATH."
 fi
 
 
 
 
+#----------------------------------------------------------
+# Tell the user the status of sourcing the script.
+#----------------------------------------------------------
+cat ${HOME}/.dist_setup_log.tmp
 
 
 
