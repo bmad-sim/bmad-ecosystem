@@ -133,7 +133,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
     ! Since p0c_ref_init the voltage may both be zero, just use a dummy number in this case.
     if (gun_ele%value(p0c$) == 0) then
-      gun_ele%value(p0c$) = 1d5 + gun_ele%value(voltage$)
+      gun_ele%value(p0c$) = 1d5 + gun_ele%value(voltage$) * charge_of(branch%param%particle)
     endif
     call convert_pc_to (gun_ele%value(p0c$), branch%param%particle, E_tot= gun_ele%value(E_tot$))
     gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
