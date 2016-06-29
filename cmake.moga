@@ -8,7 +8,6 @@ set (LINK_LIBS
   util_programs
   bmad
   sim_utils
-  cesr_utils
   recipes_f-90_LEPP
   forest
   fgsl
