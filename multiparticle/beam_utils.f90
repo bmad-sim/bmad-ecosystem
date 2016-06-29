@@ -475,13 +475,8 @@ type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
-real(rp) old_cutoff
-
-real(rp) tunes(1:3)
-REAL(rp) G6mat(6,6)
-REAL(rp) G6inv(6,6)
-REAL(rp) V6mat(6,6)
-REAL(rp) t6(6,6)
+real(rp) old_cutoff, pz_min
+real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
 
 integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
@@ -688,6 +683,11 @@ else
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
     p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
     call init_coord (p, p, ele, downstream_end$, species)
+    ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
+    ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
+    ! an unphysical pz, the particle will be considered to be dead.
+    pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
+    p%vec(6) = max(p%vec(6), pz_min)
   enddo
 endif
 
