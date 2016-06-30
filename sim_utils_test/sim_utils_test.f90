@@ -22,11 +22,32 @@ character(40) str, sub1, sub2, sub3
 
 real(rp) sig1, sig2, sig3
 real(rp) phi1, phi2, phi3
+real(rp) vec3(3), vec3a(3), vec3b(3), axis(3), angle, w_mat(3,3)
 complex(rp) amp1, amp2, amp3
 
 !
 
 open (1, file = 'output.now')
+
+! rotation test
+
+axis = [3, 4, 5] / sqrt(50.0_rp)
+vec3 = [-2, 3, -4]
+angle = 0.67
+
+!axis = [1, 0, 0]
+!vec3 = [-2, 3, -4]
+!angle = pi/2
+
+vec3a = vec3
+call rotate_vec_given_axis_angle (vec3a, axis, angle)
+
+call axis_angle_to_w_mat (axis, angle, w_mat)
+vec3b = matmul(w_mat, vec3)
+
+write (1, '(a, 3f11.6)') '"rot vecA" ABS 1E-10  ', vec3a
+write (1, '(a, 3f11.6)') '"rot vecB" ABS 1E-10  ', vec3b
+write (1, '(a, 3es10.2)') '"drot vec" ABS 1E-10  ', vec3a - vec3b
 
 ! naff test
 

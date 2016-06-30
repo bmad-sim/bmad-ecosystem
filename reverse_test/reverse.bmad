@@ -6,6 +6,9 @@ beam_start[y]  = 3e-4
 beam_start[py] = 4e-4
 beam_start[z]  = 5e-3
 beam_start[pz] = 0.3
+beam_start[spin_x] = 0.3
+beam_start[spin_y] = 0.4
+beam_start[spin_z] = 0.5
 
 beginning[beta_a] =  10
 beginning[beta_b] =  10

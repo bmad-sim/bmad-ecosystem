@@ -1,5 +1,5 @@
 &bbu_params
-  bbu_param%lat_filename = '~/nfs/linux_lib/regression_tests/bbu_test/oneturn_lat.bmad'
+  bbu_param%lat_filename = 'oneturn_lat.bmad'
   bbu_param%keep_overlays_and_groups = .false.
   bbu_param%simulation_turns_max = 500
   bbu_param%elname = 'T1'
@@ -12,6 +12,6 @@
   bbu_param%current = 1.000
   bbu_param%ran_seed = 100
   bbu_param%rel_tol = 0.001
-  bbu_param%lat2_filename = '~/nfs/linux_lib/regression_tests/bbu_test/lat2.lat'
+  bbu_param%lat2_filename = 'lat2.lat'
   bbu_param%bunch_freq = 1300000000.0
 /
