@@ -7,15 +7,15 @@
 !   2) Reverse the particle's momentum.
 !   3) Track the particle in reverse through the element.
 !   4) Reverse the particle's momentum.
-! Given the right conditions, the particle's final coordinates should equal the particle's 
+! Given the right conditions, the particle's final coordinates and spin should equal the particle's 
 ! initial coordinates. This gives a check as to whether the reverse tracking is correct.
 !
 ! The needed conditions for guaranteeing final = initial are:
 !   A) For static magnectic fields: The particle charge is also reversed before reverse tracking.
 !   B) For static electric fields: The particle charge is the same in reverse tracking.
 !
-! For rfcaities life is more complicated since the fields are time dependent and the arrow 
-! of time cannot be reversed. In this case, longitudinal mirror symmetry must be used.
+! For rfcaities, life is more complicated since the fields are time dependent.
+! In this case, longitudinal mirror symmetry must be used.
 ! The procedure for rfcavities is then:
 !   0) Start with some given particle coordinates.
 !   1) Track the particle through an element, 
@@ -32,8 +32,10 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
+
 real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat
-integer nargs, i
+integer nargs, ie, ib, im
 logical :: verbosity = .false.
 
 character(40) :: lat_file  = 'reverse.bmad'
@@ -51,6 +53,8 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
+bmad_com%spin_tracking_on = .true.
+
 ! Init
 
 open (1, file = 'output.now')
@@ -63,28 +67,28 @@ max_diff_mat = 0
 
 !
 
-do i = 1, lat%n_ele_max - 1 ! Do not test end marker
-  
+do ie = 1, lat%n_ele_max - 1 ! Do not test end marker
+  ele => lat%ele(ie)
 
-  ele => lat%ele(i)
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
 
-  call test_this (ele)
+    do im = 1, n_methods$
+      if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
+      if (im == mad$  .or. im == symp_map$ .or. im == custom$) cycle
 
-  if (valid_tracking_method (ele, lat%param%particle, runge_kutta$)) then
-    ele%tracking_method = runge_kutta$
-    call test_this (ele)
-  endif
+      ele%tracking_method = im
 
-  if (valid_tracking_method (ele, lat%param%particle, symp_lie_ptc$)) then
-    ele%tracking_method = symp_lie_ptc$
-    call test_this (ele)
-  endif
+      if (ele%tracking_method == symp_lie_ptc$) then
+        ele%spin_tracking_method = symp_lie_ptc$
+      else
+        ele%spin_tracking_method = tracking$
+      endif
 
-  if (valid_tracking_method (ele, lat%param%particle, symp_lie_bmad$)) then
-    ele%tracking_method = symp_lie_bmad$
-    call test_this (ele)
-  endif
+      call test_this (ele)
 
+    enddo
+  enddo
 enddo
 
 ! And close
@@ -98,18 +102,18 @@ contains
 subroutine test_this (ele)
 
 type (ele_struct) ele, ele2
-type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r, dorb_r, orb_0b, orb_1b, dorb_b
-type (coord_struct) orb_1r_sav, orb_1b_sav
+type (coord_struct) orb_0f, orb_1f, orb_0r_orient, orb_1r_orient, dorb_r_orient, orb_0b_track, orb_1b_track, dorb_b_track
+type (coord_struct) orb_1r_orient_sav, orb_1b_track_sav
 
-real(rp) dmat(6,6), m(6,6), vec1(6)
+real(rp) dmat(6,6), m(6,6), vec1(6), dspin_r_orient(3), dspin_b_track(3)
 real(rp) diff_vec_r, diff_vec_b, diff_mat
 
 integer n
 logical :: err_flag
 
 !
-orb_0f = lat%beam_start
-call init_coord (orb_0f, orb_0f%vec, ele, upstream_end$)
+
+call init_coord (orb_0f, lat%beam_start, ele, upstream_end$)
 
 select case (ele%tracking_method)
 case (runge_kutta$)
@@ -128,62 +132,65 @@ if (verbosity) then
   print *, str
   print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
   print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
+  print '(a, 3f12.6, 4x, 3f12.6)', 'Spin:', orb_0f%spin, orb_1f%spin
 end if
 
-! Reverse tracking
+! Reverse orientation
 
-orb_0r           = orb_1f
-orb_0r%vec(2)    = -orb_1f%vec(2)
-orb_0r%vec(4)    = -orb_1f%vec(4)  
+orb_0r_orient           = orb_1f
+orb_0r_orient%vec(2)    = -orb_1f%vec(2)
+orb_0r_orient%vec(4)    = -orb_1f%vec(4)  
 
 ele2 = ele
 if (ele2%key == elseparator$) then
 elseif (ele2%key == rfcavity$) then
-  orb_0r%species  = antiparticle(orb_0r%species)
-  orb_0r%vec(5) = orb_0f%vec(5)
-  orb_0r%vec(6) = orb_0f%vec(6)
-  orb_0r%t      = orb_0f%t
+  orb_0r_orient%species  = antiparticle(orb_0r_orient%species)
+  orb_0r_orient%vec(5) = orb_0f%vec(5)
+  orb_0r_orient%vec(6) = orb_0f%vec(6)
+  orb_0r_orient%t      = orb_0f%t
 
 elseif (ele2%key == patch$) then
    ele2%value(upstream_ele_dir$) = -1
    ele2%value(downstream_ele_dir$) = -1
 else
-  orb_0r%species   = antiparticle(orb_0r%species)
+  orb_0r_orient%species   = antiparticle(orb_0r_orient%species)
 endif
 
 ele2%orientation = -1
 ele2%branch%param%default_tracking_species = anti_ref_particle$
 
-call track1(orb_0r, ele2, ele2%branch%param, orb_1r)
-call make_mat6(ele2, ele%branch%param, orb_0r, orb_1r, .true.)
+call track1(orb_0r_orient, ele2, ele2%branch%param, orb_1r_orient)
+call make_mat6(ele2, ele%branch%param, orb_0r_orient, orb_1r_orient, .true.)
 
-orb_1r_sav = orb_1r
+orb_1r_orient_sav = orb_1r_orient
 
-orb_1r%vec(2)    = -orb_1r%vec(2)
-orb_1r%vec(4)    = -orb_1r%vec(4)  
+orb_1r_orient%vec(2)    = -orb_1r_orient%vec(2)
+orb_1r_orient%vec(4)    = -orb_1r_orient%vec(4)  
 
-dorb_r%vec    = orb_1r%vec - orb_0f%vec
-dorb_r%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
-dorb_r%vec(6) = (orb_1r%vec(6) - orb_0r%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
-dorb_r%t      = (orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)
+dorb_r_orient%vec    = orb_1r_orient%vec - orb_0f%vec
+dorb_r_orient%vec(5) = (orb_1r_orient%vec(5) - orb_0r_orient%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
+dorb_r_orient%vec(6) = (orb_1r_orient%vec(6) - orb_0r_orient%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
+dorb_r_orient%t      = (orb_1r_orient%t - orb_0r_orient%t) - (orb_1f%t - orb_0f%t)
+dspin_r_orient       = orb_1r_orient%spin - orb_0f%spin
 
 ! Backwards tracking
 
-orb_0b = orb_0r
-orb_0b%direction = -1
+orb_0b_track = orb_0r_orient
+orb_0b_track%direction = -1
 
 ele%branch%param%default_tracking_species = ref_particle$
 
-call track1(orb_0b, ele, ele%branch%param, orb_1b)
-orb_1b_sav = orb_1b
+call track1(orb_0b_track, ele, ele%branch%param, orb_1b_track)
+orb_1b_track_sav = orb_1b_track
 
-orb_1b%vec(2)    = -orb_1b%vec(2)
-orb_1b%vec(4)    = -orb_1b%vec(4)  
+orb_1b_track%vec(2)    = -orb_1b_track%vec(2)
+orb_1b_track%vec(4)    = -orb_1b_track%vec(4)  
 
-dorb_b%vec    = orb_1b%vec - orb_0f%vec
-dorb_b%vec(5) = (orb_1b%vec(5) - orb_0b%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
-dorb_b%vec(6) = (orb_1b%vec(6) - orb_0b%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
-dorb_b%t      = (orb_1b%t - orb_0b%t) - (orb_1f%t - orb_0f%t)
+dorb_b_track%vec    = orb_1b_track%vec - orb_0f%vec
+dorb_b_track%vec(5) = (orb_1b_track%vec(5) - orb_0b_track%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
+dorb_b_track%vec(6) = (orb_1b_track%vec(6) - orb_0b_track%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
+dorb_b_track%t      = (orb_1b_track%t - orb_0b_track%t) - (orb_1f%t - orb_0f%t)
+dspin_b_track       = orb_1b_track%spin - orb_0f%spin
 
 ! Matrix
 
@@ -198,13 +205,15 @@ dmat = ele%mat6 - dmat
 
 if (verbosity) then
   print *
-  print '(a, 6es12.4, 5x, es12.4)', '1r: ', orb_0r%vec, orb_0r%t
-  print '(a, 6es12.4, 5x, es12.4)', '2r: ', orb_1r_sav%vec, orb_1r%t
-  print '(a, 6es12.4, 5x, es12.4)', 'Dr: ', dorb_r%vec(1:6), dorb_r%t
+  print '(a, 6es12.4, 5x, es12.4)', '0r_orient:     ', orb_0r_orient%vec, orb_0r_orient%t
+  print '(a, 6es12.4, 5x, es12.4)', '1r_orient:     ', orb_1r_orient_sav%vec, orb_1r_orient%t
+  print '(a, 6es12.4, 5x, es12.4)', 'Dr_orient:     ', dorb_r_orient%vec(1:6), dorb_r_orient%t
+  print '(a, 3es12.4)',             'dSpin_r_orient:', dspin_r_orient
   print *
-  print '(a, 6es12.4, 5x, es12.4)', '1b: ', orb_0b%vec, orb_0b%t
-  print '(a, 6es12.4, 5x, es12.4)', '2b: ', orb_1b_sav%vec, orb_1b%t
-  print '(a, 6es12.4, 5x, es12.4)', 'Db: ', dorb_b%vec(1:6), dorb_b%t
+  print '(a, 6es12.4, 5x, es12.4)', '0b_track:     ', orb_0b_track%vec, orb_0b_track%t
+  print '(a, 6es12.4, 5x, es12.4)', '1b_track:     ', orb_1b_track_sav%vec, orb_1b_track%t
+  print '(a, 6es12.4, 5x, es12.4)', 'Db_track:     ', dorb_b_track%vec(1:6), dorb_b_track%t
+  print '(a, 3es12.4)',             'dSpin_b_track:', dspin_b_track
   print *
   do n = 1, 6
     print '(6f12.6)', ele%mat6(n,:)
@@ -224,14 +233,14 @@ end if
 
 str = '"' // trim(ele%name) // '@' // trim(tracking_method_name(ele%tracking_method)) // ':'
 
-write (1, '(a)') trim(line_out(str, 'dorb_r"', maxval(abs(dorb_r%vec))))
-write (1, '(a)') trim(line_out(str, 'c*dt_r"', dorb_r%t))
-write (1, '(a)') trim(line_out(str, 'dorb_b"', maxval(abs(dorb_b%vec))))
-write (1, '(a)') trim(line_out(str, 'c*dt_b"', dorb_b%t))
-write (1, '(a)') trim(line_out(str, 'xmat"', maxval(abs(dmat))))
+write (1, '(a)') trim(line_out(str, 'dorb_r_orient"', [dorb_r_orient%vec, c_light * dorb_r_orient%t]))
+write (1, '(a)') trim(line_out(str, 'dorb_b_track" ', [dorb_b_track%vec, c_light * dorb_b_track%t]))
+write (1, '(a)') trim(line_out(str, 'xmat"', [maxval(abs(dmat))]))
+write (1, '(a)') trim(line_out(str, 'dspin_r_orient"', dspin_r_orient))
+write (1, '(a)') trim(line_out(str, 'dspin_b_track"', dspin_b_track))
 
-diff_vec_r = maxval([abs(dorb_r%vec), abs(dorb_r%t)])
-diff_vec_b = maxval([abs(dorb_b%vec), abs(dorb_b%t)])
+diff_vec_r = maxval([abs(dorb_r_orient%vec), abs(dorb_r_orient%t)])
+diff_vec_b = maxval([abs(dorb_b_track%vec), abs(dorb_b_track%t)])
 diff_mat = maxval(abs(dmat))
 
 max_diff_vec_r = max(max_diff_vec_r, diff_vec_r)
@@ -249,33 +258,30 @@ end subroutine test_this
 
 function line_out(str1, str2, val) result (str_out)
 
-real(rp) val
+real(rp) val(:)
 character(*) str1, str2
-character(100) str_out
+character(200) str_out
 character(16) tol
 
 !
 
 str_out = trim(str1) // str2
 
-tol = 'REL 0.1'
-if (abs(val) < 1e-14) tol = 'ABS 1e-14'
-if (index(str_out, 'Runge') /= 0) tol = 'ABS 1e-9'
-if (index(str_out, 'xmat') /= 0) tol = 'ABS 1e-8'
+tol = 'REL 1E-5'
 
 select case (str_out)
-case ('"QUADRUPOLE5@Bmad_Standard:dorb_r"');    tol = 'ABS 1e-9'
-case ('"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r"');    tol = 'ABS 1e-9'
-case ('"RFCAVITY1@Runge_Kutta:dorb_r"');        tol = 'ABS 3e-9'
-case ('"RFCAVITY2@Bmad_Standard:dorb_r"');      tol = 'ABS 1e-6'
-case ('"SBEND4@Bmad_Standard:dorb_b"');         tol = 'ABS 2e-8'
-case ('"SBEND4@Runge_Kutta:dorb_b"');           tol = 'ABS 1e-7'
-case ('"SBEND4@Bmad_Standard:dorb_r"');         tol = 'ABS 2e-8'
-case ('"SBEND4@Runge_Kutta:dorb_r"');           tol = 'ABS 1e-7'
-case ('"SBEND4@Runge_Kutta:xmat"');             tol = 'ABS 2e-5'
+case ('"QUADRUPOLE5@Bmad_Standard:dorb_r_orient"');    tol = 'ABS 1e-9'
+case ('"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r_orient"');    tol = 'ABS 1e-9'
+case ('"RFCAVITY1@Runge_Kutta:dorb_r_orient"');        tol = 'ABS 3e-9'
+case ('"RFCAVITY2@Bmad_Standard:dorb_r_orient"');      tol = 'ABS 1e-6'
+case ('"SBEND4@Bmad_Standard:dorb_b_track"');          tol = 'ABS 2e-8'
+case ('"SBEND4@Runge_Kutta:dorb_b_track"');            tol = 'ABS 1e-7'
+case ('"SBEND4@Bmad_Standard:dorb_r_orient"');         tol = 'ABS 2e-8'
+case ('"SBEND4@Runge_Kutta:dorb_r_orient"');           tol = 'ABS 1e-7'
+case ('"SBEND4@Runge_Kutta:xmat"');                    tol = 'ABS 2e-5'
 end select
 
-write (str_out, '(a, t47, a, t60, es12.4)') trim(str_out), tol, val
+write (str_out, '(a, t47, a, t60, 7es12.4)') trim(str_out), tol, val
 
 end function line_out
 

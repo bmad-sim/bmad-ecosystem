@@ -1,6 +1,5 @@
 abs_time_test
 autoscale_test
-!!!NOTE: SKIPPING BBU_TEST. THIS TEST NEEDS TO BE UPGRADED FOR THE NEW BBU PROGRAM...
 bbu_test   
 bookkeeper_test
 closed_orbit_test
@@ -16,7 +15,8 @@ patch_test
 photon_test
 NOTE: SKIPPING PTC_TEST!
 ! ptc_test
-reverse_test
+NOTE: REVERSE_TEST DISABLED DURING UPGRADE
+! reverse_test
 sim_utils_test
 slice_test
 spin_test

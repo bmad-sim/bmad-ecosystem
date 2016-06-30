@@ -10,7 +10,6 @@ type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
-real(rp) start_p(3), end_p(3)
 
 character(200) :: line(4)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
@@ -68,25 +67,33 @@ do ib = 0, ubound(lat%branch, 1)
     ele%spin_tracking_method = tracking$
     isn = 0
     do j = 1, n_methods$
-      if (.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
-      if (ele%key /= taylor$) call kill_taylor(ele%taylor)
-!      if ((ele%key == rfcavity$ .or. ele%key == lcavity$) .and. (j == runge_kutta$ .or. j == time_runge_kutta$ .or. j == boris$)) cycle
+      if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
+      if (j == symp_map$ .or. j == custom$) cycle
+
       ele%tracking_method = j
+
+      if (ele%key /= taylor$) call kill_taylor(ele%taylor)
+
       if (ele%tracking_method == symp_lie_ptc$) then
         ele%spin_tracking_method = symp_lie_ptc$
       else
         ele%spin_tracking_method = tracking$
       endif
+
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if(ele%key == beambeam$) ele%tracking_method = bmad_standard$
         call make_mat6 (ele, branch%param, lat%beam_start)
         ele%tracking_method = j
       endif
+
       start_orb = lat%beam_start
-      call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
+      call init_coord (start_orb, start_orb, ele, upstream_end$, &
+                                    default_tracking_species(branch%param), E_photon = ele%value(p0c$) * 1.006)
       start_orb%field = [1, 2]
+
       call track1 (start_orb, ele, branch%param, end_orb)
+
       final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
       write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
 
@@ -99,11 +106,9 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$) then
         isn = isn + 1
-        start_p = spinor_to_vec(start_orb%spin)
-        end_p = spinor_to_vec(end_orb%spin)
         final_str = trim(final_str) // ' dSpin'
         write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
-              end_p-start_p, norm2(end_p) - norm2(start_p)
+              end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 
       if (branch%param%particle == photon$) then
