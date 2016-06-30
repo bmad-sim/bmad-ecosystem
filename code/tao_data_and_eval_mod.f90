@@ -2173,7 +2173,7 @@ case ('spin.')
       if (data_source == 'beam') then
         vec3 = polar_to_vec(bunch_params(i)%spin)
       else
-        vec3 = spinor_to_vec(orbit(i)%spin)
+        vec3 = orbit(i)%spin
       endif
 
       select case (datum%data_type)
@@ -2187,7 +2187,7 @@ case ('spin.')
       if (data_source == 'beam') then
         vec3 = polar_to_vec(bunch_params(ix_ref)%spin)
       else
-        vec3 = spinor_to_vec(orbit(ix_ref)%spin)
+        vec3 = orbit(ix_ref)%spin
       endif
 
       select case (datum%data_type)
@@ -2204,7 +2204,7 @@ case ('spin.')
       if (data_source == 'beam') then
         polar_spin = bunch_params(i)%spin
       else
-        polar_spin = spinor_to_polar(orbit(i)%spin)
+        polar_spin = vec_to_polar(orbit(i)%spin)
       endif
 
       select case (datum%data_type)
@@ -2218,7 +2218,7 @@ case ('spin.')
       if (data_source == 'beam') then
         polar_spin = bunch_params(ix_ref)%spin
       else
-        polar_spin = spinor_to_polar(orbit(ix_ref)%spin)
+        polar_spin = vec_to_polar(orbit(ix_ref)%spin)
       endif
 
       select case (datum%data_type)

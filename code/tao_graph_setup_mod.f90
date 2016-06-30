@@ -2210,23 +2210,20 @@ do ii = 1, size(curve%x_line)
   case ('spin.')
     select case (data_type)
     case ('spin.theta')
-      polar = spinor_to_polar(orbit%spin)
+      polar = vec_to_polar(orbit%spin)
       value = polar%theta
     case ('spin.phi')
-      polar = spinor_to_polar(orbit%spin)
+      polar = vec_to_polar(orbit%spin)
       value = polar%phi
     case ('spin.amp')
-      polar = spinor_to_polar(orbit%spin)
+      polar = vec_to_polar(orbit%spin)
       value = polar%polarization
     case ('spin.x')
-      vec3 = spinor_to_vec(orbit%spin)
-      value = vec3(1)
+      value = orbit%spin(1)
     case ('spin.y')
-      vec3 = spinor_to_vec(orbit%spin)
-      value = vec3(2)
+      value = orbit%spin(2)
     case ('spin.z')
-      vec3 = spinor_to_vec(orbit%spin)
-      value = vec3(3)
+      value = orbit%spin(3)
     case default
       goto 9000  ! Error message & Return
     end select

@@ -692,7 +692,7 @@ call init_coord (orb_out, orb_in, model%lat%ele(0), downstream_end$, default_tra
 
 polar%theta = u%beam%beam_init%spin%theta
 polar%phi = u%beam%beam_init%spin%phi
-orb_out%spin = polar_to_spinor (polar)
+orb_out%spin = polar_to_vec (polar)
 
 end subroutine tao_inject_particle
 
