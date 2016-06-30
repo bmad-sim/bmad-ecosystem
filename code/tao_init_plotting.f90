@@ -891,7 +891,7 @@ endif
 
 !---------------------------------
 
-n_plots = 40
+n_plots = 41
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -1509,6 +1509,108 @@ if (all(s%plot_page%template%name /= 'detap')) then
 endif
 
 !---------------
+! Dispersion plot
+
+if (all(s%plot_page%template%name /= 'dispersion')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name           = 'dispersion'
+  plt%description    = 'X & Y Dispersion'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Dispersion'
+  grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'eta.x'
+  crv%legend_text  = '\gy\dX\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'eta.y'
+  crv%legend_text  = '\gy\dY\u'
+endif
+
+!---------------
+! Dispersion derivative plot
+
+if (all(s%plot_page%template%name /= 'ddispersion')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name           = 'ddispersion'
+  plt%description    = 'X & Y Dispersion Derivative'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Dispersion Derivative'
+  grph%y%label       = 'd\gy\dX\u, d\gy\dY\u'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'etap.x'
+  crv%legend_text  = 'd\gy\dX\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'etap.y'
+  crv%legend_text  = 'd\gy\dY\u'
+endif
+
+!---------------
+! Normal mode Dispersion plot
+
+if (all(s%plot_page%template%name /= 'mode_dispersion')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name           = 'mode_dispersion'
+  plt%description    = 'A & B Normal Mode Dispersion'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'A & B Normal Mode Dispersion'
+  grph%y%label       = '\gy\dA\u, \gy\dB\u [m]'
+
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'eta.a'
+  crv%legend_text  = '\gy\dA\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type = 'eta.b'
+  crv%legend_text  = '\gy\dB\u'
+endif
+
+!---------------
 ! dphi (chrom.dphi) plot
 
 if (all(s%plot_page%template%name /= 'dphi')) then
@@ -1734,74 +1836,6 @@ if (all(s%plot_page%template%name /= 'energy')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type     = 'e_tot'
-endif
-
-!---------------
-! Dispersion plot
-
-if (all(s%plot_page%template%name /= 'dispersion')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
-  plt%name           = 'dispersion'
-  plt%description    = 'X & Y Dispersion'
-
-  grph => plt%graph(1)
-  grph%p => plt
-  grph%title         = 'Dispersion'
-  grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
-
-  crv => grph%curve(1)
-  crv%name         = 'x'
-  crv%g => grph
-  crv%data_type    = 'eta.x'
-  crv%legend_text  = '\gy\dX\u'
-
-  crv => grph%curve(2)
-  crv%name         = 'y'
-  crv%g => grph
-  crv%data_type = 'eta.y'
-  crv%legend_text  = '\gy\dY\u'
-endif
-
-!---------------
-! Normal mode Dispersion plot
-
-if (all(s%plot_page%template%name /= 'mode_dispersion')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
-  plt%name           = 'mode_dispersion'
-  plt%description    = 'A & B Normal Mode Dispersion'
-
-  grph => plt%graph(1)
-  grph%p => plt
-  grph%title         = 'A & B Normal Mode Dispersion'
-  grph%y%label       = '\gy\dA\u, \gy\dB\u [m]'
-
-  crv => grph%curve(1)
-  crv%name         = 'a'
-  crv%g => grph
-  crv%data_type    = 'eta.a'
-  crv%legend_text  = '\gy\dA\u'
-
-  crv => grph%curve(2)
-  crv%name         = 'b'
-  crv%g => grph
-  crv%data_type = 'eta.b'
-  crv%legend_text  = '\gy\dB\u'
 endif
 
 !---------------
