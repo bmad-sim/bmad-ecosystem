@@ -32,10 +32,8 @@
 
 module particle_species_mod
 
-use precision_def
-use physical_constants
 use output_mod
-use word_mod
+use sim_utils_struct
 
 implicit none
 

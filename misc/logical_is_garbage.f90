@@ -19,7 +19,7 @@
 
 function logical_is_garbage (logic) result (is_garbage)
 
-use physical_constants
+use sim_utils_struct
 implicit none
 integer logic
 logical is_garbage

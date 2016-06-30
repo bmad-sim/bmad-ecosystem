@@ -16,7 +16,7 @@
 
 subroutine set_logical_to_garbage (logic)
 
-use physical_constants
+use sim_utils_struct
 implicit none
 integer logic
 
