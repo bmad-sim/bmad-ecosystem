@@ -713,10 +713,10 @@ enddo
 rhs = 2 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%t = rhs
-!! f_side.test_pat[complex, 1, NOT]
+!! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
   rhs = 100 + jd1 + 4 + offset
-  F%spin(jd1+lb1) = cmplx(rhs, 100+rhs)
+  F%spin(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%field,1); lb1 = lbound(F%field,1) - 1

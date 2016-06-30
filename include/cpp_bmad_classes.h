@@ -618,7 +618,7 @@ public:
   Real_ARRAY vec;
   Real s;
   Real t;
-  Complex_ARRAY spin;
+  Real_ARRAY spin;
   Real_ARRAY field;
   Real_ARRAY phase;
   Real charge;
@@ -635,7 +635,7 @@ public:
     vec(0.0, 6),
     s(0.0),
     t(0.0),
-    spin(0.0, 2),
+    spin(0.0, 3),
     field(0.0, 2),
     phase(0.0, 2),
     charge(0.0),

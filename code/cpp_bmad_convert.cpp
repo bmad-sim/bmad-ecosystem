@@ -426,7 +426,7 @@ extern "C" void controller_var_to_c2 (CPP_controller_var& C, c_Char z_name, c_Re
 extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
-extern "C" void coord_to_f2 (Bmad_coord_class*, c_RealArr, c_Real&, c_Real&, c_ComplexArr,
+extern "C" void coord_to_f2 (Bmad_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&);
 
@@ -439,10 +439,10 @@ extern "C" void coord_to_f (const CPP_coord& C, Bmad_coord_class* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t,
-    c_ComplexArr z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real&
-    z_path_len, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int&
-    z_direction, c_Int& z_species, c_Int& z_location) {
+extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
+    z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_path_len, c_Real&
+    z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int& z_direction, c_Int&
+    z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -450,7 +450,7 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.s = z_s;
   // c_side.to_c2_set[real, 0, NOT]
   C.t = z_t;
-  // c_side.to_c2_set[complex, 1, NOT]
+  // c_side.to_c2_set[real, 1, NOT]
   C.spin << z_spin;
   // c_side.to_c2_set[real, 1, NOT]
   C.field << z_field;

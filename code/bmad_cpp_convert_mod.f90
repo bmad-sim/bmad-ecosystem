@@ -1373,9 +1373,8 @@ interface
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    complex(c_double_complex) :: z_spin(*)
-    real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_path_len
-    real(c_double) :: z_p0c, z_beta
+    real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
+    real(c_double) :: z_path_len, z_p0c, z_beta
     integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
   end subroutine
 end interface
@@ -1392,7 +1391,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 2), fvec2vec(F%field, 2), &
+call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 3), fvec2vec(F%field, 2), &
     fvec2vec(F%phase, 2), F%charge, F%path_len, F%p0c, F%beta, F%ix_ele, F%state, F%direction, &
     F%species, F%location)
 
@@ -1424,9 +1423,8 @@ type(c_ptr), value :: Fp
 type(coord_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-complex(c_double_complex) :: z_spin(*)
-real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_path_len
-real(c_double) :: z_p0c, z_beta
+real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
+real(c_double) :: z_path_len, z_p0c, z_beta
 integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
 
 call c_f_pointer (Fp, F)
@@ -1437,8 +1435,8 @@ F%vec = z_vec(1:6)
 F%s = z_s
 !! f_side.to_f2_trans[real, 0, NOT]
 F%t = z_t
-!! f_side.to_f2_trans[complex, 1, NOT]
-F%spin = z_spin(1:2)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%spin = z_spin(1:3)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%field = z_field(1:2)
 !! f_side.to_f2_trans[real, 1, NOT]

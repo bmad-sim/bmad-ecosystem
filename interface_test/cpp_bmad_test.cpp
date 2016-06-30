@@ -436,9 +436,9 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 3 + offset; C.t = rhs;
 
-  // c_side.test_pat[complex, 1, NOT]
+  // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.spin.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.spin[i] = Complex(rhs, 100+rhs);}
+    {int rhs = 101 + i + 4 + offset; C.spin[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.field.size(); i++)
     {int rhs = 101 + i + 5 + offset; C.field[i] = rhs;}
