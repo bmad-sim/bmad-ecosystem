@@ -228,6 +228,7 @@ packages_build_list = [
                 '/packages/xraylib',
                 '/packages/hdf5',
                 '/packages/h5hut',
+                '/packages/openmpi',
 ]
 
 #-----------------------------------------------------
