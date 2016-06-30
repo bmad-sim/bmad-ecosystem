@@ -244,10 +244,9 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   #
   #--------------------------------------------------------------
   if [ "${ACC_ENABLE_MPI}" == "Y" ] ; then
-    if [ -e ${DIST_BASE_DIR}/production/bin/ompi_info ] ; then 
       export PATH=${DIST_BASE_DIR}/production/bin:${PATH}
       export LD_LIBRARY_PATH=${DIST_BASE_DIR}/production/lib:${LD_LIBRARY_PATH}
-    elif [ -e ${DIST_BASE_DIR}/debug/bin/ompi_info ] ; then
+    if [ -d ${DIST_BASE_DIR}/debug ] ; then
       export PATH=${DIST_BASE_DIR}/debug/bin:${PATH}
       export LD_LIBRARY_PATH=${DIST_BASE_DIR}/debug/lib:${LD_LIBRARY_PATH}
     fi
