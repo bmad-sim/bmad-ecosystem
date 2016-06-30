@@ -54,54 +54,6 @@ real(rp), parameter :: anomalous_mag_moment_proton   = 1.79285d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
 
-complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
-  
-! real_garbage$ and int_garbage$ can be used, for example, to identify
-! variable that have not been set.
-
-integer, parameter :: int_garbage$ = -987654
-real(rp), parameter :: real_garbage$ = -987654.3
-
-! lf$ (the line feed or LF character) can be used to encode a multiline string.
-! EG: string = 'First Line' // lf$ // 'Second Line'
-
-character(1), parameter :: lf$ = achar(10)
-
-! True and false
-
-real(rp), parameter :: true$ = 1, false$ = 0
-integer, parameter :: true_int$ = 1, false_int$ = 0
-integer, parameter :: yes$ = 1, no$ = 0, maybe$ = 2
-
-! Color escape sequences
-
-character(*), parameter :: rl_prompt_start_ignore = achar(1)   ! For use with GNU readline routine.
-character(*), parameter :: rl_prompt_end_ignore = achar(2)     ! For use with GNU readline routine.
-
-character(*), parameter :: black_color = achar(27) // '[30m' 
-character(*), parameter :: red_color = achar(27) // '[31m' 
-character(*), parameter :: green_color = achar(27) // '[32m' 
-character(*), parameter :: yellow_color = achar(27) // '[33m' 
-character(*), parameter :: blue_color = achar(27) // '[34m' 
-character(*), parameter :: magenta_color = achar(27) // '[35m' 
-character(*), parameter :: cyan_color = achar(27) // '[36m' 
-character(*), parameter :: gray_color = achar(27) // '[37m' 
-
-
-character(*), parameter :: dark_gray_color = achar(27) // '[90m' 
-character(*), parameter :: peach_color = achar(27) // '[91m' 
-character(*), parameter :: light_green_color = achar(27) // '[92m' 
-character(*), parameter :: light_yellow_color = achar(27) // '[93m' 
-character(*), parameter :: light_blue_color = achar(27) // '[94m' 
-character(*), parameter :: pink_color = achar(27) // '[95m' 
-character(*), parameter :: aqua_color = achar(27) // '[96m' 
-character(*), parameter :: white_color = achar(27) // '[97m' 
-
-character(*), parameter :: blink_color = achar(27) // '[5m' 
-character(*), parameter :: bold_color = achar(27) // '[1m' 
-
-character(*), parameter :: reset_color = achar(27) // '[0m' 
-
 ! This is to suppress the ranlib "has no symbols" message
 
 integer, private :: private_dummy

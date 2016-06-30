@@ -22,7 +22,7 @@
 
 function I_bessel_extended(m, arg) result (i_bes)
 
-use physical_constants
+use sim_utils_struct
 use fgsl
 
 implicit none

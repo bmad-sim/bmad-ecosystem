@@ -9,7 +9,6 @@ module sim_utils
   use utilities_mod
   use output_mod
   use filename_mod
-  use word_mod
   use physical_constants
   use particle_species_mod
   use sign_of_mod

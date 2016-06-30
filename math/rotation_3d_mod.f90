@@ -92,6 +92,7 @@ implicit none
 real(rp) w_mat(3,3), axis(3), angle
 real(rp) sin_a, cos_a, norm, x, y, z
 character(*), parameter :: r_name = 'axis_angle_to_w_mat'
+
 !
 
 if (angle == 0) then
@@ -118,173 +119,148 @@ w_mat(3,1:3) = [x*z * (1 - cos_a) - y * sin_a, y*z * (1 - cos_a) + x * sin_a, z*
 
 end subroutine axis_angle_to_w_mat
 
-
-
-
-
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_vec(vec, i, j, angle)
-!            rotate_vec(vec, i, j, cos_angle, sin_angle)
-!            
-! Basic routine to rotate vector components i and j in place by angle in the ij plane.
-! If sin_angle is not present, the cosines and sines will be computed. 
-! 
-! In 3D, i and j are: 2, 3 about x-axis
-!                     3, 1 about y-axis
-!                     1, 2 about z-axis
+! Subroutine rotate_vec_given_axis_angle (vec, axis, angle)
 !
-! Module needed:
-!   use rotation_3d_mod
+! Routine to rotate a vector.
 !
 ! Input:
-!   vec(:)             -- real(rp): vector
-!   i, j               -- integer: indices to rotate
-!   cos_angle or angle -- real(rp): cosine of the angle to rotate
-!   sin_angle          -- real(rp): sine of the angle to rotate
+!   vec(3)    -- real(rp): Initial vector.
+!   axis(3)   -- real(rp): Axis of rotation. Must be normalized to 1.
+!   angle     -- real(rp): Angle to rotate by
 !
 ! Output:
-!   vec(:)   -- real(rp): vector 
+!   vec(3)    -- real(rp): Final vector.
 !-
 
-subroutine rotate_vec(vec, i, j, cos_angle, sin_angle)
+subroutine rotate_vec_given_axis_angle (vec, axis, angle)
+
 implicit none
-real(rp) :: vec(:),  cos_angle, temp, ca, sa
-real(rp), optional :: sin_angle
-integer :: i, j
-if (present(sin_angle)) then
-  ! cos, sin given
-  temp   =  cos_angle*vec(i) - sin_angle*vec(j)
-  vec(j) =  sin_angle*vec(i) + cos_angle*vec(j)
-  vec(i) = temp
-else
-  ! angle given
-  if (cos_angle == 0) return ! Simple case 
-  ca = cos(cos_angle)
-  sa = sin(cos_angle) 
-  temp   =  ca*vec(i) - sa*vec(j)
-  vec(j) =  sa*vec(i) + ca*vec(j)
-  vec(i) = temp  
-endif
-  
-end subroutine
 
-!------------------------------------------------------------------------------
-!+
-! Subroutine rotate_vec_x(vec, angle)
-!   wrapper for rotate_vec(vec, 2, 3, angle)
-! -
-subroutine rotate_vec_x(vec, angle)
-real(rp) :: vec(3), angle
-call rotate_vec(vec, 2, 3, angle)
-end subroutine 
+real(rp) :: vec(:), angle, ca, sa, q0
+real(rp) :: axis(:)
 
-!------------------------------------------------------------------------------
-!+
-! Subroutine rotate_vec_y(vec, angle)
-!   wrapper for rotate_vec(vec, 3, 1, angle)
-!-
-subroutine rotate_vec_y(vec, angle)
-real(rp) :: vec(3), angle
-call rotate_vec(vec, 3, 1, angle)
-end subroutine 
+! Use quaternion rotation formula: vec -> q * vec * q^-1
+! q = cos(angle/2) + sin(angle/2) * (axis(1), axis(2), axis(3))
 
-!------------------------------------------------------------------------------
-!+
-! Subroutine rotate_vec_z(vec, angle)
-!   wrapper for rotate_vec(vec, 1, 2, angle)
-!-
-subroutine rotate_vec_z(vec, angle)
-real(rp) :: vec(3), angle
-call rotate_vec(vec, 1, 2, angle)
-end subroutine
+if (angle == 0) return ! Simple case 
 
+ca = cos(angle/2)
+sa = sin(angle/2)
+
+q0 = -sa * (axis(1)*vec(1) + axis(2)*vec(2) + axis(3)*vec(3))
+vec = [ca*vec(1) + sa * (axis(2)*vec(3) - axis(3)*vec(2)), &
+       ca*vec(2) + sa * (axis(3)*vec(1) - axis(1)*vec(3)), &
+       ca*vec(3) + sa * (axis(1)*vec(2) - axis(2)*vec(1))]
+
+
+vec = [ca*vec(1) + sa * (axis(2)*vec(3) - axis(3)*vec(2) - q0*axis(1)), &
+       ca*vec(2) + sa * (axis(3)*vec(1) - axis(1)*vec(3) - q0*axis(2)), &
+       ca*vec(3) + sa * (axis(1)*vec(2) - axis(2)*vec(1) - q0*axis(3))]
+
+end subroutine rotate_vec_given_axis_angle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_mat(mat, i, j, angle)
-!            rotate_mat(mat, i, j, cos_angle, sin_angle)
+! Subroutine rotate_vec (vec, axis, angle)
 !            
-! Basic routine to apply a rotation matrix to mat that rotates components i and j 
-! in place by angle in the ij plane.
-!
-! mat = rotation(angle) . mat
-!
-! If sin_angle is not present, the cosines and sines will be computed. 
+! Basic routine to rotate vector components around the x, y, or z axis.
 ! 
 ! Module needed:
 !   use rotation_3d_mod
 !
 ! Input:
-!   mat(3,3)           -- real(rp): matrix
-!   i, j               -- integer: indices to rotate
-!   cos_angle or angle -- real(rp): cosine of the angle to rotate
-!   sin_angle          -- real(rp): sine of the angle to rotate
+!   vec(3)       -- real(rp): vector
+!   axis         -- integer: x_axis$, y_axis$, or z_axis$
+!   angle        -- real(rp): cosine of the angle to rotate
 !
 ! Output:
-!   vec(3)            -- real(rp): vector 
+!   vec(3)       -- real(rp): Rotated vector.
 !-
 
-subroutine rotate_mat(mat, i, j, cos_angle, sin_angle)
+subroutine rotate_vec (vec, axis, angle)
+
 implicit none
-real(rp) :: mat(:,:),  cos_angle, temp, ca, sa
-real(rp), optional :: sin_angle
-integer :: i, j, col
+
+real(rp) :: vec(:), angle, ca, sa
+integer :: axis
 
 !
 
-if (present(sin_angle)) then
-  do col = lbound(mat,2), ubound(mat,2)
-    call rotate_vec(mat(:, col), i, j, cos_angle, sin_angle)
-  end do 
-else
-  ! angle only given
-  if (cos_angle == 0) return ! Simple case
-  ca = cos(cos_angle)
-  sa = sin(cos_angle) 
-  do col = lbound(mat,2), ubound(mat,2)
-    call rotate_vec(mat(:, col), i, j, ca, sa)
-  end do 
-endif
+if (angle == 0) return ! Simple case 
+
+ca = cos(angle)
+sa = sin(angle) 
+
+select case (axis)
+case (x_axis$)
+  vec(2:3) =   [ca*vec(2) - sa*vec(3), sa*vec(2) + ca*vec(3)]
+
+case (y_axis$)
+  vec(1:3:2) = [sa*vec(3) + ca*vec(1), ca*vec(3) - sa*vec(1)]
+
+case (z_axis$)
+  vec(1:2) =   [ca*vec(1) - sa*vec(2), sa*vec(1) + ca*vec(2)]
+end select
   
 end subroutine
 
-
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_mat_x(mat, angle)
-!   wrapper for rotate_mat(vec, 2, 3, angle)
+! Subroutine rotate_mat (mat, axis, angle)
+!            
+! Basic routine to apply a rotation matrix to mat that rotates around the x, y, or z axis.
+! 
+! Module needed:
+!   use rotation_3d_mod
+!
+! Input:
+!   mat(3,3)        -- real(rp): matrix
+!   axis            -- integer: x_axis$, y_axis$, or z_axis$
+!   angle           -- real(rp): cosine of the angle to rotate
+!
+! Output:
+!   mat(3,3)        -- real(rp): Rotated matrix
 !-
 
-subroutine rotate_mat_x(mat, angle)
-real(rp) :: mat(:,:), angle
-call rotate_mat(mat, 2, 3, angle)
-end subroutine 
+subroutine rotate_mat(mat, axis, angle)
 
-!------------------------------------------------------------------------------
-!+
-! Subroutine rotate_mat_y(mat, angle)
-!   wrapper for rotate_mat(vec, 3, 1, angle)
-!-
+implicit none
 
-subroutine rotate_mat_y(mat, angle)
-real(rp) :: mat(:,:), angle
-call rotate_mat(mat, 3, 1, angle)
-end subroutine 
+real(rp) :: mat(:,:),  angle, temp, ca, sa
+integer :: axis
 
-!------------------------------------------------------------------------------
-!+
-! Subroutine rotate_mat_z(mat, angle)
-!   wrapper for rotate_mat(vec, 1, 2, angle)
-!-
+!
 
-subroutine rotate_mat_z(mat, angle)
-real(rp) :: mat(:,:), angle
-call rotate_mat(mat, 1, 2, angle)
-end subroutine 
+if (angle == 0) return ! Simple case
+
+ca = cos(angle)
+sa = sin(angle) 
+
+select case (axis)
+case (x_axis$)
+  mat(2:3, 1) =   [ca*mat(2,1) - sa*mat(3,1), sa*mat(2,1) + ca*mat(3,1)]
+  mat(2:3, 2) =   [ca*mat(2,2) - sa*mat(3,2), sa*mat(2,2) + ca*mat(3,2)]
+  mat(2:3, 3) =   [ca*mat(2,3) - sa*mat(3,3), sa*mat(2,3) + ca*mat(3,3)]
+
+case (y_axis$)
+  mat(1:3:2, 1) = [sa*mat(3,1) + ca*mat(1,1), ca*mat(3,1) - sa*mat(1,1)]
+  mat(1:3:2, 2) = [sa*mat(3,2) + ca*mat(1,2), ca*mat(3,2) - sa*mat(1,2)]
+  mat(1:3:2, 3) = [sa*mat(3,3) + ca*mat(1,3), ca*mat(3,3) - sa*mat(1,3)]
+
+case (z_axis$)
+  mat(1:2, 1) =   [ca*mat(1,1) - sa*mat(2,1), sa*mat(1,1) + ca*mat(2,1)]
+  mat(1:2, 2) =   [ca*mat(1,2) - sa*mat(2,2), sa*mat(1,2) + ca*mat(2,2)]
+  mat(1:2, 3) =   [ca*mat(1,3) - sa*mat(2,3), sa*mat(1,3) + ca*mat(2,3)]
+end select
+  
+end subroutine
 
 end module
