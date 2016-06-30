@@ -2616,8 +2616,8 @@ Wake fields can be specified for many elements.
 The attributes that characterize the wakes are:
 \index{sr_wake_file}\index{lr_wake_file}\index{lr_freq_spread}
 \begin{example}
-  sr_wake_file     = <String> ! Short range wake field definition file.
-  lr_wake_file     = <String> ! Long range wake field definition file.
+  sr_wake_file     = <String> ! Short range wake field definition file. (\sref{s:sr.wake.file})
+  lr_wake_file     = <String> ! Long range wake field definition file. (\sref{s:lr.wake.file})
   lr_freq_spread   = <Real>   ! Frequency spread of the LR wake fields.
 \end{example}
 
@@ -2630,7 +2630,7 @@ tracking individual particles and only used when tracking bunches.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes}
-\label{s:short.range.wakes}
+\label{s:sr.wake.file}
 
 \index{wakes!short-range}
 The input file name for the short--range wake fields is specified
@@ -2653,7 +2653,7 @@ longitudinal and dipole transverse wakes. An example input file is:
   /
 \end{example}
 Wakes are specified via a set of ``pseudo'' modes
-(\sref{s:wake.fields}). The magnitude of \vn{z_max} should be set to
+(\sref{s:wake.short}). The magnitude of \vn{z_max} should be set to
 the maximum $z$ value at which the pseudo mode fit is valid. \bmad
 will check the distance between particles does not exceed \vn{z_max}.
 If it does, \bmad will report an error.
@@ -2699,6 +2699,9 @@ depend upon the trailing particle offset.
 
 %-----------------------------------------------------------------
 \subsection{Long-Range Wakes}
+\label{s:lr.wake.file}
+
+Equations for long-range wakes is given in \Sref{s:wake.long}.
 
 The input file name for the long--range wake fields is specified using
 the \vn{lr_wake_file} attribute. The file gives the wake modes by
