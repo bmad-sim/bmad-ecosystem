@@ -82,7 +82,6 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
-use spin_mod, only: spinor_to_vec, vec_to_spinor
 use super_recipes_mod
 use eigen_mod
 use rotation_3d_mod
@@ -368,13 +367,12 @@ enddo
 if (bmad_com_saved%spin_tracking_on) then
   bmad_com%spin_tracking_on = .true.
   do i = 1, 3
-    svec = 0;  svec(i) = 1
-    orb_start%spin = vec_to_spinor(svec)
+    orb_start%spin = 0
+    orb_start%spin(i) = 1
     call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
-    mat3(:,i) = spinor_to_vec(orb_end%spin)
+    mat3(:,i) = orb_end%spin
   enddo
-  call w_mat_to_axis_angle(mat3, svec, angle)
-  orb_start%spin = vec_to_spinor(svec)
+  call w_mat_to_axis_angle(mat3, orb_start%spin, angle)
   call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 endif
 

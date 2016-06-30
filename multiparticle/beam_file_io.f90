@@ -1,6 +1,7 @@
 module beam_file_io
 
 use beam_def_struct
+use spin_mod
 
 implicit none
 
@@ -46,13 +47,14 @@ iu = lunget()
 if (integer_option(hdf5$, file_format) == binary$) then
   if (logic_option(.true., new_file)) then
     open (iu, file = file_name, form = 'unformatted')
-    write (iu) '!BIN::2'
+    write (iu) '!BIN::3'
   else
     open (iu, file = file_name, form = 'unformatted', access = 'append')
   endif
 elseif (integer_option(hdf5$, file_format) == ascii$) then
   if (logic_option(.true., new_file)) then
     open (iu, file = file_name)
+    write (iu, '(a)') '!ASCII::3'
   else
     open (iu, file = file_name, access = 'append')
   endif
@@ -86,9 +88,8 @@ elseif (integer_option(hdf5$, file_format) == ascii$) then
     write (iu, *) bunch%t_center,   '  ! t_center'
     do ip = 1, size(bunch%particle)
       p => bunch%particle(ip)
-      write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a), 3i3)') &
-            p%vec, p%charge, p%state, ('  (', real(p%spin(j)), ',', aimag(p%spin(j)), ')', j = 1, 2), &
-            p%ix_ele, p%location
+      write (iu, '(6es19.10, es14.5, i6, 3es19.10, 3i3)') &
+            p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
     enddo
     write (iu, *) 'END_BUNCH'
   enddo
@@ -138,7 +139,7 @@ integer i, j, k, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge, bunch_charge
-complex(rp) spin(2)
+complex(rp) spinor(2)
 
 character(*) file_name
 character(300) line, line_in
@@ -159,15 +160,20 @@ if (ios /= 0) then
 endif
 
 read (iu, '(a80)') line
-if (index(line, '!BINARY') /= 0) then 
-  file_type = 'BIN:1'
+if (index(line, '!BINARY') /= 0) then
+  call this_error_out ('OLD STYLE BEAM0 FILE NOT SUPPORTED...')
+  return
 elseif (index(line, '!BIN::2') /= 0) then 
-  file_type = 'BIN:2'
+  file_type = 'BIN::2'
+elseif (index(line, '!BIN::3') /= 0) then
+  file_type = 'BIN::3'
+elseif (index(line, '!ASCII::3') /= 0) then
+  file_type = 'ASCII::3'
 else
   file_type = 'ASCII'
 endif
 
-if (file_type == 'ASCII') then
+if (file_type(1:5) == 'ASCII') then
   rewind (iu)
 else
   close (iu)
@@ -176,7 +182,7 @@ endif
 
 ! Read header info
 
-if (file_type == 'ASCII') then
+if (file_type(1:5) == 'ASCII') then
   read (iu, *, iostat = ios, err = 9000) ix_ele
   read (iu, *, iostat = ios, err = 9000) n_bunch
   read (iu, *, iostat = ios, err = 9000) n_particle
@@ -210,7 +216,7 @@ do i = 1, n_bunch
   p => bunch%particle
   p = orb_init   ! init with default params
 
-  if (file_type == 'ASCII') then
+  if (file_type(1:5) == 'ASCII') then
 
     read (iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(upcase(line), 'BEGIN_BUNCH') == 0) then
@@ -276,7 +282,7 @@ do i = 1, n_bunch
       if (index(upcase(line), 'END_BUNCH') /= 0) exit
       if (j > n_particle) cycle
 
-      p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = cmplx(0.0_rp, 0.0_rp)
+      p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = 0
 
       call string_trim(line, line, ix_word)
       do k = 1, 6
@@ -304,15 +310,25 @@ do i = 1, n_bunch
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
       if (ix_word == 0) goto 8000
-      read (line, *, iostat = ios) p(j)%spin
+      if (file_type == 'ASCII::3') then
+        read (line, *, iostat = ios) p(j)%spin
+        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      else
+        read (line, *, iostat = ios) spinor
+        p(j)%spin = spinor_to_vec(spinor)
+        if (.not. remove_first_number (line, ix_word, '(x', in_parens)) return
+        if (.not. remove_first_number (line, ix_word, 'x)(', in_parens)) return
+        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+        if (.not. remove_first_number (line, ix_word, 'x)', in_parens)) return
+      endif
+
       if (ios /= 0) then
         call this_error_out ('ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
         return
       endif
-      if (.not. remove_first_number (line, ix_word, '(x', in_parens)) return
-      if (.not. remove_first_number (line, ix_word, 'x)(', in_parens)) return
-      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-      if (.not. remove_first_number (line, ix_word, 'x)', in_parens)) return
+
 
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%ix_ele
@@ -343,14 +359,8 @@ do i = 1, n_bunch
   ! Binary file
 
   else
-    if (file_type == 'BIN:1') then
-      read (iu, iostat = ios) bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
-      bunch%particle%species = electron$
-      call this_error_out ('OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
-    else
-      read (iu, iostat = ios) species, bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
-      p%species = species
-    endif
+    read (iu, iostat = ios) species, bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
+    p%species = species
 
     if (ios /= 0) then
       call this_error_out ('ERROR READING BUNCH PARAMETERS')
@@ -359,8 +369,12 @@ do i = 1, n_bunch
 
     do j = 1, n_particle_lines
       if (j > n_particle) exit
-      read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, &
-                                     ix_ele, p(j)%location
+      if (file_type == 'BIN::3') then
+        read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, ix_ele, p(j)%location
+      else
+        read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, spinor, ix_ele, p(j)%location
+        p(j)%spin = spinor_to_vec(spinor)
+      endif
       if (ios /= 0) then
         call this_error_out ('ERROR READING PARTICLE COORDINATES')
         return

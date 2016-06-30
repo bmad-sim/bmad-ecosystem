@@ -1,6 +1,7 @@
 module spin_mod
 
 use em_field_mod
+use rotation_3d_mod
 
 ! Pauli matrices
 
@@ -101,7 +102,7 @@ end function polar_to_vec
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function polar_to_spinor (polar) result (spin)
+! Function polar_to_spinor (polar) result (spinor)
 !
 ! Converts a spin vector in polar coordinates to a spinor
 !
@@ -112,20 +113,20 @@ end function polar_to_vec
 !   polar     -- spin_polar_struct: includes polar phase
 !
 ! Output:
-!   spin(2)   -- complex(rp): the particle spin
+!   spinor(2)   -- complex(rp): Spinor
 !-
 
-function polar_to_spinor (polar) result (spin)
+function polar_to_spinor (polar) result (spinor)
 
 implicit none
 
 type (spin_polar_struct) polar
-complex(rp) :: spin(2)
+complex(rp) :: spinor(2)
 
 !
 
-spin(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
-spin(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+spinor(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+spinor(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end function polar_to_spinor
 
@@ -287,9 +288,9 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine rotate_spinor_given_field (orbit, BL, EL, ele, ds)
+! Subroutine rotate_spin_given_field (orbit, BL, EL, ele, ds)
 !
-! Routine to rotate a spinor given the integrated magnetic and/or electric field strengths.
+! Routine to rotate a spin given the integrated magnetic and/or electric field strengths.
 !
 ! Modules needed:
 !   use spin_mod
@@ -305,7 +306,7 @@ end function angle_between_polars
 !   orbit   -- coord_struct: Orbit with rotated spin
 !-
 
-subroutine rotate_spinor_given_field (orbit, BL, EL)
+subroutine rotate_spin_given_field (orbit, BL, EL)
 
 implicit none
 
@@ -330,17 +331,17 @@ else
 endif
 
 omega = spin_omega (field, orbit)
-call rotate_spinor (omega, orbit%spin)
+call rotate_spin (omega, orbit%spin)
 
-end subroutine rotate_spinor_given_field
+end subroutine rotate_spin_given_field
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine rotate_spinor_a_step (orbit, field, ele, ds)
+! Subroutine rotate_spin_a_step (orbit, field, ele, ds)
 !
-! Routine to rotate a spinor an integration step.
+! Routine to rotate the spin through an integration step.
 ! Note: It is assumed that the orbit coords are in the element ref frame and not the lab frame.
 !
 ! Modules needed:
@@ -356,7 +357,7 @@ end subroutine rotate_spinor_given_field
 !   orbit   -- coord_struct: Orbit with rotated spin
 !-
 
-subroutine rotate_spinor_a_step (orbit, field, ele, ds)
+subroutine rotate_spin_a_step (orbit, field, ele, ds)
 
 implicit none
 
@@ -374,127 +375,45 @@ else
   omega = spin_omega (field, orbit)
 endif
 
-call rotate_spinor (ds * omega, orbit%spin)
+call rotate_spin (ds * omega, orbit%spin)
 
-end subroutine rotate_spinor_a_step
+end subroutine rotate_spin_a_step
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine rotate_spinor (rot_vec, spin)
+! Subroutine rotate_spin (rot_vec, spin)
 !
-! Routine to rotate a spinor.
+! Routine to rotate a spin.
 !
 ! Modules needed:
 !   use spin_mod
 !
 ! Input:
 !   rot_vec(3)  -- real(rp): Rotation axis. Magnitude of rot_vec is the rotation angle.
-!   spin(2)     -- complex(rp): Initial coords.
+!   spin(3)     -- real(rp): Initial coords.
 !
 ! Output:
-!   spin(2)     -- complex(rp): Final coords.
+!   spin(3)     -- real(rp): Final coords.
 !-
 
-subroutine rotate_spinor (rot_vec, spin)
+subroutine rotate_spin (rot_vec, spin)
 
 implicit none
 
-complex(rp) :: spin(2), mat(2,2)
-real(rp) :: rot_vec(3), angle, n_vec(3), c, s
+real(rp) :: spin(3), rot_vec(3), axis(3), angle
 
 !
 
 angle = norm2(rot_vec)
 if (angle == 0) return
 
-c = cos(angle/2)
-s = sin(angle/2)
+axis = rot_vec / angle
 
-n_vec = rot_vec * (s / angle)
+call rotate_vec_given_axis_angle (spin, axis, angle)
 
-mat(1,:) = [cmplx(c, -n_vec(3), rp),        cmplx(-n_vec(2), -n_vec(1), rp)]
-mat(2,:) = [cmplx(n_vec(2), -n_vec(1), rp), cmplx(c, n_vec(3), rp)]
-spin = matmul(mat, spin)
-
-end subroutine rotate_spinor
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine quaternion_track (a_quat, spin)
-!
-! Transports a spinor using the quaternion a_quat
-!
-! Modules needed:
-!   use spin_mod
-!
-! Input:
-!   a_quat(0:3) -- real(rp): Euler four-vector (Quaternion)
-!   spin(2)     -- complex(rp): Incoming spinor
-!
-! Output:
-!   spin(2)    -- complex(rp): Resultant spinor
-!-
-
-subroutine quaternion_track (a_quat, spin)
-
-implicit none
-
-complex(rp), intent(inout) :: spin(2)
-
-real(rp), intent(in) :: a_quat(0:3)
-
-complex(rp) a_mat(2,2) ! The matrix associated with a_quat.
-
-!
-
-a_mat(1,:) = [cmplx( a_quat(0), a_quat(3), rp),  cmplx(a_quat(2),  a_quat(1), rp)]
-a_mat(2,:) = [cmplx(-a_quat(2), a_quat(1), rp),  cmplx(a_quat(0), -a_quat(3), rp)]
-
-! a_mat = a_quat(0)*pauli(0)%sigma + i_imaginary * &
-!           (a_quat(1) * pauli(1)%sigma + a_quat(2) * pauli(2)%sigma + a_quat(3) * pauli(3)%sigma)
-
-spin = matmul (a_mat, spin)
-
-end subroutine quaternion_track
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Function calc_rotation_quaternion (n_vec, angle) result (a)
-!
-! Calculates the quaternion for a rotation of a vector by an angle about (nx,ny,nz).
-! (nx,ny,nz) has to be a unit vector, i.e. nx^2 + y^2 + nz^2 = 1.
-!
-! Modules needed:
-!   use spin_mod
-!
-! Input:
-!   n_vec(3)   -- Real(rp): Unit rotation axis vector.
-!   angle      -- Real(rp): Rotation angle
-!
-! Output:
-!   a(0:3)       -- Real(rp): Resultant quaternion
-!-
-
-function calc_rotation_quaternion (n_vec, angle) result (a)
-
-real(rp) , intent(in) :: n_vec(3), angle
-real(rp) :: a(0:3)
-
-real(rp) half_angle, s
-
-! 
-
-half_angle = angle/2.
-s = sin(half_angle)
-a = [cos(half_angle), -n_vec(1)*s, -n_vec(2)*s, -n_vec(3)*s]
-
-end function calc_rotation_quaternion
+end subroutine rotate_spin
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -598,7 +517,7 @@ end function spin_omega
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
-!      %spin(2)   -- complex(rp): Ending spinor
+!      %spin(2)   -- complex(rp): Ending spin
 !-
 
 subroutine track1_spin (start_orb, ele, param, end_orb)
@@ -675,8 +594,8 @@ end subroutine track1_spin
 !   end_orb    -- Coord_struct: Ending coords.
 !
 ! Output:
-!   end_orb    -- Coord_struct:
-!     %spin(2)   -- complex(rp): Ending spinor
+!   end_orb     -- Coord_struct:
+!     %spin(3)   -- Ending spin
 !-
 
 subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
@@ -685,7 +604,7 @@ type (coord_struct) :: start_orb, end_orb
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) svec0(3), svec1(3), rot(3,3)
+real(rp) rot(3,3)
 character(*), parameter :: r_name = 'track1_spin_taylor'
 
 !
@@ -700,9 +619,7 @@ call track_taylor (start_orb%vec, ele%spin_taylor(1,:), rot(1,:))
 call track_taylor (start_orb%vec, ele%spin_taylor(2,:), rot(2,:))
 call track_taylor (start_orb%vec, ele%spin_taylor(3,:), rot(3,:))
 
-svec0 = spinor_to_vec(start_orb%spin)
-svec1 = matmul(rot, svec0)
-end_orb%spin = vec_to_spinor(svec1)
+end_orb%spin = matmul(rot, start_orb%spin)
 
 end subroutine track1_spin_taylor
 
@@ -728,7 +645,7 @@ end subroutine track1_spin_taylor
 !
 ! Output:
 !   end_orb    -- Coord_struct:
-!     %spin(2)   -- complex(rp): Ending spinor
+!     %spin(3)       -- Ending spin
 !-
 
 subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
@@ -796,7 +713,7 @@ case (quadrupole$, sextupole$, octupole$, sol_quad$)
 
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, quad_etc_omega_func, spline_x, spline_y, temp_start, temp_end, param)
-  call rotate_spinor(omega, temp_end%spin)
+  call rotate_spin(omega, temp_end%spin)
 
 !-----------------------------------------------
 ! sbend
@@ -807,7 +724,7 @@ case (sbend$)
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, sbend_omega_func, spline_x, spline_y, temp_start, temp_end, param) + &
                                             [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
-  call rotate_spinor(omega, temp_end%spin)
+  call rotate_spin(omega, temp_end%spin)
 
 !-----------------------------------------------
 ! solenoid
@@ -838,7 +755,7 @@ case (solenoid$)
 
   temp_end%vec(2) =  m21 * vec0(1) + m22 * vec0(2) + m23 * vec0(3) + m24 * vec0(4)
   temp_end%vec(4) = -m23 * vec0(1) - m24 * vec0(2) + m21 * vec0(3) + m22 * vec0(4)
-  call rotate_spinor_given_field (temp_end, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
+  call rotate_spin_given_field (temp_end, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
 
 !-----------------------------------------------
 ! RFcavity, LCavity
@@ -849,7 +766,7 @@ case (lcavity$, rfcavity$)
   if (ele%key == lcavity$) call reference_energy_correction (ele, temp_start, first_track_edge$)
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, cavity_omega_func, spline_x, spline_y, temp_start, temp_end, param)
-  call rotate_spinor(omega, temp_end%spin)
+  call rotate_spin(omega, temp_end%spin)
 end select
 
 !----------

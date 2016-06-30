@@ -23,7 +23,6 @@ use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
 use ptc_spin, only: probe, assignment(=), operator(+), SPIN0, DEFAULT, track_probe, track_probe_x
 use s_tracking, only: DEFAULT, alloc_fibre
 use mad_like, only: fibre, kill
-use spin_mod, only: spinor_to_vec, vec_to_spinor
 
 implicit none
 
@@ -34,7 +33,7 @@ type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 type (probe) ptc_probe
 
-real(dp) re(6), beta0, spin_vec(3)
+real(dp) re(6), beta0
 integer stm
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
@@ -61,12 +60,10 @@ call ele_to_fibre (ele, fibre_ele, param, .true., tracking_species = start_orb%s
 
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)) then
-  spin_vec = spinor_to_vec (start_orb%spin)
   ptc_probe = re
-  ptc_probe%s(1)%x = real(spin_vec, dp)
+  ptc_probe%s(1)%x = real(start_orb%spin, dp)
   call track_probe (ptc_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
-  spin_vec = ptc_probe%s(1)%x
-  end_orb%spin = vec_to_spinor (spin_vec)
+  end_orb%spin = ptc_probe%s(1)%x
   re = ptc_probe%x
 else
   ! Orignally used track (fibre_ele, re, DEFAULT) but this will not track taylor elements correctly.

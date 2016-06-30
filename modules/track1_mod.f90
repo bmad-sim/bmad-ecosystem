@@ -1447,7 +1447,7 @@ if (logic_option(.false., track_spin)) then
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
   if (particle_at == second_track_edge$) field%B(3) = -field%B(3)
   omega = spin_omega (field, ave_orb)
-  call rotate_spinor (omega, orb%spin)
+  call rotate_spin (omega, orb%spin)
 endif
 
 end subroutine bend_edge_kick
@@ -2372,8 +2372,7 @@ if (orbit%direction * ele%orientation == 1) then
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
     if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
-      s_vec = spinor_to_vec(orbit%spin)
-      orbit%spin = vec_to_spinor(matmul(ww, s_vec))
+      orbit%spin = matmul(ww, orbit%spin)
     endif
   else
     call mat_make_unit (ww)
@@ -2391,8 +2390,7 @@ else
     orbit%vec(2) = p_vec(1)
     orbit%vec(4) = p_vec(2)
     if (logic_option((ele%spin_tracking_method /= symp_lie_ptc$), track_spin)) then
-      s_vec = spinor_to_vec(orbit%spin)
-      orbit%spin = vec_to_spinor(matmul(ww, s_vec))
+      orbit%spin = matmul(ww, orbit%spin)
     endif
   else
     call mat_make_unit (ww)

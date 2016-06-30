@@ -1390,7 +1390,7 @@ do i = 1, size(bunch%particle)
     n_diff = n_diff - 1
   endif
 
-  bunch%particle(i)%spin = polar_to_spinor (polar)
+  bunch%particle(i)%spin = polar_to_vec (polar)
 enddo
 
 end subroutine init_spin_distribution
@@ -1805,7 +1805,7 @@ type (bunch_params_struct) bunch_params
 type (bunch_struct) bunch
 type (spin_polar_struct) polar, ave_polar
 
-real(rp) vec(3), ave_vec(3), charge_live
+real(rp) ave_vec(3), charge_live
 
 integer i
 
@@ -1818,8 +1818,7 @@ charge_live = 0
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%state /= alive$) cycle
-  vec = spinor_to_vec (bunch%particle(i)%spin)
-  ave_vec = ave_vec + vec * bunch%particle(i)%charge
+  ave_vec = ave_vec + bunch%particle(i)%spin * bunch%particle(i)%charge
   charge_live = charge_live + bunch%particle(i)%charge
 enddo
 

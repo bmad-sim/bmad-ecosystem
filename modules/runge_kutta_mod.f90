@@ -481,7 +481,7 @@ endif
 t_temp = t + dvec(7)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call rotate_spinor(dvec(8:10), orb_out%spin)
+  call rotate_spin(dvec(8:10), orb_out%spin)
 endif
 
 end subroutine transfer_this_orbit
