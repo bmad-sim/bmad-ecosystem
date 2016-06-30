@@ -666,6 +666,7 @@ account the coordinate curvature.
 
 %-----------------------------
 \subsection{Short--Range Wakes}
+\label{s:wake.short}
 \index{wake fields!short-range}
 
 Wake field effects are divided into short--range (within a bunch) and
@@ -719,16 +720,16 @@ lattice file using ``pseudo'' modes where
   W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \Endeq
-The parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit the
-calculated wake potential (\sref{s:short.range.wakes}). The reason
-why the mode approach is used in \bmad is due to the fact that, using
-pseudo modes, the calculation time scales as the number of particles
-$N$ while a calculation based upon a table of wake vs $z$ would scale
-as $N^2$. [The disadvantage is that initially the user must proform a
-fit to the wake potential to generate the mode parameter values.]
+The parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit the calculated wake potential
+(\sref{s:sr.wake.file}). The reason why the mode approach is used in \bmad is due to the
+fact that, using pseudo modes, the calculation time scales as the number of particles $N$
+while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The
+disadvantage is that initially the user must proform a fit to the wake potential to
+generate the mode parameter values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}
+\label{s:wake.long}
 \index{wake fields!long-range}
 
 Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
@@ -740,6 +741,7 @@ mode of order $m$ is given by
   \label{wcrq}
 \Endeq
 The mode strength $(R/Q)_m$ has units of Volts/meter$^{2m}$.
+The lattice syntax for defining long-range wakes is discussed in \Sref{s:lr.wake.file}.
 
 Assuming that the macroparticle generating the wake is offset a
 distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
