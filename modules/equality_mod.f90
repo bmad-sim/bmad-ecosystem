@@ -226,7 +226,7 @@ is_eq = is_eq .and. all(f1%vec == f2%vec)
 is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%t == f2%t)
-!! f_side.equality_test[complex, 1, NOT]
+!! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%spin == f2%spin)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%field == f2%field)

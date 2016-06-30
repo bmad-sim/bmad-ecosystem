@@ -507,7 +507,7 @@ orb_out%vec = orb_in%vec + dvec(1:6)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   orb_out%spin = orb_in%spin
-  call rotate_spinor(dvec(7:9), orb_out%spin)
+  call rotate_spin(dvec(7:9), orb_out%spin)
 endif
 
 end subroutine transfer_this_orbit

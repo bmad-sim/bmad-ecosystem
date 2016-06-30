@@ -656,7 +656,7 @@ else
   floor%r(3) = floor%r(3) + chord_len * cos(theta)
   theta = theta - angle / 2
 
-  call rotate_mat_y(w_mat, -angle)
+  call rotate_mat(w_mat, y_axis$, -angle)
 
 endif
 
@@ -1320,8 +1320,8 @@ if (ele%key == sbend$) then
   local_position = bend_shift(local_position, ele%value(g$), ele%value(L$)/2 -s)
   
   ! Put into tilted frame
-  call rotate_vec_z(local_position%r, ele%value(ref_tilt_tot$))
-  call rotate_mat_z(local_position%W, ele%value(ref_tilt_tot$))
+  call rotate_vec(local_position%r, z_axis$, ele%value(ref_tilt_tot$))
+  call rotate_mat(local_position%W, z_axis$, ele%value(ref_tilt_tot$))
 
   ! Misalign
   call ele_misalignment_L_S_calc(ele, L_mis, S_mis)
@@ -1334,7 +1334,7 @@ if (ele%key == sbend$) then
   if (present(w_mat)) then
     ! Initial rotation to ele's center frame and the tilt
     call w_mat_for_x_pitch (-(theta-ele%value(angle$)/2), S_mat0)
-    call rotate_mat_z(S_mat0, ele%value(ref_tilt_tot$))
+    call rotate_mat(S_mat0, z_axis$, ele%value(ref_tilt_tot$))
     w_mat = matmul(S_mis, S_mat0)
     w_mat = matmul(Sb, w_mat)
   endif
@@ -1556,20 +1556,18 @@ end subroutine w_mat_for_tilt
 !-  
 subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
 type(ele_struct) :: ele 
-real(rp) :: chalf, shalf, Lc(3), Sb(3,3), s0
+real(rp) :: Lc(3), Sb(3,3), s0
 real(rp) :: L_mis(3), S_mis(3,3)
 
 select case(ele%key)
 case(sbend$)
   ! L_mis at ele center:
   ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho*[cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
-  chalf = cos(ele%value(angle$)/2)
-  shalf = sin(ele%value(angle$)/2) 
-  Lc = ele%value(rho$)*[chalf-1, 0.0_rp, shalf]
-  call rotate_vec(Lc, 3, 1, chalf, shalf)  ! rotate to entrance about y axis by half angle 
-  call rotate_vec(Lc, 1, 2, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
+  Lc = ele%value(rho$)*[cos(ele%value(angle$)/2) - 1, 0.0_rp, sin(ele%value(angle$)/2)]
+  call rotate_vec(Lc, y_axis$, ele%value(angle$)/2)  ! rotate to entrance about y axis by half angle 
+  call rotate_vec(Lc, z_axis$, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
   L_mis = -Lc
-  call rotate_vec(Lc, 1, 2, ele%value(roll$)) ! rotate about z axis for roll
+  call rotate_vec(Lc, z_axis$, ele%value(roll$)) ! rotate about z axis for roll
   L_mis = L_mis + Lc + [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
 
   ! S_mis at ele center
@@ -1615,11 +1613,11 @@ angle = delta_s * g
 tlt = real_option(0.0_rp, tilt)
 call mat_make_unit(S_mat)
 if (tlt /= 0) then
-  call rotate_mat_z(S_mat, -tilt)
-  call rotate_mat_y(S_mat,  angle)
-  call rotate_mat_z(S_mat,  tilt)
+  call rotate_mat(S_mat, z_axis$, -tilt)
+  call rotate_mat(S_mat, y_axis$,  angle)
+  call rotate_mat(S_mat, z_axis$,  tilt)
 else
-  call rotate_mat_y(S_mat, angle)
+  call rotate_mat(S_mat, y_axis$, angle)
 endif
 
 !
@@ -1629,7 +1627,7 @@ if (g==0) then
 else
   angle = g*delta_s
   L_vec = [cos(angle)-1, 0.0_rp, -sin(angle)]/g
-  if (present(tilt)) call rotate_vec_z(L_vec, tilt)
+  if (present(tilt)) call rotate_vec(L_vec, z_axis$, tilt)
 endif
 
 !

@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 181
+integer, parameter :: bmad_inc_version$ = 182
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -181,20 +181,22 @@ end type
 
 integer, parameter :: num_ele_attrib$ = 80
 
-! This includes the phase of the spinor.
+integer, parameter :: x_polarization$ = 2, y_polarization$ = 3
+character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
+
+integer, parameter :: off$ = 1, on$ = 2
+integer, parameter :: none$ = 1
+
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
 type spin_polar_struct
-  real(rp) :: polarization = 1
+  real(rp) :: polarization = none$
   real(rp) :: theta = 0
   real(rp) :: phi   = 0
   real(rp) :: xi    = 0
 end type
 
 real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_unit_vec(3) = [0, 0, 1]
-
-integer, parameter :: off$ = 1, on$ = 2
-integer, parameter :: none$ = 1
 
 integer, parameter :: magnetic$ = 1, electric$ = 2, mixed$ = 3
 character(8), parameter :: em_field_type_name(3) = ['Magnetic', 'Electric', 'Mixed   ']
@@ -337,7 +339,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
   real(rp) :: t = 0               ! Absolute time (not relative to reference).
-  complex(rp) :: spin(2) = 0      ! Spin in spinor notation
+  real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
   real(rp) :: charge = 0          ! Macro charge of particle. 
@@ -373,9 +375,6 @@ type bpm_phase_coupling_struct
 end type
 
 ! Wakefield structs...
-
-integer, parameter :: x_axis$ = 2, y_axis$ = 3
-character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
 
 integer, parameter :: linear_leading$ = 2, linear_trailing$ = 3
 character(16), parameter :: sr_transverse_dependence_name(3) = ['none           ', 'linear_leading ', 'linear_trailing']

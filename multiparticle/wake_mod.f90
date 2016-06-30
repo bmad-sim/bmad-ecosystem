@@ -354,7 +354,7 @@ do i = 1, size(ele%wake%sr_long%mode)
   case (none$, linear_leading$)
     orbit%vec(6) = orbit%vec(6) - w_norm
   case default  ! linear_trailing$
-    if (mode%polarization == x_axis$) then
+    if (mode%polarization == x_polarization$) then
       orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(1)
     else  ! y_axis
       orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(3)
@@ -367,7 +367,7 @@ do i = 1, size(ele%wake%sr_long%mode)
   case (none$)
     orbit%vec(6) = orbit%vec(6) - ff * sin(mode%phi) / 2
   case default  ! linear_leading or linear_trailing
-    if (mode%polarization == x_axis$) then
+    if (mode%polarization == x_polarization$) then
       orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * ff * sin(mode%phi) / 2
     else  ! y_axis
       orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * ff * sin(mode%phi) / 2
@@ -387,7 +387,7 @@ do i = 1, size(ele%wake%sr_long%mode)
     mode%b_sin = mode%b_sin * exp_factor + ff * c
     mode%b_cos = mode%b_cos * exp_factor + ff * s
   case default
-    if (mode%polarization == x_axis$) then
+    if (mode%polarization == x_polarization$) then
       mode%b_sin = mode%b_sin * exp_factor + orbit%vec(1) * ff * c
       mode%b_cos = mode%b_cos * exp_factor + orbit%vec(1) * ff * s
     else  ! y_axis
@@ -451,7 +451,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   ! X-axis kick
 
-  if (mode%polarization /= y_axis$) then
+  if (mode%polarization /= y_polarization$) then
     w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
     if (mode%transverse_dependence == linear_trailing$) then
       orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
@@ -462,7 +462,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   ! Y-axis kick
 
-  if (mode%polarization /= x_axis$) then
+  if (mode%polarization /= x_polarization$) then
     w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
     if (mode%transverse_dependence == linear_trailing$) then
       orbit%vec(4) = orbit%vec(4) - w_skew * orbit%vec(3)
@@ -481,7 +481,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   ! Add to x-axis wake (b_sin, b_cos)
 
-  if (mode%polarization /= y_axis$) then
+  if (mode%polarization /= y_polarization$) then
     if (mode%transverse_dependence == linear_leading$) then
       mode%b_sin = mode%b_sin * exp_factor + ff * c * orbit%vec(1)
       mode%b_cos = mode%b_cos * exp_factor + ff * s * orbit%vec(1)
@@ -493,7 +493,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   ! Add to y-axis wake (a_sin, a_cos)
 
-  if (mode%polarization /= x_axis$) then
+  if (mode%polarization /= x_polarization$) then
     if (mode%transverse_dependence == linear_leading$) then
       mode%a_sin = mode%a_sin * exp_factor + ff * c * orbit%vec(3)
       mode%a_cos = mode%a_cos * exp_factor + ff * s * orbit%vec(3)

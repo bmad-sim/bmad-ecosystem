@@ -7638,7 +7638,7 @@ if (any(vec /= [0, 0, 1])) then
   polar = vec_to_polar (vec)
 endif
 
-orbit%spin = polar_to_spinor (polar)
+orbit%spin = polar_to_vec (polar)
 
 end subroutine parser_set_spin
 
