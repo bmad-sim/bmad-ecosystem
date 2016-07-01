@@ -1,6 +1,5 @@
 program moga
   use mpi
-  use ifport, ifport_seed => seed
   use bmad
   use bmad_parser_mod, only: bp_com
   use custom_dynamic_aperture_mod
