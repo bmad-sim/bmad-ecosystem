@@ -570,7 +570,7 @@ case (lcavity$, rfcavity$, e_gun$)
     ! No grid present
     freq = ele%value(rf_frequency$) 
   endif
-  ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
+  ! if (freq == 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Allocate temporary pt array
   allocate (pt(0:nz))

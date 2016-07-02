@@ -93,7 +93,7 @@ exit_flag = .false.
 err_flag = .true.
 has_hit = .false. 
 edge_kick_applied  = .false.
-  
+
 do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   runge_kutta_com%num_steps_done = n_step
@@ -623,7 +623,7 @@ endif
 ! Spin
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  dvec_dt(7:9) = spin_omega (field, orbit, 1, .false.) + &
+  dvec_dt(7:9) = spin_omega (field, orbit, ele%orientation, .false.) + &
                       ele%orientation * [-kappa_y, kappa_x, 0.0_rp] * vel(3) / (1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3))
 else
   dvec_dt(7:9) = 0
@@ -850,10 +850,6 @@ orbit%s =  orbit%s + delta_s
 orbit%t =  orbit%t + delta_t 
 
 end subroutine drift_orbit_time
-
-
-
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

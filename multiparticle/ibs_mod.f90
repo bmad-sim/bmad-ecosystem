@@ -122,7 +122,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
 
   Vrf = 0.0d0
   do i=1,lat%n_ele_track
-    if(lat%ele(i)%key .eq. rfcavity$) then
+    if(lat%ele(i)%key == rfcavity$) then
       Vrf = Vrf + lat%ele(i)%value(voltage$)
       rf_freq = lat%ele(i)%value(rf_frequency$)
     endif
@@ -195,7 +195,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
     !at some point in the iterative process, in which case the case
     !structure below will terminate the program.  If this happens, try
     !using different values for initial_blow_up.
-    if( rates%inv_Ta .eq. 0.0 ) then
+    if( rates%inv_Ta == 0.0 ) then
       afactor = 1.0
     else
       Ta = 1.0/rates%inv_Ta
@@ -207,7 +207,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
         STOP
       endif
     endif
-    if( rates%inv_Tb .eq. 0.0 ) then
+    if( rates%inv_Tb == 0.0 ) then
       bfactor = 1.0
     else
       Tb = 1.0/rates%inv_Tb
@@ -219,7 +219,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
         STOP
       endif
     endif
-    if( rates%inv_Tz .eq. 0.0 ) then
+    if( rates%inv_Tz == 0.0 ) then
       zfactor = 1.0
     else
       Tz = 1.0/rates%inv_Tz
@@ -344,7 +344,7 @@ subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
 
   Vrf = 0.0d0
   do i=1,lat%n_ele_track
-    if(lat%ele(i)%key .eq. rfcavity$) then
+    if(lat%ele(i)%key == rfcavity$) then
       Vrf = Vrf + lat%ele(i)%value(voltage$)
       rf_freq = lat%ele(i)%value(rf_frequency$)
     endif
@@ -565,7 +565,7 @@ subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
 
   if( granularity .lt. 0.0 ) then
     do i=1,lat%n_ele_track
-      if(lat%ele(i)%value(l$) .eq. 0.0) then
+      if(lat%ele(i)%value(l$) == 0.0) then
         CYCLE
       endif
       
@@ -721,7 +721,7 @@ subroutine ibs1(lat, ibs_sim_params, rates, i, s)
     endif
   else
     if(PRESENT(i) .and. .not.PRESENT(s)) then
-      if(lat%ele(i)%value(l$) .eq. 0.0) then
+      if(lat%ele(i)%value(l$) == 0.0) then
         rates%inv_Tz = 0.0
         rates%inv_Ta = 0.0
         rates%inv_Tb = 0.0
@@ -1240,7 +1240,7 @@ subroutine kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, energy, n_part)
   u(2) = max(u(2),1.0d-20)
   u(3) = max(u(3),1.0d-20)
 
-  if( error .ne. 0 ) then
+  if( error /= 0 ) then
     write(*,'(A,I6," ",A)') "BAD: Eigenvectors of local momentum matrix not found."
     sigma_mat_updated = sigma_mat
     return
@@ -1276,7 +1276,7 @@ subroutine kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, energy, n_part)
 
   bn = (vol/n_part)**(1.0d0/3.0d0)
   bmax = min( bm, bn )  !minimum dimension or debye radius
-  if( ibs_sim_params%clog_to_use .NE. 1 ) then
+  if( ibs_sim_params%clog_to_use /= 1 ) then
     !kubo's tail cut formula
     bmin1 = r_e/(ptrans*gamma)**2
     bmin2 = sqrt(abs(vol/n_part/pi/(ptrans*c_light)/ibs_sim_params%tau_a))

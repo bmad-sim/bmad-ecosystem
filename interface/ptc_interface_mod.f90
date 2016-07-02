@@ -2858,11 +2858,8 @@ endif
 
 ! Track element
 
-if (present(orb0)) then
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, tracking_species = default_tracking_species(param))
-else
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
-endif
+call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
+
 ! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
 if (bmad_com%spin_tracking_on) then
   call alloc(ptc_probe8)
@@ -3073,7 +3070,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !+                                
 ! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, 
-!                          for_layout, tracking_species, use_hard_edge_drifts)
+!                                  for_layout, track_particle, use_hard_edge_drifts)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -3083,19 +3080,19 @@ end subroutine type_map
 !   use ptc_interface_mod
 !
 ! Input:
-!   ele         -- Ele_struct: Bmad element.
-!   param       -- lat_param_struct: 
-!   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
-!   integ_order -- Integer, optional: Order for the 
-!                    sympletic integrator. Possibilities are: 2, 4, or 6
-!                    Overrides ele%value(integrator_order$).
-!                    default = 2 (if not set with set_ptc).
-!   steps       -- Integer, optional: Number of integration steps.
-!                    Overrides ele%value(ds_step$).
-!   for_layout  -- Logical, optional: If True then fibre will be put in the layout.
-!                    Default is False.
-!   tracking_species     -- Integer, optional: Particle type to be tracked. ref_particle$, electron$, etc.
-!                             Default is determined by param%default_tracking_species.
+!   ele                  -- Ele_struct: Bmad element.
+!   param                -- lat_param_struct: 
+!   use_offsets          -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!   integ_order          -- Integer, optional: Order for the 
+!                             sympletic integrator. Possibilities are: 2, 4, or 6
+!                             Overrides ele%value(integrator_order$).
+!                             default = 2 (if not set with set_ptc).
+!   steps                -- Integer, optional: Number of integration steps.
+!                             Overrides ele%value(ds_step$).
+!   for_layout           -- Logical, optional: If True then fibre will be put in the PTC layout.
+!                             Default is False.
+!   track_particle       -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
+!                             This argument should only be present when the fibre is not to be put in a layout.
 !   use_hard_edge_drifts -- logical, optional: If False then hard edge drifts are not used.
 !                                              If True then this argument has no effect.
 !                              Default is set by bmad_com%use_hard_edge_drifts.
@@ -3106,7 +3103,7 @@ end subroutine type_map
 !+
 
 subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, &
-                                       for_layout, tracking_species, use_hard_edge_drifts)
+                                       for_layout, track_particle, use_hard_edge_drifts)
 
 use madx_ptc_module
 
@@ -3114,6 +3111,7 @@ implicit none
  
 type (ele_struct), target :: ele
 type (lat_param_struct) param
+type (coord_struct), optional :: track_particle
 type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
@@ -3138,7 +3136,6 @@ real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 
-integer, optional :: tracking_species
 integer, optional :: integ_order, steps
 integer i, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
 integer np
@@ -3159,8 +3156,8 @@ case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
 case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
-if (present(tracking_species)) then
-  rel_charge = charge_of(tracking_species) / charge_of(param%particle)
+if (present(track_particle)) then
+  rel_charge = charge_of(track_particle%species) / charge_of(param%particle)
 else
   rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
 endif
@@ -3572,6 +3569,11 @@ lielib_print(12) = 0  ! No printing info messages
 if (logic_option(.false., for_layout)) then
   call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
   ptc_fibre => m_u%end%end
+  if (present (track_particle)) then
+    call out_io (s_fatal$, r_name, 'TRACK_PARTICLE ARGUMENT SHOULD NOT BE PRESENT WHEN FOR_LAYOUT IS TRUE!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
 
 else
   call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
@@ -3600,6 +3602,7 @@ else
 endif
 
 ptc_fibre%dir = ele%orientation
+if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
 
 lielib_print(12) = n
 

@@ -572,7 +572,7 @@ re(5,6) = el / (beta * gamma) ** 2
 ! second-order terms.
 
 skl = ele%value(k2$) * el
-if (skl .ne. 0.0) then
+if (skl /= 0.0) then
   s1 = skl / 2.0
   s2 = s1 * el / 2.0
   s3 = s2 * el / 3.0
@@ -609,7 +609,7 @@ call mad_tmsymm(te)
 
 ! Apply tilt.
 
-if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
+if (ele%value(tilt_tot$) /= 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
 end subroutine mad_sextupole
 
@@ -672,7 +672,7 @@ call mad_concat_map2 (map, map2, map)
 
 if (roll /= 0) map%k = map%k + map_roll%k
 
-if (ele%value(ref_tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(ref_tilt_tot$))
+if (ele%value(ref_tilt_tot$) /= 0.0) call mad_tmtilt(map, ele%value(ref_tilt_tot$))
 
 end subroutine mad_sbend
 
@@ -1172,7 +1172,7 @@ te(5,6,6) = (- 6.0 * re(5,6)) * biby4
 
 ! Apply tilt.
 
-if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
+if (ele%value(tilt_tot$) /= 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
 end subroutine mad_quadrupole
 

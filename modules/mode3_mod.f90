@@ -484,7 +484,7 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
 
   A = mat  !LA_GEEV destroys the contents of its first argument.
   CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
-  if( i_error .ne. 0 ) THEN
+  if( i_error /= 0 ) THEN
     call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
     if(global_com%exit_on_error) call err_exit
     eval_r = 0.0d0
