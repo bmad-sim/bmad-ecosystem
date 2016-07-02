@@ -1445,8 +1445,8 @@ if (logic_option(.false., track_spin)) then
   field%B = (ele%value(b_field$) + ele%value(b_field_err$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
   if (ele%value(b1_gradient$) /= 0) field%B = field%B - ele%value(b1_gradient$) * tan_e_x * [x*y, x*x - y*y, 0.0_rp]
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
-  if (particle_at == second_track_edge$) field%B(3) = -field%B(3)
-  omega = spin_omega (field, ave_orb)
+  if (physical_ele_end(particle_at, orb%direction, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
+  omega = spin_omega (field, ave_orb, ave_orb%direction * ele%orientation)
   call rotate_spin (omega, orb%spin)
 endif
 

@@ -80,7 +80,7 @@ ds_safe = bmad_com%significant_length / 10
 dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
-call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, .true., orb)
+call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb, .true.)
 old_direction = orb%direction
 
 if ( present(track) ) then
@@ -149,7 +149,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, t_rel, ele, param, track_spin)
       call convert_particle_coordinates_s_to_t(orb, s_save)
-      call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info)
+      call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
@@ -255,7 +255,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   endif
 
   if (orb%direction /= old_direction) then
-    call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info)
+    call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb)
     old_direction = orb%direction
   endif
 
@@ -623,7 +623,7 @@ endif
 ! Spin
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  dvec_dt(7:9) = spin_omega (field, orbit, .false.) + &
+  dvec_dt(7:9) = spin_omega (field, orbit, 1, .false.) + &
                       ele%orientation * [-kappa_y, kappa_x, 0.0_rp] * vel(3) / (1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3))
 else
   dvec_dt(7:9) = 0

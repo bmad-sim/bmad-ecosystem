@@ -921,25 +921,31 @@ P/P_0)$ while the equations of motion in an electric field are simple
 with $(t, \Delta E/P_0)$.
 
 %-----------------------------------------------------------------------------
-\subsection{Tracking in the Reversed Direction}
+\subsection{Backward Tracking and Reversed Elements}
 
 \bmad has the capability of tracking particles backwards in $S$ from the end of the
-lattice to the beginning. In all cases, tracking is always forward in time. The canonical
+lattice to the beginning. Tracking in this case is still forward in time. The canonical
 momenta $p_x$ and $p_y$ (\Eq{ppp}) with backward tracking, has the same sense as forward
 tracking. That is, $p_x$ and $dx/dt$ have the same sign and $p_y$ and $dy/dt$ will have
-the same sign. Also for both forward and backward tracking, a particle with a positive
+the same sign. Also, for both forward and backward tracking, a particle with a positive
 canonical $z$ coordinate (\Eq{zbctt}) will arrive ahead in time relative to the reference
 particle.
 
 As an illustration of backwards tracking, consider a machine with static magnetic fields
 and no electric fields. Consider a particle starting at some point $s_1$ and tracked
 forward to some point $s_2$. Now, in order to track the particle backwards from $s_2$ to
-$s_1$, the particle following the same transverse orbit backwards as forwards, the initial
+$s_1$, with the particle following the same transverse orbit backwards as forwards, the initial
 $p_x$ and $p_y$ momenta for the backwards track must be reversed in sign from the $p_x$
 and $p_y$ of the forward track at $s_2$, and the charge of the particle has to be
 reversed. To have the particle have the same ending $z$ value at $s_1$ at the finish of
 backwards tracking, the initial $z$ value for backwards tracking must be negative of the
 $z$ value at $s_2$ for forward tracking.
+
+The direction of propagation of a particle being tracked backwards through an unreversed
+(\sref{s:reverse}) element is opposite the direction of the local $z$-axis. Similarly, the
+direction of propagation of a particle being forward tracked is opposite the local
+$z$-axis in reversed elements (see \sref{s:ex.patch}). This is important to keep in mind when
+interpreting simulation results.
 
 %-----------------------------------------------------------------------------
 \subsection{Time-based Phase Space Coordinates}

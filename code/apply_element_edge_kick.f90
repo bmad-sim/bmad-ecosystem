@@ -45,7 +45,7 @@ type (ele_struct), pointer :: hard_ele
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
 complex(rp) xiy, c_vec
 
-integer physical_end, dir, i, fringe_at, at_sign
+integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel
 logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
@@ -64,6 +64,8 @@ else
     fringe_info%hard_location = upstream_end$
   endif
 endif
+
+sign_z_vel = orb%direction * track_ele%orientation
 
 ! Custom edge kick?
 
@@ -101,7 +103,7 @@ if (associated(hard_ele%a_pole_elec)) then
     orb%vec(6) = (pc - orb%p0c) / orb%p0c
 
     if (track_spn) then
-      call rotate_spin_given_field (orb, EL = [0.0_rp, 0.0_rp, phi])
+      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
     endif
   enddo
 endif
@@ -129,8 +131,8 @@ case (solenoid$, sol_quad$, bend_sol_quad$)
   orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spn) then
-    f = at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) / 2
-    call rotate_spin_given_field (orb, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
+    f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
+    call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
@@ -154,7 +156,8 @@ case (lcavity$, rfcavity$, e_gun$)
 
     if (track_spn) then
       f = at_sign * charge_of(orb%species) / 2.0_rp
-      call rotate_spin_given_field (orb, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
+      call rotate_spin_given_field (orb, sign_z_vel, &
+                                           -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
                                            -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
     endif
 
@@ -170,7 +173,7 @@ case (elseparator$)
   call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
   orb%vec(6) = (pc - orb%p0c) / orb%p0c
   if (track_spn) then
-    call rotate_spin_given_field (orb, EL = [0.0_rp, 0.0_rp, phi])
+    call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
   endif
 
 end select
