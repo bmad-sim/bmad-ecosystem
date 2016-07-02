@@ -13,7 +13,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad_time (orb, ele, param, t_rel, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -26,8 +26,6 @@ contains
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
 !   param   -- lat_param_struct: Beam parameters.
-!   s1      -- Real: Limit point to stop at.
-!   s2      -- Real: Limit point to stop at.
 !   t_rel   -- Real: The effective start time.
 !   local_ref_frame 
 !           -- Logical: If True then take the 
@@ -45,7 +43,7 @@ contains
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, local_ref_frame, err_flag, track)
+subroutine odeint_bmad_time (orb, ele, param, t_rel, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
@@ -60,7 +58,6 @@ type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
-real(rp), intent(in) :: s1, s2
 real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
@@ -218,7 +215,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     end if
   endif
 
-  ! Exit when the particle hits surface s1 or s2, or hits wall
+  ! Exit when the particle hits surface or hits wall
   if (exit_flag) then
     err_flag = .false. 
     return
