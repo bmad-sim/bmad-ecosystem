@@ -182,7 +182,7 @@ DO i=1,nlocs
 
   Tl_inv = (pos_rate + neg_rate) / lat%param%n_part
 
-  IF(i .eq. nlocs) THEN
+  IF(i == nlocs) THEN
     sum_Tl_inv = sum_Tl_inv + Tl_inv &
       * (  lat%param%total_length - momentum_aperture(i)%s )
   ELSE

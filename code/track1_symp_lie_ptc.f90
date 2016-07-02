@@ -56,7 +56,7 @@ endif
 start2_orb = start_orb
 end_orb = start_orb
 
-call ele_to_fibre (ele, fibre_ele, param, .true., tracking_species = start_orb%species)
+call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
 
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)) then

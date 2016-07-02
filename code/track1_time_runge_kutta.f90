@@ -64,7 +64,7 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 
 ! If element has zero length, skip tracking
 
-if (ele%value(l$) .eq. 0) then
+if (ele%value(l$) == 0) then
   
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then

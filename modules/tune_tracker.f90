@@ -392,7 +392,7 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
 
   !Write to log file
   IF( tt_param(id)%log_period .gt. 0 ) THEN
-    IF( MOD( (tt_state(id)%counter+tt_param(id)%log_period-1), tt_param(id)%log_period) .eq. 0 ) THEN
+    IF( MOD( (tt_state(id)%counter+tt_param(id)%log_period-1), tt_param(id)%log_period) == 0 ) THEN
       IF( tt_param(id)%use_D_chan ) THEN
         !This statement writes the state of each PID channel to the tt_log_n.out file.
         WRITE(log_luns(id),'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &

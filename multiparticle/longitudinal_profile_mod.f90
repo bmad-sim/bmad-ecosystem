@@ -185,7 +185,7 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
 
   status = fgsl_odeiv2_driver_apply(ode_drv, t0, t1, y)
 
-  IF(status .ne. fgsl_success) THEN
+  IF(status /= fgsl_success) THEN
     WRITE(*,'(A)') "ERROR: fgsl_odeiv2_driver_apply failed during bunch length calculation."
     WRITE(*,'(A,2I6)') "fgsl_odeiv2_driver_apply returned (success is zero): ", status
     STOP
@@ -252,7 +252,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
   DO i=2,n
     status = fgsl_odeiv2_driver_apply_fixed_step(ode_drv, tcur, step_size, 1_fgsl_long, y)
 
-    IF(status .ne. fgsl_success) THEN
+    IF(status /= fgsl_success) THEN
       WRITE(*,'(A)') "ERROR: fgsl_odeiv2_driver_apply_fixed_step failed during bunch length calculation."
       WRITE(*,'(A,2I6)') "fgsl_odeiv2_driver_apply_fixed_step returned ", status, fgsl_success
       STOP

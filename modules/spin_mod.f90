@@ -427,7 +427,7 @@ end subroutine rotate_spin
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega (field, coord, sign_z_vel, uase_space_coords), result (omega)
+! Function spin_omega (field, coord, sign_z_vel, phase_space_coords), result (omega)
 !
 ! Return the modified T-BMT spin omega vector:
 !   dOmega/d|s|   With phase space coords.
@@ -446,8 +446,9 @@ end subroutine rotate_spin
 ! Input:
 !   field              -- em_field_struct: E and B fields.
 !   coord              -- coord_struct: particle momentum.
-!   sign_z_vel         -- integer: Direction of the z-velocity. Only used with phase space coords.
-!                           Essentially = coord%direciton * ele%orientation.
+!   sign_z_vel         -- integer: Direction of the z-velocity. 
+!                           With phase space coords: sign_z_vel = coord%direciton * ele%orientation.
+!                           With time RK coords:     sign_z_vel = ele%orientation
 !   phase_space_coords -- logical, optional: Is coord in standard phase space coordinates or
 !                           is it time Runge Kutta coords?
 !
@@ -488,7 +489,7 @@ if (logic_option(.true., phase_space_coords)) then
 
 else
   e_particle = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / coord%beta
-  beta_vec = [coord%vec(2), coord%vec(4), coord%vec(6)] / e_particle
+  beta_vec = [coord%vec(2), coord%vec(4), sign_z_vel * coord%vec(6)] / e_particle
   mc2 = mass_of(coord%species)
   gamma = e_particle / mc2
 endif
@@ -945,8 +946,8 @@ if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, (x*
 ! 1 + g*x term comes from the curved coordinates.
 
 orb = start_orb
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * ds + spline_x(3) * ds**2)
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * ds + spline_y(3) * ds**2)
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * ds + 3 * spline_x(3) * ds**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline_y(3) * ds**2)
 
 omega = (1 + ele%value(g$) * x) * spin_omega (field, orb, start_orb%direction * ele%orientation)
 

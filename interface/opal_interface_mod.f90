@@ -486,7 +486,7 @@ select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$) 
 
   freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
-  ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
+  ! if (freq == 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Example:
   !2DDynamic XZ
