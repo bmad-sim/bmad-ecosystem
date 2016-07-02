@@ -12,7 +12,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, fringe_info, init_needed, orbit)
+! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, fringe_info, orbit, init_needed)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -28,7 +28,7 @@ contains
 !   track_ele       -- ele_struct: Element being tracked through.
 !   track_direction -- integer: +1 -> +s direction, -1 -> -s direction.
 !   init_needed     -- logical, optional: If present and True then initialize.
-!   orbit           -- coord_struct, optional: Used for initialization. Must be present if init_needed = True.
+!   orbit           -- coord_struct: Particle position
 !
 ! Output:
 !   s_edge_track -- Real(rp): S position of next hard edge in track_ele frame.
@@ -37,14 +37,14 @@ contains
 !   fringe_info    -- fringe_edge_info_struct: Information on the next fringe to track through.
 !-
 
-subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, fringe_info, init_needed, orbit)
+subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, fringe_info, orbit, init_needed)
 
 type (ele_struct), target :: track_ele
 type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: lord
-type (coord_struct), optional :: orbit
+type (coord_struct) :: orbit
 
-real(rp) s_edge_track
+real(rp) s_edge_track, s_orb
 integer i, dir, track_direction, num_lords
 logical, optional :: init_needed
 logical has_z_offset
@@ -66,6 +66,7 @@ character(*), parameter :: r_name = 'calc_next_finge_edge'
 ! The routine apply_element_edge_kick will modify ele%ixx as appropriate when the particle is tracked through an edge.
 
 dir = track_direction
+s_orb = orbit%s - (track_ele%s - track_ele%value(l$)) - track_ele%value(z_offset_tot$)
 
 if (logic_option(.false., init_needed)) then
   nullify(fringe_info%hard_ele)
@@ -110,10 +111,10 @@ if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_
   do i = 1, track_ele%n_lord
     lord => pointer_to_lord(track_ele, i)
     if (lord%key == overlay$ .or. lord%key == group$) cycle
-    call does_this_ele_contain_the_next_edge (lord, i, track_ele, dir, s_edge_track, fringe_info)
+    call does_this_ele_contain_the_next_edge (lord, i, track_ele, dir, s_edge_track, s_orb, fringe_info)
   enddo
 else
-  call does_this_ele_contain_the_next_edge (track_ele, 1, track_ele, dir, s_edge_track, fringe_info)
+  call does_this_ele_contain_the_next_edge (track_ele, 1, track_ele, dir, s_edge_track, s_orb, fringe_info)
 endif
 
 !-------------------------------------------------------------------------
@@ -122,7 +123,7 @@ contains
 subroutine init_this_ele (this_ele, ix_loc)
 
 type (ele_struct) this_ele
-real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, s_orb, ds_small
+real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, ds_small
 integer ix_loc
 
 !
@@ -134,7 +135,6 @@ s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2
 s_hard_upstream   = min(s1, s2)
 s_hard_downstream = max(s1, s2)
 
-s_orb = orbit%s - (track_ele%s - track_ele%value(l$)) - track_ele%value(z_offset_tot$)
 ds_small = bmad_com%significant_length
 
 if (dir == 1) then
@@ -184,12 +184,12 @@ end subroutine calc_next_fringe_edge
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, dir, s_edge_track, fringe_info)
+subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, dir, s_edge_track, s_orb, fringe_info)
 
 type (ele_struct), target :: this_ele, track_ele
 type (fringe_edge_info_struct), target :: fringe_info
 
-real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_track, ds_small
+real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_track, ds_small, s_orb
 integer this_end, dir, ix_loc
 
 ! Remamber: element length can be less than zero.
@@ -251,6 +251,7 @@ fringe_info%hard_ele => this_ele
 fringe_info%particle_at = this_end
 fringe_info%s_edge_hard = s_edge_track - s_off
 fringe_info%hard_location => fringe_info%location(ix_loc)
+fringe_info%ds_edge = s_edge_track + s_off - s_orb
 
 end subroutine does_this_ele_contain_the_next_edge
 

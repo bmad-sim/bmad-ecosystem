@@ -170,21 +170,27 @@ is reflected. For example:
 In this example, \vn{line2} and \vn{line3} are identical. Notice that
 the reversal of a reversed element makes the element unreversed.
 
-Reversed elements, unlike other elements, have their local $z$-axis
-pointing in the opposite direction to the local $s$-axis
-(\sref{s:ref.construct}). This means that there must be a
-\vn{reflection patch} (\sref{s:reflect.patch}) between reversed and
-unreversed elements. See \sref{s:ex.patch} for an example. Since this
-complicates matters, it is generally only useful to employ element
-reversal in cases where there are multiple intersectiong lines with
-particle beams going in opposite directions through some elements. Where
-reversed elements are not needed, it is simple to define elements that
-are effectively reversed. For example:
+Reversed elements, unlike other elements, have their local $z$-axis pointing in the
+opposite direction to the local $s$-axis (\sref{s:ref.construct}). This means that there
+must be a \vn{reflection patch} (\sref{s:reflect.patch}) between reversed and unreversed
+elements. See \sref{s:ex.patch} for an example. Since this complicates matters, it is
+generally only useful to employ element reversal in cases where there are multiple
+intersectiong lines with particle beams going in opposite directions through some elements
+(for example, colliding beam interaction regions). In this case, element reversal is
+typically used with \vn{multipass} (\sref{s:multipass}).
+
+Where reversed elements are not needed, it is simple to define elements that are
+effectively reversed. For example:
 \begin{example}
   b00: bend, angle = 0.023, e1 = ...
   b00_rev: b00, angle = -b00[angle], e1 = -b00[e2], e2 = -b00[e1]
 \end{example}
 and \vn{b00_rev} serves as a reversed version of \vn{b00}.
+
+Internally, \bmad associates an \vn{orientation} attribute with each element. This
+attribute is set to -1 for reversed elements and 1 for unreversed elements. This
+attribute. If a program can print out the attributes for an element, checking the
+\vn{orientation} attribute will show if an element is reversed or not.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}

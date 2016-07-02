@@ -288,9 +288,12 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine rotate_spin_given_field (orbit, BL, EL, ele, ds)
+! Subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL, ds)
 !
 ! Routine to rotate a spin given the integrated magnetic and/or electric field strengths.
+!
+! Integrated field is the field * length which is independent of particle direction of travel.
+! Spin rotation will be done taking into account the particle direction of travel.
 !
 ! Modules needed:
 !   use spin_mod
@@ -299,14 +302,12 @@ end function angle_between_polars
 !   orbit   -- coord_struct: Initial orbit.
 !   BL(3)   -- real(rp), optional: Integrated field strength. Assumed zero if not present.
 !   EL(3)   -- real(rp), optional: Integrated field strength. Assumed zero if not present.
-!   ele     -- ele_struct, optional: Element being tracked through. If element is an sbend,
-!               a
 !
 ! Output:
 !   orbit   -- coord_struct: Orbit with rotated spin
 !-
 
-subroutine rotate_spin_given_field (orbit, BL, EL)
+subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL)
 
 implicit none
 
@@ -315,6 +316,8 @@ type (em_field_struct) field
 
 real(rp), optional :: BL(3), EL(3)
 real(rp)  omega(3)
+
+integer sign_z_vel
 
 !
 
@@ -330,7 +333,7 @@ else
   field%E = 0
 endif
 
-omega = spin_omega (field, orbit)
+omega = spin_omega (field, orbit, sign_z_vel)
 call rotate_spin (omega, orbit%spin)
 
 end subroutine rotate_spin_given_field
@@ -366,16 +369,21 @@ type (coord_struct) orbit
 type (em_field_struct) field
 
 real(rp) ds, omega(3)
+integer sign_z_vel
+
 
 !
 
+sign_z_vel = ele%orientation * orbit%direction
+
 if (ele%key == sbend$) then
-  omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit) + [0.0_rp, ele%value(g$)*ele%orientation*orbit%direction, 0.0_rp]
+  omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit, sign_z_vel) + &
+                      [0.0_rp, ele%value(g$)*sign_z_vel, 0.0_rp]
 else
-  omega = spin_omega (field, orbit)
+  omega = spin_omega (field, orbit, orbit%direction * ele%orientation)
 endif
 
-call rotate_spin (ds * omega, orbit%spin)
+call rotate_spin (abs(ds) * omega, orbit%spin)
 
 end subroutine rotate_spin_a_step
 
@@ -419,9 +427,14 @@ end subroutine rotate_spin
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega (field, coord, phase_space_coords), result (omega)
+! Function spin_omega (field, coord, sign_z_vel, uase_space_coords), result (omega)
 !
-! Return the modified T-BMT spin omega vector.
+! Return the modified T-BMT spin omega vector:
+!   dOmega/d|s|   With phase space coords.
+!   dOmega/dt     With time_RK coords.
+!
+! With phase_space_coords, d|s| is positive in the longitudinal direction of propagation 
+! independent of the sign of sign_z_vel.
 !
 ! In a bend, the omega returned should be modified:
 !   true_omega = (1 + g*x) * omega + [0, g, 0]
@@ -433,15 +446,17 @@ end subroutine rotate_spin
 ! Input:
 !   field              -- em_field_struct: E and B fields.
 !   coord              -- coord_struct: particle momentum.
-!   phase_space_coords -- logical, optional: Is coord in standard phase_space coordinates or
-!                           is it time_runge_kutta coords?
+!   sign_z_vel         -- integer: Direction of the z-velocity. Only used with phase space coords.
+!                           Essentially = coord%direciton * ele%orientation.
+!   phase_space_coords -- logical, optional: Is coord in standard phase space coordinates or
+!                           is it time Runge Kutta coords?
 !
 ! Output:
 !   omega(3)   -- real(rp): If phase_space_coords: Omega_TBMT/v_z
 !                           If not: Omega_TBMT
 !-
 
-function spin_omega (field, coord, phase_space_coords) result (omega)
+function spin_omega (field, coord, sign_z_vel, phase_space_coords) result (omega)
 
 implicit none
 
@@ -450,6 +465,8 @@ type (coord_struct) :: coord
 
 real(rp) omega(3),  beta_vec(3), pc
 real(rp) anomalous_moment, gamma, rel_p, e_particle, mc2, bz2
+
+integer sign_z_vel
 
 logical, optional :: phase_space_coords
 
@@ -467,7 +484,7 @@ if (logic_option(.true., phase_space_coords)) then
     omega = 0
     return
   endif
-  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), coord%direction * sqrt(bz2)]
+  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sign_z_vel * sqrt(bz2)]
 
 else
   e_particle = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / coord%beta
@@ -487,7 +504,7 @@ if (bmad_com%electric_dipole_moment /= 0) then
 endif
 
 if (logic_option(.true., phase_space_coords)) then
-  omega = -(charge_of(coord%species) / (mc2 * beta_vec(3))) * omega
+  omega = -(charge_of(coord%species) / (mc2 * abs(beta_vec(3)))) * omega
 else
   omega = -(charge_of(coord%species) * c_light / mc2) * omega
 endif
@@ -669,7 +686,7 @@ real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
 real(rp) anomalous_moment, m_particle, sign_k, abs_a, coef, s_edge_track
 real(rp) vec0(6), ks, kss, length, kl, kl2, c, s, m21, m22, m23, m24
 
-integer key
+integer key, sign_z_vel
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
@@ -679,23 +696,24 @@ if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patc
 
 m_particle = mass_of(start_orb%species)
 anomalous_moment = anomalous_moment_of(start_orb%species)
+sign_z_vel = start_orb%direction * ele%orientation
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
-call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, .true., temp_start)
+call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, temp_start, .true.)
 
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
 if (fringe_info%particle_at == first_track_edge$) then
-  if (s_edge_track /= 0) call track_a_drift (temp_start, s_edge_track)
+  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
   call apply_element_edge_kick (temp_start, fringe_info, temp_start%t, ele, param, .true.)
-  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, .false.)
+  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
 temp_end   = end_orb
 call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .true., ele%value(l$))
-if (fringe_info%particle_at == second_track_edge$ .and. s_edge_track /= ele%value(l$)) &
-                                                  call track_a_drift (temp_end, s_edge_track - ele%value(l$))
+if (fringe_info%particle_at == second_track_edge$ .and. fringe_info%ds_edge /= 0) &
+                                                  call track_a_drift (temp_end, fringe_info%ds_edge)
 temp_end%spin = temp_start%spin
 
 ! Notice that the effects of multipoles on spin is handled in offset_particle.
@@ -728,11 +746,12 @@ case (sbend$)
 
 !-----------------------------------------------
 ! solenoid
+! Notice that ks is independent of the ele orientation
 
 case (solenoid$)
 
   vec0 = temp_start%vec
-  ks = ele%value(ks$) / (1+vec0(6))
+  ks = ele%value(ks$) / (1+vec0(6)) * relative_tracking_charge(temp_start, param)
   kss = ks / 2
   length = ele%value(l$)
 
@@ -755,7 +774,7 @@ case (solenoid$)
 
   temp_end%vec(2) =  m21 * vec0(1) + m22 * vec0(2) + m23 * vec0(3) + m24 * vec0(4)
   temp_end%vec(4) = -m23 * vec0(1) - m24 * vec0(2) + m21 * vec0(3) + m22 * vec0(4)
-  call rotate_spin_given_field (temp_end, [0.0_rp, 0.0_rp, length*ele%value(bs_field$)])
+  call rotate_spin_given_field (temp_end, sign_z_vel, [0.0_rp, 0.0_rp, length * ele%value(bs_field$)])
 
 !-----------------------------------------------
 ! RFcavity, LCavity
@@ -790,20 +809,19 @@ implicit none
 
 type (coord_struct) start_orb, end_orb
 real(rp) spline_x(0:3), spline_y(0:3)
-real(rp) ds, relp, alpha, beta
+real(rp) ds, alpha, beta
 
 !
 
-ds = end_orb%s - start_orb%s
-relp = 1 + start_orb%vec(6)
+ds = abs(end_orb%s - start_orb%s)
 
 ! X
 
 spline_x(0) = start_orb%vec(1)
-spline_x(1) = start_orb%vec(2) / relp 
+spline_x(1) = start_orb%vec(2) / (1 + start_orb%vec(6))
 
 alpha = end_orb%vec(1) - spline_x(0) - spline_x(1) * ds
-beta = end_orb%vec(2) / relp - spline_x(1)
+beta = end_orb%vec(2) / (1 + end_orb%vec(6)) - spline_x(1)
 
 spline_x(2) = 3 * alpha / ds**2 - beta / ds
 spline_x(3) = beta / ds**2 - 2 * alpha / ds**3
@@ -811,10 +829,10 @@ spline_x(3) = beta / ds**2 - 2 * alpha / ds**3
 ! Y
 
 spline_y(0) = start_orb%vec(3)
-spline_y(1) = start_orb%vec(4) / relp 
+spline_y(1) = start_orb%vec(4) / (1 + start_orb%vec(6))
 
 alpha = end_orb%vec(3) - spline_y(0) - spline_y(1) * ds
-beta = end_orb%vec(4) / relp - spline_y(1)
+beta = end_orb%vec(4) / (1 + end_orb%vec(6)) - spline_y(1)
 
 spline_y(2) = 3 * alpha / ds**2 - beta / ds
 spline_y(3) = beta / ds**2 - 2 * alpha / ds**3
@@ -867,8 +885,8 @@ s0 = start_orb%s - (ele%s - ele%value(l$))
 s1 = end_orb%s - (ele%s - ele%value(l$))
 
 q_array(1)%h = 1
-q_array(1)%omega = s1 * (omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param) + &
-                         omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)) / 2
+q_array(1)%omega = abs(s1 - s0) * (omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param) + &
+                                   omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)) / 2
 
 do j = 2, j_max
   ! This is trapzd from NR
@@ -882,7 +900,7 @@ do j = 2, j_max
   enddo
 
   q_array(j)%h = q_array(j-1)%h / 4
-  q_array(j)%omega = (q_array(j-1)%omega + omega * del_s) / 2
+  q_array(j)%omega = (q_array(j-1)%omega + omega * abs(del_s)) / 2
 
   eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
 
@@ -900,7 +918,7 @@ end function trapzd_omega
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-function sbend_omega_func (s, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
+function sbend_omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
 
 implicit none
 
@@ -909,16 +927,17 @@ type (ele_struct) ele
 type (em_field_struct) field
 type (lat_param_struct) param
 
-real(rp) s, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) x, y, s1
+real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) x, y, ds
 
 !
 
 field%b = [0.0_rp, ele%value(b_field$) + ele%value(b_field_err$), 0.0_rp]
 field%e = 0
 
-x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
-y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
+ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
+y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
 if (ele%value(k1$) /= 0) field%b = field%b + ele%value(b1_gradient$) * [y, x, 0.0_rp]
 if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, (x*x-y*y)/2, 0.0_rp]
@@ -926,10 +945,10 @@ if (ele%value(k2$) /= 0) field%b = field%b + ele%value(b2_gradient$) * [x*y, (x*
 ! 1 + g*x term comes from the curved coordinates.
 
 orb = start_orb
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * ds + spline_x(3) * ds**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * ds + spline_y(3) * ds**2)
 
-omega = (1 + ele%value(g$) * x) * spin_omega (field, orb)
+omega = (1 + ele%value(g$) * x) * spin_omega (field, orb, start_orb%direction * ele%orientation)
 
 end function sbend_omega_func
 
@@ -937,7 +956,7 @@ end function sbend_omega_func
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-function quad_etc_omega_func (s, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
+function quad_etc_omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
 
 implicit none
 
@@ -946,15 +965,16 @@ type (ele_struct) ele
 type (em_field_struct) field
 type (lat_param_struct) param
 
-real(rp) s, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) x, y, s1
+real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) x, y, ds
 
 !
 
 field%e = 0
 
-x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
-y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
+ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
+y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
 select case (ele%key)
 case (quadrupole$);   field%b = ele%value(b1_gradient$) * [y, x, 0.0_rp]
@@ -966,10 +986,10 @@ end select
 !
 
 orb = start_orb
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * s + spline_x(3) * s**2)
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * s + spline_y(3) * s**2)
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * ds + spline_x(3) * ds**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * ds + spline_y(3) * ds**2)
 
-omega = spin_omega (field, orb)
+omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
 
 end function quad_etc_omega_func
 
@@ -977,7 +997,7 @@ end function quad_etc_omega_func
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-function cavity_omega_func (s, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
+function cavity_omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
 
 implicit none
 
@@ -986,30 +1006,31 @@ type (ele_struct) ele
 type (em_field_struct) field
 type (lat_param_struct) param
 
-real(rp) s, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) x, y, s0, ss, s_tot
+real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) x, y, s_tot, ds
 
 !
 
-x = spline_x(0) + spline_x(1) * s + spline_x(2) * s**2 + spline_x(3) * s**3
-y = spline_y(0) + spline_y(1) * s + spline_y(2) * s**2 + spline_y(3) * s**3
-s0 = start_orb%s - (ele%s - ele%value(l$))
-ss = s - s0
-s_tot = end_orb%s - start_orb%s
+ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
+y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
 !
+
+s_tot = abs(end_orb%s - start_orb%s)
 
 orb = end_orb
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * ss + spline_x(3) * ss**2)
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * ss + spline_y(3) * ss**2)
-orb%vec(5) = start_orb%vec(5) * (s_tot - ss) / s_tot + end_orb%vec(5) * ss / s_tot
-orb%vec(6) = start_orb%vec(6) * (s_tot - ss) / s_tot + end_orb%vec(6) * ss / s_tot
-orb%t      = start_orb%t      * (s_tot - ss) / s_tot + end_orb%t      * ss / s_tot
-orb%beta   = start_orb%beta   * (s_tot - ss) / s_tot + end_orb%beta   * ss / s_tot
+orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
 
-call em_field_calc (ele, param, s, orb%t, orb, .true., field)
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + spline_x(2) * ds + spline_x(3) * ds**2)
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + spline_y(2) * ds + spline_y(3) * ds**2)
+orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
+orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
+orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
 
-omega = spin_omega (field, orb)
+call em_field_calc (ele, param, s_eval, orb%t, orb, .true., field)
+
+omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
 
 end function cavity_omega_func
 

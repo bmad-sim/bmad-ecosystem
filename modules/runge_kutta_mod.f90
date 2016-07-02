@@ -127,7 +127,7 @@ call reference_energy_correction (ele, orb_end, first_track_edge$)
 ! to apply the appropriate hard edge kick.
 ! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
-call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, .true., orb_end)
+call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orb_end, .true.)
 if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
@@ -156,7 +156,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     if (.not. associated(fringe_info%hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
     call apply_element_edge_kick (orb_end, fringe_info, t, ele, param, track_spin)
-    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info)
+    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orb_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_tiny * s_dir
@@ -568,7 +568,8 @@ real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
-integer direction
+integer direction, sign_z_vel
+
 logical :: local_ref_frame, err
 
 character(24), parameter :: r_name = 'kick_vector_calc'
@@ -625,7 +626,8 @@ dr_ds(7) = dt_ds
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  dr_ds(8:10) = f_bend * spin_omega (field, orbit) + [-gy_bend, gx_bend, 0.0_rp] * ele%orientation
+  sign_z_vel = orbit%direction * ele%orientation
+  dr_ds(8:10) = orbit%direction * (f_bend  * spin_omega (field, orbit, sign_z_vel) + sign_z_vel * [-gy_bend, gx_bend, 0.0_rp])
 else
   dr_ds(8:10) = 0
 endif

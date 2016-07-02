@@ -226,7 +226,8 @@ if (set) then
   if (set_hv1) then
     coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
     coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+    if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, &
+                                  (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
   endif
 
   ! Set: Multipoles
@@ -248,7 +249,7 @@ if (set) then
         coord%vec(4) = coord%vec(4) + f * ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spin_given_field (coord, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
+          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
         endif
       enddo
     endif
@@ -307,18 +308,18 @@ if (set) then
       rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
       coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
-      if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (coord, &
+      if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (coord, sign_z_vel, &
                                              EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2))
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
     elseif (ele%key == vkicker$) then
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
     else
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
     endif
   endif
 
@@ -334,18 +335,18 @@ else
       rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
       coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
-      if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (coord, &
+      if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (coord, sign_z_vel, &
                                          EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2))
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
     elseif (ele%key == vkicker$) then
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
     else
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
     endif
   endif
 
@@ -414,7 +415,7 @@ else
         coord%vec(4) = coord%vec(4) + f * ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spin_given_field (coord, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
+          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
         endif
       enddo
     endif
@@ -428,7 +429,8 @@ else
   if (set_hv1) then
     coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
     coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (coord, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+    if (set_spn) call rotate_spin_given_field (coord, sign_z_vel, &
+                                    (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
   endif
 
   ! Unset: Offset and pitch
@@ -556,7 +558,7 @@ complex(rp) kick, pos
 
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), knl
 
-integer n
+integer n, sign_z_vel
 
 logical has_nonzero_pole
 
@@ -581,8 +583,10 @@ endif
 
 ! Rotate spin
 
+sign_z_vel = orbit%direction * ele%orientation
+
 if (kick /= 0) then
-  call rotate_spin_given_field (orbit, &
+  call rotate_spin_given_field (orbit, sign_z_vel, &
             [aimag(kick), real(kick), 0.0_rp] * (ele%value(p0c$) / (2 * charge_of(param%particle) * c_light)))
 endif
 

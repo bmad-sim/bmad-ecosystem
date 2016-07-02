@@ -32,6 +32,7 @@ integer, parameter :: bmad_inc_version$ = 182
 type fringe_edge_info_struct
   type (ele_struct), pointer :: hard_ele
   real(rp) s_edge_hard
+  real(rp) ds_edge                     ! Distance from particle to edge
   integer particle_at                  !
   integer, pointer :: hard_location    ! Particle location wrt hard_ele.
   integer, allocatable :: location(:)  ! Particle location in an element.

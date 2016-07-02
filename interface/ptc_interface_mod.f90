@@ -1257,15 +1257,10 @@ integer i, n_taylor
 
 !
 
-n_taylor = size(y8)
-do i = 1, n_taylor
+do i = 1, size(y8)
   u_t(i) = 0  ! nullify
   u_t(i) = y8(i)%t
-enddo
-
-call universal_to_bmad_taylor (u_t, bmad_taylor)
-
-do i = 1, n_taylor
+  call universal_to_bmad_taylor (u_t(i), bmad_taylor(i))
   u_t(i) = -1  ! deallocate
 enddo
 
@@ -1823,7 +1818,7 @@ end subroutine real_8_init
 !   bmad_taylor(:)   -- Taylor_struct:
 !-
 
-elemental subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
+subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
 
 use definition, only: universal_taylor
 
@@ -1836,10 +1831,12 @@ integer :: j, k, n
 
 ! Remember to suppress any terms that have a zero coef.  
 
-if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
-
 n = count(u_taylor%c(:) /= 0)
 allocate(bmad_taylor%term(n))
+
+if (associated(bmad_taylor%term)) then
+  if (size(bmad_taylor%term) /= n) deallocate(bmad_taylor%term)
+endif
 
 k = 0
 do j = 1, u_taylor%n
