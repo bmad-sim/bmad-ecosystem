@@ -33,7 +33,7 @@ use runge_kutta_mod, except_dummy => track1_runge_kutta
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb, start2_orb
+type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
@@ -59,24 +59,24 @@ endif
 ! is the distance before the downstream face so the s0 starting position is 
 ! negative and the s1 stopping position is 0.
 
-start2_orb = start_orb
+end_orb = start_orb
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
-  call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
-  if (start2_orb%direction == 1) then
-    s0 = s0 * start2_orb%direction * ele%orientation
+  call track_a_patch (ele, end_orb, .false., s0, ds_ref)
+  if (end_orb%direction == 1) then
+    s0 = s0 * end_orb%direction * ele%orientation
     s1 = 0
-    start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0) * end_orb%beta / beta0 
   else
-    s1 = s0 * start2_orb%direction * ele%orientation
+    s1 = s0 * end_orb%direction * ele%orientation
     s0 = 0
-    start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s1) * start2_orb%beta / beta0 
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1) * end_orb%beta / beta0 
   endif
 else
-  call offset_particle (ele, param, set$, start2_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
-  if (start2_orb%direction == 1) then
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
+  if (end_orb%direction == 1) then
     s0 = 0; s1 = ele%value(l$)
   else
     s0 = ele%value(l$); s1 = 0
@@ -92,7 +92,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad (start2_orb, ele, param, end_orb, s0, s1, .true., err_flag, track)
+call odeint_bmad (end_orb, ele, param, s0, s1, .true., err_flag, track)
 if (err_flag) return
 
 ! convert to lab coords.
