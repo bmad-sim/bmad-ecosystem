@@ -25,7 +25,7 @@ contains
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad (orb_start, ele, param, orb_end, s1, s2, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad (orbit, ele, param, s1, s2, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -51,7 +51,7 @@ contains
 !   use bmad
 !
 ! Input: 
-!   orb_start -- Coord_struct: Starting coords: (x, px, y, py, z, delta).
+!   orbit     -- Coord_struct: Starting coords: (x, px, y, py, z, delta).
 !   ele       -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -68,19 +68,18 @@ contains
 !                respect to the frame of referene of the element. 
 !
 ! Output:
-!   orb_end  -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
+!   orbit    -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
 !   err_flag -- Logical: Set True if there is an error. False otherwise.
 !   track    -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine odeint_bmad (orb_start, ele, param, orb_end, s1, s2, local_ref_frame, err_flag, track)
+subroutine odeint_bmad (orbit, ele, param, s1, s2, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
 implicit none
 
-type (coord_struct), intent(in) :: orb_start
-type (coord_struct), intent(out) :: orb_end
+type (coord_struct) :: orbit
 type (coord_struct) orb_save
 type (ele_struct) ele
 type (lat_param_struct) param
@@ -115,30 +114,29 @@ track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
 ! calc_next_fringe_edge.
 
-orb_end = orb_start
-orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
+orbit%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
 
-call reference_energy_correction (ele, orb_end, first_track_edge$)
+call reference_energy_correction (ele, orbit, first_track_edge$)
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
 ! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
-call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orb_end, .true.)
+call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orbit, .true.)
 if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
 
-t = particle_ref_time(orb_end, ele)
+t = particle_ref_time(orbit, ele)
 
 ! Save initial point
 
 if (present(track)) then
   s_sav = s - 2.0_rp * track%ds_save
-  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
+  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, t)
 endif
 
 ! now track
@@ -155,8 +153,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   do
     if (.not. associated(fringe_info%hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
-    call apply_element_edge_kick (orb_end, fringe_info, t, ele, param, track_spin)
-    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orb_end)
+    call apply_element_edge_kick (orbit, fringe_info, t, ele, param, track_spin)
+    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orbit)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_tiny * s_dir
@@ -165,18 +163,18 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Check if we are done.
 
   if ((s-s2)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
-    call reference_energy_correction (ele, orb_end, second_track_edge$)
+    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, t)
+    call reference_energy_correction (ele, orbit, second_track_edge$)
     err_flag = .false.
     return
   end if
 
   ! Need to propagate a step. First calc tolerances.
 
-  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds, err)
+  call kick_vector_calc (ele, param, s, t, orbit, local_ref_frame, dr_ds, err)
   if (err) then
     call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
-    orb_end%state = lost$
+    orbit%state = lost$
     return
   endif
 
@@ -193,24 +191,24 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   rel_tol_eff = bmad_com%rel_tol_adaptive_tracking / sqrt_N
   abs_tol_eff = bmad_com%abs_tol_adaptive_tracking / sqrt_N
   pol = 1  ! Spin scale
-  r_scal(:) = abs([orb_end%vec(:), t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
+  r_scal(:) = abs([orbit%vec(:), t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
 
-  call rk_adaptive_step (ele, param, orb_end, dr_ds, s, t, ds, &
+  call rk_adaptive_step (ele, param, orbit, dr_ds, s, t, ds, &
                       rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
   if (err) return
 
   ! Check x/y limit apertures
 
   if (runge_kutta_com%check_limits) then
-    call check_aperture_limit (orb_end, ele, in_between$, param)
-    if (orb_end%state /= alive$) return
+    call check_aperture_limit (orbit, ele, in_between$, param)
+    if (orbit%state /= alive$) return
   endif
 
   ! Check if hit wall.
   ! If so, interpolate position particle at the hit point
 
   if (runge_kutta_com%check_wall_aperture) then
-    position = [orb_end%vec(1:4), s, 1.0_rp]
+    position = [orbit%vec(1:4), s, 1.0_rp]
     wall_d_radius = wall3d_d_radius (position, ele)
     select case (runge_kutta_com%hit_when)
     case (outside_wall$)
@@ -225,18 +223,18 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     ! Cannot do anything if already hit
     if (has_hit .and. n_step == 1) then
-      orb_end%state = lost$
+      orbit%state = lost$
       return
     endif
 
     if (has_hit) then
       ds_intersect = zbrent (wall_intersection_func, 0.0_rp, ds_did, 1d-10)
-      orb_end%state = lost$
-      call wall_hit_handler_custom (orb_end, ele, s, t)
-      if (orb_end%state /= alive$) return
+      orbit%state = lost$
+      call wall_hit_handler_custom (orbit, ele, s, t)
+      if (orbit%state /= alive$) return
     endif
 
-    orb_save = orb_end
+    orb_save = orbit
     s_save = s
     t_save = t
 
@@ -245,7 +243,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Save track
 
   if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, t)
     if (ds_did == ds) then
       track%n_ok = track%n_ok + 1
     else
@@ -279,14 +277,14 @@ end do
 ! Only issue an error message if the particle is *not* turning around since, in this case, there might be an
 ! error in how the field is calculated and we must warn the user of this.
 
-if (sqrt(orb_end%vec(2)**2 + orb_end%vec(4)**2) / (1 + orb_end%vec(6)) > 0.9) then
-  orb_end%state = lost_z_aperture$
+if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) / (1 + orbit%vec(6)) > 0.9) then
+  orbit%state = lost_z_aperture$
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                  'AT S-POSITION FROM ENTRANCE: \F10.5\ ', &
                                  'COULD BE DUE TO A DISCONTINUITY IN THE FIELD ', &
                                  r_array = [s])
-  orb_end%state = lost$
+  orbit%state = lost$
 endif
 
 err_flag = .false.
@@ -302,15 +300,15 @@ real(rp) t_new, r_err(11)
 
 !
 
-call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
+call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orbit, t, r_err, local_ref_frame, err_flag)
 
 s = s_save + ds
-position = [orb_end%vec(1:4), s, 1.0_rp]
+position = [orbit%vec(1:4), s, 1.0_rp]
 
 d_radius = wall3d_d_radius (position, ele)
 
-orb_end%s = s
-orb_end%t = orb_save%t + (t - t_save)
+orbit%s = s
+orbit%t = orb_save%t + (t - t_save)
 
 end function wall_intersection_func
 

@@ -155,9 +155,9 @@ call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false., set_mu
 
 call reference_energy_correction (ele, orb_end, second_track_edge$)
 
-! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
-! constant (see odeint_bmad for more details). In this case make the needed correction.
-! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
+! The z value computed in Boris tracking is off for elements where the particle changes energy is not 
+! constant (see Boris tracking for more details). In this case make the needed correction.
+! dref_time is reference time for transversing the element under the assumption, used by Boris tracking, that 
 ! the reference velocity is constant and equal to the velocity at the final enegy.
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
