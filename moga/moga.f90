@@ -31,6 +31,8 @@ program moga
   integer n_feasible
   integer time_stamp(8)
   integer n_aperture_test
+  integer rsize
+  integer, allocatable :: seed_arr(:)
 
   real(rp) metric
   real(rp) chrom_x, chrom_y
@@ -51,6 +53,7 @@ program moga
   character*18 var_str
   character*30 set_str
   integer iostat
+  type(mag_struct), allocatable :: l_mags(:)
   type(mag_struct), allocatable :: c_mags(:)
   type(mag_struct), allocatable :: h_mags(:)
 
@@ -103,17 +106,15 @@ program moga
   integer n_slave, cluster_size
   integer mpierr
   integer mpistatus(MPI_STATUS_SIZE)
-  integer mpistatus_probe(MPI_STATUS_SIZE)
   logical master
 
-  !coarray housekeeping
   real(rp), allocatable :: vars(:)
   real(rp), allocatable :: objs(:)
   real(rp), allocatable :: cons(:)
-  real(rp), allocatable :: objscons(:) ! concatenate the two vectors to make MPI easy
   integer worker_id, worker_status
   integer n_harmo, n_mags
   integer n_chrom
+  integer n_linear
   integer n_vars, n_loc
   integer name, pool_ptr, pool_ptr_b, lambda_recv
   integer n_recv, slot_num
@@ -151,7 +152,8 @@ program moga
     if(n_slave .eq. 0) then
       write(*,*) "ERROR: no slaves found in cluster.  At least two nodes"
       write(*,*) "must be available to run this program."
-      stop
+      call mpi_finalize(mpierr)
+      error stop
     endif
     !Clear PISA state file
     call write_state(prefix,0)
@@ -161,7 +163,7 @@ program moga
   use_hybrid = .false.  !default
   generate_feasible_seeds_only = -1
   call set_params_to_bomb()
-  open (unit = 10, file = in_file, readonly)
+  open (unit = 10, file = in_file, action='read')
   read (10, nml = general)
   read (10, nml = da)
   read (10, nml = nl_moga)
@@ -169,26 +171,30 @@ program moga
   if(master) call check_params_bomb()
 
   ! process parameters
+  n_linear = 0
   n_chrom = 0
   n_harmo = 0
   i=0
   do while(.true.)
     i=i+1
     if( mags_in(i)%name == '' ) exit
+    if( mags_in(i)%type == 'l' ) n_linear = n_linear + 1
     if( mags_in(i)%type == 'c' ) n_chrom = n_chrom + 1
     if( mags_in(i)%type == 'h' ) n_harmo = n_harmo + 1
   enddo
-  n_mags = n_chrom + n_harmo
+  n_mags = n_linear + n_chrom + n_harmo
+  allocate(l_mags(n_linear))
   allocate(c_mags(n_chrom))
   allocate(h_mags(n_harmo))
 
   !- this section of code assumes that the magnet types in mags_in are ordered.
-  c_mags(1:n_chrom) = mags_in(1:n_chrom)
-  h_mags(1:n_harmo) = mags_in(1+n_chrom:n_harmo+n_chrom)
+  l_mags(1:n_linear) = mags_in(1:n_linear)
+  c_mags(1:n_chrom) = mags_in(1+n_linear:n_linear+n_chrom)
+  h_mags(1:n_harmo) = mags_in(1+n_linear+n_chrom:n_harmo+n_chrom+n_linear)
 
   cr_dim = 2
   n_omega = n_chrom - cr_dim   !the subspace in chromatic multipole strengths with some chromaticity chi_x, chi_y
-  n_vars = n_omega + n_harmo
+  n_vars = n_omega + n_harmo + n_linear
 
   do i=1,max_de
     if( de(i) .lt. -998. ) then
@@ -203,10 +209,12 @@ program moga
   ! check shared parameters meet program limitations
   if ( mu .ne. lambda ) then
     write(*,*) "this program can handle only mu == lambda.", mu, lambda
+    call mpi_finalize(mpierr)
     error stop
   endif
   if ( mod(mu,2) .ne. 0 ) then
     write(*,*) "this program can handle only even mu."
+    call mpi_finalize(mpierr)
     error stop
   endif
 
@@ -244,7 +252,8 @@ program moga
     write(*,*) "Less than half the elements do not have a x1 physical aperture."
     write(*,*) "Probably something is wrong.  Check that lattice file defines aperture."
     write(*,*) "Aborting"
-    stop
+    call mpi_finalize(mpierr)
+    error stop
   endif
 
   if (tracking_method .gt. 0) then
@@ -270,16 +279,12 @@ program moga
   allocate(Q1t(n_omega,n_chrom))
 
   ! build chromaticity matrices
-  if( master ) then
-    ring0=ring
-    call build_chrom_mat(ring0, set_chrom_x, set_chrom_y, c_mags, ApC, Q1, err_flag)
-    if(err_flag) then
-      write(*,*) "could not build chromaticity matrices at program start.  aborting."
-      stop
-    endif
+  call build_chrom_mat(ring0, set_chrom_x, set_chrom_y, c_mags, ApC, Q1, err_flag)
+  if(err_flag) then
+    write(*,*) "could not build chromaticity matrices at program start.  aborting."
+    call mpi_finalize(mpierr)
+    stop
   endif
-  call mpi_bcast(ApC, n_chrom, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpierr)
-  call mpi_bcast(Q1, n_chrom*n_omega, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpierr)
 
   ! transform mutator on k2 into mutator on chromatic subspace omega.
   do i=1,n_omega
@@ -332,8 +337,14 @@ program moga
   if( master ) then
     ! manager
     write(*,*) "starting simulation..."
-    if(seed(1) .gt. 0) then
-      call random_seed(put=seed)
+    if(seed .gt. 0) then
+      call random_seed(size=rsize)
+      allocate(seed_arr(rsize))
+      do i=1,rsize
+        seed_arr(i) = seed*i
+      enddo 
+      call random_seed(put=seed_arr)
+      deallocate(seed_arr)
     else
       call random_seed()
     endif
@@ -425,20 +436,6 @@ program moga
     call date_and_time(values=time_stamp)
     write(*,'(a,i4,a,3i5)') "generation ", 1, " complete at ", time_stamp(5:7)
 
-    !delete old control_job file if present
-    open(unit=21, iostat=iostat, file='control_job_1', status='old')
-    if (iostat .eq. 0) then
-      write(*,*) "deleting old control_job_1 file."
-      close(21, status='delete')
-    endif
-    close(21)
-    open(unit=21, iostat=iostat, file='control_job_2', status='old')
-    if (iostat .eq. 0) then
-      write(*,*) "deleting old control_job_2 file."
-      close(21, status='delete')
-    endif
-    close(21)
-
     !delete old output files if present
     call file_suffixer(moga_output_file,thin_file,'.thin',.true.)
     open(unit=21, iostat=iostat, file=moga_output_file, status='old')
@@ -512,7 +509,8 @@ program moga
         write(44,'(a,i6,a)') "population contains ", n_feasible, " feasible seeds."
         if(n_feasible .ge. generate_feasible_seeds_only) then
           call write_state(prefix,5) !tell pisa selector to shut down
-          error stop
+          call mpi_finalize(mpierr)
+          stop
         endif
       endif
 
@@ -749,6 +747,7 @@ program moga
         enddo
       else
         write(*,*) "FATAL: Unknown chrom_mode."
+        call mpi_finalize(mpierr)
         error stop
       endif
 
@@ -858,7 +857,7 @@ program moga
       fp_de_neg = -999.0
       fp_de_pos = -999.0
       n_fp_steps = -999
-      seed(1) = -999
+      seed = -999
       max_gen = -999
       n_turn = -999
       n_angle = -999
@@ -900,7 +899,7 @@ program moga
       fail = fail .or. check_bomb(track_dims,'track_dims')
       fail = fail .or. check_bomb(n_turn,'n_turn')
       fail = fail .or. check_bomb(n_angle,'n_angle')
-      fail = fail .or. check_bomb(seed(1),'seed')
+      fail = fail .or. check_bomb(seed,'seed')
       fail = fail .or. check_bomb(tracking_method,'tracking_method')
       fail = fail .or. check_bomb(lat_file,'lat_file')
       fail = fail .or. check_bomb(moga_output_file,'moga_output_file')
@@ -909,6 +908,7 @@ program moga
       if(fail) then
         write(*,*) "parameters file does not contain necessary settings."
         write(*,*) "terminating"
+        call mpi_finalize(mpierr)
         error stop
       endif
     end subroutine
