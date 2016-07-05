@@ -394,7 +394,7 @@ endif
 
 ! field_master = T -> Convert to normalized strength.
 
-if (this_ele%field_master .and. this_ele%value(p0c$) /= 0) then
+if (this_ele%field_master .and. this_ele%value(p0c$) /= 0 .and. integer_option(magnetic$, pole_type) == magnetic$) then
   branch => pointer_to_branch(this_ele)
   if (.not. associated(branch)) then
     call out_io (s_fatal$, r_name, 'ELEMENT WITH MULTIPOLES AND FIELD_MASTER = T NOT ASSOCIATED WITH ANY LATTICE!')

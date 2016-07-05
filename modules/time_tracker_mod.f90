@@ -18,6 +18,8 @@ contains
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
 !
+! Tracking is done until the particle is lost or exits the element.
+!
 ! Input: 
 !   orb   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
 !   ele     -- Ele_struct: Element to track through.

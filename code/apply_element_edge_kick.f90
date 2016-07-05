@@ -168,14 +168,15 @@ case (lcavity$, rfcavity$, e_gun$)
 
 case (elseparator$)
   ! Longitudinal fringe field
-  f = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
-  phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
-  call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
-  orb%vec(6) = (pc - orb%p0c) / orb%p0c
-  if (track_spn) then
-    call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+  if (hard_ele%value(l$) /= 0) then
+    f = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
+    phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
+    call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
+    orb%vec(6) = (pc - orb%p0c) / orb%p0c
+    if (track_spn) then
+      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+    endif
   endif
-
 end select
 
 end subroutine apply_element_edge_kick

@@ -3451,6 +3451,11 @@ endif
 if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   ptc_key%magnet = 'sbend'
   SOLVE_ELECTRIC = .true.
+  if (leng == 0) then
+    call out_io (s_fatal$, r_name, 'ZERO LENGTH ELEMENT WITH AN ELECTRIC FIELD NOT ALLOWED IN PTC: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
 endif
 
 ! Multipole components
