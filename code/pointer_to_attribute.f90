@@ -313,6 +313,12 @@ case ('S')
   a_ptr%r => ele%s
 case ('REF_TIME')
   a_ptr%r => ele%ref_time
+case ('LR_FREQ_SPREAD')
+  if (.not. associated(ele%wake)) then
+    if (.not. do_allocation) goto 9100
+    allocate (ele%wake)
+  endif
+  a_pTr%r => ele%wake%lr_freq_spread
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then

@@ -23,7 +23,6 @@ contains
 ! Input:
 !   ele -- ele_struct: Element with wake. If no wake then nothing is done.
 !      %value(freq_in$)        -- Frequency.
-!      %value(lr_freq_spread$) -- Fractional RMS frequency spread.
 !
 ! Output:
 !   ele      -- ele_struct: Element with wake frequencies set.
@@ -44,11 +43,11 @@ real(rp) rr
 !
 
 if (present(set_done)) set_done = .false.
-if (ele%value(lr_freq_spread$) == 0 .or. .not. associated(ele%wake)) return
+if (ele%wake%lr_freq_spread == 0 .or. .not. associated(ele%wake)) return
 
 do n = 1, size(ele%wake%lr)
   call ran_gauss (rr)
-  ele%wake%lr(n)%freq = ele%wake%lr(n)%freq_in * (1 + ele%value(lr_freq_spread$) * rr)
+  ele%wake%lr(n)%freq = ele%wake%lr(n)%freq_in * (1 + ele%wake%lr_freq_spread * rr)
   if (present(set_done)) set_done = .true.
 enddo
 
