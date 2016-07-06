@@ -18,7 +18,7 @@ parameter[geometry] = open
 beginning[e_tot] = e_tot
 parameter[absolute_time_tracking] = T
 
-ab_multipole1:     ab_multipole, a2 = 1e3, b2 = 1e3, x_offset = 0.02, tilt = 0.1
+ab_multipole1:     ab_multipole, a2 = 20, b2 = 10, x_offset = 0.02, tilt = 0.1
 beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, y_offset = 0.05
 drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1

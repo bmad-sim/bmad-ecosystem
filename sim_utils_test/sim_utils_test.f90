@@ -20,24 +20,29 @@ integer i, which, where, n_freq
 logical match
 character(40) str, sub1, sub2, sub3
 
-real(rp) sig1, sig2, sig3
+real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3
-real(rp) vec3(3), vec3a(3), vec3b(3), axis(3), angle, w_mat(3,3)
+real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3)
 complex(rp) amp1, amp2, amp3
 
 !
 
 open (1, file = 'output.now')
 
-! rotation test
+! rotation tests
+
+
 
 axis = [3, 4, 5] / sqrt(50.0_rp)
 vec3 = [-2, 3, -4]
 angle = 0.67
 
-!axis = [1, 0, 0]
-!vec3 = [-2, 3, -4]
-!angle = pi/2
+quat = axis_angle_to_quat(axis, angle)
+omega = quat_to_omega(quat)
+quat = omega_to_quat(omega)
+call quat_to_axis_angle(quat, axis2, angle2)
+write (1, '(a, 4es11.3)') '"axis-angle  " ABS 1E-14  ', axis2, angle2
+write (1, '(a, 4es11.3)') '"daxis-dangle" ABS 1E-14  ', axis2-axis, angle2-angle
 
 vec3a = vec3
 call rotate_vec_given_axis_angle (vec3a, axis, angle)
@@ -45,9 +50,12 @@ call rotate_vec_given_axis_angle (vec3a, axis, angle)
 call axis_angle_to_w_mat (axis, angle, w_mat)
 vec3b = matmul(w_mat, vec3)
 
-write (1, '(a, 3f11.6)') '"rot vecA" ABS 1E-10  ', vec3a
-write (1, '(a, 3f11.6)') '"rot vecB" ABS 1E-10  ', vec3b
-write (1, '(a, 3es10.2)') '"drot vec" ABS 1E-10  ', vec3a - vec3b
+vec3c = vec3
+call rotate_vec_given_quat(vec3c, quat)
+
+write (1, '(a, 3f11.6)') '"rot vecA" ABS 1E-14  ', vec3a
+write (1, '(a, 3es10.2)') '"drot vecB" ABS 1E-14  ', vec3b - vec3a
+write (1, '(a, 3es10.2)') '"drot vecC" ABS 1E-14  ', vec3c - vec3a
 
 ! naff test
 
