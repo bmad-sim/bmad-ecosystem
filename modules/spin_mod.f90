@@ -869,13 +869,13 @@ end type
 
 integer, parameter ::  j_max = 10
 
-type (q_array_struct) q_array(j_max)
+type (q_array_struct) q_array(j_max), z(0:256)
 type (ele_struct) ele
 type (coord_struct) start_orb, end_orb, orb
 type (lat_param_struct) param
 
-real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), om(3), omega(3)
-real(rp) dint, eps
+real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
+real(rp) dint, eps, quat(0:3)
 real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 
 integer j, k, n, n_pts
@@ -886,22 +886,30 @@ s0 = start_orb%s - (ele%s - ele%value(l$))
 s1 = end_orb%s - (ele%s - ele%value(l$))
 
 q_array(1)%h = 1
-q_array(1)%omega = abs(s1 - s0) * (omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param) + &
-                                   omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)) / 2
+z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(1)%omega = omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)
+
+del_s = abs(s1 - s0)
+q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * del_s / 2), omega_to_quat(z(0)%omega * del_s / 2)))
 
 do j = 2, j_max
   ! This is trapzd from NR
   n_pts = 2**(j-2)
-  del_s = (s1 - s0) / n_pts
-  omega = 0
+  del_s = (s1 - s0) / (2 * n_pts)
+  quat = omega_to_quat(z(0)%omega * del_s / 2)
+
+  z(2:2*n_pts:2) = z(1:n_pts) 
 
   do n = 1, n_pts
-    s = s0 + del_s * (n - 0.5_rp)
-    omega = omega + omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
+    s = s0 + del_s * (2*n - 1)
+    z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
+    quat = quat_mul(omega_to_quat(z(2*n-1)%omega * del_s), quat)
+    if (n == n_pts) del_s = del_s / 2
+    quat = quat_mul(omega_to_quat(z(2*n)%omega * del_s), quat)
   enddo
 
+  q_array(j)%omega = quat_to_omega(quat)
   q_array(j)%h = q_array(j-1)%h / 4
-  q_array(j)%omega = (q_array(j-1)%omega + omega * abs(del_s)) / 2
 
   eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
 
