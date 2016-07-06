@@ -441,6 +441,7 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
+real(rp) quat(0:3)
 logical local_ref_frame, err_flag
 
 !
@@ -478,6 +479,17 @@ if (err_flag) return
 
 call transfer_this_orbit (orb_new, orb, dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)) 
 
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  quat =          omega_to_quat(dt*c1*dr_dt1(7:9))
+  quat = quat_mul(omega_to_quat(dt*c3*dr_dt3(7:9)), quat)
+  quat = quat_mul(omega_to_quat(dt*c4*dr_dt4(7:9)), quat)
+  quat = quat_mul(omega_to_quat(dt*c6*dr_dt6(7:9)), quat)
+  orb_new%spin = orb%spin
+  call rotate_vec_given_quat(orb_new%spin, quat)
+endif
+
+
+
 orb_new%t = orb%t + dt
 orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
 
@@ -503,11 +515,6 @@ real(rp) dvec(9), a_quat(4), omega(3), angle
 !
 
 orb_out%vec = orb_in%vec + dvec(1:6)
-
-if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  orb_out%spin = orb_in%spin
-  call rotate_spin(dvec(7:9), orb_out%spin)
-endif
 
 end subroutine transfer_this_orbit
 

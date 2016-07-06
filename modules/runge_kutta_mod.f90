@@ -87,9 +87,8 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1, s2
-real(rp), parameter :: tiny = 1.0e-30_rp
-real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(10), r_scal(10), t, s_edge_track, position(6), pol
+real(rp) :: ds, ds_did, ds_next, s, s_sav, ds_save
+real(rp) :: t, s_edge_track, position(6)
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
 integer :: n_step, s_dir, nr_max
@@ -98,11 +97,7 @@ logical local_ref_frame, err_flag, err, at_hard_edge, has_hit, track_spin
 
 character(*), parameter :: r_name = 'odeint_bmad'
 
-! Init. Note:
-!   rel_tol: Same as eps for odeint scalled by sqrt(ds/(s2-s1))
-!                   where ds is the step size for the current step. rel_tol
-!                   sets the %error of the result
-!   abs_tol: Sets the absolute error of the result
+!
 
 err_flag = .true.
 s = s1
@@ -171,13 +166,6 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! Need to propagate a step. First calc tolerances.
 
-  call kick_vector_calc (ele, param, s, t, orbit, local_ref_frame, dr_ds, err)
-  if (err) then
-    call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
-    orbit%state = lost$
-    return
-  endif
-
   ds = ds_next
   at_hard_edge = .false.
 
@@ -187,14 +175,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     ds = s_edge_track - s - ds_tiny*s_dir / 2
   endif
 
-  sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
-  rel_tol_eff = bmad_com%rel_tol_adaptive_tracking / sqrt_N
-  abs_tol_eff = bmad_com%abs_tol_adaptive_tracking / sqrt_N
-  pol = 1  ! Spin scale
-  r_scal(:) = abs([orbit%vec(:), t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
 
-  call rk_adaptive_step (ele, param, orbit, dr_ds, s, t, ds, &
-                      rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
+  call rk_adaptive_step (ele, param, orbit, s, t, ds, abs(s2-s1), ds_did, ds_next, local_ref_frame, err)
   if (err) return
 
   ! Check x/y limit apertures
@@ -296,7 +278,7 @@ function wall_intersection_func (ds) result (d_radius)
 
 real(rp), intent(in) :: ds
 real(rp) d_radius
-real(rp) t_new, r_err(11)
+real(rp) t_new, r_err(11), dr_ds(10)
 
 !
 
@@ -317,20 +299,13 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
-!                                       r_scal, ds_did, ds_next, local_ref_frame, err_flag)
+! Subroutine rk_adaptive_step (ele, param, orb, s, t, ds_try, ds_did, ds_next, local_ref_frame, err_flag)
 !
 ! Private routine used by odeint_bmad.
 ! Not meant for general use
-!
-! Input:
-!   dr_ds(7) -- real(rp): Derivative at beginning of step. 
-!
-! Output:
 !-
 
-subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
-                                       r_scal, ds_did, ds_next, local_ref_frame, err_flag)
+subroutine rk_adaptive_step (ele, param, orb, s, t, ds_try, ds12, ds_did, ds_next, local_ref_frame, err_flag)
 
 implicit none
 
@@ -338,37 +313,47 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
 
-real(rp), intent(in)    :: dr_ds(10), r_scal(10)
 real(rp), intent(inout) :: s, t
-real(rp), intent(in)    :: ds_try, rel_tol, abs_tol
+real(rp), intent(in)    :: ds_try
 real(rp), intent(out)   :: ds_did, ds_next
 
+real(rp) :: dr_ds(10), r_scal(10), rel_tol, abs_tol
 real(rp) :: err_max, ds, ds_temp, s_new, p2
-real(rp) :: r_err(10), r_temp(10)
-real(rp) :: rel_pc, t_new
+real(rp) :: r_err(10), r_temp(10), pol
+real(rp) :: sqrt_N, rel_pc, t_new, ds12
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
+real(rp), parameter :: tiny = 1.0e-30_rp
 
 logical local_ref_frame, err_flag
 character(20), parameter :: r_name = 'rk_adaptive_step'
 
-!
+! Init. Note:
+!   rel_tol: Same as eps for odeint scalled by sqrt(ds/(s2-s1))
+!                   where ds is the step size for the current step. rel_tol
+!                   sets the %error of the result
+!   abs_tol: Sets the absolute error of the result
 
 ds = ds_try
 orb_new = orb
 
 do
-
   call rk_step1 (ele, param, orb, dr_ds, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
     if (ds < 1d-3) then
-      call out_io (s_fatal$, r_name, 'CANNOT COMPLETE STEP. ABORTING.')
-      if (global_com%exit_on_error) call err_exit
-      return
+      call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
+      orb%state = lost$
+     return
     endif
     ds_temp = ds / 10
+
   else
+    sqrt_N = sqrt(ds12/ds)  ! number of steps we would take with this ds
+    rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
+    abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
+    pol = 1  ! Spin scale
+    r_scal(:) = abs([orb%vec(:), t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     ds_temp = safety * ds * (err_max**p_shrink)
@@ -382,8 +367,9 @@ do
     if (global_com%exit_on_error) call err_exit
     return
   endif
-
 end do
+
+!
 
 if (err_max > err_con) then
   ds_next = safety*ds*(err_max**p_grow)
@@ -415,7 +401,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp(5)
 
-real(rp), intent(in) :: dr_ds1(10)
+real(rp) :: dr_ds1(10)
 real(rp), intent(in) :: s, t, ds
 real(rp), intent(out) :: r_err(10), t_new
 real(rp) :: dr_ds2(10), dr_ds3(10), dr_ds4(10), dr_ds5(10), dr_ds6(10), t_temp(5)
@@ -431,7 +417,13 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
+real(rp) quat(0:3)
 logical local_ref_frame, err
+
+!
+
+call kick_vector_calc (ele, param, s, t, orb, local_ref_frame, dr_ds1, err)
+if (err) return
 
 !
 
@@ -456,6 +448,16 @@ call kick_vector_calc(ele, param, s + a6*ds, t_temp(5), orb_temp(5), local_ref_f
 if (err) return
 
 call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, t_new)
+
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  quat =          omega_to_quat(ds*c1*dr_ds1(8:10))
+  quat = quat_mul(omega_to_quat(ds*c3*dr_ds3(8:10)), quat)
+  quat = quat_mul(omega_to_quat(ds*c4*dr_ds4(8:10)), quat)
+  quat = quat_mul(omega_to_quat(ds*c6*dr_ds6(8:10)), quat)
+  orb_new%spin = orb%spin
+  call rotate_vec_given_quat(orb_new%spin, quat)
+endif
+
 r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
 
 !----------------------------------------------------------
@@ -477,10 +479,6 @@ if (dvec(6) /= 0) then
 endif
 
 t_temp = t + dvec(7)
-
-if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call rotate_spin(dvec(8:10), orb_out%spin)
-endif
 
 end subroutine transfer_this_orbit
 

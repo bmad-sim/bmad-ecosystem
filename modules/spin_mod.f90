@@ -778,14 +778,14 @@ case (solenoid$)
   call rotate_spin_given_field (temp_end, sign_z_vel, [0.0_rp, 0.0_rp, length * ele%value(bs_field$)])
 
 !-----------------------------------------------
-! RFcavity, LCavity
+! LCavity, etc
 
-case (lcavity$, rfcavity$)
+case (lcavity$, rfcavity$, wiggler$)
   temp_start%s = temp_start%s + 1d-10  ! Just to make sure inside field region
   temp_end%s   = temp_end%s   - 1d-10  ! Just to make sure inside field region
   if (ele%key == lcavity$) call reference_energy_correction (ele, temp_start, first_track_edge$)
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
-  omega = trapzd_omega (ele, cavity_omega_func, spline_x, spline_y, temp_start, temp_end, param)
+  omega = trapzd_omega (ele, misc_omega_func, spline_x, spline_y, temp_start, temp_end, param)
   call rotate_spin(omega, temp_end%spin)
 end select
 
@@ -913,6 +913,8 @@ do j = 2, j_max
 
   eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
 
+  if (ele%key == wiggler$ .and. j < 5) cycle  ! Cannot trust until have enough points
+
   do k = 1, 3
     call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
     if (abs(dint) > eps .and. j < j_max) exit ! Failed test. Note: Last loop with j = j_max -> no test.
@@ -1006,7 +1008,7 @@ end function quad_etc_omega_func
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-function cavity_omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
+function misc_omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega) 
 
 implicit none
 
@@ -1041,6 +1043,6 @@ call em_field_calc (ele, param, s_eval, orb%t, orb, .true., field)
 
 omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
 
-end function cavity_omega_func
+end function misc_omega_func
 
 end module spin_mod
