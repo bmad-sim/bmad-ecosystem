@@ -347,7 +347,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     return
   end select
 
-  ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordian_edge for example.
+  ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordion_edge for example.
 
   is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
   if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
@@ -5276,7 +5276,7 @@ do i = 1, size(pele%control)
     attrib_name = pc%attrib_name
     if (attrib_name == blank_name$) attrib_name = pele%default_attrib
     ix = attribute_index(slave, attrib_name)
-    ! If attribute not found it may be a special attribute like accordian_edge$.
+    ! If attribute not found it may be a special attribute like accordion_edge$.
     ! A special attribute will have ix > num_ele_attrib$
     if (ix < 1 .and. lord%key == group$) then
       ix = attribute_index(lord, attrib_name)

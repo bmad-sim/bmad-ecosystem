@@ -549,20 +549,18 @@ do i = 1, n_key$
 
   if (i == taylor$)       cycle
 
-  call init_attribute_name1 (i, start_edge$,          'START_EDGE', dependent$)
-  call init_attribute_name1 (i, end_edge$,            'END_EDGE', dependent$)
-  call init_attribute_name1 (i, accordion_edge$,      'ACCORDION_EDGE', dependent$)
-
-  call init_attribute_name1 (i, integrator_order$,   'INTEGRATOR_ORDER')
-  call init_attribute_name1 (i, num_steps$,          'NUM_STEPS', quasi_free$)
-  call init_attribute_name1 (i, ds_step$,            'DS_STEP')
-  call init_attribute_name1 (i, csr_calc_on$,        'CSR_CALC_ON')
-  call init_attribute_name1 (i, n_ref_pass$,         'N_REF_PASS')
+  call init_attribute_name1 (i, integrator_order$,    'INTEGRATOR_ORDER')
+  call init_attribute_name1 (i, num_steps$,           'NUM_STEPS', quasi_free$)
+  call init_attribute_name1 (i, ds_step$,             'DS_STEP')
+  call init_attribute_name1 (i, csr_calc_on$,         'CSR_CALC_ON')
+  call init_attribute_name1 (i, n_ref_pass$,          'N_REF_PASS')
 
   if (i == drift$)        cycle
 
-  call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
-  call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
+  call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
+  call init_attribute_name1 (i, sr_wake_file$,        'SR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_wake_file$,        'LR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_freq_spread$,      'LR_FREQ_SPREAD')
 
   call init_attribute_name1 (i, field_overlaps$,     'FIELD_OVERLAPS')
 
@@ -972,8 +970,6 @@ call init_attribute_name1 (lcavity$, e_loss$,                       'E_LOSS')
 call init_attribute_name1 (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
 call init_attribute_name1 (lcavity$, field_calc$,                   'FIELD_CALC')
 call init_attribute_name1 (lcavity$, field_master$,                 'FIELD_MASTER')
-call init_attribute_name1 (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
-call init_attribute_name1 (lcavity$, lr_freq_spread$,               'LR_FREQ_SPREAD')
 call init_attribute_name1 (lcavity$, coupler_strength$,             'COUPLER_STRENGTH')
 call init_attribute_name1 (lcavity$, coupler_angle$,                'COUPLER_ANGLE')
 call init_attribute_name1 (lcavity$, coupler_phase$,                'COUPLER_PHASE')
@@ -1186,8 +1182,6 @@ call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
 call init_attribute_name1 (rfcavity$, field_calc$,                  'FIELD_CALC')
 call init_attribute_name1 (rfcavity$, harmon_master$,               'HARMON_MASTER')
-call init_attribute_name1 (rfcavity$, lr_wake_file$,                'LR_WAKE_FILE')
-call init_attribute_name1 (rfcavity$, lr_freq_spread$,              'LR_FREQ_SPREAD')
 call init_attribute_name1 (rfcavity$, coupler_strength$,            'COUPLER_STRENGTH')
 call init_attribute_name1 (rfcavity$, coupler_angle$,               'COUPLER_ANGLE')
 call init_attribute_name1 (rfcavity$, coupler_phase$,               'COUPLER_PHASE')

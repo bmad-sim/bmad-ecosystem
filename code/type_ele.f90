@@ -79,6 +79,7 @@ type (photon_surface_struct), pointer :: s
 type (ele_attribute_struct) attrib
 type (lat_param_struct) param
 type (control_struct), pointer :: ctl
+type (all_pointer_struct) a_ptr
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
@@ -764,21 +765,22 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case default
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute                Value    Expression'
+      nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
         if (allocated(ctl%stack)) then
           coef_str = expression_stack_to_string (ctl%stack)
-          if (ele%key == overlay$) then
-            call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control_var)
-            write (coef_str, '(es12.4, 4x, a)') val, trim(coef_str)
-          endif
+          call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control_var)
+          write (coef_str, '(es12.4, 4x, a)') val, trim(coef_str)
         else
-          coef_str = ''
+          coef_str = ' ------ '
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(slave, iv)
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, trim(coef_str)
+        call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
+        val_str = ' ----'
+        if (associated(a_ptr%r)) write (val_str, '(es12.4)') a_ptr%r
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, val_str, trim(coef_str)
       enddo
     end select
   endif
@@ -871,15 +873,22 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
 endif
 
-! Encode HOM info
+! Print wake info
 
 if (associated(ele%wake)) then
+
+  if (logic_option (.true., type_wake) .and. (size(ele%wake%sr_long%mode) /= 0 .or. &
+                                                       size(ele%wake%sr_trans%mode) /= 0)) then
+    nl=nl+1; li(nl) = 'Short-Range Wake:'
+    nl=nl+1; li(nl) = '  SR_File: ' // trim(ele%wake%sr_file)
+    nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'z_sr_max =', ele%wake%z_sr_max
+  endif
 
   if (size(ele%wake%sr_long%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       call re_associate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
-      nl=nl+1; li(nl) = 'Short-Range Longitudinal Pseudo Modes:'
+      nl=nl+1; li(nl) = '  Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
       do i = 1, size(ele%wake%sr_long%mode)
@@ -888,7 +897,7 @@ if (associated(ele%wake)) then
                   sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
       enddo
     else
-      nl=nl+1; li(nl) = 'No short-range longitudinal pseudo modes.'
+      nl=nl+1; li(nl) = '  No short-range longitudinal pseudo modes.'
     endif
   endif
 
@@ -896,7 +905,7 @@ if (associated(ele%wake)) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       call re_associate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
-      nl=nl+1; li(nl) = 'Short-Range Transverse Pseudo Modes:'
+      nl=nl+1; li(nl) = '  Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
       do i = 1, size(ele%wake%sr_trans%mode)
@@ -905,15 +914,21 @@ if (associated(ele%wake)) then
                   sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
       enddo
     else
-     nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'
+     nl=nl+1; li(nl) = '  No short-range transverse pseudo modes.'
     endif
+  endif
+
+  if (logic_option (.true., type_wake) .and. size(ele%wake%lr) /= 0) then
+    nl=nl+1; li(nl) = 'Long-Range Wake:'
+    nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr_file)
+    nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'lr_freq_spread =', ele%wake%lr_freq_spread
   endif
 
   if (size(ele%wake%lr) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       call re_associate (li, nl+size(ele%wake%lr)+100, .false.)
-      nl=nl+1; li(nl) = 'Long-range HOM modes:'
+      nl=nl+1; li(nl) = '  Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
       do i = 1, size(ele%wake%lr)
@@ -925,7 +940,7 @@ if (associated(ele%wake)) then
                 lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
       enddo
     else
-      nl=nl+1; li(nl) = 'No long-range HOM modes.'
+      nl=nl+1; li(nl) = '  No long-range HOM modes.'
     endif
   endif
 

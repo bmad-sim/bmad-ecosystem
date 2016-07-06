@@ -426,7 +426,8 @@ type wake_struct
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_struct), allocatable :: lr(:)
-  real(rp) :: z_sr_max = 0   ! Max allowable z value sr_mode. 
+  real(rp) :: z_sr_max = 0        ! Max allowable z value sr_mode. 
+  real(rp) :: lr_freq_spread = 0  ! Random frequency spread of long range modes.
 end type
 
 ! Cartesian field decomposition
@@ -1050,7 +1051,7 @@ integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
-integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5
+integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
@@ -1156,11 +1157,11 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
-integer, parameter :: lr_wake_file$ = 81, alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83
-integer, parameter :: end_edge$  = 84, etap_x$ = 84
-integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
+integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84
+integer, parameter :: accordion_edge$  = 85, etap_y$ = 85, lr_freq_spread$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88

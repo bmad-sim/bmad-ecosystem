@@ -141,7 +141,7 @@ do
     return
   endif
 
-  if (vec(5) == ele%s) then
+  if (vec(5) == ele%value(l$)) then
     photon%now%orb%location = downstream_end$
     return
   endif
