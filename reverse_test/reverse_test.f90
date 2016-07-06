@@ -67,11 +67,11 @@ max_diff_mat = 0
 
 !
 
-do ie = 1, lat%n_ele_max - 1 ! Do not test end marker
-  ele => lat%ele(ie)
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
 
-  do ib = 0, ubound(lat%branch, 1)
-    branch => lat%branch(ib)
+  do ie = 1, lat%n_ele_max - 1 ! Do not test end marker
+    ele => branch%ele(ie)
 
     do im = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
@@ -85,6 +85,7 @@ do ie = 1, lat%n_ele_max - 1 ! Do not test end marker
         ele%spin_tracking_method = tracking$
       endif
 
+      write (1, *)
       call test_this (ele)
 
     enddo
@@ -137,9 +138,9 @@ end if
 
 ! Reverse orientation
 
-orb_0r_orient           = orb_1f
-orb_0r_orient%vec(2)    = -orb_1f%vec(2)
-orb_0r_orient%vec(4)    = -orb_1f%vec(4)  
+orb_0r_orient         = orb_1f
+orb_0r_orient%vec(2)  = -orb_1f%vec(2)
+orb_0r_orient%vec(4)  = -orb_1f%vec(4)  
 
 ele2 = ele
 if (ele2%key == elseparator$) then
