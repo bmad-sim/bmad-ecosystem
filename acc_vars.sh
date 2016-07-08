@@ -314,7 +314,7 @@ export TAO_DIR=${ACC_RELEASE_DIR}/tao
 # Variables to support other software packages
 #--------------------------------------------------------------
 export PGPLOT_DIR=${ACC_PKG}/PGPLOT
-export PGPLOT_FONTS=${ACC_PKG}/PGPLOT
+export PGPLOT_FONT=${ACC_PKG}/PGPLOT
 
 
 

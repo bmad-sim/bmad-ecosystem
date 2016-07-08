@@ -30,7 +30,7 @@ export DIST_INC=$DIST_BASE_DIR/include
 # PGPLOT server/font directory specification
 #--------------------------------------------------------------
 export PGPLOT_DIR=$DIST_BASE_DIR/PGPLOT
-export PGPLOT_FONTS=$DIST_BASE_DIR/PGPLOT
+export PGPLOT_FONT=$DIST_BASE_DIR/PGPLOT
 
 #--------------------------------------------------------------
 # BMAD configuration files
