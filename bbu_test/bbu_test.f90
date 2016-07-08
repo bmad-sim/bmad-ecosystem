@@ -122,7 +122,7 @@ beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 !print *, 'bbu_track_all complete !!!'
 
-write (2, '(a, I)') '"lost_boolean_1A"      ABS 0', lost  
+write (2, '(a, i3)') '"lost_boolean_1A"      ABS 0', lost  
 write (2, '(a, es20.12E3)') '"hom_voltage_gain_1A"  ABS 1E-10', hom_voltage_gain
 write (2, '(a, es20.12E3)') '"growth_rate_1A"       ABS 1E-10 ', growth_rate
 
@@ -136,7 +136,7 @@ beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 !print *, 'bbu_track_all running...'
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
-write (2, '(a, I)') '"lost_boolean_1mA"      ABS 0', lost  
+write (2, '(a, i3)') '"lost_boolean_1mA"      ABS 0', lost  
 write (2, '(a, es20.12E3)') '"hom_voltage_gain_1mA"  ABS 1E-10', hom_voltage_gain
 write (2, '(a, es20.12E3)') '"growth_rate_1mA"       ABS 1E-10 ', growth_rate
 !print *, 'LOST', logical_to_python(lost)
@@ -150,7 +150,7 @@ beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 !print *, 'bbu_track_all running...'
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
-write (2, '(a, I)') '"lost_boolean_100A"      ABS 0', lost  
+write (2, '(a, i3)') '"lost_boolean_100A"      ABS 0', lost  
 write (2, '(a, es20.12E3)') '"hom_voltage_gain_100A"  ABS 1E-10', hom_voltage_gain
 write (2, '(a, es20.12E3)') '"growth_rate_100A"       ABS 1E-10 ', growth_rate
 !print *, 'LOST', logical_to_python(lost)
