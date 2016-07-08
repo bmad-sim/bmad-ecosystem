@@ -108,7 +108,7 @@ case ${1} in
 	    [ $? -eq 0 ] && func_display_build_time
 	else
 	    [ -d ${BUILD_TYPE} ] && cd ${BUILD_TYPE}
-	    ${CTEST_BINARY} --verbose --build-and-test
+	    ctest --verbose --build-and-test
 	    [ $? -eq 0 ] && func_display_build_time
 	fi
 	;;
