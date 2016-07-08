@@ -59,22 +59,6 @@ func_display_build_time () {
 THIS_SCRIPT=`basename $0`
 [ "${THIS_SCRIPT}" == "mk" ] &&  BUILD_TYPE="production" || BUILD_TYPE="debug"
 
-# Determine which cmake is available 
-if [ -e /usr/bin/cmake28 ]
-then 
-    CMAKE_BINARY=/usr/bin/cmake28
-else
-    CMAKE_BINARY=cmake
-fi
-
-# Determine which ctest is available 
-if [ -e /usr/bin/ctest ]
-then 
-    CTEST_BINARY=/usr/bin/ctest
-else
-    CTEST_BINARY=ctest
-fi
-
 # Determine if the current working directory is a buildable project
 if [ ! -e CMakeLists.txt ] && [ ! -e acc_build ]
 then
