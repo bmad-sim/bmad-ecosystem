@@ -989,4 +989,19 @@ subroutine qp_close_page_basic
   endif
 end subroutine
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_end_basic ()
+!
+! Cleanup routine at the end of plotting.
+!-
+
+subroutine qp_end_basic ()
+
+call plend()
+
+end subroutine qp_end_basic
+
 end module

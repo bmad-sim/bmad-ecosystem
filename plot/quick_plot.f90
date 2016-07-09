@@ -5492,7 +5492,7 @@ end subroutine qp_eliminate_xy_distortion
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_continuous_color(real_color) result(integer_color)
+! Function qp_continuous_color (real_color) result (integer_color)
 ! 
 ! Maps real colors from 0.0_rp -- 1.0_rp to integers between[17, huge(integer)]
 !
@@ -5504,7 +5504,7 @@ end subroutine qp_eliminate_xy_distortion
 ! Output:
 !   integer_color -- integer: between[17, huge(integer)]
 !-
-function qp_continuous_color(real_color) result(integer_color)
+function qp_continuous_color (real_color) result (integer_color)
 
 implicit none
 
@@ -5518,18 +5518,18 @@ else
   integer_color = nint(real_color*(huge(integer_color)-17) + 17)
 endif
 
-end function
+end function qp_continuous_color
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_continuous_color_inverse(integer_color) result(real_color)
+! Function qp_continuous_color_inverse (integer_color) result (real_color)
 ! 
 ! Inverse of function qp_continuous_color
 !
 !-
-function qp_continuous_color_inverse(integer_color) result(real_color)
+function qp_continuous_color_inverse (integer_color) result (real_color)
 
 implicit none
 
@@ -5542,6 +5542,21 @@ else
   real_color = (integer_color - 17)/ (1.0_rp*(huge(integer_color) - 17) )
 endif
 
-end function
+end function qp_continuous_color_inverse
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_end()
+!
+! Cleanup routine at the end of plotting.
+!-
+
+subroutine qp_end()
+
+call qp_end_basic()
+
+end subroutine qp_end
 
 end module
