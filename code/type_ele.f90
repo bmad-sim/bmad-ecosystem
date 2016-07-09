@@ -879,6 +879,7 @@ if (associated(ele%wake)) then
 
   if (logic_option (.true., type_wake) .and. (size(ele%wake%sr_long%mode) /= 0 .or. &
                                                        size(ele%wake%sr_trans%mode) /= 0)) then
+    nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     nl=nl+1; li(nl) = '  SR_File: ' // trim(ele%wake%sr_file)
     nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'z_sr_max =', ele%wake%z_sr_max
@@ -919,9 +920,11 @@ if (associated(ele%wake)) then
   endif
 
   if (logic_option (.true., type_wake) .and. size(ele%wake%lr) /= 0) then
+    nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Long-Range Wake:'
     nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr_file)
-    nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'lr_freq_spread =', ele%wake%lr_freq_spread
+    nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'lr_freq_spread  =', ele%wake%lr_freq_spread
+    nl=nl+1; write (li(nl), '(2x, a, l2)')    'lr_self_wake_on =', ele%wake%lr_self_wake_on
   endif
 
   if (size(ele%wake%lr) /= 0) then

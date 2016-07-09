@@ -403,19 +403,32 @@ end type
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
 type wake_lr_struct    ! Long-Range Wake struct.
-  real(rp) freq        ! Actual Frequency in Hz.
-  real(rp) freq_in     ! Input frequency in Hz.
-  real(rp) R_over_Q    ! Strength in V/C/m^2.
-  real(rp) Q           ! Quality factor.
-  real(rp) angle       ! polarization angle (radians/2pi).
-  real(rp) b_sin       ! non-skew sin-like component of the wake.
-  real(rp) b_cos       ! non-skew cos-like component of the wake.
-  real(rp) a_sin       ! skew sin-like component of the wake.
-  real(rp) a_cos       ! skew cos-like component of the wake.
-  real(rp) t_ref       ! time reference value for computing the wake amplitude.
-                       !  This is used to prevent value overflow with long trains.
-  integer m            ! Order (1 = dipole, 2 = quad, etc.)
-  logical polarized    ! Polaraized mode?
+  real(rp) :: freq = 0       ! Actual Frequency in Hz.
+  real(rp) :: freq_in = 0    ! Input frequency in Hz.
+  real(rp) :: R_over_Q = 0   ! Strength in V/C/m^2.
+  real(rp) :: Q = 0          ! Quality factor.
+  real(rp) :: angle = 0      ! polarization angle (radians/2pi).
+  real(rp) :: b_sin = 0      ! non-skew sin-like component of the wake.
+  real(rp) :: b_cos = 0      ! non-skew cos-like component of the wake.
+  real(rp) :: a_sin = 0      ! skew sin-like component of the wake.
+  real(rp) :: a_cos = 0      ! skew cos-like component of the wake.
+  real(rp) :: t_ref = 0      ! time reference value for computing the wake amplitude.
+                             !  This is used to prevent value overflow with long trains.
+  integer :: m = 0           ! Order (1 = dipole, 2 = quad, etc.)
+  logical :: polarized = 0   ! Polaraized mode?
+end type
+
+! The wake_lr1_struct is used for modeling a long range wake using a single macroparticle per bunch.
+
+type wake_lr1_struct
+  real(rp) :: vec(6) = 0   ! (x, px, y, py, z, pz) of bunch
+  real(rp) :: t = 0        ! Time of bunch
+end type
+
+type wake_lr1_array_struct
+  character(200) :: formula = ''
+  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation for the formula
+  type (wake_lr1_struct), allocatable :: lr1(:)          ! Array of past bunch positions
 end type
 
 !
@@ -426,8 +439,10 @@ type wake_struct
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_struct), allocatable :: lr(:)
-  real(rp) :: z_sr_max = 0        ! Max allowable z value sr_mode. 
-  real(rp) :: lr_freq_spread = 0  ! Random frequency spread of long range modes.
+  type (wake_lr1_array_struct) :: lr1
+  real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
+  real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
+  logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
 end type
 
 ! Cartesian field decomposition
@@ -1159,7 +1174,7 @@ integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83
+integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85, lr_freq_spread$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86

@@ -19,6 +19,7 @@
 ! 
 ! Input:
 !   orbit       -- coord_struct: Particle orbit.
+!     %vec(6)       -- "time" units: See convert_particle_coordinates_s_to_t for more details.
 !   ele         -- ele_struct: Element to propagate the geometry through.
 !   param       -- lat_param_struct: Branch parameters.
 !   init_needed -- integer: Initialization needed? See above for details.

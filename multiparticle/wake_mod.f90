@@ -99,202 +99,193 @@ end subroutine zero_lr_wakes_in_lat
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_add_to (ele, t0_bunch, orbit)
+! Subroutine track1_lr_wake (bunch, ele)
 !
-! Subroutine to add to the existing long-range wake the contribution from
-! a passing particle.
+! Subroutine to put in the long-range wakes for particle tracking.
 !
 ! Modules needed:
 !   use wake_mod
 !
 ! Input:
-!   ele      -- Ele_struct: Element with wakes.
-!   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
-!   orbit    -- Coord_struct: Particle coords.
+!   ele         -- ele_struct: Element with wakes.
+!   bunch       -- bunch_struct: Bunch to track.
 !
 ! Output:
-!   ele      -- Ele_struct: Element with wakes.
-!     %wake%lr(:)%b_sin -- Non-skew sin-like wake components.
-!     %wake%lr(:)%b_cos -- Non-skew cos-like wake components.
-!     %wake%lr(:)%a_sin -- Skew sin-like wake components.
-!     %wake%lr(:)%a_cos -- Skew cos-like wake components.
-!     %wake%lr(:)%t_ref -- Set to t0_bunch.
+!   ele         -- Ele_struct: Element with updated wake amplitudes.
+!   bunch       -- bunch_struct: Kicked bunch.
 !+
 
-subroutine lr_wake_add_to (ele, t0_bunch, orbit)
+subroutine track1_lr_wake (bunch, ele)
 
-type (ele_struct), target :: ele
-type (coord_struct) orbit
+implicit none
+
+type (bunch_struct), target :: bunch
+type (ele_struct) ele
+type (coord_struct), pointer :: particle
 type (wake_lr_struct), pointer :: lr
 
-integer i
-real(rp) t0_bunch, dt, omega, f_exp, ff, c, s, kx, ky
+real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
+real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 
-! Check if we have to do any calculations
+integer n_mode, i, j, k
 
-if (.not. bmad_com%lr_wakes_on) return  
+if (.not. bmad_com%lr_wakes_on) return
 if (.not. associated(ele%wake)) return
   
+! Check to see if we need to do any calc
+
+if (.not. associated(ele%wake)) return
+n_mode = size(ele%wake%lr)
+if (n_mode == 0) return  
+
+! To prevent floating point overflow, the %a and %b factors are shifted 
+! to be with respect to lr%t_ref which is the wake reference time.
+
+t0 = bunch%particle(bunch%ix_z(1))%t   ! Time of particle at head of bunch.
+
+do i = 1, size(ele%wake%lr)
+
+  lr => ele%wake%lr(i)
+
+  omega = twopi * lr%freq
+  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
+  f_exp = omega / (2 * lr%Q)
+  dt = t0 - lr%t_ref 
+  exp_shift = exp(-dt * f_exp)
+
+  lr%t_ref = t0
+  lr%b_sin = exp_shift * lr%b_sin
+  lr%b_cos = exp_shift * lr%b_cos
+  lr%a_sin = exp_shift * lr%a_sin
+  lr%a_cos = exp_shift * lr%a_cos
+
+  ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
+  if (lr%freq /= 0) then  ! If not fundamental mode
+    c = cos (dt * omega)
+    s = sin (dt * omega)
+    b_sin = lr%b_sin
+    lr%b_sin =  c * b_sin + s * lr%b_cos
+    lr%b_cos = -s * b_sin + c * lr%b_cos
+    a_sin = lr%a_sin
+    lr%a_sin =  c * a_sin + s * lr%a_cos
+    lr%a_cos = -s * a_sin + c * lr%a_cos
+  endif
+enddo
+
 ! Loop over all modes
 ! Note: The spatial variation of the normal and skew
 ! components is the same as the spatial variation of a multipole kick.
 
-! To prevent floating point overflow, the %a and %b factors are shifted 
-! to be with respect to lr%t_ref which is the bunch reference time.
-
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
 
-  omega = twopi * lr%freq
-  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
-
-  f_exp = omega / (2 * lr%Q)
-
-  if (t0_bunch /= lr%t_ref) then
-    dt = t0_bunch - lr%t_ref 
-    exp_shift = exp(-dt * f_exp) 
-    lr%t_ref = t0_bunch
-    lr%b_sin = exp_shift * lr%b_sin
-    lr%b_cos = exp_shift * lr%b_cos
-    lr%a_sin = exp_shift * lr%a_sin
-    lr%a_cos = exp_shift * lr%a_cos
-    ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
-    if (lr%freq /= 0) then  ! If not fundamental mode
-      c = cos (dt * omega)
-      s = sin (dt * omega)
-      b_sin = lr%b_sin
-      lr%b_sin =  c * b_sin + s * lr%b_cos
-      lr%b_cos = -s * b_sin + c * lr%b_cos
-      a_sin = lr%a_sin
-      lr%a_sin =  c * a_sin + s * lr%a_cos
-      lr%a_cos = -s * a_sin + c * lr%a_cos
-    endif
-  endif
-
-  dt = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
-  if (lr%freq == 0) dt = dt + ele%value(phi0_multipass$) / omega
-
-  ff = abs(orbit%charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
-
-  call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
-
-  if (lr%polarized) then
-    c_a = cos(twopi*lr%angle); s_a = sin(twopi*lr%angle)
-    kxx = kx
-    kx = kxx * c_a * c_a + ky * s_a * c_a
-    ky = kxx * c_a * s_a + ky * s_a * s_a
-  endif
-
-  c = cos (-dt * omega)
-  s = sin (-dt * omega)
-
-  lr%b_sin = lr%b_sin - kx * c
-  lr%b_cos = lr%b_cos + kx * s
-  lr%a_sin = lr%a_sin - ky * c
-  lr%a_cos = lr%a_cos + ky * s
-
-enddo
-
-end subroutine lr_wake_add_to
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine lr_wake_apply_kick (ele, t0_bunch, orbit)
-!
-! Subroutine to apply the long-range wake kick to a particle.
-!
-! Modules needed:
-!   use wake_mod
-!
-! Input:
-!   ele      -- Ele_struct: Element with wakes
-!   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
-!   orbit    -- Coord_struct: Starting coords of the particle.
-!
-! Output:
-!   orbit    -- Coord_struct: coords after the kick.
-!+
-
-subroutine lr_wake_apply_kick (ele, t0_bunch, orbit)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (coord_struct) orbit
-type (wake_lr_struct), pointer :: lr
-
-integer i
-real(rp) t0_bunch, dt, dt_part, omega, f_exp, ff, c, s
-real(rp) w_norm, w_skew, kx, ky, k_dum, ff_self, kx_self, ky_self, c_a, s_a
-
-! Check if we have to do any calculations
-
-if (.not. bmad_com%lr_wakes_on) return
-if (.not. associated(ele%wake)) return
-
-! Loop over all modes
-
-do i = 1, size(ele%wake%lr)
-
-  lr => ele%wake%lr(i)
-  dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
-  dt = t0_bunch + dt_part - lr%t_ref
-
-  omega = twopi * lr%freq
-  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
-
-  f_exp = omega / (2 * lr%Q)
-  ff = exp(-dt * f_exp) / ele%value(p0c$) 
-
-  if (lr%freq == 0) dt = dt_part + ele%value(phi0_multipass$) / omega
-
-  c = cos (-dt * omega)
-  s = sin (-dt * omega)
-
-  ! Self wake component
-
-  ff_self = abs(orbit%charge) * lr%r_over_q * omega / (2 * ele%value(p0c$))
-
-  call ab_multipole_kick (0.0_rp, ff_self, lr%m, orbit, kx_self, ky_self)
-
-  if (lr%polarized) then
-    c_a = cos(twopi*lr%angle); s_a = sin(twopi*lr%angle)
-    w_norm = -(kx_self * c_a * c_a + ky_self * s_a * c_a)
-    w_skew = -(kx_self * c_a * s_a + ky_self * s_a * s_a)
+  if (lr%freq == 0) then
+    omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
   else
-    w_norm = -kx_self
-    w_skew = -ky_self
+    omega = twopi * lr%freq
   endif
 
-  ! longitudinal kick
+  f_exp = omega / (2 * lr%Q)
 
-  w_norm = w_norm + (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
-  w_skew = w_skew + (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
+  if (lr%polarized) then
+    c_a = cos(twopi*lr%angle)
+    s_a = sin(twopi*lr%angle)
+  endif
 
-  call ab_multipole_kick (0.0_rp, w_norm, lr%m, orbit, kx, k_dum)
-  call ab_multipole_kick (0.0_rp, w_skew, lr%m, orbit, k_dum, ky)
+  !
 
-  orbit%vec(6) = orbit%vec(6) + kx + ky
+  kick_self = 0
 
-  ! transverse kick
+  do k = 1, size(bunch%particle)
+    particle => bunch%particle(k)
+    if (particle%state /= alive$) cycle
 
-  if (lr%m == 0) cycle
+    dt = particle%t - lr%t_ref
+    ff0 = abs(particle%charge) * lr%r_over_q
 
-  w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
-  w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
+    dt_phase = dt
+    if (lr%freq == 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
 
-  call ab_multipole_kick (w_skew, w_norm, lr%m-1, orbit, kx, ky)
+    c = cos (-dt_phase * omega)
+    s = sin (-dt_phase * omega)
 
-  orbit%vec(2) = orbit%vec(2) + lr%m * kx
-  orbit%vec(4) = orbit%vec(4) + lr%m * ky
+    call ab_multipole_kick (0.0_rp, 1.0_rp, lr%m, particle, kx0, ky0)
+
+    ! Accumulate longitudinal self-wake
+
+    if (ele%wake%lr_self_wake_on) then
+      ff = ff0 * omega / (2 * ele%value(p0c$))
+
+      kx = ff * kx0
+      ky = ff * ky0
+
+      if (lr%polarized) then
+        w_norm = -(kx * c_a * c_a + ky * s_a * c_a)
+        w_skew = -(kx * c_a * s_a + ky * s_a * s_a)
+      else
+        w_norm = -kx
+        w_skew = -ky
+      endif
+
+      kick_self = kick_self + w_norm * kx0 + w_skew * ky0
+    endif
+
+    ! Longitudinal non-self-wake kick
+
+    ff = exp(-dt * f_exp) / ele%value(p0c$)
+
+    w_norm = (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
+    w_skew = (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
+
+    particle%vec(6) = particle%vec(6) + w_norm * kx0 + w_skew * ky0
+
+    ! Transverse wake kick (Transverse has no self-wake kick)
+
+    if (lr%m == 0) cycle
+
+    w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
+    w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
+
+    call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle, kx, ky)
+
+    particle%vec(2) = particle%vec(2) + lr%m * kx
+    particle%vec(4) = particle%vec(4) + lr%m * ky
+
+
+    ! Update wake amplitudes
+
+    ff = ff0 * c_light * exp(dt * f_exp) 
+    kx = ff * kx0 
+    ky = ff * kx0
+
+    if (lr%polarized) then
+      kxx = kx
+      kx = kxx * c_a * c_a + ky * s_a * c_a
+      ky = kxx * c_a * s_a + ky * s_a * s_a
+    endif
+
+    lr%b_sin = lr%b_sin - kx * c
+    lr%b_cos = lr%b_cos + kx * s
+    lr%a_sin = lr%a_sin - ky * c
+    lr%a_cos = lr%a_cos + ky * s
+
+  enddo
+
+  ! Longitudinal self-wake kick. 
+
+  if (ele%wake%lr_self_wake_on) then
+    do k = 1, size(bunch%particle)
+      particle => bunch%particle(k)
+      particle%vec(6) = particle%vec(6) + kick_self
+    enddo
+  endif
 
 enddo
 
-end subroutine lr_wake_apply_kick
+end subroutine track1_lr_wake
+
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -379,7 +370,7 @@ do i = 1, size(ele%wake%sr_long%mode)
   c = cos (arg)
   s = sin (arg)
 
-  ! The monipole wake does not have any skew components.
+  ! The monopole wake does not have any skew components.
 
   select case (mode%transverse_dependence)
   case (none$, linear_trailing$)
@@ -505,5 +496,70 @@ do i = 1, size(ele%wake%sr_trans%mode)
 enddo
 
 end subroutine sr_trans_wake_particle
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine order_particles_in_z (bunch)
+!
+! Routine to order the particles longitudinally in terms of decreasing %vec(5).
+! That is from large z (head of bunch) to small z.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   bunch     -- Bunch_struct: collection of particles.
+!     %particle(j)%vec(5) -- Longitudinal position of j^th particle.
+!
+! Output:
+!   bunch     -- bunch_struct: collection of particles.
+!     %ix_z(:)     -- Index for the ordering. 
+!                     Order is from large z (head of bunch) to small z.
+!                     That is: %bunch%ix_z(1) is the particle at the bunch head. 
+!-
+
+Subroutine order_particles_in_z (bunch)
+
+use nr, only: indexx
+
+implicit none
+
+type (bunch_struct), target :: bunch
+type (coord_struct), pointer :: particle(:)
+type (coord_struct) temp
+integer i, k, nm, i0, i1
+real(rp) z1, z2
+logical ordered
+
+! Init if needed. 
+
+particle => bunch%particle
+nm = size(particle)
+
+if (bunch%ix_z(1) == 0) then
+  call indexx (bunch%particle%vec(5), bunch%ix_z)
+  bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
+  return  
+endif
+
+! Order is from large z (head of bunch) to small z.
+! This ordering calc is efficient when the particles are already more-or-less 
+! ordered to start with.  
+
+do
+  ordered = .true.
+  do i = 1, nm-1
+    i0 = bunch%ix_z(i); i1 = bunch%ix_z(i+1)
+    if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
+      bunch%ix_z(i:i+1) = bunch%ix_z(i+1:i:-1)
+      ordered = .false.
+    endif
+  enddo
+  if (ordered) exit
+enddo
+
+end subroutine order_particles_in_z
 
 end module
