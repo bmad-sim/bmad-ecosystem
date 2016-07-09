@@ -119,7 +119,7 @@ beam_init%bunch_charge = 1 !100.0e-12
 beam_init%sig_e = 1e-12
 beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 
-call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch0)
+call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch0)
 bunch = bunch0
 
 call track1_bunch_hom (bunch, ele, lat%param, bunch)

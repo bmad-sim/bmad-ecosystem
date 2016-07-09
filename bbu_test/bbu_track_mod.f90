@@ -509,7 +509,7 @@ type (beam_init_struct) beam_init
 type (bunch_struct), pointer :: bunch
 type (bbu_param_struct) bbu_param
 
-integer i, ixb, ix0
+integer i, ixb, ix0, ix_bunch
 real(rp) r(2), t_rel, d_charge
 
 character(20) :: r_name = 'bbu_add_a_bunch'
@@ -525,8 +525,17 @@ else
   endif
 endif
 
+! If this is not the first bunch (most of time),
+! we need to correct some of the bunch information
+
+ix_bunch = 0
+if (ixb /= bbu_beam%ix_bunch_head) then
+  ix0 = bbu_beam%ix_bunch_end
+  ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
+endif
+
 bunch => bbu_beam%bunch(ixb)
-call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
+call init_bunch_distribution (lat%ele(0), lat%param, beam_init, ix_bunch, bunch)
 
 !!! Vary the bunch current if desired
 !!! Since variation_on is false by default, this IF statement is commented out ( May 9 2016 )
@@ -562,15 +571,6 @@ call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
 !    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
 !  endif
 !endif
-
-! If this is not the first bunch (most of time),
-! we need to correct some of the bunch information
-if (ixb /= bbu_beam%ix_bunch_head) then
-  ix0 = bbu_beam%ix_bunch_end
-  bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
-  bunch%t_center = bbu_beam%bunch(ix0)%t_center + beam_init%dt_bunch
-  bunch%z_center = -bunch%t_center * c_light * lat%ele(0)%value(e_tot$) / lat%ele(0)%value(p0c$)
-endif
 
 bbu_beam%ix_bunch_end = ixb
 
