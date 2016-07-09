@@ -692,25 +692,28 @@ end subroutine qp_open_page_basic
 !-
 
 subroutine qp_select_page_basic (iw)
+
 implicit none
 integer i, iw
 !
 call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
 if (global_com%exit_on_error) call err_exit
 call pgslct(iw)
+
 end subroutine qp_select_page_basic
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_close_page_basic
+! Subroutine qp_close_page_basic ()
 !
 ! Subroutine to finish plotting on a page.
 ! For X this closes the window.
 !-
 
-subroutine qp_close_page_basic
+subroutine qp_close_page_basic ()
+
 implicit none
 call pgclos
 !  if (pg_com%page_type(1:3) == 'GIF') then
@@ -721,6 +724,22 @@ pg_com => pg_interface_save_com(i_save)
 if (i_save /= 0) then
   call pgslct(pg_com%i_chan)
 endif
+
 end subroutine qp_close_page_basic
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_end_basic ()
+!
+! Cleanup routine at the end of plotting.
+!-
+
+subroutine qp_end_basic ()
+
+call pgend()
+
+end subroutine qp_end_basic
 
 end module
