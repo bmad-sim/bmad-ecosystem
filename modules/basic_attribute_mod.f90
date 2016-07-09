@@ -561,6 +561,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, sr_wake_file$,        'SR_WAKE_FILE')
   call init_attribute_name1 (i, lr_wake_file$,        'LR_WAKE_FILE')
   call init_attribute_name1 (i, lr_freq_spread$,      'LR_FREQ_SPREAD')
+  call init_attribute_name1 (i, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
 
   call init_attribute_name1 (i, field_overlaps$,     'FIELD_OVERLAPS')
 
@@ -1573,7 +1574,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
-      'MULTIPOLES_ON')
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &

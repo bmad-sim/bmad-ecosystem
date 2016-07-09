@@ -775,13 +775,15 @@ end function valid_spin_tracking_method
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
-!                                                a_ptr, err_flag, err_print_flag)
+! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, err_flag, err_print_flag)
+!
+! DEPRECATED ROUTINE! DO NOT USE!
+! Consider instead: pointer_to_attribute.
 !
 ! Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
-! 
+!
 ! Use of this routine is restricted to attributes that have an index like k1$, tracking_method$, etc.
-! A more general routine is pointer_to_attribute.
+!
 ! Alternatively, consider the routine pointers_to_attribute.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 !

@@ -188,138 +188,6 @@ end subroutine track1_sr_wake
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_lr_wake (bunch, ele)
-!
-! Subroutine to put in the long-range wakes for particle tracking.
-!
-! Note: It is the responsibility of the calling routine to zero the wakefield
-! components before the first bunch is sent through. The wakefield components 
-! are:
-!     ele%wake%lr%b_sin
-!     ele%wake%lr%b_cos
-!     ele%wake%lr%a_sin
-!     ele%wake%lr%a_cos
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   bunch -- Bunch_struct: Bunch of particles.
-!   ele   -- Ele_struct: Element with wakefields.
-!
-! Output:
-!   bunch -- Bunch_struct: Bunch with wakefields applied to the particles.
-!   ele   -- Ele_struct: Element with updated wakefields.
-!-
-
-subroutine track1_lr_wake (bunch, ele)
-
-implicit none
-
-type (bunch_struct), target :: bunch
-type (ele_struct) ele
-type (coord_struct), pointer :: particle
-
-integer n_mode, j, k
-
-if (.not. bmad_com%lr_wakes_on) return
-if (.not. associated(ele%wake)) return
-  
-! Check to see if we need to do any calc
-
-if (.not. associated(ele%wake)) return
-n_mode = size(ele%wake%lr)
-if (n_mode == 0) return  
-
-! Give the particles a kick
-
-do k = 1, size(bunch%particle)
-  j = bunch%ix_z(k)
-  particle => bunch%particle(j)
-  if (particle%state /= alive$) cycle
-  call lr_wake_apply_kick (ele, bunch%t_center, particle)
-enddo
-
-! Add the wakes left by this bunch to the existing wakes.
-
-do k = 1, size(bunch%particle)
-  j = bunch%ix_z(k)
-  particle => bunch%particle(j)
-  if (particle%state /= alive$) cycle
-  call lr_wake_add_to (ele, bunch%t_center, particle)
-enddo
-
-end subroutine track1_lr_wake
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine order_particles_in_z (bunch)
-!
-! Routine to order the particles longitudinally in terms of decreasing %vec(5).
-! That is from large z (head of bunch) to small z.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   bunch     -- Bunch_struct: collection of particles.
-!     %particle(j)%vec(5) -- Longitudinal position of j^th particle.
-!
-! Output:
-!   bunch     -- bunch_struct: collection of particles.
-!     %ix_z(:)     -- Index for the ordering. 
-!                     Order is from large z (head of bunch) to small z.
-!                     That is: %bunch%ix_z(1) is the particle at the bunch head. 
-!-
-
-Subroutine order_particles_in_z (bunch)
-
-use nr, only: indexx
-
-implicit none
-
-type (bunch_struct), target :: bunch
-type (coord_struct), pointer :: particle(:)
-type (coord_struct) temp
-integer i, k, nm, i0, i1
-real(rp) z1, z2
-logical ordered
-
-! Init if needed. 
-
-particle => bunch%particle
-nm = size(particle)
-
-if (bunch%ix_z(1) == 0) then
-  call indexx (bunch%particle%vec(5), bunch%ix_z)
-  bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
-  return  
-endif
-
-! Order is from large z (head of bunch) to small z.
-! This ordering calc is efficient when the particles are already more-or-less 
-! ordered to start with.  
-
-do
-  ordered = .true.
-  do i = 1, nm-1
-    i0 = bunch%ix_z(i); i1 = bunch%ix_z(i+1)
-    if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
-      bunch%ix_z(i:i+1) = bunch%ix_z(i+1:i:-1)
-      ordered = .false.
-    endif
-  enddo
-  if (ordered) exit
-enddo
-
-end subroutine order_particles_in_z
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
 !
 ! Subroutine to initialize a beam of particles. 
@@ -399,15 +267,8 @@ call reallocate_beam (beam, beam_init%n_bunch, 0)
 
 do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
-  call init_bunch_distribution (ele, param, beam_init, bunch, err_here)
+  call init_bunch_distribution (ele, param, beam_init, i_bunch-1, bunch, err_here)
   if (err_here) return
-
-  bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
-  bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
-  bunch%ix_bunch = i_bunch
-
-  bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
-
 enddo
   
 if (present(err_flag)) err_flag = .false.
@@ -418,7 +279,7 @@ end subroutine init_beam_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_bunch_distribution (ele, param, beam_init, bunch, err_flag)
+! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
 !
@@ -451,13 +312,14 @@ end subroutine init_beam_distribution
 !   ele         -- Ele_struct: element to initialize distribution at
 !   param       -- Lat_param_struct: Lattice parameters
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
+!   ix_bunch    -- integer: Bunch index. 0 = bunch generated at time = 0.
 !
 ! Output:
 !   bunch        -- bunch_struct: Structure with initialized particles.
 !   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine init_bunch_distribution (ele, param, beam_init, bunch, err_flag)
+subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)
 
 use mode3_mod
 use random_mod
@@ -478,6 +340,7 @@ real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 real(rp) old_cutoff, pz_min
 real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
 
+integer ix_bunch
 integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
 integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
@@ -626,10 +489,6 @@ do i = 1, beam_init%n_particle
   p%vec = p%vec + center
 enddo
 
-bunch%z_center = 0  ! Default
-bunch%t_center = 0  ! Default
-bunch%ix_bunch = 1  ! Default
-
 ! particle spin
 
 call init_spin_distribution (beam_init, bunch)
@@ -690,6 +549,13 @@ else
     p%vec(6) = max(p%vec(6), pz_min)
   enddo
 endif
+
+!
+
+bunch%t_center = ix_bunch * beam_init%dt_bunch
+bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
+bunch%ix_bunch = ix_bunch
+bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
 
 ! Reset the random number generator parameters.
 
