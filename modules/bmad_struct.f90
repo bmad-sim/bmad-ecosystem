@@ -395,8 +395,8 @@ end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct 
   type (wake_sr_mode_struct), allocatable :: mode(:)
-  real(rp) z_ref      ! z reference value for computing the wake amplitude.
-                      !  This is used to prevent value overflow with long bunches.
+  real(rp) :: z_ref = 0    ! z reference value for computing the wake amplitude.
+                           !  This is used to prevent value overflow with long bunches.
 end type
 
 ! Each wake_lr_struct represents a different mode.

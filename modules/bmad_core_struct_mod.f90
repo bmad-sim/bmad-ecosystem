@@ -686,7 +686,7 @@ if (associated (wake_in)) then
   n_sr_long   = size(wake_in%sr_long%mode)
   n_sr_trans  = size(wake_in%sr_trans%mode)
   n_lr        = size(wake_in%lr)
-  call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr)
+  call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr, .true.)
   wake_out    = wake_in
 else
   if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0)
@@ -1503,7 +1503,7 @@ end subroutine unlink_fieldmap
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr)
+! Subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr, always_allocate)
 !
 ! Subroutine to initialize a wake struct.
 !
@@ -1511,26 +1511,33 @@ end subroutine unlink_fieldmap
 !   use bmad
 !
 ! Input:
-!   n_sr_long  -- Integer: Number of terms: wake%nr(n_sr_long).
-!   n_sr_trans -- Integer: Number of terms: wake%nr(n_sr_trans).
+!   n_sr_long       -- Integer: Number of terms: wake%nr(n_sr_long).
+!   n_sr_trans      -- Integer: Number of terms: wake%nr(n_sr_trans).
 !   n_lr            -- Integer: Number of terms: wake%nr(n_lr)
+!   always_allocate -- logical, optional: If present and True then allways allocate wake
+!                       even if n_lr, etc. are all 0. Default is False.
 !
 ! Output:
 !   wake -- Wake_struct, pointer: Initialized structure. 
 !               If all inputs are 0 then wake is deallocated.
 !-
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr, always_allocate)
 
 implicit none
 
 type (wake_struct), pointer :: wake
 integer n_sr_long, n_sr_trans, n_lr
+logical, optional :: always_allocate
 
 ! Deallocate wake if all inputs are zero.
 
 if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr == 0) then
-  if (associated(wake)) deallocate (wake)
+  if (logic_option(.false., always_allocate)) then
+    if (.not. associated(wake)) allocate (wake)
+  else
+    if (associated(wake)) deallocate (wake)
+  endif
   return
 endif
 

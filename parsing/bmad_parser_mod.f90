@@ -216,11 +216,11 @@ type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
 type (all_pointer_struct), allocatable :: a_ptrs(:)
+type (all_pointer_struct) a_ptr
 type (wall3d_struct), pointer :: wall3d_arr(:), wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
 type (photon_surface_struct), pointer :: surf
-type (all_pointer_struct) a_ptr
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
@@ -1619,8 +1619,15 @@ case ('VELOCITY_DISTRIBUTION')
 
 case default   ! normal attribute
 
+  call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag2, .false.)
+
   if (attribute_type(attrib_word) == is_logical$) then
-    call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
+    if (associated (a_ptr%l)) then
+      call get_logical (trim(ele%name) // ' ' // attrib_word, a_ptr%l, err_flag)
+    else
+      call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
+    endif
+    if (err_flag) return
 
   else
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)

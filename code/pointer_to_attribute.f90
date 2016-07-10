@@ -315,13 +315,13 @@ case ('REF_TIME')
 case ('LR_FREQ_SPREAD')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, n)
+    allocate (ele%wake)
   endif
   a_pTr%r => ele%wake%lr_freq_spread
 case ('LR_SELF_WAKE_ON')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, n)
+    allocate (ele%wake)
   endif
   a_ptr%l => ele%wake%lr_self_wake_on
 end select
@@ -350,7 +350,7 @@ if (a_name(1:5) == "XMAT_") then
   goto 9000 ! Error message and return
 endif
 
-if (associated(a_ptr%r)) then
+if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i)) then
   err_flag = .false.
   return
 endif
