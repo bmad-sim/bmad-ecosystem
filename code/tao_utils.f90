@@ -1697,7 +1697,7 @@ end subroutine tao_find_data
 !-
 
 subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
-                                                    str_array, print_err, component)
+                                                    str_array, print_err, component, dflt_var_index)
 
 implicit none
 
@@ -1718,7 +1718,7 @@ character(16), parameter :: logic_components(8) = [ &
 character(16), parameter :: string_components(1) = ['merit_type']
 
 character(*) :: var_name
-character(*), optional :: component
+character(*), optional :: component, dflt_var_index
 character(20) :: r_name = 'tao_find_var'
 character(80) v1_name, v_name, component_name
 
@@ -1809,6 +1809,7 @@ if (v1_name(1:5) == 'var::') v1_name = v1_name(6:)
 ix = index(v1_name, '[')
 if (ix == 0) then
   v_name = '*'
+  if (present(dflt_var_index)) v_name = dflt_var_index
 else
   v_name  = v1_name(ix+1:)
   v1_name = v1_name(1:ix-1)

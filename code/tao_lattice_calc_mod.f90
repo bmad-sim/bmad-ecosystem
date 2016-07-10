@@ -647,7 +647,7 @@ end function tao_no_beam_left
 ! This will inject a particle from a previous universe into this universe in
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated. If no injection then will set beginning orbit to
-! whatever the user has specified. As always, tracking only occure in the model
+! whatever the user has specified. As always, tracking only occures in the model
 ! lattice.
 
 subroutine tao_inject_particle (u, model, ix_branch)
@@ -673,13 +673,15 @@ branch => model%lat%branch(ix_branch)
 i_br_from  = branch%ix_from_branch
 
 if (i_br_from > -1) then
-  i_ele_from = branch%ix_from_ele
-  from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
-  call transfer_twiss (from_ele, branch%ele(0))
-  orb_out => model%lat_branch(ix_branch)%orbit(0)
-  call init_coord (orb_out, model%lat_branch(i_br_from)%orbit(i_ele_from), branch%ele(0), &
-                  downstream_end$, default_tracking_species(branch%param), 1, 0.0_rp)
-  return
+  if (default_tracking_species(model%lat%branch(i_br_from)%param) == default_tracking_species(branch%param)) then
+    i_ele_from = branch%ix_from_ele
+    from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
+    call transfer_twiss (from_ele, branch%ele(0))
+    orb_out => model%lat_branch(ix_branch)%orbit(0)
+    call init_coord (orb_out, model%lat_branch(i_br_from)%orbit(i_ele_from), branch%ele(0), &
+                    downstream_end$, default_tracking_species(branch%param), 1, 0.0_rp)
+    return
+  endif
 endif
 
 ! In model%lat_branch()%orb0 is saved the last computed orbit. 
@@ -688,7 +690,7 @@ endif
 orb_in => model%lat_branch(ix_branch)%orb0
 orb_out => model%lat_branch(ix_branch)%orbit(0)
 
-call init_coord (orb_out, orb_in, model%lat%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
+call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
 
 polar%theta = u%beam%beam_init%spin%theta
 polar%phi = u%beam%beam_init%spin%phi
@@ -809,7 +811,7 @@ endif
 
 if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-  call init_beam_distribution (model%lat%ele(ix_ele0), model%lat%param, beam_init, beam, err)
+  call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
     call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     return
