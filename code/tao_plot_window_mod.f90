@@ -64,6 +64,7 @@ character(24) :: r_name = 'tao_destroy_plot_window'
   if (.not. has_been_created) return
 
   call qp_close_page
+  call qp_end
   has_been_created = .false.
 
 end subroutine tao_destroy_plot_window
