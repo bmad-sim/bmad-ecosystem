@@ -291,7 +291,7 @@ end if
 !----------------------------------------------------------------------------
 ! Set up common variables for all (non-custom) methods
 
-ref_charge = charge_of(param%particle)
+ref_charge = sign_of(charge_of(param%particle))
 
 x = local_orb%vec(1)
 y = local_orb%vec(3)
@@ -328,10 +328,10 @@ case (bmad_standard$)
 
   case (e_gun$)
     if (ele%value(rf_frequency$) == 0) then
-      field%e(3) = e_accel_field (ele, gradient$)
+      field%e(3) = e_accel_field (ele, gradient$) / ref_charge
     else
       phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
-      field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase))
+      field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
     endif
 
   !------------------------------------------
