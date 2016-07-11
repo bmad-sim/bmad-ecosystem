@@ -60,18 +60,14 @@ bunch_end = bunch_start
 !------------------------------------------------
 ! Without wakefields just track through.
 
-if (.not. associated (ele%wake) .or. &
-            (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
-
-  call order_particles_in_z (bunch_end)  
+if (.not. associated (ele%wake) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
-    jj = bunch_end%ix_z(j)
-    call track1 (bunch_start%particle(jj), ele, param, bunch_end%particle(jj))
+    if (bunch_start%particle(j)%state /= alive$) cycle
+    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
 
-  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, &
-                                        mask = (bunch_end%particle(:)%state == alive$))
+  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
   return
 endif
 
@@ -139,7 +135,7 @@ type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
 
 real(rp) sr02
-integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start
+integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live
 
 logical wake_here
 character(16) :: r_name = 'track1_sr_wake'
@@ -150,17 +146,22 @@ if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
 if (size(ele%wake%sr_long%mode) == 0 .and. size(ele%wake%sr_trans%mode) == 0) return
 
+n_live = bunch%n_live
+if (n_live == 0) return    ! No one left alive.
 p => bunch%particle
 
 ! error check and zero wake sums and order particles in z
 
-i1 = bunch%ix_z(1) 
-i2 = bunch%ix_z(size(p))
+i1 = bunch%ix_z(1)
+i2 = bunch%ix_z(n_live)
+
 if (p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%z_sr_max) then
   call out_io (s_abort$, r_name, &
       'Bunch longer than sr wake can handle for element: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
 endif
+
+!
 
 ele%wake%sr_long%mode%b_sin = 0
 ele%wake%sr_long%mode%b_cos = 0
@@ -176,7 +177,7 @@ ele%wake%sr_trans%z_ref = p(i1)%vec(5)
 
 ! Loop over all particles in the bunch and apply the wake
 
-do j = 1, size(p)
+do j = 1, n_live
   particle => p(bunch%ix_z(j))  ! Particle to kick
   call sr_long_wake_particle (ele, particle)
   call sr_trans_wake_particle (ele, particle)
