@@ -415,7 +415,7 @@ type wake_lr_struct    ! Long-Range Wake struct.
   real(rp) :: t_ref = 0      ! time reference value for computing the wake amplitude.
                              !  This is used to prevent value overflow with long trains.
   integer :: m = 0           ! Order (1 = dipole, 2 = quad, etc.)
-  logical :: polarized = 0   ! Polaraized mode?
+  logical :: polarized = .false.   ! Polaraized mode?
 end type
 
 ! The wake_lr1_struct is used for modeling a long range wake using a single macroparticle per bunch.
