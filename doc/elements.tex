@@ -1205,13 +1205,9 @@ The \vn{voltage} is simply related to the \vn{gradient} via the element length \
 \begin{example}
   voltage = gradient * l
 \end{example}
-If the \vn{voltage} is set to a non-zero value, the length \vn{l} must
-also be non-zero to keep the gradient finite.
-
-The acceleration will depend upon the charge of the particle being tracked. With a
-positive \vn{voltage}, a positively charged particle will gain energy (that is, to
-accelerate electrons, a negative voltage is needed). \vn{Voltage} is thus opposite to the
-potential change a positivley charged particle experiences.
+If the \vn{voltage} is set to a non-zero value, the length \vn{l} must also be non-zero to
+keep the gradient finite.  A particle with the charge as the reference particle will have
+a positive energy gain if the \vn{voltage} and \vn{gradient} are positive and vice versa.
 
 \index{phi0_autoscale}\vn{field_autoscale}
 The \vn{voltage} and \vn{gradient} are scaled by \vn{field_autoscale} and, if there is a
