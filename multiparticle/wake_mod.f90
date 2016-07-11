@@ -128,12 +128,13 @@ real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
 real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 
-integer n_mode, i, j, k
+integer n_mode, i, j, k, i0
+
+! Check to see if we need to do any calc
 
 if (.not. bmad_com%lr_wakes_on) return
 if (.not. associated(ele%wake)) return
-  
-! Check to see if we need to do any calc
+if (bunch%n_live == 0) return
 
 if (.not. associated(ele%wake)) return
 n_mode = size(ele%wake%lr)
@@ -142,7 +143,9 @@ if (n_mode == 0) return
 ! To prevent floating point overflow, the %a and %b factors are shifted 
 ! to be with respect to lr%t_ref which is the wake reference time.
 
-t0 = bunch%particle(bunch%ix_z(1))%t   ! Time of particle at head of bunch.
+
+i0 = bunch%ix_z(1)
+t0 = bunch%particle(i0)%t   ! Time of particle at head of bunch.
 
 do i = 1, size(ele%wake%lr)
 
@@ -505,6 +508,7 @@ end subroutine sr_trans_wake_particle
 !
 ! Routine to order the particles longitudinally in terms of decreasing %vec(5).
 ! That is from large z (head of bunch) to small z.
+! Only live particles are ordered.
 !
 ! Modules needed:
 !   use beam_mod
@@ -515,9 +519,11 @@ end subroutine sr_trans_wake_particle
 !
 ! Output:
 !   bunch     -- bunch_struct: collection of particles.
-!     %ix_z(:)     -- Index for the ordering. 
-!                     Order is from large z (head of bunch) to small z.
-!                     That is: %bunch%ix_z(1) is the particle at the bunch head. 
+!     %ix_z(:)   -- Index for the ordering. 
+!                   Order is from large z (head of bunch) to small z.
+!                   That is: %bunch%ix_z(1) is the particle at the bunch head.
+!                   Only live particles are ordered so if particle with index %bunch%ix_z(i)
+!                     is dead, all particles with index %bunch%ix_z(j) with j > i are dead.
 !-
 
 Subroutine order_particles_in_z (bunch)
@@ -541,7 +547,6 @@ nm = size(particle)
 if (bunch%ix_z(1) == 0) then
   call indexx (bunch%particle%vec(5), bunch%ix_z)
   bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
-  return  
 endif
 
 ! Order is from large z (head of bunch) to small z.
@@ -550,15 +555,21 @@ endif
 
 do
   ordered = .true.
+  bunch%n_live = 0
   do i = 1, nm-1
     i0 = bunch%ix_z(i); i1 = bunch%ix_z(i+1)
-    if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
+    if ((particle(i0)%vec(5) < particle(i1)%vec(5)) .or. &
+        (particle(i0)%state /= alive$ .and. particle(i1)%state == alive$)) then
       bunch%ix_z(i:i+1) = bunch%ix_z(i+1:i:-1)
       ordered = .false.
     endif
+    if (particle(i0)%state == alive$) bunch%n_live = i
   enddo
   if (ordered) exit
 enddo
+
+i1 = bunch%ix_z(nm)
+if (particle(i1)%state == alive$) bunch%n_live = nm
 
 end subroutine order_particles_in_z
 
