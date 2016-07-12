@@ -1428,14 +1428,14 @@ pl = floor(log10(abs(rel)))
 
 if (pl > 5) then
   fmt = '(2a, i0)'
-  write (str_out, fmt) trim(rchomp(rel/10.0**pl, 0)), 'E', pl
+  write (str_out, fmt) trim(rchomp(rel/10.0_rp**pl, 0)), 'E', pl
 
 elseif (pl > -3) then
   str_out = rchomp(rel, pl)
 
 else
   fmt = '(2a, i0)'
-  write (str_out, fmt) trim(rchomp(rel*10.0**(-pl), 0)), 'E', pl
+  write (str_out, fmt) trim(rchomp(rel*10.0_rp**(-pl), 0)), 'E', pl
 
 endif
 
