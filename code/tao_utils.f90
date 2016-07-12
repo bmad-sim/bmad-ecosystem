@@ -1900,9 +1900,9 @@ else
   do i = i1, i2
     names(i) = v1%v(i)%ele_name
   enddo
-  call location_decode (name, list, i1, num, names)
+  call location_decode (name, list, i1, num, names, print_err = print_err)
   if (num <  0) then
-    call out_io (s_error$, r_name, "BAD VAR INDEX NUMBER(S): " // name)
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, "BAD VAR INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
   endif
