@@ -486,8 +486,6 @@ graph%valid = .true.
 
 end subroutine tao_graph_phase_space_setup
 
-
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1113,7 +1111,7 @@ logical err, err_flag, smooth_curve, found, zero_average_phase, ok
 logical straight_line_between_syms, valid, in_graph
 
 character(200) data_type, name
-character(16) data_source
+character(16) data_source, dflt_index
 character(20), parameter :: r_name = 'tao_curve_data_setup'
 
 !
@@ -1155,9 +1153,47 @@ endif
 ! Calculate where the symbols are to be drawn on the graph.
 
 data_source = curve%data_source
+
 if (plot%x_axis_type == 'lat' .or. plot%x_axis_type == 'var') data_source = 'plot_x_axis_var'
+if (curve%data_type(1:11) == 'expression:' .and. (data_source == 'dat' .or. data_source == 'var')) data_source = 'expression'
 
 select case (data_source)
+
+!----------------------------------------------------------------------------
+! Case: expression
+
+case ('expression')
+
+  n_dat = nint(graph%x%max) - nint(graph%x%min) + 1
+
+  call re_allocate (curve%ix_symb, n_dat)
+  call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
+  call re_allocate (curve%y_symb,  n_dat) ! allocate space for the data
+
+  n_dat = 0
+  do i = nint(graph%x%min), nint(graph%x%max)
+    write (dflt_index, '(i0)') i
+    call tao_evaluate_expression  (curve%data_type(12:), 0, .true., value_arr, scratch%good, err, .false., &
+                            scratch%stack, graph%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
+    if (err .or. .not. scratch%good(1)) cycle
+    n_dat = n_dat + 1
+    curve%x_symb(n_dat) = i
+    curve%y_symb(n_dat) = value_arr(1)
+    curve%ix_symb(n_dat) = 0
+  enddo
+
+  call re_allocate (curve%ix_symb, n_dat)
+  call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
+  call re_allocate (curve%y_symb,  n_dat) ! allocate space for the data
+
+  if (curve%draw_line) then
+    call re_allocate (curve%y_line,  n_dat) ! allocate space for the data
+    call re_allocate (curve%x_line,  n_dat) ! allocate space for the data
+    curve%x_line = curve%x_symb
+    curve%y_line = curve%y_symb
+  else
+    if (allocated (curve%x_line)) deallocate (curve%x_line, curve%y_line)
+  endif
 
 !----------------------------------------------------------------------------
 ! Case: x-axis uses a variable.
@@ -1370,6 +1406,7 @@ case ('data')
 ! Case: data_source is a var_array
 
 case ('var')
+
   call tao_find_var (err, curve%data_type, scratch%v1_array)
   if (err .or. size(scratch%v1_array) /= 1) return
   v1_ptr => scratch%v1_array(1)%v1
@@ -1589,7 +1626,7 @@ case ('s')
 
     call re_allocate (curve%y_line, s%plot_page%n_curve_pts) 
     call re_allocate (curve%x_line, s%plot_page%n_curve_pts) 
-    call re_allocate (scratch%good,         s%plot_page%n_curve_pts) 
+    call re_allocate (scratch%good, s%plot_page%n_curve_pts) 
     curve%y_line = 0
     scratch%good = .true.
 
