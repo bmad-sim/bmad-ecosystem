@@ -1,5 +1,5 @@
 !+
-! Subroutine location_decode (string, array, ix_min, num, names, exact_case)
+! Subroutine location_decode (string, array, ix_min, num, names, exact_case, print_err)
 !
 ! Subroutine to set a list of locations in a logical array to True.
 !
@@ -21,6 +21,7 @@
 !                       instead used of numbers. Names cannot contain blanks, or ":" 
 !   exact_case     -- Logical, optional: Name matching is case sensitive? 
 !                       Default is False.
+!   print_err      -- logical, optional: If present and False, do not print error messages.
 !
 ! Output:
 !   array(ix_min:) -- Logical: Array of locations.
@@ -40,7 +41,7 @@
 !     num = 44
 !-
 
-subroutine location_decode(string, array, ix_min, num, names, exact_case)
+subroutine location_decode(string, array, ix_min, num, names, exact_case, print_err)
 
 use sim_utils, dummy => location_decode
 
@@ -58,7 +59,7 @@ character(*), optional :: names(ix_min:)
 character(*), parameter :: r_name = 'location_decode'
 
 logical array(ix_min:), found
-logical, optional :: exact_case
+logical, optional :: exact_case, print_err
 
 ! initialize array
 
@@ -74,7 +75,7 @@ do
 
   if (ix_next == 0) then
     if (delim == ',') then
-      call out_io (s_error$, r_name, 'MISPLACED COMMA')
+      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COMMA')
       return          
     endif
     str = '';  ix_word = 0;  delim = ''
@@ -94,7 +95,7 @@ do
   if (present(names) .and. ix_word /= 0) then
     call match_word (str(:ix_word), names, index, exact_case)
     if (index < 0) then
-      call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
+      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
       return
     elseif (index > 0) then
       found = .true.
@@ -110,7 +111,7 @@ do
       if (delim == ':') then
         select case (where)
         case (found_colon2$)
-          call out_io (s_error$, r_name, 'MISPLACED COLON')
+          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COLON')
           return
         case (found_colon1$)
           index = ix_max
@@ -123,7 +124,7 @@ do
         case (found_colon1$)
           index = ix_max
         case (no_range$, found_colon2$)
-          call out_io (s_error$, r_name, 'MISPLACED COMMA')
+          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COMMA')
           return          
         end select
       endif
@@ -131,7 +132,7 @@ do
     else
       read (str(:ix_word), *, iostat = ios) index
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'BAD LOCATION: ' // str(:ix_word))
+        if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'BAD LOCATION: ' // str(:ix_word))
         return
       endif
     endif
@@ -144,7 +145,7 @@ do
   ! Check for an error
 
   if (index < ix_min .or. index > ix_max) then
-    call out_io (s_error$, r_name, 'LOCATION OUT OF BOUNDS: ' // str(:ix_word))
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'LOCATION OUT OF BOUNDS: ' // str(:ix_word))
     return
   endif
 
@@ -155,7 +156,7 @@ do
   if (delim == ':') then
     select case (where)
     case (found_colon2$)
-      call out_io (s_error$, r_name, 'ERROR: BAD STEP(S) ' // str(1:20))
+      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'ERROR: BAD STEP(S) ' // str(1:20))
       return
     case (found_colon1$)
       where = found_colon2$

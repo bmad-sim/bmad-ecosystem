@@ -265,14 +265,14 @@ subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
   real(rp) sig_b
 end subroutine
 
-subroutine location_decode(string, array, ix_min, num, names, exact_case)
+subroutine location_decode(string, array, ix_min, num, names, exact_case, print_err)
   implicit none
   integer num
   integer ix_min
   character(*) string
   logical array(ix_min:)
   character(*), optional :: names(ix_min:)
-  logical, optional :: exact_case
+  logical, optional :: exact_case, print_err
 end subroutine
 
  function lunget ()
