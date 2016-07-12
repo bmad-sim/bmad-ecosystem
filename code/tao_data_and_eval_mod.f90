@@ -3501,7 +3501,9 @@ subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_er
 
 type (tao_eval_stack1_struct) stack
 type (tao_real_pointer_struct), allocatable, save :: re_array(:)
+type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
+type (tao_var_array_struct), allocatable, save :: v_array(:)
 type (tao_data_struct) datum
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
@@ -3619,19 +3621,18 @@ else
   if (index(name, '|') == 0 .and. present(dflt_component)) name = trim(name) // '|' // trim(dflt_component)
   
   if (source == 'var' .or. source == '') then
-    call tao_find_var (err_flag, name, re_array = re_array, print_err = print_error, dflt_var_index = dflt_dat_or_var_index)
+    call tao_find_var (err_flag, name, v_array = v_array,  re_array = re_array, print_err = print_error, dflt_var_index = dflt_dat_or_var_index)
     stack%type = var_num$
   endif
 
   if (source == 'data' .or. (err_flag .and. source == '')) then
-    call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
+    call tao_find_data (err_flag, name, d_array = d_array, re_array = re_array, int_array = int_array, &
                         dflt_index = dflt_dat_or_var_index, print_err = print_error, ix_uni = dflt_uni)
     stack%type = data_num$
   endif
 
   if (err_flag) then
-    if (source == '') call out_io (s_error$, r_name, &
-                        'CANNOT EVALUATE AS DATUM OR VARIABLE VALUE: ' // name)
+    if (source == '') call out_io (s_error$, r_name, 'CANNOT EVALUATE AS DATUM OR VARIABLE VALUE: ' // name)
     return
   endif
 
