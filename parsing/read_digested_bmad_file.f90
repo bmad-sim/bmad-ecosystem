@@ -673,7 +673,7 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr /= 0) then
     read (d_unit, err = 9850) ele%wake%sr_trans%mode
     read (d_unit, err = 9820) ele%wake%lr_file
     read (d_unit, err = 9830) ele%wake%lr
-    read (d_unit, err = 9860) ele%wake%z_sr_max
+    read (d_unit, err = 9860) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
   endif
 endif
 
