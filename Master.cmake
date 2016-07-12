@@ -166,9 +166,14 @@ find_package(X11)
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
-SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
+IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (BASE_C_FLAGS)
+  SET (BASE_CXX_FLAGS)
+ELSE ()
+  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+ENDIF ()
 
 #-----------------------------------                                                                                
 # For non-Linux or non-ifort or 
@@ -179,6 +184,9 @@ SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_RE
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
+ELSE (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (BASE_C_FLAGS)
+  SET (BASE_CXX_FLAGS)
 ENDIF ()
 
 
@@ -282,10 +290,17 @@ ELSE ()
   set (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -O2")
   set (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${ACC_GFORTRAN_OPTIMIZATION_FLAG}")
 ENDIF ()
-message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
-message("C Compiler           : ${CMAKE_C_COMPILER}")
-message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
-message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
+IF (${CMAKE_SYSTEM_NAME} MATCHES "HARDWARE-DEVEL")
+  message("Build Target         : ${CMAKE_SYSTEM_NAME}")
+  message("C Compiler           : ${CMAKE_C_COMPILER}")
+  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+  set (BASE_C_FLAGS)
+ELSE ()
+  message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
+  message("C Compiler           : ${CMAKE_C_COMPILER}")
+  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+  message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
+ENDIF ()
 IF (DEFINED SHARED_LINK_LIBS)
 message("Shared Libraries     : ${SHARED_LINK_LIBS}")
 ENDIF()
@@ -356,6 +371,13 @@ ELSE ()
   )
 ENDIF ()
 
+# If building for HARDWARE-DEVEL, remove the include directories which are not needed 
+
+IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (MASTER_INC_DIRS)
+ENDIF ()
+
+
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
@@ -420,6 +442,10 @@ ELSE ()
   IF (IS_DIRECTORY "${PACKAGES_DIR}/production/lib/root")
     LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
   ENDIF ()
+ENDIF ()
+
+IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (MASTER_LINK_DIRS)
 ENDIF ()
 
 LINK_DIRECTORIES (${MASTER_LINK_DIRS})
@@ -795,12 +821,17 @@ foreach(exespec ${EXE_SPECS})
     set (EXTRA_SHARED_LINK_LIBS "")
   ENDIF ()
 
-  TARGET_LINK_LIBRARIES(${EXENAME}-exe
-          ${STATIC_FLAG} ${LINK_LIBS} 
-          ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
-          ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-          ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
-  )
+  IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+    TARGET_LINK_LIBRARIES(${EXENAME}-exe
+      )
+    ELSE ()
+      TARGET_LINK_LIBRARIES(${EXENAME}-exe
+        ${STATIC_FLAG} ${LINK_LIBS} 
+        ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
+        ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
+        ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
+	)
+    ENDIF ()
 
   SET(CFLAGS)
   SET(FFLAGS)
