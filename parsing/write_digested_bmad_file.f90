@@ -500,7 +500,7 @@ if (associated(ele%wake) .and. write_wake) then
   write (d_unit) ele%wake%sr_trans%mode
   write (d_unit) ele%wake%lr_file
   write (d_unit) ele%wake%lr
-  write (d_unit) ele%wake%z_sr_max
+  write (d_unit) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))
