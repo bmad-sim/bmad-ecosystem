@@ -2633,8 +2633,8 @@ Example:
 
   \begin{description} 
   \index{open}
-  \index{match_end}
-  \item[match_end] \Newline
+  \index{match_end}\index{match_end_input}
+  \item[match_end, match_end_input] \Newline
 The default value of \vn{match_end} is False. The \vn{match_end}
 attribute is used for appropriately setting the beginning design Twiss
 parameters from within a program. If the \vn{match_end} attribute is
@@ -2659,9 +2659,14 @@ parameter in the lattice that affects the calculated Twiss parameters
 through the \vn{match} element will not affect the \vn{match}
 element's transfer matrix.
 
-  \index{match_end_orbit}
-  \item[match_end_orbit]
-The \vn{match_end_orbit} attribute is similar to the \vn{match_end}
+When a lattice is read in, the \vn{match_end_input} attribute is set by \bmad to be equal
+to \vn{match_end}. This attribute is not settable by the user and is used to reconstruct
+the \vn{match_end} setting if a program creates a \bmad lattice file based upon the
+original lattice plus any modifications the program makes.
+
+  \index{match_end_orbit}\index{match_end_orbit_input}
+  \item[match_end_orbit, match-end_orbit_input]
+The \vn{match_end_orbit} attribute is similar in operation to the \vn{match_end}
 attribute. The default value of \vn{match_end_orbit} is False. When
 running a program, if \vn{match_end_orbit} is set to True, when any
 particle is tracked through the \vn{match} element, the \vn{match}
@@ -2674,6 +2679,12 @@ False by the program, the ending coordinate parameters, and hence the
 $\Bf V$ vector, will become fixed. As with the \vn{match_end}
 attribute, the \vn{match_end_orbit} attribute may only be used with
 \vn{open} lattices (\sref{s:param}).
+
+When a lattice is read in, the \vn{match_end_orbit_input} attribute is set by \bmad to be equal
+to \vn{match_end_orbit}. This attribute is not settable by the user and is used to reconstruct
+the \vn{match_end_orbit} setting if a program creates a \bmad lattice file based upon the
+original lattice plus any modifications the program makes.
+
 
 \end{description}
 

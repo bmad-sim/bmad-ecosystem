@@ -5528,6 +5528,12 @@ case (wiggler$, undulator$)
 
   endif
 
+!
+
+case (match$)
+  ele%value(match_end_input$) = ele%value(match_end$)
+  ele%value(match_end_orbit_input$) = ele%value(match_end_orbit$)
+
 ! check for inconsistancies
 
 case (solenoid$)

@@ -854,9 +854,10 @@ do ib = 0, ubound(lat%branch, 1)
     y_lim_good = .false.
     if (y_lim /=0 .and. ele%value(y2_limit$) == y_lim) y_lim_good = .true.
 
+    !----------------------------------------------------------------------------
     ! Print the element attributes.
 
-    do j = 1, num_ele_attrib$
+    attribute_loop: do j = 1, num_ele_attrib$
       attrib = attribute_info(ele, j)
       val = ele%value(j)
       if (val == ele_dflt%value(j)) cycle
@@ -868,6 +869,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
+      if (attrib%name == 'MATCH_END') val = ele%value(match_end_input$)
+      if (attrib%name == 'MATCH_END_ORBIT') val = ele%value(match_end_orbit_input$)
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
@@ -898,8 +901,9 @@ do ib = 0, ubound(lat%branch, 1)
           endif
       end select
 
-    enddo ! attribute loop
+    enddo attribute_loop ! attribute loop
 
+    !----------------------------------------------------------------------------
     ! Print the combined limits if needed.
 
     if (x_lim_good .and. y_lim_good .and. x_lim == y_lim) then
