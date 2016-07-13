@@ -49,7 +49,7 @@ if (print_extra) then
   endif
 endif
 
-if (lat%beam_start%spin(1) /= 0 .or. lat%beam_start%spin(2) /= 0) then
+if (any(lat%beam_start%spin /= 0)) then
   bmad_com%spin_tracking_on = .true.
 endif
 
