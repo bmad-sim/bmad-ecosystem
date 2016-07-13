@@ -1,7 +1,6 @@
 program make_a_matching_knob
 
   use bmad
-  use sls_lib
   use calc_ring_mod
   use make_pseudoinverse_mod
 
