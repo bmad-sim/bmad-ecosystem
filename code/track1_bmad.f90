@@ -39,7 +39,7 @@ type (taylor_struct) taylor1(6), taylor2(6)
 
 real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
-real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
+real(rp) sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, kss, ksr, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
@@ -698,11 +698,8 @@ case (rfcavity$)
 
   voltage = e_accel_field(ele, voltage$) * charge_dir
 
-  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
           (particle_ref_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
-  phase = phase0
-
-  t0 = end_orb%t
 
   call rf_coupler_kick (ele, param, first_track_edge$, phase, end_orb)
 
@@ -723,8 +720,9 @@ case (rfcavity$)
     endif
 
     if (i /= n_slice) then
+      z = end_orb%vec(5)
       call track_a_drift (end_orb, length/n_slice)
-      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref/n_slice - (end_orb%t - t0)) 
+      phase = phase + twopi * ele%value(rf_frequency$) * (end_orb%vec(5) - z) / (c_light * end_orb%beta)
     endif
 
   enddo
