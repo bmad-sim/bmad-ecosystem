@@ -22,7 +22,7 @@ gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
 
 g_cc: group = {cc}, accordion_edge
 
-sbend0: sbend, r_custom(3) = 4, 
+sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F,
       grid_field = {
         geometry = xyz,
         curved_coords = T,
