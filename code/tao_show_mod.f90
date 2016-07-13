@@ -191,6 +191,7 @@ type show_lat_column_struct
 end type
 
 type (show_lat_column_struct) column(50)
+type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot
@@ -240,7 +241,6 @@ logical print_global, print_optimization, print_bmad_com, print_csr_param, print
 logical valid_value, print_floor, show_section, is_complex, print_header
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
-logical, allocatable, save :: good(:)
 
 namelist / custom_show_list / column
 
@@ -2288,7 +2288,7 @@ case ('lattice')
         if (.not. at_ends .and. ix /= 0) then
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif
-        call tao_evaluate_expression (name, 1, .false., value, good, err, .false., &
+        call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
                                                   dflt_component = lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) cycle line_loop
@@ -3250,7 +3250,7 @@ case ('use')
 
 case ('value')
 
-  call tao_evaluate_expression (stuff2, 0, .false., value, good, err)
+  call tao_evaluate_expression (stuff2, 0, .false., value, info, err)
   if (err) return
 
   if (size(value) == 1) then
