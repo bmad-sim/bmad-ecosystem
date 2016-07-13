@@ -24,7 +24,6 @@ subroutine xy_to_action(ring, ix, X, J, ok)
 
   sqrtabeta = sqrt(ele%a%beta)
   sqrtbbeta = sqrt(ele%b%beta)
-  !write(*,*) "FOO: ", sqrtabeta, sqrtbbeta
 
   Afour = 0.0d0
   Afour(1,1) = sqrtabeta

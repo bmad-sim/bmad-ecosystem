@@ -18,7 +18,7 @@ real(rp) set_chrom_x
 real(rp) set_chrom_y
 character*100 initial_pop
 character*5 chrom_mode ! 'tunes' or 'trace'
-integer seed(1)
+integer seed
 integer generate_feasible_seeds_only
 type(breeder_params_struct) breeder_params
 integer max_gen

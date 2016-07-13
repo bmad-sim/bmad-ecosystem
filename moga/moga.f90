@@ -6,6 +6,7 @@ program moga
   use pisa_mod
   use calc_ring_mod
   use dynap_mod
+  use crm_mod
   use linear_aperture_mod
   use namelist_general !general: lat_file, use_hybrid
   use namelist_da !da: tracking_method, n_adts, n_turn, n_angle, track_dims, dE(max_dE), init_len
@@ -19,7 +20,7 @@ program moga
   type (lat_struct) ring
   type (lat_struct) ring0
   type (lat_struct) ring_use
-  type (lat_struct) ring_temp
+  type (crm_struct) crm
   type (ele_pointer_struct), allocatable :: eles(:)
   type (custom_aperture_scan_struct) da_config
   type (custom_aperture_scan_struct) da_block_linear
@@ -53,15 +54,12 @@ program moga
   character*18 var_str
   character*30 set_str
   integer iostat
-  type(mag_struct), allocatable :: l_mags(:)
-  type(mag_struct), allocatable :: c_mags(:)
+  type(mag_struct), pointer :: l_mags(:)
+  type(mag_struct), pointer :: c_mags(:)
   type(mag_struct), allocatable :: h_mags(:)
 
   integer n_omega
 
-  real(rp), allocatable :: ApC(:)
-  real(rp), allocatable :: Q1(:,:)
-  real(rp), allocatable :: Q1t(:,:)
   real(rp), allocatable :: etax_base(:)
   real(rp), allocatable :: etay_base(:)
   real(rp) co_screen, co_screen_x, co_screen_y
@@ -90,6 +88,7 @@ program moga
   integer stats_feasible
 
   !moga vars
+  real(rp), allocatable :: K2(:)
   type(pool_struct), allocatable :: pool(:)
   type(pop_struct), allocatable :: pop(:)
   integer, allocatable :: arc(:)
@@ -97,7 +96,6 @@ program moga
   integer, allocatable :: sel(:)
   real(rp) omega_bound_lir
   real(rp) omega_bound_uir
-  real(rp), allocatable :: K2(:)
   real(rp) r
   logical fp_flag
 
@@ -109,6 +107,7 @@ program moga
   logical master
 
   real(rp), allocatable :: vars(:)
+  real(rp), allocatable :: vars_phys(:)
   real(rp), allocatable :: objs(:)
   real(rp), allocatable :: cons(:)
   integer worker_id, worker_status
@@ -221,9 +220,7 @@ program moga
   if( master ) write(*,*) "preparing lattice..."
 
   bp_com%always_parse = .true.
-  write(*,*) "FOO slave W", lat_file
   call bmad_parser(lat_file,ring)
-  write(*,*) "FOO slave X"
 
   allocate(co(0:ring%n_ele_track))
   allocate(orb(0:ring%n_ele_track))
@@ -263,6 +260,7 @@ program moga
       endif
     enddo
   endif
+  call calc_ring(ring,4,co,err_flag)
 
   !+ Allocate space in master for storing gene pool
   if( master ) then
@@ -273,32 +271,34 @@ program moga
       allocate(pool(i)%x(n_vars))
     enddo
   endif
-  !+ setup chromaticity response matrix and vector
-  allocate(ApC(n_chrom)) !coarray
-  allocate(Q1(n_chrom,n_omega)) !coarray
-  allocate(Q1t(n_omega,n_chrom))
 
-  ! build chromaticity matrices
-  call build_chrom_mat(ring0, set_chrom_x, set_chrom_y, c_mags, ApC, Q1, err_flag)
+  !+ setup chromaticity response matrix and vector
+  call crm_alloc(crm,n_chrom)
+  crm%set_chrom_x = set_chrom_x
+  crm%set_chrom_y = set_chrom_y
+  crm%l_mags => l_mags
+  crm%c_mags => c_mags
+  call crm_build(ring, crm, err_flag)
   if(err_flag) then
     write(*,*) "could not build chromaticity matrices at program start.  aborting."
     call mpi_finalize(mpierr)
     stop
   endif
 
+  ! mutator on linear elements is simply copied over
+  do i=1,n_linear
+    breeder_params%mutate_delta(i) = l_mags(i)%mutate_delta
+  enddo
   ! transform mutator on k2 into mutator on chromatic subspace omega.
   do i=1,n_omega
-    Q1t = transpose(Q1)
-    breeder_params%mutate_delta(i) = norm2(Q1t(i,:)*c_mags(:)%mutate_delta)  !fortran * is element-wise multiplication
+    breeder_params%mutate_delta(i+n_linear) = norm2(crm%Q1t(i,:)*c_mags(:)%mutate_delta)  !fortran * is element-wise multiplication
   enddo
   ! mutator on harmonic multipoles are simply copied over
   do i=1, n_harmo 
-    breeder_params%mutate_delta(i+n_omega) = h_mags(i)%mutate_delta
+    breeder_params%mutate_delta(i+n_linear+n_omega) = h_mags(i)%mutate_delta
   enddo
 
   !-
-  call calc_ring(ring,4,co,err_flag)
-
   allocate(etax_base(1:ring%n_ele_track))
   etax_base(:) = ring%ele(1:ring%n_ele_track)%a%eta
   allocate(etay_base(1:ring%n_ele_track))
@@ -326,6 +326,7 @@ program moga
   !-
   allocate(k2(n_chrom))
   allocate(vars(n_vars))
+  allocate(vars_phys(n_mags))
   allocate(objs(dim))
   allocate(cons(con))  !zero length arrays are ok in fortran
   allocate(lambda_vec(mu))
@@ -355,6 +356,7 @@ program moga
     do i=1,size(pop)
       allocate(pop(i)%o(dim))
       allocate(pop(i)%x(n_vars))
+      allocate(pop(i)%x_phys(n_mags))
       allocate(pop(i)%c(con))
     enddo
     allocate(arc(alpha))
@@ -365,34 +367,43 @@ program moga
     ! generate or read initial population
     if ( trim(initial_pop) == 'random' ) then
       do i=1,size(pool)
+        ! bounds on linear magnets are simply copied over
+        do j=1, n_linear 
+          call random_number(r)
+          pool(i)%x(j) = r*(l_mags(j)%uir-l_mags(j)%lir) + l_mags(j)%lir
+        enddo
+
         ! transform bound on k2 into bounds on omega.
-        Q1t = transpose(Q1)
         do j=1,n_omega
           omega_bound_lir = 0.0d0
           omega_bound_uir = 0.0d0
           do k=1,n_chrom
-            if(Q1t(j,k) < 0.0d0) then
-              omega_bound_lir = omega_bound_lir + Q1t(j,k)*c_mags(k)%uir
-              omega_bound_uir = omega_bound_uir + Q1t(j,k)*c_mags(k)%lir
+            if(crm%Q1t(j,k) < 0.0d0) then
+              omega_bound_lir = omega_bound_lir + crm%Q1t(j,k)*c_mags(k)%uir
+              omega_bound_uir = omega_bound_uir + crm%Q1t(j,k)*c_mags(k)%lir
             else
-              omega_bound_lir = omega_bound_lir + Q1t(j,k)*c_mags(k)%lir
-              omega_bound_uir = omega_bound_uir + Q1t(j,k)*c_mags(k)%uir
+              omega_bound_lir = omega_bound_lir + crm%Q1t(j,k)*c_mags(k)%lir
+              omega_bound_uir = omega_bound_uir + crm%Q1t(j,k)*c_mags(k)%uir
             endif
           enddo
           call random_number(r)
-          pool(i)%x(j) = r*(omega_bound_uir-omega_bound_lir) + omega_bound_lir
+          pool(i)%x(j+n_linear) = r*(omega_bound_uir-omega_bound_lir) + omega_bound_lir
         enddo
 
         ! bounds on harmonic magnets are simply copied over
         do j=1, n_harmo 
           call random_number(r)
-          pool(i)%x(j+n_omega) = r*(h_mags(j)%uir-h_mags(j)%lir) + h_mags(j)%lir
+          pool(i)%x(j+n_linear+n_omega) = r*(h_mags(j)%uir-h_mags(j)%lir) + h_mags(j)%lir
         enddo
         pool(i)%name = i
       enddo
     elseif ( trim(initial_pop) .ne. '' ) then
-      ring_temp = ring
-      call read_initial_population(pool, alpha, n_chrom, n_harmo, initial_pop, ring_temp, set_chrom_x, set_chrom_y, c_mags)
+      call read_initial_population(pool, alpha, n_linear, n_chrom, n_harmo, initial_pop, ring, crm, err_flag)
+      if(err_flag) then
+        write(*,*) "Error reading initial population.  aborting."
+        call mpi_finalize(mpierr)
+        stop
+      endif
       do i=1,pool_gap
         !pool(alpha+i)%x = pool(i)%x
         pool(alpha+i)%x = 0.0d0
@@ -420,8 +431,9 @@ program moga
       call find_empty_pop_slot(pop(:),slot_num)
       pop(slot_num)%name = name
       call mpi_recv(pop(slot_num)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 4, MPI_COMM_WORLD, mpistatus, mpierr)
-      call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
-      call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
+      call mpi_recv(pop(slot_num)%x_phys(:), n_mags, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
+      call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
+      call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 7, MPI_COMM_WORLD, mpistatus, mpierr)
 
       n_recv = n_recv + 1
 
@@ -471,10 +483,10 @@ program moga
 
     !make new output files, write header
     open(unit=21, iostat=iostat, file=moga_output_file, access='append')
-    write(21,'(a6,50a19)') '# id', (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
+    write(21,'(a6,50a19)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
     close(21)
     open(unit=21, iostat=iostat, file=thin_file, access='append')
-    write(21,'(a6,50a10)') '# id', (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
+    write(21,'(a6,50a10)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
     close(21)
     open(unit=22, iostat=iostat, file='constraint_report.out', access='append')
     write(22,'(a6,30a18)') '# id', 'max|k2|', 'eta@+de', 'eta@-de', 'nux@-de', 'nux@+de', 'nuy@-de', 'nuy@+de', 'nux0', 'nuy0'
@@ -499,8 +511,8 @@ program moga
       last_arc = arc
       call read_pisa_indexes(prefix,'arc',narc,arc)
       call delete_the_dead(pop(:),arc,narc)
-      call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, gen_num-1,moga_output_file)
-      call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, gen_num-1,thin_file, prec=2)
+      call write_population(pop, generate_feasible_seeds_only, n_linear, n_chrom, gen_num-1, moga_output_file)
+      call write_population(pop, generate_feasible_seeds_only, n_linear, n_chrom, gen_num-1, thin_file, prec=2)
       call write_constraint_report(pop(:),gen_num-1,'constraint_report.out')
       call write_objective_report(pop(:),gen_num-1,'objective_report.out')
       if( generate_feasible_seeds_only .gt. 0 ) then
@@ -526,8 +538,9 @@ program moga
         call find_empty_pop_slot(pop(:),slot_num)
         call mpi_recv(pop(slot_num)%name, 1, MPI_INTEGER, from_id, 3, MPI_COMM_WORLD, mpistatus, mpierr)
         call mpi_recv(pop(slot_num)%x(:), n_vars, MPI_DOUBLE_PRECISION, from_id, 4, MPI_COMM_WORLD, mpistatus, mpierr)
-        call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
-        call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%x_phys(:), n_mags, MPI_DOUBLE_PRECISION, from_id, 5, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%o(:), dim, MPI_DOUBLE_PRECISION, from_id, 6, MPI_COMM_WORLD, mpistatus, mpierr)
+        call mpi_recv(pop(slot_num)%c(:), con, MPI_DOUBLE_PRECISION, from_id, 7, MPI_COMM_WORLD, mpistatus, mpierr)
 
 
         feasible = all( pop(slot_num)%c(:) .ge. 0.0d0 )
@@ -573,8 +586,8 @@ program moga
     call block_on_pisa_status(polli,prefix)
     call read_pisa_indexes(prefix,'arc',narc,arc)
     call delete_the_dead(pop(:),arc,narc)
-    call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, max_gen, moga_output_file) !write final population to log file
-    call write_population(pop, ApC, Q1, generate_feasible_seeds_only, n_chrom, max_gen, thin_file, prec=2) !write final population to log file
+    call write_population(pop, generate_feasible_seeds_only, n_linear, n_chrom, max_gen, moga_output_file) !write final population to log file
+    call write_population(pop, generate_feasible_seeds_only, n_linear, n_chrom, max_gen, thin_file, prec=2) !write final population to log file
     call write_constraint_report(pop(:),max_gen,'constraint_report.out')
     call write_objective_report(pop(:),max_gen,'objective_report.out')
     call write_state(prefix,5) !tell pisa selector to shut down
@@ -607,8 +620,9 @@ program moga
         write(*,'(a,i5,a,i8)') "worker ", myrank, " processed name ", name
         call mpi_send(name, 1, MPI_INTEGER, 0, 3, MPI_COMM_WORLD, mpierr)
         call mpi_send(vars, n_vars, MPI_DOUBLE_PRECISION, 0, 4, MPI_COMM_WORLD, mpierr)
-        call mpi_send(objs, dim, MPI_DOUBLE_PRECISION, 0, 5, MPI_COMM_WORLD, mpierr)
-        call mpi_send(cons, con, MPI_DOUBLE_PRECISION, 0, 6, MPI_COMM_WORLD, mpierr)
+        call mpi_send(vars_phys, n_mags, MPI_DOUBLE_PRECISION, 0, 5, MPI_COMM_WORLD, mpierr)
+        call mpi_send(objs, dim, MPI_DOUBLE_PRECISION, 0, 6, MPI_COMM_WORLD, mpierr)
+        call mpi_send(cons, con, MPI_DOUBLE_PRECISION, 0, 7, MPI_COMM_WORLD, mpierr)
       else
         first_loop = .false.
       endif
@@ -627,17 +641,31 @@ program moga
       objs(2) = 1.0d0
       objs(3) = 1.0d0
 
-      !- apply magnet strengths to lattice
-      call omega_to_k2(vars(1:n_omega),ApC,Q1,k2)
+      if(n_linear .gt. 0) then
+        call set_magnet_strengths(l_mags,ring,vars(1:n_linear))
+        call crm_build(ring, crm, err_flag)
+      endif
+
+      !- calculate K2 values
+      call omega_to_k2(vars(1+n_linear:n_linear+n_omega),crm,k2)
       call set_magnet_strengths(c_mags,ring,k2)
 
-      call set_magnet_strengths(h_mags,ring,vars(1+n_omega:n_harmo+n_omega))
+      call set_magnet_strengths(h_mags,ring,vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega))
 
-      call lattice_bookkeeper(ring)
+      vars_phys(1:n_linear) = vars(1:n_linear)
+      vars_phys(1+n_linear:n_linear+n_chrom) = k2
+      vars_phys(1+n_linear+n_chrom:n_linear+n_chrom+n_harmo) = vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega)
 
       !- screen magnet strengths
       cons(1) = -10.0    !sextupole moments
       str_cons = 0.00000001d0
+      do i=1, n_linear
+        if(vars(i) .lt. l_mags(i)%lb) then
+          str_cons = str_cons + (vars(i) - l_mags(i)%lb)/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
+        elseif(vars(i) .gt. l_mags(i)%ub) then
+          str_cons = str_cons + (l_mags(i)%ub - vars(i))/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
+        endif
+      enddo
       do i=1, n_chrom
         if(k2(i) .lt. c_mags(i)%lb) then
           str_cons = str_cons + (k2(i) - c_mags(i)%lb)/(abs(c_mags(i)%ub)+abs(c_mags(i)%lb))
@@ -646,10 +674,10 @@ program moga
         endif
       enddo
       do i=1, n_harmo
-        if(vars(i+n_omega) .lt. h_mags(i)%lb) then
-          str_cons = str_cons + (vars(i+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
-        elseif(vars(i+n_omega) .gt. h_mags(i)%ub) then
-          str_cons = str_cons + (h_mags(i)%ub - vars(i+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+        if(vars(i+n_linear+n_omega) .lt. h_mags(i)%lb) then
+          str_cons = str_cons + (vars(i+n_linear+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+        elseif(vars(i+n_linear+n_omega) .gt. h_mags(i)%ub) then
+          str_cons = str_cons + (h_mags(i)%ub - vars(i+n_linear+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
         endif
       enddo
       cons(1) = str_cons
