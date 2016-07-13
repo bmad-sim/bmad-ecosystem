@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 182
+integer, parameter :: bmad_inc_version$ = 183
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -418,17 +418,20 @@ type wake_lr_struct    ! Long-Range Wake struct.
   logical :: polarized = .false.   ! Polaraized mode?
 end type
 
-! The wake_lr1_struct is used for modeling a long range wake using a single macroparticle per bunch.
+! The wake_lr1_struct is used for modeling a long range wake assuming the wake does not change
+! over the time period of a bunch.
 
 type wake_lr1_struct
   real(rp) :: vec(6) = 0   ! (x, px, y, py, z, pz) of bunch
   real(rp) :: t = 0        ! Time of bunch
 end type
 
-type wake_lr1_array_struct
+type wake_lr_formula_struct
   character(200) :: formula = ''
-  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation for the formula
+  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack for the formula
   type (wake_lr1_struct), allocatable :: lr1(:)          ! Array of past bunch positions
+  real(rp) :: t_max = 0         ! Maximum time beyound which the wake is taken to be zero.
+  real(rp) :: polarization_angle = 0      ! polarization angle (radians/2pi).
 end type
 
 !
@@ -439,7 +442,7 @@ type wake_struct
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_struct), allocatable :: lr(:)
-  type (wake_lr1_array_struct) :: lr1
+  type (wake_lr_formula_struct), allocatable :: lr_formula(:)
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
@@ -1042,15 +1045,17 @@ integer, parameter :: val1$=11, val2$=12, val3$=13, val4$=14, val5$=15, &
           val6$=16, val7$=17, val8$=18, val9$=19, val10$=20, val11$=21, &
           val12$=22
 
-integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
-          alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, &
-          alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11, &
-          eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
-          eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
-          match_end$ = 20, &
-          x0$ = 21, px0$ = 22, y0$ = 23, py0$ = 24, z0$ = 25, pz0$ = 26, &
-          x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
-          match_end_orbit$ = 33, c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39 
+integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4
+integer, parameter :: alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8
+integer, parameter :: alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11
+integer, parameter :: eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15
+integer, parameter :: eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
+integer, parameter :: match_end_input$ = 20, match_end$ = 21
+integer, parameter :: x0$ = 24, px0$ = 25, y0$ = 26, py0$ = 27, z0$ = 28, pz0$ = 29
+integer, parameter :: x1$ = 30, px1$ = 31, y1$ = 32, py1$ = 33, z1$ = 34, pz1$ = 35
+integer, parameter :: match_end_orbit_input$ = 36, match_end_orbit$ = 37
+
+integer, parameter :: c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8
