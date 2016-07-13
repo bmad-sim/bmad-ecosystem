@@ -20,7 +20,7 @@ subroutine tune_ele_by_ele(ring,orb0,n_turns,track_state,nu_x,nu_y,std_nu_x,std_
   type(coord_struct), allocatable :: orb(:)
   real(rp) d_nu_x, d_nu_y
   integer j
-  real(rp), allocatable :: nu_x_stash(:), nu_y_stash(:) !FOO
+  real(rp), allocatable :: nu_x_stash(:), nu_y_stash(:) 
 
   allocate(orb(0:ring%n_ele_track))
   allocate(nu_x_stash(1:n_turns))

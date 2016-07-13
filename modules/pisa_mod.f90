@@ -11,7 +11,8 @@ end type
 
 type pop_struct
   integer name
-  real(rp), allocatable :: x(:)  !variables
+  real(rp), allocatable :: x(:)  ! variables
+  real(rp), allocatable :: x_phys(:)  !variables
   real(rp), allocatable :: o(:)  !objectives
   real(rp), allocatable :: c(:)  !constraints
 end type
