@@ -5380,6 +5380,7 @@ real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4)
 
 integer n
 logical kick_set, length_set, set_done, err_flag
+logical b_field_set, g_set
 
 ! Wall3d init.
 
@@ -5423,20 +5424,23 @@ case (beginning_ele$)
 
 case (sbend$, rbend$, sad_mult$) 
 
+  b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(b_field_err$) /= 0)
+  g_set = (ele%value(g$) /= 0 .or. ele%value(g_err$) /= 0)
+
   if (ele%key /= sad_mult$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
   angle = ele%value(angle$) 
 
   ! Only one of b_field, g, or rho may be set.
   ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
 
-  if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call parser_error &
+  if (b_field_set .and. ele%key == rbend$) call parser_error &
           ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
 
-  if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call parser_error &
-          ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
+  if (b_field_set .and. g_set) call parser_error &
+          ('BOTH G (OR G_ERR) AND B_FIELD (OR B_FIELD_ERR) SET FOR A BEND: ' // ele%name)
 
-  if (ele%value(b_field$) /= 0 .and. ele%value(rho$) /= 0) call parser_error &
-          ('BOTH RHO AND B_FIELD SET FOR A BEND: ' // ele%name)
+  if (b_field_set .and. ele%value(rho$) /= 0) call parser_error &
+          ('BOTH RHO AND B_FIELD (OR B_FIELD_ERR) SET FOR A BEND: ' // ele%name)
 
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
