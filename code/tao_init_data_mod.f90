@@ -489,9 +489,9 @@ else
 
   do j = n1, n2
 
-    if (is_standard_data_type(u%data(j)%data_type)) then
-      if (u%data(j)%ele_name == '') cycle
-    endif
+    !! if (is_standard_data_type(u%data(j)%data_type)) then
+    !!  if (u%data(j)%ele_name == '') cycle
+    !! endif
 
     u%data(j)%exists = .true.
 

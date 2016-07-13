@@ -367,8 +367,9 @@ subroutine to_number (num_str, n_size, change_number, abs_or_rel, err)
 
 implicit none
 
+type (tao_expression_info_struct), allocatable, save :: info(:)
+
 real(rp), allocatable :: change_number(:)
-logical, allocatable, save :: good(:)
 integer ix, ios, n_size
 
 character(*) num_str
@@ -389,7 +390,7 @@ case ('@', 'd', '%')
   number_str(1:1) = ' '
 end select
 
-call tao_evaluate_expression (number_str, n_size, .false., change_number, good, err)
+call tao_evaluate_expression (number_str, n_size, .false., change_number, info, err)
 
 end subroutine
 

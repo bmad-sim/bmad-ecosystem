@@ -52,11 +52,19 @@ type tao_string_array_struct
   character(40), pointer :: s => null()
 end type
 
+! Note: Expressions may not have an associated lattice element or an associated longituinal position.
+
+type tao_expression_info_struct
+  logical :: good = .true.         ! Expression is valid.
+  integer :: ix_ele = -1           ! Element used for expression.
+  real(rp) :: s = real_garbage$    ! Longitudinal position of expression.
+end type
+
 type tao_eval_stack1_struct
   integer type
   character(60) :: name = ''  
   real(rp), allocatable :: value(:)
-  logical, allocatable :: good(:)
+  type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_real_pointer_struct), allocatable :: value_ptr(:)
 end type
 
@@ -682,10 +690,10 @@ type tao_scratch_space_struct
   type (tao_var_array_struct), allocatable :: var_array(:)
   type (all_pointer_struct), allocatable :: attribs(:)
   type (tao_data_var_component_struct), allocatable :: comp(:)
+  type (tao_expression_info_struct), allocatable :: info(:)
+  type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
-  logical, allocatable :: gx(:), gy(:), gix(:)
-  logical, allocatable :: good(:)
   real(rp), allocatable :: axis1(:), axis2(:)
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)

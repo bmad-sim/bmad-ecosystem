@@ -1240,6 +1240,7 @@ type (tao_real_pointer_struct), allocatable, save    :: r_var(:), r_set(:)
 type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
 type (tao_var_array_struct), allocatable, save     :: v_var(:)
 type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
+type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp), allocatable, save :: r_value(:)
 real(rp) value
@@ -1251,7 +1252,6 @@ character(20) set_is, component
 character(40) :: merit_type_names(2) = (/ 'target ', 'limit  ' /)
 
 logical err, l_value, err_flag
-logical, allocatable, save :: good(:)
 
 ! Decode variable component to set.
 
@@ -1306,7 +1306,7 @@ elseif (size(s_var) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_var) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, good, err, dflt_source = 'var')
+  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, info, err, dflt_source = 'var')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
@@ -1360,6 +1360,7 @@ type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp), allocatable, save :: r_value(:)
 integer i, ix, int_value, n_loc
@@ -1373,7 +1374,6 @@ character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
 character(40), target :: dummy
 logical err, l_value, valid_value
-logical, allocatable :: good(:)
 
 ! Decode data component to set.
 
@@ -1502,7 +1502,7 @@ elseif (size(s_dat) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_dat) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, good, err, dflt_source = 'data')
+  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, info, err, dflt_source = 'data')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return

@@ -437,6 +437,7 @@ type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
 type (spin_polar_struct) polar_spin
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
@@ -461,7 +462,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part
-logical, allocatable, save :: good_exp(:), good(:)
+logical, allocatable, save :: good(:)
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
 ! Exception: When there are datums that use expressions, things are 
@@ -1327,7 +1328,7 @@ case ('expression:')
 
   !! else ! Only do this first time through...
     write (dflt_dat_index, '(i0)') datum%ix_d1
-    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, good_exp, err, .true., &
+    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, info, err, .true., &
                datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
     if (err) return
     select case (datum%merit_type)
@@ -2968,15 +2969,16 @@ subroutine tao_to_real (expression, value, err_flag)
 
 character(*) :: expression
 
+type (tao_expression_info_struct), allocatable, save :: info(:)
+
 real(rp) value
 real(rp), allocatable, save :: vec(:)
 
-logical, allocatable, save :: ok(:)
 logical err_flag
 
 !
 
-call tao_evaluate_expression (expression, 1, .false., vec, ok, err_flag)
+call tao_evaluate_expression (expression, 1, .false., vec, info, err_flag)
 if (err_flag) return
 value = vec(1)
 
@@ -2987,7 +2989,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!      value, good, err_flag, print_err, stack, dflt_component, dflt_source, &
+!      value, info, err_flag, print_err, stack, dflt_component, dflt_source, &
 !      dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
 !
 ! Mathematically evaluates a character expression.
@@ -3010,7 +3012,7 @@ end subroutine
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
-!   good(:)   -- Logical, allocatable: Is the value valid? 
+!   info(:)    -- tao_expression_info_struct, allocatable: Is the value valid?, etc.
 !                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
 !                  orbit.x[23]|good_user is False.
 !   err_flag  -- Logical: True on an error. EG: Invalid expression.
@@ -3022,7 +3024,7 @@ end subroutine
 !-
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
-          good, err_flag, print_err, stack, dflt_component, dflt_source, &
+          info, err_flag, print_err, stack, dflt_component, dflt_source, &
           dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
 
 use random_mod
@@ -3030,6 +3032,7 @@ use random_mod
 type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+type (tao_expression_info_struct), allocatable :: info(:)
 
 integer, optional :: dflt_uni
 integer i_lev, i_op, i, ios, n, n_size, n__size
@@ -3047,7 +3050,6 @@ character(40) word, word2, default_source
 character(40) :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
-logical, allocatable :: good(:)
 logical delim_found, split, ran_function_pending, use_good_user
 logical err_flag, err, wild, printit
 logical, optional :: print_err
@@ -3089,7 +3091,7 @@ ran_function_pending = .false.
 
 do i = 1, size(stk)
   stk(i)%name = ''
-  if (allocated(stk(i)%good)) deallocate (stk(i)%good)
+  if (allocated(stk(i)%info)) deallocate (stk(i)%info)
   if (allocated(stk(i)%value_ptr)) deallocate (stk(i)%value_ptr)
 enddo
 
@@ -3450,7 +3452,7 @@ if (n_size /= 0) then
   n__size = n_size
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, good, err_flag, printit)
+call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, info, err_flag, printit)
 
 ! If the stack argument is present then copy stk to stack
 
@@ -3460,7 +3462,7 @@ if (present(stack)) then
   do i = 1, i_lev
     if (allocated (stk(i)%value)) then
       n = size(stk(i)%value)
-      allocate (stack(i)%value(n), stack(i)%good(n))
+      allocate (stack(i)%value(n), stack(i)%info(n))
       if (allocated (stack(i)%value_ptr)) allocate (stack(i)%value_ptr(n))
     endif
     stack(i) = stk(i)
@@ -3596,8 +3598,8 @@ endif
 if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, &
                                 dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
-  call re_allocate (stack%good, size(stack%value))
-  stack%good = .not. err_flag
+  call re_allocate_expression_info (stack%info, size(stack%value))
+  stack%info%good = .not. err_flag
   stack%type = lat_num$
   return
 
@@ -3605,8 +3607,8 @@ if (source == 'lat' .or. source == 'beam') then
 
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_source, dflt_component)
-  call re_allocate (stack%good, size(stack%value))
-  stack%good = .not. err_flag
+  call re_allocate_expression_info (stack%info, size(stack%value))
+  stack%info%good = .not. err_flag
   stack%type = ele_num$
   return
 
@@ -3645,9 +3647,11 @@ if (size(re_array) /= 0) then
   if (allocated(stack%value_ptr)) then
     if (size(stack%value_ptr) /= n) deallocate (stack%value_ptr)
   endif
+
   if (.not. allocated(stack%value_ptr)) allocate (stack%value_ptr(n))
   call re_allocate (stack%value, n)
-  call re_allocate (stack%good, n)
+  call re_allocate_expression_info (stack%info, n)
+
   do i = 1, n
     stack%value(i) = re_array(i)%r
     stack%value_ptr(i)%r => re_array(i)%r
@@ -3656,17 +3660,34 @@ if (size(re_array) /= 0) then
       stack%value_ptr(i)%good_user => re_array(i)%good_user
       stack%value_ptr(i)%good_value => re_array(i)%good_value
     else
-      stack%good(i) = .true.
+      stack%info(i)%good = .true.
     endif
+
+    select case (stack%type)
+    case (var_num$)
+      if (v_array(i)%v%exists) then
+        stack%info(i)%s      = v_array(i)%v%s
+        stack%info(i)%ix_ele = v_array(i)%v%this(1)%ix_ele
+        stack%info(i)%good   = v_array(i)%v%exists
+        stack%value_ptr(i)%good_user => v_array(i)%v%good_user
+      endif
+    case (data_num$)
+      if (d_array(i)%d%exists) then
+        stack%info(i)%s      = d_array(i)%d%s
+        stack%info(i)%ix_ele = d_array(i)%d%ix_ele
+        stack%info(i)%good   = d_array(i)%d%exists
+        stack%value_ptr(i)%good_user => d_array(i)%d%good_user
+      endif
+    end select
   enddo
 
 elseif (size(int_array) /= 0) then
   n = size(int_array)
   call re_allocate (stack%value, n)
-  call re_allocate (stack%good, n)
+  call re_allocate_expression_info (stack%info, n)
   do i = 1, n
     stack%value(i) = int_array(i)%i
-    stack%good(i)  = .true.
+    stack%info(i)%good  = .true.
   enddo
 
 else
@@ -3683,8 +3704,7 @@ end subroutine tao_param_value_routine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, 
-!                                                                err_flag, print_err)
+! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, info, err_flag, print_err)
 !
 ! Routine to evaluate an expression stack.
 !
@@ -3697,24 +3717,24 @@ end subroutine tao_param_value_routine
 !
 ! Output:
 !   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
-!   good(:)      -- Logical, allocatable: Is the value valid? 
+!   info(:)      -- tao_expression_info_struct, allocatable: Is the value valid? 
 !                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
 !                     orbit.x[23]|good_user is False.
 !   err_flag     -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, good, err_flag, print_err)
+subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, info, err_flag, print_err)
 
 type (tao_eval_stack1_struct), target :: stack(:)
 type (tao_eval_stack1_struct), pointer :: s(:)
 type (tao_eval_stack1_struct) stk2(20)
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: value(:)
 
 integer i, i2, j, n
 integer n_size
 
-logical, allocatable :: good(:)
 logical err_flag, use_good_user, print_err
 
 character(20) :: r_name = 'tao_evaluate_stack'
@@ -3724,26 +3744,39 @@ character(20) :: r_name = 'tao_evaluate_stack'
 s => stack   ! For debugging purposes
 err_flag = .true.
 
-call re_allocate (good, n_size)
 call re_allocate (value, n_size)
+call re_allocate_expression_info (info, n_size)
+info = tao_expression_info_struct()
 
-good = .true.
 do i = 1, size(stack)
+
   if (allocated(stack(i)%value_ptr)) then
     if (associated(stack(i)%value_ptr(1)%good_value)) then    
       do j = 1, size(stack(i)%value_ptr)
         if (use_good_user) then
-          stack(i)%good(j) = stack(i)%value_ptr(j)%good_value .and. stack(i)%value_ptr(j)%good_user
+          stack(i)%info(j)%good = stack(i)%value_ptr(j)%good_value .and. stack(i)%value_ptr(j)%good_user
         else
-          stack(i)%good(j) = stack(i)%value_ptr(j)%good_value
+          stack(i)%info(j)%good = stack(i)%value_ptr(j)%good_value
         endif
       enddo
     endif
   endif
-  if (.not. allocated(stack(i)%good)) cycle
-  if (size(stack(i)%good) == 1) then; good = good .and. stack(i)%good(1:1)
-  else;                               good = good .and. stack(i)%good
+
+  if (.not. allocated(stack(i)%info)) cycle
+
+  if (size(stack(i)%info) == 1) then
+    info%good = info%good .and. stack(i)%info(1:1)%good
+  else
+   info%good = info%good .and. stack(i)%info%good
   endif
+
+  if (size(stack(i)%info) == size(info)) then
+    do j = 1, size(info)
+      if (stack(i)%info(j)%s /= real_garbage$) info(j)%s = stack(i)%info(j)%s
+      if (stack(i)%info(j)%ix_ele > -1) info(j)%ix_ele = stack(i)%info(j)%ix_ele
+    enddo 
+  endif
+
 enddo
 
 ! Go through the stack and perform the operations...
@@ -3811,9 +3844,9 @@ do i = 1, size(stack)
       if (stk2(i2)%value(j) == 0) then  ! Divide by 0 error!
         stk2(i2)%value(j) = 1
         if (n == 1) then
-          good = .false.  ! All are false
+          info%good = .false.  ! All are false
         else
-          good(j) = .false.
+          info(j)%good = .false.
         endif
       endif
     enddo
@@ -3852,11 +3885,6 @@ do i = 1, size(stack)
   case (acos$) 
     stk2(i2)%value = acos(stk2(i2)%value)
 
-  case (factorial$) 
-    do n = 1, size(stk2(i2)%value)
-      stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
-    enddo
-
   case (atan$) 
     stk2(i2)%value = atan(stk2(i2)%value)
 
@@ -3876,6 +3904,11 @@ do i = 1, size(stack)
   case (exp$) 
     stk2(i2)%value = exp(stk2(i2)%value)
 
+  case (factorial$) 
+    do n = 1, size(stk2(i2)%value)
+      stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
+    enddo
+
   case (ran$) 
     i2 = i2 + 1
     call re_allocate(stk2(i2)%value, n_size)
@@ -3885,6 +3918,18 @@ do i = 1, size(stack)
     i2 = i2 + 1
     call re_allocate(stk2(i2)%value, n_size)
     call ran_gauss(stk2(i2)%value)
+
+  case (int$)
+    stk2(i2)%value = int(stk2(i2)%value)
+
+  case (nint$)
+    stk2(i2)%value = nint(stk2(i2)%value)
+
+  case (floor$)
+    stk2(i2)%value = floor(stk2(i2)%value)
+
+  case (ceiling$)
+    stk2(i2)%value = ceiling(stk2(i2)%value)
 
   case default
     call out_io (s_warn$, r_name, 'INTERNAL ERROR')
@@ -3903,7 +3948,7 @@ else
   call value_transfer (value, stk2(1)%value)
 endif
 
-where (.not. good) value = 0
+where (.not. info%good) value = 0
 
 err_flag = .false.
 
