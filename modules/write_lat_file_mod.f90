@@ -60,6 +60,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
 type (ele_struct), target :: ele_default(n_key$)
+type (ele_pointer_struct), allocatable :: named_eles(:)
 type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
@@ -243,7 +244,8 @@ write (iu, '(a)')
 
 ixs = 0
 n_names = 0
-allocate (names(lat%n_ele_max), an_indexx(lat%n_ele_max))
+n = lat%n_ele_max
+allocate (names(n), an_indexx(n), named_eles(n))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -288,13 +290,24 @@ do ib = 0, ubound(lat%branch, 1)
     ! Do not write anything for elements that have a duplicate name.
 
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-    if (ix_match > 0) cycle
+    if (ix_match > 0) then
+      ! Only check match elements for now.
+      if (ele%key == match$) then
+        if (any(named_eles(ix_match)%ele%value /= ele%value)) then
+          call out_io (s_fatal$, r_name, 'TWO MATCH ELEMENTS WITH THE SAME NAME HAVE DIFFERENT PARAMETERS! ' // ele%name)
+          return
+        endif
+      endif
+      cycle
+    endif
 
     if (size(names) < n_names + 1) then
       call re_allocate(names, 2*size(names))
       call re_allocate(an_indexx, 2*size(names))
+      call re_allocate_eles(named_eles, 2*size(names))
     endif
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+    named_eles(n_names)%ele => ele
 
     ! Overlays and groups
 
@@ -869,8 +882,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
-      if (attrib%name == 'MATCH_END') val = ele%value(match_end_input$)
-      if (attrib%name == 'MATCH_END_ORBIT') val = ele%value(match_end_orbit_input$)
+      !! if (attrib%name == 'MATCH_END') val = ele%value(match_end_input$)
+      !! if (attrib%name == 'MATCH_END_ORBIT') val = ele%value(match_end_orbit_input$)
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
