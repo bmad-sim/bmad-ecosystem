@@ -1,14 +1,12 @@
 set (EXENAME bbu_test)
 
-set (SRC_FILES
-  bbu_test/bbu_test.f90
-  bbu_test/bbu_track_mod.f90
-)
+FILE (GLOB SRC_FILES "bbu_test/*.f90")
 
 set (INC_DIRS
 )
 
 set (LINK_LIBS
+  bsim
   bmad 
   xsif
   xrlf03
@@ -16,6 +14,7 @@ set (LINK_LIBS
   sim_utils
   recipes_f-90_LEPP 
   forest 
+  pgplot
   lapack95
   lapack
   blas
