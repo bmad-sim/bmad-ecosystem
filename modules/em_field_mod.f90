@@ -291,7 +291,7 @@ end if
 !----------------------------------------------------------------------------
 ! Set up common variables for all (non-custom) methods
 
-ref_charge = sign_of(charge_of(param%particle))
+ref_charge = charge_of(param%particle)
 
 x = local_orb%vec(1)
 y = local_orb%vec(3)
