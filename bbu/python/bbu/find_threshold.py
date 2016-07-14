@@ -148,7 +148,11 @@ def calc_new_charge( t, bool_stable, rel_tol ):
   
   # Set new current value to try
   if (t['charge_try'] >= 0): # Better approx. found using interpolation
-    t['bunch_charge'] = t['charge_try']
+    #t['bunch_charge'] = t['charge_try']
+    if (t['charge1'] > 0):   # Have both stable and unstable points
+      t['bunch_charge'] = (t['charge0'] + t['charge1']) / 2
+    else:  # Still searching for an unstable point
+      t['bunch_charge'] = t['bunch_charge'] * 2
 
   else:
     if (t['charge1'] > 0):   # Have both stable and unstable points
@@ -269,9 +273,8 @@ def  run_bbu ( temp_curr, py_par, mode ):
 
     subprocess.call( py_par['exec_path'], shell = True)  # Run bbu 
 
-
-  if ( mode == 'drscan' or 'phase_scan'):
-    print ('Including lat2.lat')
+  if ( mode == 'drscan' or mode == 'phase_scan'):
+    print ('Including lat2.lat...')
     # Update bbu.init with the new lat2 and temp_curr
     template_file = open(os.path.join(py_par['temp_dir'], 'bbu_template.init'), 'r' ) 
     temp_file = open(os.path.join(py_par['temp_dir'],'bbu.init'), 'wt')   

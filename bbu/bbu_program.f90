@@ -56,6 +56,7 @@ call bmad_parser (bbu_param%lat_filename, lat_in) !! lat_in is the parsed lattic
 
 call run_timer ('START')
 
+!print *, 'lat2 file name is:', bbu_param%lat2_filename
 !For DR-scan, parse additional lattice (lat2) 
 if (bbu_param%lat2_filename /= '') then
   print *, 'DR-scan or Phase-scan, parsing: ',bbu_param%lat2_filename

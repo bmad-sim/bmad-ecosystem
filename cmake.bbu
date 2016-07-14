@@ -2,7 +2,7 @@ set (EXENAME bbu)
 
 set (SRC_FILES
   bbu/bbu_program.f90
-  bbu/bbu_track_mod.f90
+  code/bbu_track_mod.f90
 )
 
 set (INC_DIRS
@@ -18,7 +18,6 @@ set (LINK_LIBS
   recipes_f-90_LEPP
   forest
   pgplot
-  xsif
   lapack95
   lapack
   blas
