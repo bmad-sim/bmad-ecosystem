@@ -40,7 +40,7 @@ py_par = {  \
 
 ############## Parameters for DR_SCAN  mode:   #################################
 
-'ndata_pnts_DR': 25,   # integer >=2 required
+'ndata_pnts_DR': 11,   # integer >=2 required
 
 # For something like the PRSTAB 7, Fig. 3, try startarctime = 4.028E-9, endarctime = 4.725E-9, bunch_freq = 1.3E9
 'start_dr_arctime': 4.028*10**-9,  
