@@ -505,22 +505,36 @@ Examples:
 \label{s:python}
 
 The \vn{python} command is like the \vn{show} command in that the \vn{python} command
-prints information to the terminal.  The difference is that the output from the \vn{show}
+prints information to the terminal. The difference is that the output from the \vn{show}
 command is meant for viewing by the user while the output of the \vn{python} command is
-meant for easy parsing.
+meant for easy parsing. Format:
+\begin{example}
+  python \{-append <file_name>\} \{-noprint\} <what_to_print>
+  python \{-write <file_name>\} \{-noprint\} <what_to_print>
+\end{example}
 
-The \vn{python} command can be used to pass information to a parent process when \tao is
-run as a subprocess.  The parent process may be any scripting program like Python, Perl,
-Tcl, etc.  In particular, see \sref{c:python} for details on how to run \tao as a Python
-subprocess.
+The \vn{python} command has \vn{-append} and \vn{-write} optional arguments which can be
+used to write the results to a file. The \vn{python -append} command will appended to the
+output file. The \vn{python -write} command will first erase the contents of the output
+file. Example:
+\begin{example}
+  python -write d2.dat data_d2    ! Write to file "d2.dat"
+\end{example}
+
+The \vn{-noprint} option suppresses printing and is useful when writing large amounts of
+data to a file.  The \vn{python} command can be used to pass information to a parent
+process when \tao is run as a subprocess.  The parent process may be any scripting program
+like Python, Perl, Tcl, etc.  In particular, see \sref{c:python} for details on how to run
+\tao as a Python subprocess.
 
 For long term maintainability of python scripts, the advantage of using the \vn{python}
 command in the scripts over the \vn{show} command comes from the fact that the output
 syntax of the \vn{show} command can (and does) change.
 
-Note: At this point in time, the \vn{python} command is just beginning to be
-developed. And this manual will be updated as things evolve. If you have a specific need,
-please contact David Sagan.
+For further documentation on the python command, please look at the file tao/code/tao_python.f90.
+
+Note: At this point in time, the \vn{python} command is still in development.  Please
+contact David Sagan if needed.
 
 %% quit --------------------------------------------------------------
 \section{quit}\index{commands!quit}

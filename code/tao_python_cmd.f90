@@ -23,6 +23,7 @@
 subroutine tao_python_cmd (input_str)
 
 use tao_mod
+use tao_command_mod
 use location_encode_mod
 
 implicit none
@@ -63,32 +64,58 @@ type (tao_scratch_space_struct), pointer :: ss
 character(*) input_str
 character(24) imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) max_loc, loc_ele, name1(40), name2(40)
-character(200) line
+character(200) line, file_name
 character(20) cmd, command
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(32)= &
+character(20) :: cmd_names(24)= &
           ['plot_visible   ', 'plot_template  ', 'graph          ', 'curve          ', &
            'plot1          ', 'var_all        ', 'var_v1         ', 'var1           ', &
            'help           ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
-           'print          ', 'data_d2        ', 'data_d1        ', 'data1          ', &
+           'lat_global     ', 'data_d2        ', 'data_d1        ', 'data1          ', &
            'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
-           'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ', &
-           'lat_global     ', '               ', '               ', '               ', &
-           '               ', '               ', '               ', '               ' ]
+           'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ']
 
 real(rp) target_value, angle
 
-integer :: i, j, ie, iu, ix, md, nl, ct, n1, nl2, n
+integer :: i, j, ie, iu, md, nl, ct, n1, nl2, n, ix, iu_write
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
 integer :: ios
-logical :: err, print_flag
+logical :: err, print_flag, opened, doprint
+
+character(20) switch
 
 !
 
+line = input_str
+doprint = .true.
+opened = .false.
 
+do
+  call tao_next_switch (line, ['-append ', '-write  ', '-noprint'], .false., switch, err, ix)
+  if (err) return
+  if (switch == '') exit
 
+  select case (switch)
+  case ('-noprint')
+    doprint = .false.
 
-call string_trim(input_str, line, ix)
+  case ('-append', '-write')
+    call string_trim(line, line, ix)
+    file_name = line(:ix)
+    call string_trim(line(ix+1:), line, ix)
+
+    iu_write = lunget()
+    if (switch == '-append') then
+      open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 200)
+    else
+      open (iu_write, file = file_name, status = 'REPLACE', recl = 200)
+    endif
+
+    opened = .true.
+  end select
+enddo
+
+call string_trim(line, line, ix)
 cmd = line(1:ix)
 call string_trim(line(ix+1:), line, ix)
 
@@ -115,18 +142,6 @@ if (.not. allocated(scratch%lines)) allocate (scratch%lines(200))
 select case (command)
 
 !----------------------------------------------------------------------
-! print
-! Prints to the screen the contents of scratch%lines. Used for debugging.
-
-case ('print')
-  nl = ss%n_lines
-  if (nl > 0 ) then 
-    call out_io (s_blank$, r_name, ss%lines(1:nl))  
-  else
-    call out_io (s_blank$, r_name, 'scratch%lines is empty')
-  endif
-  
-!----------------------------------------------------------------------
 ! help
 ! returns list of "help xxx" topics
 
@@ -151,7 +166,7 @@ case ('help')
 !----------------------------------------------------------------------
 ! data used in optimizations (with datum%useit_opt = T). 
 ! Input syntax: 
-!   constrint_data
+!   python constrint_data
 ! Output syntax:
 !   <datum_name>;<constraint_type>;<ref_ele>;<start_ele>;<ele>;<meas_value>;<model_value>;<merit_value>;<max_merit_location>
 ! Example output line:
@@ -186,7 +201,7 @@ enddo
 !----------------------------------------------------------------------
 ! Variables used in optimizations (with var%useit_opt = T). 
 ! Input syntax:  
-!   constrint_vars
+!   python constrint_vars
 ! Output syntax:
 !   <var_name>;<attribute_name>;<lattice_element>;<target_value>;<model_value>;<merit_value>
 
@@ -228,9 +243,9 @@ do i = 1, s%n_var_used
 enddo
 
 !----------------------------------------------------------------------
-! Curve for a plot
+! Curve information for a plot
 ! Input syntax:
-!   curve <curve>
+!   pyton curve <curve_name>
 ! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('curve')
@@ -273,9 +288,9 @@ case ('curve')
   endif
 
 !----------------------------------------------------------------------
-! Curve for a plot
+! Points used to construct a smooth line for a plot curve.
 ! Input syntax:
-!   curve <curve>
+!   python curve <curve>
 ! Output syntax: 
 !   <index>;<x>;<y>;
 
@@ -294,9 +309,9 @@ case ('curve_line')
   endif
 
 !----------------------------------------------------------------------
-! Curve for a plot
+! Locations to draw symbols for a plot curve.
 ! Input syntax:
-!   curve <curve>
+!   python curve <curve>
 ! Output syntax: 
 !   <index>;<symbol_index>;<x>;<y>;
 
@@ -315,9 +330,11 @@ case ('curve_sym')
   endif
 
 !----------------------------------------------------------------------
-! List of datums in a given data d1 array
+! List of datums in a given data d1 array.
+! Use the "python data_d2" command to get a list of d2.d1 arrays. 
+! Use the "python data1" command to get detailed information on a particular datum.
 ! Input syntax:
-!   data_d1 <d1_datum>
+!   python data_d1 <d1_datum>
 ! Output syntax: 
 !   <index>;<data_type>;<merit_type>;<ele_ref_name>;<ele_start_name>;<ele_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;<useit_plot>;
 
@@ -363,8 +380,9 @@ case ('data_d1')
 
 !----------------------------------------------------------------------
 ! D2 level data. 
+! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Input syntax:
-!   data_d2
+!   python data_d2
 ! Output syntax: 
 !   <ix_universe>;<d2_name>;<d1_name>;<lbound_d_array>;<ubound_d_array>;<useit_list>;
 
@@ -393,9 +411,10 @@ case ('data_d2')
   enddo
 
 !----------------------------------------------------------------------
-! Individual datum
+! Individual datum info.
+! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Input syntax:
-!   data1 <datum_name>
+!   python data1 <datum_name>
 ! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('data1')
@@ -449,7 +468,7 @@ case ('data1')
 !----------------------------------------------------------------------
 ! All parameters associated with given element. 
 ! Input syntax: 
-!   ele1_all <ix_ele> <ix_branch> <ix_universe>
+!   python ele1_all <ix_ele> <ix_branch> <ix_universe>
 
 case ('ele1_all')
   read (line, *,  iostat = ios) ix_ele, ix_branch, ix_universe
@@ -482,7 +501,7 @@ case ('ele1_all')
 !----------------------------------------------------------------------
 ! Attribute list. Shows which attributes are adjustable.
 ! Input syntax: 
-!   ele1_all <ix_ele> <ix_branch> <ix_universe>
+!   python ele1_all <ix_ele> <ix_branch> <ix_universe>
 
 case ('ele1_attrib')
 
@@ -490,14 +509,14 @@ case ('ele1_attrib')
 !----------------------------------------------------------------------
 ! Global parameters
 ! Input syntax: 
-!   global
+!   python global
 
 case ('global')
 
 !----------------------------------------------------------------------
 ! Lattice element list.
 ! Input syntax:
-!   lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
+!   python lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
 ! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('graph')
@@ -560,7 +579,7 @@ case ('graph')
 !----------------------------------------------------------------------
 ! Lattice element list.
 ! Input syntax:
-!   lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
+!   python lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
 
 case ('lat_ele_list')
 
@@ -569,7 +588,7 @@ case ('lat_ele_list')
 !----------------------------------------------------------------------
 ! Lattice globals.
 ! Input syntax:
-!   lat_global <ix_universe>
+!   python lat_global <ix_universe>
 
 case ('lat_global')
   read (line, *,  iostat = ios)  ix_universe
@@ -595,7 +614,7 @@ case ('lat_global')
 !----------------------------------------------------------------------
 ! Info on a given plot.
 ! Input syntax:
-!   plot1 <plot_name>
+!   python plot1 <plot_name>
 ! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('plot1')
@@ -626,7 +645,7 @@ case ('plot1')
 !----------------------------------------------------------------------
 ! List of visible plot names.
 ! Input syntax: 
-!   plot_visible
+!   python plot_visible
 ! Output syntax:
 !   <plot_name>;
 
@@ -642,7 +661,7 @@ case ('plot_visible')
 !----------------------------------------------------------------------
 ! List of plot templates.
 ! Input syntax:  
-!   plot_template
+!   python plot_template
 ! Output syntax:
 
 case ('plot_template')
@@ -661,7 +680,7 @@ case ('plot_template')
 !----------------------------------------------------------------------
 ! List of all variable v1 arrays
 ! Input syntax: 
-!   var_all
+!   python var_all
 ! Output syntax:
 !   <v1_var name>;<v1_var%v lower bound>;<v1_var%v upper bound>;<vars used in optimization list>;
 
@@ -681,7 +700,7 @@ case ('var_all')
 !----------------------------------------------------------------------
 ! List of variables in a given variable v1 array
 ! Input syntax: 
-!   var_v1 <v1_var>
+!   python var_v1 <v1_var>
 ! Output syntax:
 !   <index>;<lat_ele_name>;<attribute_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;
 
@@ -711,7 +730,7 @@ case ('var_v1')
 !----------------------------------------------------------------------
 ! Info on an individual variable
 ! Input syntax: 
-!   var1 <var>
+!   python var1 <var>
 ! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('var1')
@@ -757,12 +776,23 @@ case default
 end select
 
 ! return through scratch
+
 scratch%n_lines = nl
-!call out_io (s_blank$, r_name, ss%lines(1:nl))
+
+if (doprint) call out_io (s_blank$, r_name, ss%lines(1:nl))
+
+if (opened) then
+  do i = 1, nl
+    write (iu_write, '(a)') trim(ss%lines(i))
+  enddo
+  close (iu_write)
+endif
+
+!----------------------------------------------------------------------
+! Helper function to write 'True' or 'False' strings from a logical
 
 contains
 
-! Helper function to write 'True' or 'False' strings from a logical
 function py_bool(bool) result(boolstring)
 logical :: bool
 character(5) :: boolstring 
@@ -772,6 +802,9 @@ else
   boolstring = trim('False')
 endif
 end function
+
+!----------------------------------------------------------------------
+! contains
 
 function py_string(chars) result(pystring)
 character(*)::  chars
