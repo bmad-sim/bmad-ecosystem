@@ -167,6 +167,7 @@ type (ele_struct), pointer :: ele, ele1, ele2
 type (ele_struct), target :: ele3, ele0
 type (em_field_struct) field
 type (bunch_struct), pointer :: bunch
+type (wake_struct), pointer :: wake
 type (wake_lr_struct), pointer :: lr
 type (coord_struct), target :: orb
 type (bunch_params_struct) bunch_params
@@ -218,20 +219,20 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(32) = [ &
+character(16) :: show_what, show_names(33) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
    'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
-   'matrix          ', 'field           ']
+   'matrix          ', 'field           ', 'wake_elements   ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -3498,6 +3499,33 @@ case ('variable')
   endif
 
   result_id = show_what
+
+!----------------------------------------------------------------------
+! wake_elements
+
+case ('wake_elements')
+
+  nl=nl+1; write(lines(nl), lmt) '  bmad_com%sr_wakes_on = ', bmad_com%sr_wakes_on
+  nl=nl+1; write(lines(nl), lmt) '  bmad_com%lr_wakes_on = ', bmad_com%lr_wakes_on
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = '                                           Short-Range    Short-Range   Long-'
+  nl=nl+1; lines(nl) = 'Index  Element               Key           Longitudinal   Transverse    Range'
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+
+    do ie = 1, branch%n_ele_max
+      ele => branch%ele(ie)
+
+      if (ele%slave_status == super_slave$) cycle
+      if (ele%slave_status == multipass_slave$) cycle
+      if (.not. associated(ele%wake)) cycle
+      wake => ele%wake
+
+      nl=nl+1; write(lines(nl), '(a5, 2x, a20, 2x, a15, 3x, l1, 13x, l1, 13x, l1)') &
+        ele_loc_to_string(ele, .true.), ele%name, key_name(ele%key), &
+        allocated(wake%sr_long%mode), allocated(wake%sr_trans%mode), allocated(wake%lr)
+    enddo
+  enddo
 
 !----------------------------------------------------------------------
 ! wall

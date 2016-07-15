@@ -1374,6 +1374,7 @@ Format:
   show variable \{-no_label_lines\} \{<var_name>\}                      ! \sref{s:show.variable}
   show variable \{-no_label_lines\} <universe_number>@                ! \sref{s:show.variable}
   show variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format     ! \sref{s:show.variable}
+  show wakes                                                        ! \sref{s:show.wakes}
   show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
         \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                  ! \sref{s:show.wall}
   show wave                                                         ! \sref{s:show.wave}
@@ -2202,6 +2203,24 @@ Examples:
   show var 2@          ! List all variables that control attributes in universe 2.
   show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
+
+%% show wakes --------------------------------------------------------------
+
+\subsection{show wakes}
+\label{s:show.wakes}
+
+Syntax:
+\begin{example}
+  show wakes 
+\end{example}
+
+The \vn{show wakes} command will list the lattice elements that have associated wake
+fields.  Use the \vn{show ele} command to get more details on a given element. Note that
+wakes only affect particle tracking when tracking with a beam of particles (not when
+tracking just a single particle which is the default for \tao). 
+
+At this point in time, \tao is not setup to do multiturn tracking with bunches which means
+that if simulations with wakefieds is desired, a different program have to be used.
 
 %% show wall --------------------------------------------------------------
 
