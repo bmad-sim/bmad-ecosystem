@@ -45,15 +45,17 @@ type (ele_struct), pointer :: hard_ele
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
 complex(rp) xiy, c_vec
 
-integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel
+integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at
 logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
 hard_ele => fringe_info%hard_ele
 s_edge = fringe_info%s_edge_hard
+particle_at = fringe_info%particle_at
 
-if (fringe_info%particle_at == first_track_edge$) then
+
+if (particle_at == first_track_edge$) then
   fringe_info%hard_location = inside$
 else
   dir = orb%direction
@@ -65,32 +67,33 @@ else
   endif
 endif
 
-sign_z_vel = orb%direction * track_ele%orientation
-
 ! Custom edge kick?
 
 call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished)
 if (finished) return
 
+!------------------------------------------------------------------------------------
 ! Only need this routine when the field is calculated using bmad_standard.
 ! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
 
 if (hard_ele%field_calc /= bmad_standard$) return
 
-physical_end = physical_ele_end (fringe_info%particle_at, orb%direction, track_ele%orientation)
+physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
 if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
 
-if (fringe_info%particle_at == first_track_edge$) then
+if (particle_at == first_track_edge$) then
   at_sign = 1
 else
   at_sign = -1
 endif
 
 ! Static electric longitudinal field
+
+sign_z_vel = orb%direction * track_ele%orientation
 
 if (associated(hard_ele%a_pole_elec)) then
   xiy = 1
@@ -112,16 +115,16 @@ endif
 
 select case (hard_ele%key)
 case (quadrupole$)
-  if (fringe_info%particle_at == first_track_edge$) then
-    call hard_multipole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
-    call soft_quadrupole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
+  if (particle_at == first_track_edge$) then
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb)
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb)
   else
-    call soft_quadrupole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
-    call hard_multipole_edge_kick (hard_ele, param, fringe_info%particle_at, orb)
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb)
   endif
 
 case (sbend$)
-  call bend_edge_kick (hard_ele, param, fringe_info%particle_at, orb, track_spin = track_spn)
+  call bend_edge_kick (hard_ele, param, particle_at, orb, track_spin = track_spn)
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
@@ -143,7 +146,7 @@ case (lcavity$, rfcavity$, e_gun$)
   s = s_edge
 
   if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$)))) then
-    if (fringe_info%particle_at == first_track_edge$) then
+    if (particle_at == first_track_edge$) then
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, t, orb, .true., field)
     else
@@ -163,7 +166,7 @@ case (lcavity$, rfcavity$, e_gun$)
 
     ! orb%phase(1) is set by em_field_calc.
 
-    call rf_coupler_kick (hard_ele, param, fringe_info%particle_at, orb%phase(1), orb)
+    call rf_coupler_kick (hard_ele, param, particle_at, orb%phase(1), orb)
   endif
 
 case (elseparator$)

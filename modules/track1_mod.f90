@@ -332,20 +332,25 @@ implicit none
 
 type (coord_struct), intent(in)  :: start_orb
 type (coord_struct), intent(out) :: end_orb
-type (ele_struct),   intent(inout)  :: ele
+type (ele_struct),   intent(inout), target :: ele
 type (lat_param_struct), intent(inout) :: param
+type (fringe_edge_info_struct) fringe_info
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
 real(rp) rel_p, rel_p2, Dy, px_t, factor, g, g_err, c_dir, stg
 real(rp) length, g_tot, eps, pxy2, ff, fg, k_2, alpha, beta, one_ct
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer n, n_step
+integer, target :: i_dummy
 
-logical has_nonzero_pole, drifting
+logical has_nonzero_pole, has_nonzero_elec, drifting
 
 !-----------------------------------------------------------------------
+
+fringe_info%hard_ele => ele
+fringe_info%hard_location => i_dummy
 
 end_orb = start_orb
 call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
@@ -353,14 +358,18 @@ call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
 ! Entrance edge kick
 
 c_dir = ele%orientation * end_orb%direction * relative_tracking_charge(start_orb, param)
-call bend_edge_kick (ele, param, first_track_edge$, end_orb)
+fringe_info%s_edge_hard = 0
+fringe_info%particle_at = first_track_edge$
+call apply_element_edge_kick(end_orb, fringe_info, 0.0_rp, ele, param, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
 n_step = 1
 
 call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
-if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
+if (ele%value(k2$) /= 0 .or. has_nonzero_pole .or. has_nonzero_elec) n_step = &
+                                    max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 if (has_nonzero_pole) knl = knl * c_dir / n_step
 
 ! Set some parameters
@@ -391,6 +400,7 @@ if (k_2 /= 0) then
   end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
 end if
 if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
+if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length/2)
 
 ! And track with n_step steps
 
@@ -503,12 +513,14 @@ do n = 1, n_step
       end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
     end if
     if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length/2)
   else
     if (k_2 /= 0) then
        end_orb%vec(2) = end_orb%vec(2) + k_2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
        end_orb%vec(4) = end_orb%vec(4) + k_2 * length * end_orb%vec(1) * end_orb%vec(3)
     end if
     if (has_nonzero_pole) call multipole_kicks (knl, tilt, end_orb)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length)
   endif
 
 enddo
@@ -517,7 +529,10 @@ enddo
 ! Need low energy z correction except when using track_a_drift.
 
 if (orbit_too_large(end_orb, param)) return
-call bend_edge_kick (ele, param, second_track_edge$, end_orb)
+
+fringe_info%s_edge_hard = ele%value(l$)
+fringe_info%particle_at = second_track_edge$
+call apply_element_edge_kick(end_orb, fringe_info, 0.0_rp, ele, param, .false.)
 
 call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false.)
 

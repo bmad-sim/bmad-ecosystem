@@ -273,7 +273,7 @@ endif
 ! If the ref energy has not been set then, for example, k1 for a bend with field_master = T has not been set.
 ! So have to wait until the energy is set to figure out ds_step.
 
-if (attribute_index(ele, 'DS_STEP') > 0 .and. val(e_tot$) > 0) then  ! If this is an attribute for this element...
+if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is an attribute for this element...
 
   dz_dl_max_err = 1d-10
 
@@ -284,15 +284,31 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(e_tot$) > 0) then  ! If this i
     case (wiggler$, undulator$) 
       if (val(l_pole$) /= 0) val(ds_step$) = val(l_pole$) / 10
 
-    case (sbend$)
-      if (val(integrator_order$) == 0) then
-        bend_factor = abs(val(g$)+val(g_err$))
+    case (sbend$, quadrupole$, sextupole$)
+      if (val(integrator_order$) == 0 .and. val(l$) /= 0) then
+        bend_factor = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
         radius0 = 0.01   ! Use a 1 cm scale radius for the sextupole component.
-        quad_factor = val(l$) * (abs(val(k1$)) + abs(val(k2$) * radius0 + bend_factor**2))
+
+        select case (ele%key)
+        case (sbend$)
+          bend_factor = bend_factor + abs(val(g$)) + abs(val(g_err$)) 
+          quad_factor = val(l$) * (abs(val(k1$)) + abs(val(k2$)) * radius0 + bend_factor**2)
+        case (quadrupole$)
+          quad_factor = val(l$) * (abs(val(k1$)) + bend_factor**2)
+        case (sextupole$)
+          quad_factor = val(l$) * (abs(val(k2$)) * radius0 + bend_factor**2)
+        end select
+
         if (associated(ele%a_pole)) then
           call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole)
           quad_factor = quad_factor + abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))
         endif
+
+        if (associated(ele%a_pole_elec)) then
+          call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole, electric$)
+          quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
+        endif
+
         ! check_bend is a PTC routine
         call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
         val(integrator_order$) = ixm

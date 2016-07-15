@@ -14,7 +14,7 @@ contains
 ! Subroutine to track a beam of particles from the end of
 ! ele1 Through to the end of ele2. Both must be in the same lattice branch.
 !
-! Note: zero_lr_wakes_in_lat needs to be called to initial wakes before tracking.
+! Note: To zero wakes between runs, zero_lr_wakes_in_lat needs to be called.
 !
 ! Modules needed:
 !   use beam_mod
@@ -60,10 +60,23 @@ if (present(ele2)) e2 => ele2
 ! Loop over all elements in the lattice
 
 branch => lat%branch(e1%ix_branch)
-do i = e1%ix_ele+1, e2%ix_ele
-  call track1_beam (beam, lat, branch%ele(i), beam, err, centroid)
-  if (err) return
-enddo
+
+if (e1%ix_ele < e2%ix_ele) then
+  do i = e1%ix_ele+1, e2%ix_ele
+    call track1_beam (beam, lat, branch%ele(i), beam, err, centroid)
+    if (err) return
+  enddo
+
+else
+  do i = e1%ix_ele+1, branch%n_ele_track
+    call track1_beam (beam, lat, branch%ele(i), beam, err, centroid)
+    if (err) return
+  enddo
+  do i = 1, e2%ix_ele
+    call track1_beam (beam, lat, branch%ele(i), beam, err, centroid)
+    if (err) return
+  enddo
+endif
 
 end subroutine track_beam
 

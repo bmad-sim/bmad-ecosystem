@@ -241,12 +241,13 @@ if (set) then
 
     call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
     if (has_nonzero_pole) then
-      f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$)
-        coord%vec(2) = coord%vec(2) + f * kx
-        coord%vec(4) = coord%vec(4) + f * ky
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, length = ele%value(l$)/2)
+        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
+        ! Are taken into account is not to have any energy shifts.
+        coord%vec(2) = coord%vec(2) + kx
+        coord%vec(4) = coord%vec(4) + ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
           call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
@@ -407,12 +408,13 @@ else
 
     call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
     if (has_nonzero_pole) then
-      f = charge_of(coord%species) * ele%value(l$) / (2 * ele%value(p0c$))
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$)
-        coord%vec(2) = coord%vec(2) + f * kx
-        coord%vec(4) = coord%vec(4) + f * ky
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, length = ele%value(l$)/2)
+        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
+        ! Are taken into account is not to have any energy shifts.
+        coord%vec(2) = coord%vec(2) + kx
+        coord%vec(4) = coord%vec(4) + ky
         if (set_spn) then
           call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
           call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
