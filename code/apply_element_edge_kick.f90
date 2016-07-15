@@ -54,7 +54,6 @@ hard_ele => fringe_info%hard_ele
 s_edge = fringe_info%s_edge_hard
 particle_at = fringe_info%particle_at
 
-
 if (particle_at == first_track_edge$) then
   fringe_info%hard_location = inside$
 else
@@ -73,10 +72,10 @@ call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, fi
 if (finished) return
 
 !------------------------------------------------------------------------------------
-! Only need this routine when the field is calculated using bmad_standard.
+! Only need this routine when the field_calc or tracking is bmad_standard.
 ! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
 
-if (hard_ele%field_calc /= bmad_standard$) return
+if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
