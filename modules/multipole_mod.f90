@@ -507,18 +507,14 @@ end subroutine multipole_ele_to_ab
 ! Input:
 !   knl(0:)        -- real(rp): Multipole strengths (mad units).
 !   tilt(0:)       -- real(rp): Multipole tilts.
-!   coord          -- coord_struct:
-!     %vec(1)          -- X position.
-!     %vec(3)          -- Y position.
+!   coord          -- coord_struct: Particle position.
 !   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   ref_orb_offset -- logical, optional: If present and n = 0 then the
 !                       multipole simulates a zero length bend with bending
 !                       angle knl.
 !
 ! Output:
-!   coord -- coord_struct: 
-!     %vec(2) -- X kick.
-!     %vec(4) -- Y kick.
+!   coord -- coord_struct: Kicked particle.
 !-
 
 subroutine multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)
@@ -540,6 +536,56 @@ do n = 0, n_pole_maxx
 enddo
 
 end subroutine multipole_kicks
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ab_multipole_kicks (an, bn, coord, pole_type)
+!
+! Subroutine to put in the kick due to ab_multipole components.
+!
+! Modules Needed:
+!   use bmad
+!                          
+! Input:
+!   an(0:)         -- real(rp): Skew multipole strengths.
+!   bn(0:)         -- real(rp): Normal multipole tilts.
+!   coord          -- coord_struct: Particle position.
+!   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   length         -- real(rp), optional: Length of field region. Must be present if pole_type = electric$.
+!
+! Output:
+!   coord -- coord_struct: Kicked particle.
+!-
+
+subroutine ab_multipole_kicks (an, bn, coord, pole_type, length)
+
+type (coord_struct)  coord
+
+real(rp) an(0:), bn(0:)
+real(rp) kx, ky, pz2, rel_p
+real(rp), optional :: length
+
+integer n
+
+integer, optional :: pole_type
+
+!
+
+pz2 = (1 + coord%vec(6))**2 + coord%vec(2)**2 + coord%vec(4)**2
+do n = 0, n_pole_maxx
+  if (an(n) == 0 .and. bn(n) == 0) cycle
+  call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, length = length)
+  coord%vec(2) = coord%vec(2) + kx
+  coord%vec(4) = coord%vec(4) + ky
+enddo
+
+rel_p = sqrt(pz2 - coord%vec(2)**2 - coord%vec(4)**2) 
+coord%vec(6) = rel_p - 1
+coord%beta = rel_p / sqrt(rel_p**2 + (mass_of(coord%species)/coord%p0c)**2)
+
+end subroutine ab_multipole_kicks
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -655,7 +701,7 @@ end subroutine multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)
+! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, length)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
 !
@@ -668,6 +714,7 @@ end subroutine multipole_kick
 !   n         -- Real(rp): Multipole order.
 !   coord     -- Coord_struct:
 !   pole_type -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   length    -- real(rp), optional: Length of field region. Must be present if pole_type = electric$.
 !
 ! Output:
 !   kx      -- Real(rp): X kick.
@@ -675,13 +722,14 @@ end subroutine multipole_kick
 !   dk(2,2) -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
 !-
 
-subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)
+subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, length)
 
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
 real(rp), optional :: dk(2,2)
-real(rp) kx, ky, f, b2
+real(rp), optional :: length
+real(rp) kx, ky, f, a2, b2
 
 integer, optional :: pole_type
 integer n, m, n1
@@ -700,8 +748,14 @@ if (a == 0 .and. b == 0) return
 ! normal case
 ! Note that c_multi can be + or -
 
-b2 = b
-if (integer_option(magnetic$, pole_type) == electric$) b2 = -b2
+if (integer_option(magnetic$, pole_type) == electric$) then
+  f = charge_of(coord%species) * length / (coord%beta * coord%p0c)
+  a2 =  a * f
+  b2 = -b * f
+else
+  a2 = a
+  b2 = b
+endif
 
 x = coord%vec(1)
 y = coord%vec(3)
@@ -709,12 +763,12 @@ y = coord%vec(3)
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
   kx = kx + b2 * f
-  ky = ky - a * f
+  ky = ky - a2 * f
 enddo
 
 do m = 1, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + a * f
+  kx = kx + a2 * f
   ky = ky + b2 * f
 enddo
 
@@ -727,9 +781,9 @@ if (present(dk)) then
   do m = 0, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
     dk(1,1) = dk(1,1) + b2 * f
-    dk(2,1) = dk(2,1) - a * f
+    dk(2,1) = dk(2,1) - a2 * f
 
-    dk(1,2) = dk(1,2) - a * f
+    dk(1,2) = dk(1,2) - a2 * f
     dk(2,2) = dk(2,2) - b2 * f
   enddo
 
@@ -737,9 +791,9 @@ if (present(dk)) then
   do m = 1, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
     dk(1,2) = dk(1,2) + b2 * f
-    dk(2,2) = dk(2,2) - a * f
+    dk(2,2) = dk(2,2) - a2 * f
 
-    dk(1,1) = dk(1,1) + a * f
+    dk(1,1) = dk(1,1) + a2 * f
     dk(2,1) = dk(2,1) + b2 * f
   enddo
 
