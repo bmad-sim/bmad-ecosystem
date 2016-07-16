@@ -54,7 +54,7 @@ results = open('regression.results', 'w')
 bin_dir = '../production/bin/'
 test_dir_list = []
 test_list_file = 'tests.list'
-time0 = time.clock()
+time0 = time.time()
 
 i = 1
 while i < len(sys.argv):
@@ -84,7 +84,7 @@ if len(test_dir_list) == 0:
 #-------------------------------------------------------------
 
 for test_dir in test_dir_list:
-  time0_test = time.clock()
+  time0_test = time.time()
   test_dir = test_dir.strip()
   ix = test_dir.find('!')
   if ix != -1: test_dir = test_dir[:ix]
@@ -290,7 +290,7 @@ for test_dir in test_dir_list:
 
   print_all ('     Number of tests:        ' + str(num_local_tests))
   print_all ('     Number of failed tests: ' + str(num_local_failures), color = (num_local_failures != 0))
-  print_all ('     Duration of test (sec): ' + str(time.clock() - time0_test))
+  print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
 
   num_tests += num_local_tests
   num_failures += num_local_failures
@@ -304,7 +304,7 @@ print_all ('\n')
 print_all ('Total number of tests:           ' + str(num_tests))
 print_all ('Total number of failed tests:    ' + str(num_failures), color = (num_failures != 0))
 print_all ('Number of Program flow failures: ' + str(num_flow_failures), color = (num_flow_failures != 0))
-print_all ('Duration of all tests (sec): %5.2f' % (time.clock() - time0))
+print_all ('Duration of all tests (sec): %5.2f' % (time.time() - time0))
 
 results.close()
 print('\nResults file: regression.results\n')

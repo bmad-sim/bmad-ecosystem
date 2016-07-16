@@ -6,6 +6,6 @@
   transverse(1)   =  -8266.6e10   26.6   46089.2  1.578966
   transverse(2)   =   1764.0e11   19.7  -9746.59  3.661213 y_axis  linear_trailing
   transverse(3)   =  -4155.1e12   16.8  -73.1528  3.66933  none    linear_leading
-  z_max = 1e3 
+  z_max = 1.2
 /
 

@@ -9,11 +9,11 @@ type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
 type (beam_init_struct) :: beam_init
-type (bunch_struct) :: bunch, bunch0
+type (bunch_struct) :: bunch, bunch_init, bunch0
 
 real(rp) dz, z0
 
-integer i, nargs
+integer i, nargs, n
 
 logical print_extra
 
@@ -38,7 +38,7 @@ call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
 
-!
+! Short range wake test.
 
 ele => lat%ele(1)
 write (1, '(a, 2i4, f10.2)') '"SR-Size" ABS 0' , &
@@ -119,15 +119,43 @@ beam_init%bunch_charge = 1 !100.0e-12
 beam_init%sig_e = 1e-12
 beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 
-call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch0)
-bunch = bunch0
+call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)
+bunch = bunch_init
 
 call track1_bunch_hom (bunch, ele, lat%param, bunch)
 
 bmad_com%sr_wakes_on = .false.
+bunch0 = bunch_init
 call track1_bunch_hom (bunch0, ele, lat%param, bunch0)
 
-write (1, '(a, 6es18.9)') '"B20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
-write (1, '(a, 6es18.9)') '"B40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
+write (1, '(a, 6es18.9)') '"SR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
+write (1, '(a, 6es18.9)') '"SR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
+
+! Long range wake test
+
+ele => lat%ele(2)
+
+bunch = bunch_init
+
+do n = 1, 3
+  call track1_bunch_hom (bunch, ele, lat%param, bunch)
+  do i = 1, size(bunch%particle)
+    bunch%particle(i)%t = bunch%particle(i)%t + 1e-7
+  enddo
+enddo
+
+bmad_com%lr_wakes_on = .false.
+
+bunch0 = bunch_init
+
+do n = 1, 3
+  call track1_bunch_hom (bunch0, ele, lat%param, bunch0)
+  do i = 1, size(bunch0%particle)
+    bunch0%particle(i)%t = bunch0%particle(i)%t + 1e-7
+  enddo
+enddo
+
+write (1, '(a, 6es18.9)') '"LR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
+write (1, '(a, 6es18.9)') '"LR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
 
 end program

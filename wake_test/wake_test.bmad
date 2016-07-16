@@ -9,9 +9,14 @@ beginning[beta_b] = 10
 beam_start[z] = -0.001
 
 p1: pipe, L = 1
-p1[sr_wake_file] = 'resistive_wall_modes.bmad'
+p1[sr_wake_file] = 'short_range.wake'
 
-lat: line = (p1)
+p2: pipe, L = 1
+p2[lr_wake_file] = 'long_range.wake'
+
+lat: line = (p1, p2)
+
+
 
 use, lat
 
