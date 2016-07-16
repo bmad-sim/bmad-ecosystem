@@ -246,27 +246,26 @@ do i = 1, size(ele%wake%lr)
 
     ! Transverse wake kick (Transverse has no self-wake kick)
 
-    if (lr%m == 0) cycle
+    if (lr%m /= 0) then
+      w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
+      w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
 
-    w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
-    w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
+      call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle, kx, ky)
 
-    call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle, kx, ky)
-
-    particle%vec(2) = particle%vec(2) + lr%m * kx
-    particle%vec(4) = particle%vec(4) + lr%m * ky
-
+      particle%vec(2) = particle%vec(2) + lr%m * kx
+      particle%vec(4) = particle%vec(4) + lr%m * ky
+    endif
 
     ! Update wake amplitudes
 
     ff = ff0 * c_light * exp(dt * f_exp) 
-    kx = ff * kx0 
-    ky = ff * kx0
 
     if (lr%polarized) then
-      kxx = kx
-      kx = kxx * c_a * c_a + ky * s_a * c_a
-      ky = kxx * c_a * s_a + ky * s_a * s_a
+      kx = ff * (kx0 * c_a * c_a + ky0 * s_a * c_a)
+      ky = ff * (kx0 * c_a * s_a + ky0 * s_a * s_a)
+    else
+      kx = ff * kx0 
+      ky = ff * ky0
     endif
 
     lr%b_sin = lr%b_sin - kx * c
