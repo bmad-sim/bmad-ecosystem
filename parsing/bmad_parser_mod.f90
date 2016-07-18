@@ -3832,7 +3832,7 @@ integer nn, i
 
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
-nn = 28  ! number of standard (non-user defined) constants
+nn = 32  ! number of standard (non-user defined) constants
 allocate (bp_com%var(nn))
 
 bp_com%var( 1) = bp_var_struct('PI', pi, 0)
@@ -3858,11 +3858,15 @@ bp_com%var(20) = bp_var_struct('H_BAR_PLANCK', h_bar_planck, 0)
 bp_com%var(21) = bp_var_struct('PMASS', p_mass, 0)
 bp_com%var(22) = bp_var_struct('EMASS', e_mass, 0)
 bp_com%var(23) = bp_var_struct('CLIGHT', c_light, 0)
-bp_com%var(24) = bp_var_struct('ANOM_MAG_ELECTRON', anomalous_mag_moment_electron, 0)
-bp_com%var(25) = bp_var_struct('ANOM_MAG_PROTON', anomalous_mag_moment_proton, 0)
-bp_com%var(26) = bp_var_struct('ANOM_MAG_MUON', anomalous_mag_moment_muon, 0)
-bp_com%var(27) = bp_var_struct('ANOM_MAG_DEUTERON', anomalous_mag_moment_deuteron, 0)
-bp_com%var(28) = bp_var_struct('FINE_STRUCT_CONST', fine_structure_constant, 0)
+bp_com%var(24) = bp_var_struct('FINE_STRUCT_CONST', fine_structure_constant, 0)
+bp_com%var(25) = bp_var_struct('ANOM_MAG_ELECTRON', anomalous_mag_moment_electron, 0)  ! Old style. Deprecated.
+bp_com%var(26) = bp_var_struct('ANOM_MAG_PROTON', anomalous_mag_moment_proton, 0)      ! Old style. Deprecated.
+bp_com%var(27) = bp_var_struct('ANOM_MAG_MUON', anomalous_mag_moment_muon, 0)          ! Old style. Deprecated.
+bp_com%var(28) = bp_var_struct('ANOM_MAG_DEUTERON', anomalous_mag_moment_deuteron, 0)  ! Old style. Deprecated.
+bp_com%var(29) = bp_var_struct('ANOM_MOMENT_ELECTRON', anomalous_mag_moment_electron, 0)
+bp_com%var(20) = bp_var_struct('ANOM_MOMENT_PROTON', anomalous_mag_moment_proton, 0)
+bp_com%var(31) = bp_var_struct('ANOM_MOMENT_MUON', anomalous_mag_moment_muon, 0)
+bp_com%var(32) = bp_var_struct('ANOM_MOMENT_DEUTERON', anomalous_mag_moment_deuteron, 0)
 
 bp_com%ivar_init = nn
 bp_com%ivar_tot  = nn

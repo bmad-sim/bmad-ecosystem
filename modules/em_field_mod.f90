@@ -115,7 +115,8 @@ end if
 ! Notice that a translation due to a finite ele%value(z_offset$) is not wanted here.
 
 orb2 = orb
-if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, set_z_offset = .false., ds_pos = s)
+if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, &
+          set_z_offset = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = s)
 
 track%orb(n_pt) = orb2
 track%orb(n_pt)%ix_ele = ele%ix_ele

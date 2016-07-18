@@ -70,7 +70,7 @@ type beam_init_struct
   real(rp) :: dt_bunch = 0                   ! Time between bunches.
   real(rp) :: sig_z = 0                      ! Z sigma in m.
   real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
-  real(rp) :: bunch_charge = 1               ! charge in a bunch. Default is something non-zero.
+  real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
   integer :: n_bunch = 1                     ! Number of bunches.
   integer :: species = not_set$              ! positron$, etc. not_set$ => use referece particle.
   logical :: init_spin     = .false.         ! initialize beam spinors
