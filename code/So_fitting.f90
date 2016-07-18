@@ -3105,8 +3105,9 @@ endif
              !             endif
           endif
 
-       case(2)
+       case(2,-2)
 
+          doit=.not.(resplit_cutting==-2.and.C%MAG%KIND==kind1)
 
           doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
           doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)

@@ -4424,7 +4424,7 @@ integer :: kkk=0
 
        else
           IF(EL%BEND_FRINGE.and.(.NOT.((I==1.AND.EL%KILL_ENT_FRINGE).OR.(I==2.AND.EL%KILL_EXI_FRINGE)))) THEN
- 
+             call alloc(fsad,c3)
              CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
  
                  fsad=0.0_dp
@@ -4433,6 +4433,7 @@ integer :: kkk=0
                  endif
                  c3=bn(1)**2*fsad 
                  x(4)=x(4)-4*c3*x(3)**3
+            call kill(fsad,c3)
           endif
        endif
 
@@ -15854,9 +15855,10 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     INTEGER, INTENT(IN) :: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     d=0
-    if(el%hc==0.0_dp) then
-    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc;
+    if(el%hc==0.0_dp) then  !<------ Rectangular geometry
+
     IF(J==1) then
+    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc; 
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
@@ -15866,7 +15868,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
     endif
-    else
+    else  !<------ Sector geometry
     IF(J==1) then
     d(1)=el%xc; d(3)=el%dc;d(2)=el%vc;
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
@@ -15890,8 +15892,9 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     d=0
     if(el%hc==0.0_dp) then
-    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc;
+
     IF(J==1) then
+    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc;
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         if(el%xprime.and.EL%p%method/=1)  call conv_to_xp(el,x,k)

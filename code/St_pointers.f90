@@ -46,6 +46,14 @@ module pointer_lattice
      MODULE PROCEDURE read_ptc_command
   END INTERFACE
 
+!!  new stuff on non-perturbative !!
+  type  logs    
+     integer n1,n2,ns,no
+     complex(dp),  DIMENSION(:,:,:), POINTER :: h
+     type(spinor), pointer :: sp(:,:)
+     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
+     real(dp) em(2)
+  end  type logs
    
 
 contains
@@ -85,7 +93,7 @@ endif
     NP=0
     xfix=0.d0
     my_scale_planar=100.d0
-    my_fix(1)=.000d0
+    my_fix(1:6)=.000d0
 
     write(6,*) " absolute_aperture  ", absolute_aperture
     write(6,*) " hyperbolic_aperture ", hyperbolic_aperture
@@ -690,6 +698,7 @@ endif
           IF(resplit_cutting==0) WRITE(6,*) " RESPLITTING NORMALLY"
           IF(resplit_cutting==1) WRITE(6,*) " CUTTING DRIFT USING LMAX"
           IF(resplit_cutting==2) WRITE(6,*) " CUTTING EVERYTHING USING LMAX"
+          IF(resplit_cutting==-2) WRITE(6,*) " CUTTING EVERYTHING USING LMAX EXCEPT DRIFTS"
           !       case('KIND7WITHMETHOD1')
           !          CALL PUT_method1_in_kind7(my_ering,1000)
        case('THINLENS=1')
@@ -2863,6 +2872,295 @@ endif
 
   end subroutine Universe_max_node_n
 
+!!!!!!!!!!!!!!!!!!  new non-perturbative
+!  type  logs    
+!     integer n1,n2,ns,no
+!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
+!     type(spinor), pointer :: sp(:,:)
+!     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
+!     real(dp) em(2)
+!  end  type logs
+
+ subroutine alloc_logs(a,n1,n2,ns,em,no)
+ implicit none
+ type(logs) a
+ integer i,n1,n2,no,ns
+real(dp) em(2)
+
+
+allocate(a%h(3,-n1:n1,-n2:n2))
+allocate(a%sp(0:ns-1,0:ns-1))
+allocate(a%s(0:ns-1,0:ns-1,3,3))
+
+
+ a%n1=n1;a%n2=n2;a%ns=ns;a%no=no
+ a%em=em
+ a%h = 0.0_dp
+ a%s=0.0_dp
+
+ end  subroutine alloc_logs
+
+subroutine copy_logs(a,b)
+ implicit none
+ type(logs) a,b
+ integer i,j
+
+ b%h=a%h
+ b%n1=a%n1
+ b%n2=a%n2
+ b%ns=a%ns
+ b%em=a%em
+
+ do i=0,a%ns-1
+ do j=0,a%ns-1
+  b%sp(i,j)=a%sp(i,j)
+ enddo
+ enddo
+
+end subroutine copy_logs
+
+ subroutine fourier_logs(spinmap)  !,em,ns)
+ implicit none
+ type(logs) spinmap
+ integer i,j,ns,k,i1,i2
+ real(dp) dphi1,dphi2,x(6),em(2),mphi
+type(c_damap) c_map, c_id
+type(c_normal_form) c_n
+ type(probe) xs0
+ type(probe_8) xs
+type(internal_state) state
+type(c_ray) r
+type(c_spinor) n
+type(spinor) nr
+ 
+ 
+ns=spinmap%ns
+em=spinmap%em
+
+state=my_eSTATE-spin0
+ 
+
+my_fix=0.0_dp
+call find_orbit_x(my_ering,my_fix,my_eSTATE,1.e-8_dp,fibre1=start)  
+
+call init_all(my_estate,1,0)
+call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
+
+c_id=1
+xs0=my_fix
+xs=xs0+c_id
+call propagate(my_ering,xs,my_estate,fibre1=start)  
+c_id=xs
+call c_normal(c_id,c_n)
+c_id=c_n%a_t
+
+dphi1=twopi/ns
+dphi2=twopi/ns
+
+
+r=0
+do i=0,ns-1
+do j=0,ns-1
+r%x(1)= sqrt(em(1))*cos(i*dphi1)
+r%x(2)=-sqrt(em(1))*sin(i*dphi1)
+r%x(3)= sqrt(em(2))*cos(j*dphi2)
+r%x(4)=-sqrt(em(2))*sin(j*dphi2)
+ xs0=0
+ r=c_id.o.r
+ do k=1,6
+   x(k)=r%x(k)+my_fix(k)
+ enddo
+ xs0=x
+ call propagate(my_ering,xs0,my_estate,fibre1=start)  
+ 
+ spinmap%s(i,j,1:3,1:3)=xs0
+ 
+call get_logs(xs0,spinmap%sp(i,j))
+ 
+!spinmap%sp(i,j)=nr
+!write(6,*) i,j
+!write(6,*) nr%x
+enddo
+enddo
+
+
+call fourier_trans_logs(spinmap)
+
+ end  subroutine fourier_logs
+
+subroutine get_logs(xs0,nr)
+implicit none
+type(probe) xs0
+type(spinor) nr
+type(c_spinor) n
+type(c_spinmatrix) s
+real(dp) x(3)
+
+call alloc(s)
+call alloc(n)
+
+
+ s=xs0
+n=log(s)
+nr=n
+x(2)=nr%x(2)
+if(x(2)<0) then
+x(1)=nr%x(1)
+x(3)=nr%x(3)
+
+x(1:3)=-x(1:3)*(twopi/sqrt(x(1)**2+x(2)**2+x(3)**2))
+
+nr%x(1)=nr%x(1)+x(1)
+nr%x(2)=nr%x(2)+x(2)
+nr%x(3)=nr%x(3)+x(3)
+ 
+endif 
+
+call kill(s)
+call kill(n)
+
+end subroutine get_logs
+
+subroutine fourier_trans_logs(spinmap)
+implicit none
+integer i1,i2,i,j,k
+real(dp) mphi,dphi1,dphi2
+ type(logs) spinmap
+
+dphi1=1.0_dp/spinmap%ns
+dphi2=1.0_dp/spinmap%ns
+
+do i1=-spinmap%n1,spinmap%n1
+do i2=-spinmap%n2,spinmap%n2
+
+do i=0,spinmap%ns-1
+do j=0,spinmap%ns-1
+
+mphi=(i1*i*dphi1+i2*j*dphi2)*twopi
+do k=1,3
+ spinmap%h(k,i1,i2)=spinmap%h(k,i1,i2) + exp(-i_*mphi)*spinmap%sp(i,j)%x(k)*dphi1*dphi2
+enddo
+
+enddo
+enddo
+enddo
+enddo
+end subroutine fourier_trans_logs
+
+subroutine evaluate_logs(spinmap,i,j,s)
+implicit none
+integer i1,i2,i,j,k
+real(dp) mphi,dphi1,dphi2
+ type(logs) spinmap
+type(spinor) s
+
+dphi1=1.0_dp/spinmap%ns
+dphi2=1.0_dp/spinmap%ns
+
+s%x=0.0_dp
+
+do i1=-spinmap%n1,spinmap%n1
+do i2=-spinmap%n2,spinmap%n2
+
+
+
+mphi=(i1*i*dphi1+i2*j*dphi2)*twopi
+do k=1,3
+ s%x(k)=exp(i_*mphi)*spinmap%h(k,i1,i2) + s%x(k)
+enddo
+
+ 
+enddo
+enddo
+end subroutine evaluate_logs
+
+
+subroutine evaluate_all_logs(spinmap,i,j,spinmapn)
+implicit none
+integer i,j
+ type(logs) spinmap,spinmapn
+do i=0,spinmap%ns-1
+do j=0,spinmap%ns-1
+call evaluate_logs(spinmap,i,j,spinmapn%sp(i,j))
+enddo
+enddo
+
+end subroutine evaluate_all_logs
+
+subroutine multiply_logs_s(spinmap,s)
+implicit none
+integer i,j 
+ type(logs) spinmap
+ real(dp) s(3,3) 
+ type(probe) xs0
+
+do i=0,spinmap%ns-1
+do j=0,spinmap%ns-1
+ spinmap%s(i,j,1:3,1:3)=matmul(spinmap%s(i,j,1:3,1:3),s)
+
+ xs0=spinmap%s(i,j,1:3,1:3)
+ call get_logs(xs0,spinmap%sp(i,j))
+
+enddo
+enddo
+
+ call fourier_trans_logs(spinmap)
+
+end subroutine multiply_logs_s
+
+subroutine multiply_s_logs(s,spinmap)
+implicit none
+integer i,j 
+ type(logs) spinmap
+ real(dp) s(3,3) 
+ type(probe) xs0
+
+do i=0,spinmap%ns-1
+do j=0,spinmap%ns-1
+ spinmap%s(i,j,1:3,1:3)=matmul(s,spinmap%s(i,j,1:3,1:3))
+
+ xs0=spinmap%s(i,j,1:3,1:3)
+ call get_logs(xs0,spinmap%sp(i,j))
+
+enddo
+enddo
+
+ call fourier_trans_logs(spinmap)
+
+end subroutine multiply_s_logs
+
+!  type  logs    
+!     integer n1,n2,ns,no
+!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
+!     type(spinor), pointer :: sp(:,:)
+!     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
+!     real(dp) em(2)
+!  end  type logs
+
+
+
+subroutine evaluate_constant_part(spinmap,s,si)
+implicit none
+integer i1,i2,i,j,k
+ type(logs) spinmap
+ real(dp) s(3,3),si(3,3)
+ type(c_spinor) h
+ type(probe) xs0
+call alloc(h)
+
+do k=1,3
+ h%v(k)=spinmap%h(k,0,0)  
+enddo
+
+xs0=exp(h)
+s=xs0
+
+xs0=exp(-h)
+si=xs0
+
+call kill(h)
+
+end subroutine evaluate_constant_part
 
 end module pointer_lattice
 

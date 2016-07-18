@@ -79,7 +79,7 @@ private GETORDER_par,GETORDERMAP_par,GETORDERSPINMATRIX_par,liebraspinor
 integer,private,parameter::ndd=6
 private c_concat_vector_field_ray,CUTORDERVEC,kill_c_vector_field_fourier,alloc_c_vector_field_fourier
 private complex_mul_vec,equal_c_vector_field_fourier,c_IdentityEQUALVECfourier,c_vector_field_spinmatrix
-private c_add_map,c_sub_map,c_read_spinor,flatten_c_factored_lie_r
+private c_add_map,c_sub_map,c_read_spinor,flatten_c_factored_lie_r,c_EQUALcray
 integer :: n_fourier=12,n_extra=0
 logical :: remove_tune_shift=.false.
 complex(dp) :: n_cai=-2*i_
@@ -88,6 +88,9 @@ logical :: special_extra_order_1=.true.
 real(dp) :: epso_factor =1000.d0 ! for log
 logical(lp):: extra_terms_log=.false. 
 logical :: add_constant_part_concat=.true.
+private EQUAL_c_spinmatrix_probe,EQUAL_c_spinmatrix_3_by_3,EQUAL_3_by_3_probe,EQUAL_probe_c_spinmatrix
+private EQUAL_probe_3_by_3
+
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUAL
@@ -111,6 +114,11 @@ logical :: add_constant_part_concat=.true.
     MODULE PROCEDURE c_IdentityEQUALVEC
     MODULE PROCEDURE c_IdentityEQUALfactored
     MODULE PROCEDURE c_IdentityEQUALVECfourier
+    MODULE PROCEDURE EQUAL_c_spinmatrix_probe
+    MODULE PROCEDURE EQUAL_c_spinmatrix_3_by_3
+    MODULE PROCEDURE EQUAL_3_by_3_probe
+    MODULE PROCEDURE EQUAL_probe_3_by_3
+    MODULE PROCEDURE EQUAL_probe_c_spinmatrix
 
     MODULE PROCEDURE matrixMAPr
     MODULE PROCEDURE r_matrixMAPr
@@ -122,7 +130,7 @@ logical :: add_constant_part_concat=.true.
 
      MODULE PROCEDURE EQUAL_c_map_RAY8   !#  c_damap=probe_8
      MODULE PROCEDURE EQUAL_RAY8_c_map   !#  probe_8=c_damap
-
+     MODULE PROCEDURE c_EQUALcray
       MODULE PROCEDURE equalc_cmap_map 
       MODULE PROCEDURE equalc_map_cmap
 
@@ -1881,6 +1889,70 @@ end subroutine c_get_indices
 
  end SUBROUTINE  equal_cmap_real8
 
+  subroutine EQUAL_c_spinmatrix_probe(S,R)
+!*
+    implicit none
+    TYPE(probe), INTENT(IN) :: R
+    TYPE(c_spinmatrix), INTENT(INOUT) :: S
+
+    s%s(1,1)=r%s(1)%x(1);    s%s(2,1)=r%s(1)%x(2);    s%s(3,1)=r%s(1)%x(3);
+    s%s(1,2)=r%s(2)%x(1);    s%s(2,2)=r%s(2)%x(2);    s%s(3,2)=r%s(2)%x(3);
+    s%s(1,3)=r%s(3)%x(1);    s%s(2,3)=r%s(3)%x(2);    s%s(3,3)=r%s(3)%x(3);
+
+  END subroutine EQUAL_c_spinmatrix_probe
+
+  subroutine EQUAL_probe_c_spinmatrix(R,S)
+!*
+    implicit none
+    TYPE(probe), INTENT(INout) :: R
+    TYPE(c_spinmatrix), INTENT(IN) :: S
+
+    r%s(1)%x(1)=s%s(1,1);    r%s(1)%x(2)=s%s(2,1);    r%s(1)%x(3)=s%s(3,1);
+    r%s(2)%x(1)=s%s(1,2);    r%s(2)%x(2)=s%s(2,2);    r%s(2)%x(3)=s%s(3,2);
+    r%s(3)%x(1)=s%s(1,3);    r%s(3)%x(2)=s%s(2,3);    r%s(3)%x(3)=s%s(3,3);
+
+  END subroutine EQUAL_probe_c_spinmatrix
+
+  subroutine EQUAL_c_spinmatrix_3_by_3(S,R)
+!*
+    implicit none
+    real(dp), INTENT(IN) :: R(3,3)
+    TYPE(c_spinmatrix), INTENT(INOUT) :: S
+    integer i,j
+    do i=1,3
+    do j=1,3
+    s%s(i,j)=r(i,j) 
+    enddo
+    enddo
+
+  END subroutine EQUAL_c_spinmatrix_3_by_3
+
+  subroutine EQUAL_3_by_3_probe(R,S)
+!*
+    implicit none
+    real(dp), INTENT(INout) :: R(3,3)
+    TYPE(probe), INTENT(IN) :: S
+    integer i,j
+
+    r(1,1)=s%s(1)%x(1);    r(2,1)=s%s(1)%x(2);    r(3,1)=s%s(1)%x(3);
+    r(1,2)=s%s(2)%x(1);    r(2,2)=s%s(2)%x(2);    r(3,2)=s%s(2)%x(3);
+    r(1,3)=s%s(3)%x(1);    r(2,3)=s%s(3)%x(2);    r(3,3)=s%s(3)%x(3);
+
+  END subroutine EQUAL_3_by_3_probe
+
+  subroutine EQUAL_probe_3_by_3(S,R)
+!*
+    implicit none
+    real(dp), INTENT(IN) :: R(3,3)
+    TYPE(probe), INTENT(INout) :: S
+    integer i,j
+
+    s%s(1)%x(1)=r(1,1);    s%s(1)%x(2)=r(2,1);    s%s(1)%x(3)=r(3,1);
+    s%s(2)%x(1)=r(1,2);    s%s(2)%x(2)=r(2,2);    s%s(2)%x(3)=r(3,2);
+    s%s(3)%x(1)=r(1,3);    s%s(3)%x(2)=r(2,3);    s%s(3)%x(3)=r(3,3);
+
+  END subroutine EQUAL_probe_3_by_3
+
   subroutine EQUAL_c_map_RAY8(DS,R)
 !*
     implicit none
@@ -3111,21 +3183,22 @@ FUNCTION cpbbra( S1, S2 )
     TYPE (c_DAMAP) CUTORDERMAP
     TYPE (c_DAMAP), INTENT (IN) :: S1
     INTEGER, INTENT (IN) ::  S2
-    integer localmaster,I
+    integer localmaster,I,s22
     IF(.NOT.C_STABLE_DA) then
      CUTORDERMAP%v%i=0
      RETURN
     endif
     localmaster=c_master
-
+    s22=iabs(s2)
      CUTORDERMAP%N=S1%N
     call C_assMAP(CUTORDERMAP)
       CUTORDERMAP=S1
-
+    
      DO I=1,CUTORDERMAP%N
-      CUTORDERMAP%V(I)=CUTORDERMAP%V(I).CUT.S2
+      CUTORDERMAP%V(I)=CUTORDERMAP%V(I).CUT.S22
      ENDDO
-      CUTORDERMAP%s=CUTORDERMAP%s.cut.s2
+     if(s2<0) s22=s22-1
+      CUTORDERMAP%s=CUTORDERMAP%s.cut.s22
     c_master=localmaster
 
   END FUNCTION CUTORDERMAP
@@ -3588,7 +3661,7 @@ io=0
     TYPE (c_taylor), INTENT (IN) :: S1
     CHARACTER(*)  , INTENT (IN) ::  S2
     CHARACTER (LEN = LNV)  resul
-    integer j(lnv),i,c
+    integer j(lnv),i,c,cm
     IF(.NOT.C_STABLE_DA) then
      GETchar=0
      RETURN
@@ -3618,8 +3691,12 @@ c=0
     do i=nv+1,lnv
        c=j(i)+c
     enddo
+cm=0
+    do i=1,nv
+       cm=j(i)+cm
+    enddo
 
-if(c>0) then
+if(c>0.or.cm>nv) then
 r1=0.0_dp
 else
     CALL c_dapek(S1%I,j,r1)
@@ -3638,7 +3715,7 @@ endif
     complex(dp) GETint,r1
     TYPE (c_taylor), INTENT (IN) :: S1
     integer , INTENT (IN) ::  S2(:)
-    integer j(lnv),i,c
+    integer j(lnv),i,c,cm
     IF(.NOT.C_STABLE_DA) then
      GETint=0
      RETURN
@@ -3661,8 +3738,13 @@ endif
     do i=nv+1,lnv
        c=j(i)+c
     enddo
+cm=0
+    do i=1,nv
+       cm=j(i)+cm
+    enddo
 
-if(c>0) then
+
+if(c>0.or.cm>nv) then
 r1=0.0_dp
 else
     CALL c_dapek(S1%I,j,r1)
@@ -4988,6 +5070,7 @@ cgetvectorfield=0
     if(s1%i==0) call c_crap1("c_pek000  1" )  !call etall1(s1%i)
  !   k=s1%i
 !    write(6,*) r1,k
+
     CALL c_DApek(s1%i,j,r1)
     !    else
     !       if(.NOT. ASSOCIATED(s1%j%r)) call c_crap1("c_pek000  2" ) ! newetall(s1%j,1)
@@ -7717,6 +7800,21 @@ endif
 
   END SUBROUTINE c_EQUALVEC
 
+SUBROUTINE  c_EQUALcray(S2,S1)
+!*
+    implicit none
+    type (c_ray),INTENT(inOUT)::S2
+    integer,INTENT(IN)::S1
+
+     s2%x=0.0_dp
+     s2%s1=0.0_dp
+     s2%s2=0.0_dp
+     s2%s3=0.0_dp
+     s2%s1(1)=1
+     s2%s2(2)=1
+     s2%s3(3)=1
+  END SUBROUTINE c_EQUALcray
+
   SUBROUTINE  c_IdentityEQUALMAP(S2,S1)
 !*
     implicit none
@@ -8721,6 +8819,14 @@ end subroutine c_full_canonise
     logical(lp), optional :: dospin
     logical dospinr
     type(c_spinor) n0,nr
+    integer mker, mkers,mdiss,mdis
+
+    if(lielib_print(13)/=0) then
+     call kanalnummer(mker,"kernel.txt")
+     call kanalnummer(mdis,"distortion.txt")
+     call kanalnummer(mkers,"kernel_spin.txt")
+     call kanalnummer(mdiss,"distortion_spin.txt")
+    endif
 
     not=no
     if(present(no_used)) then
@@ -8771,13 +8877,24 @@ end subroutine c_full_canonise
  
      n%ker=0  ! In case reusing normal form
    do i=2,not
-
+if(lielib_print(13)/=0) then
+  write(mdis,*) " **************************************** " 
+  write(mdis,*) "Order ",i
+  write(mker,*) " **************************************** " 
+  write(mker,*) "Order ",i
+endif
       nonl=(m1*ri)
       nonl= exp_inv(n%ker,nonl)
       nonl=nonl.sub.i
 
 
       do k=1,xy%n
+if(lielib_print(13)/=0) then
+  write(mdis,*) " **************************************** " 
+  write(mdis,*) "field component ",k
+  write(mker,*) " **************************************** " 
+  write(mker,*) "field component ",k
+endif
        n%g%f(i)%v(k)=0.0_dp
        n%ker%f(i)%v(k)=0.0_dp
 
@@ -8806,14 +8923,24 @@ end subroutine c_full_canonise
                if(coast(l)) cycle 
                  lam=lam*eg(l)**je(l)
                enddo
+if(lielib_print(13)/=0) then
+      write(mdis,*) k
+      write(mdis,'(6(1x,i4))') je(1:nd2)
+      write(mdis,*) v
+      write(mdis,*) abs(v/(1-lam))
+endif
              je(k)=je(k)+1
-!     write(6,*) k
-!     write(6,'(6(1x,i4))') je(1:6)
-!     write(6,*) v
-!     write(6,*) abs(v/(1-lam))
-!pause 1112
+
              n%g%f(i)%v(k)=n%g%f(i)%v(k)+(v.cmono.je)/(1.0_dp-lam)
             else ! Put in the kernel
+if(lielib_print(13)/=0) then
+             je(k)=je(k)-1
+      write(mker,*) k
+      write(mker,'(6(1x,i4))') je(1:nd2)
+      write(mker,*) v
+      write(mker,*) abs(v/(1-lam))
+             je(k)=je(k)+1
+endif
              n%ker%f(i)%v(k)=n%ker%f(i)%v(k)+(v.cmono.je)
             endif
 
@@ -8894,8 +9021,13 @@ end subroutine c_full_canonise
 
         nonl=m1.sub.1 ; nonl%s=1 ;nonl=nonl**(-1)  ! R_0^-1      (4)          
 
-       do i=1,no+2
-
+       do i=1,no    !+2
+if(lielib_print(13)/=0) then
+  write(mdiss,*) " **************************************** " 
+  write(mdiss,*) "Order ",i
+  write(mkers,*) " **************************************** " 
+  write(mkers,*) "Order ",i
+endif
         mt=m1*ri !  S*exp(-theta_0 L_y)    (5)
           call c_find_om_da(mt%s,n0)  ! exp(n0.L)    (6)
           call c_n0_to_nr(n0,n0)   ! n0 = > eigen-operator of spin   (7)
@@ -8903,6 +9035,14 @@ end subroutine c_full_canonise
 
           nr=0
        do k=1,3
+if(lielib_print(13)/=0.and.k/=(2+spin_def_tune)) then 
+  write(mdiss,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " 
+  write(mdiss,*) "Spin component ",k
+  write(mdiss,*) " "
+  write(mkers,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " 
+  write(mkers,*) "Spin component ",k
+  write(mkers,*) " "
+endif
          j=1
         do while(.true.) 
           call  c_cycle(n0%v(k),j,v ,je); if(j==0) exit;
@@ -8921,7 +9061,29 @@ end subroutine c_full_canonise
                 if(coast(l)) cycle 
                   lam=lam*eg(l)**je(l)
                enddo
+if(lielib_print(13)/=0.and.k/=(2+spin_def_tune)) then 
+do kr=1,nd2
+je(kr)=-(-1)**kr*je(kr)
+enddo
+      write(mdiss,'(6(1x,i4))') je(1:nd2)
+      write(mdiss,*) v
+      write(mdiss,*) abs(v/(1-lam))
+do kr=1,nd2
+je(kr)=-(-1)**kr*je(kr)
+enddo
+endif
              nr%v(k)=nr%v(k) +(v.cmono.je)/(1.0_dp-lam)   ! (9)
+           else
+if(lielib_print(13)/=0.and.k/=(2+spin_def_tune)) then 
+do kr=1,nd2
+je(kr)=-(-1)**kr*je(kr)
+enddo      
+      write(mkers,'(6(1x,i4))') je(1:nd2)
+      write(mkers,*) v
+do kr=1,nd2
+je(kr)=-(-1)**kr*je(kr)
+enddo
+endif
             endif
         enddo ! cycle
        enddo ! k
@@ -8951,8 +9113,11 @@ end subroutine c_full_canonise
         if(present(rot)) then
          rot=n%Atot**(-1)*xy*n%Atot
         endif
-
+        if(present(nu_spin)) nu_spin=0.0_dp
         if(present(phase)) then
+            do i=1,size(phase)
+               phase(i)=0.0_dp
+            enddo
             if(present(rot)) then
               m1=rot
             else
@@ -8969,6 +9134,13 @@ end subroutine c_full_canonise
 
       deallocate(eg)
       deallocate(je)
+
+    if(lielib_print(13)/=0) then
+     close(mker)
+     close(mdis)
+     close(mdiss)
+     close(mkers)
+    endif
 
  end subroutine c_normal
 
@@ -9073,6 +9245,8 @@ end subroutine c_full_canonise
     type(c_normal_form), intent(inout) ::  n
     complex(dp) r(6,6)
     integer i,j
+   
+
 
     r=m1
 
@@ -13520,6 +13694,7 @@ end subroutine nth_root
  enddo
 
  end  subroutine alloc_node_array
+
 
 
   END MODULE  c_tpsa

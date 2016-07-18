@@ -17,8 +17,8 @@ module tree_element_MODULE
   private EQUAL_IDENTITY_SPINOR,EQUAL_PROBE_REAL6
   PRIVATE EQUAL_SPINOR8_SPINOR,EQUAL_PROBE8_PROBE,EQUAL_PROBE8_REAL6
   private EQUAL_IDENTITY_SPINOR_8_r3 ,EQUAL_SPINOR_SPINOR8
-  private ALLOC_rf_phasor_8,KILL_rf_phasor_8
-
+  private ALLOC_rf_phasor_8,KILL_rf_phasor_8,realdp_spinor
+  private sub_spinor
 
   private dot_spinor_8,dot_spinor
   private  read_spinor_8
@@ -36,7 +36,7 @@ module tree_element_MODULE
 
   private EQUAL_RF8_RF8 !,extract_envelope_probe8
   PRIVATE EQUAL_RF8_RF,EQUAL_RF_RF8,print_rf_phasor_8 !,extract_envelope_damap
-  private EQUAL_DAMAP_RAY8
+  private EQUAL_DAMAP_RAY8,cross_spinor,cross_spinor8
   private flip  ! flip in lielib
   integer, target :: spin_extra_tpsa = 0 ,n0_normal= 2
   logical(lp) :: force_positive=.false.
@@ -84,11 +84,21 @@ module tree_element_MODULE
      MODULE PROCEDURE dot_spinor_8
   END  INTERFACE
 
+  INTERFACE OPERATOR (*)
+     MODULE PROCEDURE cross_spinor
+     MODULE PROCEDURE realdp_spinor
+     MODULE PROCEDURE cross_spinor8
+  END  INTERFACE
+
+
   INTERFACE operator (+)
      MODULE PROCEDURE scdaddo
      MODULE PROCEDURE daddsco
   END  INTERFACE
 
+  INTERFACE operator (-)
+     MODULE PROCEDURE sub_spinor
+  END  INTERFACE
 
 
   INTERFACE PRINT
@@ -1389,6 +1399,92 @@ CONTAINS
 
 
   END FUNCTION dot_spinor
+  
+  subroutine make_spinor_basis(s1,s2,s3)
+  implicit none
+    TYPE (SPINOR) s1,s2,s3
+    
+     s1=(1.0_dp/sqrt(s1.dot.s1))*s1
+
+     s2=s2 - (s2.dot.s1)*s1
+     
+     s2=(1.0_dp/sqrt(s2.dot.s2))*s2
+
+     s3=s1*s2
+
+  end subroutine make_spinor_basis
+
+
+  FUNCTION realdp_spinor( S1, S2 )
+    implicit none
+    TYPE (SPINOR) realdp_spinor
+    real(dp), intent(in) :: s1
+    TYPE (SPINOR), INTENT (IN) :: S2
+
+ 
+ 
+
+       realdp_spinor%x(1)= s1*s2%x(1)
+       realdp_spinor%x(2)= s1*s2%x(2)
+       realdp_spinor%x(3)= s1*s2%x(3)
+    
+
+  END FUNCTION realdp_spinor
+
+
+  FUNCTION sub_spinor( S1, S2 )
+    implicit none
+    TYPE (SPINOR) sub_spinor
+    TYPE (SPINOR), INTENT (IN) :: S1,S2
+
+ 
+ 
+
+       sub_spinor%x(1)= s1%x(1)-s2%x(1)
+       sub_spinor%x(2)= s1%x(2)-s2%x(2)
+       sub_spinor%x(3)= s1%x(3)-s2%x(3)
+    
+
+  END FUNCTION sub_spinor
+
+  FUNCTION cross_spinor( S1, S2 )
+    implicit none
+    TYPE (SPINOR) cross_spinor
+    TYPE (SPINOR), INTENT (IN) :: S1,S2
+
+ 
+ 
+
+       cross_spinor%x(1)= s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+       cross_spinor%x(2)= -s1%x(1)*s2%x(3)+s1%x(3)*s2%x(1)
+       cross_spinor%x(3)= s1%x(1)*s2%x(2)-s1%x(2)*s2%x(1)
+    
+
+  END FUNCTION cross_spinor
+
+  FUNCTION cross_spinor8( S1, S2 )
+    implicit none
+    TYPE (SPINOR_8) cross_spinor8
+    TYPE (SPINOR_8), INTENT (IN) :: S1,S2
+    integer localmaster
+
+    IF(.NOT.C_%STABLE_DA) RETURN
+    localmaster=master
+
+
+    call ass(cross_spinor8%x(1))
+    call ass(cross_spinor8%x(2))
+    call ass(cross_spinor8%x(3))
+ 
+
+       cross_spinor8%x(1)= s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+       cross_spinor8%x(2)= -s1%x(1)*s2%x(3)+s1%x(3)*s2%x(1)
+       cross_spinor8%x(3)= s1%x(1)*s2%x(2)-s1%x(2)*s2%x(1)
+    
+
+    master=localmaster
+
+  END FUNCTION cross_spinor8
 
   FUNCTION dot_spinor_8( S1, S2 )
     implicit none

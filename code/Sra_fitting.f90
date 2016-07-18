@@ -45,7 +45,7 @@ if(present(emax)) ee=emax
 bm=.true.
 wi=.false.
 if(present(bmadpatch)) bm =bmadpatch
-if(present(bmadpatch)) wi =wipeout
+if(present(wipeout)) wi =wipeout
 ke=0
 kc=0
 if(wi) then
