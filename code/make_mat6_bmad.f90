@@ -45,6 +45,7 @@ real(rp) t5_22, t5_33, t5_34, t5_44
 real(rp) factor, kmat6(6,6), drift(6,6), ww(3,3)
 real(rp) s_pos, s_pos_old, z_slice(100), dr(3), axis(3), w_mat(3,3)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp) an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
 real(rp) arg, rel_p, rel_p2, dp_dg, dp_dg_dz1, dp_dg_dpz1
 real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z, stg, one_ctg
@@ -71,7 +72,7 @@ integer i, n_slice, key, dir
 real(rp) charge_dir, hkick, vkick, kick
 
 logical, optional :: end_in, err
-logical err_flag, has_nonzero_pole, fringe_here, drifting
+logical err_flag, has_nonzero_pole, has_nonzero_elec, fringe_here, drifting
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -971,7 +972,7 @@ case (sbend$)
 
   ! Entrance edge kick
 
-  call offset_particle (ele, param, set$, c00, set_multipoles = .false.)
+  call offset_particle (ele, param, set$, c00, set_multipoles = .false., set_hvkicks = .false.)
   c0_off = c00
 
   call mat_make_unit(mat6_pre)
@@ -979,15 +980,16 @@ case (sbend$)
 
   ! Exit edge kick
 
-  call offset_particle (ele, param, set$, c11, ds_pos = length)
+  call offset_particle (ele, param, set$, c11, ds_pos = length, set_multipoles = .false., set_hvkicks = .false.)
   c1_off = c11 
 
   call mat_make_unit (mat6_post)
   call bend_edge_kick (ele, param, second_track_edge$, c11, mat6_post, .true.)
 
-  ! If we have a sextupole component then step through in steps of length ds_step
+  ! If we have a multipole component then step through in steps of length ds_step
 
   call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_ab (ele, .false., has_nonzero_elec, an_elec, bn_elec, pole_type = electric$)
 
   n_slice = 1  
   if (k2 /= 0 .or. has_nonzero_pole) n_slice = max(nint(v(l$) / v(ds_step$)), 1)

@@ -338,7 +338,7 @@ type (fringe_edge_info_struct) fringe_info
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
 real(rp) rel_p, rel_p2, Dy, px_t, factor, g, g_err, c_dir, stg
-real(rp) length, g_tot, eps, pxy2, ff, fg, k_2, alpha, beta, one_ct
+real(rp) step_len, g_tot, eps, pxy2, ff, fg, k_2, alpha, beta, one_ct
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -368,17 +368,17 @@ n_step = 1
 
 call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
 call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
-if (ele%value(k2$) /= 0 .or. has_nonzero_pole .or. has_nonzero_elec) n_step = &
-                                    max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-if (has_nonzero_pole) knl = knl * c_dir / n_step
+
+if (ele%value(k2$) /= 0 .or. has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+knl = knl * c_dir / n_step
 
 ! Set some parameters
 
-length = ele%value(l$) / n_step
+step_len = ele%value(l$) / n_step
 g = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
 g_err = g_tot - g
-angle = g * length
+angle = g * step_len
 pz = start_orb%vec(6)
 rel_p  = 1 + pz
 rel_p2 = rel_p**2
@@ -393,14 +393,14 @@ if (.not. ele%is_on) then
   k_2 = 0
 endif
 
-! 1/2 sextupole kick at the beginning.
+! multipole kick at the beginning.
 
 if (k_2 /= 0) then
-  end_orb%vec(2) = end_orb%vec(2) + k_2/2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
-  end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
+  end_orb%vec(2) = end_orb%vec(2) + k_2/2 * step_len * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+  end_orb%vec(4) = end_orb%vec(4) + k_2/2 * step_len * end_orb%vec(1) * end_orb%vec(3)
 end if
 if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
-if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length/2)
+if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len/2)
 
 ! And track with n_step steps
 
@@ -413,7 +413,7 @@ do n = 1, n_step
     call sbend_body_with_k1_map (ele, param, n_step, end_orb, end_orb = end_orb)
 
   elseif (g == 0 .and. g_err == 0) then
-    call track_a_drift (end_orb, length)
+    call track_a_drift (end_orb, step_len)
     drifting = .true.
 
   !-----------------------------------------------------------------------
@@ -425,8 +425,8 @@ do n = 1, n_step
     ct = cos(angle)
     st = sin(angle)
     if (abs(angle) < 1d-7) then
-      stg = length * (1 - angle**2 / 6)
-      one_ct = length * angle / 2
+      stg = step_len * (1 - angle**2 / 6)
+      one_ct = step_len * angle / 2
     else
       stg = sin(angle) / g
       one_ct = (1 - ct) / g
@@ -469,10 +469,10 @@ do n = 1, n_step
       return
     endif
 
-    if (abs(angle) < 1d-5 .and. abs(g_tot * length) < 1d-5) then
-      end_orb%vec(1) = end_orb%vec(1) + length * px / p_long - &
-                       g_tot * (length * Dy)**2 / (2 * p_long**3) + &
-                       g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / (2 * p_long**2)
+    if (abs(angle) < 1d-5 .and. abs(g_tot * step_len) < 1d-5) then
+      end_orb%vec(1) = end_orb%vec(1) + step_len * px / p_long - &
+                       g_tot * (step_len * Dy)**2 / (2 * p_long**3) + &
+                       g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / (2 * p_long**2)
     elseif (abs(g_tot) < 1d-5 * abs(g)) then
       alpha = p_long * ct - px * st
       end_orb%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
@@ -496,11 +496,11 @@ do n = 1, n_step
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
       end_orb%vec(3) = y + py * beta
-      end_orb%vec(5) = z + length  - rel_p * beta 
+      end_orb%vec(5) = z + step_len  - rel_p * beta 
     else
       factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
       end_orb%vec(3) = y + py * (angle/g_tot + factor)
-      end_orb%vec(5) = z + length * (g_err - g*pz) / g_tot - rel_p * factor
+      end_orb%vec(5) = z + step_len * (g_err - g*pz) / g_tot - rel_p * factor
     endif
 
   endif
@@ -509,18 +509,18 @@ do n = 1, n_step
 
   if (n == n_step) then
     if (k_2 /= 0) then
-      end_orb%vec(2) = end_orb%vec(2) + k_2/2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
-      end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
+      end_orb%vec(2) = end_orb%vec(2) + k_2/2 * step_len * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+      end_orb%vec(4) = end_orb%vec(4) + k_2/2 * step_len * end_orb%vec(1) * end_orb%vec(3)
     end if
     if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length/2)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len/2)
   else
     if (k_2 /= 0) then
-       end_orb%vec(2) = end_orb%vec(2) + k_2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
-       end_orb%vec(4) = end_orb%vec(4) + k_2 * length * end_orb%vec(1) * end_orb%vec(3)
+       end_orb%vec(2) = end_orb%vec(2) + k_2 * step_len * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+       end_orb%vec(4) = end_orb%vec(4) + k_2 * step_len * end_orb%vec(1) * end_orb%vec(3)
     end if
     if (has_nonzero_pole) call multipole_kicks (knl, tilt, end_orb)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, length = length)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len)
   endif
 
 enddo

@@ -270,7 +270,7 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -279,11 +279,13 @@ end subroutine multipole1_kt_to_ab
 !   use bmad
 !
 ! Input:
-!   ele          -- ele_struct: Element.
-!     %value()     -- ab_multipole values.
-!   use_ele_tilt -- logical: If True then include ele%value(tilt_tot$) in calculations.
-!                     use_ele_tilt is ignored in the case of multipole$ elements.
-!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   ele           -- ele_struct: Element.
+!     %value()      -- ab_multipole values.
+!   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
+!                      use_ele_tilt is ignored in the case of multipole$ elements.
+!   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   include_kicks -- logical, optional: If True, include hkick/vkick in n = 0 components.
+!                      Default is False.
 !
 ! Output:
 !   has_nonzero_pole -- logical: Set True if there is a nonzero pole. False otherwise.
@@ -291,19 +293,20 @@ end subroutine multipole1_kt_to_ab
 !   b(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
+subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
-real(rp) an, bn, cos_t, sin_t
+real(rp) an, bn, cos_t, sin_t, tilt
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer, optional :: pole_type
-integer i, ref_exp, n
+integer i, ref_exp, n, tilt_dir, hk, vk
 
+logical, optional :: include_kicks
 logical use_ele_tilt, has_nonzero_pole
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
@@ -355,6 +358,60 @@ else
 
 endif
 
+! Include h/v kicks?
+
+if (logic_option(.false., include_kicks)) then
+  hk = 0; vk = 0
+
+  if (integer_option(magnetic$, pole_type) == magnetic$) then
+    select case (ele%key)
+    case (hkicker$)
+      tilt_dir = 0
+      hk = -ele%value(kick$)
+    case (vkicker$)
+      tilt_dir = 0
+      vk = ele%value(kick$)
+    case (elseparator$)
+      ! Kicks are electric
+    case default
+      tilt_dir = -1
+      hk = -ele%value(hkick$)
+      vk =  ele%value(vkick$)
+    end select
+
+  else ! electric
+    select case (ele%key)
+    case (elseparator$)
+      tilt_dir = 0
+      hk = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
+      hk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
+    end select
+  endif
+
+  if (hk /= 0 .or. vk /= 0) then
+    has_nonzero_pole = .true.
+
+    if (use_ele_tilt) tilt_dir = tilt_dir + 1
+
+    if (ele%key == sbend$) then
+      tilt = tilt_dir * ele%value(ref_tilt_tot$)
+    else
+      tilt = tilt_dir * ele%value(tilt_tot$) 
+    endif
+
+    if (use_ele_tilt .and. tilt /= 0) then
+      cos_t = cos(tilt)
+      sin_t = sin(tilt)
+      b(0) = b(0) + hk * cos_t + vk * sin_t
+      a(0) = a(0) - hk * sin_t + vk * cos_t
+    else
+      b(0) = b(0) + hk 
+      a(0) = a(0) + vk
+    endif
+  endif
+
+endif
+
 !---------------------------------------------
 contains
 
@@ -362,7 +419,7 @@ subroutine convert_this_ab (this_ele, this_a, this_b)
 
 type (ele_struct) this_ele
 type (branch_struct), pointer :: branch
-real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx), tilt
 logical has_nonzero
 logical a, b ! protect symbols
 
@@ -380,12 +437,18 @@ has_nonzero_pole = .true.
 
 ! use tilt?
 
-if (use_ele_tilt .and. this_ele%value(tilt_tot$) /= 0) then
+if (this_ele%key == sbend$) then
+  tilt = ele%value(ref_tilt_tot$)
+else
+  tilt = this_ele%value(tilt_tot$) 
+endif
+
+if (use_ele_tilt .and. tilt /= 0) then
   do n = 0, n_pole_maxx
     if (this_a(n) /= 0 .or. this_b(n) /= 0) then
       an = this_a(n); bn = this_b(n)
-      cos_t = cos((n+1)*this_ele%value(tilt_tot$))
-      sin_t = sin((n+1)*this_ele%value(tilt_tot$))
+      cos_t = cos((n+1)*tilt)
+      sin_t = sin((n+1)*tilt)
       this_b(n) =  bn * cos_t + an * sin_t
       this_a(n) = -bn * sin_t + an * cos_t
     endif
@@ -541,7 +604,7 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, coord, pole_type)
+! Subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale)
 !
 ! Subroutine to put in the kick due to ab_multipole components.
 !
@@ -549,23 +612,24 @@ end subroutine multipole_kicks
 !   use bmad
 !                          
 ! Input:
-!   an(0:)         -- real(rp): Skew multipole strengths.
-!   bn(0:)         -- real(rp): Normal multipole tilts.
-!   coord          -- coord_struct: Particle position.
-!   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   length         -- real(rp), optional: Length of field region. Must be present if pole_type = electric$.
+!   an(0:)       -- real(rp): Skew multipole strengths.
+!   bn(0:)       -- real(rp): Normal multipole tilts.
+!   coord        -- coord_struct: Particle position.
+!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
+!                     For pole_type = electric$, set scale to the longitudinal length of the field region
 !
 ! Output:
 !   coord -- coord_struct: Kicked particle.
 !-
 
-subroutine ab_multipole_kicks (an, bn, coord, pole_type, length)
+subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale)
 
 type (coord_struct)  coord
 
 real(rp) an(0:), bn(0:)
-real(rp) kx, ky, pz2, rel_p
-real(rp), optional :: length
+real(rp) kx, ky, pz2, rel_p, rel_p2
+real(rp), optional :: scale
 
 integer n
 
@@ -573,17 +637,25 @@ integer, optional :: pole_type
 
 !
 
-pz2 = (1 + coord%vec(6))**2 + coord%vec(2)**2 + coord%vec(4)**2
+if (integer_option(magnetic$, pole_type) == electric$) pz2 = (1 + coord%vec(6))**2 + coord%vec(2)**2 + coord%vec(4)**2
+
 do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
-  call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, length = length)
+  call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, scale = scale)
   coord%vec(2) = coord%vec(2) + kx
   coord%vec(4) = coord%vec(4) + ky
 enddo
 
-rel_p = sqrt(pz2 - coord%vec(2)**2 - coord%vec(4)**2) 
-coord%vec(6) = rel_p - 1
-coord%beta = rel_p / sqrt(rel_p**2 + (mass_of(coord%species)/coord%p0c)**2)
+if (integer_option(magnetic$, pole_type) == electric$) then
+  rel_p2 = pz2 - coord%vec(2)**2 - coord%vec(4)**2
+  if (rel_p2 < 0) then
+    coord%state = lost_z_aperture$
+    return
+  endif
+  rel_p = sqrt(rel_p2)
+  coord%vec(6) = rel_p - 1
+  coord%beta = rel_p / sqrt(rel_p2 + (mass_of(coord%species)/coord%p0c)**2)
+endif
 
 end subroutine ab_multipole_kicks
 
@@ -701,7 +773,7 @@ end subroutine multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, length)
+! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
 !
@@ -709,12 +781,13 @@ end subroutine multipole_kick
 !   use bmad
 !                          
 ! Input:
-!   a         -- Real(rp): Multipole skew component.
-!   b         -- Real(rp): Multipole normal component.
-!   n         -- Real(rp): Multipole order.
-!   coord     -- Coord_struct:
-!   pole_type -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   length    -- real(rp), optional: Length of field region. Must be present if pole_type = electric$.
+!   a            -- Real(rp): Multipole skew component.
+!   b            -- Real(rp): Multipole normal component.
+!   n            -- Real(rp): Multipole order.
+!   coord        -- Coord_struct:
+!   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
+!                     For pole_type = electric$, set scale to the longitudinal length of the field region.
 !
 ! Output:
 !   kx      -- Real(rp): X kick.
@@ -722,13 +795,13 @@ end subroutine multipole_kick
 !   dk(2,2) -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
 !-
 
-subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, length)
+subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)
 
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
 real(rp), optional :: dk(2,2)
-real(rp), optional :: length
+real(rp), optional :: scale
 real(rp) kx, ky, f, a2, b2
 
 integer, optional :: pole_type
@@ -749,12 +822,17 @@ if (a == 0 .and. b == 0) return
 ! Note that c_multi can be + or -
 
 if (integer_option(magnetic$, pole_type) == electric$) then
-  f = charge_of(coord%species) * length / (coord%beta * coord%p0c)
+  f = charge_of(coord%species) / (coord%beta * coord%p0c)
   a2 =  a * f
   b2 = -b * f
 else
   a2 = a
   b2 = b
+endif
+
+if (present(scale)) then
+  a2 = scale * a2
+  b2 = scale * b2
 endif
 
 x = coord%vec(1)

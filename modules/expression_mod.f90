@@ -65,7 +65,7 @@ integer op(200), ix_word, i_delim, i2, ix_word2, n_stack
 real(rp) value
 
 character(*) string, err_str
-character(1) delim
+character(1) delim, old_delim
 character(80) word, word2
 character(200) parse_line
 
@@ -83,6 +83,7 @@ logical err_flag, err
 
 ! init
 
+delim = ''
 err_flag = .true.
 n_stack = 0
 i_op = 0
@@ -97,6 +98,7 @@ parsing_loop: do
 
   ! get a word
 
+  old_delim = delim
   call get_next_chunk (word, ix_word, '+-*/()^,:} ', delim, delim_found)
 
   if (delim == '*' .and. word(1:1) == '*') then
@@ -124,7 +126,9 @@ parsing_loop: do
   endif
   if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
   do i = 1, ix_word-1
-    if (index('.0123456789', word(i:i)) == 0) split = .false.
+    if (index('.0123456789', word(i:i)) /= 0) cycle
+    split = .false.
+    exit
   enddo
 
   ! If still SPLIT = .TRUE. then we need to unsplit
@@ -258,7 +262,11 @@ parsing_loop: do
 
   else
     if (ix_word == 0) then
-      err_str = 'CONSTANT OR VARIABLE MISSING'
+      if (old_delim == "*" .and. delim == "*") then
+        err_str = 'EXPONENTIATION "**" NEEDS TO BE REPLACED BY "^"'
+      else
+        err_str = 'CONSTANT OR VARIABLE MISSING'
+      endif
       return
     endif
     call push_numeric_or_var (err); if (err) return
@@ -341,6 +349,7 @@ logical delim_found
 
 !
 
+old_delim = delim
 call word_read (parse_line, delim_list, word, ix_word, delim, delim_found, parse_line)
 
 end subroutine get_next_chunk
