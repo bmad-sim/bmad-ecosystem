@@ -284,7 +284,7 @@ end subroutine multipole1_kt_to_ab
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   include_kicks -- logical, optional: If True, include hkick/vkick in n = 0 components.
+!   include_kicks -- logical, optional: If True, include hkick/vkick in the n = 0 components.
 !                      Default is False.
 !
 ! Output:
@@ -299,12 +299,12 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
-real(rp) an, bn, cos_t, sin_t, tilt
+real(rp) an, bn, cos_t, sin_t, tilt, hk, vk
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer, optional :: pole_type
-integer i, ref_exp, n, tilt_dir, hk, vk
+integer i, ref_exp, n, tilt_dir
 
 logical, optional :: include_kicks
 logical use_ele_tilt, has_nonzero_pole
@@ -345,10 +345,8 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 
 ! Not a slave
 else
-  if (.not. associated(a_pole)) return
-  if (.not. (ele%multipoles_on .and. ele%is_on)) return
-
   if (ele%key == multipole$) then
+    if (integer_option(magnetic$, pole_type) == electric$) return
     if (all(a_pole == 0)) return
     has_nonzero_pole = .true.
     call multipole_kt_to_ab (a_pole, b_pole, a, b)
@@ -360,7 +358,7 @@ endif
 
 ! Include h/v kicks?
 
-if (logic_option(.false., include_kicks)) then
+if (logic_option(.false., include_kicks) .and. ele%is_on) then
   hk = 0; vk = 0
 
   if (integer_option(magnetic$, pole_type) == magnetic$) then
@@ -384,7 +382,7 @@ if (logic_option(.false., include_kicks)) then
     case (elseparator$)
       tilt_dir = 0
       hk = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
-      hk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
+      vk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
     end select
   endif
 
@@ -425,10 +423,13 @@ logical a, b ! protect symbols
 
 !
 
+if (.not. associated(a_pole)) return
+if (.not. (this_ele%multipoles_on .and. this_ele%is_on)) return
+
 this_a = a_pole
 this_b = b_pole
 
-! all zero then we do not need to scale.
+! All zero then we do not need to scale.
 ! Also if scaling is turned off
 
 if (all(this_a == 0) .and. all(this_b == 0)) return
