@@ -397,7 +397,7 @@ if (logic_option(.false., include_kicks) .and. ele%is_on) then
       tilt = tilt_dir * ele%value(tilt_tot$) 
     endif
 
-    if (use_ele_tilt .and. tilt /= 0) then
+    if (tilt /= 0) then
       cos_t = cos(tilt)
       sin_t = sin(tilt)
       b(0) = b(0) + hk * cos_t + vk * sin_t
