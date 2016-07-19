@@ -17,8 +17,8 @@ the plot page) is broken up.
   !plot_page%floor_plan_rotation = 0.5
   !plot_page%title(1)%string = 'ERL'
 
-  plot_page%floor_plan_size_is_absolute = T
-  plot_page%floor_plan_shape_scale = 0.01 !m to cm
+!  plot_page%floor_plan_size_is_absolute = T
+!  plot_page%floor_plan_shape_scale = 0.01 !m to cm
 
   region(1)%name = 'floor'
   region(1)%location = 0.0, 1.0, 0.5, 0.95
