@@ -208,16 +208,16 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var, ix_ptr, im
-integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch
+integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im
+integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch, ix_lr_position_array
 
 logical write_wake, mode3
 
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_lr = 0; n_var = 0; ix_st = -1
-mode3 = .false.; ix_wall3d = 0
+ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; n_var = 0; ix_st = -1
+mode3 = .false.; ix_wall3d = 0; ix_lr_position_array = 0
 n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0
 
 if (associated(ele%mode3))             mode3 = .true.
@@ -240,20 +240,21 @@ if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d)
 if (associated(ele%control_var))    n_var = size(ele%control_var)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing the wake info,
-! we only write a wake when needed and ix_lr serves as a pointer to a previously written wake.
+! we only write a wake when needed and ix_lr_mode serves as a pointer to a previously written wake.
 
 write_wake = .true.
 if (associated(ele%wake)) then
   do j = 1, n_wake
     if (.not. ele%branch%ele(ix_wake(j))%wake == ele%wake) cycle
     write_wake = .false.
-    ix_lr = -ix_wake(j)        
+    ix_lr_mode = -ix_wake(j)        
   enddo
 
   if (write_wake) then
-    if (allocated(ele%wake%sr_long%mode))  ix_sr_long  = size(ele%wake%sr_long%mode)
-    if (allocated(ele%wake%sr_trans%mode)) ix_sr_trans = size(ele%wake%sr_trans%mode)
-    if (allocated(ele%wake%lr))       ix_lr       = size(ele%wake%lr)
+    if (allocated(ele%wake%sr_long%mode))      ix_sr_long    = size(ele%wake%sr_long%mode)
+    if (allocated(ele%wake%sr_trans%mode))     ix_sr_trans   = size(ele%wake%sr_trans%mode)
+    if (allocated(ele%wake%lr_mode))           ix_lr_mode    = size(ele%wake%lr_mode)
+    if (allocated(ele%wake%lr_position_array)) ix_lr_position_array = size(ele%wake%lr_position_array)
     n_wake = n_wake + 1
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
@@ -290,8 +291,8 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, &
-          0, 0, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
+          0, ix_lr_position_array, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -499,8 +500,13 @@ if (associated(ele%wake) .and. write_wake) then
   write (d_unit) ele%wake%sr_long%mode
   write (d_unit) ele%wake%sr_trans%mode
   write (d_unit) ele%wake%lr_file
-  write (d_unit) ele%wake%lr
+  write (d_unit) ele%wake%lr_mode
+  do i = 1, size(ele%wake%lr_position_array)
+    write (d_unit) ele%wake%lr_position_array(i)%t_max
+    write (d_unit) ele%wake%lr_position_array(i)%polarization_angle
+  enddo
   write (d_unit) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
+  
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))

@@ -275,13 +275,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! Check wakes
 
     if (associated(ele%wake)) then
-      if (allocated(ele%wake%lr)) then
-        do iw = 1, size(ele%wake%lr)
-          if (ele%wake%lr(iw)%Q < 0) then
+      if (allocated(ele%wake%lr_mode)) then
+        do iw = 1, size(ele%wake%lr_mode)
+          if (ele%wake%lr_mode(iw)%Q < 0) then
             call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'HAS LR wake (#\i0\) with negative Q!  \es10.1\ ', &
-                      i_array = [iw], r_array = [ele%wake%lr(iw)%Q])
+                      i_array = [iw], r_array = [ele%wake%lr_mode(iw)%Q])
             err_flag = .true.
           endif
         enddo

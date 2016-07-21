@@ -562,6 +562,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, lr_wake_file$,        'LR_WAKE_FILE')
   call init_attribute_name1 (i, lr_freq_spread$,      'LR_FREQ_SPREAD')
   call init_attribute_name1 (i, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
+  call init_attribute_name1 (i, lr_wake_position_array$, 'LR_WAKE_POSITION_ARRAY')
 
   call init_attribute_name1 (i, field_overlaps$,     'FIELD_OVERLAPS')
 

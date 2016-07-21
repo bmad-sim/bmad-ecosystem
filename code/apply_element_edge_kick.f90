@@ -1,5 +1,5 @@
 !+
-! Subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin)
+! Subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
 !
 ! Subroutine, used with runge_kutta and boris tracking, to track through the edge fringe field of an element.
 ! This routine is used and with the bmad_standard field_calc where the field can have an abrubt, 
@@ -24,12 +24,15 @@
 !                    when there are superpositions and track_ele can be a super_slave of fringe_info%hard_ele.
 !   param       -- lat_param_struct: lattice parameters.
 !   track_spin  -- logical: Track the spin?
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before fringe.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after application of the edge fringe field.
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
 
-subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin)
+subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
 
 use track1_mod, except_dummy => apply_element_edge_kick
 
@@ -42,10 +45,13 @@ type (em_field_struct) field
 type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele
 
+real(rp), optional :: mat6(6,6)
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
 complex(rp) xiy, c_vec
 
 integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at
+
+logical, optional :: make_matrix
 logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
@@ -68,7 +74,7 @@ endif
 
 ! Custom edge kick?
 
-call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished)
+call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished, mat6, make_matrix)
 if (finished) return
 
 !------------------------------------------------------------------------------------
@@ -123,7 +129,7 @@ case (quadrupole$)
   endif
 
 case (sbend$)
-  call bend_edge_kick (hard_ele, param, particle_at, orb, track_spin = track_spn)
+  call bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix, track_spn)
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).

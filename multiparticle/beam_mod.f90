@@ -209,7 +209,7 @@ type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, slave
-type (wake_lr_struct), pointer :: lr, lr_chain
+type (wake_lr_mode_struct), pointer :: lr, lr_chain
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (coord_struct), optional :: centroid(0:)
 
@@ -258,15 +258,15 @@ if (associated(ele%wake)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%lord_status /= super_lord$) cycle
-      lord%wake%lr%b_sin = 0;  lord%wake%lr%b_cos = 0
-      lord%wake%lr%a_sin = 0;  lord%wake%lr%a_cos = 0
-      lord%wake%lr%t_ref = 0
+      lord%wake%lr_mode%b_sin = 0;  lord%wake%lr_mode%b_cos = 0
+      lord%wake%lr_mode%a_sin = 0;  lord%wake%lr_mode%a_cos = 0
+      lord%wake%lr_mode%t_ref = 0
       do j = 1, lord%n_slave
         slave => pointer_to_slave(lord, 1)
-        lord%wake%lr%b_sin = lord%wake%lr%b_sin + slave%wake%lr%b_sin
-        lord%wake%lr%b_cos = lord%wake%lr%b_cos + slave%wake%lr%b_cos
-        lord%wake%lr%a_sin = lord%wake%lr%a_sin + slave%wake%lr%a_sin
-        lord%wake%lr%a_cos = lord%wake%lr%a_cos + slave%wake%lr%a_cos
+        lord%wake%lr_mode%b_sin = lord%wake%lr_mode%b_sin + slave%wake%lr_mode%b_sin
+        lord%wake%lr_mode%b_cos = lord%wake%lr_mode%b_cos + slave%wake%lr_mode%b_cos
+        lord%wake%lr_mode%a_sin = lord%wake%lr_mode%a_sin + slave%wake%lr_mode%a_sin
+        lord%wake%lr_mode%a_cos = lord%wake%lr_mode%a_cos + slave%wake%lr_mode%a_cos
       enddo
     enddo
   endif
@@ -278,15 +278,15 @@ if (associated(ele%wake)) then
   call multipass_chain (ele, ix_pass, n_links, chain_ele)
   do i = 1, n_links
     if (i == ix_pass) cycle
-    do j = 1, size(ele%wake%lr)
-      chain_ele(i)%ele%wake%lr(j) = ele%wake%lr(j)
+    do j = 1, size(ele%wake%lr_mode)
+      chain_ele(i)%ele%wake%lr_mode(j) = ele%wake%lr_mode(j)
     enddo
   enddo
 
   lord => pointer_to_multipass_lord (ele)
   if (associated(lord)) then 
-    do j = 1, size(ele%wake%lr)
-      lord%wake%lr(j) = ele%wake%lr(j)
+    do j = 1, size(ele%wake%lr_mode)
+      lord%wake%lr_mode(j) = ele%wake%lr_mode(j)
     enddo
   endif
 

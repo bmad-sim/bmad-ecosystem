@@ -26,14 +26,16 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   character(*), optional :: use_line
 end subroutine
 
-subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin)
+subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orb
   type (fringe_edge_info_struct) fringe_info
   type (ele_struct) hard_ele, track_ele
   type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
   real(rp) t_rel
+  logical, optional :: make_matrix
   logical track_spin
 end subroutine
 

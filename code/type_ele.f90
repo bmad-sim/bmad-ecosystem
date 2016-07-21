@@ -61,7 +61,7 @@ type (ele_struct), pointer :: lord, slave
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
@@ -919,7 +919,7 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (logic_option (.true., type_wake) .and. size(ele%wake%lr) /= 0) then
+  if (logic_option (.true., type_wake) .and. size(ele%wake%lr_mode) /= 0) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Long-Range Wake:'
     nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr_file)
@@ -927,15 +927,15 @@ if (associated(ele%wake)) then
     nl=nl+1; write (li(nl), '(2x, a, l2)')    'lr_self_wake_on =', ele%wake%lr_self_wake_on
   endif
 
-  if (size(ele%wake%lr) /= 0) then
+  if (size(ele%wake%lr_mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%wake%lr)+100, .false.)
+      call re_associate (li, nl+size(ele%wake%lr_mode)+100, .false.)
       nl=nl+1; li(nl) = '  Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
-      do i = 1, size(ele%wake%lr)
-        lr => ele%wake%lr(i)
+      do i = 1, size(ele%wake%lr_mode)
+        lr => ele%wake%lr_mode(i)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &

@@ -88,6 +88,7 @@ compatibility with \mad and should be avoided.
 \label{t:constants}
 \end{table}
 
+
 \newpage
 
 \index{MAD!units}
@@ -570,7 +571,7 @@ The standard operators are defined: \hfil\break
   $a - b$           & Subtraction     \\
   $a \, \ast \, b$  & Multiplication  \\
   $a \; / \; b$     & Division        \\
-  $a \, \land \, b$ & Exponentiation  \\
+  $a \, ^{\scriptstyle\wedge} \, b$ & Exponentiation  \\
 \end{tabular}
 \hfil\break
 \bmad also has a set of intrinsic functions. A list of these is given
@@ -679,24 +680,27 @@ value.
 The following intrinsic functions are recognized by \bmad: \hfil\break
 \hspace*{0.15in}
 \begin{tabular}{ll}
-  \vn{sqrt}(x)      & Square Root                        \\
-  \vn{log}(x)       & Logarithm                          \\
-  \vn{exp}(x)       & Exponential                        \\
-  \vn{sin}(x)       & Sine                               \\
-  \vn{cos}(x)       & Cosine                             \\
-  \vn{tan}(x)       & Tangent                            \\
-  \vn{asin}(x)      & Arc sine                           \\
-  \vn{acos}(x)      & Arc cosine                         \\
-  \vn{atan}(x)      & Arc Tangent                        \\
-  \vn{atan2}(y, x)  & Arc Tangent of y/x                 \\
-  \vn{abs}(x)       & Absolute Value                     \\
-  \vn{factorial}(n) & Factorial                          \\
-  \vn{ran}()        & Random number between 0 and 1      \\
-  \vn{ran_gauss}()  & Gaussian distributed random number \\
-  \vn{int}(x)       & Nearest integer with magnitude less then x \\
-  \vn{nint}(x)      & Nearest integer to x               \\
-  \vn{floor}(x)     & Nearest integer less than x        \\
-  \vn{ceiling}(x)   & Nearest integer greater than x     \\
+  \vn{sqrt}(x)                  & Square Root                                    \\
+  \vn{log}(x)                   & Logarithm                                      \\
+  \vn{exp}(x)                   & Exponential                                    \\
+  \vn{sin}(x)                   & Sine                                           \\
+  \vn{cos}(x)                   & Cosine                                         \\
+  \vn{tan}(x)                   & Tangent                                        \\
+  \vn{asin}(x)                  & Arc sine                                       \\
+  \vn{acos}(x)                  & Arc cosine                                     \\
+  \vn{atan}(x)                  & Arc Tangent                                    \\
+  \vn{atan2}(y, x)              & Arc Tangent of y/x                             \\
+  \vn{abs}(x)                   & Absolute Value                                 \\
+  \vn{factorial}(n)             & Factorial                                      \\
+  \vn{ran}()                    & Random number between 0 and 1                  \\
+  \vn{ran_gauss}()              & Gaussian distributed random number             \\
+  \vn{int}(x)                   & Nearest integer with magnitude less then x     \\
+  \vn{nint}(x)                  & Nearest integer to x                           \\
+  \vn{floor}(x)                 & Nearest integer less than x                    \\
+  \vn{ceiling}(x)               & Nearest integer greater than x                 \\
+  \vn{mass_of}(A)               & Mass of particle A                             \\
+  \vn{charge_of}(A)             & Charge of particle A                           \\
+  \vn{anomalous_moment_of}(a)   & Anomalous magnetic moment of particle A        
 \end{tabular}
 
 \index{ran_seed}

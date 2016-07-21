@@ -43,7 +43,7 @@ use bmad_interface, except_dummy => pointer_to_attribute
 implicit none
 
 type (ele_struct), target :: ele
-type (wake_lr_struct), allocatable :: lr(:)
+type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (all_pointer_struct) a_ptr
@@ -51,7 +51,7 @@ type (all_pointer_struct) a_ptr
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3)
+integer ix_d, n, ios, n_lr_mode, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3)
 integer expn(6)
 integer lb0(3), ub0(3), lb(3), ub(3)
 character(*) attrib_name
@@ -147,27 +147,27 @@ if (a_name(1:3) == 'LR(') then
 
   if (.not. associated (ele%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, n)
+    call init_wake (ele%wake, 0, 0, n, 0)
   endif
 
-  n_lr = size(ele%wake%lr)
-  if (n_lr < n) then
+  n_lr_mode = size(ele%wake%lr_mode)
+  if (n_lr_mode < n) then
     if (.not. do_allocation) goto 9100
-    allocate (lr(n_lr))
-    lr = ele%wake%lr
-    deallocate (ele%wake%lr)
-    allocate (ele%wake%lr(n))
-    ele%wake%lr = wake_lr_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
+    allocate (lr_mode(n_lr_mode))
+    lr_mode = ele%wake%lr_mode
+    deallocate (ele%wake%lr_mode)
+    allocate (ele%wake%lr_mode(n))
+    ele%wake%lr_mode = wake_lr_mode_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
                                         0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
-    ele%wake%lr(1:n_lr) = lr
-    deallocate (lr)
+    ele%wake%lr_mode(1:n_lr_mode) = lr_mode
+    deallocate (lr_mode)
   endif
 
   select case (a_name(ix_d+2:))
-  case ('FREQ');      a_ptr%r => ele%wake%lr(n)%freq
-  case ('R_OVER_Q');  a_ptr%r => ele%wake%lr(n)%r_over_q
-  case ('Q');         a_ptr%r => ele%wake%lr(n)%q
-  case ('ANGLE');     a_ptr%r => ele%wake%lr(n)%angle
+  case ('FREQ');      a_ptr%r => ele%wake%lr_mode(n)%freq
+  case ('R_OVER_Q');  a_ptr%r => ele%wake%lr_mode(n)%r_over_q
+  case ('Q');         a_ptr%r => ele%wake%lr_mode(n)%q
+  case ('ANGLE');     a_ptr%r => ele%wake%lr_mode(n)%angle
   case default;       goto 9000
   end select    
 
