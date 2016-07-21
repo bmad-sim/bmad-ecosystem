@@ -168,7 +168,7 @@ type (ele_struct), target :: ele3, ele0
 type (em_field_struct) field
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr_mode
 type (coord_struct), target :: orb
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
@@ -1620,12 +1620,12 @@ case ('hom')
     if (ele%key /= lcavity$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     nl=nl+1; write(lines(nl), '(a, i6)') ele%name, i
-    do j = 1, size(ele%wake%lr)
-      lr => ele%wake%lr(j)
+    do j = 1, size(ele%wake%lr_mode)
+      lr_mode => ele%wake%lr_mode(j)
       angle_str = '-'
-      if (lr%polarized) write (angle_str, '(f9.4)') lr%angle
+      if (lr_mode%polarized) write (angle_str, '(f9.4)') lr_mode%angle
       nl=nl+1; write(lines(nl), '(i8, 3es12.4, i4, a)') j, &
-                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle_str
+                  lr_mode%freq, lr_mode%R_over_Q, lr_mode%Q, lr_mode%m, angle_str
     enddo
     nl=nl+1; lines(nl) = ' '
   enddo
@@ -3523,7 +3523,7 @@ case ('wake_elements')
 
       nl=nl+1; write(lines(nl), '(a5, 2x, a20, 2x, a15, 3x, l1, 13x, l1, 13x, l1)') &
         ele_loc_to_string(ele, .true.), ele%name, key_name(ele%key), &
-        allocated(wake%sr_long%mode), allocated(wake%sr_trans%mode), allocated(wake%lr)
+        allocated(wake%sr_long%mode), allocated(wake%sr_trans%mode), allocated(wake%lr_mode)
     enddo
   enddo
 

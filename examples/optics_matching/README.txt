@@ -1,7 +1,7 @@
 ! Tao optics matching example.
 
 Try using the quadrupole k1s as variables:
-use var quads
+use var quad
 
 and the Twiss parameters at marker Mar.END:
 use dat twiss.end
