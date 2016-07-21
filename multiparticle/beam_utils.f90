@@ -49,7 +49,7 @@ type (lat_param_struct) param
 
 real(rp) charge
 integer i, j, n, jj
-logical err_flag
+logical err_flag, finished
 
 character(20) :: r_name = 'track1_bunch_hom'
 
@@ -87,11 +87,16 @@ do j = 1, size(bunch_end%particle)
   call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
 
-! Put in the transverse wakefields
+! Wakefields
 
 call order_particles_in_z (bunch_end)  
-call track1_sr_wake (bunch_end, ele)
-call track1_lr_wake (bunch_end, ele)
+
+call track1_wake_hook (bunch_end, ele, finished)
+
+if (.not. finished) then
+  call track1_sr_wake (bunch_end, ele)
+  call track1_lr_wake (bunch_end, ele)
+endif
 
 ! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
