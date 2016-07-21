@@ -109,7 +109,7 @@ n_stage = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (.not. associated(ele%wake)) cycle
-  if (size(ele%wake%lr) == 0) cycle
+  if (size(ele%wake%lr_mode) == 0) cycle
   n_stage = n_stage + 1
 enddo
 
@@ -141,7 +141,7 @@ j = 0   !The "stage" index
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (.not. associated(ele%wake)) cycle
-  if (size(ele%wake%lr) == 0) cycle
+  if (size(ele%wake%lr_mode) == 0) cycle
   j = j + 1
   
   !stage j holds the index of the "wake element", i
@@ -396,7 +396,7 @@ implicit none
 type (lat_struct), target :: lat
 type (bbu_beam_struct), target :: bbu_beam
 type (bbu_param_struct) bbu_param
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
 type (bbu_stage_struct), pointer :: this_stage
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
@@ -622,7 +622,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
 
 real(rp) hom_voltage_max, hom_voltage2
 
@@ -634,8 +634,8 @@ i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1    ! Find the corresponding stage of 1st pass 
 ix = bbu_beam%stage(i1)%ix_ele_lr_wake   ! Find the wake element (cavity) of that corresponding stage
 !! Find which wake of the stage has the max voltage
-do j = 1, size(lat%ele(ix)%wake%lr)  ! Number of lr wakes assigned to the cavity
-  lr => lat%ele(ix)%wake%lr(j)
+do j = 1, size(lat%ele(ix)%wake%lr_mode)  ! Number of lr wakes assigned to the cavity
+  lr => lat%ele(ix)%wake%lr_mode(j)
   hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2) 
   if (hom_voltage_max < hom_voltage2) then
     hom_voltage_max = hom_voltage2                 ! store the max voltage
@@ -702,7 +702,7 @@ type (bbu_beam_struct), target :: bbu_beam !(input)
 type (bunch_struct), pointer :: bunch
 type (bbu_param_struct) bbu_param          !(input)
 type (bbu_stage_struct), pointer :: this_stage    !(input)
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
 
 integer :: i, ios
 integer, save :: iu = 0
@@ -715,8 +715,8 @@ endif
 bunch => bbu_beam%bunch(this_stage%ix_head_bunch)
 
 ! All HOMs:
-do i=1, size(lat%ele(this_stage%ix_ele_lr_wake)%wake%lr(:) )
-  lr => lat%ele(this_stage%ix_ele_lr_wake)%wake%lr(i)
+do i=1, size(lat%ele(this_stage%ix_ele_lr_wake)%wake%lr_mode(:) )
+  lr => lat%ele(this_stage%ix_ele_lr_wake)%wake%lr_mode(i)
   write(iu, '(4es15.7)') lr%t_ref, hom_voltage(lr), bunch%charge_live, bunch%particle(1)%vec(1)
 enddo
 !
@@ -727,7 +727,7 @@ end subroutine write_bunch_by_bunch_info
 !------------------------------------------------------------------------------
 function hom_voltage(lr_wake) result(voltage)
 implicit none
-type(wake_lr_struct) lr_wake
+type(wake_lr_mode_struct) lr_wake
 real(rp) :: voltage
 !
 voltage = max(hypot(lr_wake%a_sin,lr_wake%a_cos), hypot(lr_wake%b_sin,lr_wake%b_cos) )
