@@ -315,13 +315,13 @@ case ('REF_TIME')
 case ('LR_FREQ_SPREAD')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
-    allocate (ele%wake)
+    call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   a_pTr%r => ele%wake%lr_freq_spread
 case ('LR_SELF_WAKE_ON')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
-    allocate (ele%wake)
+    call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   a_ptr%l => ele%wake%lr_self_wake_on
 end select

@@ -256,6 +256,14 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   character(*) file_name
 end subroutine
 
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_position_array, always_allocate)
+  import
+  implicit none
+  type (wake_struct), pointer :: wake
+  integer n_sr_long, n_sr_trans, n_lr_mode, n_lr_position_array
+  logical, optional :: always_allocate
+end subroutine
+
 subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
   import
   implicit none
