@@ -1348,6 +1348,8 @@ if (attrib_word == 'LR_WAKE_POSITION_ARRAY') then
     lr_pa => ele%wake%lr_position_array(n+1)
   endif
 
+  if (.not. expect_this ('{', .false., .true., 'AFTER "LR_WAKE_POSITION_ARRAY"', ele, delim, delim_found)) return
+
   call parse_wake_lr_position_array(lr_pa, ele, lat, delim, delim_found, err_flag)
   return
 endif
