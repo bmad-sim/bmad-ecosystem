@@ -5,26 +5,28 @@ use bmad_struct
 implicit none
 
 ! The numeric$ category is for numeric constants [EG: "1.3d-5"].
-! The variable$ category includes symbolic constants defined in a lattice file, lattice
-! parameters, etc.
+! The variable$ category includes symbolic constants defined in a lattice file, lattice parameters, etc.
+! The species$ category is for particle species.
 
 integer, parameter :: end_stack$ = 0, plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
 integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
 integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter :: atan2$ = 23, factorial$ = 24, int$ = 25, nint$ = 26
-integer, parameter :: floor$ = 27, ceiling$ = 28, numeric$ = 29, variable$ = 30
+integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
+integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
+integer, parameter :: numeric$ = 29, variable$ = 30
+integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34
 
-character(12), parameter :: expression_op_name(28) = [character(12) :: '+', '-', '*', '/', &
+character(12), parameter :: expression_op_name(34) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
-                                    'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling']
+                                    'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
+                                    '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', '?!+Species']
 
 
-integer, parameter :: expression_eval_level(30) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(34) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -196,6 +198,12 @@ parsing_loop: do
         call pushit (op, i_op, floor$)
       case ('CEILING')
         call pushit (op, i_op, ceiling$)
+      case ('CHARGE_OF')
+        call pushit (op, i_op, charge_of$)
+      case ('MASS_OF')
+        call pushit (op, i_op, mass_of$)
+      case ('ANOMALOUS_MOMENT_OF')
+        call pushit (op, i_op, anomalous_moment_of$)
       case default
         err_str = 'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word
         return
@@ -597,6 +605,15 @@ do i = 1, size(stack)
 
   case (ceiling$)
     stack2(i2)%value = ceiling(stack2(i2)%value)
+
+  case (mass_of$)
+    stack2(i2)%value = mass_of(nint(stack2(i2)%value))
+
+  case (charge_of$)
+    stack2(i2)%value = charge_of(nint(stack2(i2)%value))
+
+  case (anomalous_moment_of$)
+    stack2(i2)%value = anomalous_moment_of(nint(stack2(i2)%value))
 
   case (ran$)
     i2 = i2 + 1

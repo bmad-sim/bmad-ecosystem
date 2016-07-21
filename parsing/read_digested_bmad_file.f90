@@ -432,8 +432,8 @@ real(rp) rdum
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, idum1, idum2, idum3, n_var, ix_d, ix_m
-integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch, ix_st(3,3)
+integer ix_r, ix_s, idum1, idum2, n_var, ix_d, ix_m, ix_lr_position_array
+integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(3,3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1
 
 logical error, is_alloc_pt
@@ -444,8 +444,8 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, &
-        idum2, idum3, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
+        idum2, ix_lr_position_array, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -659,20 +659,24 @@ do i = 1, 3; do j = 1, 3
   enddo
 enddo; enddo
 
-! If ix_lr is negative then it is a pointer to a previously read wake. 
+! If ix_lr_mode is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.
 
-if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr /= 0) then
-  if (ix_lr < 0) then
-    call transfer_wake (ele%branch%ele(abs(ix_lr))%wake, ele%wake)
+if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0 .or. ix_lr_position_array) then
+  if (ix_lr_mode < 0) then
+    call transfer_wake (ele%branch%ele(abs(ix_lr_mode))%wake, ele%wake)
 
   else
-    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr)
+    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode, ix_lr_position_array)
     read (d_unit, err = 9800) ele%wake%sr_file
     read (d_unit, err = 9840) ele%wake%sr_long%mode
     read (d_unit, err = 9850) ele%wake%sr_trans%mode
     read (d_unit, err = 9820) ele%wake%lr_file
-    read (d_unit, err = 9830) ele%wake%lr
+    read (d_unit, err = 9830) ele%wake%lr_mode
+    do i = 1, size(ele%wake%lr_position_array)
+      read (d_unit, err = 9830) ele%wake%lr_position_array(i)%t_max
+      read (d_unit, err = 9830) ele%wake%lr_position_array(i)%polarization_angle
+    enddo
     read (d_unit, err = 9860) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
   endif
 endif

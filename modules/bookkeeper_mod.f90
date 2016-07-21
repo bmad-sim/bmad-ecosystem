@@ -793,8 +793,8 @@ endif
 call transfer_wake (lord%wake, slave%wake)
 
 if (associated (slave%wake)) then
-  do i = 1, size(lord%wake%lr)
-    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
+  do i = 1, size(lord%wake%lr_mode)
+    slave%wake%lr_mode(i)%t_ref = lord%wake%lr_mode(i)%t_ref - slave%ref_time
   enddo
 endif
 
@@ -1825,13 +1825,13 @@ endif
 ! If there are long range wakes they must be scaled.
 
 if (associated (slave%wake)) then
-  slave%wake%lr%freq_in   = lord%wake%lr%freq_in
-  slave%wake%lr%freq      = lord%wake%lr%freq
-  slave%wake%lr%Q         = lord%wake%lr%Q
-  slave%wake%lr%angle     = lord%wake%lr%angle
-  slave%wake%lr%m         = lord%wake%lr%m
-  slave%wake%lr%polarized = lord%wake%lr%polarized
-  slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
+  slave%wake%lr_mode%freq_in   = lord%wake%lr_mode%freq_in
+  slave%wake%lr_mode%freq      = lord%wake%lr_mode%freq
+  slave%wake%lr_mode%Q         = lord%wake%lr_mode%Q
+  slave%wake%lr_mode%angle     = lord%wake%lr_mode%angle
+  slave%wake%lr_mode%m         = lord%wake%lr_mode%m
+  slave%wake%lr_mode%polarized = lord%wake%lr_mode%polarized
+  slave%wake%lr_mode%r_over_q  = lord%wake%lr_mode%r_over_q * coef
 endif
 
 !

@@ -227,6 +227,8 @@ type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
+type (wake_lr_position_array_struct), allocatable :: lr_pa_temp(:)
+type (wake_lr_position_array_struct), pointer :: lr_pa
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), pointer :: r_ptr
@@ -1324,6 +1326,29 @@ if (delim /= '=')  then
     err_flag = .true.
   end select
 
+  return
+endif
+
+! lr_wake_position_array
+
+if (attrib_word == 'LR_WAKE_POSITION_ARRAY') then
+  if (associated(ele%wake)) then
+    call init_wake (ele%wake, 0, 0, 0, 1)
+    lr_pa => ele%wake%lr_position_array(1)
+  else
+    n = size(ele%wake%lr_position_array)
+    call move_alloc(ele%wake%lr_position_array, lr_pa_temp)
+    allocate (ele%wake%lr_position_array(n+1))
+    do i = 1, n
+      allocate (ele%wake%lr_position_array(i)%stack(0))
+      allocate (ele%wake%lr_position_array(i)%bunch(0))
+    enddo
+    ele%wake%lr_position_array(1:n) = lr_pa_temp
+    deallocate(lr_pa_temp)
+    lr_pa => ele%wake%lr_position_array(n+1)
+  endif
+
+  call parse_wake_lr_position_array(lr_pa, ele, lat, delim, delim_found, err_flag)
   return
 endif
 
@@ -2805,8 +2830,13 @@ case default
   if (err_flag .or. size(ptr) == 0) then
     call parser_error('BAD ATTRIBUTE: ' // word)
     return
-  else
+  elseif (associated(ptr(1)%r)) then
     value = ptr(1)%r
+  elseif (associated(ptr(1)%i)) then
+    value = ptr(1)%i
+  else  ! Must
+    call parser_error('ATTRIBUTE IS NOT REAL OR INTEGER: ' // word)
+    return
   endif
 
   ! If this is bmad_parser, and not bmad_parser2, then dependent attributes have not been set and cannot
@@ -2986,7 +3016,7 @@ end subroutine bmad_parser_type_get
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%lr(:)       -- Long-range wake potential.
+!     %wake%lr_mode(:)       -- Long-range wake potential.
 !-
       
 subroutine read_lr_wake (ele, lr_file_name)
@@ -3016,7 +3046,7 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%sr_long%mode))  allocate (ele%wake%sr_long%mode(0))
 if (.not. allocated(ele%wake%sr_trans%mode)) allocate (ele%wake%sr_trans%mode(0))
-if (allocated(ele%wake%lr)) deallocate (ele%wake%lr)
+if (allocated(ele%wake%lr_mode)) deallocate (ele%wake%lr_mode)
 
 ! get data
 
@@ -3046,22 +3076,22 @@ endif
 ! Transfer info to ele structure.
 
 n_row = count(lr%freq /= -1)
-allocate (ele%wake%lr(n_row))
+allocate (ele%wake%lr_mode(n_row))
 j = 0
 do i = 1, size(lr)
   if (lr(i)%freq == -1) cycle
 
   j = j + 1
-  ele%wake%lr(j)%freq_in   = lr(i)%freq
-  ele%wake%lr(j)%freq      = lr(i)%freq
-  ele%wake%lr(j)%r_over_q  = lr(i)%r_over_q
-  ele%wake%lr(j)%q         = lr(i)%q
-  ele%wake%lr(j)%m         = lr(i)%m
-  ele%wake%lr(j)%b_sin     = lr(i)%b_sin
-  ele%wake%lr(j)%b_cos     = lr(i)%b_cos
-  ele%wake%lr(j)%a_sin     = lr(i)%a_sin
-  ele%wake%lr(j)%a_cos     = lr(i)%a_cos
-  ele%wake%lr(j)%t_ref     = lr(i)%t_ref
+  ele%wake%lr_mode(j)%freq_in   = lr(i)%freq
+  ele%wake%lr_mode(j)%freq      = lr(i)%freq
+  ele%wake%lr_mode(j)%r_over_q  = lr(i)%r_over_q
+  ele%wake%lr_mode(j)%q         = lr(i)%q
+  ele%wake%lr_mode(j)%m         = lr(i)%m
+  ele%wake%lr_mode(j)%b_sin     = lr(i)%b_sin
+  ele%wake%lr_mode(j)%b_cos     = lr(i)%b_cos
+  ele%wake%lr_mode(j)%a_sin     = lr(i)%a_sin
+  ele%wake%lr_mode(j)%a_cos     = lr(i)%a_cos
+  ele%wake%lr_mode(j)%t_ref     = lr(i)%t_ref
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then
@@ -3072,11 +3102,11 @@ do i = 1, size(lr)
   endif
 
   if (index('unpolarized', trim(lr(j)%angle)) == 1) then
-    ele%wake%lr(j)%polarized = .false.
-    ele%wake%lr(j)%angle     = 0
+    ele%wake%lr_mode(j)%polarized = .false.
+    ele%wake%lr_mode(j)%angle     = 0
   else
-    ele%wake%lr(j)%polarized = .true.
-    read (lr(j)%angle, *, iostat = ios) ele%wake%lr(j)%angle
+    ele%wake%lr_mode(j)%polarized = .true.
+    read (lr(j)%angle, *, iostat = ios) ele%wake%lr_mode(j)%angle
     if (ios /= 0) then
       call parser_error ('BAD LONG_RANGE_MODE ANGLE.', &
                     'FOR ELEMENT: ' // ele%name, &
@@ -3131,7 +3161,7 @@ logical in_namelist, finished, err
 ! init
 
 if (.not. associated(ele%wake))   allocate (ele%wake)
-if (.not. allocated(ele%wake%lr)) allocate (ele%wake%lr(0))
+if (.not. allocated(ele%wake%lr_mode)) allocate (ele%wake%lr_mode(0))
 if (allocated(ele%wake%sr_long%mode))  deallocate (ele%wake%sr_long%mode)
 if (allocated(ele%wake%sr_trans%mode)) deallocate (ele%wake%sr_trans%mode)
 
@@ -6320,6 +6350,68 @@ end subroutine parser_debug_print_info
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine parse_wake_lr_position_array (lr_pa, ele, lat, delim, delim_found, err_flag)
+!
+! Subroutine to parse a "lr_position_array = {}" construct
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is private to bmad_parser_mod.
+!-
+
+subroutine parse_wake_lr_position_array (lr_pa, ele, lat, delim, delim_found, err_flag)
+
+implicit none
+
+type (wake_lr_position_array_struct) lr_pa
+type (ele_struct), target :: ele
+type (lat_struct), target :: lat
+
+integer ix_word
+
+character(40) attrib_name
+character(1) delim
+
+logical err_flag, delim_found
+
+!
+
+err_flag = .true.
+
+do
+
+  ! Read attriubute
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (.not. expect_this ('=', .true., .false., 'IN WAKE_LR_POSITION_ARRAY DEFINITION', ele, delim, delim_found)) return
+
+  select case (attrib_name)
+
+  case ('T_MAX')
+    call evaluate_value (ele%name, lr_pa%t_max, lat, delim, delim_found, err_flag, ',}')
+
+  case default
+    if (attrib_name == '') then
+      call parser_error ('MANGLED WAKE_LR_POSITION_ARRAY DEFINITION FOR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('UNKNOWN WAKE_LR_POSITION_ARRAY COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+    endif
+    return
+
+  end select
+
+  ! Possible "}" is end of mode
+  if (delim == '}') exit
+
+enddo
+
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+err_flag = .false.
+
+end subroutine parse_wake_lr_position_array
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine parse_cartesian_map (ct_map, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "cartesian_map = {}" construct
@@ -6501,8 +6593,7 @@ do
     if (attrib_name == '') then
       call parser_error ('MANGLED CARTESIAN_MAP DEFINITION FOR ELEMENT: ' // ele%name)
     else
-      call parser_error ('UNKNOWN CARTESIAN_MAP COMPONENT: ' // attrib_name, &
-                         'FOR ELEMENT: ' // ele%name)
+      call parser_error ('UNKNOWN CARTESIAN_MAP COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     endif
     return
 

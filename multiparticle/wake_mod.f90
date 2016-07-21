@@ -26,7 +26,7 @@ contains
 !
 ! Output:
 !   ele      -- ele_struct: Element with wake frequencies set.
-!     %wake%lr(:)%freq -- Set frequency.
+!     %wake%lr_mode(:)%freq -- Set frequency.
 !   set_done -- Logical, optional: Set True if there where lr wakes to be set.
 !                 False otherwise.
 !-
@@ -45,9 +45,9 @@ real(rp) rr
 if (present(set_done)) set_done = .false.
 if (ele%wake%lr_freq_spread == 0 .or. .not. associated(ele%wake)) return
 
-do n = 1, size(ele%wake%lr)
+do n = 1, size(ele%wake%lr_mode)
   call ran_gauss (rr)
-  ele%wake%lr(n)%freq = ele%wake%lr(n)%freq_in * (1 + ele%wake%lr_freq_spread * rr)
+  ele%wake%lr_mode(n)%freq = ele%wake%lr_mode(n)%freq_in * (1 + ele%wake%lr_freq_spread * rr)
   if (present(set_done)) set_done = .true.
 enddo
 
@@ -71,10 +71,10 @@ end subroutine randomize_lr_wake_frequencies
 ! Output:
 !   lat -- Lat_struct: Lattice
 !     %ele(:) -- Lattice elements
-!       %wake%lr(:)%b_sin -> Set to zero
-!       %wake%lr(:)%b_cos -> Set to zero
-!       %wake%lr(:)%a_sin -> Set to zero
-!       %wake%lr(:)%a_cos -> Set to zero
+!       %wake%lr_mode(:)%b_sin -> Set to zero
+!       %wake%lr_mode(:)%b_cos -> Set to zero
+!       %wake%lr_mode(:)%a_sin -> Set to zero
+!       %wake%lr_mode(:)%a_cos -> Set to zero
 !-       
 
 subroutine zero_lr_wakes_in_lat (lat)
@@ -88,9 +88,9 @@ integer i
 
 do i = 1, lat%n_ele_max
   if (.not. associated(lat%ele(i)%wake)) cycle
-  lat%ele(i)%wake%lr%b_sin = 0; lat%ele(i)%wake%lr%b_cos = 0
-  lat%ele(i)%wake%lr%a_sin = 0; lat%ele(i)%wake%lr%a_cos = 0
-  lat%ele(i)%wake%lr%t_ref = 0
+  lat%ele(i)%wake%lr_mode%b_sin = 0; lat%ele(i)%wake%lr_mode%b_cos = 0
+  lat%ele(i)%wake%lr_mode%a_sin = 0; lat%ele(i)%wake%lr_mode%a_cos = 0
+  lat%ele(i)%wake%lr_mode%t_ref = 0
 enddo
 
 end subroutine zero_lr_wakes_in_lat
@@ -122,13 +122,15 @@ implicit none
 type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
+type (wake_lr_position_array_struct), pointer :: lr_pos
+type (wake_lr_position1_struct), allocatable :: lr_bun(:)
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
-real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self
-real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
+real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self, vec(6)
+real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, charge, t_cut
 
-integer n_mode, i, j, k, i0
+integer n_mode, i, j, k, i0, n
 
 ! Check to see if we need to do any calc
 
@@ -137,19 +139,50 @@ if (.not. associated(ele%wake)) return
 if (bunch%n_live == 0) return
 
 if (.not. associated(ele%wake)) return
-n_mode = size(ele%wake%lr)
+
+! position array update
+
+if (size(ele%wake%lr_position_array) /= 0) then
+  do i = 1, 6
+    vec(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
+  enddo
+  t0 = sum(bunch%particle%t, bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
+  charge = sum(bunch%particle%charge, bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
+endif
+
+lr_position_array_loop: do i = 1, size(ele%wake%lr_position_array)
+  lr_pos => ele%wake%lr_position_array(i)
+  t_cut = bunch%particle(1)%t - lr_pos%t_max
+
+  n = size(lr_pos%bunch)
+  do j = 1, n
+    if (lr_pos%bunch(j)%charge /= 0 .and. lr_pos%bunch(j)%t > t_cut) cycle
+    lr_pos%bunch(j) = wake_lr_position1_struct(vec, t0, charge)
+    cycle lr_position_array_loop
+  enddo
+
+  call move_alloc(lr_pos%bunch, lr_bun)
+  allocate (lr_pos%bunch(n+100))
+  lr_pos%bunch(1:n) = lr_bun
+  deallocate (lr_bun)
+
+  lr_pos%bunch(n+1) = wake_lr_position1_struct(vec, t0, charge)
+enddo lr_position_array_loop
+
+!
+
+n_mode = size(ele%wake%lr_mode)
 if (n_mode == 0) return  
 
 ! To prevent floating point overflow, the %a and %b factors are shifted 
 ! to be with respect to lr%t_ref which is the wake reference time.
 
-
 i0 = bunch%ix_z(1)
 t0 = bunch%particle(i0)%t   ! Time of particle at head of bunch.
 
-do i = 1, size(ele%wake%lr)
+do i = 1, size(ele%wake%lr_mode)
 
-  lr => ele%wake%lr(i)
+  lr => ele%wake%lr_mode(i)
 
   omega = twopi * lr%freq
   if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
@@ -180,9 +213,9 @@ enddo
 ! Note: The spatial variation of the normal and skew
 ! components is the same as the spatial variation of a multipole kick.
 
-do i = 1, size(ele%wake%lr)
+do i = 1, size(ele%wake%lr_mode)
 
-  lr => ele%wake%lr(i)
+  lr => ele%wake%lr_mode(i)
 
   if (lr%freq == 0) then
     omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.

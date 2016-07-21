@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 183
+integer, parameter :: bmad_inc_version$ = 184
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -402,7 +402,7 @@ end type
 ! Each wake_lr_struct represents a different mode.
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
-type wake_lr_struct    ! Long-Range Wake struct.
+type wake_lr_mode_struct    ! Long-Range Wake struct.
   real(rp) :: freq = 0       ! Actual Frequency in Hz.
   real(rp) :: freq_in = 0    ! Input frequency in Hz.
   real(rp) :: R_over_Q = 0   ! Strength in V/C/m^2.
@@ -418,19 +418,17 @@ type wake_lr_struct    ! Long-Range Wake struct.
   logical :: polarized = .false.   ! Polaraized mode?
 end type
 
-! The wake_lr1_struct is used for modeling a long range wake assuming the wake does not change
-! over the time period of a bunch.
-
-type wake_lr1_struct
-  real(rp) :: vec(6) = 0   ! (x, px, y, py, z, pz) of bunch
+type wake_lr_position1_struct
+  real(rp) :: vec(6) = 0   ! (x, px, y, py, z, pz) of bunch centroid
+  real(rp) :: charge = 0   ! Bunch charge (Coul).
   real(rp) :: t = 0        ! Time of bunch
 end type
 
-type wake_lr_formula_struct
+type wake_lr_position_array_struct
   character(200) :: formula = ''
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack for the formula
-  type (wake_lr1_struct), allocatable :: lr1(:)          ! Array of past bunch positions
-  real(rp) :: t_max = 0         ! Maximum time beyound which the wake is taken to be zero.
+  type (wake_lr_position1_struct), allocatable :: bunch(:) ! Array of past bunch positions
+  real(rp) :: t_max = 0         ! Maximum time beyond which the wake is taken to be zero.
   real(rp) :: polarization_angle = 0      ! polarization angle (radians/2pi).
 end type
 
@@ -441,8 +439,8 @@ type wake_struct
   character(200) :: lr_file = ''
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
-  type (wake_lr_struct), allocatable :: lr(:)
-  type (wake_lr_formula_struct), allocatable :: lr_formula(:)
+  type (wake_lr_mode_struct), allocatable :: lr_mode(:)
+  type (wake_lr_position_array_struct), allocatable :: lr_position_array(:)
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
@@ -1177,7 +1175,7 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
-integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81, lr_wake_position_array$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84

@@ -65,7 +65,7 @@ type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (multipass_ele_info_struct), pointer :: e_info
-type (wake_lr_struct), pointer :: lr
+type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), parameter :: sr0 = wake_sr_mode_struct()
 type (wake_sr_mode_struct), pointer :: sr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
@@ -832,8 +832,8 @@ do ib = 0, ubound(lat%branch, 1)
    'Freq         R/Q        Q       m    Polarization     b_sin         b_cos         a_sin         a_cos         t_ref'
             write (iuw, '(14x, a)') &
               '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
-            do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
-              lr => ele%wake%lr(n)
+            do n = lbound(ele%wake%lr_mode, 1), ubound(ele%wake%lr_mode, 1)
+              lr => ele%wake%lr_mode(n)
               if (lr%polarized) then
                 write (angle, '(f10.6)') lr%angle
               else
