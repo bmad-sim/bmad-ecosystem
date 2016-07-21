@@ -5,17 +5,30 @@
 \label{s:custom.hook}
 \index{custom}
 
-\bmad calculations can be customized using what are called ``\vn{custom}'' and
-``\vn{hook}'' routines. The general idea is that the \bmad library contains \vn{dummy}
-versions of the custom and hook routines which do nothing except to keep the linker happy
-when custom routines are not implemented by a program. Customization is done by copying
-the appropriate dummy routine to the same area where code files for the program to be
-customized are, modifying the dummy routine to do what you want it to do, and then
-relinking the program.
+\bmad calculations, like particle tracking through a lattice element, can be customized
+using what are called ``\vn{custom}'' and ``\vn{hook}'' routines. The general idea is that
+a programmer can implement custom code which is linked into a program and this custom code
+will be called at the appropriate time by \bmad. Thus, for example, custom code can be
+created for Runge-Kutta tracking that calculates the electromagnetic field of some
+complicated electromagnet.
 
-The difference between \vn{custom} and \vn{hook} routines is that the \vn{hook} routine is
-always called at the appropriate time without regard to the type of lattice element under
-consideration or what tracking method is being used. See below for more details.
+To enable \bmad to be able to call customized code, there are a number of ``\vn{entry}
+points'' defined in the \bmad code. At each entry point, a ``\vn{dummy}'' version of a
+custom and hook routine is called. For \vn{hook} routines, this dummy version does nothing
+except to keep the linker happy when customized hook routine is not implemented by a
+program. For \vn{custom} routines, the dummy version will issue an error message since it
+should not have been called. That is, the difference between \vn{custom} and \vn{hook}
+routines is that the \vn{hook} routine is always called at the appropriate time without
+regard to the type of lattice element under consideration or what tracking method is being
+used. See below for more details.
+
+Note: Custom and Hook entry points are added to \bmad on an as-needed basis. If you have a
+need that is not met by the existing set of entry points, please contact a \bmad
+maintainer.
+
+Customization is done by copying the appropriate dummy routine to the same
+area where code files for the program to be customized are, modifying the dummy routine to
+do what you want it to do, and then relinking the program.
 
 Important: 
 \begin{itemize}
@@ -36,21 +49,15 @@ Note: Remember to modify the appropriate compile script file (typically named so
 like ``cmake.XXX'') so that any routines that you have added to your program area are
 compiled and linked.
 
-Note: Custom and Hook routines are added to \bmad on an as-needed basis. If you have a
-need that is not met by the existing set of custom and hook routines, please contact a
-\bmad maintainer.
-
 %-----------------------------------------------------------------------------
 \section{Custom Calculations}
 \label{s:custom.ele}
 \index{custom}
 
-Normally a ``custom'' calculation is a calculation, done by \bmad, that is instead handled
-by having the appropriate \bmad code call the appropriate custom code. Implementing custom
-calculations involve writing custom code and linking this code into a program. There are
-essentially two ways to do custom calculations. One way involves using a \vn{custom}
-element (\sref{s:custom}). The other way involves setting the appropriate \vn{method}
-component of an element to \vn{custom}. An appropriate method component is one of
+There are essentially two ways to do \vn{custom} (as opposed to  \vn{hook}) calculations. One way
+involves using a \vn{custom} element (\sref{s:custom}). The other way involves setting the
+appropriate \vn{method} component of an element to \vn{custom}. An appropriate method
+component is one of
 \begin{example}
   tracking_method       \sref{s:tkm}
   mat6_calc_method      \sref{s:xfer}
@@ -220,6 +227,7 @@ There are three \vn{hook} routines that are available:
   \Hyperref{r:time.runge.kutta.periodic.kick.hook}{time_runge_kutta_periodic_kick_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
+  \Hyperref{r:track1.wake.hook}{track1_wake_hook}
 \end{example}
 
 The \vn{apply_element_edge_kick_hook} routine can be used for custom tracking through a fringe field.

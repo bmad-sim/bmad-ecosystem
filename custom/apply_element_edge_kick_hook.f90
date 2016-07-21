@@ -4,7 +4,6 @@
 ! Routine that can be customized to track through the edge field of an element.
 ! This routine is always called by apply_element_edge_kick.
 ! 
-!
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
 !   t_rel       -- real(rp): Time relative to track_ele entrance edge

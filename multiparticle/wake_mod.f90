@@ -143,11 +143,11 @@ if (.not. associated(ele%wake)) return
 ! position array update
 
 if (size(ele%wake%lr_position_array) /= 0) then
+  charge = sum(bunch%particle%charge, bunch%particle%state == alive$)
   do i = 1, 6
-    vec(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
+    vec(i) = sum(bunch%particle%vec(i)*bunch%particle%charge, bunch%particle%state == alive$) / charge
   enddo
-  t0 = sum(bunch%particle%t, bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
-  charge = sum(bunch%particle%charge, bunch%particle%state == alive$) / count(bunch%particle%state == alive$)
+  t0 = sum(bunch%particle%t*bunch%particle%charge, bunch%particle%state == alive$) / charge
 endif
 
 lr_position_array_loop: do i = 1, size(ele%wake%lr_position_array)
