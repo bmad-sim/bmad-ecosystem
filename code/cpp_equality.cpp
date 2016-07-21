@@ -260,7 +260,7 @@ template bool is_all_equal (const CPP_wake_sr_MATRIX&, const CPP_wake_sr_MATRIX&
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_wake_lr& x, const CPP_wake_lr& y) {
+bool operator== (const CPP_wake_lr_mode& x, const CPP_wake_lr_mode& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.freq == y.freq);
   is_eq = is_eq && (x.freq_in == y.freq_in);
@@ -277,8 +277,36 @@ bool operator== (const CPP_wake_lr& x, const CPP_wake_lr& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_wake_lr_ARRAY&, const CPP_wake_lr_ARRAY&);
-template bool is_all_equal (const CPP_wake_lr_MATRIX&, const CPP_wake_lr_MATRIX&);
+template bool is_all_equal (const CPP_wake_lr_mode_ARRAY&, const CPP_wake_lr_mode_ARRAY&);
+template bool is_all_equal (const CPP_wake_lr_mode_MATRIX&, const CPP_wake_lr_mode_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_wake_lr_position1& x, const CPP_wake_lr_position1& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.vec, y.vec);
+  is_eq = is_eq && (x.charge == y.charge);
+  is_eq = is_eq && (x.t == y.t);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wake_lr_position1_ARRAY&, const CPP_wake_lr_position1_ARRAY&);
+template bool is_all_equal (const CPP_wake_lr_position1_MATRIX&, const CPP_wake_lr_position1_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_wake_lr_position_array& x, const CPP_wake_lr_position_array& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.formula == y.formula);
+  is_eq = is_eq && is_all_equal(x.stack, y.stack);
+  is_eq = is_eq && is_all_equal(x.bunch, y.bunch);
+  is_eq = is_eq && (x.t_max == y.t_max);
+  is_eq = is_eq && (x.polarization_angle == y.polarization_angle);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wake_lr_position_array_ARRAY&, const CPP_wake_lr_position_array_ARRAY&);
+template bool is_all_equal (const CPP_wake_lr_position_array_MATRIX&, const CPP_wake_lr_position_array_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -300,8 +328,11 @@ bool operator== (const CPP_wake& x, const CPP_wake& y) {
   is_eq = is_eq && (x.lr_file == y.lr_file);
   is_eq = is_eq && (x.sr_long == y.sr_long);
   is_eq = is_eq && (x.sr_trans == y.sr_trans);
-  is_eq = is_eq && is_all_equal(x.lr, y.lr);
+  is_eq = is_eq && is_all_equal(x.lr_mode, y.lr_mode);
+  is_eq = is_eq && is_all_equal(x.lr_position_array, y.lr_position_array);
   is_eq = is_eq && (x.z_sr_max == y.z_sr_max);
+  is_eq = is_eq && (x.lr_freq_spread == y.lr_freq_spread);
+  is_eq = is_eq && (x.lr_self_wake_on == y.lr_self_wake_on);
   return is_eq;
 };
 
@@ -1381,6 +1412,7 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   is_eq = is_eq && (x.t_center == y.t_center);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
+  is_eq = is_eq && (x.n_live == y.n_live);
   return is_eq;
 };
 

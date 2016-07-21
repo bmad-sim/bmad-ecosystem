@@ -668,25 +668,25 @@ extern "C" void wake_sr_to_c2 (CPP_wake_sr& C, Bmad_wake_sr_mode_class** z_mode,
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_wake_lr
+// CPP_wake_lr_mode
 
-extern "C" void wake_lr_to_c (const Bmad_wake_lr_class*, CPP_wake_lr&);
+extern "C" void wake_lr_mode_to_c (const Bmad_wake_lr_mode_class*, CPP_wake_lr_mode&);
 
 // c_side.to_f2_arg
-extern "C" void wake_lr_to_f2 (Bmad_wake_lr_class*, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Bool&);
+extern "C" void wake_lr_mode_to_f2 (Bmad_wake_lr_mode_class*, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Bool&);
 
-extern "C" void wake_lr_to_f (const CPP_wake_lr& C, Bmad_wake_lr_class* F) {
+extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode& C, Bmad_wake_lr_mode_class* F) {
 
   // c_side.to_f2_call
-  wake_lr_to_f2 (F, C.freq, C.freq_in, C.r_over_q, C.q, C.angle, C.b_sin, C.b_cos, C.a_sin,
-      C.a_cos, C.t_ref, C.m, C.polarized);
+  wake_lr_mode_to_f2 (F, C.freq, C.freq_in, C.r_over_q, C.q, C.angle, C.b_sin, C.b_cos,
+      C.a_sin, C.a_cos, C.t_ref, C.m, C.polarized);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void wake_lr_to_c2 (CPP_wake_lr& C, c_Real& z_freq, c_Real& z_freq_in, c_Real&
-    z_r_over_q, c_Real& z_q, c_Real& z_angle, c_Real& z_b_sin, c_Real& z_b_cos, c_Real&
+extern "C" void wake_lr_mode_to_c2 (CPP_wake_lr_mode& C, c_Real& z_freq, c_Real& z_freq_in,
+    c_Real& z_r_over_q, c_Real& z_q, c_Real& z_angle, c_Real& z_b_sin, c_Real& z_b_cos, c_Real&
     z_a_sin, c_Real& z_a_cos, c_Real& z_t_ref, c_Int& z_m, c_Bool& z_polarized) {
 
   // c_side.to_c2_set[real, 0, NOT]
@@ -713,6 +713,92 @@ extern "C" void wake_lr_to_c2 (CPP_wake_lr& C, c_Real& z_freq, c_Real& z_freq_in
   C.m = z_m;
   // c_side.to_c2_set[logical, 0, NOT]
   C.polarized = z_polarized;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_wake_lr_position1
+
+extern "C" void wake_lr_position1_to_c (const Bmad_wake_lr_position1_class*, CPP_wake_lr_position1&);
+
+// c_side.to_f2_arg
+extern "C" void wake_lr_position1_to_f2 (Bmad_wake_lr_position1_class*, c_RealArr, c_Real&,
+    c_Real&);
+
+extern "C" void wake_lr_position1_to_f (const CPP_wake_lr_position1& C, Bmad_wake_lr_position1_class* F) {
+
+  // c_side.to_f2_call
+  wake_lr_position1_to_f2 (F, &C.vec[0], C.charge, C.t);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void wake_lr_position1_to_c2 (CPP_wake_lr_position1& C, c_RealArr z_vec, c_Real&
+    z_charge, c_Real& z_t) {
+
+  // c_side.to_c2_set[real, 1, NOT]
+  C.vec << z_vec;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.charge = z_charge;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.t = z_t;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_wake_lr_position_array
+
+extern "C" void wake_lr_position_array_to_c (const Bmad_wake_lr_position_array_class*, CPP_wake_lr_position_array&);
+
+// c_side.to_f2_arg
+extern "C" void wake_lr_position_array_to_f2 (Bmad_wake_lr_position_array_class*, c_Char, const
+    CPP_expression_atom**, Int, const CPP_wake_lr_position1**, Int, c_Real&, c_Real&);
+
+extern "C" void wake_lr_position_array_to_f (const CPP_wake_lr_position_array& C, Bmad_wake_lr_position_array_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_stack = C.stack.size();
+  const CPP_expression_atom** z_stack = NULL;
+  if (n1_stack != 0) {
+    z_stack = new const CPP_expression_atom*[n1_stack];
+    for (int i = 0; i < n1_stack; i++) z_stack[i] = &C.stack[i];
+  }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_bunch = C.bunch.size();
+  const CPP_wake_lr_position1** z_bunch = NULL;
+  if (n1_bunch != 0) {
+    z_bunch = new const CPP_wake_lr_position1*[n1_bunch];
+    for (int i = 0; i < n1_bunch; i++) z_bunch[i] = &C.bunch[i];
+  }
+
+  // c_side.to_f2_call
+  wake_lr_position_array_to_f2 (F, C.formula.c_str(), z_stack, n1_stack, z_bunch, n1_bunch,
+      C.t_max, C.polarization_angle);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_stack;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_bunch;
+}
+
+// c_side.to_c2_arg
+extern "C" void wake_lr_position_array_to_c2 (CPP_wake_lr_position_array& C, c_Char z_formula,
+    Bmad_expression_atom_class** z_stack, Int n1_stack, Bmad_wake_lr_position1_class** z_bunch,
+    Int n1_bunch, c_Real& z_t_max, c_Real& z_polarization_angle) {
+
+  // c_side.to_c2_set[character, 0, NOT]
+  C.formula = z_formula;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.stack.resize(n1_stack);
+  for (int i = 0; i < n1_stack; i++) expression_atom_to_c(z_stack[i], C.stack[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.bunch.resize(n1_bunch);
+  for (int i = 0; i < n1_bunch; i++) wake_lr_position1_to_c(z_bunch[i], C.bunch[i]);
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.t_max = z_t_max;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.polarization_angle = z_polarization_angle;
 }
 
 //--------------------------------------------------------------------
@@ -748,29 +834,42 @@ extern "C" void wake_to_c (const Bmad_wake_class*, CPP_wake&);
 
 // c_side.to_f2_arg
 extern "C" void wake_to_f2 (Bmad_wake_class*, c_Char, c_Char, const CPP_wake_sr&, const
-    CPP_wake_sr&, const CPP_wake_lr**, Int, c_Real&);
+    CPP_wake_sr&, const CPP_wake_lr_mode**, Int, const CPP_wake_lr_position_array**, Int,
+    c_Real&, c_Real&, c_Bool&);
 
 extern "C" void wake_to_f (const CPP_wake& C, Bmad_wake_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_lr = C.lr.size();
-  const CPP_wake_lr** z_lr = NULL;
-  if (n1_lr != 0) {
-    z_lr = new const CPP_wake_lr*[n1_lr];
-    for (int i = 0; i < n1_lr; i++) z_lr[i] = &C.lr[i];
+  int n1_lr_mode = C.lr_mode.size();
+  const CPP_wake_lr_mode** z_lr_mode = NULL;
+  if (n1_lr_mode != 0) {
+    z_lr_mode = new const CPP_wake_lr_mode*[n1_lr_mode];
+    for (int i = 0; i < n1_lr_mode; i++) z_lr_mode[i] = &C.lr_mode[i];
+  }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_lr_position_array = C.lr_position_array.size();
+  const CPP_wake_lr_position_array** z_lr_position_array = NULL;
+  if (n1_lr_position_array != 0) {
+    z_lr_position_array = new const CPP_wake_lr_position_array*[n1_lr_position_array];
+    for (int i = 0; i < n1_lr_position_array; i++) z_lr_position_array[i] = &C.lr_position_array[i];
   }
 
   // c_side.to_f2_call
-  wake_to_f2 (F, C.sr_file.c_str(), C.lr_file.c_str(), C.sr_long, C.sr_trans, z_lr, n1_lr,
-      C.z_sr_max);
+  wake_to_f2 (F, C.sr_file.c_str(), C.lr_file.c_str(), C.sr_long, C.sr_trans, z_lr_mode,
+      n1_lr_mode, z_lr_position_array, n1_lr_position_array, C.z_sr_max, C.lr_freq_spread,
+      C.lr_self_wake_on);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_lr;
+ delete[] z_lr_mode;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_lr_position_array;
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_to_c2 (CPP_wake& C, c_Char z_sr_file, c_Char z_lr_file, const
-    Bmad_wake_sr_class* z_sr_long, const Bmad_wake_sr_class* z_sr_trans, Bmad_wake_lr_class**
-    z_lr, Int n1_lr, c_Real& z_z_sr_max) {
+    Bmad_wake_sr_class* z_sr_long, const Bmad_wake_sr_class* z_sr_trans,
+    Bmad_wake_lr_mode_class** z_lr_mode, Int n1_lr_mode, Bmad_wake_lr_position_array_class**
+    z_lr_position_array, Int n1_lr_position_array, c_Real& z_z_sr_max, c_Real&
+    z_lr_freq_spread, c_Bool& z_lr_self_wake_on) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.sr_file = z_sr_file;
@@ -781,11 +880,19 @@ extern "C" void wake_to_c2 (CPP_wake& C, c_Char z_sr_file, c_Char z_lr_file, con
   // c_side.to_c2_set[type, 0, NOT]
   wake_sr_to_c(z_sr_trans, C.sr_trans);
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.lr.resize(n1_lr);
-  for (int i = 0; i < n1_lr; i++) wake_lr_to_c(z_lr[i], C.lr[i]);
+  C.lr_mode.resize(n1_lr_mode);
+  for (int i = 0; i < n1_lr_mode; i++) wake_lr_mode_to_c(z_lr_mode[i], C.lr_mode[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.lr_position_array.resize(n1_lr_position_array);
+  for (int i = 0; i < n1_lr_position_array; i++) wake_lr_position_array_to_c(z_lr_position_array[i], C.lr_position_array[i]);
 
   // c_side.to_c2_set[real, 0, NOT]
   C.z_sr_max = z_z_sr_max;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.lr_freq_spread = z_lr_freq_spread;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.lr_self_wake_on = z_lr_self_wake_on;
 }
 
 //--------------------------------------------------------------------
@@ -3781,7 +3888,7 @@ extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
 
 // c_side.to_f2_arg
 extern "C" void bunch_to_f2 (Bmad_bunch_class*, const CPP_coord**, Int, c_IntArr, Int, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Int&, c_Int&);
+    c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -3800,7 +3907,7 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
 
   // c_side.to_f2_call
   bunch_to_f2 (F, z_particle, n1_particle, z_ix_z, n1_ix_z, C.charge_tot, C.charge_live,
-      C.z_center, C.t_center, C.ix_ele, C.ix_bunch);
+      C.z_center, C.t_center, C.ix_ele, C.ix_bunch, C.n_live);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_particle;
@@ -3809,7 +3916,7 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
 // c_side.to_c2_arg
 extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1_particle,
     c_IntArr z_ix_z, Int n1_ix_z, c_Real& z_charge_tot, c_Real& z_charge_live, c_Real&
-    z_z_center, c_Real& z_t_center, c_Int& z_ix_ele, c_Int& z_ix_bunch) {
+    z_z_center, c_Real& z_t_center, c_Int& z_ix_ele, c_Int& z_ix_bunch, c_Int& z_n_live) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.particle.resize(n1_particle);
@@ -3832,6 +3939,8 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_bunch = z_ix_bunch;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_live = z_n_live;
 }
 
 //--------------------------------------------------------------------

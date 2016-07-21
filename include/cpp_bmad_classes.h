@@ -112,10 +112,20 @@ typedef valarray<CPP_wake_sr>          CPP_wake_sr_ARRAY;
 typedef valarray<CPP_wake_sr_ARRAY>    CPP_wake_sr_MATRIX;
 typedef valarray<CPP_wake_sr_MATRIX>   CPP_wake_sr_TENSOR;
 
-class CPP_wake_lr;
-typedef valarray<CPP_wake_lr>          CPP_wake_lr_ARRAY;
-typedef valarray<CPP_wake_lr_ARRAY>    CPP_wake_lr_MATRIX;
-typedef valarray<CPP_wake_lr_MATRIX>   CPP_wake_lr_TENSOR;
+class CPP_wake_lr_mode;
+typedef valarray<CPP_wake_lr_mode>          CPP_wake_lr_mode_ARRAY;
+typedef valarray<CPP_wake_lr_mode_ARRAY>    CPP_wake_lr_mode_MATRIX;
+typedef valarray<CPP_wake_lr_mode_MATRIX>   CPP_wake_lr_mode_TENSOR;
+
+class CPP_wake_lr_position1;
+typedef valarray<CPP_wake_lr_position1>          CPP_wake_lr_position1_ARRAY;
+typedef valarray<CPP_wake_lr_position1_ARRAY>    CPP_wake_lr_position1_MATRIX;
+typedef valarray<CPP_wake_lr_position1_MATRIX>   CPP_wake_lr_position1_TENSOR;
+
+class CPP_wake_lr_position_array;
+typedef valarray<CPP_wake_lr_position_array>          CPP_wake_lr_position_array_ARRAY;
+typedef valarray<CPP_wake_lr_position_array_ARRAY>    CPP_wake_lr_position_array_MATRIX;
+typedef valarray<CPP_wake_lr_position_array_MATRIX>   CPP_wake_lr_position_array_TENSOR;
 
 class CPP_lat_ele_loc;
 typedef valarray<CPP_lat_ele_loc>          CPP_lat_ele_loc_ARRAY;
@@ -435,7 +445,7 @@ public:
   Real xi;
 
   CPP_spin_polar() :
-    polarization(1),
+    polarization(Bmad::NONE),
     theta(0.0),
     phi(0.0),
     xi(0.0)
@@ -823,11 +833,11 @@ bool operator== (const CPP_wake_sr&, const CPP_wake_sr&);
 
 
 //--------------------------------------------------------------------
-// CPP_wake_lr
+// CPP_wake_lr_mode
 
-class Bmad_wake_lr_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_wake_lr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_wake_lr {
+class CPP_wake_lr_mode {
 public:
   Real freq;
   Real freq_in;
@@ -842,7 +852,7 @@ public:
   Int m;
   Bool polarized;
 
-  CPP_wake_lr() :
+  CPP_wake_lr_mode() :
     freq(0.0),
     freq_in(0.0),
     r_over_q(0.0),
@@ -857,15 +867,75 @@ public:
     polarized(false)
     {}
 
-  ~CPP_wake_lr() {
+  ~CPP_wake_lr_mode() {
   }
 
 };   // End Class
 
-extern "C" void wake_lr_to_c (const Bmad_wake_lr_class*, CPP_wake_lr&);
-extern "C" void wake_lr_to_f (const CPP_wake_lr&, Bmad_wake_lr_class*);
+extern "C" void wake_lr_mode_to_c (const Bmad_wake_lr_mode_class*, CPP_wake_lr_mode&);
+extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode&, Bmad_wake_lr_mode_class*);
 
-bool operator== (const CPP_wake_lr&, const CPP_wake_lr&);
+bool operator== (const CPP_wake_lr_mode&, const CPP_wake_lr_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_wake_lr_position1
+
+class Bmad_wake_lr_position1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wake_lr_position1 {
+public:
+  Real_ARRAY vec;
+  Real charge;
+  Real t;
+
+  CPP_wake_lr_position1() :
+    vec(0.0, 6),
+    charge(0.0),
+    t(0.0)
+    {}
+
+  ~CPP_wake_lr_position1() {
+  }
+
+};   // End Class
+
+extern "C" void wake_lr_position1_to_c (const Bmad_wake_lr_position1_class*, CPP_wake_lr_position1&);
+extern "C" void wake_lr_position1_to_f (const CPP_wake_lr_position1&, Bmad_wake_lr_position1_class*);
+
+bool operator== (const CPP_wake_lr_position1&, const CPP_wake_lr_position1&);
+
+
+//--------------------------------------------------------------------
+// CPP_wake_lr_position_array
+
+class Bmad_wake_lr_position_array_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wake_lr_position_array {
+public:
+  string formula;
+  CPP_expression_atom_ARRAY stack;
+  CPP_wake_lr_position1_ARRAY bunch;
+  Real t_max;
+  Real polarization_angle;
+
+  CPP_wake_lr_position_array() :
+    formula(),
+    stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
+    bunch(CPP_wake_lr_position1_ARRAY(CPP_wake_lr_position1(), 0)),
+    t_max(0.0),
+    polarization_angle(0.0)
+    {}
+
+  ~CPP_wake_lr_position_array() {
+  }
+
+};   // End Class
+
+extern "C" void wake_lr_position_array_to_c (const Bmad_wake_lr_position_array_class*, CPP_wake_lr_position_array&);
+extern "C" void wake_lr_position_array_to_f (const CPP_wake_lr_position_array&, Bmad_wake_lr_position_array_class*);
+
+bool operator== (const CPP_wake_lr_position_array&, const CPP_wake_lr_position_array&);
 
 
 //--------------------------------------------------------------------
@@ -905,16 +975,22 @@ public:
   string lr_file;
   CPP_wake_sr sr_long;
   CPP_wake_sr sr_trans;
-  CPP_wake_lr_ARRAY lr;
+  CPP_wake_lr_mode_ARRAY lr_mode;
+  CPP_wake_lr_position_array_ARRAY lr_position_array;
   Real z_sr_max;
+  Real lr_freq_spread;
+  Bool lr_self_wake_on;
 
   CPP_wake() :
     sr_file(),
     lr_file(),
     sr_long(),
     sr_trans(),
-    lr(CPP_wake_lr_ARRAY(CPP_wake_lr(), 0)),
-    z_sr_max(0.0)
+    lr_mode(CPP_wake_lr_mode_ARRAY(CPP_wake_lr_mode(), 0)),
+    lr_position_array(CPP_wake_lr_position_array_ARRAY(CPP_wake_lr_position_array(), 0)),
+    z_sr_max(0.0),
+    lr_freq_spread(0.0),
+    lr_self_wake_on(true)
     {}
 
   ~CPP_wake() {
@@ -3148,6 +3224,7 @@ public:
   Real t_center;
   Int ix_ele;
   Int ix_bunch;
+  Int n_live;
 
   CPP_bunch() :
     particle(CPP_coord_ARRAY(CPP_coord(), 0)),
@@ -3157,7 +3234,8 @@ public:
     z_center(0.0),
     t_center(0.0),
     ix_ele(0),
-    ix_bunch(0)
+    ix_bunch(0),
+    n_live(0)
     {}
 
   ~CPP_bunch() {

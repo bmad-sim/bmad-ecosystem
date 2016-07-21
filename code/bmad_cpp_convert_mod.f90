@@ -125,7 +125,25 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine wake_lr_to_f (C, Fp) bind(c)
+  subroutine wake_lr_mode_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine wake_lr_position1_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine wake_lr_position_array_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -1971,25 +1989,25 @@ end subroutine wake_sr_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_lr_to_c (Fp, C) bind(c)
+! Subroutine wake_lr_mode_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad wake_lr_struct to a C++ CPP_wake_lr structure
+! Routine to convert a Bmad wake_lr_mode_struct to a C++ CPP_wake_lr_mode structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_mode_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr_mode struct.
 !-
 
-subroutine wake_lr_to_c (Fp, C) bind(c)
+subroutine wake_lr_mode_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_lr_to_c2 (C, z_freq, z_freq_in, z_r_over_q, z_q, z_angle, z_b_sin, z_b_cos, &
-      z_a_sin, z_a_cos, z_t_ref, z_m, z_polarized) bind(c)
+  subroutine wake_lr_mode_to_c2 (C, z_freq, z_freq_in, z_r_over_q, z_q, z_angle, z_b_sin, &
+      z_b_cos, z_a_sin, z_a_cos, z_t_ref, z_m, z_polarized) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -2002,7 +2020,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(wake_lr_struct), pointer :: F
+type(wake_lr_mode_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -2012,35 +2030,35 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call wake_lr_to_c2 (C, F%freq, F%freq_in, F%r_over_q, F%q, F%angle, F%b_sin, F%b_cos, F%a_sin, &
-    F%a_cos, F%t_ref, F%m, c_logic(F%polarized))
+call wake_lr_mode_to_c2 (C, F%freq, F%freq_in, F%r_over_q, F%q, F%angle, F%b_sin, F%b_cos, &
+    F%a_sin, F%a_cos, F%t_ref, F%m, c_logic(F%polarized))
 
-end subroutine wake_lr_to_c
+end subroutine wake_lr_mode_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_lr_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine wake_lr_mode_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_wake_lr structure to a Bmad wake_lr_struct structure.
-! This routine is called by wake_lr_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_wake_lr_mode structure to a Bmad wake_lr_mode_struct structure.
+! This routine is called by wake_lr_mode_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the wake_lr_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the wake_lr_mode_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad wake_lr_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad wake_lr_mode_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_lr_to_f2 (Fp, z_freq, z_freq_in, z_r_over_q, z_q, z_angle, z_b_sin, z_b_cos, &
-    z_a_sin, z_a_cos, z_t_ref, z_m, z_polarized) bind(c)
+subroutine wake_lr_mode_to_f2 (Fp, z_freq, z_freq_in, z_r_over_q, z_q, z_angle, z_b_sin, &
+    z_b_cos, z_a_sin, z_a_cos, z_t_ref, z_m, z_polarized) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(wake_lr_struct), pointer :: F
+type(wake_lr_mode_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_polarized
@@ -2075,7 +2093,232 @@ F%m = z_m
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%polarized = f_logic(z_polarized)
 
-end subroutine wake_lr_to_f2
+end subroutine wake_lr_mode_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_lr_position1_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wake_lr_position1_struct to a C++ CPP_wake_lr_position1 structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_position1_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr_position1 struct.
+!-
+
+subroutine wake_lr_position1_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wake_lr_position1_to_c2 (C, z_vec, z_charge, z_t) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_vec(*), z_charge, z_t
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wake_lr_position1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call wake_lr_position1_to_c2 (C, fvec2vec(F%vec, 6), F%charge, F%t)
+
+end subroutine wake_lr_position1_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_lr_position1_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_wake_lr_position1 structure to a Bmad wake_lr_position1_struct structure.
+! This routine is called by wake_lr_position1_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the wake_lr_position1_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad wake_lr_position1_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine wake_lr_position1_to_f2 (Fp, z_vec, z_charge, z_t) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(wake_lr_position1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_vec(*), z_charge, z_t
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 1, NOT]
+F%vec = z_vec(1:6)
+!! f_side.to_f2_trans[real, 0, NOT]
+F%charge = z_charge
+!! f_side.to_f2_trans[real, 0, NOT]
+F%t = z_t
+
+end subroutine wake_lr_position1_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_lr_position_array_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wake_lr_position_array_struct to a C++ CPP_wake_lr_position_array structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_position_array_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr_position_array struct.
+!-
+
+subroutine wake_lr_position_array_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wake_lr_position_array_to_c2 (C, z_formula, z_stack, n1_stack, z_bunch, n1_bunch, &
+      z_t_max, z_polarization_angle) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_stack, n1_bunch
+    real(c_double) :: z_t_max, z_polarization_angle
+    type(c_ptr) :: z_stack(*), z_bunch(*)
+    character(c_char) :: z_formula(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wake_lr_position_array_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_stack(:)
+integer(c_int) :: n1_stack
+type(c_ptr), allocatable :: z_bunch(:)
+integer(c_int) :: n1_bunch
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_stack = 0
+if (allocated(F%stack)) then
+  n1_stack = size(F%stack); lb1 = lbound(F%stack, 1) - 1
+  allocate (z_stack(n1_stack))
+  do jd1 = 1, n1_stack
+    z_stack(jd1) = c_loc(F%stack(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_bunch = 0
+if (allocated(F%bunch)) then
+  n1_bunch = size(F%bunch); lb1 = lbound(F%bunch, 1) - 1
+  allocate (z_bunch(n1_bunch))
+  do jd1 = 1, n1_bunch
+    z_bunch(jd1) = c_loc(F%bunch(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call wake_lr_position_array_to_c2 (C, trim(F%formula) // c_null_char, z_stack, n1_stack, &
+    z_bunch, n1_bunch, F%t_max, F%polarization_angle)
+
+end subroutine wake_lr_position_array_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_lr_position_array_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_wake_lr_position_array structure to a Bmad wake_lr_position_array_struct structure.
+! This routine is called by wake_lr_position_array_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the wake_lr_position_array_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad wake_lr_position_array_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine wake_lr_position_array_to_f2 (Fp, z_formula, z_stack, n1_stack, z_bunch, n1_bunch, &
+    z_t_max, z_polarization_angle) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(wake_lr_position_array_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_stack, n1_bunch
+real(c_double) :: z_t_max, z_polarization_angle
+type(c_ptr) :: z_stack(*), z_bunch(*)
+character(c_char) :: z_formula(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_formula, F%formula)
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_stack == 0) then
+  if (allocated(F%stack)) deallocate(F%stack)
+else
+  if (allocated(F%stack)) then
+    if (n1_stack == 0 .or. any(shape(F%stack) /= [n1_stack])) deallocate(F%stack)
+    if (any(lbound(F%stack) /= 1)) deallocate(F%stack)
+  endif
+  if (.not. allocated(F%stack)) allocate(F%stack(1:n1_stack+1-1))
+  do jd1 = 1, n1_stack
+    call expression_atom_to_f (z_stack(jd1), c_loc(F%stack(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_bunch == 0) then
+  if (allocated(F%bunch)) deallocate(F%bunch)
+else
+  if (allocated(F%bunch)) then
+    if (n1_bunch == 0 .or. any(shape(F%bunch) /= [n1_bunch])) deallocate(F%bunch)
+    if (any(lbound(F%bunch) /= 1)) deallocate(F%bunch)
+  endif
+  if (.not. allocated(F%bunch)) allocate(F%bunch(1:n1_bunch+1-1))
+  do jd1 = 1, n1_bunch
+    call wake_lr_position1_to_f (z_bunch(jd1), c_loc(F%bunch(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%t_max = z_t_max
+!! f_side.to_f2_trans[real, 0, NOT]
+F%polarization_angle = z_polarization_angle
+
+end subroutine wake_lr_position_array_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2179,16 +2422,18 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_to_c2 (C, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr, n1_lr, &
-      z_z_sr_max) bind(c)
+  subroutine wake_to_c2 (C, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr_mode, n1_lr_mode, &
+      z_lr_position_array, n1_lr_position_array, z_z_sr_max, z_lr_freq_spread, &
+      z_lr_self_wake_on) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_sr_long, z_sr_trans
-    real(c_double) :: z_z_sr_max
-    integer(c_int), value :: n1_lr
-    type(c_ptr) :: z_lr(*)
+    logical(c_bool) :: z_lr_self_wake_on
     character(c_char) :: z_sr_file(*), z_lr_file(*)
+    real(c_double) :: z_z_sr_max, z_lr_freq_spread
+    integer(c_int), value :: n1_lr_mode, n1_lr_position_array
+    type(c_ptr) :: z_lr_mode(*), z_lr_position_array(*)
   end subroutine
 end interface
 
@@ -2197,26 +2442,38 @@ type(c_ptr), value :: C
 type(wake_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_lr(:)
-integer(c_int) :: n1_lr
+type(c_ptr), allocatable :: z_lr_mode(:)
+integer(c_int) :: n1_lr_mode
+type(c_ptr), allocatable :: z_lr_position_array(:)
+integer(c_int) :: n1_lr_position_array
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_lr = 0
-if (allocated(F%lr)) then
-  n1_lr = size(F%lr); lb1 = lbound(F%lr, 1) - 1
-  allocate (z_lr(n1_lr))
-  do jd1 = 1, n1_lr
-    z_lr(jd1) = c_loc(F%lr(jd1+lb1))
+ n1_lr_mode = 0
+if (allocated(F%lr_mode)) then
+  n1_lr_mode = size(F%lr_mode); lb1 = lbound(F%lr_mode, 1) - 1
+  allocate (z_lr_mode(n1_lr_mode))
+  do jd1 = 1, n1_lr_mode
+    z_lr_mode(jd1) = c_loc(F%lr_mode(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_lr_position_array = 0
+if (allocated(F%lr_position_array)) then
+  n1_lr_position_array = size(F%lr_position_array); lb1 = lbound(F%lr_position_array, 1) - 1
+  allocate (z_lr_position_array(n1_lr_position_array))
+  do jd1 = 1, n1_lr_position_array
+    z_lr_position_array(jd1) = c_loc(F%lr_position_array(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
 call wake_to_c2 (C, trim(F%sr_file) // c_null_char, trim(F%lr_file) // c_null_char, &
-    c_loc(F%sr_long), c_loc(F%sr_trans), z_lr, n1_lr, F%z_sr_max)
+    c_loc(F%sr_long), c_loc(F%sr_trans), z_lr_mode, n1_lr_mode, z_lr_position_array, &
+    n1_lr_position_array, F%z_sr_max, F%lr_freq_spread, c_logic(F%lr_self_wake_on))
 
 end subroutine wake_to_c
 
@@ -2236,8 +2493,9 @@ end subroutine wake_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_to_f2 (Fp, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr, n1_lr, &
-    z_z_sr_max) bind(c)
+subroutine wake_to_f2 (Fp, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr_mode, n1_lr_mode, &
+    z_lr_position_array, n1_lr_position_array, z_z_sr_max, z_lr_freq_spread, z_lr_self_wake_on) &
+    bind(c)
 
 
 implicit none
@@ -2247,10 +2505,11 @@ type(wake_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_sr_long, z_sr_trans
-real(c_double) :: z_z_sr_max
-integer(c_int), value :: n1_lr
-type(c_ptr) :: z_lr(*)
+logical(c_bool) :: z_lr_self_wake_on
 character(c_char) :: z_sr_file(*), z_lr_file(*)
+real(c_double) :: z_z_sr_max, z_lr_freq_spread
+integer(c_int), value :: n1_lr_mode, n1_lr_position_array
+type(c_ptr) :: z_lr_mode(*), z_lr_position_array(*)
 
 call c_f_pointer (Fp, F)
 
@@ -2263,21 +2522,39 @@ call wake_sr_to_f(z_sr_long, c_loc(F%sr_long))
 !! f_side.to_f2_trans[type, 0, NOT]
 call wake_sr_to_f(z_sr_trans, c_loc(F%sr_trans))
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_lr == 0) then
-  if (allocated(F%lr)) deallocate(F%lr)
+if (n1_lr_mode == 0) then
+  if (allocated(F%lr_mode)) deallocate(F%lr_mode)
 else
-  if (allocated(F%lr)) then
-    if (n1_lr == 0 .or. any(shape(F%lr) /= [n1_lr])) deallocate(F%lr)
-    if (any(lbound(F%lr) /= 1)) deallocate(F%lr)
+  if (allocated(F%lr_mode)) then
+    if (n1_lr_mode == 0 .or. any(shape(F%lr_mode) /= [n1_lr_mode])) deallocate(F%lr_mode)
+    if (any(lbound(F%lr_mode) /= 1)) deallocate(F%lr_mode)
   endif
-  if (.not. allocated(F%lr)) allocate(F%lr(1:n1_lr+1-1))
-  do jd1 = 1, n1_lr
-    call wake_lr_to_f (z_lr(jd1), c_loc(F%lr(jd1+1-1)))
+  if (.not. allocated(F%lr_mode)) allocate(F%lr_mode(1:n1_lr_mode+1-1))
+  do jd1 = 1, n1_lr_mode
+    call wake_lr_mode_to_f (z_lr_mode(jd1), c_loc(F%lr_mode(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_lr_position_array == 0) then
+  if (allocated(F%lr_position_array)) deallocate(F%lr_position_array)
+else
+  if (allocated(F%lr_position_array)) then
+    if (n1_lr_position_array == 0 .or. any(shape(F%lr_position_array) /= [n1_lr_position_array])) deallocate(F%lr_position_array)
+    if (any(lbound(F%lr_position_array) /= 1)) deallocate(F%lr_position_array)
+  endif
+  if (.not. allocated(F%lr_position_array)) allocate(F%lr_position_array(1:n1_lr_position_array+1-1))
+  do jd1 = 1, n1_lr_position_array
+    call wake_lr_position_array_to_f (z_lr_position_array(jd1), c_loc(F%lr_position_array(jd1+1-1)))
   enddo
 endif
 
 !! f_side.to_f2_trans[real, 0, NOT]
 F%z_sr_max = z_z_sr_max
+!! f_side.to_f2_trans[real, 0, NOT]
+F%lr_freq_spread = z_lr_freq_spread
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%lr_self_wake_on = f_logic(z_lr_self_wake_on)
 
 end subroutine wake_to_f2
 
@@ -9043,13 +9320,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-      z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch) bind(c)
+      z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch, z_n_live) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int), value :: n1_particle, n1_ix_z
     real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center
-    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch
+    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_n_live
     type(c_ptr) :: z_particle(*)
   end subroutine
 end interface
@@ -9084,7 +9361,7 @@ endif
 
 !! f_side.to_c2_call
 call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge_tot, &
-    F%charge_live, F%z_center, F%t_center, F%ix_ele, F%ix_bunch)
+    F%charge_live, F%z_center, F%t_center, F%ix_ele, F%ix_bunch, F%n_live)
 
 end subroutine bunch_to_c
 
@@ -9105,7 +9382,7 @@ end subroutine bunch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-    z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch) bind(c)
+    z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch, z_n_live) bind(c)
 
 
 implicit none
@@ -9114,7 +9391,7 @@ type(c_ptr), value :: Fp
 type(bunch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_ix_ele, z_ix_bunch
+integer(c_int) :: z_ix_ele, z_ix_bunch, z_n_live
 integer(c_int), value :: n1_particle, n1_ix_z
 integer(c_int), pointer :: f_ix_z(:)
 real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center
@@ -9162,6 +9439,8 @@ F%t_center = z_t_center
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_bunch = z_ix_bunch
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_live = z_n_live
 
 end subroutine bunch_to_f2
 
