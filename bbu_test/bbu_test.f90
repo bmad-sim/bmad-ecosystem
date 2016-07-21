@@ -13,7 +13,7 @@ type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele
-type (wake_lr_struct), pointer :: lr(:)
+type (wake_lr_mode_struct), pointer :: lr(:)
 
 integer i, ix, j, n, nn, n_ele, ix_pass, o
 integer irep
@@ -90,7 +90,7 @@ call twiss_and_track(lat_in,orb,ok,0,.true.)
 !    if (ele%key /= lcavity$) cycle
 !    if (.not. bbu_param%keep_all_lcavities) then
 !      if (.not. associated (ele%wake)) cycle
-!      if (size(ele%wake%lr) == 0) cycle
+!      if (size(ele%wake%lr_mode) == 0) cycle
 !    endif
 !    ele%select = .true.
 !  enddo

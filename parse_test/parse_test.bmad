@@ -6,6 +6,9 @@ parameter[particle] = He++
 beam, energy =   5.28900
 parameter[p0c] = 1e12
 
+a_mom = anomalous_moment_of(parameter[particle])
+cc = charge_of(deuteron)
+
 parameter[custom_attribute3] = 'zzz'
 parameter[custom_attribute2] = 'quadrupole::qqq'
 
