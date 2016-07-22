@@ -7,7 +7,7 @@ beam, energy =   5.28900
 parameter[p0c] = 1e12
 
 a_mom = anomalous_moment_of(parameter[particle])
-cc = charge_of(deuteron)
+!!! cc = charge_of(deuteron)
 
 parameter[custom_attribute3] = 'zzz'
 parameter[custom_attribute2] = 'quadrupole::qqq'
@@ -26,12 +26,15 @@ gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
 g_cc: group = {cc}, accordion_edge
 
 sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F,
-      grid_field = {
+    grid_field = {
         geometry = xyz,
         curved_coords = T,
         r0 = (0, 0, 0),
         dr = (0.001, 0.001, 0.002),
-        pt(1,2,3) = (1, 2, 3, 4, 5, 6)}
+        pt(1,2,3) = (1, 2, 3, 4, 5, 6)},
+    lr_wake_spline = {t_max = 0.3}
+
+sss: sbend,     lr_wake_spline = {t_max = 0.3}
 
 tt: taylor, {xy: 0.4 | 13}, {zz: 0.1|}
 
