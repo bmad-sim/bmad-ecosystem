@@ -17,6 +17,15 @@ use, intrinsic :: iso_c_binding
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine spline_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine spin_polar_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -143,7 +152,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine wake_lr_position_array_to_f (C, Fp) bind(c)
+  subroutine wake_lr_spline_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -699,6 +708,91 @@ interface
 end interface
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine spline_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad spline_struct to a C++ CPP_spline structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad spline_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_spline struct.
+!-
+
+subroutine spline_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine spline_to_c2 (C, z_x0, z_y0, z_x1, z_coef) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_x0, z_y0, z_x1, z_coef(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(spline_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call spline_to_c2 (C, F%x0, F%y0, F%x1, fvec2vec(F%coef, 4))
+
+end subroutine spline_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine spline_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_spline structure to a Bmad spline_struct structure.
+! This routine is called by spline_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the spline_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad spline_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine spline_to_f2 (Fp, z_x0, z_y0, z_x1, z_coef) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(spline_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_x0, z_y0, z_x1, z_coef(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x1 = z_x1
+!! f_side.to_f2_trans[real, 1, NOT]
+F%coef = z_coef(1:4)
+
+end subroutine spline_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2182,42 +2276,43 @@ end subroutine wake_lr_position1_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_lr_position_array_to_c (Fp, C) bind(c)
+! Subroutine wake_lr_spline_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad wake_lr_position_array_struct to a C++ CPP_wake_lr_position_array structure
+! Routine to convert a Bmad wake_lr_spline_struct to a C++ CPP_wake_lr_spline structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_position_array_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad wake_lr_spline_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr_position_array struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_lr_spline struct.
 !-
 
-subroutine wake_lr_position_array_to_c (Fp, C) bind(c)
+subroutine wake_lr_spline_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_lr_position_array_to_c2 (C, z_formula, z_stack, n1_stack, z_bunch, n1_bunch, &
-      z_t_max, z_polarization_angle) bind(c)
+  subroutine wake_lr_spline_to_c2 (C, z_spline, n1_spline, z_bunch, n1_bunch, z_t_max, &
+      z_polarization_angle, z_polarized, z_transverse_dependence) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int), value :: n1_stack, n1_bunch
+    logical(c_bool) :: z_polarized
+    integer(c_int), value :: n1_spline, n1_bunch
     real(c_double) :: z_t_max, z_polarization_angle
-    type(c_ptr) :: z_stack(*), z_bunch(*)
-    character(c_char) :: z_formula(*)
+    integer(c_int) :: z_transverse_dependence
+    type(c_ptr) :: z_spline(*), z_bunch(*)
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(wake_lr_position_array_struct), pointer :: F
+type(wake_lr_spline_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_stack(:)
-integer(c_int) :: n1_stack
+type(c_ptr), allocatable :: z_spline(:)
+integer(c_int) :: n1_spline
 type(c_ptr), allocatable :: z_bunch(:)
 integer(c_int) :: n1_bunch
 
@@ -2226,12 +2321,12 @@ integer(c_int) :: n1_bunch
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_stack = 0
-if (allocated(F%stack)) then
-  n1_stack = size(F%stack); lb1 = lbound(F%stack, 1) - 1
-  allocate (z_stack(n1_stack))
-  do jd1 = 1, n1_stack
-    z_stack(jd1) = c_loc(F%stack(jd1+lb1))
+ n1_spline = 0
+if (allocated(F%spline)) then
+  n1_spline = size(F%spline); lb1 = lbound(F%spline, 1) - 1
+  allocate (z_spline(n1_spline))
+  do jd1 = 1, n1_spline
+    z_spline(jd1) = c_loc(F%spline(jd1+lb1))
   enddo
 endif
 !! f_side.to_c_trans[type, 1, ALLOC]
@@ -2245,57 +2340,56 @@ if (allocated(F%bunch)) then
 endif
 
 !! f_side.to_c2_call
-call wake_lr_position_array_to_c2 (C, trim(F%formula) // c_null_char, z_stack, n1_stack, &
-    z_bunch, n1_bunch, F%t_max, F%polarization_angle)
+call wake_lr_spline_to_c2 (C, z_spline, n1_spline, z_bunch, n1_bunch, F%t_max, &
+    F%polarization_angle, c_logic(F%polarized), F%transverse_dependence)
 
-end subroutine wake_lr_position_array_to_c
+end subroutine wake_lr_spline_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_lr_position_array_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine wake_lr_spline_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_wake_lr_position_array structure to a Bmad wake_lr_position_array_struct structure.
-! This routine is called by wake_lr_position_array_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_wake_lr_spline structure to a Bmad wake_lr_spline_struct structure.
+! This routine is called by wake_lr_spline_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the wake_lr_position_array_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the wake_lr_spline_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad wake_lr_position_array_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad wake_lr_spline_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_lr_position_array_to_f2 (Fp, z_formula, z_stack, n1_stack, z_bunch, n1_bunch, &
-    z_t_max, z_polarization_angle) bind(c)
+subroutine wake_lr_spline_to_f2 (Fp, z_spline, n1_spline, z_bunch, n1_bunch, z_t_max, &
+    z_polarization_angle, z_polarized, z_transverse_dependence) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(wake_lr_position_array_struct), pointer :: F
+type(wake_lr_spline_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int), value :: n1_stack, n1_bunch
+logical(c_bool) :: z_polarized
+integer(c_int), value :: n1_spline, n1_bunch
 real(c_double) :: z_t_max, z_polarization_angle
-type(c_ptr) :: z_stack(*), z_bunch(*)
-character(c_char) :: z_formula(*)
+integer(c_int) :: z_transverse_dependence
+type(c_ptr) :: z_spline(*), z_bunch(*)
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_formula, F%formula)
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_stack == 0) then
-  if (allocated(F%stack)) deallocate(F%stack)
+if (n1_spline == 0) then
+  if (allocated(F%spline)) deallocate(F%spline)
 else
-  if (allocated(F%stack)) then
-    if (n1_stack == 0 .or. any(shape(F%stack) /= [n1_stack])) deallocate(F%stack)
-    if (any(lbound(F%stack) /= 1)) deallocate(F%stack)
+  if (allocated(F%spline)) then
+    if (n1_spline == 0 .or. any(shape(F%spline) /= [n1_spline])) deallocate(F%spline)
+    if (any(lbound(F%spline) /= 1)) deallocate(F%spline)
   endif
-  if (.not. allocated(F%stack)) allocate(F%stack(1:n1_stack+1-1))
-  do jd1 = 1, n1_stack
-    call expression_atom_to_f (z_stack(jd1), c_loc(F%stack(jd1+1-1)))
+  if (.not. allocated(F%spline)) allocate(F%spline(1:n1_spline+1-1))
+  do jd1 = 1, n1_spline
+    call spline_to_f (z_spline(jd1), c_loc(F%spline(jd1+1-1)))
   enddo
 endif
 
@@ -2317,8 +2411,12 @@ endif
 F%t_max = z_t_max
 !! f_side.to_f2_trans[real, 0, NOT]
 F%polarization_angle = z_polarization_angle
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%polarized = f_logic(z_polarized)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%transverse_dependence = z_transverse_dependence
 
-end subroutine wake_lr_position_array_to_f2
+end subroutine wake_lr_spline_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2423,8 +2521,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_to_c2 (C, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr_mode, n1_lr_mode, &
-      z_lr_position_array, n1_lr_position_array, z_z_sr_max, z_lr_freq_spread, &
-      z_lr_self_wake_on) bind(c)
+      z_lr_spline, n1_lr_spline, z_z_sr_max, z_lr_freq_spread, z_lr_self_wake_on) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -2432,8 +2529,8 @@ interface
     logical(c_bool) :: z_lr_self_wake_on
     character(c_char) :: z_sr_file(*), z_lr_file(*)
     real(c_double) :: z_z_sr_max, z_lr_freq_spread
-    integer(c_int), value :: n1_lr_mode, n1_lr_position_array
-    type(c_ptr) :: z_lr_mode(*), z_lr_position_array(*)
+    integer(c_int), value :: n1_lr_mode, n1_lr_spline
+    type(c_ptr) :: z_lr_mode(*), z_lr_spline(*)
   end subroutine
 end interface
 
@@ -2444,8 +2541,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_lr_mode(:)
 integer(c_int) :: n1_lr_mode
-type(c_ptr), allocatable :: z_lr_position_array(:)
-integer(c_int) :: n1_lr_position_array
+type(c_ptr), allocatable :: z_lr_spline(:)
+integer(c_int) :: n1_lr_spline
 
 !
 
@@ -2461,19 +2558,19 @@ if (allocated(F%lr_mode)) then
   enddo
 endif
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_lr_position_array = 0
-if (allocated(F%lr_position_array)) then
-  n1_lr_position_array = size(F%lr_position_array); lb1 = lbound(F%lr_position_array, 1) - 1
-  allocate (z_lr_position_array(n1_lr_position_array))
-  do jd1 = 1, n1_lr_position_array
-    z_lr_position_array(jd1) = c_loc(F%lr_position_array(jd1+lb1))
+ n1_lr_spline = 0
+if (allocated(F%lr_spline)) then
+  n1_lr_spline = size(F%lr_spline); lb1 = lbound(F%lr_spline, 1) - 1
+  allocate (z_lr_spline(n1_lr_spline))
+  do jd1 = 1, n1_lr_spline
+    z_lr_spline(jd1) = c_loc(F%lr_spline(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
 call wake_to_c2 (C, trim(F%sr_file) // c_null_char, trim(F%lr_file) // c_null_char, &
-    c_loc(F%sr_long), c_loc(F%sr_trans), z_lr_mode, n1_lr_mode, z_lr_position_array, &
-    n1_lr_position_array, F%z_sr_max, F%lr_freq_spread, c_logic(F%lr_self_wake_on))
+    c_loc(F%sr_long), c_loc(F%sr_trans), z_lr_mode, n1_lr_mode, z_lr_spline, n1_lr_spline, &
+    F%z_sr_max, F%lr_freq_spread, c_logic(F%lr_self_wake_on))
 
 end subroutine wake_to_c
 
@@ -2494,8 +2591,7 @@ end subroutine wake_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine wake_to_f2 (Fp, z_sr_file, z_lr_file, z_sr_long, z_sr_trans, z_lr_mode, n1_lr_mode, &
-    z_lr_position_array, n1_lr_position_array, z_z_sr_max, z_lr_freq_spread, z_lr_self_wake_on) &
-    bind(c)
+    z_lr_spline, n1_lr_spline, z_z_sr_max, z_lr_freq_spread, z_lr_self_wake_on) bind(c)
 
 
 implicit none
@@ -2508,8 +2604,8 @@ type(c_ptr), value :: z_sr_long, z_sr_trans
 logical(c_bool) :: z_lr_self_wake_on
 character(c_char) :: z_sr_file(*), z_lr_file(*)
 real(c_double) :: z_z_sr_max, z_lr_freq_spread
-integer(c_int), value :: n1_lr_mode, n1_lr_position_array
-type(c_ptr) :: z_lr_mode(*), z_lr_position_array(*)
+integer(c_int), value :: n1_lr_mode, n1_lr_spline
+type(c_ptr) :: z_lr_mode(*), z_lr_spline(*)
 
 call c_f_pointer (Fp, F)
 
@@ -2536,16 +2632,16 @@ else
 endif
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_lr_position_array == 0) then
-  if (allocated(F%lr_position_array)) deallocate(F%lr_position_array)
+if (n1_lr_spline == 0) then
+  if (allocated(F%lr_spline)) deallocate(F%lr_spline)
 else
-  if (allocated(F%lr_position_array)) then
-    if (n1_lr_position_array == 0 .or. any(shape(F%lr_position_array) /= [n1_lr_position_array])) deallocate(F%lr_position_array)
-    if (any(lbound(F%lr_position_array) /= 1)) deallocate(F%lr_position_array)
+  if (allocated(F%lr_spline)) then
+    if (n1_lr_spline == 0 .or. any(shape(F%lr_spline) /= [n1_lr_spline])) deallocate(F%lr_spline)
+    if (any(lbound(F%lr_spline) /= 1)) deallocate(F%lr_spline)
   endif
-  if (.not. allocated(F%lr_position_array)) allocate(F%lr_position_array(1:n1_lr_position_array+1-1))
-  do jd1 = 1, n1_lr_position_array
-    call wake_lr_position_array_to_f (z_lr_position_array(jd1), c_loc(F%lr_position_array(jd1+1-1)))
+  if (.not. allocated(F%lr_spline)) allocate(F%lr_spline(1:n1_lr_spline+1-1))
+  do jd1 = 1, n1_lr_spline
+    call wake_lr_spline_to_f (z_lr_spline(jd1), c_loc(F%lr_spline(jd1+1-1)))
   enddo
 endif
 

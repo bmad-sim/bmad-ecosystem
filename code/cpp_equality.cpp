@@ -72,6 +72,20 @@ template bool is_all_equal (const Int_TENSOR&,      const Int_TENSOR&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_spline& x, const CPP_spline& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.x1 == y.x1);
+  is_eq = is_eq && is_all_equal(x.coef, y.coef);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_spline_ARRAY&, const CPP_spline_ARRAY&);
+template bool is_all_equal (const CPP_spline_MATRIX&, const CPP_spline_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_spin_polar& x, const CPP_spin_polar& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.polarization == y.polarization);
@@ -295,18 +309,19 @@ template bool is_all_equal (const CPP_wake_lr_position1_MATRIX&, const CPP_wake_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_wake_lr_position_array& x, const CPP_wake_lr_position_array& y) {
+bool operator== (const CPP_wake_lr_spline& x, const CPP_wake_lr_spline& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.formula == y.formula);
-  is_eq = is_eq && is_all_equal(x.stack, y.stack);
+  is_eq = is_eq && is_all_equal(x.spline, y.spline);
   is_eq = is_eq && is_all_equal(x.bunch, y.bunch);
   is_eq = is_eq && (x.t_max == y.t_max);
   is_eq = is_eq && (x.polarization_angle == y.polarization_angle);
+  is_eq = is_eq && (x.polarized == y.polarized);
+  is_eq = is_eq && (x.transverse_dependence == y.transverse_dependence);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_wake_lr_position_array_ARRAY&, const CPP_wake_lr_position_array_ARRAY&);
-template bool is_all_equal (const CPP_wake_lr_position_array_MATRIX&, const CPP_wake_lr_position_array_MATRIX&);
+template bool is_all_equal (const CPP_wake_lr_spline_ARRAY&, const CPP_wake_lr_spline_ARRAY&);
+template bool is_all_equal (const CPP_wake_lr_spline_MATRIX&, const CPP_wake_lr_spline_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -329,7 +344,7 @@ bool operator== (const CPP_wake& x, const CPP_wake& y) {
   is_eq = is_eq && (x.sr_long == y.sr_long);
   is_eq = is_eq && (x.sr_trans == y.sr_trans);
   is_eq = is_eq && is_all_equal(x.lr_mode, y.lr_mode);
-  is_eq = is_eq && is_all_equal(x.lr_position_array, y.lr_position_array);
+  is_eq = is_eq && is_all_equal(x.lr_spline, y.lr_spline);
   is_eq = is_eq && (x.z_sr_max == y.z_sr_max);
   is_eq = is_eq && (x.lr_freq_spread == y.lr_freq_spread);
   is_eq = is_eq && (x.lr_self_wake_on == y.lr_self_wake_on);

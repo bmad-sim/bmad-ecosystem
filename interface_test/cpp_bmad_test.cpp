@@ -17,6 +17,66 @@ using namespace std;
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_spline (CPP_spline&, bool&);
+
+void set_CPP_spline_test_pattern (CPP_spline& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.x1 = rhs;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.coef.size(); i++)
+    {int rhs = 101 + i + 4 + offset; C.coef[i] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_spline (Bmad_spline_class* F, bool& c_ok) {
+
+  CPP_spline C, C2;
+
+  c_ok = true;
+
+  spline_to_c (F, C);
+  set_CPP_spline_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " spline: C side convert F->C: Good" << endl;
+  } else {
+    cout << " spline: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_spline_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_spline (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_spline_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " spline: F side convert F->C: Good" << endl;
+  } else {
+    cout << " spline: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_spline_test_pattern (C2, 4);
+  spline_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_spin_polar (CPP_spin_polar&, bool&);
 
 void set_CPP_spin_polar_test_pattern (CPP_spin_polar& C, int ix_patt) {
@@ -984,22 +1044,18 @@ extern "C" void test_c_wake_lr_position1 (Bmad_wake_lr_position1_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wake_lr_position_array (CPP_wake_lr_position_array&, bool&);
+extern "C" void test2_f_wake_lr_spline (CPP_wake_lr_spline&, bool&);
 
-void set_CPP_wake_lr_position_array_test_pattern (CPP_wake_lr_position_array& C, int ix_patt) {
+void set_CPP_wake_lr_spline_test_pattern (CPP_wake_lr_spline& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[character, 0, NOT]
-  C.formula.resize(200);
-  for (unsigned int i = 0; i < C.formula.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.formula[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.stack.resize(0);
+    C.spline.resize(0);
   else {
-    C.stack.resize(3);
-    for (unsigned int i = 0; i < C.stack.size(); i++)  {set_CPP_expression_atom_test_pattern(C.stack[i], ix_patt+i+1);}
+    C.spline.resize(3);
+    for (unsigned int i = 0; i < C.spline.size(); i++)  {set_CPP_spline_test_pattern(C.spline[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 1, ALLOC]
@@ -1011,47 +1067,53 @@ void set_CPP_wake_lr_position_array_test_pattern (CPP_wake_lr_position_array& C,
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.t_max = rhs;
+  rhs = 5 + offset; C.t_max = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.polarization_angle = rhs;
+  rhs = 6 + offset; C.polarization_angle = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 7 + offset; C.polarized = (rhs % 2 == 0);
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.transverse_dependence = rhs;
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wake_lr_position_array (Bmad_wake_lr_position_array_class* F, bool& c_ok) {
+extern "C" void test_c_wake_lr_spline (Bmad_wake_lr_spline_class* F, bool& c_ok) {
 
-  CPP_wake_lr_position_array C, C2;
+  CPP_wake_lr_spline C, C2;
 
   c_ok = true;
 
-  wake_lr_position_array_to_c (F, C);
-  set_CPP_wake_lr_position_array_test_pattern (C2, 1);
+  wake_lr_spline_to_c (F, C);
+  set_CPP_wake_lr_spline_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " wake_lr_position_array: C side convert F->C: Good" << endl;
+    cout << " wake_lr_spline: C side convert F->C: Good" << endl;
   } else {
-    cout << " wake_lr_position_array: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_lr_spline: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_lr_position_array_test_pattern (C2, 2);
+  set_CPP_wake_lr_spline_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_wake_lr_position_array (C2, c_ok2);
+  test2_f_wake_lr_spline (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_wake_lr_position_array_test_pattern (C, 3);
+  set_CPP_wake_lr_spline_test_pattern (C, 3);
   if (C == C2) {
-    cout << " wake_lr_position_array: F side convert F->C: Good" << endl;
+    cout << " wake_lr_spline: F side convert F->C: Good" << endl;
   } else {
-    cout << " wake_lr_position_array: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_lr_spline: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_lr_position_array_test_pattern (C2, 4);
-  wake_lr_position_array_to_f (C2, F);
+  set_CPP_wake_lr_spline_test_pattern (C2, 4);
+  wake_lr_spline_to_f (C2, F);
 
 }
 
@@ -1142,10 +1204,10 @@ void set_CPP_wake_test_pattern (CPP_wake& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.lr_position_array.resize(0);
+    C.lr_spline.resize(0);
   else {
-    C.lr_position_array.resize(3);
-    for (unsigned int i = 0; i < C.lr_position_array.size(); i++)  {set_CPP_wake_lr_position_array_test_pattern(C.lr_position_array[i], ix_patt+i+1);}
+    C.lr_spline.resize(3);
+    for (unsigned int i = 0; i < C.lr_spline.size(); i++)  {set_CPP_wake_lr_spline_test_pattern(C.lr_spline[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[real, 0, NOT]

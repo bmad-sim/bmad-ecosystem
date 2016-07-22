@@ -8,6 +8,7 @@ logical ok, all_ok
 !
 
 all_ok = .true.
+call test1_f_spline(ok); if (.not. ok) all_ok = .false.
 call test1_f_spin_polar(ok); if (.not. ok) all_ok = .false.
 call test1_f_surface_orientation(ok); if (.not. ok) all_ok = .false.
 call test1_f_interval1_coef(ok); if (.not. ok) all_ok = .false.
@@ -22,7 +23,7 @@ call test1_f_wake_sr_mode(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_sr(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_lr_mode(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_lr_position1(ok); if (.not. ok) all_ok = .false.
-call test1_f_wake_lr_position_array(ok); if (.not. ok) all_ok = .false.
+call test1_f_wake_lr_spline(ok); if (.not. ok) all_ok = .false.
 call test1_f_lat_ele_loc(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake(ok); if (.not. ok) all_ok = .false.
 call test1_f_taylor_term(ok); if (.not. ok) all_ok = .false.

@@ -1,6 +1,7 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
 struct_def_files = [
+    '../sim_utils/math/spline_mod.f90',
     '../bmad/modules/basic_bmad_mod.f90', 
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/twiss_mod.f90', 
@@ -19,6 +20,7 @@ use_statements = ['use beam_def_struct']
 # then A must be before B in the list.
 
 struct_list = [
+    'spline_struct',
     'spin_polar_struct',
     'surface_orientation_struct',
     'interval1_coef_struct',
@@ -33,7 +35,7 @@ struct_list = [
     'wake_sr_struct',
     'wake_lr_mode_struct',
     'wake_lr_position1_struct',
-    'wake_lr_position_array_struct',
+    'wake_lr_spline_struct',
     'lat_ele_loc_struct',
     'wake_struct',
     'taylor_term_struct',

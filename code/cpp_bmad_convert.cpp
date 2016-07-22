@@ -161,6 +161,36 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_spline
+
+extern "C" void spline_to_c (const Bmad_spline_class*, CPP_spline&);
+
+// c_side.to_f2_arg
+extern "C" void spline_to_f2 (Bmad_spline_class*, c_Real&, c_Real&, c_Real&, c_RealArr);
+
+extern "C" void spline_to_f (const CPP_spline& C, Bmad_spline_class* F) {
+
+  // c_side.to_f2_call
+  spline_to_f2 (F, C.x0, C.y0, C.x1, &C.coef[0]);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void spline_to_c2 (CPP_spline& C, c_Real& z_x0, c_Real& z_y0, c_Real& z_x1,
+    c_RealArr z_coef) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x0 = z_x0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y0 = z_y0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x1 = z_x1;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.coef << z_coef;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_spin_polar
 
 extern "C" void spin_polar_to_c (const Bmad_spin_polar_class*, CPP_spin_polar&);
@@ -746,21 +776,21 @@ extern "C" void wake_lr_position1_to_c2 (CPP_wake_lr_position1& C, c_RealArr z_v
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_wake_lr_position_array
+// CPP_wake_lr_spline
 
-extern "C" void wake_lr_position_array_to_c (const Bmad_wake_lr_position_array_class*, CPP_wake_lr_position_array&);
+extern "C" void wake_lr_spline_to_c (const Bmad_wake_lr_spline_class*, CPP_wake_lr_spline&);
 
 // c_side.to_f2_arg
-extern "C" void wake_lr_position_array_to_f2 (Bmad_wake_lr_position_array_class*, c_Char, const
-    CPP_expression_atom**, Int, const CPP_wake_lr_position1**, Int, c_Real&, c_Real&);
+extern "C" void wake_lr_spline_to_f2 (Bmad_wake_lr_spline_class*, const CPP_spline**, Int,
+    const CPP_wake_lr_position1**, Int, c_Real&, c_Real&, c_Bool&, c_Int&);
 
-extern "C" void wake_lr_position_array_to_f (const CPP_wake_lr_position_array& C, Bmad_wake_lr_position_array_class* F) {
+extern "C" void wake_lr_spline_to_f (const CPP_wake_lr_spline& C, Bmad_wake_lr_spline_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_stack = C.stack.size();
-  const CPP_expression_atom** z_stack = NULL;
-  if (n1_stack != 0) {
-    z_stack = new const CPP_expression_atom*[n1_stack];
-    for (int i = 0; i < n1_stack; i++) z_stack[i] = &C.stack[i];
+  int n1_spline = C.spline.size();
+  const CPP_spline** z_spline = NULL;
+  if (n1_spline != 0) {
+    z_spline = new const CPP_spline*[n1_spline];
+    for (int i = 0; i < n1_spline; i++) z_spline[i] = &C.spline[i];
   }
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_bunch = C.bunch.size();
@@ -771,25 +801,23 @@ extern "C" void wake_lr_position_array_to_f (const CPP_wake_lr_position_array& C
   }
 
   // c_side.to_f2_call
-  wake_lr_position_array_to_f2 (F, C.formula.c_str(), z_stack, n1_stack, z_bunch, n1_bunch,
-      C.t_max, C.polarization_angle);
+  wake_lr_spline_to_f2 (F, z_spline, n1_spline, z_bunch, n1_bunch, C.t_max,
+      C.polarization_angle, C.polarized, C.transverse_dependence);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_stack;
+ delete[] z_spline;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_bunch;
 }
 
 // c_side.to_c2_arg
-extern "C" void wake_lr_position_array_to_c2 (CPP_wake_lr_position_array& C, c_Char z_formula,
-    Bmad_expression_atom_class** z_stack, Int n1_stack, Bmad_wake_lr_position1_class** z_bunch,
-    Int n1_bunch, c_Real& z_t_max, c_Real& z_polarization_angle) {
+extern "C" void wake_lr_spline_to_c2 (CPP_wake_lr_spline& C, Bmad_spline_class** z_spline, Int
+    n1_spline, Bmad_wake_lr_position1_class** z_bunch, Int n1_bunch, c_Real& z_t_max, c_Real&
+    z_polarization_angle, c_Bool& z_polarized, c_Int& z_transverse_dependence) {
 
-  // c_side.to_c2_set[character, 0, NOT]
-  C.formula = z_formula;
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.stack.resize(n1_stack);
-  for (int i = 0; i < n1_stack; i++) expression_atom_to_c(z_stack[i], C.stack[i]);
+  C.spline.resize(n1_spline);
+  for (int i = 0; i < n1_spline; i++) spline_to_c(z_spline[i], C.spline[i]);
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.bunch.resize(n1_bunch);
@@ -799,6 +827,10 @@ extern "C" void wake_lr_position_array_to_c2 (CPP_wake_lr_position_array& C, c_C
   C.t_max = z_t_max;
   // c_side.to_c2_set[real, 0, NOT]
   C.polarization_angle = z_polarization_angle;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.polarized = z_polarized;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.transverse_dependence = z_transverse_dependence;
 }
 
 //--------------------------------------------------------------------
@@ -834,8 +866,8 @@ extern "C" void wake_to_c (const Bmad_wake_class*, CPP_wake&);
 
 // c_side.to_f2_arg
 extern "C" void wake_to_f2 (Bmad_wake_class*, c_Char, c_Char, const CPP_wake_sr&, const
-    CPP_wake_sr&, const CPP_wake_lr_mode**, Int, const CPP_wake_lr_position_array**, Int,
-    c_Real&, c_Real&, c_Bool&);
+    CPP_wake_sr&, const CPP_wake_lr_mode**, Int, const CPP_wake_lr_spline**, Int, c_Real&,
+    c_Real&, c_Bool&);
 
 extern "C" void wake_to_f (const CPP_wake& C, Bmad_wake_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -846,30 +878,29 @@ extern "C" void wake_to_f (const CPP_wake& C, Bmad_wake_class* F) {
     for (int i = 0; i < n1_lr_mode; i++) z_lr_mode[i] = &C.lr_mode[i];
   }
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_lr_position_array = C.lr_position_array.size();
-  const CPP_wake_lr_position_array** z_lr_position_array = NULL;
-  if (n1_lr_position_array != 0) {
-    z_lr_position_array = new const CPP_wake_lr_position_array*[n1_lr_position_array];
-    for (int i = 0; i < n1_lr_position_array; i++) z_lr_position_array[i] = &C.lr_position_array[i];
+  int n1_lr_spline = C.lr_spline.size();
+  const CPP_wake_lr_spline** z_lr_spline = NULL;
+  if (n1_lr_spline != 0) {
+    z_lr_spline = new const CPP_wake_lr_spline*[n1_lr_spline];
+    for (int i = 0; i < n1_lr_spline; i++) z_lr_spline[i] = &C.lr_spline[i];
   }
 
   // c_side.to_f2_call
   wake_to_f2 (F, C.sr_file.c_str(), C.lr_file.c_str(), C.sr_long, C.sr_trans, z_lr_mode,
-      n1_lr_mode, z_lr_position_array, n1_lr_position_array, C.z_sr_max, C.lr_freq_spread,
-      C.lr_self_wake_on);
+      n1_lr_mode, z_lr_spline, n1_lr_spline, C.z_sr_max, C.lr_freq_spread, C.lr_self_wake_on);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_lr_mode;
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_lr_position_array;
+ delete[] z_lr_spline;
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_to_c2 (CPP_wake& C, c_Char z_sr_file, c_Char z_lr_file, const
     Bmad_wake_sr_class* z_sr_long, const Bmad_wake_sr_class* z_sr_trans,
-    Bmad_wake_lr_mode_class** z_lr_mode, Int n1_lr_mode, Bmad_wake_lr_position_array_class**
-    z_lr_position_array, Int n1_lr_position_array, c_Real& z_z_sr_max, c_Real&
-    z_lr_freq_spread, c_Bool& z_lr_self_wake_on) {
+    Bmad_wake_lr_mode_class** z_lr_mode, Int n1_lr_mode, Bmad_wake_lr_spline_class**
+    z_lr_spline, Int n1_lr_spline, c_Real& z_z_sr_max, c_Real& z_lr_freq_spread, c_Bool&
+    z_lr_self_wake_on) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.sr_file = z_sr_file;
@@ -884,8 +915,8 @@ extern "C" void wake_to_c2 (CPP_wake& C, c_Char z_sr_file, c_Char z_lr_file, con
   for (int i = 0; i < n1_lr_mode; i++) wake_lr_mode_to_c(z_lr_mode[i], C.lr_mode[i]);
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.lr_position_array.resize(n1_lr_position_array);
-  for (int i = 0; i < n1_lr_position_array; i++) wake_lr_position_array_to_c(z_lr_position_array[i], C.lr_position_array[i]);
+  C.lr_spline.resize(n1_lr_spline);
+  for (int i = 0; i < n1_lr_spline; i++) wake_lr_spline_to_c(z_lr_spline[i], C.lr_spline[i]);
 
   // c_side.to_c2_set[real, 0, NOT]
   C.z_sr_max = z_z_sr_max;
