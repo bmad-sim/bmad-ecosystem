@@ -154,6 +154,8 @@ lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
   lr_pos => ele%wake%lr_spline(i)
   t_cut = bunch%particle(1)%t - lr_pos%t_max
 
+  if (.not. allocated(lr_pos%bunch)) allocate (lr_pos%bunch(20))
+
   n = size(lr_pos%bunch)
   do j = 1, n
     if (lr_pos%bunch(j)%charge /= 0 .and. lr_pos%bunch(j)%t > t_cut) cycle
@@ -162,7 +164,7 @@ lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
   enddo
 
   call move_alloc(lr_pos%bunch, lr_bun)
-  allocate (lr_pos%bunch(n+100))
+  allocate (lr_pos%bunch(n+20))
   lr_pos%bunch(1:n) = lr_bun
   deallocate (lr_bun)
 
