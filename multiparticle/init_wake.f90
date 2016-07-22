@@ -1,5 +1,5 @@
 !+
-! Subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_position_array, always_allocate)
+! Subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
 !
 ! Subroutine to initialize a wake struct.
 ! If the wake is allocated, All components are always allocated even when the size is zero.
@@ -8,7 +8,7 @@
 !   n_sr_long           -- Integer: Number of terms: wake%nr(n_sr_long).
 !   n_sr_trans          -- Integer: Number of terms: wake%nr(n_sr_trans).
 !   n_lr_mode           -- Integer: Number of terms: wake%nr(n_lr_mode)
-!   n_lr_position_array -- Integer: Number of terms: wake%nr_formula(n_lr_position_array)
+!   n_lr_spline -- Integer: Number of terms: wake%nr_formula(n_lr_spline)
 !   always_allocate     -- logical, optional: If present and True then allways allocate wake
 !                           even if n_lr_mode, etc. are all 0. Default is False.
 !
@@ -16,26 +16,26 @@
 !   wake -- Wake_struct, pointer: Initialized structure. 
 !-
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_position_array, always_allocate)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
 
 use bmad_struct
 
 implicit none
 
 type (wake_struct), pointer :: wake
-integer n_sr_long, n_sr_trans, n_lr_mode, n_lr_position_array
+integer n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline
 integer i
 logical, optional :: always_allocate
 
 ! Deallocate wake if all inputs are zero.
 
-if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr_mode == 0 .and. n_lr_position_array == 0) then
+if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr_mode == 0 .and. n_lr_spline == 0) then
   if (logic_option(.false., always_allocate)) then
     if (.not. associated(wake)) allocate (wake)
     allocate (wake%sr_long%mode(n_sr_long))
     allocate (wake%sr_trans%mode(n_sr_trans))
     allocate (wake%lr_mode(n_lr_mode))
-    allocate (wake%lr_position_array(n_lr_position_array))
+    allocate (wake%lr_spline(n_lr_spline))
   else
     if (associated(wake)) deallocate (wake)
   endif
@@ -60,9 +60,9 @@ if (associated (wake)) then
     allocate (wake%lr_mode(n_lr_mode))
   endif
 
-  if (size(wake%lr_position_array) /= n_lr_position_array) then
-    deallocate (wake%lr_position_array)
-    allocate (wake%lr_position_array(n_lr_position_array))
+  if (size(wake%lr_spline) /= n_lr_spline) then
+    deallocate (wake%lr_spline)
+    allocate (wake%lr_spline(n_lr_spline))
   endif
 
 else
@@ -70,7 +70,7 @@ else
   allocate (wake%sr_long%mode(n_sr_long))
   allocate (wake%sr_trans%mode(n_sr_trans))
   allocate (wake%lr_mode(n_lr_mode))
-  allocate (wake%lr_position_array(n_lr_position_array))
+  allocate (wake%lr_spline(n_lr_spline))
 endif
 
 end subroutine init_wake

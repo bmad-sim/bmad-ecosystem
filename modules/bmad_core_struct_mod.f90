@@ -678,7 +678,7 @@ subroutine transfer_wake (wake_in, wake_out)
 implicit none
 
 type (wake_struct), pointer :: wake_in, wake_out
-type (wake_lr_position_array_struct), pointer :: lrp_in, lrp_out
+type (wake_lr_spline_struct), pointer :: lrp_in, lrp_out
 integer n_sr_long, n_sr_trans, n_lr_mode, n_lr_pa, i
 
 !
@@ -687,20 +687,20 @@ if (associated (wake_in)) then
   n_sr_long   = size(wake_in%sr_long%mode)
   n_sr_trans  = size(wake_in%sr_trans%mode)
   n_lr_mode   = size(wake_in%lr_mode)
-  n_lr_pa     = size(wake_in%lr_position_array)
+  n_lr_pa     = size(wake_in%lr_spline)
 
   call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr_mode, n_lr_pa, .true.)
 
   do i = 1, n_lr_pa
-    lrp_in  => wake_in%lr_position_array(i)
-    lrp_out => wake_out%lr_position_array(i)
+    lrp_in  => wake_in%lr_spline(i)
+    lrp_out => wake_out%lr_spline(i)
     if (size(lrp_out%bunch) /= size(lrp_in%bunch)) then
       deallocate (lrp_out%bunch)
       allocate (lrp_in%bunch(size(lrp_out%bunch)))
     endif
-    if (size(lrp_out%stack) /= size(lrp_in%stack)) then
-      deallocate (lrp_out%stack)
-      allocate (lrp_in%stack(size(lrp_out%stack)))
+    if (size(lrp_out%spline) /= size(lrp_in%spline)) then
+      deallocate (lrp_out%spline)
+      allocate (lrp_in%spline(size(lrp_out%spline)))
     endif
   enddo
 

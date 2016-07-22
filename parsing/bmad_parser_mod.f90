@@ -227,8 +227,8 @@ type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
-type (wake_lr_position_array_struct), allocatable :: lr_pa_temp(:)
-type (wake_lr_position_array_struct), pointer :: lr_pa
+type (wake_lr_spline_struct), allocatable :: lr_pa_temp(:)
+type (wake_lr_spline_struct), pointer :: lr_pa
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), pointer :: r_ptr
@@ -1329,28 +1329,28 @@ if (delim /= '=')  then
   return
 endif
 
-! lr_wake_position_array
+! lr_wake_spline
 
-if (attrib_word == 'LR_WAKE_POSITION_ARRAY') then
+if (attrib_word == 'LR_WAKE_SPLINE') then
   if (associated(ele%wake)) then
-    call init_wake (ele%wake, 0, 0, 0, 1)
-    lr_pa => ele%wake%lr_position_array(1)
-  else
-    n = size(ele%wake%lr_position_array)
-    call move_alloc(ele%wake%lr_position_array, lr_pa_temp)
-    allocate (ele%wake%lr_position_array(n+1))
+    n = size(ele%wake%lr_spline)
+    call move_alloc(ele%wake%lr_spline, lr_pa_temp)
+    allocate (ele%wake%lr_spline(n+1))
     do i = 1, n
-      allocate (ele%wake%lr_position_array(i)%stack(0))
-      allocate (ele%wake%lr_position_array(i)%bunch(0))
+      allocate (ele%wake%lr_spline(i)%spline(0))
+      allocate (ele%wake%lr_spline(i)%bunch(0))
     enddo
-    ele%wake%lr_position_array(1:n) = lr_pa_temp
+    ele%wake%lr_spline(1:n) = lr_pa_temp
     deallocate(lr_pa_temp)
-    lr_pa => ele%wake%lr_position_array(n+1)
+    lr_pa => ele%wake%lr_spline(n+1)
+  else
+    call init_wake (ele%wake, 0, 0, 0, 1)
+    lr_pa => ele%wake%lr_spline(1)
   endif
 
-  if (.not. expect_this ('{', .false., .true., 'AFTER "LR_WAKE_POSITION_ARRAY"', ele, delim, delim_found)) return
+  if (.not. expect_this ('{', .false., .true., 'AFTER "LR_WAKE_SPLINE"', ele, delim, delim_found)) return
 
-  call parse_wake_lr_position_array(lr_pa, ele, lat, delim, delim_found, err_flag)
+  call parse_wake_lr_spline(lr_pa, ele, lat, delim, delim_found, err_flag)
   return
 endif
 
@@ -6352,19 +6352,19 @@ end subroutine parser_debug_print_info
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parse_wake_lr_position_array (lr_pa, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_wake_lr_spline (lr_pa, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "lr_position_array = {}" construct
+! Subroutine to parse a "lr_spline = {}" construct
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
 !-
 
-subroutine parse_wake_lr_position_array (lr_pa, ele, lat, delim, delim_found, err_flag)
+subroutine parse_wake_lr_spline (lr_pa, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (wake_lr_position_array_struct) lr_pa
+type (wake_lr_spline_struct) lr_pa
 type (ele_struct), target :: ele
 type (lat_struct), target :: lat
 
@@ -6383,7 +6383,7 @@ do
 
   ! Read attriubute
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
-  if (.not. expect_this ('=', .true., .false., 'IN WAKE_LR_POSITION_ARRAY DEFINITION', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .false., 'IN WAKE_LR_SPLINE DEFINITION', ele, delim, delim_found)) return
 
   select case (attrib_name)
 
@@ -6392,9 +6392,9 @@ do
 
   case default
     if (attrib_name == '') then
-      call parser_error ('MANGLED WAKE_LR_POSITION_ARRAY DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('MANGLED WAKE_LR_SPLINE DEFINITION FOR ELEMENT: ' // ele%name)
     else
-      call parser_error ('UNKNOWN WAKE_LR_POSITION_ARRAY COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+      call parser_error ('UNKNOWN WAKE_LR_SPLINE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     endif
     return
 
@@ -6408,7 +6408,7 @@ enddo
 if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 err_flag = .false.
 
-end subroutine parse_wake_lr_position_array
+end subroutine parse_wake_lr_spline
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
