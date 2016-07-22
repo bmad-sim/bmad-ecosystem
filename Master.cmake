@@ -294,6 +294,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "HARDWARE-DEVEL")
   message("Build Target         : ${CMAKE_SYSTEM_NAME}")
   message("C Compiler           : ${CMAKE_C_COMPILER}")
   message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+  message("Linker               : ${CMAKE_LINKER}")
   set (BASE_C_FLAGS)
 ELSE ()
   message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
@@ -822,16 +823,20 @@ foreach(exespec ${EXE_SPECS})
   ENDIF ()
 
   IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+    foreach(file ${SRC_FILES})
+      set(OBJ_FILES "${OBJ_FILES} CMakeFiles/${EXENAME}-exe.dir/${file}.o")
+    endforeach(file)
+    set (CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${LINK_FLAGS} ${OBJ_FILES} -o ${OUTPUT_BASEDIR}/bin/${EXENAME}.exe")
     TARGET_LINK_LIBRARIES(${EXENAME}-exe
       )
-    ELSE ()
-      TARGET_LINK_LIBRARIES(${EXENAME}-exe
-        ${STATIC_FLAG} ${LINK_LIBS} 
-        ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
-        ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-        ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
-	)
-    ENDIF ()
+  ELSE ()
+    TARGET_LINK_LIBRARIES(${EXENAME}-exe
+      ${STATIC_FLAG} ${LINK_LIBS} 
+      ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
+      ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
+      ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
+      )
+  ENDIF ()
 
   SET(CFLAGS)
   SET(FFLAGS)
