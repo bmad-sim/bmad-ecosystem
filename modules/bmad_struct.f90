@@ -9,6 +9,7 @@ use complex_taylor_mod
 use random_mod
 use twiss_mod
 use basic_bmad_mod
+use spline_mod
 
 use definition, only: genfield, fibre, layout
 
@@ -424,12 +425,13 @@ type wake_lr_position1_struct
   real(rp) :: t = 0        ! Time of bunch
 end type
 
-type wake_lr_position_array_struct
-  character(200) :: formula = ''
-  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack for the formula
+type wake_lr_spline_struct
+  type (spline_struct), allocatable :: spline(:)
   type (wake_lr_position1_struct), allocatable :: bunch(:) ! Array of past bunch positions
   real(rp) :: t_max = 0         ! Maximum time beyond which the wake is taken to be zero.
   real(rp) :: polarization_angle = 0      ! polarization angle (radians/2pi).
+  logical :: polarized = .false.   ! Polaraized mode?
+  integer :: transverse_dependence = not_set$     ! linear_leading$, linear_trailing, none$
 end type
 
 !
@@ -440,7 +442,7 @@ type wake_struct
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_mode_struct), allocatable :: lr_mode(:)
-  type (wake_lr_position_array_struct), allocatable :: lr_position_array(:)
+  type (wake_lr_spline_struct), allocatable :: lr_spline(:)
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
@@ -1175,7 +1177,7 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
-integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81, lr_wake_position_array$ = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81, lr_wake_spline$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84

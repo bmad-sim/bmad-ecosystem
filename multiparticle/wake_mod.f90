@@ -123,7 +123,7 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (wake_lr_mode_struct), pointer :: lr
-type (wake_lr_position_array_struct), pointer :: lr_pos
+type (wake_lr_spline_struct), pointer :: lr_pos
 type (wake_lr_position1_struct), allocatable :: lr_bun(:)
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
@@ -142,7 +142,7 @@ if (.not. associated(ele%wake)) return
 
 ! position array update
 
-if (size(ele%wake%lr_position_array) /= 0) then
+if (size(ele%wake%lr_spline) /= 0) then
   charge = sum(bunch%particle%charge, bunch%particle%state == alive$)
   do i = 1, 6
     vec(i) = sum(bunch%particle%vec(i)*bunch%particle%charge, bunch%particle%state == alive$) / charge
@@ -150,15 +150,15 @@ if (size(ele%wake%lr_position_array) /= 0) then
   t0 = sum(bunch%particle%t*bunch%particle%charge, bunch%particle%state == alive$) / charge
 endif
 
-lr_position_array_loop: do i = 1, size(ele%wake%lr_position_array)
-  lr_pos => ele%wake%lr_position_array(i)
+lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
+  lr_pos => ele%wake%lr_spline(i)
   t_cut = bunch%particle(1)%t - lr_pos%t_max
 
   n = size(lr_pos%bunch)
   do j = 1, n
     if (lr_pos%bunch(j)%charge /= 0 .and. lr_pos%bunch(j)%t > t_cut) cycle
     lr_pos%bunch(j) = wake_lr_position1_struct(vec, t0, charge)
-    cycle lr_position_array_loop
+    cycle lr_spline_loop
   enddo
 
   call move_alloc(lr_pos%bunch, lr_bun)
@@ -167,7 +167,7 @@ lr_position_array_loop: do i = 1, size(ele%wake%lr_position_array)
   deallocate (lr_bun)
 
   lr_pos%bunch(n+1) = wake_lr_position1_struct(vec, t0, charge)
-enddo lr_position_array_loop
+enddo lr_spline_loop
 
 !
 
