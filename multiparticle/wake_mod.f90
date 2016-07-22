@@ -159,7 +159,7 @@ lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
   n = size(lr_pos%bunch)
   do j = 1, n
     if (lr_pos%bunch(j)%charge /= 0 .and. lr_pos%bunch(j)%t > t_cut) cycle
-    lr_pos%bunch(j) = wake_lr_position1_struct(vec, t0, charge)
+    lr_pos%bunch(j) = wake_lr_position1_struct(vec, charge, t0)
     cycle lr_spline_loop
   enddo
 
@@ -168,7 +168,7 @@ lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
   lr_pos%bunch(1:n) = lr_bun
   deallocate (lr_bun)
 
-  lr_pos%bunch(n+1) = wake_lr_position1_struct(vec, t0, charge)
+  lr_pos%bunch(n+1) = wake_lr_position1_struct(vec, charge, t0)
 enddo lr_spline_loop
 
 !
