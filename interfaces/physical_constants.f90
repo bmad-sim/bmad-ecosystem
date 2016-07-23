@@ -7,11 +7,11 @@ module physical_constants
 
 use precision_def
 
-real(rp), parameter :: pi = 3.14159265358979d0
+real(rp), parameter :: pi = 3.141592653589793238462643383279d0
 real(rp), parameter :: twopi = 2 * pi
 real(rp), parameter :: fourpi = 4 * pi
-real(rp), parameter :: sqrt_2 = 1.41421356237310d0
-real(rp), parameter :: sqrt_3 = 1.73205080757d0
+real(rp), parameter :: sqrt_2 = 1.414213562373095048801688724209698d0
+real(rp), parameter :: sqrt_3 = 1.732050807568877293527446341505872d0 
 
 real(rp), parameter :: e_mass = 0.5109989461d-3           ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
 real(rp), parameter :: p_mass   = 0.9382720813d0          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
