@@ -614,6 +614,17 @@ subroutine save_bunch_track (bunch, ele, s_travel)
   real(rp) s_travel
 end subroutine
 
+subroutine sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+  integer n_step
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine set_on (key, lat, on_switch, orb)
   import
   implicit none
@@ -740,11 +751,23 @@ subroutine track_backwards_time (lat, orbit, ix_start, ix_end, direction, ix_bra
   integer, optional :: ix_branch, track_state
 end subroutine
 
-subroutine track_a_drift (orb, length)
+subroutine track_a_drift (orb, length, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orb
   real(rp) length
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
