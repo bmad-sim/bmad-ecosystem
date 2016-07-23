@@ -662,7 +662,7 @@ enddo; enddo
 ! If ix_lr_mode is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.
 
-if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0 .or. ix_lr_spline) then
+if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0 .or. ix_lr_spline /= 0) then
   if (ix_lr_mode < 0) then
     call transfer_wake (ele%branch%ele(abs(ix_lr_mode))%wake, ele%wake)
 
