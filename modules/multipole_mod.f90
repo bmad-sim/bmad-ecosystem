@@ -605,7 +605,7 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale)
+! Subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matrix)
 !
 ! Subroutine to put in the kick due to ab_multipole components.
 !
@@ -619,22 +619,26 @@ end subroutine multipole_kicks
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
 !                     For pole_type = electric$, set scale to the longitudinal length of the field region
+!   mat6(6,6)    -- Real(rp), optional: Transfer matrix before the multipole.
+!   make_matrix  -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   coord -- coord_struct: Kicked particle.
+!   coord      -- coord_struct: Kicked particle.
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including multipole.
 !-
 
-subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale)
+subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matrix)
 
 type (coord_struct)  coord
 
 real(rp) an(0:), bn(0:)
-real(rp) kx, ky, pz2, rel_p, rel_p2
-real(rp), optional :: scale
-
-integer n
+real(rp) kx, ky, pz2, rel_p, rel_p2, dk(2,2)
+real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
+integer n
+
+logical, optional :: make_matrix
 
 !
 
@@ -642,7 +646,15 @@ if (integer_option(magnetic$, pole_type) == electric$) pz2 = (1 + coord%vec(6))*
 
 do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
-  call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, scale = scale)
+
+  if (logic_option(.false., make_matrix)) then
+    call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, dk, pole_type = pole_type, scale = scale)
+    mat6(2,:) = mat6(2,:) + dk(1,1) * mat6(1,:) + dk(1,2) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + dk(2,1) * mat6(1,:) + dk(2,2) * mat6(3,:)
+  else
+    call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, scale = scale)
+  endif
+
   coord%vec(2) = coord%vec(2) + kx
   coord%vec(4) = coord%vec(4) + ky
 enddo

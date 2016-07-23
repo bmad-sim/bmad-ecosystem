@@ -650,7 +650,7 @@ case (quadrupole$)
   if (ele%value(k2$) /= 0 .or. has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
   r_step = 1.0_rp / n_step
-  step_len = length / n_step
+  step_len = length * r_step
 
   ! Entrance edge
 
@@ -767,8 +767,7 @@ case (sad_mult$)
 
 case (sbend$)
 
-  call track_a_bend (start_orb, ele, param, end_orb)
-  call time_and_s_calc ()
+  call track_a_bend (end_orb, ele, param)
 
 !-----------------------------------------------
 ! sextupole

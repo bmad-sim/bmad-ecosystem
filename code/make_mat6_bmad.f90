@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
+! Subroutine make_mat6_bmad (ele, param, orb_in, orb_out, end_in, err)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -9,19 +9,19 @@
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix
 !   param  -- lat_param_struct: Parameters are needed for some elements.
-!   c0     -- Coord_struct: Coordinates at the beginning of element. 
-!   end_in -- Logical, optional: If present and True then the end coords c1
+!   orb_in -- Coord_struct: Coordinates at the beginning of element. 
+!   end_in -- Logical, optional: If present and True then the end coords orb_out
 !               will be taken as input. Not output as normal.
 !
 ! Output:
-!   ele    -- Ele_struct: Element with transfer matrix.
-!     %vec0  -- 0th order map component
-!     %mat6  -- 6x6 transfer matrix.
-!   c1     -- Coord_struct: Coordinates at the end of element.
-!   err    -- Logical, optional: Set True if there is an error. False otherwise.
+!   ele       -- Ele_struct: Element with transfer matrix.
+!     %vec0     -- 0th order map component
+!     %mat6     -- 6x6 transfer matrix.
+!   orb_out   -- Coord_struct: Coordinates at the end of element.
+!   err       -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
+subroutine make_mat6_bmad (ele, param, orb_in, orb_out, end_in, err)
 
 use sad_mod, dummy => make_mat6_bmad
 use mad_mod, dummy1 => make_mat6_bmad
@@ -30,9 +30,9 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct) :: temp_ele1, temp_ele2
-type (coord_struct) :: c0, c1
-type (coord_struct) :: c00, c11, c_int
-type (coord_struct) orb, c0_off, c1_off
+type (coord_struct) :: orb_in, orb_out
+type (coord_struct) :: c00, orb_out1, c_int
+type (coord_struct) orb, c0_off, orb_out_off
 type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:), v(:)
@@ -50,20 +50,18 @@ real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
 real(rp) arg, rel_p, rel_p2, dp_dg, dp_dg_dz1, dp_dg_dpz1
 real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z, stg, one_ctg
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
-real(rp) k, L, m55, m65, m66, new_pc, new_beta
+real(rp) k, L, m55, m65, m66, new_pc, new_beta, dbeta_dpz
 real(rp) cos_phi, sin_phi, cos_term, dcos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
 real(rp) alpha, sin_a, cos_a, fg, phase0, phase, t0, dt_ref, E, pxy2, dE
 real(rp) g_tot, ct, st, x, px, y, py, z, pz, p_s, Dxy, Dy, px_t
-real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
+real(rp) Dxy_t, dpx_t, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, pc_start_ref, pc_end_ref, gradient_max, voltage_max
-real(rp) beta_start, beta_end, p_rel, beta_rel, xp, yp
+real(rp) beta_start, beta_end, p_rel, beta_rel, xp, yp, s_ent, ds_ref
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0, xp1, xp2, yp1, yp2
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
 real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz, dp_ratio
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
-real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
-real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_ent, ds_ref
 real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
 real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k, rel_tracking_charge, rel_charge
 
@@ -87,24 +85,25 @@ call mat_make_unit (mat6)
 ele%vec0 = 0
 
 length = v(l$)
-rel_p = 1 + c0%vec(6) 
+rel_p = 1 + orb_in%vec(6) 
 key = ele%key
-rel_tracking_charge = relative_tracking_charge(c0, param)
+rel_tracking_charge = relative_tracking_charge(orb_in, param)
 charge_dir = rel_tracking_charge * ele%orientation
-c00 = c0
+c00 = orb_in
 c00%direction = +1
 
-! Note: sad_mult, match, etc. will handle the calc of c1 if needed.
+! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
-if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$ .and. ele%key /= solenoid$) then
+if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$ .and. &
+                                                            ele%key /= solenoid$ .and. ele%key /= sbend$) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
-    call track1_bmad (c00, ele, param, c1)
+    call track1_bmad (c00, ele, param, orb_out)
   else
-    call track1 (c00, ele, param, c1)
+    call track1 (c00, ele, param, orb_out)
   endif
 
-  if (c1%state /= alive$) then
+  if (orb_out%state /= alive$) then
     mat6 = 0
     if (present(err)) err = .true.
     call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // trim(ele%name) // '  (\i0\) ', &
@@ -113,7 +112,7 @@ if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%ke
   endif
 endif
 
-c11 = c1
+orb_out1 = orb_out
 
 !--------------------------------------------------------
 ! If element is off.
@@ -144,8 +143,8 @@ case (beambeam$)
   call offset_particle (ele, param, set$, c00)
   call canonical_to_angle_coords (c00)
 
-  call offset_particle (ele, param, set$, c11, ds_pos = length)
-  call canonical_to_angle_coords (c11)
+  call offset_particle (ele, param, set$, orb_out1, ds_pos = length)
+  call canonical_to_angle_coords (orb_out1)
 
   n_slice = nint(v(n_slice$))
   if (n_slice < 1) then
@@ -191,7 +190,7 @@ case (beambeam$)
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Custom
@@ -208,7 +207,7 @@ case (custom$)
 
 case (drift$) 
   call drift_mat6_calc (mat6, length, ele, param, c00)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
   return
 
 !-----------------------------------------------
@@ -220,7 +219,7 @@ case (elseparator$)
 
   ! Compute kick
 
-  rel_charge = abs(rel_tracking_charge) * sign(1, charge_of(c0%species))
+  rel_charge = abs(rel_tracking_charge) * sign(1, charge_of(orb_in%species))
   hk = ele%value(hkick$) * rel_charge
   vk = ele%value(vkick$) * rel_charge
 
@@ -236,7 +235,7 @@ case (elseparator$)
 
   E_tot = ele%value(p0c$) * (1 + c00%vec(6)) / c00%beta 
   E_rel = E_tot / ele%value(p0c$)
-  mc2 = mass_of(c0%species)
+  mc2 = mass_of(orb_in%species)
 
   x = c00%vec(1)
   px = c00%vec(2)
@@ -295,7 +294,7 @@ case (elseparator$)
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Kicker, etc.
@@ -350,7 +349,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrum
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity.
@@ -387,7 +386,7 @@ case (lcavity$)
   gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
   dE = gradient_net * length
 
-  mc2 = mass_of(c0%species)
+  mc2 = mass_of(orb_in%species)
   pc_start_ref = v(p0c_start$) 
   pc_start = pc_start_ref * (1 + c00%vec(6))
   beta_start = c00%beta
@@ -401,7 +400,7 @@ case (lcavity$)
   endif
 
   pc_end_ref = v(p0c$)
-  call convert_total_energy_to (E_end, c0%species, pc = pc_end, beta = beta_end)
+  call convert_total_energy_to (E_end, orb_in%species, pc = pc_end, beta = beta_end)
   E_end = pc_end / beta_end
   E_ratio = E_end / E_start
 
@@ -621,7 +620,7 @@ case (lcavity$)
   if (v(tilt_tot$) /= 0) call tilt_mat6 (mat6, v(tilt_tot$))
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Marker, branch, photon_branch, etc.
@@ -637,14 +636,14 @@ case (match$)
   if (present(err)) err = err_flag
   if (err_flag) return
   if (.not. logic_option (.false., end_in)) then
-    call track1_bmad (c00, ele, param, c1)
+    call track1_bmad (c00, ele, param, orb_out)
 
     ! If the particle is lost with a match element with match_end set to True,
     ! the problem is most likely that twiss_propagate_all has not yet
     ! been called (so the previous element's Twiss parameters are not yet set). 
     ! In this case, ignore a lost particle.
 
-    if (c1%state /= alive$ .and. is_false(v(match_end$))) then
+    if (orb_out%state /= alive$ .and. is_false(v(match_end$))) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // trim(ele%name) // '  (\i0\) ', &
                    i_array = [ele%ix_ele] )
     endif
@@ -668,7 +667,7 @@ case (mirror$)
 
   ! Offsets?
 
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Multipole, AB_Multipole
@@ -694,7 +693,7 @@ case (multipole$, ab_multipole$)
     endif
   endif
 
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Octupole
@@ -724,7 +723,7 @@ case (octupole$)
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Patch
@@ -738,50 +737,50 @@ case (patch$)
     return
   endif
 
-  mc2 = mass_of(c0%species)
+  mc2 = mass_of(orb_in%species)
   c00%vec(5) = 0
   call track_a_patch (ele, c00, .false., s_ent, ds_ref, ww, p_s, track_spin = .false.)
 
   ! Coordinate transform before drift
 
-  rel_p = 1 + c0%vec(6)
-  if (ele%orientation*c0%direction == 1) then
-    dir = ele%value(upstream_ele_dir$) * c0%direction
+  rel_p = 1 + orb_in%vec(6)
+  if (ele%orientation*orb_in%direction == 1) then
+    dir = ele%value(upstream_ele_dir$) * orb_in%direction
   else
-    dir = ele%value(downstream_ele_dir$) * c0%direction
+    dir = ele%value(downstream_ele_dir$) * orb_in%direction
   endif
-  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * dir
+  pz = sqrt(rel_p**2 - orb_in%vec(2)**2 - orb_in%vec(4)**2) * dir
   beta_ref = v(p0c$) / v(e_tot$)
 
-  dps_dpx = ww(3,1) - ww(3,3) * c0%vec(2) / pz
-  dps_dpy = ww(3,2) - ww(3,3) * c0%vec(4) / pz
+  dps_dpx = ww(3,1) - ww(3,3) * orb_in%vec(2) / pz
+  dps_dpy = ww(3,2) - ww(3,3) * orb_in%vec(4) / pz
   dps_dpz = ww(3,3) * rel_p / pz
 
   mat6(1,1) = ww(1,1) - ww(3,1) * c00%vec(2) / p_s
-  mat6(1,2) = -s_ent * ((ww(1,1) - ww(1,3) * c0%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
+  mat6(1,2) = -s_ent * ((ww(1,1) - ww(1,3) * orb_in%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
   mat6(1,3) = ww(1,2) - ww(3,2) * c00%vec(2) / p_s
-  mat6(1,4) = -s_ent * ((ww(1,2) - ww(1,3) * c0%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
+  mat6(1,4) = -s_ent * ((ww(1,2) - ww(1,3) * orb_in%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
   mat6(1,6) = -s_ent * (ww(1,3) * rel_p / (p_s * pz) - c00%vec(2) * dps_dpz / p_s**2)
 
-  mat6(2,2) = ww(1,1) - ww(1,3) * c0%vec(2) / pz
-  mat6(2,4) = ww(1,2) - ww(1,3) * c0%vec(4) / pz
+  mat6(2,2) = ww(1,1) - ww(1,3) * orb_in%vec(2) / pz
+  mat6(2,4) = ww(1,2) - ww(1,3) * orb_in%vec(4) / pz
   mat6(2,6) = ww(1,3) * rel_p / pz
 
   mat6(3,1) = ww(2,1) - ww(3,1) * c00%vec(4) / p_s
-  mat6(3,2) = -s_ent * ((ww(2,1) - ww(2,3) * c0%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
+  mat6(3,2) = -s_ent * ((ww(2,1) - ww(2,3) * orb_in%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
   mat6(3,3) = ww(2,2) - ww(3,2) * c00%vec(4) / p_s
-  mat6(3,4) = -s_ent * ((ww(2,2) - ww(2,3) * c0%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
+  mat6(3,4) = -s_ent * ((ww(2,2) - ww(2,3) * orb_in%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
   mat6(3,6) = -s_ent * (ww(2,3) * rel_p / (p_s * pz) - c00%vec(4) * dps_dpz / p_s**2)
 
-  mat6(4,2) = ww(2,1) - ww(2,3) * c0%vec(2) / pz
-  mat6(4,4) = ww(2,2) - ww(2,3) * c0%vec(4) / pz
+  mat6(4,2) = ww(2,1) - ww(2,3) * orb_in%vec(2) / pz
+  mat6(4,4) = ww(2,2) - ww(2,3) * orb_in%vec(4) / pz
   mat6(4,6) = ww(2,3) * rel_p / pz
 
   mat6(5,1) = ww(3,1) * rel_p / p_s
   mat6(5,2) = -s_ent * rel_p * dps_dpx / p_s**2
   mat6(5,3) = ww(3,2) * rel_p / p_s
   mat6(5,4) = -s_ent * rel_p * dps_dpy / p_s**2
-  mat6(5,6) = v(t_offset$) * c_light * mc2**2 * c0%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
+  mat6(5,6) = v(t_offset$) * c_light * mc2**2 * orb_in%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
               s_ent / p_s - s_ent * rel_p * dps_dpz / p_s**2 + &
               ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
 
@@ -794,9 +793,9 @@ case (patch$)
     mat6(6,:) = mat6(6,:) * dp_ratio
   endif
 
-  ! vec0 calc
+  ! veorb_in calc
 
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! quadrupole
@@ -852,7 +851,7 @@ case (quadrupole$)
 
   call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -870,7 +869,7 @@ case (rbend$)
 
 case (rfcavity$)
 
-  mc2 = mass_of(c0%species)
+  mc2 = mass_of(orb_in%species)
   p0c = v(p0c$)
   beta_ref = p0c / v(e_tot$)
   n_slice = max(1, nint(length / v(ds_step$))) 
@@ -906,7 +905,7 @@ case (rfcavity$)
     dE = factor * sin(phase)
     pc = (1 + c00%vec(6)) * p0c 
     E = pc / c00%beta
-    call convert_total_energy_to (E + dE, c0%species, pc = new_pc, beta = new_beta)
+    call convert_total_energy_to (E + dE, orb_in%species, pc = new_pc, beta = new_beta)
     ff = twopi * factor * v(rf_frequency$) * cos(phase) / (p0c * new_beta * c_light)
 
     m2(2,1) = ff / c00%beta
@@ -940,332 +939,23 @@ case (rfcavity$)
   if (v(tilt_tot$) /= 0) call tilt_mat6 (mat6, v(tilt_tot$))
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! sad_mult
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, c00, c1, ele%mat6)
+  call sad_mult_track_and_mat (ele, param, c00, orb_out1, ele%mat6)
+  if (.not. logic_option (.false., end_in)) orb_out = c00
 
 !--------------------------------------------------------
 ! sbend
 
 case (sbend$)
 
-  k1 = v(k1$) * charge_dir
-  k2 = v(k2$) * charge_dir
-  g = v(g$)
-  g_tot = (g + v(g_err$)) * charge_dir
-  g_err = g_tot - g
-
-  if (.not. ele%is_on) then
-    g_err = 0
-    g_tot = -g
-    k1 = 0
-    k2 = 0
-  endif
-
-  ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
-  ! Notice that kx_2 and ky_2 are not affected by reverse tracking
-
-  ! Entrance edge kick
-
-  call offset_particle (ele, param, set$, c00, set_multipoles = .false., set_hvkicks = .false.)
-  c0_off = c00
-
-  call mat_make_unit(mat6_pre)
-  call bend_edge_kick (ele, param, first_track_edge$, c00, mat6_pre, .true.)
-
-  ! Exit edge kick
-
-  call offset_particle (ele, param, set$, c11, ds_pos = length, set_multipoles = .false., set_hvkicks = .false.)
-  c1_off = c11 
-
-  call mat_make_unit (mat6_post)
-  call bend_edge_kick (ele, param, second_track_edge$, c11, mat6_post, .true.)
-
-  ! If we have a multipole component then step through in steps of length ds_step
-
-  call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
-  call multipole_ele_to_ab (ele, .false., has_nonzero_elec, an_elec, bn_elec, pole_type = electric$)
-
-  n_slice = 1  
-  if (k2 /= 0 .or. has_nonzero_pole) n_slice = max(nint(v(l$) / v(ds_step$)), 1)
-  length = length / n_slice
-  if (has_nonzero_pole) knl = knl * charge_dir / n_slice
-  k2l = charge_dir * v(k2$) * length  
-  
-  call transfer_ele(ele, temp_ele1, .true.)
-  temp_ele1%value(l$) = length
-
-  call transfer_ele(ele, temp_ele2, .true.)
-  call zero_ele_offsets(temp_ele2)
-  temp_ele2%value(l$) = length
-  temp_ele2%value(k2$) = 0
-  temp_ele2%value(e1$) = 0
-  temp_ele2%value(e2$) = 0
-  if (associated(temp_ele2%a_pole)) then
-    nullify (temp_ele2%a_pole)
-    nullify (temp_ele2%b_pole)
-  endif
-
-  ! Add multipole kick
-
-  if (has_nonzero_pole) then
-    call add_multipole_slice (knl, tilt, 0.5_rp, c00, mat6)
-  endif
-
-  ! 1/2 sextupole kick at the beginning.
-
-  if (k2l /= 0) then
-    call mat4_multipole (k2l/2, 0.0_rp, 2, c00, kmat4)
-    c00%vec(2) = c00%vec(2) + k2l/2 * (c00%vec(3)**2 - c00%vec(1)**2)/2
-    c00%vec(4) = c00%vec(4) + k2l/2 * c00%vec(1) * c00%vec(3)
-    mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
-  end if
-  
-  ! And track with n_slice steps
-
-  drifting = .false.
-
-  do i = 1, n_slice
-
-    call mat_make_unit(mat6_i)
-
-    if (k1 /= 0) then
-
-      call sbend_body_with_k1_map (temp_ele1, param, 1, c00, mat6 = mat6_i)
-
-    elseif (g == 0 .and. g_err == 0) then
-      call drift_mat6_calc (mat6_i, length, ele, param, c00)
-      drifting = .true.
-
-    ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
-
-    elseif (length /= 0) then
-
-      x  = c00%vec(1)
-      px = c00%vec(2)
-      y  = c00%vec(3)
-      py = c00%vec(4)
-      z  = c00%vec(5)
-      pz = c00%vec(6)
- 
-      angle = g * length
-      rel_p  = 1 + pz
-      rel_p2 = rel_p**2
-
-      ct = cos(angle)
-      st = sin(angle)
-      if (abs(angle) < 1d-7) then
-        stg = length * (1 - angle**2 / 6)
-        one_ctg = g_tot * length * angle / 2
-      else
-        stg = sin(angle) / g
-        one_ctg = g_tot * (1 - ct) / g
-      endif
-
-      pxy2 = px**2 + py**2
-      if (rel_p2 < pxy2) then
-        if (present(err)) err = .true.
-        return
-      endif
-
-      p_long = sqrt(rel_p2 - pxy2)
-      dp_long_dpx = -px/p_long
-      dp_long_dpy = -py/p_long
-      dp_long_dpz = rel_p/p_long
-      
-      ! The following was obtained by differentiating the formulas of track_a_bend.
-
-      if (pxy2 < 1d-5) then  
-         ff = pxy2 / (2 * rel_p)
-         fg = g * (pz - ff - ff*ff/2 - g_tot*x) - g_err 
-         df_dx  = -g_tot
-         df_dpx = -px * pxy2 / (2 * rel_p2) - px/rel_p
-         df_dpy = -py * pxy2 / (2 * rel_p2) - py/rel_p
-         df_dpz = 1 + pxy2**2 / (4 * rel_p**3) + pxy2 / (2 * rel_p2)
-      else
-         fg = g * p_long - g_tot * (1 + x * g)
-         df_dx  = -g_tot
-         df_dpx = dp_long_dpx
-         df_dpy = dp_long_dpy
-         df_dpz = dp_long_dpz
-      endif
-
-      Dy  = sqrt(rel_p2 - py**2)
-      Dy_dpy = -py/Dy
-      Dy_dpz = rel_p/Dy
-
-      px_t = px*ct + fg*stg
-      dpx_t = -px*st*g + fg*ct
-
-      dpx_t_dx  = ct*df_dx
-      dpx_t_dpx = -st + ct*df_dpx
-      dpx_t_dpy = ct*df_dpy
-      dpx_t_dpz = ct*df_dpz
-
-      if (abs(angle) < 1d-5 .and. abs(g_tot * length) < 1d-5) then
-        mat6_i(1,1) = 1
-        mat6_i(1,2) = length / p_long + length * px**2 / p_long**3 - 3 * g_tot * px * (length * Dy)**2 / (2 * p_long**5) + &
-                      g * length * (length *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
-                      g * length * px * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
-        mat6_i(1,3) = 0
-        mat6_i(1,4) = length * px *py / p_long**3 + &
-                      g_tot * length**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
-                      g * length * (-length * py - x * px * py / p_long) / p_long**2 + &
-                      g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
-        mat6_i(1,5) = 0
-        mat6_i(1,6) = -length * px * rel_p / p_long**3 + &
-                      g_tot * length**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
-                      g * length * (length * rel_p + x * px * rel_p / p_long) / p_long**2 - &
-                      g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
-
-      elseif (abs(g_tot) < 1d-5 * abs(g)) then
-        alpha = p_long * ct - px * st
-        dalpha_dpx = dp_long_dpx * ct - st
-        dalpha_dpy = dp_long_dpy * ct
-        dalpha_dpz = dp_long_dpz * ct
-        mat6_i(1,1) = -(g_tot*st**2*(1+g*x)*Dy**2)/(g*alpha**3) + p_long/alpha &
-                      +(3*g_tot**2*st**3*(1+g*x)**2*Dy**2*(ct*px+st*p_long))/(2*g**2*alpha**5)
-        mat6_i(1,2) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpx)/(2*g**2*alpha**4) &
-                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpx)/(2*g**3*alpha**6) &
-                      -((-alpha+(1+g*x)*p_long)*dalpha_dpx)/(g*alpha**2) &
-                      +(g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct+st*dp_long_dpx))/(2*g**3*alpha**5) &
-                      +(-dalpha_dpx+(1+g*x)*dp_long_dpx)/(g*alpha)
-        mat6_i(1,4) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpy)/(2*g**2*alpha**4) &
-                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpy)/(2*g**3*alpha**6) &
-                      -((-alpha+(1+g*x)*p_long)*dalpha_dpy)/(g*alpha**2) &
-                      +(g_tot**2*st**4*(1+g*x)**3*Dy**2*dp_long_dpy)/(2*g**3*alpha**5) &
-                      +(-dalpha_dpy+(1+g*x)*dp_long_dpy)/(g*alpha) &
-                      -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpy)/(g**2*alpha**3) &
-                      +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpy)/(g**3*alpha**5)
-        mat6_i(1,6) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpz)/(2*g**2*alpha**4) &
-                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpz)/(2*g**3*alpha**6) &
-                      -((-alpha+(1+g*x)*p_long)*dalpha_dpz)/(g*alpha**2) &
-                      +(g_tot**2*st**4*(1+g*x)**3*Dy**2*dp_long_dpz)/(2*g**3*alpha**5) &
-                      +(-dalpha_dpz+(1+g*x)*dp_long_dpz)/(g*alpha) &
-                      -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpz)/(g**2*alpha**3) &
-                      +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpz)/(g**3*alpha**5)
-      else
-        eps = px_t**2 + py**2
-        deps_dx  = 2*px_t*st*df_dx
-        deps_dpx = 2*px_t*(ct+st*df_dpx)
-        deps_dpy = 2*px_t*st*df_dpy + 2*py
-        deps_dpz = 2*px_t*st*df_dpz
-        if (eps < 1d-5 * rel_p2 ) then  ! use small angle approximation
-          eps = eps / (2 * rel_p)
-          deps_dx  = deps_dx / (2 * rel_p)
-          deps_dpx = deps_dpx / (2 * rel_p)
-          deps_dpy = deps_dpy / (2 * rel_p)
-          deps_dpz = deps_dpz / (2 * rel_p) - (px_t**2 + py**2) / (2*rel_p2) 
-          mat6_i(1,1) = (-dpx_t_dx + (eps/(2*rel_p) - 1)*deps_dx + eps*deps_dx/(2*rel_p))/g_tot
-          mat6_i(1,2) = (-dpx_t_dpx + (eps/(2*rel_p) - 1)*deps_dpx + eps*deps_dpx/(2*rel_p))/g_tot
-          mat6_i(1,4) = (-dpx_t_dpy + (eps/(2*rel_p) - 1)*deps_dpy + eps*deps_dpy/(2*rel_p))/g_tot
-          mat6_i(1,6) = (1 - dpx_t_dpz + (eps/(2*rel_p) - 1)*deps_dpz + eps*(deps_dpz/(2*rel_p) - eps/(2*rel_p2)))/g_tot
-        else
-          mat6_i(1,1) = (-dpx_t_dx - deps_dx/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,2) = (-dpx_t_dpx - deps_dpx/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,4) = (-dpx_t_dpy - deps_dpy/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,6) = (-dpx_t_dpz + (2*rel_p - deps_dpz)/(2*sqrt(rel_p2 - eps)))/g_tot
-        endif
-      endif
-      
-      mat6_i(2,1) = -g_tot * st
-      mat6_i(2,2) = ct - px * st / p_long
-      mat6_i(2,4) = -py * st / p_long
-      mat6_i(2,6) = rel_p * st / p_long
-
-      if (abs(g_tot) < 1d-5 * abs(g)) then
-        beta = (1 + g * x) * st / (g * alpha) - &
-               g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
-        dbeta_dx  = st/alpha - (g_tot*st**2*(1+g*x)*(ct*px+st*p_long))/(g*alpha**3)
-        dbeta_dpx = -(st*(1+g*x)*dalpha_dpx)/(g*alpha**2)-(g_tot*st**2*(1+g*x)**2*(ct+st*dp_long_dpx))/(2*g**2*alpha**3)
-        dbeta_dpy = -(st*(1+g*x)*dalpha_dpy)/(g*alpha**2)-(g_tot*st**3*(1+g*x)**2*dp_long_dpy)/(2*g**2*alpha**3)
-        dbeta_dpz = -(st*(1+g*x)*dalpha_dpz)/(g*alpha**2)-(g_tot*st**3*(1+g*x)**2*dp_long_dpz)/(2*g**2*alpha**3)
-        mat6_i(3,1) = py*dbeta_dx
-        mat6_i(3,2) = py*dbeta_dpx
-        mat6_i(3,4) = beta + py*dbeta_dpy
-        mat6_i(3,6) = py*dbeta_dpz
-        mat6_i(5,1) = -rel_p*dbeta_dx
-        mat6_i(5,2) = -rel_p*dbeta_dpx
-        mat6_i(5,4) = -rel_p*dbeta_dpy
-        mat6_i(5,6) = -beta - rel_p*dbeta_dpz
-      else
-        factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
-        factor1 = sqrt(1-(px/Dy)**2)
-        factor2 = sqrt(1-(px_t/Dy)**2)
-        dfactor_dx  = -st*df_dx/(Dy*factor2*g_tot)
-        dfactor_dpx = (1/(factor1*Dy)-(ct+st*df_dpx)/(factor2*Dy))/g_tot
-        dfactor_dpy = (-px*Dy_dpy/(factor1*Dy**2)-(-px_t*Dy_dpy/Dy**2 + st*df_dpy/Dy)/factor2)/g_tot
-        dfactor_dpz = (-px*Dy_dpz/(factor1*Dy**2)-(-px_t*Dy_dpz/Dy**2 + st*df_dpz/Dy)/factor2)/g_tot
-        mat6_i(3,1) = py*dfactor_dx
-        mat6_i(3,2) = py*dfactor_dpx
-        mat6_i(3,4) = angle/g_tot + factor + py*dfactor_dpy
-        mat6_i(3,6) = py*dfactor_dpz
-        mat6_i(5,1) = -rel_p*dfactor_dx
-        mat6_i(5,2) = -rel_p*dfactor_dpx
-        mat6_i(5,4) = -rel_p*dfactor_dpy
-        mat6_i(5,6) = -angle/g_tot - factor - rel_p*dfactor_dpz
-      endif
-      
-    endif  
-
-    mat6 = matmul(mat6_i,mat6)
-    c_int = c00
-    call track_a_bend (c_int, temp_ele2, param, c00)
-
-    factor = 1
-    if (i == n_slice) factor = 0.5
-
-    if (has_nonzero_pole) then
-      call add_multipole_slice (knl, tilt, factor, c00, mat6)
-    endif
-
-    if (k2l /= 0) then
-      call mat4_multipole (k2l*factor, 0.0_rp, 2, c00, kmat4)
-      c00%vec(2) = c00%vec(2) + k2l * factor * (c00%vec(3)**2 - c00%vec(1)**2)/2
-      c00%vec(4) = c00%vec(4) + k2l * factor * c00%vec(1) * c00%vec(3)
-      mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
-    end if
-
-  end do
-
-  mat6 = matmul(mat6,mat6_pre)
-  mat6 = matmul(mat6_post,mat6)
-
-  ! Roll
-
-  if (v(roll$) /= 0) then
-    ! c0_off is the coordinates *after* the roll at the entrance end
-    ! So get the reverse roll matrix and take the inverse.
-    dr = 0
-    if (v(angle$) < 1d-20) then
-      axis = [v(angle$)/2, 0.0_rp, 1.0_rp]
-    else
-      axis = [cos(v(angle$)) - 1, 0.0_rp, sin(v(angle$))]
-    endif
-    call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
-    call mat6_coord_transformation (mat6_pre, ele, param, c0_off, dr, w_mat)
-    mat6_pre = mat_symp_conj(mat6_pre)   ! Inverse
-
-    ! c1_off is the coordinates before the roll so this is what is needed
-    axis(1) = -axis(1)  ! Axis in exit coordinates
-    call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
-    call mat6_coord_transformation (mat6_post, ele, param, c1_off, dr, w_mat)
-
-    mat6 = matmul(matmul(mat6_post, mat6), mat6_pre)
-  endif
-
-  !
-
-  if (v(ref_tilt_tot$) /= 0) call tilt_mat6 (mat6, v(ref_tilt_tot$))
-
-  call add_multipoles_and_z_offset (.false.)
-  if (.not. drifting) call add_M56_low_E_correction()
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  call track_a_bend (c00, ele, param, mat6, .true.)
+  if (.not. logic_option (.false., end_in)) orb_out = c00
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -1299,7 +989,7 @@ case (sextupole$)
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! solenoid
@@ -1307,11 +997,11 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
-  call solenoid_track_and_mat (ele, param, c00, c1, mat6)
-  call offset_particle (ele, param, unset$, c1)
+  call solenoid_track_and_mat (ele, param, c00, orb_out, mat6)
+  call offset_particle (ele, param, unset$, orb_out)
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! solenoid/quad
@@ -1328,14 +1018,14 @@ case (sol_quad$)
 
   call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! taylor
 
 case (taylor$)
 
-  call make_mat6_taylor (ele, param, c0)
+  call make_mat6_taylor (ele, param, orb_in)
 
 !--------------------------------------------------------
 ! wiggler
@@ -1343,7 +1033,7 @@ case (taylor$)
 case (wiggler$, undulator$)
 
   call offset_particle (ele, param, set$, c00)
-  call offset_particle (ele, param, set$, c11, ds_pos = length)
+  call offset_particle (ele, param, set$, orb_out1, ds_pos = length)
 
   call mat_make_unit (mat6)     ! make a unit matrix
 
@@ -1357,7 +1047,7 @@ case (wiggler$, undulator$)
 
   ! octuple correction to k1
 
-  y_ave = (c00%vec(3) + c11%vec(3)) / 2
+  y_ave = (c00%vec(3) + orb_out1%vec(3)) / 2
   if (v(l_pole$) == 0) then
     k_z = 0
   else
@@ -1399,7 +1089,7 @@ case (wiggler$, undulator$)
 
   call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! unrecognized element
@@ -1450,10 +1140,10 @@ if (add_pole) then
   call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
     knl = knl * charge_dir
-    call multipole_kick_mat (knl, tilt, c0, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, orb_in, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call multipole_kick_mat (knl, tilt, c1, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, orb_out, 0.5_rp, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif
@@ -1482,8 +1172,8 @@ real(rp) mass, e_tot
 
 ! 1/gamma^2 m56 correction
 
-mass = mass_of(c0%species)
-e_tot = v(p0c$) * (1 + c0%vec(6)) / c0%beta
+mass = mass_of(orb_in%species)
+e_tot = v(p0c$) * (1 + orb_in%vec(6)) / orb_in%beta
 mat6(5,6) = mat6(5,6) + length * mass**2 * v(e_tot$) / e_tot**3
 
 end subroutine add_M56_low_E_correction
