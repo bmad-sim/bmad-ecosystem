@@ -44,7 +44,7 @@ dorb = orb(lat%n_ele_track)%vec - orb(0)%vec
 dt = orb(lat%n_ele_track)%t - orb(0)%t
 rf_freq = lat%ele(76)%value(rf_frequency$)
 dorb(5) = -orb(0)%beta * c_light * (dt - nint(dt * rf_freq) / rf_freq)
-write (2, '(a, 6es12.4)') '"Closed Orb 6T Del"    ABS 1e-12', dorb
+write (2, '(a, 6es12.4)') '"Closed Orb 6T Del"    ABS 2e-12', dorb
 
 lat%absolute_time_tracking = .false.
 call closed_orbit_calc (lat, orb, 6)
