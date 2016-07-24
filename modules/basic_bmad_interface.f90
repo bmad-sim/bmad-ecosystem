@@ -770,6 +770,16 @@ subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
   import
   implicit none

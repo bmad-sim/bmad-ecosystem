@@ -49,7 +49,7 @@ real(rp) an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
 real(rp) arg, rel_p, rel_p2, dp_dg, dp_dg_dz1, dp_dg_dpz1
 real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z, stg, one_ctg
-real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
+real(rp) dz_x(3), dz_y(3), xp_start, yp_start
 real(rp) k, L, m55, m65, m66, new_pc, new_beta, dbeta_dpz
 real(rp) cos_phi, sin_phi, cos_term, dcos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
 real(rp) alpha, sin_a, cos_a, fg, phase0, phase, t0, dt_ref, E, pxy2, dE
@@ -95,7 +95,7 @@ c00%direction = +1
 ! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
 if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$ .and. &
-                                                            ele%key /= solenoid$ .and. ele%key /= sbend$) then
+                                   ele%key /= quadrupole$ .and. ele%key /= solenoid$ .and. ele%key /= sbend$) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, orb_out)
@@ -802,56 +802,8 @@ case (patch$)
 
 case (quadrupole$)
 
-  k1 = v(k1$) * charge_dir / rel_p
-
-  ! Starting edge
-
-  call offset_particle (ele, param, set$, c00)
-  call hard_multipole_edge_kick (ele, param, first_track_edge$, c00, mat6, .true.)
-  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, c00, mat6, .true.)
-
-  ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
-
-  call mat_make_unit (kmat6)
-  call quad_mat2_calc (-k1, length, rel_p, kmat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, length, rel_p, kmat6(3:4,3:4), dz_y, ddz_y)
-
-  if (any(c00%vec(1:4) /= 0)) then
-    kmat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
-    kmat6(5,2) =     c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)
-    kmat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
-    kmat6(5,4) =     c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)
-    kmat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3) + &
-                c00%vec(3)**2 * ddz_y(1) + c00%vec(3)*c00%vec(4) * ddz_y(2) + c00%vec(4)**2 * ddz_y(3)  
-  endif
-
-  if (any(kmat6(5,1:4) /= 0)) then
-    kmat6(1,6) = kmat6(5,2) * kmat6(1,1) - kmat6(5,1) * kmat6(1,2)
-    kmat6(2,6) = kmat6(5,2) * kmat6(2,1) - kmat6(5,1) * kmat6(2,2)
-    kmat6(3,6) = kmat6(5,4) * kmat6(3,3) - kmat6(5,3) * kmat6(3,4)
-
-    kmat6(4,6) = kmat6(5,4) * kmat6(4,3) - kmat6(5,3) * kmat6(4,4)
-  endif
-
-  c00%vec(1:2) = matmul(kmat6(1:2,1:2), c00%vec(1:2))
-  c00%vec(3:4) = matmul(kmat6(3:4,3:4), c00%vec(3:4))
-
-  mat6 = matmul(kmat6, mat6)
-
-  ! Ending edge
-
-  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, c00, mat6, .true.)
-  call hard_multipole_edge_kick (ele, param, second_track_edge$, c00, mat6, .true.)
-
-  ! tilt and multipoles
-
-  if (v(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, v(tilt_tot$))
-  endif
-
-  call add_multipoles_and_z_offset (.true.)
-  call add_M56_low_E_correction()
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  call track_a_quadrupole (c00, ele, param, mat6, .true.)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -947,7 +899,7 @@ case (rfcavity$)
 case (sad_mult$)
 
   call sad_mult_track_and_mat (ele, param, c00, orb_out1, ele%mat6)
-  if (.not. logic_option (.false., end_in)) orb_out = c00
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! sbend
@@ -955,7 +907,7 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (c00, ele, param, mat6, .true.)
-  if (.not. logic_option (.false., end_in)) orb_out = c00
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -997,11 +949,12 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
-  call solenoid_track_and_mat (ele, param, c00, orb_out, mat6)
-  call offset_particle (ele, param, unset$, orb_out)
+  call solenoid_track_and_mat (ele, param, c00, c00, mat6)
+  call offset_particle (ele, param, unset$, c00)
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! solenoid/quad
@@ -1123,6 +1076,17 @@ mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
 call multipole_kicks (knl*factor, tilt, orb)
 
 end subroutine
+
+!--------------------------------------------------------
+! contains
+
+subroutine set_orb_out (orb_out, c00)
+
+type (coord_struct) orb_out, c00
+orb_out = c00
+orb_out%location = downstream_end$
+
+end subroutine set_orb_out
 
 !--------------------------------------------------------
 ! contains

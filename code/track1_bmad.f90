@@ -48,7 +48,7 @@ real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref, p_bend, p2_bend, p2xy
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2, px_end
-real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8, pr, kk
+real(rp) xp_start, yp_start, dz4_coef(4,4), sqrt_8, pr, kk
 real(rp) dcos_phi, dgradient, dpz, step_len, r_step
 real(rp) mc2, dE_start, dE_end, dE, dp_dg, g, e_tot, pc, ps, charge_dir
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
@@ -634,71 +634,14 @@ case (octupole$)
 
 case (patch$)
 
-  call track_a_patch(ele, end_orb)
+  call track_a_patch (ele, end_orb)
 
 !-----------------------------------------------
 ! quadrupole
 
 case (quadrupole$)
 
-  k1 = charge_dir * ele%value(k1$) / rel_p
-
-  call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an, bn, include_kicks = .true.)
-  call multipole_ele_to_ab (ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
-
-  n_step = 1
-  if (ele%value(k2$) /= 0 .or. has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-
-  r_step = 1.0_rp / n_step
-  step_len = length * r_step
-
-  ! Entrance edge
-
-  call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
-
-  call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb)
-  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, end_orb)
-
-  ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
-
-  if (has_nonzero_pole) call ab_multipole_kicks (an, bn, end_orb, scale = r_step/2)
-  if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len/2)
-
-  ! Body
-
-  do i = 1, n_step
-
-    call quad_mat2_calc (-k1, step_len, rel_p, mat2, dz_coef)
-    end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(1)**2 + &
-                        dz_coef(2) * end_orb%vec(1) * end_orb%vec(2) + dz_coef(3) * end_orb%vec(2)**2 
-
-    end_orb%vec(1:2) = matmul(mat2, end_orb%vec(1:2))
-
-    call quad_mat2_calc (k1, step_len, rel_p, mat2, dz_coef)
-    end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(3)**2 + &
-                        dz_coef(2) * end_orb%vec(3) * end_orb%vec(4) + dz_coef(3) * end_orb%vec(4)**2 
-
-    end_orb%vec(3:4) = matmul(mat2, end_orb%vec(3:4))
-
-    if (i == n_step) then
-      if (has_nonzero_pole) call ab_multipole_kicks (an, bn, end_orb, scale = r_step/2)
-      if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len/2)
-    else
-      if (has_nonzero_pole) call ab_multipole_kicks (an, bn, end_orb, scale = r_step)
-      if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, end_orb, pole_type = electric$, scale = step_len)
-    endif
-
-  enddo
-
-  ! Exit edge
-
-  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb)
-  call hard_multipole_edge_kick (ele, param, second_track_edge$, end_orb)
-
-  call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false.)  
-
-  call track1_low_energy_z_correction (end_orb, ele, param)
-  call time_and_s_calc ()
+  call track_a_quadrupole (end_orb, ele, param)
 
 !-----------------------------------------------
 ! rfcavity
