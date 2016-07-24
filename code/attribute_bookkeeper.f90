@@ -1,3 +1,4 @@
+
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -287,7 +288,8 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
     case (sbend$, quadrupole$, sextupole$)
       if (val(integrator_order$) == 0 .and. val(l$) /= 0) then
         bend_factor = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
-        radius0 = 0.01   ! Use a 1 cm scale radius for the sextupole component.
+        radius0 = ele%value(r0_mag$)
+        if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
 
         select case (ele%key)
         case (sbend$)
@@ -305,6 +307,8 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         endif
 
         if (associated(ele%a_pole_elec)) then
+          radius0 = ele%value(r0_elec$)
+          if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
           call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole, electric$)
           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
         endif

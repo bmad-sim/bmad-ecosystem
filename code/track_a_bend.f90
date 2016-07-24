@@ -2,8 +2,6 @@
 ! Subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
 !
 ! Particle tracking through a bend element. 
-! For e1 or e2 non-zero this subroutine treats the edges as thin quads.
-! This routine is not meant for general use.
 !
 ! Modules Needed:
 !   use bmad
@@ -12,12 +10,11 @@
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- Ele_struct: Bend element.
 !   param       -- lat_param_struct: Lattice parameters.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the bend.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
 !   orbit      -- Coord_struct: End position.
-!   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix through the element.
 !-
 
 subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
@@ -27,8 +24,8 @@ use track1_mod, except_dummy => track_a_bend
 implicit none
 
 type (coord_struct) :: orbit, c0_off, c1_off, start_orb
-type (ele_struct),   intent(inout), target :: ele
-type (lat_param_struct), intent(inout) :: param
+type (ele_struct), target :: ele
+type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
@@ -75,7 +72,7 @@ call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., ma
 
 n_step = 1
 
-call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn, include_kicks = .true.)
+call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an,      bn,      magnetic$, include_kicks = .true.)
 call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
 
 if (ele%value(k2$) /= 0) then
