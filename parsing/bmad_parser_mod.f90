@@ -2637,7 +2637,7 @@ err_flag = .true.
 
 do
   ! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
-  call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, call_check = call_check)
+  call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, upper_case_word = .false., call_check = call_check)
   call_check = .false.
   str = str(1:ix_str) // word
   ix_str = ix_str + ix_word
@@ -2698,6 +2698,12 @@ do i = 1, n_stk
     call bp_set_ran_status
   case (variable$)
     call word_to_value (stk(i)%name, lat, stk(i)%value)
+  case (species_var$)
+    stk(i)%value = species_id(stk(i)%name)
+    if (stk(i)%value == invalid$) then
+      call parser_error ('INVALID PARTICLE SPECIES: ' // word)
+      return
+    endif
   end select
 enddo
 
@@ -2734,6 +2740,7 @@ real(rp) value
 real(rp), pointer :: v(:)
 character(*) word
 character(40) attrib_name, ele_name
+character(80) var_name
 logical err_flag
 
 ! see if this is numeric
@@ -2747,13 +2754,14 @@ endif
 ! If not numeric...
 
 ix_word = len_trim(word)
-if (.not. verify_valid_name (word, ix_word)) return
+var_name = upcase(word)
+if (.not. verify_valid_name (var_name, ix_word)) return
 
 ! If word does not have a "[...]" then it must be a variable
 
-ix1 = index(word, '[')
+ix1 = index(var_name, '[')
 if (ix1 == 0) then   
-  call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
+  call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
     call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', warn_only = .true.)
     value = 0
@@ -2761,9 +2769,9 @@ if (ix1 == 0) then
     bp_com%ivar_tot = bp_com%ivar_tot + 1
     if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
     ivar = bp_com%ivar_tot
-    bp_com%var(ivar)%name = word
+    bp_com%var(ivar)%name = var_name
     bp_com%var(ivar)%value = 0
-    call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
+    call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
     bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
     bp_com%var(ixm2)%indexx = ivar
 
@@ -2775,10 +2783,10 @@ endif
 
 ! Here if word does have a "[...]" then is a element attribute
 
-ele_name = word(:ix1-1)    ! name of attribute
+ele_name = var_name(:ix1-1)    ! name of attribute
 
-ix2 = index(word, ']')
-attrib_name = word(ix1+1:ix2-1)
+ix2 = index(var_name, ']')
+attrib_name = var_name(ix1+1:ix2-1)
 
 if (attrib_name == 'S' .and. bp_com%parser_name /= 'bmad_parser2') then
   call parser_error ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')

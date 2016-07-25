@@ -88,6 +88,10 @@ compatibility with \mad and should be avoided.
 \label{t:constants}
 \end{table}
 
+\index{mass_of}\index{anomalous_moment_of}
+As an alternative, the \vn{mass_of}, and \vn{anomalous_moment_of} functions
+(\sref{s:functions}) may be used in place of the defined constants for mass and anomalous
+magnetic moment.
 
 \newpage
 
@@ -677,6 +681,7 @@ value.
 
 \index{sqrt}\index{log}\index{exp}\index{sin}\index{cos}\index{tan}\index{factorial}
 \index{asin}\index{acos}\index{atan}\index{abs}\index{ran}\index{ran_gauss}
+\index{mass_of}\index{charge_of}\index{anomalous_moment_of}\index{species}
 The following intrinsic functions are recognized by \bmad: \hfil\break
 \hspace*{0.15in}
 \begin{tabular}{ll}
@@ -699,8 +704,9 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{floor}(x)                 & Nearest integer less than x                    \\
   \vn{ceiling}(x)               & Nearest integer greater than x                 \\
   \vn{mass_of}(A)               & Mass of particle A                             \\
-  \vn{charge_of}(A)             & Charge of particle A                           \\
-  \vn{anomalous_moment_of}(a)   & Anomalous magnetic moment of particle A        
+  \vn{charge_of}(A)             & Charge, in units of the elementary charge, of particle A \\
+  \vn{anomalous_moment_of}(A)   & Anomalous magnetic moment of particle A        \\
+  \vn{species}(A)               & Species ID of A
 \end{tabular}
 
 \index{ran_seed}
@@ -740,6 +746,21 @@ On the other hand if the attribute is set after lattice expansion:
 \end{example}
 Here the two \vn{a} elements in the lattice get different values for
 \vn{x_offset}.
+
+The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give the mass of,
+charge of (in units of the elementary charge), and anomalous moment of, a particle.
+Example:
+\begin{example}
+  parameter[particle] = deuteron
+  am = anomalous_moment_of(parameter[particle])^2
+  my_particle = species(He++)      ! my_particle now represents He++
+  chg1 = charge_of(my_particle)    ! chg = charge of He++
+  chg2 = charge_of(He++)           ! Same as previous line
+  chg3 = charge_of(species(He++))  ! Same as previous line
+\end{example}
+The \vn{species} function turns a string (``He++'' in the above example) into a particle
+ID (internally to \bmad, this is an integer). The use of \vn{species} is only needed when
+setting a variable to a species ID (as the set of \vn{my_particle} in the above example).
 
 %-----------------------------------------------------------------------------
 \section{Print Statement}

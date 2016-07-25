@@ -16,17 +16,18 @@ integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
-integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34
+integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_var$ = 35
 
-character(12), parameter :: expression_op_name(34) = [character(20) :: '+', '-', '*', '/', &
+character(12), parameter :: expression_op_name(35) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
-                                    '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', '?!+Species']
+                                    '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
+                                    'species', '?!+Species']
 
 
-integer, parameter :: expression_eval_level(34) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(35) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -62,7 +63,7 @@ type (expression_atom_struct), allocatable :: stack(:)
 
 integer i_op, i
 
-integer op(200), ix_word, i_delim, i2, ix_word2, n_stack
+integer op(200), ix_word, i_delim, i2, ix_word2, n_stack, op0
 
 real(rp) value
 
@@ -92,16 +93,24 @@ i_op = 0
 zero_arg_function_pending = .false.
 if (.not. allocated(stack)) allocate(stack(10))
 stack(:)%type = end_stack$
-call str_upcase (parse_line, string)
+parse_line = string
 
 ! parsing loop to build up the stack.
 
 parsing_loop: do
 
-  ! get a word
+  ! Get a word. If last thing was mass_of, etc., then next word is a species name.
+  ! In this case, word is everything up to next parens.
 
   old_delim = delim
-  call get_next_chunk (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+  op0 = 0
+  if (i_op > 0) op0 = op(i_op)
+  select case (op0)
+  case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
+    call get_next_chunk (word, ix_word, ')', delim, delim_found)
+  case default
+    call get_next_chunk (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+  end select
 
   if (delim == '*' .and. word(1:1) == '*') then
     err_str = 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!'
@@ -123,7 +132,8 @@ parsing_loop: do
   split = .true.         ! assume initially that we have a split number
   if (ix_word == 0) then
     split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'D') then
+  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'D' .and. &
+          word(ix_word:ix_word) /= 'e' .and. word(ix_word:ix_word) /= 'd') then
     split = .false.
   endif
   if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
@@ -159,7 +169,7 @@ parsing_loop: do
 
     zero_arg_function_pending = .false.
     if (ix_word /= 0) then
-      select case (word)
+      select case (upcase(word))
       case ('SIN') 
         call pushit (op, i_op, sin$)
       case ('COS') 
@@ -202,6 +212,8 @@ parsing_loop: do
         call pushit (op, i_op, charge_of$)
       case ('MASS_OF')
         call pushit (op, i_op, mass_of$)
+      case ('SPECIES')
+        call pushit (op, i_op, species$)
       case ('ANOMALOUS_MOMENT_OF')
         call pushit (op, i_op, anomalous_moment_of$)
       case default
@@ -368,7 +380,7 @@ end subroutine get_next_chunk
 subroutine push_numeric_or_var (err)
 
 logical err
-integer ios
+integer ios, var_type
 
 !
 
@@ -382,6 +394,7 @@ if (is_real(word)) then
     return
   endif
   stack(n_stack)%name = word
+
   if (i_op > 0) then
     if (op(i_op) == unary_minus$) then
       stack(n_stack)%name = '-' // stack(n_stack)%name
@@ -391,7 +404,15 @@ if (is_real(word)) then
   endif
 
 else
-  call pushit_stack (stack, n_stack, variable$)
+  var_type = variable$
+  if (n_stack > 0) then
+    select case (stack(n_stack)%type)
+    case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
+      var_type = species_var$
+    end select
+  endif
+
+  call pushit_stack (stack, n_stack, var_type)
   stack(n_stack)%name = word
 endif
 
