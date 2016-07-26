@@ -237,7 +237,8 @@ case (quadrupole$)
   if (abs(y_center) > 1e-15_rp) write (iu, '(a, i0, a, '//rfmt//')') '  Q_yoff(', id, ') = ', y_center
   if (abs(theta_center) > 1e-15_rp) write (iu, '(a, i0, a, '//rfmt//')') '  Q_xrot(', id, ') = ', theta_center
   write (iu, '(a, i0, a, es15.7)') '  Q_length(', id, ')  = ', ele%value(L$)
-  write (iu, '(a, i0, a, es15.7, a)') '  Q_grad(', id, ')    = ',  ele%value(b1_gradient$), '  ! T/m'
+  write (iu, '(a, i0, a, es15.7, a)') '  Q_bore(', id, ')  = ', 0.005_rp, ' ! make a harder edge than the Astra default. Hard-coded at 5 mm'
+  write (iu, '(a, i0, a, es15.7, a)') '  Q_grad(', id, ')    = ', q_sign* ele%value(b1_gradient$), '  ! T/m'
 
 case (sbend$)
   
