@@ -642,7 +642,7 @@ logical, optional :: make_matrix
 
 !
 
-if (integer_option(magnetic$, pole_type) == electric$) pz2 = (1 + coord%vec(6))**2 + coord%vec(2)**2 + coord%vec(4)**2
+if (integer_option(magnetic$, pole_type) == electric$) pz2 = (1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2
 
 do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
@@ -660,7 +660,7 @@ do n = 0, n_pole_maxx
 enddo
 
 if (integer_option(magnetic$, pole_type) == electric$) then
-  rel_p2 = pz2 - coord%vec(2)**2 - coord%vec(4)**2
+  rel_p2 = pz2 + coord%vec(2)**2 + coord%vec(4)**2
   if (rel_p2 < 0) then
     coord%state = lost_z_aperture$
     return
