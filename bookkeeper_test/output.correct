@@ -108,7 +108,7 @@
 "GR4[COMMAND]"      ABS 0    8.0000
 "GRN[A]"      ABS 0    0.0100
 "GRN[B]"      ABS 0    2.0000
-"GRN[string]" STR "(tan(A)+B)*(0.1/C_LIGHT)^(A+0.2)-A-(1+2)"
+"GRN[string]" STR "(tan(a)+b)*(0.1/c_light)^(a+0.2)-a-(1+2)"
 "Next-1" ABS 0   0
 "Next-2" ABS 0   1
 "Next-3" ABS 0   2
