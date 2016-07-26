@@ -248,6 +248,11 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call normal_form_complex_taylors(normal_form%m, s%global%rf_on, F = normal_form%F, L = normal_form%L)
     endif
 
+    !
+
+    !if (branch%param%geometry == closed$) then
+
+
     call tao_hook_branch_calc (u, tao_lat, branch)
 
   enddo branch_loop
@@ -470,7 +475,6 @@ beam => u%beam%current
 
 lat => tao_lat%lat
 
-tao_lat%n_bunch_params2 = 0
 lat_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
 ix_track = moving_forward$
 lost = .false.

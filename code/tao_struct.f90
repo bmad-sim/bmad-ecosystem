@@ -712,8 +712,6 @@ type tao_lat_mode_struct
 end type
 
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
-! The %bunch_params2(:) array, if used, is for drawing smooth data lines and has 
-! a lot more elements than the %bunch_params(:) array
 
 type tao_lattice_branch_struct
   type (bunch_params_struct), allocatable :: bunch_params(:)
@@ -730,12 +728,10 @@ type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
   type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
-  type (bunch_params_struct), allocatable :: bunch_params2(:)
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
   type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
   integer ix_rad_int_cache                     ! Radiation integrals cache index.
-  integer n_bunch_params2                      ! bunch_params2 array size.
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.
@@ -877,18 +873,6 @@ lat1%modes        = lat2%modes
 lat1%rad_int      = lat2%rad_int
 lat1%a            = lat2%a
 lat1%b            = lat2%b
-
-if (allocated(lat2%bunch_params2)) then
-  ix2 = size(lat2%bunch_params2)
-  if (allocated(lat1%bunch_params2)) then
-    if (size(lat1%bunch_params2) /= ix2) deallocate(lat1%bunch_params2)
-  endif
-  if (.not. allocated(lat1%bunch_params2)) allocate(lat1%bunch_params2(ix2))
-else
-  if (allocated(lat1%bunch_params2)) deallocate(lat1%bunch_params2)
-endif
-
-lat1%n_bunch_params2 = lat2%n_bunch_params2
 
 end subroutine
 

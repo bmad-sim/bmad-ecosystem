@@ -673,703 +673,703 @@ MAR.END: MARKER
 x__FA.QUA01: null_ele
 FA.QUA01: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA01, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA01, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA02: null_ele
 FA.QUA02: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA03: null_ele
 FA.QUA03: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA03, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA03, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA04: null_ele
 FA.QUA04: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA05: null_ele
 FA.QUA05: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA05, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA05, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA06: null_ele
 FA.QUA06: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA07: null_ele
 FA.QUA07: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA07, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA07, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA08: null_ele
 FA.QUA08: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA09: null_ele
 FA.QUA09: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA09, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA09, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA10: null_ele
 FA.QUA10: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA11: null_ele
 FA.QUA11: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA11, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA11, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA12: null_ele
 FA.QUA12: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA13: null_ele
 FA.QUA13: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA13, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA13, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA14: null_ele
 FA.QUA14: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA15: null_ele
 FA.QUA15: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA15, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA15, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA16: null_ele
 FA.QUA16: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA17: null_ele
 FA.QUA17: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA17, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA17, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA18: null_ele
 FA.QUA18: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA19: null_ele
 FA.QUA19: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA19, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA19, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA20: null_ele
 FA.QUA20: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA21: null_ele
 FA.QUA21: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA21, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA21, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA22: null_ele
 FA.QUA22: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA23: null_ele
 FA.QUA23: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA23, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA23, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA24: null_ele
 FA.QUA24: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA25: null_ele
 FA.QUA25: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA25, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA25, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA26: null_ele
 FA.QUA26: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA27: null_ele
 FA.QUA27: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA27, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA27, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA28: null_ele
 FA.QUA28: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA29: null_ele
 FA.QUA29: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA29, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA29, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA30: null_ele
 FA.QUA30: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA31: null_ele
 FA.QUA31: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA31, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA31, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA32: null_ele
 FA.QUA32: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA33: null_ele
 FA.QUA33: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA33, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA33, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA34: null_ele
 FA.QUA34: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA35: null_ele
 FA.QUA35: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA35, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA35, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA36: null_ele
 FA.QUA36: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA37: null_ele
 FA.QUA37: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA37, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA37, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA38: null_ele
 FA.QUA38: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA39: null_ele
 FA.QUA39: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA39, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA39, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA40: null_ele
 FA.QUA40: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA41: null_ele
 FA.QUA41: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA41, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA41, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA42: null_ele
 FA.QUA42: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA42, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA42, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA43: null_ele
 FA.QUA43: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA43, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA43, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA44: null_ele
 FA.QUA44: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA44, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA44, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA45: null_ele
 FA.QUA45: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA45, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA45, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA46: null_ele
 FA.QUA46: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA46, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA46, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025401981199, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA47: null_ele
 FA.QUA47: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA47, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA47, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA48: null_ele
 FA.QUA48: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA48, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA48, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.025216713567, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA49: null_ele
 FA.QUA49: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA49, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA49, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA50: null_ele
 FA.QUA50: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA50, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA50, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.024117205184, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA51: null_ele
 FA.QUA51: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA51, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA51, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA52: null_ele
 FA.QUA52: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA52, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA52, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.022646599517, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA53: null_ele
 FA.QUA53: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA53, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA53, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA54: null_ele
 FA.QUA54: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA54, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA54, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.021127211724, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA55: null_ele
 FA.QUA55: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA55, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA55, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA56: null_ele
 FA.QUA56: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA56, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA56, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.01928635695, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA57: null_ele
 FA.QUA57: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA57, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA57, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA58: null_ele
 FA.QUA58: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA58, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA58, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.016167579328, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA59: null_ele
 FA.QUA59: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA59, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA59, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA60: null_ele
 FA.QUA60: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA60, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA60, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.013725569183, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA61: null_ele
 FA.QUA61: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA61, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA61, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA62: null_ele
 FA.QUA62: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA62, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA62, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 0.011427497156, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA63: null_ele
 FA.QUA63: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA63, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA63, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA64: null_ele
 FA.QUA64: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA64, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA64, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 9.2946352888E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA65: null_ele
 FA.QUA65: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA65, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA65, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA66: null_ele
 FA.QUA66: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA66, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA66, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 6.2153960468E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA67: null_ele
 FA.QUA67: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA67, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA67, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA68: null_ele
 FA.QUA68: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA68, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA68, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 3.8822484472E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA69: null_ele
 FA.QUA69: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA69, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA69, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA70: null_ele
 FA.QUA70: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA70, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA70, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 2.6895170603E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA71: null_ele
 FA.QUA71: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA71, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA71, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA72: null_ele
 FA.QUA72: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA72, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA72, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 1.1782475434E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA73: null_ele
 FA.QUA73: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA73, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA73, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA74: null_ele
 FA.QUA74: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA74, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA74, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = 3.5907687999E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA75: null_ele
 FA.QUA75: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__FA.QUA75, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA75, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__FA.QUA76: null_ele
 FA.QUA76: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__FA.QUA76, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__FA.QUA76, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, X_OFFSET = -4.1069800455E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA01: null_ele
 ZA.QUA01: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA01, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA01, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA02: null_ele
 ZA.QUA02: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA03: null_ele
 ZA.QUA03: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA03, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA03, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA04: null_ele
 ZA.QUA04: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA05: null_ele
 ZA.QUA05: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA05, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA05, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA06: null_ele
 ZA.QUA06: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA07: null_ele
 ZA.QUA07: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA07, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA07, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA08: null_ele
 ZA.QUA08: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA09: null_ele
 ZA.QUA09: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA09, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA09, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA10: null_ele
 ZA.QUA10: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA11: null_ele
 ZA.QUA11: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA11, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA11, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA12: null_ele
 ZA.QUA12: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA13: null_ele
 ZA.QUA13: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA13, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA13, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA14: null_ele
 ZA.QUA14: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA15: null_ele
 ZA.QUA15: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA15, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA15, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA16: null_ele
 ZA.QUA16: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA17: null_ele
 ZA.QUA17: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA17, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA17, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA18: null_ele
 ZA.QUA18: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA19: null_ele
 ZA.QUA19: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA19, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA19, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA20: null_ele
 ZA.QUA20: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA21: null_ele
 ZA.QUA21: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA21, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA21, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA22: null_ele
 ZA.QUA22: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA23: null_ele
 ZA.QUA23: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA23, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA23, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA24: null_ele
 ZA.QUA24: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA25: null_ele
 ZA.QUA25: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA25, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA25, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA26: null_ele
 ZA.QUA26: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA27: null_ele
 ZA.QUA27: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA27, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA27, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA28: null_ele
 ZA.QUA28: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA29: null_ele
 ZA.QUA29: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA29, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA29, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA30: null_ele
 ZA.QUA30: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA31: null_ele
 ZA.QUA31: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA31, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA31, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA32: null_ele
 ZA.QUA32: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA33: null_ele
 ZA.QUA33: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA33, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA33, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA34: null_ele
 ZA.QUA34: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.148883149, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA35: null_ele
 ZA.QUA35: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA35, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA35, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.941784128, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA36: null_ele
 ZA.QUA36: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.673927573, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA37: null_ele
 ZA.QUA37: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA37, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA37, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*21.282195777, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA38: null_ele
 ZA.QUA38: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-20.016919147, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA39: null_ele
 ZA.QUA39: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA39, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA39, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.092107357, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
 x__ZA.QUA40: null_ele
 ZA.QUA40: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
-   ele_beginning, ref = x__ZA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
+   ele_origin = beginning, ref = x__ZA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
    FQ1 = 2E-4, B1_GRADIENT = -1*-21.724696566, DS_STEP = 0.01, aperture_at = Both_Ends, &
    aperture_type = Elliptical, field_master = T
 x__ZA.QUA99: null_ele
 ZA.QUA99: QUADRUPOLE, &
    descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
-   superimpose, ele_beginning, ref = x__ZA.QUA99, L = 0.11530244955, &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA99, L = 0.11530244955, &
    FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.930879124, DS_STEP = 0.01, &
    aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
  

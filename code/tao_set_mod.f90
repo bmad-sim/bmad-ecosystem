@@ -248,21 +248,6 @@ do ib = 0, ubound(dest1_lat%lat_branch, 1)
   enddo
 enddo
 
-if (allocated(source1_lat%bunch_params2)) then
-  if (allocated(dest1_lat%bunch_params2)) then
-    if (size(dest1_lat%bunch_params2) < size(source1_lat%bunch_params2)) &
-                                        deallocate (dest1_lat%bunch_params2)
-  endif
-  if (.not. allocated(dest1_lat%bunch_params2)) &
-                        allocate (dest1_lat%bunch_params2(source1_lat%n_bunch_params2))
-  dest1_lat%n_bunch_params2 = source1_lat%n_bunch_params2
-else
-  if (allocated(dest1_lat%bunch_params2)) then
-    deallocate(dest1_lat%bunch_params2)
-    dest1_lat%n_bunch_params2 = 0
-  endif
-endif
-
 ! Transfer the data
 
 dest_data = source_data
