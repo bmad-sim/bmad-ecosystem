@@ -1310,7 +1310,7 @@ end subroutine parser_init_custom_elements
 
 subroutine new_element_init (err)
 
-logical err
+logical err, added
 
 !
 
@@ -1332,8 +1332,8 @@ if (n_max >= ubound(in_lat%ele, 1)) then
 endif
 
 in_lat%ele(n_max+1)%name = word_1
-call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
-if (ix /= n_max) then
+call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true., has_been_added = added)
+if (.not. added) then
   call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word_1)
 endif
 
