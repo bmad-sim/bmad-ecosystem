@@ -7,14 +7,14 @@ real(rp), parameter :: m = 0.707106781d0  ! 1/sqrt(2)
 real(rp), parameter :: o = 0.0d0  ! for compact code
 real(rp), parameter :: l = 1.0d0  ! for compact code
 
-real(rp), parameter :: Qr(6,6) = reshape( [m,m,o,o,o,o, o,o,o,o,o,o, o,o,m,m,o,o,   &
-                                           o,o,o,o,o,o, o,o,o,o,m,m, o,o,o,o,o,o],[6,6] )
-real(rp), parameter :: Qi(6,6) = reshape( [o,o,o,o,o,o, m,-m,o,o,o,o, o,o,o,o,o,o,  &
-                                           o,o,m,-m,o,o, o,o,o,o,o,o, o,o,o,o,m,-m],[6,6] )
-real(rp), parameter :: S(6,6) = reshape( [o,-l,o,o,o,o, l,o,o,o,o,o,  &
-                                          o,o,o,-l,o,o, o,o,l,o,o,o,  &
-                                          o,o,o,o,o,-l, o,o,o,o,l,o],[6,6] )
-real(rp), parameter :: I2(2,2) = reshape( [1,0, 0,1],[2,2] )
+real(rp), parameter :: Qr(6,6) = reshape( [m, m, o, o, o, o, o, o, o, o, o, o, o, o, m, m, o, o, &
+                                           o, o, o, o, o, o, o, o, o, o, m, m, o, o, o, o, o, o], [6,6] )
+real(rp), parameter :: Qi(6,6) = reshape( [o, o, o, o, o, o, m, -m, o, o, o, o, o, o, o, o, o, o, &
+                                           o, o, m, -m, o, o, o, o, o, o, o, o, o, o, o, o, m, -m], [6,6] )
+real(rp), parameter :: S(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
+                                          o, o, o, -l, o, o, o, o, l, o, o, o, &
+                                          o, o, o, o, o, -l, o, o, o, o, l, o], [6,6] )
+real(rp), parameter :: I2(2, 2) = reshape( [1, 0, 0, 1], [2, 2] )
 
 private m, o, l
 private Qr, Qi
@@ -26,7 +26,7 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine t6_to_B123(N,abz_tunes,B1,B2,B3)
+! Subroutine t6_to_B123(N, abz_tunes, B1, B2, B3)
 !
 ! This decomposes the one-turn matrix according to Equation 56 from 
 ! "Alternative approach to general coupled linear optics" by A. Wolski. PRSTAB.
@@ -42,7 +42,7 @@ contains
 !   B3(6,6)     -- real(rp): Beta matrix associated with c-mode.
 !-
 
-subroutine t6_to_B123(t6,abz_tunes,B1,B2,B3)
+subroutine t6_to_B123(t6, abz_tunes, B1, B2, B3)
 
   use bmad
 
@@ -92,9 +92,9 @@ subroutine t6_to_B123(t6,abz_tunes,B1,B2,B3)
 
   call normalize_evecs(evec_r, evec_i)
 
-  B1 = matmul(evec_r,matmul(T1,transpose(evec_r))) - matmul(evec_i,matmul(T1,transpose(evec_i))) 
-  B2 = matmul(evec_r,matmul(T2,transpose(evec_r))) - matmul(evec_i,matmul(T2,transpose(evec_i))) 
-  B3 = matmul(evec_r,matmul(T3,transpose(evec_r))) - matmul(evec_i,matmul(T3,transpose(evec_i))) 
+  B1 = matmul(evec_r, matmul(T1, transpose(evec_r))) - matmul(evec_i, matmul(T1, transpose(evec_i))) 
+  B2 = matmul(evec_r, matmul(T2, transpose(evec_r))) - matmul(evec_i, matmul(T2, transpose(evec_i))) 
+  B3 = matmul(evec_r, matmul(T3, transpose(evec_r))) - matmul(evec_i, matmul(T3, transpose(evec_i))) 
 
 end subroutine t6_to_B123
 
@@ -158,7 +158,7 @@ subroutine normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)
   endif
 
   call make_HVBP (N, B, V, H)
-  HV = matmul(H,V)
+  HV = matmul(H, V)
 
 !  HV=mat_symp_conj(HV) 
   B = mat_symp_conj(B)  !for legacy compatability
@@ -211,55 +211,55 @@ subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
   ! Note: the variables are named here to according to the convention in the above mentioned paper.
   real(rp) V(6,6)
   real(rp) a, ax, ay
-  real(rp) BcPc(2,2)
-  real(rp) Hx(2,2)
-  real(rp) Hy(2,2)
+  real(rp) BcPc(2, 2)
+  real(rp) Hx(2, 2)
+  real(rp) Hy(2, 2)
   real(rp) VBP(6,6)
   real(rp) mu
-  real(rp) BbPb(2,2)
-  real(rp) BaPa(2,2)
-  real(rp) V2(2,2)
+  real(rp) BbPb(2, 2)
+  real(rp) BaPa(2, 2)
+  real(rp) V2(2, 2)
   real(rp) BP(6,6)
   real(rp) cospa, sinpa
   real(rp) cospb, sinpb
   real(rp) cospc, sinpc
   real(rp) Pinv(6,6)
 
-  a = sqrt(abs(determinant(N(5:6,5:6))))
-  BcPc = N(5:6,5:6) / a
-  Hx = matmul(N(1:2,5:6),mat_symp_conj(BcPc))
-  Hy = matmul(N(3:4,5:6),mat_symp_conj(BcPc))
+  a = sqrt(abs(determinant(N(5:6, 5:6))))
+  BcPc = N(5:6, 5:6) / a
+  Hx = matmul(N(1:2, 5:6), mat_symp_conj(BcPc))
+  Hy = matmul(N(3:4, 5:6), mat_symp_conj(BcPc))
   ax = determinant(Hx)/(1.0d0+a)  !shorthand
   ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
-  H(1:2,1:2) = (1.0d0-ax)*I2
-  H(3:4,3:4) = (1.0d0-ay)*I2
-  H(5:6,5:6) = a*I2
-  H(1:2,5:6) = Hx
-  H(3:4,5:6) = Hy
-  H(5:6,1:2) = -1.0d0*mat_symp_conj(Hx)
-  H(5:6,3:4) = -1.0d0*mat_symp_conj(Hy)
-  H(1:2,3:4) = -1.0d0 * matmul(Hx,mat_symp_conj(Hy)) / (1.0d0 + a)
-  H(3:4,1:2) = -1.0d0 * matmul(Hy,mat_symp_conj(Hx)) / (1.0d0 + a)
+  H(1:2, 1:2) = (1.0d0-ax)*I2
+  H(3:4, 3:4) = (1.0d0-ay)*I2
+  H(5:6, 5:6) = a*I2
+  H(1:2, 5:6) = Hx
+  H(3:4, 5:6) = Hy
+  H(5:6, 1:2) = -1.0d0*mat_symp_conj(Hx)
+  H(5:6, 3:4) = -1.0d0*mat_symp_conj(Hy)
+  H(1:2, 3:4) = -1.0d0 * matmul(Hx, mat_symp_conj(Hy)) / (1.0d0 + a)
+  H(3:4, 1:2) = -1.0d0 * matmul(Hy, mat_symp_conj(Hx)) / (1.0d0 + a)
 
-  VBP = matmul(mat_symp_conj(H),N)
+  VBP = matmul(mat_symp_conj(H), N)
 
-  mu = sqrt(abs(determinant(VBP(1:2,1:2))))
-  BaPa = VBP(1:2,1:2)/mu
-  BbPb = VBP(3:4,3:4)/mu
-  V2 = matmul(VBP(1:2,3:4),mat_symp_conj(BbPb))
+  mu = sqrt(abs(determinant(VBP(1:2, 1:2))))
+  BaPa = VBP(1:2, 1:2)/mu
+  BbPb = VBP(3:4, 3:4)/mu
+  V2 = matmul(VBP(1:2, 3:4), mat_symp_conj(BbPb))
 
   V = 0.0d0
-  V(1:2,1:2) = mu*I2
-  V(3:4,3:4) = mu*I2
-  V(5:6,5:6) = I2
-  V(1:2,3:4) = V2
-  V(3:4,1:2) = -1.0d0*mat_symp_conj(V2)
+  V(1:2, 1:2) = mu*I2
+  V(3:4, 3:4) = mu*I2
+  V(5:6, 5:6) = I2
+  V(1:2, 3:4) = V2
+  V(3:4, 1:2) = -1.0d0*mat_symp_conj(V2)
 
   BP = 0.0d0
-  BP(1:2,1:2) = BaPa
-  BP(3:4,3:4) = BbPb
-  BP(5:6,5:6) = BcPc
+  BP(1:2, 1:2) = BaPa
+  BP(3:4, 3:4) = BbPb
+  BP(5:6, 5:6) = BcPc
 
   !- The following convention for P, puts B (the Twiss matrix) into the form where the upper right element is zero.
   cospa = 1.0d0 / sqrt(1.0d0 + (BP(1,2)/BP(1,1))**2)
@@ -282,10 +282,10 @@ subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
   Pinv(5,6) = -1.0d0 * sinpc
   Pinv(6,5) = sinpc
 
-  B = matmul(BP,Pinv)
+  B = matmul(BP, Pinv)
 
-  if( present(Vbar) ) Vbar = matmul(mat_symp_conj(B),matmul(V,B))
-  if( present(Hbar) ) Hbar = matmul(mat_symp_conj(B),matmul(H,B))
+  if( present(Vbar) ) Vbar = matmul(mat_symp_conj(B), matmul(V, B))
+  if( present(Hbar) ) Hbar = matmul(mat_symp_conj(B), matmul(H, B))
 
 end subroutine make_HVBP
 
@@ -293,7 +293,7 @@ end subroutine make_HVBP
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine xyz_to_action(ring,loc,X,J,err_flag)
+! Subroutine xyz_to_action(ring, loc, X, J, err_flag)
 !
 ! Given the canonical phase space coordinates X of a particle, this returns
 ! a vector from which Ja, Jb, Jc can be easily extracted.
@@ -307,7 +307,7 @@ end subroutine make_HVBP
 ! J = N_inv . X
 ! Where N_inv is from the Eigen decomposition of the 1-turn transfer matrix.
 !
-! The normal mode invariant actions can be obtained from J as,
+! The normal mode invariant actions can be obtained from J as, 
 ! Ja = (J(1)**2 + J(2)**2)/2.0d0
 ! Jb = (J(3)**2 + J(4)**2)/2.0d0
 ! Jc = (J(5)**2 + J(6)**2)/2.0d0
@@ -323,7 +323,7 @@ end subroutine make_HVBP
 !
 !-
 
-subroutine xyz_to_action(ring,loc,X,J,err_flag)
+subroutine xyz_to_action(ring, loc, X, J, err_flag)
   use bmad
 
   type(lat_struct) ring
@@ -355,7 +355,7 @@ subroutine xyz_to_action(ring,loc,X,J,err_flag)
     ix_use = element_at_s(ring, loc, .false.)
     call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
     call twiss_and_track_at_s(ring, loc, ele_at_s)
-    t6 = matmul(ele_at_s%mat6,  matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
+    t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
   end select
 
   if(all(abs(abz_tunes).gt. 0.0001)) then
@@ -369,14 +369,14 @@ subroutine xyz_to_action(ring,loc,X,J,err_flag)
     return
   endif
 
-  J = matmul(mat_symp_conj(N),X)
+  J = matmul(mat_symp_conj(N), X)
 end subroutine xyz_to_action
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine action_to_xyz(ring,ix,J,X,err_flag)
+! Subroutine action_to_xyz(ring, ix, J, X, err_flag)
 !
 ! Given the normal mode invariants and phases J of a particle, returns the canonical coordinates.
 !
@@ -397,7 +397,7 @@ end subroutine xyz_to_action
 !  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !
 !-
-subroutine action_to_xyz(ring,ix,J,X,err_flag)
+subroutine action_to_xyz(ring, ix, J, X, err_flag)
   use bmad
 
   type(lat_struct) ring
@@ -406,9 +406,9 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
   real(rp) X(1:6)
   logical err_flag 
 
-  real(rp) t6(1:6,1:6)
-  real(rp) N(1:6,1:6)
-  real(rp) Ninv(1:6,1:6)
+  real(rp) t6(1:6, 1:6)
+  real(rp) N(1:6, 1:6)
+  real(rp) Ninv(1:6, 1:6)
   real(rp) abz_tunes(3)
   real(rp) gamma(3)
   integer i
@@ -429,7 +429,7 @@ subroutine action_to_xyz(ring,ix,J,X,err_flag)
     return
   endif
 
-  X = matmul(N,J)
+  X = matmul(N, J)
 
 end subroutine action_to_xyz
 
@@ -444,6 +444,7 @@ end subroutine action_to_xyz
 !
 ! Input:
 !   mat(6,6)     - real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
+!
 ! Output:
 !   eval_r(6)    - real(rp):  real part of eigenvalues.
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
@@ -493,37 +494,37 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
     evec_i = 0.0d0
     return
   endif
-  evec_r(:,1) = VR(:,1)
-  evec_r(:,2) = VR(:,1)
-  evec_r(:,3) = VR(:,3)
-  evec_r(:,4) = VR(:,3)
-  evec_r(:,5) = VR(:,5)
-  evec_r(:,6) = VR(:,5)
-  evec_i(:,1) = VR(:,2)
-  evec_i(:,2) = -VR(:,2)
-  evec_i(:,3) = VR(:,4)
-  evec_i(:,4) = -VR(:,4)
-  evec_i(:,5) = VR(:,6)
-  evec_i(:,6) = -VR(:,6)
+  evec_r(:, 1) = VR(:, 1)
+  evec_r(:, 2) = VR(:, 1)
+  evec_r(:, 3) = VR(:, 3)
+  evec_r(:, 4) = VR(:, 3)
+  evec_r(:, 5) = VR(:, 5)
+  evec_r(:, 6) = VR(:, 5)
+  evec_i(:, 1) = VR(:, 2)
+  evec_i(:, 2) = -VR(:, 2)
+  evec_i(:, 3) = VR(:, 4)
+  evec_i(:, 4) = -VR(:, 4)
+  evec_i(:, 5) = VR(:, 6)
+  evec_i(:, 6) = -VR(:, 6)
 
-  evec = cmplx(evec_r,evec_i, rp)
-  check_mat = matmul(transpose(conjg(evec)),matmul(S,evec))
+  evec = cmplx(evec_r, evec_i, rp)
+  check_mat = matmul(transpose(conjg(evec)), matmul(S, evec))
 
   if( aimag(check_mat(1,1)) > 0.0 ) then
-    evec_i(:,1) = -evec_i(:,1)
-    evec_i(:,2) = -evec_i(:,2)
+    evec_i(:, 1) = -evec_i(:, 1)
+    evec_i(:, 2) = -evec_i(:, 2)
     eval_i(1) = -eval_i(1)
     eval_i(2) = -eval_i(2)
   endif
   if( aimag(check_mat(3,3)) > 0.0 ) then
-    evec_i(:,3) = -evec_i(:,3)
-    evec_i(:,4) = -evec_i(:,4)
+    evec_i(:, 3) = -evec_i(:, 3)
+    evec_i(:, 4) = -evec_i(:, 4)
     eval_i(3) = -eval_i(3)
     eval_i(4) = -eval_i(4)
   endif
   if( aimag(check_mat(5,5)) > 0.0 ) then
-    evec_i(:,5) = -evec_i(:,5)
-    evec_i(:,6) = -evec_i(:,6)
+    evec_i(:, 5) = -evec_i(:, 5)
+    evec_i(:, 6) = -evec_i(:, 6)
     eval_i(5) = -eval_i(5)
     eval_i(6) = -eval_i(6)
   endif
@@ -539,16 +540,16 @@ subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tune
 !---------------------------------------------------------
 contains
 
-  function MyTan(y,x) result(arg)
-    !For a complex number x+iy graphed on an xhat,yhat plane, this routine returns the angle
-    !between (x,y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
+  function MyTan(y, x) result(arg)
+    !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
+    !between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
     !This routine returns a number between 0 and 2pi.
-    real(rp) x,y,arg
+    real(rp) x, y, arg
 
     if(y .ge. 0) then
-      arg = atan2(y,x)
+      arg = atan2(y, x)
     else
-      arg = atan2(y,x) + 2.0d0*pi
+      arg = atan2(y, x) + 2.0d0*pi
     endif
   end function MyTan
 
@@ -570,6 +571,7 @@ end subroutine eigen_decomp_6mat
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
 !   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
 !   Nmat(6,6)    - real(rp):  Normalized, real eigen matrix from make_N.
+!
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
@@ -590,42 +592,42 @@ subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes
   real(rp) Nlocal(6,6)
   integer pair1, pair2, pair3
   integer pairIndexes(6)
-  integer iterations(6,3)
+  integer iterations(6, 3)
   real(rp) check_mat(6,6)
   real(rp) checks(6)
   integer i, best
 
-  iterations(1,:) = [1,2,3]
-  iterations(2,:) = [1,3,2]
-  iterations(3,:) = [2,1,3]
-  iterations(4,:) = [2,3,1]
-  iterations(5,:) = [3,1,2]
-  iterations(6,:) = [3,2,1]
+  iterations(1, :) = [1, 2, 3]
+  iterations(2, :) = [1, 3, 2]
+  iterations(3, :) = [2, 1, 3]
+  iterations(4, :) = [2, 3, 1]
+  iterations(5, :) = [3, 1, 2]
+  iterations(6, :) = [3, 2, 1]
 
-  do i=1,6
-    pair1 = iterations(i,1)
-    pair2 = iterations(i,2)
-    pair3 = iterations(i,3)
+  do i=1, 6
+    pair1 = iterations(i, 1)
+    pair2 = iterations(i, 2)
+    pair3 = iterations(i, 3)
 
     pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
-    evec_r_local = evec_r(:,pairIndexes)
-    evec_i_local = evec_i(:,pairIndexes)
+    evec_r_local = evec_r(:, pairIndexes)
+    evec_i_local = evec_i(:, pairIndexes)
     call normalize_evecs(evec_r_local, evec_i_local)
 
-    Nlocal = matmul(evec_r_local,Qr) - matmul(evec_i_local,Qi)
+    Nlocal = matmul(evec_r_local, Qr) - matmul(evec_i_local, Qi)
 
-    check_mat = matmul(mat_symp_conj(Nlocal),Nmat)
+    check_mat = matmul(mat_symp_conj(Nlocal), Nmat)
 
     checks(i) = abs(trace(abs(check_mat)) - 6.0d0)
   enddo
   best= minloc(checks, 1)
-  pair1 = iterations(best,1)
-  pair2 = iterations(best,2)
-  pair3 = iterations(best,3)
+  pair1 = iterations(best, 1)
+  pair2 = iterations(best, 2)
+  pair3 = iterations(best, 3)
   pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
 
-  evec_r = evec_r(:,pairIndexes)
-  evec_i = evec_i(:,pairIndexes)
+  evec_r = evec_r(:, pairIndexes)
+  evec_i = evec_i(:, pairIndexes)
   eval_r = eval_r(pairIndexes)
   eval_i = eval_i(pairIndexes)
   mat_tunes = mat_tunes([pair1, pair2, pair3])
@@ -633,11 +635,11 @@ subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes
   contains
     function trace(mat)
       real(rp) trace
-      real(rp) mat(:,:)
+      real(rp) mat(:, :)
       integer i
       trace = 0.0d0
-      do i=1,size(mat(:,1))
-        trace = trace + mat(i,i) 
+      do i=1, size(mat(:, 1))
+        trace = trace + mat(i, i) 
       enddo
     end function
 end subroutine
@@ -648,10 +650,10 @@ end subroutine
 !+
 ! Subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
 ! 
-! This subroutine orderes the eigensystem according to which modes dominate the horizontal,
+! This subroutine orderes the eigensystem according to which modes dominate the horizontal, 
 ! vertical, and longitudinal planes.  This subroutine works well in machines
 ! that are not strongly coupled.  In machines with strong coupling, where the relation
-! between the three eigenmodes a,b,c and the three lab coordinates x,y,z can change
+! between the three eigenmodes a, b, c and the three lab coordinates x, y, z can change
 ! through the machine, this subroutine will not provide consistent ordering.
 !
 ! Input:
@@ -660,6 +662,7 @@ end subroutine
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
 !   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
+!
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
@@ -685,10 +688,10 @@ subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tu
 
   pair3 = 6 - pair1 - pair2
 
-  pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+  pairIndexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
 
-  evec_r = evec_r(:,pairIndexes)
-  evec_i = evec_i(:,pairIndexes)
+  evec_r = evec_r(:, pairIndexes)
+  evec_i = evec_i(:, pairIndexes)
   eval_r = eval_r(pairIndexes)
   eval_i = eval_i(pairIndexes)
 
@@ -741,13 +744,13 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tu
 
   if( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
     call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
-    write(*,'(3f14.5)') mat_tunes(1:3)
+    write(*, '(3f14.5)') mat_tunes(1:3)
     if(global_com%exit_on_error) call err_exit
     return
   endif
   if( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
     call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing abz_tunes.")
-    write(*,'(3f14.5)') abz_tunes(1:3)
+    write(*, '(3f14.5)') abz_tunes(1:3)
     if(global_com%exit_on_error) call err_exit
     return
   endif
@@ -771,35 +774,35 @@ subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tu
            modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
            modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
 
-  if(minval(val,1) .gt. 0.1) then
+  if(minval(val, 1) .gt. 0.1) then
     call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing mat_tunes and abz_tunes.")
-    write(*,'(3f14.5)') mat_tunes(1:3)
-    write(*,'(3f14.5)') abz_tunes(1:3)
+    write(*, '(3f14.5)') mat_tunes(1:3)
+    write(*, '(3f14.5)') abz_tunes(1:3)
   endif
 
-  select case(minloc(val,1))
+  select case(minloc(val, 1))
     case(1)
-      pairindexes = [1,2,3,4,5,6]
+      pairindexes = [1, 2, 3, 4, 5, 6]
       mat_tunes = mat_tunes([1, 2, 3])
     case(2)
-      pairindexes = [1,2,5,6,3,4]
+      pairindexes = [1, 2, 5, 6, 3, 4]
       mat_tunes = mat_tunes([1, 3, 2])
     case(3)
-      pairindexes = [3,4,1,2,5,6]
+      pairindexes = [3, 4, 1, 2, 5, 6]
       mat_tunes = mat_tunes([2, 1, 3])
     case(4)
-      pairindexes = [3,4,5,6,1,2]
+      pairindexes = [3, 4, 5, 6, 1, 2]
       mat_tunes = mat_tunes([2, 3, 1])
     case(5)
-      pairindexes = [5,6,1,2,3,4]
+      pairindexes = [5, 6, 1, 2, 3, 4]
       mat_tunes = mat_tunes([3, 1, 2])
     case(6)
-      pairindexes = [5,6,3,4,1,2]
+      pairindexes = [5, 6, 3, 4, 1, 2]
       mat_tunes = mat_tunes([3, 2, 1])
   end select
 
-  evec_r = evec_r(:,pairindexes)
-  evec_i = evec_i(:,pairIndexes)
+  evec_r = evec_r(:, pairindexes)
+  evec_i = evec_i(:, pairIndexes)
   eval_r = eval_r(pairIndexes)
   eval_i = eval_i(pairIndexes)
 
@@ -811,7 +814,7 @@ end subroutine
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine make_N(t6,N,err_flag,abz_tunes,tunes_out)
+! Subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
 !
 ! Given a 1-turn transfer matrix, this returns N and its inverse Ninv.
 ! N converts between normal invarients and phases and canonical coordinates:
@@ -836,7 +839,7 @@ end subroutine
 !  tunes_out(3)        -- real(rp), optional: Fractional tune (in radians) of the 3 normal modes of t6.
 !-
 
-subroutine make_N(t6,N,err_flag,abz_tunes,tunes_out)
+subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
   use bmad
 
   real(rp) t6(6,6)
@@ -883,7 +886,7 @@ subroutine make_N(t6,N,err_flag,abz_tunes,tunes_out)
 
   call normalize_evecs(evec_r, evec_i)
 
-  N = matmul(evec_r,Qr) - matmul(evec_i,Qi)
+  N = matmul(evec_r, Qr) - matmul(evec_i, Qi)
 
   if(present(tunes_out)) then
     tunes_out = mat_tunes
@@ -894,7 +897,7 @@ end subroutine make_N
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
+! Subroutine get_emit_from_sigma_mat(sigma_mat, normal, Nmat, err_flag)
 !
 ! Given a beam envelop sigma matrix sigma_mat, this returns the 3 normal mode
 ! emittances.
@@ -921,7 +924,7 @@ end subroutine make_N
 !  normal(3)        -- real(rp): normal mode emittances
 !  err_flag         -- logical: Set to true if something went wrong.  Otherwise set to false.
 !-
-subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
+subroutine get_emit_from_sigma_mat(sigma_mat, normal, Nmat, err_flag)
   use bmad
 
   real(rp) sigma_mat(6,6)
@@ -939,7 +942,7 @@ subroutine get_emit_from_sigma_mat(sigma_mat,normal,Nmat,err_flag)
   character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
 
   !
-  sigmaS = matmul(sigma_mat,S)
+  sigmaS = matmul(sigma_mat, S)
 
   call eigen_decomp_6mat(sigmas, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
   if(err_flag) then
@@ -997,11 +1000,11 @@ subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
   real(rp) angle_xy, angle_xz, angle_yz
   real(rp) angle_xpz, angle_ypz
 
-  angle_xy  = 0.5_rp * atan2( 2.0d0*S(1,3), S(1,1)-S(3,3) )
-  angle_xz  = 0.5_rp * atan2( 2.0d0*S(1,5), S(5,5)-S(1,1) )
-  angle_yz  = 0.5_rp * atan2( 2.0d0*S(3,5), S(5,5)-S(3,3) )
-  angle_xpz = 0.5_rp * atan2( 2.0d0*S(1,6), S(6,6)-S(1,1) )
-  angle_ypz = 0.5_rp * atan2( 2.0d0*S(3,6), S(6,6)-S(3,3) )
+  angle_xy  = 0.5_rp * atan2( 2.0d0*S(1, 3), S(1,1)-S(3,3) )
+  angle_xz  = 0.5_rp * atan2( 2.0d0*S(1, 5), S(5,5)-S(1,1) )
+  angle_yz  = 0.5_rp * atan2( 2.0d0*S(3, 5), S(5,5)-S(3,3) )
+  angle_xpz = 0.5_rp * atan2( 2.0d0*S(1, 6), S(6,6)-S(1,1) )
+  angle_ypz = 0.5_rp * atan2( 2.0d0*S(3, 6), S(6,6)-S(3,3) )
 end subroutine beam_tilts
 
 !+
@@ -1014,8 +1017,8 @@ end subroutine beam_tilts
 ! equivalent to: sigma_mat.S = N.D.mat_symp_conj(N)
 !
 ! One way to populate mode%a%tune and mode%b%tune:
-!   mode%a%tune = mod(lat%ele(lat%n_ele_track)%a%phi,twopi)
-!   mode%b%tune = mod(lat%ele(lat%n_ele_track)%b%phi,twopi)
+!   mode%a%tune = mod(lat%ele(lat%n_ele_track)%a%phi, twopi)
+!   mode%b%tune = mod(lat%ele(lat%n_ele_track)%b%phi, twopi)
 !
 ! Input:
 !  t6(6,6)          -- real(rp): 1-turn transfer matrix
@@ -1065,7 +1068,7 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
   if(present(Nout)) Nout = N
 
-  ! make_N takes the normal mode tunes and sorts N such that the first two columns are associated with the a-mode,
+  ! make_N takes the normal mode tunes and sorts N such that the first two columns are associated with the a-mode, 
   ! second two with b-mode, and last two with z-mode.
 
   D=0.0d0
@@ -1076,7 +1079,7 @@ subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
   D(5,5) = mode%z%emittance
   D(6,6) = mode%z%emittance
 
-  sigma_mat = matmul( matmul(N,D),transpose(N) )
+  sigma_mat = matmul( matmul(N, D), transpose(N) )
 end subroutine make_smat_from_abc
 
 !-----------------------------------------------------------------------------------------------
@@ -1103,19 +1106,19 @@ subroutine normalize_evecs(evec_r, evec_i)
   complex(rp) evec(6,6)
   complex(rp) mat(6,6)
 
-  evec = cmplx(evec_r,evec_i, rp)
-  mat = matmul(transpose(conjg(evec)),matmul(S,evec))
+  evec = cmplx(evec_r, evec_i, rp)
+  mat = matmul(transpose(conjg(evec)), matmul(S, evec))
 
   norm1 = sqrt(abs(mat(1,1)))
   norm2 = sqrt(abs(mat(3,3)))
   norm3 = sqrt(abs(mat(5,5)))
 
-  evec_r(:,1:2) = evec_r(:,1:2) / norm1
-  evec_i(:,1:2) = evec_i(:,1:2) / norm1
-  evec_r(:,3:4) = evec_r(:,3:4) / norm2
-  evec_i(:,3:4) = evec_i(:,3:4) / norm2
-  evec_r(:,5:6) = evec_r(:,5:6) / norm3
-  evec_i(:,5:6) = evec_i(:,5:6) / norm3
+  evec_r(:, 1:2) = evec_r(:, 1:2) / norm1
+  evec_i(:, 1:2) = evec_i(:, 1:2) / norm1
+  evec_r(:, 3:4) = evec_r(:, 3:4) / norm2
+  evec_i(:, 3:4) = evec_i(:, 3:4) / norm2
+  evec_r(:, 5:6) = evec_r(:, 5:6) / norm3
+  evec_i(:, 5:6) = evec_i(:, 5:6) / norm3
 end subroutine normalize_evecs
 
 !-----------------------------------------------------------------------------------------------
@@ -1124,7 +1127,7 @@ end subroutine normalize_evecs
 !+
 ! Subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 !
-! Obtains the projected x,y, and z beamsizes by building the sigma matrix
+! Obtains the projected x, y, and z beamsizes by building the sigma matrix
 ! from the normal mode emittances and 1-turn transfer matrix.
 ! These projectes beamsize are what would be seen by instrumentation.
 !
@@ -1134,7 +1137,7 @@ end subroutine normalize_evecs
 ! coupled linear optics" by Andrzej Wolski.
 !
 ! The normal mode emittances used to generate a beam envelop sigma matrix from the 
-! 1-turn transfer matrix.  The projected sizes are from the 1,1 3,3 and 5,5 elements of
+! 1-turn transfer matrix.  The projected sizes are from the 1, 1 3, 3 and 5, 5 elements of
 ! the sigma matrix.
 !
 ! Input:
@@ -1178,9 +1181,9 @@ subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
     return
   endif
 
-  sigma_x = sqrt(sigma_mat(1,1))
-  sigma_y = sqrt(sigma_mat(3,3))
-  sigma_z = sqrt(sigma_mat(5,5))
+  sigma_x = sqrt(sigma_mat(1, 1))
+  sigma_y = sqrt(sigma_mat(3, 3))
+  sigma_z = sqrt(sigma_mat(5, 5))
 end subroutine project_emit_to_xyz
 
 !-----------------------------------------------------------------------------------------------
@@ -1219,13 +1222,13 @@ end subroutine twiss3_propagate_all
 subroutine twiss3_propagate1 (ele1, ele2, err_flag)
 
 type mat2_struct
-  real(rp) m(2,2)
+  real(rp) m(2, 2)
 end type
 
 type (ele_struct) ele1, ele2
 type (mat2_struct) w(3)
 
-real(rp) gamma(3), tv(6,6), w_inv(2,2), radx
+real(rp) gamma(3), tv(6,6), w_inv(2, 2), radx
 
 integer i, ik
 logical err, err_flag
@@ -1240,7 +1243,7 @@ tv = matmul (ele2%mat6, ele1%mode3%v)
 
 do i = 1, 3
   ik = 2 * i - 1
-  w(i)%m = tv(ik:ik+1,ik:ik+1)
+  w(i)%m = tv(ik:ik+1, ik:ik+1)
   radx = determinant (w(i)%m)
   if (radx < 0) return
   gamma(i) = SQRT(radx)
@@ -1249,17 +1252,17 @@ do i = 1, 3
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
 enddo
 
-ele2%mode3%x%eta = ele2%mode3%v(1,6)
-ele2%mode3%y%eta = ele2%mode3%v(3,6)
+ele2%mode3%x%eta = ele2%mode3%v(1, 6)
+ele2%mode3%y%eta = ele2%mode3%v(3, 6)
 
-ele2%mode3%x%etap = ele2%mode3%v(2,6)
-ele2%mode3%y%etap = ele2%mode3%v(4,6)
+ele2%mode3%x%etap = ele2%mode3%v(2, 6)
+ele2%mode3%y%etap = ele2%mode3%v(4, 6)
 
-call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%key, ele2%value(l$), ele2%mode3%a, err)
+call twiss1_propagate (ele1%mode3%a, w(1)%m, ele2%key, ele2%value(l$), ele2%mode3%a, err)
 if (err) return
-call twiss1_propagate (ele1%mode3%b, w(2)%m,  ele2%key, ele2%value(l$), ele2%mode3%b, err)
+call twiss1_propagate (ele1%mode3%b, w(2)%m, ele2%key, ele2%value(l$), ele2%mode3%b, err)
 if (err) return
-call twiss1_propagate (ele1%mode3%c, w(3)%m,  ele2%key, 0.0_rp,         ele2%mode3%c, err)
+call twiss1_propagate (ele1%mode3%c, w(3)%m, ele2%key, 0.0_rp,         ele2%mode3%c, err)
 if (err) return
 
 err_flag = .false.
@@ -1308,7 +1311,7 @@ err_flag = .true.
 if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
 
 call transfer_matrix_calc (lat, lat%param%t1_with_RF, one_turn=.true.)
-if (all(lat%param%t1_with_RF(6,1:5) == 0)) then
+if (all(lat%param%t1_with_RF(6, 1:5) == 0)) then
   call out_io (s_error$, r_name, 'RF IS OFF FOR THE MODE3 CALCULATION!')
   return
 endif
@@ -1332,12 +1335,12 @@ contains
   subroutine mode1_calc (gg, tune, twiss)
 
   type(twiss_struct) twiss
-  real(rp) gg(:,:), tune
+  real(rp) gg(:, :), tune
 
   !
 
-  twiss%beta = gg(2,2)**2
-  twiss%alpha = gg(2,1) * gg(2,2)
+  twiss%beta = gg(2, 2)**2
+  twiss%alpha = gg(2, 1) * gg(2, 2)
   twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
   twiss%phi = 0
 
