@@ -1638,8 +1638,7 @@ case ('index', 'ele_index')
 
 case ('s')
 
-  smooth_curve = (curve%data_source == 'lat') .or. &
-                 (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
+  smooth_curve = (curve%data_source == 'lat' .or. curve%data_source == 'beam')
   smooth_curve = smooth_curve .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc
 
   if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
@@ -1782,6 +1781,7 @@ implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end
@@ -1812,7 +1812,8 @@ data_type = curve%data_type
 
 ix_branch = curve%ix_branch
 lat => tao_lat%lat
-orb => tao_lat%lat_branch(ix_branch)%orbit
+lat_branch => tao_lat%lat_branch(ix_branch)
+orb => lat_branch%orbit
 branch => lat%branch(ix_branch)
 first_time = .true.
 
@@ -1891,16 +1892,16 @@ do ii = 1, size(curve%x_line)
 
   select case (curve%data_source)
   case ('beam')
-    if (.not. allocated(tao_lat%bunch_params2)) then
-      call out_io (s_fatal$, r_name, 'BUNCH_PARAMS2 NOT ALLOCATED.')
+    if (.not. allocated(lat_branch%bunch_params)) then
+      call out_io (s_fatal$, r_name, 'BUNCH_PARAMS NOT ALLOCATED.')
       call err_exit
     endif
  
-    call bracket_index (tao_lat%bunch_params2(:)%s, 1, tao_lat%n_bunch_params2, s_now, ix)
-    if (abs(tao_lat%bunch_params2(ix)%s - s_now) < abs(tao_lat%bunch_params2(ix+1)%s - s_now)) then
-      bunch_params => tao_lat%bunch_params2(ix)
+    call bracket_index (lat_branch%bunch_params(:)%s, 1, branch%n_ele_track, s_now, ix)
+    if (abs(lat_branch%bunch_params(ix)%s - s_now) < abs(lat_branch%bunch_params(ix+1)%s - s_now)) then
+      bunch_params => lat_branch%bunch_params(ix)
     else
-      bunch_params => tao_lat%bunch_params2(ix+1)
+      bunch_params => lat_branch%bunch_params(ix+1)
     endif
 
     if (bunch_params%n_particle_live == 0) then

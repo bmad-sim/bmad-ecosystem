@@ -1,24 +1,14 @@
 This initialization file defines how plotting is done.
-call, file = ../za/za.X.bmad
 
 The following namelist block defines how the plot window (also called
 the plot page) is broken up.
 
 &tao_plot_page
   plot_page%plot_display_type = 'X'       ! 'X' or 'TK'
-! plot_page%size = 8000 , 1000
-  plot_page%size = 900, 900
-!plot_page%size = 1600, 1600
+  plot_page%size = 600, 600
   plot_page%text_height = 12.0 
-  plot_page%border = 0, 0, 0, 0, '%PAGE'  
-  !plot_page%n_curve_pts = 40
+  plot_page%border = 0, 0, 0, 0, '%PAGE'
   plot_page%n_curve_pts = 900
-!  plot_page%n_curve_pts = 4000
-  !plot_page%floor_plan_rotation = 0.5
-  !plot_page%title(1)%string = 'ERL'
-
-!  plot_page%floor_plan_size_is_absolute = T
-!  plot_page%floor_plan_shape_scale = 0.01 !m to cm
 
   region(1)%name = 'floor'
   region(1)%location = 0.0, 1.0, 0.5, 0.95
@@ -41,10 +31,7 @@ the plot page) is broken up.
   region(9)%name = 'r00'
   region(9)%location = 0.0, 1.0, 0.0, 1.0
 
-
-
   place(1) = 'floor', 'floor'
-  !place(1) = 'floor', 'beta'
   place(2) = 'top', 'beta'
   place(3) = 'middle', 'eta'
   place(4) = 'bottom', 'layout'

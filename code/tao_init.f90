@@ -355,11 +355,7 @@ if (allocated (s%u)) then
     deallocate(u%model%lat_branch, stat=istat)
     deallocate(u%design%lat_branch, stat=istat)
     deallocate(u%base%lat_branch, stat=istat)
-    
-    deallocate(u%model%bunch_params2, stat=istat)
-    deallocate(u%design%bunch_params2, stat=istat)
-    deallocate(u%base%bunch_params2, stat=istat)
-    
+
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 
     if (i == 0 .or. .not. s%com%common_lattice) then
