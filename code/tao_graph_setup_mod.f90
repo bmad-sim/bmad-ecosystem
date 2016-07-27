@@ -1782,7 +1782,8 @@ implicit none
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
 type (tao_lattice_branch_struct), pointer :: lat_branch
-type (bunch_params_struct), pointer :: bunch_params
+type (bunch_params_struct), pointer :: bunch_params0, bunch_params1
+type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end
 type (lat_struct), pointer :: lat
@@ -1797,9 +1798,9 @@ type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign, vec3(3)
+real(rp) comp_sign, vec3(3), r_bunch
 
-integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
+integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 
 character(40) data_type, name
 character(40) data_type_select, data_source
@@ -1816,6 +1817,7 @@ lat_branch => tao_lat%lat_branch(ix_branch)
 orb => lat_branch%orbit
 branch => lat%branch(ix_branch)
 first_time = .true.
+n_ele_track = branch%n_ele_track
 
 ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
@@ -1839,14 +1841,14 @@ endif
 ! x1 and x2 are the longitudinal end points of the plot
 
 x1 = branch%ele(0)%s
-x2 = branch%ele(branch%n_ele_track)%s
+x2 = branch%ele(n_ele_track)%s
 len_tot = x2 - x1
 if (curve%g%x%min /= curve%g%x%max) then
   if (branch%param%geometry == closed$) then
-    x1 = min(branch%ele(branch%n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
+    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
     x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
   else
-    x1 = min(branch%ele(branch%n_ele_track)%s, max(curve%g%x%min, x1))
+    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1))
     x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
   endif
 endif
@@ -1875,7 +1877,7 @@ do ii = 1, size(curve%x_line)
   endif
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-  if (s_now > branch%ele(branch%n_ele_track)%s) s_now = branch%ele(branch%n_ele_track)%s
+  if (s_now > branch%ele(n_ele_track)%s) s_now = branch%ele(n_ele_track)%s
   curve%x_line(ii) = s_now
   value = 0
 
@@ -1897,21 +1899,37 @@ do ii = 1, size(curve%x_line)
       call err_exit
     endif
  
-    call bracket_index (lat_branch%bunch_params(:)%s, 1, branch%n_ele_track, s_now, ix)
-    if (abs(lat_branch%bunch_params(ix)%s - s_now) < abs(lat_branch%bunch_params(ix+1)%s - s_now)) then
-      bunch_params => lat_branch%bunch_params(ix)
+    call bracket_index (lat_branch%bunch_params(:)%s, 0, n_ele_track, s_now, ix)
+    bunch_params0 => lat_branch%bunch_params(ix)
+    bunch_params1 => lat_branch%bunch_params(min(ix,n_ele_track))
+
+    if (bunch_params0%s == bunch_params1%s) then
+      r_bunch = 0
     else
-      bunch_params => lat_branch%bunch_params(ix+1)
+      r_bunch = (s_now - bunch_params0%s) / (bunch_params1%s - bunch_params0%s)
     endif
 
-    if (bunch_params%n_particle_live == 0) then
-      good(ii:) = .false.
-      return
+    ! Cannot return if no particles since bunch may be injected not at the start of the branch.
+    if (bunch_params0%n_particle_live == 0) then
+      good(ii) = .true.
+      cycle
     endif
 
     ix_ele = element_at_s (lat, s_now, .true.)
     ele = branch%ele(ix_ele)
-    orbit = bunch_params%centroid
+    orbit%vec = (1-r_bunch) * bunch_params0%centroid%vec + r_bunch * bunch_params1%centroid%vec
+
+    bunch_params%sigma = (1-r_bunch) * bunch_params0%sigma + (1-r_bunch) * bunch_params1%sigma
+
+    bunch_params%a%emit = (1-r_bunch) * bunch_params0%a%emit + (1-r_bunch) * bunch_params1%a%emit
+    bunch_params%b%emit = (1-r_bunch) * bunch_params0%b%emit + (1-r_bunch) * bunch_params1%b%emit
+
+    bunch_params%x%emit = (1-r_bunch) * bunch_params0%x%emit + (1-r_bunch) * bunch_params1%x%emit
+    bunch_params%y%emit = (1-r_bunch) * bunch_params0%y%emit + (1-r_bunch) * bunch_params1%y%emit
+
+    bunch_params%a%norm_emit = (1-r_bunch) * bunch_params0%a%norm_emit + (1-r_bunch) * bunch_params1%a%norm_emit
+    bunch_params%b%norm_emit = (1-r_bunch) * bunch_params0%b%norm_emit + (1-r_bunch) * bunch_params1%b%norm_emit
+    bunch_params%z%norm_emit = (1-r_bunch) * bunch_params0%z%norm_emit + (1-r_bunch) * bunch_params1%z%norm_emit
 
   case ('lat')
     if (first_time) then
