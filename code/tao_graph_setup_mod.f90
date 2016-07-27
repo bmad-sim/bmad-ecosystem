@@ -1638,10 +1638,9 @@ case ('index', 'ele_index')
 
 case ('s')
 
-  smooth_curve = (curve%data_source == 'lat' .or. curve%data_source == 'beam')
-  smooth_curve = smooth_curve .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc
-
-  if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
+  ! beam data_source is not interpolated.
+  smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
+  if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
   if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0 .or. &
       curve%data_source == 'data' .or. curve%data_source == 'var') then
