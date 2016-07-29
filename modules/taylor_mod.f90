@@ -84,7 +84,7 @@ else
   if (associated (taylor1%term)) deallocate (taylor1%term)
 endif
 
-end subroutine
+end subroutine taylor_equal_taylor
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1262,7 +1262,7 @@ end subroutine truncate_taylor_to_order
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine evaluate_em_taylor (r, em_taylor, field, dfield)
+! Subroutine evaluate_em_taylor (r_pos, em_taylor, field, dfield)
 !
 ! Routine to evaluate the field using an em_taylor map.
 ! Note: dField/dz values will be calculated using Maxwell's Equations for a static field.
