@@ -998,7 +998,7 @@ end function kind_name
 !------------------------------------------------------------------------
 !+
 ! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
-!                          no_cavity, exact_modeling, exact_misalign, init_complex)
+!                      no_cavity, exact_modeling, exact_misalign, init_complex, force_init)
 !
 ! Subroutine to initialize PTC.
 !
@@ -1041,10 +1041,11 @@ end function kind_name
 !                       See the PTC guide for more details.
 !   init_complex   -- logical, optional: If present and True then init complex PTC.
 !                       Note: Complex PTC will also be initialized with bmad_com%spin_tracking_on = T.
+!   force_init     -- logical, optional: If present and True then force a PTC init.
 !-
 
 subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
-                        no_cavity, exact_modeling, exact_misalign, init_complex) 
+                        no_cavity, exact_modeling, exact_misalign, init_complex, force_init) 
 
 use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity, default, operator(+), &
@@ -1062,13 +1063,15 @@ real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
-logical, optional :: no_cavity, exact_modeling, exact_misalign, init_complex
+logical, optional :: no_cavity, exact_modeling, exact_misalign, init_complex, force_init
 logical, save :: init_ptc_needed = .true., init_init_needed = .true., init_spin_needed = .true.
 logical params_present, c_verbose_save
 
 character(16) :: r_name = 'set_ptc'
 
 ! ptc cannot be used with photons
+
+if (logic_option(.false., force_init)) init_ptc_needed = .true.
 
 if (present(particle)) then
   if (particle == photon$) return
@@ -1832,11 +1835,11 @@ integer :: j, k, n
 ! Remember to suppress any terms that have a zero coef.  
 
 n = count(u_taylor%c(:) /= 0)
-allocate(bmad_taylor%term(n))
 
 if (associated(bmad_taylor%term)) then
   if (size(bmad_taylor%term) /= n) deallocate(bmad_taylor%term)
 endif
+if (.not. associated(bmad_taylor%term)) allocate(bmad_taylor%term(n))
 
 k = 0
 do j = 1, u_taylor%n
@@ -1845,7 +1848,6 @@ do j = 1, u_taylor%n
   bmad_taylor%term(k)%expn = u_taylor%j(j,:)
   bmad_taylor%term(k)%coef = u_taylor%c(j)
 enddo
-
 
 end subroutine universal_to_bmad_taylor
 
