@@ -2002,15 +2002,13 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('b_curl.')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     select case (data_type)
     case ('b_curl.x')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dB(2,3) - field%dB(3,2)
     case ('b_curl.y')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dB(3,1) - field%dB(1,3)
     case ('b_curl.z')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dB(1,2) - field%dB(2,1)
     case default
       goto 9000  ! Error message & Return
@@ -2021,15 +2019,13 @@ do ii = 1, size(curve%x_line)
     value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
 
   case ('b_field.')
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     select case (data_type)
     case ('b_field.x')
-      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%b(1)
     case ('b_field.y')
-      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%b(2)
     case ('b_field.z')
-      call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%b(3)
     case default
       goto 9000  ! Error message & Return
@@ -2082,15 +2078,13 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('e_curl.')
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     select case (data_type)
     case ('e_curl.x')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dE(2,3) - field%dE(3,2)
     case ('e_curl.y')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dE(3,1) - field%dE(1,3)
     case ('e_curl.z')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%dE(1,2) - field%dE(2,1)
     case default
       goto 9000  ! Error message & Return
@@ -2101,15 +2095,13 @@ do ii = 1, size(curve%x_line)
     value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
 
   case ('e_field.')
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
     select case (data_type)
     case ('e_field.x')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%e(1)
     case ('e_field.y')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%e(2)
     case ('e_field.z')
-      call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
       value = field%e(3)
     case default
       goto 9000  ! Error message & Return
