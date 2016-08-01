@@ -918,10 +918,11 @@ implicit none
 
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
-type (taylor) x, y, f, f1
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0
+type (taylor) x, y, f1, f
 
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0
 integer i, j
+logical first
 
 character(*), parameter :: r_name = 'lsc_kick_coef_calc'
 
@@ -948,38 +949,41 @@ call alloc(x, y, f, f1)
 x = 1d0 .mono. '10'
 y = 1d0 .mono. '01'
 
-csr%slice(:)%coef_lsc%ref = 0  ! Not yet initalized
 
 do i = 1, csr_param%n_bin
-  slice => csr%slice(i)
-  sx = slice%sig_x
-  sy = slice%sig_y
-  if (sx < sig_x_ave * csr_param%sigma_cutoff .or. sy < sig_y_ave * csr_param%sigma_cutoff) then
-    slice%sig_x = 0  ! Mark for tsc calc.
-    slice%sig_y = 0
-    cycle
-  endif
-  a = sx * sy
-  b = csr%gamma * (sx**2 + sy**2) / (sx + sy)
-  c = csr%gamma**2
-  x0 = slice%x0
-  y0 = slice%y0
+
+  first = .true.
 
   do j = 1, csr_param%n_bin
     if (i == j) cycle
+    slice => csr%slice(j)
+    sx = slice%sig_x
+    sy = slice%sig_y
+    if (sx < sig_x_ave * csr_param%sigma_cutoff .or. sy < sig_y_ave * csr_param%sigma_cutoff) then
+      slice%sig_x = 0  ! Mark for tsc calc.
+      slice%sig_y = 0
+      cycle
+    endif
+    a = sx * sy
+    b = csr%gamma * (sx**2 + sy**2) / (sx + sy)
+    c = csr%gamma**2
+    x0 = slice%x0
+    y0 = slice%y0
     dz = csr%slice(j)%z_center - csr%slice(i)%z_center
     ! csr%slice(j)%coef_lsc = csr%slice(j)%coef_lsc + slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
 
-    if (csr%slice(j)%coef_lsc%ref == 0) then
-      f = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
-      csr%slice(j)%coef_lsc%ref = 1
+    f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + &
+                                                  b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+
+    if (first) then
+      f = f1
+      first = .false.
     else
-      f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
       f = f1 * f / (f + f1)
     endif
   enddo
 
-  csr%slice(j)%coef_lsc = factor * f
+  csr%slice(i)%coef_lsc = factor * f
 
 enddo
 
