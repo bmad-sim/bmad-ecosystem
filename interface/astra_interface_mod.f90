@@ -223,8 +223,8 @@ case (lcavity$, rfcavity$, e_gun$)
   write (iu, '(a, i0, a, '//rfmt//', a)') '  nue(', id, ') = ', 1e-9_rp*freq, ' ! GHz'! frequency of the RF field in GHz
   write (iu, '(a, i0, a, '//rfmt//', a)') '  phi(', id, ') = ', phase_lag*180/pi, ' ! deg' 
   if (i_dim == 1) then 
-    write (iu, '(a, i0, a)') '  C_smooth(', id, ') = T'
-    write (iu, '(a, i0, a)') '  C_higher_order(', id, ') = 10'
+    write (iu, '(a, i0, a)') '  C_smooth(', id, ') = 10'
+    write (iu, '(a, i0, a)') '  C_higher_order(', id, ') = T'
   else
     write (iu, '(a, i0, a)') "  Com_grid(", id, ") = 'all'"
   endif
@@ -544,7 +544,7 @@ rfmt = 'es13.5'
 if (present(dz)) then
   z_step = dz
 else
-  z_step = 0.001_rp
+  z_step = 0.0001_rp
 endif
 
 z_min = 0.0_rp
@@ -769,12 +769,12 @@ z_min = 0.0_rp
 z_max = ele%value(L$)
 
 
-x_max =  .02_rp
+x_max =  .0127_rp 
 x_step = z_step  ! Same as z TODO: generalize
 x_min = -x_max
 ix_center = nint(x_max/x_step) + 1
  
-y_max =  .02_rp
+y_max =  .0127_rp
 y_step = z_step  ! Same as z 
 y_min = -x_max
 iy_center = nint(y_max/y_step) + 1
