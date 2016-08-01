@@ -870,6 +870,7 @@ call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start',
 call init_attribute_name1 (drift$, spin_fringe_on$,                 'spin_fringe_on', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
+call init_attribute_name1 (drift$, drift_id$,                       'drift_id', private$)
 
 call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
 call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)

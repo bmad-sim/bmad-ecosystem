@@ -4190,6 +4190,19 @@ if (pele%ix_ref_multipass /= 0) then ! throw out elements that are the same phys
   enddo
 endif
 
+! If the ref element has sub_key = drift$, this element was originally a drift that 
+! has superimposed on. In this case, the information on where the original drift was
+! has been lost so this is an error.
+
+if (n_loc > 0) then
+  ref_ele => eles(1)%ele
+  if (ref_ele%sub_key == drift$) then
+    call parser_error ('DRIFT: ' // trim(ref_ele%name) // ' NO LONGER EXISTS FOR SUPERPOSITION OF ' // super_ele_saved%name, &
+                       '[IT HAS DISAPPEARED DUE TO A PREVIOUS SUPERPOSITION]')
+  endif
+endif
+
+
 ! If the reference element is a group or overlay then this is fine as long as there
 ! is only one slave element.
 
