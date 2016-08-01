@@ -38,7 +38,7 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) charge      ! charge of the particles
   real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
   real(rp) kick_csr    ! CSR kick
-  real(rp) kick_lsc    ! LSC Kick.
+  type (taylor_struct) :: coef_lsc    ! LSC Kick coefs.
 end type
 
 ! csr_kick1_struct stores the CSR kick, kick integral etc. for a given source and kick positions.
@@ -109,6 +109,9 @@ contains
 !-
 
 subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
+
+use ptc_interface_mod, only: set_ptc
+use polymorphic_complextaylor, only: init
 
 implicit none
 
@@ -247,6 +250,10 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
+if (csr_param%lsc_component_on) then
+  call init (4, 6)   ! FPP: 4th order, 6 variables
+endif
+
 do i_step = 0, n_step
 
   ! track through the runt
@@ -290,10 +297,9 @@ do i_step = 0, n_step
                       csr%eleinfo(ele%ix_ele)%floor0%r
   csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
 
-  ! ns = 0 is the unshielded kick.
-
   csr%slice(:)%kick_csr = 0
-  csr%slice(:)%kick_lsc = 0
+
+  ! ns = 0 is the unshielded kick.
 
   do ns = 0, csr_param%n_shield_images
     ! The factor of -1^ns accounts for the sign of the image currents
@@ -341,6 +347,13 @@ do i_step = 0, n_step
   endif
 
 enddo
+
+if (csr_param%lsc_component_on) then
+  do i = lbound(csr%slice, 1), ubound(csr%slice, 1)
+    if (associated(csr%slice(i)%coef_lsc%term)) deallocate(csr%slice(i)%coef_lsc%term)
+  enddo
+  call set_ptc (force_init = .true.)  ! Reset FPP
+endif
 
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
@@ -634,8 +647,8 @@ endif
 ! Space charge kick
 
 if (csr_param%lsc_component_on) then
-  if (csr%y_source == 0) then
-    call lsc_y0_kick_calc (csr)
+  if (csr%y_source == 0) then    ! image charges do not contribute to LSC.
+    call lsc_kick_coef_calc (csr)
   endif
 endif
 
@@ -879,7 +892,7 @@ end function s_source_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_y0_kick_calc (csr)
+! Subroutine lsc_kick_coef_calc (csr)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -893,21 +906,24 @@ end function s_source_calc
 !
 ! Output:
 !   bin     -- csr_struct: Binned particle averages.
-!     %slice(:)%kick_lsc -- Integrated kick.
+!     %slice(:)%coef_lsc -- Integrated kick coefs.
 !-
 
-subroutine lsc_y0_kick_calc (csr)
+subroutine lsc_kick_coef_calc (csr)
+
+use polymorphic_complextaylor
+use ptc_interface_mod
 
 implicit none
 
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
-
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot
+type (taylor) x, y, f, f1
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0
 
 integer i, j
 
-character(*), parameter :: r_name = 'lsc_y0_kick_calc'
+character(*), parameter :: r_name = 'lsc_kick_coef_calc'
 
 ! If there are too few particles in a bin the sigma calc may give a bad value.
 ! This can be a problem if the computed sigma is small.
@@ -919,13 +935,20 @@ if (charge_tot == 0) return
 
 sig_x_ave = dot_product(csr%slice(:)%sig_x, csr%slice(:)%charge) / charge_tot
 sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
-
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
+
+factor = csr%kick_factor * csr%actual_track_step * r_e / &
+          (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 
 ! Compute the kick at the center of each bin
 
-csr%slice(:)%kick_lsc = 0
 if (.not. csr_param%lsc_component_on) return
+
+call alloc(x, y, f, f1)
+x = 1d0 .mono. '10'
+y = 1d0 .mono. '01'
+
+csr%slice(:)%coef_lsc%ref = 0  ! Not yet initalized
 
 do i = 1, csr_param%n_bin
   slice => csr%slice(i)
@@ -939,21 +962,30 @@ do i = 1, csr_param%n_bin
   a = sx * sy
   b = csr%gamma * (sx**2 + sy**2) / (sx + sy)
   c = csr%gamma**2
+  x0 = slice%x0
+  y0 = slice%y0
 
   do j = 1, csr_param%n_bin
     if (i == j) cycle
     dz = csr%slice(j)%z_center - csr%slice(i)%z_center
-    csr%slice(j)%kick_lsc = csr%slice(j)%kick_lsc + &
-                   slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
+    ! csr%slice(j)%coef_lsc = csr%slice(j)%coef_lsc + slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
+
+    if (csr%slice(j)%coef_lsc%ref == 0) then
+      f = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+      csr%slice(j)%coef_lsc%ref = 1
+    else
+      f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+      f = f1 * f / (f + f1)
+    endif
   enddo
+
+  csr%slice(j)%coef_lsc = factor * f
 
 enddo
 
-factor = csr%kick_factor * csr%actual_track_step * r_e / &
-          (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
-csr%slice(:)%kick_lsc = factor * csr%slice(:)%kick_lsc
+call kill(x, y, f, f1)
 
-end subroutine lsc_y0_kick_calc
+end subroutine lsc_kick_coef_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1125,8 +1157,9 @@ implicit none
 type (csr_struct), target :: csr
 type (coord_struct), target :: particle
 type (csr_bunch_slice_struct), pointer :: slice
+type (taylor_struct), pointer :: cl
 
-real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0
+real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y
 real(rp), pointer :: vec(:)
 integer i, i0, i_del
 
@@ -1151,7 +1184,31 @@ vec(6) = vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
 ! Longitudinal space charge
 
 if (csr_param%lsc_component_on) then
-  vec(6) = vec(6) + r0 * csr%slice(i0)%kick_lsc + r1 * csr%slice(i0+1)%kick_lsc
+  x = particle%vec(1)
+  y = particle%vec(3)
+  dpz = 0
+
+  cl =>  csr%slice(i0)%coef_lsc
+  if (cl%ref /= 0) then
+    do i = 1, size(cl%term)
+      f = cl%term(i)%coef 
+      if (cl%term(i)%expn(1) /= 0) f = f * x**cl%term(i)%expn(1)
+      if (cl%term(i)%expn(2) /= 0) f = f * y**cl%term(i)%expn(2)
+      dpz = dpz + r0/f
+    enddo
+  endif
+
+  cl =>  csr%slice(i0+1)%coef_lsc
+  if (cl%ref /= 0) then
+    do i = 1, size(cl%term)
+      f = cl%term(i)%coef 
+      if (cl%term(i)%expn(1) /= 0) f = f * x**cl%term(i)%expn(1)
+      if (cl%term(i)%expn(2) /= 0) f = f * y**cl%term(i)%expn(2)
+      dpz = dpz + r1/f
+    enddo
+  endif
+
+  vec(6) = vec(6) + dpz
 endif
 
 ! Must update beta and z due to the energy change
@@ -1160,19 +1217,23 @@ beta0 = particle%beta
 call convert_pc_to ((1+vec(6))* particle%p0c, particle%species, beta = particle%beta)
 vec(5) = vec(5) * particle%beta / beta0
 
-! Transverse space charge.
+! Transverse space charge. Like the beam-beam interaction but in this case everything is going
+! in the same general direction. In this case, the kicks due to the electric and magnetic fields
+! tend to cancel instead of add as in the bbi case.
 
 if (csr_param%tsc_component_on) then
   f0 = csr%kick_factor * csr%actual_track_step * r_e / (twopi * &
            csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(particle%species)) * csr%gamma**3)
+
+  dpx = 0;  dpy = 0
 
   slice => csr%slice(i0)
   if (slice%sig_x /= 0) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
-    vec(2) = vec(2) - kx * f
-    vec(4) = vec(4) - ky * f
+    dpx = -kx * f
+    dpy = -ky * f
   endif
 
   slice => csr%slice(i0+1)
@@ -1180,9 +1241,16 @@ if (csr_param%tsc_component_on) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
-    vec(2) = vec(2) - kx * f   
-    vec(4) = vec(4) - ky * f
+    dpx = dpx - kx * f   
+    dpy = dpy - ky * f
   endif
+
+  ! 1/2 of the kick is electric and this leads to an energy change.
+  ! The formula for vec(6) assumes that dpx and dpy are small so only the linear terms are kept.
+
+  vec(2) = vec(2) + dpx
+  vec(4) = vec(4) + dpy
+  vec(6) = vec(6) + (dpx*vec(2) + dpy*vec(4)) / (2 * (1 + vec(6)))
 
 endif
 

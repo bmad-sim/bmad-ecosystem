@@ -306,18 +306,10 @@ if (all_drift) then
   branch%ele(ix_super)%lord_status  = not_a_lord$
   call set_flags_for_changed_attribute (branch%ele(ix_super))
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
-  ! If a single drift was split: give the runt drifts on either end 
-  ! names by adding "#" suffix to signify the split
-  if (split1_done .and. split2_done) then
-    if (branch%ele(ix_super-1)%name == branch%ele(ix_super+1)%name .and. &
-                                  branch%ele(ix_super-1)%key == drift$) then
-      n = len_trim(branch%ele(ix_super-1)%name)
-      if (n == len(branch%ele(ix_super-1)%name)) n = n - 1
-      branch%ele(ix_super-1)%name = branch%ele(ix_super-1)%name(1:n) // '#'
-      branch%ele(ix_super+1)%name = branch%ele(ix_super+1)%name(1:n) // '#'
-    endif
-  endif
-  call adjust_drift_names (lat, branch%ele(ix_super-1))
+
+  if (split1_done .and. branch%ele(ix_super-1)%key == drift$) call adjust_drift_names (lat, branch%ele(ix_super-1))
+  if (split2_done .and. branch%ele(ix_super+1)%key == drift$) call adjust_drift_names (lat, branch%ele(ix_super+1))
+
   err_flag = .false.
   return
 endif
@@ -814,18 +806,20 @@ type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
-integer i, ib, k, ixh, ixh2, ixx
+real(rp) drift_id
+integer i, ib, k, ixx
 
 character(40) d_name
 
 !
 
 if (drift_ele%key /= drift$) return
+drift_id = drift_ele%value(drift_id$)
+if (drift_id == 0) return
 
-ixh = index(drift_ele%name, '#')
-if (ixh == 0) return
-
-d_name = drift_ele%name(1:ixh)
+d_name = drift_ele%name
+i = index(d_name, '#')
+if (i /= 0) d_name = d_name(:i-1)
 
 !
 
@@ -837,13 +831,10 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(i)
     if (ele%slave_status /= not_a_child$ .and. ele%lord_status /= multipass_lord$) cycle
-
-    ixh2 = index(ele%name, '#')
-    if (ixh2 /= ixh) cycle
-    if (ele%name(1:ixh) /= d_name(1:ixh)) cycle
+    if (ele%value(drift_id$) /= drift_id) cycle
 
     ixx = ixx + 1
-    write (ele%name, '(a, i0)') d_name(1:ixh), ixx
+    write (ele%name, '(2a, i0)') trim(d_name), '#', ixx
 
     if (ele%lord_status == multipass_lord$) then
       do k = 1, ele%n_slave

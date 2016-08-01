@@ -66,8 +66,7 @@ ds_fudge = bmad_com%significant_length
 
 nr = branch%n_ele_track
 if (s_split < branch%ele(0)%s - ds_fudge .or. s_split > branch%ele(nr)%s + ds_fudge) then
-  call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
-                                  r_array = [s_split] )
+  call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ', r_array = [s_split])
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -103,6 +102,7 @@ if (branch%ele(ix_split)%key == drift$ .and. logic_option(.false., save_null_dri
   call new_control (lat, ixc)
   lat%ele(ixc) = branch%ele(ix_split)
   lat%ele(ixc)%key = null_ele$
+  lat%ele(ixc)%sub_key = drift$  ! To mark that the element was formally a drift
 endif
 
 ! Insert a new element.
@@ -118,6 +118,12 @@ if (logic_option(.true., add_suffix)) then
   ix = len_trim(ele%name)
   ele1%name = ele%name(:ix) // '#1'
   ele2%name = ele%name(:ix) // '#2'
+endif
+
+! drift_id is used by bmad_parser to keep track of which drifts where originally one bigger drift
+if (ele1%key == drift$ .and. ele1%value(drift_id$) == 0) then
+  ele1%value(drift_id$) = s_split 
+  ele2%value(drift_id$) = s_split 
 endif
 
 ! Kill any talyor series, etc.
