@@ -804,9 +804,10 @@ end subroutine convert_particle_coordinates_s_to_t
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine drift_orbit_time(orbit, delta_s)
+! Subroutine drift_orbit_time(orbit, delta_s, delta_t)
 !
 ! Simple routine to drift a particle orbit in time-based coordinates by a distance delta_s
+!   or a time delta_t
 !   If the particle has zero longitudinal velocity, then the particle is not drifted
 !   and a warning is printed.  
 !
@@ -815,20 +816,22 @@ end subroutine convert_particle_coordinates_s_to_t
 !
 ! Input:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates
-!   delta_s    -- real(rp): s-coordinate distance to drift particle
+!   delta_s    -- real(rp), optional: s-coordinate distance to drift particle
+!   delta_t    -- real(rp), optional: -coordinate distancet to drift particle
 !                  .
 !
 ! Output:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates
 !                                     
 !-
-subroutine drift_orbit_time(orbit, delta_s)
+subroutine drift_orbit_time(orbit, delta_s, delta_t)
 use bmad_struct
   
 implicit none
   
 type (coord_struct) :: orbit
-real(rp) :: delta_s, delta_t, v_s, e_tot, vel(3)
+real(rp), optional :: delta_s, delta_t
+real(rp) :: v_s, e_tot, vel(3)
 
 character(28), parameter :: r_name = 'drift_orbit_time'
   
@@ -840,13 +843,18 @@ e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mass_of(orb
 
 vel(1:3) = c_light*[  orbit%vec(2), orbit%vec(4), orbit%vec(6) ]/ e_tot 
 
-if( vel(3) == 0 )then
-   ! Do not drift
-   call out_io (s_warn$, r_name, 'v_s == 0, will not drift')
-   return
-endif 
-  
-delta_t = delta_s / vel(3)
+
+if (present(delta_s)) then  
+  if( vel(3) == 0)then
+     ! Do not drift
+     call out_io (s_warn$, r_name, 'v_s == 0, will not drift')
+     return
+  endif 
+  delta_t = delta_s / vel(3)
+else
+  delta_s = vel(3) *delta_t
+endif
+
 
 ! Drift x, y, s
 orbit%vec(1) = orbit%vec(1) + vel(1)*delta_t  !x
@@ -992,12 +1000,12 @@ do i = 1, size(bunch%particle)
   
   !get \gamma m c
   gmc = sqrt(pc**2 + mass_of(orb%species)**2) / c_light
-  
+   
   !'track' particles backwards in time and write to file
   ! (x, y, s) - dt mc2 \beta_x \gamma / \gamma m c
   orb%vec(1) = orb%vec(1) - dt*orb%vec(2)/gmc
-  orb%vec(3) = orb%vec(3) - dt*orb%vec(2)/gmc
-  orb%vec(5) = orb%vec(5) - dt*orb%vec(2)/gmc
+  orb%vec(3) = orb%vec(3) - dt*orb%vec(4)/gmc
+  orb%vec(5) = orb%vec(5) - dt*orb%vec(6)/gmc
   orb%t = orb%t - dt
   
   ! 
