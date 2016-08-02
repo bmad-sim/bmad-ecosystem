@@ -136,7 +136,7 @@ case ('beam')
       if (.not. is_open) then
         if (ascii) then
           open (iu, file = file_name)
-          write (iu) '!ASCII::3'
+          write (iu, '(a)') '!ASCII::3'
         else
           open (iu, file = file_name, form = 'unformatted')
           write (iu) '!BIN::3'
