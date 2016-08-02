@@ -171,11 +171,10 @@ elseif (index(line, '!ASCII::3') /= 0) then
   file_type = 'ASCII::3'
 else
   file_type = 'ASCII'
+  rewind (iu)
 endif
 
-if (file_type(1:5) == 'ASCII') then
-  rewind (iu)
-else
+if (file_type(1:3) == 'BIN') then
   close (iu)
   open (iu, file = file_name, form = 'unformatted', status = 'old')
 endif
