@@ -949,7 +949,6 @@ call alloc(x, y, f, f1)
 x = 1d0 .mono. '10'
 y = 1d0 .mono. '01'
 
-
 do i = 1, csr_param%n_bin
 
   first = .true.
@@ -983,7 +982,8 @@ do i = 1, csr_param%n_bin
     endif
   enddo
 
-  csr%slice(i)%coef_lsc = factor * f
+  f = factor * f
+  csr%slice(i)%coef_lsc = f
 
 enddo
 
@@ -1232,7 +1232,7 @@ if (csr_param%tsc_component_on) then
   dpx = 0;  dpy = 0
 
   slice => csr%slice(i0)
-  if (slice%sig_x /= 0) then
+  if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
@@ -1241,7 +1241,7 @@ if (csr_param%tsc_component_on) then
   endif
 
   slice => csr%slice(i0+1)
-  if (slice%sig_x /= 0) then
+  if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
     call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
     f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
