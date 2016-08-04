@@ -982,7 +982,7 @@ do i = 1, csr_param%n_bin
     endif
   enddo
 
-  f = factor * f
+  f = f / factor
   csr%slice(i)%coef_lsc = f
 
 enddo
