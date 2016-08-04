@@ -88,7 +88,7 @@ elseif (integer_option(hdf5$, file_format) == ascii$) then
     write (iu, *) bunch%t_center,   '  ! t_center'
     do ip = 1, size(bunch%particle)
       p => bunch%particle(ip)
-      write (iu, '(6es19.10, es14.5, i6, 3es19.10, 3i3)') &
+      write (iu, '(6es19.10, es14.5, i6, 3es19.10, i6, i3)') &
             p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
     enddo
     write (iu, *) 'END_BUNCH'
