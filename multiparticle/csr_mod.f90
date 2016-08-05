@@ -39,6 +39,7 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
   real(rp) kick_csr    ! CSR kick
   type (taylor_struct) :: coef_lsc    ! LSC Kick coefs.
+  real(rp) kick_lsc
 end type
 
 ! csr_kick1_struct stores the CSR kick, kick integral etc. for a given source and kick positions.
@@ -250,7 +251,7 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
-if (csr_param%lsc_component_on) then
+if (csr_param%lsc_component_on .and. csr_param%lsc_kick_transverse_dependence) then
   call init (4, 6)   ! FPP: 4th order, 6 variables
 endif
 
@@ -298,6 +299,7 @@ do i_step = 0, n_step
   csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
 
   csr%slice(:)%kick_csr = 0
+  csr%slice(:)%kick_lsc = 0
 
   ! ns = 0 is the unshielded kick.
 
@@ -348,7 +350,7 @@ do i_step = 0, n_step
 
 enddo
 
-if (csr_param%lsc_component_on) then
+if (csr_param%lsc_component_on .and. csr_param%lsc_kick_transverse_dependence) then
   do i = lbound(csr%slice, 1), ubound(csr%slice, 1)
     if (associated(csr%slice(i)%coef_lsc%term)) deallocate(csr%slice(i)%coef_lsc%term)
   enddo
@@ -945,13 +947,16 @@ factor = csr%kick_factor * csr%actual_track_step * r_e / &
 
 if (.not. csr_param%lsc_component_on) return
 
-call alloc(x, y, f, f1)
-x = 1d0 .mono. '10'
-y = 1d0 .mono. '01'
+if (csr_param%lsc_kick_transverse_dependence) then
+  call alloc(x, y, f, f1)
+  x = 1d0 .mono. '10'
+  y = 1d0 .mono. '01'
+endif
 
 do i = 1, csr_param%n_bin
 
   first = .true.
+  csr%slice(i)%kick_lsc = 0
 
   do j = 1, csr_param%n_bin
     if (i == j) cycle
@@ -969,25 +974,32 @@ do i = 1, csr_param%n_bin
     x0 = slice%x0
     y0 = slice%y0
     dz = csr%slice(j)%z_center - csr%slice(i)%z_center
-    ! csr%slice(j)%coef_lsc = csr%slice(j)%coef_lsc + slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
 
-    f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + &
+    if (csr_param%lsc_kick_transverse_dependence) then
+      f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + &
                                                   b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+      if (first) then
+        f = f1
+        first = .false.
+      else
+        f = f1 * f / (f + f1)
+      endif
 
-    if (first) then
-      f = f1
-      first = .false.
     else
-      f = f1 * f / (f + f1)
+     csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + &
+                      factor * slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
     endif
+
   enddo
 
-  f = f / factor
-  csr%slice(i)%coef_lsc = f
+  if (csr_param%lsc_kick_transverse_dependence) then
+    f = f / factor
+    csr%slice(i)%coef_lsc = f
+  endif
 
 enddo
 
-call kill(x, y, f, f1)
+if (csr_param%lsc_kick_transverse_dependence) call kill(x, y, f, f1)
 
 end subroutine lsc_kick_coef_calc
 
@@ -1161,9 +1173,8 @@ implicit none
 type (csr_struct), target :: csr
 type (coord_struct), target :: particle
 type (csr_bunch_slice_struct), pointer :: slice
-type (taylor_struct), pointer :: cl
 
-real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y
+real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp), pointer :: vec(:)
 integer i, i0, i_del
 
@@ -1188,31 +1199,42 @@ vec(6) = vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
 ! Longitudinal space charge
 
 if (csr_param%lsc_component_on) then
-  x = particle%vec(1)
-  y = particle%vec(3)
-  dpz = 0
 
-  cl =>  csr%slice(i0)%coef_lsc
-  if (cl%ref /= 0) then
-    do i = 1, size(cl%term)
-      f = cl%term(i)%coef 
-      if (cl%term(i)%expn(1) /= 0) f = f * x**cl%term(i)%expn(1)
-      if (cl%term(i)%expn(2) /= 0) f = f * y**cl%term(i)%expn(2)
-      dpz = dpz + r0/f
-    enddo
+  if (csr_param%lsc_kick_transverse_dependence) then
+    x = particle%vec(1)
+    y = particle%vec(3)
+    dpz = 0
+
+    slice => csr%slice(i0)
+    if (associated(slice%coef_lsc%term)) then
+      f_tot = 0
+      do i = 1, size(slice%coef_lsc%term)
+        f = slice%coef_lsc%term(i)%coef 
+        if (slice%coef_lsc%term(i)%expn(1) /= 0) f = f * x**slice%coef_lsc%term(i)%expn(1)
+        if (slice%coef_lsc%term(i)%expn(2) /= 0) f = f * y**slice%coef_lsc%term(i)%expn(2)
+        f_tot = f_tot + f
+      enddo
+      dpz = dpz + r0/f_tot
+    endif
+
+    slice => csr%slice(i0+1)
+    if (associated(slice%coef_lsc%term)) then
+      f_tot = 0
+      do i = 1, size(slice%coef_lsc%term)
+        f = slice%coef_lsc%term(i)%coef 
+        if (slice%coef_lsc%term(i)%expn(1) /= 0) f = f * x**slice%coef_lsc%term(i)%expn(1)
+        if (slice%coef_lsc%term(i)%expn(2) /= 0) f = f * y**slice%coef_lsc%term(i)%expn(2)
+        f_tot = f_tot + f
+      enddo
+      dpz = dpz + r1/f_tot
+    endif
+
+    vec(6) = vec(6) + dpz
+
+  else
+    vec(6) = vec(6) + r0 * csr%slice(i0)%kick_lsc + r1 * csr%slice(i0+1)%kick_lsc
   endif
 
-  cl =>  csr%slice(i0+1)%coef_lsc
-  if (cl%ref /= 0) then
-    do i = 1, size(cl%term)
-      f = cl%term(i)%coef 
-      if (cl%term(i)%expn(1) /= 0) f = f * x**cl%term(i)%expn(1)
-      if (cl%term(i)%expn(2) /= 0) f = f * y**cl%term(i)%expn(2)
-      dpz = dpz + r1/f
-    enddo
-  endif
-
-  vec(6) = vec(6) + dpz
 endif
 
 ! Must update beta and z due to the energy change
