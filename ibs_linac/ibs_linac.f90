@@ -41,7 +41,7 @@ real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, rad_delta_eV2, gamma
 real(rp), parameter :: c_q = 3.84e-13
 real(rp) :: initial_slice_energy_spread_eV, energy_spread_eV, sigma_z
 
-integer :: ix
+integer :: ix, status
 integer :: namelist_file, n_char
 
 character(100) :: lat_name, lat_path, base_name, in_file
@@ -49,7 +49,7 @@ character(30), parameter :: r_name = 'ibs_linac'
 character(4) :: ibs_formula
 
 logical :: radiation_damping_on, radiation_fluctuations_on, ISR_energy_spread_on
-logical :: err, ok, use_beam, verbose, ibs_affects_bunch, ibs_on
+logical :: err, use_beam, verbose, ibs_affects_bunch, ibs_on
 
 namelist / ibs_linac_params / &
     lat_name, ibs_formula, &
@@ -100,8 +100,8 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 print *, 'bmad_com%radiation_damping_on: ', bmad_com%radiation_damping_on
 print *, 'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
 
-call twiss_and_track(lat, orbit, ok)
-if (.not. ok) then
+call twiss_and_track(lat, orbit, status)
+if (status /= ok$) then
   print *, 'problem with twiss_and_track'
   stop
 endif

@@ -8,6 +8,7 @@ type (lat_struct) lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orb_at_s
 type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: slave
 
 integer i, n
 real(rp) s_position
@@ -20,9 +21,6 @@ character(100) lat_name
 character(100) outfile_name
 character(24)  :: fmt
 
-logical ok
-
-type (ele_struct), pointer :: slave
 !------------------
 
 !Get lattice from command line
@@ -36,7 +34,7 @@ print *,"Using ", lat_name
 call file_suffixer (lat_name, outfile_name, '.wall_dat', .true.)
 
 call bmad_and_xsif_parser (lat_name, lat)
-call twiss_and_track (lat, orb, ok)
+call twiss_and_track (lat, orb)
 
 open(1, file = outfile_name)
 

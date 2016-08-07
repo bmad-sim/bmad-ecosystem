@@ -36,7 +36,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele
+integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele, status
 integer n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
@@ -259,8 +259,8 @@ if (turn_off_kickers_in_lattice) then
   call lattice_bookkeeper (lat)
 endif
 
-call twiss_and_track (lat, orb, ok, branch%ix_branch, use_beam_start = .true.)
-if (.not. ok) stop
+call twiss_and_track (lat, orb, status, branch%ix_branch, use_beam_start = .true.)
+if (status /= ok$) stop
   
 ! Find out much radiation is produced
 
