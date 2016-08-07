@@ -1,17 +1,6 @@
 module twiss_mod
 
-use sim_utils
-
-type twiss_struct
-  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
-  real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
-end type
-
-integer, parameter :: ok$ = 1, in_stop_band$ = 2, non_symplectic$ = 3, unstable$ = 4
-integer, parameter :: unstable_a$ = 5, unstable_b$ = 6
-
-character(20) :: matrix_status_name(6) = ['OK             ', 'IN_STOP_BAND   ', 'NON_SYMPLECTIC ', &
-                       'UNSTABLE       ', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE']
+use bmad_struct
 
 contains
 
