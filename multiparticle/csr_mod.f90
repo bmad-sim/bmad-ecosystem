@@ -36,7 +36,7 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) charge      ! charge of the particles
   real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
   real(rp) kick_csr    ! CSR kick
-  type (taylor_struct) :: coef_lsc    ! LSC Kick coefs.
+  real(rp) :: coef_lsc(0:4,0:4)    ! LSC Kick coefs.
   real(rp) kick_lsc
 end type
 
@@ -108,9 +108,6 @@ contains
 !-
 
 subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
-
-use ptc_interface_mod, only: set_ptc
-use polymorphic_complextaylor, only: init
 
 implicit none
 
@@ -249,10 +246,6 @@ bmad_com%auto_bookkeeper = .false.   ! make things go faster
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
-if (csr_param%lsc_component_on .and. csr_param%lsc_kick_transverse_dependence) then
-  call init (4, 6)   ! FPP: 4th order, 6 variables
-endif
-
 do i_step = 0, n_step
 
   ! track through the runt
@@ -297,8 +290,6 @@ do i_step = 0, n_step
   csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
 
   csr%slice(:)%kick_csr = 0
-  csr%slice(:)%kick_lsc = 0
-  csr%slice(:)%coef_lsc%ref = 0   ! Mark as not set.
 
   ! ns = 0 is the unshielded kick.
 
@@ -348,13 +339,6 @@ do i_step = 0, n_step
   endif
 
 enddo
-
-if (csr_param%lsc_component_on .and. csr_param%lsc_kick_transverse_dependence) then
-  do i = lbound(csr%slice, 1), ubound(csr%slice, 1)
-    if (associated(csr%slice(i)%coef_lsc%term)) deallocate(csr%slice(i)%coef_lsc%term)
-  enddo
-  call set_ptc (force_init = .true.)  ! Reset FPP
-endif
 
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
@@ -900,22 +884,22 @@ end function s_source_calc
 !     %slice(:)   -- bin array of particle averages.
 !
 ! Output:
-!   bin     -- csr_struct: Binned particle averages.
-!     %slice(:)%coef_lsc -- Integrated kick coefs.
+!   csr     -- csr_struct: Binned particle averages.
+!     %slice(:)   -- bin array of particle averages.
 !-
 
 subroutine lsc_kick_coef_calc (csr)
 
-use polymorphic_complextaylor
-use ptc_interface_mod
+use da2_mod
 
 implicit none
 
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
-type (taylor) x, y, f1, f
 
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0, a00
+real(rp) sx2, sy2, sx4, sy4, x02, y02, f(0:4,0:4), f1(0:4,0:4)
+real(rp) x0_0, y0_0
 integer i, j
 logical have_set
 
@@ -940,16 +924,16 @@ factor = csr%kick_factor * csr%actual_track_step * r_e / &
 
 if (.not. csr_param%lsc_component_on) return
 
-if (csr_param%lsc_kick_transverse_dependence) then
-  call alloc(x, y, f, f1)
-  x = 1d0 .mono. '10'
-  y = 1d0 .mono. '01'
-endif
-
 do i = 1, csr_param%n_bin
 
-  have_set = .false.
   csr%slice(i)%kick_lsc = 0
+  csr%slice(i)%coef_lsc = 0 
+
+  x0_0 = csr%slice(i)%x0
+  y0_0 = csr%slice(i)%y0
+
+
+  have_set = .false.
 
   do j = 1, csr_param%n_bin
     if (i == j) cycle
@@ -961,18 +945,37 @@ do i = 1, csr_param%n_bin
       slice%sig_y = 0
       cycle
     endif
+    sx2 = sx*sx
+    sy2 = sy*sy
     a = sx * sy
-    b = csr%gamma * (sx**2 + sy**2) / (sx + sy)
+    b = csr%gamma * (sx2 + sy2) / (sx + sy)
     c = csr%gamma**2
-    x0 = slice%x0
-    y0 = slice%y0
+    x0 = slice%x0 - x0_0
+    y0 = slice%y0 - y0_0
     dz = csr%slice(i)%z_center - csr%slice(j)%z_center
 
     if (csr_param%lsc_kick_transverse_dependence) then
-      f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + &
-                                                  b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+      x02 = x0**2;      y02 = y0**2
+      sx4 = sx2**2;     sy4 = sy2**2
+      a00 = a * exp(x0**2/(2*sx2) + y0**2/(2*sy2)) / (sign_of(dz) * slice%charge)
+      f1(0,0) =  a00 + (b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
+      f1(0,1) = -a00 * y0/sy2
+      f1(0,2) =  a00 * (sy2 + y02) / (2 * sy4)
+      f1(0,3) = -a00 * y0 * (3*sy2 + y02) / (6 * sy4 * sy2)
+      f1(0,4) =  a00 * (3*sy4 + 6*y02*sy2 + y02 * y02) / (24 * sy4 * sy4)
+      f1(1,0) = -a00 * x0/sx2
+      f1(1,1) =  a00 * x0 * y0 / (sx2 * sy2)
+      f1(1,2) = -a00 * x0 * (sy2 + y02) / (2 * sx2 * sy4)
+      f1(1,3) =  a00 * x0 * y0 * (3*sy2 + y02) / (6 * sx2 * sy4 * sy2)
+      f1(2,0) =  a00 * (sx2 + x02) / (2 * sx4) 
+      f1(2,1) = -a00 * y0 * (sx2 + x02) / (2 * sx4 * sy2)
+      f1(2,2) =  a00 * (sx2 + x02) * (sy2 + y02) / (4 * sx4 * sy4)
+      f1(3,0) = -a00 * x0 * (3*sx2 + x02) / (6 * sx4 * sx2)  
+      f1(3,1) =  a00 * x0 * y0 * (3 * sx2 + x02) / (6 * sx4 * sx2 * sy2)
+      f1(4,0) =  a00 * (3 * sx4 + 6 * sx2 * x02 + x02 * x02) / (24 * sx4 * sx4)
+
       if (have_set) then
-        f = f1 * f / (f + f1)
+        f = da2_div(da2_mult(f1, f), f + f1)
       else
         f = f1
         have_set = .true.
@@ -986,14 +989,10 @@ do i = 1, csr_param%n_bin
   enddo
 
   if (csr_param%lsc_kick_transverse_dependence .and. have_set) then
-    f = f / factor
-    csr%slice(i)%coef_lsc = f
-    csr%slice(i)%coef_lsc%ref = 1
+    csr%slice(i)%coef_lsc = f / factor
   endif
 
 enddo
-
-if (csr_param%lsc_kick_transverse_dependence) call kill(x, y, f, f1)
 
 end subroutine lsc_kick_coef_calc
 
@@ -1162,6 +1161,8 @@ end subroutine image_charge_kick_calc
 
 subroutine csr_kick_calc (csr, particle)
 
+use da2_mod
+
 implicit none
 
 type (csr_struct), target :: csr
@@ -1200,27 +1201,13 @@ if (csr_param%lsc_component_on) then
     dpz = 0
 
     slice => csr%slice(i0)
-    if (slice%coef_lsc%ref /= 0) then
-      f_tot = 0
-      do i = 1, size(slice%coef_lsc%term)
-        f = slice%coef_lsc%term(i)%coef 
-        if (slice%coef_lsc%term(i)%expn(1) /= 0) f = f * x**slice%coef_lsc%term(i)%expn(1)
-        if (slice%coef_lsc%term(i)%expn(2) /= 0) f = f * y**slice%coef_lsc%term(i)%expn(2)
-        f_tot = f_tot + f
-      enddo
-      dpz = dpz + r0/f_tot
+    if (slice%coef_lsc(0,0) /= 0) then
+      dpz = dpz + r0 / da2_evaluate(slice%coef_lsc, x-slice%x0, y-slice%y0)
     endif
 
     slice => csr%slice(i0+1)
-    if (slice%coef_lsc%ref /= 0) then
-      f_tot = 0
-      do i = 1, size(slice%coef_lsc%term)
-        f = slice%coef_lsc%term(i)%coef 
-        if (slice%coef_lsc%term(i)%expn(1) /= 0) f = f * x**slice%coef_lsc%term(i)%expn(1)
-        if (slice%coef_lsc%term(i)%expn(2) /= 0) f = f * y**slice%coef_lsc%term(i)%expn(2)
-        f_tot = f_tot + f
-      enddo
-      dpz = dpz + r1/f_tot
+    if (slice%coef_lsc(0,0) /= 0) then
+      dpz = dpz + r1 / da2_evaluate(slice%coef_lsc, x-slice%x0, y-slice%y0)
     endif
 
     vec(6) = vec(6) + dpz
