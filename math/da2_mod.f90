@@ -29,8 +29,8 @@ contains
 ! The size of ta and tb must be the same.
 !
 ! Input:
-!   ta(0:N,0:N) -- real(rp): Input Taylor map
-!   tb(0:N,0:N) -- real(rp): Input Taylor map
+!   ta(0:N,0:N) -- real(rp): Input Taylor series
+!   tb(0:N,0:N) -- real(rp): Input Taylor series
 !
 ! Output:
 !   tc(0:N,0:N) -- real(rp): tc = ta * tb.
@@ -72,8 +72,8 @@ end function da2_mult
 ! The size of ta, and tb must be the same.
 !
 ! Input:
-!   ta(0:N,0:N) -- real(rp): Input Taylor map
-!   tb(0:N,0:N) -- real(rp): Input Taylor map
+!   ta(0:N,0:N) -- real(rp): Input Taylor series
+!   tb(0:N,0:N) -- real(rp): Input Taylor series
 !
 ! Output:
 !   tc(0:N,0:N) -- real(rp): tc = ta / tb.
@@ -98,7 +98,7 @@ end function da2_div
 ! Routine to take the inverse of a da2 series.
 !
 ! Input:
-!   ta(0:N,0:N) -- real(rp): Input Taylor map
+!   ta(0:N,0:N) -- real(rp): Input Taylor series
 !
 ! Output:
 !   ta_inv(0:N,0:N) -- real(rp): ta_inv = 1 / ta
@@ -137,5 +137,44 @@ enddo
 ta_inv = ta_inv / ta(0,0)
 
 end function da2_inverse
+
+!-----------------------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------
+!+
+! Function da2_evaluate (ta, x, y) result (value)
+!
+! Routine to evaluate a da2 series.
+!
+! Input:
+!   ta(0:N,0:N) -- real(rp): Input Taylor series.
+!   x, y        -- real(rp): Point to evaluate at.
+!
+! Output:
+!   value       -- real(rp): Value of series at (x, y).
+!-
+
+function da2_evaluate (ta, x, y) result (value)
+
+real(rp) ta(0:,0:), x, y, value
+real(rp) xn(0:ubound(ta,1)), yn(0:ubound(ta,2))
+integer n, i, j
+
+n = ubound(ta, 1)
+xn(0:1) = [1.0_rp, x]
+yn(0:1) = [1.0_rp, y]
+do i = 2, n
+  xn(i) = xn(i-1) * x
+  yn(i) = yn(i-1) * y
+enddo
+
+value = 0
+do i = 0, n
+do j = 0, n-i
+  value = value + ta(i,j) * xn(i) * yn(j)
+enddo
+enddo
+
+end function da2_evaluate
 
 end module
