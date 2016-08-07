@@ -25,7 +25,7 @@ real(rp), allocatable :: t_shift(:)
 
 integer nn, i, ios, ix
 
-logical ok, fshift_found
+logical fshift_found
 
 character(40), allocatable :: name(:)
 character(40) pname, calc_fshift_for
@@ -87,7 +87,7 @@ else
 
   call set_on_off (rfcavity$, lat, off$)
   call reallocate_coord (orbit, lat)
-  call twiss_and_track (lat, orbit, ok)
+  call twiss_and_track (lat, orbit)
 
   z_old = 0
   

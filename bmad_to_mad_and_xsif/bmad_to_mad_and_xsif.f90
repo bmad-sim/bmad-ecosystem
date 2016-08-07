@@ -31,9 +31,8 @@ implicit none
 type (lat_struct) lat
 type (coord_struct), allocatable :: orbit(:)
 
-integer i, n_arg, ix
-logical is_rel, nobpm, aperture, ok
-
+integer i, n_arg, ix, status
+logical is_rel, nobpm, aperture
 character(120) file_name, out_name, dir, arg
 character(16) bpm_ans, out_type
 
@@ -74,8 +73,8 @@ endif
 
 call file_suffixer (file_name, file_name, 'bmad', .false.)
 call bmad_parser (file_name, lat)
-call twiss_and_track (lat, orbit, ok, use_beam_start = .true.)
-if (.not. ok) then
+call twiss_and_track (lat, orbit, status, use_beam_start = .true.)
+if (status /= ok$) then
   print *, 'PROBLEM TRACKING. NO OUTPUT GENERATED!'
   stop
 endif
