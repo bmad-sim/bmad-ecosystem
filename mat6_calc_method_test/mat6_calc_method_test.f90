@@ -223,7 +223,7 @@ case ('"SBEND7:Tracking:MatrixRow2"')              ; tolerance = 'ABS 3e-11'
 case ('"SBEND7:Tracking:MatrixRow3"')              ; tolerance = 'ABS 1e-09'
 case ('"SBEND7:Tracking:MatrixRow4"')              ; tolerance = 'ABS 4e-10'
 case ('"SBEND7:Tracking:MatrixRow5"')              ; tolerance = 'ABS 4e-11'
-case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 3e-09'
+case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 5e-09'
 case ('"SBEND7:Tracking:Vector"')                  ; tolerance = 'ABS 1e-10'
 
 case ('"SOL_QUAD1:Tracking:Symp_Err"')             ; tolerance = 'ABS 2e-11'
