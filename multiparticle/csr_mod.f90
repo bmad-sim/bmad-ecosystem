@@ -33,8 +33,6 @@ type csr_bunch_slice_struct   ! Structure for a single particle bin.
   real(rp) z_center    ! z at center of bin.
   real(rp) sig_x       ! particle's RMS width
   real(rp) sig_y       ! particle's RMS width
-  real(rp) lsc_d0
-  real(rp) lsc_d1
   real(rp) charge      ! charge of the particles
   real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
   real(rp) kick_csr    ! CSR kick
@@ -300,6 +298,7 @@ do i_step = 0, n_step
 
   csr%slice(:)%kick_csr = 0
   csr%slice(:)%kick_lsc = 0
+  csr%slice(:)%coef_lsc%ref = 0   ! Mark as not set.
 
   ! ns = 0 is the unshielded kick.
 
@@ -517,12 +516,6 @@ do ib = 1, csr_param%n_bin
   if (slice%charge == 0) cycle
   slice%sig_x = f * slice%sig_x / slice%charge
   slice%sig_y = f * slice%sig_y / slice%charge
-  slice%lsc_d0 = slice%sig_x * slice%sig_y
-  if (slice%sig_x == 0 .and. slice%sig_y == 0) then
-    slice%lsc_d1 = 0
-  else
-    slice%lsc_d1 = (slice%sig_x**2 + slice%sig_y**2) / (slice%sig_x + slice%sig_y)
-  endif
 enddo
 
 !---------------------------------------------------------------------------
@@ -924,7 +917,7 @@ type (taylor) x, y, f1, f
 
 real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0
 integer i, j
-logical first
+logical have_set
 
 character(*), parameter :: r_name = 'lsc_kick_coef_calc'
 
@@ -955,7 +948,7 @@ endif
 
 do i = 1, csr_param%n_bin
 
-  first = .true.
+  have_set = .false.
   csr%slice(i)%kick_lsc = 0
 
   do j = 1, csr_param%n_bin
@@ -973,16 +966,16 @@ do i = 1, csr_param%n_bin
     c = csr%gamma**2
     x0 = slice%x0
     y0 = slice%y0
-    dz = csr%slice(j)%z_center - csr%slice(i)%z_center
+    dz = csr%slice(i)%z_center - csr%slice(j)%z_center
 
     if (csr_param%lsc_kick_transverse_dependence) then
       f1 = (a * exp((x-x0)**2 / (2 * sx**2) + (y-y0)**2 / (2 * sy**2)) + &
                                                   b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
-      if (first) then
-        f = f1
-        first = .false.
-      else
+      if (have_set) then
         f = f1 * f / (f + f1)
+      else
+        f = f1
+        have_set = .true.
       endif
 
     else
@@ -992,9 +985,10 @@ do i = 1, csr_param%n_bin
 
   enddo
 
-  if (csr_param%lsc_kick_transverse_dependence) then
+  if (csr_param%lsc_kick_transverse_dependence .and. have_set) then
     f = f / factor
     csr%slice(i)%coef_lsc = f
+    csr%slice(i)%coef_lsc%ref = 1
   endif
 
 enddo
@@ -1206,7 +1200,7 @@ if (csr_param%lsc_component_on) then
     dpz = 0
 
     slice => csr%slice(i0)
-    if (associated(slice%coef_lsc%term)) then
+    if (slice%coef_lsc%ref /= 0) then
       f_tot = 0
       do i = 1, size(slice%coef_lsc%term)
         f = slice%coef_lsc%term(i)%coef 
@@ -1218,7 +1212,7 @@ if (csr_param%lsc_component_on) then
     endif
 
     slice => csr%slice(i0+1)
-    if (associated(slice%coef_lsc%term)) then
+    if (slice%coef_lsc%ref /= 0) then
       f_tot = 0
       do i = 1, size(slice%coef_lsc%term)
         f = slice%coef_lsc%term(i)%coef 
