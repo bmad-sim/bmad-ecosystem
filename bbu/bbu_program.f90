@@ -24,8 +24,7 @@ logical err
 logical lost
 
 integer :: file_unit, file_unit2
-integer k
-logical :: ok
+integer k, status
 
 type (coord_struct), allocatable :: orb(:) 
 namelist / bbu_params / bbu_param, beam_init, bmad_com
@@ -64,7 +63,7 @@ if (bbu_param%lat2_filename /= '') then
 endif
 
 !! Closed orbit computed
-call twiss_and_track(lat_in,orb,ok,0,.true.)
+call twiss_and_track(lat_in,orb,status,0,.true.)
 
 ! Remove HOMs of higher order
 if (bbu_param%hom_order_cutoff > 0) then
