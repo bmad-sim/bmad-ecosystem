@@ -7,6 +7,7 @@ use custom_bmad_interface
 use basic_bmad_interface
 use attribute_mod
 use element_at_s_mod
+use twiss_mod
 
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy

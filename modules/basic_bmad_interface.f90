@@ -880,6 +880,14 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   type (track_struct), optional :: track
 end subroutine
 
+subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
+  import
+  implicit none
+  type (ele_struct) ele1, ele2
+  real(rp) orb1(6), orb2(6)
+  real(rp) m(6,6)
+end subroutine
+
 subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
                                                                ele_start, ele_end, err, compute_floor_coords)
   import

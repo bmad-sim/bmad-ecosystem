@@ -7,7 +7,6 @@ module bmad_struct
 use taylor_mod
 use complex_taylor_mod
 use random_mod
-use twiss_mod
 use basic_bmad_mod
 use spline_mod
 
@@ -146,6 +145,22 @@ integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
 character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', 'x_invariant       ', 'multipole_symmetry']
 
 integer, parameter :: control_var$ = 1, old_control_var$ = 2, all_control_var$ = 3, elec_multipole$ = 4
+
+!
+
+integer, parameter :: ok$ = 1, in_stop_band$ = 2, non_symplectic$ = 3, unstable$ = 4
+integer, parameter :: unstable_a$ = 5, unstable_b$ = 6
+integer, parameter :: xfer_mat_calc_failure$ = 7, twiss_propagate_failure$ = 8, no_closed_orbit$ = 9
+
+character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND', 'NON_SYMPLECTIC', &
+                       'UNSTABLE', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE', 'XFER_MAT_CALC_FAILURE', &
+                       'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT']
+
+
+type twiss_struct
+  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
+  real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
+end type
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
