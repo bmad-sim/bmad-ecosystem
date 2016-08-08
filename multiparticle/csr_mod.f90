@@ -73,6 +73,7 @@ type csr_struct           ! Structurture for binning particle averages
   real(rp) y_source             ! Height of source particle.
   real(rp) kick_factor          ! Coefficient to scale the kick
   real(rp) actual_track_step    ! ds_track_step scalled by Length_centroid_chord / Length_element ratio
+  real(rp) x0_bunch, y0_bunch   ! Bunch centroid
   type(floor_position_struct) floor_k   ! Floor coords at kick point
   integer species                       ! Particle type
   integer ix_ele_kick                   ! Same as element being tracked through.
@@ -483,6 +484,9 @@ do ib = 1, csr_param%n_bin
   csr%slice(ib)%y0 = csr%slice(ib)%y0 / csr%slice(ib)%charge
 enddo
 
+csr%x0_bunch = sum(csr%slice%x0 * csr%slice%charge) / sum(csr%slice%charge)
+csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
+
 ! Compute the particle distribution sigmas in each bin
 ! Abs is used instead of the usual formula to lessen the effect
 ! of non-Gaussian tails
@@ -627,7 +631,7 @@ endif
 
 if (csr_param%lsc_component_on) then
   if (csr%y_source == 0) then    ! image charges do not contribute to LSC.
-    call lsc_kick_coef_calc (csr)
+    call lsc_kick_params_calc (csr)
   endif
 endif
 
@@ -871,7 +875,7 @@ end function s_source_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_kick_coef_calc (csr)
+! Subroutine lsc_kick_params_calc (csr)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -888,7 +892,7 @@ end function s_source_calc
 !     %slice(:)   -- bin array of particle averages.
 !-
 
-subroutine lsc_kick_coef_calc (csr)
+subroutine lsc_kick_params_calc (csr)
 
 use da2_mod
 
@@ -897,13 +901,12 @@ implicit none
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, x0, y0, a00
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, a00
 real(rp) sx2, sy2, sx4, sy4, x02, y02, f(0:4,0:4), f1(0:4,0:4)
-real(rp) x0_0, y0_0
 integer i, j
 logical have_set
 
-character(*), parameter :: r_name = 'lsc_kick_coef_calc'
+character(*), parameter :: r_name = 'lsc_kick_params_calc'
 
 ! If there are too few particles in a bin the sigma calc may give a bad value.
 ! This can be a problem if the computed sigma is small.
@@ -929,10 +932,6 @@ do i = 1, csr_param%n_bin
   csr%slice(i)%kick_lsc = 0
   csr%slice(i)%coef_lsc = 0 
 
-  x0_0 = csr%slice(i)%x0
-  y0_0 = csr%slice(i)%y0
-
-
   have_set = .false.
 
   do j = 1, csr_param%n_bin
@@ -950,29 +949,18 @@ do i = 1, csr_param%n_bin
     a = sx * sy
     b = csr%gamma * (sx2 + sy2) / (sx + sy)
     c = csr%gamma**2
-    x0 = slice%x0 - x0_0
-    y0 = slice%y0 - y0_0
     dz = csr%slice(i)%z_center - csr%slice(j)%z_center
 
     if (csr_param%lsc_kick_transverse_dependence) then
-      x02 = x0**2;      y02 = y0**2
       sx4 = sx2**2;     sy4 = sy2**2
-      a00 = a * exp(x0**2/(2*sx2) + y0**2/(2*sy2)) / (sign_of(dz) * slice%charge)
+      a00 = a / (sign_of(dz) * slice%charge)
+      f1 = 0
       f1(0,0) =  a00 + (b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
-      f1(0,1) = -a00 * y0/sy2
-      f1(0,2) =  a00 * (sy2 + y02) / (2 * sy4)
-      f1(0,3) = -a00 * y0 * (3*sy2 + y02) / (6 * sy4 * sy2)
-      f1(0,4) =  a00 * (3*sy4 + 6*y02*sy2 + y02 * y02) / (24 * sy4 * sy4)
-      f1(1,0) = -a00 * x0/sx2
-      f1(1,1) =  a00 * x0 * y0 / (sx2 * sy2)
-      f1(1,2) = -a00 * x0 * (sy2 + y02) / (2 * sx2 * sy4)
-      f1(1,3) =  a00 * x0 * y0 * (3*sy2 + y02) / (6 * sx2 * sy4 * sy2)
-      f1(2,0) =  a00 * (sx2 + x02) / (2 * sx4) 
-      f1(2,1) = -a00 * y0 * (sx2 + x02) / (2 * sx4 * sy2)
-      f1(2,2) =  a00 * (sx2 + x02) * (sy2 + y02) / (4 * sx4 * sy4)
-      f1(3,0) = -a00 * x0 * (3*sx2 + x02) / (6 * sx4 * sx2)  
-      f1(3,1) =  a00 * x0 * y0 * (3 * sx2 + x02) / (6 * sx4 * sx2 * sy2)
-      f1(4,0) =  a00 * (3 * sx4 + 6 * sx2 * x02 + x02 * x02) / (24 * sx4 * sx4)
+      f1(0,2) =  a00 / (2 * sy2)
+      f1(0,4) =  a00 / (8 * sy4)
+      f1(2,0) =  a00 / (2 * sx2) 
+      f1(2,2) =  a00 / (4 * sx2 * sy2)
+      f1(4,0) =  a00 / (8 * sx4)
 
       if (have_set) then
         f = da2_div(da2_mult(f1, f), f + f1)
@@ -994,7 +982,7 @@ do i = 1, csr_param%n_bin
 
 enddo
 
-end subroutine lsc_kick_coef_calc
+end subroutine lsc_kick_params_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1202,12 +1190,12 @@ if (csr_param%lsc_component_on) then
 
     slice => csr%slice(i0)
     if (slice%coef_lsc(0,0) /= 0) then
-      dpz = dpz + r0 / da2_evaluate(slice%coef_lsc, x-slice%x0, y-slice%y0)
+      dpz = dpz + r0 / da2_evaluate(slice%coef_lsc, x-csr%x0_bunch, y-csr%y0_bunch)
     endif
 
     slice => csr%slice(i0+1)
     if (slice%coef_lsc(0,0) /= 0) then
-      dpz = dpz + r1 / da2_evaluate(slice%coef_lsc, x-slice%x0, y-slice%y0)
+      dpz = dpz + r1 / da2_evaluate(slice%coef_lsc, x-csr%x0_bunch, y-csr%y0_bunch)
     endif
 
     vec(6) = vec(6) + dpz
