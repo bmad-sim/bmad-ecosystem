@@ -122,7 +122,15 @@ case ${1} in
             # If the local out-of-source build directory does not yet exist, create it.
 	    [ ! -d ${BUILD_TYPE} ] && mkdir ${BUILD_TYPE}
 	    cd ${BUILD_TYPE}
-	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
+
+	    # set the generator for cmake
+	    if [[ $ACC_COMPILER_TOOLSET == mingw*-msys ]]; then
+	        ACC_CMAKE_ARGS=(-G 'MSYS Makefiles')
+	    else
+	        ACC_CMAKE_ARGS=()
+	    fi
+
+	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} "${ACC_CMAKE_ARGS[@]}" .. || exit 1
 	    gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
 	    [ $? -eq 0 ] && func_display_build_time
 	fi

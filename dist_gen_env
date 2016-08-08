@@ -166,6 +166,14 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   source ${DIST_BASE_DIR}/util/dist_prefs
 
 
+  #--------------------------------------------------------------
+  # Workaround for $(uname -m) == x86_64 on Msys2/MinGW-w64-i686
+  #--------------------------------------------------------------
+  if [[ "$(uname -o)/$(uname -s)" == "Msys/MINGW32_NT-6.1" ]]; then
+    if [[ $(uname -m) == "x86_64" ]]; then
+      export PATH=$DIST_BASE_DIR/util/mingw-w64-i686:$PATH
+    fi
+  fi
 
   #--------------------------------------------------------------
   # Define the distribution's bin area
@@ -186,6 +194,20 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   export DIST_PLATFORM_VERSION=$(uname -r | cut -d. -f1)
   export ACC_ROOT_DIR="${DIST_BASE_DIR}"
 
+  #--------------------------------------------------------------
+  # Determine the compiler toolset, i.e. generator for CMake.
+  #--------------------------------------------------------------
+  export ACC_COMPILER_TOOLSET="default"
+  if [[ `uname -o` == Msys ]]; then
+    # msys/mingw32 has MINGW32-NT-6.1:
+    if [[ `uname -s` == MINGW32* ]]; then
+       export ACC_COMPILER_TOOLSET=mingw32-msys
+    fi
+    # msys2/mingw-w64 has MINGW64-NT-6.1:
+    if [[ `uname -s` == MINGW64* ]]; then
+      export ACC_COMPILER_TOOLSET=mingw64-msys
+    fi
+  fi
 
   #--------------------------------------------------------------
   # Source the main DISTRIBUTION environment variable list into 
