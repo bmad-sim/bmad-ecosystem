@@ -1360,6 +1360,8 @@ character(40) :: merit_type_names(5) = &
 character(40), target :: dummy
 logical err, l_value, valid_value
 
+character(40) :: tmpstr
+
 ! Decode data component to set.
 
 call tao_find_data (err, who_str, d_array = d_dat, re_array=r_dat, &
@@ -1419,11 +1421,17 @@ elseif (size(int_dat) /= 0) then
         int_dat(i)%i = i_save(i)
       else
         if (component == 'ix_ele') then
-          d_dat(i)%d%ele_name = branch%ele(int_dat(i)%i)%name
+          tmpstr = branch%ele(int_dat(i)%i)%name
+          d_dat(i)%d%ele_name = tmpstr
+          ! d_dat(i)%d%ele_name = branch%ele(int_dat(i)%i)%name
         elseif (component == 'ix_ele_start') then
-          d_dat(i)%d%ele_start_name = branch%ele(int_dat(i)%i)%name
+          tmpstr = branch%ele(int_dat(i)%i)%name
+          d_dat(i)%d%ele_start_name = tmpstr
+          ! d_dat(i)%d%ele_start_name = branch%ele(int_dat(i)%i)%name
         else
-          d_dat(i)%d%ele_ref_name = branch%ele(int_dat(i)%i)%name
+          tmpstr = branch%ele(int_dat(i)%i)%name
+          d_dat(i)%d%ele_ref_name = tmpstr
+          ! d_dat(i)%d%ele_ref_name = branch%ele(int_dat(i)%i)%name
         endif
       endif
     enddo
@@ -1477,9 +1485,13 @@ elseif (size(s_dat) /= 0) then
 
   do i = 1, size(s_dat)
     if (size(s_set) == 1) then
-      s_dat(i)%s = s_set(1)%s
+      tmpstr = s_set(1)%s
+      s_dat(i)%s = tmpstr
+      ! s_dat(i)%s = s_set(1)%s
     else
-      s_dat(i)%s = s_set(i)%s
+      tmpstr = s_set(i)%s
+      s_dat(i)%s = tmpstr
+      ! s_dat(i)%s = s_set(i)%s
     endif
   enddo
 
