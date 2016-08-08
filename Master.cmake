@@ -18,6 +18,11 @@ cmake_policy (SET CMP0015 NEW)
 #-----------------------------------------------------------
 SET (CMAKE_SKIP_RPATH TRUE)
 
+IF (${WIN32})
+    SET (CESR_FLAGS "-DCESR_WINCVF")
+ELSE ()
+    SET (CESR_FLAGS "-DCESR_UNIX -DCESR_LINUX")
+ENDIF ()
 
 #------------------------------------------
 # Honor requests for compiling with openmp
@@ -171,8 +176,8 @@ IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
   SET (BASE_C_FLAGS)
   SET (BASE_CXX_FLAGS)
 ELSE ()
-  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
-  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 ENDIF ()
 
 #-----------------------------------                                                                                
@@ -184,7 +189,7 @@ ENDIF ()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
-ELSE (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
   SET (BASE_C_FLAGS)
   SET (BASE_CXX_FLAGS)
 ENDIF ()
@@ -200,7 +205,7 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (ACC_PLOT_INC_DIRS)
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET (ACC_PLOT_LIB_DIRS /usr/lib64)
-  ELSE (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (ACC_PLOT_LIB_DIRS /opt/local/lib)
   ENDIF ()
 ELSE ()
@@ -214,7 +219,7 @@ ENDIF ()
 #--------------------------------------
 enable_language( Fortran )
 
-SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${MPI_COMPILE_FLAGS}")
+SET (BASE_Fortran_FLAGS "-Df2cFortran ${CESR_FLAGS} -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${MPI_COMPILE_FLAGS}")
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
@@ -228,6 +233,10 @@ IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS})
 ELSE ()
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS})
+ENDIF ()
+
+IF (${MSYS})
+    SET (ACC_LINK_FLAGS "-static -ltermcap -lreadline -lgdi32")
 ENDIF ()
 
 SET (ACC_INC_DIRS ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
@@ -489,7 +498,7 @@ foreach(dir ${SRC_DIRS})
     # all C source files.
     #-----------------------------------
     foreach (file ${cpp_sources})
-      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CPPFLAGS}")
     endforeach()
     LIST(APPEND sources ${cpp_sources})
 
@@ -684,7 +693,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
