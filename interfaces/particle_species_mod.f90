@@ -735,6 +735,7 @@ endif
 if (abs(species) < 1000) then
   call out_io (s_abort$, r_name, 'CHARGE NOT KNOWN FOR SPECIES: \i0\ ', species)
   if (global_com%exit_on_error) call err_exit
+  charge = int_garbage$
   return
 endif
 
