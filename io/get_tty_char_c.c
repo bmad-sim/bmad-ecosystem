@@ -72,13 +72,24 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
 void init_tty_char_() {
 } 
 #endif
-#else
-#ifdef CESR_WINCVF
-void INIT_TTY_CHAR() {
-} 
-void GET_TTY_CHAR_C(int* ii, int* block, int* flush) { 
+
+#else // CESR_WINCVF
+# include <conio.h>
+void init_tty_char_() {
 }
-#endif
+void get_tty_char_c_(int* ii, int* block, int* flush)
+{
+     if (!*block && !kbhit()) {
+         *ii = 0;
+         return;
+     }
+     if (flush) {
+         *ii = getche();
+     }
+     else {
+         *ii = getch();
+     }
+}
 #endif
 
 
