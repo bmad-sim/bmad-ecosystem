@@ -3,12 +3,9 @@
 #include <string.h>
 
 #ifndef CESR_VMS
-#ifndef CESR_WINCVF
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
-#endif
-#ifndef CESR_WINCVF
 //+
 // Routine read_line_ (char* tag, char* str, int tag_len, int str_len)
 //
@@ -32,8 +29,3 @@ void read_line_ (char* tag, char* str, int tag_len, int str_len) {
   free (str2);
 #endif
 }
-#endif
-#ifdef CESR_WINCVF
- void READ_LINE(char* tag, char* str, int tag_len, int str_len) {
- }
-#endif

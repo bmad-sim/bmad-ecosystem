@@ -6,42 +6,6 @@ DIR *ptr_dir;
 struct dirent* dir_ent = NULL;
 
 
-//-----------------------------------------------------------------------
-
-#if defined(CESR_WINCVF)
-
-extern "C" void set_string_(const char*, const int&, char*, const int&);
-
-extern "C" void CLOSE_DIR() {
-  if (ptr_dir) closedir(ptr_dir);
-  ptr_dir = NULL;
-}
-
-extern "C" void OPEN_DIR(char* dir, int& valid) {
-  if (ptr_dir != NULL) close_dir_();
-  ptr_dir = opendir(dir);
-  valid = (ptr_dir != NULL);
-}
-
-extern "C" void READ_DIR(char* file, const int& n_len, int& valid) {
-  dir_ent = readdir(ptr_dir);
-  if (dir_ent == NULL) {
-    close_dir_();
-    valid = false;
-    return;
-  }
-
-  int str_len = strlen(dir_ent->d_name);
-  set_string_(dir_ent->d_name, str_len, file, n_len);
-  valid = true;
-  return;
-
-}
-
-//-----------------------------------------------------------------------
-
-#else
-
 extern "C" void set_string_(const char*, const int&, char*, const int&);
 
 extern "C" void close_dir_() {
@@ -70,6 +34,3 @@ extern "C" void read_dir_(char* file, const int& n_len, int& valid) {
 
 }
 
-
-
-#endif
