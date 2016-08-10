@@ -397,7 +397,7 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 plt%graph(1)%p => plt
 plt%name = 'scratch'
-plt%graph(1)%name = 'g1'
+plt%graph(1)%name = 'g'
 
 ! Now read in the plots
 
@@ -805,6 +805,7 @@ type (tao_ele_shape_struct), target :: ele_shape(:)
 type (tao_ele_shape_struct), pointer :: s
 integer n, n_shape
 character(1) prefix
+character(40) name
 
 !
 
@@ -866,9 +867,11 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., wiggler$, '*'), &
       tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., photon_init$, '*') ]
 
-real(rp) y_layout, dx, dy, dz
+real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
+integer i, j, k, ie
 character(40) name
+character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
 
 !
 
@@ -891,7 +894,7 @@ endif
 
 !---------------------------------
 
-n_plots = 41
+n_plots = 71
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -1351,6 +1354,101 @@ if (all(s%plot_page%template%name /= 'beta')) then
 endif
 
 !---------------
+! bunch_sigma_xy plot
+
+if (all(s%plot_page%template%name /= 'bunch_sigma_xy')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'bunch_sigma_xy'
+  plt%description          = 'Bunch transverse sigmas'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Bunch transverse sigmas'
+  grph%y%label             = '\gs\dx\u, \gs\dy\u'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'sigma.x'
+  crv%legend_text  = 'Sigma_x'
+  crv%data_source  = 'beam' 
+  crv%smooth_line_calc = .false.
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type    = 'sigma.y'
+  crv%legend_text  = 'Sigma_y'
+  crv%data_source  = 'beam' 
+  crv%smooth_line_calc = .false.
+endif
+
+!---------------
+! bunch_x_px, etc. plots
+
+do i = 1, 6
+do j = 1, 6
+
+  if (i == j) cycle
+  name = 'bunch_' // trim(coord_name_lc(i)) // '_' // trim(coord_name_lc(j))
+
+  if (all(s%plot_page%template%name /= name)) then
+    np = np + 1
+    plt => s%plot_page%template(np)
+
+    nullify(plt%r)
+    if (allocated(plt%graph)) deallocate (plt%graph)
+    allocate (plt%graph(1))
+    allocate (plt%graph(1)%curve(1))
+
+    plt = default_plot_g1c1
+    plt%name                 = name
+    plt%description          = 'Bunch phase space'
+    plt%list_with_show_plot_command = .false.
+    plt%x_axis_type = 'phase_space'
+    plt%x%label = coord_name(i)
+
+    grph => plt%graph(1)
+    grph%p => plt
+    grph%type                = 'phase_space'
+    grph%title               = trim(coord_name(i)) // ' Vs ' // coord_name(j)
+    grph%x%label             = coord_name(i)
+    grph%y%label             = coord_name(j)
+    grph%x%major_div_nominal = 4
+
+    crv => grph%curve(1)
+    crv%name         = 'c'
+    crv%g => grph
+    crv%data_source = 'beam'
+    crv%data_type_x  = coord_name_lc(i)
+    crv%data_type    = coord_name_lc(j)
+    crv%draw_symbols = .true.
+    crv%draw_line    = .false.
+    ie = s%u(1)%design%lat%n_ele_track
+    crv%ix_ele_ref = ie
+    crv%ix_ele_ref_track = ie
+    crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  endif
+
+enddo
+enddo
+
+np = np + 1
+plt => s%plot_page%template(np)
+plt%phantom = .true.
+plt%name = 'bunch_R1_R2'
+plt%description = 'Bunch phase space plot. R1, R2 -> x, px, y, py, z, or pz. EG: bunch_z_pz'
+
+
+!---------------
 ! cbar plot
 
 if (all(s%plot_page%template%name /= 'cbar')) then
@@ -1370,7 +1468,6 @@ if (all(s%plot_page%template%name /= 'cbar')) then
   grph%p => plt
   grph%title               = 'Cbar coupling matrix'
   grph%y%label             = 'Cbar'
-
 
   crv => grph%curve(1)
   crv%name         = '11'
@@ -1856,7 +1953,6 @@ if (all(s%plot_page%template%name /= 'floor_plan')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%name                  = 'g1'
   grph%box                   = [1, 1, 1, 1]
   grph%type                  = 'floor_plan'
   grph%margin                = qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
@@ -2098,7 +2194,6 @@ if (all(s%plot_page%template%name /= 'key_table')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%name          = 'g1'
   grph%box           = [1, 1, 1, 1]
   grph%type          = 'key_table'
   grph%margin        =  qp_rect_struct(0.00, 0.00, 0.03, 0.12, '%BOX')
@@ -2125,7 +2220,6 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%name          = 'g1'
   grph%box           = [1, 1, 1, 1]
   grph%type          = 'lat_layout'
   grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
@@ -2477,12 +2571,12 @@ plt%name = 'scratch'
 ! Regions
 
 if (.not. allocated(s%plot_page%region)) then
-  allocate (s%plot_page%region(20))
+  allocate (s%plot_page%region(110))
   nr = 0
 else
   nr = size(s%plot_page%region)
   call move_alloc (s%plot_page%region, temp_region)
-  allocate (s%plot_page%region(nr + 20))
+  allocate (s%plot_page%region(nr + 110))
   s%plot_page%region(1:nr) = temp_region
   deallocate(temp_region)
 endif
@@ -2504,6 +2598,23 @@ do i = 1, 4
     y1 = y_layout + (1 - y_layout) * real(i-j)/ i
     y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
     s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
+  enddo
+enddo
+
+do k = 1, 6
+  do i = 1, k
+  do j = 1, k
+    write (name, '(a, 4i0)') 'r', i, k, j, k
+    if (any(s%plot_page%region(:)%name == name)) cycle
+    nr = nr + 1
+    s%plot_page%region(nr)%name = name
+    s%plot_page%region(nr)%list_with_show_plot_command = .false.
+    x1 = real(k-i)/ k
+    x2 = real(k-i+1) / k
+    y1 = y_layout + (1 - y_layout) * real(k-j)/ k
+    y2 = y_layout + (1 - y_layout) * real(k-j+1) / k
+    s%plot_page%region(nr)%location = [x1, x2, y1, y2]
+  enddo
   enddo
 enddo
 

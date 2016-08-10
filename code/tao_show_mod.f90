@@ -257,7 +257,7 @@ nl = 0
 rmt  = '(a, 9es16.8)'
 f3mt = '(a, 9f0.3)'
 irmt = '(a, i0, a, es16.8)'
-imt  = '(a, 9i8)'
+imt  = '(a, i0, 9i8)'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9(l1, 2x))'
 amt  = '(9a)'
@@ -2672,27 +2672,23 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale       = ', s%plot_page%axis_number_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale        = ', s%plot_page%axis_label_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale         = ', s%plot_page%key_table_text_scale 
-    nl=nl+1; write(lines(nl), '(a, f8.3, 3x, a)') &
+    nl=nl+1; write(lines(nl), '(a, f0.3, 3x, a)') &
                                     '  %legend_text_scale            = ', s%plot_page%legend_text_scale, &
                                                                         '! For legends, plot_page, and lat_layout' 
     nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale       = ', s%plot_page%floor_plan_shape_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
+    nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots     = ', s%plot_page%delete_overlapping_plots
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
-    nl=nl+1; lines(nl) = '   Plot                          .Graph                   Description        '
-    nl=nl+1; lines(nl) = '   ----------------------------  -----------------------  -------------------'
+    nl=nl+1; lines(nl) = '   Plot                                    Description        '
+    nl=nl+1; lines(nl) = '   ----------------------------            -------------------'
     do i = 1, size(s%plot_page%template)
       p => s%plot_page%template(i)
       if (p%name == '') cycle
       if (p%name == 'scratch') cycle
-      if (allocated(p%graph)) then
-          write (fmt, '(a, i0, a)') '(3x, a30, ', size(p%graph), '(2a, 2x), t57, a)'
-          nl=nl+1; write(lines(nl), fmt) p%name, &
-                      ('.', trim(p%graph(j)%name), j = 1, size(p%graph)), p%description
-      else
-        nl=nl+1; write(lines(nl), '(3x, a)') p%name 
-      endif
+      if (.not. p%list_with_show_plot_command) cycle
+      nl=nl+1; write(lines(nl), '(3x, 2a)') p%name, trim(p%description)
     enddo
 
     nl=nl+1; lines(nl) = ''
@@ -2702,6 +2698,7 @@ case ('plot')
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
       if (region%name == '') cycle
+      if (.not. region%list_with_show_plot_command .and. region%plot%name == '') cycle
       nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
     enddo
 

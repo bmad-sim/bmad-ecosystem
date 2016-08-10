@@ -261,9 +261,7 @@ if (x_max /= x_min) then
 
 endif
 
-! Auto scale. But not until there is valid data.
-
-if (.not. graph%valid) return
+! Auto scale.
 
 this_min =  1e30
 this_max = -1e30

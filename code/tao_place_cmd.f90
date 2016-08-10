@@ -25,9 +25,10 @@ implicit none
 type (tao_plot_array_struct), allocatable, save :: template(:)
 type (qp_axis_struct), pointer :: ax
 type (tao_universe_struct), pointer :: u
-type (tao_plot_region_struct), pointer :: region
+type (tao_plot_region_struct), pointer :: region, r2
 type (tao_curve_struct), pointer :: curve
 
+real(rp) x1, x2, y1, y2
 integer i, j, k, i_uni
 logical err
 
@@ -88,6 +89,21 @@ do i = 1, size(region%plot%graph)
     endif
   enddo
 enddo
+
+! Turn off overlapping plots
+
+if (s%plot_page%delete_overlapping_plots) then
+  do i = 1, size(s%plot_page%region)
+    r2 => s%plot_page%region(i)
+    if (.not. r2%visible) cycle
+    if (r2%name == region%name) cycle
+    if (r2%location(1) > region%location(2) - 0.02) cycle
+    if (r2%location(2) < region%location(1) + 0.02) cycle
+    if (r2%location(3) > region%location(4) - 0.02) cycle
+    if (r2%location(4) < region%location(3) + 0.02) cycle
+    r2%visible = .false.
+  enddo
+endif
 
 ! Check to see if radiation integrals need be computed
 
