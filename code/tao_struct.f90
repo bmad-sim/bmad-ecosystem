@@ -241,7 +241,7 @@ end type
 
 type tao_plot_struct
   character(40) :: name = ' '                 ! Identifying name
-  character(60) :: description                ! Descriptive string.
+  character(100) :: description               ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:)
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
@@ -252,6 +252,8 @@ type tao_plot_struct
   logical :: autoscale_y = .false.            ! Vertical autoscale.
   logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
   logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
+  logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
+  logical :: phantom = .false.                     ! True used to insert info into output of "show plot"
 end type
 
 ! A region defines a plot and where to position the plot on the plot page
@@ -262,8 +264,9 @@ end type
 type tao_plot_region_struct
   character(40) :: name = ''     ! Eg: 'top', 'bottom'.
   type (tao_plot_struct) plot    ! Plot associated with this region
-  real(rp) location(4)           ! location on page.
+  real(rp) location(4)           ! [x1, x2, y1, y2] location on page.
   logical :: visible = .false.   ! To draw or not to draw.
+  logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
 end type
 
 ! The tao_plot_page_struct defines the whole plotting window. 
@@ -271,6 +274,13 @@ end type
 ! plot page info.
 
 type tao_plot_page_struct
+  type (tao_title_struct) title(2)          ! Titles at top of page.
+  type (qp_rect_struct) border              ! Border around plots edge of page.
+  type (tao_drawing_struct) :: floor_plan
+  type (tao_drawing_struct) :: lat_layout
+  type (tao_shape_pattern_struct), allocatable :: pattern(:)
+  type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
+  type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
   character(80) ps_scale                    ! scaling when creating PS files.
   real(rp) size(2)                          ! width and height of window in pixels.
@@ -287,13 +297,7 @@ type tao_plot_page_struct
   real(rp) :: lat_layout_shape_scale = 1.0
   integer :: n_curve_pts = 401              ! Number of points for plotting a smooth curve
   integer :: id_window = -1                 ! X window id number.
-  type (tao_title_struct) title(2)          ! Titles at top of page.
-  type (qp_rect_struct) border              ! Border around plots edge of page.
-  type (tao_drawing_struct) :: floor_plan
-  type (tao_drawing_struct) :: lat_layout
-  type (tao_shape_pattern_struct), allocatable :: pattern(:)
-  type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
-  type (tao_plot_region_struct), allocatable :: region(:)
+  logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
 end type
 
 ! Arrays of structures

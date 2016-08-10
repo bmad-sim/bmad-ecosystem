@@ -667,6 +667,7 @@ case ('plot_visible')
 case ('plot_template')
   do i = 1, size(s%plot_page%template)
     p => s%plot_page%template(i)
+    if (p%phantom) cycle
     if (p%name == '') cycle
     if (p%name == 'scratch') cycle
     if (allocated(p%graph)) then

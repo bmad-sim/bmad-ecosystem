@@ -681,6 +681,7 @@ endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%plot_page%template)
+    if (s%plot_page%template(i)%phantom) cycle
     if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
@@ -713,6 +714,7 @@ endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%plot_page%template)
+    if (s%plot_page%template(i)%phantom) cycle
     if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
       p(np)%p => s%plot_page%template(i)
