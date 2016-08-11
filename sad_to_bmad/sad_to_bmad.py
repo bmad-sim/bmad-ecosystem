@@ -987,9 +987,9 @@ if bmad_lattice_file == '':
   if sad_lattice_file.find('sad') != -1:
     bmad_lattice_file = sad_lattice_file.replace('sad', 'bmad')
   elif sad_lattice_file.find('Sad') != -1:
-    bmad_lattice_file = sad_lattice_file.replace('Sad', 'Bmad')
+    bmad_lattice_file = sad_lattice_file.replace('Sad', 'bmad')
   elif sad_lattice_file.find('SAD') != -1:
-    bmad_lattice_file = sad_lattice_file.replace('SAD', 'BMAD')
+    bmad_lattice_file = sad_lattice_file.replace('SAD', 'bmad')
   else:
     bmad_lattice_file = sad_lattice_file + '.bmad'
 
