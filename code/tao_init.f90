@@ -54,6 +54,9 @@ s%com%ix_key_bank = 0             ! For single mode.
 s%com%use_saved_beam_in_tracking = .false.
 if (.not. allocated(s%com%cmd_file)) allocate (s%com%cmd_file(0:0))
 
+call getenv ('ACC_PLOT_DISPLAY_TYPE', name1)
+if (name1 /= '') s%plot_page%plot_display_type = name1
+
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
 

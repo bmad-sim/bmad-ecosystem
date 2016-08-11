@@ -1480,9 +1480,13 @@ The default values for these scales are given above.
 The \vn{plot_page%plot_display_type} component sets the type of plot display
 window used. possibilities are:
 \begin{example}
-  "X"      X11 window   
-  "TK"     tk window   
+  "X"      X11 window
+  "TK"     tk window
+  "QT"     Available only when using PLPLOT (and not the default PGPLOT)
 \end{example}
+Note: The environmental variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default display
+type. You can set this variable in your login file to avoid having to setup a \tao
+init file to set this.
 
 \vn{plot_page%border} sets a border around the edges of the
 window. As shown in Figure~\ref{f:plot.page} \vn{b_x1}, \vn{b_x2} are
