@@ -1,0 +1,20 @@
+--- util/dist_prefs	2016-08-11 15:59:31.569345452 -0400
++++ util2/dist_prefs	2016-08-11 17:07:12.827041465 -0400
+@@ -41,7 +41,7 @@
+ #   "plplot"         # Both PLPLOT and PGPLOT are built
+ #   "pgplot"         # Only PGPLOT is built
+ #-----------------------------------------------------------
+-export ACC_PLOT_PACKAGE="pgplot"
++export ACC_PLOT_PACKAGE="plplot"
+ 
+ 
+ #-----------------------------------------------------------
+@@ -58,7 +58,7 @@
+ # For a list of supported options, please see the qp_open_page
+ # documentation in the file sim_utils/plot/quick_plot.f90
+ #-----------------------------------------------------------
+-export ACC_PLOT_DISPLAY_TYPE="X"
++export ACC_PLOT_DISPLAY_TYPE="QT"
+ 
+ 
+ #-----------------------------------------------------------

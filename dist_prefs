@@ -20,7 +20,7 @@
 #    NOTE: gfortran support is limited to version
 #          4.6.x and later.
 #
-#  Supported options are:
+# Supported options are:
 #   "ifort"
 #   "gfortran"
 #-----------------------------------------------------------
@@ -30,18 +30,35 @@ export DIST_F90_REQUEST="gfortran"
 #-----------------------------------------------------------
 # Plotting preferences:
 #
-# Setting the variable ACC_PLOT_PACKAGE here to the name
-# of the desired plotting library will allow for its use
-# during the build.
+# The variable ACC_PLOT_PACKAGE set the preferred plotting library.
 #
-# NOTE: The PGPLOT will be built, along side PLplot,
+# NOTE: PGPLOT will be built, along side PLplot,
 # 	if this variable is set to "plplot".
 #
-#  Supported options are:
-#   "plplot"
-#   "pgplot"
+# NOTE: "plplot" is recommended for Windows builds.
+#
+# Supported options are:
+#   "plplot"         # Both PLPLOT and PGPLOT are built
+#   "pgplot"         # Only PGPLOT is built
 #-----------------------------------------------------------
 export ACC_PLOT_PACKAGE="pgplot"
+
+
+#-----------------------------------------------------------
+# Plot display preferences:
+#
+# The variable ACC_PLOT_DISPLAY_TYPE sets the desired type of
+# plotting window to be created by a program. 
+#
+# This variable may be ignored by any individual program.
+# The Tao program does use this variable however.
+#
+# NOTE: "QT" is recommended for Windows builds.
+#
+# For a list of supported options, please see the qp_open_page
+# documentation in the file sim_utils/plot/quick_plot.f90
+#-----------------------------------------------------------
+export ACC_PLOT_DISPLAY_TYPE="X"
 
 
 #-----------------------------------------------------------
