@@ -896,16 +896,16 @@ do j = 2, j_max
   ! This is trapzd from NR
   n_pts = 2**(j-2)
   del_s = (s1 - s0) / (2 * n_pts)
-  quat = omega_to_quat(z(0)%omega * del_s / 2)
+  quat = omega_to_quat(z(0)%omega * abs(del_s) / 2)
 
   z(2:2*n_pts:2) = z(1:n_pts) 
 
   do n = 1, n_pts
     s = s0 + del_s * (2*n - 1)
     z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
-    quat = quat_mul(omega_to_quat(z(2*n-1)%omega * del_s), quat)
+    quat = quat_mul(omega_to_quat(z(2*n-1)%omega * abs(del_s)), quat)
     if (n == n_pts) del_s = del_s / 2
-    quat = quat_mul(omega_to_quat(z(2*n)%omega * del_s), quat)
+    quat = quat_mul(omega_to_quat(z(2*n)%omega * abs(del_s)), quat)
   enddo
 
   q_array(j)%omega = quat_to_omega(quat)
