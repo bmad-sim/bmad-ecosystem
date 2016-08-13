@@ -99,7 +99,8 @@ type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
 type (qp_axis_struct) axis_save
 
-real(rp) y_min_in, y_max_in, y_min, y_max, this_min, this_max
+real(rp) y_min_in, y_max_in, y_min, y_max
+real(rp) y_range(2), y2_range(2)
 
 character(*), optional :: axis, gang
 character(16) this_axis
@@ -119,8 +120,11 @@ y_max = y_max_in
 
 if (.not. allocated (plot%graph)) return
 
+y_range = [1d30, -1d30]
+y2_range = [1d30, -1d30]
+
 do i = 1, size(plot%graph)
-  call tao_scale_graph (plot%graph(i), y_min, y_max, axis)
+  call tao_scale_graph (plot%graph(i), y_min, y_max, axis, y_range, y2_range)
 enddo
 
 ! if auto scale was done...
@@ -142,24 +146,20 @@ endif
 if (y_min == y_max .and. do_gang) then
 
   if (this_axis == '' .or. this_axis == 'y') then
-    this_min = minval (plot%graph(:)%y%min)
-    this_max = maxval (plot%graph(:)%y%max)
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
       if (graph%y%major_div_nominal > 0) then
         p1 = nint(0.7 * graph%y%major_div_nominal)  
         p2 = nint(1.3 * graph%y%major_div_nominal)
-        call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y%type)
+        call qp_calc_and_set_axis ('Y', y_range(1), y_range(2), p1, p2, 'GENERAL', graph%y%type)
         call qp_get_axis_attrib ('Y', graph%y%min, graph%y%max, graph%y%major_div, graph%y%places)
       else
-        call qp_calc_axis_scale (this_min, this_max, graph%y)
+        call qp_calc_axis_scale (y_range(1), y_range(2), graph%y)
       endif
     enddo
   endif
 
   if (this_axis == '' .or. this_axis == 'y2') then
-    this_min = minval (plot%graph(:)%y2%min)
-    this_max = maxval (plot%graph(:)%y2%max)
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
       if (graph%y2_mirrors_y) then
@@ -169,14 +169,14 @@ if (y_min == y_max .and. do_gang) then
         graph%y2%draw_label   = axis_save%draw_label
         graph%y2%draw_numbers = axis_save%draw_numbers
       else
-        call qp_calc_axis_scale (this_min, this_max, graph%y2)
+        call qp_calc_axis_scale (y2_range(1), y2_range(2), graph%y2)
         if (graph%y2%major_div_nominal > 0) then
           p1 = nint(0.7 * graph%y2%major_div_nominal)  
           p2 = nint(1.3 * graph%y2%major_div_nominal)
-          call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
+          call qp_calc_and_set_axis ('Y', y2_range(1), y2_range(2), p1, p2, 'GENERAL', graph%y2%type)
           call qp_get_axis_attrib ('Y', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
         else
-          call qp_calc_axis_scale (this_min, this_max, graph%y2)
+          call qp_calc_axis_scale (y2_range(1), y2_range(2), graph%y2)
         endif
       endif
     enddo
@@ -190,7 +190,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_scale_graph (graph, y_min, y_max, axis)
+subroutine tao_scale_graph (graph, y_min, y_max, axis, y_range, y2_range)
 
 type (tao_graph_struct), target :: graph
 type (lat_struct), pointer :: lat
@@ -199,6 +199,7 @@ type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) floor, end
 type (qp_axis_struct) axis_save
 
+real(rp), optional :: y_range(2), y2_range(2)
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2, del
 
 integer i, j, k, ix, ib, p1, p2
@@ -381,6 +382,7 @@ this_max = this_max + graph%scale_margin%y2 * del
 
 if (axis == '' .or. axis == 'y' .or. graph%y2_mirrors_y) then
   call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y%type)
+  if (present(y_range)) y_range = [min(y_range(1), this_min), max(y_range(2), this_max)]
   call qp_get_axis_attrib ('Y', graph%y%min, graph%y%max, graph%y%major_div, graph%y%places)
 endif
 
@@ -395,6 +397,7 @@ if (graph%y2_mirrors_y) then
 
 elseif (axis == '' .or. axis == 'y2') then
   call qp_calc_and_set_axis ('Y2', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
+  if (present(y2_range)) y2_range = [min(y2_range(1), this_min), max(y2_range(2), this_max)]
   call qp_get_axis_attrib ('Y2', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
 endif
 

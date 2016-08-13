@@ -226,7 +226,7 @@ contains
 subroutine alias_translate (cmd_line, err)
 
 character(*) cmd_line
-character(100) old_cmd_line
+character(100) old_cmd_line, alias_cmd
 
 logical err, translated
 
@@ -234,10 +234,10 @@ logical err, translated
 
 old_cmd_line = cmd_line ! Save old command line for the command history.
 translated = .false.    ! No translation done yet
-call alias_translate2 (cmd_line, err, translated)
+call alias_translate2 (cmd_line, err, translated, alias_cmd)
 
 if (translated) then
-  write (*, '(2a)') 'Alias: ', trim (cmd_line)
+  print '(2a)', 'Alias: ', trim (alias_cmd)
   cmd_line = trim(cmd_line) // "  ! " // trim(old_cmd_line)  
 endif
 
@@ -247,17 +247,21 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 
-recursive subroutine alias_translate2 (cmd_line, err, translated)
+recursive subroutine alias_translate2 (cmd_line, err, translated, alias_cmd2)
 
 character(*) cmd_line
-character(100) string
+character(100) alias_cmd, alias_cmd2
 
-integer ic, i, j
+integer ic, i, j, ix
 logical err, translated
 
 ! Look for a translation for the first word
 
 call string_trim (cmd_line, cmd_line, ic)
+ix = index(cmd_line, ';')
+if (ix < ic .and. ix /= 0) ic = ix-1
+
+alias_cmd2 = cmd_line
 
 do i = 1, s%com%n_alias
 
@@ -266,22 +270,20 @@ do i = 1, s%com%n_alias
   ! We have a match...
   ! Now get the actual arguments and replace dummy args with actual args.
 
-  string = cmd_line
-  cmd_line = s%com%alias(i)%string
+  alias_cmd = s%com%alias(i)%string
 
   do j = 1, 9
-    ix = index (cmd_line, sub_str(j))
+    ix = index (alias_cmd, sub_str(j))
     if (ix == 0) exit
-    call string_trim (string(ic+1:), string, ic)
-    cmd_line = cmd_line(1:ix-1) // &
-                          trim(string(1:ic)) // cmd_line(ix+5:)
+    call string_trim (cmd_line(ic+1:), cmd_line, ic)
+    alias_cmd = alias_cmd(1:ix-1) // trim(cmd_line(1:ic)) // alias_cmd(ix+5:)
   enddo
 
   ! Append rest of string
 
-  call string_trim (string(ic+1:), string, ic)
-  cmd_line = trim(cmd_line) // ' ' // string
-  call alias_translate2 (cmd_line, err, translated) ! Translation is an alias?
+  call string_trim (cmd_line(ic+1:), cmd_line, ic)
+  call alias_translate2 (alias_cmd, err, translated, alias_cmd2) ! Translation is an alias?
+  cmd_line = trim(alias_cmd2) // ' ' // cmd_line
   translated = .true.
 
   return
@@ -310,6 +312,9 @@ do ix = 1, len(cmd_line)
 
   if (quote == '') then
     select case (cmd_line(ix:ix))
+    case ('!')
+      exit
+
     case (';')
       s%com%multi_commands_here = .true.
       saved_line = cmd_line(ix+1:)
