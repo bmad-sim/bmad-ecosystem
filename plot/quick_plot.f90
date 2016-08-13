@@ -1138,7 +1138,6 @@ if (axis%bounds == 'ZERO_SYMMETRIC') then
 else
   div_eff = axis%major_div
 endif
-min_width = data_width10 * axis%major_div
 
 if (axis%bounds == 'ZERO_AT_END') then
   min1 = 0
@@ -1224,7 +1223,7 @@ function qp_axis_niceness (imin, imax, divisions) result (score)
 implicit none
 
 integer imin, imax, divisions
-integer del, i, j, im
+integer del, i, j, im, d0
 real(rp) score
 
 !
@@ -1255,15 +1254,23 @@ score = 0
 if (imin == 0) score = score + 1
 if (imax == 0) score = score + 1
 
-do j = imin, imax, (imax - imin) / divisions
-  if (mod(j, 5) == 0) score = score + 1.0 / (divisions + 1)
-  if (mod(j, 10) == 0) score = score + 1.5 / (divisions + 1)
-  if (mod(j, 100) == 0) score = score + 2.0 / (divisions + 1)
-  if (mod(j, 2) == 0) score = score + 1.0 / (divisions + 1)
-  if (j == 0) score = score + 1
+d0 = (imax - imin) / divisions
+do j = imin, imax, d0
+  if (mod(j, 5) == 0) score = score + 4.0 / (divisions + 1)
+  if (mod(j, 20) == 0) score = score + 1.0 / (divisions + 1)
+  if (mod(j, 2) == 0) score = score + 4.0 / (divisions + 1)
+  if (j > 6 .and. mod(j, 2) == 1) score = score - 8.0 / (divisions + 1)
+  if (j == 0) score = score + 4
 enddo
 
-score = score + 20 * (2 - log10(float(imax - imin)))
+score = score + 100 - 50 * log10(float(imax - imin))
+
+select case (d0)
+case (2, 3, 4, 5, 8, 10, 20, 25, 30, 40, 50, 80, 100)
+  score = score + 3
+case (6, 15, 60)
+  score = score + 2
+end select
 
 end function qp_axis_niceness 
 
@@ -4945,7 +4952,6 @@ real(rp) delta
 real(dp) log_del
 
 integer div_max, divisions, idel
-integer id2, id5, id10
 
 ! Sinple case
 
@@ -4960,23 +4966,19 @@ log_del = log10 (abs(delta) * 1.000000001_dp)
 idel = nint(abs(delta) / 10d0**(floor(log_del)-1))
 
 ! First look for a division that gives a width that is a multiple of 2, 5 or 10.
-! [Rule not used: Choose id10 over id5 except when id5 >= 2 * id10]
 ! A division of 1 is not acceptable in this first step.
 
-do id10 = div_max, 1, -1
-  if (mod(idel, 10 * id10) == 0) exit
+do divisions = div_max, 2, -1
+  if (mod(idel, 5 * divisions) == 0) return
 enddo
 
-do id5 = div_max, 1, -1
-  if (mod(idel, 5 * id5) == 0) exit
+do divisions = div_max, 2, -1
+  if (mod(idel, 10 * divisions) == 0) return
 enddo
 
-do id2 = div_max, 1, -1
-  if (mod(idel, 2 * id2) == 0) exit
+do divisions = div_max, 1, -1
+  if (mod(idel, 2 * divisions) == 0) return
 enddo
-
-divisions = max(id10, id5, id2)
-if (divisions > 1) return
 
 ! Now look for anything that divides evenly into idel.
 

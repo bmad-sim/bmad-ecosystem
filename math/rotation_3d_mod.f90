@@ -123,7 +123,7 @@ end subroutine axis_angle_to_w_mat
 !+
 ! Function quat_to_omega (quat) result (omega)
 ! 
-! Routine to convert from omega (axis + angle) representation to a quaternion.
+! Routine to convert rotation from quaternion representation to omega (axis + angle).
 !
 ! Input:
 !   quat(0:3)   -- real(rp): Rotation quaternion. Assumed normalized.
