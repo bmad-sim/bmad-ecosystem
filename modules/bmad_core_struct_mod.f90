@@ -26,8 +26,9 @@ use basic_bmad_interface
 !   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !
-! Note: Unless shift_vec6 is set to False, if ele is an init_ele or e_gun, orb%vec(6) is shifted
-! so that the particle's energy is maintained at ele%value(p0c_start$).
+! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
+! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
+! corresponding to the beginning_ele's value of ele%value(p0c_start$).
 !
 ! Note: For a photon, orb%vec(5) is set depending upon where the photon is relative to the element.
 ! Note: If the particle is initialized with element_end = inside$, orb%s will not be set.

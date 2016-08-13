@@ -349,7 +349,7 @@ do
     ds_temp = ds / 10
 
   else
-    sqrt_N = sqrt(ds12/ds)  ! number of steps we would take with this ds
+    sqrt_N = sqrt(abs(ds12/ds))  ! number of steps we would take with this ds
     rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
     abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
     pol = 1  ! Spin scale

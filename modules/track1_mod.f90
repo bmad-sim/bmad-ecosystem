@@ -272,6 +272,7 @@ if (orbit%species == photon$) then
 
 else
   rel_p = 1 + orbit%vec(6)
+  if (rel_p < 0) return
 
   if (orbit%vec(2)**2 + orbit%vec(4)**2 > rel_p**2) then
     if (present(param)) param%unstable_factor = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2)
