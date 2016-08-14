@@ -918,8 +918,7 @@ case ('ix_bunch')
                         set_value, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
-  call tao_integer_set_value (this_curve%symbol_every, component, &
-                                            set_value, error, 0, size(this_curve%x_symb))
+  call tao_integer_set_value (this_curve%symbol_every, component, set_value, error, 0, 1000000)
 
 case ('draw_line')
   call tao_logical_set_value (this_curve%draw_line, component, set_value, error)
@@ -1817,7 +1816,7 @@ logical var, ix
 integer ios
 
 character(*) var_str, value_str
-character(24) :: r_name = 'tao_logical_set_value'
+character(*), parameter :: r_name = 'tao_logical_set_value'
 logical error
 
 !
@@ -1866,7 +1865,7 @@ integer, optional :: min_val, max_val
 integer ios, ix
 
 character(*) var_str, value_str
-character(20) :: r_name = 'tao_integer_set_value'
+character(*), parameter :: r_name = 'tao_integer_set_value'
 logical error
 
 !
@@ -1881,14 +1880,14 @@ endif
 
 if (present(min_val)) then
   if (ix < min_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    call out_io (s_error$, r_name, var_str // ' VALUE TOO SMALL.')
     return 
   endif
 endif
 
 if (present(max_val)) then
   if (ix > max_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    call out_io (s_error$, r_name, var_str // ' VALUE TO LARGE.')
     return 
   endif
 endif

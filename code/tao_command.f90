@@ -307,8 +307,7 @@ case ('pause')
 case ('place')
 
   if (.not. s%global%plot_on .and. s%com%shell_interactive) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
+    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
@@ -325,8 +324,7 @@ case ('place')
 case ('plot')
 
   if (.not. s%global%plot_on) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
+    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
@@ -438,8 +436,7 @@ case ('run_optimizer', 'flatten')
 case ('scale')
 
   if (.not. s%global%plot_on) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
+    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
