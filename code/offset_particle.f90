@@ -230,32 +230,6 @@ if (set) then
                                   (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
   endif
 
-  ! Set: Multipoles
-
-  if (set_multi) then
-    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      if (set_spn) call multipole_spin_precession (ele, param, coord)
-    endif
-
-    call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
-    if (has_nonzero_pole) then
-      do n = 0, n_pole_maxx
-        if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
-        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
-        ! Are taken into account is not to have any energy shifts.
-        coord%vec(2) = coord%vec(2) + kx
-        coord%vec(4) = coord%vec(4) + ky
-        if (set_spn) then
-          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
-        endif
-      enddo
-    endif
-  endif
-
   ! Set: Tilt & Roll
 
   if (set_t) then
@@ -299,6 +273,32 @@ if (set) then
       if (set_spn) call rotate_spin ([pvec(2), -pvec(1), 0.0_rp], coord%spin)
     endif
 
+  endif
+
+  ! Set: Multipoles
+
+  if (set_multi) then
+    call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
+    if (has_nonzero_pole) then
+      call multipole_kicks (knl*charge_dir/2, tilt, coord)
+      if (set_spn) call multipole_spin_precession (ele, param, coord)
+    endif
+
+    call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn, electric$)
+    if (has_nonzero_pole) then
+      do n = 0, n_pole_maxx
+        if (an(n) == 0 .and. bn(n) == 0) cycle
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
+        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
+        ! Are taken into account is not to have any energy shifts.
+        coord%vec(2) = coord%vec(2) + kx
+        coord%vec(4) = coord%vec(4) + ky
+        if (set_spn) then
+          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
+          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
+        endif
+      enddo
+    endif
   endif
 
   ! Set: HV kicks for kickers and separators only.
@@ -351,6 +351,32 @@ else
     endif
   endif
 
+  ! Unset: Multipoles
+
+  if (set_multi) then
+    call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
+    if (has_nonzero_pole) then
+      call multipole_kicks (knl*charge_dir/2, tilt, coord)
+      if (set_spn) call multipole_spin_precession (ele, param, coord)
+    endif
+
+    call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn, electric$)
+    if (has_nonzero_pole) then
+      do n = 0, n_pole_maxx
+        if (an(n) == 0 .and. bn(n) == 0) cycle
+        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
+        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
+        ! Are taken into account is not to have any energy shifts.
+        coord%vec(2) = coord%vec(2) + kx
+        coord%vec(4) = coord%vec(4) + ky
+        if (set_spn) then
+          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
+          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
+        endif
+      enddo
+    endif
+  endif
+
   ! Unset: Tilt & Roll
 
   if (set_t) then
@@ -395,32 +421,6 @@ else
       if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], coord%spin)
     endif
 
-  endif
-
-  ! Unset: Multipoles
-
-  if (set_multi) then
-    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
-      if (set_spn) call multipole_spin_precession (ele, param, coord)
-    endif
-
-    call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn, electric$)
-    if (has_nonzero_pole) then
-      do n = 0, n_pole_maxx
-        if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
-        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
-        ! Are taken into account is not to have any energy shifts.
-        coord%vec(2) = coord%vec(2) + kx
-        coord%vec(4) = coord%vec(4) + ky
-        if (set_spn) then
-          call elec_multipole_field(an(n), bn(n), n, coord, Ex, Ey)
-          call rotate_spin_given_field (coord, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (ele%value(l$)/2))
-        endif
-      enddo
-    endif
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -566,7 +566,7 @@ logical has_nonzero_pole
 
 !
 
-call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn)
+call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn)
 if (.not. has_nonzero_pole) return
 
 ! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
