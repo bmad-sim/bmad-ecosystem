@@ -35,7 +35,7 @@ octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset =
 patch1:            patch, x_pitch = 0.01, t_offset = 1e-8,
                           z_offset = 1, tilt = 1, x_offset = 1.3, y_pitch = 0.01, y_offset = 0.5
 
-q0: quadrupole, a0 = 0.0001, a1 = 0.1, vkick = -0.0001, b0_elec = -0.00002, b1_elec = 0.2
+q0: quadrupole, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e5
 quadrupole1:       q0, l = 0.6, k1 = 1, tilt = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole2:       q0, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole3:       q0, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
@@ -51,7 +51,7 @@ sad_mult1:         sad_mult, l = 0.1, fringe_type = full, ks = 0.1, a1 = 2e-5, b
 sad_mult2:         sad_mult, fringe_type = full, a1 = 2e-5, b2 = 4e-3
 sad_mult3:         sad_mult, l = 0.5, ks = 0.1
 
-sb0: sbend, a0 = 0.0001, a1 = 0.1, vkick = -0.0001, b0_elec = -0.00002, b1_elec = 0.2
+sb0: sbend, a0 = 0.001, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e3
 sbend1:            sb0, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
 sbend2:            sb0, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend3:            sb0, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
