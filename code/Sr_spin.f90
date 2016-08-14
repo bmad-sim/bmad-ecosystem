@@ -23,7 +23,7 @@ module ptc_spin
   private rot_spin_yr,rot_spin_yp,rot_spin_y
   private PATCH_SPINR,PATCH_SPINP,PATCH_SPIN
   private MIS_SPINR,MIS_SPINP,MIS_SPIN
-  private DTILTR_SPIN,DTILTP_SPIN,DTILT_SPIN
+  private DTILT_SPINR,DTILT_SPINP,DTILT_SPIN
   PRIVATE TRACK_SPIN_FRONTR,TRACK_SPIN_FRONTP,TRACK_SPIN_FRONT
   PRIVATE TRACK_SPIN_BACKR,TRACK_SPIN_BACKP,TRACK_SPIN_BACK
   !  private PUSH_SPIN_RAY8
@@ -131,8 +131,8 @@ module ptc_spin
   END INTERFACE
 
   INTERFACE DTILT_SPIN
-     MODULE PROCEDURE DTILTR_SPIN
-     MODULE PROCEDURE DTILTP_SPIN
+     MODULE PROCEDURE DTILT_SPINR
+     MODULE PROCEDURE DTILT_SPINP
   END INTERFACE
 
   INTERFACE TRACK_SPIN_FRONT
@@ -3434,7 +3434,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     ENDIF
 
 
-    CALL DTILT_SPIN(C%DIR,C%MAG%P%TILTD,1,P)
+    CALL DTILT_SPIN(C%MAG%P%TILTD,1,P)
     ! The magnet frame of reference is located here implicitely before misalignments
 
     !      CALL TRACK(C,X,EXACTMIS=K%EXACTMIS)
@@ -3470,7 +3470,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     ENDIF
 
 
-    CALL DTILT_SPIN(C%DIR,C%MAG%P%TILTD,1,P)
+    CALL DTILT_SPIN(C%MAG%P%TILTD,1,P)
     ! The magnet frame of reference is located here implicitely before misalignments
 
     !      CALL TRACK(C,X,EXACTMIS=K%EXACTMIS)
@@ -3517,7 +3517,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        CALL MIS_SPIN(C,P,my_false)
     ENDIF
     ! The magnet frame of reference is located here implicitely before misalignments
-    CALL DTILT_SPIN(C%DIR,C%MAG%P%TILTD,2,P)
+    CALL DTILT_SPIN(C%MAG%P%TILTD,2,P)
 
 
     !    fake back spin snake PATCHG==6
@@ -3565,7 +3565,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        CALL MIS_SPIN(C,P,my_false)
     ENDIF
     ! The magnet frame of reference is located here implicitely before misalignments
-    CALL DTILT_SPIN(C%DIR,C%MAG%P%TILTD,2,P)
+    CALL DTILT_SPIN(C%MAG%P%TILTD,2,P)
 
 
     !    fake back spin snake PATCHG==6
@@ -3742,43 +3742,43 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
   END SUBROUTINE MIS_SPINP
 
 
-  SUBROUTINE DTILTR_SPIN(DIR,TILTD,I,P)
+  SUBROUTINE DTILT_SPINR(TILTD,I,P)
     IMPLICIT NONE
     TYPE(PROBE),INTENT(INOUT):: P
     !    real(dp),INTENT(INOUT):: S(3)
-    INTEGER,INTENT(IN):: I,DIR
+    INTEGER,INTENT(IN):: I
     REAL(DP),INTENT(IN) :: TILTD
     real(dp) YS
 
     IF(TILTD==0.0_dp) RETURN
     IF(I==1) THEN
-       YS=DIR*TILTD
+       YS=TILTD
        call rot_spin_Z(P,YS)
     ELSE
-       YS=-DIR*TILTD
+       YS=-TILTD
        call rot_spin_Z(P,YS)
     ENDIF
 
-  END SUBROUTINE DTILTR_SPIN
+  END SUBROUTINE DTILT_SPINR
 
-  SUBROUTINE DTILTP_SPIN(DIR,TILTD,I,P)
+  SUBROUTINE DTILT_SPINP(TILTD,I,P)
     IMPLICIT NONE
     TYPE(PROBE_8),INTENT(INOUT):: P
     !    TYPE(REAL_8),INTENT(INOUT):: S(3)
-    INTEGER,INTENT(IN):: I,DIR
+    INTEGER,INTENT(IN):: I
     REAL(DP),INTENT(IN) :: TILTD
     real(dp) YS
 
     IF(TILTD==0.0_dp) RETURN
     IF(I==1) THEN
-       YS=DIR*TILTD
+       YS=TILTD
        call rot_spin_Z(P,YS)
     ELSE
-       YS=-DIR*TILTD
+       YS=-TILTD
        call rot_spin_Z(P,YS)
     ENDIF
 
-  END SUBROUTINE DTILTP_SPIN
+  END SUBROUTINE DTILT_SPINP
 
   SUBROUTINE FIND_ORBIT_LAYOUT_noda(RING,FIX,STATE,eps,TURNS,fibre1,node1) ! Finds orbit without TPSA in State or compatible state
     IMPLICIT NONE

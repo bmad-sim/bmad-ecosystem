@@ -41,18 +41,28 @@ module pointer_lattice
   type(internal_state), target:: etat
   integer,target:: START ,FIN,ORDER,np,start_t
   real(dp),target:: xfix(6) ,DELT0
-
+  integer :: logs_exp=30, num_iter = 20
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
   END INTERFACE
 
 !!  new stuff on non-perturbative !!
-  type  logs    
-     integer n1,n2,ns,no
+  type  explogs  
+     integer n1,n2
      complex(dp),  DIMENSION(:,:,:), POINTER :: h
+  end  type explogs
+
+
+  type  logs 
+     integer  m(3),ms  
+     integer  ns,no
+     type(explogs) h,a,n
+     type(explogs), pointer ::  af(:)
+     real(dp), pointer :: as(:,:,:)
      type(spinor), pointer :: sp(:,:)
      real(dp), pointer :: s(:,:,:,:)  !   spin matrices
-     real(dp) em(2)
+     real(dp) em(2),mu(2),fix(6)
+     real(dp), pointer :: x_i(:,:,:),phis(:,:,:)
   end  type logs
    
 
@@ -2887,27 +2897,62 @@ endif
  integer i,n1,n2,no,ns
 real(dp) em(2)
 
-
-allocate(a%h(3,-n1:n1,-n2:n2))
 allocate(a%sp(0:ns-1,0:ns-1))
 allocate(a%s(0:ns-1,0:ns-1,3,3))
+allocate(a%as(num_iter,3,3))
+allocate(a%af(num_iter))
+allocate(a%x_i(0:ns-1,0:ns-1,1:6))
+allocate(a%phis(0:ns-1,0:ns-1,1:2))
 
+call alloc_explogs(a%h,n1,n2)
+call alloc_explogs(a%a,n1,n2)
+call alloc_explogs(a%n,n1,n2)
 
- a%n1=n1;a%n2=n2;a%ns=ns;a%no=no
+a%as=0.0_dp  
+a%x_i=0.0_dp
+a%phis=0.0_dp
+
+do i =1,num_iter
+ call alloc_explogs(a%af(i),n1,n2)
+ a%as(i,1,1)=1.0_dp;a%as(i,2,2)=1.0_dp;a%as(i,3,3)=1.0_dp;
+enddo
+
+!(num_iter,3,3)
+
+ a%m=0; a%ms=0;  
+  a%ns=ns;a%no=no
  a%em=em
- a%h = 0.0_dp
+ a%mu=0
+
  a%s=0.0_dp
 
  end  subroutine alloc_logs
+
+
+ subroutine alloc_explogs(a,n1,n2)
+implicit none
+type(explogs) a
+integer n1,n2
+
+   a%n1=n1 ; a%n2=n2;
+   allocate(a%h(3,-n1:n1,-n2:n2))
+   a%h = 0.0_dp
+ end subroutine alloc_explogs
+
+ subroutine kill_explogs(a)
+implicit none
+type(explogs) a
+
+   deallocate(a%h)
+ 
+ end subroutine kill_explogs
 
 subroutine copy_logs(a,b)
  implicit none
  type(logs) a,b
  integer i,j
 
- b%h=a%h
- b%n1=a%n1
- b%n2=a%n2
+call  copy_explogs(a%h,b%h)
  b%ns=a%ns
  b%em=a%em
 
@@ -2919,11 +2964,25 @@ subroutine copy_logs(a,b)
 
 end subroutine copy_logs
 
- subroutine fourier_logs(spinmap)  !,em,ns)
+
+ subroutine copy_explogs(a,b)
+ implicit none
+ type(explogs) a,b
+
+ b%h=a%h
+ b%n1=a%n1
+ b%n2=a%n2
+ 
+ end subroutine copy_explogs
+
+ subroutine fourier_logs(spinmap,U,fix,tune)  !,em,ns)
  implicit none
  type(logs) spinmap
  integer i,j,ns,k,i1,i2
  real(dp) dphi1,dphi2,x(6),em(2),mphi
+type(c_damap), optional, intent(inout):: U
+real(dp), optional, intent(inout):: fix(6),tune(:)
+
 type(c_damap) c_map, c_id
 type(c_normal_form) c_n
  type(probe) xs0
@@ -2939,12 +2998,21 @@ em=spinmap%em
 
 state=my_eSTATE-spin0
  
+if(present(fix)) then
+my_fix=fix
+else
+ my_fix=0.0_dp
+ call find_orbit_x(my_ering,my_fix,my_eSTATE,1.e-8_dp,fibre1=start)  
+ 
+endif
 
-my_fix=0.0_dp
-call find_orbit_x(my_ering,my_fix,my_eSTATE,1.e-8_dp,fibre1=start)  
-
-call init_all(my_estate,1,0)
-call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
+if(present(U))  then
+spinmap%mu=twopi*tune(1:2)
+ call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
+c_id=U
+else
+ call init_all(my_estate,1,0)
+ call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
 
 c_id=1
 xs0=my_fix
@@ -2952,7 +3020,11 @@ xs=xs0+c_id
 call propagate(my_ering,xs,my_estate,fibre1=start)  
 c_id=xs
 call c_normal(c_id,c_n)
+
+spinmap%mu=twopi*c_n%tune(1:2)
+
 c_id=c_n%a_t
+endif
 
 dphi1=twopi/ns
 dphi2=twopi/ns
@@ -2965,11 +3037,17 @@ r%x(1)= sqrt(em(1))*cos(i*dphi1)
 r%x(2)=-sqrt(em(1))*sin(i*dphi1)
 r%x(3)= sqrt(em(2))*cos(j*dphi2)
 r%x(4)=-sqrt(em(2))*sin(j*dphi2)
+spinmap%phis(i,j,1)=i*dphi1
+spinmap%phis(i,j,2)=j*dphi2
  xs0=0
  r=c_id.o.r
  do k=1,6
    x(k)=r%x(k)+my_fix(k)
  enddo
+
+ spinmap%x_i(i,j,1:6)=r%x(1:6)
+ spinmap%fix=my_fix
+
  xs0=x
  call propagate(my_ering,xs0,my_estate,fibre1=start)  
  
@@ -2985,6 +3063,8 @@ enddo
 
 
 call fourier_trans_logs(spinmap)
+
+ call kill(c_map,c_id); call kill(c_n); call kill(n) 
 
  end  subroutine fourier_logs
 
@@ -3027,18 +3107,20 @@ integer i1,i2,i,j,k
 real(dp) mphi,dphi1,dphi2
  type(logs) spinmap
 
+spinmap%h%h=0.0_dp
+
 dphi1=1.0_dp/spinmap%ns
 dphi2=1.0_dp/spinmap%ns
 
-do i1=-spinmap%n1,spinmap%n1
-do i2=-spinmap%n2,spinmap%n2
+do i1=-spinmap%h%n1,spinmap%h%n1
+do i2=-spinmap%h%n2,spinmap%h%n2
 
 do i=0,spinmap%ns-1
 do j=0,spinmap%ns-1
 
 mphi=(i1*i*dphi1+i2*j*dphi2)*twopi
 do k=1,3
- spinmap%h(k,i1,i2)=spinmap%h(k,i1,i2) + exp(-i_*mphi)*spinmap%sp(i,j)%x(k)*dphi1*dphi2
+ spinmap%h%h(k,i1,i2)=spinmap%h%h(k,i1,i2) + exp(-i_*mphi)*spinmap%sp(i,j)%x(k)*dphi1*dphi2
 enddo
 
 enddo
@@ -3059,14 +3141,14 @@ dphi2=1.0_dp/spinmap%ns
 
 s%x=0.0_dp
 
-do i1=-spinmap%n1,spinmap%n1
-do i2=-spinmap%n2,spinmap%n2
+do i1=-spinmap%h%n1,spinmap%h%n1
+do i2=-spinmap%h%n2,spinmap%h%n2
 
 
 
 mphi=(i1*i*dphi1+i2*j*dphi2)*twopi
 do k=1,3
- s%x(k)=exp(i_*mphi)*spinmap%h(k,i1,i2) + s%x(k)
+ s%x(k)=exp(i_*mphi)*spinmap%h%h(k,i1,i2) + s%x(k)
 enddo
 
  
@@ -3149,7 +3231,7 @@ integer i1,i2,i,j,k
 call alloc(h)
 
 do k=1,3
- h%v(k)=spinmap%h(k,0,0)  
+ h%v(k)=spinmap%h%h(k,0,0)  
 enddo
 
 xs0=exp(h)
@@ -3161,6 +3243,363 @@ si=xs0
 call kill(h)
 
 end subroutine evaluate_constant_part
+
+
+subroutine normalise_logs_i(spinmap,m)
+implicit none
+type(logs), intent(inout) :: spinmap
+type(c_spinor) spm
+type(c_spinmatrix) sm,sm0,smi
+real(dp) theta0
+integer i,j,k,m
+type(explogs)  a,b
+type(probe) xs0
+!  type  explogs  
+!     integer n1,n2
+!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
+!  end  type explogs
+
+
+call alloc(spm)
+call alloc(sm)
+call alloc(sm0)
+call alloc(smi)
+
+call alloc_explogs(a,spinmap%h%n1,spinmap%h%n2)
+call alloc_explogs(b,spinmap%h%n1,spinmap%h%n2)
+
+!call exp_logs(a,spinmap%h,spinmap%h,spinmap%mu)
+
+do k=1,3
+ spm%v(k)=spinmap%h%h(k,0,0)
+enddo
+
+write(6,*)" before 0,0 "
+write(6,*) spinmap%h%h(1,0,0) 
+write(6,*) spinmap%h%h(2,0,0) 
+write(6,*) spinmap%h%h(3,0,0) 
+
+        call c_find_as(spm, sm0)
+ !   MODULE PROCEDURE EQUAL_c_spinmatrix_3_by_3
+ !   MODULE PROCEDURE EQUAL_3_by_3_probe
+ !   MODULE PROCEDURE EQUAL_probe_3_by_3
+ !   MODULE PROCEDURE EQUAL_probe_c_spinmatrix
+
+
+sm0=sm0**(-1)
+
+xs0=sm0
+spinmap%as(m,:,:)=xs0
+
+call simil_logs(sm0,spinmap%h)
+
+
+theta0=spinmap%h%h(2,0,0)
+
+write(6,*)" after 0,0 "
+write(6,*) spinmap%h%h(1,0,0) 
+write(6,*) spinmap%h%h(2,0,0) 
+write(6,*) spinmap%h%h(3,0,0) 
+write(6,*) " nu0 ",theta0/twopi
+write(6,*) " mu(1) ",spinmap%mu(1)
+write(6,*) " mu(2) ",spinmap%mu(2)
+
+call n0_to_nr(spinmap%h,b)
+
+do i=-b%n1,b%n1
+do j=-b%n2,b%n2
+
+ if(iabs(i)+iabs(j)/=0) then 
+  b%h(2,i,j)= b%h(2,i,j)/i_/(i*spinmap%mu(1)+j*spinmap%mu(2))
+  else
+    b%h(2,i,j)=0
+  endif
+  b%h(1,i,j)= b%h(1,i,j)/(theta0 +(i*spinmap%mu(1)+j*spinmap%mu(2)))/i_
+  b%h(3,i,j)= b%h(3,i,j)/(-theta0+(i*spinmap%mu(1)+j*spinmap%mu(2)))/i_
+
+enddo
+enddo
+
+call nr_to_n0(b,a)
+
+spinmap%af(m)%h=a%h
+
+call exp_logs(a,spinmap%h,spinmap%h,spinmap%mu)
+
+call kill_explogs(a)
+call kill_explogs(b)
+
+call kill(spm)
+call kill(sm)
+call kill(sm0)
+call kill(smi)
+
+end subroutine normalise_logs_i
+
+subroutine evaluate_logs_a_all(spinmap,x,sm)
+implicit none
+type(logs) spinmap
+integer i
+real(dp) sm(3,3),sd(3,3),x(2)
+
+sm=0.0_dp
+do i=1,3
+ sm(i,i)=1.0_dp
+enddo
+
+if(.true.) then
+do i=1,num_iter
+
+ sm=matmul(spinmap%as(i,1:3,1:3),sm)
+
+ call evaluate_logs_a(spinmap,x,i,sd)
+
+ sm=matmul(sd,sm)
+
+enddo
+else
+do i=num_iter,1,-1
+
+ call evaluate_logs_a(spinmap,x,i,sd)
+
+ sm=matmul(sm,sd)
+
+ sm=matmul(sm,spinmap%as(i,1:3,1:3))
+
+
+enddo
+endif
+end subroutine evaluate_logs_a_all
+
+subroutine evaluate_logs_a(spinmap,x,m,sm)
+implicit none
+integer i1,i2,i,j,k,m
+real(dp) mphi,x(2),phi1,phi2
+ type(logs) spinmap
+type(spinor) s
+type(c_spinor) sc
+real(dp) sm(3,3)
+
+
+phi1=x(1)
+phi2=x(2)
+
+s%x=0.0_dp
+
+do i1=-spinmap%h%n1,spinmap%h%n1
+do i2=-spinmap%h%n2,spinmap%h%n2
+
+mphi=(i1*phi1+i2*phi2) 
+do k=1,3
+ s%x(k)=exp(i_*mphi)*spinmap%af(m)%h(k,i1,i2) + s%x(k)
+enddo
+ 
+enddo
+enddo
+
+call alloc(sc)
+
+ sc=s
+
+sm=exp(sc)
+
+call kill(sc)
+
+end subroutine evaluate_logs_a
+
+  subroutine bracket_a_b_c(a,b,co)
+    implicit none
+    TYPE(explogs), INTENT(INout) :: a,b,co
+    TYPE(explogs) c
+    integer i1,i2,j1,j2
+    call alloc_explogs(c,a%n1,a%n2)
+
+do i1=-a%n1,a%n1
+do j1=-a%n2,a%n2
+do i2=-b%n1,b%n1
+do j2=-b%n2,b%n2
+
+  if(iabs(i1+i2)>a%n1) cycle
+  if(iabs(j1+j2)>a%n2) cycle
+
+  c%h(1,i1+i2,j1+j2)=c%h(1,i1+i2,j1+j2)+a%h(2,i1,j1)*b%h(3,i2,j2)-a%h(3,i1,j1)*b%h(2,i2,j2)
+  c%h(2,i1+i2,j1+j2)=c%h(2,i1+i2,j1+j2)+a%h(3,i1,j1)*b%h(1,i2,j2)-a%h(1,i1,j1)*b%h(3,i2,j2)
+  c%h(3,i1+i2,j1+j2)=c%h(3,i1+i2,j1+j2)+a%h(1,i1,j1)*b%h(2,i2,j2)-a%h(2,i1,j1)*b%h(1,i2,j2)
+
+enddo
+enddo
+enddo
+enddo
+
+co%h=c%h
+
+call kill_explogs(c)
+
+end  subroutine bracket_a_b_c
+
+
+subroutine exp_logs(a,b,c,mu)
+implicit none
+TYPE(explogs), INTENT(INout) :: a,b,c
+TYPE(explogs) d,t
+real(dp) fac,mu(:)
+integer i,j
+
+call alloc_explogs(d,a%n1,a%n2)
+call alloc_explogs(t,a%n1,a%n2)
+
+
+t%h=b%h
+d%h=b%h
+do i=1,logs_exp
+ call bracket_a_b_c(a,d,d)
+ fac=1.0_dp/i
+ d%h=fac*d%h
+ t%h=t%h+d%h
+enddo
+
+d%h=-a%h
+     do i=-a%n1,a%n1
+     do j=-a%n2,a%n2
+         d%h(1:3,i,j)=i_*(i*mu(1)+j*mu(2))*d%h(1:3,i,j)
+     enddo
+     enddo 
+
+
+t%h=t%h+d%h    
+
+
+do i=2,logs_exp
+call bracket_a_b_c(a,d,d)
+fac=1.0_dp/i
+d%h=fac*d%h
+t%h=t%h+d%h
+enddo
+
+c%h=t%h
+
+call kill_explogs(d)
+call kill_explogs(t)
+
+end subroutine exp_logs
+
+
+subroutine simil_logs(s,h)
+implicit none
+type(explogs), intent(inout) :: h
+type(c_spinor) spm
+type(c_spinmatrix), intent(in) :: s 
+integer i,j,k
+
+call alloc(spm)
+ 
+
+
+do i=-h%n1,h%n1
+do j=-h%n2,h%n2
+ 
+do k=1,3
+ spm%v(k)=h%h(k,i,j)
+enddo
+ spm=s*spm
+do k=1,3
+ h%h(k,i,j)=spm%v(k)
+enddo
+ 
+enddo 
+enddo
+
+ 
+
+call kill(spm)
+ 
+end subroutine simil_logs
+
+  subroutine print_explogs(a,b,file)
+    implicit none
+    TYPE(explogs), INTENT(INout) :: a,b
+    character(*) file
+    integer mf,i,j,k
+    real(dp) n1(3),n2(3)
+    call kanalnummer(mf,file)
+
+     do i=-a%n1,a%n1
+     do j=-a%n2,a%n2
+
+!     do i=-2,2
+!     do j=-2,2
+     if(iabs(i)+iabs(j)>2) cycle
+!     write(mf,'(2(i4,1x),6(1x,E15.8))') i,j,a%h(1:3,i,j)
+!     write(mf,'(2(5x),6(1x,E15.8))')    b%h(1:3,i,j)
+   do k=1,3
+    n1(k)=abs(a%h(k,i,j))
+    n2(k)=abs(b%h(k,i,j))
+   enddo
+     write(mf,'(2(i4,1x),3(1x,E15.8))') i,j,n1(1:3)
+     write(mf,'(2(5x),3(1x,E15.8))')    n2(1:3)
+
+     enddo
+     enddo
+    close(mf)
+
+end subroutine print_explogs
+
+  subroutine n0_to_nr(n0,nr)
+    implicit none
+    TYPE(explogs), INTENT(INout) :: n0,nr
+    complex(dp) nt(3)
+    integer i,j
+     do i=-n0%n1,n0%n1
+     do j=-n0%n2,n0%n2
+      nt(2)=n0%h(2,i,j)
+      nt(1)=n0%h(1,i,j)-i_*n0%h(3,i,j) ! coefficient of  1/2(L_x + i L_z) 
+      nt(3)=n0%h(1,i,j)+i_*n0%h(3,i,j) ! coefficient of  1/2(L_x - i L_z)
+      nr%h(1:3,i,j)=nt
+     enddo
+     enddo  
+    
+
+  end subroutine n0_to_nr
+
+  subroutine nr_to_n0(nr,n0) 
+    implicit none
+    TYPE(explogs), INTENT(INout) :: n0,nr
+    complex(dp) nt(3)
+    integer i,j
+
+  
+     do i=-nr%n1,nr%n1
+     do j=-nr%n2,nr%n2
+     nt(2)=nr%h(2,i,j)
+     nt(1)=(nr%h(1,i,j)+nr%h(3,i,j))/2.0_dp    ! coefficient of L_x
+     nt(3)=i_*(nr%h(1,i,j)-nr%h(3,i,j))/2.0_dp ! coefficient of L_z
+      n0%h(1:3,i,j)=nt
+      enddo
+     enddo  
+
+  end subroutine nr_to_n0
+
+  subroutine norm_explogs(nr,norm,normphi) 
+    implicit none
+    TYPE(explogs), INTENT(INout) :: nr
+    real(dp) norm,normphi
+    integer i,j
+
+     norm=0.0_dp
+     normphi=0.0_dp  
+     
+     do i=-nr%n1,nr%n1
+     do j=-nr%n2,nr%n2
+     norm=abs(nr%h(1,i,j))+abs(nr%h(2,i,j))+abs(nr%h(3,i,j)) +norm
+      if(iabs(i)+iabs(j)/=0) then
+      normphi=abs(nr%h(1,i,j))+abs(nr%h(2,i,j))+abs(nr%h(3,i,j)) +normphi
+      else
+      normphi=abs(nr%h(3,i,j)) +normphi
+      endif
+      enddo
+     enddo  
+
+  end subroutine norm_explogs
 
 end module pointer_lattice
 

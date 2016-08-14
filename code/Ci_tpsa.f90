@@ -89,7 +89,7 @@ real(dp) :: epso_factor =1000.d0 ! for log
 logical(lp):: extra_terms_log=.false. 
 logical :: add_constant_part_concat=.true.
 private EQUAL_c_spinmatrix_probe,EQUAL_c_spinmatrix_3_by_3,EQUAL_3_by_3_probe,EQUAL_probe_c_spinmatrix
-private EQUAL_probe_3_by_3
+private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
 
 
   INTERFACE assignment (=)
@@ -116,6 +116,7 @@ private EQUAL_probe_3_by_3
     MODULE PROCEDURE c_IdentityEQUALVECfourier
     MODULE PROCEDURE EQUAL_c_spinmatrix_probe
     MODULE PROCEDURE EQUAL_c_spinmatrix_3_by_3
+    module procedure EQUAL_3_by_3_c_spinmatrix
     MODULE PROCEDURE EQUAL_3_by_3_probe
     MODULE PROCEDURE EQUAL_probe_3_by_3
     MODULE PROCEDURE EQUAL_probe_c_spinmatrix
@@ -143,6 +144,7 @@ private EQUAL_probe_3_by_3
       MODULE PROCEDURE equalc_ray_ray
       MODULE PROCEDURE equal_c_vector_field_fourier
       MODULE PROCEDURE equalc_spinor_cspinor
+      MODULE PROCEDURE equalc_cspinor_spinor
       MODULE PROCEDURE flatten_c_factored_lie_r !# same as flatten_c_factored_lie
   end  INTERFACE
 
@@ -1927,6 +1929,22 @@ end subroutine c_get_indices
 
   END subroutine EQUAL_c_spinmatrix_3_by_3
 
+
+  subroutine EQUAL_3_by_3_c_spinmatrix(R,S)
+!*
+    implicit none
+    real(dp), INTENT(INOUT) :: R(3,3)
+    TYPE(c_spinmatrix), INTENT(IN) :: S
+    integer i,j
+    do i=1,3
+    do j=1,3
+    r(i,j)=s%s(i,j)
+    enddo
+    enddo
+
+  END subroutine EQUAL_3_by_3_c_spinmatrix
+
+
   subroutine EQUAL_3_by_3_probe(R,S)
 !*
     implicit none
@@ -2104,6 +2122,23 @@ end subroutine c_get_indices
 
 
  end SUBROUTINE  equalc_spinor_cspinor
+
+  SUBROUTINE  equalc_cspinor_spinor(S1,S2) ! spin routine
+!*
+    implicit none
+    type (spinor),INTENT(in)::S2
+    type (c_spinor),INTENT(inOUT)::S1
+
+    integer i 
+
+    call check_snake
+
+    do i=1,3
+      s1%v(i)=s2%x(i)
+    enddo
+
+
+ end SUBROUTINE  equalc_cspinor_spinor
 
   SUBROUTINE  c_DPEKMAP(S2,S1)
     implicit none
@@ -8148,7 +8183,8 @@ subroutine c_linear_a(xy,a1)
 !! It will fail if some orbital planes are exactly rotations, say beta=1.00000000 and no coupling
 call  c_locate_modulated_magnet_planes(fm0,idef,reval)
 
-
+    call alloc(s1)
+ 
 
 if(.not.c_normal_auto) then
 
@@ -8158,7 +8194,8 @@ if(.not.c_normal_auto) then
      write(6,'(i2,2(1x,G21.14))') i, reval(i),imval(i)
     enddo
     call c_locate_planes(vr,vi,idef)
-if(i_piotr(1)==0.and.nd<=ndharm) then
+ 
+if(i_piotr(1)==0) then   !.and.nd<=ndharm) then
   write(6,'(a82)') " The order of the planes has been guessed using the algorithm in c_locate_planes "
   write(6,'(a41)') " Hopefully it is correct! Please check! "
   write(6,'(a18,100(i2,1x))') " Order guessed -> ",idef(1:ndharm)
@@ -8229,6 +8266,7 @@ endif
        enddo
     enddo
     a1 = fm
+
     call alloc(s1)
 !if(courant_snyder_teng_edwards) then
 !!!! Here starts the gymnastics that insures a Courant-Snyder/Teng-Edwards 
@@ -8269,7 +8307,7 @@ endif
 !!! if there is a longitudinal coasting beam.
 !!! Therefore time must be adjusted to make sure that the map
 !!! is truly diagonalised.
-
+ 
     a1=a1**(-1)
     if(rf>0.and.ndpt>0.and.do_linear_ac_longitudinal) then 
   !  if(ndpt>0) then 
@@ -8297,12 +8335,13 @@ subroutine c_locate_planes(vr,vi,idef)
     integer idef(ndim2t/2)
     real(dp) r,rmax
     logical doit
-    integer j,k,jmax,i
+    integer j,k,jmax,i,irf
 !    idef=0
 ! write(6,*) " nd2,ndc2t ",nd2,ndc2t 
 !pause 
+irf=0
 !      do j=2,nd2-ndc2t,2
-     do j=1,nd-ndct-rf
+     do j=1,nd-ndct -irf*rf
  !      rmax=0
  !      kmax=0
        do k=1,(nd2-ndc2t)/2
@@ -8318,7 +8357,7 @@ subroutine c_locate_planes(vr,vi,idef)
 do k=1,(nd2-ndc2t)/2
        rmax=0
        jmax=0
-     do j=1,nd-ndct*rf
+     do j=1,nd-ndct-irf*rf
 
 
         r=t(j,k) 
@@ -8336,8 +8375,8 @@ do k=1,(nd2-ndc2t)/2
 
  !!!! checking   maybe equal tunes....
       doit=.false.
-      do j=1,(nd2-ndc2t-2*rf )/2
-      do k=1,(nd2-ndc2t-2*rf )/2
+      do j=1,(nd2-ndc2t-irf*2*rf )/2
+      do k=1,(nd2-ndc2t-irf*2*rf )/2
  
          if(j==k) cycle
         if(idef(j)==idef(k)) doit=.true.
@@ -8348,7 +8387,7 @@ do k=1,(nd2-ndc2t)/2
 
      if(doit) then
        if(c_verbose) write(6,*) "warning : trouble locating planes, so chosen arbitrarily "
-       do k=1,(nd2-ndc2t-2*rf )/2
+       do k=1,(nd2-ndc2t-irf*2*rf )/2
         idef(k)=2*k-1
         enddo
      endif
@@ -8848,7 +8887,7 @@ end subroutine c_full_canonise
 ! but energy is constant. (Momentum compaction, phase slip etc.. falls from there)
     call  c_gofix(m1,a1) 
 
-
+ 
      m1=c_simil(a1,m1,-1)
  
 ! Does the the diagonalisation into a rotation
@@ -10448,23 +10487,35 @@ prec=1.d-8
     call kill(di)
   end subroutine c_find_om_da
 
-  subroutine c_find_as(n2,a) 
+  subroutine c_find_as(n22,a) 
 !#general : normal & manipulation
 !# Find the c_spinmatrix "a" such that
 !# e_y = (0,1,0)= a**(-1)*n0
 !# because a*exp(theta n0.L)*a**(-1)= exp(theta (a*n0).L). See Sec.6.5.2.
 
     implicit none
-    type(c_spinor), intent(inout) ::  n2 
+    type(c_spinor), intent(inout) ::  n22 
     type(c_spinmatrix), intent(inout) ::  a 
-    type(c_spinor)  n1 ,n3 
+    type(c_spinor)  n1 ,n3,n2 
     type(c_taylor)   s,n
     real(dp) x
-
     integer i,is
+
     call alloc(n1)
+    call alloc(n2)
     call alloc(n3)
     call alloc(s,n)
+
+    n2=n22
+
+    x=n2.dot.n2
+
+    x=sqrt(x)
+
+    do i=1,3
+     n2%v(i)=n2%v(i)/x
+    enddo
+
     ! here we find smallest value of n2
     is=2
     if(abs(n2%v(1))< abs(n2%v(2))) is=1
@@ -10533,6 +10584,7 @@ endif
 
 
     call kill(n1)
+    call kill(n2)
     call kill(n3)
     call kill(s,n)
   end subroutine c_find_as
