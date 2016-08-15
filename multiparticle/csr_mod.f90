@@ -26,18 +26,21 @@ type csr_ele_info_struct
   real(rp) dL_s                                ! L_s(of element) - L_chord
 end type
 
-type csr_bunch_slice_struct   ! Structure for a single particle bin.
-  real(rp) x0, y0      ! Transverse center of the particle distrubution
-  real(rp) z0_edge     ! Left (min z) edge of bin
-  real(rp) z1_edge     ! Right (max z) edge of bin
-  real(rp) z_center    ! z at center of bin.
-  real(rp) sig_x       ! particle's RMS width
-  real(rp) sig_y       ! particle's RMS width
-  real(rp) charge      ! charge of the particles
-  real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
-  real(rp) kick_csr    ! CSR kick
-  real(rp) :: coef_lsc(0:4,0:4)    ! LSC Kick coefs.
-  real(rp) kick_lsc
+type csr_bunch_slice_struct  ! Structure for a single particle bin.
+  real(rp) :: x0 = 0, y0 = 0 ! Transverse center of the particle distrubution
+  real(rp) :: z0_edge = 0    ! Left (min z) edge of bin
+  real(rp) :: z1_edge = 0    ! Right (max z) edge of bin
+  real(rp) :: z_center = 0   ! z at center of bin.
+  real(rp) :: sig_x = 0      ! particle's RMS width
+  real(rp) :: sig_y = 0      ! particle's RMS width
+  real(rp) :: charge = 0     ! charge of the particles
+  real(rp) :: dcharge_density_dz = 0      ! Charge density gradient 
+  real(rp) :: edge_dcharge_density_dz = 0 ! gradient between this and preceeding bin. [Evaluated at bin edge.]
+  real(rp) :: kick_csr = 0                ! CSR kick
+  real(rp) :: coef_lsc_plus(0:2,0:2) = 0  ! LSC Kick coefs.
+  real(rp) :: coef_lsc_minus(0:2,0:2) = 0 ! LSC Kick coefs.
+  real(rp) :: kick_lsc = 0
+  real(rp) :: n_particle = 0 ! Number of particles in slice can be a fraction since particles span multiple bins.
 end type
 
 ! csr_kick1_struct stores the CSR kick, kick integral etc. for a given source and kick positions.
@@ -290,8 +293,6 @@ do i_step = 0, n_step
                       csr%eleinfo(ele%ix_ele)%floor0%r
   csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
 
-  csr%slice(:)%kick_csr = 0
-
   ! ns = 0 is the unshielded kick.
 
   do ns = 0, csr_param%n_shield_images
@@ -387,10 +388,10 @@ type (csr_struct), target :: csr
 type (this_local_struct), allocatable :: tloc(:)
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) z_center, z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
-real(rp) zp_center, zp0, zp1, zb0, zb1, charge
+real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval
+real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f, last_sig_x, last_sig_y
 
-integer i, j, n, ix0, ib, ic
+integer i, j, n, ix0, ib, ib2, ic
 
 character(20) :: r_name = 'csr_bin_particles'
 
@@ -401,6 +402,8 @@ character(20) :: r_name = 'csr_bin_particles'
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
     .not. csr_param%tsc_component_on .and. csr_param%n_shield_images == 0) return
+
+csr%slice(:) = csr_bunch_slice_struct()  ! Zero everything
 
 z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 z_minval = minval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
@@ -439,15 +442,6 @@ tloc%ib = -1
 
 ! Compute the particle distribution center in each bin
 
-csr%slice(:)%charge = 0
-csr%slice(:)%x0 = 0
-csr%slice(:)%y0 = 0
-csr%slice(:)%sig_x = 0
-csr%slice(:)%sig_y = 0
-csr%slice(:)%dcharge_density_dz = 0
-
-f = 2.0 / dz_particle**2
-
 ! The contribution to the charge in a bin from a particle is computed from the overlap
 ! between the particle and the bin.
  
@@ -464,7 +458,9 @@ do i = 1, size(particle)
     slice => csr%slice(ib)
     zb0 = csr%slice(ib)%z0_edge
     zb1 = csr%slice(ib)%z1_edge   ! edges of the bin
-    charge = charge_in_bin (zb0, zb1)
+    overlap_fraction = particle_overlap_in_bin (zb0, zb1)
+    slice%n_particle = slice%n_particle + overlap_fraction
+    charge = overlap_fraction * p%charge
     slice%charge = slice%charge + charge
     slice%x0 = slice%x0 + p%vec(1) * charge
     slice%y0 = slice%y0 + p%vec(3) * charge
@@ -477,8 +473,15 @@ do i = 1, size(particle)
 enddo
 
 do ib = 1, csr_param%n_bin
-  if (ib /= 1) csr%slice(ib)%dcharge_density_dz = &
-                  (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
+  if (ib /= 1) csr%slice(ib)%edge_dcharge_density_dz = (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
+  if (ib == 1) then
+    csr%slice(ib)%dcharge_density_dz = (csr%slice(ib+1)%charge - csr%slice(ib)%charge) / csr%dz_slice**2
+  elseif (ib == csr_param%n_bin) then
+    csr%slice(ib)%dcharge_density_dz = (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
+  else
+    csr%slice(ib)%dcharge_density_dz = (csr%slice(ib+1)%charge - csr%slice(ib-1)%charge) / (2 * csr%dz_slice**2)
+  endif
+
   if (csr%slice(ib)%charge == 0) cycle
   csr%slice(ib)%x0 = csr%slice(ib)%x0 / csr%slice(ib)%charge
   csr%slice(ib)%y0 = csr%slice(ib)%y0 / csr%slice(ib)%charge
@@ -487,13 +490,14 @@ enddo
 csr%x0_bunch = sum(csr%slice%x0 * csr%slice%charge) / sum(csr%slice%charge)
 csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
 
-! Compute the particle distribution sigmas in each bin
-! Abs is used instead of the usual formula to lessen the effect
-! of non-Gaussian tails
+! Compute the particle distribution sigmas in each bin.
+! Abs(x-x0) is used instead of the usual formula involving (x-x0)^2 to lessen the effect
+! of non-Gaussian tails.
 
 do ic = 1, size(tloc)
   if (tloc(ic)%ib < 0) cycle
   slice => csr%slice(tloc(ic)%ib)
+  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
   slice%sig_x = slice%sig_x + abs(tloc(ic)%x0 - slice%x0) * tloc(ic)%charge
   slice%sig_y = slice%sig_y + abs(tloc(ic)%y0 - slice%y0) * tloc(ic)%charge
 enddo
@@ -501,30 +505,66 @@ enddo
 f = sqrt(pi/2)
 do ib = 1, csr_param%n_bin
   slice => csr%slice(ib)
-  if (slice%charge == 0) cycle
+  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
   slice%sig_x = f * slice%sig_x / slice%charge
   slice%sig_y = f * slice%sig_y / slice%charge
+enddo
+
+! For bins where there was not enough particles to calculate sigmas, use the sigmas from nearby.
+! Start at the center slice where we know there have been enough to compute sigmas
+
+do ib = csr_param%n_bin/2, 1, -1
+  slice => csr%slice(ib)
+  if (slice%sig_x == 0) then
+    ib2 = max(1, ib-1)
+    if (csr%slice(ib2)%sig_x == 0) then
+      slice%sig_x = (last_sig_x + csr%slice(ib2)%sig_x) / 2
+      slice%sig_y = (last_sig_y + csr%slice(ib2)%sig_y) / 2
+    else
+      slice%sig_x = last_sig_x
+      slice%sig_y = last_sig_y
+    endif
+  else
+    last_sig_x = slice%sig_x
+    last_sig_y = slice%sig_y
+  endif
+enddo
+
+do ib = csr_param%n_bin/2, csr_param%n_bin
+  slice => csr%slice(ib)
+  if (slice%sig_x == 0) then
+    ib2 = min(csr_param%n_bin, ib+1)
+    if (csr%slice(ib2)%sig_x == 0) then
+      slice%sig_x = (last_sig_x + csr%slice(ib2)%sig_x) / 2
+      slice%sig_y = (last_sig_y + csr%slice(ib2)%sig_y) / 2
+    else
+      slice%sig_x = last_sig_x
+      slice%sig_y = last_sig_y
+    endif
+  else
+    last_sig_x = slice%sig_x
+    last_sig_y = slice%sig_y
+  endif
 enddo
 
 !---------------------------------------------------------------------------
 contains
 
-! computes the contribution to the charge in a bin from
-! a given particle.
+! computes the contribution to the charge in a bin from a given particle.
 ! z0_bin, z1_bin are the edge positions of the bin
 
-function charge_in_bin (z0_bin, z1_bin) result (charge)
+function particle_overlap_in_bin (z0_bin, z1_bin) result (overlap)
 
-real(rp) z0_bin, z1_bin, charge, z1, z2
+real(rp) z0_bin, z1_bin, overlap, z1, z2
 
 ! Integrate over left triangular half of particle distribution
 
 z1 = max(zp0, z0_bin)        ! left integration edge
 z2 = min(zp_center, z1_bin)  ! right integration edge
 if (z2 > z1) then            ! If left particle half is in bin ...
-  charge = f * p%charge * ((z2 - zp0)**2 - (z1 - zp0)**2)
+  overlap = 2 * real(((z2 - zp0)**2 - (z1 - zp0)**2), rp) / dz_particle**2
 else
-  charge = 0
+  overlap = 0
 endif
 
 ! Integrate over right triangular half of particle distribution
@@ -532,10 +572,10 @@ endif
 z1 = max(zp_center, z0_bin)  ! left integration edge
 z2 = min(zp1, z1_bin)        ! right integration edge
 if (z2 > z1) then         ! If right particle half is in bin ...
-  charge = charge + f * p%charge * ((z1 - zp1)**2 - (z2 - zp1)**2)
+  overlap = 2 * real(((z1 - zp1)**2 - (z2 - zp1)**2), rp) / dz_particle**2
 endif
 
-end function
+end function particle_overlap_in_bin
 
 end subroutine csr_bin_particles
 
@@ -616,7 +656,7 @@ n_bin = csr_param%n_bin
 if (csr%y_source == 0) then
   if (csr_param%lcsr_component_on) then
     do i = 1, n_bin
-      csr%slice(i)%kick_csr = coef * dot_product(csr%kick1(i:1:-1)%I_int_csr, csr%slice(1:i)%dcharge_density_dz)
+      csr%slice(i)%kick_csr = coef * dot_product(csr%kick1(i:1:-1)%I_int_csr, csr%slice(1:i)%edge_dcharge_density_dz)
     enddo
   endif
 
@@ -901,10 +941,12 @@ implicit none
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot, a00
-real(rp) sx2, sy2, sx4, sy4, x02, y02, f(0:4,0:4), f1(0:4,0:4)
-integer i, j
-logical have_set
+real(rp), pointer :: f(:,:)
+real(rp) sx, sy, a, b, c, z_slice, factor, sig_x_ave, sig_y_ave, charge_tot, f00
+real(rp) radix, sr, z1, z2, rho0, drho_dz, dk0, atz1, atz2, bcd, abcz1, abcz2, b2cz1, b2cz2
+real(rp) sx2, sy2, g_z1, g_z2, h_z1, h_z2, alph, bet, ss, f1(0:2,0:2)
+
+integer i, j, sign_of_z_slice
 
 character(*), parameter :: r_name = 'lsc_kick_params_calc'
 
@@ -918,24 +960,21 @@ if (charge_tot == 0) return
 
 sig_x_ave = dot_product(csr%slice(:)%sig_x, csr%slice(:)%charge) / charge_tot
 sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
+
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
+if (.not. csr_param%lsc_component_on) return
 
 factor = csr%kick_factor * csr%actual_track_step * r_e / &
           (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 
 ! Compute the kick at the center of each bin
-
-if (.not. csr_param%lsc_component_on) return
+! i = index of slice where kick is computed
 
 do i = 1, csr_param%n_bin
 
-  csr%slice(i)%kick_lsc = 0
-  csr%slice(i)%coef_lsc = 0 
-
-  have_set = .false.
+  ! Loop over all slices and calculate kick at slice i due to slice j.
 
   do j = 1, csr_param%n_bin
-    if (i == j) cycle
     slice => csr%slice(j)
     sx = slice%sig_x
     sy = slice%sig_y
@@ -949,36 +988,77 @@ do i = 1, csr_param%n_bin
     a = sx * sy
     b = csr%gamma * (sx2 + sy2) / (sx + sy)
     c = csr%gamma**2
-    dz = csr%slice(i)%z_center - csr%slice(j)%z_center
+
+    z_slice = csr%slice(i)%z_center - csr%slice(j)%z_center
+    sign_of_z_slice = sign_of(z_slice)
+
+    ! The kick is computed for z_slice positive and then the sign of the kick is corrected.
+    radix = -b**2 + 4 * a * c
+    sr = sqrt(abs(radix))
+    z1 = abs(z_slice) - csr%dz_slice / 2
+    z2 = abs(z_slice) + csr%dz_slice / 2
+    drho_dz = csr%slice(j)%dcharge_density_dz * sign_of_z_slice
+    rho0 = csr%slice(j)%charge / csr%dz_slice - drho_dz * abs(z_slice)
+
+    if (i == j) then ! Self slice kick
+      drho_dz = csr%slice(j)%dcharge_density_dz
+      rho0 = 0
+      z1 = 0
+      z2 = csr%dz_slice/2       ! Integrate over 1/2 the slice
+      sign_of_z_slice = -2      ! Factor of 2 accounts for 1/2 we did not integrate over.
+    endif
+
+    bcd = 2 * c * rho0 - b * drho_dz
+    abcz1 = a + b*z1 + c*z1**2
+    abcz2 = a + b*z2 + c*z2**2
+    b2cz1 = b + 2*c*z1
+    b2cz2 = b + 2*c*z2
+
+    if (radix > 0) then
+      atz1 = atan (b2cz1/sr) / sr
+      atz2 = atan (b2cz2/sr) / sr
+    else
+      atz1 = log((b2cz1 - sr) / (b2cz1 + sr)) / (2 * sr)
+      atz2 = log((b2cz2 - sr) / (b2cz2 + sr)) / (2 * sr)
+    endif
+
+    dk0 = factor * ((2 * atz2 * bcd + drho_dz * log(abcz2)) - (2 * atz1 * bcd + drho_dz * log(abcz1))) / (2 * c)
+    if (dk0 == 0) cycle
+
+    csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sign_of_z_slice * dk0
 
     if (csr_param%lsc_kick_transverse_dependence) then
-      sx4 = sx2**2;     sy4 = sy2**2
-      a00 = a / (sign_of(dz) * slice%charge)
-      f1 = 0
-      f1(0,0) =  a00 + (b * abs(dz) + c * dz**2) / (sign_of(dz) * slice%charge)
-      f1(0,2) =  a00 / (2 * sy2)
-      f1(0,4) =  a00 / (8 * sy4)
-      f1(2,0) =  a00 / (2 * sx2) 
-      f1(2,2) =  a00 / (4 * sx2 * sy2)
-      f1(4,0) =  a00 / (8 * sx4)
+      f00 = 1 / dk0
+      g_z1 = a * (b2cz1*bcd + 4*abcz1*atz1*bcd*c - drho_dz*radix) / (2*abcz1*c*radix)
+      g_z2 = a * (b2cz2*bcd + 4*abcz2*atz2*bcd*c - drho_dz*radix) / (2*abcz2*c*radix)
+      h_z1 = (b*b*b2cz1*bcd - 6*a*b2cz1*bcd*c - 4*abcz1*b2cz1*bcd*c - 24*abcz1**2*atz1*bcd*c**2 + drho_dz*radix**2 - 2*b*b2cz1*bcd*c*z1 - 2*b2cz1*bcd*(c*z1)**2)
+      h_z2 = (b*b*b2cz2*bcd - 6*a*b2cz2*bcd*c - 4*abcz2*b2cz2*bcd*c - 24*abcz2**2*atz2*bcd*c**2 + drho_dz*radix**2 - 2*b*b2cz2*bcd*c*z2 - 2*b2cz2*bcd*(c*z2)**2)
 
-      if (have_set) then
-        f = da2_div(da2_mult(f1, f), f + f1)
+      alph = f00**2 * (g_z2 - g_z1)
+      bet = f00**3 * (g_z2 - g_z1)**2 + (f00 * a)**2 * (h_z2/abcz2**2 - h_z1/abcz1**2) / (4 * c * radix**2)
+
+      ss = 1.0_rp / sign_of_z_slice
+      f1(0,0) = ss * f00
+      f1(0,1) = ss * alph / (2 * sy2)
+      f1(0,2) = ss * (alph + 2*bet) / (8 * sy2**2)
+      f1(1,0) = ss * alph / (2 * sx2)
+      f1(1,1) = ss * (alph + 2*bet) / (4 * sx2 * sy2)
+      f1(2,0) = ss * (alph + 2*bet) / (8 * sx2**2)
+
+      if (f1(0,0) > 0) then
+        f => csr%slice(i)%coef_lsc_plus
       else
-        f = f1
-        have_set = .true.
+        f => csr%slice(i)%coef_lsc_minus
       endif
 
-    else
-     csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + &
-                      factor * slice%charge * sign(1.0_rp, dz) / (a + b * abs(dz) + c * dz**2)
+      if (f(0,0) == 0) then  ! If first time
+        f = f1
+      else
+        f = da2_div(da2_mult(f1, f), f + f1)
+      endif
     endif
 
   enddo
-
-  if (csr_param%lsc_kick_transverse_dependence .and. have_set) then
-    csr%slice(i)%coef_lsc = f / factor
-  endif
 
 enddo
 
@@ -1189,14 +1269,12 @@ if (csr_param%lsc_component_on) then
     dpz = 0
 
     slice => csr%slice(i0)
-    if (slice%coef_lsc(0,0) /= 0) then
-      dpz = dpz + r0 / da2_evaluate(slice%coef_lsc, x-csr%x0_bunch, y-csr%y0_bunch)
-    endif
+    if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+    if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
 
     slice => csr%slice(i0+1)
-    if (slice%coef_lsc(0,0) /= 0) then
-      dpz = dpz + r1 / da2_evaluate(slice%coef_lsc, x-csr%x0_bunch, y-csr%y0_bunch)
-    endif
+    if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+    if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
 
     vec(6) = vec(6) + dpz
 

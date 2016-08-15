@@ -118,6 +118,7 @@ type csr_parameter_struct                  ! Common block for csr calc
   integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
   integer :: ix1_ele_csr = -1              ! Start index for csr tracking
   integer :: ix2_ele_csr = -1              ! Stop index for csr tracking
+  integer :: sc_min_in_bin = 10            ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lcsr_component_on = .true.    ! Longitudinal csr component
   logical :: lsc_component_on = .true.     ! Longitudinal space charge component
   logical :: tsc_component_on = .false.    ! Transverse space charge component
