@@ -3549,7 +3549,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     return
   endif
 
-  if (tf%field_type /= electric$) then
+  if (tf%field_type /= magnetic$) then
     call out_io (s_fatal$, r_name, 'FIELD TYPE MUST BE MAGNETIC FOR A TAYLOR_FIELD IF USED WITH PTC.', &
                                    'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
@@ -3578,7 +3578,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     do j = 1, 3
       do k = 1, size(plane%field(j)%term)
         tm => plane%field(j)%term(k)
-        coef = tm%coef * tf%field_scale   ! * c_light / ele2%value(p0c$)
+        coef = tm%coef * tf%field_scale * 1d9   ! * c_light / ele2%value(p0c$)
         if (tf%master_parameter > 0) coef = coef * ele%value(tf%master_parameter)
         pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
       enddo
