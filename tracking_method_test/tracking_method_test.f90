@@ -138,10 +138,13 @@ character(10) function tolerance(instr)
 character(38) :: instr
 
   select case (instr)
+    case('QUADRUPOLE1:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-13'
     case('RFCAVITY1:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
     case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
     case('SBEND4:Bmad_Standard')                 ; tolerance = 'ABS 1e-11'
     case('SBEND4:Linear')                        ; tolerance = 'ABS 1e-11'
+    case('SBEND5:Bmad_Standard')                 ; tolerance = 'ABS 5e-13'
+    case('SBEND5:Linear')                        ; tolerance = 'ABS 5e-13'
     case('SBEND7:Bmad_Standard')                 ; tolerance = 'ABS 2e-13'
     case('SBEND7:Linear')                        ; tolerance = 'ABS 2e-13'
     case('SOLENOID1:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-13'
