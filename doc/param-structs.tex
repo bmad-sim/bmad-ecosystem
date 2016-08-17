@@ -177,7 +177,7 @@ This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 (\sref{s:integ}).  If the step size falls below the value set for
 \vn{%fatal_ds_adaptive_tracking}, a particle is considered lost.
 This prevents a program from ``hanging'' due to taking a large number
-of exremely small steps. The most common cause of small step size is
+of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
 
 \item[\vn{\%rel_tol_tracking}] \Newline
@@ -221,7 +221,7 @@ Determines if spin tracking is performed or not.
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 
 \item[\vn{\%radiation_damping_on}] \Newline
-Toggle to turn on or off effects due to radiation dampling in particle tracking.
+Toggle to turn on or off effects due to radiation damping in particle tracking.
 
 \item[\vn{\%radiation_fluctuations_on}] \Newline
 Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
@@ -342,7 +342,7 @@ needed.  \vn{%random_gauss_converter} selects the algorithm. The
 method is somewhat faster than the \vn{"exact"} method but not as accurate.
 With either conversion method, if \vn{%random_sigma_cutoff} is set to a positive number,
 this limits the maximum sigma generated. 
-  \item[\%n_parcicle] \Newline
+  \item[\%n_particle] \Newline
 Number of random particles generated per bunch.
   \item[\%renorm_center, \%renorm_sigma] \Newline 
 If set to True, these components will ensure that the actual beam center 
@@ -356,7 +356,7 @@ random variation in the emittance and bunch center.
 
 Note: The \vn{z} coordinate value given to particles of a bunch is with respect to the
 nominal center of the bunch. Therefore, if there are multiple bunches, and there is an RF
-cavity whose frequency is not comensurate with the spacing between bunches, absolute time
+cavity whose frequency is not commensurate with the spacing between bunches, absolute time
 tracking (\sref{s:rf.time}) must be used.
 
 The \vn{%ellipse(:)} array sets the parameters for the 
@@ -407,7 +407,7 @@ distributions. For example:
 \end{example}
 The total number of particles per bunch will be $32 \times 300 \times
 600$. The exception is that when \vn{RAN_GAUSS} is mixed with other
-distributions, the random distribution is overlayed with the other distributions
+distributions, the random distribution is overlay ed with the other distributions
 instead of multiplying. For example:
 \begin{example}
   type (beam_init_struct) bi
@@ -456,8 +456,11 @@ This structure has components
     integer n_bin = 0                 ! Number of bins used
     integer particle_bin_span = 2     ! Longitudinal particle length / dz_bin
     integer n_shield_images = 0       ! Chamber wall shielding. 0 = no shielding.
+    integer sc_min_in_bin = 10        ! Min number of particle needed to compute sigmas.
     logical lcsr_component_on = T     ! Longitudinal csr component
     logical lsc_component_on = T      ! Longitudinal space charge component
+    logical lsc_kick_transverse_dependence = F
+                                      ! Include longitudinal SC transverse dependence?
     logical tsc_component_on = T      ! Transverse space charge component
     logical small_angle_approx = T    ! Use lcsr small angle approximation?
     logical print_taylor_warning = .true. ! Print Taylor element warning?
@@ -503,23 +506,30 @@ upon how strong the shielding is. Larger values give better accuracy
 at the expense of computation speed. ``Typical'' values are in the
 range 0 --- 5.
 
-\vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick.
+the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to
+compute the transverse beam sigmas for that bin. If the number of particles is less than
+this number, the beam sigmas are taken to be equal to the beam sigmas of a nearby bin
+where there are enough particle to compute the sigma. The beam sigmas are needed for the
+CS calculation but not need for the CSR calculation.
 
-\vn{lsc_component_on} toggles on or off the longitudinal space charge
-kick. 
+\vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick.  Note: Since \bmad
+uses a ``1-Dimensional'' model for the CSR kick, there is no transverse CSR kick in
+the model.
 
-\vn{tsc_component_on} toggles on or off the transverse space charge
-kick. 
+The \vn{lsc_component_on} parameter toggles on or off the longitudinal space charge kick.
 
-\vn{small_angle_approx} toggles whether the small angle approximation
-is used in the calculation. This is generally an excellent
-approximation.
+The \vn{tsc_component_on} parameter toggles on or off the transverse space charge kick.
 
-\vn{Taylor} map elements (\sref{s:taylor}) that have a finite length
-cannot be subdivided for the CSR calculaton. \bmad will ignore any
-\vn{taylor} elements present in the lattice but will print a warning
-that it is doing so. So suppress the warning, \vn{print_taylor_warning}
-should be set to False.
+The \vn{lsc_kick_transverse_dependence} parameter toggles on or off whether the longitudinal
+space charge kick is evaluated along the beam centerline (\vn{lsc_kick_transverse_dependence}
+set to False) or whether the transverse displacement of a particle is used with the calculation
+(\vn{lsc_kick_transverse_dependence} set to True). Simulating the transverse dependence to the
+longitudinal SC kick is more physical but will take more time.
+
+Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be
+subdivided for the CSR calculation. \bmad will ignore any \vn{taylor} elements present in
+the lattice but will print a warning that it is doing so. So suppress the warning,
+\vn{print_taylor_warning} should be set to False.
 
 %-----------------------------------------------------------------
 \section{Opti_DE_Param_Struct}
