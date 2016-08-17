@@ -6548,7 +6548,7 @@ do
       
   case ('TERM')
 
-    if (.not. allocated(term)) then
+    if (.not. allocated(ct_map%ptr%term)) then
       allocate (ct_map%ptr%term(1))
       tm => ct_map%ptr%term(1)
       ! Set %file to be the last called file:<line_number>. 
