@@ -265,53 +265,35 @@ triangular density distribution.}
 \label{f:csr.bin}
 \end{figure}
 
-First a definition of some terms to avoid confusion: \vn{space charge} (SC)
-and \vn{Coherent Synchrotron Radiation} (CSR) deal with the same problem
-which is the direct interaction between the particles of a bunch. This is
-to be differentiated from the indirect \vn{wake field} effects which are
-mediated by the vacuum chamber within which a particle beam moves. The
-difference between SC and CSR is that a CSR calculation takes into account
-the fact that there is a delay time, due to the finite velocity of the
-speed of light, so that the field felt by some particle at time $t$ due to
-another (source) particle is based on the source particle's position at
-some retarded time $t' \ne t$. A SC calculation, on the other hand, assumes
-that the field produced by a particle at time $t$ can be can be computed
-from that particle's positions at time $t$. Which type of calculation is
-better depends upon what is to be simulated. Generally, the SC calculation
-is preferred at lower energies where a particle's velocity is significantly
-different from the speed of light.
+User settable parameters pertenent to the CSR simulation are listed in
+\sref{s:csr.params}. Details of how the tracking is implemented is covered
+in \sref{s:csr.track}.
 
-\bmad simulates coherent synchrotron radiation (CSR) using the
-formalism developed by Sagan\cite{b:csr}.  This formalism divides the
-total kick received by a particle due to another particle into two
-parts: One part is called the \vn{longitudinal space charge} (LSC)
-kick and the other component is the \vn{coherent synchrotron
-radiation} (CSR) kick. By definition, the LSC component is the
-kick that would result if both particles were traveling in a straight
-line. The CSR component is what is left when the LSC kick is
-subtracted off from the total kick. Generally, the LSC kick is
-negligible compared to the CSR kick at large enough particle energies.
+\bmad simulates coherent synchrotron radiation using the formalism developed by
+Sagan\cite{b:csr}. The total kick received by a particle is divided into two parts: The
+space charge (SC) part and the coherent synchrotron radiation (CSR) part. \bmad further
+subdivides the SC kick into longitudinal (LSC) and transverse (TSC) parts. Notice that
+since the CSR kick is calculated using a 1-dimensional formalism, the CSR kick is strickly
+lonitudinal. By definition, the LSC component is the kick that would result if all
+particles were traveling in a straight line. The CSR component is what is left when the
+LSC kick is subtracted off from the total kick. Generally, the LSC kick is negligible
+compared to the CSR kick at large enough particle energies.
 
-Transport through a lattice element involves a beam of particles. The
-lattice element is divided up into a number of slices. Transport
-through a slice is a two step process.  The first step is to give all
-the particles a kick due to the CSR. The second step is transport of
-all particles without any interaction between particles. Note that
-only the longitudinal CSR kick is implemented and transverse kicks are
-ignored.
+Transport through a lattice element involves a beam of particles. The lattice element is
+divided up into a number of slices. Transport through a slice is a two step process. The
+first step is to give all the particles a kick due to the CSR. The second step is
+transport of all particles without any interaction between particles. Note that only the
+longitudinal CSR kick is implemented and transverse kicks are ignored.
 
-The particle-particle kick is calculated by dividing the bunch
-longitudinally into a number of bins. To smooth the computed bin
-densities, each particle of the bunch is considered to have a
-triangular density distribution as shown in \fig{f:csr.bin}.
-The particle density of a bin is calculated by summing the
-contribution from all the particles. The contribution of a given
-particle to a given bin is calculated from the overlap of the
-particle's triangular density distribution with the bin. For the CSR
-kick, the density is actually calculated for a second set of staggered
-bins that have been offset by 1/2 the bin width with respect to the
-first set. This gives the density at the edges of the original set of
-bins. The density is considered to vary linearly between the computed
-density points. For a description of the parameters that affect the
-CSR calculation see Section~\sref{s:csr.params}.
+The particle-particle kick is calculated by dividing the bunch longitudinally into a
+number of bins. To smooth the computed bin densities, each particle of the bunch is
+considered to have a triangular density distribution as shown in \fig{f:csr.bin}.  The
+particle density of a bin is calculated by summing the contribution from all the
+particles. The contribution of a given particle to a given bin is calculated from the
+overlap of the particle's triangular density distribution with the bin. For the CSR kick,
+the density is actually calculated for a second set of staggered bins that have been
+offset by 1/2 the bin width with respect to the first set. This gives the density at the
+edges of the original set of bins. The density is considered to vary linearly between the
+computed density points. For a description of the parameters that affect the CSR
+calculation see Section~\sref{s:csr.params}.
  

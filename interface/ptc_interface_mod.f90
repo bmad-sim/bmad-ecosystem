@@ -1160,13 +1160,13 @@ endif
 ptc_com%complex_ptc_used = ptc_com%complex_ptc_used .or. logic_option(.false., init_complex) .or. &
                                                                             bmad_com%spin_tracking_on 
 
-if (.not. init_ptc_needed) then  ! If make_states has been called
+if (.not. init_ptc_needed .or. logic_option(.false., force_init)) then  ! If make_states has been called
   t_order = 0
   if (present(taylor_order)) t_order = taylor_order
   if (t_order == 0) t_order = bmad_com%taylor_order
   if (t_order == 0) t_order = ptc_com%taylor_order_saved
   if (ptc_com%taylor_order_ptc /= t_order) then
-    call init (DEFAULT, t_order, 0, berz, nd2, ptc_com%real_8_map_init)
+    call init (DEFAULT, t_order, 0)
     init_spin_needed = .true.
     c_verbose_save = c_verbose
     c_verbose = .false.
@@ -1793,7 +1793,7 @@ logical, optional :: set_taylor
 !
 
 call alloc(y)
-y = ptc_com%real_8_map_init
+y = 6
 
 if (present(set_taylor)) then
   x = 0
@@ -2615,6 +2615,12 @@ endif
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
+! Create a PTC fibre that holds the misalignment info
+! and create map corresponding to ele%taylor.
+
+param%particle = positron$  ! Actually this does not matter to the calculation
+call ele_to_fibre (ele, fib, param, use_offsets = .true.)
+
 ! Init
 
 call real_8_init(x_ele)
@@ -2624,12 +2630,6 @@ call real_8_init(x3)
 
 beta0 = ele%value(p0c_start$)/ele%value(e_tot_start$)
 beta1 = ele%value(p0c$)/ele%value(e_tot$)
-
-! Create a PTC fibre that holds the misalignment info
-! and create map corresponding to ele%taylor.
-
-param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, use_offsets = .true.)
 
 x_dp = 0
 x_ele = x_dp  ! x_ele = Identity map 
@@ -2711,6 +2711,10 @@ real(rp) beta0, beta1, m2_rel
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
+! Init ptc "element" (fibre) 
+
+call ele_to_fibre (ele, ptc_fibre, param, .true.)
+
 ! Init ptc map with bmad map
 
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
@@ -2727,9 +2731,8 @@ if (tracking_uses_end_drifts(ele)) then
   call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
 
-! Init ptc "element" (fibre) and track the map
+! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true.)
 call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 
 ! Track exit side drift if PTC is using a hard edge model
@@ -2780,8 +2783,10 @@ end subroutine taylor_propagate1
 subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
 
 use s_tracking
-use mad_like, only: real_8, fibre
+use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
 use ptc_spin, only: track_probe_x, track_probe
+use s_family, only: survey
+use madx_ptc_module, only: bmadl
 
 implicit none
 
@@ -2804,9 +2809,25 @@ logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
 
-! Init
+! Init. Note that the fibre must be made before any map manipulation in case ele contains a taylor_field.
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+
+use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
+
+if (tracking_uses_end_drifts(ele)) then
+  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)  ! Do not kill ptc_fibre2
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0, kill_layout = .false.)
+  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true., kill_layout = .false.)
+  bmadl%closed = .true.
+  call ring_l (bmadl, bmadl%closed)
+  call survey (bmadl)
+  call make_node_layout(bmadl)
+else
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
+endif
 
 call alloc (y8)
 call alloc (bet)
@@ -2829,8 +2850,6 @@ endif
 
 ! Initial map
 
-use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
-
 if (present(orb0)) then
   bmad_taylor(:)%ref = orb0%vec
   x = orb0%vec
@@ -2850,26 +2869,15 @@ y8(5) = (y0(6)**2+2.d0*y0(6))/(1.d0/beta+sqrt( 1.d0/beta**2+y0(6)**2+2.d0*y0(6))
 bet = (1.d0+y0(6))/(1.d0/beta+y8(5))
 y8(6) = -y0(5)/bet
 
-! Track entrance drift if PTC is using a hard edge model
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
-endif
-
-! Track element
-
-call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
-
 ! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
+
 if (bmad_com%spin_tracking_on) then
   call alloc(ptc_probe8)
   call alloc(ptc_cdamap)
   ptc_cdamap = 1
   ptc_probe8 = ptc_cdamap
   ptc_probe8%x = y8
-  call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = ptc_fibre)
+  call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
   y8 = ptc_probe8%x
   do i = 1, 3
     ele%spin_taylor(:,i) = ptc_probe8%s(i)%x
@@ -2877,16 +2885,7 @@ if (bmad_com%spin_tracking_on) then
   call kill(ptc_probe8)
   call kill (ptc_cdamap)
 else
-  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
-endif
-
-! Track exit end drift if PTC is using a hard edge model
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call track_probe_x (y8, DEFAULT, fibre1 = ptc_fibre)
-  
+  call track_probe_x (y8, DEFAULT, fibre1 = bmadl%start)
 endif
 
 ! PTC to Bmad
@@ -3072,11 +3071,13 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !+                                
 ! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, 
-!                                  for_layout, track_particle, use_hard_edge_drifts)
+!                                  for_layout, track_particle, use_hard_edge_drifts, kill_layout)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
 ! Note: You need to call set_ptc before using this routine.
+! Note: If ele contains a taylor_field, this routine may not be called in between calls to 
+!   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
 !
 ! Modules Needed:
 !   use ptc_interface_mod
@@ -3099,13 +3100,15 @@ end subroutine type_map
 !                                              If True then this argument has no effect.
 !                              Default is set by bmad_com%use_hard_edge_drifts.
 !                              Default bmad_com%use_hard_edge_drifts is True.
+!   kill_layout          -- logical, optional: If False, and for_layout = False, do not kill the special layout
+!                             containing any previous "no layout" fibres. Default is True.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
 subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, &
-                                       for_layout, track_particle, use_hard_edge_drifts)
+                                       for_layout, track_particle, use_hard_edge_drifts, kill_layout)
 
 use madx_ptc_module
 
@@ -3127,7 +3130,7 @@ type (real_8) ptc_re8(6)
 type (taylor_field_struct), pointer :: tf
 type (taylor_field_plane1_struct), pointer :: plane
 type (em_taylor_term_struct), pointer :: tm
-type(taylor) bf(3)
+type(taylor), allocatable :: pancake_field(:,:)
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
@@ -3139,13 +3142,12 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 
 integer, optional :: integ_order, steps
-integer i, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
-integer np
+integer i, ii, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
+integer np, max_order
 
 logical use_offsets, has_nonzero_pole, kill_spin_fringe, onemap
-logical, optional :: for_layout, use_hard_edge_drifts
+logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
-character(vp), parameter :: filec = ''
 character(16) :: r_name = 'ele_to_fibre'
 
 ! 
@@ -3510,30 +3512,10 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   tf => ele2%taylor_field(1)
 
   np = size(tf%ptr%plane)
-  allocate(t_em(np))
-  call alloc(bf)
-
-  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
-    plane => tf%ptr%plane(i)
-    do j = 1, 3
-      bf(j)=0.d0
-      do k = 1, size(plane%field(j)%term)
-        tm => plane%field(j)%term(k)
-        coef = tm%coef * tf%field_scale * c_light / ele2%value(p0c$)
-        if (tf%master_parameter > 0) coef = coef * ele%value(tf%master_parameter)
-        bf(j)=bf(j)+(coef .mono. tm%expn)
-      enddo
-    enddo
-    n = i - lbound(tf%ptr%plane, 1) + 1
-    call set_tree_g (t_em(n), bf)
-  enddo
-
-  call kill (bf)
 
   if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
     ld = ele%value(l$)
     hd = ele%value(g$)
-
     lc = (np-1) * tf%dz   ! Integration length
 
     if (tf%curved_coords) then
@@ -3560,9 +3542,50 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     dc = (ele%value(l$) - (np-1) * tf%dz) / 2
   endif
 
-call set_pancake_constants(angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .true., filec)
+  if (mod(np, 2) == 0 .or. np < 5) then
+    call out_io (s_fatal$, r_name, 'NUMBER OF PLANES FOR A TAYLOR_FIELD MUST BE ODD AND AT LEAST 5 IF USED WITH PTC.', &
+                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
 
- ptc_key%magnet = 'INTERNALPANCAKE'
+  if (tf%field_type /= electric$) then
+    call out_io (s_fatal$, r_name, 'FIELD TYPE MUST BE MAGNETIC FOR A TAYLOR_FIELD IF USED WITH PTC.', &
+                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  n = len_trim(tf%ptr%file)
+  call set_pancake_constants(np, angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .true., tf%ptr%file(max(1,n-23):n))
+
+  max_order = 0
+  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
+    plane => tf%ptr%plane(i)
+    do j = 1, 3
+      do k = 1, size(plane%field(j)%term)
+        max_order = max(max_order, sum(plane%field(j)%term(k)%expn))
+      enddo
+    enddo
+  enddo
+
+  call init (max_order+1, 1, 0, 0)
+  call allocate_for_pancake (pancake_field)
+
+  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
+    ii = i + 1 - lbound(tf%ptr%plane, 1)
+    plane => tf%ptr%plane(i)
+    do j = 1, 3
+      do k = 1, size(plane%field(j)%term)
+        tm => plane%field(j)%term(k)
+        coef = tm%coef * tf%field_scale   ! * c_light / ele2%value(p0c$)
+        if (tf%master_parameter > 0) coef = coef * ele%value(tf%master_parameter)
+        pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
+      enddo
+    enddo
+  enddo
+
+  ptc_key%magnet = 'INTERNALPANCAKE'
 
 endif
 
@@ -3574,7 +3597,7 @@ n = lielib_print(12)
 lielib_print(12) = 0  ! No printing info messages
 
 if (logic_option(.false., for_layout)) then
-  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
+  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
   ptc_fibre => m_u%end%end
   if (present (track_particle)) then
     call out_io (s_fatal$, r_name, 'TRACK_PARTICLE ARGUMENT SHOULD NOT BE PRESENT WHEN FOR_LAYOUT IS TRUE!')
@@ -3584,12 +3607,18 @@ if (logic_option(.false., for_layout)) then
 
 else
   call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
-  if (associated(bmadl%start)) then
-    call kill (bmadl)
-    call set_up(bmadl)
+
+  if (logic_option(.true., kill_layout)) then
+    if (associated(bmadl%start)) then
+      call kill (bmadl)
+      call set_up(bmadl)
+    endif
+    call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
+  else
+    call create_fibre_append (.true., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
   endif
-  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
-  ptc_fibre => bmadl%start
+
+  ptc_fibre => bmadl%end
 
   ! NB: Set of pointers only needed if doing stuff other than tracking (like calculating misalignments).
 
@@ -3606,6 +3635,11 @@ else
   ptc_fibre%magp%p%gambet=>ptc_fibre%gambet
   ptc_fibre%magp%p%mass=>ptc_fibre%mass
   ptc_fibre%magp%p%charge=>ptc_fibre%charge
+endif
+
+if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
+  call kill_for_pancake(pancake_field)
+  call init_all (DEFAULT, ptc_com%taylor_order_saved, 0)
 endif
 
 ptc_fibre%dir = ele%orientation
@@ -4226,8 +4260,8 @@ if (associated(ele%a_pole)) then
   n = min(n_pole_maxx+1, size(k))
   if (n-1 < n_pole_maxx) then
     if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
-      print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
-      print *, '        FOR: ', ele%name
+      call out_io (s_warn$, r_name, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE', &
+                                    'FOR: ' // ele%name)
     endif
   endif
    

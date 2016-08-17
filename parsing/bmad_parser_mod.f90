@@ -7329,7 +7329,7 @@ do
       if (.not.  expect_this ('{', .false., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
       call get_next_word (word, ix_word, ':{}=,()', delim, delim_found)
       if (.not.  expect_this (':', .true., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-      call match_word (word, ['X', 'Y', 'Z'], i_out, .true., .false.)
+      call match_word (word, ['BX', 'BY', 'BZ'], i_out, .true., .false.)
       if (i_out < 1) then
         call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name)
         return
@@ -7364,14 +7364,14 @@ do
         else
           ! Where, for example, n = 34, must separate into 3 and 4.
           do
-            nn = modulo(n, 10)
+            if (word(1:1) == '') exit
+            read (word(1:1), *) nn
             if (nn < 1 .or. nn > 2) then
               call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT IN TAYLOR_FIELD DEPFINITION IN: ' // ele%name)
               return
             endif
             expn(nn) = expn(nn) + 1
-            n = (n - nn) / 10
-            if (n == 0) exit
+            word = word(2:)
           enddo
         endif
       enddo

@@ -721,9 +721,9 @@ do ib = 0, ubound(lat%branch, 1)
               do it = 1, size(t_field%ptr%plane(ip)%field(k)%term)
                 t_term => t_field%ptr%plane(ip)%field(k)%term(it)
                 if (line2 == '') then
-                  write (line2, '(4x, 5a, 2i2, a)') '{', plane_name(k), ': ', trim(str(t_term%coef)), ',', t_term%expn, '}'
+                  write (line2, '(4x, 5a, 2i2, a)') '{', field_plane_name(k), ': ', trim(str(t_term%coef)), ',', t_term%expn, '}'
                 else
-                  write (line2, '(6a, 2i2, a)') trim(line2), ', {', plane_name(k), ': ', trim(str(t_term%coef)), ',', t_term%expn, '}'
+                  write (line2, '(6a, 2i2, a)') trim(line2), ', {', field_plane_name(k), ': ', trim(str(t_term%coef)), ',', t_term%expn, '}'
                 endif
               enddo
             enddo

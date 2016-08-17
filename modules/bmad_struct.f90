@@ -341,6 +341,7 @@ integer, parameter :: x_plane$ = 1, y_plane$ = 2
 integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
 
 character(1), parameter :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
+character(2), parameter :: field_plane_name(3) = ['Bx', 'By', 'Bz']
 
 ! coordinate def
 ! Use coord_state_name for getting the string representation of coord%state
@@ -1479,7 +1480,6 @@ type (bmad_common_struct), save, target :: bmad_com
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 
 type ptc_common_struct
-  integer :: real_8_map_init            ! Set by PTC init routine (called by set_ptc). See PTC doc.
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
   integer :: taylor_order_saved = 3     ! Default to use.
   logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
