@@ -352,9 +352,9 @@ add_path ${ACC_BIN}
 
 
 #--------------------------------------------------------------
-# Prepend path to guarantee proper cmake executable is used
+# Append path to guarantee proper cmake executable is used
 #--------------------------------------------------------------
-PATH=${PLATFORM_DIR}/extra/bin:$PATH
+PATH=$PATH:${PLATFORM_DIR}/extra/bin
 
 
 #--------------------------------------------------------------

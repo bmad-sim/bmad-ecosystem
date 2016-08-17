@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/rh/python27/root/usr/bin/python
 
 #+
 # See searchf.py for all documentation

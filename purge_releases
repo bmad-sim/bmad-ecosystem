@@ -1,4 +1,4 @@
-#!/home/cesrulib/EXT/Python-2.5.1/Linux/python
+#!/opt/rh/python27/root/usr/bin/python
 #---------------------------------------------------
 # This script deletes all releases retaining only those that meet
 # the retention criteria defined in the

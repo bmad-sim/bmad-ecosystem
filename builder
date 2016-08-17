@@ -1,3 +1,4 @@
+#!/opt/rh/python27/root/usr/bin/python
 #-*-python-*-
 # Accepts full build logfile name as only argument.
 # i.e.
