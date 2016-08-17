@@ -51,6 +51,7 @@ module Mad_like
   type(tree_element), allocatable :: t_em(:) !,t_ax(:),t_ay(:)
 
   real(dp), private ::  angc,xc,dc,hc,LC,HD,LD,vc
+  integer, private :: nstc
   logical ::   xprime_pancake = .true.
    character(vp) , private :: filec
   logical(lp) :: set_ap=my_false
@@ -3368,9 +3369,10 @@ CONTAINS
     MC2=XMC2
   END SUBROUTINE Set_mad_v
 
-   subroutine set_pancake_constants(angc0,xc0,dc0,vc0,hc0,LC0,hd0,ld0,xprime0,filec0)
+   subroutine set_pancake_constants(nst0,angc0,xc0,dc0,vc0,hc0,LC0,hd0,ld0,xprime0,filec0)
    implicit none
    real(dp) angc0,xc0,dc0,hc0,LC0,hd0,ld0,vc0
+   integer nst0
    character(vp) filec0
    logical xprime0
    angc=angc0
@@ -3383,28 +3385,32 @@ CONTAINS
    vc=vc0
    filec=filec0
    xprime_pancake=xprime0
+   nstc=nst0
    end subroutine set_pancake_constants 
 
   
   ! linked
 
- FUNCTION  pancake_tilt(NAME,file,no,T)
+ FUNCTION  pancake_tilt(NAME,file,T,br)
     implicit none
     type (EL_LIST) pancake_tilt
     CHARACTER(*),optional, INTENT(IN):: NAME,file
     type (TILTING),optional, INTENT(IN):: T
+    type (taylor),optional, INTENT(INOUT):: br(:,:)
     real(dp) L,ANGLE,ds,a
     integer mf,nst,I,ORDER,ii
-    integer, optional :: no
 !    LOGICAL(LP) REPEAT
     TYPE(TAYLOR) B(nbe),ba(nbe),bf(nbe),bn(nbe),it  !,ax(2),ay(2)
+
+
 
     a=0.0_dp
    ! file_fitted=file
 
     pancake_tilt=0
-    if(present(file)) then
+!    if(present(file)) then
 
+if(present(file)) then
     if(len(file)<=vp) then
      filec=file
     else
@@ -3412,22 +3418,25 @@ CONTAINS
      write(6,*) "warning: pancake name too long for length storage ", vp
     endif
 
+
     call kanalnummer(mf)
     open(unit=mf,file=file)
     read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
-    read(mf,*) nst, ORDER 
+    read(mf,*) nstc, ORDER 
     read(mf,*) LC,hc
     read(mf,*) dc,vc,xc
     read(mf,*) angc
-    ds=LC/nst
-
-    if(present(no)) order=no
+endif
+    ds=LC/nstc
+    ii=0
+!    if(present(no)) order=no
  
-    order=order+1
 
- !   CALL INIT(ORDER,2)
-    CALL INIT(ORDER,1,0,0)
 
+if(.not.present(br)) then
+    order=order+1   
+ CALL INIT(ORDER,1,0,0)
+endif
 
     CALL ALLOC(B)
     CALL ALLOC(Bf)
@@ -3440,24 +3449,46 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
 
 !    IF(REPEAT.AND.NST==0) NST=NSTD
 
-    ALLOCATE(t_em(NST))  
-
+    ALLOCATE(t_em(NSTc))  
+if(present(br)) then
+ii=ii+1
+bf(1)=br(1,ii)
+bf(2)=br(2,ii)
+bf(3)=br(3,ii)
+else
     read(mf,*) ii 
           CALL READ(Bf(1),mf);CALL READ(Bf(2),mf);CALL READ(Bf(3),mf);
+endif
           Bf(1)=Bf(1)/BRHO
           Bf(2)=Bf(2)/BRHO
           Bf(3)=Bf(3)/BRHO
+if(present(br)) then
+ii=ii+1
+ba(1)=br(1,ii)
+ba(2)=br(2,ii)
+ba(3)=br(3,ii)
+else
     read(mf,*) ii 
           CALL READ(Ba(1),mf);CALL READ(Ba(2),mf);CALL READ(Ba(3),mf);
+endif
+
           Ba(1)=Ba(1)/BRHO
           Ba(2)=Ba(2)/BRHO
           Ba(3)=Ba(3)/BRHO
 
-    DO I=3,NST 
+    DO I=3,NSTc 
+
+
+if(present(br)) then
+ii=ii+1
+b(1)=br(1,ii)
+b(2)=br(2,ii)
+b(3)=br(3,ii)
+else
     read(mf,*) ii 
- 
- 
           CALL READ(B(1),mf);CALL READ(B(2),mf);CALL READ(B(3),mf);
+endif
+
  
           B(1)=B(1)/BRHO
           B(2)=B(2)/BRHO
@@ -3474,7 +3505,7 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
           bn(7)=bn(4).d.1   !  d/dx Ax
           bn(8)=bn(4).d.2   !  d/dy Ax   
           CALL SET_TREE_g(t_em(1),Bn)
-         elseif(i==nst) then
+         elseif(i==nstc) then
           Bn(1)=B(1)
           Bn(2)=B(2)
           Bn(3)=B(3)
@@ -3524,10 +3555,10 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
     call KILL(it) 
 
 
-    close(MF)
-   else
-     NST=size(t_em)
-   endif
+ if(present(file))    close(MF)
+ !  else
+ !    NST=size(t_em)
+ !  endif
     ANGLE=LD*HD
 
 
@@ -3553,11 +3584,11 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
        pancake_tilt%NAME=NAME
     ENDIF
     
-    IF(NST<3.OR.MOD(NST,2)/=1) THEN
-       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NST
+    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
+       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
        STOP 101
     ENDIF
-    pancake_tilt%nst=(NST-1)/2
+    pancake_tilt%nst=(NSTc-1)/2
     pancake_tilt%KIND=KINDPA
     IF(PRESENT(t)) then
        IF(T%NATURAL) THEN
@@ -3568,6 +3599,37 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
     ENDIF
   END FUNCTION pancake_tilt
   ! linked
+
+subroutine allocate_for_pancake(br)
+implicit none
+type(taylor), allocatable :: br(:,:)
+integer i,j
+allocate(br(3,nstc))
+ 
+do i=1,3
+do j=1,nstc
+ call alloc(br(i,j))
+enddo
+enddo
+
+end subroutine allocate_for_pancake
+
+subroutine kill_for_pancake(br)
+implicit none
+type(taylor), allocatable :: br(:,:)
+integer i,j
+
+ 
+do i=1,size(br,1)
+do j=1,size(br,2)
+ call kill(br(i,j))
+enddo
+enddo
+
+deallocate(br)
+
+end subroutine kill_for_pancake
+
 
   SUBROUTINE  EQUAL_L(R,S1)
     implicit none

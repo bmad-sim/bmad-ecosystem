@@ -2976,6 +2976,7 @@ end subroutine copy_logs
  end subroutine copy_explogs
 
  subroutine fourier_logs(spinmap,U,fix,tune)  !,em,ns)
+! part 1 just compute h before factorization
  implicit none
  type(logs) spinmap
  integer i,j,ns,k,i1,i2
@@ -2995,7 +2996,8 @@ type(spinor) nr
  
 ns=spinmap%ns
 em=spinmap%em
-
+write(6,*) em
+ 
 state=my_eSTATE-spin0
  
 if(present(fix)) then
@@ -3102,6 +3104,7 @@ call kill(n)
 end subroutine get_logs
 
 subroutine fourier_trans_logs(spinmap)
+! fourier trnasforms all the matrices
 implicit none
 integer i1,i2,i,j,k
 real(dp) mphi,dphi1,dphi2
@@ -3514,6 +3517,8 @@ enddo
 call kill(spm)
  
 end subroutine simil_logs
+
+
 
   subroutine print_explogs(a,b,file)
     implicit none

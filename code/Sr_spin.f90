@@ -1912,10 +1912,12 @@ call kill(e)
     TYPE(PANCAKEP),  INTENT(INOUT) :: EL
     type(real_8), INTENT(INOUT) ::B(3)
     type(real_8) be(nbe)
+
+    call alloc(be)
     Be(1)=X(1);
     Be(2)=X(3);
     Be(3)=0.0_dp;
-    call alloc(be)
+
 
     CALL trackg(EL%B(POS),Be)
 

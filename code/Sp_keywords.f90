@@ -44,7 +44,7 @@ module madx_keywords
 contains
 
 
-  subroutine create_fibre_append(append,mylat,key,EXCEPTION,magnet_only)  
+  subroutine create_fibre_append(append,mylat,key,EXCEPTION,magnet_only,br)  
     implicit none
 
 !    type(mad_universe), target, intent(inout)  :: m_u
@@ -54,6 +54,7 @@ contains
     INTEGER EXCEPTION  !,NSTD0,METD0
     logical(lp) doneit,append
     type(fibre), pointer :: current
+    type (taylor),optional, INTENT(INout):: br(:,:)
 
     if(append) then
      call append_empty(mylat)
@@ -69,7 +70,7 @@ contains
         call append_empty(mylat)
      endif
     endif
-     call  create_fibre(mylat%end,key,EXCEPTION,magnet_only)
+     call  create_fibre(mylat%end,key,EXCEPTION,magnet_only,br)
      
     if(.not.append) then
      mylat%closed=my_true
@@ -83,7 +84,7 @@ contains
   end subroutine create_fibre_append
 
 
-  subroutine create_fibre(el,key,EXCEPTION,magnet_only)
+  subroutine create_fibre(el,key,EXCEPTION,magnet_only,br)
     implicit none
     integer ipause, mypause,i
     type(fibre), target, intent(inout)::el
@@ -98,7 +99,7 @@ contains
     logical(lp) :: t=my_true,f=my_false
     INTEGER FIBRE_DIR0,IL
     real(dp) e1_true,norm
-
+    type (taylor),optional, INTENT(INout):: br(:,:)
 
     IL=15
 
@@ -295,7 +296,7 @@ contains
        BLANK=pancake(KEY%LIST%NAME,KEY%LIST%file)
     CASE("INTERNALPANCAKE")
        if(sixtrack_compatible) stop 13
-       BLANK=pancake(KEY%LIST%NAME)
+       BLANK=pancake(KEY%LIST%NAME,br=br)
        !    CASE("TAYLORMAP      ")
        !       IF(KEY%LIST%file/=' '.and.KEY%LIST%file_rev/=' ') THEN
        !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE=KEY%LIST%file,FILE_REV=KEY%LIST%file_REV,t=tilt.is.KEY%tiltd)
