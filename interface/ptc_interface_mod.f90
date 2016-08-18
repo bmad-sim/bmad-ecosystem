@@ -423,12 +423,12 @@ endif
 ! Fibre
 
 nl=nl+1; li(nl) = 'Fibre:'
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:        ', int_of(ptc_fibre%pos, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]:      ', int_of(ptc_fibre%loc, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:              ', int_of(ptc_fibre%dir, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:          ', real_of(ptc_fibre%beta0, 'es13.5')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:                   ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge relative to ref]: ', real_of(ptc_fibre%charge, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:    ', int_of(ptc_fibre%pos, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]:  ', int_of(ptc_fibre%loc, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:          ', int_of(ptc_fibre%dir, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:      ', real_of(ptc_fibre%beta0, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:               ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:             ', real_of(ptc_fibre%charge, 'es13.5')
 
 !
 
@@ -3133,7 +3133,7 @@ type (em_taylor_term_struct), pointer :: tm
 type(taylor), allocatable :: pancake_field(:,:)
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, track_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp) beta0, beta1, ref0(6), ref1(6)
 real(rp), pointer :: val(:)
@@ -3161,9 +3161,9 @@ case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
 if (present(track_particle)) then
-  rel_charge = charge_of(track_particle%species) / charge_of(param%particle)
+  track_charge = charge_of(track_particle%species)
 else
-  rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
+  track_charge = charge_of(default_tracking_species(param))
 endif
 
 leng = ele%value(l$)
@@ -3792,7 +3792,7 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
-ptc_fibre%charge = rel_charge
+ptc_fibre%charge = track_charge
 
 ! Taylor maps
 ! In theory can put in a taylor map for any element but for now only setup Bmad taylor elements.
@@ -4279,6 +4279,9 @@ if (creating_fibre) then
 else
   n_max = min(n_pole_maxx, size(k))
 endif
+
+k = k / charge_of (param%particle)
+ks = ks / charge_of (param%particle)
 
 end subroutine ele_to_an_bn
 
