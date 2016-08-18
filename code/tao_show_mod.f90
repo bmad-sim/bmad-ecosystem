@@ -1077,6 +1077,13 @@ case ('dynamic_aperture')
     return
   endif
   
+  ! Count lines needed
+  i1 = 0
+  do k = 1, size(u%dynamic_aperture%scan) 
+    i1 = i1 + u%dynamic_aperture%scan(k)%param%n_angle + 20
+  enddo
+  call re_allocate (lines, nl+i1, .false.)
+  
   do k = 1, size(u%dynamic_aperture%scan)
     aperture_scan => u%dynamic_aperture%scan(k) 
     nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz
@@ -1457,6 +1464,8 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %lcsr_component_on    = ', csr_param%lcsr_component_on
     nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
+    nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning = ', csr_param%print_taylor_warning
+    nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old    
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
   endif
 
