@@ -585,7 +585,8 @@ do i = 1, nc
     call tao_curve_physical_aperture_setup(curve)
     cycle
   endif
-  k = k + 1
+  k = k + 1 
+  if (k > size(da%scan)) cycle
   scan => da%scan(k)
   n = size(scan%aperture)
   
@@ -604,25 +605,27 @@ do i = 1, nc
     endif 
   
     call reallocate_coord(orbit, curve%ix_ele_ref)
+    
+    
     do j = 1, n
-      orbit(0) = da%scan(k)%ref_orb
+      orbit(0) = scan%ref_orb
       orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(j)%x
       orbit(0)%vec(3) = orbit(0)%vec(3) + scan%aperture(j)%y
+      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
     
       curve%x_line(j) = orbit(curve%ix_ele_ref)%vec(1)
-      curve%y_line(j) = orbit(curve%ix_ele_ref)%vec(3)
-      
-      ! One more track of ref_orb if centered da is requested  
-      if (curve%data_type == 'dynamic_aperture_centered') then
-        orbit(0) = da%scan(k)%ref_orb
-        call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
-        curve%x_line(:) = curve%x_line(:) - orbit(curve%ix_ele_ref)%vec(1)
-        curve%y_line(:) = curve%y_line(:) - orbit(curve%ix_ele_ref)%vec(3)
-      endif
-      
+      curve%y_line(j) = orbit(curve%ix_ele_ref)%vec(3)      
     enddo
+    ! One more track of ref_orb if centered da is requested  
+    if (curve%data_type == 'dynamic_aperture_centered') then
+      orbit(0) = scan%ref_orb
+      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
+      curve%x_line(:) = curve%x_line(:) - orbit(curve%ix_ele_ref)%vec(1)
+      curve%y_line(:) = curve%y_line(:) - orbit(curve%ix_ele_ref)%vec(3)
+    endif
+    
   else
-    ! use data at ele 0 
+  ! use data at ele 0 
     if (curve%data_type == 'dynamic_aperture_centered') then
       curve%x_line(:) = scan%aperture(:)%x
       curve%y_line(:) = scan%aperture(:)%y
