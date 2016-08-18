@@ -49,6 +49,9 @@ use geometry_mod
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
+!     %param%stable   -- Set true or false.
+!     %param%unstable_factor -- unstable growth rate (= 0 if stable)
+!   status      -- Integer, optional: Calculation status:
 !   orb(0:)            -- Coord_struct: Computed orbit.
 !   orb_array(0:)      -- Coord_array_struct: Array of orbit arrays.
 !   status             -- integer, optional: ok$, in_stop_band$, unstable$, non_symplectic$, 
