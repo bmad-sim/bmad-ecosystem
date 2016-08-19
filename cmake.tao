@@ -26,10 +26,12 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF ()
 
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
+  IF (NOT ${MSYS})
   set (SHARED_LINK_LIBS
     pangocairo-1.0
     cairo
     pango-1.0
     gobject-2.0
   )
+  ENDIF ()
 ENDIF ()
