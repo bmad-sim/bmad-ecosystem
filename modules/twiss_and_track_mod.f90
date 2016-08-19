@@ -39,8 +39,7 @@ use geometry_mod
 !                                all others imply an open lattice.
 !   orb(0:)             -- Coord_struct, allocatable: Orbit to be computed
 !     orb(0)            -- Initial conditions to be used for an open geometry lattices.
-!     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit 
-!                             is computed.
+!     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit is computed.
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orbit(0) -- Used as the starting point for a linear lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
@@ -51,12 +50,15 @@ use geometry_mod
 !   lat                -- lat_struct: Lat with computed twiss parameters.
 !     %param%stable   -- Set true or false.
 !     %param%unstable_factor -- unstable growth rate (= 0 if stable)
-!   status      -- Integer, optional: Calculation status:
 !   orb(0:)            -- Coord_struct: Computed orbit.
 !   orb_array(0:)      -- Coord_array_struct: Array of orbit arrays.
-!   status             -- integer, optional: ok$, in_stop_band$, unstable$, non_symplectic$, 
+!   status             -- integer, optional: ok$, in_stop_band$, unstable$, non_symplectic$,
+!                           -in_stop_band$, -unstable$, -non_symplectic$,   [note negative signs]
 !                           xfer_mat_clac_failure$, twiss_propagate_failure$, or no_closed_orbit$.
-!                           Note: in_stop_band$, unstable$, and non_symplectic$ refer to the 1-turn matrix.
+!                           Note: in_stop_band$, unstable$, and non_symplectic$ refer to the 1-turn 
+!                           matrix which is computed with closed lattices. A negative sign is used 
+!                           to differentiate an error occuring in the first call to twiss_at_start
+!                           from the second call to twiss_at_start
 !-
 
 interface twiss_and_track
@@ -217,7 +219,10 @@ endif
 
 if (lat%param%geometry == closed$) then
   call twiss_at_start (lat, status)
-  if (status /= ok$) return
+  if (status /= ok$) then
+    status = -status  ! To differentiate a failure here from the first call to twiss_at_start.
+    return
+  endif
 endif
 
 call twiss_propagate_all (lat, ix_branch, err)
