@@ -2235,9 +2235,11 @@ case ('lattice')
       if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
         sub_name = upcase(name(8:index(name, ']')-1))
         a_type = attribute_type(sub_name)
+
+        ! Note: a_type = real$ is handled later...
         select case (a_type)
 
-        case (is_logical$, is_real$, is_integer$, is_switch$)
+        case (is_logical$, is_integer$, is_switch$)
           call pointer_to_attribute(ele, sub_name, .true., a_ptr, err, .false.)
           if (err) then
             write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
@@ -2279,7 +2281,6 @@ case ('lattice')
       endif
 
       if (name == '') cycle
-
       ios = 0
 
       if (name == '#') then
@@ -2792,6 +2793,7 @@ case ('taylor_map', 'matrix')
     end select
   enddo
 
+  call string_trim (attrib0, attrib0, ix)
   ele1_name = attrib0(:ix)
   call string_trim(attrib0(ix+1:), attrib0, ix)
   ele2_name = attrib0(:ix)
