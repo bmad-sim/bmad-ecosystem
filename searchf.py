@@ -1,4 +1,4 @@
-#!/opt/rh/python27/root/usr/bin/python
+#!/usr/bin/env python
 
 #+
 # searchf.py is the file that holds the code for the scripts:
