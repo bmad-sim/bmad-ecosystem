@@ -1413,7 +1413,7 @@ public:
   Int ele_anchor_pt;
   Real_ARRAY dr;
   Real_ARRAY r0;
-  Bool curved_coords;
+  Bool curved_ref_frame;
   CPP_grid_field_pt* ptr;
 
   CPP_grid_field() :
@@ -1426,7 +1426,7 @@ public:
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     dr(0.0, 3),
     r0(0.0, 3),
-    curved_coords(false),
+    curved_ref_frame(false),
     ptr(NULL)
     {}
 
@@ -1507,7 +1507,8 @@ public:
   Real_ARRAY r0;
   Real field_scale;
   Int master_parameter;
-  Bool curved_coords;
+  Bool curved_ref_frame;
+  Bool canonical_tracking;
   CPP_taylor_field_plane* ptr;
 
   CPP_taylor_field() :
@@ -1517,7 +1518,8 @@ public:
     r0(0.0, 3),
     field_scale(1),
     master_parameter(0),
-    curved_coords(false),
+    curved_ref_frame(false),
+    canonical_tracking(false),
     ptr(NULL)
     {}
 
@@ -2583,9 +2585,11 @@ public:
   Int n_shield_images;
   Int ix1_ele_csr;
   Int ix2_ele_csr;
+  Int sc_min_in_bin;
   Bool lcsr_component_on;
   Bool lsc_component_on;
   Bool tsc_component_on;
+  Bool lsc_kick_transverse_dependence;
   Bool print_taylor_warning;
   Bool use_csr_old;
   Bool small_angle_approx;
@@ -2600,11 +2604,13 @@ public:
     n_shield_images(0),
     ix1_ele_csr(-1),
     ix2_ele_csr(-1),
+    sc_min_in_bin(10),
     lcsr_component_on(true),
     lsc_component_on(true),
     tsc_component_on(false),
+    lsc_kick_transverse_dependence(false),
     print_taylor_warning(true),
-    use_csr_old(true),
+    use_csr_old(false),
     small_angle_approx(true),
     write_csr_wake(false)
     {}

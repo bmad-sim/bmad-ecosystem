@@ -3885,12 +3885,12 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine grid_field_to_c2 (C, z_geometry, z_harmonic, z_phi0_fieldmap, z_field_scale, &
-      z_field_type, z_master_parameter, z_ele_anchor_pt, z_dr, z_r0, z_curved_coords, z_ptr, &
+      z_field_type, z_master_parameter, z_ele_anchor_pt, z_dr, z_r0, z_curved_ref_frame, z_ptr, &
       n_ptr) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_curved_coords
+    logical(c_bool) :: z_curved_ref_frame
     type(c_ptr), value :: z_ptr
     real(c_double) :: z_phi0_fieldmap, z_field_scale, z_dr(*), z_r0(*)
     integer(c_int), value :: n_ptr
@@ -3916,7 +3916,7 @@ if (associated(F%ptr)) n_ptr = 1
 !! f_side.to_c2_call
 call grid_field_to_c2 (C, F%geometry, F%harmonic, F%phi0_fieldmap, F%field_scale, F%field_type, &
     F%master_parameter, F%ele_anchor_pt, fvec2vec(F%dr, 3), fvec2vec(F%r0, 3), &
-    c_logic(F%curved_coords), c_loc(F%ptr), n_ptr)
+    c_logic(F%curved_ref_frame), c_loc(F%ptr), n_ptr)
 
 end subroutine grid_field_to_c
 
@@ -3937,7 +3937,7 @@ end subroutine grid_field_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine grid_field_to_f2 (Fp, z_geometry, z_harmonic, z_phi0_fieldmap, z_field_scale, &
-    z_field_type, z_master_parameter, z_ele_anchor_pt, z_dr, z_r0, z_curved_coords, z_ptr, &
+    z_field_type, z_master_parameter, z_ele_anchor_pt, z_dr, z_r0, z_curved_ref_frame, z_ptr, &
     n_ptr) bind(c)
 
 
@@ -3950,7 +3950,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 type(grid_field_pt_struct), pointer :: f_ptr
 integer(c_int) :: z_geometry, z_harmonic, z_field_type, z_master_parameter, z_ele_anchor_pt
 type(c_ptr), value :: z_ptr
-logical(c_bool) :: z_curved_coords
+logical(c_bool) :: z_curved_ref_frame
 real(c_double) :: z_phi0_fieldmap, z_field_scale, z_dr(*), z_r0(*)
 integer(c_int), value :: n_ptr
 
@@ -3975,7 +3975,7 @@ F%dr = z_dr(1:3)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:3)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%curved_coords = f_logic(z_curved_coords)
+F%curved_ref_frame = f_logic(z_curved_ref_frame)
 !! f_side.to_f2_trans[type, 0, PTR]
 if (n_ptr == 0) then
   if (associated(F%ptr)) deallocate(F%ptr)
@@ -4207,11 +4207,11 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_field_to_c2 (C, z_ele_anchor_pt, z_field_type, z_dz, z_r0, z_field_scale, &
-      z_master_parameter, z_curved_coords, z_ptr, n_ptr) bind(c)
+      z_master_parameter, z_curved_ref_frame, z_canonical_tracking, z_ptr, n_ptr) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_curved_coords
+    logical(c_bool) :: z_curved_ref_frame, z_canonical_tracking
     type(c_ptr), value :: z_ptr
     real(c_double) :: z_dz, z_r0(*), z_field_scale
     integer(c_int), value :: n_ptr
@@ -4236,7 +4236,8 @@ if (associated(F%ptr)) n_ptr = 1
 
 !! f_side.to_c2_call
 call taylor_field_to_c2 (C, F%ele_anchor_pt, F%field_type, F%dz, fvec2vec(F%r0, 3), &
-    F%field_scale, F%master_parameter, c_logic(F%curved_coords), c_loc(F%ptr), n_ptr)
+    F%field_scale, F%master_parameter, c_logic(F%curved_ref_frame), &
+    c_logic(F%canonical_tracking), c_loc(F%ptr), n_ptr)
 
 end subroutine taylor_field_to_c
 
@@ -4257,7 +4258,7 @@ end subroutine taylor_field_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine taylor_field_to_f2 (Fp, z_ele_anchor_pt, z_field_type, z_dz, z_r0, z_field_scale, &
-    z_master_parameter, z_curved_coords, z_ptr, n_ptr) bind(c)
+    z_master_parameter, z_curved_ref_frame, z_canonical_tracking, z_ptr, n_ptr) bind(c)
 
 
 implicit none
@@ -4269,7 +4270,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 integer(c_int) :: z_ele_anchor_pt, z_field_type, z_master_parameter
 integer(c_int), value :: n_ptr
 type(taylor_field_plane_struct), pointer :: f_ptr
-logical(c_bool) :: z_curved_coords
+logical(c_bool) :: z_curved_ref_frame, z_canonical_tracking
 real(c_double) :: z_dz, z_r0(*), z_field_scale
 type(c_ptr), value :: z_ptr
 
@@ -4288,7 +4289,9 @@ F%field_scale = z_field_scale
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%master_parameter = z_master_parameter
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%curved_coords = f_logic(z_curved_coords)
+F%curved_ref_frame = f_logic(z_curved_ref_frame)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%canonical_tracking = f_logic(z_canonical_tracking)
 !! f_side.to_f2_trans[type, 0, PTR]
 if (n_ptr == 0) then
   if (associated(F%ptr)) deallocate(F%ptr)
@@ -7294,14 +7297,16 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-      z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
-      z_use_csr_old, z_small_angle_approx, z_write_csr_wake) bind(c)
+      z_sc_min_in_bin, z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, &
+      z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_use_csr_old, &
+      z_small_angle_approx, z_write_csr_wake) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx, z_write_csr_wake
+    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
+    logical(c_bool) :: z_write_csr_wake
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-    integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
+    integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, z_sc_min_in_bin
   end subroutine
 end interface
 
@@ -7318,10 +7323,10 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
-    F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, &
+    F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, F%sc_min_in_bin, &
     c_logic(F%lcsr_component_on), c_logic(F%lsc_component_on), c_logic(F%tsc_component_on), &
-    c_logic(F%print_taylor_warning), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
-    c_logic(F%write_csr_wake))
+    c_logic(F%lsc_kick_transverse_dependence), c_logic(F%print_taylor_warning), &
+    c_logic(F%use_csr_old), c_logic(F%small_angle_approx), c_logic(F%write_csr_wake))
 
 end subroutine csr_parameter_to_c
 
@@ -7343,8 +7348,9 @@ end subroutine csr_parameter_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-    z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, &
-    z_use_csr_old, z_small_angle_approx, z_write_csr_wake) bind(c)
+    z_sc_min_in_bin, z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, &
+    z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_use_csr_old, &
+    z_small_angle_approx, z_write_csr_wake) bind(c)
 
 
 implicit none
@@ -7353,9 +7359,10 @@ type(c_ptr), value :: Fp
 type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx, z_write_csr_wake
+logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_use_csr_old, z_small_angle_approx
+logical(c_bool) :: z_write_csr_wake
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
+integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, z_sc_min_in_bin
 
 call c_f_pointer (Fp, F)
 
@@ -7375,12 +7382,16 @@ F%n_shield_images = z_n_shield_images
 F%ix1_ele_csr = z_ix1_ele_csr
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix2_ele_csr = z_ix2_ele_csr
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%sc_min_in_bin = z_sc_min_in_bin
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lcsr_component_on = f_logic(z_lcsr_component_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lsc_component_on = f_logic(z_lsc_component_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%tsc_component_on = f_logic(z_tsc_component_on)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%lsc_kick_transverse_dependence = f_logic(z_lsc_kick_transverse_dependence)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%print_taylor_warning = f_logic(z_print_taylor_warning)
 !! f_side.to_f2_trans[logical, 0, NOT]

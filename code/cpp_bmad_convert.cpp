@@ -1394,7 +1394,8 @@ extern "C" void grid_field_to_f (const CPP_grid_field& C, Bmad_grid_field_class*
 
   // c_side.to_f2_call
   grid_field_to_f2 (F, C.geometry, C.harmonic, C.phi0_fieldmap, C.field_scale, C.field_type,
-      C.master_parameter, C.ele_anchor_pt, &C.dr[0], &C.r0[0], C.curved_coords, *C.ptr, n_ptr);
+      C.master_parameter, C.ele_anchor_pt, &C.dr[0], &C.r0[0], C.curved_ref_frame, *C.ptr,
+      n_ptr);
 
 }
 
@@ -1402,7 +1403,7 @@ extern "C" void grid_field_to_f (const CPP_grid_field& C, Bmad_grid_field_class*
 extern "C" void grid_field_to_c2 (CPP_grid_field& C, c_Int& z_geometry, c_Int& z_harmonic,
     c_Real& z_phi0_fieldmap, c_Real& z_field_scale, c_Int& z_field_type, c_Int&
     z_master_parameter, c_Int& z_ele_anchor_pt, c_RealArr z_dr, c_RealArr z_r0, c_Bool&
-    z_curved_coords, Bmad_grid_field_pt_class* z_ptr, Int n_ptr) {
+    z_curved_ref_frame, Bmad_grid_field_pt_class* z_ptr, Int n_ptr) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.geometry = z_geometry;
@@ -1423,7 +1424,7 @@ extern "C" void grid_field_to_c2 (CPP_grid_field& C, c_Int& z_geometry, c_Int& z
   // c_side.to_c2_set[real, 1, NOT]
   C.r0 << z_r0;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.curved_coords = z_curved_coords;
+  C.curved_ref_frame = z_curved_ref_frame;
   // c_side.to_c2_set[type, 0, PTR]
   if (n_ptr == 0)
     delete C.ptr;
@@ -1510,7 +1511,7 @@ extern "C" void taylor_field_to_c (const Bmad_taylor_field_class*, CPP_taylor_fi
 
 // c_side.to_f2_arg
 extern "C" void taylor_field_to_f2 (Bmad_taylor_field_class*, c_Int&, c_Int&, c_Real&,
-    c_RealArr, c_Real&, c_Int&, c_Bool&, const CPP_taylor_field_plane&, Int);
+    c_RealArr, c_Real&, c_Int&, c_Bool&, c_Bool&, const CPP_taylor_field_plane&, Int);
 
 extern "C" void taylor_field_to_f (const CPP_taylor_field& C, Bmad_taylor_field_class* F) {
   // c_side.to_f_setup[type, 0, PTR]
@@ -1518,15 +1519,15 @@ extern "C" void taylor_field_to_f (const CPP_taylor_field& C, Bmad_taylor_field_
 
   // c_side.to_f2_call
   taylor_field_to_f2 (F, C.ele_anchor_pt, C.field_type, C.dz, &C.r0[0], C.field_scale,
-      C.master_parameter, C.curved_coords, *C.ptr, n_ptr);
+      C.master_parameter, C.curved_ref_frame, C.canonical_tracking, *C.ptr, n_ptr);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void taylor_field_to_c2 (CPP_taylor_field& C, c_Int& z_ele_anchor_pt, c_Int&
     z_field_type, c_Real& z_dz, c_RealArr z_r0, c_Real& z_field_scale, c_Int&
-    z_master_parameter, c_Bool& z_curved_coords, Bmad_taylor_field_plane_class* z_ptr, Int
-    n_ptr) {
+    z_master_parameter, c_Bool& z_curved_ref_frame, c_Bool& z_canonical_tracking,
+    Bmad_taylor_field_plane_class* z_ptr, Int n_ptr) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.ele_anchor_pt = z_ele_anchor_pt;
@@ -1541,7 +1542,9 @@ extern "C" void taylor_field_to_c2 (CPP_taylor_field& C, c_Int& z_ele_anchor_pt,
   // c_side.to_c2_set[integer, 0, NOT]
   C.master_parameter = z_master_parameter;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.curved_coords = z_curved_coords;
+  C.curved_ref_frame = z_curved_ref_frame;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.canonical_tracking = z_canonical_tracking;
   // c_side.to_c2_set[type, 0, PTR]
   if (n_ptr == 0)
     delete C.ptr;
@@ -2777,24 +2780,26 @@ extern "C" void csr_parameter_to_c (const Bmad_csr_parameter_class*, CPP_csr_par
 
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Bmad_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Bmad_csr_parameter_class* F) {
 
   // c_side.to_f2_call
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
-      C.particle_bin_span, C.n_shield_images, C.ix1_ele_csr, C.ix2_ele_csr,
-      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.print_taylor_warning,
-      C.use_csr_old, C.small_angle_approx, C.write_csr_wake);
+      C.particle_bin_span, C.n_shield_images, C.ix1_ele_csr, C.ix2_ele_csr, C.sc_min_in_bin,
+      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on,
+      C.lsc_kick_transverse_dependence, C.print_taylor_warning, C.use_csr_old,
+      C.small_angle_approx, C.write_csr_wake);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_step, c_Real&
     z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
-    c_Int& z_n_shield_images, c_Int& z_ix1_ele_csr, c_Int& z_ix2_ele_csr, c_Bool&
-    z_lcsr_component_on, c_Bool& z_lsc_component_on, c_Bool& z_tsc_component_on, c_Bool&
+    c_Int& z_n_shield_images, c_Int& z_ix1_ele_csr, c_Int& z_ix2_ele_csr, c_Int&
+    z_sc_min_in_bin, c_Bool& z_lcsr_component_on, c_Bool& z_lsc_component_on, c_Bool&
+    z_tsc_component_on, c_Bool& z_lsc_kick_transverse_dependence, c_Bool&
     z_print_taylor_warning, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx, c_Bool&
     z_write_csr_wake) {
 
@@ -2814,12 +2819,16 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.ix1_ele_csr = z_ix1_ele_csr;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix2_ele_csr = z_ix2_ele_csr;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.sc_min_in_bin = z_sc_min_in_bin;
   // c_side.to_c2_set[logical, 0, NOT]
   C.lcsr_component_on = z_lcsr_component_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.lsc_component_on = z_lsc_component_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.tsc_component_on = z_tsc_component_on;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.lsc_kick_transverse_dependence = z_lsc_kick_transverse_dependence;
   // c_side.to_c2_set[logical, 0, NOT]
   C.print_taylor_warning = z_print_taylor_warning;
   // c_side.to_c2_set[logical, 0, NOT]

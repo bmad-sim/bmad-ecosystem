@@ -3140,7 +3140,7 @@ do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%curved_coords = (modulo(rhs, 2) == 0)
+rhs = 10 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%ptr)) deallocate (F%ptr)
@@ -3438,13 +3438,15 @@ rhs = 5 + offset; F%field_scale = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 6 + offset; F%master_parameter = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 7 + offset; F%curved_coords = (modulo(rhs, 2) == 0)
+rhs = 7 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 8 + offset; F%canonical_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%ptr)) deallocate (F%ptr)
 else
   if (.not. associated(F%ptr)) allocate (F%ptr)
-  rhs = 8 + offset
+  rhs = 9 + offset
   call set_taylor_field_plane_test_pattern (F%ptr, ix_patt)
 endif
 
@@ -6561,20 +6563,24 @@ rhs = 6 + offset; F%n_shield_images = rhs
 rhs = 7 + offset; F%ix1_ele_csr = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 8 + offset; F%ix2_ele_csr = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 9 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 9 + offset; F%lcsr_component_on = (modulo(rhs, 2) == 0)
+rhs = 10 + offset; F%lcsr_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+rhs = 15 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 15 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
+rhs = 16 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 17 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 

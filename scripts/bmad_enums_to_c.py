@@ -85,6 +85,7 @@ searchit('../bmad/modules/basic_bmad_mod.f90')
 searchit('../sim_utils/io/output_mod.f90')
 searchit('../sim_utils/interfaces/physical_constants.f90')
 searchit('../sim_utils/interfaces/particle_species_mod.f90')
+searchit('../sim_utils/interfaces/sim_utils_struct.f90')
 
 f_out.write('''
 }

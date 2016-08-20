@@ -536,7 +536,7 @@ bool operator== (const CPP_grid_field& x, const CPP_grid_field& y) {
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
-  is_eq = is_eq && (x.curved_coords == y.curved_coords);
+  is_eq = is_eq && (x.curved_ref_frame == y.curved_ref_frame);
   is_eq = is_eq && ((x.ptr == NULL) == (y.ptr == NULL));
   if (!is_eq) return false;
   if (x.ptr != NULL) is_eq = (*x.ptr == *y.ptr);
@@ -580,7 +580,8 @@ bool operator== (const CPP_taylor_field& x, const CPP_taylor_field& y) {
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.field_scale == y.field_scale);
   is_eq = is_eq && (x.master_parameter == y.master_parameter);
-  is_eq = is_eq && (x.curved_coords == y.curved_coords);
+  is_eq = is_eq && (x.curved_ref_frame == y.curved_ref_frame);
+  is_eq = is_eq && (x.canonical_tracking == y.canonical_tracking);
   is_eq = is_eq && ((x.ptr == NULL) == (y.ptr == NULL));
   if (!is_eq) return false;
   if (x.ptr != NULL) is_eq = (*x.ptr == *y.ptr);
@@ -1092,9 +1093,11 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
   is_eq = is_eq && (x.ix1_ele_csr == y.ix1_ele_csr);
   is_eq = is_eq && (x.ix2_ele_csr == y.ix2_ele_csr);
+  is_eq = is_eq && (x.sc_min_in_bin == y.sc_min_in_bin);
   is_eq = is_eq && (x.lcsr_component_on == y.lcsr_component_on);
   is_eq = is_eq && (x.lsc_component_on == y.lsc_component_on);
   is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
+  is_eq = is_eq && (x.lsc_kick_transverse_dependence == y.lsc_kick_transverse_dependence);
   is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
   is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
   is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);

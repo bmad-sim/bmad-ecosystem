@@ -2050,7 +2050,7 @@ void set_CPP_grid_field_test_pattern (CPP_grid_field& C, int ix_patt) {
   for (unsigned int i = 0; i < C.r0.size(); i++)
     {int rhs = 101 + i + 9 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.curved_coords = (rhs % 2 == 0);
+  rhs = 10 + offset; C.curved_ref_frame = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
@@ -2241,7 +2241,10 @@ void set_CPP_taylor_field_test_pattern (CPP_taylor_field& C, int ix_patt) {
   rhs = 6 + offset; C.master_parameter = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 7 + offset; C.curved_coords = (rhs % 2 == 0);
+  rhs = 7 + offset; C.curved_ref_frame = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 8 + offset; C.canonical_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
@@ -4362,26 +4365,32 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 8 + offset; C.ix2_ele_csr = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 9 + offset; C.lcsr_component_on = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.sc_min_in_bin = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.lsc_component_on = (rhs % 2 == 0);
+  rhs = 10 + offset; C.lcsr_component_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.tsc_component_on = (rhs % 2 == 0);
+  rhs = 11 + offset; C.lsc_component_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.print_taylor_warning = (rhs % 2 == 0);
+  rhs = 12 + offset; C.tsc_component_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.use_csr_old = (rhs % 2 == 0);
+  rhs = 13 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.small_angle_approx = (rhs % 2 == 0);
+  rhs = 14 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 15 + offset; C.write_csr_wake = (rhs % 2 == 0);
+  rhs = 15 + offset; C.use_csr_old = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 16 + offset; C.small_angle_approx = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 17 + offset; C.write_csr_wake = (rhs % 2 == 0);
 
 
 }

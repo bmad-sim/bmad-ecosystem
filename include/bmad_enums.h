@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 181;
+  const int BMAD_INC_VERSION = 184;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -48,7 +48,11 @@ namespace Bmad {
   const int STANDING_WAVE = 1, TRAVELING_WAVE = 2, PTC_STANDARD = 3;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;
   const int CONTROL_VAR = 1, OLD_CONTROL_VAR = 2, ALL_CONTROL_VAR = 3, ELEC_MULTIPOLE = 4;
+  const int OK = 1, IN_STOP_BAND = 2, NON_SYMPLECTIC = 3, UNSTABLE = 4;
+  const int UNSTABLE_A = 5, UNSTABLE_B = 6;
+  const int XFER_MAT_CALC_FAILURE = 7, TWISS_PROPAGATE_FAILURE = 8, NO_CLOSED_ORBIT = 9;
   const int NUM_ELE_ATTRIB = 80;
+  const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
   const int MAGNETIC = 1, ELECTRIC = 2, MIXED = 3;
@@ -70,7 +74,6 @@ namespace Bmad {
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_Z_APERTURE = 7;
-  const int X_AXIS = 2, Y_AXIS = 3;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
   const int HYPER_Y_FAMILY_Y = 1, HYPER_XY_FAMILY_Y = 2, HYPER_X_FAMILY_Y = 3;
   const int HYPER_Y_FAMILY_X = 4, HYPER_XY_FAMILY_X = 5, HYPER_X_FAMILY_X = 6;
@@ -108,15 +111,16 @@ namespace Bmad {
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
             VAL12=22;
-  const int BETA_A0 = 2, ALPHA_A0 = 3, BETA_B0 = 4,
-            ALPHA_B0 = 5, BETA_A1 = 6, ALPHA_A1 = 7, BETA_B1 = 8,
-            ALPHA_B1 = 9, DPHI_A = 10, DPHI_B = 11,
-            ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15,
-            ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19,
-            MATCH_END = 20,
-            X0 = 21, PX0 = 22, Y0 = 23, PY0 = 24, Z0 = 25, PZ0 = 26,
-            X1 = 27, PX1 = 28, Y1 = 29, PY1 = 30, Z1 = 31, PZ1 = 32,
-            MATCH_END_ORBIT = 33, C_11 = 34, C_12 = 35, C_21 = 36, C_22 = 37, GAMMA_C = 39;
+  const int BETA_A0 = 2, ALPHA_A0 = 3, BETA_B0 = 4;
+  const int ALPHA_B0 = 5, BETA_A1 = 6, ALPHA_A1 = 7, BETA_B1 = 8;
+  const int ALPHA_B1 = 9, DPHI_A = 10, DPHI_B = 11;
+  const int ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15;
+  const int ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
+  const int MATCH_END_INPUT = 20, MATCH_END = 21;
+  const int X0 = 24, PX0 = 25, Y0 = 26, PY0 = 27, Z0 = 28, PZ0 = 29;
+  const int X1 = 30, PX1 = 31, Y1 = 32, PY1 = 33, Z1 = 34, PZ1 = 35;
+  const int MATCH_END_ORBIT_INPUT = 36, MATCH_END_ORBIT = 37;
+  const int C_11 = 34, C_12 = 35, C_21 = 36, C_22 = 37, GAMMA_C = 39;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
@@ -129,7 +133,7 @@ namespace Bmad {
   const int KICK = 3, X_GAIN_ERR = 3;
   const int RF_FREQUENCY_ERR = 4, K1 = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
   const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
-  const int LR_FREQ_SPREAD = 5, GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5;
+  const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, DRIFT_ID = 5;
   const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5;
   const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6;
   const int G = 6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6;
@@ -140,7 +144,7 @@ namespace Bmad {
   const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8;
   const int L_CHORD = 9, VOLTAGE = 9;
   const int FRINGE_TYPE = 10;
-  const int FRINGE_AT = 11;
+  const int FRINGE_AT = 11, GANG = 11;
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
   const int SPIN_FRINGE_ON = 13;
   const int FB1 = 14, SIG_X = 14;
@@ -231,11 +235,11 @@ namespace Bmad {
   const int MIN_DS_ADAPTIVE_TRACKING = 89;
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
-  const int LR_WAKE_FILE = 81, ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81;
+  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, END_EDGE  = 81, LR_WAKE_SPLINE = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
-  const int START_EDGE  = 83, ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83;
-  const int END_EDGE  = 84, ETAP_X = 84;
-  const int ACCORDION_EDGE  = 85, ETAP_Y = 85;
+  const int START_EDGE  = 83, ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83;
+  const int ETAP_X = 84, LR_WAKE_FILE = 84;
+  const int ACCORDION_EDGE  = 85, ETAP_Y = 85, LR_FREQ_SPREAD = 85;
   const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87;
   const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, CMAT_11_BEGIN = 88, SURFACE_ATTRIB = 88;
@@ -307,11 +311,11 @@ namespace Bmad {
   const int S_ERROR   = 7;
   const int S_FATAL   = 8;
   const int S_ABORT   = 9;
-  const double PI = 3.14159265358979E0;
+  const double PI = 3.141592653589793238462643383279E0;
   const double TWOPI = 2 * PI;
   const double FOURPI = 4 * PI;
-  const double SQRT_2 = 1.41421356237310E0;
-  const double SQRT_3 = 1.73205080757E0;
+  const double SQRT_2 = 1.414213562373095048801688724209698E0;
+  const double SQRT_3 = 1.732050807568877293527446341505872E0;
   const double E_MASS = 0.5109989461E-3;
   const double P_MASS   = 0.9382720813E0;
   const double M_ELECTRON = 0.5109989461E6;
@@ -335,11 +339,6 @@ namespace Bmad {
   const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285E0;
   const double ANOMALOUS_MAG_MOMENT_MUON     = 1.1659208E-3;
   const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298727047E0;
-  const int INT_GARBAGE = -987654;
-  const double REAL_GARBAGE = -987654.3;
-  const double TRUE = 1, FALSE = 0;
-  const int TRUE_INT = 1, FALSE_INT = 0;
-  const int YES = 1, NO = 0, MAYBE = 2;
   const int INVALID = -666;
   const int NOT_SET = -999;
   const int DEUTERON   = 8;
@@ -354,6 +353,12 @@ namespace Bmad {
   const int ANTIPROTON = -2;
   const int MUON       = -3;
   const int PION_MINUS = -4;
+  const int INT_GARBAGE = -987654;
+  const double REAL_GARBAGE = -987654.3;
+  const int X_AXIS = 1, Y_AXIS = 2, Z_AXIS = 3;
+  const double TRUE = 1, FALSE = 0;
+  const int TRUE_INT = 1, FALSE_INT = 0;
+  const int YES = 1, NO = 0, MAYBE = 2;
 
 }
 
