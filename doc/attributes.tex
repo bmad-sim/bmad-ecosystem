@@ -2327,7 +2327,7 @@ that are rotationally symmetric around the $z$ axis. The format for
 this type of \vn{grid_field} is
 \begin{example}
   grid_field = \{ 
-    type = rotationally_symmetric_rz,
+    geometry = rotationally_symmetric_rz,
     r0   = (<x0>, <y0>, <z0>),  ! Grid origin 
     dr   = (<dr>, <dz>),        ! Grid spacing
     pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>) ! For field_type = Electric
@@ -2342,7 +2342,7 @@ The \vn{xyz} setting for \vn{geometry} can be used for all rectangular field gri
 format for this type of \vn{grid_field} is
 \begin{example}
   grid_field = \{ 
-    type = xyz,
+    geometry = xyz,
     r0   = (<x0>, <y0>, <z0>),    ! Grid origin 
     dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
     pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>),  ! For field_type = Electric
@@ -2379,7 +2379,7 @@ Example:
 with the file \vn{apex_gun_grid.bmad} being:
 \begin{example}
   \{
-    type = rotationally_symmetric_rz,
+    geometry = rotationally_symmetric_rz,
     harmonic = 1,
     master_parameter = voltage,
     r0 = (0, 0),
