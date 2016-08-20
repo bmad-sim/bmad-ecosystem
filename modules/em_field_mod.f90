@@ -1043,7 +1043,7 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      call to_field_map_coords (local_orb, s_rel, g_field%ele_anchor_pt, g_field%r0, g_field%curved_coords, x, y, z)
+      call to_field_map_coords (local_orb, s_rel, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z)
 
       ! DC modes should have g_field%harmonic = 0
 
@@ -1111,7 +1111,7 @@ case(fieldmap$)
         return
       end select
       
-      if (ele%key == sbend$ .and. .not. g_field%curved_coords) call restore_curvilinear_field(mode_field%E, field%B)
+      if (ele%key == sbend$ .and. .not. g_field%curved_ref_frame) call restore_curvilinear_field(mode_field%E, field%B)
 
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
@@ -1131,7 +1131,7 @@ case(fieldmap$)
 
       fld = 0
 
-      call to_field_map_coords (local_orb, s_rel, t_field%ele_anchor_pt, t_field%r0, t_field%curved_coords, x, y, z)
+      call to_field_map_coords (local_orb, s_rel, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z)
 
       iz0 = lbound(t_field%ptr%plane, 1)
       iz1 = ubound(t_field%ptr%plane, 1)
@@ -1175,7 +1175,7 @@ case(fieldmap$)
 
       fld = fld * t_field%field_scale
       if (t_field%master_parameter > 0) fld = fld * ele%value(t_field%master_parameter)
-      if (ele%key == sbend$ .and. .not. t_field%curved_coords) call restore_curvilinear_field(fld)
+      if (ele%key == sbend$ .and. .not. t_field%curved_ref_frame) call restore_curvilinear_field(fld)
 
       select case (t_field%field_type)
       case (electric$)
@@ -1308,13 +1308,13 @@ end subroutine convert_field_ele_to_lab
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine to_field_map_coords (local_orb, s_rel, ele_anchor_pt, r0, curved_coords, x, y, z)
+subroutine to_field_map_coords (local_orb, s_rel, ele_anchor_pt, r0, curved_ref_frame, x, y, z)
 
 type (coord_struct) local_orb
 
 real(rp) :: s_rel, r0(3), x, y, z, x_save
 integer ele_anchor_pt
-logical curved_coords
+logical curved_ref_frame
 
 !
 
@@ -1337,7 +1337,7 @@ z = s_rel - s0
 
 !
          
-if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_coords) then
+if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_ref_frame) then
   cos_ang = cos(z*ele%value(g$))
   sin_ang = sin(z*ele%value(g$))
 

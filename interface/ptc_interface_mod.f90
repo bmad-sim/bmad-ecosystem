@@ -3520,7 +3520,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     hd = ele%value(g$)
     lc = (np-1) * tf%dz   ! Integration length
 
-    if (tf%curved_coords) then
+    if (tf%curved_ref_frame) then
       hc = ele%value(g$) ! pancake curvature = ele curvature
       angc = (ele%value(angle$) - (np-1) * tf%dz * ele%value(g$)) / 2
       xc = tf%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
@@ -3559,7 +3559,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   endif
 
   n = len_trim(tf%ptr%file)
-  call set_pancake_constants(np, angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .true., tf%ptr%file(max(1,n-23):n))
+  call set_pancake_constants(np, angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .not. tf%canonical_tracking, tf%ptr%file(max(1,n-23):n))
 
   max_order = 0
   do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)

@@ -541,7 +541,7 @@ if (n_grid > 0) then
     read (d_unit, err = 9120) g_field%field_scale, g_field%master_parameter, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_coords, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type
     read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, lb, ub
 
     if (ix_ele > 0) then
@@ -566,8 +566,8 @@ if (n_tay > 0) then
 
   do i = 1, n_tay
     t_field => ele%taylor_field(i)
-    read (d_unit, err = 9120) t_field%field_scale, t_field%master_parameter, &
-                t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0
+    read (d_unit, err = 9120) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
+           t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
     read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n0, n1
 
     if (ix_ele > 0) then

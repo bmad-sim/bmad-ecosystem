@@ -616,7 +616,7 @@ do ib = 0, ubound(lat%branch, 1)
           write (iu2, '(2x, 3a)')       'phi0_fieldmap          = ', trim(str(g_field%phi0_fieldmap)), ','
           write (iu2, '(2x, 4a)')       'dr                = ', trim(array_str(g_field%dr(1:n))), ','
           write (iu2, '(2x, 4a)')       'r0                = ', trim(array_str(g_field%r0(1:n))), ','
-          write (iu2, '(2x, a, l1, a)') 'curved_coords     = ', g_field%curved_coords, ','
+          write (iu2, '(2x, a, l1, a)') 'curved_ref_frame  = ', g_field%curved_ref_frame, ','
 
           end_str = '),'
 
@@ -706,13 +706,14 @@ do ib = 0, ubound(lat%branch, 1)
 
           write (iu2, '(a)') '{'
           if (t_field%master_parameter > 0) write (iu2, '(2x, 3a)') &
-                                        'master_parameter  = ', trim(attribute_name(ele, t_field%master_parameter)), ','
-          write (iu2, '(2x, 3a)')       'field_scale       = ', trim(str(t_field%field_scale)), ','
-          write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(t_field%ele_anchor_pt)), ','
-          write (iu2, '(2x, 3a)')       'field_type        = ', trim(em_field_type_name(t_field%field_type)), ','
-          write (iu2, '(2x, 3a)')       'dz                = ', trim(str(t_field%dz)), ','
-          write (iu2, '(2x, 4a)')       'r0                = ', trim(array_str(t_field%r0)), ','
-          write (iu2, '(2x, a, l1, a)') 'curved_coords     = ', t_field%curved_coords, ','
+                                        'master_parameter   = ', trim(attribute_name(ele, t_field%master_parameter)), ','
+          write (iu2, '(2x, 3a)')       'field_scale        = ', trim(str(t_field%field_scale)), ','
+          write (iu2, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(t_field%ele_anchor_pt)), ','
+          write (iu2, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(t_field%field_type)), ','
+          write (iu2, '(2x, 3a)')       'dz                 = ', trim(str(t_field%dz)), ','
+          write (iu2, '(2x, 4a)')       'r0                 = ', trim(array_str(t_field%r0)), ','
+          write (iu2, '(2x, a, l1, a)') 'curved_ref_frame   = ', t_field%curved_ref_frame, ','
+          write (iu2, '(2x, a, l1, a)') 'canonical_tracking = ', t_field%canonical_tracking, ','
 
           do ip = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
             write (iu2, '(2x, a, i0, a)') 'plane(', ip, ') = {'
