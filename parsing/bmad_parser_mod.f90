@@ -6964,12 +6964,12 @@ do
       return        
     endif      
       
-  case ('CURVED_COORDS')
+  case ('CURVED_COORDS', 'CURVED_REF_FRAME')  ! 'curved_coords' is old style.
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    g_field%curved_coords = evaluate_logical (word2, ios)
+    g_field%curved_ref_frame = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD GRID_FIELD CURVED_COORDS SETTING ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('BAD GRID_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
   case ('R0')
@@ -7291,12 +7291,20 @@ do
       return        
     endif      
       
-  case ('CURVED_COORDS')
+  case ('CURVED_REF_FRAME')
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    t_field%curved_coords = evaluate_logical (word2, ios)
+    t_field%curved_ref_frame = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD TAYLOR_FIELD CURVED_COORDS SETTING ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('BAD TAYLOR_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
+    endif
+
+  case ('CANONICAL_TRACKING')
+    if (.not. equal_sign_here(ele, delim)) return
+    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
+    T_field%canonical_tracking = evaluate_logical (word2, ios)
+    if (ios /= 0 .or. ix_word == 0) then
+      call parser_error ('BAD TAYLOR_FIELD CANONICAL_TRACKING SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
   case ('PLANE')

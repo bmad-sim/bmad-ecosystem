@@ -500,7 +500,7 @@ if (associated(ele%grid_field)) then
       nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', g_field%harmonic
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', g_field%field_scale
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:    ', g_field%phi0_fieldmap
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_coords     ', g_field%curved_coords
+      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame  ', g_field%curved_ref_frame
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', g_field%ptr%n_link
       nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:               ', g_field%dr
       nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:               ', g_field%r0
@@ -529,16 +529,17 @@ if (associated(ele%taylor_field)) then
       endif
 
       nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
-      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(t_field%ptr%file)
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:       ', em_field_type_name(t_field%field_type)
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', t_field%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:               ', t_field%dz
-      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', t_field%r0
-      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(t_field%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_coords     ', t_field%curved_coords
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', t_field%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:          ', size(t_field%ptr%plane)
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:         ', trim(t_field%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(t_field%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', t_field%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', t_field%dz
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', t_field%r0
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(t_field%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', t_field%curved_ref_frame
+      nl=nl+1; write (li(nl), '(a, l1)')      '    canonical_tracking ', t_field%canonical_tracking
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:            ', t_field%ptr%n_link
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:           ', size(t_field%ptr%plane)
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)

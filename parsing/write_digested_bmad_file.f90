@@ -395,7 +395,7 @@ do i = 1, n_grid
   write (d_unit) g_field%field_scale, g_field%master_parameter, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_coords, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type
 
   call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr) 
   if (ix_ptr > 0) then
@@ -420,8 +420,8 @@ do i = 1, n_tay
     write (t_field%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
   endif
 
-  write (d_unit) t_field%field_scale, t_field%master_parameter, &
-                t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0
+  write (d_unit) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
+          t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
 
   call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr) 
   if (ix_ptr > 0) then

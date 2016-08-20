@@ -549,7 +549,7 @@ type grid_field_struct
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Field origin relative to ele_anchor_pt.
-  logical :: curved_coords = .false.
+  logical :: curved_ref_frame = .false.
   type (grid_field_pt_struct), pointer :: ptr
 end type
 
@@ -573,7 +573,8 @@ type taylor_field_struct
   real(rp) :: r0(3) = 0            ! field origin relative to ele_anchor_pt.
   real(rp) :: field_scale = 1      ! Factor to scale the fields by
   integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
-  logical :: curved_coords = .false.
+  logical :: curved_ref_frame = .false.
+  logical :: canonical_tracking = .false.
   type (taylor_field_plane_struct), pointer :: ptr
 end type
 

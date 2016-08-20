@@ -918,7 +918,7 @@ is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%curved_coords .eqv. f2%curved_coords)
+is_eq = is_eq .and. (f1%curved_ref_frame .eqv. f2%curved_ref_frame)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%ptr) .eqv. associated(f2%ptr))
@@ -997,7 +997,9 @@ is_eq = is_eq .and. (f1%field_scale == f2%field_scale)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%master_parameter == f2%master_parameter)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%curved_coords .eqv. f2%curved_coords)
+is_eq = is_eq .and. (f1%curved_ref_frame .eqv. f2%curved_ref_frame)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%canonical_tracking .eqv. f2%canonical_tracking)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%ptr) .eqv. associated(f2%ptr))
@@ -1926,12 +1928,16 @@ is_eq = is_eq .and. (f1%n_shield_images == f2%n_shield_images)
 is_eq = is_eq .and. (f1%ix1_ele_csr == f2%ix1_ele_csr)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix2_ele_csr == f2%ix2_ele_csr)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%sc_min_in_bin == f2%sc_min_in_bin)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lcsr_component_on .eqv. f2%lcsr_component_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lsc_component_on .eqv. f2%lsc_component_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%tsc_component_on .eqv. f2%tsc_component_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%lsc_kick_transverse_dependence .eqv. f2%lsc_kick_transverse_dependence)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
 !! f_side.equality_test[logical, 0, NOT]
