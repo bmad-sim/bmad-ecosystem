@@ -3221,6 +3221,8 @@ else
   val => value0  ! Not is on then has zero strength.
 endif
 
+if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
+
 select case (key)
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
@@ -3410,7 +3412,7 @@ end select
 
 ! Fringe
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .and. ele%value(l$) /= 0) then
 
   ix = nint(ele%value(ptc_fringe_geometry$))
   ptc_key%list%bend_fringe = (ix == x_invariant$)
