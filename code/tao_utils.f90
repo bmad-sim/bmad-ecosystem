@@ -129,10 +129,10 @@ else
 endif
 
 if (m >= -1 .and. m <= 1) then
-  fmt2 = '(f11.4, a0)'
+  fmt2 = '(f11.4, a)'
   n = 0
 elseif (m == 2) then
-  fmt2 = '(f11.2, a0)'
+  fmt2 = '(f11.2, a)'
   n = 0
 else
   write (fmt2, '(a, i1, a)') '(f7.', p, ', a)'
