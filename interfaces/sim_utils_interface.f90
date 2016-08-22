@@ -4,16 +4,6 @@ use precision_def
 
 interface
 
-subroutine bbi_kick (x, y, r, kx, ky)
-  import
-  implicit none
-  real(rp) x
-  real(rp) y
-  real(rp) r
-  real(rp) kx
-  real(rp) ky
-end subroutine
-
 subroutine bracket_index (s_arr, i_min, i_max, s, ix)
   import
   implicit none
