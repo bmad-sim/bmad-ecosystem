@@ -47,6 +47,12 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
   logical, optional :: force_bookkeeping
 end subroutine
 
+subroutine bbi_kick (x, y, r, kx, ky)
+  import
+  implicit none
+  real(rp) x, y, r, kx, ky
+end subroutine
+
 subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
   import
   implicit none

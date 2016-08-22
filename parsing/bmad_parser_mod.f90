@@ -2549,7 +2549,7 @@ function evaluate_logical (word, iostat) result (this_logic)
 implicit none
 
 character(*), intent(in) :: word
-character(len(word)+8) :: wd
+character(len(word)+8) wd
 logical this_logic
 integer, intent(out) :: iostat
 integer i
@@ -2558,21 +2558,21 @@ integer i
 
 iostat = -1
 this_logic = .false.  ! To avoid uninit compiler warnings.
+if (word == '') return
 
 call str_upcase(wd, word)
+
 do i = 1, len(word)
-  if (wd(i:i) /= ' ') then
-    if (wd(i:i+6) == '.TRUE. ' .or. wd(i:i+4) == 'TRUE ' .or. &
-                                          wd(i:i+1) == 'T ') then
-      this_logic = .true.
-      iostat = 0
-    elseif (wd(i:i+7) == '.FALSE. ' .or. wd(i:i+5) == 'FALSE ' .or. &
-                                          wd(i:i+1) == 'F ') then
-      this_logic = .false.
-      iostat = 0
-    endif
-    return
+  if (wd(i:i) == '') cycle
+
+  if (wd(i:i+6) == '.TRUE. ' .or. wd(i:i+4) == 'TRUE ' .or. wd(i:i+1) == 'T ') then
+    this_logic = .true.
+    iostat = 0
+  elseif (wd(i:i+7) == '.FALSE. ' .or. wd(i:i+5) == 'FALSE ' .or. wd(i:i+1) == 'F ') then
+    this_logic = .false.
+    iostat = 0
   endif
+  return
 enddo
 
 end function evaluate_logical
@@ -7291,7 +7291,7 @@ do
       return        
     endif      
       
-  case ('CURVED_REF_FRAME')
+  case ('CURVED_COORDS', 'CURVED_REF_FRAME')    ! 'curved_coords' is old style.
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
     t_field%curved_ref_frame = evaluate_logical (word2, ios)
