@@ -1072,7 +1072,7 @@ integer, parameter :: x0$ = 24, px0$ = 25, y0$ = 26, py0$ = 27, z0$ = 28, pz0$ =
 integer, parameter :: x1$ = 30, px1$ = 31, y1$ = 32, py1$ = 33, z1$ = 34, pz1$ = 35
 integer, parameter :: match_end_orbit_input$ = 36, match_end_orbit$ = 37
 
-integer, parameter :: c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39
+integer, parameter :: c_11$ = 40, c_12$ = 41, c_21$ = 42, c_22$ = 43, gamma_c$ = 44
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8

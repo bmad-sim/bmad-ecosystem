@@ -849,10 +849,10 @@ the integral over a slice is used to calculate the kick. The total kick $K_{\mbo
 SC}}(j)$ at slice $j$ is
 \begin{equation}
   K_{\mbox{\tiny SC}} (j) = 
-  \sum_i \int_{\zeta_{ij}-z_{slice}/2}^{\zeta_{ij}+z_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
+  \sum_i \int_{\zeta_{ij}-dz_{slice}/2}^{\zeta_{ij}+dz_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
 \end{equation}
 where the sum is over all slices $i$, $\zeta_{ij}$ is the distance between slices $i$ and
-$j$, and $z_{slice}$ is the slice thickness. An analytic expression of the above integral
+$j$, and $dz_{slice}$ is the slice thickness. An analytic expression of the above integral
 is easily calculated assuming that the charge density $\rho(z)$ is linearly varying within
 a given slice.  For brevity's sake, the calculation is not explicitly presented here. Once
 the kick at the slice center planes is calculated, the kick given to a particle is
@@ -863,7 +863,7 @@ transverse dependence of the kick and just evaluates the kick on the centerline 
 0$. The other simulation mode represents the kick due to a given slice using a Pad{\'e}
 approximant of form
 \begin{equation}
-  \int {\zeta_{ij}-z_{slice}/2}^{\zeta_{ij}+z_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
+  \int_{\zeta_{ij}-dz_{slice}/2}^{\zeta_{ij}+dz_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
   \simeq \frac{1}{a_{00} + a_{20} x^2 + a_{40} x^4 + a_{02} y^2 + a_{04} y^4 + a_{22} x^2 \, y^2}
 \end{equation}
 the \vn{a_{mn}} are calculated from an analytic formula derived from integrating
