@@ -1032,6 +1032,11 @@ call init_attribute_name1 (match$, match_end_orbit$,                'MATCH_END_O
 call init_attribute_name1 (match$, is_on$,                          'IS_ON')
 call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
+call init_attribute_name1 (match$, c_11$,                           'c_11', private$)
+call init_attribute_name1 (match$, c_12$,                           'c_12', private$)
+call init_attribute_name1 (match$, c_21$,                           'c_21', private$)
+call init_attribute_name1 (match$, c_22$,                           'c_22', private$)
+call init_attribute_name1 (match$, gamma_c$,                        'gamma_c', private$)
 
 call init_attribute_name1 (monitor$, field_calc$,                   'FIELD_CALC')
 call init_attribute_name1 (monitor$, E_tot_start$,                  'E_tot_start', private$)
@@ -1578,7 +1583,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON')
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &

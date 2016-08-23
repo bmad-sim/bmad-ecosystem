@@ -1117,8 +1117,6 @@ endif
 
 if (orb%species == photon$) then
 
-  orb%phase = orb%phase
-  orb%field = orb%field
   orb%path_len = 0
   orb%beta = 1
 

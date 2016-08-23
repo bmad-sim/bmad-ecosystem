@@ -3197,27 +3197,37 @@ See \sref{s:list.photon.init} for a full list of element attributes.
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{photon_init} element are:
 \begin{example}
+  ds_slice                 = <Real>
+  E_center                 = <Real>    ! Average initial photon energy (eV).
+  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
+  e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
+  e_field_y                = <Real>
   energy_distribution      = <Switch>  ! Gaussian or uniform
-  spatial_distribution     = <Switch>  ! Gaussian or uniform. 
-  velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
+  physical_source          = <String>  ! physical source of x-rays
+  ref_wavelength                       ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
   sig_x                    = <Real>
   sig_y                    = <Real>
   sig_z                    = <Real>
   sig_vx                   = <Real>
   sig_vy                   = <Real>
   sig_E                    = <Real>    ! Initial photon energy width (eV).
-  physical_source          = <String>  ! physical source of x-rays
+  spatial_distribution     = <Switch>  ! Gaussian or uniform. 
   transverse_sigma_cut     = <Real>
-  E_center                 = <Real>    ! Average initial photon energy (eV).
-  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
-  e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
-  e_field_y                = <Real>
-  ds_slice                 = <Real>
-  ref_wavelength    ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
+  velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
 \end{example}
 
   \begin{description}
-  \index{e_center}
+  \index{ds_slice}
+  \item[\vn{ds_slice}] \Newline
+Used when there is an associated physical source element. The physical
+source element is sliced into pieces of thickness \vn{ds_slice} and
+each slice is tested to see if photons from the slice can possibly
+pass through the first aperture. When photons are generated, photons
+will only be generated from slices where they have a hope of passing
+through the first aperture. This makes the simulation more efficient.
+The default value of \vn{ds_slice} is 0.01 meter.
+
+  \index{E_center}
   \item[\vn{E_center}] \Newline
 Average initial photon energy in eV. If \vn{E_center_relative_to_ref}
 is set to True, \vn{E_center} will be relative to the reference
@@ -3233,16 +3243,6 @@ center energy \vn{<E>} is
 \begin{example}
   <E> = E_center + Reference_Energy
 \end{example}
-
-  \index{ds_slice}
-  \item[\vn{ds_slice}] \Newline
-Used when there is an associated physical source element. The physical
-source element is sliced into pieces of thickness \vn{ds_slice} and
-each slice is tested to see if photons from the slice can possibly
-pass through the first aperture. When photons are generated, photons
-will only be generated from slices where they have a hope of passing
-through the first aperture. This makes the simulation more efficient.
-The default value of \vn{ds_slice} is 0.01 meter.
 
   \index{e_field_x}\index{e_field_y}
   \item[\vn{e_field_x}, \vn{e_field_y}] \Newline
@@ -3266,6 +3266,25 @@ distribution in the range:
 \begin{example2}
   [-sig_E, sig_E]
 \end{example2}
+
+  \index{physical_source}
+  \item[\vn{physical_source}] \Newline
+Used to specify the ``physical'' source of the photons. See below for more details
+
+  \index{sig_E}
+  \item[\vn{sig_E}] \Newline
+Energy width in eV. See \vn{energy_distribution} for more
+details.
+
+  \index{sig_vx}\index{sig_vy}
+  \item[\vn{sig_vx, sig_vy}] \Newline
+Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
+\vn{velocity_distribution} for more details.
+
+  \index{sig_x}\index{sig_y}\index{sig_z}
+  \item[\vn{sig_x, sig_y, sig_z}] \Newline
+Width of emitted photons in $x$, $y$ and $z$ directions. See
+\vn{spatial_distribution} for more details.
 
   \index{spatial_distribution}
   \item[\vn{spatial_distribution}] \Newline
@@ -3292,25 +3311,6 @@ $\sigma$ where $sigma$ is
 \end{example2}
 The \vn{uniform} setting gives a flat
 distribution in the range: $[-\sigma, \sigma]$.
-
-  \index{physical_source}
-  \item[\vn{physical_source}] \Newline
-Used to specify the ``physical'' source of the photons. See below for more details
-
-  \index{sig_E}
-  \item[\vn{sig_E}] \Newline
-Energy width in eV. See \vn{energy_distribution} for more
-details.
-
-  \index{sig_vx}\index{sig_vy}
-  \item[\vn{sig_vx, sig_vy}] \Newline
-Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
-\vn{velocity_distribution} for more details.
-
-  \index{sig_x}\index{sig_y}\index{sig_z}
-  \item[\vn{sig_x, sig_y, sig_z}] \Newline
-Width of emitted photons in $x$, $y$ and $z$ directions. See
-\vn{spatial_distribution} for more details.
 
   \index{velocity_distribution}
   \item[\vn{velocity_distribution}] \Newline

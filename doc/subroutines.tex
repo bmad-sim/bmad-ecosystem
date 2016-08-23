@@ -10,7 +10,7 @@ solely meant for \bmad internal use.
 
 \toffset
 \begin{center}
-\begin{tabular}{|l|l|} \toprule
+\begin{tabular}{ll} \toprule
 {\em Routine Type} & {\em Section} \\ \midrule
   Beam: Low Level Routines                    & \ref{r:low.beam}       \\
   Beam: Tracking and Manipulation             & \ref{r:beam}           \\
@@ -77,7 +77,7 @@ Reverse tracking starts with the particle just outside the bend and
 
 \index[routine]{find_bunch_sigma_matrix}
 \label{r:find.bunch.sigma.matrix}
-\item[find_bunch_sigma_matrix (particle, charge, avg, sigma, sigma_s)] \Newline 
+\item[find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)] \Newline 
 Routine to find the sigma matrix elements of a particle distribution.
 
 \index[routine]{init_spin_distribution}
@@ -146,7 +146,7 @@ the Twiss parameters, centroid position, and Energy - z correlation
 
 \index[routine]{init_bunch_distribution}
 \label{r:init.bunch.distribution}
-\item[init_bunch_distribution (ele, param, beam_init, bunch, err_flag)] \Newline 
+\item[init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)] \Newline 
 Routine to initialize either a random or tail-weighted distribution of particles.  
 
 \index[routine]{reallocate_beam}
@@ -201,22 +201,22 @@ This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{csr_bin_particles}
 \label{r:csr.bin.particles}
-\item[csr_bin_particles (particle, csr_top)] \Newline 
+\item[csr_bin_particles (particle, csr)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
 \index[routine]{csr_bin_kicks}
 \label{r:csr.bin.kicks}
-\item[csr_bin_kicks (ele, ds_kick_pt, csr_top)] \Newline 
+\item[csr_bin_kicks (ds_kick_pt, csr, err_flag)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index[routine]{csr_kick_calc}
 \label{r:csr.kick.calc}
-\item[csr_kick_calc (csr_top, particle)] \Newline 
+\item[csr_kick_calc (csr, particle)] \Newline 
 Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
-\item[i_csr (kick1, i_bin, csr_top) result (i_this)] \Newline 
+\item[i_csr (kick1, i_bin, csr) result (i_this)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -259,7 +259,10 @@ Routine to calculate the Touschek lifetime for a lat.
 
 \index[routine]{apply_element_edge_kick_hook}
 \label{r:apply.element.edge.kick.hook}
-\item[apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, particle_at, finished)] \Newline 
+\item[\protect\parbox{6in}{
+  apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, \\
+  \hspace*{1in} finished, mat6, make_matrix) }] \Newline 
+
 Routine that can be customized to track through the edge field of an element.
 This routine is always called by apply_element_edge_kick.
 
@@ -330,6 +333,11 @@ Dummy routine for pre processing at the start of the track1 routine.
 Dummy routine for custom spin tracking. 
 This routine needs to be replaced for a custom calculation.
 
+\index[routine]{track1_wake_hook}
+\label{r:track1.wake.hook}
+\item[track1_wake_hook (bunch, ele, finished)] \Newline 
+Routine that can be customized for tracking through a wake.
+
 \index[routine]{wall_hit_handler_custom}
 \label{r:wall.hit.handler.custom}
 \item[wall_hit_handler_custom (orb, ele, s, t)] \Newline 
@@ -347,7 +355,8 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
     em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, \\
-    \hspace*{1in} calc_dfield, err_flag, potential, use_overlap, grid_allow_s_out_of_bounds) }] \Newline 
+    \hspace*{1in} calc_dfield, err_flag, potential, use_overlap, \\
+    \hspace*{1in} grid_allow_s_out_of_bounds) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -844,9 +853,10 @@ These routine are for adding elements, moving elements, etc.
 
 \index[routine]{add_lattice_control_structs}
 \label{r:add.lattice.control.structs}
-\item[add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, n_add_lord_field, add_at_end)] \Newline 
-Routine to adjust the control structure of a lat so that extra control
-elements can be added.
+\item[\protect\parbox{6in}{
+  add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, \\
+  \hspace*{1in} n_add_lord_field, add_at_end) }] \Newline 
+Routine to adjust the control structure of a lat so that extra control elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
@@ -1036,8 +1046,10 @@ This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_p
 
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
-\item[coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat, calculate_angles) result (global_position)] \Newline 
-Given a position local to ele, return global floor coordinates
+\item[\protect\parbox{6in}{
+  coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, \\
+  \hspace*{1in} w_mat, calculate_angles) result (global_position) }] \Newline 
+Given a position local to ele, return global floor coordinates.
 
 \index[routine]{coords_floor_to_local_curvilinear}
 \label{r:position.in.local.frame}
@@ -1741,7 +1753,7 @@ A multi_lord will be found for:
 
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
-\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type)] \Newline 
+\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)] \Newline 
 Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
@@ -1761,7 +1773,7 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)] \Newline
+\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
@@ -1812,7 +1824,7 @@ Reverse communication routine.
 \index[routine]{super_mrqmin}
 \label{r:super.mrqmin}
 \item[\protect\parbox{6in}{super_mrqmin (y, weight, a, \\
-  \hspace*{1in} covar, alpha, chisq, funcs, alamda, status, maska)}] \Newline 
+  \hspace*{1in} chisq, funcs, storage, alamda, status, maska)}] \Newline 
 Routine to do non-linear optimizations. 
 This routine is essentially mrqmin from Numerical Recipes with some added features.
 
@@ -1850,7 +1862,7 @@ Routine that is used to set one coord_struct equal to another.
 
 \index[routine]{ele_equal_ele}
 \label{r:ele.equal.ele}
-\item[ele_equal_ele (ele1, ele2)] \Newline
+\item[ele_equal_ele (ele_out, ele_in)] \Newline
 Routine that is used to set one element equal to another. 
 This routine takes care of the pointers in ele1. 
 
@@ -1960,7 +1972,7 @@ Routine to concatenate two real_8 taylor series.
 \label{r:ele.to.fibre}
 \item[\protect\parbox{6in}{
     ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, \\
-    \hspace*{1in} for_layout, tracking_species, use_hard_edge_drifts) }] \Newline
+    \hspace*{1in} for_layout, track_particle, use_hard_edge_drifts, kill_layout) }] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -1990,7 +2002,7 @@ Routine to overload "=" in expressions real_8 = bmad_taylor
 
 \index[routine]{real_8_to_taylor}
 \label{r:real.8.to.taylor}
-\item[real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)] \Newline
+\item[real_8_to_taylor (y8, beta0, beta1, bmad_taylor)] \Newline
 Routine to convert from a real_8 taylor map in \'Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{real_8_init}
@@ -2012,7 +2024,7 @@ Routine to create a PTC layout from a Bmad lat.
 \label{r:set.ptc}
 \item[\protect\parbox{6in}{
     set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
-    \hspace*{1in} exact_modeling, exact_misalign, init_complex) }] \Newline
+    \hspace*{1in} exact_modeling, exact_misalign, init_complex, force_init) }] \Newline
 Routine to initialize PTC. 
 
 \index[routine]{sort_universal_terms}
@@ -2027,7 +2039,7 @@ Routine to overload "=" in expressions bmad_taylor = y8
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
-\item[taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8, use_ref0)] \Newline
+\item[taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, remove_constant)] \Newline
 Routine to convert from a taylor map in Bmad to a real_8 taylor map in \'Etienne's PTC. 
 
 \index[routine]{type_ptc_layout}
@@ -2762,7 +2774,7 @@ Subroutine to track the spin with the Euler four-vector quaternion a.
 
 \index[routine]{spin_omega}
 \label{r:spin.omega}
-\item[spin_omega (field, coord, phase_space_coords), result (omega)] \Newline 
+\item[spin_omega (field, coord, sign_z_vel, phase_space_coords), result (omega)] \Newline 
 Return the modified T-BMT spin omega vector.
 
 \index[routine]{track1_spin}
@@ -2785,7 +2797,7 @@ routines directly.
 
 \index[routine]{make_mat6_bmad}
 \label{r:make.mat6.bmad}
-\item[make_mat6_bmad (ele, param, c0, c1, end_in, err)] \Newline
+\item[make_mat6_bmad (ele, param, orb_in, orb_out, end_in, err)] \Newline
 Routine to make the 6x6 transfer matrix for an element
 using closed formulas.
 
@@ -2828,7 +2840,7 @@ Routine to add a complex_taylor term to a complex_taylor series.
 
 \index[routine]{complex_taylor_coef}
 \label{r:complex.taylor.coef}
-\item[complex_taylor_coef (bmad_complex_taylor, exp)] \Newline 
+\item[complex_taylor_coef (bmad_taylor, expn)] \Newline 
 Function complex_taylor_coef (bmad_complex_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
 Function to return the coefficient for a particular complex_taylor term
 from a complex_taylor Series.
@@ -2961,7 +2973,7 @@ Taylor series.
 
 \index[routine]{taylor_coef}
 \label{r:taylor.coef}
-\item[taylor_coef (bmad_taylor, exp)] \Newline 
+\item[taylor_coef (bmad_taylor, expn)] \Newline 
 Function to return the coefficient for a particular taylor term from a
 Taylor Series.
 
@@ -3141,7 +3153,7 @@ This routine does *not* include multiparticle effects.
 
 \index[routine]{track1_bunch_csr}
 \label{r:track1.bunch.csr}
-\item[track1_bunch_csr (bunch_start, ele, bunch_end, err, s_start, s_end, centroid)] \Newline 
+\item[track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)] \Newline 
 Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
@@ -3216,7 +3228,7 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
 \item[\protect\parbox{6in}{
-    odeint_bmad (orb_start, ele, param, orb_end, s1, s2, local_ref_frame, err_flag, track) }] \Newline
+    odeint_bmad (orbit, ele, param, s1, s2, local_ref_frame, err_flag, track) }] \Newline
 Routine to do Runge Kutta tracking. 
 
 \index[routine]{create_uniform_element_slice}
@@ -3234,12 +3246,12 @@ Routine to track 1 step using boris tracking.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, length)] \Newline
+\item[track_a_drift (orb, length, mat6, make_matrix)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
 \label{r:track.a.bend}
-\item[track_a_bend (start_orb, ele, param, end_orb)] \Newline
+\item[track_a_bend (orbit, ele, param, mat6, make_matrix)] \Newline
 Particle tracking through a bend element. 
 
 \end{description}
@@ -3606,7 +3618,7 @@ Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{init_wake}
 \label{r:init.wake}
-\item[init_wake (wake, n_sr_long, n_sr_trans, n_lr)] \Newline 
+\item[init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)] \Newline 
 Routine to initialize a wake struct.
 
 \index[routine]{lr_wake_apply_kick}
