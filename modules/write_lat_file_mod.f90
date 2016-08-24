@@ -3,7 +3,6 @@ module write_lat_file_mod
 use multipole_mod
 use multipass_mod
 use element_modeling_mod
-use lat_ele_loc_mod
 
 private str, rchomp, cmplx_str, write_line_element, array_str
 
