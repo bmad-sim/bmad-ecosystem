@@ -230,6 +230,13 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, 
   logical, optional :: err_flag
 end subroutine
 
+function default_tracking_species (param) result (species)
+  import
+  implicit none
+  type (lat_param_struct) param
+  integer species
+end function
+
 subroutine do_mode_flip (ele, err_flag)
   import
   implicit none
@@ -260,6 +267,14 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   type (ele_struct), pointer :: match_ele
   integer t_type, ix_field
   character(*) file_name
+end subroutine
+
+subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
 end subroutine
 
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
@@ -306,6 +321,15 @@ subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   import
   type (lat_struct) lat
   logical err_flag
+end subroutine
+
+recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct), optional :: ref_orb(0:)
+  integer, optional :: ix_ele, ix_branch
+  logical, optional :: err_flag
 end subroutine
 
 subroutine lat_sanity_check (lat, err_flag)
@@ -597,19 +621,17 @@ function relative_mode_flip (ele1, ele2)
   type (ele_struct) ele2
 end function
 
-recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
-  import
-  implicit none
-  type (lat_struct), target :: lat
-  type (coord_struct), optional :: ref_orb(0:)
-  integer, optional :: ix_ele, ix_branch
-  logical, optional :: err_flag
-end subroutine
-
 subroutine s_calc (lat)
   import
   implicit none
   type (lat_struct) lat
+end subroutine
+
+subroutine set_status_flags (bookkeeping_state, stat)
+  import
+  implicit none
+  type (bookkeeping_state_struct) bookkeeping_state
+  integer stat
 end subroutine
 
 subroutine save_bunch_track (bunch, ele, s_travel)
@@ -688,6 +710,14 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
 end subroutine
 
+subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
+  import
+  implicit none
+  type (coord_struct) orb
+  real(rp) length
+  logical phase_relative_to_ref
+end subroutine
+
 subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
   import
   implicit none
@@ -706,6 +736,12 @@ subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integra
   integer, intent(in), optional :: ix1, ix2, ix_branch
   logical err_flag
   logical, optional :: integrate, one_turn, unit_start
+end subroutine
+
+subroutine transfer_wake (wake_in, wake_out)
+  import
+  implicit none
+  type (wake_struct), pointer :: wake_in, wake_out
 end subroutine
 
 subroutine tilt_coords (tilt_val, coord)

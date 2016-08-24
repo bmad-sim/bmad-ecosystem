@@ -191,8 +191,7 @@ case (taylor$)
 ! Photon_Init
 
 case (photon_init$)
-  call track1_photon_init (ele, param, end_orb)
-  if (end_orb%state /= alive$) return
+  ! For tracking purposes, a phton_init element is like a marker
 
 !-----------------------------------------------
 ! Not recognized
