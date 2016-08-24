@@ -480,18 +480,18 @@ call make_v_mats (ele_ave, v_mat, v_inv_mat)
 
 call ran_gauss(r_emit)  ! electron momentum offset.
 
-charged_orb%vec(6) = charged_orb%vec(6) + r_emit(5) * lat%z%sigp
+charged_orb%vec(6) = charged_orb%vec(6) + r_emit(5) * lat%z%sigmap
 
 dE = charged_orb%vec(6)
 vec = matmul (v_inv_mat, charged_orb%vec(1:4))
 vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele_ave%a%eta, ele_ave%a%etap] * dE
 vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele_ave%b%eta, ele_ave%b%etap] * dE
 
-vec(1) = vec(1) + sqrt(lat%a%emit) * ele_ave%a%beta) * r_emit(1)
-vec(2) = vec(2) + sqrt(lat%a%emit) / ele_ave%a%beta) * (r_emit(2) - ele_ave%a%alpha * r_emit(1))
+vec(1) = vec(1) + sqrt(lat%a%emit * ele_ave%a%beta) * r_emit(1)
+vec(2) = vec(2) + sqrt(lat%a%emit / ele_ave%a%beta) * (r_emit(2) - ele_ave%a%alpha * r_emit(1))
 
-vec(3) = vec(3) + sqrt(lat%b%emit) * ele_ave%b%beta) * r_emit(3)
-vec(4) = vec(4) + sqrt(lat%b%emit) / ele_ave%b%beta) * (r_emit(4) - ele_ave%b%alpha * r_emit(3))
+vec(3) = vec(3) + sqrt(lat%b%emit * ele_ave%b%beta) * r_emit(3)
+vec(4) = vec(4) + sqrt(lat%b%emit / ele_ave%b%beta) * (r_emit(4) - ele_ave%b%alpha * r_emit(3))
 
 charged_orb%vec(1:4) = matmul(v_mat, vec)
 
@@ -827,7 +827,7 @@ do
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
   call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
-  if (track_state /= alive$) t_branch%ele(track_state)%ix_pointer = t_branch%ele(track_state)%ix_pointer + 1
+  if (track_state /= moving_forward$) t_branch%ele(track_state)%ix_pointer = t_branch%ele(track_state)%ix_pointer + 1
 
   ! Write to photon1_out_file
 
