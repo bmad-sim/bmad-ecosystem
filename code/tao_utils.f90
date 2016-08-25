@@ -2198,7 +2198,7 @@ logical, optional :: print_limit_warning
 if (.not. var%exists) return
 
 ! check if hit variable limit
-if (s%global%var_limits_on .and. (.not. s%global%var_limit_only_used .or. var%useit_opt)) then
+if (s%global%var_limits_on .and. (.not. s%global%only_limit_opt_vars .or. var%useit_opt)) then
   if (value < var%low_lim) then
     if (logic_option (.true., print_limit_warning)) &
           call out_io (s_blank$, ' ', "Hit lower limit of variable: " // tao_var1_name(var))

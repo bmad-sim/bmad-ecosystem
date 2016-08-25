@@ -590,7 +590,7 @@ type tao_global_struct
   logical :: box_plots = .false.                  ! For debugging plot layout issues.
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
   logical :: var_limits_on = .true.               ! Respect the variable limits?
-  logical :: var_limit_only_used = .false.        ! Only apply limits to variables used in optimization.
+  logical :: only_limit_opt_vars = .false.        ! Only apply limits to variables used in optimization.
   logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
   logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?

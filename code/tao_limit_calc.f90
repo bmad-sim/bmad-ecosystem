@@ -8,7 +8,7 @@
 !
 ! Input:
 !   s%global%var_limits_on        -- If False then this routine does nothing.
-!   s%global%var_limit_only_used  -- Limit only variables used in optimization?
+!   s%global%only_limit_opt_vars  -- Limit only variables used in optimization?
 !
 ! Output:
 !   limited -- Logical: Set True if a variable is past a limit.
@@ -42,7 +42,7 @@ do j = 1, s%n_var_used
 
   var => s%var(j)
   if (.not. var%exists) cycle
-  if (s%global%var_limit_only_used .and. .not. var%useit_opt) cycle
+  if (s%global%only_limit_opt_vars .and. .not. var%useit_opt) cycle
 
   if (var%model_value > var%high_lim) then
     write (line, '(1pe13.4)') var%high_lim

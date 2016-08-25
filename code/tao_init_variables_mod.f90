@@ -55,7 +55,7 @@ logical, allocatable, save :: default_key_b(:)
 character(100) line, search_for_lat_eles
 
 logical err, free, gang
-logical searching
+logical searching, limited
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
@@ -269,6 +269,14 @@ deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
 
 call tao_setup_key_table ()
+
+! Check that all lattice values are within limits.
+
+call tao_limit_calc(limited)
+if (limited) then
+  call out_io (s_fatal$, r_name, 'VARIABLES OUT OF RANGE ON STARTUP NOT PERMITTED!')
+  stop
+endif
 
 end subroutine tao_init_variables
 

@@ -1371,7 +1371,7 @@ case ('global')
     endif
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
-    nl=nl+1; write(lines(nl), lmt) '  %var_limit_only_used           = ', s%global%var_limit_only_used
+    nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
     nl=nl+1; write(lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
@@ -1974,10 +1974,12 @@ case ('lattice')
   end select
 
   if (what_to_print /= 'custom' .and. print_lords /= no$) then
-    n = size(column)
-    column(8:n) = column(6:n-2)
-    column(6)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
-    column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
+    do i = size(column), 1, -1
+      if (column(i)%name == '') cycle
+      column(i+1)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
+      column(i+2)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
+      exit
+    enddo
   endif
 
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')

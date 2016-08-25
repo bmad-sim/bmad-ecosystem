@@ -339,7 +339,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{bunch_to_plot}\index{random_seed}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
-\index{write_file}\index{var_limits_on}\index{var_limit_only_used}
+\index{write_file}\index{var_limits_on}\index{only_limit_opt_vars}
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
@@ -386,7 +386,7 @@ type tao_global_struct
   logical rf_on = F                     ! RF cavities on?
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
-  logical var_limit_only_used = F       ! Apply limits only if variable is used in optimization?
+  logical only_limit_opt_vars = F       ! Apply limits only if variable is used in optimization?
 end type
 \end{example}
 
@@ -474,8 +474,8 @@ particularly important during optimization. If a variable's model value moves ou
 the limits, the value is set at the limit and the variable's \vn{good_user} parameter is
 set to \vn{False} so it will not be further varied in the optimization.
 
-  \item{\vn{global%var_limit_only_used}} \Newline
-The \vn{global%var_limit_only_used} switch controls whether only the variables being
+  \item{\vn{global%only_limit_opt_vars}} \Newline
+The \vn{global%only_limit_opt_vars} switch controls whether only the variables being
 optimized are limited or whether all variables are limited. The
 \vn{global%optimizer_var_limit_warn} switch controls whether a warning is printed when a
 variable value goes past a limit.
