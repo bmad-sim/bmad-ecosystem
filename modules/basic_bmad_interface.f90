@@ -252,6 +252,17 @@ subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   logical err_flag
 end subroutine
 
+subroutine exact_bend_field (ele, orbit, local_ref_frame, field, potential, return_kick)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) orbit
+  type (em_field_struct) field
+  type (em_potential_struct) potential
+  logical local_ref_frame
+  logical, optional :: return_kick
+end subroutine
+
 subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
   import
   implicit none

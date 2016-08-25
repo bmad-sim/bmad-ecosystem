@@ -481,7 +481,7 @@ software for the calculation.  This method is symplectic but can be slow.
 
 Since speed may be an issue, \bmad has an global parameter called
 \vn{spin_tracking_on} which is part of the \vn{bmad_com} instance
-(\sref{s:bmad.params}) that determines whether spin is tracked or not.
+(\sref{s:bmad.com}) that determines whether spin is tracked or not.
 
 \index{spin_fringe_on}
 The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle
@@ -799,7 +799,7 @@ set \vn{taylor_map_includes_offsets} to \vn{True} and if the orientation is
 varying it is faster to set \vn{taylor_map_includes_offsets} to \vn{False}.
 
 If the global parameter \vn{bmad_com%conserve_taylor_maps}
-(\sref{s:bmad.params}) is set to True (the default), then, if an
+(\sref{s:bmad.com}) is set to True (the default), then, if an
 element is offset within a program, and if \vn{taylor_map_include_offsets} is set
 to True for that element, \bmad will toggle \vn{taylor_map_include_offsets} to
 False to conserve the map.

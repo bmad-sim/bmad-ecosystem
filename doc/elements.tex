@@ -2356,7 +2356,7 @@ sign. Essentially the MAD8 documentation gives
 This is incorrect. 
 
 When short-range wake fields are being simulated, with
-\vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.params}), the
+\vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.com}), the
 \vn{e_loss} attribute can be used to modify the gradient in order to
 maintain a constant average energy gain. That is, \vn{e_loss} can be
 used to simulate the effect of a feedback circuit that attempts to
@@ -3001,10 +3001,13 @@ care must be taken if that element attribute is changed. This is discussed in
   \centering
   \includegraphics[width=5in]{patch.pdf}
   \caption[Patch Element.]
-{A) A \vn{patch} element can align its exit face arbitrarily with
-respect to its entrance face. B) The reference length of a \vn{patch}
-element is the longitudinal distance from the entrance origin to the
-exit origin using the reference coordinates at the exit end.}
+{A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance
+face. B) The reference length of a \vn{patch} element is the longitudinal distance from
+the entrance origin to the exit origin using the reference coordinates at the exit
+end. Notice that while the length of the patch is defined with respect to the exit
+coordinates, the offsets that define the position of the exit end coordinates are defined
+with respect to the entrance coordinates.
+}
   \label{f:patch}
 \end{figure}
 
@@ -3048,15 +3051,15 @@ Attributes specific to a \vn{patch} elements are:
 \end{example}
 \index{x_offset}
 
-A straight line element like a \vn{drift} or a \vn{quadrupole} has the
-the exit face parallel to the entrance face. With a \vn{patch}
-element, the entrance and exit faces can be arbitrarily oriented with
-respect to one another as shown in \fig{f:patch}A. The length \vn{l}
-of a \vn{patch} is a dependent (\sref{s:depend}) parameter and is the
-longitudinal ($z$ component) distance from the entrance origin to the
-exit origin using the exit end reference coordinates as shown in
-\fig{f:patch}B. See \sref{s:patch.prob} for a further discussion on
-the coordinate system of a \vn{patch}.
+A straight line element like a \vn{drift} or a \vn{quadrupole} has the the exit face
+parallel to the entrance face. With a \vn{patch} element, the entrance and exit faces can
+be arbitrarily oriented with respect to one another as shown in \fig{f:patch}A. The length
+\vn{l} of a \vn{patch} is a dependent (\sref{s:depend}) parameter and is the longitudinal
+($z$ component) distance from the entrance origin to the exit origin using the exit end
+reference coordinates as shown in \fig{f:patch}B. See \sref{s:patch.prob} for a further
+discussion on the coordinate system of a \vn{patch}. Notice that while the length of the
+patche is defined with respect to the exit coordinates, the offsets that define the
+position of the exit end coordinates are defined with respect to the entrance coordinates.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
@@ -3639,7 +3642,7 @@ are dependent attributes (\sref{s:depend}) and are not directly settable. Rather
 attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To
 vary the calculated step size for a single \vn{sad_mult} element, the attribute
 \vn{eps_step_scale} may be set.  To vary the step size for all \vn{sad_mult} elements, the
-global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.params}) may be set.
+global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.com}) may be set.
 The default values for these parameters are:
 \begin{example}
   eps_step_scale          = 1

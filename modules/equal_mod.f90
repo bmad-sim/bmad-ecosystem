@@ -242,6 +242,11 @@ enddo
 ele_out%wall3d => ele_save%wall3d        ! reinstate
 call transfer_wall3d (ele_in%wall3d, ele_out%wall3d)
 
+! %exact_bend
+
+ele_out%exact_bend => ele_save%exact_bend        ! reinstate
+call transfer_exact_bend (ele_in%exact_bend, ele_out%exact_bend)
+
 ! %a_pole, and %b_pole
 
 if (associated(ele_in%a_pole)) then

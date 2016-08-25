@@ -51,11 +51,9 @@ this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com}.
 \label{s:bmad.common}
 \index{Bmad!general parameters|hyperbf}
 
-The \vn{bmad_common_struct} structure contains a set of global
-parameters. There is only one instance
-(\sref{c:param.structs}) of this structure and this instance has the
-name \vn{bmad_com}. The components of this structure along with the
-default values are:
+The \vn{bmad_common_struct} structure contains a set of global parameters. There is only
+one instance (\sref{c:param.structs}) of this structure and this instance has the name
+\vn{bmad_com}. The components of this structure along with the default values are:
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
 \index{rel_tol_tracking}\index{abs_tol_tracking}
@@ -81,10 +79,14 @@ default values are:
     real(rp) init_ds_adaptive_tracking = 1e-3  ! Initial step size.
     real(rp) min_ds_adaptive_tracking = 0      ! Minimum step size to use.
     real(rp) fatal_ds_adaptive_tracking = 1e-8 ! Threshold for loosing particles.
+    real(rp) sad_eps_scale = 5.0d-3            ! Used in sad_mult step length calc.
+    real(rp) sad_amp_max = 5.0d-2              ! Used in sad_mult step length calc.
+    integer sad_n_div_max = 1000               ! Used in sad_mult step length calc.
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
     integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
     integer max_num_runge_kutta_step = 10000   ! Max num RK steps before particle is lost.
+    logical use_hard_edge_drifts = T           ! Insert drifts when tracking through cavity?
     logical sr_wakes_on = T                    ! Short range wake fields?
     logical lr_wakes_on = T                    ! Long range wake fields
     logical mat6_track_symmetric = T           ! symmetric offsets
@@ -209,7 +211,9 @@ Toggle to turn off whether the transfer matrix from tracking routine
 minus \vn{%d_orb} values or only tracks 7 particles to save time.
 
 \item[\vn{\%space_charge_on}] \Newline
-Toggle to turn on or off high energy space charge effect in particle tracking.
+Toggle to turn on or off the high energy space charge effect in particle tracking
+(\sref{s:space.charge}). This is not to be confused with the space charge component of
+coherent synchrotron radiation (\sref{s:csr}).
 
 \item[\vn{\%coherent_synch_rad_on}] \Newline
 Toggle to turn on or off the coherent space charge calculation.
@@ -248,6 +252,31 @@ Used for communication between program units for debugging purposes.
 
 \end{description}
 
+%-----------------------------------------------------------------
+\section{Bmad_Com}
+\label{s:bmad.com}
+
+\index{bmad_com}
+The parameters of the \vn{bmad_com} instance of the
+\vn{bmad_common_struct} structure (\sref{s:bmad.common}) can be set in
+the lattice file using the syntax
+\begin{example}
+  bmad_com[parm-name] = value
+\end{example}
+where \vn{parm-name} is the name of a component of
+\vn{bmad_common_struct}. For example:
+\begin{example}
+  bmad_com[rel_tol_tracking] = 1e-7
+\end{example}
+
+Be aware that setting a \vn{bmad_com} parameter value in a lattice
+file will affect all computations of a program even if the program
+reads in additional lattice files. That is, setting of \vn{bmad_com}
+components is ``sticky'' and persists even when other lattice files
+are read in. There are two exceptions: A program is always free to
+override settings of \vn{bmad_com} parameters. Additionally, a second
+lattice file can also override the setting made in a prior lattice
+file.
 %-----------------------------------------------------------------
 \section{Beam_Init_Struct}
 \label{s:beam.init}
@@ -441,7 +470,7 @@ proper $s$-coordinate distributions for Bmad to use.
 
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in
 Section~\sref{s:csr}. Besides the parameters discussed below, the
-\vn{coherent_synch_rad_on} parameter in Section~\sref{s:bmad.params}
+\vn{coherent_synch_rad_on} parameter in Section~\sref{s:bmad.com}
 must be set True to enable the CSR calculation.
 
 The CSR parameter structure has a \vn{type name}

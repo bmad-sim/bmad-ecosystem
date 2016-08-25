@@ -297,3 +297,13 @@ edges of the original set of bins. The density is considered to vary linearly be
 computed density points. For a description of the parameters that affect the CSR
 calculation see Section~\sref{s:csr.params}.
  
+%-----------------------------------------------------------------   
+\section{High Energy Space Charge}
+\label{s:space.charge}
+\index{CSR|hyperbf}
+
+In tracking, \bmad can simulate the effect of space charge at high energies. To include
+this effect, set the \vn{bmad_com[space_charge_on]} parameter (\sref{s:bmad.com}) to True.
+The high energy space charge kick is computed assuming a gaussian bunch shape. The high
+energy space charge is a separate calculation from the space component of the coherent
+synchrotron radiation calculation (\sref{s:csr}).

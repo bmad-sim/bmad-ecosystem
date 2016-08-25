@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 184
+integer, parameter :: bmad_inc_version$ = 185
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -634,6 +634,18 @@ type ptc_genfield_struct
   real(rp) :: vec0(6) = 0                               ! constant part of the genfield map.
 end type
 
+! Structure for calculating the exact multipole kick in a bend
+
+type exact_bend_struct
+  real(rp), allocatable :: bf_x(:), bf_y(:), vm(:)
+  real(rp), allocatable :: e_x(:), e_y(:), phi(:)
+  real(rp) :: an(0:n_pole_maxx) = 0, bn(0:n_pole_maxx) = 0
+  real(rp) :: ae(0:n_pole_maxx) = 0, be(0:n_pole_maxx) = 0
+  integer :: n_pole_max = -1
+  real(rp) :: b0 = 0
+  integer :: n_link = 1
+end type
+
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct
@@ -779,7 +791,8 @@ type ele_struct
   type (controller_var_struct), pointer :: control_var(:) => null()          ! group & overlay variables.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
-  type (ele_struct), pointer :: lord => null()                               ! Pointer to a slice lord.
+  type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
+  type (exact_bend_struct), pointer :: exact_bend => null()              ! Exact multipole kick in a bend coefs.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fibre => null()                               ! PTC tracking.
@@ -1097,7 +1110,7 @@ integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: l_chord$ = 9, voltage$ = 9
+integer, parameter :: voltage$ = 9
 integer, parameter :: fringe_type$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
@@ -1126,8 +1139,8 @@ integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28
 integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
-integer, parameter :: cmat_21$ = 29
-integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
+integer, parameter :: cmat_21$ = 29, l_sagitta$ = 29
+integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30, l_chord$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
 integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
@@ -1321,8 +1334,9 @@ type em_field_struct
 end type
 
 type em_potential_struct
-  real(rp) :: phi = 0         ! Electric scaler potential
-  real(rp) :: A(3) = 0        ! Magnetic vector potential
+  real(rp) :: phi = 0         ! Electric scaler potential.
+  real(rp) :: phi_B = 0       ! Magnetic scaler potential.
+  real(rp) :: A(3) = 0        ! Magnetic vector potential.
 end type
 
 ! Grid of grid_field information

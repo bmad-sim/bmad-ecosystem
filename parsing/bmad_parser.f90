@@ -245,7 +245,8 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
+    bp_com%write_digested = .false.
+    call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on', 'Note: No digested file will be made.')
     cycle parsing_loop
   endif
 
