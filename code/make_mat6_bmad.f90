@@ -96,8 +96,6 @@ c00%direction = +1
 
 do_track = (.not. logic_option (.false., end_in))
 if (ele%key == sad_mult$ .or. ele%key == match$) do_track = .false.
-if ((ele%key == quadrupole$ .or. ele%key == solenoid$ .or. ele%key == sbend$) .and. &
-                                    ele%tracking_method == bmad_standard$) do_track = .false.
 
 if (do_track) then
   if (ele%tracking_method == linear$) then
@@ -807,7 +805,6 @@ case (patch$)
 case (quadrupole$)
 
   call track_a_quadrupole (c00, ele, param, mat6, .true.)
-  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -911,7 +908,6 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (c00, ele, param, mat6, .true.)
-  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -958,7 +954,6 @@ case (solenoid$)
 
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! solenoid/quad
