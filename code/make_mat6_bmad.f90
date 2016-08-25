@@ -70,7 +70,7 @@ integer i, n_slice, key, dir
 real(rp) charge_dir, hkick, vkick, kick
 
 logical, optional :: end_in, err
-logical err_flag, has_nonzero_pole, has_nonzero_elec, fringe_here, drifting
+logical err_flag, has_nonzero_pole, has_nonzero_elec, fringe_here, drifting, do_track
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -94,8 +94,12 @@ c00%direction = +1
 
 ! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
-if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$ .and. &
-                                   ele%key /= quadrupole$ .and. ele%key /= solenoid$ .and. ele%key /= sbend$) then
+do_track = (.not. logic_option (.false., end_in))
+if (ele%key == sad_mult$ .or. ele%key == match$) do_track = .false.
+if ((ele%key == quadrupole$ .or. ele%key == solenoid$ .or. ele%key == sbend$) .and. &
+                                    ele%tracking_method == bmad_standard$) do_track = .false.
+
+if (do_track) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, orb_out)
@@ -803,7 +807,7 @@ case (patch$)
 case (quadrupole$)
 
   call track_a_quadrupole (c00, ele, param, mat6, .true.)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -907,7 +911,7 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (c00, ele, param, mat6, .true.)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -954,7 +958,7 @@ case (solenoid$)
 
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  if (.not. do_track) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! solenoid/quad

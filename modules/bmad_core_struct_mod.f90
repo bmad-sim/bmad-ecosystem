@@ -416,6 +416,46 @@ end subroutine transfer_wall3d
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine transfer_exact_bend (exact_bend_in, exact_bend_out)
+!
+! Subroutine to point exact_bend_out => exact_bend_in
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   exact_bend_in  -- Exact_bend_struct, pointer: Input exact_bendgler field.
+!
+! Output:
+!   exact_bend_out -- Exact_bend_struct, pointer: Output exact_bendgler field.
+!-
+
+subroutine transfer_exact_bend (exact_bend_in, exact_bend_out)
+
+implicit none
+
+type (exact_bend_struct), pointer :: exact_bend_in, exact_bend_out
+
+!
+
+if (.not. associated(exact_bend_in) .and. .not. associated(exact_bend_out)) return
+if (associated(exact_bend_in, exact_bend_out)) return
+
+! If both associated must be pointing to different memory locations
+
+if (associated(exact_bend_out)) call deallocate_exact_bend_pointer(exact_bend_out)
+
+if (associated(exact_bend_in)) then 
+  exact_bend_out => exact_bend_in
+  exact_bend_out%n_link = exact_bend_out%n_link + 1
+endif
+
+end subroutine transfer_exact_bend
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine transfer_fieldmap (ele_in, ele_out, who)
 !
 ! Subroutine to transfer the field info from one element to another.
@@ -678,6 +718,7 @@ if (associated (ele%mode3))          deallocate (ele%mode3)
 if (associated (ele%wake))        deallocate (ele%wake)
 
 call deallocate_wall3d_pointer (ele%wall3d)
+call deallocate_exact_bend_pointer (ele%exact_bend)
 
 if (associated (ele%cartesian_map)) then
   call unlink_fieldmap (cartesian_map = ele%cartesian_map)
@@ -877,6 +918,41 @@ if (associated (wall3d)) then
 endif
 
 end subroutine deallocate_wall3d_pointer
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine deallocate_exact_bend_pointer (exact_bend)
+!
+! Routine to deallocate a exact_bend pointer.
+!
+! Input:
+!   exact_bend -- exact_bend_struct, pointer: Pointer to exact_bend structure.
+!
+! Output:
+!   exact_bend -- exact_bend_struct, pointer: deallocated
+!-
+
+subroutine deallocate_exact_bend_pointer (exact_bend)
+
+implicit none
+
+type (exact_bend_struct), pointer :: exact_bend
+integer i
+
+!
+
+if (associated (exact_bend)) then
+  exact_bend%n_link = exact_bend%n_link - 1
+  if (exact_bend%n_link == 0) then
+    deallocate (exact_bend)
+  else
+    nullify(exact_bend)
+  endif
+endif
+
+end subroutine deallocate_exact_bend_pointer
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

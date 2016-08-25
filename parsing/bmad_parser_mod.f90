@@ -6298,10 +6298,7 @@ if (index(debug_line, 'VAR') /= 0) then
   print *, '----------------------------------------'
   print *, 'Number of Defined Variables:', bp_com%ivar_tot - bp_com%ivar_init
   do i = bp_com%ivar_init+1, bp_com%ivar_tot
-    print *
-    print *, 'Var #', i
-    print *, 'Name: ', bp_com%var(i)%name
-    print *, 'Value:', bp_com%var(i)%value
+    print '(i6, 2x, a, es18.10)', i, bp_com%var(i)%name, bp_com%var(i)%value
   enddo
 endif
 

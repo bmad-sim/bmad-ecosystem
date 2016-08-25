@@ -693,6 +693,10 @@ if (ele%value(bragg_angle_in$) == 0) then
   return
 endif
 
+if (ele%value(b_param$) > 0 .and. ele%value(thickness$) == 0) then 
+  call out_io (s_error$, r_name, 'LAUE CRYSTAL WITH ZERO THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
+endif
+
 !
 
 cp%wavelength = c_light * h_planck / orbit%p0c

@@ -516,16 +516,14 @@ case (sbend$)
 
   val(angle$) = val(l$) * val(g$)
 
-  if (val(l$) == 0 .or. val(g$) == 0) then
-    val(l_chord$) = 0
-  else
-    val(l_chord$) = 2 * sin(val(angle$)/2) / val(g$)
-  endif
-
   if (val(g$) == 0) then
     val(rho$) = 0
+    val(l_chord$) = val(l$)
+    val(l_sagitta$) = 0
   else
     val(rho$) = 1 / val(g$)
+    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+    val(l_sagitta$) = val(rho$) * (1 - cos(val(angle$)/2))
   endif
 
   if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
