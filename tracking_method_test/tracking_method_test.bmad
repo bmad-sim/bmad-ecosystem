@@ -71,10 +71,10 @@ sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset =
 sol_quad2:         sol_quad, l = 2.6, k1 = 1e-5, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 taylor1:           taylor, l = 0.5, {1: 0.1, 1 1 0 0 0 0}, {2: 0.02|}, {3: 0.03|44}
 vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-wiggler_map1:      wiggler, l = 1.6, num_steps = 10,
-                          term(1) = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, x}, term(2) = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, y},
-                          term(3) = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, x}, term(4) = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, y},
-                          term(5) = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, x}, term(6) = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, y},
+wiggler_map1:      wiggler, l = 1.6, num_steps = 10, field_calc = fieldmap, cartesian_map = {
+                          term = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, x}, term = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, y},
+                          term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, x}, term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, y},
+                          term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, x}, term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, y}},
                             tracking_method = symp_lie_ptc, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 wiggler_periodic1: wiggler, l = 1, b_max = 0.1, n_pole = 20, num_steps = 100, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
 
