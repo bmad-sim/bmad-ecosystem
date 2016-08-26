@@ -467,28 +467,33 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   return
 endif
 
-! Long-range wake, r_custom
+! Redefinition of Long-range "wake()", "r_custom()", etc.
+! Old style wiggler "term()" handled below.
 
-if ((word == 'LR' .or. word == 'R_CUSTOM') .and. delim == '(') then
+if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
   word2 = trim(word) // '('
   call get_next_word (word, ix_word, '=', delim, delim_found)
+
   if (.not. delim_found) then
     call parser_error ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  call pointer_to_attribute (ele, trim(word2) // word, .true., a_ptr, err_flag, .false.)
+
+  call pointer_to_attribute (ele, trim(word2) // word, how == def$, a_ptr, err_flag, .false.)
+
   if (err_flag .or. .not. associated(a_ptr%r)) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
+
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   a_ptr%r = value
   return
 endif
 
-! "WALL." redef
+! "WALL%" redef
 
-if (word(1:5) == 'WALL.') then
+if (word(1:5) == 'WALL%') then
 
   select case (word(6:))
 
@@ -510,13 +515,13 @@ if (word(1:5) == 'WALL.') then
     endif
     section => ele%wall3d(1)%section(ix_sec)
 
-    if (word2 == '.S' .and. delim == '=') then
+    if (word2 == '%S' .and. delim == '=') then
       r_ptr => section%s
 
-    elseif (word2 == '.DR_DS' .and. delim == '=') then
+    elseif (word2 == '%DR_DS' .and. delim == '=') then
       r_ptr => section%dr_ds
 
-    elseif (word2 == '.V' .and. delim == '(') then
+    elseif (word2 == '%V' .and. delim == '(') then
       ix_v = evaluate_array_index (err_flag, ')', word, '=', delim)
       if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
         call parser_error('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
@@ -525,11 +530,11 @@ if (word(1:5) == 'WALL.') then
       v_ptr => section%v(ix_v)
 
       select case (word)
-      case ('.X');        r_ptr => v_ptr%x
-      case ('.Y');        r_ptr => v_ptr%y
-      case ('.RADIUS_X'); r_ptr => v_ptr%radius_x
-      case ('.RADIUS_Y'); r_ptr => v_ptr%radius_y
-      case ('.TILT');     r_ptr => v_ptr%tilt
+      case ('%X');        r_ptr => v_ptr%x
+      case ('%Y');        r_ptr => v_ptr%y
+      case ('%RADIUS_X'); r_ptr => v_ptr%radius_x
+      case ('%RADIUS_Y'); r_ptr => v_ptr%radius_y
+      case ('%TILT');     r_ptr => v_ptr%tilt
       case default
         call parser_error('BAD WALL SECTION VERTEX COMPONENT: ' // word, 'FOR ELEMENT: ' // ele%name)
         return
@@ -686,7 +691,7 @@ if (attrib_word == 'WALL') then
       wall3d = wall3d_arr(i)
       wall3d%n_link = 1
     enddo
-    call deallocate_wall3d_pointer (wall3d_arr)
+    call unlink_wall3d (wall3d_arr)
     wall3d => ele%wall3d(n+1)
   else
     allocate (ele%wall3d(1))
@@ -1208,6 +1213,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
+    call parser_error ('"HYBRID" STYLE WIGGLER TERMS DEPRECATED. PLEASE CONVERT TO CARTESIAN_MAP FORM.', warn_only = .true.)
   endif
 
   kx = ct_term%kx

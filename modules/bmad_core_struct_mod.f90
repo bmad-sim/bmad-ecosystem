@@ -403,7 +403,7 @@ if (associated(wall3d_in, wall3d_out)) return
 
 ! If both associated must be pointing to different memory locations
 
-if (associated(wall3d_out)) call deallocate_wall3d_pointer(wall3d_out)
+if (associated(wall3d_out)) call unlink_wall3d(wall3d_out)
 
 if (associated(wall3d_in)) then 
   wall3d_out => wall3d_in
@@ -443,7 +443,7 @@ if (associated(exact_bend_in, exact_bend_out)) return
 
 ! If both associated must be pointing to different memory locations
 
-if (associated(exact_bend_out)) call deallocate_exact_bend_pointer(exact_bend_out)
+if (associated(exact_bend_out)) call unlink_exact_bend(exact_bend_out)
 
 if (associated(exact_bend_in)) then 
   exact_bend_out => exact_bend_in
@@ -683,21 +683,25 @@ nullify (ele%lord)
 ! nullify
 
 if (logic_option (.false., nullify_only)) then
-  nullify (ele%rad_int_cache)
-  nullify (ele%r)
   nullify (ele%descrip)
-  nullify (ele%a_pole, ele%b_pole)
-  nullify (ele%a_pole_elec, ele%b_pole_elec)
-  nullify (ele%wake)
-  forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
-  nullify (ele%ptc_genfield%field)
-  nullify (ele%ptc_fibre)
-  nullify (ele%mode3)
-  nullify (ele%wall3d)
+  nullify (ele%control_var)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
+  nullify (ele%exact_bend)
   nullify (ele%taylor_field)
   nullify (ele%grid_field)
+  nullify (ele%ptc_fibre)
+  nullify (ele%mode3)
+  nullify (ele%photon)
+  nullify (ele%rad_int_cache)
+  nullify (ele%space_charge)
+  nullify (ele%wake)
+  nullify (ele%wall3d)
+  nullify (ele%r)
+  nullify (ele%a_pole, ele%b_pole)
+  nullify (ele%a_pole_elec, ele%b_pole_elec)
+  forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
+  nullify (ele%ptc_genfield%field)
   return
 endif
 
@@ -711,14 +715,16 @@ if (associated (ele%a_pole_elec) .and. logic_option(.true., dealloc_poles)) then
   deallocate (ele%a_pole_elec, ele%b_pole_elec)
 endif
 
+if (associated (ele%descrip))        deallocate (ele%descrip)
+if (associated (ele%control_var))    deallocate (ele%control_var)
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
-if (associated (ele%descrip))        deallocate (ele%descrip)
+if (associated (ele%photon))         deallocate (ele%photon)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%wake))        deallocate (ele%wake)
+if (associated (ele%wake))           deallocate (ele%wake)
+if (associated (ele%space_charge))   deallocate (ele%space_charge)
 
-call deallocate_wall3d_pointer (ele%wall3d)
-call deallocate_exact_bend_pointer (ele%exact_bend)
+call unlink_wall3d (ele%wall3d)
 
 if (associated (ele%cartesian_map)) then
   call unlink_fieldmap (cartesian_map = ele%cartesian_map)
@@ -727,6 +733,8 @@ endif
 if (associated (ele%cylindrical_map)) then
   call unlink_fieldmap (cylindrical_map = ele%cylindrical_map)
 endif
+
+call unlink_exact_bend (ele%exact_bend)
 
 if (associated (ele%taylor_field)) then
   call unlink_fieldmap (taylor_field = ele%taylor_field)
@@ -826,12 +834,12 @@ if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
 ! these pointers have been deallocated above.
 
 if (allocated (lat%branch)) then
-  call deallocate_wall3d_pointer (lat%branch(0)%wall3d)
+  call unlink_wall3d (lat%branch(0)%wall3d)
 
   do i = 1, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
     deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
-    call deallocate_wall3d_pointer (lat%branch(i)%wall3d)
+    call unlink_wall3d (lat%branch(i)%wall3d)
   enddo
   deallocate (lat%branch)
 endif
@@ -885,7 +893,7 @@ end subroutine deallocate_ele_array_pointers
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine deallocate_wall3d_pointer (wall3d)
+! Subroutine unlink_wall3d (wall3d)
 !
 ! Routine to deallocate a wall3d pointer.
 !
@@ -896,7 +904,7 @@ end subroutine deallocate_ele_array_pointers
 !   wall3d(:) -- wall3d_struct, pointer: deallocated
 !-
 
-subroutine deallocate_wall3d_pointer (wall3d)
+subroutine unlink_wall3d (wall3d)
 
 implicit none
 
@@ -917,13 +925,13 @@ if (associated (wall3d)) then
   endif
 endif
 
-end subroutine deallocate_wall3d_pointer
+end subroutine unlink_wall3d
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine deallocate_exact_bend_pointer (exact_bend)
+! Subroutine unlink_exact_bend (exact_bend)
 !
 ! Routine to deallocate a exact_bend pointer.
 !
@@ -934,7 +942,7 @@ end subroutine deallocate_wall3d_pointer
 !   exact_bend -- exact_bend_struct, pointer: deallocated
 !-
 
-subroutine deallocate_exact_bend_pointer (exact_bend)
+subroutine unlink_exact_bend (exact_bend)
 
 implicit none
 
@@ -952,7 +960,7 @@ if (associated (exact_bend)) then
   endif
 endif
 
-end subroutine deallocate_exact_bend_pointer
+end subroutine unlink_exact_bend
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
