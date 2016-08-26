@@ -402,7 +402,11 @@ endif
 if (associated(ele%cartesian_map)) then
   if (logic_option(.false., type_field)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Cartesian_map:'
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Cartesian_map: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Cartesian_map:'
+    endif
     do i = 1, size(ele%cartesian_map)
       ct_map => ele%cartesian_map(i)
       if (ct_map%master_parameter == 0) then
@@ -419,7 +423,7 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 3(12x, a), 3x, a)') '     Term#', &
+      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
                                     'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
       do j = 1, min(10, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
@@ -441,7 +445,11 @@ endif
 if (associated(ele%cylindrical_map)) then
   if (logic_option(.false., type_field)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Cylindrical_map:'
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Cylindrical_map: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Cylindrical_map:'
+    endif
     do i = 1, size(ele%cylindrical_map)
       cl_map => ele%cylindrical_map(i)
       if (cl_map%master_parameter == 0) then
@@ -482,7 +490,11 @@ endif
 if (associated(ele%grid_field)) then
   if (logic_option(.false., type_field)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Grid_field:'
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Grid_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Grid_field:'
+    endif
     do i = 1, size(ele%grid_field)
       g_field => ele%grid_field(i)
       if (g_field%master_parameter == 0) then
@@ -519,7 +531,11 @@ endif
 if (associated(ele%taylor_field)) then
   if (logic_option(.false., type_field)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Taylor_field:'
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Taylor_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Taylor_field:'
+    endif
     do i = 1, size(ele%taylor_field)
       t_field => ele%taylor_field(i)
       if (t_field%master_parameter == 0) then

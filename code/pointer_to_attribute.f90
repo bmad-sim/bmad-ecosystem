@@ -44,8 +44,10 @@ implicit none
 
 type (ele_struct), target :: ele
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
+type (cartesian_map_struct), pointer :: ct_map
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
+type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
@@ -139,16 +141,13 @@ endif
 ! Check to see if the attribute is a long-range wake
 
 if (a_name(1:3) == 'LR(') then
-  ix_d = index(a_name, ').')
-  if (ix_d == 0) goto 9000 ! Error message and return
-  read (a_name(4:ix_d-1), *, iostat = ios) n
-  if (ios /= 0) goto 9000
-  if (n < 0) goto 9000
-
   if (.not. associated (ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, n, 0)
   endif
+
+  n = get_cross_index(a_name, 3, err, 1, 1000)
+  if (err) goto 9140
 
   n_lr_mode = size(ele%wake%lr_mode)
   if (n_lr_mode < n) then
@@ -176,6 +175,28 @@ if (a_name(1:3) == 'LR(') then
 endif
 
 !--------------------
+! cartesian_map
+
+if (a_name(1:14) == 'CARTESIAN_MAP(') then
+  if (.not. associated(ele%cartesian_map)) goto 9130
+  n_cc = get_cross_index(a_name, 14, err, 1, size(ele%cartesian_map))
+  if (err) goto 9140
+  ct_map => ele%cartesian_map(n_cc)
+
+  select case (a_name)
+  case ('%FIELD_SCALE');    a_ptr%r => ct_map%field_scale
+  case ('%R0(1)');          a_ptr%r => ct_map%r0(1)
+  case ('%R0(2)');          a_ptr%r => ct_map%r0(2)
+  case ('%R0(3)');          a_ptr%r => ct_map%r0(3)
+  case default;           goto 9000
+  end select
+
+  err_flag = .false.
+  return
+
+endif
+
+!--------------------
 ! cylindrical_map
 
 if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
@@ -185,9 +206,13 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   cl_map => ele%cylindrical_map(n_cc)
 
   select case (a_name)
-  case ('PHI0_FIELDMAP');  a_ptr%r => cl_map%phi0_fieldmap
-  case ('THETA0_AZIMUTH'); a_ptr%r => cl_map%theta0_azimuth
-  case ('FIELD_SCALE');    a_ptr%r => cl_map%field_scale
+  case ('%PHI0_FIELDMAP');  a_ptr%r => cl_map%phi0_fieldmap
+  case ('%THETA0_AZIMUTH'); a_ptr%r => cl_map%theta0_azimuth
+  case ('%FIELD_SCALE');    a_ptr%r => cl_map%field_scale
+  case ('%DZ');             a_ptr%r => cl_map%dz
+  case ('%R0(1)');          a_ptr%r => cl_map%r0(1)
+  case ('%R0(2)');          a_ptr%r => cl_map%r0(2)
+  case ('%R0(3)');          a_ptr%r => cl_map%r0(3)
   case default;           goto 9000
   end select
 
@@ -199,15 +224,44 @@ endif
 !--------------------
 ! grid_field
 
-if (a_name(1:16) == 'GRID_FIELD(') then
+if (a_name(1:11) == 'GRID_FIELD(') then
   if (.not. associated(ele%grid_field)) goto 9130
-  n_cc = get_cross_index(a_name, 16, err, 1, size(ele%grid_field))
+  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%grid_field))
   if (err) goto 9140
   g_field => ele%grid_field(n_cc)
 
   select case (a_name)
-  case ('PHI0_FIELDMAP'); a_ptr%r => g_field%phi0_fieldmap
-  case ('FIELD_SCALE');   a_ptr%r => g_field%field_scale
+  case ('%PHI0_FIELDMAP');  a_ptr%r => g_field%phi0_fieldmap
+  case ('%FIELD_SCALE');    a_ptr%r => g_field%field_scale
+  case ('%R0(1)');          a_ptr%r => g_field%r0(1)
+  case ('%R0(2)');          a_ptr%r => g_field%r0(2)
+  case ('%R0(3)');          a_ptr%r => g_field%r0(3)
+  case ('%DR(1)');          a_ptr%r => g_field%dr(1)
+  case ('%DR(2)');          a_ptr%r => g_field%dr(2)
+  case ('%DR(3)');          a_ptr%r => g_field%dr(3)
+  case default;           goto 9000
+  end select
+
+  err_flag = .false.
+  return
+
+endif
+
+!--------------------
+! grid_field
+
+if (a_name(1:13) == 'TAYLOR_FIELD(') then
+  if (.not. associated(ele%taylor_field)) goto 9130
+  n_cc = get_cross_index(a_name, 13, err, 1, size(ele%taylor_field))
+  if (err) goto 9140
+  t_field => ele%taylor_field(n_cc)
+
+  select case (a_name)
+  case ('%FIELD_SCALE');    a_ptr%r => t_field%field_scale
+  case ('%DZ');             a_ptr%r => t_field%dz
+  case ('%R0(1)');          a_ptr%r => t_field%r0(1)
+  case ('%R0(2)');          a_ptr%r => t_field%r0(2)
+  case ('%R0(3)');          a_ptr%r => t_field%r0(3)
   case default;           goto 9000
   end select
 
@@ -219,9 +273,9 @@ endif
 !--------------------
 ! wall3d section
 
-if (a_name(1:10) == 'WALL.SECTION') then
+if (a_name(1:12) == 'WALL%SECTION') then
   if (.not. associated(ele%wall3d)) goto 9210
-  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%wall3d(1)%section))
+  n_cc = get_cross_index(a_name, 13, err, 1, size(ele%wall3d(1)%section))
   if (err) goto 9200
 
   if (a_name == 'S') then
@@ -231,7 +285,7 @@ if (a_name(1:10) == 'WALL.SECTION') then
     return
   endif
 
-  if (a_name(1:11) == 'WALL.DR_DS') then
+  if (a_name(1:11) == 'WALL%DR_DS') then
     a_ptr%r => ele%wall3d(1)%section(n_cc)%dr_ds
     err_flag = .false.
     return
@@ -242,11 +296,11 @@ if (a_name(1:10) == 'WALL.SECTION') then
     if (err) goto 9200
 
     select case (a_name)
-    case ('.X');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%x
-    case ('.Y');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%y
-    case ('.RADIUS_X'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_x
-    case ('.RADIUS_Y'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_y
-    case ('.TILT');     a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%tilt
+    case ('%X');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%x
+    case ('%Y');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%y
+    case ('%RADIUS_X'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_x
+    case ('%RADIUS_Y'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_y
+    case ('%TILT');     a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%tilt
     case default;       goto 9200
     end select
 

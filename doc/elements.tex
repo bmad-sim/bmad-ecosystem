@@ -4030,35 +4030,43 @@ decomposition of Sec.~\sref{s:cart.map}.
 \index{term (for a wiggler)}
 Attributes specific to a \vn{map type} \vn{wiggler} element are:
 \begin{example}
-  term(i)  = \{<Wig_Term>\}     ! Old syntax
   b_max    = <Real>   ! Maximum magnetic field (in T) on the wiggler centerline. 
                       !   Dependent attribute (\sref{s:depend}).
   polarity = <Real>   ! For scaling the field.
 \end{example}
 
-A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{bsq}):
-\Begineq
-  \{ A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family} \}
-\Endeq
 The \vn{polarity} value is used to scale the magnetic field. By
 default, \vn{polarity} has a value of 1.0.  Example:
 \begin{example}
-  wig1: wiggler, l = 1.6, polarity = -1, 
-        term(1) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\},
-        term(2) = ...
+  wig1: wiggler, l = 1.6, polarity = -1, cartesian_map = \{...\}
 \end{example}
 
 The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the
-maximum field computed for \vn{polarity} = 1. The actual maximum field
-seen in tracking is thus scaled by the \vn{polarity}.
+maximum field computed for \vn{polarity} = 1.
 
 There is no \vn{bmad_standard} tracking for a \vn{map_type}
 \vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
 
-\vn{Note:} When the wiggler model was first developed, the definition
-of the field was somewhat different. The old definition used only the three forms
-with \vn{family} set to \vn{y} and there was a different normalization convention.
-The old style \vn{hyper-y} form was
+%-----------------------------------------------------
+\subsection{Old Map\_Type Wigglers Syntax}
+\label{s:old.wiggler}
+
+When the wiggler model was first developed, the definition of the field was somewhat
+different and there was a special syntax for specifying the field. The old syntax looked
+like
+\Begineq
+  \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
+\Endeq
+Example:
+\begin{example}
+  wig1: wiggler, l = 1.6, 
+        term(1) = \{0.03, 3.00, 4.00, 5.00, 0.63\},
+        term(2) = ...
+\end{example}
+
+The old definition used only the three forms corresponding to the \vn{cartesian_map}
+\vn{y} family (\sref{s:cart.map.phys}) with $x_0 = y_0 = 0$. There was also a different
+normalization convention. The old style \vn{hyper-y} form was
 \begin{alignat}{5}
   B_x &= -& C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
   B_y &=  & C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
@@ -4081,19 +4089,24 @@ The old style \vn{hyper_x} form was
 \end{alignat}
 The correspondence between $C$ in the above equations and $A$ in the new equations is
 given by comparing \Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{family.y}.
-In a lattice file, the old field definition will be used if a
-\vn{\{<Wig_Term>\}} has just 5 numbers:
+
+When the {cartesian_map} constract was being developed, an intermediate hybrid syntax was used defined:
 \Begineq
-  \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
+  term(i) = \{A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family}\}
 \Endeq
+The parameters here directly correspond to the \vn{cartesian_map} forms (see \Eqs{cm1} through \eq{bsq}).
+
 For example, the old style syntax:
 \begin{example}
   term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63 \}    ! Old style
 \end{example}
 is equivalent to:
 \begin{example}
-  term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\}  ! New style
+  term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\}  ! Hybrid style
 \end{example}
+
+Note: When converting from the old or hybrid styles to \vn{cartesian_map}, the
+\vn{field_calc} parameter must be set to \vn{fieldmap}.
 
 %-----------------------------------------------------
 \subsection{Periodic\_Type Wiggler Element Tracking}

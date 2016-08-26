@@ -1533,7 +1533,7 @@ The last constraint ensures a ``smooth'' transition between the two cross-sectio
 To refer to a cross-section parameters after an element has been
 defined, the following syntax is used:
 \begin{example}
-  ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
+  ele_name[wall%section(n)%v(j)%x]   ! x value of j^th vertex of n^th cross-section
 \end{example}
 
 %-----------------------------------------------------------------
@@ -2042,6 +2042,20 @@ Field maps are used with integration type tracking methods (\sref{s:integ}).
 It is important to note that field maps are {\em ignored} by \vn{bmad_standard}
 tracking. Field maps may extend longitudinally beyound the ends of an element
 (\sref{s:overlap}).
+
+In a lattice file, once a field map is defined for an element, components of the field map
+may be redefined using the notation
+\begin{example}
+  ele_name[field_map_name(index)%component_name] = value
+\end{example}
+where \vn{ele_name} is the name of the element, \vn{field_map_name} is the name of the
+type of field map, \vn{index} is the index of the field map which is ``1'' for the first
+field map defined for an element, etc., \vn{component_name} is the name of the component,
+and \vn{value} is the value to set to. Example:
+\begin{example}
+  qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
+  qq[grid_field(1)%field_scale] = 0.7  ! Change field_scale value
+\end{example}
 
 %-----------------------------------------------------------------
 \subsection{Field Map Common attributes}

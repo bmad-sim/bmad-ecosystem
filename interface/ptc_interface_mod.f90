@@ -3838,9 +3838,8 @@ if (ele%key == taylor$) then
   if (ptc_fibre%dir == 1) then
     if (.not.associated(ptc_fibre%mag%forward)) then 
       allocate(ptc_fibre%mag%forward(3))
-      allocate(ptc_fibre%mag%usef)
     else
-      call KILL(ptc_fibre%mag%forward)
+      call KILL(ptc_fibre%mag%forward)  ! The kill only zeros the Berz-part, it stays associated.
     endif
 
     call SET_TREE_G_complex(ptc_fibre%mag%forward, ptc_c_damap)
@@ -3850,9 +3849,8 @@ if (ele%key == taylor$) then
   else
     if (.not. associated(ptc_fibre%mag%backward)) then 
       allocate(ptc_fibre%mag%backward(3))
-      allocate(ptc_fibre%mag%useb)
     else
-      call KILL(ptc_fibre%mag%backward)
+      call KILL(ptc_fibre%mag%backward)  ! The kill only zeros the Berz-part, it stays associated.
     endif
     call SET_TREE_G_complex(ptc_fibre%mag%backward, ptc_c_damap)
     ptc_fibre%mag%do1mapb = onemap
