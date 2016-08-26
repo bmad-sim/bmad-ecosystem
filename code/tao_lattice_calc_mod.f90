@@ -55,7 +55,7 @@ integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
 
-logical calc_ok, this_calc_ok, err
+logical calc_ok, this_calc_ok, err, rf_on
 
 !
 
@@ -195,7 +195,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     ! Dynamic aperture calc. Only for rings
 
     if (u%calc%dynamic_aperture) then  
-      if (.not. s%global%rf_on) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
+      if (.not. rf_is_on(tao_lat%lat%branch(0))) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
         ! Check for open lattice. Only 1 turn is allowed
@@ -204,7 +204,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           call err_exit       
         endif
           
-        if (s%global%rf_on) then
+        if (rf_is_on(tao_lat%lat%branch(0))) then
           ! pz surrounds the closed orbit
           scan%ref_orb = lat_branch%orb0
           scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
@@ -226,8 +226,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     ! PTC one-turn-map and normal form calc. Only for rings. 
     if (u%calc%one_turn_map .and. branch%param%geometry == closed$) then
       call set_ptc_verbose(.false.)
-      
-      if (s%global%rf_on) then
+      rf_on = rf_is_on(branch)
+      if (rf_on) then
         normal_form => branch%normal_form_with_rf
       else
         normal_form => branch%normal_form_no_rf
@@ -237,15 +237,13 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
       
       ! Get one-turn-map
-      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, s%global%rf_on, pz = 0.0_rp )
+      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, rf_on, pz = 0.0_rp )
 
       ! Get A, A_inv, dhdj
-      call normal_form_taylors(normal_form%m, s%global%rf_on, &
-                               dhdj = normal_form%dhdj, &
-                               A = normal_form%A, &
-                               A_inverse = normal_form%A_inv)
+      call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
+                                       A = normal_form%A, A_inverse = normal_form%A_inv)
       ! Get complex L and F
-      call normal_form_complex_taylors(normal_form%m, s%global%rf_on, F = normal_form%F, L = normal_form%L)
+      call normal_form_complex_taylors(normal_form%m, rf_on, F = normal_form%F, L = normal_form%L)
     endif
 
     !
@@ -328,7 +326,7 @@ if (u%calc%track) then
 
   if (branch%param%geometry == closed$) then
     
-    if (s%global%rf_on) then
+    if (rf_is_on(branch)) then
       i_dim = 6
     else
       i_dim = 4
