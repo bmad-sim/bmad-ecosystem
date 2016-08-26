@@ -87,7 +87,7 @@ real(rp) :: y_here, norm, v, x1, x2, y1, y2
 character(*) key_str
 character(*) header_str
 character(60) fmt, fmt2
-character(11) model_str, val0_str, delta_str
+character(15) model_str, val0_str, delta_str
 character(4) exp_str
 character(24) :: r_name = 'tao_key_info_to_str'
 
@@ -107,7 +107,7 @@ enddo
 ! Write header 
 
 write (fmt, '(a, i5, a, i2, a)') '(a, ', j_var1-2, 'x, a, ', j_att, 'x, a)'
-write (header_str, fmt) 'Name', 'Attrib', 'Value     Value0      Delta Opt'
+write (header_str, fmt) 'Name', 'Attrib', 'Value         Value0          Delta Opt'
 
 ! Write key info
 
@@ -144,7 +144,7 @@ write (model_str, fmt2) var%model_value / 10.0**n, exp_str
 write (val0_str,  fmt2) var%key_val0 / 10.0**n, exp_str
 write (delta_str, fmt2) var%key_delta / 10.0**n, exp_str
 
-write (fmt, '(3(a, i2.2))') '(a', j_var1, ', 2x, a', j_att, ', 3a11, 3x, l1)'
+write (fmt, '(3(a, i2.2))') '(a', j_var1, ', 2x, a', j_att, ', 3a15, 3x, l1)'
 write (key_str, fmt) tao_var1_name(var), tao_var_attrib_name(var), model_str, &
                         val0_str, delta_str, var%useit_opt
 
