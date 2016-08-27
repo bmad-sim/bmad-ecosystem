@@ -14,7 +14,7 @@
 
 Subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
 
-use track1_photon_mod
+use track1_photon_mod, except_dummy => init_a_photon_from_a_photon_init_ele
 
 implicit none
 
