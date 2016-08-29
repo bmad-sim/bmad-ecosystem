@@ -23,7 +23,6 @@ contains
   subroutine crm_build(ring, crm, err_flag)
     use bmad
     use f95_lapack
-    use calc_ring_mod
     use make_pseudoinverse_mod
 
     implicit none
@@ -31,6 +30,7 @@ contains
     type(lat_struct) ring
     type(lat_struct) ring_working
     type(crm_struct) crm
+    integer status
     logical err_flag
 
     type(coord_struct), allocatable :: co(:)
@@ -58,8 +58,6 @@ contains
 
     ring_working = ring
 
-    err_flag = .true.
-
     n_chrom = size(crm%c_mags)
     n_omega = n_chrom-2
 
@@ -73,8 +71,8 @@ contains
     call set_on_off(multipole$, ring_working, off_and_save$, saved_values=multipole_state)
     call set_on_off(sbend$,     ring_working, off_and_save$, saved_values=sbend_k2_state, ix_attrib=k2$)
 
-    call calc_ring(ring_working,4,co,err_flag)
-    if(err_flag) then
+    call twiss_and_track(ring_working,co,status)
+    if(status /= ok$) then
       write(*,*) "Could not calculate ring without sextupoles & multipoles in build_chrom_mat."
       call early_exit()
       return
@@ -115,8 +113,8 @@ contains
         deallocate(eles)
       enddo
       call lattice_bookkeeper(ring_working)
-      call calc_ring(ring_working,4,co,err_flag)
-      if(err_flag) then
+      call twiss_and_track(ring_working,co,status)
+      if(status /= ok$) then
         write(*,*) "Could not calculate ring in response loop in build_chrom_mat."
         call early_exit()
         return
