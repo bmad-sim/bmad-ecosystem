@@ -99,7 +99,7 @@ j_att = 5
 do i = ix_min_key, ix_max_key
   if (i > ubound(s%key, 1)) cycle
   ix_var = s%key(i)
-  if (ix_var == 0) cycle
+  if (ix_var < 1) cycle
   j_var1 = max(j_var1, len_trim(tao_var1_name(s%var(ix_var))))
   j_att  = max(j_att,  len_trim(tao_var_attrib_name(s%var(ix_var))))
 enddo
@@ -115,7 +115,7 @@ key_str = ''
 if (ix_key > ubound(s%key, 1)) return
   
 ix_var = s%key(ix_key)
-if (ix_var == 0) return
+if (ix_var < 1) return
 
 var => s%var(ix_var)
 v = max(abs(var%model_value), abs(var%key_val0), abs(var%key_delta))
