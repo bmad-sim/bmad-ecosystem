@@ -115,6 +115,11 @@ def build_directory( dir, statlist, target ):
     else:
         ACC_SET_F_COMPILER = 'ifort'
  
+    if 'XbsmAnalysis' in dir:
+        use_gcc482 = ' ; source /opt/rh/devtoolset-2/enable '
+    else:
+        use_gcc482 = ''
+
     ACC_SET_GMAKE_JOBS = '2'
 
     ACC_ENABLE_FPIC = 'N'
@@ -129,6 +134,7 @@ def build_directory( dir, statlist, target ):
                     ' ; export UTIL_DIR_REQUEST=' + invars.util_dir + \
                     ' ; export OFFLINE_LOCAL_ARCHIVE_BASE_DIR=' + invars.libs_basedir + \
                     ' ; source ' + invars.util_dir + '/acc_vars.sh' \
+                      + use_gcc482 + \
                     ' ; export PATH=/usr/local/bin:$PATH' \
                     ' ; export ACC_BUILD_EXES=Y ; export ACC_ENABLE_SHARED=Y ; env | grep ACC ; ' + make_command
     print '-------- Using Build Command: ' + build_command
