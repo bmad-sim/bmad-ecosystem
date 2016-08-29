@@ -14,7 +14,7 @@ print "In particular, if you get an Unknown projection '3d' error."
 majorFormatter = FormatStrFormatter('%.3f')
 
 data_file = "knob.grid"
-lattice_file = "dc12a_alt3.bmad"
+lattice_file = "dc12c.bmad"
 
 def poly33(x,y):
 	return np.array([x*0+1, y, x, y*y, x*y, x*x, x*y*y, x*x*y, y*y*y, x*x*x]).T

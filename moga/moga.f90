@@ -4,7 +4,6 @@ program moga
   use bmad_parser_mod, only: bp_com
   use custom_dynamic_aperture_mod
   use pisa_mod
-  use calc_ring_mod
   use dynap_mod
   use crm_mod
   use linear_aperture_mod
@@ -43,11 +42,13 @@ program moga
   real(rp) nux_cons, nuy_cons
   real(rp) str_cons
   real(rp) min_dist_to_coup
+  real(rp) delta_e
 
   logical linear_ok
   logical feasible
   logical err_flag, mat_err
   logical first_loop
+  logical mat_ok
 
   character*60 in_file
   character*100 thin_file
@@ -260,7 +261,13 @@ program moga
       endif
     enddo
   endif
-  call calc_ring(ring,4,co,err_flag)
+  call twiss_and_track(ring,co,status)
+  if(status .ne. ok$) then
+    write(*,'(a,i6)') "FATAL: Optics calculation for stock lattice failed. status returned is ", status
+    call mpi_finalize(mpierr)
+    error stop
+  endif
+    
 
   !+ Allocate space in master for storing gene pool
   if( master ) then
@@ -489,7 +496,7 @@ program moga
     write(21,'(a6,50a10)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
     close(21)
     open(unit=22, iostat=iostat, file='constraint_report.out', access='append')
-    write(22,'(a6,30a18)') '# id', 'max|k2|', 'eta@+de', 'eta@-de', 'nux@-de', 'nux@+de', 'nuy@-de', 'nuy@+de', 'nux0', 'nuy0'
+    write(22,'(a6,30a18)') '# id', 'max|k2|', 'mats@+de', 'mats@-de', 'co@-de', 'co@+de', 'fp@-de', 'fp@+de'
     close(22)
     open(unit=22, iostat=iostat, file='objective_report.out', access='append')
     write(22,'(a6,10a18)') '# id', 'o1', 'o2', 'o3'
@@ -499,11 +506,6 @@ program moga
     if( generate_feasible_seeds_only .gt. 0 ) then
       open(44,file='feasible.log')
     endif
-    ! cons(1)  strengths
-    ! cons(2)  nonlinear dispersion at -de
-    ! cons(3)  nonlinear dispersion at +de
-    ! cons(4)  negative chromatic footprint
-    ! cons(5)  positive chromatic footprint
 
     do gen_num = 2, max_gen
       call block_on_pisa_status(polli,prefix)
@@ -682,102 +684,93 @@ program moga
       enddo
       cons(1) = str_cons
 
-      ! screen closed orbit (assumed flat for i=1, which is assumed to be on-energy)
-      cons(2) = -10.0    !nonlinear dispersion at -de
-      cons(3) = -10.0    !nonlinear dispersion at +de
-      do i=2,3
-        co(0)%vec = 0.0d0
-        co(0)%vec(6) = de(i)
+      cons(2) = 0.000001 ! closed orbit and mats exist out to -de
+      cons(3) = 0.000001 ! closed orbit and mats exist out to +de
+      cons(4) = 1.0    !nonlinear dispersion out to -de
+      cons(5) = 1.0    !nonlinear dispersion out to +de
+      cons(6) = 1.0    !tunes or traces
+      cons(7) = 1.0    !tunes or traces
+      do i=1,2  ! i==1: negative de.  i==2: positive de.
         call clear_lat_1turn_mats(ring)
-        call calc_ring(ring,track_dims,co,lat_unstable,mat_err)
+        fp_flag = .false.
+        do j=1,n_fp_steps
+          !calculate closed orbit and optics at energy offset
+          co(0)%vec = 0.0d0
+          if(i==1) then !negative, fp_de_neg assumed to be a negative number
+            delta_e = fp_de_neg/n_fp_steps*j
+          elseif(i==2) then !positive
+            delta_e = fp_de_pos/n_fp_steps*j
+          endif
+          co(0)%vec(6) = delta_e
+          call twiss_and_track(ring,co,status)
 
-        if(.not. mat_err) then
-          co_screen_x = abs(co(1)%vec(1)-etax_base(1)*de(i))
-          co_screen_y = abs(co(1)%vec(3)-etay_base(1)*de(i))
-          do j=2,ring%n_ele_track
-            if( ring%ele(j)%key .ne. wiggler$ ) then
-              if( ring%ele(j)%key .ne. marker$ ) then
-                co_screen_x = max(co_screen_x,abs(co(j)%vec(1)-etax_base(j)*de(i)))
-                co_screen_y = max(co_screen_y,abs(co(j)%vec(3)-etay_base(j)*de(i)))
+          !calculate closed orbit & mat OK constraints.
+          if( any(status==(/no_closed_orbit$, xfer_mat_calc_failure$/)) .or. ( (status /= ok$).and.(status .gt. 0) ) ) then
+            mat_ok = .false.
+            if(i==1) then
+              cons(2) = cons(2) - 2.0/n_fp_steps
+            elseif(i==2) then
+              cons(3) = cons(3) - 2.0/n_fp_steps
+            endif
+          else
+            mat_ok = .true.
+          endif
+
+          !calculate closed orbit amplitude constraints.
+          if(mat_ok) then
+            co_screen_x = abs(co(1)%vec(1)-etax_base(1)*delta_e)
+            co_screen_y = abs(co(1)%vec(3)-etay_base(1)*delta_e)
+            do k=2,ring%n_ele_track
+              if( .not. any(ring%ele(k)%key == (/wiggler$, marker$/)) ) then
+                co_screen_x = max(co_screen_x,abs(co(k)%vec(1)-etax_base(k)*delta_e))
+                co_screen_y = max(co_screen_y,abs(co(k)%vec(3)-etay_base(k)*delta_e))
               endif
+            enddo
+            co_screen = (co_limit - max(co_screen_x,co_screen_y)) / co_limit
+            if(i==1) then
+              cons(4) = min(cons(4), co_screen)
+            elseif(i==2) then
+              cons(5) = min(cons(5), co_screen)
             endif
-          enddo
-          co_screen = max(co_screen_x,co_screen_y)
-          cons(i) = (co_limit - co_screen)/co_limit
-        endif
-      enddo
+          endif
 
-      cons(4) = -10.0    !x tune at -de or a-mode trace
-      cons(5) = -10.0    !x tune at +de or b-mode trace
-      if(chrom_mode == 'trace') then
-        ! screen matrix traces
-        cons(4) = 1.0d0
-        cons(5) = 1.0d0
-        do i=1,2
-          call clear_lat_1turn_mats(ring)
-          do j=1,n_fp_steps
-            co(0)%vec = 0.0d0
-            if(i==1) then !negative, fp_de_neg assumed to be a negative number
-              co(0)%vec(6) =  fp_de_neg/n_fp_steps*j
-            elseif(i==2) then !positive
-              co(0)%vec(6) =  fp_de_pos/n_fp_steps*j
-            endif
-
-            call calc_ring(ring,track_dims,co,lat_unstable,mat_err)
-            if(.not. mat_err) then
+          !calculate trace or tunes constraints.
+          if(chrom_mode == 'trace') then ! screen matrix traces
+            if(mat_ok) then
               tr_a = ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2)
               tr_b = ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4)
-            else
-              tr_a = 500.0
-              tr_b = 500.0
+              cons(6) = min(tr_a-tr_a_min,cons(6))
+              cons(6) = min(tr_a_max-tr_a,cons(6))
+              cons(7) = min(tr_b-tr_b_min,cons(7))
+              cons(7) = min(tr_b_max-tr_b,cons(7))
             endif
-            cons(4) = min(tr_a-tr_a_min,cons(4))
-            cons(4) = min(tr_a_max-tr_a,cons(4))
-            cons(5) = min(tr_b-tr_b_min,cons(5))
-            cons(5) = min(tr_b_max-tr_b,cons(5))
-          enddo
-        enddo
-      elseif(chrom_mode == 'tunes') then
-        ! screen chromatic tune footprint
-        cons(4) = 1.0d0
-        cons(5) = 1.0d0
-        do i=1,2
-          call clear_lat_1turn_mats(ring)
-          fp_flag = .false.
-          do j=1,n_fp_steps
-            co(0)%vec = 0.0d0
-            if(i==1) then !negative, fp_de_neg assumed to be a negative number
-              co(0)%vec(6) =  fp_de_neg/n_fp_steps*j
-            elseif(i==2) then !positive
-              co(0)%vec(6) =  fp_de_pos/n_fp_steps*j
-            endif
-
-            call calc_ring(ring,track_dims,co,lat_unstable,mat_err)
-            if(.not. mat_err) then
-              nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
-              nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
-              if(nu_x .gt. x_fp_max) fp_flag = .true.
-              if(nu_x .lt. x_fp_min) fp_flag = .true.
-              if(nu_y .gt. y_fp_max) fp_flag = .true.
-              if(nu_y .lt. y_fp_min) fp_flag = .true.
-            else
-              fp_flag = .true.
-            endif
-            if(fp_flag) then
-              if(i==1) then !negative chromatic footprint constraint
-                cons(4) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
-              elseif(i==2) then !positive chromatic footprint constraint
-                cons(5) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+          elseif(chrom_mode == 'tunes') then !screen tunes
+            if(fp_flag == .false.) then
+              if(mat_ok) then
+                nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
+                nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
+                if(nu_x .gt. x_fp_max) fp_flag = .true.
+                if(nu_x .lt. x_fp_min) fp_flag = .true.
+                if(nu_y .gt. y_fp_max) fp_flag = .true.
+                if(nu_y .lt. y_fp_min) fp_flag = .true.
+              else
+                fp_flag = .true.
               endif
-              exit
+              if(fp_flag) then
+                if(i==1) then !negative chromatic footprint constraint
+                  cons(6) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                elseif(i==2) then !positive chromatic footprint constraint
+                  cons(7) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                endif
+              endif
             endif
-          enddo
+          else
+            write(*,*) "FATAL: Unknown chrom_mode."
+            call mpi_finalize(mpierr)
+            error stop
+          endif
         enddo
-      else
-        write(*,*) "FATAL: Unknown chrom_mode."
-        call mpi_finalize(mpierr)
-        error stop
-      endif
+      enddo
 
       ! feasible if all constraints met, otherwise infeasible
       feasible = all( cons(:) .ge. 0.0d0 )
@@ -791,9 +784,10 @@ program moga
           co(0)%vec = 0.0d0
           co(0)%vec(6) = de(i)
           call clear_lat_1turn_mats(ring)
-          call calc_ring(ring,track_dims,co,lin_lat_unstable)
+          call twiss_and_track(ring,co,status)
 
-          if(.not. lin_lat_unstable) then
+          !if(.not. lin_lat_unstable) then
+          if(status == ok$) then
             da_block_linear%param%closed_orbit = co(0)
             if(use_hybrid) then
               call make_hybrid_lat(ring, ring_use)
