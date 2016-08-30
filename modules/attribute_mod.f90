@@ -1045,6 +1045,7 @@ type (ele_struct), pointer :: ele_p, lord
 type (branch_struct), pointer :: branch
 type (ele_attribute_struct) attrib_info
 type (control_struct), pointer :: control
+type (all_pointer_struct) a_ptr
 
 integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
@@ -1052,7 +1053,7 @@ integer, optional :: ix_lord
 character(*) attrib_name
 character(40) a_name
 
-logical free, do_print, do_except_overlay
+logical free, do_print, do_except_overlay, err_flag
 
 !
 
@@ -1072,7 +1073,15 @@ attrib_info = attribute_info(ele, ix_attrib)
 
 a_name = attribute_name (ele, ix_attrib)
 
-if (attrib_info%type == does_not_exist$ .or. attrib_info%type == private$) then
+if (attrib_info%type == private$) then
+  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS PRIVATE.')
+  return
+endif
+
+if (attrib_info%type == does_not_exist$) then
+  ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
+  call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, .false.)
+  if (.not. err_flag) return
   call it_is_not_free (ele, ix_attrib, 'THIS NAME DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
   return
 endif

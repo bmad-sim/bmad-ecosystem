@@ -252,10 +252,11 @@ subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   logical err_flag
 end subroutine
 
-subroutine exact_bend_field (ele, orbit, local_ref_frame, field, potential, return_kick)
+subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potential, return_kick)
   import
   implicit none
   type (ele_struct), target :: ele
+  type (lat_param_struct) param
   type (coord_struct) orbit
   type (em_field_struct) field
   type (em_potential_struct) potential
