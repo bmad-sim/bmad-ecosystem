@@ -1,7 +1,6 @@
 program make_a_matching_knob
 
   use bmad
-  use calc_ring_mod
   use make_pseudoinverse_mod
 
   implicit none
@@ -18,7 +17,7 @@ program make_a_matching_knob
   integer nQx, nQy
   integer match_point
   integer xix, yix
-  logical err_flag
+  integer status
   logical converged
   logical set_x, set_y
   character*100 in_file
@@ -77,7 +76,7 @@ program make_a_matching_knob
   call set_on_off(rfcavity$, ring, off$)
   bmad_com%radiation_damping_on = .false.
   bmad_com%radiation_fluctuations_on = .false.
-  call calc_ring(ring,4,co,err_flag)
+  call twiss_and_track(ring,co,status)
 
   allocate(jac_delta(n_vars))
   allocate(var0(n_vars))
@@ -108,7 +107,6 @@ program make_a_matching_knob
   write(11,'(10a13)') '# dQx', 'dQy', (trim(mags(i)),i=1,n_vars)
   do i = 1,nQx
     do j = 1,nQy
-      err_flag = .false.
       converged = .false.
       ring = ring0
       call get_mag_str(mags,ring,var)
@@ -135,9 +133,9 @@ program make_a_matching_knob
           jac_delta(:) = 0.0d0
           jac_delta(l) = dk
           call set_mag_str(mags,ring,var+jac_delta)
-          call calc_ring(ring,4,co,err_flag)
-          if(err_flag) then
-            write(*,'(a,a)') "Could not calculate ring during Jacobial calculation for ", mags(l)
+          call twiss_and_track(ring,co,status)
+          if(status /= ok$) then
+            write(*,'(a,a)') "Could not calculate ring during Jacobian calculation for ", mags(l)
             stop
           endif
 
@@ -154,9 +152,9 @@ program make_a_matching_knob
         delta_var = matmul(Jacp,(con-con0))
         var = var - alpha_n*delta_var
         call set_mag_str(mags,ring,var)
-        call calc_ring(ring,4,co,err_flag)
-        if(err_flag) then
-          write(*,'(a,a)') "Step failed."
+        call twiss_and_track(ring,co,status)
+        if(status /= ok$) then
+          write(*,'(a)') "Step failed."
           exit
         endif
 
