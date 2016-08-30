@@ -436,7 +436,7 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', wall = call::wall_' // trim(name)
         iu2 = lunget()
  
-        open (iu2, file = trim(path) // 'wall_' // trim(name))
+        open (iu2, file = trim(path) // '/wall_' // trim(name))
         write (iu2, '(a)') '{'
         write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d(1)%ele_anchor_pt)), ','
         do i = 1, size(ele%wall3d(1)%section)
