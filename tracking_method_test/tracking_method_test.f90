@@ -145,6 +145,7 @@ character(38) :: instr
     case('SBEND4:Linear')                        ; tolerance = 'ABS 1e-11'
     case('SBEND5:Bmad_Standard')                 ; tolerance = 'ABS 5e-13'
     case('SBEND5:Linear')                        ; tolerance = 'ABS 5e-13'
+    case('SBEND6:Taylor')                        ; tolerance = 'ABS 2e-11'
     case('SBEND7:Bmad_Standard')                 ; tolerance = 'ABS 2e-13'
     case('SBEND7:Linear')                        ; tolerance = 'ABS 2e-13'
     case('SOLENOID1:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-13'
@@ -153,6 +154,7 @@ character(38) :: instr
     case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'ABS 4e-12'
     case('LCAVITY3:Runge_Kutta')                 ; tolerance = 'ABS 2e-14'
     case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
+    case('WIGGLER_MAP1:Time_Runge_Kutta')        ; tolerance = 'ABS 2e-13'
     case default                                 ; tolerance = 'ABS 1e-14'
   end select
 
