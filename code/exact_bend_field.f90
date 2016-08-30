@@ -1,6 +1,26 @@
-! This is a port of the getelectricr routine from the forest library
+!+
+! Subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potential, return_kick)
+!
+! Routine to calculate the electric and magnetic field at a given point in a bend element with multipoles.
+! The field due to a multipole in a bend is different from a straight element due Maxwell's equations
+! being modified due to the curvature of the reference orbit.
+!
+! This routine is a port of the getelectricr routine from the forest library
+!
+! Input:
+!   ele             -- ele_stuct: Bend element.
+!   param           -- lat_param_struct: Lattice branch parameters.
+!   orbit           -- coord_struct: particle position.
+!   local_ref_frame -- logical: Is the particle position in the local element ref 
+!                         frame (as opposed to the lab frame)?
+!   return_kick     -- logical, optional: Return the kick instead of the field? Default is False.
+!
+! Output:
+!   field           -- em_field_struct: Field
+!   potential       -- em_potential_struct: Potential
+!-
 
-subroutine exact_bend_field (ele, orbit, local_ref_frame, field, potential, return_kick)
+subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potential, return_kick)
 
 use bmad_interface, except_dummy => exact_bend_field
 use s_status, only: s_b_from_v, s_e, sector_nmul_max
@@ -8,10 +28,11 @@ use s_status, only: s_b_from_v, s_e, sector_nmul_max
 implicit none
 
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 type (coord_struct) orbit
 type (em_field_struct) field
 type (em_potential_struct) potential
-type(exact_bend_struct), pointer :: eb
+type (exact_bend_struct), pointer :: eb
 
 real(rp) x1, x3, bx, by, btx, bty, btyt, phit, phi_mag
 real(rp) ex, etx, ey, ety, b0
@@ -31,7 +52,7 @@ b0 = ele%value(g$)
 field = em_field_struct()
 potential = em_potential_struct()
 
-call init_exact_bend_coefs(ele, has_nonzero_pole)
+call init_exact_bend_coefs(ele, param, has_nonzero_pole)
 if (.not. has_nonzero_pole) return
 
 eb => ele%exact_bend
@@ -41,7 +62,8 @@ by = 0.0_rp
 ex = 0.0_rp
 ey = 0.0_rp
 
-m = eb%n_pole_max + 1  ! PTC multipole index off by 1 compaired to Bmad.
+m = n_pole_maxx + 1  ! PTC multipole index off by 1 compaired to Bmad.
+k = 0
 
 do a = m, 1, -1
   etx = 0.0_rp
@@ -121,17 +143,18 @@ contains
 
 ! This is a port of the getanbnr routine from the forest library
 
-subroutine init_exact_bend_coefs (ele, has_nonzero_pole)
+subroutine init_exact_bend_coefs (ele, param, has_nonzero_pole)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (exact_bend_struct), pointer :: eb
+type (lat_param_struct) param
 
-real(rp) b0
+real(rp) b0, f
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i,j,k,pow, n_mono, n_max
+integer i, j, k, pow, n_mono, n_max
 logical has_nonzero_pole
 
 !
@@ -162,7 +185,7 @@ eb%an = a_pole
 eb%bn = b_pole
 
 do i = n_pole_maxx, 0, -1
-  if (eb%an(i) == 0 .or. eb%bn(i) == 0) cycle
+  if (eb%an(i) == 0 .and. eb%bn(i) == 0 .and. eb%ae(i) == 0 .and. eb%be(i) == 0) cycle
   eb%n_pole_max = i
   exit
 enddo
@@ -175,10 +198,10 @@ do i = 1, n_max
     k = s_b_from_v%i(j) + s_b_from_v%j(j)
     pow = k + 1 - i
     if(k + 1 >= i) then
-       eb%e_x(j)=eb%e_x(j) + (eb%ae(i)*s_e%a_x(i,j) + eb%be(i)*s_e%b_x(i,j))*b0**pow
-       eb%e_y(j)=eb%e_y(j) + (eb%ae(i)*s_e%a_y(i,j) + eb%be(i)*s_e%b_y(i,j))*b0**pow
-       eb%bf_x(j) = eb%bf_x(j) + (eb%an(i)*s_b_from_v%a_x(i,j) + eb%bn(i)*s_b_from_v%b_x(i,j))*b0**pow
-       eb%bf_y(j) = eb%bf_y(j) + (eb%an(i)*s_b_from_v%a_y(i,j) + eb%bn(i)*s_b_from_v%b_y(i,j))*b0**pow
+       eb%e_x(j)=eb%e_x(j) + (eb%ae(i-1)*s_e%a_x(i,j) + eb%be(i-1)*s_e%b_x(i,j))*b0**pow
+       eb%e_y(j)=eb%e_y(j) + (eb%ae(i-1)*s_e%a_y(i,j) + eb%be(i-1)*s_e%b_y(i,j))*b0**pow
+       eb%bf_x(j) = eb%bf_x(j) + (eb%an(i-1)*s_b_from_v%a_x(i,j) + eb%bn(i-1)*s_b_from_v%b_x(i,j))*b0**pow
+       eb%bf_y(j) = eb%bf_y(j) + (eb%an(i-1)*s_b_from_v%a_y(i,j) + eb%bn(i-1)*s_b_from_v%b_y(i,j))*b0**pow
     endif
   enddo
 enddo
@@ -190,11 +213,16 @@ do i = 1, n_max
     k = s_b_from_v%i(j) + s_b_from_v%j(j)
     pow = k - i
     if(k >= i) then
-       eb%phi(j)=eb%phi(j) + (eb%ae(i)*s_e%va(i,j) + eb%be(i)*s_e%vb(i,j))*b0**pow
-       eb%vm(j) = eb%vm(j) + (eb%an(i)*s_b_from_v%va(i,j) + eb%bn(i)*s_b_from_v%vb(i,j))*b0**pow
+       eb%phi(j)= eb%phi(j) + (eb%ae(i-1)*s_e%va(i,j) + eb%be(i-1)*s_e%vb(i,j))*b0**pow
+       eb%vm(j) = eb%vm(j)  + (eb%an(i-1)*s_b_from_v%va(i,j) + eb%bn(i-1)*s_b_from_v%vb(i,j))*b0**pow
     endif
   enddo
 enddo
+
+f = charge_of(param%particle) * ele%value(p0c$) / c_light
+eb%bf_x = eb%bf_x * f
+eb%bf_y = eb%bf_y * f
+eb%phi  = eb%phi * f
 
 end subroutine init_exact_bend_coefs
 
