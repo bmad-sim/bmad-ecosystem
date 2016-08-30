@@ -3062,6 +3062,7 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%sr_long%mode))  allocate (ele%wake%sr_long%mode(0))
 if (.not. allocated(ele%wake%sr_trans%mode)) allocate (ele%wake%sr_trans%mode(0))
+if (.not. allocated(ele%wake%lr_spline)) allocate (ele%wake%lr_spline(0))
 if (allocated(ele%wake%lr_mode)) deallocate (ele%wake%lr_mode)
 
 ! get data
@@ -3178,6 +3179,7 @@ logical in_namelist, finished, err
 
 if (.not. associated(ele%wake))   allocate (ele%wake)
 if (.not. allocated(ele%wake%lr_mode)) allocate (ele%wake%lr_mode(0))
+if (.not. allocated(ele%wake%lr_spline)) allocate (ele%wake%lr_spline(0))
 if (allocated(ele%wake%sr_long%mode))  deallocate (ele%wake%sr_long%mode)
 if (allocated(ele%wake%sr_trans%mode)) deallocate (ele%wake%sr_trans%mode)
 

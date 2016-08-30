@@ -546,6 +546,14 @@ subroutine ptc_bookkeeper (lat)
   type (lat_struct) lat
 end subroutine
 
+subroutine ptc_read_flat_file (flat_file, lat, err_flag)
+  import
+  implicit none
+  type (lat_struct) lat
+  character(*) flat_file(:)
+  logical err_flag
+end subroutine
+
 subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   import
   implicit none
