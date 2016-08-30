@@ -3222,6 +3222,7 @@ else
 endif
 
 if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
+if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) key = wiggler$
 
 select case (key)
 
@@ -3472,7 +3473,8 @@ call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%
 
 ele2 => ele
 
-if (ele%field_calc == fieldmap$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+if ((ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
+                                            .or. ele%key == wiggler$ .or. ele%key == undulator$) then
 
   call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field

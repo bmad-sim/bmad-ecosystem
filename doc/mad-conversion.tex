@@ -1,4 +1,4 @@
-\chapter{MAD/XSIF/SAD Lattice Conversion}
+\chapter{MAD/XSIF/SAD/PTC Lattice Conversion}
 \label{c:lat.convert}
 \index{conversion to other lattice formats}
 
@@ -6,6 +6,11 @@
 \section{MAD Conversion}
 \label{s:mad.convert}
 \index{MAD!conversion}
+
+
+%-----------------------------------------------------------------------------
+\subsection{Convert MAD to Bmad Via UAP}
+\label{s:mad.bmad.uap}
 
 Conversion of lattice files from \mad to \bmad format can be done
 using the \vn{Universal Accelerator Parser} (\sref{s:aml}). Due to
@@ -27,6 +32,41 @@ In \bmad all variables must be defined before being used
   \item
 Elements like a \vn{sad_mult} cannot be translated.
   \end{itemize}
+
+%-----------------------------------------------------------------------------
+\subsection{Convert MAD-X to Bmad Via PTC}
+\label{s:mad.bmad.ptc}
+
+\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC
+``flat'' file and then reading in the PTC flat file. First, take a \mad-X lattice
+and append the following to it:
+\begin{example}
+  use, period = LINE_NAME_HERE;
+  ptc_create_universe;
+  ptc_create_layout, model = 1, method = 2, nst = 1; 
+  !! ptc_create_layout, model=1, method=2, nst=1, exact;  ! Use this if exact is wanted
+  ptc_script, file="create_flat.ptc";
+\end{example}
+Substitute the actual sequence or line name for ``LINE_NAME_HERE''.
+
+Second, create a file called \vn{create_flat.ptc} with the following in it:
+\begin{example}
+  select layout
+  1
+  ! print new flat file
+  print flat file
+  XXX.flat
+  return
+\end{example}
+The flat file name \vn{XXX.flat} can be changed if desired.
+
+Now run \mad-X with the lattice file. A flat file will be created. This flat file can
+converted to \bmad as documented in \sref{s:ptc.convert}
+
+
+%-----------------------------------------------------------------------------
+\subsection{Convert Bmad to MAD}
+\label{s:mad.bmad.uap}
 
 \index{wiggler!conversion to MAD}
 \index{sol_quad!conversion to MAD}
@@ -57,7 +97,7 @@ The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
 %---------------------------------------------------------------------------
 \section{XSIF Conversion}
 \label{s:xsif.convert}
-\index{XSIF!hyperbf}
+\index{XSIF!conversion}
 
 XSIF\cite{b:xsif}, developed at SLAC, stands for ``Extended Standard
 Input Format.''  XSIF is essentially a subset of the
@@ -90,15 +130,23 @@ Parser} can be used (\sref{s:aml}). Additionally, the
 XSIF (cf.~\sref{s:mad.convert}).
 
 %---------------------------------------------------------------------------
+\section{PTC Conversion}
+\label{s:ptc.convert}
+\index{ptc!conversion}
+
+For a programmer, 
+For conversion from \bmad to PTC there are two possibilites
+
+%---------------------------------------------------------------------------
 \section{SAD Conversion}
 \label{s:sad.convert}
-\index{SAD!hyperbf}
+\index{SAD}
 
 Conversion from \vn{SAD}\cite{b:sad} to \bmad is accomplished using the Python script
 \begin{example}
   util_programs/sad_to_bmad/sad_to_bmad.py
 \end{example}
-Currently, a converter from \bmad to SAD has not been implemented.
+Currently, a converter from \bmad to SAD is planned but has not been implemented.
 
 Currently, the following restrictions on SAD lattices apply:
   \begin{itemize}
