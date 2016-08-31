@@ -241,7 +241,7 @@ do
     endif
 
     if (param == 'energy') then
-      ev_min = max(value1, ev_min)
+      ev_min = value1
       ev_max = value2
     else
       angle_min = max(0.0_rp, value1)
