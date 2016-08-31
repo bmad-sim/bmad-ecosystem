@@ -1095,6 +1095,7 @@ call remove_eles_from_lat (lat, .false.)
 
 ! Consistancy check
 
+call s_calc(lat)
 call lat_sanity_check (lat, err)
 if (err) then
   bp_com%error_flag = .true.

@@ -784,7 +784,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       if (abs(l_lord - ds) > bmad_com%significant_length + ds_small) then
         call out_io (s_fatal$, r_name, &
                   'SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                  'HAS LENGTH + PADDING OF: \f15.10\ ', &
+                  'HAS LENGTH (+ POSSIBLE PADDING) OF: \f15.10\ ', &
                   'WHICH IS NOT EQUAL TO THE SUM OF THE SLAVE LENGTHS \f15.10\.', &
                    i_array = [i_t], r_array =  [l_lord, ds])
         err_flag = .true.
