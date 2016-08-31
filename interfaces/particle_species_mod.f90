@@ -376,7 +376,39 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function species_id (name) result(index)
+! Function species_of (mass, charge) result(species)
+!
+! Routine to return the integer ID index of a particle species given the mass and charge.
+! Note: Currently this routine only works for fundamental particles.
+!
+! Input:
+!   mass    -- real(rp): Mass of the particle
+!   charge  -- integer: Charge of the particle.
+!
+! Output:
+!   species -- Integer: Species ID. Will return invalid$ if name is not valid.
+!-
+
+function species_of (mass, charge) result(species)
+
+real(rp) mass
+integer charge, species
+
+!
+
+do species = lbound(mass_of_fundamental, 1), ubound(mass_of_fundamental, 1)
+  if (charge == charge_of_fundamental(species) .and. abs(mass - mass_of_fundamental(species)) <= 1d-6) return
+enddo
+
+species = invalid$
+
+end function species_of
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function species_id (name) result(species)
 !
 ! Routine to return the integer ID index of a particle species given the name.
 !
@@ -387,8 +419,7 @@ contains
 !   name    -- Character(20): Name of the species.
 !
 ! Output:
-!   species -- Integer: Species ID.
-!               Will return invalid$ if name is not valid.
+!   species -- Integer: Species ID. Will return invalid$ if name is not valid.
 !-
 
 function species_id (name) result(species)
