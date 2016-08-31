@@ -264,6 +264,15 @@ subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potentia
   logical, optional :: return_kick
 end subroutine
 
+subroutine fibre_to_ele (ptc_fibre, ele_array, ix_ele, err_flag)
+  import
+  implicit none
+  type (fibre) ptc_fibre
+  type (ele_struct) ele_array(0:)
+  integer ix_ele
+  logical err_flag
+end subroutine
+
 subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
   import
   implicit none
@@ -546,10 +555,10 @@ subroutine ptc_bookkeeper (lat)
   type (lat_struct) lat
 end subroutine
 
-subroutine ptc_read_flat_file (flat_file, lat, err_flag)
+subroutine ptc_read_flat_file (flat_file, err_flag, lat)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), optional :: lat
   character(*) flat_file(:)
   logical err_flag
 end subroutine
