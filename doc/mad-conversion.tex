@@ -37,9 +37,10 @@ Elements like a \vn{sad_mult} cannot be translated.
 \subsection{Convert MAD-X to Bmad Via PTC}
 \label{s:mad.bmad.ptc}
 
-\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC
-``flat'' file and then reading in the PTC flat file. First, take a \mad-X lattice
-and append the following to it:
+\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC ``flat''
+file and then using \bmad to convert the flat file to a \bmad lattice file. 
+
+First, take a \mad-X lattice file and append the following to it:
 \begin{example}
   use, period = LINE_NAME_HERE;
   ptc_create_universe;
@@ -63,7 +64,6 @@ The flat file name \vn{XXX.flat} can be changed if desired.
 Now run \mad-X with the lattice file. A flat file will be created. This flat file can
 converted to \bmad as documented in \sref{s:ptc.convert}
 
-
 %-----------------------------------------------------------------------------
 \subsection{Convert Bmad to MAD}
 \label{s:mad.bmad.uap}
@@ -71,7 +71,7 @@ converted to \bmad as documented in \sref{s:ptc.convert}
 \index{wiggler!conversion to MAD}
 \index{sol_quad!conversion to MAD}
 Besides using the \vn{Universal Accelerator Parser} for conversion
-from \bmad to \mad, there is a conversion routine called
+from \bmad to \mad, there is a \bmad conversion routine called
 \Hyperref{r:write.lattice.in.foreign.format}{write_lattice_in_foreign_format}. 
 The advantage of this routine is that since \mad does not have a
 \vn{wiggler} or a \vn{sol_quad} element, this conversion routine can
@@ -91,8 +91,7 @@ Note that the resulting model will not have the vertical cubic
 nonlinearity that the actual wiggler has.
 
 The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
-\vn{util_programs/bmad_to_mad_or_xsif} which can be used for \bmad to
-\mad  or \vn{XSIF} conversions.
+\vn{util_programs/bmad_to_mad_or_xsif}.
 
 %---------------------------------------------------------------------------
 \section{XSIF Conversion}

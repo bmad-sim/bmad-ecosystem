@@ -557,14 +557,14 @@ do i = 1, n_key$
 
   if (i == drift$)        cycle
 
+  call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
   call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
+
   call init_attribute_name1 (i, sr_wake_file$,        'SR_WAKE_FILE')
   call init_attribute_name1 (i, lr_wake_file$,        'LR_WAKE_FILE')
   call init_attribute_name1 (i, lr_freq_spread$,      'LR_FREQ_SPREAD')
   call init_attribute_name1 (i, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
   call init_attribute_name1 (i, lr_wake_spline$,      'LR_WAKE_SPLINE')
-
-  call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle
@@ -993,6 +993,12 @@ call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start',
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
+call init_attribute_name1 (marker$, sr_wake_file$,        'SR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_wake_file$,        'LR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_freq_spread$,      'LR_FREQ_SPREAD')
+call init_attribute_name1 (marker$, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
+call init_attribute_name1 (marker$, lr_wake_spline$,      'LR_WAKE_SPLINE')
+
 
 call init_attribute_name1 (match$, l$,                              'L')
 call init_attribute_name1 (match$, beta_a0$,                        'BETA_A0')

@@ -374,7 +374,7 @@ end subroutine type_ptc_internal_state
 !
 ! Input:
 !   ptc_fibre    -- fibre, pointer: Fibre to type info of.
-!   print_coords -- logical, optional: If True then print coordinate and  patch information. 
+!   print_coords -- logical, optional: If True then print coordinate and patch information. 
 !                     Default is True.
 !
 ! Output:
@@ -938,7 +938,7 @@ end subroutine type_end_stuff
 !   this_kind -- Integer, pointer: PTC kind 
 !
 ! Output:
-!   kind_str -- Character(40): String representation
+!   kind_str -- Character(60): String representation
 !-
 
 function kind_name (this_kind) result (kind_str)
@@ -950,7 +950,7 @@ use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind
 implicit none
 
 integer, pointer :: this_kind
-character(40) kind_str
+character(60) kind_str
 
 !
 

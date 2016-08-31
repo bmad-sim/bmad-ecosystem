@@ -3126,11 +3126,10 @@ Notice that \vn{e_tot_offset} does not affect a particle's actual
 energy, it just affects the difference between the particle energy and
 the reference energy. 
 
-\vn{Important}: The \vn{E_tot_offset}, transformation may be applied
-either before or after the coordinate transformation. This matters
-when the particle speed is less than $c$. If necessary, use two
-patches in a row to ensure the \vn{E_tot_offset} is applied in the
-correct order.
+\vn{Important}: \bmad may apply the energy transformation either before or after the
+coordinate transformation. This matters when the speed of the reference particle is less
+than $c$. For this reason, and due to complications involving PTC, it is recommended to
+use two patches in a row when both the orbit and energy are to be patched.
 
 The \vn{t_offset} attribute offsets the reference time:
 \begin{example}

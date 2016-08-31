@@ -2764,14 +2764,15 @@ input file is:
                       [Ohm/               Angle 
               [Hz]     m^(2m)]           [Rad/2pi]
   &long_range_modes
-    lr(1) = 1.650e9    0.76    7.0e4  1    unpol
-    lr(2) = 1.699e9   11.21    5.0e4  1    0.15
-    lr(3) =    0       0.57    1.1e6  0    unpol
+    lr(1) = 1.650e9    0.76    7.0e4  1    "unpol"
+    lr(2) = 1.699e9   11.21    5.0e4  1    "0.15"
+    lr(3) =    0       0.57    1.1e6  0    "unpol"
   /
 \end{example}
-A frequency of zero is used to designate wakes that are part of the
-fundamental accelerating mode. \bmad needs to know if a wake is part
-of the fundamental mode due to timing issues as discussed in \sref{s:rf.time}.
+[Note: The quotation marks are needed with some compilers and not with others.]  A
+frequency of zero is used to designate wakes that are part of the fundamental accelerating
+mode. \bmad needs to know if a wake is part of the fundamental mode due to timing issues
+as discussed in \sref{s:rf.time}.
 
 If the polarization angle is set to ``\vn{unpolarized}'' the mode is
 taken to be unpolarized. [Note: Technically the unpolarized mode is
