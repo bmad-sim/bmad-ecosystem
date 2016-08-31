@@ -465,6 +465,16 @@ do it = 1, n_table
     prt%p_reflect(:, i) = p_reflect(1:n_angles)
   enddo
 
+  if (it > 1) then
+    if (energy_min > surface%table(it-1)%max_energy) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR WITH SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'THE MINIMUM ENERGY \f10.2\ OF TABLE #\i5\ IS LARGER THAN THE PREVIOUS TABLE', &
+              r_array = [energy_min], i_array = [it])
+      if (global_com%exit_on_error) call err_exit
+    endif
+  endif
+
 enddo
 
 close (iu)
