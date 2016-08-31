@@ -42,6 +42,7 @@ integer ix_ele, nmul, i, ix
 
 logical err_flag
 
+character(*), parameter :: r_name = 'fibre_to_ele'
 character(40) name
 
 ! Init
@@ -49,26 +50,71 @@ character(40) name
 fib => ptc_fibre
 mag => fib%mag
 
-ele => ele_array(ix_ele)
 err_flag = .false.
 
-! Pure patch
+! Pure patch or marker
 
-if (fib%mag%kind == kind0 .and. (fib%patch%patch == 1 .or.fib%patch%patch == 2)) then
-  ele%name = fib%mag%name
-  ix_ele = ix_ele + 1
+if (fib%mag%kind == kind0) then
+  select case (fib%patch%patch)
+  case (0)  ! marker
+    call ele_out (fib%mag%name)
+  case (1)  ! Entrance patch
+    call patch_out (fib%mag%name, fib%patch%a_d, fib%patch%a_ang)
+  case (2)  ! Exit patch
+    call patch_out (fib%mag%name, fib%patch%b_d, fib%patch%b_ang)
+  case default
+    call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO HANDLE PATCH TYPE: \i0\ ', int(fib%patch%patch))
+    err_flag = .true.
+  end select
   return
 endif
   
+! Not a pure patch nor a marker
+
+if (fib%patch%patch == 1 .or. fib%patch%patch == 3) then
+  call patch_out ('ENT_PATCH_' // fib%mag%name, fib%patch%a_d, fib%patch%a_ang)
+endif
+
+call ele_out (fib%mag%name)
+
+if (fib%patch%patch == 2 .or. fib%patch%patch == 3) then
+  call patch_out ('EXIT_PATCH_' // fib%mag%name, fib%patch%b_d, fib%patch%b_ang)
+endif
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+contains
+
+subroutine patch_out (name, offset, angles)
+
+character(*) name
+real(rp) offset(3), angles(3)
+
 !
 
-ele%name = fib%mag%name
+ele => ele_array(ix_ele)
+ele%name = name
+ix_ele = ix_ele + 1
 
-wk = fib
-ele%value(p0c_start$) = wk%p0c
-ele%value(E_tot_start$) = wk%energy
-ele%value(p0c$) = wk%p0c
-ele%value(E_tot$) = wk%energy
+call set_energy (ele)
+
+end subroutine patch_out
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+! contains
+
+subroutine ele_out (name)
+
+character(*) name
+
+!
+
+ele => ele_array(ix_ele)
+ele%name = name
+ix_ele = ix_ele + 1
+
+call set_energy (ele)
 
 !
 
@@ -243,8 +289,24 @@ endif
 
 ! Fringes
 
+end subroutine ele_out
+
 !------------------------------------------------------------------------
-contains
+! contains
+
+subroutine set_energy (ele)
+type (ele_struct) ele
+
+wk = fib
+ele%value(p0c_start$) = wk%p0c
+ele%value(E_tot_start$) = wk%energy
+ele%value(p0c$) = wk%p0c
+ele%value(E_tot$) = wk%energy
+
+end subroutine set_energy
+
+!------------------------------------------------------------------------
+! contains
 
 subroutine update_this_real (var, value)
 
