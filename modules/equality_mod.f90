@@ -190,7 +190,9 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%descrip == f2%descrip)
+is_eq = is_eq .and. (f1%name == f2%name)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%description == f2%description)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%reflectivity_file == f2%reflectivity_file)
 !! f_side.equality_test[type, 1, ALLOC]

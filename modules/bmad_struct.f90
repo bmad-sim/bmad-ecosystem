@@ -183,13 +183,14 @@ end type
 ! All others can be set by an outside programmer. 
 
 type photon_reflect_surface_struct
-  character(40) descrip                       ! Descriptive name
+  character(40) :: name = ''
+  character(80) :: description = ''                    ! Descriptive name
   character(200) :: reflectivity_file = ''
   type (photon_reflect_table_struct), allocatable :: table(:)
   real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
   real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
   logical :: initialized = .false.
-  integer :: ix_surface
+  integer :: ix_surface = -1
 end type
 
 !-------------------------------------------------------------------------
