@@ -1104,7 +1104,7 @@ case(fieldmap$)
         mode_field%b(3) = real(expt*g_pt%B(3)) 
     
       case default
-        call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
+        call out_io (s_fatal$, r_name, 'UNKNOWN GRID GEOMETRY: \i0\ ', &
                                        'FOR ELEMENT: ' // ele%name, i_array = [g_field%geometry])
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
