@@ -403,14 +403,14 @@ character(40) descrip
 
 integer i, j, iu, n_table, it, n_angles, n_energy, ix_row
 
-real(rp) angles(100), energy_min, energy_max, energy_delta, p_reflect(200)
+real(rp) angles(100), energy_min, energy_max, energy_delta, p_reflect(200), energies(200)
 real(rp) surface_roughness_rms, roughness_correlation_len
 
 character(40), parameter :: r_name = 'read_surface_reflection_file'
 
 namelist / general / n_table, surface_roughness_rms, roughness_correlation_len, descrip
 
-namelist / table / angles, energy_min, energy_max, energy_delta
+namelist / table / angles, energy_min, energy_max, energy_delta, energies
 namelist / row / ix_row, p_reflect
 
 ! Open file
@@ -435,22 +435,40 @@ allocate (surface%table(n_table))
 do it = 1, n_table
   prt => surface%table(it)
 
+  energy_delta = 0
+  energies = -1
   angles = -1
+
   read (iu, nml = table)
+
   do i = 1, size(angles)
-    if (angles(i) < 0) then
-      n_angles = i - 1
-      exit
-    endif
+    if (angles(i) >= 0) cycle
+    n_angles = i - 1
+    exit
   enddo
 
-  n_energy = 1 + (energy_max - energy_min) / energy_delta
+  if (energy_delta == 0) then
+    do i = 1, size(energies)
+      if (energies(i) >= 0) cycle
+      n_energy = i - 1
+      exit
+    enddo
+  else
+    n_energy = 1 + (energy_max - energy_min) / energy_delta
+  endif
+
   allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles))
-  allocate(prt%p_reflect(n_angles,n_energy))
+  allocate(prt%p_reflect(n_angles, n_energy))
   allocate(prt%int1(n_energy))
 
   prt%angle = angles(1:n_angles)
-  prt%energy = [(energy_min + (i-1) * energy_delta, i = 1, n_energy)]
+
+  if (energy_delta == 0) then
+    prt%energy = energies(1:n_energy)
+  else
+    prt%energy = [(energy_min + (i-1) * energy_delta, i = 1, n_energy)]
+  endif
+
   prt%max_energy = prt%energy(n_energy)
 
   do i = 1, n_energy
@@ -569,10 +587,11 @@ enddo
 
 ! Interpolation:
 ! First do simple linear interpolation in energy.
+! e_tot is in the energy interval [prt%energy(ie), prt%energy(ie+1)]
 
-n_energy = size(prt%energy)
-ie = 1 + int((n_energy - 1) * (e_tot - prt%energy(1)) / (prt%energy(n_energy) - prt%energy(1)))
-if (ie == n_energy) ie = n_energy - 1
+do ie = 1, size(prt%energy)-1
+  if (e_tot <= prt%energy(ie+1)) exit
+enddo
 
 ! Find which angle interval angle_deg is in.
 

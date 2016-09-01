@@ -1089,8 +1089,9 @@ if (attrib_word == 'GRID_FIELD') then
     ele0%grid_field => ele%grid_field
     allocate(ele%grid_field(i_ptr))
     do i = 1, i_ptr-1
-     ele%grid_field(i)%ptr => ele0%grid_field(i)%ptr
+     ele%grid_field(i) = ele0%grid_field(i)
     enddo
+    deallocate (ele0%grid_field)
   else
     allocate(ele%grid_field(1))
     i_ptr = 1

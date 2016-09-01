@@ -1341,7 +1341,8 @@ end type
 
 ! Grid of grid_field information
 integer, parameter :: rotationally_symmetric_rz$ = 1, xyz$ = 2
-character(30), parameter :: grid_field_geometry_name(2) = ['rotationally_symmetric_rz', 'xyz                      ']
+character(30), parameter :: grid_field_geometry_name(0:2) = &
+                          [character(30) :: 'GARBAGE!', 'rotationally_symmetric_rz', 'xyz']
 integer, parameter :: grid_field_dimension(2) = [2, 3] 
 
 
