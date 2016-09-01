@@ -60,7 +60,9 @@ integer i, j, k
 
 surface%surface_roughness_rms = 200d-9      ! sigma in Dugan's notation
 surface%roughness_correlation_len = 5500d-9 ! T in Dugan's notation
-surface%descrip = '10 nm C film on Al'
+surface%name = 'DEFAULT'
+surface%description = '10 nm C film on Al'
+surface%reflectivity_file = '<none>'
 
 ! There are four tables.
 
@@ -399,16 +401,17 @@ type (photon_reflect_surface_struct), target :: surface
 type (photon_reflect_table_struct), pointer :: prt
 
 character(*) file_name
-character(40) descrip
+character(40) name
+character(80) description
 
 integer i, j, iu, n_table, it, n_angles, n_energy, ix_row
 
 real(rp) angles(100), energy_min, energy_max, energy_delta, p_reflect(200), energies(200)
 real(rp) surface_roughness_rms, roughness_correlation_len
 
-character(40), parameter :: r_name = 'read_surface_reflection_file'
+character(*), parameter :: r_name = 'read_surface_reflection_file'
 
-namelist / general / n_table, surface_roughness_rms, roughness_correlation_len, descrip
+namelist / general / n_table, surface_roughness_rms, roughness_correlation_len, name, description
 
 namelist / table / angles, energy_min, energy_max, energy_delta, energies
 namelist / row / ix_row, p_reflect
@@ -420,12 +423,20 @@ open (iu, file = file_name, status = 'old')
 
 ! Allocate the reflection tables global variables.
 
-descrip = '???'
+description = ''
+name = '???'
 read (iu, nml = general)
+
+if (name == '???') then
+  call out_io (s_fatal$, r_name, 'SURFACE REFLECTIVITY FILES MUST NOW HAVE A "NAME" IN THE "GENERAL" NAMELIST.')
+  stop
+endif
 
 surface%surface_roughness_rms     = surface_roughness_rms
 surface%roughness_correlation_len = roughness_correlation_len
-surface%descrip = descrip
+surface%name = name
+surface%description = description
+surface%reflectivity_file = file_name
 
 if (allocated (surface%table)) deallocate (surface%table)
 allocate (surface%table(n_table))
