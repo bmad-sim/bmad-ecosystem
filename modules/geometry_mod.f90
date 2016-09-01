@@ -347,7 +347,7 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
         select case (ele0%key)
         case (crystal$)
           if (ele0%value(tilt_corr$) /= 0) then
-            call w_mat_for_tilt(ele0%value(tilt_corr$), t_mat)
+            t_mat = w_mat_for_tilt(ele0%value(tilt_corr$))
             w_mat = matmul(w_mat, t_mat)
           endif
           rot_angle = ele0%value(bragg_angle_in$) 
@@ -356,11 +356,11 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
           rot_angle = ele0%value(graze_angle$) - pi/2
         end select
 
-        call w_mat_for_x_pitch (-rot_angle, s_mat)
+        s_mat = w_mat_for_x_pitch (-rot_angle)
         w_mat = matmul (w_mat, s_mat)
 
         if (ele0%value(ref_tilt_tot$) /= 0) then
-          call w_mat_for_tilt(ele0%value(ref_tilt_tot$), t_mat)
+          t_mat = w_mat_for_tilt(ele0%value(ref_tilt_tot$))
           w_mat = matmul (t_mat, w_mat)
           t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
           w_mat = matmul (w_mat, t_mat)
@@ -475,10 +475,10 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       r_vec = 0
     endif
     ! By definition, positive angle is equivalent to negative x_pitch
-    call w_mat_for_x_pitch(-angle, s_mat)
+    s_mat = w_mat_for_x_pitch(-angle)
 
     if (tlt /= 0) then
-      call w_mat_for_tilt (tlt, t_mat)
+      t_mat = w_mat_for_tilt (tlt)
 
       r_vec = matmul (t_mat, r_vec)
 
@@ -522,11 +522,11 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     endif
 
     ! By definition, positive angle is equivalent to negative x_pitch
-    call w_mat_for_x_pitch (-angle, s_mat)
+    s_mat = w_mat_for_x_pitch (-angle)
 
     tlt = ele%value(ref_tilt_tot$)
     if (tlt /= 0) then
-      call w_mat_for_tilt(tlt, t_mat)
+      t_mat = w_mat_for_tilt(tlt)
       r_vec = matmul(t_mat, r_vec)
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
@@ -1333,7 +1333,7 @@ if (ele%key == sbend$) then
  
   if (present(w_mat)) then
     ! Initial rotation to ele's center frame and the tilt
-    call w_mat_for_x_pitch (-(theta-ele%value(angle$)/2), S_mat0)
+    S_mat0 = w_mat_for_x_pitch (-(theta-ele%value(angle$)/2))
     call rotate_mat(S_mat0, z_axis$, ele%value(ref_tilt_tot$))
     w_mat = matmul(S_mis, S_mat0)
     w_mat = matmul(Sb, w_mat)
@@ -1412,7 +1412,7 @@ end function coords_curvilinear_to_floor
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_x_pitch (x_pitch, w_mat, w_mat_inv)
+! Function w_mat_for_x_pitch (x_pitch, return_inverse) result (w_mat)
 ! 
 ! Routine to return the transformation matrix for an x_pitch.
 !
@@ -1420,41 +1420,39 @@ end function coords_curvilinear_to_floor
 !   use geometry_mod
 !
 ! Input:
-!   x_pitch     -- real(rp): pitch angle
-!
+!   x_pitch        -- real(rp): pitch angle
+!   return_inverse -- logical, optional: If True, return the inverse matrix. Default is False.
 ! Output:
-!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
-!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
+!   w_mat(3,3)     -- real(rp): Transformation matrix.
 !-   
 
-Subroutine w_mat_for_x_pitch (x_pitch, w_mat, w_mat_inv)
+Function w_mat_for_x_pitch (x_pitch, return_inverse) result (w_mat)
 
 real(rp) x_pitch, c_ang, s_ang
-real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
+real(rp) :: w_mat(3,3)
+logical, optional :: return_inverse
 
 ! An x_pitch corresponds to a rotation around the y axis.
 
 c_ang = cos(x_pitch); s_ang = sin(x_pitch)
 
-if (present(w_mat)) then
+if (logic_option(.false., return_inverse)) then
+  w_mat(1,:) = [ c_ang, 0.0_rp,  -s_ang]
+  w_mat(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
+  w_mat(3,:) = [ s_ang, 0.0_rp,   c_ang]
+else
   w_mat(1,:) = [ c_ang, 0.0_rp,   s_ang]
   w_mat(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
   w_mat(3,:) = [-s_ang, 0.0_rp,   c_ang]
 endif
 
-if (present(w_mat_inv)) then
-  w_mat_inv(1,:) = [ c_ang, 0.0_rp,  -s_ang]
-  w_mat_inv(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
-  w_mat_inv(3,:) = [ s_ang, 0.0_rp,   c_ang]
-endif
-
-end subroutine w_mat_for_x_pitch
+end function w_mat_for_x_pitch
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)
+! Function w_mat_for_y_pitch (y_pitch, return_inverse) result (w_mat)
 ! 
 ! Routine to return the transformation matrix for an y_pitch.
 !
@@ -1462,41 +1460,40 @@ end subroutine w_mat_for_x_pitch
 !   use geometry_mod
 !
 ! Input:
-!   y_pitch     -- real(rp): pitch angle
+!   y_pitch        -- real(rp): pitch angle
+!   return_inverse -- logical, optional: If True, return the inverse matrix. Default is False.
 !
 ! Output:
-!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
-!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
+!   w_mat(3,3)     -- real(rp): Transformation matrix.
 !-   
 
-Subroutine w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)
+Function w_mat_for_y_pitch (y_pitch, return_inverse) result (w_mat)
 
 real(rp) y_pitch, c_ang, s_ang
-real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
+real(rp) :: w_mat(3,3)
+logical, optional :: return_inverse
 
 ! An y_pitch corresponds to a rotation around the y axis.
 
 c_ang = cos(y_pitch); s_ang = sin(y_pitch)
 
-if (present(w_mat)) then
+if (logic_option(.false., return_inverse)) then
+  w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+  w_mat(1,:) = [0.0_rp,  c_ang,  -s_ang]
+  w_mat(3,:) = [0.0_rp,  s_ang,   c_ang]
+else
   w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
   w_mat(1,:) = [0.0_rp,  c_ang,   s_ang]
   w_mat(3,:) = [0.0_rp, -s_ang,   c_ang]
 endif
 
-if (present(w_mat_inv)) then
-  w_mat_inv(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
-  w_mat_inv(1,:) = [0.0_rp,  c_ang,  -s_ang]
-  w_mat_inv(3,:) = [0.0_rp,  s_ang,   c_ang]
-endif
-
-end subroutine w_mat_for_y_pitch
+end function w_mat_for_y_pitch
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_tilt (tilt, w_mat, w_mat_inv)
+! Function w_mat_for_tilt (tilt, return_inverse) result (w_mat)
 ! 
 ! Routine to return the transformation matrix for an tilt.
 !
@@ -1504,37 +1501,34 @@ end subroutine w_mat_for_y_pitch
 !   use geometry_mod
 !
 ! Input:
-!   tilt     -- real(rp): pitch angle
+!   tilt           -- real(rp): pitch angle
+!   return_inverse -- logical, optional: If True, return the inverse matrix. Default is False.
 !
 ! Output:
-!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
-!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
+!   w_mat(3,3)     -- real(rp): Transformation matrix.
 !-   
 
-Subroutine w_mat_for_tilt (tilt, w_mat, w_mat_inv)
+Function w_mat_for_tilt (tilt, return_inverse) result (w_mat)
 
 real(rp) tilt, c_ang, s_ang
-real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
+real(rp) :: w_mat(3,3)
+logical, optional :: return_inverse
 
 ! An tilt corresponds to a rotation around the y axis.
 
 c_ang = cos(tilt); s_ang = sin(tilt)
 
-if (present(w_mat)) then
+if (logic_option(.false., return_inverse)) then
+  w_mat(1,:) = [ c_ang,  s_ang,  0.0_dp ]
+  w_mat(2,:) = [-s_ang,  c_ang,  0.0_dp ]
+  w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+else
   w_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
   w_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
   w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
 endif
 
-if (present(w_mat_inv)) then
-  w_mat_inv(1,:) = [ c_ang,  s_ang,  0.0_dp ]
-  w_mat_inv(2,:) = [-s_ang,  c_ang,  0.0_dp ]
-  w_mat_inv(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
-endif
-
-end subroutine w_mat_for_tilt
-
-
+end function w_mat_for_tilt
 
 !---------------------------------------------------------------------------
 !+

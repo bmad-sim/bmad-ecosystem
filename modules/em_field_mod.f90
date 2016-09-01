@@ -1284,11 +1284,12 @@ logical forward_transform
 if (ele%key == sbend$) then
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
   theta = ele%value(g$) * s_rel - ele%value(angle$)/2
-  call w_mat_for_x_pitch (theta, w_s)
+  w_s = w_mat_for_x_pitch (theta)
   if (ele%value(ref_tilt_tot$) == 0) then
     w_mat = matmul(matmul(w_s, w_mat), transpose(w_s))
   else
-    call w_mat_for_tilt (ele%value(ref_tilt_tot$), w_rt, w_rt_inv)
+    w_rt = w_mat_for_tilt (ele%value(ref_tilt_tot$))
+    w_rt_inv = w_mat_for_tilt (ele%value(ref_tilt_tot$), .true.)
     w_mat = matmul(matmul(matmul(matmul(matmul(w_rt, w_s), w_rt_inv), w_mat), w_rt), transpose(w_s))
   endif
   w_inv = transpose(w_mat)
