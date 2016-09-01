@@ -118,7 +118,7 @@ character(28), parameter :: r_name = 'sr3d_read_wall_file'
 
 namelist / place / section, surface
 namelist / shape_def / name, v, r0, absolute_vertices
-namelist / surface_def / name, reflectivity_file
+namelist / surface_def / reflectivity_file
 namelist / slow_fast / slow, fast
 ! Open file
 
@@ -156,19 +156,16 @@ enddo
 if (associated(branch%lat%surface)) deallocate(branch%lat%surface)
 allocate (branch%lat%surface(n_surface+2))
 
-branch%lat%surface(1)%reflectivity_file = ''
-branch%lat%surface(1)%descrip = 'default'
 call photon_reflection_std_surface_init (branch%lat%surface(1))
 
-branch%lat%surface(2)%reflectivity_file = ''
-branch%lat%surface(2)%descrip = 'ABSORBER'
+branch%lat%surface(2)%reflectivity_file = '<none>'
+branch%lat%surface(2)%name = 'ABSORBER'
+branch%lat%surface(2)%description = 'Perfect Absorber'
 
 rewind(iu)
 do i = 3, n_surface+2
   read (iu, nml = surface_def, iostat = ios)
   call read_surface_reflection_file (reflectivity_file, branch%lat%surface(i))
-  branch%lat%surface(i)%descrip = name
-  branch%lat%surface(i)%reflectivity_file = reflectivity_file
 enddo
 
 ! Read multi_section
@@ -796,7 +793,7 @@ nullify(surface_ptr)
 if (surface_name == '') return
 
 do i = 1, size(surfaces)
-  if (surfaces(i)%descrip == surface_name) then
+  if (surfaces(i)%name == surface_name) then
     surface_ptr => surfaces(i)
     return
   endif

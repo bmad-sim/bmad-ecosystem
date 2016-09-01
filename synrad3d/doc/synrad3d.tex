@@ -613,9 +613,9 @@ for the default surface (\sref{s:dflt.reflect}).  This is used for
 diffuse scattering.  If negative (the default), the value of
 5.5~$\mu$m will be used.
   \item[\vn{surface_reflection_file}] \Newline
-To change the default reflection probability curves used in the simulation, a 
-\vn{surface_reflection_file} can be used. See \sref{s:reflect.file} for details
-on the syntax of such a file.
+This parameter is used to change the default reflection probability curves used in the
+simulation. See \sref{s:reflect.file} for details. To define multiple surfaces with
+differing reflectivities, see \sref{s:surface}.
   \item[\vn{sr3d_params\%allow_reflections}] \Newline
 This parameter, if set False, will cause \srthree to stop tracking a given photon once
 it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
@@ -716,7 +716,7 @@ will be used as the chamber geometry (the lattice geometry is set in the lattice
 see the Bmad manual\cite{b:bmad} for more details). For a \vn{"closed"} geometry, the
 chamber ends at the ends of the lattice are connected together so a photon hitting one end
 will reappear at the other end.  For an \vn{"open"} geometry, the camber ends at the ends
-of the lattice are not connected so a photon hitting an end will be reflectecd or absorbed.
+of the lattice are not connected so a photon hitting an end will be reflected or absorbed.
 \end{description}
 
 The six "filter" parameters are:
@@ -810,8 +810,8 @@ named \vn{place}. The general form of a \vn{place} namelist is:
     surface = "<surface_name>", <is_local>
   /
 \end{example} 
-The optional \vn{surface} variable is explained in \sref{s:surface}.
-Example:
+The optional \vn{surface} parameter, which is used to specify a particular surface, is
+explained in \sref{s:surface}.  Example:
 \begin{example}
   &place section =   0.0, "arc_std", "beam:dipole_shape" /
   &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
@@ -872,7 +872,7 @@ section with \vn{<edge-sec>} set to \vn{"START"} and ends with the section with
   &place section =  1032, ""  "left_ante:chamZ" /
 \end{example}
 In this case there are two or three subchambers, both named \vn{"left_ante"}.  One
-subchamber begins at $s = 174$~meters and ends at 182~meters. If the vaccum chamber has a
+subchamber begins at $s = 174$~meters and ends at 182~meters. If the vacuum chamber has a
 ``closed'' geometry (see the description of the \vn{chamber_end_geometry} parameter), there
 is a second subchamber that begins at $s = 936$~meters, wraps around the end of the
 lattice back to the beginning, and ends at 5~meters. On the other hand, if the chamber has
@@ -1032,7 +1032,8 @@ general syntax for this is:
     surface = "<surface_name>", <is_local>
   /
 \end{example} 
-The optional \vn{surface} variable is explained in \sref{s:surface}.
+The optional \vn{surface} variable, which is used to specify a particular surface, is
+explained in \sref{s:surface}.
 
 \vn{<s>} is the longitudinal starting position of the series of
 cross-sections, \vn{<section_name>} is not used but must be present to
@@ -1301,10 +1302,9 @@ Prescription for converting:
 \section{Chamber Surface Reflectivity}
 \label{s:surface}
 
-By default, the photon reflectivity of the vacuum chamber wall is
-based on the reflectivity of a 10 nm C film on an Al substrate.
-This default can be changed by setting the following parameters
-in the master input file (\sref{s:master}):
+By default, the photon reflectivity of the vacuum chamber wall is based on the
+reflectivity of a 10 nm C film on an Al substrate. This default can be changed by setting
+the following parameters in the master input file (\sref{s:master}):
 \begin{example}
     surface_reflection_file
     surface_roughness_rms
@@ -1316,12 +1316,11 @@ additional surface types can be defined using \vn{surface_def}
 namelists in the chamber wall file. The syntax for this namelist is
 \begin{example}
   &surface_def
-    name = "<surface_name>"
     reflectivity_file = "<file_name>"
   / 
 \end{example}
-\vn{name} is an identification name and \vn{reflectivity_file} is a file
-that specifies the surface reflectivity (\sref{s:reflect.file}).
+\vn{reflectivity_file} is a file that specifies the surface reflectivity as 
+explained in (\sref{s:reflect.file}).
 
 To associate a particular material with a particular region of the
 chamber wall, the optional \vn{surface} variable is set for the
@@ -1330,14 +1329,14 @@ chamber wall, the optional \vn{surface} variable is set for the
 \begin{example}
   &place
     section = ...
-    surface  = "<surface_name>", <is_local>
+    surface  = "<name>", <is_local>
   /
 \end{example}
-The \vn{<surface_name>} must match the \vn{<surface_name>} of a
-\vn{surface_def} namelist. The one exception is if \vn{<surface_name>}
+The \vn{<name>} here must match the \vn{name} in the surface reflectivity file
+The one exception is if \vn{<name>}
 is set to
 \begin{example}
-  ABSORBER
+  ABSORBER              ! Case sensitive
 \end{example}
 In this case the surface is a perfect absorber.
 
@@ -1595,15 +1594,21 @@ The probability file must start with a namelist named \vn{general}
 that specifies the number of tables and roughness numbers. Example:
 \begin{example}
   &general
+    name = "ConCu"      ! Case sensitive
+    description = "50um C layer on Cu substrate"
     n_table = 5    ! 5 tables
     surface_roughness_rms      = 200e-9   ! meters
     roughness_correlation_len  = 5.5e-6   ! meters
   /
 \end{example}
+The \vn{name} parameter is used to identify the surface in the vacuum chamber wall file
+(\sref{s:wall.file}). The \vn{description} parameter is an optional description string
+that \srthree prints when plotting reflectivity curves.
 
 Next, each table is specified in turn starting from the table for the
 lowest energy interval. A table is specified starting with a
-\vn{table} namelist. Example:
+\vn{table} namelist. There are two different syntaxes that can be used here
+An example of the first syntax is:
 \begin{example}
   &table
     energy_min    =  600 ! eV
@@ -1614,7 +1619,19 @@ lowest energy interval. A table is specified starting with a
 \end{example}
 In this example, the energy range is from 600 eV to 1400 eV in steps
 of 20 eV and the reflection probability is specified at 9 different
-grazing angles. For each energy ``row'', \vn{p_reflect} is
+grazing angles (in degrees). 
+
+An example of the second \vn{table} namelist syntax is:
+\begin{example}
+  &table
+    energies = 7, 10, 31, 45
+    angles =  0.0, 0.4, 0.8, 1.0, 1.5, 2.0, 3.0, 4.0, 90.0
+  /
+\end{example}
+In this example, the angle points are the same but the energy points are specified point
+by point.  This second syntax is useful when the reflection data is not evenly spaced. 
+
+After the \vn{table} namelist, for each energy ``row'', \vn{p_reflect} is
 specified by a \vn{row} namelist. Example:
 \begin{example}
   &row
@@ -1622,18 +1639,16 @@ specified by a \vn{row} namelist. Example:
     p_reflect =  1.00, 0.941, 0.882, 0.852, 0.771, 0.669, 0.514, 0.056, 0.0
   /
 \end{example}
-There must one \vn{row} namelist for each energy value in the
-table. For this example there would be 41 \vn{row} namelists. The
-\vn{row} namelists must be in order of increasing energy and each
-\vn{row} namelist has a \vn{ix_row} component which must be set to
-\vn{1} for the first \vn{row} namelist, \vn{2} for the second,
-etc. \srthree uses \vn{ix_row} as a sanity check when reading in
-the table. The \vn{p_reflect} component of the
-\vn{row} namelist give the reflection probabilities at the $N_\theta$
-angle points.
+There must one \vn{row} namelist for each energy value in the table. For this example
+there would be 41 \vn{row} namelists. The \vn{row} namelists must be in order of
+increasing energy and each \vn{row} namelist has a \vn{ix_row} component which must be set
+to \vn{1} for the first \vn{row} namelist, \vn{2} for the second, etc. \srthree uses
+\vn{ix_row} as a sanity check when reading in the table. The \vn{p_reflect} component of
+the \vn{row} namelist give the reflection probabilities at the $N_\theta$ angle points.
 
-There must be no gaps in the energy ranges of the tables. On the other hand, it is
-permitted for the energy ranges of the tables to overlap.
+There must be no gaps between the energy ranges of the tables. That is, the lowest energy
+of one table must be at most the highest energy of the previous table. On the other hand,
+it is permitted for the energy ranges of the tables to overlap.
 
 %------------------------------------------------------------------
 \chapter{Output Files} 
@@ -1697,7 +1712,7 @@ The columns of the file are:
   17:     Photon longitudinal travel length - beam travel length 
                                                        in the same time period.
   18:     Lattice element index where photon is absorbed.
-  19:     Lattice element type (eg: quadrupole, etc.) where photon is absorbed.
+  19:     Lattice element type (Eg: quadrupole, etc.) where photon is absorbed.
   20:     sub-chamber name where photon is absorbed.
 \end{example}  
 
@@ -1778,7 +1793,7 @@ orbit will be the zero orbit and in this case all photons will start
 with $x$ = $vx$ = $y$ = 0.
 
 Note: Since the $(x,y,s)$ coordinates are curved in bend elements, the photon trajectory
-in $(x,y,s)$ cordinates is not, in general, a straight line between hit points. For more
+in $(x,y,s)$ coordinates is not, in general, a straight line between hit points. For more
 accurate plotting, a \vn{photon_track_file} (\sref{s:photon.track.file}) should be
 generated. Caution: \vn{photon_track_file}s are over an order of magnitude larger than
 \vn{wall_hit_file}s.
@@ -1788,7 +1803,7 @@ generated. Caution: \vn{photon_track_file}s are over an order of magnitude large
 \label{s:photon.track.file}
 
 A photon track file records the photon position after each propagation step.
-A phton track file is generated if the \vn{photon_track_file} parameter is
+A photon track file is generated if the \vn{photon_track_file} parameter is
 set to something that is not blank in the master input file (\sref{s:master}).
 
 Example track file output
@@ -1819,7 +1834,7 @@ Column 1 gives the photon index which gives a count of the photons that have bee
 and passed the filter restrictions. Only photons that have passed the filter restriction have
 their tracks recorded in the file. Thus the photon index numbers will be consecutive.
 
-Colum 2 gives the photon generation index. Each tracked photon is given a unique
+Column 2 gives the photon generation index. Each tracked photon is given a unique
 generation index starting from 1. Thus for the example above, photons with generation
 index 1, 4, 5, 7 and 9 passed the filter tests and thus are present in the file. Photons
 with generation index 2, 3, 6, and 8 did not pass the filter tests and are not shown in
@@ -3108,7 +3123,7 @@ $w\ll1$ implies $\lambda \ll \lambda_{0}$, then
 \der{P_{2}}{\Omega}&=&w^{2}
 P_{0}\frac{\left<R\right>^{2}}{2\pi y}\frac{F_{0}(x,y,\phi)}{(x+y)^{2}}\end{eqnarray}
 
-This has a $\phi$ dependence which follows that of $F_{0}$, i.e, it is peaked in the backward direction, near $\phi=\pm\pi$. However, the behavior with $w$ (i.e, vanishing in the small wavelength limit) is unphysical (eg., see \cite{b:ogilvy}, pg. 93)
+This has a $\phi$ dependence which follows that of $F_{0}$, i.e, it is peaked in the backward direction, near $\phi=\pm\pi$. However, the behavior with $w$ (i.e, vanishing in the small wavelength limit) is unphysical (Eg., see \cite{b:ogilvy}, pg. 93)
 
 $w\gg1$ implies $\lambda \gg \lambda_{0}$, then
 
