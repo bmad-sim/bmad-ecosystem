@@ -16,9 +16,8 @@
 
 subroutine ptc_read_flat_file (flat_file, err_flag, lat)
 
-use bmad, except_dummy => ptc_read_flat_file
+use ptc_interface_mod, except_dummy => ptc_read_flat_file
 use madx_ptc_module
-use ptc_interface_mod
 
 implicit none
 
