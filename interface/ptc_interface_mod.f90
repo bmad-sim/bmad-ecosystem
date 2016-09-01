@@ -611,16 +611,16 @@ if (logic_option(.true., print_coords)) then
 
     if (printit) then
       nl=nl+1
-      call write_reals ('%a_d    [Entrance translation]:', ptch%a_d,   '10f12.9', writeit = .true.)
-      call write_reals ('%a_ang  [Entrance angle]:      ', ptch%a_ang, '10f12.9', writeit = .true.)
+      call write_reals ('%a_d    [Entrance translation]:', ptch%a_d,   '10f13.9', writeit = .true.)
+      call write_reals ('%a_ang  [Entrance angle]:      ', ptch%a_ang, '10f13.9', writeit = .true.)
     endif
 
     printit = .false.
     if (integer2_value(0, ptch%patch) == 2 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
 
     if (printit) then
-      call write_reals ('%b_d    [Exit translation]:', ptch%b_d,   '10f12.9', writeit = .true.)
-      call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f12.9', writeit = .true.)
+      call write_reals ('%b_d    [Exit translation]:', ptch%b_d,   '10f13.9', writeit = .true.)
+      call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f13.9', writeit = .true.)
     endif
 
     nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy)
