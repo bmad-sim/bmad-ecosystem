@@ -39,11 +39,11 @@ real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
 real(rp) value, value1, value2, y_min, y_max
 real(rp), allocatable :: x(:)
 
-integer i, j, n, ix, ios, n_lines, i_chan
+integer i, j, n, ix, ios, n_lines, i_chan, n_max, d_max
 
 logical fixed_energy, logic
 
-character(80) ans, head_lab
+character(80) ans, head_lab, descrip, fmt
 character(16) x_lab, y_lab, param, reflection_type
 
 ! init
@@ -142,9 +142,16 @@ do
   ! Get input:
 
   print *
+
+
   print '(a)', 'Surfaces Defined:'
+  n_max = maxval(len_trim(branch%lat%surface%name))
+  d_max = maxval(len_trim(branch%lat%surface%description))
+  write (fmt, '(a, i0, a, i0, a)') '(3x, i3, 2x, a', n_max+5, ', a', d_max+7, ', 2a)'
   do i = 1, size (branch%lat%surface)
-    print '(3x, i3, 2x, a)', i, trim(branch%lat%surface(i)%descrip)
+    descrip = branch%lat%surface(i)%description
+    if (descrip /= '') descrip = '"' // trim(descrip) // '"'
+    print fmt, i, branch%lat%surface(i)%name, descrip, 'File: ', trim(branch%lat%surface(i)%reflectivity_file)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -577,7 +584,7 @@ do iw = 1, size(branch%wall3d)
     section => wall3d%section(i)
     if (associated(section%surface)) then
       print '(2i8, f14.6, 2x, a20, 2x, a16, a)', iw, i, section%s, section%name, &
-          wall3d_section_type_name(section%type), trim(section%surface%descrip)
+          wall3d_section_type_name(section%type), trim(section%surface%name)
     else
       print '(2i8, f14.6, 2x, a20, 2x, a16)', iw, i, section%s, section%name, wall3d_section_type_name(section%type)
     endif
@@ -616,11 +623,11 @@ do
       print '(2(2x, a, f0.3), 2x, a)', 'S: ', s_pos, 'S-S_prev: ', s_pos-s_pos_old, sub_label
       write (label, '(2(2x, a, f0.3), 2x, a)') 'S: ', s_pos, 'S-S_prev: ', s_pos-s_pos_old, trim(sub_label)
     endif
-    label2 = 'Surface: ' // wall3d_select%section(ix_section)%surface%descrip
+    label2 = 'Surface: ' // wall3d_select%section(ix_section)%surface%name
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
     ! %species used for section index.
-    label2 = 'Surface: ' // wall3d_select%section(photon%now%ix_wall_section+1)%surface%descrip
+    label2 = 'Surface: ' // wall3d_select%section(photon%now%ix_wall_section+1)%surface%name
   endif
 
   call qp_clear_page
