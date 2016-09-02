@@ -54,7 +54,6 @@ Second, create a file called \vn{create_flat.ptc} with the following in it:
 \begin{example}
   select layout
   1
-  ! print new flat file
   print flat file
   XXX.flat
   return
@@ -63,6 +62,9 @@ The flat file name \vn{XXX.flat} can be changed if desired.
 
 Now run \mad-X with the lattice file. A flat file will be created. This flat file can
 converted to \bmad as documented in \sref{s:ptc.convert}
+
+Note: \mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
+elements become drifts in a flat file
 
 %-----------------------------------------------------------------------------
 \subsection{Convert Bmad to MAD}
