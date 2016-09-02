@@ -137,7 +137,7 @@ logical err
 
 vec => photon%now%orb%vec
 
-do
+main_loop: do
 
   if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
 
@@ -156,10 +156,10 @@ do
   ix_w => sr3d_com%fast(photon%now%ix_wall3d)%ix_wall3d
   do i = 1, size(ix_w)
     status = sr3d_photon_status_calc (photon, branch, ix_w(i))
-    if (photon%status == inside_the_wall$) then
+    if (status == inside_the_wall$) then
       photon%now%ix_wall3d = ix_w(i)
       photon%status = status
-      cycle
+      cycle main_loop
     endif
   enddo
 
@@ -175,7 +175,7 @@ do
     return
   endif
 
-enddo
+enddo main_loop
 
 end subroutine sr3d_track_photon_to_wall
 
