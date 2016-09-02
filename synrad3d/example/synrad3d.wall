@@ -10,7 +10,7 @@
 &multi_place
   name = "zigzag"
   section(1) = 0.00, "inzig", 'dip1'
-  section(2) = 0.02, "outzag", "rect_zag", 0.0901, 0.04
+  section(2) = 0.02, "outzag", "rect_zag"
   section(3) = 0.08, "closed", "end_marker"
 /
 
@@ -48,18 +48,24 @@
 	v(1) = 0.0, 0.0, 0.02
 /
 
+! This defines the "CCu" surface.
+&surface_def
+	reflectivity_file = 'reflection_surface.table'
+/
+
 &place section = 0.0,  'rec1', 'rectangular1' /
 &place section = 10.0, '',     'zigzag', 10 /
-&place section = 14.0, 'rec2', 'rectangular1' /
+&place section = 768.42, 'rec2', 'rectangular1' /
 
 &place section =  0, 'z1', 'ante:z1_shape' /
-&place section = 14, 'z2', 'ante:z2_shape' /
+&place section = 768.42, 'z2', 'ante:z2_shape' /
 
 ! Note: The f subchamber wraps around zero.
 &place section = 0, '', 'f:z2_shape' /
-&place section = 1, '', 'f:f_shape@END' /
+&place section = 1, '', 'f:f_shape@END' 
+	     surface = "CCu" /
 &place section = 14, '', 'f:f_shape@START' /
-&place section = 14, '', 'f:z2_shape' /
+&place section = 768.42, '', 'f:z2_shape' /
 
 &slow_fast
 	slow = ''
