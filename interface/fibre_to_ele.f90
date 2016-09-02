@@ -138,6 +138,9 @@ call set_energy (ele)
 if (mag%p%b0 /= 0) then
   ele%key = sbend$
 
+elseif (fib%mag%kind == kind15) then
+  ele%key = elseparator$
+
 elseif (associated(mag%k3)) then
   ele%key = multipole$
 
@@ -146,10 +149,6 @@ elseif (associated(mag%s5)) then
 
 elseif (associated(mag%c4)) then
   ele%key = rfcavity$
-
-
-! elseparator ???
-! taylor ???
 
 elseif (associated(mag%d0)) then
   if (associated (mag%p%aperture)) then

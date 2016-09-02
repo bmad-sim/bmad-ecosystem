@@ -404,7 +404,7 @@ character(*) file_name
 character(40) name
 character(80) description
 
-integer i, j, iu, n_table, it, n_angles, n_energy, ix_row
+integer i, j, iu, n_table, it, n_angles, n_energy, ix_row, ios
 
 real(rp) angles(100), energy_min, energy_max, energy_delta, p_reflect(200), energies(200)
 real(rp) surface_roughness_rms, roughness_correlation_len
@@ -425,11 +425,27 @@ open (iu, file = file_name, status = 'old')
 
 description = ''
 name = '???'
-read (iu, nml = general)
+surface_roughness_rms = -1
+roughness_correlation_len = -1
+read (iu, nml = general, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_fatal$, r_name, 'CANNOT READ "GENERAL" NAMELIST FROM REFLECTIVITY FILE.')
+  read (iu, nml = general)  ! Will generate error message
+endif
 
 if (name == '???') then
   call out_io (s_fatal$, r_name, 'SURFACE REFLECTIVITY FILES MUST NOW HAVE A "NAME" IN THE "GENERAL" NAMELIST.')
   stop
+endif
+
+if (surface_roughness_rms < 0) then
+  call out_io (s_warn$, r_name, 'SURFACE_ROUGHNESS_RMS NOT SET. WILL TREAT AS ZERO.')
+  surface_roughness_rms = 0
+endif
+
+if (roughness_correlation_len < 0) then
+  call out_io (s_warn$, r_name, 'ROUGHNESS_CORRELATION_LEN NOT SET. WILL TREAT AS ZERO.')
+  roughness_correlation_len = 0
 endif
 
 surface%surface_roughness_rms     = surface_roughness_rms
@@ -450,7 +466,11 @@ do it = 1, n_table
   energies = -1
   angles = -1
 
-  read (iu, nml = table)
+  read (iu, nml = table, iostat = ios)
+  if (ios /= 0) then
+    call out_io (s_fatal$, r_name, 'ERROR READING TABLE NAMELIST \i0\ FROM SURFACE REFLECTIVITY FILE.', it)
+    read (iu, nml = table)
+  endif
 
   do i = 1, size(angles)
     if (angles(i) >= 0) cycle
@@ -483,7 +503,13 @@ do it = 1, n_table
   prt%max_energy = prt%energy(n_energy)
 
   do i = 1, n_energy
-    read (iu, nml = row)
+    read (iu, nml = row, iostat = ios)
+    if (ios /= 0) then
+      call out_io (s_fatal$, r_name, &
+                    'ERROR READING ROW NAMELIST \i0\ FROM TABLE \i0\ FROM SURFACE REFLECTIVITY FILE.', &
+                    i_array = [i, it])
+      read (iu, nml = row, iostat = ios)
+    endif
     if (ix_row /= i) then
       call out_io (s_fatal$, r_name, &
               'ERROR READING SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
