@@ -354,13 +354,17 @@ void set_CPP_photon_reflect_surface_test_pattern (CPP_photon_reflect_surface& C,
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[character, 0, NOT]
-  C.descrip.resize(40);
-  for (unsigned int i = 0; i < C.descrip.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.descrip[i] = 'a' + rhs % 26;}
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
+  C.description.resize(80);
+  for (unsigned int i = 0; i < C.description.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.description[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.reflectivity_file.resize(200);
   for (unsigned int i = 0; i < C.reflectivity_file.size(); i++)
-    {int rhs = 101 + i + 2 + offset; C.reflectivity_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 3 + offset; C.reflectivity_file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.table.resize(0);
@@ -370,16 +374,16 @@ void set_CPP_photon_reflect_surface_test_pattern (CPP_photon_reflect_surface& C,
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.surface_roughness_rms = rhs;
+  rhs = 6 + offset; C.surface_roughness_rms = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.roughness_correlation_len = rhs;
+  rhs = 7 + offset; C.roughness_correlation_len = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 7 + offset; C.initialized = (rhs % 2 == 0);
+  rhs = 8 + offset; C.initialized = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.ix_surface = rhs;
+  rhs = 9 + offset; C.ix_surface = rhs;
 
 
 }

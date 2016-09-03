@@ -377,7 +377,7 @@ extern "C" void photon_reflect_surface_to_c (const Bmad_photon_reflect_surface_c
 
 // c_side.to_f2_arg
 extern "C" void photon_reflect_surface_to_f2 (Bmad_photon_reflect_surface_class*, c_Char,
-    c_Char, const CPP_photon_reflect_table**, Int, c_Real&, c_Real&, c_Bool&, c_Int&);
+    c_Char, c_Char, const CPP_photon_reflect_table**, Int, c_Real&, c_Real&, c_Bool&, c_Int&);
 
 extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface& C, Bmad_photon_reflect_surface_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -389,22 +389,24 @@ extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface& C
   }
 
   // c_side.to_f2_call
-  photon_reflect_surface_to_f2 (F, C.descrip.c_str(), C.reflectivity_file.c_str(), z_table,
-      n1_table, C.surface_roughness_rms, C.roughness_correlation_len, C.initialized,
-      C.ix_surface);
+  photon_reflect_surface_to_f2 (F, C.name.c_str(), C.description.c_str(),
+      C.reflectivity_file.c_str(), z_table, n1_table, C.surface_roughness_rms,
+      C.roughness_correlation_len, C.initialized, C.ix_surface);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_table;
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_Char z_descrip,
-    c_Char z_reflectivity_file, Bmad_photon_reflect_table_class** z_table, Int n1_table,
-    c_Real& z_surface_roughness_rms, c_Real& z_roughness_correlation_len, c_Bool&
-    z_initialized, c_Int& z_ix_surface) {
+extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_Char z_name,
+    c_Char z_description, c_Char z_reflectivity_file, Bmad_photon_reflect_table_class**
+    z_table, Int n1_table, c_Real& z_surface_roughness_rms, c_Real&
+    z_roughness_correlation_len, c_Bool& z_initialized, c_Int& z_ix_surface) {
 
   // c_side.to_c2_set[character, 0, NOT]
-  C.descrip = z_descrip;
+  C.name = z_name;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.description = z_description;
   // c_side.to_c2_set[character, 0, NOT]
   C.reflectivity_file = z_reflectivity_file;
   // c_side.to_c2_set[type, 1, ALLOC]

@@ -145,7 +145,8 @@ template bool is_all_equal (const CPP_photon_reflect_table_MATRIX&, const CPP_ph
 
 bool operator== (const CPP_photon_reflect_surface& x, const CPP_photon_reflect_surface& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.descrip == y.descrip);
+  is_eq = is_eq && (x.name == y.name);
+  is_eq = is_eq && (x.description == y.description);
   is_eq = is_eq && (x.reflectivity_file == y.reflectivity_file);
   is_eq = is_eq && is_all_equal(x.table, y.table);
   is_eq = is_eq && (x.surface_roughness_rms == y.surface_roughness_rms);

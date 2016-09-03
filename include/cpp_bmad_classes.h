@@ -596,7 +596,8 @@ class Bmad_photon_reflect_surface_class {};  // Opaque class for pointers to cor
 
 class CPP_photon_reflect_surface {
 public:
-  string descrip;
+  string name;
+  string description;
   string reflectivity_file;
   CPP_photon_reflect_table_ARRAY table;
   Real surface_roughness_rms;
@@ -605,13 +606,14 @@ public:
   Int ix_surface;
 
   CPP_photon_reflect_surface() :
-    descrip(),
+    name(),
+    description(),
     reflectivity_file(),
     table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0)),
     surface_roughness_rms(0.0),
     roughness_correlation_len(0.0),
     initialized(false),
-    ix_surface(0)
+    ix_surface(-1)
     {}
 
   ~CPP_photon_reflect_surface() {

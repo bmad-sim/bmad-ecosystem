@@ -1266,8 +1266,8 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_reflect_surface_to_c2 (C, z_descrip, z_reflectivity_file, z_table, &
-      n1_table, z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, &
+  subroutine photon_reflect_surface_to_c2 (C, z_name, z_description, z_reflectivity_file, &
+      z_table, n1_table, z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, &
       z_ix_surface) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
@@ -1275,7 +1275,7 @@ interface
     integer(c_int) :: z_ix_surface
     integer(c_int), value :: n1_table
     logical(c_bool) :: z_initialized
-    character(c_char) :: z_descrip(*), z_reflectivity_file(*)
+    character(c_char) :: z_name(*), z_description(*), z_reflectivity_file(*)
     real(c_double) :: z_surface_roughness_rms, z_roughness_correlation_len
     type(c_ptr) :: z_table(*)
   end subroutine
@@ -1304,9 +1304,9 @@ if (allocated(F%table)) then
 endif
 
 !! f_side.to_c2_call
-call photon_reflect_surface_to_c2 (C, trim(F%descrip) // c_null_char, trim(F%reflectivity_file) &
-    // c_null_char, z_table, n1_table, F%surface_roughness_rms, F%roughness_correlation_len, &
-    c_logic(F%initialized), F%ix_surface)
+call photon_reflect_surface_to_c2 (C, trim(F%name) // c_null_char, trim(F%description) // &
+    c_null_char, trim(F%reflectivity_file) // c_null_char, z_table, n1_table, &
+    F%surface_roughness_rms, F%roughness_correlation_len, c_logic(F%initialized), F%ix_surface)
 
 end subroutine photon_reflect_surface_to_c
 
@@ -1326,8 +1326,9 @@ end subroutine photon_reflect_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_reflect_surface_to_f2 (Fp, z_descrip, z_reflectivity_file, z_table, n1_table, &
-    z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, z_ix_surface) bind(c)
+subroutine photon_reflect_surface_to_f2 (Fp, z_name, z_description, z_reflectivity_file, &
+    z_table, n1_table, z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, &
+    z_ix_surface) bind(c)
 
 
 implicit none
@@ -1339,14 +1340,16 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 integer(c_int) :: z_ix_surface
 integer(c_int), value :: n1_table
 logical(c_bool) :: z_initialized
-character(c_char) :: z_descrip(*), z_reflectivity_file(*)
+character(c_char) :: z_name(*), z_description(*), z_reflectivity_file(*)
 real(c_double) :: z_surface_roughness_rms, z_roughness_correlation_len
 type(c_ptr) :: z_table(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_descrip, F%descrip)
+call to_f_str(z_name, F%name)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_description, F%description)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_reflectivity_file, F%reflectivity_file)
 !! f_side.to_f2_trans[type, 1, ALLOC]

@@ -598,12 +598,16 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%descrip)
-  F%descrip(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+do jd1 = 1, len(F%name)
+  F%name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%description)
+  F%description(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%reflectivity_file)
-  F%reflectivity_file(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
+  F%reflectivity_file(jd1:jd1) = char(ichar("a") + modulo(100+3+offset+jd1, 26))
 enddo
 !! f_side.test_pat[type, 1, ALLOC]
 
@@ -616,13 +620,13 @@ else
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%surface_roughness_rms = rhs
+rhs = 6 + offset; F%surface_roughness_rms = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%roughness_correlation_len = rhs
+rhs = 7 + offset; F%roughness_correlation_len = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 7 + offset; F%initialized = (modulo(rhs, 2) == 0)
+rhs = 8 + offset; F%initialized = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%ix_surface = rhs
+rhs = 9 + offset; F%ix_surface = rhs
 
 end subroutine set_photon_reflect_surface_test_pattern
 

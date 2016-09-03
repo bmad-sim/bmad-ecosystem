@@ -109,6 +109,7 @@ component_no_translate_list = set([
     'genfield',
     'ptc_branch1_info_struct',
     'layout',
+    'exact_bend_struct',
     'ele_struct%lord',
     'ele_struct%branch',
     'branch_struct%lat',
