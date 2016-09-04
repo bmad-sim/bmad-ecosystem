@@ -1478,12 +1478,12 @@ logical, optional :: return_inverse
 c_ang = cos(y_pitch); s_ang = sin(y_pitch)
 
 if (logic_option(.false., return_inverse)) then
-  w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
-  w_mat(1,:) = [0.0_rp,  c_ang,  -s_ang]
+  w_mat(1,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+  w_mat(2,:) = [0.0_rp,  c_ang,  -s_ang]
   w_mat(3,:) = [0.0_rp,  s_ang,   c_ang]
 else
-  w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
-  w_mat(1,:) = [0.0_rp,  c_ang,   s_ang]
+  w_mat(1,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+  w_mat(2,:) = [0.0_rp,  c_ang,   s_ang]
   w_mat(3,:) = [0.0_rp, -s_ang,   c_ang]
 endif
 
