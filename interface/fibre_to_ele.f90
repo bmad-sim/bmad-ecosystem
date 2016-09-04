@@ -129,7 +129,7 @@ real(rp) ab_max, ab
 real(rp), parameter :: cm1 = 0.01  ! 1 cm radius
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i, n, ix_max
+integer i, np, ix_max
 
 logical err_flag, err
 
@@ -139,6 +139,16 @@ character(*) name
 
 ix_ele = ix_ele + 1
 ele => branch%ele(ix_ele)
+
+np = 0
+a_pole = 0
+b_pole = 0
+
+if (associated(mag%an)) then
+  np = size(mag%an)
+  a_pole(0:np-1) = mag%an
+  b_pole(0:np-1) = mag%bn
+endif
 
 ! Sbend
 
@@ -158,6 +168,8 @@ if (mag%p%b0 /= 0) then
   ele%value(hgap$) = fib%mag%hgap
   ele%value(fint$) = fib%mag%fint
   ele%value(ref_tilt$) = fib%mag%p%tiltd
+  if (np >= 2) ele%value(k1$) = mag%bn(2)
+  if (np >= 3) ele%value(k2$) = 2 * mag%bn(3)
 
 ! Marker
 
@@ -178,10 +190,9 @@ elseif (fib%mag%kind == kind15) then
 ! Multipole
 
 elseif (associated(mag%k3)) then
-  call init_ele(ele, multipole$, -1, ix_ele, branch)
-  call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
-  ele%a_pole = knl
-  ele%b_pole = tn
+  call init_ele(ele, ab_multipole$, -1, ix_ele, branch)
+  ele%a_pole = a_pole
+  ele%b_pole = b_pole
 
 ! Solenoid
 
@@ -195,12 +206,7 @@ elseif (associated(mag%c4)) then
   call init_ele(ele, rfcavity$, -1, ix_ele, branch)
 
   ele%value(rf_frequency$) = fib%mag%freq
-
-  select case (nint(ele%value(cavity_type$)))
-  case (traveling_wave$);     ele%value(voltage$) = fib%mag%volt*1d6
-  case (standing_wave$);      ele%value(voltage$) = fib%mag%volt*0.5d6
-  case (ptc_standard$);       ele%value(voltage$) = fib%mag%volt*1d6
-  end select
+  ele%value(voltage$) = 1d6 * fib%mag%p%ld * fib%mag%volt
 
   if (ele%key == lcavity$) then
     ele%value(phi0$) = pi/2 - fib%mag%lag/twopi
@@ -227,19 +233,14 @@ elseif (associated(mag%d0)) then
   endif
 
 elseif (associated(mag%k2)) then
-  n = size(mag%an)
   ab_max = 0
   ix_max = 1
-  do i = 2, n
+  do i = 2, np
     ab = cm1**(i-1) * abs(mag%bn(i))
     if (ab <= ab_max) cycle
     ab_max = ab
     ix_max = i
   enddo
-
-
-  a_pole(0:n-1) = mag%an
-  b_pole(0:n-1) = mag%bn
 
   select case (ix_max)
   case(2)
@@ -259,8 +260,8 @@ elseif (associated(mag%k2)) then
 
   case default
     call init_ele(ele, kicker$, -1, ix_ele, branch)
-    ele%value(hkick$) = mag%bn(1)
-    ele%value(vkick$) = mag%an(1)
+    ele%value(hkick$) = -fib%mag%p%ld * mag%bn(1)
+    ele%value(vkick$) =  fib%mag%p%ld * mag%an(1)
     a_pole(0) = 0
     b_pole(0) = 0
   end select
@@ -311,18 +312,22 @@ if (associated(mag%p%aperture)) then
   select case (mag%p%aperture%kind)
   case (1)
     ele%aperture_type = elliptical$
+    ele%value(x1_limit$) = mag%p%aperture%r(1)
+    ele%value(x2_limit$) = mag%p%aperture%r(1)
+    ele%value(y1_limit$) = mag%p%aperture%r(2)
+    ele%value(y2_limit$) = mag%p%aperture%r(2)
   case (2)
-    ele%aperture_type = elliptical$
+    ele%aperture_type = rectangular$
+    ele%value(x1_limit$) = mag%p%aperture%x + mag%p%aperture%dx
+    ele%value(x2_limit$) = mag%p%aperture%x - mag%p%aperture%dx
+    ele%value(y1_limit$) = mag%p%aperture%y + mag%p%aperture%dy
+    ele%value(y2_limit$) = mag%p%aperture%y - mag%p%aperture%dy
   case default
     call out_io (s_error$, r_name, 'UNKNOWN PTC APERTURE TYPE: \i0\ ', &
                                    'FOR ELEMENT: ' // name, i_array = [fib%mag%p%aperture%kind])
     err_flag = .true.
   end select
 
-  ele%value(x1_limit$) = mag%p%aperture%x + mag%p%aperture%dx
-  ele%value(x2_limit$) = mag%p%aperture%x - mag%p%aperture%dx
-  ele%value(y1_limit$) = mag%p%aperture%y + mag%p%aperture%dy
-  ele%value(y2_limit$) = mag%p%aperture%y - mag%p%aperture%dy
 endif
 
 end subroutine ele_out
