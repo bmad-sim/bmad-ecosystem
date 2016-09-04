@@ -101,13 +101,13 @@
 "N3"     ABS 0  4
 "Custom"  STR "MY_CUSTOM"
 "Pion-"  REL 1e-12  1.395701800000E+08    -1
-"Muon"  REL 1e-12  1.056583745000E+08    -1
+"Muon"  REL 1e-12  1.056583715000E+08    -1
 "Antiproton"  REL 1e-12  9.382720813000E+08    -1
 "Electron"  REL 1e-12  5.109989461000E+05    -1
 "Photon"  REL 1e-12  0.000000000000E+00     0
 "Positron"  REL 1e-12  5.109989461000E+05     1
 "Proton"  REL 1e-12  9.382720813000E+08     1
-"Antimuon"  REL 1e-12  1.056583745000E+08     1
+"Antimuon"  REL 1e-12  1.056583715000E+08     1
 "Pion+"  REL 1e-12  1.395701800000E+08     1
 "Pion0"  REL 1e-12  1.349766000000E+08     0
 "Ref_Particle"  REL 1e-12  0.000000000000E+00     0

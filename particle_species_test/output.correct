@@ -18,7 +18,7 @@
  
 "Pion-:mass" ABS  1E-10     1.3957018000E+08
 "Pion-:charge" ABS  0     -1
-"Muon:mass" ABS  1E-10     1.0565837450E+08
+"Muon:mass" ABS  1E-10     1.0565837150E+08
 "Muon:charge" ABS  0     -1
 "Antiproton:mass" ABS  1E-10     9.3827208130E+08
 "Antiproton:charge" ABS  0     -1
@@ -30,7 +30,7 @@
 "Positron:charge" ABS  0      1
 "Proton:mass" ABS  1E-10     9.3827208130E+08
 "Proton:charge" ABS  0      1
-"Antimuon:mass" ABS  1E-10     1.0565837450E+08
+"Antimuon:mass" ABS  1E-10     1.0565837150E+08
 "Antimuon:charge" ABS  0      1
 "Pion+:mass" ABS  1E-10     1.3957018000E+08
 "Pion+:charge" ABS  0      1
