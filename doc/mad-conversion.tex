@@ -16,8 +16,21 @@ file and then using \bmad to convert the flat file to a \bmad lattice file.
 
 The advantage of converting via PTC rather than using UAP (\sref{s:mad.bmad.uap} is that
 one does not have to worry about removing action commands from the \mad-X file. The
-disadvantage is that the conversion does not preserve any of the look and feel of the original
-\mad-X file. The other disadvantage is that conversion via PTC does not work with \mad8 lattices.
+disadvantages are:
+  \begin{description}
+  \item 
+the conversion does not preserve any of the look and feel of the original \mad-X file. 
+  \item
+the conversion via PTC does not work with \mad8 lattices.
+  \item
+\mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
+elements become drifts in a flat file.
+  \item
+\mad-X does not transfer beginning Twiss and orbit information to the flat file needed for open lattices.
+  \item
+\mad-X does not transfer the zeroth (dipole) order multipoles of a multipole element to the flat file.
+  \end{description}
+
 
 First, take a \mad-X lattice file and append the following to it:
 \begin{example}
@@ -41,9 +54,6 @@ The flat file name \vn{XXX.flat} can be changed if desired.
 
 Now run \mad-X with the lattice file. A flat file will be created. This flat file can
 converted to \bmad as documented in \sref{s:ptc.convert}
-
-Note: \mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
-elements become drifts in a flat file
 
 %-----------------------------------------------------------------------------
 \subsection{Convert MAD to Bmad Via UAP}
