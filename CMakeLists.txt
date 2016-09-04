@@ -12,6 +12,7 @@ set(SRC_DIRS
 set (EXE_SPECS 
   #  cmake.ansga2
   #  cmake.aspea2
+  cmake.ptc_flat_file_to_bmad
   cmake.make_a_matching_knob
   cmake.wake_fit
   cmake.bmad_to_autocad
