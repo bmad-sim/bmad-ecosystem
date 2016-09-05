@@ -497,7 +497,12 @@ propagation_loop: do
     endif
 
     if (stop_at_check_pt) then
-      if (wall3d%section(ixw)%s == now%s) ixw = ixw - 1
+      do
+        if (ixw == 1) exit
+        if (wall3d%section(ixw)%s /= now%s) exit
+        ixw = ixw - 1
+      enddo
+
       if (wall3d%section(ixw)%s > s_stop) then
         s_stop = wall3d%section(ixw)%s
         stop_location = inside$
