@@ -397,7 +397,7 @@ integer charge, species
 !
 
 do species = lbound(mass_of_fundamental, 1), ubound(mass_of_fundamental, 1)
-  if (charge == charge_of_fundamental(species) .and. abs(mass - mass_of_fundamental(species)) <= 1d-6) return
+  if (charge == charge_of_fundamental(species) .and. abs(mass - mass_of_fundamental(species)) <= 1d-6 * mass) return
 enddo
 
 species = invalid$
