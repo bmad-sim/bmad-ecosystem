@@ -163,7 +163,10 @@ do
 
   call substitute ("\{", "{")
   call substitute ("\}", "}")
-  
+
+  n = len_trim(line)
+  if (line(n:n) == '!') line(n:n) =  ' '
+
   if (line == ' ') then
     if (blank_line_before) cycle
     blank_line_before = .true.
