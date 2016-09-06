@@ -15,8 +15,7 @@
 !
 ! Input:
 !   lat_file   -- Character(*): Name of the input file.
-!   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
-!                   Elements and do other bookkeeping like calculate the reference energy? 
+!   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the Elements?
 !                   Default is True. Do not set False unless you know what you are doing.
 !   use_line   -- Character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
@@ -1111,25 +1110,12 @@ call parser_set_spin (lat%ele(0), lat%beam_start)
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
 ! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.
 
-if (logic_option (.true., make_mats6)) then
-  call set_flags_for_changed_attribute(lat)
-  call lattice_bookkeeper (lat, err)
-  if (err) then
-    bp_com%error_flag = .true.
-    call parser_end_stuff
-    return
-  endif
-else ! Must always call lattice_bookkeeper when there is field overlap since create_file_overlap depends upon it.
-  do i = 1, n_max
-    if (.not. allocated(plat%ele(i)%field_overlaps)) cycle
-    call lattice_bookkeeper (lat, err)
-    if (err) then
-      bp_com%error_flag = .true.
-      call parser_end_stuff
-      return
-    endif
-    exit
-  enddo
+call set_flags_for_changed_attribute(lat)
+call lattice_bookkeeper (lat, err)
+if (err) then
+  bp_com%error_flag = .true.
+  call parser_end_stuff
+  return
 endif
 
 ! Put in field overlaps
