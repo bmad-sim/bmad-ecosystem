@@ -33,7 +33,7 @@ type (random_state_struct) ran_state
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, photon_number_factor
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
-real(rp) e_init_filter_min, e_init_filter_max, timer_time
+real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
 integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele, status
@@ -353,6 +353,7 @@ n_photon_array = 0
 allocate (wall_hit(0:10))
 print *, 'Initialization done. Tracking beginning...'
 call run_timer ('START')
+old_time = -1d3
 
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
@@ -467,10 +468,6 @@ else
       ix_ele = ix_ele_track_start
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
-      call run_timer ('READ', timer_time)
-      print '(a, f9.1)', 'Time from start (min):', timer_time/60
-      print *, '    Num photons generated:          ', n_photon_generated
-      print *, '    Num photons passed filter tests:', n_photon_array
       if (n_photon_generated == 0) then
         print *, 'NO PHOTONS GENERATED. N_PHOTONS OR N_PHOTONS_PER_PASS IS TOO SMALL!'
         call err_exit
@@ -505,6 +502,15 @@ else
     n_photon_ele = 0   
 
     do
+
+      call run_timer ('READ', timer_time)
+      if (old_time > old_time + 60) then
+        print '(a, f9.1)', 'Time from start (min):', timer_time/60
+        print *, '    Num photons generated:          ', n_photon_generated
+        print *, '    Num photons passed filter tests:', n_photon_array
+        old_time = timer_time
+      endif
+
       call sr3d_get_emission_pt_params (branch, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
       g = sqrt(gx**2 + gy**2) 
       call convert_total_energy_to (ele%value(e_tot$),  branch%param%particle, gamma)
