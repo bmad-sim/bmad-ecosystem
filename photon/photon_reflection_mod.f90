@@ -503,20 +503,57 @@ do it = 1, n_table
   prt%max_energy = prt%energy(n_energy)
 
   do i = 1, n_energy
+    p_reflect = -1
     read (iu, nml = row, iostat = ios)
+
     if (ios /= 0) then
       call out_io (s_fatal$, r_name, &
-                    'ERROR READING ROW NAMELIST \i0\ FROM TABLE \i0\ FROM SURFACE REFLECTIVITY FILE.', &
-                    i_array = [i, it])
+                'ERROR READING ROW NAMELIST \i0\ FROM SURFACE REFLECTIVITY FILE: ' // file_name, &
+                'FOR TABLE: \i0\ ', i_array = [i, ix_row, it])
       read (iu, nml = row, iostat = ios)
     endif
+
     if (ix_row /= i) then
       call out_io (s_fatal$, r_name, &
-              'ERROR READING SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'ERROR IN "ROW" NAMELIST IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
               'ROW MISMATCH: \2i5\ ', &
-              'IN TABLE: \i0\ ', i_array = [i, ix_row, it])
-      if (global_com%exit_on_error) call err_exit
+              'FOR TABLE: \i0\ ', i_array = [i, ix_row, it])
+      if (global_com%exit_on_error) stop
     endif
+
+    if (any(p_reflect(1:n_angles) > 1)) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR IN "ROW" NAMELIST \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'A REFLECTION PROBABILITY IS GREATER THAN 1.', &
+              'FOR TABLE: \i0\ ', i_array = [it, ix_row])
+      if (global_com%exit_on_error) stop
+    endif
+
+    if (any(p_reflect(1:n_angles) == -1)) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR IN "ROW" NAMELIST \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'MISSING REFLECTION PROBABILITY.', &
+              'FOR TABLE: \i0\ ', i_array = [it, ix_row])
+      if (global_com%exit_on_error) stop
+    endif
+      
+    if (any(p_reflect(1:n_angles) < 0)) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR IN "ROW" NAMELIST \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'NEGATIVE REFLECTION PROBABILITY.', &
+              'FOR TABLE: \i0\ ', i_array = [it, ix_row])
+      if (global_com%exit_on_error) stop
+    endif
+      
+    if (any(p_reflect(n_angles+1:) /= -1)) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR IN "ROW" NAMELIST \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'NUMBER OF PROBABILITIES GREATER THAN NUMBER OF ANGLES.', &
+              'FOR TABLE: \i0\ ', i_array = [it, ix_row])
+      if (global_com%exit_on_error) stop
+    endif
+      
+
     prt%p_reflect(:, i) = p_reflect(1:n_angles)
   enddo
 
