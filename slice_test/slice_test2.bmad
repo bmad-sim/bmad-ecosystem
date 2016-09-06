@@ -10,6 +10,7 @@ beginning[e_tot]  = 7e6
 
 em: em_field, l = 2,
     grid_field = {
+      field_scale = 0.01,
       geometry = xyz,
       ele_anchor_pt = center,
       r0 = (0.1, 0.2, -1),
