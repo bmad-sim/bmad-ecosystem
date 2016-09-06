@@ -567,13 +567,10 @@ propagation_loop: do
 
     st = dl * now%vec(6)
     ct = radius + now%vec(1) + dl * now%vec(2)
-    if (abs(st) < 1e-3 * ct) then
-      denom = sign (ct * (1 + (st/ct)**2/2 + (st/ct)**4/8), radius)
-    else
-      denom = sign (sqrt((radius + now%vec(1) + dl * now%vec(2))**2 + (dl * now%vec(6))**2), radius)
-    endif
+    denom = sign (sqrt(st**2 + ct**2), radius)
     sin_t = st / denom
     cos_t = ct / denom
+
     v_x = now%vec(2); v_s = now%vec(6)
 
     now%vec(1) = denom - radius
@@ -843,13 +840,15 @@ type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
 type (photon_reflect_surface_struct), pointer :: surface
 
 real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad, theta_diffuse, phi_diffuse
-real(rp) graze_angle, reflectivity, rel_reflect_specular, dvec(3)
+real(rp) graze_angle, reflectivity, rel_reflect_specular, dvec(3), a, b
 real(rp) vec_in_plane(3), vec_out_plane(3)
 
 integer ix, iu
 integer n_old, n_wall_hit
 
 logical absorbed, err_flag, no_wall_here
+
+character(*), parameter :: r_name = 'sr3d_reflect_photon'
 
 !
 
@@ -899,6 +898,16 @@ endif
 ! since the photon is striking the wall from the inside this must be positive.
 
 cos_perp = dot_product (photon%now%orb%vec(2:6:2), dw_perp)
+if (cos_perp > 1) then
+  if (cos_perp < 1.0d0 + 1d-10) then ! Allow for roundoff
+    cos_perp = 1
+  else
+    call out_io (s_error$, r_name, 'ERROR IN REFLECTION CALCULATATION!')
+    err_flag = .true.
+    return
+  endif
+endif
+
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
@@ -916,9 +925,11 @@ endif
 wall_hit(n_wall_hit)%reflectivity = reflectivity
 
 if (cos_perp < 0) then
-  print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
-  print '(8x, a, 6es13.5)', 'WILL IGNORE THIS PHOTON...'
-  print '(8x, a, 6es13.5)', 'dw_perp:', dw_perp
+  call out_io (s_error$, r_name, &
+  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \f10.5\ ', & 
+  'WILL IGNORE THIS PHOTON...', &
+  'dw_perp: \3f10.5\ ', & 
+  r_array = [cos_perp, dw_perp])
   call sr3d_print_photon_info (photon)
   call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
   err_flag = .true.
