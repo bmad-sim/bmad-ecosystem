@@ -38,7 +38,7 @@ use track1_mod, except_dummy => apply_element_edge_kick
 
 implicit none
 
-type (ele_struct) ele, track_ele
+type (ele_struct), target :: ele, track_ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
@@ -56,21 +56,34 @@ logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
-hard_ele => fringe_info%hard_ele
-s_edge = fringe_info%s_edge_hard
+
 particle_at = fringe_info%particle_at
 
-if (particle_at == first_track_edge$) then
-  fringe_info%hard_location = inside$
-else
-  dir = orb%direction
-  if (hard_ele%value(l$) < 0) dir = -dir
-  if (dir == 1) then
-    fringe_info%hard_location = downstream_end$
+if (associated(fringe_info%hard_ele)) then
+  hard_ele => fringe_info%hard_ele
+  s_edge = fringe_info%s_edge_hard
+
+  if (particle_at == first_track_edge$) then
+    fringe_info%hard_location = inside$
   else
-    fringe_info%hard_location = upstream_end$
+    dir = orb%direction
+    if (hard_ele%value(l$) < 0) dir = -dir
+    if (dir == 1) then
+      fringe_info%hard_location = downstream_end$
+    else
+      fringe_info%hard_location = upstream_end$
+    endif
+  endif
+
+else
+  hard_ele => track_ele
+  if (particle_at == first_track_edge$) then
+    s_edge = 0
+  else
+    s_edge = track_ele%value(l$)
   endif
 endif
+
 
 ! Custom edge kick?
 

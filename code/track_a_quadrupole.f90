@@ -26,6 +26,7 @@ implicit none
 type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) kmat6(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
@@ -60,8 +61,9 @@ step_len = ele%value(l$) * r_step
 
 call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
-call hard_multipole_edge_kick  (ele, param, first_track_edge$, orbit, mat6, make_matrix)
-call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
+nullify(fringe_info%hard_ele)
+fringe_info%particle_at = first_track_edge$
+call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
@@ -121,8 +123,8 @@ enddo
 
 ! Exit edge
 
-call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
-call hard_multipole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
+fringe_info%particle_at = second_track_edge$
+call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
 
 call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)  
 
