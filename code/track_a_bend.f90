@@ -45,15 +45,12 @@ real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, 
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer n, n_step
-integer, target :: i_dummy
 
 logical, optional :: make_matrix
 logical has_nonzero_pole, has_nonzero_elec, drifting
 
 !-----------------------------------------------------------------------
 
-fringe_info%hard_ele => ele
-fringe_info%hard_location => i_dummy
 start_orb = orbit
 
 call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
@@ -62,10 +59,10 @@ c0_off = orbit
 ! Entrance edge kick
 
 c_dir = ele%orientation * orbit%direction * relative_tracking_charge(orbit, param)
-fringe_info%s_edge_hard = 0
-fringe_info%particle_at = first_track_edge$
-
 if (logic_option(.false., make_matrix)) call mat_make_unit (mat6)
+
+nullify(fringe_info%hard_ele)
+fringe_info%particle_at = first_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
 
 ! If we have a sextupole component then step through in steps of length ds_step
@@ -365,7 +362,6 @@ enddo
 
 if (orbit_too_large(orbit, param)) return
 
-fringe_info%s_edge_hard = ele%value(l$)
 fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
 

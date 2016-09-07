@@ -1,5 +1,5 @@
 !+
-! Subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, ignore_ptc_specific_parameters)
+! Subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
 !
 ! Routine to transfer parameters from a PTC fibre to one, or more if needed, bmad lattice elements.
 ! For example, a fibre with a patch needs multiple elements.
@@ -11,10 +11,9 @@
 !   ptc_fibre     -- fibre: PTC fiber.
 !   ix_ele        -- integer: Index in ele(:) array of element last used.
 !   branch        -- branch_struct: branch containing elements.
-!   ignore_ptc_specific_parameters
-!                 -- logical, optional: If True, ignore PTC specific parameters like integrator_order.
+!   from_mad      -- logical, optional: If True, ignore PTC specific parameters like integrator_order.
 !                      Default is False. True is used when the fibre has been created via MAD. In this
-!                      case, the PTC specific parameters will not have good values.
+!                      case, the PTC specific parameters may not have good values.
 !
 ! Output:
 !   branch        -- branch_struct: branch containing elements.
@@ -27,7 +26,7 @@
 ! Energy patch
 
 
-subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, ignore_ptc_specific_parameters)
+subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
 
 use madx_ptc_module, ptc_pi => pi, ptc_twopi => twopi
 use bmad, except_dummy => fibre_to_ele
@@ -45,7 +44,7 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx), ele_tilt, this_kick
 integer ix_ele, nmul, i, ix
 
 logical err_flag
-logical, optional :: ignore_ptc_specific_parameters
+logical, optional :: from_mad
 
 character(*), parameter :: r_name = 'fibre_to_ele'
 character(40) name
@@ -154,6 +153,11 @@ endif
 
 if (mag%p%b0 /= 0) then
   call init_ele(ele, sbend$, -1, ix_ele, branch)
+  if (associated(mag%k16)) then
+    ele%sub_key = rbend$
+  else
+    ele%sub_key = sbend$
+  endif
 
   ele%value(g$) = fib%mag%p%b0
   ele%value(angle$) = ele%value(g$) * ele%value(l$)
@@ -232,7 +236,12 @@ elseif (associated(mag%d0)) then
     call init_ele(ele, drift$, -1, ix_ele, branch)
   endif
 
-elseif (associated(mag%k2)) then
+! k2:  Non-exact, mad_model = 1
+! k16: Exact, mad_model = 1 (Drift-Kick)
+! t7:  Exact or Non-exact, mad_model = 2 (Matrix-Kick)
+! t6:  Exact or Non-exact, mad_model = 3 (Delta_Dependent_Matrix-Kick]
+
+elseif (associated(mag%k2) .or. associated(mag%k16) .or. associated(mag%t7) .or. associated(mag%t6)) then
   ab_max = 0
   ix_max = 1
   do i = 2, np
@@ -279,7 +288,7 @@ ele%name = name
 ele%value(l$) = fib%mag%p%ld
 
 
-if (.not. logic_option(.false., ignore_ptc_specific_parameters)) then
+if (.not. logic_option(.false., from_mad)) then
   call pointer_to_attribute(ele, 'NUM_STEPS', .false., a_ptr, err, .false.)
   if (associated(a_ptr%r)) then
     a_ptr%r = real(fib%mag%p%nst, rp)
@@ -293,7 +302,7 @@ endif
 
 ! If integrator_order is defined for this element then update
 
-if (.not. logic_option(.false., ignore_ptc_specific_parameters)) then
+if (.not. logic_option(.false., from_mad)) then
   call pointer_to_attribute(ele, 'INTEGRATOR_ORDER', .false., a_ptr, err, .false.)
   if (associated(a_ptr%r)) a_ptr%r = fib%mag%p%method
 endif

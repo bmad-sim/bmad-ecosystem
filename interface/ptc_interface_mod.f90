@@ -3660,7 +3660,7 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
-  fh = sign_of(charge_of(param%particle)) * 1d-9 / VOLT_C
+  fh = 1d-9 / VOLT_C
   call multipole_ele_to_ab(ele, .false., has_nonzero_pole, a_pole, b_pole, electric$)
 
   if (ele%key == elseparator$) then

@@ -1,5 +1,5 @@
 !+
-! Subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker)
+! Subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
 !
 ! Routine to read a PTC "flat file" (or two linked flat files) and optionally create 
 ! a Bmad lattice based upon the flat file(s).
@@ -10,13 +10,16 @@
 !   flat_file(:)      -- character(*): Name(s) of PTC flat file(s).
 !   create_end_marker -- logical, optional: Put a marker element named END at the end of the lattice brances?
 !                          Default is True.
+!   from_mad      -- logical, optional: If True, ignore PTC specific parameters like integrator_order.
+!                      Default is False. True is used when the fibre has been created via MAD. In this
+!                      case, the PTC specific parameters may not have good values.
 !
 ! Output:
 !   err_flag      -- logical: Set True if there is a problem.
 !   lat           -- lat_struct, optional: If present then setup a Bmad lattice.
 !-
 
-subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker)
+subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
 
 use ptc_interface_mod, except_dummy => ptc_read_flat_file
 use madx_ptc_module
@@ -28,10 +31,10 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (fibre), pointer :: fib
 
-integer iu, ios, i, ix_ele
+integer iu, ios, i, ix_ele, n
 
 logical err_flag
-logical, optional :: create_end_marker
+logical, optional :: create_end_marker, from_mad
 logical old_style
 
 character(*) flat_file(:)
@@ -61,6 +64,9 @@ old_style = (index(line, 'high') == 0)
 
 !
 
+n = lielib_print(11)
+lielib_print(11) = 0  ! No printing info messages
+
 if (old_style) then
   call read_and_append_virgin_general (M_u, flat_file(1))
 
@@ -72,6 +78,9 @@ else  ! New style, two files
   call read_universe_pointed (M_u, M_t, flat_file(2))
   call create_dna (M_u, M_t)
 endif
+
+lielib_print(11) = n
+
 
 err_flag = .false.
 if (.not. present(lat)) return
@@ -94,7 +103,7 @@ if (size(flat_file) == 1) then
     if (index(fib%mag%name, '$START') /= 0) cycle
     if (index(fib%mag%name, '$END') /= 0) cycle
 
-    call fibre_to_ele(fib, branch, ix_ele, err_flag, .true.)
+    call fibre_to_ele(fib, branch, ix_ele, err_flag, from_mad)
     if (err_flag) return
 
 !    print *
