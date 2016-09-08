@@ -204,7 +204,7 @@ case ('"SBEND4:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-12'
 case ('"SBEND5:Tracking:MatrixRow1"')              ; tolerance = 'ABS 8e-09'
 case ('"SBEND5:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-11'
 case ('"SBEND5:Tracking:MatrixRow3"')              ; tolerance = 'ABS 8e-10'
-case ('"SBEND5:Tracking:MatrixRow4"')              ; tolerance = 'ABS 2e-10'
+case ('"SBEND5:Tracking:MatrixRow4"')              ; tolerance = 'ABS 5e-10'
 case ('"SBEND5:Tracking:MatrixRow5"')              ; tolerance = 'ABS 1e-09'
 case ('"SBEND5:Tracking:MatrixRow6"')              ; tolerance = 'ABS 2e-11'
 case ('"SBEND5:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-09'
@@ -224,6 +224,7 @@ case ('"SBEND7:Tracking:MatrixRow2"')              ; tolerance = 'ABS 3e-11'
 case ('"SBEND7:Tracking:MatrixRow3"')              ; tolerance = 'ABS 1e-09'
 case ('"SBEND7:Tracking:MatrixRow4"')              ; tolerance = 'ABS 4e-10'
 case ('"SBEND7:Tracking:MatrixRow5"')              ; tolerance = 'ABS 4e-11'
+case ('"SBEND7:Tracking:MatrixRow6"')              ; tolerance = 'ABS 4e-11'
 case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 5e-09'
 case ('"SBEND7:Tracking:Vector"')                  ; tolerance = 'ABS 1e-10'
 
@@ -238,7 +239,7 @@ case ('"SOL_QUAD2:Tracking:MatrixRow5"')           ; tolerance = 'ABS 5e-12'
 case ('"SOL_QUAD2:Tracking:Symp_Err"')             ; tolerance = 'ABS 2e-10'
 case ('"SOL_QUAD2:Tracking:Vector"')               ; tolerance = 'ABS 6e-12'
 
-case default                                          ; tolerance = 'ABS 2E-12'
+case default                                       ; tolerance = 'ABS 2E-12'
 end select
 
 end function tolerance
