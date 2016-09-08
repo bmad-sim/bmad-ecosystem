@@ -473,10 +473,26 @@ do it = 1, n_table
   endif
 
   do i = 1, size(angles)
-    if (angles(i) >= 0) cycle
-    n_angles = i - 1
-    exit
+    if (angles(i) == -1) then
+      n_angles = i - 1
+      exit
+    endif
+
+    if (i == 1) cycle
+    if (angles(i) <= angles(i-1)) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR IN "TABLE" NAMELIST NUMBER \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'ANGLEs MUST BE IN INCREASING ORDER.', i_array = [it])
+      if (global_com%exit_on_error) stop
+    endif
   enddo
+
+  if (angles(1) /= 0 .or. abs(angles(n_angles) - 90) > 1d-10) then
+    call out_io (s_fatal$, r_name, &
+            'ERROR IN "TABLE" NAMELIST NUMBER \i0\ IN SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+            'FIRST ANGLE MUST BE ZERO AND LAST ANGLE MUST BE 90.', i_array = [it])
+    if (global_com%exit_on_error) stop
+  endif
 
   if (energy_delta == 0) then
     do i = 1, size(energies)
@@ -552,7 +568,6 @@ do it = 1, n_table
               'FOR TABLE: \i0\ ', i_array = [it, ix_row])
       if (global_com%exit_on_error) stop
     endif
-      
 
     prt%p_reflect(:, i) = p_reflect(1:n_angles)
   enddo

@@ -183,7 +183,7 @@ if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
   return
 endif
 
-if (any(branch%ele%a%beta == 0)) then
+if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
   call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED.', &
                                  '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
                                  'NO RADIATION INTEGRALS WILL BE COMPUTED.')
