@@ -632,7 +632,7 @@ subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matri
 type (coord_struct)  coord
 
 real(rp) an(0:), bn(0:)
-real(rp) kx, ky, pz2, rel_p, rel_p2, dk(2,2)
+real(rp) kx, ky, pz2, rel_p2, dk(2,2), alpha, kx_tot, ky_tot
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
@@ -642,7 +642,12 @@ logical, optional :: make_matrix
 
 !
 
-if (integer_option(magnetic$, pole_type) == electric$) pz2 = (1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2
+if (integer_option(magnetic$, pole_type) == electric$) then
+  pz2 = (1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2
+endif
+
+kx_tot = 0
+ky_tot = 0
 
 do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
@@ -655,19 +660,22 @@ do n = 0, n_pole_maxx
     call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, scale = scale)
   endif
 
-  coord%vec(2) = coord%vec(2) + kx
-  coord%vec(4) = coord%vec(4) + ky
+  kx_tot = kx_tot + kx
+  ky_tot = ky_tot + ky
 enddo
 
+coord%vec(2) = coord%vec(2) + kx_tot
+coord%vec(4) = coord%vec(4) + ky_tot
+
 if (integer_option(magnetic$, pole_type) == electric$) then
-  rel_p2 = pz2 + coord%vec(2)**2 + coord%vec(4)**2
-  if (rel_p2 < 0) then
+  alpha = (kx_tot * (2*coord%vec(2) - kx_tot) + ky_tot * (2*coord%vec(4) - ky_tot)) / (1 + coord%vec(6))**2
+  if (alpha < -1) then
     coord%state = lost_z_aperture$
     return
   endif
-  rel_p = sqrt(rel_p2)
-  coord%vec(6) = rel_p - 1
-  coord%beta = rel_p / sqrt(rel_p2 + (mass_of(coord%species)/coord%p0c)**2)
+  coord%vec(6) = coord%vec(6) + (1 + coord%vec(6)) * sqrt1(alpha)
+  rel_p2 = pz2 + coord%vec(2)**2 + coord%vec(4)**2
+  coord%beta = (1 + coord%vec(6)) / sqrt(rel_p2 + (mass_of(coord%species)/coord%p0c)**2)
 endif
 
 end subroutine ab_multipole_kicks

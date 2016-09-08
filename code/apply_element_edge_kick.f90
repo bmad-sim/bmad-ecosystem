@@ -47,12 +47,13 @@ type (ele_struct), pointer :: hard_ele
 
 real(rp), optional :: mat6(6,6)
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
 integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at
 
 logical, optional :: make_matrix
-logical finished, track_spin, track_spn
+logical finished, track_spin, track_spn, has_nonzero_elec
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -84,7 +85,6 @@ else
   endif
 endif
 
-
 ! Custom edge kick?
 
 call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished, mat6, make_matrix)
@@ -113,15 +113,15 @@ endif
 
 sign_z_vel = orb%direction * track_ele%orientation
 
-if (associated(hard_ele%a_pole_elec)) then
+call multipole_ele_to_ab (hard_ele, .false., has_nonzero_elec, a_pole, b_pole, electric$)
+if (has_nonzero_elec) then
   xiy = 1
   c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
-  do i = 0, max_nonzero(0, hard_ele%a_pole_elec, hard_ele%b_pole_elec)
+  do i = 0, max_nonzero(0, a_pole, b_pole)
     xiy = xiy * c_vec
-    if (hard_ele%a_pole_elec(i) == 0 .and. hard_ele%b_pole_elec(i) == 0) cycle
-    phi = at_sign * charge_of(orb%species) * real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i), rp) * xiy) / (i + 1)
-    call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
-    orb%vec(6) = (pc - orb%p0c) / orb%p0c
+    if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+    phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)
+    call apply_energy_kick (phi, orb)
 
     if (track_spn) then
       call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
@@ -192,8 +192,7 @@ case (elseparator$)
   if (hard_ele%value(l$) /= 0) then
     f = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
     phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
-    call convert_total_energy_to (orb%p0c * (1 + orb%vec(6)) / orb%beta + phi, orb%species, beta = orb%beta, pc = pc)
-    orb%vec(6) = (pc - orb%p0c) / orb%p0c
+    call apply_energy_kick (phi, orb)
     if (track_spn) then
       call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
     endif
