@@ -5,11 +5,12 @@
 \label{s:coupling}
 \index{normal mode!Coupling}
 
-The coupling formalism used by \bmad is taken from the paper of Sagan
-and Rubin\cite{b:coupling}. The main equations are reproduced here.  A
-one--turn map $\bfT(s)$ for the transverse two--dimensional phase space
-$\bfx = (x, x', y, y')$ starting and ending at some point $s$ can be
-written as
+The coupling formalism used by \bmad is taken from the paper of Sagan and
+Rubin\cite{b:coupling}. The main equations are reproduced here with the notation change
+that $\bfA$ and $\bfB$ is replaced by $\bfQ$ and $\bfW$. The reason for this is explained below.
+
+A one--turn map $\bfT(s)$ for the transverse two--dimensional phase space $\bfx = (x, x',
+y, y')$ starting and ending at some point $s$ can be written as
   \Begineq
     \bfT = \bfV \, \bfU \, \bfV\inv 
     , \label{tvuv}
@@ -18,18 +19,26 @@ where $\bfV$ is symplectic, and $\bfU$ is of the form
   \Begineq
     \bfU = 
     \begin{pmatrix}
-      \bfA & \Bf0 \cr 
-      \Bf0 & \bfB \cr
+      \bfQ & \Bf0 \cr 
+      \Bf0 & \bfW \cr
     \end{pmatrix}
     . \label{ua00b}
   \Endeq
 \index{normal mode!a--mode}
 \index{normal mode!b--mode}
-Since $\bfU$ is uncoupled the standard Twiss analysis can be
-performed on the matrices $\bfA$ and $\bfB$. The normal modes
-are labeled $a$ and $b$ and if the one--turn matrix $\bfT$ is
-uncoupled then $a$ corresponds to the horizontal mode and $b$
-corresponds to the vertical mode. 
+Since $\bfU$ is uncoupled the standard Twiss analysis can be performed on the matrices
+$\bfQ$ and $\bfW$. The normal modes are labeled $q$ and $w$ and if the one--turn matrix
+$\bfT$ is uncoupled then $w$ corresponds to the horizontal mode and $w$ corresponds to the
+vertical mode.
+
+The reason why $q$ and $w$ are used here to denote the modes is to avoid confusion with
+the \bmad convention of using the labels $a$ and $b$ to represent the same modes
+throughout the lattice. At the start of the lattice, by convention, the $a$ mode is the
+same as the $q$ mode and the $b$ mode is the same as the $w$ mode. If there is a ``mode
+flip'' (see Sagan and Rubin for an explanation of this term) at some spot in the lattice,
+the $a$ mode before the mode flip will be the same physical mode after the mode flip (and
+similarly for the $b$ mode.  That is, after the mode flip the $a$ mode will be the same as
+the $w$ mode and the $b$ mode will be the same as the $q$ mode.
 
 $\bfV$ is written in the form
   \Begineq
@@ -79,22 +88,22 @@ Where $\bfG$ is given by
   \Begineq
     \bfG \equiv 
     \begin{pmatrix}
-      \bfG_a & \Bf0 \cr 
-      \Bf0 & \bfG_b
+      \bfG_q & \Bf0 \cr 
+      \Bf0 & \bfG_w
     \end{pmatrix}
     , \label{gg00g}
   \Endeq  
 with 
   \Begineq
-    \bfG_a = 
+    \bfG_q = 
     \begin{pmatrix}
-      \frac{\tstyle 1}{\tstyle \sqrt{\beta_a}} & 0 \cr
-      \frac{\tstyle \alpha_a}{\tstyle \sqrt{\beta_a}} & \sqrt{\beta_a}
+      \frac{\tstyle 1}{\tstyle \sqrt{\beta_q}} & 0 \cr
+      \frac{\tstyle \alpha_q}{\tstyle \sqrt{\beta_q}} & \sqrt{\beta_q}
     \end{pmatrix}
     , \label{g1b0a} 
   \Endeq
-with a similar equation for $\bfG_b$. With this definition, the corresponding
-$\BAR\bfA$ and $\BAR\bfB$ (cf.~\Eq{ua00b}) are just rotation matrices.
+with a similar equation for $\bfG_w$. With this definition, the corresponding
+$\BAR\bfQ$ and $\BAR\bfW$ (cf.~\Eq{ua00b}) are just rotation matrices.
 The relationship between $\bfT$ and $\BAR\bfU$ is 
   \Begineq
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
@@ -115,24 +124,24 @@ Using \Eq{gg00g}, $\BAR\bfV$ can be written in the form
   \Endeq
 with the normalized matrix $\BAR\bfC$ given by
   \Begineq
-    \BAR\bfC = \bfG_a \, \bfC \, \bfG_b\inv
+    \BAR\bfC = \bfG_q \, \bfC \, \bfG_w\inv
     . \label{cgcg}
   \Endeq
 
-The normal mode coordinates ${\bf a} = (a, a', b, b')$ are related to
+The normal mode coordinates ${\bf q} = (q, q', w, w')$ are related to
 the laboratory frame via
   \Begineq
-    {\bf a} = \bfV\inv \, {\bf x}
+    {\bf q} = \bfV\inv \, {\bf x}
     . \label{avx}
   \Endeq 
-In particular the normal mode dispersion $\bfeta_a = (\eta_a,
-\eta'_a, \eta_b, \eta'_b)$ is related to the laboratory frame
+In particular the normal mode dispersion $\bfeta_q = (\eta_q,
+\eta'_q, \eta_w, \eta'_w)$ is related to the laboratory frame
 dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
   \Begineq
-    {\bfeta_a} = \bfV\inv \, {\bfeta_x}
+    {\bfeta_q} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \Endeq 
-When there is no coupling ($\bfC = 0$), $\bfeta_a$ and $\bfeta_x$ are
+When there is no coupling ($\bfC = 0$), $\bfeta_q$ and $\bfeta_x$ are
 equal to each other.
 
 %-----------------------------------------------------------------
