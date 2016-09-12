@@ -1356,11 +1356,6 @@ end subroutine makeup_super_slave
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 !
-! Note: This routine assumes that the following call has been made before hand:
-!    call transfer_ele (ele_in, sliced_ele, .true.)
-! transfer_ele only has to be done once as long as create_element_slice is repeatedly called 
-! with the same ele_in.
-!
 ! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
 ! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
 ! for wigglers and bmad_standard for everything else.
@@ -1403,6 +1398,10 @@ character(24) :: r_name = 'create_element_slice'
 err_flag = .true.
 in_len = ele_in%value(l$)
 
+if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= -2) then
+  call transfer_ele(ele_in, sliced_ele, .true.)
+endif
+
 sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
@@ -1416,16 +1415,10 @@ sliced_ele%s = ele_in%s - in_len + offset + sliced_ele%value(l$)
 if (ele_in%key == sad_mult$ .and. l_slice == 0) sliced_ele%value(l$) = &
                                                             sign(bmad_com%significant_length/100, in_len)
 
-! The sliced element is treated as a super_slave to the original element except
-! if the original element is itself a super_slave in which case the sliced element 
-! has the same lords as the original element.
+! The sliced element is treated as a super_slave to the original element.
 
-if (ele_in%slave_status /= super_slave$) then
-  sliced_ele%n_lord = 1
-  sliced_ele%lord => ele_in
-else
-  nullify(sliced_ele%lord)
-endif
+sliced_ele%n_lord = 1
+sliced_ele%lord => ele_in
 
 ! Err check. Remember: the element length may be negative
 

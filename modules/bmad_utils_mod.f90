@@ -2030,7 +2030,7 @@ if (ixl > slave%n_lord+slave%n_lord_field .or. ix_lord < 1) then
   return
 endif
 
-! slice_ele stores info differently
+! If a slice_ele is a slave of a super_slave, return a lord of the super_slave.
 
 lat => slave%branch%lat
 
@@ -2038,13 +2038,13 @@ if (slave%slave_status == slice_slave$) then
   if (present(control)) nullify(control)
   if (present(ix_slave)) ix_slave = -1
 
-  if (associated(slave%lord)) then
-    lord_ptr => slave%lord
-  else
+  lord_ptr => slave%lord
+  if (lord_ptr%slave_status == super_slave$) then
     icon = lat%ic(slave%ic1_lord + ixl - 1)
     ctl => lat%control(icon)
     lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
   endif
+
   return
 endif
 
