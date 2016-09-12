@@ -80,13 +80,14 @@ type (ele_struct) ele_in, ele_out
 
 !
 
-ele_out%x       = ele_in%x
-ele_out%y       = ele_in%y
-ele_out%a       = ele_in%a
-ele_out%b       = ele_in%b
-ele_out%z       = ele_in%z
-ele_out%c_mat   = ele_in%c_mat
-ele_out%gamma_c = ele_in%gamma_c
+ele_out%x         = ele_in%x
+ele_out%y         = ele_in%y
+ele_out%a         = ele_in%a
+ele_out%b         = ele_in%b
+ele_out%z         = ele_in%z
+ele_out%c_mat     = ele_in%c_mat
+ele_out%gamma_c   = ele_in%gamma_c
+ele_out%mode_flip = ele_in%mode_flip
 
 end subroutine transfer_twiss
 

@@ -22,25 +22,31 @@
 
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
-  use bmad_interface, except_dummy => one_turn_mat_at_ele
+use bmad_interface, except_dummy => one_turn_mat_at_ele
 
-  type (ele_struct) ele
+type (ele_struct) ele
 
-  real(rp) phi_a, phi_b, mat4(4,4)
-  real(rp) a(2,2), b(2,2), c_conj(2,2), c(2,2)
-  real(rp) g
+real(rp) phi_a, phi_b, mat4(4,4)
+real(rp) a(2,2), b(2,2), c_conj(2,2), c(2,2)
+real(rp) g
 
 !
 
+if (ele%mode_flip) then
+  call twiss_to_1_turn_mat (ele%a, phi_a, b)
+  call twiss_to_1_turn_mat (ele%b, phi_b, a)
+else
   call twiss_to_1_turn_mat (ele%a, phi_a, a)
   call twiss_to_1_turn_mat (ele%b, phi_b, b)
-  c_conj = mat_symp_conj (ele%c_mat)
-  c = ele%c_mat
-  g = ele%gamma_c
+endif
 
-  mat4(1:2,1:2) = g**2 * a + matmul(matmul(c, b), c_conj)
-  mat4(1:2,3:4) = g * (matmul(c, b) - matmul(a, c))
-  mat4(3:4,1:2) = g * (matmul(b, c_conj) - matmul(c_conj, a))
-  mat4(3:4,3:4) = g**2 * b + matmul(matmul(c_conj, a), c)
+c_conj = mat_symp_conj (ele%c_mat)
+c = ele%c_mat
+g = ele%gamma_c
+
+mat4(1:2,1:2) = g**2 * a + matmul(matmul(c, b), c_conj)
+mat4(1:2,3:4) = g * (matmul(c, b) - matmul(a, c))
+mat4(3:4,1:2) = g * (matmul(b, c_conj) - matmul(c_conj, a))
+mat4(3:4,3:4) = g**2 * b + matmul(matmul(c_conj, a), c)
 
 end subroutine
