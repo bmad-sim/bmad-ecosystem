@@ -42,24 +42,23 @@ open (1, file = 'output.now')
 ! Check information passing between bmad element and associated ptc fibre
 ! Procedure: 
 !   0) branch%ele(i) and branch2%ele(i) are the same type of element but
-!      with different attribute values.
-!   1) Setup ptc layout using branch.
-!   2) Point branch2%ele to same fibre as branch%ele
-!   3) Transfer attribute values from branch2%ele to ptc fibre.
-!   4) Transfer back attribute values from ptc fibre to branch.
-!   5) Check that branch%ele and branch2%ele have same attribute values.
+!      branch2 elements have zero parameter values.
+!   1) Setup ptc layout using branch2.
+!   2) Point branch%ele to same fibre as branch%ele
+!   3) Transfer attribute values from branch%ele -> ptc fibre -> branch2%ele
+!   4) Check that branch%ele and branch2%ele have same attribute values.
 
 branch => lat%branch(1)
-call branch_to_ptc_m_u (branch)
-
 branch2 => lat%branch(2)
+
+call branch_to_ptc_m_u (branch2, .false.)
 
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   ele2 => branch2%ele(i)
-  ele2%ptc_fibre => ele%ptc_fibre
-  call update_ptc_fibre_from_bmad (ele2)
-  call update_bmad_ele_from_ptc (ele)
+  ele%ptc_fibre => ele2%ptc_fibre
+  call update_ptc_fibre_from_bmad (ele)
+  call update_bmad_ele_from_ptc (ele2)
 enddo
 
 call lattice_bookkeeper (lat)
@@ -68,33 +67,21 @@ do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   ele2 => branch2%ele(i)
   str = 'NO-DIFF'
-  do j = 1, num_ele_attrib$
-    if (j == ds_step$) cycle
-    if (j == num_steps$) cycle
-    if (j == integrator_order$) cycle
-    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
-  enddo
-  do j = 0, n_pole_maxx
-    if (associated(ele%a_pole)) then
-      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
-    else
-      a_pole = 0; b_pole = 0
-    endif
-
-    if (associated(ele2%a_pole)) then
-      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
-    else
-      a_pole2 = 0; b_pole2 = 0
-    endif
-
-    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
-    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
-
-  enddo
+  call check_if_ele_different(ele, ele2)
 
   write (1, '(6a)') '"IN-OUT:', trim(ele%name), '" STR  "', trim(str), '"'
-
 enddo
+
+!----------------------------------------------------------
+! Check information passing via flat file.
+
+call kill_ptc_layouts(lat)
+call branch_to_ptc_m_u(branch, .false.)
+call write_ptc_flat_file_lattice ('ptc_test.flat', branch)
+call ptc_read_flat_file, 'ptc_test.flat', err_flag, lat2)
+do i = 1, branch%n_ele_track
+  call check_if_diffrent
+
 
 !------------------------------------------------------------------------
 ! Tracking tests
@@ -231,6 +218,34 @@ enddo
 
 !-----------------------------------------------------------------
 contains
+
+  do j = 1, num_ele_attrib$
+    if (j == ds_step$) cycle
+    if (j == num_steps$) cycle
+    if (j == integrator_order$) cycle
+    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
+  enddo
+  do j = 0, n_pole_maxx
+    if (associated(ele%a_pole)) then
+      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
+    else
+      a_pole = 0; b_pole = 0
+    endif
+
+    if (associated(ele2%a_pole)) then
+      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
+    else
+      a_pole2 = 0; b_pole2 = 0
+    endif
+
+    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
+    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
+  enddo
+
+
+!-----------------------------------------------------------------
+! contains
+
 
 subroutine check_if_different (str, ele, ix_attrib, val, val2)
 

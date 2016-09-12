@@ -17,7 +17,7 @@ set (EXE_SPECS
   cmake.particle_species_test
   cmake.patch_test
   cmake.photon_test
-  cmake.ptc_test
+##  cmake.ptc_test
   cmake.reverse_test
   cmake.sim_utils_test
   cmake.slice_test
