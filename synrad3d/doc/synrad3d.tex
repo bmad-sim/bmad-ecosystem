@@ -118,7 +118,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries August 3, 2016}
+{\large\bfseries August 9, 2016}
 
 \end{center}
 \end{titlepage}
@@ -1677,13 +1677,30 @@ the main input file. It looks like:
   ... etc ...
 \end{example}
 
-The first line gives the \vn{photon_number_factor}.  If $N_{\gamma}$ is the total number
-of photons per beam particle emitted in one revolution, then the \vn{photon_number_factor}
-$F$ in a simulation run containing $N_{sim}$ photons is defined as $F =
-N_{\gamma}/N_{sim}.$ Thus, if a simulation run is done using $N_{sim}$ photons, and $N_L$
-is the number of photon absorption sites in a longitudinal region of length $L$, then the
-average number of photons per beam particle per unit length absorbed in this region is
-$(N_L/L)\times F.$ This number is needed as input for electron cloud simulation programs.
+The first line gives the \vn{photon_number_factor} which is computed via the formula
+\Begineq
+  \text{photon_number_factor} = 
+    \frac{5 \, \sqrt{3} \, e^2 \, I_0}{4 \, \pi \, \epsilon_0 \, \hbar \, c \, N_{sim}}
+\Endeq
+where $N_{sim}$ is the number of photons generated in the
+simulation run, and $I_0$ is the synchrotron radiation integral
+\Begineq
+  I_0 = \int_{emit} ds \, \gamma_0 \, g(s)
+\Endeq
+with $g(s)$ being the bending strength (equal to $1/\rho$, with $\rho$ being the bending radius), and the
+integral is done over the region where photons are emitted in the simulaiton.
+
+\vn{photon_number_factor} is related to $N_{\gamma}$, the total number of photons per
+beam particle emitted in one revolution in the actual machine via
+\Begineq
+  \text{photon_number_factor} = \frac{N_\gamma}{N_{sim}}
+\Endeq
+Thus, if $N_r(\text{sim})$ is the number of simulated photons absorbed in a particular region,
+the actual number of photons $N_r(\text{actual})$ absorbed in this region per beam particle per turn
+is
+\Begineq
+  N_r(\text{actual}) = \text{photon_number_factor}  \cdot N_r(\text{sim})
+\Endeq
 
 The second part of the file is a table. Each row is the data for one photon. Only photons
 that pass the filter tests are shown. The table looks like:
@@ -3473,7 +3490,7 @@ http://henke.lbl.gov/optical\_constants/}
 
 \bibitem{b:synrad3d}
  G.Dugan and D.Sagan, ``SYNRAD3D: Photon Propagation and Scattering Simulations,''
-49th ICFA Advanced Beam Dynamics Workshop on Electron Cloud Physics, Proc. ``ECLOUD13'' (2013).
+`` INFN-LNF/INFN-Pisa/CERN-LER/EuCARD-AccNet Joint Workshop on Electron-Cloud Effects (ECLOUD12)'', (2012).
 
 \bibitem{b:beckmann}
 P.~Beckmann \& A.~Spizzichino, \emph{The Scattering of Electromagnetic Waves
