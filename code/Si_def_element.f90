@@ -193,7 +193,7 @@ CONTAINS
        call TRACK(EL%WI,X,k,MID)
     case(KINDPA)
        call TRACK(EL%PA,X,k,MID)
-    case(kindsuper1)
+    case(kindsuperdrift)
        call TRACK(EL%SDR,X,k,MID)
 
     case default
@@ -257,7 +257,7 @@ CONTAINS
        call TRACK(EL%WI,X,k)
     case(KINDPA)
        call TRACK(EL%PA,X,k)
-    case(kindsuper1)
+    case(kindsuperdrift)
        call TRACK(EL%SDR,X,k)
     case default
        write(6,'(1x,i4,a21)') el%kind," not supported TRACKP"
@@ -1065,27 +1065,20 @@ CONTAINS
        NULLIFY(EL%k3%dy);ALLOCATE(EL%k3%dy);EL%k3%dy=0.d0;
        NULLIFY(EL%k3%pitch_x);ALLOCATE(EL%k3%pitch_x);EL%k3%pitch_x=0.d0;
        NULLIFY(EL%k3%pitch_y);ALLOCATE(EL%k3%pitch_y);EL%k3%pitch_y=0.d0;
-    CASE(kindsuper1)
-       if(.not.ASSOCIATED(EL%C4)) THEN
-          ALLOCATE(EL%C4)
-          el%C4=0
+    CASE(kindsuperdrift)
+       if(.not.ASSOCIATED(EL%sdr)) THEN
+          ALLOCATE(EL%sdr)
+          EL%sdr=0
        ELSE
-          el%C4=-1
-          el%C4=0
+          EL%sdr=-1
+          EL%sdr=0
        ENDIF
        EL%SDR%P=>EL%P
        EL%SDR%L=>EL%L
- 
-       ALLOCATE(EL%SDR%A_X1);EL%SDR%A_X1=0
-       ALLOCATE(EL%SDR%A_X2);EL%SDR%A_X2=0
-       ALLOCATE(EL%SDR%ENERGY);EL%SDR%ENERGY=0.0_dp
-       ALLOCATE(EL%SDR%TIME);EL%SDR%TIME=0
-       ALLOCATE(EL%SDR%A_D(3));EL%SDR%A_D=0.0_dp;
-       ALLOCATE(EL%SDR%A_ANG(3));EL%SDR%A_ANG=0.0_dp;
-       ALLOCATE(EL%SDR%A_T);EL%SDR%A_T=0.0_dp;
-       ALLOCATE(EL%SDR%p0b);EL%SDR%p0b=0.0_dp;
-       ALLOCATE(EL%SDR%b0b);EL%SDR%b0b=0.0_dp;
- 
+
+       ALLOCATE(EL%SDR%D(3));EL%SDR%D=0.0_dp;
+       ALLOCATE(EL%SDR%ANG(3));EL%SDR%ANG=0.0_dp;
+
     CASE(kind4)
        if(.not.ASSOCIATED(EL%C4)) THEN
           ALLOCATE(EL%C4)
@@ -1534,26 +1527,19 @@ CONTAINS
        NULLIFY(EL%k3%dy);ALLOCATE(EL%k3%dy);EL%k3%dy=0.d0;
        NULLIFY(EL%k3%pitch_x);ALLOCATE(EL%k3%pitch_x);EL%k3%pitch_x=0.d0;
        NULLIFY(EL%k3%pitch_y);ALLOCATE(EL%k3%pitch_y);EL%k3%pitch_y=0.d0;
-    CASE(kindsuper1)
-       if(.not.ASSOCIATED(EL%C4)) THEN
-          ALLOCATE(EL%C4)
-          el%C4=0
+    CASE(kindsuperdrift)
+       if(.not.ASSOCIATED(EL%sdr)) THEN
+          ALLOCATE(EL%sdr)
+          EL%sdr=0
        ELSE
-          el%C4=-1
-          el%C4=0
+          EL%sdr=-1
+          EL%sdr=0
        ENDIF
        EL%SDR%P=>EL%P
        EL%SDR%L=>EL%L
  
-       ALLOCATE(EL%SDR%A_X1);EL%SDR%A_X1=0
-       ALLOCATE(EL%SDR%A_X2);EL%SDR%A_X2=0
-       ALLOCATE(EL%SDR%ENERGY);EL%SDR%ENERGY=0.0_dp
-       ALLOCATE(EL%SDR%TIME);EL%SDR%TIME=0
-       ALLOCATE(EL%SDR%A_D(3));EL%SDR%A_D=0.0_dp;
-       ALLOCATE(EL%SDR%A_ANG(3));EL%SDR%A_ANG=0.0_dp;
-       ALLOCATE(EL%SDR%A_T);EL%SDR%A_T=0.0_dp;
-       ALLOCATE(EL%SDR%p0b);EL%SDR%p0b=0.0_dp;
-       ALLOCATE(EL%SDR%b0b);EL%SDR%b0b=0.0_dp;
+       ALLOCATE(EL%SDR%D(3));EL%SDR%D=0.0_dp;
+       ALLOCATE(EL%SDR%ANG(3));EL%SDR%ANG=0.0_dp;
 
     CASE(KIND4)
        if(.not.ASSOCIATED(EL%C4)) THEN
@@ -3268,21 +3254,16 @@ nullify(EL%filef,el%fileb);
        ELP%C4%Always_on=EL%C4%Always_on
     ENDIF
 
-    IF(EL%KIND==kindsuper1) THEN         !
+    IF(EL%KIND==kindsuperdrift) THEN         !
        if(.not.ASSOCIATED(ELP%SDR)) ALLOCATE(ELP%SDR)
        ELP%SDR=0
 
        CALL SETFAMILY(ELP)
 
-       ELP%SDR%A_X1 = EL%SDR%A_X1
-       ELP%SDR%A_X2 = EL%SDR%A_X2
-       ELP%SDR%TIME = EL%SDR%TIME
-       ELP%SDR%ENERGY = EL%SDR%ENERGY
-       ELP%SDR%A_D=EL%SDR%A_D
-       ELP%SDR%A_ANG=EL%SDR%A_ANG
-       ELP%SDR%A_T=EL%SDR%A_T
-       ELP%SDR%p0b=EL%SDR%p0b
-       ELP%SDR%b0b=EL%SDR%b0b
+
+       ELP%SDR%D=EL%SDR%D
+       ELP%SDR%ANG=EL%SDR%ANG
+
 
     ENDIF
     IF(EL%KIND==KIND21) THEN         !
@@ -3652,21 +3633,15 @@ nullify(EL%filef,el%fileb);
        ELP%C4%Always_on=EL%C4%Always_on
     ENDIF
 
-    IF(EL%KIND==kindsuper1) THEN         !
+    IF(EL%KIND==kindsuperdrift) THEN         !
        if(.not.ASSOCIATED(ELP%SDR)) ALLOCATE(ELP%SDR)
        ELP%SDR=0
 
        CALL SETFAMILY(ELP)
 
-       ELP%SDR%A_X1 = EL%SDR%A_X1
-       ELP%SDR%A_X2 = EL%SDR%A_X2
-       ELP%SDR%TIME = EL%SDR%TIME
-       ELP%SDR%ENERGY = EL%SDR%ENERGY
-       ELP%SDR%A_D=EL%SDR%A_D
-       ELP%SDR%A_ANG=EL%SDR%A_ANG
-       ELP%SDR%A_T=EL%SDR%A_T
-       ELP%SDR%p0b=EL%SDR%p0b
-       ELP%SDR%b0b=EL%SDR%b0b
+
+       ELP%SDR%D=EL%SDR%D
+       ELP%SDR%ANG=EL%SDR%ANG
 
     ENDIF
 
@@ -4033,21 +4008,15 @@ nullify(EL%filef,el%fileb);
     ENDIF
 
 
-    IF(EL%KIND==kindsuper1) THEN         !
+    IF(EL%KIND==kindsuperdrift) THEN         !
        if(.not.ASSOCIATED(ELP%SDR)) ALLOCATE(ELP%SDR)
        ELP%SDR=0
 
        CALL SETFAMILY(ELP)
 
-       ELP%SDR%A_X1 = EL%SDR%A_X1
-       ELP%SDR%A_X2 = EL%SDR%A_X2
-       ELP%SDR%TIME = EL%SDR%TIME
-       ELP%SDR%ENERGY = EL%SDR%ENERGY
-       ELP%SDR%A_D=EL%SDR%A_D
-       ELP%SDR%A_ANG=EL%SDR%A_ANG
-       ELP%SDR%A_T=EL%SDR%A_T
-       ELP%SDR%p0b=EL%SDR%p0b
-       ELP%SDR%b0b=EL%SDR%b0b
+       ELP%SDR%D=EL%SDR%D
+       ELP%SDR%ANG=EL%SDR%ANG
+
 
     ENDIF
 

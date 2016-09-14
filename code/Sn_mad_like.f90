@@ -14,7 +14,7 @@ module Mad_like
   private HKICKTILT,VKICKTILT,GKICKTILT
   private GBTILT,SBTILT,pottilt,Set_mad_v
   PRIVATE RFCAVITYL,SMITILT,CHECKSMI,TWCAVITYL
-  PRIVATE rectaETILT,recttilt
+  PRIVATE rectaETILT,recttilt,superdrft
   PRIVATE B1,A1,A2,B2,A3,B3,A4,B4,A5,A6,A7,A8,A9,A10,B5,B6,B7,B8,B9,B10,BLTILT
   private fac
   !  private Taylor_maptilt
@@ -259,6 +259,10 @@ module Mad_like
 
   INTERFACE multipole_block
      MODULE PROCEDURE BLTILT
+  end  INTERFACE
+
+  INTERFACE superdrift 
+     MODULE PROCEDURE superdrft
   end  INTERFACE
 
   INTERFACE multipole 
@@ -2015,7 +2019,7 @@ CONTAINS
     else
        superdrft=0
     endif
-    superdrft%NST=1
+   ! superdrft%NST=1
     superdrft%METHOD=2
 
     superdrft%L=L1
@@ -2032,7 +2036,7 @@ CONTAINS
     ELSE
        superdrft%NAME=NAME
     ENDIF
-    superdrft%KIND=KIND1
+    superdrft%KIND=kindsuperdrift
 
   END FUNCTION superdrft
 

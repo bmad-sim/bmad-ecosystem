@@ -156,6 +156,7 @@ endif
     INTEGER KINDAPER
     TYPE(integration_node), POINTER :: TL
     type(internal_state),target :: my_default
+    TYPE(internal_state) tempstate
     ! DYN APERTURE
     REAL(DP) r_in,del_in,DLAM,ang_in,ang_out,dx,targ_tune_alex(2),sexr0
     INTEGER ITE,n_in,POSR
@@ -1647,6 +1648,13 @@ endif
           read(mf,*) targ_tune
           if(targ_tune(1)<=0.0_dp) targ_tune=tune(1:2)
           call lattice_fit_TUNE_gmap(my_ering,my_estate,epsf,pol_,NPOL,targ_tune,NP)
+       case('DELTAFITTUNE')
+          read(mf,*) epsf
+          read(mf,*) targ_tune
+          tempstate=my_estate+nocavity0
+          call lattice_GET_tune(my_ering,tempstate,mftune,tune)
+          targ_tune(1:2)=targ_tune(1:2)+tune(1:2)
+          call lattice_fit_TUNE_gmap(my_ering,my_estate,epsf,pol_,NPOL,targ_tune,NP)
        case('FITTUNEAUTO')
           read(mf,*) epsf
           read(mf,*) targ_tune
@@ -1722,7 +1730,7 @@ endif
            close(mftune)
            mftune=6
        case('GETTUNE')
-          call lattice_GET_tune(my_ering,my_estate,mftune)
+          call lattice_GET_tune(my_ering,my_estate,mftune,tune)
        case('STRENGTH','STRENGTHFILE')  !
           IF(mfpolbloc/=0) CLOSE(mfpolbloc)
 

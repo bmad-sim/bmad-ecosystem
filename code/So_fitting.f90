@@ -69,13 +69,13 @@ contains
   end SUBROUTINE lattice_GET_CHROM
 
 
-  SUBROUTINE lattice_GET_tune(R,my_state,mf)
+  SUBROUTINE lattice_GET_tune(R,my_state,mf,targ)
     IMPLICIT NONE
     TYPE(layout),target,INTENT(INOUT):: r
     TYPE(internal_state), intent(in):: my_state
     TYPE(internal_state) state
     integer mf
-    real(dp) closed(6)
+    real(dp) closed(6),targ(3)
     type(DAMAP) ID
     TYPE(NORMALFORM) NORM
     TYPE(REAL_8) Y(6)
@@ -100,6 +100,7 @@ contains
     CALL TRACK(R,Y,1,STATE)
     NORM=Y
     closed=y
+    targ(1:3)=NORM%tune(1:3)
     WRITE(6,'(6(1x,g21.14),a24)') CLOSED," <-- should be identical"
     if(mf==6) then
      WRITE(6,'(a19,3(1x,g21.14))') "Fractional Tunes = ",norm%tune(1:3)
@@ -2650,7 +2651,7 @@ eta2=0.0_dp
 
  end  subroutine point_m_u
 
-  SUBROUTINE  THIN_LENS_resplit(R,THIN,even,lim,lmax0,xbend,sexr,fib,useknob,universe) ! A re-splitting routine
+  SUBROUTINE  THIN_LENS_resplit(R,THIN,even,lim,limit_wiggler,lmax0,xbend,sexr,fib,useknob,universe) ! A re-splitting routine
     IMPLICIT NONE
     INTEGER NTE
     TYPE(layout),target, intent(inout) :: R
@@ -2660,10 +2661,11 @@ eta2=0.0_dp
     real(dp), OPTIONAL, intent(in) ::sexr
     type(fibre), OPTIONAL, target :: fib
     logical(lp), OPTIONAL :: useknob,universe
+    integer, optional :: limit_wiggler(2),lim(2)
     real(dp) gg,RHOI,XL,QUAD,THI,lm,dl,ggbt,xbend1,gf(7),sexr0,quad0,dq
     INTEGER M1,M2,M3, MK1,MK2,MK3,limit(2),parity,inc,nst_tot,ntec,ii,metb,sexk
-    integer incold ,parityold, nt,nsag,lim0(2)
-    integer, optional :: lim(2)
+    integer incold ,parityold, nt,nsag,lim0(2),lims(2)
+
     logical(lp) MANUAL,eject,doit,DOBEND
     TYPE (fibre), POINTER :: C
     logical(lp),optional :: even
@@ -2767,6 +2769,7 @@ endif
     limit= limit_int0 
  
     if(present(lim)) limit=lim
+    lims=limit
     if(sixtrack_compatible) then
        limit(1)=1000000
        limit(2)=1000001
@@ -2818,13 +2821,14 @@ endif
         C=>C%NEXT
        endif
     enddo
+if(lielib_print(14)==1) then
     write(6,*) "Previous of cutable Elements ",r%NTHIN
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
     write(6,*)   "number of Slices ", MK1+MK2+MK3
     write(6,*)   "Total NST ", NST_tot
-
+endif
     if(eject) then
        !      limit(1)=limit0(1)
        !      limit(2)=limit0(2)
@@ -2878,8 +2882,15 @@ endif
           parity=0
           inc=1
        endif
-             if(C%MAG%KIND==kindwiggler)  limit=limit_sag
-
+             if(C%MAG%KIND==kindwiggler)  then
+                if(present(limit_wiggler)) then
+                 limit=limit_wiggler
+                else
+                 limit=limit_sag
+                endif
+             else
+               limit=lims
+             endif
        !       if(doit)  then
 
        select case(resplit_cutting)
@@ -2911,6 +2922,11 @@ endif
              ENDIF
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
                 quad=quad+(C%MAG%b_sol)**2/4.0_dp !+abs(C%MAG%b_sol/2.0_dp)
+             endif
+             if(C%MAG%KIND==kind10) then
+               if(associated(c%mag%tp10%ae).and.associated(c%mag%tp10%be)) then
+                quad=quad+SQRT(c%mag%tp10%ae(2)**2+c%mag%tp10%be(2)**2)*volt_c/c%mag%p%p0c  
+              endif
              endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)
@@ -3018,6 +3034,11 @@ endif
              ENDIF
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
                 quad=quad+(C%MAG%b_sol)**2/4.0_dp   !+abs(C%MAG%b_sol/2.0_dp)
+             endif
+             if(C%MAG%KIND==kind10) then
+               if(associated(c%mag%tp10%ae).and.associated(c%mag%tp10%be)) then
+                quad=quad+SQRT(c%mag%tp10%ae(2)**2+c%mag%tp10%be(2)**2)*volt_c/c%mag%p%p0c  
+              endif
              endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)
@@ -3136,6 +3157,11 @@ endif
              if(C%MAG%KIND==kind5.or.C%MAG%KIND==kind17) then
                 quad=quad+(C%MAG%b_sol)**2/4.0_dp   !+abs(C%MAG%b_sol/2.0_dp)
              endif
+             if(C%MAG%KIND==kind10) then
+               if(associated(c%mag%tp10%ae).and.associated(c%mag%tp10%be)) then
+                quad=quad+SQRT(c%mag%tp10%ae(2)**2+c%mag%tp10%be(2)**2)*volt_c/c%mag%p%p0c  
+              endif
+             endif
              if(C%MAG%KIND==kindwiggler) then
                call eval_thin_q(C%MAG%wi,dQ,nsag)
                quad=quad+dq
@@ -3238,8 +3264,16 @@ endif
        case default
           stop 988
        end select
-             if(C%MAG%KIND==kindwiggler)  limit=lim0
-             
+ 
+             if(C%MAG%KIND==kindwiggler)  then
+                if(present(limit_wiggler)) then
+                 limit=limit_wiggler
+                else
+                 limit=limit_sag
+                endif
+             else
+               limit=lims
+             endif             
 
        !      endif
        NST_tot=NST_tot+C%MAG%P%nst
@@ -3255,22 +3289,28 @@ endif
 
     enddo   !   end of do   WHILE
 
-
+if(lielib_print(14)==1) then
     write(6,*) "Present of cutable Elements ",r%NTHIN
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
     write(6,*)   "number of Slices ", MK1+MK2+MK3
     write(6,*)   "Total NST ", NST_tot
+endif
     if(radiation_bend_split) then
+if(lielib_print(14)==1) then
        write(6,*)   "Total NST due to Bend Closed Orbit ", int(ggbt)
        write(6,*)   "Restricted to method=2 for radiation or spin "
+endif
     else
+if(lielib_print(14)==1) then
        write(6,*)   "Total NST due to Bend Closed Orbit ", int(ggbt)
+endif
     endif
+if(lielib_print(14)==1) then
     write(6,*)   "Total NST due to Sextupoles ", sexk
     write(6,*)   "Biggest ds ", max_ds
-
+endif
 
 
     IF(MANUAL) THEN
@@ -3695,14 +3735,14 @@ endif
              endif
     enddo
 
-
+if(lielib_print(14)==1) then
     write(6,*) "Present of cutable Elements ",r%NTHIN
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
     write(6,*)   "number of Slices ", MK1+MK2+MK3
     write(6,*)   "Total NST ", NST_tot
-
+endif
 
 
     !    CALL RING_L(R,doneit)

@@ -193,8 +193,8 @@ module precision_constants
   character*255 :: file_block_name="noprint"
   real(dp) :: lmax=1.e38_dp
   logical(lp) :: printdainfo=my_false
-  integer   lielib_print(13)
-  DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0/
+  integer   lielib_print(14)
+  DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0,1/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
 !  integer, parameter :: no_e=5  !  electric 
@@ -219,6 +219,7 @@ module precision_constants
   !  lielib_print(11)=1  print warning about Teng-Edwards
   !  lielib_print(12)=1  print info in make_node_layout
   !  lielib_print(13)=1  print info of normal form kernel into file kernel.txt and kernel_spin.txt
+  !  lielib_print(14)=1  print info about recutting
 
   INTERFACE read
      MODULE PROCEDURE read_d

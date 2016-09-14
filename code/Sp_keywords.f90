@@ -2062,8 +2062,8 @@ if(present(com)) comt=com
 call kanalnummer(mf)
 open(unit=mf,file=filename,position=comt) !comt could be append for a complex universe 
 
-   write(mf,'(a120)') ring%name
-   write(mf,*) highest_fringe  , " highest fringe "
+   write(mf,'(a120)') ring%name                        ! Sagan depedent line
+   write(mf,*) highest_fringe  , " highest fringe "    !  Sagan depedent line DO NOT CHANGE
    write(mf,*) lmax, " Maximum Length for Orbit "
    write(MF,*) ALWAYS_EXACTMIS,ALWAYS_EXACT_PATCHING  , "ALWAYS_EXACTMIS,ALWAYS_EXACT_PATCHING "
    write(mf,*) SECTOR_NMUL,SECTOR_NMUL_MAX , " SECTOR_NMUL,SECTOR_NMUL_MAX "

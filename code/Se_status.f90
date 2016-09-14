@@ -45,7 +45,7 @@ module S_status
   integer, parameter :: KINDwiggler = KIND23+2
   !  integer, parameter :: KINDmu      = KIND23+3
   integer, parameter :: KINDpa     = KIND23+3
-  integer, parameter :: kindsuper1 = KIND23+4
+  integer, parameter :: kindsuperdrift = KIND23+4
   integer, parameter :: drift_kick_drift = kind2
   integer, parameter :: matrix_kick_matrix = kind7
   integer, parameter :: kick_sixtrack_kick = kind6
@@ -770,7 +770,7 @@ CONTAINS
              call set_s_e
          else 
  if(change_first) then  
-  write(6,*) " recomputing with new SECTOR_NMUL and sector_nmul_max ",SECTOR_NMUL,SECTOR_NMUL_max
+  if(lielib_print(11)==1) write(6,*) " recomputing with new SECTOR_NMUL and sector_nmul_max ",SECTOR_NMUL,SECTOR_NMUL_max
  change_first=.false.
  endif        
 

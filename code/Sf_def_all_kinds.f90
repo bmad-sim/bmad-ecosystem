@@ -480,7 +480,7 @@ contains
           !             WRITE(6,*) "ERROR IN SURVEY_INNER_MAG "
           !             STOP 331
           !          ENDIF
-       CASE(KIND0,KIND1,KIND3:KIND5,KIND8:KIND9,KIND11:KIND15,KIND17:KIND22,kindwiggler)
+       CASE(KIND0,KIND1,KIND3:KIND5,KIND8:KIND9,KIND11:KIND15,KIND17:KIND22,kindwiggler,kindsuperdrift)
           LH=P%LC/2.0_dp
           A=O
           D=0.0_dp;D(3)=-LH
@@ -587,7 +587,7 @@ contains
           !             WRITE(6,*) "ERROR IN SURVEY_INNER_MAG "
           !             STOP 330
           !          ENDIF
-       CASE(KIND0,KIND1,KIND3:KIND5,KIND8:KIND9,KIND11:KIND15,KIND17:KIND22,kindwiggler)
+       CASE(KIND0,KIND1,KIND3:KIND5,KIND8:KIND9,KIND11:KIND15,KIND17:KIND22,kindwiggler,kindsuperdrift)
           E_IN%L(start)=start*P%LD/nst  +E_IN%L(-1)
           DO I=1,NST
              start=start+E_IN%F%dir

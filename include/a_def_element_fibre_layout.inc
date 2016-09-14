@@ -216,7 +216,7 @@ TYPE ELEMENT
    TYPE(SAGAN), POINTER :: WI   => null()              ! USER DEFINED
    TYPE(PANCAKE), POINTER :: PA => null()          ! GENERAL B
    TYPE(HELICAL_DIPOLE), POINTER :: HE22  => null()         !  
-   TYPE(SUPERDRIFT1), POINTER :: SDR      => null()     ! GENERAL DRIFT
+   TYPE(SUPERDRIFT), POINTER :: SDR      => null()     ! GENERAL DRIFT
    TYPE(FIBRE), POINTER :: PARENT_FIBRE => null()
    TYPE(fibre_appearance), POINTER :: doko => null()
    type(element), pointer :: siamese => null()
@@ -281,7 +281,7 @@ TYPE ELEMENTP
    TYPE(ECOLP), POINTER :: ECOL19   => null()           ! ECOLLIMATOR
    TYPE(CAV_TRAVP), POINTER :: CAV21 => null()            ! CAVITY TRAVELLING WAVE
    TYPE(HELICAL_DIPOLEP), POINTER :: HE22 => null()          ! GENERAL B
-   TYPE(SUPERDRIFT1P), POINTER :: SDR  => null()         ! GENERAL DRIFT
+   TYPE(SUPERDRIFTP), POINTER :: SDR  => null()         ! GENERAL DRIFT
    TYPE(SAGANP), POINTER :: WI         => null()        ! USER DEFINED
    TYPE(PANCAKEP), POINTER :: PA       => null()    ! GENERAL B
    TYPE(FIBRE), POINTER :: PARENT_FIBRE => null()
