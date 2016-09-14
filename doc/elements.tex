@@ -1656,15 +1656,18 @@ to isolate it from the branches defining the rings. Example:
 Here the \vn{fork} \vn{F1} in \vn{ring1} forks to \vn{x_line} which
 in turn forks to \vn{ring2}.
 
-The above example also illustrates how to connect machines for
-particles going in the reverse direction. In this case, \vn{ring2} has
-a \vn{fork} element \vn{f2} back through \vn{x_line} and then to
-\vn{ring1} via the \vn{x_f1} fork. Notice that both \vn{f2} and
-\vn{x_f2} have their \vn{direction} attribute set to -1 to indicate
-that the fork is appropriate for particles propagating in the -$s$
-direction.  Additionally, since \vn{f2} has \vn{direction} set to -1,
-it will, by default, connect to the downstream end of the
-\vn{x_line}. The default setting of \vn{direction} is 1.
+The above example also illustrates how to connect machines for particles going in the
+reverse direction. In this case, \vn{ring2} has a \vn{fork} element \vn{f2} back through
+\vn{x_line} and then to \vn{ring1} via the \vn{x_f1} fork. Notice that both \vn{f2} and
+\vn{x_f2} have their \vn{direction} attribute set to -1 to indicate that the fork is
+appropriate for particles propagating in the -$s$ direction.  Additionally, since \vn{f2}
+has \vn{direction} set to -1, it will, by default, connect to the downstream end of the
+\vn{x_line}. The default setting of \vn{direction} is 1. 
+
+It is important to note that the setting of \vn{direction} does not change the placement
+of elements in the forked line. That is, the global position (\sref{s:global}) of any
+element is unaffected by the setting of \vn{direction}. To shift the the global position
+of a forked line, \vn{patch} elements must be used.
 
 \index{beginning_ele}\index{fiducial}\index{fork}\index{photon_fork}
 \index{marker}\index{to_element}

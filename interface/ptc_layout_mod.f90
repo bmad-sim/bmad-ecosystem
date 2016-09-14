@@ -1490,6 +1490,8 @@ end subroutine update_bmad_ele_from_ptc
 ! Routine to calculate the optimum number of tracking steps and order
 ! of the integrator (2, 4, or 6) for each fibre in a layout.
 !
+! See the Bmad manual chapter on PTC for more details.
+!
 ! Module needed:
 !   use ptc_interface_mod
 !
@@ -1505,13 +1507,17 @@ end subroutine update_bmad_ele_from_ptc
 !   dx_tol_bend   -- real(rp): Tollerable residual orbit in a bend.
 !   use_2nd_order -- logical, optional: If present and True then force the use of 2nd order
 !                       integrator.
+!   crossover(2)  -- integer, optional: crossover points between orders for all
+!                       elements except wigglers. Default is [4, 18].
+!   crossover_wiggler(2)
+!                 -- integer, optional: crossover points for wigglers. Default is [30, 60].
 !
 ! Output:
-!   ptc_layout -- layout: Lattice with the optimum number of tracking steps.
+!   ptc_layout -- layout: Lattice with the optimum number of tracking steps and integrator order.
 !-
 
 subroutine ptc_calculate_tracking_step_size (ptc_layout, kl_max, ds_max, &
-                                    even_steps, r_typical, dx_tol_bend, use_2nd_order)
+                    even_steps, r_typical, dx_tol_bend, use_2nd_order, crossover, crossover_wiggler)
 
 use madx_ptc_module
 
@@ -1520,9 +1526,10 @@ type (layout) ptc_layout
 real(rp) kl_max
 real(rp), optional :: ds_max, dx_tol_bend, r_typical
 
-integer :: limit_int(2)
+integer, optional :: crossover(2), crossover_wiggler
+integer :: limit_int(2), lp14
 
-logical, optional :: even_steps, use_2nd_order
+logical, optional :: even_steps(2), use_2nd_order
 
 !
 
@@ -1532,10 +1539,16 @@ if (present(ds_max)) then
 endif
 
 limit_int = [4, 18]
+
 if (logic_option(.false., use_2nd_order)) limit_int = [10000, 10001] ! Something big.
 
-call thin_lens_resplit (ptc_layout, kl_max, lim = limit_int, &
-                        lmax0 = ds_max, sexr = r_typical, xbend = dx_tol_bend)
+lp14 = lielib_print(14)
+lielib_print(14) = 0
+
+call thin_lens_resplit (ptc_layout, kl_max, lim = crossover, &
+            limit_wiggler = crossover_wiggler, lmax0 = ds_max, sexr = r_typical, xbend = dx_tol_bend)
+
+lielib_print(14) = lp14
 
 end subroutine ptc_calculate_tracking_step_size
 
@@ -1543,7 +1556,8 @@ end subroutine ptc_calculate_tracking_step_size
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, even, crossover)
+! Subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, 
+!                                                           even, crossover, crossover_wiggler)
 !
 ! Routine to resplit (that is, recalculate the number of integration steps for an element)
 ! For the fibres in all layouts. After doing a resplit, the tune (and any other relavent
@@ -1577,18 +1591,22 @@ end subroutine ptc_calculate_tracking_step_size
 !                     is switched to 4th order. crossover(2) sets the maximum number of 4th order
 !                     integration steps. If this number is exceeded, 6th order integration is used.
 !                     Currently the default in PTC is [4, 18].
+!   crossover_wiggler(2)
+!                 -- integer, optional: crossover for wiggler elements.
 !-
 
 
-subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, even, crossover)
+subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, &
+                                                            even, crossover, crossover_wiggler)
 
 use s_fitting, only: thin_lens_restart, thin_lens_resplit
-use madx_ptc_module, only: m_u
+use madx_ptc_module, only: m_u, lielib_print
 
 type(layout), pointer :: r
 
 real(rp) dKL_max, bend_dorb, sex_dx, l_max
-integer, optional :: crossover(2)
+integer, optional :: crossover(2), crossover_wiggler(2)
+integer lp14
 logical l_max_drift_only
 logical, optional :: even
 
@@ -1596,8 +1614,13 @@ logical, optional :: even
 
 r => m_u%start
 
+lp14 = lielib_print(14)
+lielib_print(14) = 0
+
 call thin_lens_restart(r, universe=.true.)
-call thin_lens_resplit(r, dKL_max, even, crossover, l_max, bend_dorb, sex_dx, universe=.true.)
+call thin_lens_resplit(r, dKL_max, even, crossover, crossover_wiggler, l_max, bend_dorb, sex_dx, universe=.true.)
+
+lielib_print(14) = lp14
 
 end subroutine ptc_layouts_resplit
 
