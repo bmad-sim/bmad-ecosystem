@@ -109,25 +109,15 @@ else
   at_sign = -1
 endif
 
-! Static electric longitudinal field
-
 sign_z_vel = orb%direction * track_ele%orientation
-
 call multipole_ele_to_ab (hard_ele, .false., has_nonzero_elec, a_pole, b_pole, electric$)
-if (has_nonzero_elec) then
-  xiy = 1
-  c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
-  do i = 0, max_nonzero(0, a_pole, b_pole)
-    xiy = xiy * c_vec
-    if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-    phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)
-    call apply_energy_kick (phi, orb)
 
-    if (track_spn) then
-      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
-    endif
-  enddo
-endif
+! Static electric longitudinal field
+! Note: magnetic fringe effects, which may shift the particle's (x, y) position, need to
+! be applied before the electric fringe on entrance and after the electric fringe on exit in
+! order to conserve the particle's energy.
+
+if (particle_at == second_track_edge$) call electric_longitudinal_fringe()
 
 ! Static magnetic and electromagnetic fringes
 
@@ -198,5 +188,32 @@ case (elseparator$)
     endif
   endif
 end select
+
+! Entrance Static electric longitudinal field
+
+if (particle_at == first_track_edge$) call electric_longitudinal_fringe()
+
+
+!--------------------------------------------------------------------------------
+contains
+
+subroutine electric_longitudinal_fringe()
+
+if (has_nonzero_elec) then
+  xiy = 1
+  c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
+  do i = 0, max_nonzero(0, a_pole, b_pole)
+    xiy = xiy * c_vec
+    if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+    phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)
+    call apply_energy_kick (phi, orb)
+
+    if (track_spn) then
+      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+    endif
+  enddo
+endif
+
+end subroutine electric_longitudinal_fringe
 
 end subroutine apply_element_edge_kick
