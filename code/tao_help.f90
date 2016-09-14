@@ -164,7 +164,7 @@ do
   call substitute ("\{", "{")
   call substitute ("\}", "}")
 
-  n = len_trim(line)
+  n = max(1, len_trim(line))
   if (line(n:n) == '!') line(n:n) =  ' '
 
   if (line == ' ') then
