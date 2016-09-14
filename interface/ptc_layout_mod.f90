@@ -1526,7 +1526,7 @@ type (layout) ptc_layout
 real(rp) kl_max
 real(rp), optional :: ds_max, dx_tol_bend, r_typical
 
-integer, optional :: crossover(2), crossover_wiggler
+integer, optional :: crossover(2), crossover_wiggler(2)
 integer :: limit_int(2), lp14
 
 logical, optional :: even_steps(2), use_2nd_order
