@@ -197,7 +197,7 @@ is represented in PTC as a \vn{marker} element with a patch at the
 exit end.
 
 %--------------------------------------------------------------------------
-\section{Number of Integration Steps}
+\section{Number of Integration Steps \& Integration Order}
 \label{s:ptc.step}
 
 ``Drift like'' elements in PTC will use, by default, only one
@@ -212,6 +212,36 @@ drift like are:
   pipe
   rcollimator 
 \end{example}
+
+When tracking, there is a tradeoff between step size and integrator order. Higher order
+means fewer steps are needed to get the same accuracy. But one higher order step is
+computationally more intensive then one lower order step so what is the optimum order &
+number of steps is dependent upon various factors like magnet strength and how fast the
+field is varying. Generally, when the field is varying, such as in a wiggler, lower order
+and more steps are favored. Also spin tracking is always 2nd order in PTC. So going to higher
+order for the orbital tracking with less steps will cause the spin tracking to be less
+accurate.
+
+The way PTC ``resplitting'' routines work is that, for a given element, they start by
+assuming that the tracking will be done using a 2\Nd order integrator, They then compute
+the number of steps needed based upon the electric and magnetic field strengths. This
+number is compared to a crossover limit point here named $C_1$. If the number of steps is
+less than or equal to $C_1$ then the resplitting routine stops and tracking will
+thereafter be done with a 2\Nd order integrator with the calculated number of steps. On
+the other hand, if the number of steps is greater than $C_1$, the resplitting routine will
+redo the calculation assuming 4\Th order integration. With 4\Th order integration, the
+number of calculated steps will compared to a different crossover limit point here called
+$C_2$. Again, if the number of steps is less than or equal to $C_2$, the routine will
+assign 4\Th order tracking to the element. Otherwise, the routine will assign 6\Th order
+tracking to the element with an appropriate number of steps.
+
+The default crossover limit points are
+\begin{align}
+  [C_1, C_2] & = [30, 60] \qquad \text{For wiggler type elements.} \nonumber \\
+  [C_1, C_2] & = [4, 18]  \qquad \text{For all other elements.} \nonumber 
+\end{align}
+The greater number for wigglers is a reflection of the fact that the wiggler field
+is not constant.
 
 
 %% PTC: defines real(8), real_8, probe, probe_8 
