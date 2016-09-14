@@ -129,6 +129,7 @@ allocate_m_done = .false.
 dir = integer_option(+1, direction)
 if (dir /= 1 .and. dir /= -1) then
   call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
+  bmad_com = bmad_com_saved  ! Restore
   return
 endif
 
@@ -207,6 +208,7 @@ case (6)
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!')
+    bmad_com = bmad_com_saved  ! Restore
     return
   endif
 
@@ -224,6 +226,7 @@ case (6)
 
 case default
   call out_io (s_error$, r_name, 'BAD I_DIM ARGUMENT: \i4\ ', i_dim)
+  bmad_com = bmad_com_saved  ! Restore
   return
 end select
         

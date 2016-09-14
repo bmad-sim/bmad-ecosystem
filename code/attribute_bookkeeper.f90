@@ -310,6 +310,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
           radius0 = ele%value(r0_elec$)
           if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
           call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole, electric$)
+          bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / ele%value(p0c$)
           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
         endif
 
