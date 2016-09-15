@@ -175,11 +175,11 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
     fi
   fi
 
+
   #--------------------------------------------------------------
   # Define the distribution's bin area
   #--------------------------------------------------------------
   DIST_BIN=${BASE_DIR}/bin
-
 
 
   #--------------------------------------------------------------
@@ -193,6 +193,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
   export DIST_PLATFORM_VERSION=$(uname -r | cut -d. -f1)
   export ACC_ROOT_DIR="${DIST_BASE_DIR}"
+
 
   #--------------------------------------------------------------
   # Determine the compiler toolset, i.e. generator for CMake.
@@ -208,6 +209,16 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
       export ACC_COMPILER_TOOLSET=mingw64-msys
     fi
   fi
+
+
+  #--------------------------------------------------------------
+  # Set plot environment for MSYS/MinGW
+  #--------------------------------------------------------------
+  if [[ $ACC_COMPILER_TOOLSET == mingw* ]]; then
+    export ACC_PLOT_PACKAGE="plplot"
+    export ACC_PLOT_DISPLAY_TYPE="QT"
+  fi
+
 
   #--------------------------------------------------------------
   # Source the main DISTRIBUTION environment variable list into 

@@ -18,7 +18,7 @@
 # during the build.
 #
 #    NOTE: gfortran support is limited to version
-#          4.6.x and later.
+#          4.9.x and later.
 #
 # Supported options are:
 #   "ifort"
@@ -30,15 +30,12 @@ export DIST_F90_REQUEST="gfortran"
 #-----------------------------------------------------------
 # Plotting preferences:
 #
-# The variable ACC_PLOT_PACKAGE set the preferred plotting library.
+# ACC_PLOT_PACKAGE sets the desired plotting library.
 #
-# NOTE: PGPLOT will be built, along side PLplot,
-# 	if this variable is set to "plplot".
-#
-# NOTE: "plplot" is recommended for Windows builds.
+# NOTE: "plplot" is automatically set for Windows builds.
 #
 # Supported options are:
-#   "plplot"         # Both PLPLOT and PGPLOT are built
+#   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
 #-----------------------------------------------------------
 export ACC_PLOT_PACKAGE="pgplot"
@@ -53,7 +50,7 @@ export ACC_PLOT_PACKAGE="pgplot"
 # This variable may be ignored by any individual program.
 # The Tao program does use this variable however.
 #
-# NOTE: "QT" is recommended for Windows builds.
+# NOTE: "QT" is automatically set for Windows builds.
 #
 # For a list of supported options, please see the qp_open_page
 # documentation in the file sim_utils/plot/quick_plot.f90
@@ -65,14 +62,10 @@ export ACC_PLOT_DISPLAY_TYPE="X"
 # Setting the variable ACC_ENABLE_OPENMP here to "Y"
 # will enable OpenMP support during the production build.
 #
-# NOTE: When compiling GSL, provided in this distribution,
-#       on Mac OS 10.7 or higher, OpenMP is not supported. 
-#       This is due to a bug in the Xcode 4.x supplied
-#       version of gcc (i686-apple-darwin11-llvm-gcc-4.2)
-#       or in Apple's default cc complier (clang-425.0.24). 
-#
-#       Installing and using the MacPorts version(s) of gcc 
-#       will avoid this issue (see http://macports.org).
+# NOTE: Installing and using the MacPorts version(s) of gcc 
+#       is need to support OpenMP on Mac OS X.  See 
+#       http://macports.org
+#       
 #-----------------------------------------------------------
 export ACC_ENABLE_OPENMP="N"
 
