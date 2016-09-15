@@ -28,7 +28,7 @@ if 'DIST_BASE_DIR'   in os.environ: dist_dir      = os.environ['DIST_BASE_DIR'] 
 class search_com_class:
   def __init__(self):
     self.found_one      = False
-    self.doc_type       = 'FULL'   # (for getf) or 'LIST' (for creating listf.namelist files), or 'SHORT' (for listf)
+    self.doc_type       = 'FULL'   # (for getf), 'SHORT' (for listf), 'LIST' (for create_searchf_namelist), or 'RAW'
     self.match_str      = ''
     self.case_sensitive = False
     self.namelist_file  = ''
@@ -168,7 +168,11 @@ def search_f90 (file_name, search_com):
 
   comments = []
 
-  f90_file = open(file_name)
+  if sys.version_info[0] < 3:
+    f90_file = open(file_name, 'r')
+  else:
+    f90_file = open(file_name, 'r', encoding = 'utf-8')
+
   while True:
     line = f90_file.readline()
     if line == '': return
@@ -210,7 +214,7 @@ def search_f90 (file_name, search_com):
           elif search_com.doc_type == 'FULL':
             print ('\nFile: ', file_name)
             for com in comments: print (com.rstrip())
-          else:
+          elif search_com.doc_type == 'SHORT':
             print ('\nFile: ' + file_name)
             print ('    ' + line.rstrip())
 
@@ -228,7 +232,7 @@ def search_f90 (file_name, search_com):
               if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
               have_printed_file_name = True
               search_com.namelist_file.write(chunk_match.group(1) + '\n')
-            else:
+            elif search_com.doc_type != 'RAW':
               param = chunk_match.group(1)
               if re_match_str.match(param) or \
                  (param[-1] == '$' and re_match_str.match(param[:-1])):
@@ -256,6 +260,7 @@ def search_f90 (file_name, search_com):
     if match and 'struct'.startswith(search_com.search_only_for):
       search_com.found_one = True
       found_one_in_this_file = True
+
       if search_com.doc_type == 'LIST':
         if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
         have_printed_file_name = True
@@ -271,9 +276,17 @@ def search_f90 (file_name, search_com):
           line2 = line.lstrip().lower()
           print (line.rstrip())
           if re_type_interface_end.match(line2): break
-      else:
+      elif search_com.doc_type == 'SHORT':
         print ('\nFile: ' + file_name)
         print ('    ' + line.rstrip())
+      elif search_com.doc_type == 'RAW':
+        while True:
+          line = f90_file.readline()
+          if line == '': return
+          line2 = line.lstrip().lower()
+          if re_type_interface_end.match(line2): break
+          print (line.rstrip())
+
       comments = []
       continue
 

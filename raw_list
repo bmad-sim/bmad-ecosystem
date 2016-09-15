@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+#+
+# Script for finding and printing structure definitions.
+# This script is different from getf in that only the structure def is printed and not other stuff like the file
+# holding the structure def. 
+#
+# This script is useful for producing input for other scripts that analyze/manipulate structures.
+#-
+
+import searchf
+
+searchf.search_all('RAW')
