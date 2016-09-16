@@ -29,7 +29,7 @@
 
 subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
 
-use twiss_mod
+use twiss_mod, dummy => transfer_mat_from_twiss
 
 implicit none
 

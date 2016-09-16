@@ -1,6 +1,6 @@
 module twiss_mod
 
-use bmad_struct
+use basic_bmad_interface
 
 contains
 
@@ -169,9 +169,6 @@ end subroutine mat_symp_decouple
 ! Subroutine to extract the twiss parameters from one-turn
 ! 2x2 matrices
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   mat(:, :)   -- Real(rp): Input matrix.
 !   type_out    -- Logical: If .true. then an error message is typed out
@@ -232,9 +229,6 @@ end subroutine twiss_from_mat2
 ! Subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
 !
 ! Subroutine to form the 2x2 1-turn transfer matrix from the twiss parameters.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   twiss -- Twiss_struct: Structure holding the Twiss parameters.

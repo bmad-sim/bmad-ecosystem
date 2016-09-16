@@ -3,14 +3,26 @@
 \index{PTC/FPP}
 %----------------------------------------------------------------------------
 
-The PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic Package) library of \'Etienne
+The PTC/FPP library of \'Etienne
 Forest handles Taylor maps to any arbitrary order. this is also known as Truncated Power
-Series Algebra (TPSA). The core Differential Algebra (DA) package used by PTC was
-developed by Martin Berz\cite{b:berz}.  For more information see the FPP/PTC
-manual\cite{b:ptc}.
+Series Algebra (TPSA). The core Differential Algebra (DA) package used by FPP was
+developed by Martin Berz\cite{b:berz}.  
+
+\begin{description}
+\item[FPP] \Newline
+The ``Fully Polymorphic Package'' (\vn{FPP}) library implements Differential Algebra (DA)
+for the manipulation of Taylor maps. \vn{FPP} is purly mathematical in nature. It has no
+knowledge of accelerators, magnetic fields, particle tracking etc.
+
+\item[PTC] \Newline
+The Polymorphic Tracking Code \vn{PTC} library is for accelerator simulation. It uses
+\vn{FPP} as a back end for calculating such things as one turn maps.
+\end{description}
 
 PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
 \sref{s:tkm}) is set to \vn{symp_lie_ptc}.
+
+For more information see the FPP/PTC manual\cite{b:ptc}.
 
 %--------------------------------------------------------------------------
 \section{Phase Space}
