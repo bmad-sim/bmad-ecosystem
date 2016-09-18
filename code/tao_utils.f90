@@ -586,9 +586,10 @@ end subroutine tao_find_plot_region
 !
 ! Input:
 !   name       -- Character(*): Name of plot or region.
-!   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', or 'BOTH'
+!   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', 'BOTH', 'COMPLETE'
 !                   For where = 'BOTH', if something is found in a plot region,
 !                   then the templates will not be searched
+!                   where = 'COMPLETE' is used by the python command and should not otherwise be used.
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
 !   always_allocate 
@@ -642,9 +643,8 @@ if (allocated(c)) deallocate(c)
 
 ! Error check
 
-if (where /= 'REGION' .and. where /= 'BOTH' .and. where /= 'TEMPLATE') then
-  if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, &
-                                             'BAD "WHERE" LOCATION: ' // where)
+if (where /= 'REGION' .and. where /= 'BOTH' .and. where /= 'TEMPLATE' .and. where /= 'COMPLETE') then
+  if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, 'BAD "WHERE" LOCATION: ' // where)
   call err_exit
 endif
 
@@ -672,7 +672,14 @@ endif
 
 np = 0
 
-if (where == 'REGION' .or. where == 'BOTH') then
+if (where == 'COMPLETE') then
+  do i = 1, size(s%plot_page%template)
+    if (s%plot_page%template(i)%phantom) cycle
+    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+  enddo
+endif
+
+if (where == 'REGION' .or. where == 'BOTH' .or. where == 'COMPLETE') then
   do i = 1, size(s%plot_page%region)
     if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
         index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
@@ -702,7 +709,17 @@ if (present(plot)) allocate(plot(np))
 
 np = 0
 
-if (where == 'REGION' .or. where == 'BOTH') then
+if (where == 'COMPLETE') then
+  do i = 1, size(s%plot_page%template)
+    if (s%plot_page%template(i)%phantom) cycle
+    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
+      np = np + 1
+      p(np)%p => s%plot_page%template(i)
+    endif
+  enddo
+endif
+
+if (where == 'REGION' .or. where == 'BOTH' .or. where == 'COMPLETE') then
   do i = 1, size(s%plot_page%region)
     if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
         index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then

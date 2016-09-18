@@ -740,10 +740,6 @@ end type
 
 ! Universe wide structure for information that does not fit anywhere else.
 
-type tao_universe_info_struct
-  real(rp) lat_len_tot            ! Total lattice length of all branches
-end type
-
 !-----------------------------------------------------------------------
 ! tao_element_struct is for saving per-element information.
 !
@@ -819,7 +815,6 @@ end type
 type tao_universe_struct
   type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
-  type (tao_universe_info_struct) info
   type (tao_beam_struct) beam
   type (tao_dynamic_aperture_struct) :: dynamic_aperture
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information

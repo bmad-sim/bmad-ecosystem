@@ -1360,9 +1360,9 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', s%global%prompt_color 
     nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
+    nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
-    nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
     nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
