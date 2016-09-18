@@ -87,15 +87,11 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Loop over all branches
 
-  u%info%lat_len_tot = 0
-
   branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
  
     branch => tao_lat%lat%branch(ib)
     lat_branch => tao_lat%lat_branch(ib)
     
-    u%info%lat_len_tot = u%info%lat_len_tot + branch%param%total_length
-
     call tao_data_coupling_init(branch)
 
     do j = 1, 6
