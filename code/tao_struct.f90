@@ -179,7 +179,6 @@ type tao_curve_struct
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%com%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
-  integer :: index = 1
   integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
   integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0                ! Bunch to plot.

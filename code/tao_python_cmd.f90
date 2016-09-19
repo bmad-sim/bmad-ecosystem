@@ -179,54 +179,54 @@ case ('help')
 
 case ('global')
 
-  nl=nl+1; write (li(nl), rmt) 'y_axis_plot_dmin;REAL;F;',                s%global%y_axis_plot_dmin
-  nl=nl+1; write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;F;',             s%global%lm_opt_deriv_reinit
-  nl=nl+1; write (li(nl), rmt) 'de_lm_step_ratio;REAL;F;',                s%global%de_lm_step_ratio
-  nl=nl+1; write (li(nl), rmt) 'de_var_to_population_factor;REAL;F;',     s%global%de_var_to_population_factor
-  nl=nl+1; write (li(nl), rmt) 'lmdif_eps;REAL;F;',                       s%global%lmdif_eps
-  nl=nl+1; write (li(nl), rmt) 'svd_cutoff;REAL;F;',                      s%global%svd_cutoff
-  nl=nl+1; write (li(nl), rmt) 'unstable_penalty;REAL;F;',                s%global%unstable_penalty
-  nl=nl+1; write (li(nl), rmt) 'merit_stop_value;REAL;F;',                s%global%merit_stop_value
-  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;F;',             s%global%random_sigma_cutoff
-  nl=nl+1; write (li(nl), rmt) 'delta_e_chrom;REAL;F;',                   s%global%delta_e_chrom
-  nl=nl+1; write (li(nl), imt) 'n_opti_cycles;INT;F;',                    s%global%n_opti_cycles
-  nl=nl+1; write (li(nl), imt) 'n_opti_loops;INT;F;',                     s%global%n_opti_loops
-  nl=nl+1; write (li(nl), imt) 'phase_units;INT;F;',                      s%global%phase_units
-  nl=nl+1; write (li(nl), imt) 'bunch_to_plot;INT;F;',                    s%global%bunch_to_plot
-  nl=nl+1; write (li(nl), imt) 'random_seed;INT;F;',                      s%global%random_seed
-  nl=nl+1; write (li(nl), imt) 'n_top10;INT;F;',                          s%global%n_top10
-  nl=nl+1; write (li(nl), amt) 'random_engine;STR;F;',                    s%global%random_engine
-  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;F;',           s%global%random_gauss_converter
-  nl=nl+1; write (li(nl), amt) 'track_type;STR;F;',                       s%global%track_type
-  nl=nl+1; write (li(nl), amt) 'prompt_string;STR;F;',                    s%global%prompt_string
-  nl=nl+1; write (li(nl), amt) 'prompt_color;STR;F;',                     s%global%prompt_color
-  nl=nl+1; write (li(nl), amt) 'optimizer;STR;F;',                        s%global%optimizer
-  nl=nl+1; write (li(nl), amt) 'print_command;STR;F;',                    s%global%print_command
-  nl=nl+1; write (li(nl), amt) 'var_out_file;STR;F;',                     s%global%var_out_file
-  nl=nl+1; write (li(nl), lmt) 'initialized;LOGIC;F;',                    s%global%initialized
-  nl=nl+1; write (li(nl), lmt) 'opt_with_ref;LOGIC;F;',                   s%global%opt_with_ref
-  nl=nl+1; write (li(nl), lmt) 'opt_with_base;LOGIC;F;',                  s%global%opt_with_base
-  nl=nl+1; write (li(nl), lmt) 'label_lattice_elements;LOGIC;F;',         s%global%label_lattice_elements
-  nl=nl+1; write (li(nl), lmt) 'label_keys;LOGIC;F;',                     s%global%label_keys
-  nl=nl+1; write (li(nl), lmt) 'derivative_recalc;LOGIC;F;',              s%global%derivative_recalc
-  nl=nl+1; write (li(nl), lmt) 'derivative_uses_design;LOGIC;F;',         s%global%derivative_uses_design
-  nl=nl+1; write (li(nl), lmt) 'init_plot_needed;LOGIC;F;',               s%global%init_plot_needed
-  nl=nl+1; write (li(nl), lmt) 'orm_analysis;LOGIC;F;',                   s%global%orm_analysis
-  nl=nl+1; write (li(nl), lmt) 'plot_on;LOGIC;F;',                        s%global%plot_on
-  nl=nl+1; write (li(nl), lmt) 'lattice_calc_on;LOGIC;F;',                s%global%lattice_calc_on
-  nl=nl+1; write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;F;',  s%global%svd_retreat_on_merit_increase
-  nl=nl+1; write (li(nl), lmt) 'stop_on_error;LOGIC;F;',                  s%global%stop_on_error
-  nl=nl+1; write (li(nl), lmt) 'command_file_print_on;LOGIC;F;',          s%global%command_file_print_on
-  nl=nl+1; write (li(nl), lmt) 'box_plots;LOGIC;F;',                      s%global%box_plots
-  nl=nl+1; write (li(nl), lmt) 'beam_timer_on;LOGIC;F;',                  s%global%beam_timer_on
-  nl=nl+1; write (li(nl), lmt) 'var_limits_on;LOGIC;F;',                  s%global%var_limits_on
-  nl=nl+1; write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;F;',            s%global%only_limit_opt_vars
-  nl=nl+1; write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;F;',       s%global%optimizer_var_limit_warn
-  nl=nl+1; write (li(nl), lmt) 'rf_on;LOGIC;F;',                          s%global%rf_on
-  nl=nl+1; write (li(nl), lmt) 'draw_curve_off_scale_warn;LOGIC;F;',      s%global%draw_curve_off_scale_warn
-  nl=nl+1; write (li(nl), lmt) 'wait_for_cr_in_single_mode;LOGIC;F;',     s%global%wait_for_CR_in_single_mode
-  nl=nl+1; write (li(nl), lmt) 'disable_smooth_line_calc;LOGIC;F;',       s%global%disable_smooth_line_calc
-  nl=nl+1; write (li(nl), lmt) 'debug_on;LOGIC;F;',                       s%global%debug_on
+  nl=nl+1; write (li(nl), rmt) 'y_axis_plot_dmin;REAL;T;',                s%global%y_axis_plot_dmin
+  nl=nl+1; write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
+  nl=nl+1; write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
+  nl=nl+1; write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
+  nl=nl+1; write (li(nl), rmt) 'lmdif_eps;REAL;T;',                       s%global%lmdif_eps
+  nl=nl+1; write (li(nl), rmt) 'svd_cutoff;REAL;T;',                      s%global%svd_cutoff
+  nl=nl+1; write (li(nl), rmt) 'unstable_penalty;REAL;T;',                s%global%unstable_penalty
+  nl=nl+1; write (li(nl), rmt) 'merit_stop_value;REAL;T;',                s%global%merit_stop_value
+  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',             s%global%random_sigma_cutoff
+  nl=nl+1; write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
+  nl=nl+1; write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
+  nl=nl+1; write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
+  nl=nl+1; write (li(nl), imt) 'phase_units;INT;T;',                      s%global%phase_units
+  nl=nl+1; write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
+  nl=nl+1; write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
+  nl=nl+1; write (li(nl), imt) 'n_top10;INT;T;',                          s%global%n_top10
+  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
+  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
+  nl=nl+1; write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
+  nl=nl+1; write (li(nl), amt) 'prompt_string;STR;T;',                    s%global%prompt_string
+  nl=nl+1; write (li(nl), amt) 'prompt_color;STR;T;',                     s%global%prompt_color
+  nl=nl+1; write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
+  nl=nl+1; write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
+  nl=nl+1; write (li(nl), amt) 'var_out_file;STR;T;',                     s%global%var_out_file
+  nl=nl+1; write (li(nl), lmt) 'initialized;LOGIC;T;',                    s%global%initialized
+  nl=nl+1; write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
+  nl=nl+1; write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
+  nl=nl+1; write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
+  nl=nl+1; write (li(nl), lmt) 'label_keys;LOGIC;T;',                     s%global%label_keys
+  nl=nl+1; write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
+  nl=nl+1; write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
+  nl=nl+1; write (li(nl), lmt) 'init_plot_needed;LOGIC;T;',               s%global%init_plot_needed
+  nl=nl+1; write (li(nl), lmt) 'orm_analysis;LOGIC;T;',                   s%global%orm_analysis
+  nl=nl+1; write (li(nl), lmt) 'plot_on;LOGIC;T;',                        s%global%plot_on
+  nl=nl+1; write (li(nl), lmt) 'lattice_calc_on;LOGIC;T;',                s%global%lattice_calc_on
+  nl=nl+1; write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase
+  nl=nl+1; write (li(nl), lmt) 'stop_on_error;LOGIC;T;',                  s%global%stop_on_error
+  nl=nl+1; write (li(nl), lmt) 'command_file_print_on;LOGIC;T;',          s%global%command_file_print_on
+  nl=nl+1; write (li(nl), lmt) 'box_plots;LOGIC;T;',                      s%global%box_plots
+  nl=nl+1; write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
+  nl=nl+1; write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
+  nl=nl+1; write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+  nl=nl+1; write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
+  nl=nl+1; write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
+  nl=nl+1; write (li(nl), lmt) 'draw_curve_off_scale_warn;LOGIC;T;',      s%global%draw_curve_off_scale_warn
+  nl=nl+1; write (li(nl), lmt) 'wait_for_cr_in_single_mode;LOGIC;T;',     s%global%wait_for_CR_in_single_mode
+  nl=nl+1; write (li(nl), lmt) 'disable_smooth_line_calc;LOGIC;T;',       s%global%disable_smooth_line_calc
+  nl=nl+1; write (li(nl), lmt) 'debug_on;LOGIC;T;',                       s%global%debug_on
 
 
 !----------------------------------------------------------------------
@@ -282,20 +282,20 @@ case ('plot1')
   n = 0
   if (allocated(p%graph)) n = size(p%graph)
 
-  nl=nl+1; write (li(nl), imt) 'num_graphs;INT;F;',                       n
+  nl=nl+1; write (li(nl), imt) 'num_graphs;INT;T;',                       n
   do i = 1, n
-    nl=nl+1; write (li(nl), vamt) 'graph[', i, '];STR;F;',              p%graph(i)%name
+    nl=nl+1; write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                             p%name
-  nl=nl+1; write (li(nl), amt) 'description;STR;F;',                      p%description
-  nl=nl+1; write (li(nl), amt) 'x_axis_type;STR;F;',                      p%x_axis_type
-  nl=nl+1; write (li(nl), lmt) 'autoscale_x;LOGIC;F;',                    p%autoscale_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_y;LOGIC;F;',                    p%autoscale_y
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_x;LOGIC;F;',               p%autoscale_gang_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;F;',               p%autoscale_gang_y
-  nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;F;',    p%list_with_show_plot_command
-  nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;F;',                        p%phantom
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             p%name
+  nl=nl+1; write (li(nl), amt) 'description;STR;T;',                      p%description
+  nl=nl+1; write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
+  nl=nl+1; write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
+  nl=nl+1; write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
+  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
+  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
+  nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
+  nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
 
 
 !----------------------------------------------------------------------
@@ -325,55 +325,55 @@ case ('plot_graph')
   n = 0
   if (allocated(g%curve)) n = size(g%curve)
 
-  nl=nl+1; write (li(nl), imt) 'num_curves;INT;F;',                       n
+  nl=nl+1; write (li(nl), imt) 'num_curves;INT;T;',                       n
   do i = 1, n
-    nl=nl+1; write (li(nl), vamt) 'curve[', i, '];STR;F;',                g%curve(i)%name
+    nl=nl+1; write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                             g%name
-  nl=nl+1; write (li(nl), amt) 'type;STR;F;',                             g%type
-  nl=nl+1; write (li(nl), amt) 'title;STR;F;',                            g%title
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             g%name
+  nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             g%type
+  nl=nl+1; write (li(nl), amt) 'title;STR;T;',                            g%title
   nl=nl+1; write (li(nl), amt) 'title_suffix;STR;F;',                     g%title_suffix
-  nl=nl+1; write (li(nl), amt) 'component;STR;F;',                        g%component
+  nl=nl+1; write (li(nl), amt) 'component;STR;T;',                        g%component
   nl=nl+1; write (li(nl), amt) 'why_invalid;STR;F;',                      g%why_invalid
-  nl=nl+1; write (li(nl), amt) 'floor_plan_view;STR;F;',                  g%floor_plan_view
-  nl=nl+1; write (li(nl), amt) 'floor_plan_orbit_color;STR;F;',           g%floor_plan_orbit_color
-  nl=nl+1; write (li(nl), rmt) 'x_axis_scale_factor;REAL;F;',             g%x_axis_scale_factor
-  nl=nl+1; write (li(nl), rmt) 'symbol_size_scale;REAL;F;',               g%symbol_size_scale
-  nl=nl+1; write (li(nl), rmt) 'floor_plan_rotation;REAL;F;',             g%floor_plan_rotation
-  nl=nl+1; write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;F;',          g%floor_plan_orbit_scale
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        g%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;F;',                      g%ix_universe
-  nl=nl+1; write (li(nl), lmt) 'clip;LOGIC;F;',                           g%clip
+  nl=nl+1; write (li(nl), amt) 'floor_plan_view;STR;T;',                  g%floor_plan_view
+  nl=nl+1; write (li(nl), amt) 'floor_plan_orbit_color;STR;T;',           g%floor_plan_orbit_color
+  nl=nl+1; write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',             g%x_axis_scale_factor
+  nl=nl+1; write (li(nl), rmt) 'symbol_size_scale;REAL;T;',               g%symbol_size_scale
+  nl=nl+1; write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',             g%floor_plan_rotation
+  nl=nl+1; write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;T;',          g%floor_plan_orbit_scale
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        g%ix_branch
+  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;T;',                      g%ix_universe
+  nl=nl+1; write (li(nl), lmt) 'clip;LOGIC;T;',                           g%clip
   nl=nl+1; write (li(nl), lmt) 'valid;LOGIC;F;',                          g%valid
-  nl=nl+1; write (li(nl), lmt) 'y2_mirrors_y;LOGIC;F;',                   g%y2_mirrors_y
+  nl=nl+1; write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                   g%y2_mirrors_y
   nl=nl+1; write (li(nl), lmt) 'limited;LOGIC;F;',                        g%limited
-  nl=nl+1; write (li(nl), lmt) 'draw_axes;LOGIC;F;',                      g%draw_axes
-  nl=nl+1; write (li(nl), lmt) 'correct_xy_distortion;LOGIC;F;',          g%correct_xy_distortion
-  nl=nl+1; write (li(nl), lmt) 'floor_plan_size_is_absolute;LOGIC;F;',    g%floor_plan_size_is_absolute
-  nl=nl+1; write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;F;',  g%floor_plan_draw_only_first_pass
-  nl=nl+1; write (li(nl), lmt) 'draw_curve_legend;LOGIC;F;',              g%draw_curve_legend
-  nl=nl+1; write (li(nl), lmt) 'draw_grid;LOGIC;F;',                      g%draw_grid
-  nl=nl+1; write (li(nl), lmt) 'visible;LOGIC;F;',                        g%visible
-  nl=nl+1; write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;F;', g%draw_only_good_user_data_or_vars
+  nl=nl+1; write (li(nl), lmt) 'draw_axes;LOGIC;T;',                      g%draw_axes
+  nl=nl+1; write (li(nl), lmt) 'correct_xy_distortion;LOGIC;T;',          g%correct_xy_distortion
+  nl=nl+1; write (li(nl), lmt) 'floor_plan_size_is_absolute;LOGIC;T;',    g%floor_plan_size_is_absolute
+  nl=nl+1; write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;T;',  g%floor_plan_draw_only_first_pass
+  nl=nl+1; write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',              g%draw_curve_legend
+  nl=nl+1; write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
+  nl=nl+1; write (li(nl), lmt) 'visible;LOGIC;T;',                        g%visible
+  nl=nl+1; write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=nl+1; write (li(nl), amt) 'y.label;STR;F;',                         g%y%label
-  nl=nl+1; write (li(nl), rmt) 'y.max;REAL;F;',                          g%y%max
-  nl=nl+1; write (li(nl), rmt) 'y.min;REAL;F;',                          g%y%min
-  nl=nl+1; write (li(nl), imt) 'y.major_div;INT;F;',                     g%y%major_div
-  nl=nl+1; write (li(nl), imt) 'y.major_div_nominal;INT;F;',             g%y%major_div_nominal
-  nl=nl+1; write (li(nl), imt) 'y.places;INT;F;',                        g%y%places
-  nl=nl+1; write (li(nl), lmt) 'y.draw_label;LOGIC;F;',                  g%y%draw_label
-  nl=nl+1; write (li(nl), lmt) 'y.draw_numbers;LOGIC;F;',                g%y%draw_numbers
+  nl=nl+1; write (li(nl), amt) 'y.label;STR;T;',                         g%y%label
+  nl=nl+1; write (li(nl), rmt) 'y.max;REAL;T;',                          g%y%max
+  nl=nl+1; write (li(nl), rmt) 'y.min;REAL;T;',                          g%y%min
+  nl=nl+1; write (li(nl), imt) 'y.major_div;INT;T;',                     g%y%major_div
+  nl=nl+1; write (li(nl), imt) 'y.major_div_nominal;INT;T;',             g%y%major_div_nominal
+  nl=nl+1; write (li(nl), imt) 'y.places;INT;T;',                        g%y%places
+  nl=nl+1; write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                  g%y%draw_label
+  nl=nl+1; write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                g%y%draw_numbers
 
-  nl=nl+1; write (li(nl), amt) 'y2.label;STR;F;',                        g%y2%label
-  nl=nl+1; write (li(nl), rmt) 'y2.max;REAL;F;',                         g%y2%max
-  nl=nl+1; write (li(nl), rmt) 'y2.min;REAL;F;',                         g%y2%min
-  nl=nl+1; write (li(nl), imt) 'y2.major_div;INT;F;',                    g%y2%major_div
-  nl=nl+1; write (li(nl), imt) 'y2.major_div_nominal;INT;F;',            g%y2%major_div_nominal
-  nl=nl+1; write (li(nl), imt) 'y2.places;INT;F;',                       g%y2%places
-  nl=nl+1; write (li(nl), lmt) 'y2.draw_label;LOGIC;F;',                 g%y2%draw_label
-  nl=nl+1; write (li(nl), lmt) 'y2.draw_numbers;LOGIC;F;',               g%y2%draw_numbers
+  nl=nl+1; write (li(nl), amt) 'y2.label;STR;T;',                        g%y2%label
+  nl=nl+1; write (li(nl), rmt) 'y2.max;REAL;T;',                         g%y2%max
+  nl=nl+1; write (li(nl), rmt) 'y2.min;REAL;T;',                         g%y2%min
+  nl=nl+1; write (li(nl), imt) 'y2.major_div;INT;T;',                    g%y2%major_div
+  nl=nl+1; write (li(nl), imt) 'y2.major_div_nominal;INT;T;',            g%y2%major_div_nominal
+  nl=nl+1; write (li(nl), imt) 'y2.places;INT;T;',                       g%y2%places
+  nl=nl+1; write (li(nl), lmt) 'y2.draw_label;LOGIC;T;',                 g%y2%draw_label
+  nl=nl+1; write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',               g%y2%draw_numbers
 
 !----------------------------------------------------------------------
 ! Curve information for a plot
@@ -393,39 +393,39 @@ case ('plot_curve')
 
   cur => curve(1)%c
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                             cur%name
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;F;',                      cur%data_source
-  nl=nl+1; write (li(nl), amt) 'data_type_x;STR;F;',                      cur%data_type_x
-  nl=nl+1; write (li(nl), amt) 'data_type_z;STR;F;',                      cur%data_type_z
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;F;',                        cur%data_type
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;F;',                     cur%ele_ref_name
-  nl=nl+1; write (li(nl), amt) 'legend_text;STR;F;',                      cur%legend_text
-  nl=nl+1; write (li(nl), amt) 'message_text;STR;F;',                     cur%message_text
-  nl=nl+1; write (li(nl), rmt) 'y_axis_scale_factor;REAL;F;',             cur%y_axis_scale_factor
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             cur%name
+  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      cur%data_source
+  nl=nl+1; write (li(nl), amt) 'data_type_x;STR;T;',                      cur%data_type_x
+  nl=nl+1; write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
+  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        cur%data_type
+  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
+  nl=nl+1; write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
+  nl=nl+1; write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text
+  nl=nl+1; write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
   nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               cur%s
-  nl=nl+1; write (li(nl), rmt) 'z_color0;REAL;F;',                        cur%z_color0
-  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;F;',                      cur%ix_universe
-  nl=nl+1; write (li(nl), imt) 'symbol_every;INT;F;',                     cur%symbol_every
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        cur%ix_branch
-  nl=nl+1; write (li(nl), imt) 'index;INT;F;',                            cur%index
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;F;',                       cur%ix_ele_ref
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref_track;INT;F;',                 cur%ix_ele_ref_track
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;F;',                         cur%ix_bunch
-  nl=nl+1; write (li(nl), lmt) 'use_y2;LOGIC;F;',                         cur%use_y2
-  nl=nl+1; write (li(nl), lmt) 'draw_line;LOGIC;F;',                      cur%draw_line
-  nl=nl+1; write (li(nl), lmt) 'draw_symbols;LOGIC;F;',                   cur%draw_symbols
-  nl=nl+1; write (li(nl), lmt) 'draw_symbol_index;LOGIC;F;',              cur%draw_symbol_index
-  nl=nl+1; write (li(nl), lmt) 'smooth_line_calc;LOGIC;F;',               cur%smooth_line_calc
-  nl=nl+1; write (li(nl), lmt) 'use_z_color;LOGIC;F;',                    cur%use_z_color
+  nl=nl+1; write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
+  nl=nl+1; write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color0
+  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;T;',                      cur%ix_universe
+  nl=nl+1; write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        cur%ix_branch
+  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       cur%ix_ele_ref
+  nl=nl+1; write (li(nl), imt) 'ix_ele_ref_track;INT;T;',                 cur%ix_ele_ref_track
+  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         cur%ix_bunch
+  nl=nl+1; write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
+  nl=nl+1; write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
+  nl=nl+1; write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
+  nl=nl+1; write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
+  nl=nl+1; write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
+  nl=nl+1; write (li(nl), lmt) 'use_z_color;LOGIC;T;',                    cur%use_z_color
 
-  nl=nl+1; write (li(nl), imt)  'line.width;INT;F;',                      cur%line%width
-  nl=nl+1; write (li(nl), amt)  'line.color;STR;F;',                      qp_color_name(cur%line%color)
-  nl=nl+1; write (li(nl), amt)  'line.pattern;STR;F;',                    qp_line_pattern_name(cur%line%pattern)
+  nl=nl+1; write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
+  nl=nl+1; write (li(nl), amt)  'line.color;STR;T;',                      qp_color_name(cur%line%color)
+  nl=nl+1; write (li(nl), amt)  'line.pattern;STR;T;',                    qp_line_pattern_name(cur%line%pattern)
 
-  nl=nl+1; write (li(nl), amt)  'symbol.type;STR;F;',                     qp_symbol_type_name(cur%symbol%type)
-  nl=nl+1; write (li(nl), rmt)  'symbol.height;REAL;F;',                  cur%symbol%height
-  nl=nl+1; write (li(nl), amt)  'symbol.fill_pattern;STR;F;',             qp_fill_name(cur%symbol%fill_pattern)
-  nl=nl+1; write (li(nl), imt)  'symbol.line_width;INT;F;',               cur%symbol%line_width
+  nl=nl+1; write (li(nl), amt)  'symbol.type;STR;T;',                     qp_symbol_type_name(cur%symbol%type)
+  nl=nl+1; write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
+  nl=nl+1; write (li(nl), amt)  'symbol.fill_pattern;STR;T;',             qp_fill_name(cur%symbol%fill_pattern)
+  nl=nl+1; write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
 ! Points used to construct a smooth line for a plot curve.
@@ -484,8 +484,8 @@ case ('universe')
   nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           u%ix_uni
   nl=nl+1; write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
   nl=nl+1; write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
-  nl=nl+1; write (li(nl), lmt) 'reverse_tracking;LOGIC;F;',               u%reverse_tracking
-  nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;F;',                          u%is_on
+  nl=nl+1; write (li(nl), lmt) 'reverse_tracking;LOGIC;T;',               u%reverse_tracking
+  nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------
 ! List of all variable v1 arrays
@@ -548,41 +548,41 @@ case ('var1')
 
   v_ptr => v_array(1)%v
 
-  nl=nl+1; write (li(nl), rmt)  'model_value;REAL;F;',          v_ptr%model_value
-  nl=nl+1; write (li(nl), rmt)  'base_value;REAL;F;',           v_ptr%base_value
+  nl=nl+1; write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
+  nl=nl+1; write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
-  nl=nl+1; write (li(nl), amt) 'ele_name;STR;F;',                         v_ptr%ele_name
-  nl=nl+1; write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
+  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         v_ptr%ele_name
+  nl=nl+1; write (li(nl), amt) 'attrib_name;STR;T;',                      v_ptr%attrib_name
   nl=nl+1; write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
   nl=nl+1; write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
   nl=nl+1; write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
   nl=nl+1; write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
-  nl=nl+1; write (li(nl), imt) 'ix_key_table;INT;F;',                     v_ptr%ix_key_table
+  nl=nl+1; write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
   nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
   nl=nl+1; write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
   nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;F;',                      v_ptr%meas_value
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;F;',                       v_ptr%ref_value
+  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
+  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
   nl=nl+1; write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
-  nl=nl+1; write (li(nl), rmt) 'high_lim;REAL;F;',                        v_ptr%high_lim
-  nl=nl+1; write (li(nl), rmt) 'low_lim;REAL;F;',                         v_ptr%low_lim
-  nl=nl+1; write (li(nl), rmt) 'step;REAL;F;',                            v_ptr%step
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;F;',                          v_ptr%weight
+  nl=nl+1; write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
+  nl=nl+1; write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
+  nl=nl+1; write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
+  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
   nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
   nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
   nl=nl+1; write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
   nl=nl+1; write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
-  nl=nl+1; write (li(nl), rmt) 'key_delta;REAL;F;',                       v_ptr%key_delta
+  nl=nl+1; write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
   nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;F;',                       v_ptr%merit_type
+  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       v_ptr%merit_type
   nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
   nl=nl+1; write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
-  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;F;',                      v_ptr%good_user
-  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;F;',                       v_ptr%good_opt
-  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;F;',                      v_ptr%good_plot
+  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
+  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
+  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
   nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
   nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
-  nl=nl+1; write (li(nl), lmt) 'key_bound;LOGIC;F;',                      v_ptr%key_bound
+  nl=nl+1; write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
 
 !----------------------------------------------------------------------
 ! Data d2 info for a given universe.
@@ -622,14 +622,14 @@ case ('data_d2')
 
 
   do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;F;', d2_ptr%d1(i)%name
+    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                             d2_ptr%name
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
   nl=nl+1; write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
   nl=nl+1; write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
-  nl=nl+1; write (li(nl), amt) 'data_date;STR;F;',                        d2_ptr%data_date
-  nl=nl+1; write (li(nl), amt) 'ref_date;STR;F;',                         d2_ptr%ref_date
+  nl=nl+1; write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
+  nl=nl+1; write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
   nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
   nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
   nl=nl+1; write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
@@ -681,29 +681,29 @@ case ('data1')
 
   d_ptr => d_array(1)%d
 
-  nl=nl+1; write (li(nl), amt) 'ele_name;STR;F;',                         d_ptr%ele_name
-  nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;F;',                   d_ptr%ele_start_name
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;F;',                     d_ptr%ele_ref_name  
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;F;',                        d_ptr%data_type     
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;F;',                       d_ptr%merit_type    
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;F;',                      d_ptr%data_source   
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;F;',                         d_ptr%ix_bunch      
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        d_ptr%ix_branch     
-  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           d_ptr%ix_ele        
-  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;F;',                     d_ptr%ix_ele_start  
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;F;',                       d_ptr%ix_ele_ref    
+  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
+  nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
+  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name  
+  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type     
+  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type    
+  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source   
+  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch      
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch     
+  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele        
+  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start  
+  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref    
   nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit  
   nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1         
   nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data       
   nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel     
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;F;',                      d_ptr%meas_value    
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;F;',                       d_ptr%ref_value     
+  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value    
+  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value     
   nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value   
   nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value  
   nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value     
   nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value    
   nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit   
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;F;',                          d_ptr%weight        
+  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight        
   nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value 
   nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit         
   nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s             
@@ -711,11 +711,11 @@ case ('data1')
   nl=nl+1; write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
   nl=nl+1; write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
   nl=nl+1; write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
-  nl=nl+1; write (li(nl), lmt) 'good_meas;LOGIC;F;',                      d_ptr%good_meas
-  nl=nl+1; write (li(nl), lmt) 'good_ref;LOGIC;F;',                       d_ptr%good_ref
-  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;F;',                      d_ptr%good_user
-  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;F;',                       d_ptr%good_opt
-  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;F;',                      d_ptr%good_plot
+  nl=nl+1; write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
+  nl=nl+1; write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
+  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
+  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
+  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
   nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
 
@@ -781,46 +781,40 @@ case ('lat_ele1')
 
   select case (who)
   case ('general')
-    nl=nl+1; write (li(nl), amt) 'name;STR;F;',                             ele%name
-    nl=nl+1; write (li(nl), amt) 'type;STR;F;',                             ele%type
-    nl=nl+1; write (li(nl), amt) 'alias;STR;F;',                            ele%alias
+    nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             ele%name
+    nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             ele%type
+    nl=nl+1; write (li(nl), amt) 'alias;STR;T;',                            ele%alias
     nl=nl+1; write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
     nl=nl+1; write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
     nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               ele%s
     nl=nl+1; write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
-    nl=nl+1; write (li(nl), imt) 'key;INT;F;',                              ele%key
-    nl=nl+1; write (li(nl), imt) 'sub_key;INT;F;',                          ele%sub_key
+    nl=nl+1; write (li(nl), amt) 'key;INT;F;',                              key_name(ele%key)
+    nl=nl+1; write (li(nl), imt) 'sub_key;INT;F;',                          sub_key_name(ele%sub_key)
     nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
     nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
     nl=nl+1; write (li(nl), amt) 'slave_status;INT;F;',                     control_name(ele%slave_status)
     nl=nl+1; write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
     nl=nl+1; write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
-    nl=nl+1; write (li(nl), imt) 'ix1_slave;INT;F;',                        ele%ix1_slave
     nl=nl+1; write (li(nl), amt) 'lord_status;INT;F;',                      control_name(ele%lord_status)
     nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
     nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=nl+1; write (li(nl), imt) 'ic1_lord;INT;F;',                         ele%ic1_lord
-    nl=nl+1; write (li(nl), imt) 'ixx;INT;F;',                              ele%ixx
-    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;INT;F;',                 mat6_calc_method_name(ele%mat6_calc_method)
-    nl=nl+1; write (li(nl), amt) 'tracking_method;INT;F;',                  tracking_method_name(ele%tracking_method)
-    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;INT;F;',             spin_tracking_method_name(ele%spin_tracking_method)
-    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;INT;F;',             ptc_integration_type_name(ele%ptc_integration_type)
-    nl=nl+1; write (li(nl), amt) 'field_calc;INT;F;',                       field_calc_name(ele%field_calc)
-    nl=nl+1; write (li(nl), amt) 'aperture_at;INT;F;',                      aperture_at_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), amt) 'aperture_type;INT;F;',                    aperture_type_name(ele%aperture_type)
-    nl=nl+1; write (li(nl), imt) 'orientation;INT;F;',                      ele%orientation
-    nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;F;',                    ele%symplectify
+    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;INT;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
+    nl=nl+1; write (li(nl), amt) 'tracking_method;INT;T;',                  tracking_method_name(ele%tracking_method)
+    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;INT;T;',             spin_tracking_method_name(ele%spin_tracking_method)
+    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;INT;T;',             ptc_integration_type_name(ele%ptc_integration_type)
+    nl=nl+1; write (li(nl), amt) 'field_calc;INT;T;',                       field_calc_name(ele%field_calc)
+    nl=nl+1; write (li(nl), amt) 'aperture_at;INT;T;',                      aperture_at_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), amt) 'aperture_type;INT;T;',                    aperture_type_name(ele%aperture_type)
+    nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
+    nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
     nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
-    nl=nl+1; write (li(nl), lmt) 'multipoles_on;LOGIC;F;',                  ele%multipoles_on
-    nl=nl+1; write (li(nl), lmt) 'scale_multipoles;LOGIC;F;',               ele%scale_multipoles
-    nl=nl+1; write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;F;',    ele%taylor_map_includes_offsets
-    nl=nl+1; write (li(nl), lmt) 'field_master;LOGIC;F;',                   ele%field_master
-    nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;F;',                          ele%is_on
-    nl=nl+1; write (li(nl), lmt) 'logic;LOGIC;F;',                          ele%logic
-    nl=nl+1; write (li(nl), lmt) 'bmad_logic;LOGIC;F;',                     ele%bmad_logic
-    nl=nl+1; write (li(nl), lmt) 'select;LOGIC;F;',                         ele%select
-    nl=nl+1; write (li(nl), lmt) 'csr_calc_on;LOGIC;F;',                    ele%csr_calc_on
-    nl=nl+1; write (li(nl), lmt) 'offset_moves_aperture;LOGIC;F;',          ele%offset_moves_aperture
+    nl=nl+1; write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
+    nl=nl+1; write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
+    nl=nl+1; write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
+    nl=nl+1; write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+    nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
+    nl=nl+1; write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
+    nl=nl+1; write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
 
   case ('parameters')
     do i = 1, num_ele_attrib$
@@ -894,30 +888,30 @@ case ('beam_init')
   beam_init => u%beam%beam_init
 
   nl=nl+1; write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
-  nl=nl+1; write (li(nl), rmt) 'sig_z_jitter;REAL;F;',                     beam_init%sig_z_jitter
-  nl=nl+1; write (li(nl), rmt) 'sig_e_jitter;REAL;F;',                     beam_init%sig_e_jitter
-  nl=nl+1; write (li(nl), imt) 'n_particle;INT;F;',                        beam_init%n_particle
-  nl=nl+1; write (li(nl), lmt) 'renorm_center;LOGIC;F;',                   beam_init%renorm_center
-  nl=nl+1; write (li(nl), lmt) 'renorm_sigma;LOGIC;F;',                    beam_init%renorm_sigma
-  nl=nl+1; write (li(nl), amt) 'random_engine;STR;F;',                     beam_init%random_engine
-  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;F;',            beam_init%random_gauss_converter
-  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;F;',              beam_init%random_sigma_cutoff
-  nl=nl+1; write (li(nl), rmt) 'a_norm_emit;REAL;F;',                      beam_init%a_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'b_norm_emit;REAL;F;',                      beam_init%b_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'a_emit;REAL;F;',                           beam_init%a_emit
-  nl=nl+1; write (li(nl), rmt) 'b_emit;REAL;F;',                           beam_init%b_emit
-  nl=nl+1; write (li(nl), rmt) 'dpz_dz;REAL;F;',                           beam_init%dPz_dz
-  nl=nl+1; write (li(nl), rmt) 'dt_bunch;REAL;F;',                         beam_init%dt_bunch
-  nl=nl+1; write (li(nl), rmt) 'sig_z;REAL;F;',                            beam_init%sig_z
-  nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;F;',                            beam_init%sig_e
-  nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;F;',                     beam_init%bunch_charge
-  nl=nl+1; write (li(nl), imt) 'n_bunch;INT;F;',                           beam_init%n_bunch
-  nl=nl+1; write (li(nl), amt) 'species;INT;F;',                           beam_init%species
-  nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;F;',                       beam_init%init_spin
-  nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;F;',           beam_init%full_6D_coupling_calc
-  nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;F;',              beam_init%use_lattice_center
-  nl=nl+1; write (li(nl), lmt) 'use_t_coords;LOGIC;F;',                    beam_init%use_t_coords
-  nl=nl+1; write (li(nl), lmt) 'use_z_as_t;LOGIC;F;',                      beam_init%use_z_as_t
+  nl=nl+1; write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
+  nl=nl+1; write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
+  nl=nl+1; write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
+  nl=nl+1; write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
+  nl=nl+1; write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
+  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
+  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
+  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
+  nl=nl+1; write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
+  nl=nl+1; write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
+  nl=nl+1; write (li(nl), rmt) 'a_emit;REAL;T;',                           beam_init%a_emit
+  nl=nl+1; write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
+  nl=nl+1; write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
+  nl=nl+1; write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
+  nl=nl+1; write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
+  nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
+  nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
+  nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
+  nl=nl+1; write (li(nl), amt) 'species;INT;T;',                           beam_init%species
+  nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
+  nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
+  nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
+  nl=nl+1; write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
+  nl=nl+1; write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
