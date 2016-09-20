@@ -54,11 +54,11 @@ interface
     logical abort
   end subroutine
  
-  subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
+  subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
     implicit none
-    character(*) :: cmd_line
-    character(*), optional :: prompt_str 
-    logical, optional :: wait_flag, will_need_cmd_line_input
+    character(*) :: cmd_out
+    character(*), optional :: prompt_str, cmd_in
+    logical, optional :: wait_flag, will_need_input
   end subroutine
  
   subroutine tao_has_been_created ()

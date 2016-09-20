@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
+! Subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
 !
 ! Subroutine to get input from the terminal.
 !
@@ -7,16 +7,16 @@
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
 !   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
-!   cmd_line   -- Character(*): Command from something like Python if s%com%shell_interactive = F.
+!   cmd_in     -- Character(*), optional: Command from something like Python if s%com%gui_mode = T.
 !
 ! Output:
-!   cmd_line -- Character(*): Command line from the user.
-!   will_need_cmd_line_input
-!              -- logical, optional :: If s%com%shell_interactive = F, This argument is set to True
-!                   when more input is needed from the calling program.
+!   cmd_out    -- Character(*): Command from the user.
+!   will_need_input
+!              -- logical, optional :: This argument is set to True when the local command buffer is 
+!                   empty and more input will be needed when this routine is next called.
 !-
 
-subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
+subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
 
 use tao_mod, dummy => tao_get_user_input
 use input_mod
@@ -35,24 +35,21 @@ type (do_loop_struct), allocatable, save :: loop(:)
 integer i, j, ix, ix1, ix2
 integer, save :: in_loop = 0 ! in loop nest level
 integer ios, n_level
-character(*) :: cmd_line
-character(*), optional :: prompt_str
-character(80) prompt_string
 
+character(*) :: cmd_out
+character(*), optional :: prompt_str, cmd_in
+character(80) prompt_string
 character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) tag, name
 character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
-logical, optional :: wait_flag, will_need_cmd_line_input
+logical, optional :: wait_flag, will_need_input
 logical err, wait, flush, boldit
 logical, save :: init_needed = .true.
 
 ! Init single char input
-
-prompt_string = s%global%prompt_string
-if (present(prompt_str)) prompt_string = prompt_str
 
 if (init_needed) then
 #ifdef CESR_WINCVF
@@ -61,6 +58,13 @@ if (init_needed) then
 #endif
   init_needed = .false.
 endif
+
+! Init
+
+if (present(cmd_in)) cmd_out = cmd_in
+
+prompt_string = s%global%prompt_string
+if (present(prompt_str)) prompt_string = prompt_str
 
 ! If single character input wanted then...
 
@@ -72,11 +76,11 @@ if (s%com%single_mode) then
         if (s%com%single_mode_buffer /= '') exit
       enddo
     endif
-    cmd_line(1:1) = s%com%single_mode_buffer(1:1)
+    cmd_out(1:1) = s%com%single_mode_buffer(1:1)
     s%com%single_mode_buffer = s%com%single_mode_buffer(2:)
   else
     wait = logic_option(.true., wait_flag)
-    call get_a_char (cmd_line(1:1), wait, [' '])  ! ignore blanks
+    call get_a_char (cmd_out(1:1), wait, [' '])  ! ignore blanks
     s%com%cmd_from_cmd_file = .false.
   endif
   return
@@ -91,15 +95,15 @@ if (s%com%multi_commands_here) then
   if (ix == 0) then
     s%com%multi_commands_here = .false.
   else
-    cmd_line = saved_line
+    cmd_out = saved_line
   endif
 endif
 
 ! If recalling a command from the cmd history stack...
 
 if (s%com%use_cmd_here) then
-  cmd_line = s%com%cmd
-  call alias_translate (cmd_line, err)
+  cmd_out = s%com%cmd
+  call alias_translate (cmd_out, err)
   s%com%use_cmd_here = .false.
   return
 endif
@@ -113,7 +117,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
   if (.not. s%com%multi_commands_here) then
     do
-      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_line
+      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%name)
         goto 8000
@@ -121,14 +125,14 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
       s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
       s%com%cmd_from_cmd_file = .true.
-      call string_trim (cmd_line, cmd_line, ix)
+      call string_trim (cmd_out, cmd_out, ix)
       if (ix /= 0) exit
     enddo
 
     ! nothing more to do if an alias definition
 
-    if (cmd_line(1:5) == 'alias') then
-      call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_line))
+    if (cmd_out(1:5) == 'alias') then
+      call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_out))
       return
     endif
 
@@ -136,46 +140,46 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     do i = 1, 9
       do j = 1, 10
-        ix = index (cmd_line, sub_str(i))
+        ix = index (cmd_out, sub_str(i))
         if (ix == 0) exit
-        cmd_line = cmd_line(1:ix-1) // trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
+        cmd_out = cmd_out(1:ix-1) // trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_out(ix+5:)
       enddo
     enddo
 
     loop1: do
-      ix1 = index(cmd_line, '[[')
-      ix2 = index(cmd_line, ']]')
+      ix1 = index(cmd_out, '[[')
+      ix2 = index(cmd_out, ']]')
       if (ix1 == 0) exit
       if (.not. allocated(loop) .or. ix2 < ix1) then
-        call out_io (s_error$, r_name, 'MALFORMED LINE IN COMMAND FILE: ' // cmd_line)
+        call out_io (s_error$, r_name, 'MALFORMED LINE IN COMMAND FILE: ' // cmd_out)
         call tao_abort_command_file()
-        cmd_line = ''
+        cmd_out = ''
         return
       endif
-      name = cmd_line(ix1+2:ix2-1)
+      name = cmd_out(ix1+2:ix2-1)
 
       do i = 1, size(loop)
         if (name == loop(i)%name) then
-          write (cmd_line, '(a, i0, a)') cmd_line(1:ix1-1), loop(i)%value, cmd_line(ix2+2:) 
+          write (cmd_out, '(a, i0, a)') cmd_out(1:ix1-1), loop(i)%value, cmd_out(ix2+2:) 
           cycle loop1
         endif
       enddo
 
-      call out_io (s_error$, r_name, 'CANNOT MATCH NAME IN [[...]] CONSTRUCT: ' // cmd_line)
+      call out_io (s_error$, r_name, 'CANNOT MATCH NAME IN [[...]] CONSTRUCT: ' // cmd_out)
       call tao_abort_command_file()
-      cmd_line = ''
+      cmd_out = ''
       return
       
     enddo loop1
 
-    call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_line))
+    call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
-    call do_loop(cmd_line)
+    call do_loop(cmd_out)
     
   endif
 
-  call alias_translate (cmd_line, err)
+  call alias_translate (cmd_out, err)
   call check_for_multi_commands
 
   return
@@ -184,7 +188,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   close (s%com%cmd_file(n_level)%ix_unit)
   s%com%cmd_file(n_level)%ix_unit = 0 
   s%com%cmd_file_level = n_level - 1 ! signal that the file has been closed
-  cmd_line = ''
+  cmd_out = ''
   ! If still lower nested command file to complete then return
   if (s%com%cmd_file_level /= 0) then
     if (s%com%cmd_file(n_level-1)%paused) then
@@ -199,46 +203,46 @@ endif
 
 ! Here if no command file is being used.
 
-if (s%com%shell_interactive) then
+if (.not. present(cmd_in)) then
   if (.not. s%com%multi_commands_here) then
-    cmd_line = ' '
+    cmd_out = ''
     tag = trim(prompt_string) // '> '
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
-    call read_a_line (tag, cmd_line, prompt_color = s%global%prompt_color, prompt_bold = boldit)
+    call read_a_line (tag, cmd_out, prompt_color = s%global%prompt_color, prompt_bold = boldit)
   endif
 endif
 
-if (present (will_need_cmd_line_input)) then
-  will_need_cmd_line_input = .false.
+if (present (will_need_input)) then
+  will_need_input = .false.
   if (.not. s%com%multi_commands_here .and. (s%com%cmd_file_level == 0 .or. s%com%cmd_file(n_level)%paused)) then
-     will_need_cmd_line_input = .true.
+     will_need_input = .true.
   endif
 endif
 
-call alias_translate (cmd_line, err)
+call alias_translate (cmd_out, err)
 call check_for_multi_commands
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 contains
 
-subroutine alias_translate (cmd_line, err)
+subroutine alias_translate (cmd_out, err)
 
-character(*) cmd_line
-character(100) old_cmd_line, alias_cmd
+character(*) cmd_out
+character(100) old_cmd_out, alias_cmd
 
 logical err, translated
 
 !
 
-old_cmd_line = cmd_line ! Save old command line for the command history.
+old_cmd_out = cmd_out ! Save old command line for the command history.
 translated = .false.    ! No translation done yet
-call alias_translate2 (cmd_line, err, translated, alias_cmd)
+call alias_translate2 (cmd_out, err, translated, alias_cmd)
 
 if (translated) then
   print '(2a)', 'Alias: ', trim (alias_cmd)
-  cmd_line = trim(cmd_line) // "  ! " // trim(old_cmd_line)  
+  cmd_out = trim(cmd_out) // "  ! " // trim(old_cmd_out)  
 endif
 
 end subroutine
@@ -247,9 +251,9 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 
-recursive subroutine alias_translate2 (cmd_line, err, translated, alias_cmd2)
+recursive subroutine alias_translate2 (cmd_out, err, translated, alias_cmd2)
 
-character(*) cmd_line
+character(*) cmd_out
 character(100) alias_cmd, alias_cmd2
 
 integer ic, i, j, ix
@@ -257,15 +261,15 @@ logical err, translated
 
 ! Look for a translation for the first word
 
-call string_trim (cmd_line, cmd_line, ic)
-ix = index(cmd_line, ';')
+call string_trim (cmd_out, cmd_out, ic)
+ix = index(cmd_out, ';')
 if (ix < ic .and. ix /= 0) ic = ix-1
 
-alias_cmd2 = cmd_line
+alias_cmd2 = cmd_out
 
 do i = 1, s%com%n_alias
 
-  if (cmd_line(1:ic) /= s%com%alias(i)%name) cycle
+  if (cmd_out(1:ic) /= s%com%alias(i)%name) cycle
 
   ! We have a match...
   ! Now get the actual arguments and replace dummy args with actual args.
@@ -275,15 +279,15 @@ do i = 1, s%com%n_alias
   do j = 1, 9
     ix = index (alias_cmd, sub_str(j))
     if (ix == 0) exit
-    call string_trim (cmd_line(ic+1:), cmd_line, ic)
-    alias_cmd = alias_cmd(1:ix-1) // trim(cmd_line(1:ic)) // alias_cmd(ix+5:)
+    call string_trim (cmd_out(ic+1:), cmd_out, ic)
+    alias_cmd = alias_cmd(1:ix-1) // trim(cmd_out(1:ic)) // alias_cmd(ix+5:)
   enddo
 
   ! Append rest of string
 
-  call string_trim (cmd_line(ic+1:), cmd_line, ic)
+  call string_trim (cmd_out(ic+1:), cmd_out, ic)
   call alias_translate2 (alias_cmd, err, translated, alias_cmd2) ! Translation is an alias?
-  cmd_line = trim(alias_cmd2) // ' ' // cmd_line
+  cmd_out = trim(alias_cmd2) // ' ' // cmd_out
   translated = .true.
 
   return
@@ -305,28 +309,28 @@ character(1) quote
 
 !
 
-if (cmd_line(1:5) == 'alias') return
+if (cmd_out(1:5) == 'alias') return
 
 quote = ''   ! Not in quote string
-do ix = 1, len(cmd_line)
+do ix = 1, len(cmd_out)
 
   if (quote == '') then
-    select case (cmd_line(ix:ix))
+    select case (cmd_out(ix:ix))
     case ('!')
       exit
 
     case (';')
       s%com%multi_commands_here = .true.
-      saved_line = cmd_line(ix+1:)
-      cmd_line = cmd_line(:ix-1)
+      saved_line = cmd_out(ix+1:)
+      cmd_out = cmd_out(:ix-1)
       return
 
     case ("'", '"')
-     quote = cmd_line(ix:ix)
+     quote = cmd_out(ix:ix)
     end select
 
   else ! quote /= ''
-    if (cmd_line(ix:ix) == quote .and. cmd_line(ix-1:ix-1) /= '\') quote = ''           ! '
+    if (cmd_out(ix:ix) == quote .and. cmd_out(ix-1:ix-1) /= '\') quote = ''           ! '
   endif
 
 enddo
@@ -339,13 +343,13 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine do_loop (cmd_line)
+subroutine do_loop (cmd_out)
 
 use tao_command_mod
 
 integer ix
 
-character(*) cmd_line
+character(*) cmd_out
 character(8) :: r_name = "do_loop"
 character(20) cmd_word(9)
 
@@ -353,12 +357,12 @@ logical err
 
 ! Check if a "do" statement
 
-call string_trim (cmd_line, cmd_word(1), ix)
+call string_trim (cmd_out, cmd_word(1), ix)
 if (cmd_word(1) /= 'do' .and. cmd_word(1) /= 'enddo') return
 
 !
 
-call tao_cmd_split (cmd_line, 9, cmd_word, .false., err, '=,')
+call tao_cmd_split (cmd_out, 9, cmd_word, .false., err, '=,')
 
 if (cmd_word(1) == 'do') then
 
@@ -382,12 +386,12 @@ if (cmd_word(1) == 'do') then
   loop(in_loop)%value = loop(in_loop)%start
   call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(in_loop)%name) // ' = \i0\ ', &
                                                   i_array = (/ loop(in_loop)%value /) )
-  cmd_line = '' ! So tao_command will not try to parse this line.
+  cmd_out = '' ! So tao_command will not try to parse this line.
 
 ! Check if hit 'enddo'.
 
 elseif (cmd_word(1) == 'enddo') then
-  cmd_line = ''  ! so tao_command will not try to process this.
+  cmd_out = ''  ! so tao_command will not try to process this.
   if (in_loop == 0) then
     call out_io (s_error$, r_name, 'ENDDO FOUND WITHOUT CORRESPODING DO STATEMENT')
     call tao_abort_command_file()

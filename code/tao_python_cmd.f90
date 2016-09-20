@@ -81,7 +81,7 @@ character(20) :: cmd_names(23)= &
 
 real(rp) s_pos
 
-integer :: i, j, ie, iu, md, nl, ct, n1, nl2, n, ix, iu_write
+integer :: i, j, ie, iu, md, nl, ct, n1, nl2, n, ix, ix2, iu_write
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
 integer :: ios, n_loc
 logical :: err, print_flag, opened, doprint, free
@@ -257,7 +257,7 @@ case ('plot_list')
 
   else
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Expect "r" or "t"')
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t"')
   endif
 
 !----------------------------------------------------------------------
@@ -272,7 +272,7 @@ case ('plot1')
   call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
   if (err) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Expect "r" or "t" at end.')
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
     call end_stuff()
     return
   endif
@@ -315,7 +315,7 @@ case ('plot_graph')
 
   if (err .or. .not. allocated(graph)) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Bad graph name')
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Bad graph name')
     call end_stuff()
     return
   endif
@@ -386,7 +386,7 @@ case ('plot_curve')
 
   if (err .or. .not. allocated(curve)) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python plot_curve <what>: <what> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
   endif
@@ -430,7 +430,8 @@ case ('plot_curve')
 !----------------------------------------------------------------------
 ! Points used to construct a smooth line for a plot curve.
 ! Input syntax:
-!   python plot_line <curve>
+!   python plot_line <region_name>.<graph_name>.<curve_name>
+! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
 
 case ('plot_line')
 
@@ -438,21 +439,30 @@ case ('plot_line')
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python plot_line <what>: <what> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
   endif
 
   cur => curve(1)%c
+
+  if (.not. allocated(cur%x_line)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
+    call end_stuff()
+    return
+  endif
+    
   call re_allocate_lines (nl+size(cur%x_line)+100)
   do i = 1, size(cur%x_line)
-    nl=nl+1; write (li(nl), '(i0, a, 2(es21.13, a))') i, cur%x_line(i), cur%y_line(i)
+    nl=nl+1; write (li(nl), '(i0, 2(a, es21.13))') i, ';', cur%x_line(i), ';', cur%y_line(i)
   enddo
 
 !----------------------------------------------------------------------
 ! Locations to draw symbols for a plot curve.
 ! Input syntax:
-!   python plot_symbol <curve>
+!   python plot_symbol <region_name>.<graph_name>.<curve_name>
+! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
 
 case ('plot_symbol')
 
@@ -460,15 +470,23 @@ case ('plot_symbol')
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python plot_symbol <what>: <what> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
   endif
 
   cur => curve(1)%c
+
+  if (.not. allocated(cur%x_symb)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
+    call end_stuff()
+    return
+  endif
+    
   call re_allocate_lines (size(cur%x_symb)+100)
   do i = 1, size(cur%x_symb)
-    nl=nl+1; write (li(nl), '(2(i0, a), 2(es21.13, a))') i, cur%ix_symb(i), cur%x_symb(i), cur%y_symb(i)
+    nl=nl+1; write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -513,7 +531,7 @@ case ('var_v1')
 
   if (err .or. .not. allocated(v1_array)) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python var_v1 <name>: <name> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 name')
     call end_stuff()
     return
   endif
@@ -541,7 +559,7 @@ case ('var1')
 
   if (.not. allocated(v_array) .or. size(v_array) /= 1) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python var1 <name>: <name> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid variable name')
     call end_stuff()
     return
   endif
@@ -613,7 +631,7 @@ case ('data_d2')
 
   if (err .or. .not. allocated(d2_array)) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python data_d2 <name>: <name> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
     call end_stuff()
     return
   endif
@@ -651,7 +669,7 @@ case ('data_d1')
 
   if (err .or. .not. allocated(d1_array)) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python data_d1 <name>: <name> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1 data name.')
     call end_stuff()
     return
   endif
@@ -674,7 +692,7 @@ case ('data1')
 
   if (.not. allocated(d_array) .or. size(d_array) /= 1) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python data1 <name>: <name> not valid: ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
     call end_stuff()
     return
   endif
@@ -731,7 +749,7 @@ case ('lat_general')
   lat => u%design%lat
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
-    nl=nl+1; write (li(nl), '(i0, 3a, 2(es21.13, a))') i, ';', branch%name, ';', branch%n_ele_track, ';', branch%n_ele_max
+    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
   enddo
 
 !----------------------------------------------------------------------
@@ -772,8 +790,8 @@ case ('lat_ele_list')
 case ('lat_ele1')
 
   ix = index(line, ' ')
-  call string_trim(line(ix:), who, ix)
-  line = line(1:ix)
+  call string_trim(line(ix:), who, ix2)
+  who = line(1:ix)
 
   u => point_to_uni(.true., err); if (err) return
   tao_lat => point_to_tao_lat(err); if (err) return
@@ -1027,7 +1045,7 @@ if (has_ampersand) then
   ix = index(line, '@')
   if (ix == 0) then
     nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python ' // trim(command) // ': missing "@": ' // line)
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing "@"')
     call end_stuff()
     err = .true.
     return
@@ -1045,7 +1063,7 @@ u => tao_pointer_to_universe(ix_universe)
 
 if (.not. associated(u)) then
   nl=nl+1; li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, 'python ' // trim(command) // ': bad universe index: ' // str)
+  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": bad universe index')
   call end_stuff()
   err = .true.
 endif
@@ -1100,6 +1118,8 @@ case default
   call out_io (s_error$, r_name, 'python ' // trim(input_str) //  ': Expecting "|<which>" where <which> must be one of "model", "base", or "design"')
   err = .true.
 end select
+
+line = line(1:ix-1)
 
 end function point_to_tao_lat
 
@@ -1162,6 +1182,7 @@ if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(
   nl=nl+1; li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" missing or out of range branch index')
   call end_stuff()
+  err = .true.
   return
 endif
 
@@ -1234,16 +1255,16 @@ character(20) fmt
 
 fmt = '(3a, es21.13)'
 
-nl=nl+1; write (li(nl), rmt) 'beta_', suffix, ';REAL;F;',                          twiss%beta
-nl=nl+1; write (li(nl), rmt) 'alpha_', suffix, ';REAL;F;',                         twiss%alpha
-nl=nl+1; write (li(nl), rmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
-nl=nl+1; write (li(nl), rmt) 'phi_', suffix, ';REAL;F;',                           twiss%phi
-nl=nl+1; write (li(nl), rmt) 'eta_', suffix, ';REAL;F;',                           twiss%eta
-nl=nl+1; write (li(nl), rmt) 'etap_', suffix, ';REAL;F;',                          twiss%etap
-nl=nl+1; write (li(nl), rmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
-nl=nl+1; write (li(nl), rmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
-nl=nl+1; write (li(nl), rmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
-nl=nl+1; write (li(nl), rmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
+nl=nl+1; write (li(nl), fmt) 'beta_', suffix, ';REAL;F;',                          twiss%beta
+nl=nl+1; write (li(nl), fmt) 'alpha_', suffix, ';REAL;F;',                         twiss%alpha
+nl=nl+1; write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
+nl=nl+1; write (li(nl), fmt) 'phi_', suffix, ';REAL;F;',                           twiss%phi
+nl=nl+1; write (li(nl), fmt) 'eta_', suffix, ';REAL;F;',                           twiss%eta
+nl=nl+1; write (li(nl), fmt) 'etap_', suffix, ';REAL;F;',                          twiss%etap
+nl=nl+1; write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
+nl=nl+1; write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
+nl=nl+1; write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
+nl=nl+1; write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
 
 end subroutine twiss_out
 

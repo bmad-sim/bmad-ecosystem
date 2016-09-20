@@ -1394,6 +1394,7 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', s%com%plot_file
     nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', s%com%var_file
     nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', s%com%startup_file
+    nl=nl+1; write(lines(nl), lmt) 's%com%gui_mode               = ', s%com%gui_mode
     nl=nl+1; write(lines(nl), lmt) 's%com%combine_consecutive_elements_of_like_name = ', &
                                                 s%com%combine_consecutive_elements_of_like_name
     nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(s%com%cmd_file%paused)
