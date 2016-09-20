@@ -924,7 +924,7 @@ case ('beam_init')
   nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
   nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=nl+1; write (li(nl), amt) 'species;INT;T;',                           beam_init%species
+  nl=nl+1; write (li(nl), amt) 'species;INT;T;',                           species_name(beam_init%species)
   nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
