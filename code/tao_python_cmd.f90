@@ -139,7 +139,7 @@ imt = '(a,i0,a)'
 rmt = '(a,es21.13,a)'
 lmt = '(a,l1,a)'
 vamt = '(a, i0, 3a)'
-vrmt = '(a, i0, 2a, es21.13)'
+vrmt = '(a, i0, a, es21.13)'
 
 nl = 0
 ss => scratch
@@ -771,7 +771,7 @@ case ('branch1')
   nl=nl+1; write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
   nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
   nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
-  nl=nl+1; write (li(nl), amt) 'param.particle;INT;F;',                          species_name(branch%param%particle)
+  nl=nl+1; write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
   nl=nl+1; write (li(nl), imt) 'param.default_tracking_species;INT;F;',          branch%param%default_tracking_species
   nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
   nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
@@ -833,23 +833,23 @@ case ('lat_ele1')
     nl=nl+1; write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
     nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               ele%s
     nl=nl+1; write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
-    nl=nl+1; write (li(nl), amt) 'key;INT;F;',                              key_name(ele%key)
-    nl=nl+1; write (li(nl), imt) 'sub_key;INT;F;',                          sub_key_name(ele%sub_key)
+    nl=nl+1; write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
+    nl=nl+1; write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
     nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
     nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
-    nl=nl+1; write (li(nl), amt) 'slave_status;INT;F;',                     control_name(ele%slave_status)
+    nl=nl+1; write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
     nl=nl+1; write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
     nl=nl+1; write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
-    nl=nl+1; write (li(nl), amt) 'lord_status;INT;F;',                      control_name(ele%lord_status)
+    nl=nl+1; write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
     nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
     nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;INT;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
-    nl=nl+1; write (li(nl), amt) 'tracking_method;INT;T;',                  tracking_method_name(ele%tracking_method)
-    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;INT;T;',             spin_tracking_method_name(ele%spin_tracking_method)
-    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;INT;T;',             ptc_integration_type_name(ele%ptc_integration_type)
-    nl=nl+1; write (li(nl), amt) 'field_calc;INT;T;',                       field_calc_name(ele%field_calc)
-    nl=nl+1; write (li(nl), amt) 'aperture_at;INT;T;',                      aperture_at_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), amt) 'aperture_type;INT;T;',                    aperture_type_name(ele%aperture_type)
+    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;STR;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
+    nl=nl+1; write (li(nl), amt) 'tracking_method;STR;T;',                  tracking_method_name(ele%tracking_method)
+    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;STR;T;',             spin_tracking_method_name(ele%spin_tracking_method)
+    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;STR;T;',             ptc_integration_type_name(ele%ptc_integration_type)
+    nl=nl+1; write (li(nl), amt) 'field_calc;STR;T;',                       field_calc_name(ele%field_calc)
+    nl=nl+1; write (li(nl), amt) 'aperture_at;STR;T;',                      aperture_at_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), amt) 'aperture_type;STR;T;',                    aperture_type_name(ele%aperture_type)
     nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
     nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
     nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
@@ -951,7 +951,7 @@ case ('beam_init')
   nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
   nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=nl+1; write (li(nl), amt) 'species;INT;T;',                           species_name(beam_init%species)
+  nl=nl+1; write (li(nl), amt) 'species;STR;T;',                           species_name(beam_init%species)
   nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
@@ -1264,10 +1264,10 @@ nl=nl+1; write (li(nl), rmt) 'path_len;REAL;F;',                         orbit%p
 nl=nl+1; write (li(nl), rmt) 'p0c;REAL;F;',                              orbit%p0c
 nl=nl+1; write (li(nl), rmt) 'beta;REAL;F;',                             orbit%beta
 nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                            orbit%ix_ele
-nl=nl+1; write (li(nl), amt) 'state;INT;F;',                             coord_state_name(orbit%state)
+nl=nl+1; write (li(nl), amt) 'state;STR;F;',                             coord_state_name(orbit%state)
 nl=nl+1; write (li(nl), imt) 'direction;INT;F;',                         orbit%direction
-nl=nl+1; write (li(nl), amt) 'species;INT;F;',                           species_name(orbit%species)
-nl=nl+1; write (li(nl), amt) 'location;INT;F;',                          location_name(orbit%location)
+nl=nl+1; write (li(nl), amt) 'species;STR;F;',                           species_name(orbit%species)
+nl=nl+1; write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
 
 end subroutine orbit_out
 
