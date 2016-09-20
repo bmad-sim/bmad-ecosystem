@@ -40,30 +40,30 @@ contains
 
 subroutine re_allocate_expression_info (info, n, exact)
 
-  implicit none
+implicit none
 
-  type (tao_expression_info_struct), allocatable :: info(:), temp_info(:)
+type (tao_expression_info_struct), allocatable :: info(:), temp_info(:)
 
-  integer, intent(in) :: n
-  integer n_save, n_old
+integer, intent(in) :: n
+integer n_save, n_old
 
-  logical, optional :: exact
+logical, optional :: exact
 
 !
 
-  if (allocated(info)) then
-    n_old = size(info)
-    if (n == n_old) return
-    if (.not. logic_option(.true., exact) .and. n < n_old) return
-    call move_alloc (info, temp_info)
-    allocate (info(n))
-    n_save = min(n, n_old)
-    info(1:n_save) = temp_info(1:n_save)
-    deallocate (temp_info)  
+if (allocated(info)) then
+  n_old = size(info)
+  if (n == n_old) return
+  if (.not. logic_option(.true., exact) .and. n < n_old) return
+  call move_alloc (info, temp_info)
+  allocate (info(n))
+  n_save = min(n, n_old)
+  info(1:n_save) = temp_info(1:n_save)
+  deallocate (temp_info)  
 
-  else
-    allocate (info(n))
-  endif
+else
+  allocate (info(n))
+endif
 
 end subroutine re_allocate_expression_info
 
@@ -613,6 +613,7 @@ type (tao_curve_array_struct), allocatable, optional :: curve(:)
 type (tao_plot_array_struct), allocatable :: p(:)
 type (tao_graph_array_struct), allocatable :: g(:)
 type (tao_curve_array_struct), allocatable :: c(:)
+type (tao_plot_array_struct), allocatable :: p_temp(:)
 
 integer i, j, k, ix, np, ng, nc
 
@@ -621,7 +622,7 @@ character(40) plot_name, graph_name, curve_name
 character(28) :: r_name = 'tao_find_plots'
 
 logical, optional :: print_flag, always_allocate
-logical err
+logical err, have_exact_match
 
 ! Init
 
@@ -641,20 +642,12 @@ if (allocated(p)) deallocate(p)
 if (allocated(g)) deallocate(g)
 if (allocated(c)) deallocate(c)
 
-! Error check
-
-if (where /= 'REGION' .and. where /= 'BOTH' .and. where /= 'TEMPLATE' .and. where /= 'COMPLETE') then
-  if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, 'BAD "WHERE" LOCATION: ' // where)
-  call err_exit
-endif
-
 ! Parse name argument
 
 err = .false.
 
 if (name == "") then
-  if (logic_option(.true., print_flag)) &
-                call out_io (s_error$, r_name, 'BLANK "WHERE" LOCATION')
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BLANK "WHERE" LOCATION')
   err = .true.
   return
 endif
@@ -668,76 +661,86 @@ else
   graph_name = name(ix+1:)
 endif
 
-! Match name to region or plot and count how many there are.
+! 
+
+select case (where)
+case ('REGION')
+  np = count(s%plot_page%region%name == plot_name) + &
+       count(s%plot_page%region%plot%name == plot_name)
+case ('BOTH')
+  np = count(s%plot_page%region%name == plot_name) + &
+       count(s%plot_page%region%plot%name == plot_name) + &
+       count(s%plot_page%template%name == plot_name)
+case ('TEMPLATE')
+  np = count(s%plot_page%template%name == plot_name)
+case ('COMPLETE')
+  np = count(s%plot_page%region%name == plot_name) + &
+       count(s%plot_page%template%name == plot_name)
+case default
+  if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, 'BAD "WHERE" LOCATION: ' // where)
+  call err_exit
+end select
+
+have_exact_match = (np /= 0)
+
+! Match name to region or plot 
 
 np = 0
+allocate (p_temp(10))
 
-if (where == 'COMPLETE') then
-  do i = 1, size(s%plot_page%template)
-    if (s%plot_page%template(i)%phantom) cycle
-    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
-  enddo
-endif
-
-if (where == 'REGION' .or. where == 'BOTH' .or. where == 'COMPLETE') then
+if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_page%region)
-    if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+    if (plot_name /= '*') then 
+      if (have_exact_match) then
+        if (s%plot_page%region(i)%name /= plot_name .or. s%plot_page%region(i)%plot%name == plot_name) cycle
+      else
+        if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
+            index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1) cycle
+      endif
+    endif
+
+    call point_to_plot(s%plot_page%region(i)%plot)
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
   do i = 1, size(s%plot_page%template)
     if (s%plot_page%template(i)%phantom) cycle
-    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+    if (plot_name /= '*') then 
+      if (have_exact_match) then
+        if (s%plot_page%template(i)%name /= plot_name) cycle
+      else
+        if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1) cycle
+      endif
+    endif
+
+    call point_to_plot(s%plot_page%template(i))
+  enddo
+endif
+
+if (where == 'COMPLETE') then
+  do i = 1, size(s%plot_page%region)
+    if (s%plot_page%region(i)%name /= plot_name) cycle
+    call point_to_plot(s%plot_page%region(i)%plot)
+  enddo
+
+  do i = 1, size(s%plot_page%template)
+    if (s%plot_page%template(i)%name /= plot_name) cycle
+    call point_to_plot(s%plot_page%template(i))
   enddo
 endif
 
 ! Allocate space
 
 if (np == 0) then
-  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                                             'PLOT NOT FOUND: ' // plot_name)
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'PLOT NOT FOUND: ' // plot_name)
   err = .true.
   return
 endif
 
 allocate (p(np))
+p = p_temp(1:np)
 if (present(plot)) allocate(plot(np))
-
-! Now that we have counted and allocated the matches set the plot pointers.
-
-np = 0
-
-if (where == 'COMPLETE') then
-  do i = 1, size(s%plot_page%template)
-    if (s%plot_page%template(i)%phantom) cycle
-    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
-      np = np + 1
-      p(np)%p => s%plot_page%template(i)
-    endif
-  enddo
-endif
-
-if (where == 'REGION' .or. where == 'BOTH' .or. where == 'COMPLETE') then
-  do i = 1, size(s%plot_page%region)
-    if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
-      np = np + 1
-      p(np)%p => s%plot_page%region(i)%plot
-    endif
-  enddo
-endif
-
-if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
-  do i = 1, size(s%plot_page%template)
-    if (s%plot_page%template(i)%phantom) cycle
-    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
-      np = np + 1
-      p(np)%p => s%plot_page%template(i)
-    endif
-  enddo
-endif
 
 if (present(plot)) plot = p
 
@@ -824,6 +827,24 @@ do j = 1, ng
 enddo
 
 if (present(curve)) curve = c
+
+!------------------------------------------------------------
+contains
+
+subroutine point_to_plot (this_plot)
+type (tao_plot_struct), target :: this_plot
+
+if (np+1 > size(p_temp)) then
+  call move_alloc (p_temp, p)
+  allocate (p_temp(2*np))
+  p_temp(1:np) = p(1:np)
+  deallocate (p)
+endif
+
+np = np + 1
+p_temp(np)%p => this_plot
+
+end subroutine point_to_plot
 
 end subroutine tao_find_plots
 
@@ -2723,7 +2744,7 @@ do
         '-var                     ', '-data                    ', '-building_wall           ', '-plot                    ', &
         '-startup                 ', 'help                     ', '-help                    ', '?                        ', &
         '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc', &
-        '-color_prompt            ', '-no_stopping             ', '-hook_init_file          '], &
+        '-color_prompt            ', '-no_stopping             ', '-hook_init_file          ', '-gui_mode                '], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -2791,6 +2812,9 @@ do
 
   case ('-plot')
     call get_next_arg (s%com%plot_file)
+
+  case ('-gui_mode')
+    s%com%gui_mode = .true.
 
   case ('-startup')
     call get_next_arg (s%com%startup_file)

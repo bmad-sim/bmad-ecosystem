@@ -1,4 +1,3 @@
-
 !+
 ! Module tao_struct
 !
@@ -200,8 +199,8 @@ type tao_graph_struct
   character(100) :: title = ''
   character(100) :: title_suffix = ''
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
-  character(60) component             ! Who to plot. Eg: 'meas - design'
-  character(80) why_invalid           ! Informative string to print.
+  character(60) :: component = ''            ! Who to plot. Eg: 'meas - design'
+  character(80) :: why_invalid = ''           ! Informative string to print.
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
   type (tao_curve_struct), allocatable :: curve(:)
@@ -649,9 +648,9 @@ type tao_common_struct
   logical :: init_tao_file_arg_set = .false.
   logical :: log_startup = .false.             ! '-log_startup' command line argument.
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal?
-  logical :: shell_interactive = .true.        ! Interact with shell (vs python, etc.)
-  character(100) :: cmd                                ! Used for the cmd history
-  character(16) :: init_name = 'Tao'                   ! label for initialization          
+  logical :: gui_mode = .false.                ! Interact with shell (vs python, etc.)
+  character(100) :: cmd                        ! Used for the cmd history
+  character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: lat_file = ''              ! '-lat'         command line argument.
   character(100) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file

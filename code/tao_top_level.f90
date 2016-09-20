@@ -27,30 +27,27 @@ type (tao_universe_struct), pointer :: u
 integer, optional :: errcode
 
 character(*), optional :: command
-character(1000) :: cmd_line
+character(1000) :: cmd_in
+character(200) cmd_out
 character(16) :: r_name = 'tao_top_level'
 
-logical found, err, will_need_cmd_line_input, interactive
+logical found, err, will_need_input
 
 ! init
 
 s_ptr => s       ! Used for debugging
 
 ! Set interactive flags
-if (present(command)) then
-  cmd_line = command
-  interactive = .false. 
-  s%com%shell_interactive = .false.
-else
-  interactive = .true. 
-  s%com%shell_interactive = .true.
-endif
-will_need_cmd_line_input = .false.
 
+if (present(command)) then
+  s%com%gui_mode = .true.
+else
+  s%com%gui_mode = .false.
+endif
 
 ! Read command line arguments.
 
-if (interactive) then
+if (.not. present(command)) then
   call tao_parse_command_args (err)
   if (err) stop
 endif
@@ -82,31 +79,27 @@ u => s%u(1)  ! Used for debugging
 do
   err = .false.
   
-  if (interactive) then
-    call tao_get_user_input (cmd_line)
-  else
-    call tao_get_user_input (cmd_line, will_need_cmd_line_input = will_need_cmd_line_input)
-  endif
+  call tao_get_user_input (cmd_out, cmd_in = command, will_need_input = will_need_input)
   
- ! if (s%mpi%master) call tao_get_user_input (cmd_line)
+ ! if (s%mpi%master) call tao_get_user_input (cmd_out)
   
   ! Broadcast command to slaves
-  !if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_line)
+  !if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_out)
   
   if (s%com%single_mode) then
     ! single mode
-    call tao_single_mode (cmd_line(1:1))
+    call tao_single_mode (cmd_out(1:1))
     ! Do the standard calculations and plotting after command execution.
     call tao_cmd_end_calc ()
   else
     ! command line mode
-    call tao_hook_command (cmd_line, found)
-    if (.not. found) call tao_command (cmd_line, err)
+    call tao_hook_command (cmd_out, found)
+    if (.not. found) call tao_command (cmd_out, err)
   endif
-  if (.not. err) call tao_cmd_history_record (cmd_line)
+  if (.not. err) call tao_cmd_history_record (cmd_out)
 
-  ! Non-interactive will exit
-  if (will_need_cmd_line_input) exit
+  ! Exit if getting commands through the command argument
+  if (will_need_input .and. present(command)) exit
 enddo
 
 if (present(errcode) )then

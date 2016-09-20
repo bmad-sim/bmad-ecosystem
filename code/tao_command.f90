@@ -306,7 +306,7 @@ case ('pause')
 
 case ('place')
 
-  if (.not. s%global%plot_on .and. s%com%shell_interactive) then
+  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
     call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
@@ -323,7 +323,7 @@ case ('place')
 
 case ('plot')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on  .and. .not. s%com%gui_mode) then
     call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
@@ -435,7 +435,7 @@ case ('run_optimizer', 'flatten')
 
 case ('scale')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
     call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
   endif
 
@@ -623,7 +623,7 @@ case ('write')
 
 case ('x_axis')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
     return
   endif
@@ -636,7 +636,7 @@ case ('x_axis')
 
 case ('x_scale')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
     return
   endif
@@ -671,7 +671,7 @@ case ('x_scale')
 
 case ('xy_scale')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
     return
   endif
