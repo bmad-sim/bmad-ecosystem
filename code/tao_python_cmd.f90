@@ -71,12 +71,12 @@ character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
 character(20) cmd, command, who
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(23)= &
+character(20) :: cmd_names(24)= &
           ['help           ', 'global         ', 'plot_list      ', 'plot1          ', 'plot_graph     ', &
            'plot_curve     ', 'plot_line      ', 'plot_symbol    ', 'universe       ', 'var_general    ', &
            'var_v1         ', 'var1           ', 'data_general   ', 'data_d2        ', 'data_d1        ', &
-           'data1          ', 'beam_init      ', 'bunch1         ', 'lat_general    ', 'lat_ele_list   ', &
-           'lat_ele1       ', 'twiss_at_s     ', 'orbit_at_s     ']
+           'data1          ', 'beam_init      ', 'bunch1         ', 'lat_general    ', 'branch1        ', &
+           'lat_ele_list   ', 'lat_ele1       ', 'twiss_at_s     ', 'orbit_at_s     ']
 
 
 real(rp) s_pos
@@ -751,6 +751,33 @@ case ('lat_general')
     branch => lat%branch(i)
     nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
   enddo
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Input syntax:
+!   python branch1 <ix_universe>@<ix_branch>
+
+case ('branch1')
+
+  u => point_to_uni(.false., err); if (err) return
+  ix_branch = parse_branch(.false., err); if (err) return
+  branch => u%design%lat%branch(ix_branch)
+
+  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                              branch%name
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
+  nl=nl+1; write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
+  nl=nl+1; write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
+
+  nl=nl+1; write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
+  nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
+  nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
+  nl=nl+1; write (li(nl), amt) 'param.particle;INT;F;',                          species_name(branch%param%particle)
+  nl=nl+1; write (li(nl), imt) 'param.default_tracking_species;INT;F;',          branch%param%default_tracking_species
+  nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
+  nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
+  nl=nl+1; write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
+  nl=nl+1; write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
+
 
 !----------------------------------------------------------------------
 ! Lattice element list.
