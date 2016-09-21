@@ -3231,7 +3231,7 @@ public:
     surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
     beam_start(),
     pre_tracker(),
-    version(0),
+    version(-1),
     n_ele_track(0),
     n_ele_max(0),
     n_control_max(0),
