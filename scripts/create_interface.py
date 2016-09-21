@@ -53,7 +53,7 @@ def wrap_line (line, indent, cont_char):
   return ''.join(lines)
  
 def print_debug (line):
-  if (debug): print line
+  if (debug): print(line)
 
 def indent (string, numspace):
   x = ' ' * numspace
@@ -745,7 +745,7 @@ fc.to_c_var += ['character(STR_LEN+1), allocatable, target :: a_NAME(:)']
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
 
-for trans in f_side_trans.keys():
+for trans in list(f_side_trans.keys()):
   if trans[2] == PTR:
     trans_alloc = (trans[0], trans[1], ALLOC)
     f_side_trans[trans_alloc] = copy.deepcopy(f_side_trans[trans])
@@ -1273,7 +1273,7 @@ cc.test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
 
 # Allocatable components on the C side are the same as pointer components.
 
-for trans in c_side_trans.keys():
+for trans in list(c_side_trans.keys()):
   if trans[2] == PTR:
     trans_alloc = (trans[0], trans[1], ALLOC)
     c_side_trans[trans_alloc] = copy.deepcopy(c_side_trans[trans])
@@ -1284,7 +1284,7 @@ for trans in c_side_trans.keys():
 # See test_interface_input.py (or whatever file is used).
 
 if len(sys.argv) > 1: master_input_file = sys.argv[1]
-print 'Input file: ' + master_input_file
+print(('Input file: ' + master_input_file))
 
 params = __import__(master_input_file)
 
@@ -1392,7 +1392,7 @@ for file_name in params.struct_def_files:
         print_debug('L1: ' + str(split_line))
 
         if len(split_line) > 1:
-          print 'Confused parsing of struct component: ' + line.strip() + ' in: ' + struct.f_name
+          print('Confused parsing of struct component: ' + line.strip() + ' in: ' + struct.f_name)
 
         split_line = re_match2.split(split_line[0], 1)
 
@@ -1473,7 +1473,7 @@ for file_name in params.struct_def_files:
         if len(split_line) == 0 or split_line[0] == '': break
 
         if split_line[0] != ',':
-          print 'Expected "," while parsing: ' + line.strip()  + ' in: ' + struct.f_name
+          print('Expected "," while parsing: ' + line.strip()  + ' in: ' + struct.f_name)
 
         split_line.pop(0)
 
@@ -1509,7 +1509,7 @@ for struct in struct_definitions:
     p_type = arg.pointer_type
 
     if (arg.type, n_dim, p_type) not in f_side_trans:
-      print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + arg.f_name + ' [', arg.type + ', ' + str(n_dim) + ', ' + str(p_type) + ']'
+      print('NO TRANSLATION FOR: ' + struct.short_name + '%' + arg.f_name + ' [', arg.type + ', ' + str(n_dim) + ', ' + str(p_type) + ']')
       continue
 
     arg.f_side = copy.deepcopy(f_side_trans[arg.type, n_dim, p_type])
@@ -1604,7 +1604,7 @@ for struct in struct_definitions:
         f_dim1 = arg.ubound[0]
         c_dim1 = 'Bmad::' + arg.ubound[0][0:-1].upper()
         if arg.lbound[0] != '1':
-          print 'lbound not "1" with parameter upper bound!'
+          print('lbound not "1" with parameter upper bound!')
           sys.exit('STOPPING HERE')
       else:
         f_dim1 = str(1 + int(arg.ubound[0]) - int(arg.lbound[0]))
@@ -1717,12 +1717,12 @@ if debug:
 n_found = 0
 for struct in struct_definitions:
   if struct.short_name == '': 
-    print 'NOT FOUND: ' + struct.f_name
+    print('NOT FOUND: ' + struct.f_name)
   else:
     n_found = n_found + 1
 
-print 'Number of structs in input list: ' + str(len(struct_definitions))
-print 'Number of structs found:         ' + str(n_found)
+print('Number of structs in input list: ' + str(len(struct_definitions)))
+print('Number of structs found:         ' + str(n_found))
 
 if len(struct_definitions) != n_found:
   sys.exit('COULD NOT FIND ALL THE STRUCTS! STOPPING HERE!')  
@@ -1735,7 +1735,7 @@ for struct in struct_definitions:
   for arg in struct.arg:
     if arg.type != STRUCT: continue
     if arg.kind not in struct_names:
-      print ('NO DEFINITION OF STRUCTURE: ' + arg.kind + ' WHICH IS A COMPONENT OF: ' + struct.short_name)
+      print(('NO DEFINITION OF STRUCTURE: ' + arg.kind + ' WHICH IS A COMPONENT OF: ' + struct.short_name))
       err = True
 
 if err: sys.exit()
@@ -1834,8 +1834,8 @@ interface
   f_face.write ('    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex\n')
   f_face.write ('    !! f_side.to_c2_type :: f_side.to_c2_name\n')
   f_face.write ('    type(c_ptr), value :: C\n')
-  for arg_type, args in to_c2_call_def.items():
-    for i in range(1+(len(args)-1)/7): 
+  for arg_type, args in list(to_c2_call_def.items()):
+    for i in range(1+(len(args)-1)//7): 
       f_face.write ('    ' + arg_type + ' :: ' + ', '.join(args[i*7:i*7+7]) + '\n')
 
   f_face.write ('''  end subroutine
@@ -1920,8 +1920,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
       f2_arg_list[var_type].append(var_name)
 
   f_face.write ('!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name\n')
-  for arg_type, arg_list in f2_arg_list.items():
-    for i in range(1+(len(arg_list)-1)/7): 
+  for arg_type, arg_list in list(f2_arg_list.items()):
+    for i in range(1+(len(arg_list)-1)//7): 
       f_face.write(arg_type + ' :: ' + ', '.join(arg_list[i*7:i*7+7]) + '\n')
 
   f_face.write('''
