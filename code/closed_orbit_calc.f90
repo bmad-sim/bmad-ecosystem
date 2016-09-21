@@ -157,6 +157,8 @@ orb_start => closed_orb(ix_ele_start)
 orb_end   => closed_orb(ix_ele_end)
 ele_start => branch%ele(ix_ele_start)
 
+call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+
 !----------------------------------------------------------------------
 ! Further init
 
@@ -189,7 +191,7 @@ case (4, 5)
   if (any(branch%param%t1_no_RF /= 0) .and. dir == 1) then
     t1 = branch%param%t1_no_RF
   else
-    call this_t1_calc(branch, dir, .false., t1)
+    call this_t1_calc(branch, dir, .false., t1, err); if (err) return
     if (dir == 1) branch%param%t1_no_RF = t1
   endif
 
@@ -201,7 +203,7 @@ case (6)
   if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
     t1 = branch%param%t1_with_RF
   else
-    call this_t1_calc(branch, dir, .false., t1)
+    call this_t1_calc(branch, dir, .false., t1, err); if (err) return
     if (dir == 1)  branch%param%t1_with_RF = t1
   endif
 
@@ -237,8 +239,6 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
-
 allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim))
 vec0 = 0
 maska = .false.
@@ -307,7 +307,7 @@ do i_loop = 1, i_max
       m(n)%vec0 = branch%ele(n)%vec0
     enddo
 
-    call this_t1_calc (branch, dir, .true., t1)
+    call this_t1_calc (branch, dir, .true., t1, err); if (err) return
     t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
 
     do n = 1, branch%n_ele_max
@@ -405,6 +405,7 @@ end subroutine
 subroutine track_this_lat(z_set, del, max_eigen)
 
 real(rp) z_set, dt, del, dorb(6), max_eigen
+logical err
 
 !
 
@@ -423,7 +424,7 @@ if (branch%lat%absolute_time_tracking) then
 endif
 del = maxval(abs(dorb))
 
-call this_t1_calc (branch, dir, .true., t1)
+call this_t1_calc (branch, dir, .true., t1, err); if (err) return
 call mat_eigen (t1, eigen_val, eigen_vec, error)
 
 max_eigen = maxval(abs(eigen_val))
@@ -495,16 +496,18 @@ end subroutine co_func
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine this_t1_calc (branch, dir, make_mat6, t1)
+subroutine this_t1_calc (branch, dir, make_mat6, t1, err)
 
 type (branch_struct) branch
-type (coord_struct) start_saved, end_saved
+type (coord_struct) start_saved
 
 real(rp) t1(6,6), delta
-integer dir, i
-logical make_mat6
+integer dir, i, track_state
+logical make_mat6, err
 
 !
+
+err = .false.
 
 if (dir == 1) then
   if (make_mat6) call lat_make_mat6 (branch%lat, -1, closed_orb, branch%ix_branch)
@@ -512,12 +515,17 @@ if (dir == 1) then
 
 else
   start_saved = orb_start
-  end_saved   = orb_end
   delta = 1d-6
   do i = 1, 6
     orb_start%vec(i) = start_saved%vec(i) + delta
-    call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch)
-    t1(:,i) = (orb_end%vec - end_saved%vec) / delta
+    call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
+    if (track_state /= moving_forward$) then 
+      call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]')
+      call end_cleanup
+      err = .true.
+      return
+    endif 
+    t1(:,i) = (orb_end%vec - orb_end%vec) / delta
     orb_start%vec = start_saved%vec
   enddo
 endif

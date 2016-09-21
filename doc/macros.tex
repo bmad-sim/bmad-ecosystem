@@ -129,15 +129,8 @@
 
 \newcommand{\ave}[1]{\left\langle #1 \right\rangle}
 
-\newcommand{\vn}{\ttcmd}           % For variable names
-\newcommand{\cs}{\ttcmd}           % For code source
-\newcommand{\rn}{\ttcmd}           % For Routine names
-\newcommand{\vnf}{\ttcmd}        % For functions/subroutines
-
-
-\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
-
 
 %\newcommand\ttverb{
 %  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
