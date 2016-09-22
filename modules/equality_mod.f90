@@ -12,6 +12,7 @@
 
 module equality_mod
 use beam_def_struct
+use dynamic_aperture_mod
 
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table
@@ -29,7 +30,8 @@ interface operator (==)
   module procedure eq_track_map, eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common
   module procedure eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield, eq_ele, eq_complex_taylor_term
   module procedure eq_complex_taylor, eq_normal_form, eq_branch, eq_lat, eq_bunch
-  module procedure eq_bunch_params, eq_beam
+  module procedure eq_bunch_params, eq_beam, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
+  module procedure eq_beam_init, eq_aperture_data, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -2713,4 +2715,240 @@ if (.not. is_eq) return
 if (allocated(f1%bunch)) is_eq = all(f1%bunch == f2%bunch)
 
 end function eq_beam
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_ellipse_beam_init (f1, f2) result (is_eq)
+
+implicit none
+
+type(ellipse_beam_init_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%part_per_ellipse == f2%part_per_ellipse)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_ellipse == f2%n_ellipse)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sigma_cutoff == f2%sigma_cutoff)
+
+end function eq_ellipse_beam_init
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_kv_beam_init (f1, f2) result (is_eq)
+
+implicit none
+
+type(kv_beam_init_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 1, NOT]
+is_eq = is_eq .and. all(f1%part_per_phi == f2%part_per_phi)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_i2 == f2%n_i2)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%a == f2%a)
+
+end function eq_kv_beam_init
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_grid_beam_init (f1, f2) result (is_eq)
+
+implicit none
+
+type(grid_beam_init_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_x == f2%n_x)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_px == f2%n_px)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_min == f2%x_min)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_max == f2%x_max)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%px_min == f2%px_min)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%px_max == f2%px_max)
+
+end function eq_grid_beam_init
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_beam_init (f1, f2) result (is_eq)
+
+implicit none
+
+type(beam_init_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file_name == f2%file_name)
+!! f_side.equality_test[character, 1, NOT]
+is_eq = is_eq .and. all(f1%distribution_type == f2%distribution_type)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%ellipse == f2%ellipse)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%kv == f2%kv)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%grid == f2%grid)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%center_jitter == f2%center_jitter)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%emit_jitter == f2%emit_jitter)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_z_jitter == f2%sig_z_jitter)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_e_jitter == f2%sig_e_jitter)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_particle == f2%n_particle)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%renorm_center .eqv. f2%renorm_center)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%renorm_sigma .eqv. f2%renorm_sigma)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%random_engine == f2%random_engine)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%random_gauss_converter == f2%random_gauss_converter)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%random_sigma_cutoff == f2%random_sigma_cutoff)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%spin == f2%spin)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%a_norm_emit == f2%a_norm_emit)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%b_norm_emit == f2%b_norm_emit)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%a_emit == f2%a_emit)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%b_emit == f2%b_emit)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dpz_dz == f2%dpz_dz)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%center == f2%center)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dt_bunch == f2%dt_bunch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_z == f2%sig_z)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_e == f2%sig_e)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%bunch_charge == f2%bunch_charge)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_bunch == f2%n_bunch)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%species == f2%species)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%init_spin .eqv. f2%init_spin)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%full_6d_coupling_calc .eqv. f2%full_6d_coupling_calc)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%use_lattice_center .eqv. f2%use_lattice_center)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
+
+end function eq_beam_init
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_aperture_data (f1, f2) result (is_eq)
+
+implicit none
+
+type(aperture_data_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x == f2%x)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y == f2%y)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%plane == f2%plane)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_lat == f2%ix_lat)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%i_turn == f2%i_turn)
+
+end function eq_aperture_data
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_aperture_param (f1, f2) result (is_eq)
+
+implicit none
+
+type(aperture_param_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%min_angle == f2%min_angle)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%max_angle == f2%max_angle)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_angle == f2%n_angle)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_turn == f2%n_turn)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_init == f2%x_init)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_init == f2%y_init)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%accuracy == f2%accuracy)
+
+end function eq_aperture_param
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_aperture_scan (f1, f2) result (is_eq)
+
+implicit none
+
+type(aperture_scan_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%aperture) .eqv. allocated(f2%aperture))
+if (.not. is_eq) return
+if (allocated(f1%aperture)) is_eq = all(shape(f1%aperture) == shape(f2%aperture))
+if (.not. is_eq) return
+if (allocated(f1%aperture)) is_eq = all(f1%aperture == f2%aperture)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%param == f2%param)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%ref_orb == f2%ref_orb)
+
+end function eq_aperture_scan
 end module
