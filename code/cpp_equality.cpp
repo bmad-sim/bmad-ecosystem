@@ -1474,3 +1474,133 @@ bool operator== (const CPP_beam& x, const CPP_beam& y) {
 
 template bool is_all_equal (const CPP_beam_ARRAY&, const CPP_beam_ARRAY&);
 template bool is_all_equal (const CPP_beam_MATRIX&, const CPP_beam_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_ellipse_beam_init& x, const CPP_ellipse_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.part_per_ellipse == y.part_per_ellipse);
+  is_eq = is_eq && (x.n_ellipse == y.n_ellipse);
+  is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ellipse_beam_init_ARRAY&, const CPP_ellipse_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_ellipse_beam_init_MATRIX&, const CPP_ellipse_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_kv_beam_init& x, const CPP_kv_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.part_per_phi, y.part_per_phi);
+  is_eq = is_eq && (x.n_i2 == y.n_i2);
+  is_eq = is_eq && (x.a == y.a);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_kv_beam_init_ARRAY&, const CPP_kv_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_kv_beam_init_MATRIX&, const CPP_kv_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_grid_beam_init& x, const CPP_grid_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.n_x == y.n_x);
+  is_eq = is_eq && (x.n_px == y.n_px);
+  is_eq = is_eq && (x.x_min == y.x_min);
+  is_eq = is_eq && (x.x_max == y.x_max);
+  is_eq = is_eq && (x.px_min == y.px_min);
+  is_eq = is_eq && (x.px_max == y.px_max);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_grid_beam_init_ARRAY&, const CPP_grid_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_grid_beam_init_MATRIX&, const CPP_grid_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file_name == y.file_name);
+  is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
+  is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
+  is_eq = is_eq && (x.kv == y.kv);
+  is_eq = is_eq && is_all_equal(x.grid, y.grid);
+  is_eq = is_eq && is_all_equal(x.center_jitter, y.center_jitter);
+  is_eq = is_eq && is_all_equal(x.emit_jitter, y.emit_jitter);
+  is_eq = is_eq && (x.sig_z_jitter == y.sig_z_jitter);
+  is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
+  is_eq = is_eq && (x.n_particle == y.n_particle);
+  is_eq = is_eq && (x.renorm_center == y.renorm_center);
+  is_eq = is_eq && (x.renorm_sigma == y.renorm_sigma);
+  is_eq = is_eq && (x.random_engine == y.random_engine);
+  is_eq = is_eq && (x.random_gauss_converter == y.random_gauss_converter);
+  is_eq = is_eq && (x.random_sigma_cutoff == y.random_sigma_cutoff);
+  is_eq = is_eq && (x.spin == y.spin);
+  is_eq = is_eq && (x.a_norm_emit == y.a_norm_emit);
+  is_eq = is_eq && (x.b_norm_emit == y.b_norm_emit);
+  is_eq = is_eq && (x.a_emit == y.a_emit);
+  is_eq = is_eq && (x.b_emit == y.b_emit);
+  is_eq = is_eq && (x.dpz_dz == y.dpz_dz);
+  is_eq = is_eq && is_all_equal(x.center, y.center);
+  is_eq = is_eq && (x.dt_bunch == y.dt_bunch);
+  is_eq = is_eq && (x.sig_z == y.sig_z);
+  is_eq = is_eq && (x.sig_e == y.sig_e);
+  is_eq = is_eq && (x.bunch_charge == y.bunch_charge);
+  is_eq = is_eq && (x.n_bunch == y.n_bunch);
+  is_eq = is_eq && (x.species == y.species);
+  is_eq = is_eq && (x.init_spin == y.init_spin);
+  is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
+  is_eq = is_eq && (x.use_lattice_center == y.use_lattice_center);
+  is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
+  is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_beam_init_ARRAY&, const CPP_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_beam_init_MATRIX&, const CPP_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_aperture_data& x, const CPP_aperture_data& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x == y.x);
+  is_eq = is_eq && (x.y == y.y);
+  is_eq = is_eq && (x.plane == y.plane);
+  is_eq = is_eq && (x.ix_lat == y.ix_lat);
+  is_eq = is_eq && (x.i_turn == y.i_turn);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_aperture_data_ARRAY&, const CPP_aperture_data_ARRAY&);
+template bool is_all_equal (const CPP_aperture_data_MATRIX&, const CPP_aperture_data_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_aperture_param& x, const CPP_aperture_param& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.min_angle == y.min_angle);
+  is_eq = is_eq && (x.max_angle == y.max_angle);
+  is_eq = is_eq && (x.n_angle == y.n_angle);
+  is_eq = is_eq && (x.n_turn == y.n_turn);
+  is_eq = is_eq && (x.x_init == y.x_init);
+  is_eq = is_eq && (x.y_init == y.y_init);
+  is_eq = is_eq && (x.accuracy == y.accuracy);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_aperture_param_ARRAY&, const CPP_aperture_param_ARRAY&);
+template bool is_all_equal (const CPP_aperture_param_MATRIX&, const CPP_aperture_param_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_aperture_scan& x, const CPP_aperture_scan& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.aperture, y.aperture);
+  is_eq = is_eq && (x.param == y.param);
+  is_eq = is_eq && (x.ref_orb == y.ref_orb);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_aperture_scan_ARRAY&, const CPP_aperture_scan_ARRAY&);
+template bool is_all_equal (const CPP_aperture_scan_MATRIX&, const CPP_aperture_scan_MATRIX&);

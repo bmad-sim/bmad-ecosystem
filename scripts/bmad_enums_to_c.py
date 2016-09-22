@@ -86,6 +86,7 @@ searchit('../sim_utils/io/output_mod.f90')
 searchit('../sim_utils/interfaces/physical_constants.f90')
 searchit('../sim_utils/interfaces/particle_species_mod.f90')
 searchit('../sim_utils/interfaces/sim_utils_struct.f90')
+searchit('../sim_utils/plot/quick_plot_struct.f90')
 
 f_out.write('''
 }
@@ -104,5 +105,5 @@ f_out.write('''
 #endif
 ''')
 
-print 'Created: include/bmad_enums.h'
+print('Created: include/bmad_enums.h')
 

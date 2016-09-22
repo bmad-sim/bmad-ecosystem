@@ -8458,4 +8458,748 @@ endif
 
 end subroutine set_beam_test_pattern
 
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_ellipse_beam_init (ok)
+
+implicit none
+
+type(ellipse_beam_init_struct), target :: f_ellipse_beam_init, f2_ellipse_beam_init
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_ellipse_beam_init (c_ellipse_beam_init, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_ellipse_beam_init
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_ellipse_beam_init_test_pattern (f2_ellipse_beam_init, 1)
+
+call test_c_ellipse_beam_init(c_loc(f2_ellipse_beam_init), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_ellipse_beam_init_test_pattern (f_ellipse_beam_init, 4)
+if (f_ellipse_beam_init == f2_ellipse_beam_init) then
+  print *, 'ellipse_beam_init: C side convert C->F: Good'
+else
+  print *, 'ellipse_beam_init: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_ellipse_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_ellipse_beam_init (c_ellipse_beam_init, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_ellipse_beam_init
+type(ellipse_beam_init_struct), target :: f_ellipse_beam_init, f2_ellipse_beam_init
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call ellipse_beam_init_to_f (c_ellipse_beam_init, c_loc(f_ellipse_beam_init))
+
+call set_ellipse_beam_init_test_pattern (f2_ellipse_beam_init, 2)
+if (f_ellipse_beam_init == f2_ellipse_beam_init) then
+  print *, 'ellipse_beam_init: F side convert C->F: Good'
+else
+  print *, 'ellipse_beam_init: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_ellipse_beam_init_test_pattern (f2_ellipse_beam_init, 3)
+call ellipse_beam_init_to_c (c_loc(f2_ellipse_beam_init), c_ellipse_beam_init)
+
+end subroutine test2_f_ellipse_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_ellipse_beam_init_test_pattern (F, ix_patt)
+
+implicit none
+
+type(ellipse_beam_init_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%part_per_ellipse = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_ellipse = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%sigma_cutoff = rhs
+
+end subroutine set_ellipse_beam_init_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_kv_beam_init (ok)
+
+implicit none
+
+type(kv_beam_init_struct), target :: f_kv_beam_init, f2_kv_beam_init
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_kv_beam_init (c_kv_beam_init, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_kv_beam_init
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_kv_beam_init_test_pattern (f2_kv_beam_init, 1)
+
+call test_c_kv_beam_init(c_loc(f2_kv_beam_init), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_kv_beam_init_test_pattern (f_kv_beam_init, 4)
+if (f_kv_beam_init == f2_kv_beam_init) then
+  print *, 'kv_beam_init: C side convert C->F: Good'
+else
+  print *, 'kv_beam_init: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_kv_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_kv_beam_init (c_kv_beam_init, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_kv_beam_init
+type(kv_beam_init_struct), target :: f_kv_beam_init, f2_kv_beam_init
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call kv_beam_init_to_f (c_kv_beam_init, c_loc(f_kv_beam_init))
+
+call set_kv_beam_init_test_pattern (f2_kv_beam_init, 2)
+if (f_kv_beam_init == f2_kv_beam_init) then
+  print *, 'kv_beam_init: F side convert C->F: Good'
+else
+  print *, 'kv_beam_init: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_kv_beam_init_test_pattern (f2_kv_beam_init, 3)
+call kv_beam_init_to_c (c_loc(f2_kv_beam_init), c_kv_beam_init)
+
+end subroutine test2_f_kv_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_kv_beam_init_test_pattern (F, ix_patt)
+
+implicit none
+
+type(kv_beam_init_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 1, NOT]
+do jd1 = 1, size(F%part_per_phi,1); lb1 = lbound(F%part_per_phi,1) - 1
+  rhs = 100 + jd1 + 1 + offset
+  F%part_per_phi(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_i2 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%a = rhs
+
+end subroutine set_kv_beam_init_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_grid_beam_init (ok)
+
+implicit none
+
+type(grid_beam_init_struct), target :: f_grid_beam_init, f2_grid_beam_init
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_grid_beam_init (c_grid_beam_init, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_grid_beam_init
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_grid_beam_init_test_pattern (f2_grid_beam_init, 1)
+
+call test_c_grid_beam_init(c_loc(f2_grid_beam_init), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_grid_beam_init_test_pattern (f_grid_beam_init, 4)
+if (f_grid_beam_init == f2_grid_beam_init) then
+  print *, 'grid_beam_init: C side convert C->F: Good'
+else
+  print *, 'grid_beam_init: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_grid_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_grid_beam_init (c_grid_beam_init, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_grid_beam_init
+type(grid_beam_init_struct), target :: f_grid_beam_init, f2_grid_beam_init
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call grid_beam_init_to_f (c_grid_beam_init, c_loc(f_grid_beam_init))
+
+call set_grid_beam_init_test_pattern (f2_grid_beam_init, 2)
+if (f_grid_beam_init == f2_grid_beam_init) then
+  print *, 'grid_beam_init: F side convert C->F: Good'
+else
+  print *, 'grid_beam_init: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_grid_beam_init_test_pattern (f2_grid_beam_init, 3)
+call grid_beam_init_to_c (c_loc(f2_grid_beam_init), c_grid_beam_init)
+
+end subroutine test2_f_grid_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_grid_beam_init_test_pattern (F, ix_patt)
+
+implicit none
+
+type(grid_beam_init_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%n_x = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_px = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%x_min = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%x_max = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%px_min = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%px_max = rhs
+
+end subroutine set_grid_beam_init_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_beam_init (ok)
+
+implicit none
+
+type(beam_init_struct), target :: f_beam_init, f2_beam_init
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_beam_init (c_beam_init, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_beam_init
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_beam_init_test_pattern (f2_beam_init, 1)
+
+call test_c_beam_init(c_loc(f2_beam_init), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_beam_init_test_pattern (f_beam_init, 4)
+if (f_beam_init == f2_beam_init) then
+  print *, 'beam_init: C side convert C->F: Good'
+else
+  print *, 'beam_init: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_beam_init (c_beam_init, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_beam_init
+type(beam_init_struct), target :: f_beam_init, f2_beam_init
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call beam_init_to_f (c_beam_init, c_loc(f_beam_init))
+
+call set_beam_init_test_pattern (f2_beam_init, 2)
+if (f_beam_init == f2_beam_init) then
+  print *, 'beam_init: F side convert C->F: Good'
+else
+  print *, 'beam_init: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_beam_init_test_pattern (f2_beam_init, 3)
+call beam_init_to_c (c_loc(f2_beam_init), c_beam_init)
+
+end subroutine test2_f_beam_init
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_beam_init_test_pattern (F, ix_patt)
+
+implicit none
+
+type(beam_init_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file_name)
+  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 1, NOT]
+do jd1 = lbound(F%distribution_type, 1), ubound(F%distribution_type, 1)
+  do jd = 1, len(F%distribution_type(jd1))
+    F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+2+offset+10*jd+jd1, 26))
+  enddo
+enddo
+!! f_side.test_pat[type, 1, NOT]
+do jd1 = 1, size(F%ellipse,1); lb1 = lbound(F%ellipse,1) - 1
+  rhs = 100 + jd1 + 3 + offset
+  call set_ellipse_beam_init_test_pattern (F%ellipse(jd1+lb1), ix_patt+jd1)
+enddo
+!! f_side.test_pat[type, 0, NOT]
+call set_kv_beam_init_test_pattern (F%kv, ix_patt)
+!! f_side.test_pat[type, 1, NOT]
+do jd1 = 1, size(F%grid,1); lb1 = lbound(F%grid,1) - 1
+  rhs = 100 + jd1 + 5 + offset
+  call set_grid_beam_init_test_pattern (F%grid(jd1+lb1), ix_patt+jd1)
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%center_jitter,1); lb1 = lbound(F%center_jitter,1) - 1
+  rhs = 100 + jd1 + 6 + offset
+  F%center_jitter(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%emit_jitter,1); lb1 = lbound(F%emit_jitter,1) - 1
+  rhs = 100 + jd1 + 7 + offset
+  F%emit_jitter(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%sig_z_jitter = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%sig_e_jitter = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 10 + offset; F%n_particle = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 11 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 12 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%random_engine)
+  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+13+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%random_gauss_converter)
+  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%random_sigma_cutoff = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_spin_polar_test_pattern (F%spin, ix_patt)
+!! f_side.test_pat[real, 0, NOT]
+rhs = 17 + offset; F%a_norm_emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 18 + offset; F%b_norm_emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 19 + offset; F%a_emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 20 + offset; F%b_emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 21 + offset; F%dpz_dz = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%center,1); lb1 = lbound(F%center,1) - 1
+  rhs = 100 + jd1 + 22 + offset
+  F%center(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 23 + offset; F%dt_bunch = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 24 + offset; F%sig_z = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 25 + offset; F%sig_e = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 26 + offset; F%bunch_charge = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 27 + offset; F%n_bunch = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 28 + offset; F%species = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 29 + offset; F%init_spin = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 30 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 31 + offset; F%use_lattice_center = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 32 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 33 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
+
+end subroutine set_beam_init_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_aperture_data (ok)
+
+implicit none
+
+type(aperture_data_struct), target :: f_aperture_data, f2_aperture_data
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_aperture_data (c_aperture_data, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_aperture_data
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_aperture_data_test_pattern (f2_aperture_data, 1)
+
+call test_c_aperture_data(c_loc(f2_aperture_data), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_aperture_data_test_pattern (f_aperture_data, 4)
+if (f_aperture_data == f2_aperture_data) then
+  print *, 'aperture_data: C side convert C->F: Good'
+else
+  print *, 'aperture_data: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_aperture_data
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_aperture_data (c_aperture_data, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_aperture_data
+type(aperture_data_struct), target :: f_aperture_data, f2_aperture_data
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call aperture_data_to_f (c_aperture_data, c_loc(f_aperture_data))
+
+call set_aperture_data_test_pattern (f2_aperture_data, 2)
+if (f_aperture_data == f2_aperture_data) then
+  print *, 'aperture_data: F side convert C->F: Good'
+else
+  print *, 'aperture_data: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_aperture_data_test_pattern (f2_aperture_data, 3)
+call aperture_data_to_c (c_loc(f2_aperture_data), c_aperture_data)
+
+end subroutine test2_f_aperture_data
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_aperture_data_test_pattern (F, ix_patt)
+
+implicit none
+
+type(aperture_data_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%y = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%plane = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%ix_lat = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%i_turn = rhs
+
+end subroutine set_aperture_data_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_aperture_param (ok)
+
+implicit none
+
+type(aperture_param_struct), target :: f_aperture_param, f2_aperture_param
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_aperture_param (c_aperture_param, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_aperture_param
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_aperture_param_test_pattern (f2_aperture_param, 1)
+
+call test_c_aperture_param(c_loc(f2_aperture_param), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_aperture_param_test_pattern (f_aperture_param, 4)
+if (f_aperture_param == f2_aperture_param) then
+  print *, 'aperture_param: C side convert C->F: Good'
+else
+  print *, 'aperture_param: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_aperture_param
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_aperture_param (c_aperture_param, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_aperture_param
+type(aperture_param_struct), target :: f_aperture_param, f2_aperture_param
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call aperture_param_to_f (c_aperture_param, c_loc(f_aperture_param))
+
+call set_aperture_param_test_pattern (f2_aperture_param, 2)
+if (f_aperture_param == f2_aperture_param) then
+  print *, 'aperture_param: F side convert C->F: Good'
+else
+  print *, 'aperture_param: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_aperture_param_test_pattern (f2_aperture_param, 3)
+call aperture_param_to_c (c_loc(f2_aperture_param), c_aperture_param)
+
+end subroutine test2_f_aperture_param
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_aperture_param_test_pattern (F, ix_patt)
+
+implicit none
+
+type(aperture_param_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%min_angle = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%max_angle = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%n_angle = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%n_turn = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%x_init = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%y_init = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%accuracy = rhs
+
+end subroutine set_aperture_param_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_aperture_scan (ok)
+
+implicit none
+
+type(aperture_scan_struct), target :: f_aperture_scan, f2_aperture_scan
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_aperture_scan (c_aperture_scan, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_aperture_scan
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_aperture_scan_test_pattern (f2_aperture_scan, 1)
+
+call test_c_aperture_scan(c_loc(f2_aperture_scan), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_aperture_scan_test_pattern (f_aperture_scan, 4)
+if (f_aperture_scan == f2_aperture_scan) then
+  print *, 'aperture_scan: C side convert C->F: Good'
+else
+  print *, 'aperture_scan: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_aperture_scan
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_aperture_scan (c_aperture_scan, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_aperture_scan
+type(aperture_scan_struct), target :: f_aperture_scan, f2_aperture_scan
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call aperture_scan_to_f (c_aperture_scan, c_loc(f_aperture_scan))
+
+call set_aperture_scan_test_pattern (f2_aperture_scan, 2)
+if (f_aperture_scan == f2_aperture_scan) then
+  print *, 'aperture_scan: F side convert C->F: Good'
+else
+  print *, 'aperture_scan: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_aperture_scan_test_pattern (f2_aperture_scan, 3)
+call aperture_scan_to_c (c_loc(f2_aperture_scan), c_aperture_scan)
+
+end subroutine test2_f_aperture_scan
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_aperture_scan_test_pattern (F, ix_patt)
+
+implicit none
+
+type(aperture_scan_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%aperture)) deallocate (F%aperture)
+else
+  if (.not. allocated(F%aperture)) allocate (F%aperture(-1:1))
+  do jd1 = 1, size(F%aperture,1); lb1 = lbound(F%aperture,1) - 1
+    call set_aperture_data_test_pattern (F%aperture(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 0, NOT]
+call set_aperture_param_test_pattern (F%param, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_coord_test_pattern (F%ref_orb, ix_patt)
+
+end subroutine set_aperture_scan_test_pattern
+
 end module

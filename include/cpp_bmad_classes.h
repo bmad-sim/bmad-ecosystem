@@ -14,43 +14,7 @@
 #include <valarray>
 #include <complex>
 #include "bmad_enums.h"
-
-using namespace std;
-
-typedef bool               Bool;
-typedef complex<double>    Complex;
-typedef double             Real;
-typedef int                Int;
-typedef char*              Char;
-
-typedef const bool               c_Bool;
-typedef const Complex            c_Complex;
-typedef const double             c_Real;
-typedef const int                c_Int;
-typedef const string             c_String;
-typedef const char*              c_Char;
-
-typedef const bool*              c_BoolArr;
-typedef const Complex*           c_ComplexArr;
-typedef const double*            c_RealArr;
-typedef const int*               c_IntArr;
-
-typedef valarray<bool>           Bool_ARRAY;
-typedef valarray<Complex>        Complex_ARRAY;
-typedef valarray<double>         Real_ARRAY;
-typedef valarray<int>            Int_ARRAY;
-typedef valarray<string>         String_ARRAY;
-
-typedef valarray<Bool_ARRAY>     Bool_MATRIX;
-typedef valarray<Complex_ARRAY>  Complex_MATRIX;
-typedef valarray<Real_ARRAY>     Real_MATRIX;
-typedef valarray<Int_ARRAY>      Int_MATRIX;
-
-typedef valarray<Bool_MATRIX>      Bool_TENSOR;
-typedef valarray<Complex_MATRIX>   Complex_TENSOR;
-typedef valarray<Real_MATRIX>      Real_TENSOR;
-typedef valarray<Int_MATRIX>       Int_TENSOR;
-
+#include "bmad_std_typedef.h"
 
 class CPP_spline;
 typedef valarray<CPP_spline>          CPP_spline_ARRAY;
@@ -437,10 +401,45 @@ typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
 
+class CPP_ellipse_beam_init;
+typedef valarray<CPP_ellipse_beam_init>          CPP_ellipse_beam_init_ARRAY;
+typedef valarray<CPP_ellipse_beam_init_ARRAY>    CPP_ellipse_beam_init_MATRIX;
+typedef valarray<CPP_ellipse_beam_init_MATRIX>   CPP_ellipse_beam_init_TENSOR;
+
+class CPP_kv_beam_init;
+typedef valarray<CPP_kv_beam_init>          CPP_kv_beam_init_ARRAY;
+typedef valarray<CPP_kv_beam_init_ARRAY>    CPP_kv_beam_init_MATRIX;
+typedef valarray<CPP_kv_beam_init_MATRIX>   CPP_kv_beam_init_TENSOR;
+
+class CPP_grid_beam_init;
+typedef valarray<CPP_grid_beam_init>          CPP_grid_beam_init_ARRAY;
+typedef valarray<CPP_grid_beam_init_ARRAY>    CPP_grid_beam_init_MATRIX;
+typedef valarray<CPP_grid_beam_init_MATRIX>   CPP_grid_beam_init_TENSOR;
+
+class CPP_beam_init;
+typedef valarray<CPP_beam_init>          CPP_beam_init_ARRAY;
+typedef valarray<CPP_beam_init_ARRAY>    CPP_beam_init_MATRIX;
+typedef valarray<CPP_beam_init_MATRIX>   CPP_beam_init_TENSOR;
+
+class CPP_aperture_data;
+typedef valarray<CPP_aperture_data>          CPP_aperture_data_ARRAY;
+typedef valarray<CPP_aperture_data_ARRAY>    CPP_aperture_data_MATRIX;
+typedef valarray<CPP_aperture_data_MATRIX>   CPP_aperture_data_TENSOR;
+
+class CPP_aperture_param;
+typedef valarray<CPP_aperture_param>          CPP_aperture_param_ARRAY;
+typedef valarray<CPP_aperture_param_ARRAY>    CPP_aperture_param_MATRIX;
+typedef valarray<CPP_aperture_param_MATRIX>   CPP_aperture_param_TENSOR;
+
+class CPP_aperture_scan;
+typedef valarray<CPP_aperture_scan>          CPP_aperture_scan_ARRAY;
+typedef valarray<CPP_aperture_scan_ARRAY>    CPP_aperture_scan_MATRIX;
+typedef valarray<CPP_aperture_scan_MATRIX>   CPP_aperture_scan_TENSOR;
+
 //--------------------------------------------------------------------
 // CPP_spline
 
-class Bmad_spline_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_spline_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_spline {
 public:
@@ -461,8 +460,8 @@ public:
 
 };   // End Class
 
-extern "C" void spline_to_c (const Bmad_spline_class*, CPP_spline&);
-extern "C" void spline_to_f (const CPP_spline&, Bmad_spline_class*);
+extern "C" void spline_to_c (const Opaque_spline_class*, CPP_spline&);
+extern "C" void spline_to_f (const CPP_spline&, Opaque_spline_class*);
 
 bool operator== (const CPP_spline&, const CPP_spline&);
 
@@ -470,7 +469,7 @@ bool operator== (const CPP_spline&, const CPP_spline&);
 //--------------------------------------------------------------------
 // CPP_spin_polar
 
-class Bmad_spin_polar_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_spin_polar_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_spin_polar {
 public:
@@ -491,8 +490,8 @@ public:
 
 };   // End Class
 
-extern "C" void spin_polar_to_c (const Bmad_spin_polar_class*, CPP_spin_polar&);
-extern "C" void spin_polar_to_f (const CPP_spin_polar&, Bmad_spin_polar_class*);
+extern "C" void spin_polar_to_c (const Opaque_spin_polar_class*, CPP_spin_polar&);
+extern "C" void spin_polar_to_f (const CPP_spin_polar&, Opaque_spin_polar_class*);
 
 bool operator== (const CPP_spin_polar&, const CPP_spin_polar&);
 
@@ -500,7 +499,7 @@ bool operator== (const CPP_spin_polar&, const CPP_spin_polar&);
 //--------------------------------------------------------------------
 // CPP_surface_orientation
 
-class Bmad_surface_orientation_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_orientation_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_surface_orientation {
 public:
@@ -521,8 +520,8 @@ public:
 
 };   // End Class
 
-extern "C" void surface_orientation_to_c (const Bmad_surface_orientation_class*, CPP_surface_orientation&);
-extern "C" void surface_orientation_to_f (const CPP_surface_orientation&, Bmad_surface_orientation_class*);
+extern "C" void surface_orientation_to_c (const Opaque_surface_orientation_class*, CPP_surface_orientation&);
+extern "C" void surface_orientation_to_f (const CPP_surface_orientation&, Opaque_surface_orientation_class*);
 
 bool operator== (const CPP_surface_orientation&, const CPP_surface_orientation&);
 
@@ -530,7 +529,7 @@ bool operator== (const CPP_surface_orientation&, const CPP_surface_orientation&)
 //--------------------------------------------------------------------
 // CPP_interval1_coef
 
-class Bmad_interval1_coef_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_interval1_coef_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_interval1_coef {
 public:
@@ -549,8 +548,8 @@ public:
 
 };   // End Class
 
-extern "C" void interval1_coef_to_c (const Bmad_interval1_coef_class*, CPP_interval1_coef&);
-extern "C" void interval1_coef_to_f (const CPP_interval1_coef&, Bmad_interval1_coef_class*);
+extern "C" void interval1_coef_to_c (const Opaque_interval1_coef_class*, CPP_interval1_coef&);
+extern "C" void interval1_coef_to_f (const CPP_interval1_coef&, Opaque_interval1_coef_class*);
 
 bool operator== (const CPP_interval1_coef&, const CPP_interval1_coef&);
 
@@ -558,7 +557,7 @@ bool operator== (const CPP_interval1_coef&, const CPP_interval1_coef&);
 //--------------------------------------------------------------------
 // CPP_photon_reflect_table
 
-class Bmad_photon_reflect_table_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_reflect_table_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_reflect_table {
 public:
@@ -583,8 +582,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_reflect_table_to_c (const Bmad_photon_reflect_table_class*, CPP_photon_reflect_table&);
-extern "C" void photon_reflect_table_to_f (const CPP_photon_reflect_table&, Bmad_photon_reflect_table_class*);
+extern "C" void photon_reflect_table_to_c (const Opaque_photon_reflect_table_class*, CPP_photon_reflect_table&);
+extern "C" void photon_reflect_table_to_f (const CPP_photon_reflect_table&, Opaque_photon_reflect_table_class*);
 
 bool operator== (const CPP_photon_reflect_table&, const CPP_photon_reflect_table&);
 
@@ -592,7 +591,7 @@ bool operator== (const CPP_photon_reflect_table&, const CPP_photon_reflect_table
 //--------------------------------------------------------------------
 // CPP_photon_reflect_surface
 
-class Bmad_photon_reflect_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_reflect_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_reflect_surface {
 public:
@@ -621,8 +620,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_reflect_surface_to_c (const Bmad_photon_reflect_surface_class*, CPP_photon_reflect_surface&);
-extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface&, Bmad_photon_reflect_surface_class*);
+extern "C" void photon_reflect_surface_to_c (const Opaque_photon_reflect_surface_class*, CPP_photon_reflect_surface&);
+extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface&, Opaque_photon_reflect_surface_class*);
 
 bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_surface&);
 
@@ -630,7 +629,7 @@ bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_sur
 //--------------------------------------------------------------------
 // CPP_controller_var
 
-class Bmad_controller_var_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_controller_var_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_controller_var {
 public:
@@ -649,8 +648,8 @@ public:
 
 };   // End Class
 
-extern "C" void controller_var_to_c (const Bmad_controller_var_class*, CPP_controller_var&);
-extern "C" void controller_var_to_f (const CPP_controller_var&, Bmad_controller_var_class*);
+extern "C" void controller_var_to_c (const Opaque_controller_var_class*, CPP_controller_var&);
+extern "C" void controller_var_to_f (const CPP_controller_var&, Opaque_controller_var_class*);
 
 bool operator== (const CPP_controller_var&, const CPP_controller_var&);
 
@@ -658,7 +657,7 @@ bool operator== (const CPP_controller_var&, const CPP_controller_var&);
 //--------------------------------------------------------------------
 // CPP_coord
 
-class Bmad_coord_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_coord_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_coord {
 public:
@@ -701,8 +700,8 @@ public:
 
 };   // End Class
 
-extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
-extern "C" void coord_to_f (const CPP_coord&, Bmad_coord_class*);
+extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
+extern "C" void coord_to_f (const CPP_coord&, Opaque_coord_class*);
 
 bool operator== (const CPP_coord&, const CPP_coord&);
 
@@ -710,7 +709,7 @@ bool operator== (const CPP_coord&, const CPP_coord&);
 //--------------------------------------------------------------------
 // CPP_coord_array
 
-class Bmad_coord_array_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_coord_array_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_coord_array {
 public:
@@ -725,8 +724,8 @@ public:
 
 };   // End Class
 
-extern "C" void coord_array_to_c (const Bmad_coord_array_class*, CPP_coord_array&);
-extern "C" void coord_array_to_f (const CPP_coord_array&, Bmad_coord_array_class*);
+extern "C" void coord_array_to_c (const Opaque_coord_array_class*, CPP_coord_array&);
+extern "C" void coord_array_to_f (const CPP_coord_array&, Opaque_coord_array_class*);
 
 bool operator== (const CPP_coord_array&, const CPP_coord_array&);
 
@@ -734,7 +733,7 @@ bool operator== (const CPP_coord_array&, const CPP_coord_array&);
 //--------------------------------------------------------------------
 // CPP_bpm_phase_coupling
 
-class Bmad_bpm_phase_coupling_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_bpm_phase_coupling_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_bpm_phase_coupling {
 public:
@@ -767,8 +766,8 @@ public:
 
 };   // End Class
 
-extern "C" void bpm_phase_coupling_to_c (const Bmad_bpm_phase_coupling_class*, CPP_bpm_phase_coupling&);
-extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling&, Bmad_bpm_phase_coupling_class*);
+extern "C" void bpm_phase_coupling_to_c (const Opaque_bpm_phase_coupling_class*, CPP_bpm_phase_coupling&);
+extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling&, Opaque_bpm_phase_coupling_class*);
 
 bool operator== (const CPP_bpm_phase_coupling&, const CPP_bpm_phase_coupling&);
 
@@ -776,7 +775,7 @@ bool operator== (const CPP_bpm_phase_coupling&, const CPP_bpm_phase_coupling&);
 //--------------------------------------------------------------------
 // CPP_expression_atom
 
-class Bmad_expression_atom_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_expression_atom_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_expression_atom {
 public:
@@ -795,8 +794,8 @@ public:
 
 };   // End Class
 
-extern "C" void expression_atom_to_c (const Bmad_expression_atom_class*, CPP_expression_atom&);
-extern "C" void expression_atom_to_f (const CPP_expression_atom&, Bmad_expression_atom_class*);
+extern "C" void expression_atom_to_c (const Opaque_expression_atom_class*, CPP_expression_atom&);
+extern "C" void expression_atom_to_f (const CPP_expression_atom&, Opaque_expression_atom_class*);
 
 bool operator== (const CPP_expression_atom&, const CPP_expression_atom&);
 
@@ -804,7 +803,7 @@ bool operator== (const CPP_expression_atom&, const CPP_expression_atom&);
 //--------------------------------------------------------------------
 // CPP_wake_sr_mode
 
-class Bmad_wake_sr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_sr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake_sr_mode {
 public:
@@ -837,8 +836,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_sr_mode_to_c (const Bmad_wake_sr_mode_class*, CPP_wake_sr_mode&);
-extern "C" void wake_sr_mode_to_f (const CPP_wake_sr_mode&, Bmad_wake_sr_mode_class*);
+extern "C" void wake_sr_mode_to_c (const Opaque_wake_sr_mode_class*, CPP_wake_sr_mode&);
+extern "C" void wake_sr_mode_to_f (const CPP_wake_sr_mode&, Opaque_wake_sr_mode_class*);
 
 bool operator== (const CPP_wake_sr_mode&, const CPP_wake_sr_mode&);
 
@@ -846,7 +845,7 @@ bool operator== (const CPP_wake_sr_mode&, const CPP_wake_sr_mode&);
 //--------------------------------------------------------------------
 // CPP_wake_sr
 
-class Bmad_wake_sr_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_sr_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake_sr {
 public:
@@ -863,8 +862,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_sr_to_c (const Bmad_wake_sr_class*, CPP_wake_sr&);
-extern "C" void wake_sr_to_f (const CPP_wake_sr&, Bmad_wake_sr_class*);
+extern "C" void wake_sr_to_c (const Opaque_wake_sr_class*, CPP_wake_sr&);
+extern "C" void wake_sr_to_f (const CPP_wake_sr&, Opaque_wake_sr_class*);
 
 bool operator== (const CPP_wake_sr&, const CPP_wake_sr&);
 
@@ -872,7 +871,7 @@ bool operator== (const CPP_wake_sr&, const CPP_wake_sr&);
 //--------------------------------------------------------------------
 // CPP_wake_lr_mode
 
-class Bmad_wake_lr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_lr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake_lr_mode {
 public:
@@ -909,8 +908,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_lr_mode_to_c (const Bmad_wake_lr_mode_class*, CPP_wake_lr_mode&);
-extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode&, Bmad_wake_lr_mode_class*);
+extern "C" void wake_lr_mode_to_c (const Opaque_wake_lr_mode_class*, CPP_wake_lr_mode&);
+extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode&, Opaque_wake_lr_mode_class*);
 
 bool operator== (const CPP_wake_lr_mode&, const CPP_wake_lr_mode&);
 
@@ -918,7 +917,7 @@ bool operator== (const CPP_wake_lr_mode&, const CPP_wake_lr_mode&);
 //--------------------------------------------------------------------
 // CPP_wake_lr_position1
 
-class Bmad_wake_lr_position1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_lr_position1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake_lr_position1 {
 public:
@@ -937,8 +936,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_lr_position1_to_c (const Bmad_wake_lr_position1_class*, CPP_wake_lr_position1&);
-extern "C" void wake_lr_position1_to_f (const CPP_wake_lr_position1&, Bmad_wake_lr_position1_class*);
+extern "C" void wake_lr_position1_to_c (const Opaque_wake_lr_position1_class*, CPP_wake_lr_position1&);
+extern "C" void wake_lr_position1_to_f (const CPP_wake_lr_position1&, Opaque_wake_lr_position1_class*);
 
 bool operator== (const CPP_wake_lr_position1&, const CPP_wake_lr_position1&);
 
@@ -946,7 +945,7 @@ bool operator== (const CPP_wake_lr_position1&, const CPP_wake_lr_position1&);
 //--------------------------------------------------------------------
 // CPP_wake_lr_spline
 
-class Bmad_wake_lr_spline_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_lr_spline_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake_lr_spline {
 public:
@@ -971,8 +970,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_lr_spline_to_c (const Bmad_wake_lr_spline_class*, CPP_wake_lr_spline&);
-extern "C" void wake_lr_spline_to_f (const CPP_wake_lr_spline&, Bmad_wake_lr_spline_class*);
+extern "C" void wake_lr_spline_to_c (const Opaque_wake_lr_spline_class*, CPP_wake_lr_spline&);
+extern "C" void wake_lr_spline_to_f (const CPP_wake_lr_spline&, Opaque_wake_lr_spline_class*);
 
 bool operator== (const CPP_wake_lr_spline&, const CPP_wake_lr_spline&);
 
@@ -980,7 +979,7 @@ bool operator== (const CPP_wake_lr_spline&, const CPP_wake_lr_spline&);
 //--------------------------------------------------------------------
 // CPP_lat_ele_loc
 
-class Bmad_lat_ele_loc_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_lat_ele_loc_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_lat_ele_loc {
 public:
@@ -997,8 +996,8 @@ public:
 
 };   // End Class
 
-extern "C" void lat_ele_loc_to_c (const Bmad_lat_ele_loc_class*, CPP_lat_ele_loc&);
-extern "C" void lat_ele_loc_to_f (const CPP_lat_ele_loc&, Bmad_lat_ele_loc_class*);
+extern "C" void lat_ele_loc_to_c (const Opaque_lat_ele_loc_class*, CPP_lat_ele_loc&);
+extern "C" void lat_ele_loc_to_f (const CPP_lat_ele_loc&, Opaque_lat_ele_loc_class*);
 
 bool operator== (const CPP_lat_ele_loc&, const CPP_lat_ele_loc&);
 
@@ -1006,7 +1005,7 @@ bool operator== (const CPP_lat_ele_loc&, const CPP_lat_ele_loc&);
 //--------------------------------------------------------------------
 // CPP_wake
 
-class Bmad_wake_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wake {
 public:
@@ -1037,8 +1036,8 @@ public:
 
 };   // End Class
 
-extern "C" void wake_to_c (const Bmad_wake_class*, CPP_wake&);
-extern "C" void wake_to_f (const CPP_wake&, Bmad_wake_class*);
+extern "C" void wake_to_c (const Opaque_wake_class*, CPP_wake&);
+extern "C" void wake_to_f (const CPP_wake&, Opaque_wake_class*);
 
 bool operator== (const CPP_wake&, const CPP_wake&);
 
@@ -1046,7 +1045,7 @@ bool operator== (const CPP_wake&, const CPP_wake&);
 //--------------------------------------------------------------------
 // CPP_taylor_term
 
-class Bmad_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_taylor_term {
 public:
@@ -1063,8 +1062,8 @@ public:
 
 };   // End Class
 
-extern "C" void taylor_term_to_c (const Bmad_taylor_term_class*, CPP_taylor_term&);
-extern "C" void taylor_term_to_f (const CPP_taylor_term&, Bmad_taylor_term_class*);
+extern "C" void taylor_term_to_c (const Opaque_taylor_term_class*, CPP_taylor_term&);
+extern "C" void taylor_term_to_f (const CPP_taylor_term&, Opaque_taylor_term_class*);
 
 bool operator== (const CPP_taylor_term&, const CPP_taylor_term&);
 
@@ -1072,7 +1071,7 @@ bool operator== (const CPP_taylor_term&, const CPP_taylor_term&);
 //--------------------------------------------------------------------
 // CPP_taylor
 
-class Bmad_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_taylor {
 public:
@@ -1089,8 +1088,8 @@ public:
 
 };   // End Class
 
-extern "C" void taylor_to_c (const Bmad_taylor_class*, CPP_taylor&);
-extern "C" void taylor_to_f (const CPP_taylor&, Bmad_taylor_class*);
+extern "C" void taylor_to_c (const Opaque_taylor_class*, CPP_taylor&);
+extern "C" void taylor_to_f (const CPP_taylor&, Opaque_taylor_class*);
 
 bool operator== (const CPP_taylor&, const CPP_taylor&);
 
@@ -1098,7 +1097,7 @@ bool operator== (const CPP_taylor&, const CPP_taylor&);
 //--------------------------------------------------------------------
 // CPP_em_taylor_term
 
-class Bmad_em_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_em_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_em_taylor_term {
 public:
@@ -1115,8 +1114,8 @@ public:
 
 };   // End Class
 
-extern "C" void em_taylor_term_to_c (const Bmad_em_taylor_term_class*, CPP_em_taylor_term&);
-extern "C" void em_taylor_term_to_f (const CPP_em_taylor_term&, Bmad_em_taylor_term_class*);
+extern "C" void em_taylor_term_to_c (const Opaque_em_taylor_term_class*, CPP_em_taylor_term&);
+extern "C" void em_taylor_term_to_f (const CPP_em_taylor_term&, Opaque_em_taylor_term_class*);
 
 bool operator== (const CPP_em_taylor_term&, const CPP_em_taylor_term&);
 
@@ -1124,7 +1123,7 @@ bool operator== (const CPP_em_taylor_term&, const CPP_em_taylor_term&);
 //--------------------------------------------------------------------
 // CPP_em_taylor
 
-class Bmad_em_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_em_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_em_taylor {
 public:
@@ -1141,8 +1140,8 @@ public:
 
 };   // End Class
 
-extern "C" void em_taylor_to_c (const Bmad_em_taylor_class*, CPP_em_taylor&);
-extern "C" void em_taylor_to_f (const CPP_em_taylor&, Bmad_em_taylor_class*);
+extern "C" void em_taylor_to_c (const Opaque_em_taylor_class*, CPP_em_taylor&);
+extern "C" void em_taylor_to_f (const CPP_em_taylor&, Opaque_em_taylor_class*);
 
 bool operator== (const CPP_em_taylor&, const CPP_em_taylor&);
 
@@ -1150,7 +1149,7 @@ bool operator== (const CPP_em_taylor&, const CPP_em_taylor&);
 //--------------------------------------------------------------------
 // CPP_cartesian_map_term1
 
-class Bmad_cartesian_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cartesian_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cartesian_map_term1 {
 public:
@@ -1179,8 +1178,8 @@ public:
 
 };   // End Class
 
-extern "C" void cartesian_map_term1_to_c (const Bmad_cartesian_map_term1_class*, CPP_cartesian_map_term1&);
-extern "C" void cartesian_map_term1_to_f (const CPP_cartesian_map_term1&, Bmad_cartesian_map_term1_class*);
+extern "C" void cartesian_map_term1_to_c (const Opaque_cartesian_map_term1_class*, CPP_cartesian_map_term1&);
+extern "C" void cartesian_map_term1_to_f (const CPP_cartesian_map_term1&, Opaque_cartesian_map_term1_class*);
 
 bool operator== (const CPP_cartesian_map_term1&, const CPP_cartesian_map_term1&);
 
@@ -1188,7 +1187,7 @@ bool operator== (const CPP_cartesian_map_term1&, const CPP_cartesian_map_term1&)
 //--------------------------------------------------------------------
 // CPP_cartesian_map_term
 
-class Bmad_cartesian_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cartesian_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cartesian_map_term {
 public:
@@ -1207,8 +1206,8 @@ public:
 
 };   // End Class
 
-extern "C" void cartesian_map_term_to_c (const Bmad_cartesian_map_term_class*, CPP_cartesian_map_term&);
-extern "C" void cartesian_map_term_to_f (const CPP_cartesian_map_term&, Bmad_cartesian_map_term_class*);
+extern "C" void cartesian_map_term_to_c (const Opaque_cartesian_map_term_class*, CPP_cartesian_map_term&);
+extern "C" void cartesian_map_term_to_f (const CPP_cartesian_map_term&, Opaque_cartesian_map_term_class*);
 
 bool operator== (const CPP_cartesian_map_term&, const CPP_cartesian_map_term&);
 
@@ -1216,7 +1215,7 @@ bool operator== (const CPP_cartesian_map_term&, const CPP_cartesian_map_term&);
 //--------------------------------------------------------------------
 // CPP_cartesian_map
 
-class Bmad_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cartesian_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cartesian_map {
 public:
@@ -1242,8 +1241,8 @@ public:
 
 };   // End Class
 
-extern "C" void cartesian_map_to_c (const Bmad_cartesian_map_class*, CPP_cartesian_map&);
-extern "C" void cartesian_map_to_f (const CPP_cartesian_map&, Bmad_cartesian_map_class*);
+extern "C" void cartesian_map_to_c (const Opaque_cartesian_map_class*, CPP_cartesian_map&);
+extern "C" void cartesian_map_to_f (const CPP_cartesian_map&, Opaque_cartesian_map_class*);
 
 bool operator== (const CPP_cartesian_map&, const CPP_cartesian_map&);
 
@@ -1251,7 +1250,7 @@ bool operator== (const CPP_cartesian_map&, const CPP_cartesian_map&);
 //--------------------------------------------------------------------
 // CPP_cylindrical_map_term1
 
-class Bmad_cylindrical_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cylindrical_map_term1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cylindrical_map_term1 {
 public:
@@ -1268,8 +1267,8 @@ public:
 
 };   // End Class
 
-extern "C" void cylindrical_map_term1_to_c (const Bmad_cylindrical_map_term1_class*, CPP_cylindrical_map_term1&);
-extern "C" void cylindrical_map_term1_to_f (const CPP_cylindrical_map_term1&, Bmad_cylindrical_map_term1_class*);
+extern "C" void cylindrical_map_term1_to_c (const Opaque_cylindrical_map_term1_class*, CPP_cylindrical_map_term1&);
+extern "C" void cylindrical_map_term1_to_f (const CPP_cylindrical_map_term1&, Opaque_cylindrical_map_term1_class*);
 
 bool operator== (const CPP_cylindrical_map_term1&, const CPP_cylindrical_map_term1&);
 
@@ -1277,7 +1276,7 @@ bool operator== (const CPP_cylindrical_map_term1&, const CPP_cylindrical_map_ter
 //--------------------------------------------------------------------
 // CPP_cylindrical_map_term
 
-class Bmad_cylindrical_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cylindrical_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cylindrical_map_term {
 public:
@@ -1296,8 +1295,8 @@ public:
 
 };   // End Class
 
-extern "C" void cylindrical_map_term_to_c (const Bmad_cylindrical_map_term_class*, CPP_cylindrical_map_term&);
-extern "C" void cylindrical_map_term_to_f (const CPP_cylindrical_map_term&, Bmad_cylindrical_map_term_class*);
+extern "C" void cylindrical_map_term_to_c (const Opaque_cylindrical_map_term_class*, CPP_cylindrical_map_term&);
+extern "C" void cylindrical_map_term_to_f (const CPP_cylindrical_map_term&, Opaque_cylindrical_map_term_class*);
 
 bool operator== (const CPP_cylindrical_map_term&, const CPP_cylindrical_map_term&);
 
@@ -1305,7 +1304,7 @@ bool operator== (const CPP_cylindrical_map_term&, const CPP_cylindrical_map_term
 //--------------------------------------------------------------------
 // CPP_cylindrical_map
 
-class Bmad_cylindrical_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_cylindrical_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_cylindrical_map {
 public:
@@ -1339,8 +1338,8 @@ public:
 
 };   // End Class
 
-extern "C" void cylindrical_map_to_c (const Bmad_cylindrical_map_class*, CPP_cylindrical_map&);
-extern "C" void cylindrical_map_to_f (const CPP_cylindrical_map&, Bmad_cylindrical_map_class*);
+extern "C" void cylindrical_map_to_c (const Opaque_cylindrical_map_class*, CPP_cylindrical_map&);
+extern "C" void cylindrical_map_to_f (const CPP_cylindrical_map&, Opaque_cylindrical_map_class*);
 
 bool operator== (const CPP_cylindrical_map&, const CPP_cylindrical_map&);
 
@@ -1348,7 +1347,7 @@ bool operator== (const CPP_cylindrical_map&, const CPP_cylindrical_map&);
 //--------------------------------------------------------------------
 // CPP_grid_field_pt1
 
-class Bmad_grid_field_pt1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_grid_field_pt1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_grid_field_pt1 {
 public:
@@ -1365,8 +1364,8 @@ public:
 
 };   // End Class
 
-extern "C" void grid_field_pt1_to_c (const Bmad_grid_field_pt1_class*, CPP_grid_field_pt1&);
-extern "C" void grid_field_pt1_to_f (const CPP_grid_field_pt1&, Bmad_grid_field_pt1_class*);
+extern "C" void grid_field_pt1_to_c (const Opaque_grid_field_pt1_class*, CPP_grid_field_pt1&);
+extern "C" void grid_field_pt1_to_f (const CPP_grid_field_pt1&, Opaque_grid_field_pt1_class*);
 
 bool operator== (const CPP_grid_field_pt1&, const CPP_grid_field_pt1&);
 
@@ -1374,7 +1373,7 @@ bool operator== (const CPP_grid_field_pt1&, const CPP_grid_field_pt1&);
 //--------------------------------------------------------------------
 // CPP_grid_field_pt
 
-class Bmad_grid_field_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_grid_field_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_grid_field_pt {
 public:
@@ -1393,8 +1392,8 @@ public:
 
 };   // End Class
 
-extern "C" void grid_field_pt_to_c (const Bmad_grid_field_pt_class*, CPP_grid_field_pt&);
-extern "C" void grid_field_pt_to_f (const CPP_grid_field_pt&, Bmad_grid_field_pt_class*);
+extern "C" void grid_field_pt_to_c (const Opaque_grid_field_pt_class*, CPP_grid_field_pt&);
+extern "C" void grid_field_pt_to_f (const CPP_grid_field_pt&, Opaque_grid_field_pt_class*);
 
 bool operator== (const CPP_grid_field_pt&, const CPP_grid_field_pt&);
 
@@ -1402,7 +1401,7 @@ bool operator== (const CPP_grid_field_pt&, const CPP_grid_field_pt&);
 //--------------------------------------------------------------------
 // CPP_grid_field
 
-class Bmad_grid_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_grid_field_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_grid_field {
 public:
@@ -1438,8 +1437,8 @@ public:
 
 };   // End Class
 
-extern "C" void grid_field_to_c (const Bmad_grid_field_class*, CPP_grid_field&);
-extern "C" void grid_field_to_f (const CPP_grid_field&, Bmad_grid_field_class*);
+extern "C" void grid_field_to_c (const Opaque_grid_field_class*, CPP_grid_field&);
+extern "C" void grid_field_to_f (const CPP_grid_field&, Opaque_grid_field_class*);
 
 bool operator== (const CPP_grid_field&, const CPP_grid_field&);
 
@@ -1447,7 +1446,7 @@ bool operator== (const CPP_grid_field&, const CPP_grid_field&);
 //--------------------------------------------------------------------
 // CPP_taylor_field_plane1
 
-class Bmad_taylor_field_plane1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_taylor_field_plane1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_taylor_field_plane1 {
 public:
@@ -1462,8 +1461,8 @@ public:
 
 };   // End Class
 
-extern "C" void taylor_field_plane1_to_c (const Bmad_taylor_field_plane1_class*, CPP_taylor_field_plane1&);
-extern "C" void taylor_field_plane1_to_f (const CPP_taylor_field_plane1&, Bmad_taylor_field_plane1_class*);
+extern "C" void taylor_field_plane1_to_c (const Opaque_taylor_field_plane1_class*, CPP_taylor_field_plane1&);
+extern "C" void taylor_field_plane1_to_f (const CPP_taylor_field_plane1&, Opaque_taylor_field_plane1_class*);
 
 bool operator== (const CPP_taylor_field_plane1&, const CPP_taylor_field_plane1&);
 
@@ -1471,7 +1470,7 @@ bool operator== (const CPP_taylor_field_plane1&, const CPP_taylor_field_plane1&)
 //--------------------------------------------------------------------
 // CPP_taylor_field_plane
 
-class Bmad_taylor_field_plane_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_taylor_field_plane_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_taylor_field_plane {
 public:
@@ -1490,8 +1489,8 @@ public:
 
 };   // End Class
 
-extern "C" void taylor_field_plane_to_c (const Bmad_taylor_field_plane_class*, CPP_taylor_field_plane&);
-extern "C" void taylor_field_plane_to_f (const CPP_taylor_field_plane&, Bmad_taylor_field_plane_class*);
+extern "C" void taylor_field_plane_to_c (const Opaque_taylor_field_plane_class*, CPP_taylor_field_plane&);
+extern "C" void taylor_field_plane_to_f (const CPP_taylor_field_plane&, Opaque_taylor_field_plane_class*);
 
 bool operator== (const CPP_taylor_field_plane&, const CPP_taylor_field_plane&);
 
@@ -1499,7 +1498,7 @@ bool operator== (const CPP_taylor_field_plane&, const CPP_taylor_field_plane&);
 //--------------------------------------------------------------------
 // CPP_taylor_field
 
-class Bmad_taylor_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_taylor_field_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_taylor_field {
 public:
@@ -1531,8 +1530,8 @@ public:
 
 };   // End Class
 
-extern "C" void taylor_field_to_c (const Bmad_taylor_field_class*, CPP_taylor_field&);
-extern "C" void taylor_field_to_f (const CPP_taylor_field&, Bmad_taylor_field_class*);
+extern "C" void taylor_field_to_c (const Opaque_taylor_field_class*, CPP_taylor_field&);
+extern "C" void taylor_field_to_f (const CPP_taylor_field&, Opaque_taylor_field_class*);
 
 bool operator== (const CPP_taylor_field&, const CPP_taylor_field&);
 
@@ -1540,7 +1539,7 @@ bool operator== (const CPP_taylor_field&, const CPP_taylor_field&);
 //--------------------------------------------------------------------
 // CPP_floor_position
 
-class Bmad_floor_position_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_floor_position_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_floor_position {
 public:
@@ -1563,8 +1562,8 @@ public:
 
 };   // End Class
 
-extern "C" void floor_position_to_c (const Bmad_floor_position_class*, CPP_floor_position&);
-extern "C" void floor_position_to_f (const CPP_floor_position&, Bmad_floor_position_class*);
+extern "C" void floor_position_to_c (const Opaque_floor_position_class*, CPP_floor_position&);
+extern "C" void floor_position_to_f (const CPP_floor_position&, Opaque_floor_position_class*);
 
 bool operator== (const CPP_floor_position&, const CPP_floor_position&);
 
@@ -1572,7 +1571,7 @@ bool operator== (const CPP_floor_position&, const CPP_floor_position&);
 //--------------------------------------------------------------------
 // CPP_space_charge
 
-class Bmad_space_charge_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_space_charge_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_space_charge {
 public:
@@ -1601,8 +1600,8 @@ public:
 
 };   // End Class
 
-extern "C" void space_charge_to_c (const Bmad_space_charge_class*, CPP_space_charge&);
-extern "C" void space_charge_to_f (const CPP_space_charge&, Bmad_space_charge_class*);
+extern "C" void space_charge_to_c (const Opaque_space_charge_class*, CPP_space_charge&);
+extern "C" void space_charge_to_f (const CPP_space_charge&, Opaque_space_charge_class*);
 
 bool operator== (const CPP_space_charge&, const CPP_space_charge&);
 
@@ -1610,7 +1609,7 @@ bool operator== (const CPP_space_charge&, const CPP_space_charge&);
 //--------------------------------------------------------------------
 // CPP_xy_disp
 
-class Bmad_xy_disp_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_xy_disp_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_xy_disp {
 public:
@@ -1627,8 +1626,8 @@ public:
 
 };   // End Class
 
-extern "C" void xy_disp_to_c (const Bmad_xy_disp_class*, CPP_xy_disp&);
-extern "C" void xy_disp_to_f (const CPP_xy_disp&, Bmad_xy_disp_class*);
+extern "C" void xy_disp_to_c (const Opaque_xy_disp_class*, CPP_xy_disp&);
+extern "C" void xy_disp_to_f (const CPP_xy_disp&, Opaque_xy_disp_class*);
 
 bool operator== (const CPP_xy_disp&, const CPP_xy_disp&);
 
@@ -1636,7 +1635,7 @@ bool operator== (const CPP_xy_disp&, const CPP_xy_disp&);
 //--------------------------------------------------------------------
 // CPP_twiss
 
-class Bmad_twiss_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_twiss_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_twiss {
 public:
@@ -1669,8 +1668,8 @@ public:
 
 };   // End Class
 
-extern "C" void twiss_to_c (const Bmad_twiss_class*, CPP_twiss&);
-extern "C" void twiss_to_f (const CPP_twiss&, Bmad_twiss_class*);
+extern "C" void twiss_to_c (const Opaque_twiss_class*, CPP_twiss&);
+extern "C" void twiss_to_f (const CPP_twiss&, Opaque_twiss_class*);
 
 bool operator== (const CPP_twiss&, const CPP_twiss&);
 
@@ -1678,7 +1677,7 @@ bool operator== (const CPP_twiss&, const CPP_twiss&);
 //--------------------------------------------------------------------
 // CPP_mode3
 
-class Bmad_mode3_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_mode3_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_mode3 {
 public:
@@ -1703,8 +1702,8 @@ public:
 
 };   // End Class
 
-extern "C" void mode3_to_c (const Bmad_mode3_class*, CPP_mode3&);
-extern "C" void mode3_to_f (const CPP_mode3&, Bmad_mode3_class*);
+extern "C" void mode3_to_c (const Opaque_mode3_class*, CPP_mode3&);
+extern "C" void mode3_to_f (const CPP_mode3&, Opaque_mode3_class*);
 
 bool operator== (const CPP_mode3&, const CPP_mode3&);
 
@@ -1712,7 +1711,7 @@ bool operator== (const CPP_mode3&, const CPP_mode3&);
 //--------------------------------------------------------------------
 // CPP_bookkeeping_state
 
-class Bmad_bookkeeping_state_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_bookkeeping_state_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_bookkeeping_state {
 public:
@@ -1741,8 +1740,8 @@ public:
 
 };   // End Class
 
-extern "C" void bookkeeping_state_to_c (const Bmad_bookkeeping_state_class*, CPP_bookkeeping_state&);
-extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state&, Bmad_bookkeeping_state_class*);
+extern "C" void bookkeeping_state_to_c (const Opaque_bookkeeping_state_class*, CPP_bookkeeping_state&);
+extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state&, Opaque_bookkeeping_state_class*);
 
 bool operator== (const CPP_bookkeeping_state&, const CPP_bookkeeping_state&);
 
@@ -1750,7 +1749,7 @@ bool operator== (const CPP_bookkeeping_state&, const CPP_bookkeeping_state&);
 //--------------------------------------------------------------------
 // CPP_rad_int_ele_cache
 
-class Bmad_rad_int_ele_cache_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_rad_int_ele_cache_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_rad_int_ele_cache {
 public:
@@ -1775,8 +1774,8 @@ public:
 
 };   // End Class
 
-extern "C" void rad_int_ele_cache_to_c (const Bmad_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
-extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache&, Bmad_rad_int_ele_cache_class*);
+extern "C" void rad_int_ele_cache_to_c (const Opaque_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
+extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache&, Opaque_rad_int_ele_cache_class*);
 
 bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 
@@ -1784,7 +1783,7 @@ bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 //--------------------------------------------------------------------
 // CPP_surface_grid_pt
 
-class Bmad_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_surface_grid_pt {
 public:
@@ -1819,8 +1818,8 @@ public:
 
 };   // End Class
 
-extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
-extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt&, Bmad_surface_grid_pt_class*);
+extern "C" void surface_grid_pt_to_c (const Opaque_surface_grid_pt_class*, CPP_surface_grid_pt&);
+extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt&, Opaque_surface_grid_pt_class*);
 
 bool operator== (const CPP_surface_grid_pt&, const CPP_surface_grid_pt&);
 
@@ -1828,7 +1827,7 @@ bool operator== (const CPP_surface_grid_pt&, const CPP_surface_grid_pt&);
 //--------------------------------------------------------------------
 // CPP_surface_grid
 
-class Bmad_surface_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_surface_grid {
 public:
@@ -1851,8 +1850,8 @@ public:
 
 };   // End Class
 
-extern "C" void surface_grid_to_c (const Bmad_surface_grid_class*, CPP_surface_grid&);
-extern "C" void surface_grid_to_f (const CPP_surface_grid&, Bmad_surface_grid_class*);
+extern "C" void surface_grid_to_c (const Opaque_surface_grid_class*, CPP_surface_grid&);
+extern "C" void surface_grid_to_f (const CPP_surface_grid&, Opaque_surface_grid_class*);
 
 bool operator== (const CPP_surface_grid&, const CPP_surface_grid&);
 
@@ -1860,7 +1859,7 @@ bool operator== (const CPP_surface_grid&, const CPP_surface_grid&);
 //--------------------------------------------------------------------
 // CPP_segmented_surface
 
-class Bmad_segmented_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_segmented_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_segmented_surface {
 public:
@@ -1887,8 +1886,8 @@ public:
 
 };   // End Class
 
-extern "C" void segmented_surface_to_c (const Bmad_segmented_surface_class*, CPP_segmented_surface&);
-extern "C" void segmented_surface_to_f (const CPP_segmented_surface&, Bmad_segmented_surface_class*);
+extern "C" void segmented_surface_to_c (const Opaque_segmented_surface_class*, CPP_segmented_surface&);
+extern "C" void segmented_surface_to_f (const CPP_segmented_surface&, Opaque_segmented_surface_class*);
 
 bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
 
@@ -1896,7 +1895,7 @@ bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
 //--------------------------------------------------------------------
 // CPP_target_point
 
-class Bmad_target_point_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_target_point_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_target_point {
 public:
@@ -1911,8 +1910,8 @@ public:
 
 };   // End Class
 
-extern "C" void target_point_to_c (const Bmad_target_point_class*, CPP_target_point&);
-extern "C" void target_point_to_f (const CPP_target_point&, Bmad_target_point_class*);
+extern "C" void target_point_to_c (const Opaque_target_point_class*, CPP_target_point&);
+extern "C" void target_point_to_f (const CPP_target_point&, Opaque_target_point_class*);
 
 bool operator== (const CPP_target_point&, const CPP_target_point&);
 
@@ -1920,7 +1919,7 @@ bool operator== (const CPP_target_point&, const CPP_target_point&);
 //--------------------------------------------------------------------
 // CPP_photon_surface
 
-class Bmad_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_surface {
 public:
@@ -1941,8 +1940,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
-extern "C" void photon_surface_to_f (const CPP_photon_surface&, Bmad_photon_surface_class*);
+extern "C" void photon_surface_to_c (const Opaque_photon_surface_class*, CPP_photon_surface&);
+extern "C" void photon_surface_to_f (const CPP_photon_surface&, Opaque_photon_surface_class*);
 
 bool operator== (const CPP_photon_surface&, const CPP_photon_surface&);
 
@@ -1950,7 +1949,7 @@ bool operator== (const CPP_photon_surface&, const CPP_photon_surface&);
 //--------------------------------------------------------------------
 // CPP_photon_target
 
-class Bmad_photon_target_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_target_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_target {
 public:
@@ -1979,8 +1978,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
-extern "C" void photon_target_to_f (const CPP_photon_target&, Bmad_photon_target_class*);
+extern "C" void photon_target_to_c (const Opaque_photon_target_class*, CPP_photon_target&);
+extern "C" void photon_target_to_f (const CPP_photon_target&, Opaque_photon_target_class*);
 
 bool operator== (const CPP_photon_target&, const CPP_photon_target&);
 
@@ -1988,7 +1987,7 @@ bool operator== (const CPP_photon_target&, const CPP_photon_target&);
 //--------------------------------------------------------------------
 // CPP_photon_material
 
-class Bmad_photon_material_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_material_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_material {
 public:
@@ -2017,8 +2016,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_material_to_c (const Bmad_photon_material_class*, CPP_photon_material&);
-extern "C" void photon_material_to_f (const CPP_photon_material&, Bmad_photon_material_class*);
+extern "C" void photon_material_to_c (const Opaque_photon_material_class*, CPP_photon_material&);
+extern "C" void photon_material_to_f (const CPP_photon_material&, Opaque_photon_material_class*);
 
 bool operator== (const CPP_photon_material&, const CPP_photon_material&);
 
@@ -2026,7 +2025,7 @@ bool operator== (const CPP_photon_material&, const CPP_photon_material&);
 //--------------------------------------------------------------------
 // CPP_photon_element
 
-class Bmad_photon_element_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_photon_element_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_element {
 public:
@@ -2045,8 +2044,8 @@ public:
 
 };   // End Class
 
-extern "C" void photon_element_to_c (const Bmad_photon_element_class*, CPP_photon_element&);
-extern "C" void photon_element_to_f (const CPP_photon_element&, Bmad_photon_element_class*);
+extern "C" void photon_element_to_c (const Opaque_photon_element_class*, CPP_photon_element&);
+extern "C" void photon_element_to_f (const CPP_photon_element&, Opaque_photon_element_class*);
 
 bool operator== (const CPP_photon_element&, const CPP_photon_element&);
 
@@ -2054,7 +2053,7 @@ bool operator== (const CPP_photon_element&, const CPP_photon_element&);
 //--------------------------------------------------------------------
 // CPP_wall3d_vertex
 
-class Bmad_wall3d_vertex_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wall3d_vertex_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wall3d_vertex {
 public:
@@ -2085,8 +2084,8 @@ public:
 
 };   // End Class
 
-extern "C" void wall3d_vertex_to_c (const Bmad_wall3d_vertex_class*, CPP_wall3d_vertex&);
-extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex&, Bmad_wall3d_vertex_class*);
+extern "C" void wall3d_vertex_to_c (const Opaque_wall3d_vertex_class*, CPP_wall3d_vertex&);
+extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex&, Opaque_wall3d_vertex_class*);
 
 bool operator== (const CPP_wall3d_vertex&, const CPP_wall3d_vertex&);
 
@@ -2094,7 +2093,7 @@ bool operator== (const CPP_wall3d_vertex&, const CPP_wall3d_vertex&);
 //--------------------------------------------------------------------
 // CPP_wall3d_section
 
-class Bmad_wall3d_section_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wall3d_section_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wall3d_section {
 public:
@@ -2148,8 +2147,8 @@ public:
 
 };   // End Class
 
-extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3d_section&);
-extern "C" void wall3d_section_to_f (const CPP_wall3d_section&, Bmad_wall3d_section_class*);
+extern "C" void wall3d_section_to_c (const Opaque_wall3d_section_class*, CPP_wall3d_section&);
+extern "C" void wall3d_section_to_f (const CPP_wall3d_section&, Opaque_wall3d_section_class*);
 
 bool operator== (const CPP_wall3d_section&, const CPP_wall3d_section&);
 
@@ -2157,7 +2156,7 @@ bool operator== (const CPP_wall3d_section&, const CPP_wall3d_section&);
 //--------------------------------------------------------------------
 // CPP_wall3d
 
-class Bmad_wall3d_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wall3d_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_wall3d {
 public:
@@ -2190,8 +2189,8 @@ public:
 
 };   // End Class
 
-extern "C" void wall3d_to_c (const Bmad_wall3d_class*, CPP_wall3d&);
-extern "C" void wall3d_to_f (const CPP_wall3d&, Bmad_wall3d_class*);
+extern "C" void wall3d_to_c (const Opaque_wall3d_class*, CPP_wall3d&);
+extern "C" void wall3d_to_f (const CPP_wall3d&, Opaque_wall3d_class*);
 
 bool operator== (const CPP_wall3d&, const CPP_wall3d&);
 
@@ -2199,7 +2198,7 @@ bool operator== (const CPP_wall3d&, const CPP_wall3d&);
 //--------------------------------------------------------------------
 // CPP_control
 
-class Bmad_control_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_control_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_control {
 public:
@@ -2220,8 +2219,8 @@ public:
 
 };   // End Class
 
-extern "C" void control_to_c (const Bmad_control_class*, CPP_control&);
-extern "C" void control_to_f (const CPP_control&, Bmad_control_class*);
+extern "C" void control_to_c (const Opaque_control_class*, CPP_control&);
+extern "C" void control_to_f (const CPP_control&, Opaque_control_class*);
 
 bool operator== (const CPP_control&, const CPP_control&);
 
@@ -2229,7 +2228,7 @@ bool operator== (const CPP_control&, const CPP_control&);
 //--------------------------------------------------------------------
 // CPP_lat_param
 
-class Bmad_lat_param_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_lat_param_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_lat_param {
 public:
@@ -2266,8 +2265,8 @@ public:
 
 };   // End Class
 
-extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
-extern "C" void lat_param_to_f (const CPP_lat_param&, Bmad_lat_param_class*);
+extern "C" void lat_param_to_c (const Opaque_lat_param_class*, CPP_lat_param&);
+extern "C" void lat_param_to_f (const CPP_lat_param&, Opaque_lat_param_class*);
 
 bool operator== (const CPP_lat_param&, const CPP_lat_param&);
 
@@ -2275,7 +2274,7 @@ bool operator== (const CPP_lat_param&, const CPP_lat_param&);
 //--------------------------------------------------------------------
 // CPP_mode_info
 
-class Bmad_mode_info_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_mode_info_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_mode_info {
 public:
@@ -2298,8 +2297,8 @@ public:
 
 };   // End Class
 
-extern "C" void mode_info_to_c (const Bmad_mode_info_class*, CPP_mode_info&);
-extern "C" void mode_info_to_f (const CPP_mode_info&, Bmad_mode_info_class*);
+extern "C" void mode_info_to_c (const Opaque_mode_info_class*, CPP_mode_info&);
+extern "C" void mode_info_to_f (const CPP_mode_info&, Opaque_mode_info_class*);
 
 bool operator== (const CPP_mode_info&, const CPP_mode_info&);
 
@@ -2307,7 +2306,7 @@ bool operator== (const CPP_mode_info&, const CPP_mode_info&);
 //--------------------------------------------------------------------
 // CPP_pre_tracker
 
-class Bmad_pre_tracker_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_pre_tracker_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_pre_tracker {
 public:
@@ -2328,8 +2327,8 @@ public:
 
 };   // End Class
 
-extern "C" void pre_tracker_to_c (const Bmad_pre_tracker_class*, CPP_pre_tracker&);
-extern "C" void pre_tracker_to_f (const CPP_pre_tracker&, Bmad_pre_tracker_class*);
+extern "C" void pre_tracker_to_c (const Opaque_pre_tracker_class*, CPP_pre_tracker&);
+extern "C" void pre_tracker_to_f (const CPP_pre_tracker&, Opaque_pre_tracker_class*);
 
 bool operator== (const CPP_pre_tracker&, const CPP_pre_tracker&);
 
@@ -2337,7 +2336,7 @@ bool operator== (const CPP_pre_tracker&, const CPP_pre_tracker&);
 //--------------------------------------------------------------------
 // CPP_anormal_mode
 
-class Bmad_anormal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_anormal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_anormal_mode {
 public:
@@ -2362,8 +2361,8 @@ public:
 
 };   // End Class
 
-extern "C" void anormal_mode_to_c (const Bmad_anormal_mode_class*, CPP_anormal_mode&);
-extern "C" void anormal_mode_to_f (const CPP_anormal_mode&, Bmad_anormal_mode_class*);
+extern "C" void anormal_mode_to_c (const Opaque_anormal_mode_class*, CPP_anormal_mode&);
+extern "C" void anormal_mode_to_f (const CPP_anormal_mode&, Opaque_anormal_mode_class*);
 
 bool operator== (const CPP_anormal_mode&, const CPP_anormal_mode&);
 
@@ -2371,7 +2370,7 @@ bool operator== (const CPP_anormal_mode&, const CPP_anormal_mode&);
 //--------------------------------------------------------------------
 // CPP_linac_normal_mode
 
-class Bmad_linac_normal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_linac_normal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_linac_normal_mode {
 public:
@@ -2398,8 +2397,8 @@ public:
 
 };   // End Class
 
-extern "C" void linac_normal_mode_to_c (const Bmad_linac_normal_mode_class*, CPP_linac_normal_mode&);
-extern "C" void linac_normal_mode_to_f (const CPP_linac_normal_mode&, Bmad_linac_normal_mode_class*);
+extern "C" void linac_normal_mode_to_c (const Opaque_linac_normal_mode_class*, CPP_linac_normal_mode&);
+extern "C" void linac_normal_mode_to_f (const CPP_linac_normal_mode&, Opaque_linac_normal_mode_class*);
 
 bool operator== (const CPP_linac_normal_mode&, const CPP_linac_normal_mode&);
 
@@ -2407,7 +2406,7 @@ bool operator== (const CPP_linac_normal_mode&, const CPP_linac_normal_mode&);
 //--------------------------------------------------------------------
 // CPP_normal_modes
 
-class Bmad_normal_modes_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_normal_modes_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_normal_modes {
 public:
@@ -2440,8 +2439,8 @@ public:
 
 };   // End Class
 
-extern "C" void normal_modes_to_c (const Bmad_normal_modes_class*, CPP_normal_modes&);
-extern "C" void normal_modes_to_f (const CPP_normal_modes&, Bmad_normal_modes_class*);
+extern "C" void normal_modes_to_c (const Opaque_normal_modes_class*, CPP_normal_modes&);
+extern "C" void normal_modes_to_f (const CPP_normal_modes&, Opaque_normal_modes_class*);
 
 bool operator== (const CPP_normal_modes&, const CPP_normal_modes&);
 
@@ -2449,7 +2448,7 @@ bool operator== (const CPP_normal_modes&, const CPP_normal_modes&);
 //--------------------------------------------------------------------
 // CPP_em_field
 
-class Bmad_em_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_em_field_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_em_field {
 public:
@@ -2470,8 +2469,8 @@ public:
 
 };   // End Class
 
-extern "C" void em_field_to_c (const Bmad_em_field_class*, CPP_em_field&);
-extern "C" void em_field_to_f (const CPP_em_field&, Bmad_em_field_class*);
+extern "C" void em_field_to_c (const Opaque_em_field_class*, CPP_em_field&);
+extern "C" void em_field_to_f (const CPP_em_field&, Opaque_em_field_class*);
 
 bool operator== (const CPP_em_field&, const CPP_em_field&);
 
@@ -2479,7 +2478,7 @@ bool operator== (const CPP_em_field&, const CPP_em_field&);
 //--------------------------------------------------------------------
 // CPP_track_map
 
-class Bmad_track_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_track_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_track_map {
 public:
@@ -2496,8 +2495,8 @@ public:
 
 };   // End Class
 
-extern "C" void track_map_to_c (const Bmad_track_map_class*, CPP_track_map&);
-extern "C" void track_map_to_f (const CPP_track_map&, Bmad_track_map_class*);
+extern "C" void track_map_to_c (const Opaque_track_map_class*, CPP_track_map&);
+extern "C" void track_map_to_f (const CPP_track_map&, Opaque_track_map_class*);
 
 bool operator== (const CPP_track_map&, const CPP_track_map&);
 
@@ -2505,7 +2504,7 @@ bool operator== (const CPP_track_map&, const CPP_track_map&);
 //--------------------------------------------------------------------
 // CPP_track
 
-class Bmad_track_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_track_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_track {
 public:
@@ -2532,8 +2531,8 @@ public:
 
 };   // End Class
 
-extern "C" void track_to_c (const Bmad_track_class*, CPP_track&);
-extern "C" void track_to_f (const CPP_track&, Bmad_track_class*);
+extern "C" void track_to_c (const Opaque_track_class*, CPP_track&);
+extern "C" void track_to_f (const CPP_track&, Opaque_track_class*);
 
 bool operator== (const CPP_track&, const CPP_track&);
 
@@ -2541,7 +2540,7 @@ bool operator== (const CPP_track&, const CPP_track&);
 //--------------------------------------------------------------------
 // CPP_synch_rad_common
 
-class Bmad_synch_rad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_synch_rad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_synch_rad_common {
 public:
@@ -2566,8 +2565,8 @@ public:
 
 };   // End Class
 
-extern "C" void synch_rad_common_to_c (const Bmad_synch_rad_common_class*, CPP_synch_rad_common&);
-extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common&, Bmad_synch_rad_common_class*);
+extern "C" void synch_rad_common_to_c (const Opaque_synch_rad_common_class*, CPP_synch_rad_common&);
+extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common&, Opaque_synch_rad_common_class*);
 
 bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
 
@@ -2575,7 +2574,7 @@ bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
 //--------------------------------------------------------------------
 // CPP_csr_parameter
 
-class Bmad_csr_parameter_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_csr_parameter_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_csr_parameter {
 public:
@@ -2622,8 +2621,8 @@ public:
 
 };   // End Class
 
-extern "C" void csr_parameter_to_c (const Bmad_csr_parameter_class*, CPP_csr_parameter&);
-extern "C" void csr_parameter_to_f (const CPP_csr_parameter&, Bmad_csr_parameter_class*);
+extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_parameter&);
+extern "C" void csr_parameter_to_f (const CPP_csr_parameter&, Opaque_csr_parameter_class*);
 
 bool operator== (const CPP_csr_parameter&, const CPP_csr_parameter&);
 
@@ -2631,7 +2630,7 @@ bool operator== (const CPP_csr_parameter&, const CPP_csr_parameter&);
 //--------------------------------------------------------------------
 // CPP_bmad_common
 
-class Bmad_bmad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_bmad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_bmad_common {
 public:
@@ -2714,8 +2713,8 @@ public:
 
 };   // End Class
 
-extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common&);
-extern "C" void bmad_common_to_f (const CPP_bmad_common&, Bmad_bmad_common_class*);
+extern "C" void bmad_common_to_c (const Opaque_bmad_common_class*, CPP_bmad_common&);
+extern "C" void bmad_common_to_f (const CPP_bmad_common&, Opaque_bmad_common_class*);
 
 bool operator== (const CPP_bmad_common&, const CPP_bmad_common&);
 
@@ -2723,7 +2722,7 @@ bool operator== (const CPP_bmad_common&, const CPP_bmad_common&);
 //--------------------------------------------------------------------
 // CPP_rad_int1
 
-class Bmad_rad_int1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_rad_int1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_rad_int1 {
 public:
@@ -2770,8 +2769,8 @@ public:
 
 };   // End Class
 
-extern "C" void rad_int1_to_c (const Bmad_rad_int1_class*, CPP_rad_int1&);
-extern "C" void rad_int1_to_f (const CPP_rad_int1&, Bmad_rad_int1_class*);
+extern "C" void rad_int1_to_c (const Opaque_rad_int1_class*, CPP_rad_int1&);
+extern "C" void rad_int1_to_f (const CPP_rad_int1&, Opaque_rad_int1_class*);
 
 bool operator== (const CPP_rad_int1&, const CPP_rad_int1&);
 
@@ -2779,7 +2778,7 @@ bool operator== (const CPP_rad_int1&, const CPP_rad_int1&);
 //--------------------------------------------------------------------
 // CPP_rad_int_all_ele
 
-class Bmad_rad_int_all_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_rad_int_all_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_rad_int_all_ele {
 public:
@@ -2794,8 +2793,8 @@ public:
 
 };   // End Class
 
-extern "C" void rad_int_all_ele_to_c (const Bmad_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
-extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele&, Bmad_rad_int_all_ele_class*);
+extern "C" void rad_int_all_ele_to_c (const Opaque_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
+extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele&, Opaque_rad_int_all_ele_class*);
 
 bool operator== (const CPP_rad_int_all_ele&, const CPP_rad_int_all_ele&);
 
@@ -2803,7 +2802,7 @@ bool operator== (const CPP_rad_int_all_ele&, const CPP_rad_int_all_ele&);
 //--------------------------------------------------------------------
 // CPP_ptc_genfield
 
-class Bmad_ptc_genfield_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_ptc_genfield_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_ptc_genfield {
 public:
@@ -2818,8 +2817,8 @@ public:
 
 };   // End Class
 
-extern "C" void ptc_genfield_to_c (const Bmad_ptc_genfield_class*, CPP_ptc_genfield&);
-extern "C" void ptc_genfield_to_f (const CPP_ptc_genfield&, Bmad_ptc_genfield_class*);
+extern "C" void ptc_genfield_to_c (const Opaque_ptc_genfield_class*, CPP_ptc_genfield&);
+extern "C" void ptc_genfield_to_f (const CPP_ptc_genfield&, Opaque_ptc_genfield_class*);
 
 bool operator== (const CPP_ptc_genfield&, const CPP_ptc_genfield&);
 
@@ -2827,7 +2826,7 @@ bool operator== (const CPP_ptc_genfield&, const CPP_ptc_genfield&);
 //--------------------------------------------------------------------
 // CPP_ele
 
-class Bmad_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_ele {
 public:
@@ -3027,8 +3026,8 @@ public:
 
 };   // End Class
 
-extern "C" void ele_to_c (const Bmad_ele_class*, CPP_ele&);
-extern "C" void ele_to_f (const CPP_ele&, Bmad_ele_class*);
+extern "C" void ele_to_c (const Opaque_ele_class*, CPP_ele&);
+extern "C" void ele_to_f (const CPP_ele&, Opaque_ele_class*);
 
 bool operator== (const CPP_ele&, const CPP_ele&);
 
@@ -3036,7 +3035,7 @@ bool operator== (const CPP_ele&, const CPP_ele&);
 //--------------------------------------------------------------------
 // CPP_complex_taylor_term
 
-class Bmad_complex_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_complex_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_complex_taylor_term {
 public:
@@ -3053,8 +3052,8 @@ public:
 
 };   // End Class
 
-extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
-extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term&, Bmad_complex_taylor_term_class*);
+extern "C" void complex_taylor_term_to_c (const Opaque_complex_taylor_term_class*, CPP_complex_taylor_term&);
+extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term&, Opaque_complex_taylor_term_class*);
 
 bool operator== (const CPP_complex_taylor_term&, const CPP_complex_taylor_term&);
 
@@ -3062,7 +3061,7 @@ bool operator== (const CPP_complex_taylor_term&, const CPP_complex_taylor_term&)
 //--------------------------------------------------------------------
 // CPP_complex_taylor
 
-class Bmad_complex_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_complex_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_complex_taylor {
 public:
@@ -3079,8 +3078,8 @@ public:
 
 };   // End Class
 
-extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
-extern "C" void complex_taylor_to_f (const CPP_complex_taylor&, Bmad_complex_taylor_class*);
+extern "C" void complex_taylor_to_c (const Opaque_complex_taylor_class*, CPP_complex_taylor&);
+extern "C" void complex_taylor_to_f (const CPP_complex_taylor&, Opaque_complex_taylor_class*);
 
 bool operator== (const CPP_complex_taylor&, const CPP_complex_taylor&);
 
@@ -3088,7 +3087,7 @@ bool operator== (const CPP_complex_taylor&, const CPP_complex_taylor&);
 //--------------------------------------------------------------------
 // CPP_normal_form
 
-class Bmad_normal_form_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_normal_form_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_normal_form {
 public:
@@ -3116,8 +3115,8 @@ public:
 
 };   // End Class
 
-extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form&);
-extern "C" void normal_form_to_f (const CPP_normal_form&, Bmad_normal_form_class*);
+extern "C" void normal_form_to_c (const Opaque_normal_form_class*, CPP_normal_form&);
+extern "C" void normal_form_to_f (const CPP_normal_form&, Opaque_normal_form_class*);
 
 bool operator== (const CPP_normal_form&, const CPP_normal_form&);
 
@@ -3125,7 +3124,7 @@ bool operator== (const CPP_normal_form&, const CPP_normal_form&);
 //--------------------------------------------------------------------
 // CPP_branch
 
-class Bmad_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_branch {
 public:
@@ -3172,8 +3171,8 @@ public:
 
 };   // End Class
 
-extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
-extern "C" void branch_to_f (const CPP_branch&, Bmad_branch_class*);
+extern "C" void branch_to_c (const Opaque_branch_class*, CPP_branch&);
+extern "C" void branch_to_f (const CPP_branch&, Opaque_branch_class*);
 
 bool operator== (const CPP_branch&, const CPP_branch&);
 
@@ -3181,7 +3180,7 @@ bool operator== (const CPP_branch&, const CPP_branch&);
 //--------------------------------------------------------------------
 // CPP_lat
 
-class Bmad_lat_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_lat_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_lat {
 public:
@@ -3248,8 +3247,8 @@ public:
 
 };   // End Class
 
-extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
-extern "C" void lat_to_f (const CPP_lat&, Bmad_lat_class*);
+extern "C" void lat_to_c (const Opaque_lat_class*, CPP_lat&);
+extern "C" void lat_to_f (const CPP_lat&, Opaque_lat_class*);
 
 bool operator== (const CPP_lat&, const CPP_lat&);
 
@@ -3257,7 +3256,7 @@ bool operator== (const CPP_lat&, const CPP_lat&);
 //--------------------------------------------------------------------
 // CPP_bunch
 
-class Bmad_bunch_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_bunch_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_bunch {
 public:
@@ -3288,8 +3287,8 @@ public:
 
 };   // End Class
 
-extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
-extern "C" void bunch_to_f (const CPP_bunch&, Bmad_bunch_class*);
+extern "C" void bunch_to_c (const Opaque_bunch_class*, CPP_bunch&);
+extern "C" void bunch_to_f (const CPP_bunch&, Opaque_bunch_class*);
 
 bool operator== (const CPP_bunch&, const CPP_bunch&);
 
@@ -3297,7 +3296,7 @@ bool operator== (const CPP_bunch&, const CPP_bunch&);
 //--------------------------------------------------------------------
 // CPP_bunch_params
 
-class Bmad_bunch_params_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_bunch_params_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_bunch_params {
 public:
@@ -3342,8 +3341,8 @@ public:
 
 };   // End Class
 
-extern "C" void bunch_params_to_c (const Bmad_bunch_params_class*, CPP_bunch_params&);
-extern "C" void bunch_params_to_f (const CPP_bunch_params&, Bmad_bunch_params_class*);
+extern "C" void bunch_params_to_c (const Opaque_bunch_params_class*, CPP_bunch_params&);
+extern "C" void bunch_params_to_f (const CPP_bunch_params&, Opaque_bunch_params_class*);
 
 bool operator== (const CPP_bunch_params&, const CPP_bunch_params&);
 
@@ -3351,7 +3350,7 @@ bool operator== (const CPP_bunch_params&, const CPP_bunch_params&);
 //--------------------------------------------------------------------
 // CPP_beam
 
-class Bmad_beam_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_beam_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_beam {
 public:
@@ -3366,10 +3365,284 @@ public:
 
 };   // End Class
 
-extern "C" void beam_to_c (const Bmad_beam_class*, CPP_beam&);
-extern "C" void beam_to_f (const CPP_beam&, Bmad_beam_class*);
+extern "C" void beam_to_c (const Opaque_beam_class*, CPP_beam&);
+extern "C" void beam_to_f (const CPP_beam&, Opaque_beam_class*);
 
 bool operator== (const CPP_beam&, const CPP_beam&);
+
+
+//--------------------------------------------------------------------
+// CPP_ellipse_beam_init
+
+class Opaque_ellipse_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ellipse_beam_init {
+public:
+  Int part_per_ellipse;
+  Int n_ellipse;
+  Real sigma_cutoff;
+
+  CPP_ellipse_beam_init() :
+    part_per_ellipse(0),
+    n_ellipse(1),
+    sigma_cutoff(0.0)
+    {}
+
+  ~CPP_ellipse_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void ellipse_beam_init_to_c (const Opaque_ellipse_beam_init_class*, CPP_ellipse_beam_init&);
+extern "C" void ellipse_beam_init_to_f (const CPP_ellipse_beam_init&, Opaque_ellipse_beam_init_class*);
+
+bool operator== (const CPP_ellipse_beam_init&, const CPP_ellipse_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_kv_beam_init
+
+class Opaque_kv_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_kv_beam_init {
+public:
+  Int_ARRAY part_per_phi;
+  Int n_i2;
+  Real a;
+
+  CPP_kv_beam_init() :
+    part_per_phi(0, 2),
+    n_i2(0),
+    a(0.0)
+    {}
+
+  ~CPP_kv_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void kv_beam_init_to_c (const Opaque_kv_beam_init_class*, CPP_kv_beam_init&);
+extern "C" void kv_beam_init_to_f (const CPP_kv_beam_init&, Opaque_kv_beam_init_class*);
+
+bool operator== (const CPP_kv_beam_init&, const CPP_kv_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_grid_beam_init
+
+class Opaque_grid_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_grid_beam_init {
+public:
+  Int n_x;
+  Int n_px;
+  Real x_min;
+  Real x_max;
+  Real px_min;
+  Real px_max;
+
+  CPP_grid_beam_init() :
+    n_x(0),
+    n_px(0),
+    x_min(0.0),
+    x_max(0.0),
+    px_min(0.0),
+    px_max(0.0)
+    {}
+
+  ~CPP_grid_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void grid_beam_init_to_c (const Opaque_grid_beam_init_class*, CPP_grid_beam_init&);
+extern "C" void grid_beam_init_to_f (const CPP_grid_beam_init&, Opaque_grid_beam_init_class*);
+
+bool operator== (const CPP_grid_beam_init&, const CPP_grid_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_beam_init
+
+class Opaque_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_beam_init {
+public:
+  string file_name;
+  String_ARRAY distribution_type;
+  CPP_ellipse_beam_init_ARRAY ellipse;
+  CPP_kv_beam_init kv;
+  CPP_grid_beam_init_ARRAY grid;
+  Real_ARRAY center_jitter;
+  Real_ARRAY emit_jitter;
+  Real sig_z_jitter;
+  Real sig_e_jitter;
+  Int n_particle;
+  Bool renorm_center;
+  Bool renorm_sigma;
+  string random_engine;
+  string random_gauss_converter;
+  Real random_sigma_cutoff;
+  CPP_spin_polar spin;
+  Real a_norm_emit;
+  Real b_norm_emit;
+  Real a_emit;
+  Real b_emit;
+  Real dpz_dz;
+  Real_ARRAY center;
+  Real dt_bunch;
+  Real sig_z;
+  Real sig_e;
+  Real bunch_charge;
+  Int n_bunch;
+  Int species;
+  Bool init_spin;
+  Bool full_6d_coupling_calc;
+  Bool use_lattice_center;
+  Bool use_t_coords;
+  Bool use_z_as_t;
+
+  CPP_beam_init() :
+    file_name(),
+    distribution_type(String_ARRAY(string(), 3)),
+    ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
+    kv(),
+    grid(CPP_grid_beam_init_ARRAY(CPP_grid_beam_init(), 3)),
+    center_jitter(0.0, 6),
+    emit_jitter(0.0, 2),
+    sig_z_jitter(0.0),
+    sig_e_jitter(0.0),
+    n_particle(0),
+    renorm_center(true),
+    renorm_sigma(true),
+    random_engine(),
+    random_gauss_converter(),
+    random_sigma_cutoff(-1),
+    spin(),
+    a_norm_emit(0.0),
+    b_norm_emit(0.0),
+    a_emit(0.0),
+    b_emit(0.0),
+    dpz_dz(0.0),
+    center(0.0, 6),
+    dt_bunch(0.0),
+    sig_z(0.0),
+    sig_e(0.0),
+    bunch_charge(1),
+    n_bunch(1),
+    species(Bmad::NOT_SET),
+    init_spin(false),
+    full_6d_coupling_calc(false),
+    use_lattice_center(false),
+    use_t_coords(false),
+    use_z_as_t(false)
+    {}
+
+  ~CPP_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
+extern "C" void beam_init_to_f (const CPP_beam_init&, Opaque_beam_init_class*);
+
+bool operator== (const CPP_beam_init&, const CPP_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_aperture_data
+
+class Opaque_aperture_data_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_aperture_data {
+public:
+  Real x;
+  Real y;
+  Int plane;
+  Int ix_lat;
+  Int i_turn;
+
+  CPP_aperture_data() :
+    x(0.0),
+    y(0.0),
+    plane(0),
+    ix_lat(0),
+    i_turn(0)
+    {}
+
+  ~CPP_aperture_data() {
+  }
+
+};   // End Class
+
+extern "C" void aperture_data_to_c (const Opaque_aperture_data_class*, CPP_aperture_data&);
+extern "C" void aperture_data_to_f (const CPP_aperture_data&, Opaque_aperture_data_class*);
+
+bool operator== (const CPP_aperture_data&, const CPP_aperture_data&);
+
+
+//--------------------------------------------------------------------
+// CPP_aperture_param
+
+class Opaque_aperture_param_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_aperture_param {
+public:
+  Real min_angle;
+  Real max_angle;
+  Int n_angle;
+  Int n_turn;
+  Real x_init;
+  Real y_init;
+  Real accuracy;
+
+  CPP_aperture_param() :
+    min_angle(0.0),
+    max_angle(Bmad::PI),
+    n_angle(9),
+    n_turn(100),
+    x_init(0.0),
+    y_init(0.0),
+    accuracy(0.0)
+    {}
+
+  ~CPP_aperture_param() {
+  }
+
+};   // End Class
+
+extern "C" void aperture_param_to_c (const Opaque_aperture_param_class*, CPP_aperture_param&);
+extern "C" void aperture_param_to_f (const CPP_aperture_param&, Opaque_aperture_param_class*);
+
+bool operator== (const CPP_aperture_param&, const CPP_aperture_param&);
+
+
+//--------------------------------------------------------------------
+// CPP_aperture_scan
+
+class Opaque_aperture_scan_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_aperture_scan {
+public:
+  CPP_aperture_data_ARRAY aperture;
+  CPP_aperture_param param;
+  CPP_coord ref_orb;
+
+  CPP_aperture_scan() :
+    aperture(CPP_aperture_data_ARRAY(CPP_aperture_data(), 0)),
+    param(),
+    ref_orb()
+    {}
+
+  ~CPP_aperture_scan() {
+  }
+
+};   // End Class
+
+extern "C" void aperture_scan_to_c (const Opaque_aperture_scan_class*, CPP_aperture_scan&);
+extern "C" void aperture_scan_to_f (const CPP_aperture_scan&, Opaque_aperture_scan_class*);
+
+bool operator== (const CPP_aperture_scan&, const CPP_aperture_scan&);
 
 
 //--------------------------------------------------------------------

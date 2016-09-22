@@ -1,5 +1,5 @@
 
-program interface_test
+program cpp_bmad_interface_test
 
 use bmad_cpp_test_mod
 
@@ -85,6 +85,13 @@ call test1_f_lat(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch_params(ok); if (.not. ok) all_ok = .false.
 call test1_f_beam(ok); if (.not. ok) all_ok = .false.
+call test1_f_ellipse_beam_init(ok); if (.not. ok) all_ok = .false.
+call test1_f_kv_beam_init(ok); if (.not. ok) all_ok = .false.
+call test1_f_grid_beam_init(ok); if (.not. ok) all_ok = .false.
+call test1_f_beam_init(ok); if (.not. ok) all_ok = .false.
+call test1_f_aperture_data(ok); if (.not. ok) all_ok = .false.
+call test1_f_aperture_param(ok); if (.not. ok) all_ok = .false.
+call test1_f_aperture_scan(ok); if (.not. ok) all_ok = .false.
 
 print *
 if (all_ok) then

@@ -9,11 +9,12 @@ struct_def_files = [
     '../bmad/multiparticle/beam_def_struct.f90',
     '../bmad/multiparticle/csr_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
+    '../bmad/modules/dynamic_aperture_mod.f90',
 ]
 
 # List of use statements needed in various Fortran modules
 
-use_statements = ['use beam_def_struct']
+use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
 
 # List of structures to setup interfaces for.
 # List must be in ordered such that if struct A is a component of struct B,
@@ -97,6 +98,13 @@ struct_list = [
     'bunch_struct',
     'bunch_params_struct',
     'beam_struct',
+    'ellipse_beam_init_struct',
+    'kv_beam_init_struct',
+    'grid_beam_init_struct',
+    'beam_init_struct',
+    'aperture_data_struct',
+    'aperture_param_struct',
+    'aperture_scan_struct',
 ]
 
 # List of structure components to not translate.
@@ -126,6 +134,11 @@ interface_ignore_list = set([
   'branch_struct%lat',
 ])
 
+# List of structure components that are structures and are defined externally.
+# There are no such structures for the cpp_bmad_interface library but there
+# are for the cpp_tao_interface library.
+
+structs_defined_externally = set([])
 
 # Translations on C++ side to avoid clash with reserved words
 
@@ -134,9 +147,17 @@ c_side_name_translation = {
     'wake_sr_table_struct%trans' : 'trans_wake',
 }
 
+# Include header files for main header file
+
+include_header_files = [
+  '#include "bmad_enums.h"',
+  '#include "bmad_std_typedef.h"',
+]
+
 # Directory where the output is put
 
 equality_mod_dir  = '../bmad/modules'
+equality_mod_file = 'equality_mod'
 test_dir          = 'interface_test'
 code_dir          = 'code'
 
@@ -173,6 +194,7 @@ c_custom_constructors = {
     'ele%csr_calc_on' : 'csr_calc_on(true)',
     'ele%orientation' : 'orientation(1)',
     'floor_position%w' : 'w(Real_ARRAY(0.0, 3), 3)',
+    'aperture_param%max_angle' : 'max_angle(Bmad::PI)',
 }
 
 #-----------------------------------------------

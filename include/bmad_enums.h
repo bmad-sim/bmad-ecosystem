@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 184;
+  const int BMAD_INC_VERSION = 185;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -120,7 +120,7 @@ namespace Bmad {
   const int X0 = 24, PX0 = 25, Y0 = 26, PY0 = 27, Z0 = 28, PZ0 = 29;
   const int X1 = 30, PX1 = 31, Y1 = 32, PY1 = 33, Z1 = 34, PZ1 = 35;
   const int MATCH_END_ORBIT_INPUT = 36, MATCH_END_ORBIT = 37;
-  const int C_11 = 34, C_12 = 35, C_21 = 36, C_22 = 37, GAMMA_C = 39;
+  const int C_11 = 40, C_12 = 41, C_21 = 42, C_22 = 43, GAMMA_C = 44;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
@@ -142,7 +142,7 @@ namespace Bmad {
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
   const int RHO = 8, DELTA_E = 8, DIFFRACTION_LIMITED = 8;
   const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8;
-  const int L_CHORD = 9, VOLTAGE = 9;
+  const int VOLTAGE = 9;
   const int FRINGE_TYPE = 10;
   const int FRINGE_AT = 11, GANG = 11;
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
@@ -171,8 +171,8 @@ namespace Bmad {
   const int PHI0_MAX = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
   const int CMAT_12 = 28;
   const int FLOOR_SET = 29, UPSTREAM_ELE_DIR = 29, DZ_ORIGIN = 29;
-  const int CMAT_21 = 29;
-  const int DTHETA_ORIGIN = 30, B_PARAM = 30, TRANSVERSE_SIGMA_CUT = 30;
+  const int CMAT_21 = 29, L_SAGITTA = 29;
+  const int DTHETA_ORIGIN = 30, B_PARAM = 30, TRANSVERSE_SIGMA_CUT = 30, L_CHORD = 30;
   const int DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30, SPINOR_THETA = 30;
   const int L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31, DS_SLICE = 31, SPINOR_PHI = 31;
   const int FIELD_AUTOSCALE = 32, DPSI_ORIGIN = 32, SPINOR_XI = 32;
@@ -316,19 +316,19 @@ namespace Bmad {
   const double FOURPI = 4 * PI;
   const double SQRT_2 = 1.414213562373095048801688724209698E0;
   const double SQRT_3 = 1.732050807568877293527446341505872E0;
-  const double E_MASS = 0.5109989461E-3;
-  const double P_MASS   = 0.9382720813E0;
   const double M_ELECTRON = 0.5109989461E6;
   const double M_PROTON   = 0.9382720813E9;
-  const double M_MUON     = 105.6583745E6;
+  const double M_MUON     = 105.6583715E6;
+  const double E_MASS = 1E-9 * M_ELECTRON;
+  const double P_MASS   = 1E-9 * M_PROTON;
   const double M_PION_0 = 134.9766E6;
   const double M_PION_CHARGED = 139.57018E6;
   const double M_DEUTERON   = 1.875612928E9;
   const double ATOMIC_MASS_UNIT = 931.494095E6;
   const double C_LIGHT = 2.99792458E8;
-  const double R_E = 2.8179402894E-15;
+  const double R_E = 2.8179403227E-15;
   const double R_P = R_E * M_ELECTRON / M_PROTON;
-  const double E_CHARGE = 1.6021892E-19;
+  const double E_CHARGE = 1.6021766208E-19;
   const double H_PLANCK = 4.13566733E-15;
   const double H_BAR_PLANCK = 6.58211899E-16;
   const double MU_0_VAC = FOURPI * 1E-7;
@@ -359,6 +359,26 @@ namespace Bmad {
   const double TRUE = 1, FALSE = 0;
   const int TRUE_INT = 1, FALSE_INT = 0;
   const int YES = 1, NO = 0, MAYBE = 2;
+  const int WHITE = 0, BLACK = 1, RED = 2, GREEN = 3;
+  const int BLUE = 4, CYAN = 5, MAGENTA = 6, YELLOW = 7;
+  const int ORANGE = 8, YELLOW_GREEN = 9, LIGHT_GREEN = 10;
+  const int NAVY_BLUE = 11, PURPLE = 12, REDISH_PURPLE = 13;
+  const int DARK_GREY = 14, LIGHT_GREY = 15, TRANSPARENT = 16;
+  const int SOLID = 1, DASHED = 2, DASH_DOT = 3;
+  const int DOTTED = 4, DASH_DOT3 = 5;
+  const int SOLID_FILL = 1, NO_FILL = 2;
+  const int HATCHED = 3, CROSS_HATCHED = 4;
+  const int SQUARE_SYM = 0, DOT_SYM = 1, PLUS_SYM = 2, TIMES_SYM = 3;
+  const int CIRCLE_SYM = 4, X_SYMBOL_SYM = 5, TRIANGLE_SYM = 7;
+  const int CIRCLE_PLUS_SYM = 8, CIRCLE_DOT_SYM = 9;
+  const int SQUARE_CONCAVE_SYM = 10, DIAMOND_SYM = 11;
+  const int STAR5_SYM = 12, TRIANGLE_FILLED_SYM = 13, RED_CROSS_SYM = 14;
+  const int STAR_OF_DAVID_SYM = 15, SQUARE_FILLED_SYM = 16;
+  const int CIRCLE_FILLED_SYM = 17, STAR5_FILLED_SYM = 18;
+  const int DFLT_DRAW = 1, DFLT_SET = 2;
+  const int PRINT_PAGE_LONG_LEN = 10.5;
+  const int PRINT_PAGE_SHORT_LEN = 7.8;
+  const int FILLED_ARROW_HEAD = 1, OUTLINE_ARROW_HEAD = 2;
 
 }
 
