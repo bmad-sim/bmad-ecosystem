@@ -12,9 +12,11 @@ struct_def_files = [
     '../bmad/modules/dynamic_aperture_mod.f90',
 ]
 
-# List of use statements needed in various Fortran modules
+# List of use statements needed in various Fortran modules.
 
-use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
+conversion_use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
+equality_use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
+test_use_statements = []
 
 # List of structures to setup interfaces for.
 # List must be in ordered such that if struct A is a component of struct B,
