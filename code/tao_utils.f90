@@ -692,10 +692,10 @@ if (where == 'REGION' .or. where == 'BOTH') then
   do i = 1, size(s%plot_page%region)
     if (plot_name /= '*') then 
       if (have_exact_match) then
-        if (s%plot_page%region(i)%name /= plot_name .or. s%plot_page%region(i)%plot%name == plot_name) cycle
+        if (s%plot_page%region(i)%name /= plot_name .and. s%plot_page%region(i)%plot%name == plot_name) cycle
       else
-        if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
-            index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1) cycle
+        if (index(s%plot_page%region(i)%name, trim(plot_name)) /= 1 .and. &
+            index(s%plot_page%region(i)%plot%name, trim(plot_name)) /= 1) cycle
       endif
     endif
 
@@ -710,7 +710,7 @@ if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
       if (have_exact_match) then
         if (s%plot_page%template(i)%name /= plot_name) cycle
       else
-        if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1) cycle
+        if (index(s%plot_page%template(i)%name, trim(plot_name)) /= 1) cycle
       endif
     endif
 
