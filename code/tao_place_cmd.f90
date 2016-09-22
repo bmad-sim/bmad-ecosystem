@@ -92,7 +92,7 @@ enddo
 
 ! Turn off overlapping plots
 
-if (s%plot_page%delete_overlapping_plots) then
+if (s%global%plot_on .and. s%plot_page%delete_overlapping_plots) then
   do i = 1, size(s%plot_page%region)
     r2 => s%plot_page%region(i)
     if (.not. r2%visible) cycle

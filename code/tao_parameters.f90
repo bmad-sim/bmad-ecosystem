@@ -6,8 +6,6 @@
 
 module tao_parameters
 
-integer, parameter :: n_legend_maxx   = 20     ! number of lines for a legend.
-integer, parameter :: n_descrip_maxx  = 10     ! d2_data descriptive info lines.
 integer, parameter :: n_data_maxx     = 2000   ! max index of datum per d1_data
 integer, parameter :: n_data_minn     = -100   ! min index of datum per d1_data
 integer, parameter :: n_var_maxx      = 1000   ! max index of datum per v1_var 

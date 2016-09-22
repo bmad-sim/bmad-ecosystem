@@ -92,7 +92,7 @@ include_default_plots = .true.
 
 plot_page = plot_page_default
 plot_page%title(:)%draw_it = .false.
-plot_page%title(:)%string = ' '
+plot_page%title(:)%title = ' '
 plot_page%title(:)%justify = 'CC'
 plot_page%title(:)%x = 0.50
 plot_page%title(:)%y = 0.990
@@ -162,7 +162,7 @@ call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! title
 
-forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string .ne. ' ')) &
+forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%title .ne. ' ')) &
             s%plot_page%title(i)%draw_it = .true.
 
 ! Plot window geometry specified on cmd line?
