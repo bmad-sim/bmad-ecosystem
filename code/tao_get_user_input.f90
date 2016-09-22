@@ -274,7 +274,7 @@ do i = 1, s%com%n_alias
   ! We have a match...
   ! Now get the actual arguments and replace dummy args with actual args.
 
-  alias_cmd = s%com%alias(i)%string
+  alias_cmd = s%com%alias(i)%expanded_str
 
   do j = 1, 9
     ix = index (alias_cmd, sub_str(j))

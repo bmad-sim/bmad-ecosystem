@@ -126,7 +126,7 @@ end type
 ! Plot structures.
 
 type tao_title_struct
-  character(100) string      ! title character string.
+  character(100) title       ! title character string.
   real(rp) x, y              ! x, y rwt lower left corner
   character(16) units        ! %BOX, POINTS, etc...
   character(2) justify       ! Left, Center, or Right justification.
@@ -198,8 +198,8 @@ type tao_graph_struct
   character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
-  character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
-  character(60) :: component = ''            ! Who to plot. Eg: 'meas - design'
+  character(100) text_legend(10)              ! Array for holding descriptive info.
+  character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
   character(80) :: why_invalid = ''           ! Informative string to print.
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
@@ -407,7 +407,7 @@ type tao_d2_data_struct
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
   character(20) ref_date          ! Reference data measurement date.
-  character(80) descrip(n_descrip_maxx) ! Array for descriptive information.
+  character(80) descrip(10)       ! Array for descriptive information.
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
   integer ix_uni                  ! Index of universe this is in.
   integer ix_data                 ! Index of the data set.
@@ -601,7 +601,7 @@ end type
 
 type tao_alias_struct
   character(40) :: name = ''
-  character(200) :: string = ''
+  character(200) :: expanded_str = ''
 end type
 
 type tao_command_file_struct

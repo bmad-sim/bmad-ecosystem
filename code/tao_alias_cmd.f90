@@ -27,7 +27,7 @@ integer i
 
 if (alias == ' ') then
   do i = 1, s%com%n_alias
-    call out_io (s_blank$, r_name, s%com%alias(i)%name // s%com%alias(i)%string)
+    call out_io (s_blank$, r_name, s%com%alias(i)%name // s%com%alias(i)%expanded_str)
   enddo
   return
 endif
@@ -36,7 +36,7 @@ endif
 
 do i = 1, s%com%n_alias
   if (s%com%alias(i)%name == alias) then
-    s%com%alias(i)%string = string
+    s%com%alias(i)%expanded_str = string
     return
   endif
 enddo
@@ -48,6 +48,6 @@ endif
 
 s%com%n_alias = s%com%n_alias + 1
 s%com%alias(s%com%n_alias)%name = alias
-s%com%alias(s%com%n_alias)%string = string
+s%com%alias(s%com%n_alias)%expanded_str = string
 
 end subroutine 

@@ -307,7 +307,7 @@ case ('alias')
   nl = 1
   do i = 1, s%com%n_alias
     nl=nl+1; lines(nl) = trim(s%com%alias(i)%name) // ' = "' // &
-                                    trim(s%com%alias(i)%string) // '"'
+                                    trim(s%com%alias(i)%expanded_str) // '"'
   enddo
   
   result_id = show_what
@@ -1659,7 +1659,7 @@ case ('key_bindings')
   ! Custom keys
   do i = 1, size(s%com%key)
     if (s%com%key(i)%name /= '') then
-      nl=nl+1; write(lines(nl), '(a, 2x, a)') trim(s%com%key(i)%name), trim(s%com%key(i)%string)
+      nl=nl+1; write(lines(nl), '(a, 2x, a)') trim(s%com%key(i)%name), trim(s%com%key(i)%expanded_str)
     endif
   enddo
 

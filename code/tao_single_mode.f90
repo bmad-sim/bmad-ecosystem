@@ -49,7 +49,7 @@ logical doit, found, err, abort
 
 do i = 1, size(s%com%key)
   if (char == s%com%key(i)%name) then
-    call tao_command (s%com%key(i)%string, err)
+    call tao_command (s%com%key(i)%expanded_str, err)
     return
   endif
 enddo
