@@ -767,10 +767,12 @@ endif
 
 ! initial placement of plots
 
-do i = 1, size(place)
-  if (place(i)%region == ' ') cycle
-  call tao_place_cmd (place(i)%region, place(i)%plot)
-enddo
+if (.not. s%com%gui_mode) then
+  do i = 1, size(place)
+    if (place(i)%region == ' ') cycle
+    call tao_place_cmd (place(i)%region, place(i)%plot)
+  enddo
+endif
 
 call tao_create_plot_window
 
@@ -2620,7 +2622,7 @@ enddo
 
 !
 
-if (all (place(:)%region == '')) then
+if (all (place(:)%region == '') .and. .not. s%com%gui_mode) then
   branch => s%u(1)%model%lat%branch(0)
   if (branch%param%particle == photon$) then
     call tao_place_cmd ('r13', 'floor_plan')

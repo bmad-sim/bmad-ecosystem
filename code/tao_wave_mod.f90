@@ -107,7 +107,7 @@ do i = 1, 4
   wg%curve(1)%g => wg
 enddo
 
-wave_plot%graph(1)%visible = .false.
+!! wave_plot%graph(1)%visible = .false.
 wave_plot%graph(2)%type = 'wave.0'  ! Extended origninal curve.
 wave_plot%graph(3)%type = 'wave.a'  ! Curve - A region fit.
 wave_plot%graph(4)%type = 'wave.b'  ! Curve - B region fit.

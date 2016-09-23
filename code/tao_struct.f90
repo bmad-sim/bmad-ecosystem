@@ -229,7 +229,6 @@ type tao_graph_struct
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
   logical draw_curve_legend                   ! Legend for displaying curve info.
   logical draw_grid                           ! Draw a grid?
-  logical :: visible = .true.                 ! To draw or not to draw.
   logical :: draw_only_good_user_data_or_vars = .true.
 end type
 

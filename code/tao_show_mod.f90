@@ -255,7 +255,7 @@ lines = " "
 nl = 0
 
 rmt  = '(a, 9es16.8)'
-f3mt = '(a, 9f0.3)'
+f3mt = '(a, 9(f0.3, 2x))'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, i0, 9i8)'
 iimt = '(a, i0, a, i8)'
@@ -2726,10 +2726,13 @@ case ('plot')
 
   if (allocated(plot)) then
     p => plot(1)%p
-    if (associated(p%r)) then
-      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%name)
-    endif
+
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
+    if (associated(p%r)) then
+      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
+      nl=nl+1; write (lines(nl), lmt)  'Visible                = ', p%r%visible
+      nl=nl+1; write (lines(nl), f3mt) 'Location [x1,x2,y1,y2] = ', p%r%location
+    endif
     nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
     nl=nl+1; write(lines(nl), amt) 'x%label              = ', p%x%label
     nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max

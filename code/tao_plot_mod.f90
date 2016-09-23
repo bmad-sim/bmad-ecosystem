@@ -97,7 +97,6 @@ do i = 1, size(s%plot_page%region)
   g_loop: do j = 1, size(plot%graph)
 
     graph => plot%graph(j)
-    if (.not. graph%visible) cycle
 
     ! For a non-valid graph just print a message
 

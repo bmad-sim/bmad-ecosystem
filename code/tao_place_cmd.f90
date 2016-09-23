@@ -67,7 +67,11 @@ if (err) return
 ! representing the region
 
 call tao_plot_struct_transfer (template(1)%p, region%plot)
-region%visible = .true.
+if (s%com%gui_mode) then
+  region%visible = .false.
+else
+  region%visible = .true.
+endif
 region%plot%r => region
 
 ! If the plot has a phase_space curve then recalculate the lattice
