@@ -499,7 +499,7 @@ end subroutine co_func
 subroutine this_t1_calc (branch, dir, make_mat6, t1, err)
 
 type (branch_struct) branch
-type (coord_struct) start_saved
+type (coord_struct) start_saved, end_saved
 
 real(rp) t1(6,6), delta
 integer dir, i, track_state
@@ -514,7 +514,10 @@ if (dir == 1) then
   call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
 
 else
+  call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
   start_saved = orb_start
+  end_saved   = orb_end
+
   delta = 1d-6
   do i = 1, 6
     orb_start%vec(i) = start_saved%vec(i) + delta
@@ -525,7 +528,7 @@ else
       err = .true.
       return
     endif 
-    t1(:,i) = (orb_end%vec - orb_end%vec) / delta
+    t1(:,i) = (orb_end%vec - end_saved%vec) / delta
     orb_start%vec = start_saved%vec
   enddo
 endif
