@@ -178,7 +178,6 @@ if (do_gang .and. all(plot%graph%valid)) then
     n = 0; major_div_nominal = 0
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
-      if (.not. graph%visible) cycle
       if (graph%type == 'key_table') cycle
       n = n + 1
       this_min = min (this_min, graph%x%min)
@@ -197,7 +196,6 @@ if (do_gang .and. all(plot%graph%valid)) then
     endif
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
-      if (.not. graph%visible) cycle
       if (graph%type == 'key_table') cycle
       call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
       call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
@@ -235,11 +233,7 @@ character(24) :: r_name = 'tao_x_scale_graph'
 ! If specific min/max values are given then life is easy.
 
 if (present(have_scaled)) have_scaled = .false.
-
 if (graph%type == 'key_table') return
-if (.not. graph%visible) return
-if (graph%type == 'key_table') return
-
 if (present(have_scaled)) have_scaled = .true.
 
 if (x_max /= x_min) then

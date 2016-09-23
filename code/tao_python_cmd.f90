@@ -354,7 +354,6 @@ case ('plot_graph')
   nl=nl+1; write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;T;',  g%floor_plan_draw_only_first_pass
   nl=nl+1; write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',              g%draw_curve_legend
   nl=nl+1; write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
-  nl=nl+1; write (li(nl), lmt) 'visible;LOGIC;T;',                        g%visible
   nl=nl+1; write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
   nl=nl+1; write (li(nl), amt) 'y.label;STR;T;',                         g%y%label

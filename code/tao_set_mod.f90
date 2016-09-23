@@ -1059,6 +1059,9 @@ do i = 1, size(plot)
     case ('autoscale_y')
       call tao_logical_set_value (plot(i)%p%autoscale_y, component, set_value, error)
 
+    case ('visible')
+      call tao_logical_set_value (plot(i)%p%r%visible, component, set_value, error)
+
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
       return
@@ -1847,7 +1850,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val)
+! Subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val, print_err)
 !
 ! Subroutine to read and set the value of an integer varialbe.
 !
@@ -1859,13 +1862,14 @@ end subroutine
 !   value_str -- Character(*): String with encoded value.
 !   min_val   -- Integer, optional: Minimum value. 
 !   max_val   -- Integer, optional: Maximum value.
+!   print_err -- logical, optional: If True, print error message. Default is true
 !
 ! Output:
 !   var   -- Integer: Variable to set.
 !   error -- Logical: Set True on an error. False otherwise.
 !-
 
-subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val)
+subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val, print_err)
 
 implicit none
 
@@ -1876,6 +1880,7 @@ integer ios, ix
 character(*) var_str, value_str
 character(*), parameter :: r_name = 'tao_integer_set_value'
 logical error
+logical, optional :: print_err
 
 !
 
@@ -1883,29 +1888,28 @@ error = .true.
 read (value_str, *, iostat = ios) ix
 
 if (ios /= 0 .or. len_trim(value_str) == 0) then
-  call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'BAD ' // trim(var_str) // ' VALUE.')
   return
 endif
 
 if (present(min_val)) then
   if (ix < min_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE TOO SMALL.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, var_str // ' VALUE TOO SMALL.')
     return 
   endif
 endif
 
 if (present(max_val)) then
   if (ix > max_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE TO LARGE.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, var_str // ' VALUE TO LARGE.')
     return 
   endif
 endif
 
-
-var = ix      
+var = ix
 error = .false.
 
-end subroutine
+end subroutine tao_integer_set_value
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
