@@ -39,7 +39,7 @@
 
 subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, always_allocate)
 
-use tao_set_mod
+use tao_set_mod, dummy => tao_find_plots
 
 implicit none
 

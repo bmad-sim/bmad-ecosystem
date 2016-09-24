@@ -15,7 +15,7 @@
 
 subroutine tao_find_plot_region (err, where, region, print_flag)
 
-use tao_set_mod
+use tao_set_mod, dummy => tao_find_plot_region
 
 implicit none
 
