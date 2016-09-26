@@ -58,8 +58,8 @@ call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plot_page%axis_label_text_
 
 h = s%plot_page%text_height * s%plot_page%main_title_text_scale
 do i = 1, size(s%plot_page%title)
-  if (s%plot_page%title(i)%draw_it)                                         &
-    call qp_draw_text (s%plot_page%title(i)%title, s%plot_page%title(i)%x, &
+  if (.not. s%plot_page%title(i)%draw_it .or. s%plot_page%title(i)%title == '') cycle
+  call qp_draw_text (s%plot_page%title(i)%title, s%plot_page%title(i)%x, &
                      s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
                      s%plot_page%title(i)%justify, height = h)
 enddo

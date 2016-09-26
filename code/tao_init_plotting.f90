@@ -91,14 +91,8 @@ region%name  = ' '       ! a region exists only if its name is not blank
 include_default_plots = .true.
 
 plot_page = plot_page_default
-plot_page%title(:)%draw_it = .false.
-plot_page%title(:)%title = ' '
-plot_page%title(:)%justify = 'CC'
-plot_page%title(:)%x = 0.50
-plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
-plot_page%title(:)%units = '%PAGE'
 plot_page%size = [500, 600]
 
 default_plot%name = ' '
