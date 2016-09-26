@@ -43,8 +43,8 @@ character(16) :: qp_symbol_type_name(0:18) = ['square         ', &
 
 integer, parameter :: dflt_draw$ = 1, dflt_set$ = 2
 
-integer, parameter :: print_page_long_len = 10.5
-integer, parameter :: print_page_short_len = 7.8
+real(rp), parameter :: print_page_long_len = 10.5
+real(rp), parameter :: print_page_short_len = 7.8
 
 integer, parameter :: filled_arrow_head$ = 1, outline_arrow_head$ = 2
 
