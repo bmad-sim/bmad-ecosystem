@@ -126,11 +126,11 @@ end type
 ! Plot structures.
 
 type tao_title_struct
-  character(100) title       ! title character string.
-  real(rp) x, y              ! x, y rwt lower left corner
-  character(16) units        ! %BOX, POINTS, etc...
-  character(2) justify       ! Left, Center, or Right justification.
-  logical draw_it            ! draw the title
+  character(100) :: title = ''       ! title character string.
+  real(rp) :: x = 0.5, y = 0.97      ! x, y rwt lower left corner
+  character(16) :: units = '%PAGE'   ! %BOX, POINTS, etc...
+  character(2) :: justify = 'CC'     ! Left, Center, or Right justification.
+  logical :: draw_it = .true.        ! draw the title?
 end type
 
 type tao_data_var_component_struct    ! Components to plot
@@ -198,7 +198,7 @@ type tao_graph_struct
   character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
-  character(100) text_legend(10)              ! Array for holding descriptive info.
+  character(100) :: text_legend(10) = ''      ! Array for holding descriptive info.
   character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
   character(80) :: why_invalid = ''           ! Informative string to print.
   character(2) :: floor_plan_view = 'zx'
@@ -213,22 +213,22 @@ type tao_graph_struct
   type (qp_rect_struct) margin                ! Margin around the graph.
   type (qp_rect_struct) scale_margin          ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1         ! x-axis conversion from internal to plotting units.
-  real(rp) symbol_size_scale                  ! Symbol size scale factor for phase_space plots.
+  real(rp) :: symbol_size_scale = 0           ! Symbol size scale factor for phase_space plots.
   real(rp) :: floor_plan_rotation = 0         ! Rotation of floor plan plot: 1.0 -> 360^deg
   real(rp) :: floor_plan_orbit_scale = 0      ! Scale factor for drawing orbits. 0 -> Do not draw.
   integer box(4)                              ! Defines which box the plot is put in.
   integer :: ix_branch = 0                    ! Branch in lattice.
   integer :: ix_universe = -1                 ! Used for lat_layout plots.
-  logical clip                                ! Clip plot at graph boundary.
-  logical valid                               ! valid if all curve y_dat computed OK.
+  logical :: clip = .false.                   ! Clip plot at graph boundary.
+  logical :: valid = .false.                  ! valid if all curve y_dat computed OK.
   logical :: y2_mirrors_y = .false.           ! Y2-axis same as Y-axis?
-  logical limited                             ! True if at least one data point past graph bounds.
-  logical draw_axes                           ! Draw axes, labels, etc?
-  logical correct_xy_distortion               ! T -> Shrink one axis in floor plan so x-scale = y-scale.
+  logical :: limited = .false.                ! True if at least one data point past graph bounds.
+  logical :: draw_axes = .true.               ! Draw axes, labels, etc?
+  logical :: correct_xy_distortion = .true.   ! T -> Shrink one axis in floor plan so x-scale = y-scale.
   logical :: floor_plan_size_is_absolute = .false.     ! Are shape sizes in meters or window pixels?
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
-  logical draw_curve_legend                   ! Legend for displaying curve info.
-  logical draw_grid                           ! Draw a grid?
+  logical :: draw_curve_legend = .true.       ! Legend for displaying curve info.
+  logical :: draw_grid = .true.               ! Draw a grid?
   logical :: draw_only_good_user_data_or_vars = .true.
 end type
 
@@ -238,7 +238,7 @@ end type
 
 type tao_plot_struct
   character(40) :: name = ' '                 ! Identifying name
-  character(100) :: description               ! Descriptive string.
+  character(100) :: description = ''          ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:)
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.

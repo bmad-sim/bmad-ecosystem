@@ -173,32 +173,8 @@ do
     ix_min_data            = int_garbage$
     ix_max_data            = int_garbage$
 
-    datum(:)%data_type      = ''
-    datum(:)%merit_type     = ''
-    datum(:)%merit_type     = ''
-    datum(:)%ele_name       = ''
-    datum(:)%ele_start_name = ''
-    datum(:)%ele_ref_name   = ''
-    datum(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
-    datum(:)%weight         = 0.0
-    datum(:)%invalid_value  = 0.0
-    datum(:)%ix_bunch       = 0
-    datum(:)%data_source    = ''
-    datum(:)%good_user      = .true.
-
-    ! data(:) is old style
-
-    data(:)%data_type      = ''
-    data(:)%merit_type     = ''
-    data(:)%merit_type     = ''
-    data(:)%ele_name       = ''
-    data(:)%ele0_name      = ''
-    data(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight         = 0.0
-    data(:)%invalid_value  = 0.0
-    data(:)%ix_bunch       = 0
-    data(:)%data_source    = ''
-    data(:)%good_user      = .true.
+    datum(:) = tao_datum_input()
+    data(:)  = tao_data_input()    ! data(:) is old style
 
     ! Read datum/data
 

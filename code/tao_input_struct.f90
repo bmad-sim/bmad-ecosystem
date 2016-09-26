@@ -16,38 +16,38 @@ integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbo
 ! data input structures
 
 type tao_d2_data_input
-  character(40) :: name           ! name of data
+  character(40) :: name = ''      ! name of data
 end type
 
 type tao_d1_data_input
-  character(40) :: name           ! type of data
+  character(40) :: name = ''      ! type of data
 end type
 
 type tao_data_input
-  character(200) :: data_type
-  character(40) :: ele0_name
-  character(40) :: ele_name
-  character(20) :: merit_type
-  real(rp) :: meas
-  real(rp) :: weight
-  logical :: good_user
-  character(20) data_source
-  real(rp) :: invalid_value
-  integer :: ix_bunch
+  character(200) :: data_type = ''
+  character(40) :: ele0_name = ''
+  character(40) :: ele_name = ''
+  character(20) :: merit_type = ''
+  real(rp) :: meas = real_garbage$  ! used to tag when %meas_value is set in file
+  real(rp) :: weight = 0
+  logical :: good_user = .true.
+  character(20) :: data_source = ''
+  real(rp) :: invalid_value = 0
+  integer :: ix_bunch = 0
 end type
 
 type tao_datum_input
-  character(200) :: data_type
-  character(40) :: ele_ref_name
-  character(40) :: ele_start_name
-  character(40) :: ele_name
-  character(20) :: merit_type
-  real(rp) :: meas
-  real(rp) :: weight
-  logical :: good_user
-  character(20) data_source
-  real(rp) :: invalid_value
-  integer :: ix_bunch
+  character(200) :: data_type = ''
+  character(40) :: ele_ref_name = ''
+  character(40) :: ele_start_name = ''
+  character(40) :: ele_name = ''
+  character(20) :: merit_type = ''
+  real(rp) :: meas = real_garbage$  ! used to tag when %meas_value is set in file
+  real(rp) :: weight = 0
+  logical :: good_user = .true.
+  character(20) :: data_source = ''
+  real(rp) :: invalid_value = 0
+  integer :: ix_bunch = 0
 end type
 
 !-------------------------------------------------------------
@@ -58,30 +58,30 @@ type tao_v1_var_input
 end type
 
 type tao_var_input
-  character(40) :: ele_name
-  character(40) :: attribute       ! attribute to vary
-  character(16) :: universe
-  real(rp) :: weight
-  real(rp) :: step
-  real(rp) :: low_lim
-  real(rp) :: high_lim
-  character(40) :: merit_type
-  logical :: good_user
-  logical :: key_bound
-  real(rp) :: key_delta
+  character(40) :: ele_name = ''
+  character(40) :: attribute = ''  ! attribute to vary
+  character(16) :: universe = ''
+  real(rp) :: weight = 0
+  real(rp) :: step = 0
+  real(rp) :: low_lim = -1e30
+  real(rp) :: high_lim = 1e30
+  character(40) :: merit_type = ''
+  logical :: good_user = .true.
+  logical :: key_bound = .false.
+  real(rp) :: key_delta = 0
 end type
 
 !-------------------------------------------------------------
 ! plot input structures
 
 type tao_region_input
-  character(40) :: name             ! Eg: 'top', 'bottom'.
-  real(rp) :: location(4)           ! location on page.
+  character(40) :: name = ''        ! Eg: 'top', 'bottom'.
+  real(rp) :: location(4) = 0       ! location on page.
 end type
 
 type tao_place_input
-  character(40) :: region
-  character(40) :: plot
+  character(40) :: region = ''
+  character(40) :: plot = ''
 end type
 
 type tao_curve_input
