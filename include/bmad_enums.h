@@ -376,8 +376,8 @@ namespace Bmad {
   const int STAR_OF_DAVID_SYM = 15, SQUARE_FILLED_SYM = 16;
   const int CIRCLE_FILLED_SYM = 17, STAR5_FILLED_SYM = 18;
   const int DFLT_DRAW = 1, DFLT_SET = 2;
-  const int PRINT_PAGE_LONG_LEN = 10.5;
-  const int PRINT_PAGE_SHORT_LEN = 7.8;
+  const double PRINT_PAGE_LONG_LEN = 10.5;
+  const double PRINT_PAGE_SHORT_LEN = 7.8;
   const int FILLED_ARROW_HEAD = 1, OUTLINE_ARROW_HEAD = 2;
 
 }
