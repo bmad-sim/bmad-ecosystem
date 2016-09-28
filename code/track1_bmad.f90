@@ -510,13 +510,13 @@ case (lcavity$)
   call offset_particle (ele, param, unset$, end_orb)
 
   ! Time & s calc
+  ! end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient_net * c_light)
 
-  f = gradient_net * length * mc2**2 / (pc_start**2 * E_start)
-
-  if (abs(f) < 1d-6) then
-    end_orb%t = start2_orb%t + length * (E_start / pc_start) * (1 - f/2) / c_light
+  if (dE == 0) then
+    end_orb%t = start2_orb%t + length * (E_start / pc_start) / c_light
   else
-    end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient_net * c_light)
+    f = (2 * E_start * dE + dE**2) / pc_start**2
+    end_orb%t = start2_orb%t + pc_start * sqrt1(f) * length / (dE * c_light)
   endif
 
   call set_end_orb_s()
