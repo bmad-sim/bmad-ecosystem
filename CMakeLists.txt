@@ -17,7 +17,7 @@ set (EXE_SPECS
   cmake.wake_fit
   cmake.bmad_to_autocad
   cmake.bmad_to_csrtrack
-  cmake.bmad_to_mad_and_xsif
+  cmake.bmad_to_mad_sad_and_xsif
   cmake.compare_tracking_methods_plot
   cmake.compare_tracking_methods_text
   cmake.element_attributes

@@ -1,7 +1,7 @@
-set (EXENAME bmad_to_mad_and_xsif)
+set (EXENAME bmad_to_mad_sad_and_xsif)
 
 set (SRC_FILES
-  bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90
+  bmad_to_mad_sad_and_xsif/bmad_to_mad_sad_and_xsif.f90
 )
 
 set (INC_DIRS
