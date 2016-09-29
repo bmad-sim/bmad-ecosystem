@@ -40,10 +40,12 @@ class sad_info_struct:
 #------------------------------------------------------------------
 
 def add_units (line):
-  if 'deg' in line: line = re.sub(' deg$', ' * degrees', line)
-  if 'kev' in line: line = re.sub(' kev$', ' * 1e3', line)
-  if 'mev' in line: line = re.sub(' mev$', ' * 1e6', line)
-  if 'gev' in line: line = re.sub(' gev$', ' * 1e9', line)
+  if len(line) < 4: return line
+  if line[-4] not in ' 0123456789': return line
+  if line[-3:] == 'deg': return line[:-3] + ' * degrees'
+  if line[-3:] == 'kev': return line[:-3] + ' * 1e3'
+  if line[-3:] == 'mev': return line[:-3] + ' * 1e6'
+  if line[-3:] == 'gev': return line[:-3] + ' * 1e9'
   return line
 
 #------------------------------------------------------------------
@@ -485,32 +487,40 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
     # 
 
-    if sad_param_name == 'k1' and sad_ele.type == 'quad' and 'l' not in sad_ele.param:
+    if 'l' in sad_ele.param:
+      try:
+        zero_length =  (float(sad_ele.param['l']) == 0)
+      except ValueError:
+        zero_length = False
+    else:
+      zero_length = True
+
+    if sad_param_name == 'k1' and sad_ele.type == 'quad' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 'k1l'
       value_suffix = ''
 
-    elif sad_param_name == 'k2' and sad_ele.type == 'sext' and 'l' not in sad_ele.param:
+    elif sad_param_name == 'k2' and sad_ele.type == 'sext' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 'k2l'
       value_suffix = ''
 
-    elif sad_param_name == 'k3' and sad_ele.type == 'oct' and 'l' not in sad_ele.param:
+    elif sad_param_name == 'k3' and sad_ele.type == 'oct' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 'k3l'
       value_suffix = ''
 
-    elif sad_param_name == 'rotate' and sad_ele.type == 'quad' and 'l' not in sad_ele.param:
+    elif sad_param_name == 'rotate' and sad_ele.type == 'quad' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 't1'
       value_suffix = ''
 
-    elif sad_param_name == 'rotate' and sad_ele.type == 'sext' and 'l' not in sad_ele.param:
+    elif sad_param_name == 'rotate' and sad_ele.type == 'sext' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 't2'
       value_suffix = ''
 
-    elif sad_param_name == 'rotate' and sad_ele.type == 'oct' and 'l' not in sad_ele.param:
+    elif sad_param_name == 'rotate' and sad_ele.type == 'oct' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 't3'
       value_suffix = ''
