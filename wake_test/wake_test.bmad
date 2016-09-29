@@ -14,9 +14,11 @@ p1[sr_wake_file] = 'short_range.wake'
 p2: pipe, L = 1
 p2[lr_wake_file] = 'long_range.wake'
 
-lat: line = (p1, p2)
+p3: p2
 
+lat: line = (p1, p2, p3)
 
+m: marker, superimpose, ref = p3, offset = 0.1
 
 use, lat
 

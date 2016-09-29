@@ -1,6 +1,6 @@
 program wake_test
 
-use beam_utils
+use beam_mod
 use wake_mod
 
 type (lat_struct), target :: lat
@@ -9,13 +9,13 @@ type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
 type (beam_init_struct) :: beam_init
-type (bunch_struct) :: bunch, bunch_init, bunch0
+type (bunch_struct) :: bunch, bunch_init, bunch0, bunch2
 
 real(rp) dz, z0
 
-integer i, nargs, n
+integer i, nargs, n, ie
 
-logical print_extra
+logical print_extra, err_flag
 
 character(100) :: lat_file
 
@@ -122,11 +122,11 @@ beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)
 bunch = bunch_init
 
-call track1_bunch_hom (bunch, ele, lat%param, bunch)
+call track1_bunch (bunch, lat, ele, bunch, err_flag)
 
 bmad_com%sr_wakes_on = .false.
 bunch0 = bunch_init
-call track1_bunch_hom (bunch0, ele, lat%param, bunch0)
+call track1_bunch (bunch0, lat, ele, bunch0, err_flag)
 
 write (1, '(a, 6es18.9)') '"SR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
 write (1, '(a, 6es18.9)') '"SR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
@@ -138,7 +138,7 @@ ele => lat%ele(2)
 bunch = bunch_init
 
 do n = 1, 3
-  call track1_bunch_hom (bunch, ele, lat%param, bunch)
+  call track1_bunch (bunch, lat, ele, bunch, err_flag)
   do i = 1, size(bunch%particle)
     bunch%particle(i)%t = bunch%particle(i)%t + 1e-7
   enddo
@@ -149,7 +149,7 @@ bmad_com%lr_wakes_on = .false.
 bunch0 = bunch_init
 
 do n = 1, 3
-  call track1_bunch_hom (bunch0, ele, lat%param, bunch0)
+  call track1_bunch (bunch0, lat, ele, bunch0, err_flag)
   do i = 1, size(bunch0%particle)
     bunch0%particle(i)%t = bunch0%particle(i)%t + 1e-7
   enddo
@@ -157,5 +157,24 @@ enddo
 
 write (1, '(a, 6es18.9)') '"LR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
 write (1, '(a, 6es18.9)') '"LR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
+
+! Long range wake with superimposed element.
+
+bmad_com%lr_wakes_on = .true.
+ele => lat%ele(3)
+
+bunch2 = bunch_init
+
+do n = 1, 3
+  do ie = 3, 5
+    call track1_bunch (bunch2, lat, lat%ele(ie), bunch2, err_flag)
+  enddo
+  do i = 1, size(bunch2%particle)
+    bunch2%particle(i)%t = bunch2%particle(i)%t + 1e-7
+  enddo
+enddo
+
+write (1, '(a, 6es18.9)') '"dB-LR-P20" ABS 1E-19' , bunch2%particle(20)%vec - bunch%particle(20)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-P40" ABS 1E-19' , bunch2%particle(40)%vec - bunch%particle(40)%vec
 
 end program
