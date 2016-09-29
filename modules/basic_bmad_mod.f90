@@ -130,14 +130,7 @@ if (present(gamma)) then
   endif
 endif
 
-if (present(dbeta)) then
-  if (E_tot/mc2 > 100) then
-    g2 = (E_tot / mc2)**2
-    dbeta = 1/(2*g2) + 1/(8*g2**2)
-  else
-    dbeta = 1 - pc_new / E_tot
-  endif
-endif
+if (present(dbeta)) dbeta = -sqrt1(-(mc2/E_tot)**2)
 
 if (present(err_flag)) err_flag = .false.
 
@@ -191,15 +184,7 @@ if (present(beta))    beta    = pc / E_tot_this
 if (present(kinetic)) kinetic = E_tot_this - mc2
 if (present(brho))    brho    = pc / c_light
 if (present(gamma))   gamma   = E_tot_this / mc2
-
-if (present(dbeta)) then
-  if (E_tot/mc2 > 100) then
-    g2 = (E_tot_this / mc2)**2
-    dbeta = 1/(2*g2) + 1/(8*g2**2)
-  else
-    dbeta = 1 - pc / E_tot_this
-  endif
-endif
+if (present(dbeta))   dbeta   = -sqrt1(-(mc2/E_tot_this)**2)
 
 if (present(err_flag)) err_flag = .false.
 
