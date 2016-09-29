@@ -44,10 +44,11 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (ele_struct) ele, half_ele
+type (ele_struct), pointer :: wake_ele
 
 type (lat_param_struct) param
 
-real(rp) charge
+real(rp) charge, ds_wake
 integer i, j, n, jj
 logical err_flag, finished
 
@@ -60,7 +61,8 @@ bunch_end = bunch_start
 !------------------------------------------------
 ! Without wakefields just track through.
 
-if (.not. associated (ele%wake) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
+wake_ele => pointer_to_wake_ele(ele, ds_wake)
+if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
@@ -76,7 +78,7 @@ endif
 ! Put the wakefield kicks at the half way point.
 
 call transfer_ele (ele, half_ele, .true.)
-call create_element_slice (half_ele, ele, ele%value(l$)/2, 0.0_rp, param, .true., .false., err_flag)
+call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
 if (err_flag) then
   if (global_com%exit_on_error) call err_exit
   return
@@ -94,13 +96,13 @@ call order_particles_in_z (bunch_end)
 call track1_wake_hook (bunch_end, ele, finished)
 
 if (.not. finished) then
-  call track1_sr_wake (bunch_end, ele)
-  call track1_lr_wake (bunch_end, ele)
+  call track1_sr_wake (bunch_end, wake_ele)
+  call track1_lr_wake (bunch_end, wake_ele)
 endif
 
 ! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
-call create_element_slice (half_ele, ele, ele%value(l$)/2, ele%value(l$)/2, param, .false., .true., err_flag, half_ele)
+call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
 
 do j = 1, size(bunch_end%particle)
   if (bunch_end%particle(j)%state /= alive$) cycle

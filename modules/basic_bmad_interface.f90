@@ -575,8 +575,7 @@ subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   real(rp) x_0, xp_0, chi
 end subroutine
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                                      a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -587,6 +586,35 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   logical, optional :: err_print_flag
   integer, optional :: ix_attrib
 end subroutine
+
+function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)
+  import
+  implicit none
+  type (ele_struct), target :: slave
+  type (control_struct), pointer, optional :: control
+  type (ele_struct), pointer :: lord_ptr
+  integer, optional :: ix_slave
+  integer ix_lord
+  logical, optional :: field_overlap_ptr
+end function
+
+function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
+  import
+  implicit none
+  type (ele_struct), target :: lord
+  type (control_struct), pointer, optional :: control
+  type (ele_struct), pointer :: slave_ptr
+  integer ix_slave
+  logical, optional :: field_overlap_ptr
+end function
+
+function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (ele_struct), pointer :: wake_ele
+  real(rp), optional :: delta_s
+end function
 
 subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                   ptr_array, err_flag, err_print_flag, eles, ix_attrib)
