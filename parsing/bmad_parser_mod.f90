@@ -3997,7 +3997,7 @@ do i = 1, n_multipass
                   'PLEASE GET EXPERT HELP!')
     if (global_com%exit_on_error) call err_exit
   endif
-  write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
+  write (slave%name, '(2a, i0)') trim(slave%name), '\', i   ! '
   call add_lattice_control_structs (slave, n_add_lord = 1)
   slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
