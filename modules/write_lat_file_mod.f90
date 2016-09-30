@@ -1843,6 +1843,7 @@ i_unique = 1000
 branch_out%ele%ix_pointer = 0   ! SAD geo
 branch_out%ele%iyy = 0          ! SAD bound
 sad_geo = 0
+bs_field = 0
 old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
@@ -2508,6 +2509,8 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, ele%y%eta, 'PEY', 'es13.5', 'R', .true., .false.)
           call value_to_line (line_out, ele%x%etap, 'PEPX', 'es13.5', 'R', .true., .false.)
           call value_to_line (line_out, ele%y%etap, 'PEPY', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, lat%a%emit, 'EMITX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, lat%b%emit, 'EMITy', 'es13.5', 'R', .true., .false.)
         endif
 
       ! SAD

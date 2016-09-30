@@ -1063,7 +1063,7 @@ end function coords_floor_to_local_curvilinear
 !
 ! Result:
 !   local_coords  -- floor_position_struct: %r = [x, y, s] position in curvilinear coordinates
-!                      with respect to ele1 with s relative to start the lattice_branch.
+!                      with respect to ele1 with s relative to start the lattice branch.
 !   ele1          -- ele_struct, pointer: Element that local_coords is with respect to.
 !   status        -- logical: ok$             -> Local_coords found.
 !                             patch_problem$  -> No solution due to a patch element.
