@@ -900,12 +900,24 @@ def parse_param (head, line, sad_info):
 #------------------------------------------------------------------
 # Rule: After a "calc" command, the only thing left to parse is a possible "initialorbit" setting.
 
-sad_param_names = ['momentum', 'use', 'betax', 'betay', 'nocod']
+# For translating parameters of marker at beginning of lattice.
 
+sad_ele0_param_names = ['momentum', 'use', 'bx', 'by', 'ax', 'ay', 
+        'ex', 'epx', 'ey', 'epy', 'emitx', 'emity', 'nocod']  
+
+#
 global_param_translate = {
   'momentum': 'beginning[p0c]',
-  'betax':    'beginning[beta_a]',
-  'betay':    'beginning[beta_b]',
+  'bx':       'beginning[beta_a]',
+  'by':       'beginning[beta_b]',
+  'ax':       'beginning[alpha_a]',
+  'ay':       'beginning[alpha_b]',
+  'ex':       'beginnint[eta_a]',
+  'epx':      'beginnint[etap_a]',
+  'ey':       'beginnint[eta_b]',
+  'epy':      'beginnint[etap_b]',
+  'emitx':    'beam_start[emittance_a]',
+  'emity':    'beam_start[emittance_b]',
   'nocod':    'parameter[geometry] = open',
   'cod':      'parameter[geometry] = closed',
   'x_orb':    'beam_start[x]',
@@ -1071,7 +1083,7 @@ ele0_name = sad_line.list[0].name
 if ele0_name in sad_info.ele_list:
   ele0 = sad_info.ele_list[ele0_name]
   for key in ele0.param:
-    if key in sad_param_names:
+    if key in sad_ele0_param_names:
       sad_info.param_list[key] = ele0.param[key]
 
 #------------------------------------------------------------------
@@ -1098,6 +1110,10 @@ for name in sad_info.param_list:
 
 f_out.write ('parameter[ptc_exact_model] = true\n')
 f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
+
+# If the first element is a marker with Twiss parameters...
+
+
 
 #------------------------------------------------------------------
 # Write variable definitions
