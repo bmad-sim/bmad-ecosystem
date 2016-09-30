@@ -2389,28 +2389,27 @@ do ix_ele = ie1, ie2
 
   if (out_type == 'SAD') then
 
+    converted = .false.
     if (.not. associated (ele%a_pole) .and. ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
-      converted = .true.
       select case (ele%key)
 
       ! SAD
       case (octupole$)
-        write (line_out, '(3a, es13.5)') 'OCT ', trim(ele%name), ' = (l =', val(l$)
-        call value_to_line (line_out, val(k3$)*val(l$), 'k3', 'es13.5', 'R', .true., .false.)
+        write (line_out, '(3a, es13.5)') 'OCT ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(k3$)*val(l$), 'K3', 'es13.5', 'R', .true., .false.)
+        converted = .true.
 
       ! SAD
       case (quadrupole$)
-        write (line_out, '(3a, es13.5)') 'QUAD ', trim(ele%name), ' = (l =', val(l$)
-        call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .false.)
+        write (line_out, '(3a, es13.5)') 'QUAD ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'es13.5', 'R', .true., .false.)
+        converted = .true.
 
       ! SAD
       case (sextupole$)
-        write (line_out, '(3a, es13.5)') 'SEXT ', trim(ele%name), ' = (l =', val(l$)
-        call value_to_line (line_out, val(k2$)*val(l$), 'k2', 'es13.5', 'R', .true., .false.)
-
-      ! SAD
-      case default
-        converted = .false.
+        write (line_out, '(3a, es13.5)') 'SEXT ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(k2$)*val(l$), 'K2', 'es13.5', 'R', .true., .false.)
+        converted = .true.
       end select
     endif
 
@@ -2428,9 +2427,13 @@ do ix_ele = ie1, ie2
         write (line_out, '(3a, es13.5)') 'DRIFT ', trim(ele%name), ' = (L =', val(l$)
 
       ! SAD
-      case (ab_multipole$)
+      case (ab_multipole$, multipole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
-        call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
+        do i = 0, ubound(a_pole, 1)
+          write (str, '(a, i0)') 'K', i
+          call value_to_line (line_out, a_pole(i) * factorial(i), 'S' // str, 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, b_pole(i) * factorial(i), str, 'es13.5', 'R', .true., .false.)
+        enddo
 
       ! SAD
       case (bend_sol_quad$)
@@ -2512,11 +2515,6 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, lat%a%emit, 'EMITX', 'es13.5', 'R', .true., .false.)
           call value_to_line (line_out, lat%b%emit, 'EMITy', 'es13.5', 'R', .true., .false.)
         endif
-
-      ! SAD
-      case (multipole$)
-        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
-        call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       ! SAD
       case (null_ele$)
