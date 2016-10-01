@@ -165,7 +165,7 @@ ele_loop: do ie = ix_start, ix_end
   case (marker$, detector$)
     write (line, '(a)' ) trim(ele%name) // ': marker'
     ! Write ELEMEDGE
-    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+    call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Drift -----------------------------------   
@@ -173,19 +173,19 @@ ele_loop: do ie = ix_start, ix_end
   case (drift$, pipe$, instrument$)
     write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
     ! Write ELEMEDGE
-    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+    call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Sbend -----------------------------------       
   !----------------------------------------------------------
   case (sbend$)
     write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(L_CHORD$)
-    call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
+    call value_to_line (line, val(b_field$), 'k0', 'R')
    ! OPAL's designenergy is in MeV (!!) 
-    call value_to_line (line, 1e-6_rp*val(e_tot$), 'designenergy', rfmt, 'R')
+    call value_to_line (line, 1e-6_rp*val(e_tot$), 'designenergy', 'R')
     !Edge angles are in radians
-    call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
-    call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
+    call value_to_line (line, val(e1$), 'E1', 'R')
+    call value_to_line (line, val(e2$), 'E2', 'R')
    ! Full GAP (OPAL) =  2*H_GAP (BMAD)
    ! OPAL will the default fieldmap if the gap is zero  
     if ( val(hgap$) == 0) then
@@ -204,10 +204,10 @@ ele_loop: do ie = ix_start, ix_end
       write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
     endif
 
-    call value_to_line (line, gap, 'GAP', rfmt, 'R')
+    call value_to_line (line, gap, 'GAP', 'R')
 
     ! elemedge
-    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+    call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Solenoid -----------------------------------       
@@ -229,10 +229,10 @@ ele_loop: do ie = ix_start, ix_end
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 
     ! ks field strength TODO: check specification. Seems to be Tesla
-    call value_to_line (line, absmax_bz, 'ks', rfmt, 'R')
+    call value_to_line (line, absmax_bz, 'ks', 'R')
 
     ! elemedge
-    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)    
+    call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)    
   
    !----------------------------------------------------------
    ! Quadrupole -----------------------------------   
@@ -240,8 +240,8 @@ ele_loop: do ie = ix_start, ix_end
    case (quadrupole$)
      write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
      ! Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
-     call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
-     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+     call value_to_line (line, q_sign*val(b1_gradient$), 'k1', 'R')
+     call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Lcavity, RFCavity, E_gun -----------------------------------
@@ -262,11 +262,11 @@ ele_loop: do ie = ix_start, ix_end
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 
     ! Write field scaling in MV/m
-    call value_to_line (line, 1d-6*absmax_ez, 'volt', rfmt, 'R')
+    call value_to_line (line, 1d-6*absmax_ez, 'volt', 'R')
 
     ! Write frequency in MHz
     freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
-    call value_to_line (line, 1d-6*freq, 'freq', rfmt, 'R')
+    call value_to_line (line, 1d-6*freq, 'freq', 'R')
 
     ! Write phase in rad
     phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
@@ -274,10 +274,10 @@ ele_loop: do ie = ix_start, ix_end
     if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(phi0_max$) - ele%grid_field(1)%phi0_fieldmap )
     ! The e_gun needs phase_lag to be pi/2 for some reason
     if (ele%key == e_gun$) phase_lag = 0  !used to be pi/2
-    call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
+    call value_to_line (line, phase_lag, 'lag', 'R')
  
     ! Write ELEMEDGE
-    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+    call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   ! Default -----------------------------------
@@ -286,7 +286,7 @@ ele_loop: do ie = ix_start, ix_end
     call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), 'CONVERTING TO DRIFT')
      write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
      ! Write ELEMEDGE
-     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R',ignore_if_zero = .false.)
+     call value_to_line (line, ele%s - val(L$), 'elemedge', 'R',ignore_if_zero = .false.)
   end select
 
   ! type (general attribute)
