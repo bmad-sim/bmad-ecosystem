@@ -48,7 +48,7 @@ do
   endif
 
   if (wall_file /= old_wall_file) then
-    call sr3d_read_wall_file (wall_file, lat%branch(0))
+    call sr3d_read_wall_file (wall_file, lat)
     old_wall_file = wall_file
     cycle
   endif
@@ -68,21 +68,22 @@ do
   ele => lat%ele(p%ix_ele)
   p%vec(5) = p%s - (ele%s - ele%value(l$))
   photon%start%orb = p
+  photon%start%ix_branch = 0
   photon%n_wall_hit = 0
 
   n_photon = n_photon + 1
   photon%ix_photon = n_photon
   photon%ix_photon_generated = n_photon
 
-  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat%branch(0), is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignored)
 
-  call sr3d_track_photon (photon, lat%branch(0), wall_hit, err, .true.)
+  call sr3d_track_photon (photon, lat, wall_hit, err, .true.)
   write (1, '(a, i0, a, 3f20.16)') '"Photon:',  n_photon, '"    ABS   1.0E-14', wall_hit(1)%after_reflect%vec(2:6:2)
 enddo
 
 ! Multi-section test
 
-call sr3d_read_wall_file ('multi_sec.wall', lat%branch(0))
+call sr3d_read_wall_file ('multi_sec.wall', lat)
 section => lat%branch(0)%wall3d(1)%section
 write (1, '(3a)')       '"Multi-sec22-name"  STR  "', trim(section(22)%name), '"'
 write (1, '(3a)')       '"Multi-sec23-name"  STR  "', trim(section(23)%name), '"'
