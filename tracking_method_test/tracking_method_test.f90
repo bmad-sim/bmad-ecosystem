@@ -143,6 +143,7 @@ character(38) :: instr
     case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
     case('SBEND4:Bmad_Standard')                 ; tolerance = 'ABS 1e-11'
     case('SBEND4:Linear')                        ; tolerance = 'ABS 1e-11'
+    case('SBEND4:Time_Runge_Kutta')              ; tolerance = 'ABS 4e-13'
     case('SBEND5:Bmad_Standard')                 ; tolerance = 'ABS 5e-13'
     case('SBEND5:Linear')                        ; tolerance = 'ABS 5e-13'
     case('SBEND6:Taylor')                        ; tolerance = 'ABS 2e-11'
