@@ -717,6 +717,9 @@ see the Bmad manual\cite{b:bmad} for more details). For a \vn{"closed"} geometry
 chamber ends at the ends of the lattice are connected together so a photon hitting one end
 will reappear at the other end.  For an \vn{"open"} geometry, the camber ends at the ends
 of the lattice are not connected so a photon hitting an end will be reflected or absorbed.
+Note: the setting of \vn{chamber_end_geometry} only affects branch 0 of the lattice. If
+The lattice has other branches, the chamber end geometry for chambers in these branches
+is always determined by the \vn{geometry} setting for the branch.
 \end{description}
 
 The six "filter" parameters are:
@@ -814,8 +817,8 @@ The optional \vn{surface} parameter, which is used to specify a particular surfa
 explained in \sref{s:surface}.  Example:
 \begin{example}
   &place section =   0.0, "arc_std", "beam:dipole_shape" /
-  &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
-  &place section =  82.9, "wig1",    "left_ante:chamB@END"
+  &place section =  74.3, "Near_IR"  "left_ante:shape-A@START" /
+  &place section =  82.9, "wig1",    "left_ante:shape-B@END"
   &place section =  91.1, "IR1",     "rectangle" /
 \end{example}
 
@@ -836,10 +839,10 @@ The \vn{<section_id>} identifies the section. The general format for
 \end{example}
 For example, if a section is placed like:
 \begin{example}
-  &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
+  &place section =  74.3, "Near_IR"  "left_ante:shape-A@START" /
 \end{example}
 the \vn{<sub_chamber_id>} component is \vn{"left_ante"}, the
-\vn{<shape_id>} component is \vn{"chamA"}, and the \vn{<edge-sec>}
+\vn{<shape_id>} component is \vn{"shape-A"}, and the \vn{<edge-sec>}
 component is \vn{"START"}. The \vn{<shape_id>} must always be present
 but \vn{<sub_chamber_id>} and \vn{<edge-sec>} may be omitted. If
 \vn{<sub_chamber_id>} is omitted, the colon after the
@@ -864,30 +867,31 @@ For every \vn{"START"} there must be an \vn{"END"}. A subchamber begins with the
 section with \vn{<edge-sec>} set to \vn{"START"} and ends with the section with
 \vn{<edge-sec>} set to \vn{"END"}. Example:
 \begin{example}
-  &place section =     0, "", "left_ante:chamZ"
-  &place section =     5, "", "left_ante:chamB@END"
-  &place section =   174, ""  "left_ante:chamA@START" /
-  &place section =   182, "", "left_ante:chamB@END"
-  &place section =   936, ""  "left_ante:chamA@START" /
-  &place section =  1032, ""  "left_ante:chamZ" /
+  &place section =     0, "", "left_ante:shape-Z"
+  &place section =     5, "", "left_ante:shape-B@END"
+  &place section =   174, ""  "left_ante:shape-A@START" /
+  &place section =   182, "", "left_ante:shape-B@END"
+  &place section =   936, ""  "left_ante:shape-A@START" /
+  &place section =  1032, ""  "left_ante:shape-Z" /
 \end{example}
-In this case there are two or three subchambers, both named \vn{"left_ante"}.  One
-subchamber begins at $s = 174$~meters and ends at 182~meters. If the vacuum chamber has a
-``closed'' geometry (see the description of the \vn{chamber_end_geometry} parameter), there
-is a second subchamber that begins at $s = 936$~meters, wraps around the end of the
-lattice back to the beginning, and ends at 5~meters. On the other hand, if the chamber has
-an ``open'' geometry, there are two other subchambers, one from $s = 936$~meters to the
-end of the lattice at $s = 1032$~meters and the other from $s = 0$ to $s = 5$~meters.
+In this case there are two or three subchambers, depending upon the setting of
+\vn{chamber_end_geometry} (\sref{s:master.example}).  One subchamber begins at $s =
+174$~meters and ends at 182~meters. If, as st by \vn{chamber_end_geometry}, the vacuum
+chamber has a ``closed'' geometry, there is a second subchamber that begins at $s =
+936$~meters, wraps around the end of the lattice back to the beginning, and ends at
+5~meters. On the other hand, if the chamber has an ``open'' geometry, there are two other
+subchambers, one from $s = 936$~meters to the end of the lattice at $s = 1032$~meters and
+the other from $s = 0$ to $s = 5$~meters.
 
-The above example shows subchambers that share the same name. Subchambers that overlap
-longitudinally may not share the same name. That is, ``nested'' start/end groups are not
-allowed since there is an ambiguity as to how to pair the cross-sections. For example, the
-following is not allowed:
+In the above example, all the subchambers have the same name: \vn{left_ante}. Subchambers
+that overlap longitudinally may not share the same name. That is, ``nested'' start/end
+groups are not allowed since there is an ambiguity as to how to pair the
+cross-sections. For example, the following is not allowed:
 \begin{example}
-  &place section =  173, ""  "left_ante:chamA@START" /
-  &place section =  174, ""  "left_ante:chamA@START" /
-  &place section =  182, "", "left_ante:chamB@END"
-  &place section =  183, "", "left_ante:chamB@END"
+  &place section =  173, ""  "left_ante:shape-A@START" /
+  &place section =  174, ""  "left_ante:shape-A@START" /
+  &place section =  182, "", "left_ante:shape-B@END"
+  &place section =  183, "", "left_ante:shape-B@END"
 \end{example}
 
 A subchamber does not have to have a beginning and an ending. In this case, the subchamber

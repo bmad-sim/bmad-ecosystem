@@ -164,17 +164,17 @@ end subroutine sr3d_get_emission_pt_params
 !                         -1 In the direction of decreasing s.
 !
 ! Output:
-!   photon    -- coord_struct: Generated photon.
+!   photon    -- sr3d_coord_struct: Generated photon.
 !-
 
-subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, p_orb)
+subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
 
 implicit none
 
 type (ele_struct), target :: ele_here
 type (ele_struct), pointer :: ele
 type (coord_struct) :: orb_here
-type (coord_struct) :: p_orb
+type (sr3d_coord_struct) :: photon
 type (twiss_struct), pointer :: t
 
 real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2
@@ -185,7 +185,7 @@ integer photon_direction
 ! Get photon energy and "vertical angle".
 
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call bend_photon_init (gx, gy, gamma, p_orb)
+call bend_photon_init (gx, gy, gamma, photon%orb)
 
 ! Offset due to finite beam size
 
@@ -201,32 +201,33 @@ vec(3:4) = (/ sqrt(t%beta*emit_b) * r(1)                    + t%eta  * sig_e * r
 
 call make_v_mats (ele_here, v_mat)
 
-p_orb%vec(1:4) = p_orb%vec(1:4) + matmul(v_mat, vec)
+photon%orb%vec(1:4) = photon%orb%vec(1:4) + matmul(v_mat, vec)
 
 ! Offset due to non-zero orbit.
 
-p_orb%vec(1:4) = p_orb%vec(1:4) + orb_here%vec(1:4)
+photon%orb%vec(1:4) = photon%orb%vec(1:4) + orb_here%vec(1:4)
 
 ! Longitudinal position
 
-p_orb%s = ele_here%s
-p_orb%ix_ele = ele_here%ix_ele
+photon%orb%s = ele_here%s
+photon%orb%ix_ele = ele_here%ix_ele
+photon%ix_branch = ele_here%ix_branch
 
 ! Above equations are valid in the small angle limit.
 ! Sometimes a large-angle photon is generated so make sure
 ! there is no problem with the sqrt() evaluation.
 
-v2 = p_orb%vec(2)**2 + p_orb%vec(4)**2
+v2 = photon%orb%vec(2)**2 + photon%orb%vec(4)**2
 if (v2 >= 0.99) then
-  p_orb%vec(2) = p_orb%vec(2) * 0.99 / v2
-  p_orb%vec(4) = p_orb%vec(4) * 0.99 / v2
-  v2 = p_orb%vec(2)**2 + p_orb%vec(4)**2
+  photon%orb%vec(2) = photon%orb%vec(2) * 0.99 / v2
+  photon%orb%vec(4) = photon%orb%vec(4) * 0.99 / v2
+  v2 = photon%orb%vec(2)**2 + photon%orb%vec(4)**2
 endif
 
-p_orb%vec(6) = photon_direction * sqrt(1 - v2)
-p_orb%direction = photon_direction
-p_orb%ix_ele = element_at_s(ele_here%branch, ele_here%s, .false.)
-p_orb%location = inside$
+photon%orb%vec(6) = photon_direction * sqrt(1 - v2)
+photon%orb%direction = photon_direction
+photon%orb%ix_ele = element_at_s(ele_here%branch, ele_here%s, .false.)
+photon%orb%location = inside$
 
 end subroutine sr3d_emit_photon
 

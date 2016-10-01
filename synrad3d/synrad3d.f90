@@ -36,7 +36,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele, status
+integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele, status, ix_branch
 integer n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
@@ -62,7 +62,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_e
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
             surface_roughness_rms, roughness_correlation_len, photon_track_file
 
-namelist / start / orbit, ran_state, random_seed
+namelist / start / orbit, ix_branch, ran_state, random_seed
 
 ! Parse command line args
 
@@ -202,7 +202,7 @@ case ('open')
 case ('closed')
   sr3d_params%chamber_end_geometry = closed$
 case ('')
-  sr3d_params%chamber_end_geometry = branch%param%geometry
+  sr3d_params%chamber_end_geometry = lat%branch(0)%param%geometry
 case default
   print *, 'Bad "chamber_end_geometry" setting: ', chamber_end_geometry
   stop
@@ -212,7 +212,7 @@ if (ix_ele_track_end < 0) ix_ele_track_end = branch%n_ele_track
 
 ! Wall init
 
-call sr3d_read_wall_file (wall_file, branch)
+call sr3d_read_wall_file (wall_file, lat)
 
 ! Load different surface reflection parameters if wanted
 
@@ -225,11 +225,11 @@ if (roughness_correlation_len > 0) lat%surface(1)%roughness_correlation_len = ro
 
 if (plotting /= '') then
   if (plotting == 'xy') then
-    call sr3d_plot_wall_cross_sections (plot_param, branch)
+    call sr3d_plot_wall_cross_sections (plot_param, lat)
   elseif (plotting == 'xs' .or. plotting == 'ys') then
-    call sr3d_plot_wall_vs_s (plot_param, branch, plotting)
+    call sr3d_plot_wall_vs_s (plot_param, lat, plotting)
   elseif (index('reflect', trim(plotting)) == 1) then
-    call sr3d_plot_reflection_probability(plot_param, branch)
+    call sr3d_plot_reflection_probability(plot_param, lat)
   else
     call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
     stop
@@ -391,8 +391,9 @@ if (photon_start_input_file /= '') then
       ix_ele = element_at_s(lat, orbit%vec(5), .true., branch%ix_branch)
       call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
       photon%start%orb%s = orbit%vec(5)
+      photon%start%ix_branch = ix_branch
 
-      call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignore_generated_outside_wall)
+      call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
       if (is_inside) exit
     enddo
 
@@ -406,7 +407,7 @@ if (photon_start_input_file /= '') then
     if (.not. ok) cycle
 
     if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
-    call sr3d_track_photon (photon, branch, wall_hit, err)
+    call sr3d_track_photon (photon, lat, wall_hit, err)
 
     ! ix_photon_out is used for generating a file of the photon starting position.
     ! This is used for diagnostic purposes.
@@ -535,15 +536,15 @@ else
         photon%n_wall_hit = 0
 
         do
-          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon%start%orb)
-          call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignore_generated_outside_wall)
+          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon%start)
+          call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
 
         if (photon_start_output_file /= '') then
           call ran_default_state (get_state = ran_state)
           write (iu_start, '(a)')           '&start'
-          write (iu_start, '(a, 6es20.12)') '  p%vec     = ', photon%start%orb%vec
+          write (iu_start, '(a, 6es20.12)') '  p%vec     =', photon%start%orb%vec
           write (iu_start, '(a, es20.12)')  '  p%s       =', photon%start%orb%s
           write (iu_start, '(a, es20.12)')  '  p%p0c     =', photon%start%orb%p0c
           write (iu_start, *)               '  ran_state = ', ran_state
@@ -554,7 +555,7 @@ else
         if (.not. ok) cycle
 
         if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
-        call sr3d_track_photon (photon, branch, wall_hit, err)
+        call sr3d_track_photon (photon, lat, wall_hit, err)
 
         ! ix_photon_out is used for generating a file of the photon starting position.
         ! This is used for diagnostic purposes.
