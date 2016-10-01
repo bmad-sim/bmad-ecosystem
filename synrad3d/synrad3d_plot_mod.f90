@@ -10,7 +10,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_reflection_probability (plot_param, branch)
+! Subroutine sr3d_plot_reflection_probability (plot_param, lat)
 !
 ! Routine to plot reflection probability curves
 !
@@ -18,7 +18,7 @@ contains
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !-
 
-subroutine sr3d_plot_reflection_probability (plot_param, branch)
+subroutine sr3d_plot_reflection_probability (plot_param, lat)
 
 implicit none
 
@@ -30,7 +30,7 @@ type yplot
   type (qp_line_struct) line
 end type
 
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
 type (sr3d_plot_param_struct) plot_param
 type (yplot), allocatable :: ny(:)
 type (photon_reflect_surface_struct), pointer :: surface
@@ -59,7 +59,7 @@ y_lab = 'Reflectivity'
 reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
-surface => branch%lat%surface(1)
+surface => lat%surface(1)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -145,13 +145,13 @@ do
 
 
   print '(a)', 'Surfaces Defined:'
-  n_max = maxval(len_trim(branch%lat%surface%name))
-  d_max = maxval(len_trim(branch%lat%surface%description))
+  n_max = maxval(len_trim(lat%surface%name))
+  d_max = maxval(len_trim(lat%surface%description))
   write (fmt, '(a, i0, a, i0, a)') '(3x, i3, 2x, a', n_max+5, ', a', d_max+7, ', 2a)'
-  do i = 1, size (branch%lat%surface)
-    descrip = branch%lat%surface(i)%description
+  do i = 1, size (lat%surface)
+    descrip = lat%surface(i)%description
     if (descrip /= '') descrip = '"' // trim(descrip) // '"'
-    print fmt, i, branch%lat%surface(i)%name, descrip, 'File: ', trim(branch%lat%surface(i)%reflectivity_file)
+    print fmt, i, lat%surface(i)%name, descrip, 'File: ', trim(lat%surface(i)%reflectivity_file)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -212,12 +212,12 @@ do
       cycle
     endif
 
-    if (ix < 1 .or. ix > size(branch%lat%surface)) then
+    if (ix < 1 .or. ix > size(lat%surface)) then
       print *, 'SURFACE INDEX OUT OF RANGE.'
       cycle
     endif
 
-    surface => branch%lat%surface(ix)
+    surface => lat%surface(ix)
 
   case ('type')
 
@@ -282,25 +282,26 @@ end subroutine sr3d_plot_reflection_probability
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane, wall_hit_file)
+! subroutine sr3d_plot_wall_vs_s (plot_param, lat, plane, wall_hit_file)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
 !   plot_param    -- sr3d_plot_param_struct: Plot parameters.
-!   branch        -- branch_struct: Lattice branch with wall.
+!   lat           -- lat_struct: Lattice with wall.
 !   plane         -- character(*): section. 'xs' or. 'ys'
 !   wall_hit_file -- character(*): Photon trajectory file for plotting the trajectory.
 !-
 
-subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
+subroutine sr3d_plot_wall_vs_s (plot_param, lat, plane)
 
 implicit none
 
 type (sr3d_plot_param_struct) plot_param
 type (sr3d_photon_track_struct), target :: photon
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch, branch2
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
 real(rp) dummy, r1(3), r2(3)
@@ -318,6 +319,9 @@ logical xy_user_good, s_user_good, no_wall_here, found, good_wall_hit, good_phot
 logical, allocatable :: no_wall(:)
 
 ! Open plotting window
+
+branch => lat%branch(0)
+photon%now%ix_branch = 0
 
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
@@ -481,8 +485,9 @@ do
 
   ! Query
 
-  print *, 'Syntax: "x", "y", or "s" followed by <min> <max> values.'
-  print *, '[<min> = "auto" --> autoscale] Example: "x auto", "s 10 60"'
+  print '(a)', 'Syntax: "x", "y", or "s" followed by <min> <max> values.'
+  print '(a)', '        or "b" followed by branch name or index. Branch index ranges from 0 to', ubound(lat%branch, 1)
+  print '(a)', '[<min> = "auto" --> autoscale] Examples: "x auto", "s 10 60"'
   call read_a_line ('Input: ', ans)
 
   call string_trim (ans, ans, ix)
@@ -512,6 +517,18 @@ do
       endif
     endif
 
+  elseif (ans(1:2) == 'b ') then
+    call string_trim(ans(2:), ans, ix)
+    branch2 => pointer_to_branch(ans, lat)
+    if (.not. associated(branch2)) then
+      print *, 'BAD BRANCH NAME OR INDEX'
+      cycle
+    endif
+    branch => branch2
+    photon%now%ix_branch = branch%ix_branch
+    s_min = 0
+    s_max = branch%ele(branch%n_ele_track)%s
+
   else
     print *, 'I DO NOT UNDERSTAND THIS...'
   endif
@@ -524,27 +541,28 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (plot_param, branch)
+! Subroutine sr3d_plot_wall_cross_sections (plot_param, lat)
 !
 ! Routine to interactively plot wall (x,y) cross-sections at constant s.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
 !   plot_param  -- sr3d_plot_param_struct: Plotting parameters.
-!   branch      -- Branch_struct: lattice
+!   lat         -- Lat_struct: lattice
 !-
 
-subroutine sr3d_plot_wall_cross_sections (plot_param, branch)
+subroutine sr3d_plot_wall_cross_sections (plot_param, lat)
 
 implicit none
 
 type (sr3d_plot_param_struct) plot_param
 type (wall3d_section_struct), pointer :: section, sec
 type (sr3d_photon_track_struct) photon
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
 type (wall3d_struct), pointer :: wall3d, wall3d_select
 type (wall3d_vertex_struct), pointer :: v(:)
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch, branch2
 
 real(rp), allocatable :: x(:), y(:)
 real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old, rr(2)
@@ -561,6 +579,9 @@ logical at_section, draw_norm, reverse_x_axis, no_wall_here, write_cross_section
 
 ! Open plotting window
 
+branch => lat%branch(0)
+photon%now%ix_branch = 0
+
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
@@ -574,22 +595,6 @@ ie_max = branch%n_ele_track
 
 allocate (x(n), y(n))
 allocate (x_norm(n), y_norm(n))
-
-! Print wall info
-
-do iw = 1, size(branch%wall3d)
-  wall3d => branch%wall3d(iw)
-  print '(a, i6, 2x, a)', 'Sub-section:', iw, wall3d%name
-  do i = 1, min(1000, ubound(wall3d%section, 1))
-    section => wall3d%section(i)
-    if (associated(section%surface)) then
-      print '(2i8, f14.6, 2x, a20, 2x, a16, a)', iw, i, section%s, section%name, &
-          wall3d_section_type_name(section%type), trim(section%surface%name)
-    else
-      print '(2i8, f14.6, 2x, a20, 2x, a16)', iw, i, section%s, section%name, wall3d_section_type_name(section%type)
-    endif
-  enddo
-enddo
 
 ix_section = 1
 iw_wall = 1
@@ -718,8 +723,11 @@ do
   print '(a)', '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
   print '(a)', '   x auto           ! Auto scale plot.'
   print '(a)', '   write            ! Write (x,y) points to a file.'
+  print '(a)', '   branch <name>    ! Name or index of branch. Branch indexes for this lattice range from 0 to', ubound(lat%branch, 1)
   print '(a)', '   normal           ! Toggle drawing of a set of vectors normal to the wall'
   print '(a)', '   reverse          ! Toggle reversing the x-axis to point left for +x'
+  print '(a)', '   list             ! List sections for current lattice branch.'
+
 
   if (write_cross_section) then
     close (iu)
@@ -789,6 +797,38 @@ do
     s_pos_old = s_pos
     s_pos = wall3d_select%section(ix_section)%s
     at_section = .true.
+
+  elseif (index('branch', ans(1:ix)) == 1) then
+    call string_trim (ans(ix+1:), ans, ix)
+    branch2 => pointer_to_branch(ans, lat)
+    if (.not. associated(branch2)) then
+      print *, 'BAD BRANCH NAME OR INDEX'
+      cycle
+    endif
+    branch => branch2
+    photon%now%ix_branch = branch%ix_branch
+    ix_section = 1
+    iw_wall = 1
+    wall3d_select => branch%wall3d(iw_wall)
+    n_sec_max = ubound(wall3d_select%section, 1)
+    s_pos = wall3d_select%section(ix_section)%s
+    s_pos_old = s_pos
+    at_section = .true.
+
+  elseif (index('list', ans(1:ix)) == 1) then
+    do iw = 1, size(branch%wall3d)
+      wall3d => branch%wall3d(iw)
+      print '(a, i6, 2x, a)', 'Sub-section:', iw, wall3d%name
+      do i = 1, min(1000, ubound(wall3d%section, 1))
+        section => wall3d%section(i)
+        if (associated(section%surface)) then
+          print '(2i8, f14.6, 2x, a20, 2x, a16, a)', iw, i, section%s, section%name, &
+              wall3d_section_type_name(section%type), trim(section%surface%name)
+        else
+          print '(2i8, f14.6, 2x, a20, 2x, a16)', iw, i, section%s, section%name, wall3d_section_type_name(section%type)
+        endif
+      enddo
+    enddo
 
   else
     read (ans, *, iostat = ios) i_in

@@ -53,7 +53,7 @@ if (present(err_flag)) err_flag = .true.
 ! If a synrad3d file...
 
 if (wall_file(1:10) == 'synrad3d::') then
-  call sr3d_read_wall_file (wall_file(11:), branch, err)
+  call sr3d_read_wall_file (wall_file(11:), branch%lat, err)
   if (err) return
   call synrad3d_wall_to_synrad_walls (branch, seg_len_max, walls)
   if (present(err_flag)) err_flag = .false.

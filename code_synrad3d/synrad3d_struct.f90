@@ -19,7 +19,8 @@ end type
 type sr3d_coord_struct
   type (coord_struct) orb
   integer :: ix_wall_section = not_set$      ! Wall section index.
-  integer :: ix_wall3d = 1                   ! branch%wall3d(:) index where photon is within.             
+  integer :: ix_wall3d = 1                   ! branch%wall3d(:) index where photon is within.
+  integer :: ix_branch = -1                  ! lattice branch index.        
 end type  
 
 ! This structure defines the full track of the photon from start to finish
@@ -68,12 +69,23 @@ type (sr3d_params_struct), save :: sr3d_params
 
 ! Some parameters that cannot be set
 
-type sr3d_walls_struct
+type sr3d_fast_struct
   integer, allocatable :: ix_wall3d(:)
 end type
 
+type sr3d_branch_overlap_struct
+  integer ix_branch1, ix_branch2
+  integer ix_ele1_start, ix_ele1_end
+  integer ix_ele2_start, ix_ele2_end
+end type
+
+type sr3d_branch_com_struct
+  type (sr3d_fast_struct), allocatable :: fast(:)
+end type
+
 type sr3d_common_struct
-  type (sr3d_walls_struct), allocatable :: fast(:) 
+  type (sr3d_branch_com_struct), allocatable :: branch(:) 
+  type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
 end type
 
 type (sr3d_common_struct), target, save :: sr3d_com

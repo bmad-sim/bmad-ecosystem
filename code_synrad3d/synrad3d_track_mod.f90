@@ -9,7 +9,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon (photon, branch, wall_hit, err)
+! Subroutine sr3d_track_photon (photon, lat, wall_hit, err)
 !
 ! Routine to propagate a synch radiation photon until it gets absorbed by a wall.
 !
@@ -29,16 +29,21 @@ contains
 !   err         -- Tracking calculation failed.
 !-
 
-subroutine sr3d_track_photon (photon, branch, wall_hit, err, one_reflection_only)
+subroutine sr3d_track_photon (photon, lat, wall_hit, err, one_reflection_only)
 
 implicit none
 
-type (branch_struct), target :: branch
-type (sr3d_photon_track_struct), target :: photon
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch, branch2
+type (ele_struct), pointer :: ele0, ele1
+type (sr3d_photon_track_struct), target :: photon, photon2
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (coord_struct), pointer :: orb
+type (sr3d_branch_overlap_struct), pointer :: bo
+type (floor_position_struct) floor
 
 real(rp) dw_perp(3), d_radius
-integer iw, status
+integer iw, status, ij, ie_start, ie_end
 
 logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
@@ -61,13 +66,15 @@ call ran_default_state (get_state = sr3d_params%ran_state)  ! Save
 
 !
 
+branch => lat%branch(photon%now%ix_branch)
+
 err = .false.
 
 main_loop: do
-  call sr3d_track_photon_to_wall (photon, branch, wall_hit, err)
+  call sr3d_track_photon_to_wall (photon, lat, wall_hit, err)
   if (err) return
 
-  ! Switch to another sub-chamber?
+  ! Switch to another sub-chamber within same branch?
 
   do iw = 1, size(branch%wall3d)
     if (iw == photon%now%ix_wall3d) cycle
@@ -89,6 +96,43 @@ main_loop: do
     endif  
   enddo
 
+  ! Switch to a subchamber in a different branch?
+
+  if (allocated(sr3d_com%branch_overlap)) then
+    do ij = 1, size(sr3d_com%branch_overlap)
+      bo => sr3d_com%branch_overlap(ij)
+      if (branch%ix_branch == bo%ix_branch1) then
+        branch2 => lat%branch(bo%ix_branch2)
+        ie_start = bo%ix_ele2_start
+        ie_end = bo%ix_ele2_end
+      elseif (branch%ix_branch == bo%ix_branch2) then
+        branch2 => lat%branch(bo%ix_branch1)
+        ie_start = bo%ix_ele1_start
+        ie_end = bo%ix_ele1_end
+      else
+        cycle
+      endif
+
+      photon2%now = photon%now
+      photon2%now%ix_branch = branch2%ix_branch
+      orb => photon2%now%orb
+      ele0 => branch%ele(orb%ix_ele)
+      floor%r = [orb%vec(1), orb%vec(3), orb%s - (ele0%s - ele0%value(l$))]
+      floor = coords_local_curvilinear_to_floor(floor, ele0, calculate_angles = .false.)
+      floor = coords_floor_to_curvilinear (floor, branch2%ele((ie_start+ie_end)/2), ele1, status)
+      if (status == outside$ .or. status == patch_problem$) cycle
+
+      do iw = 1, size(branch2%wall3d)
+        status = sr3d_photon_status_calc (photon2, branch2, iw)
+        if (status /= inside_the_wall$) cycle
+        photon%now = photon2%now
+        photon%now%ix_wall3d = iw
+        photon%status = status
+        cycle main_loop
+      enddo
+    enddo
+  endif
+
   ! Reflect photon
 
   if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
@@ -102,7 +146,7 @@ end subroutine sr3d_track_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon_to_wall (photon, branch, wall_hit, err)
+! Subroutine sr3d_track_photon_to_wall (photon, lat, wall_hit, err)
 !
 ! Routine to propagate a synch radiation photon until it hits a wall.
 !
@@ -111,18 +155,19 @@ end subroutine sr3d_track_photon
 !
 ! Input:
 !   photon    -- sr3d_photon_track_struct: photon with starting parameters set
-!   branch      -- branch_struct: Lattice branch with twiss propagated and mat6s made
+!   lat       -- lat_struct: Lattice.
 !
 ! Output:
 !   photon    -- sr3d_photon_track_struct: synch radiation photon propagated to wall
 !   err       -- Tracking calculation failed.
 !-
 
-subroutine sr3d_track_photon_to_wall (photon, branch, wall_hit, err)
+subroutine sr3d_track_photon_to_wall (photon, lat, wall_hit, err)
 
 implicit none
 
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
@@ -136,6 +181,7 @@ logical err
 ! The photon is tracked in a series of steps.
 
 vec => photon%now%orb%vec
+branch => lat%branch(photon%now%ix_branch)
 
 main_loop: do
 
@@ -153,7 +199,7 @@ main_loop: do
 
   ! See if there is a fast sub-chamber to switch to
 
-  ix_w => sr3d_com%fast(photon%now%ix_wall3d)%ix_wall3d
+  ix_w => sr3d_com%branch(branch%ix_branch)%fast(photon%now%ix_wall3d)%ix_wall3d
   do i = 1, size(ix_w)
     status = sr3d_photon_status_calc (photon, branch, ix_w(i))
     if (status == inside_the_wall$) then
@@ -183,7 +229,7 @@ end subroutine sr3d_track_photon_to_wall
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, branch, is_inside, bad_photon_counter)
+! Subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, lat, is_inside, bad_photon_counter)
 !
 ! Routine to determine if a photon is initially created outside the vacuum chamber wall.
 ! Also this routine will stop the program if too many photons have been created outside.
@@ -191,7 +237,7 @@ end subroutine sr3d_track_photon_to_wall
 !
 ! Input:
 !   photon_start        -- sr3d_coord_struct: Photon coords.
-!   branch              -- branch_struct: Lattice branch
+!   lat                 -- lat_struct: Lattice 
 !   bad_photon_counter  -- integer: Counter 
 !
 ! Output:
@@ -200,11 +246,12 @@ end subroutine sr3d_track_photon_to_wall
 !   bad_photon_counter  -- integer: Counter decremented by one. When counter is zero the program will be stopped.
 !-
 
-subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, branch, is_inside, bad_photon_counter)
+subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, lat, is_inside, bad_photon_counter)
 
 type (sr3d_coord_struct) photon_start
 type (sr3d_photon_track_struct) photon
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 
 real(rp) d_radius
 integer iw, bad_photon_counter, ix, status
@@ -215,6 +262,7 @@ logical is_inside
 photon%now = photon_start
 photon%old = photon_start
 photon%old%orb%vec(1:3:2) = 0   ! 
+branch => lat%branch(photon_start%ix_branch)
 
 do iw = 1, size(branch%wall3d)
   status = sr3d_photon_status_calc (photon, branch, iw)
@@ -274,7 +322,7 @@ real(rp) d_radius, s
 
 integer status
 integer, optional :: ix_wall3d
-integer i, ix, ixs
+integer i, ix, ixs, end_geometry
 
 logical is_through, no_wall_here
 
@@ -298,12 +346,15 @@ endif
 
 ! Is at the end of a linear lattice or at the end of the current sub-section?
 
+end_geometry = sr3d_params%chamber_end_geometry
+if (branch%ix_branch /= 0) end_geometry = branch%param%geometry
+
 s = now%orb%s
 ixs = now%ix_wall_section
 wall3d => branch%wall3d(integer_option(now%ix_wall3d, ix_wall3d))
 
 if (now%orb%vec(6) < 0) then
-  if (sr3d_params%chamber_end_geometry == open$ .and. s == 0) then
+  if (end_geometry == open$ .and. s == 0) then
     status = at_wall_end$
     return
   endif
@@ -312,7 +363,7 @@ endif
 
 if (now%orb%vec(6) > 0) then
   ix = branch%n_ele_track
-  if (sr3d_params%chamber_end_geometry == open$ .and. s == branch%ele(ix)%s) status = at_wall_end$
+  if (end_geometry == open$ .and. s == branch%ele(ix)%s) status = at_wall_end$
   if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) status = at_wall_end$
 endif
 
@@ -363,7 +414,7 @@ real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds
 real(rp), pointer :: vec(:)
 
-integer ixw, stop_location
+integer ixw, stop_location, end_geometry
 
 logical stop_at_check_pt, check_section_here
 
@@ -378,6 +429,9 @@ wall3d => branch%wall3d(photon%now%ix_wall3d)
 ele => branch%ele(now%ix_ele)
 s0 = ele%s - ele%value(l$)
 sl = sr3d_params%significant_length 
+
+end_geometry = sr3d_params%chamber_end_geometry
+if (branch%ix_branch /= 0) end_geometry = branch%param%geometry
 
 call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
 
@@ -417,7 +471,7 @@ propagation_loop: do
 
     if (now%location == downstream_end$) then
       if (now%ix_ele == branch%n_ele_track) then
-        if (sr3d_params%chamber_end_geometry == open$) return
+        if (end_geometry == open$) return
         now%ix_ele = 1
         now%s = now%s - branch%param%total_length
         photon%crossed_lat_end = .not. photon%crossed_lat_end
@@ -473,7 +527,7 @@ propagation_loop: do
     if (now%location == upstream_end$) then
 
       if (now%ix_ele == 1) then
-        if (sr3d_params%chamber_end_geometry == open$) return
+        if (end_geometry == open$) return
         now%s = now%s + branch%param%total_length
         now%ix_ele = branch%n_ele_track 
         photon%crossed_lat_end = .not. photon%crossed_lat_end

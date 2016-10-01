@@ -21,6 +21,7 @@ type sr3d_section_struct
   logical :: surface_is_local = .false.
   type (wall3d_section_struct) :: section 
   type (sr3d_section_struct), pointer :: m_sec => null()    ! Multi-section pointer
+  integer :: ix_branch = 0
 end type
 
 ! multi_section structure
@@ -70,22 +71,23 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_read_wall_file (wall_file, branch, err_flag)
+! Subroutine sr3d_read_wall_file (wall_file, lat, err_flag)
 !
 ! Routine to parse a vacuum chamber wall file.
 !
 ! Input:
 !   wall_file   -- character(*): Name of the wall file.
-!   branch      -- branch_struct: Lattice branch associated with the wall..
+!   lat         -- lat_struct: lattice.
 !
 ! Output:
 !   branch%wall3d -- wall3d_struct: Wall structure with computed parameters.
 !   err_flag      -- logical, optional: Set true if there is a problem
 !-
 
-subroutine sr3d_read_wall_file (wall_file, branch, err_flag)
+subroutine sr3d_read_wall_file (wall_file, lat, err_flag)
 
-type (branch_struct), target :: branch
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch, branch2
 type (surface_input) surface
 type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
 type (wall3d_struct), pointer :: wall3d
@@ -99,27 +101,33 @@ type (sr3d_section_struct), allocatable :: temp_section(:)
 type (wall3d_section_struct), allocatable :: temp_section3d(:)
 type (sr3d_section_struct), pointer :: sec, sec0, sec2
 type (sr3d_section_struct) ref_section
+type (ele_struct), pointer :: ele, ele2, ele0
+type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
 
-real(rp) s_lat, r0(2)
+real(rp) s_lat, r0(2), max_r1, max_r2, max_r
 
-integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios
+integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
-integer n_shape, n_repeat, n_surface, last_type
+integer n_shape, n_repeat, n_surface, last_type, n_overlap
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
 integer ix_slow, ix_fast, chamber_end_geometry
+integer ix_ele1_start, ix_ele1_end, ix_ele2_start, ix_ele2_end, ixe
+
 logical, optional :: err_flag
 logical err, absolute_vertices
 
 character(*) wall_file
-character(40) name, slow, fast
+character(40) name, slow, fast, branch_name, subchamber_name
 character(40), allocatable :: sub_name(:)
 character(200) reflectivity_file, file
-character(28), parameter :: r_name = 'sr3d_read_wall_file'
+character(*), parameter :: r_name = 'sr3d_read_wall_file'
 
 namelist / place / section, surface
 namelist / shape_def / name, v, r0, absolute_vertices
 namelist / surface_def / reflectivity_file
 namelist / slow_fast / slow, fast
+namelist / subchamber_in_branch_placement / subchamber_name, branch_name 
+
 ! Open file
 
 if (present(err_flag)) err_flag = .true.
@@ -130,9 +138,9 @@ open (iu, file = file, status = 'old')
 ! Old file format?
 
 if (sr3d_old_wall_file_format(iu)) then
-  print '(2a)', 'WALL FILE IS USING AN OLD FORMAT!! ', trim(wall_file)
-  print '(a)', 'PLEASE SEE THE SYNRAD3D MANUAL FOR INSTRUCTIONS ON HOW TO CONVERT TO THE NEW FORMAT.'
-  print '(a)', 'STOPPING NOW.'
+  call out_io (s_fatal$, r_name, 'WALL FILE IS USING AN OLD FORMAT!! ' // trim(wall_file), &
+               'PLEASE SEE THE SYNRAD3D MANUAL FOR INSTRUCTIONS ON HOW TO CONVERT TO THE NEW FORMAT.', &
+               'STOPPING NOW.')
   stop
 endif
 
@@ -143,7 +151,7 @@ n_surface = 0
 do
   read (iu, nml = surface_def, iostat = ios)
   if (ios > 0) then ! error
-    print *, 'ERROR READING SURFACE_DEF NAMELIST IN WALL FILE: ', trim(wall_file)
+    call out_io (s_fatal$, r_name, 'ERROR READING SURFACE_DEF NAMELIST IN WALL FILE: ' // trim(wall_file))
     rewind (iu)
     do
       read (iu, nml = surface_def) ! will bomb program with error message
@@ -153,19 +161,19 @@ do
   n_surface = n_surface + 1
 enddo
 
-if (associated(branch%lat%surface)) deallocate(branch%lat%surface)
-allocate (branch%lat%surface(n_surface+2))
+if (associated(lat%surface)) deallocate(lat%surface)
+allocate (lat%surface(n_surface+2))
 
-call photon_reflection_std_surface_init (branch%lat%surface(1))
+call photon_reflection_std_surface_init (lat%surface(1))
 
-branch%lat%surface(2)%reflectivity_file = '<none>'
-branch%lat%surface(2)%name = 'ABSORBER'
-branch%lat%surface(2)%description = 'Perfect Absorber'
+lat%surface(2)%reflectivity_file = '<none>'
+lat%surface(2)%name = 'ABSORBER'
+lat%surface(2)%description = 'Perfect Absorber'
 
 rewind(iu)
 do i = 3, n_surface+2
   read (iu, nml = surface_def, iostat = ios)
-  call read_surface_reflection_file (reflectivity_file, branch%lat%surface(i))
+  call read_surface_reflection_file (reflectivity_file, lat%surface(i))
 enddo
 
 ! Read multi_section
@@ -190,10 +198,10 @@ do
 enddo
 
 
-print *, 'number of wall cross-sections read:', wall_in%n_place
+call out_io (s_info$, r_name, 'Number of wall cross-sections read: \i0\ ', wall_in%n_place)
 if (wall_in%n_place < 1) then
-  print *, 'NO WALL SPECIFIED IN WALL FILE: ',  trim(wall_file)
-  print *, 'WILL STOP HERE.'
+  call out_io (s_fatal$, r_name, 'NO WALL SPECIFIED IN WALL FILE: ' // trim(wall_file), &
+                                 'WILL STOP HERE.')
   call err_exit
 endif
 
@@ -235,13 +243,43 @@ do i = 1, wall_in%n_place
     case ('END')
       sec%type = wall_end$
     case default
-      print *, 'BAD SECTION STOP POINT SPECIFICATION: ', trim(section%shape_name)
+      call out_io (s_fatal$, r_name, 'BAD SECTION STOP POINT SPECIFICATION: ' // trim(section%shape_name))
     end select
     sec%shape_name = sec%shape_name(1:ix-1)
   endif
 
   sec%surface_name = surface%name
   sec%surface_is_local = surface%surface_is_local
+enddo
+
+! Get the info as to what branch the subchambers are associated with
+
+rewind(iu)
+do
+  
+  read (iu, nml = subchamber_in_branch_placement, iostat = ios)
+  if (ios > 0) then ! If error
+    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_IN_BRANCH_PLACEMENT NAMELIST IN WALL FILE:' // trim(wall_file))
+    rewind (iu)
+    do
+      read (iu, nml = subchamber_in_branch_placement) ! generate error message
+    enddo
+  endif
+  if (ios < 0) exit  ! End of file
+
+  branch => pointer_to_branch (branch_name, lat)
+  if (.not. associated(branch)) then
+    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_IN_BRANCH_PLACEMENT NAMELIST', &
+                    'CANNOT FIND LATTICE BRANCH ASSOCIATED WITH BRANCH NAME: ' // branch_name)
+    stop
+  endif
+
+  do i = 1, wall_in%n_place
+    sec => wall_in%section(i)
+    if (sec%sub_chamber_name /= subchamber_name) cycle
+    sec%ix_branch = branch%ix_branch
+  enddo
+
 enddo
 
 ! Get the shape info
@@ -251,7 +289,7 @@ rewind(iu)
 do
   read (iu, nml = shape_def, iostat = ios)
   if (ios > 0) then ! If error
-    print *, 'ERROR READING SHAPE_DEF NAMELIST IN WALL FILE:',  trim(wall_file)
+    call out_io (s_fatal$, r_name, 'ERROR READING SHAPE_DEF NAMELIST IN WALL FILE:' //  trim(wall_file))
     rewind (iu)
     do
       read (iu, nml = shape_def) ! Generate error message
@@ -274,13 +312,13 @@ do i = 1, n_shape
   read (iu, nml = shape_def, iostat = ios)
 
   if (name == '') then
-    print *, 'SHAPE_DEF DOES NOT HAVE A NAME! SHAPE NUMBER:', i
+    call out_io (s_fatal$, r_name, 'SHAPE_DEF DOES NOT HAVE A NAME! SHAPE NUMBER: \i0\ ', i)
     call err_exit
   endif
 
   do j = 1, i-1
     if (shape(j)%name == name) then
-      print *, 'TWO SHAPE_DEFS HAVE THE SAME NAME: ', trim(name)
+      call out_io (s_fatal$, r_name, 'TWO SHAPE_DEFS HAVE THE SAME NAME: ' // trim(name))
       call err_exit
     endif
   enddo
@@ -295,7 +333,7 @@ do i = 1, n_shape
 
   if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
       any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
-    print *, 'MALFORMED SHAPE:', name
+    call out_io (s_fatal$, r_name, 'MALFORMED SHAPE:' // name)
     call err_exit
   endif
 
@@ -308,7 +346,7 @@ do i = 1, n_shape
 
   call wall3d_section_initializer (sec3d, err)
   if (err) then
-    print *, 'ERROR AT SHAPE: ', trim(name)
+    call out_io (s_fatal$, r_name, 'ERROR AT SHAPE: ' // trim(name))
     call err_exit
   endif
 
@@ -325,7 +363,7 @@ outer: do
   n_repeat = ref_section%repeat_count
 
   if (n_repeat < 0) then
-    print *, 'ERROR: MULTI_SECTION DOES NOT HAVE THE REPEAT COUNT SET.'
+    call out_io (s_fatal$, r_name, 'ERROR: MULTI_SECTION DOES NOT HAVE THE REPEAT COUNT SET.')
     call err_exit
   endif
 
@@ -339,7 +377,7 @@ outer: do
     elseif (m_sec%section(m_max)%name == 'open') then
       n_add = n_repeat * (m_max - 1)
     else
-      print *, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed" NOR "open"'
+      call out_io (s_fatal$, r_name, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed" NOR "open"')
       call err_exit
     endif
 
@@ -371,7 +409,7 @@ outer: do
 
   enddo
 
-  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(ref_section%shape_name)
+  call out_io (s_fatal$, r_name, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ' // trim(ref_section%shape_name))
   call err_exit
 
 enddo outer
@@ -386,7 +424,7 @@ section_loop: do i = 1, wall_in%n_place
     cycle section_loop
   enddo
 
-  print *, 'CANNOT FIND MATCHING SHAPE FOR: ', trim(sec%shape_name)
+  call out_io (s_fatal$, r_name, 'CANNOT FIND MATCHING SHAPE FOR: ' // trim(sec%shape_name))
   call err_exit
 
 enddo section_loop
@@ -412,10 +450,10 @@ enddo
 
 do i = 1, wall_in%n_place
   sec => wall_in%section(i)
-  call sr3d_associate_surface (sec%section%surface, sec%surface_name, branch%lat%surface)
+  call sr3d_associate_surface (sec%section%surface, sec%surface_name, lat%surface)
 enddo
 
-surface_ptr => branch%lat%surface(1)  ! Default surface
+surface_ptr => lat%surface(1)  ! Default surface
 
 do i = wall_in%n_place, 1, -1
   sec => wall_in%section(i)
@@ -425,44 +463,273 @@ do i = wall_in%n_place, 1, -1
   else
     sec%section%surface => surface_ptr
   endif
-
 enddo
 
-!---------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
 ! Transfer info to branch%wall3d
 
 ! Count how many subchambers there are and allocate branch%wall3d(:) array.
 
+if (allocated(sr3d_com%branch)) deallocate (sr3d_com%branch)
+allocate(sr3d_com%branch(0:ubound(lat%branch,1)))
 allocate (sub_name(10), ix_sort(10), n_sub_sec(10))
 
-n_sub = 0
-n_sub_sec = 0
+do ib = 0, ubound(lat%branch, 1)
 
-do i = 1, wall_in%n_place
-  if (n_sub == size(sub_name)) then
-    call re_allocate(sub_name, n_sub+10)
-    call re_allocate(ix_sort, n_sub+10, init_val = 0)
-    call re_allocate(n_sub_sec, n_sub+10, init_val = 0)
+  n_sub = 0
+  n_sub_sec = 0
+  branch => lat%branch(ib)
+
+  do i = 1, wall_in%n_place
+    if (n_sub == size(sub_name)) then
+      call re_allocate(sub_name, n_sub+10)
+      call re_allocate(ix_sort, n_sub+10, init_val = 0)
+      call re_allocate(n_sub_sec, n_sub+10, init_val = 0)
+    endif
+
+    sec => wall_in%section(i)
+    if (sec%ix_branch /= ib) cycle
+    name = sec%sub_chamber_name
+    call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
+    n_sub_sec(ix) = n_sub_sec(ix) + 1
+  enddo
+
+  ! Allocate space for walls
+
+  if (associated(branch%wall3d)) deallocate (branch%wall3d)
+  if (allocated(sr3d_com%branch(ib)%fast)) deallocate (sr3d_com%branch(ib)%fast)
+  allocate (branch%wall3d(n_sub), sr3d_com%branch(ib)%fast(n_sub))
+
+  do iw = 1, n_sub
+    wall3d => branch%wall3d(iw)
+    wall3d%name = sub_name(iw)
+    wall3d%ix_wall3d = iw
+    allocate (wall3d%section(n_sub_sec(iw)))
+    allocate(sr3d_com%branch(ib)%fast(iw)%ix_wall3d(0))
+  enddo
+
+  ! Sort sections
+
+  n_sub_sec = 0
+
+  do i = 1, wall_in%n_place
+    sec => wall_in%section(i)
+    if (sec%ix_branch /= ib) cycle
+    call find_indexx(sec%sub_chamber_name, sub_name, ix_sort, n_sub, iss)
+    wall3d => branch%wall3d(iss)
+    n_sub_sec(iss) = n_sub_sec(iss) + 1
+    ns = n_sub_sec(iss)  
+    sec3d           => wall3d%section(ns)
+    sec3d           = sec%section
+    sec3d%s         = sec%s
+    sec3d%type      = sec%type
+    sec3d%ix_branch = branch%ix_branch
+    sec3d%name      = sec%name
+    if (sec3d%name == '') sec3d%name = sec%shape_name
+
+    ! Check s ordering
+
+    if (ns > 1) then
+      if (sec3d%s == wall3d%section(ns-1)%s) sec3d%s = sec3d%s + 1000*sr3d_params%significant_length
+      if (sec3d%s < wall3d%section(ns-1)%s) then
+        call out_io (s_fatal$, r_name, &
+                  'SECTION(i)%S: \f0.4\ ', &
+                  'IS LESS THAN SECTION(i-1)%S: \f0.4\ ', &
+                  'FOR I = \i0\ ', &
+                  r_array = [sec3d%s, wall3d%section(ns-1)%s], i_array = [i])
+        call err_exit
+      endif
+    endif
+  enddo
+
+  ! Start and End sections must come in non-overlapping pairs
+
+  do iw = 1, n_sub
+    wall3d => branch%wall3d(iw)
+    last_type = normal$
+    n = 0
+    do iss = 1, size(wall3d%section)
+      it = wall3d%section(iss)%type
+      if (it == normal$) cycle
+
+      if (it == wall_start$ .and. last_type == wall_start$) then
+        call out_io (s_fatal$, r_name, 'TWO STARTING WALL SECTIONS WITHOUT AN INTROVENING END SECTION IN SUBCHAMBER: ' // wall3d%name)
+        call err_exit
+      elseif (it == wall_end$ .and. last_type == wall_end$) then
+        call out_io (s_fatal$, r_name, 'TWO ENDING WALL SECTIONS WITHOUT AN INTROVENING START SECTION IN SUBCHAMBER: ' // wall3d%name)
+        call err_exit
+      endif
+
+      last_type = it
+      n = n + 1
+    enddo
+
+    if (mod(n, 2) == 1) then
+      call out_io (s_fatal$, r_name, 'NUMBER OF START SECTIONS NOT EQUAL TO NUMBER OF END SECTIONS IN SUBCHAMBER: ' // wall3d%name)
+      call err_exit
+    endif
+  enddo
+
+  ! First section of a subchamber must have s = 0
+  ! Last section of a subchamber has s adjusted to match the lattice length.
+  ! Except: if first/last section represents a sub-section beginning or ending.
+
+  s_lat = branch%ele(branch%n_ele_track)%s
+
+  do i = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(i)
+    if (wall3d%section(1)%type /= normal$) cycle  
+    if (wall3d%section(1)%s /= 0) then
+      call out_io (s_info$, r_name, &
+            'subchamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
+            'And not at lattice beginning.', &
+            r_array = [wall3d%section(1)%s])
+    endif
+  enddo
+
+  ! Subchambers must either stop or have cross section at end of lattice
+
+  do i = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(i)
+    n = ubound(wall3d%section, 1)
+    if (n == 1) then
+      call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
+      call err_exit
+    endif
+
+    if (wall3d%section(1)%type /= wall_start$ .and. wall3d%section(1)%s /= 0) then
+      call out_io (s_info$, r_name, &
+            'subchamber named "' // trim(wall3d%name) // '" has first cross-section at s =: \f12.4\ ', &
+            'And not at s = 0.', &
+            r_array = [wall3d%section(1)%s])
+      call err_exit
+    endif
+
+
+    if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
+      call out_io (s_info$, r_name, &
+            'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
+            'And not at lattice end of: \f12.4\ ', &
+            '[But last point is always adjusted to have s = s_lat]', &
+            r_array = [wall3d%section(n)%s, s_lat])
+    endif
+
+    if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
+
+  enddo
+
+  ! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
+  ! beginning/end of lattice.
+
+  chamber_end_geometry = sr3d_params%chamber_end_geometry
+  if (chamber_end_geometry < 0) chamber_end_geometry = branch%param%geometry   ! In case this routine is used by something other than the synrad3d program
+
+  if (chamber_end_geometry == closed$) then
+   do i = 1, size(branch%wall3d)
+      wall3d => branch%wall3d(i)
+      n = ubound(wall3d%section, 1)
+      s0 => wall3d%section(1)
+      s1  => wall3d%section(n)
+      if (s0%type /= normal$) cycle
+      if (s1%type /= normal$) cycle
+   
+      if (.not. all(s0%v == s1%v)) then
+        call out_io (s_warn$, r_name, &
+                'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD BE THE SAME AS THE FIRST!', &
+                'FOR SUBCHAMBER: ' // wall3d%name)
+      endif
+    enddo
   endif
 
-  name = wall_in%section(i)%sub_chamber_name
-  call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
-  n_sub_sec(ix) = n_sub_sec(ix) + 1
-enddo
+  ! Regions between wall sections are not allowed to contain both bends and patch elements.
+  ! If this is the case then add additional sections to avoid this situation
 
-! Allocate space for walls
+  do iw = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(iw)
 
-if (associated(branch%wall3d)) deallocate (branch%wall3d)
-if (allocated(sr3d_com%fast)) deallocate (sr3d_com%fast)
-allocate (branch%wall3d(n_sub), sr3d_com%fast(n_sub))
+    i = 0
+    do
+      i = i + 1
+      if (i == size(wall3d%section)) exit
 
-do iw = 1, n_sub
-  wall3d => branch%wall3d(iw)
-  wall3d%name = sub_name(iw)
-  wall3d%ix_wall3d = iw
-  allocate (wall3d%section(n_sub_sec(iw)))
-  allocate(sr3d_com%fast(iw)%ix_wall3d(0))
-enddo
+      ix_ele0 = element_at_s(lat, wall3d%section(i)%s,   .true., branch%ix_branch)
+      ix_ele1 = element_at_s(lat, wall3d%section(i+1)%s, .false., branch%ix_branch)
+
+      ix_bend = -1    ! Index of last bend before patch or first bend after patch
+      ix_patch = -1   ! Index of last patch before bend or first patch after bend
+      do j = ix_ele0, ix_ele1
+        if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
+        if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
+      enddo
+
+      if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
+        call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
+        call err_exit
+      endif
+
+      if (ix_bend == -1 .or. ix_patch == -1) cycle
+
+      ! Need to add an additional section
+
+      n = size(wall3d%section)
+      call move_alloc (wall3d%section, temp_section3d)
+      allocate (wall3d%section(1:n+1))
+      wall3d%section(1:i) = temp_section3d(1:i)
+      wall3d%section(i+2:n+1) = temp_section3d(i+1:n)
+      deallocate (temp_section3d)
+
+      ! Remember: Patch can have negative length
+
+      sec3d => wall3d%section(i+1)
+
+      if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
+        sec3d = wall3d%section(i)
+        sec3d%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
+      else  ! Add section at beginning of bend, after patch
+        sec3d = wall3d%section(i+2)
+        sec3d%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
+      endif
+
+      if (sec3d%name(1:6) /= 'ADDED:') then
+        n = len(sec3d%name)
+        sec3d%name = 'ADDED:' // sec3d%name(1:n-6)
+      endif
+
+      call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', r_array = [sec3d%s])
+
+    enddo
+  enddo
+
+  ! Associate lattice element with section
+  ! Error if the section is inside a patch element. 
+  ! OK if on the edge but associated element (%ix_ele) may not point to the patch since there may
+  ! be a ambiguity of the coordinate system associated with the section.
+
+  do iw = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(iw)
+
+    do iss = 1, size(wall3d%section)
+      sec3d => wall3d%section(iss)
+
+      sec3d%ix_ele    = element_at_s(lat, sec3d%s, .true., branch%ix_branch)
+
+      ix = sec3d%ix_ele
+      if (branch%ele(ix)%key == patch$) then
+        if (sec3d%s == branch%ele(ix-1)%s) then
+          sec3d%ix_ele = ix - 1
+        elseif (sec3d%s == branch%ele(ix)%s) then
+          sec3d%ix_ele = ix + 1
+        else
+          call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
+                                         'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
+          call err_exit
+        endif
+      endif
+
+    enddo
+  enddo 
+
+enddo ! Branch loop
 
 ! Associate slow/fast walls
 
@@ -470,7 +737,7 @@ rewind(iu)
 do
   read (iu, nml = slow_fast, iostat = ios)
   if (ios > 0) then ! error
-    print *, 'ERROR READING SLOW_FAST NAMELIST IN WALL FILE: ', trim(wall_file)
+    call out_io (s_fatal$, r_name, 'ERROR READING SLOW_FAST NAMELIST IN WALL FILE: ' // trim(wall_file))
     rewind (iu)
     do
       read (iu, nml = slow_fast) ! will bomb program with error message
@@ -478,249 +745,119 @@ do
   endif
   if (ios < 0) exit   ! End of file reached
   
-  ix_slow = 0
-  ix_fast = 0
-  do iw = 1, size(branch%wall3d)
-    wall3d => branch%wall3d(iw)
-    if (wall3d%name == slow) ix_slow = iw
-    if (wall3d%name == fast) ix_fast = iw
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    ix_slow = 0
+    ix_fast = 0
+
+    do iw = 1, size(branch%wall3d)
+      wall3d => branch%wall3d(iw)
+      if (wall3d%name == slow) ix_slow = iw
+      if (wall3d%name == fast) ix_fast = iw
+    enddo
+
+    if (ix_slow /= 0 .and. ix_fast /= 0) exit
   enddo
 
-  if (ix_slow == 0) then
-    print *, 'SLOW SUBCHAMBER NOT FOUND: ', trim(slow)
+  if (ix_slow == 0 .or. ix_fast == 0) then
+    call out_io (s_fatal$, r_name, 'SLOW AND/OR FAST SUBCHAMBER NOT FOUND: ' // trim(slow), '  ' // trim(fast))
     call err_exit
   endif
 
-  if (ix_fast == 0) then
-    print *, 'FAST SUBCHAMBER NOT FOUND: ', trim(fast)
-    call err_exit
-  endif
-
-  n = size(sr3d_com%fast(ix_slow)%ix_wall3d) + 1
-  call re_allocate (sr3d_com%fast(ix_slow)%ix_wall3d, n)
-  sr3d_com%fast(ix_slow)%ix_wall3d(n) = ix_fast
+  n = size(sr3d_com%branch(ib)%fast(ix_slow)%ix_wall3d) + 1
+  call re_allocate (sr3d_com%branch(ib)%fast(ix_slow)%ix_wall3d, n)
+  sr3d_com%branch(ib)%fast(ix_slow)%ix_wall3d(n) = ix_fast
 enddo
 
 close (iu)
 
-! Sort sections
+!--------------------------------------------------------------------------------------------
+! Find branch overlap regions
 
-n_sub_sec = 0
+n_overlap = 0
+if (allocated(sr3d_com%branch_overlap)) deallocate (sr3d_com%branch_overlap)
 
-do i = 1, wall_in%n_place
-  call find_indexx(wall_in%section(i)%sub_chamber_name, sub_name, ix_sort, n_sub, iss)
-  wall3d => branch%wall3d(iss)
-  n_sub_sec(iss) = n_sub_sec(iss) + 1
-  ns = n_sub_sec(iss)  
-  sec3d           => wall3d%section(ns)
-  sec3d           = wall_in%section(i)%section
-  sec3d%s         = wall_in%section(i)%s
-  sec3d%type      = wall_in%section(i)%type
-  sec3d%ix_branch = branch%ix_branch
-  sec3d%name      = wall_in%section(i)%name
-  if (sec3d%name == '') sec3d%name = wall_in%section(i)%shape_name
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  if (.not. associated(branch%wall3d)) cycle
 
-  ! Check s ordering
+  do ie = 1, lat%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= fork$ .and. ele%key /= photon_fork$) cycle
 
-  if (ns > 1) then
-    if (sec3d%s == wall3d%section(ns-1)%s) sec3d%s = sec3d%s + 1000*sr3d_params%significant_length
-    if (sec3d%s < wall3d%section(ns-1)%s) then
-      call out_io (s_fatal$, r_name, &
-                'SECTION(i)%S: \f0.4\ ', &
-                'IS LESS THAN SECTION(i-1)%S: \f0.4\ ', &
-                'FOR I = \i0\ ', &
-                r_array = [sec3d%s, wall3d%section(ns-1)%s], i_array = [i])
-      call err_exit
-    endif
-  endif
-enddo
+    branch2 => lat%branch(nint(ele%value(ix_to_branch$)))
+    if (.not. associated(branch2%wall3d)) cycle
+    ele2 = branch%ele(nint(ele%value(ix_to_branch$)))
 
-! Start and End sections must come in non-overlapping pairs
+    call init_overlap_ends (ele, branch, ix_ele1_start, ix_ele1_end, max_r1)
+    call init_overlap_ends (ele2, branch2, ix_ele2_start, ix_ele2_end, max_r2)
+    max_r = 2 * (max_r1 + max_r2) ! Factor of two is a safety factor.
 
-do iw = 1, n_sub
-  wall3d => branch%wall3d(iw)
-  last_type = normal$
-  n = 0
-  do iss = 1, size(wall3d%section)
-    it = wall3d%section(iss)%type
-    if (it == normal$) cycle
+    n_overlap = n_overlap + 1
+    call move_alloc(sr3d_com%branch_overlap, branch_overlap)
+    allocate (sr3d_com%branch_overlap(n_overlap))
+    if (n_overlap > 1) sr3d_com%branch_overlap(1:n_overlap-1) = branch_overlap(1:n_overlap-1)
 
-    if (it == wall_start$ .and. last_type == wall_start$) then
-      call out_io (s_fatal$, r_name, 'TWO STARTING WALL SECTIONS WITHOUT AN INTROVENING END SECTION IN SUBCHAMBER: ' // wall3d%name)
-      call err_exit
-    elseif (it == wall_end$ .and. last_type == wall_end$) then
-      call out_io (s_fatal$, r_name, 'TWO ENDING WALL SECTIONS WITHOUT AN INTROVENING START SECTION IN SUBCHAMBER: ' // wall3d%name)
-      call err_exit
-    endif
+    sr3d_com%branch_overlap(n_overlap)%ix_branch1 = ib
+    sr3d_com%branch_overlap(n_overlap)%ix_branch2 = branch2%ix_branch
 
-    last_type = it
-    n = n + 1
-  enddo
+    ! Adjust ix_ele1_start
 
-  if (mod(n, 2) == 1) then
-    call out_io (s_fatal$, r_name, 'NUMBER OF START SECTIONS NOT EQUAL TO NUMBER OF END SECTIONS IN SUBCHAMBER: ' // wall3d%name)
-    call err_exit
-  endif
-enddo
-
-! First section of a subchamber must have s = 0
-! Last section of a subchamber has s adjusted to match the lattice length.
-! Except: if first/last section represents a sub-section beginning or ending.
-
-s_lat = branch%ele(branch%n_ele_track)%s
-
-do i = 1, size(branch%wall3d)
-  wall3d => branch%wall3d(i)
-  if (wall3d%section(1)%type /= normal$) cycle  
-  if (wall3d%section(1)%s /= 0) then
-    call out_io (s_info$, r_name, &
-          'subchamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
-          'And not at lattice beginning.', &
-          r_array = [wall3d%section(1)%s])
-  endif
-enddo
-
-! Subchambers must either stop or have cross section at end of lattice
-
-do i = 1, size(branch%wall3d)
-  wall3d => branch%wall3d(i)
-  n = ubound(wall3d%section, 1)
-  if (n == 1) then
-    call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
-    call err_exit
-  endif
-
-  if (wall3d%section(1)%type /= wall_start$ .and. wall3d%section(1)%s /= 0) then
-    call out_io (s_info$, r_name, &
-          'subchamber named "' // trim(wall3d%name) // '" has first cross-section at s =: \f12.4\ ', &
-          'And not at s = 0.', &
-          r_array = [wall3d%section(1)%s])
-    call err_exit
-  endif
-
-
-  if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
-    call out_io (s_info$, r_name, &
-          'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
-          'And not at lattice end of: \f12.4\ ', &
-          '[But last point is always adjusted to have s = s_lat]', &
-          r_array = [wall3d%section(n)%s, s_lat])
-  endif
-
-  if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
-
-enddo
-
-! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
-! beginning/end of lattice.
-
-chamber_end_geometry = sr3d_params%chamber_end_geometry
-if (chamber_end_geometry < 0) chamber_end_geometry = branch%param%geometry   ! In case this routine is used by something other than the synrad3d program
-
-if (chamber_end_geometry == closed$) then
- do i = 1, size(branch%wall3d)
-    wall3d => branch%wall3d(i)
-    n = ubound(wall3d%section, 1)
-    s0 => wall3d%section(1)
-    s1  => wall3d%section(n)
-    if (s0%type /= normal$) cycle
-    if (s1%type /= normal$) cycle
- 
-    if (.not. all(s0%v == s1%v)) then
-      call out_io (s_warn$, r_name, &
-              'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD BE THE SAME AS THE FIRST!', &
-              'FOR SUBCHAMBER: ' // wall3d%name)
-    endif
-  enddo
-endif
-
-! Regions between wall sections are not allowed to contain both bends and patch elements.
-! If this is the case then add additional sections to avoid this situation
-
-do iw = 1, size(branch%wall3d)
-  wall3d => branch%wall3d(iw)
-
-  i = 0
-  do
-    i = i + 1
-    if (i == size(wall3d%section)) exit
-
-    ix_ele0 = element_at_s(branch%lat, wall3d%section(i)%s,   .true., branch%ix_branch)
-    ix_ele1 = element_at_s(branch%lat, wall3d%section(i+1)%s, .false., branch%ix_branch)
-
-    ix_bend = -1    ! Index of last bend before patch or first bend after patch
-    ix_patch = -1   ! Index of last patch before bend or first patch after bend
-    do j = ix_ele0, ix_ele1
-      if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
-      if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
-    enddo
-
-    if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
-      call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
-      call err_exit
-    endif
-
-    if (ix_bend == -1 .or. ix_patch == -1) cycle
-
-    ! Need to add an additional section
-
-    n = size(wall3d%section)
-    call move_alloc (wall3d%section, temp_section3d)
-    allocate (wall3d%section(1:n+1))
-    wall3d%section(1:i) = temp_section3d(1:i)
-    wall3d%section(i+2:n+1) = temp_section3d(i+1:n)
-    deallocate (temp_section3d)
-
-    ! Remember: Patch can have negative length
-
-    sec3d => wall3d%section(i+1)
-
-    if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
-      sec3d = wall3d%section(i)
-      sec3d%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
-    else  ! Add section at beginning of bend, after patch
-      sec3d = wall3d%section(i+2)
-      sec3d%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
-    endif
-
-    if (sec3d%name(1:6) /= 'ADDED:') then
-      n = len(sec3d%name)
-      sec3d%name = 'ADDED:' // sec3d%name(1:n-6)
-    endif
-
-    call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', r_array = [sec3d%s])
-
-  enddo
-enddo
-
-! Associate lattice element with section
-! Error if the section is inside a patch element. 
-! OK if on the edge but associated element (%ix_ele) may not point to the patch since there may
-! be a ambiguity of the coordinate system associated with the section.
-
-do iw = 1, size(branch%wall3d)
-  wall3d => branch%wall3d(iw)
-
-  do iss = 1, size(wall3d%section)
-    sec3d => wall3d%section(iss)
-
-    sec3d%ix_ele    = element_at_s(branch%lat, sec3d%s, .true., branch%ix_branch)
-
-    ix = sec3d%ix_ele
-    if (branch%ele(ix)%key == patch$) then
-      if (sec3d%s == branch%ele(ix-1)%s) then
-        sec3d%ix_ele = ix - 1
-      elseif (sec3d%s == branch%ele(ix)%s) then
-        sec3d%ix_ele = ix + 1
-      else
-        call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
-                                       'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
-        call err_exit
+    ixe = (ix_ele2_start + ix_ele2_end) / 2
+    ele0 => branch%ele(ix_ele1_start)
+    do
+      if (overlaps(0.0_rp, ele0, branch2%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch2%ele(ixe))) exit
+      if (ele0%ix_ele == ix_ele1_end) then
+        call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
+        stop
       endif
-    endif
+      ele0 => pointer_to_next_ele (ele0, +1)
+    enddo
+    sr3d_com%branch_overlap(n_overlap)%ix_ele1_start = ele0%ix_ele
+
+    ! Adjust ix_ele1_end
+
+    ele0 => branch%ele(ix_ele1_end)
+    do
+      if (overlaps(0.0_rp, ele0, branch2%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch2%ele(ixe))) exit
+      if (ele0%ix_ele == ix_ele1_start) then
+        call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
+        stop
+      endif
+      ele0 => pointer_to_next_ele (ele0, -1)
+    enddo
+    sr3d_com%branch_overlap(n_overlap)%ix_ele1_end = ele0%ix_ele
+
+
+    ! Adjust ix_ele2_start
+
+    ixe = (ix_ele1_start + ix_ele1_end) / 2
+    ele0 => branch2%ele(ix_ele2_start)
+    do
+      if (overlaps(0.0_rp, ele0, branch%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch%ele(ixe))) exit
+      if (ele0%ix_ele == ix_ele2_end) then
+        call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
+        stop
+      endif
+      ele0 => pointer_to_next_ele (ele0, +1)
+    enddo
+    sr3d_com%branch_overlap(n_overlap)%ix_ele2_start = ele0%ix_ele
+
+    ! Adjust ix_ele2_end
+
+    ele0 => branch2%ele(ix_ele2_end)
+    do
+      if (overlaps(0.0_rp, ele0, branch%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch%ele(ixe))) exit
+      if (ele0%ix_ele == ix_ele2_start) then
+        call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
+        stop
+      endif
+      ele0 => pointer_to_next_ele (ele0, -1)
+    enddo
+    sr3d_com%branch_overlap(n_overlap)%ix_ele2_end = ele0%ix_ele
 
   enddo
-enddo 
+enddo
 
 ! Cleanup
 
@@ -728,6 +865,101 @@ call mark_patch_regions (branch)
 
 deallocate(shape)
 if (present(err_flag)) err_flag = .false.
+
+!-------------------------------------------------------------------------
+contains
+
+! Init to 10meters from branch point
+
+subroutine init_overlap_ends (ele, branch, ix_ele_start, ix_ele_end, max_r)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele2
+type (branch_struct) branch
+type (wall3d_struct), pointer :: wall3d
+type (wall3d_section_struct), pointer :: sec
+
+integer ix_ele_start, ix_ele_end
+integer iw, is, j
+real(rp) max_r, len_region, ll, angle, r_wall, dr_dtheta
+
+!
+
+len_region = min(10.0_rp, branch%param%total_length/2)
+
+ele2 => ele
+ll = 0
+do
+  ele2 => pointer_to_next_ele(ele2, -1)
+  ll = ll + ele2%value(l$)
+
+
+  if (ll > len_region) exit
+enddo
+ix_ele_start = ele2%ix_ele 
+
+ele2 => ele
+ll = 0
+do
+  ele2 => pointer_to_next_ele(ele2, 1)
+  ll = ll + ele2%value(l$)
+  if (ll > len_region) exit
+enddo
+ix_ele_end = ele2%ix_ele 
+
+!
+
+max_r = 0
+
+do iw = 1, size(branch%wall3d)
+  wall3d => branch%wall3d(iw)
+  do is = 1, size(wall3d%section)
+    sec => wall3d%section(is)
+    if (ix_ele_start <= ix_ele_end) then
+      if (sec%ix_ele < ix_ele_start .or. sec%ix_ele > ix_ele_end) cycle
+    else
+      if (sec%ix_ele > ix_ele_start .or. sec%ix_ele < ix_ele_end) cycle
+    endif
+
+    do j = 0, 7
+      angle = j * twopi / 8
+      call calc_wall_radius(sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
+      r_wall = sqrt((sec%r0(1) + r_wall*cos(angle))**2 + (sec%r0(2) + r_wall*sin(angle))**2)
+      max_r = max(max_r, r_wall)
+    enddo
+  enddo
+enddo
+
+end subroutine init_overlap_ends
+
+!-------------------------------------------------------------------------
+! contains
+
+function overlaps (s, ele, ele2) result (has_overlap)
+
+type (branch_struct) branch2
+type (ele_struct) ele, ele2
+type (ele_struct), pointer :: ele2_p
+type (floor_position_struct) floor
+
+real(rp) s, max_r
+integer ix_ele_start, ix_ele2_start, ix_ele2_end, status
+logical has_overlap
+
+!
+
+has_overlap = .false.
+
+floor%r = [0.0_rp, 0.0_rp, s]
+floor = coords_local_curvilinear_to_floor(floor, ele, calculate_angles = .false.)
+floor = coords_floor_to_curvilinear (floor, ele2, ele2_p, status)
+
+if (status == outside$ .or. status == patch_problem$) return
+if (floor%r(1)**2 + floor%r(2)**2 > max_r) return
+
+has_overlap = .true.
+
+end function overlaps
 
 end subroutine sr3d_read_wall_file 
 
@@ -784,7 +1016,7 @@ type (photon_reflect_surface_struct), pointer :: surface_ptr
 type (photon_reflect_surface_struct), target :: surfaces(:)
 
 character(*) surface_name
-
+character(*), parameter :: r_name = 'sr3d_associate_surface'
 integer i
 
 !
@@ -799,7 +1031,7 @@ do i = 1, size(surfaces)
   endif
 enddo
 
-print *, 'NO SURFACE CORRESPONDING TO: ', trim(surface_name)
+call out_io (s_fatal$, r_name, 'NO SURFACE CORRESPONDING TO: ' // trim(surface_name))
 call err_exit
 
 end subroutine sr3d_associate_surface
@@ -829,6 +1061,7 @@ type (sr3d_section_struct), pointer :: sec
 integer i, j, iu, ix, n_multi, n_section, ios
 
 character(40) surface, name
+character(*), parameter :: r_name = 'sr3d_read_wall_multi_section'
 
 namelist / multi_place / name, section
 
@@ -861,13 +1094,13 @@ do i = 1, n_multi
   read (iu, nml = multi_place)
 
   if (name == '') then
-    print *, 'MULTI_PLACE DOES NOT HAVE A NAME! MULTI_PLACE NUMBER:', i
+    call out_io (s_fatal$, r_name, 'MULTI_PLACE DOES NOT HAVE A NAME! MULTI_PLACE NUMBER:', i)
     call err_exit
   endif
 
   do j = 1, i-1
     if (wall%multi_section(j)%name == name) then
-      print *, 'TWO MULTI_PLACES HAVE THE SAME NAME: ', trim(name)
+      call out_io (s_fatal$, r_name, 'TWO MULTI_PLACES HAVE THE SAME NAME: ' // trim(name))
       call err_exit
     endif
   enddo
@@ -876,7 +1109,7 @@ do i = 1, n_multi
 
   n_section = count(section%shape_name /= '')
   if (any(section(n_section+1:)%shape_name /= '')) then
-    print *, 'CONFUSED MULTI_PLACE: ', trim(name)
+    call out_io (s_fatal$, r_name, 'CONFUSED MULTI_PLACE: ' // trim(name))
     call err_exit
   endif
   allocate (wall%multi_section(i)%section(1:n_section))

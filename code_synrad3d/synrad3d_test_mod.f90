@@ -153,11 +153,9 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
-branch => lat%branch(0)
-
 ! Init wall
 
-call sr3d_read_wall_file (wall_file, branch)
+call sr3d_read_wall_file (wall_file, lat)
 
 ! Open photon start input file and count the number of photons
 
@@ -170,6 +168,8 @@ sr3d_params%specular_reflection_only = .true.
 sr3d_params%allow_absorption = .false.
 num_ignored = 0
 n_photon = 0
+
+branch => lat%branch(0)
 
 do
 
@@ -192,13 +192,13 @@ do
   photon%start%orb = p
   photon%n_wall_hit = 0
 
-  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignored)
 
   n_photon = n_photon + 1
   photon%ix_photon_generated = n_photon
   photon%ix_photon = n_photon
 
-  call sr3d_track_photon (photon, branch, wall_hit, err, .true.)
+  call sr3d_track_photon (photon, lat, wall_hit, err, .true.)
   call sr3d_print_hit_points (2, photon, wall_hit, branch)
 
 enddo
