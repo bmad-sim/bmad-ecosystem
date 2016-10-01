@@ -86,10 +86,12 @@ def WrapWrite(line):
 # Adds parenteses around expressions with '+' or '-' operators.
 # Otherwise just returns the expression.
 # Eg: '7+3' ->  '(7+3)'
-#     '7*3  ->  '7*3'
+#     '7*3  ->  '7*3'     If slash_here = False
+#     '7*3  ->  '(7*3)'   If slash_here = True
 
-def add_parens (str):
+def add_parens (str, slash_here):
   for ix in range(1, len(str)):
+    if slash_here and (str[ix] == '*' or str[ix] == '/'): return '(' + str + ')'
     if str[ix] != '+' and str[ix] != '-': continue
     if str[ix-1] == 'e' or str[ix-1] == 'E': continue  # '+' in '3.0e+7' is not an operator
     return '(' + str + ')'
@@ -528,11 +530,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     elif type(result) is list:   # EG: result = ['k1', ' / @l@']
       bmad_name = result[0]
       value_suffix = result[1]
-      value = add_parens(value)
+      value = add_parens(value, False)
       if '@' in value_suffix:
         val_parts = value_suffix.split('@')
         if val_parts[1] in sad_ele.param:
-          value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]]) + val_parts[2]
+          has_slash = ('/' in val_parts[0])
+          value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]], has_slash) + val_parts[2]
         elif '/' not in val_parts[0]:      # Assume zero
           value_suffix = val_parts[0] + '0' + val_parts[2]
         else:
@@ -585,8 +588,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   if bmad_ele.type == 'rfcavity':
     if 'phi0' in bmad_ele.param and 'harmon' not in bmad_ele.param: # If has harmon then must be in a ring
       bmad_ele.type = 'lcavity'
-      bmad_ele.param['phi0'] = '0.25 - ' + add_parens(bmad_ele.param['phi0'])
-      if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '-' + add_parens(bmad_ele.param['phi0_err'])
+      bmad_ele.param['phi0'] = '0.25 - ' + add_parens(bmad_ele.param['phi0'], False)
+      if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '-' + add_parens(bmad_ele.param['phi0_err'], False)
 
     elif 'phi0_err' in bmad_ele.param:
       if 'phi0' in bmad_ele.param:
@@ -1080,11 +1083,15 @@ sad_line = sad_info.lat_line_list[line0_name]
 # For betax and betay translations
 
 ele0_name = sad_line.list[0].name
-if ele0_name in sad_info.ele_list:
-  ele0 = sad_info.ele_list[ele0_name]
-  for key in ele0.param:
-    if key in sad_ele0_param_names:
-      sad_info.param_list[key] = ele0.param[key]
+for i in range(100):
+  if ele0_name not in sad_info.lat_line_list: break
+  ele0_name = sad_info.lat_line_list[ele0_name].list[0].name
+
+ele0 = sad_info.ele_list[ele0_name]
+print ('ele0: ' + ele0.name)
+for key in ele0.param:
+  if key in sad_ele0_param_names:
+    sad_info.param_list[key] = ele0.param[key]
 
 #------------------------------------------------------------------
 # Header
