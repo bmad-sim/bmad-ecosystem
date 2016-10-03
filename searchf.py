@@ -607,7 +607,7 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
     choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
     choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
-    choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
+    choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_sad_and_xsif/bmad_to_mad_sad_and_xsif.f90', '')
     choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
     choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
