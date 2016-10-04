@@ -4,7 +4,6 @@ The following namelist block defines how the plot window (also called
 the plot page) is broken up.
 
 &tao_plot_page
-  plot_page%plot_display_type = 'X'       ! 'X' or 'TK'
   plot_page%size = 600 , 300 
   plot_page%text_height = 12.0 
   plot_page%border = 0, 0, 0, 0, '%PAGE'  
