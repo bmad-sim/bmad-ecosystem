@@ -1722,7 +1722,7 @@ real(rp), optional :: dr12_drift_max
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
 integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa
-integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, sad_geo, n_taylor_order_saved
+integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
 
@@ -1842,8 +1842,6 @@ i_unique = 1000
 
 branch_out%ele%ix_pointer = 0   ! SAD geo
 branch_out%ele%iyy = 0          ! SAD bound
-sad_geo = 0
-bs_field = 0
 old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
@@ -1862,63 +1860,57 @@ do
   ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
   ! This works since there cannot be any actual null_eles in the lattice.
 
-  if (out_type == 'SAD' .and. ele%value(l$) /= 0) then
+  if (out_type == 'SAD' .and. all(ele%key /= [marker$, beambeam$]) .or. ix_ele == branch_out%n_ele_max) then
+
     bs_field = 0
     if (ele_has (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
-    ! Need a SAD sol element if the solenoid field has changed
-    ! If the prior element is a marker, convert it. Otherwise, create a new element.
+
     if (bs_field /= old_bs_field) then
-      if (ele%key == patch$ .and. bs_field == 0 .or. old_bs_field == 0) then
-        ele%key = null_ele$
-        ele%value(bs_field$) = bs_field
-        ele%iyy = 1  ! SAD bound
-        ele%ix_pointer = 1  ! SAD geo
-        sad_geo = 1
-        nullify (sol_ele)
 
-      elseif (branch_out%ele(ix_ele-1)%key == marker$) then
-        sol_ele => branch_out%ele(ix_ele-1)
-        sol_ele%key = null_ele$
-        sol_ele%value(bs_field$) = bs_field
+      if (ele%key == marker$ .or. ele%key == patch$) then
+        sol_ele => ele
+      else
+        sol_ele => pointer_to_next_ele(ele, -1)
+      endif
 
-      else  ! No marker
+      if (sol_ele%key == marker$) then
+        if (old_bs_field == 0) sol_ele%ix_pointer = 1  ! SAD geo
+
+      elseif (sol_ele%key == patch$) then
+        sol_ele%ix_pointer = 0  ! SAD geo
+        ! A patch with a z_offset must be split into a drift + patch
+        if (sol_ele%value(z_offset$) /= 0) then
+          drift_ele%name = 'DRIFT_' // ele%name
+          drift_ele%value(l$) = val(z_offset$)
+          ix = sol_ele%ix_ele
+          call insert_element (lat_out, drift_ele, ix, branch_out%ix_branch, orbit_out)
+          sol_ele => branch_out%ele(ix+1)
+          sol_ele%value(z_offset$) = 0
+          ix_ele = ix_ele + 1
+          ele => branch_out%ele(ix_ele)
+          val => ele%value
+        endif
+
+      else
         s_count = s_count + 1
         write (null_ele%name, '(a, i0)') 'SOL_', s_count  
-        null_ele%value(bs_field$) = bs_field
-        call insert_element (lat_out, null_ele, ix_ele, branch%ix_branch, orbit_out)
+        call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
-        if (old_bs_field == 0 .or. bs_field == 0) sol_ele%iyy = 1  ! SAD bound
+        if (old_bs_field == 0) sol_ele%ix_pointer = 1  ! SAD geo
+        sol_ele%ix_pointer = 1  ! SAD geo
         ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
         val => ele%value
       endif
 
-      if (associated(sol_ele)) then  ! Not a converted patch
-        if (old_bs_field == 0) then    ! Entering a solenoid
-          branch_out%ele(ix_ele-1)%iyy = 1  ! SAD bound
-          sad_geo = 0
-        elseif (bs_field == 0) then    ! Leaving a solenoid
-          branch_out%ele(ix_ele-1)%iyy = 1  ! SAD bound
-          if (sad_geo == 0) branch_out%ele(ix_ele-1)%ix_pointer = 1   ! SAD geo
-        endif
-      endif
+      sol_ele%value(bs_field$) = bs_field
+      sol_ele%key = null_ele$
+      sol_ele%iyy = 0         ! SAD bound
+      if (old_bs_field == 0) sol_ele%iyy = 1         ! SAD bound
 
+      old_bs_field = bs_field
     endif
-    old_bs_field = bs_field
-
-    ! A patch with a z_offset must be split into a drift + patch
-
-    if (ele%key == patch$ .and. val(z_offset$) /= 0) then
-      drift_ele%name = 'DRIFT_' // ele%name
-      drift_ele%value(l$) = val(z_offset$)
-      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch, orbit_out)
-      ix_ele = ix_ele + 1
-      ele => branch_out%ele(ix_ele)
-      val => ele%value
-      val(z_offset$) = 0
-    endif
-
   endif
 
   ! If the name has more than 16 characters then replace the name by something shorter and unique.
@@ -1980,11 +1972,11 @@ do
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
         if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele+1, branch%ix_branch, orbit_out)
+          call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
           ie2 = ie2 + 1
         endif
         if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele, branch%ix_branch, orbit_out)
+          call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch, orbit_out)
           ie2 = ie2 + 1
         endif
         ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
@@ -2003,8 +1995,8 @@ do
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
     kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
-    call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
-    call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
+    call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch, orbit_out)
+    call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
     ie2 = ie2 + 2
     cycle
   endif
@@ -2021,8 +2013,8 @@ do
       if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
       write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
-      call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch, orbit_out)
-      call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch, orbit_out)
+      call insert_element (lat_out, ab_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
     endif
@@ -2052,12 +2044,12 @@ do
         orb_start = orbit_out(ix_ele-1)
         orb_start%vec(2) = orb_start%vec(2) - kicker_ele%value(hkick$)
         orb_start%vec(4) = orb_start%vec(4) - kicker_ele%value(vkick$)
-        call track1 (orb_start, ele, branch%param, orb_end) 
+        call track1 (orb_start, ele, branch_out%param, orb_end) 
         f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) - (orb_end%vec(5) - orb_start%vec(5))
         call add_taylor_term (taylor_ele%taylor(5), f, [0, 0, 0, 0, 0, 0])
-        call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
-        call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
-        call insert_element (lat_out, taylor_ele, ix_ele+3, branch%ix_branch, orbit_out)
+        call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, taylor_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
         ie2 = ie2 + 3
         cycle
       endif
@@ -2080,9 +2072,9 @@ do
     if (ifa == entrance_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = entrance_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
+      call ele_to_taylor (quad_ele, branch_out%param, taylor_ele%taylor, orbit_out(ie-1))
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
-      call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ie = ie + 1
       ie2 = ie2 + 1
     endif
@@ -2090,9 +2082,9 @@ do
     if (ifa == exit_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = exit_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie))
+      call ele_to_taylor (quad_ele, branch_out%param, taylor_ele%taylor, orbit_out(ie))
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
-      call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
       ie2 = ie2 + 1
     endif
 
@@ -2114,23 +2106,23 @@ do
     bend_ele%value(angle$) = ele%value(angle$)/2
     bend_ele%value(e2$) = 0
     call set_fringe_on_off (bend_ele%value(fringe_at$), exit_end$, off$)
-    call track1 (orbit_out(ie-1), bend_ele, branch%param, orb_center)
+    call track1 (orbit_out(ie-1), bend_ele, branch_out%param, orb_center)
 
     if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
-      call ele_to_taylor (bend_ele, branch%param, taylor_a, orbit_out(ie-1))
+      call ele_to_taylor (bend_ele, branch_out%param, taylor_a, orbit_out(ie-1))
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(g_err$) = 0
       orb_start = orb_center
       orb_start%direction = -1
       orb_start%species = antiparticle(orb_center%species)
-      call track1 (orb_start, bend_ele, branch%param, orb_start)  ! bactrack to entrance end
-      call ele_to_taylor (bend_ele, branch%param, taylor_b, orb_start)
+      call track1 (orb_start, bend_ele, branch_out%param, orb_start)  ! bactrack to entrance end
+      call ele_to_taylor (bend_ele, branch_out%param, taylor_b, orb_start)
 
       call taylor_inverse (taylor_b, taylor_b)
       call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
-      call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ele => branch_out%ele(ix_ele+1)
       call kill_taylor (taylor_a)
       call kill_taylor (taylor_b)
@@ -2145,16 +2137,16 @@ do
       bend_ele%value(e1$) = 0
       call set_fringe_on_off (bend_ele%value(fringe_at$), entrance_end$, off$)
 
-      call ele_to_taylor (bend_ele, branch%param, taylor_a, orb_center)
+      call ele_to_taylor (bend_ele, branch_out%param, taylor_a, orb_center)
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(g_err$) = 0
-      call ele_to_taylor (bend_ele, branch%param, taylor_b, orb_center)
+      call ele_to_taylor (bend_ele, branch_out%param, taylor_b, orb_center)
       call taylor_inverse (taylor_b, taylor_b)
 
       call concat_taylor (taylor_b, taylor_a, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
-      call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
       call kill_taylor (taylor_a)
       call kill_taylor (taylor_b)
       ie2 = ie2 + 1
@@ -2174,18 +2166,18 @@ do
 
     drift_ele = ele
     drift_ele%value(l$) = -ele%value(l$)
-    call make_mat6_mad (drift_ele, branch%param, orbit_out(ix_ele), orb_end)
+    call make_mat6_mad (drift_ele, branch_out%param, orbit_out(ix_ele), orb_end)
     call mat6_to_taylor (drift_ele%vec0, drift_ele%mat6, taylor_a)
 
     drift_ele%value(l$) = ele%value(l$)
-    call ele_to_taylor (drift_ele, branch%param, taylor_b, orbit_out(ix_ele-1))
+    call ele_to_taylor (drift_ele, branch_out%param, taylor_b, orbit_out(ix_ele-1))
     call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
     call kill_taylor (taylor_a)
     call kill_taylor (taylor_b)
 
     f_count = f_count + 1
     write (taylor_ele%name, '(a, i0)') 'D_NONLIN', f_count
-    call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch, orbit_out)
+    call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
     ie2 = ie2 + 1
     ix_ele = ix_ele + 1
     cycle
@@ -2211,9 +2203,9 @@ do
       drift_ele%value(l$) = val(l$) / 2
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
-      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch, orbit_out)
-      call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch, orbit_out)
-      call insert_element (lat_out, drift_ele, ix_ele+2, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+      call insert_element (lat_out, drift_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
 
@@ -2252,7 +2244,7 @@ do
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       do j = 1, lat_model%n_ele_track
-        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch%ix_branch, orbit_out)
+        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch, orbit_out)
       enddo
       ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
@@ -2273,12 +2265,11 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
     write (null_ele%name, '(a, i0)') 'SOL_', s_count  
     null_ele%value(bs_field$) = bs_field
     ie2 = ie2 + 1
-    call insert_element (lat_out, null_ele, ie2, branch%ix_branch, orbit_out)
+    call insert_element (lat_out, null_ele, ie2, branch_out%ix_branch, orbit_out)
     ele => branch_out%ele(ie2)
   endif
 
   ele%iyy = 1  ! SAD bound
-  if (sad_geo == 0) ele%ix_pointer = 1   ! SAD geo
 endif
 
 !-------------------------------------------------------------------------------------------------
@@ -2538,6 +2529,24 @@ do ix_ele = ie1, ie2
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+        select case (nint(val(fringe_type$)))
+        case (soft_edge_only$, full$)
+          select case (nint(val(fringe_at$)))
+          case (entrance_end$);         line_out = trim(line_out) // ', fringe = 1'
+          case (exit_end$);             line_out = trim(line_out) // ', fringe = 2'
+          case (both_ends$);            line_out = trim(line_out) // ', fringe = 3'
+          end select
+        end select
+
+        select case (nint(val(fringe_type$)))
+        case (none$)
+          line_out = trim(line_out) // ', disfrin = 1'
+        case (soft_edge_only$)
+          line_out = trim(line_out) // ', disfrin = 1'
+        case (hard_edge_only$, full$)
+          if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
+        end select
+
       ! SAD
       case (rfcavity$)
         write (line_out, '(4a)') 'CAVI ', trim(ele%name), ' = (L = ', re_str(val(l$))
@@ -2548,6 +2557,29 @@ do ix_ele = ie1, ie2
       ! SAD
       case (sad_mult$)
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+        call value_to_line (line_out, val(fint$)*val(hgap$)/12, 'FB1', 'R', .true., .false.)
+        call value_to_line (line_out, val(fintx$)*val(hgapx$)/12, 'FB2', 'R', .true., .false.)
+        call value_to_line (line_out, sqrt(-24*val(fq1$)), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+
+        select case (nint(val(fringe_type$)))
+        case (soft_edge_only$, full$)
+          select case (nint(val(fringe_at$)))
+          case (entrance_end$);         line_out = trim(line_out) // ', fringe = 1'
+          case (exit_end$);             line_out = trim(line_out) // ', fringe = 2'
+          case (both_ends$);            line_out = trim(line_out) // ', fringe = 3'
+          end select
+        end select
+
+        select case (nint(val(fringe_type$)))
+        case (none$)
+          line_out = trim(line_out) // ', disfrin = 1'
+        case (soft_edge_only$)
+          line_out = trim(line_out) // ', disfrin = 1'
+        case (hard_edge_only$, full$)
+          if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
+        end select
+
 
       ! SAD
       case (sbend$)
@@ -2557,6 +2589,17 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
         call value_to_line (line_out, val(fint$)*val(hgap$)/12, 'FB1', 'R', .true., .false.)
         call value_to_line (line_out, val(fintx$)*val(hgapx$)/12, 'FB2', 'R', .true., .false.)
+        call value_to_line (line_out, val(e1$), 'AE1', 'R', .true., .false.)
+        call value_to_line (line_out, val(e2$), 'AE2', 'R', .true., .false.)
+        call value_to_line (line_out, sqrt(-24*val(fq1$)), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+
+        select case (nint(val(fringe_at$)))
+        case (entrance_end$)
+          line_out = trim(line_out) // ', fringe = 1'
+        case (exit_end$)
+          line_out = trim(line_out) // ', fringe = 2'
+        end select
 
       ! SAD
       case (sextupole$)

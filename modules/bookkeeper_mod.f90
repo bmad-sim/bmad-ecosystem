@@ -1416,9 +1416,13 @@ if (ele_in%key == sad_mult$ .and. l_slice == 0) sliced_ele%value(l$) = &
                                                             sign(bmad_com%significant_length/100, in_len)
 
 ! The sliced element is treated as a super_slave to the original element.
+! Except if the original element is itself a super_slave. Then the sliced element is a super_slave
+! of the original elements lords.
+
+sliced_ele%lord => ele_in
 
 sliced_ele%n_lord = 1
-sliced_ele%lord => ele_in
+if (ele_in%slave_status == super_slave$) sliced_ele%n_lord = ele_in%n_lord
 
 ! Err check. Remember: the element length may be negative
 
