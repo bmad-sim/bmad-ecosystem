@@ -184,11 +184,15 @@ ele_param_translate = {
     'sk19': ['a19', ' / factorial(19)'], 'sk20': ['a20', ' / factorial(20)'], 'sk21': ['a21 ', ' / factorial(21)'],
 }
 
+# Stuff to ignore or stuff that must be handled specially.
+
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
                   'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
+
+#
 
 sad_reversed_param = {
       'ae1': 'ae2',
@@ -915,10 +919,10 @@ global_param_translate = {
   'by':       'beginning[beta_b]',
   'ax':       'beginning[alpha_a]',
   'ay':       'beginning[alpha_b]',
-  'ex':       'beginnint[eta_a]',
-  'epx':      'beginnint[etap_a]',
-  'ey':       'beginnint[eta_b]',
-  'epy':      'beginnint[etap_b]',
+  'ex':       'beginning[eta_x]',
+  'epx':      'beginning[etap_x]',
+  'ey':       'beginning[eta_y]',
+  'epy':      'beginning[etap_y]',
   'emitx':    'beam_start[emittance_a]',
   'emity':    'beam_start[emittance_b]',
   'nocod':    'parameter[geometry] = open',
