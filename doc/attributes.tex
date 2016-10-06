@@ -2081,18 +2081,19 @@ individual types for a list of the attributes pertainent to that type.
 \index{field_scale}\index{master_parameter}
   \begin{description}
   \item[curved_ref_frame] \Newline
-For bend elements (\vn{sbend}s, \vn{rbend}s), the field map coordinates, by default, are
-Cartesian and {\em not} curved. The orientation of the field map coordinates with respect
-to the bend is determined by the placement of the anchor point (specified by
-\vn{ele_anchor_pt}) as shown in \fig{f:bend.grid}. In this case, when tracking a particle,
-\bmad will convert particle coordinates (which are expressed in the bend's curvilinear
-coordinate system defined by the reference orbit) to the Cartesian coordinates of the
-field map and will rotate the computed field from the field map coordinates back to the
-particle coordinates.
+For bends, the coordinates of the field are, by default, Cartesian and do not follow the
+curved bend coordinates. The orientation of the field map coordinates with respect to the
+bend is determined by the placement of the anchor point (specified by \vn{ele_anchor_pt})
+as shown in \fig{f:bend.grid}. In this case, when tracking a particle, \bmad will convert
+particle coordinates (which are expressed in the bend's curvilinear coordinate system
+defined by the reference orbit) to the Cartesian coordinates of the field map and will
+rotate the computed field from the field map coordinates back to the particle coordinates.
 
-For \vn{grid_field} and \vn{taylor_field} types, the field map coordinates will follow the
-bend curved coordinate system if the the \vn{curved_ref_frame} component of the field map is
-set to \vn{True}. The setting of \vn{curved_ref_frame} is ignored for non-bend elements.
+For \vn{grid_field} and \vn{taylor_field} types only, this default behavior can be changed by
+setting the \vn{curved_ref_frame} component of the field map to \vn{True}. In this case,
+the field grid coordinates will follow curved bend coordinates.  The \vn{curved_ref_frame}
+parameter is only pertinent for bend elements (\vn{sbend}s, \vn{rbend}s).  The setting of
+\vn{curved_ref_frame} is ignored for non-bend elements.
   \item[ele_anchor_pt] \Newline
 The \vn{ele_anchor_pt}, along with \vn{r0}, determines the origin of the field with
 respect to the lattice element. Possible settings are:
@@ -2164,7 +2165,8 @@ The origin position of the field (\vn{r_origin}) is determined by
 \begin{example}
   r_origin = r0 + r_anchor
 \end{example}
-where \vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}:
+where \vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}. In the reference
+coordinates (\sref{s:ref}) with respect to the element \vn{r_anchor} is:
 \begin{example}
   ele_anchor_pt       r_anchor
   -------------       ---------
