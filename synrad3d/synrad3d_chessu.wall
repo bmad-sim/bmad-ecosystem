@@ -1,0 +1,4223 @@
+&place section =      0.00000, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =      2.22100, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =      2.52100, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     11.25100, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     11.55100, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     15.99400, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     16.29400, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     25.02300, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     25.32300, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     29.76600, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     30.06000, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     38.79500, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     39.09500, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     41.41700, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     41.71700, "CESR_ELLIPSE","CESR_ELLIPSE" /
+&place section =     43.01904, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     43.03174, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     43.09464, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     43.10944, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     43.10954, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     43.12494, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     43.12504, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     43.15904, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     43.43654, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =     43.43754, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =     43.51054, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =     43.51154, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =     43.51404, "TRANSITION_SRF#1", "TRANSITION_SRF#1" /
+&place section =     43.60204, "TRANSITION_SRF#2", "TRANSITION_SRF#2" /
+&place section =     43.74759, "SRF_CAVITY#1", "SRF_CAVITY#1" /
+&place section =     45.77049, "SRF_CAVITY#2", "SRF_CAVITY#2" /
+&place section =     45.91654, "BEAMPIPE_WRFCENTER#1", "BEAMPIPE_WRFCENTER#1" /
+&place section =     46.62954, "BEAMPIPE_WRFCENTER#2", "BEAMPIPE_WRFCENTER#2" /
+&place section =     46.77659, "SRF_CAVITY#2", "SRF_CAVITY#2" /
+&place section =     48.79949, "SRF_CAVITY#1", "SRF_CAVITY#1" /
+&place section =     49.43878, "TRANSITION_SRF_2#1", "TRANSITION_SRF_2#1" /
+&place section =     49.53878, "TRANSITION_SRF_2#2", "TRANSITION_SRF_2#2" /
+&place section =     52.54382, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     52.55652, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     52.61942, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     52.63422, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     52.63432, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     52.64972, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     52.64982, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     52.68382, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     53.73032, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =     53.73132, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =     53.80432, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =     53.80532, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =     54.33197, "TRANSITION_KICKER_1#1", "TRANSITION_KICKER_1#1" /
+&place section =     54.34717, "TRANSITION_KICKER_1#2", "TRANSITION_KICKER_1#2" /
+&place section =     54.37367, "TRANSITION_KICKER_1#3", "TRANSITION_KICKER_1#3" /
+&place section =     54.41682, "KICKER_VERTICAL#1", "KICKER_VERTICAL#1" /
+&place section =     55.69282, "KICKER_VERTICAL#2", "KICKER_VERTICAL#2" /
+&place section =     55.69332, "TRANSITION_KICKER_3#1", "TRANSITION_KICKER_3#1" /
+&place section =     55.78432, "TRANSITION_KICKER_3#2", "TRANSITION_KICKER_3#2" /
+&place section =     55.78532, "TRANSITION_KICKER_3#1", "TRANSITION_KICKER_3#1" /
+&place section =     55.87632, "TRANSITION_KICKER_3#2", "TRANSITION_KICKER_3#2" /
+&place section =     55.87682, "KICKER_HORIZONTAL#1", "KICKER_HORIZONTAL#1" /
+&place section =     57.15282, "KICKER_HORIZONTAL#2", "KICKER_HORIZONTAL#2" /
+&place section =     57.19458, "TRANSITION_KICKER_2#3", "TRANSITION_KICKER_2#3" /
+&place section =     57.20288, "TRANSITION_KICKER_2#2", "TRANSITION_KICKER_2#2" /
+&place section =     57.46658, "TRANSITION_KICKER_2#1", "TRANSITION_KICKER_2#1" /
+&place section =     59.14939, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     59.16209, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     59.22499, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     59.23979, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     59.23989, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     59.25529, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     59.25539, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     59.28939, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     62.78336, "BEAMPIPE_CROTCH_FLARE_G#1", "BEAMPIPE_CROTCH_FLARE_G#1" /
+&place section =     66.24916, "BEAMPIPE_CROTCH_FLARE_G#2", "BEAMPIPE_CROTCH_FLARE_G#2" /
+&place section =     66.24950, "CROTCH_BODY_G#1", "CROTCH_BODY_G#1" /
+&place section =     66.32340, "CROTCH_BODY_G#2", "CROTCH_BODY_G#2" /
+&place section =     66.40620, "CROTCH_BODY_G#3", "CROTCH_BODY_G#3" /
+&place section =     66.44300, "CROTCH_BODY_G#4", "CROTCH_BODY_G#4" /
+&place section =     67.23806, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     67.27206, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     67.27215, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     67.28755, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     67.28766, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     67.30246, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     67.36536, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     67.37806, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     75.35003, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     75.36273, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     75.42563, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     75.44043, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     75.44053, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     75.45593, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     75.45603, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     75.49003, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     77.60197, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     77.61467, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     77.67757, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     77.69237, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     77.69247, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     77.70787, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     77.70797, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     77.74197, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     85.79545, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     85.80814, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     85.87104, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     85.88585, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     85.88595, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     85.90135, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     85.90144, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     85.93545, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     90.18100, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     90.19370, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     90.25660, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     90.27140, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     90.27150, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     90.28690, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     90.28700, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     90.32100, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =     91.33150, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =     91.33250, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =     91.40550, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =     91.40650, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =     99.32403, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =     99.33673, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =     99.39963, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =     99.41443, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =     99.41453, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =     99.42993, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =     99.43003, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =     99.46403, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    101.01549, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    101.01649, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    101.08949, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    101.09049, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    102.67179, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    102.70579, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    102.70589, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    102.72129, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    102.72139, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    102.73619, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    102.79909, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    102.81179, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    110.86484, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    110.89884, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    110.89894, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    110.91434, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    110.91444, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    110.92924, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    110.99214, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    111.00484, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    119.07429, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    119.10829, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    119.10839, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    119.12379, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    119.12389, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    119.13869, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    119.20159, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    119.21429, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    126.86514, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    126.87784, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    126.94074, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    126.95554, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    126.95564, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    126.97104, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    126.97114, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    127.00514, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    127.00524, "BEAMPIPE_SLAC#1", "BEAMPIPE_SLAC#1" /
+&place section =    127.15724, "BEAMPIPE_SLAC#2", "BEAMPIPE_SLAC#2" /
+&place section =    127.46814, "WIGGLER_C#1", "WIGGLER_C#1" /
+&place section =    127.47394, "WIGGLER_C#2", "WIGGLER_C#2" /
+&place section =    127.50824, "WIGGLER_C#3", "WIGGLER_C#3" /
+&place section =    129.15344, "WIGGLER_C#4", "WIGGLER_C#4" /
+&place section =    129.18614, "WIGGLER_C#5", "WIGGLER_C#5" /
+&place section =    129.19194, "WIGGLER_C#6", "WIGGLER_C#6" /
+&place section =    129.19204, "WIGGLER_C#1", "WIGGLER_C#1" /
+&place section =    129.19784, "WIGGLER_C#2", "WIGGLER_C#2" /
+&place section =    129.23214, "WIGGLER_C#3", "WIGGLER_C#3" /
+&place section =    130.87734, "WIGGLER_C#4", "WIGGLER_C#4" /
+&place section =    130.91004, "WIGGLER_C#5", "WIGGLER_C#5" /
+&place section =    130.91584, "WIGGLER_C#6", "WIGGLER_C#6" /
+&place section =    130.92214, "WIGGLER_C#1", "WIGGLER_C#1" /
+&place section =    130.92794, "WIGGLER_C#2", "WIGGLER_C#2" /
+&place section =    130.96224, "WIGGLER_C#3", "WIGGLER_C#3" /
+&place section =    132.60744, "WIGGLER_C#4", "WIGGLER_C#4" /
+&place section =    132.64014, "WIGGLER_C#5", "WIGGLER_C#5" /
+&place section =    132.64594, "WIGGLER_C#6", "WIGGLER_C#6" /
+&place section =    133.94375, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    133.97775, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    133.97785, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    133.99325, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    133.99335, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    134.00815, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    134.07105, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    134.08375, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    142.18019, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    142.21419, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    142.21429, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    142.22969, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    142.22979, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    142.24459, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    142.30749, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    142.32019, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    150.33404, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    150.36804, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    150.36814, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    150.38354, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    150.38364, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    150.39844, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    150.46134, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    150.47404, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    158.52848, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    158.56248, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    158.56258, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    158.57798, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    158.57808, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    158.59288, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    158.65578, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    158.66848, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    166.60542, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    166.60642, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    166.67942, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    166.68042, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    168.28892, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    168.29892, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    168.31592, "PINGER_VERTICAL#1", "PINGER_VERTICAL#1" /
+&place section =    168.72192, "PINGER_VERTICAL#2", "PINGER_VERTICAL#2" /
+&place section =    168.72202, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    168.73202, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    168.81152, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    168.84552, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    168.84562, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    168.86102, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    168.86112, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    168.87592, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    168.93882, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    168.95152, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    176.95797, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    176.97067, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    177.03357, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    177.04837, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    177.04847, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    177.06387, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    177.06397, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    177.09797, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    185.15382, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    185.16652, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    185.22942, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    185.24422, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    185.24432, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    185.25972, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    185.25982, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    185.29382, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    193.17186, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    193.18186, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    193.18196, "BUMPER#1", "BUMPER#1" /
+&place section =    193.58796, "BUMPER#2", "BUMPER#2" /
+&place section =    193.58806, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    193.59806, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    193.59816, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    193.63216, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    193.63226, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    193.64766, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    193.64776, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    193.66256, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    193.72546, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    193.73816, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    201.80470, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    201.81740, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    201.88030, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    201.89510, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    201.89520, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    201.91060, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    201.91070, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    201.94470, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    209.80945, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    209.81945, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    209.81955, "BUMPER#1", "BUMPER#1" /
+&place section =    210.22555, "BUMPER#2", "BUMPER#2" /
+&place section =    210.22565, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    210.23565, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    210.23575, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    210.26975, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    210.26985, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    210.28525, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    210.28535, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    210.30015, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    210.36305, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    210.37575, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    218.28413, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    218.28513, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    218.35813, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    218.35913, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    219.52163, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    219.53433, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    219.59723, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    219.61203, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    219.61213, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    219.62753, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    219.62763, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    219.66163, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    227.94808, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    227.98208, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    227.98218, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    227.99758, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    227.99768, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    228.01248, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    228.07538, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    228.08808, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    236.15054, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    236.16324, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    236.22614, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    236.24094, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    236.24104, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    236.25644, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    236.25654, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    236.29054, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    244.58299, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    244.61699, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    244.61709, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    244.63249, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    244.63259, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    244.64739, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    244.71029, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    244.72299, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    252.64295, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    252.64395, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    252.71695, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    252.71795, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    253.23545, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    253.24815, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    253.31105, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    253.32585, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    253.32595, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    253.34135, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    253.34145, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    253.37545, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    255.76955, "BEAMPIPE_B34_INJECTION#1", "BEAMPIPE_B34_INJECTION#1" /
+&place section =    255.79625, "BEAMPIPE_B34_INJECTION#2", "BEAMPIPE_B34_INJECTION#2" /
+&place section =    257.44135, "BEAMPIPE_B34_INJECTION#3", "BEAMPIPE_B34_INJECTION#3" /
+&place section =    258.66447, "BEAMPIPE_INJECTION#1", "BEAMPIPE_INJECTION#1" /
+&place section =    259.03777, "BEAMPIPE_INJECTION#2", "BEAMPIPE_INJECTION#2" /
+&place section =    259.06447, "BEAMPIPE_INJECTION#3", "BEAMPIPE_INJECTION#3" /
+&place section =    266.53566, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    266.53666, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    266.60966, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    266.61066, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    266.61076, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    266.62346, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    266.68636, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    266.70116, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    266.70126, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    266.71666, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    266.71676, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    266.75076, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    273.78358, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    273.79628, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    273.85918, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    273.87398, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    273.87408, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    273.88948, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    273.88958, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    273.92358, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    274.85248, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    274.86248, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    274.86258, "PINGER_HORIZONTAL#1", "PINGER_HORIZONTAL#1" /
+&place section =    275.26858, "PINGER_HORIZONTAL#2", "PINGER_HORIZONTAL#2" /
+&place section =    275.26868, "PINGER#1", "PINGER#1" /
+&place section =    275.67468, "PINGER#2", "PINGER#2" /
+&place section =    275.67478, "BUMPER#1", "BUMPER#1" /
+&place section =    276.08078, "BUMPER#2", "BUMPER#2" /
+&place section =    276.08088, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    276.09088, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    277.42486, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    277.43756, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    277.50046, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    277.51526, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    277.51536, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    277.53076, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    277.53086, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    277.56486, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    285.63581, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    285.64851, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    285.71141, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    285.72621, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    285.72631, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    285.74171, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    285.74181, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    285.77581, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    294.06522, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    294.07792, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    294.14082, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    294.15562, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    294.15572, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    294.17112, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    294.17122, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    294.20522, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    302.27463, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    302.28733, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    302.35023, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    302.36503, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    302.36513, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    302.38053, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    302.38063, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    302.41463, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    310.48007, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    310.49277, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    310.55567, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    310.57047, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    310.57057, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    310.58597, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    310.58607, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    310.62007, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    318.67251, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    318.68521, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    318.74811, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    318.76291, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    318.76301, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    318.77841, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    318.77851, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    318.81251, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    326.77445, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    326.77544, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    326.84845, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    326.84945, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    326.91395, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    326.92665, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    326.98955, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    327.00435, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    327.00445, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    327.01985, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    327.01995, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    327.05394, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    334.97238, "COLLIMATOR#1", "COLLIMATOR#1" /
+&place section =    335.03238, "COLLIMATOR#2", "COLLIMATOR#2" /
+&place section =    335.15038, "COLLIMATOR#3", "COLLIMATOR#3" /
+&place section =    335.35638, "COLLIMATOR#4", "COLLIMATOR#4" /
+&place section =    335.41638, "COLLIMATOR#5", "COLLIMATOR#5" /
+&place section =    336.85638, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    336.89038, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    336.89048, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    336.90588, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    336.90598, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    336.92078, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    336.98368, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    336.99638, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    346.06089, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    346.09489, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    346.09499, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    346.11039, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    346.11049, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    346.12529, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    346.18819, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    346.20089, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    346.36339, "SEPARATOR_HORIZONTAL#1", "SEPARATOR_HORIZONTAL#1" /
+&place section =    346.38269, "SEPARATOR_HORIZONTAL#2", "SEPARATOR_HORIZONTAL#2" /
+&place section =    346.72089, "SEPARATOR_HORIZONTAL#3", "SEPARATOR_HORIZONTAL#3" /
+&place section =    349.10479, "SEPARATOR_HORIZONTAL#4", "SEPARATOR_HORIZONTAL#4" /
+&place section =    349.44299, "SEPARATOR_HORIZONTAL#5", "SEPARATOR_HORIZONTAL#5" /
+&place section =    349.46239, "SEPARATOR_HORIZONTAL#6", "SEPARATOR_HORIZONTAL#6" /
+&place section =    352.25174, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    352.26444, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    352.32734, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    352.34214, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    352.34224, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    352.35764, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    352.35774, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    352.39174, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    360.19466, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    360.20736, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    360.27026, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    360.28506, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    360.28516, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    360.30056, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    360.30066, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    360.33466, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    360.37376, "CERN_CURRENT_MONITOR#1", "CERN_CURRENT_MONITOR#1" /
+&place section =    360.58676, "CERN_CURRENT_MONITOR#2", "CERN_CURRENT_MONITOR#2" /
+&place section =    360.60726, "CERN_CURRENT_MONITOR#3", "CERN_CURRENT_MONITOR#3" /
+&place section =    360.95626, "CERN_CURRENT_MONITOR#4", "CERN_CURRENT_MONITOR#4" /
+&place section =    360.97676, "CERN_CURRENT_MONITOR#5", "CERN_CURRENT_MONITOR#5" /
+&place section =    361.18976, "CERN_CURRENT_MONITOR#6", "CERN_CURRENT_MONITOR#6" /
+&place section =    364.79577, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    364.82977, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    364.82987, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    364.84527, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    364.84537, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    364.86017, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    364.92307, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    364.93577, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    372.05598, "TRANSITION_L3#1", "TRANSITION_L3#1" /
+&place section =    372.05698, "TRANSITION_L3#2", "TRANSITION_L3#2" /
+&place section =    372.12258, "TRANSITION_L3#3", "TRANSITION_L3#3" /
+&place section =    372.12558, "TRANSITION_L3#4", "TRANSITION_L3#4" /
+&place section =    372.13458, "BEAMPIPE_SB48E#1", "BEAMPIPE_SB48E#1" /
+&place section =    372.23618, "BEAMPIPE_SB48E#2", "BEAMPIPE_SB48E#2" /
+&place section =    372.32188, "BEAMPIPE_SB48E#3", "BEAMPIPE_SB48E#3" /
+&place section =    373.79508, "BEAMPIPE_SB48E#4", "BEAMPIPE_SB48E#4" /
+&place section =    375.26828, "BEAMPIPE_SB48E#5", "BEAMPIPE_SB48E#5" /
+&place section =    375.35398, "BEAMPIPE_SB48E#6", "BEAMPIPE_SB48E#6" /
+&place section =    375.45558, "BEAMPIPE_SB48E#7", "BEAMPIPE_SB48E#7" /
+&place section =    375.45568, "BEAMPIPE_L3_CENTER#38", "BEAMPIPE_L3_CENTER#38" /
+&place section =    375.48668, "BEAMPIPE_L3_CENTER#37", "BEAMPIPE_L3_CENTER#37" /
+&place section =    375.49448, "BEAMPIPE_L3_CENTER#36", "BEAMPIPE_L3_CENTER#36" /
+&place section =    375.87428, "BEAMPIPE_L3_CENTER#35", "BEAMPIPE_L3_CENTER#35" /
+&place section =    377.14238, "BEAMPIPE_L3_CENTER#34", "BEAMPIPE_L3_CENTER#34" /
+&place section =    377.18118, "BEAMPIPE_L3_CENTER#33", "BEAMPIPE_L3_CENTER#33" /
+&place section =    377.19668, "BEAMPIPE_L3_CENTER#32", "BEAMPIPE_L3_CENTER#32" /
+&place section =    377.20438, "BEAMPIPE_L3_CENTER#31", "BEAMPIPE_L3_CENTER#31" /
+&place section =    377.25868, "BEAMPIPE_L3_CENTER#30", "BEAMPIPE_L3_CENTER#30" /
+&place section =    377.94858, "BEAMPIPE_L3_CENTER#29", "BEAMPIPE_L3_CENTER#29" /
+&place section =    378.14218, "BEAMPIPE_L3_CENTER#28", "BEAMPIPE_L3_CENTER#28" /
+&place section =    378.16548, "BEAMPIPE_L3_CENTER#27", "BEAMPIPE_L3_CENTER#27" /
+&place section =    378.28818, "BEAMPIPE_L3_CENTER#26", "BEAMPIPE_L3_CENTER#26" /
+&place section =    379.64238, "BEAMPIPE_L3_CENTER#25", "BEAMPIPE_L3_CENTER#25" /
+&place section =    379.66518, "BEAMPIPE_L3_CENTER#24", "BEAMPIPE_L3_CENTER#24" /
+&place section =    379.66908, "BEAMPIPE_L3_CENTER#23", "BEAMPIPE_L3_CENTER#23" /
+&place section =    389.07247, "BEAMPIPE_L3_CENTER#22", "BEAMPIPE_L3_CENTER#22" /
+&place section =    389.15232, "BEAMPIPE_L3_CENTER#21", "BEAMPIPE_L3_CENTER#21" /
+&place section =    389.87246, "BEAMPIPE_L3_CENTER#20", "BEAMPIPE_L3_CENTER#20" /
+&place section =    390.01974, "BEAMPIPE_L3_CENTER#19", "BEAMPIPE_L3_CENTER#19" /
+&place section =    390.05850, "BEAMPIPE_L3_CENTER#18", "BEAMPIPE_L3_CENTER#18" /
+&place section =    390.11431, "BEAMPIPE_L3_CENTER#17", "BEAMPIPE_L3_CENTER#17" /
+&place section =    390.15307, "BEAMPIPE_L3_CENTER#16", "BEAMPIPE_L3_CENTER#16" /
+&place section =    390.17865, "BEAMPIPE_L3_CENTER#15", "BEAMPIPE_L3_CENTER#15" /
+&place section =    390.20501, "BEAMPIPE_L3_CENTER#14", "BEAMPIPE_L3_CENTER#14" /
+&place section =    390.21896, "BEAMPIPE_L3_CENTER#13", "BEAMPIPE_L3_CENTER#13" /
+&place section =    390.89259, "BEAMPIPE_L3_CENTER#12", "BEAMPIPE_L3_CENTER#12" /
+&place section =    390.95073, "BEAMPIPE_L3_CENTER#11", "BEAMPIPE_L3_CENTER#11" /
+&place section =    390.96236, "BEAMPIPE_L3_CENTER#10", "BEAMPIPE_L3_CENTER#10" /
+&place section =    390.96934, "BEAMPIPE_L3_CENTER#9", "BEAMPIPE_L3_CENTER#9" /
+&place section =    391.00732, "BEAMPIPE_L3_CENTER#8", "BEAMPIPE_L3_CENTER#8" /
+&place section =    392.17862, "BEAMPIPE_L3_CENTER#7", "BEAMPIPE_L3_CENTER#7" /
+&place section =    392.19954, "BEAMPIPE_L3_CENTER#6", "BEAMPIPE_L3_CENTER#6" /
+&place section =    392.54450, "BEAMPIPE_L3_CENTER#5", "BEAMPIPE_L3_CENTER#5" /
+&place section =    392.58481, "BEAMPIPE_L3_CENTER#4", "BEAMPIPE_L3_CENTER#4" /
+&place section =    392.93519, "BEAMPIPE_L3_CENTER#3", "BEAMPIPE_L3_CENTER#3" /
+&place section =    392.96465, "BEAMPIPE_L3_CENTER#2", "BEAMPIPE_L3_CENTER#2" /
+&place section =    392.99488, "BEAMPIPE_L3_CENTER#1", "BEAMPIPE_L3_CENTER#1" /
+&place section =    392.99498, "BEAMPIPE_SB48E#7", "BEAMPIPE_SB48E#7" /
+&place section =    393.09658, "BEAMPIPE_SB48E#6", "BEAMPIPE_SB48E#6" /
+&place section =    393.18228, "BEAMPIPE_SB48E#5", "BEAMPIPE_SB48E#5" /
+&place section =    394.65548, "BEAMPIPE_SB48E#4", "BEAMPIPE_SB48E#4" /
+&place section =    396.12868, "BEAMPIPE_SB48E#3", "BEAMPIPE_SB48E#3" /
+&place section =    396.21438, "BEAMPIPE_SB48E#2", "BEAMPIPE_SB48E#2" /
+&place section =    396.31598, "BEAMPIPE_SB48E#1", "BEAMPIPE_SB48E#1" /
+&place section =    396.43609, "TRANSITION_L3#4", "TRANSITION_L3#4" /
+&place section =    396.43909, "TRANSITION_L3#3", "TRANSITION_L3#3" /
+&place section =    396.50469, "TRANSITION_L3#2", "TRANSITION_L3#2" /
+&place section =    396.50569, "TRANSITION_L3#1", "TRANSITION_L3#1" /
+&place section =    403.48910, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    403.50180, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    403.56470, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    403.57950, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    403.57960, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    403.59500, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    403.59510, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    403.62910, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    408.10847, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    408.12117, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    408.18407, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    408.19887, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    408.19897, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    408.21437, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    408.21447, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    408.24847, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    416.06940, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    416.08210, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    416.14500, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    416.15980, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    416.15990, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    416.17530, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    416.17540, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    416.20940, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    419.00320, "SEPARATOR_HORIZONTAL#1", "SEPARATOR_HORIZONTAL#1" /
+&place section =    419.02250, "SEPARATOR_HORIZONTAL#2", "SEPARATOR_HORIZONTAL#2" /
+&place section =    419.36070, "SEPARATOR_HORIZONTAL#3", "SEPARATOR_HORIZONTAL#3" /
+&place section =    421.74460, "SEPARATOR_HORIZONTAL#4", "SEPARATOR_HORIZONTAL#4" /
+&place section =    422.08280, "SEPARATOR_HORIZONTAL#5", "SEPARATOR_HORIZONTAL#5" /
+&place section =    422.10220, "SEPARATOR_HORIZONTAL#6", "SEPARATOR_HORIZONTAL#6" /
+&place section =    422.22921, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    422.24191, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    422.30481, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    422.31961, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    422.31971, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    422.33511, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    422.33521, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    422.36921, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    431.45664, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    431.46934, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    431.53224, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    431.54704, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    431.54714, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    431.56254, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    431.56264, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    431.59664, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    441.41853, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    441.43123, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    441.49413, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    441.50893, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    441.50903, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    441.52443, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    441.52453, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    441.55853, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    441.55863, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    441.55963, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    441.63263, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    441.63363, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    449.61800, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    449.63070, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    449.69360, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    449.70840, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    449.70850, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    449.72390, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    449.72400, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    449.75800, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    457.81744, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    457.83014, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    457.89304, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    457.90784, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    457.90794, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    457.92334, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    457.92344, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    457.95744, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    466.03188, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    466.04458, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    466.10748, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    466.12228, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    466.12238, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    466.13778, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    466.13788, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    466.17188, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    474.22391, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    474.23661, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    474.29951, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    474.31431, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    474.31441, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    474.32981, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    474.32991, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    474.36391, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    474.36401, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    474.37401, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    474.37411, "BUMPER#1", "BUMPER#1" /
+&place section =    474.78011, "BUMPER#2", "BUMPER#2" /
+&place section =    474.78021, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    474.79021, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    482.65076, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    482.66346, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    482.72636, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    482.74116, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    482.74126, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    482.75666, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    482.75676, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    482.79076, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    490.85016, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    490.86286, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    490.92576, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    490.94056, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    490.94066, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    490.95606, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    490.95616, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    490.99016, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    492.24407, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    492.25407, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    492.25417, "BUMPER#1", "BUMPER#1" /
+&place section =    492.66017, "BUMPER#2", "BUMPER#2" /
+&place section =    492.66027, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    492.67027, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    494.52450, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    494.53720, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    494.60010, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    494.61490, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    494.61500, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    494.63040, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    494.63050, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    494.66450, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    501.63886, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    501.65156, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    501.71446, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    501.72926, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    501.72936, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    501.74476, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    501.74486, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    501.77886, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    501.81996, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    501.82096, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    501.89396, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    501.89496, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    509.45588, "BEAMPIPE_INJECTION#3", "BEAMPIPE_INJECTION#3" /
+&place section =    509.48258, "BEAMPIPE_INJECTION#2", "BEAMPIPE_INJECTION#2" /
+&place section =    509.85588, "BEAMPIPE_INJECTION#1", "BEAMPIPE_INJECTION#1" /
+&place section =    509.85588, "BEAMPIPE_B34_INJECTION#3", "BEAMPIPE_B34_INJECTION#3" /
+&place section =    511.50098, "BEAMPIPE_B34_INJECTION#2", "BEAMPIPE_B34_INJECTION#2" /
+&place section =    511.52768, "BEAMPIPE_B34_INJECTION#1", "BEAMPIPE_B34_INJECTION#1" /
+&place section =    515.32962, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    515.34232, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    515.40522, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    515.42002, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    515.42012, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    515.43552, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    515.43562, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    515.46962, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    523.67549, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    523.68819, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    523.75109, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    523.76589, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    523.76599, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    523.78139, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    523.78149, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    523.81549, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    523.81559, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    523.82559, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    523.86406, "BUMPER#1", "BUMPER#1" /
+&place section =    524.27006, "BUMPER#2", "BUMPER#2" /
+&place section =    524.27016, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    524.28016, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    532.13494, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    532.14764, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    532.21054, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    532.22534, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    532.22544, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    532.24084, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    532.24094, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    532.27494, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    540.27434, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    540.28704, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    540.34994, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    540.36474, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    540.36484, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    540.38024, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    540.38034, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    540.41434, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    540.41444, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    540.42444, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    540.44034, "CERAMIC_REPLACEMENT#1", "CERAMIC_REPLACEMENT#1" /
+&place section =    540.79034, "CERAMIC_REPLACEMENT#2", "CERAMIC_REPLACEMENT#2" /
+&place section =    540.79134, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    540.80134, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    548.76879, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    548.78149, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    548.84439, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    548.85919, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    548.85929, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    548.87469, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    548.87479, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    548.90879, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    550.06984, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    550.07084, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    550.14384, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    550.14484, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    558.04821, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    558.06091, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    558.12381, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    558.13861, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    558.13871, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    558.15411, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    558.15421, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    558.18821, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    558.22678, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    558.23678, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    558.23688, "BUMPER#1", "BUMPER#1" /
+&place section =    558.64288, "BUMPER#2", "BUMPER#2" /
+&place section =    558.64298, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    558.65298, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    566.48765, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    566.50035, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    566.56325, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    566.57805, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    566.57815, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    566.59355, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    566.59365, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    566.62765, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    574.62310, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    574.63580, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    574.69870, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    574.71350, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    574.71360, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    574.72900, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    574.72910, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    574.76310, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    574.83370, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    574.84370, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    574.84380, "BUMPER#1", "BUMPER#1" /
+&place section =    575.24980, "BUMPER#2", "BUMPER#2" /
+&place section =    575.24990, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    575.25990, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    583.12159, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    583.13429, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    583.19719, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    583.21199, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    583.21209, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    583.22749, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    583.22759, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    583.26159, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    591.32611, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    591.33881, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    591.40171, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    591.41651, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    591.41661, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    591.43201, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    591.43211, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    591.46611, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    599.49963, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    599.51233, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    599.57523, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    599.59003, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    599.59013, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    599.60553, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    599.60563, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    599.63963, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    599.63973, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    599.64973, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    599.64983, "SHAKER#1", "SHAKER#1" /
+&place section =    599.99983, "SHAKER#2", "SHAKER#2" /
+&place section =    600.08619, "TRANSITION_CERAMIC#2", "TRANSITION_CERAMIC#2" /
+&place section =    600.09619, "TRANSITION_CERAMIC#1", "TRANSITION_CERAMIC#1" /
+&place section =    601.75169, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    601.75269, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    601.82569, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    601.82669, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    609.74008, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    609.75278, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    609.81568, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    609.83048, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    609.83058, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    609.84598, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    609.84608, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    609.88008, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    617.93960, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    617.95230, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    618.01520, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    618.03000, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    618.03010, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    618.04550, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    618.04560, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    618.07960, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    626.14406, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    626.15676, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    626.21966, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    626.23446, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    626.23456, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    626.24996, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    626.25006, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    626.28406, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    634.35358, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    634.36628, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    634.42918, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    634.44398, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    634.44408, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    634.45948, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    634.45958, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    634.49358, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    635.94313, "WIGGLER_C#1", "WIGGLER_C#1" /
+&place section =    635.94893, "WIGGLER_C#2", "WIGGLER_C#2" /
+&place section =    635.98323, "WIGGLER_C#3", "WIGGLER_C#3" /
+&place section =    637.62843, "WIGGLER_C#4", "WIGGLER_C#4" /
+&place section =    637.66113, "WIGGLER_C#5", "WIGGLER_C#5" /
+&place section =    637.66693, "WIGGLER_C#6", "WIGGLER_C#6" /
+&place section =    637.67013, "WIGGLER_C#1", "WIGGLER_C#1" /
+&place section =    637.67593, "WIGGLER_C#2", "WIGGLER_C#2" /
+&place section =    637.71023, "WIGGLER_C#3", "WIGGLER_C#3" /
+&place section =    639.35543, "WIGGLER_C#4", "WIGGLER_C#4" /
+&place section =    639.38813, "WIGGLER_C#5", "WIGGLER_C#5" /
+&place section =    639.39393, "WIGGLER_C#6", "WIGGLER_C#6" /
+&place section =    639.40233, "WIGGLER_TA#1", "WIGGLER_TA#1" /
+&place section =    639.40943, "WIGGLER_TA#2", "WIGGLER_TA#2" /
+&place section =    639.44243, "WIGGLER_TA#3", "WIGGLER_TA#3" /
+&place section =    641.09223, "WIGGLER_TA#4", "WIGGLER_TA#4" /
+&place section =    641.12063, "WIGGLER_TA#5", "WIGGLER_TA#5" /
+&place section =    641.12773, "WIGGLER_TA#6", "WIGGLER_TA#6" /
+&place section =    641.13013, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    641.14283, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    641.20573, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    641.22053, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    641.22063, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    641.23603, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    641.23613, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    641.27013, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    649.21792, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    649.23062, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    649.29352, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    649.30832, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    649.30842, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    649.32382, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    649.32392, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    649.35792, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    657.42238, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    657.43508, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    657.49798, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    657.51278, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    657.51288, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    657.52828, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    657.52838, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    657.56238, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    665.62684, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    665.63954, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    665.70244, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    665.71724, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    665.71734, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    665.73274, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    665.73284, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    665.76684, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    667.35177, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    667.35277, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    667.42577, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    667.42677, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    668.98397, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    668.99667, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    669.05957, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    669.07437, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    669.07447, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    669.08987, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    669.08997, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    669.12397, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    677.05358, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    677.05458, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    677.12758, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    677.12858, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    678.28108, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    678.29378, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    678.35668, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    678.37148, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    678.37158, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    678.38698, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    678.38708, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    678.42108, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    682.49153, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    682.50423, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    682.56713, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    682.58193, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    682.58203, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    682.59743, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    682.59753, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    682.63153, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    690.69716, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    690.70986, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    690.77276, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    690.78756, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    690.78766, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    690.80306, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    690.80316, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    690.83716, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    700.82517, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    700.83787, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    700.90077, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    700.91557, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    700.91567, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    700.93107, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    700.93117, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    700.96517, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    709.03463, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    709.04733, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    709.11023, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    709.12503, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    709.12513, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    709.14053, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    709.14063, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    709.17463, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    710.52991, "FEEDBACK_CAVITY#1", "FEEDBACK_CAVITY#1" /
+&place section =    710.62041, "FEEDBACK_CAVITY#2", "FEEDBACK_CAVITY#2" /
+&place section =    710.79661, "FEEDBACK_CAVITY#3", "FEEDBACK_CAVITY#3" /
+&place section =    710.88741, "FEEDBACK_CAVITY#4", "FEEDBACK_CAVITY#4" /
+&place section =    710.88761, "FEEDBACK_CAVITY#5", "FEEDBACK_CAVITY#5" /
+&place section =    710.96271, "FEEDBACK_CAVITY#6", "FEEDBACK_CAVITY#6" /
+&place section =    710.96291, "FEEDBACK_CAVITY#7", "FEEDBACK_CAVITY#7" /
+&place section =    711.05371, "FEEDBACK_CAVITY#8", "FEEDBACK_CAVITY#8" /
+&place section =    711.22991, "FEEDBACK_CAVITY#9", "FEEDBACK_CAVITY#9" /
+&place section =    711.32041, "FEEDBACK_CAVITY#10", "FEEDBACK_CAVITY#10" /
+&place section =    715.24516, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    715.25786, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    715.32076, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    715.33556, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    715.33566, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    715.35106, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    715.35116, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    715.38516, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    715.81166, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    715.81266, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    715.88566, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    715.88666, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    717.81696, "SLIDING_JOINT#1", "SLIDING_JOINT#1" /
+&place section =    717.82966, "SLIDING_JOINT#2", "SLIDING_JOINT#2" /
+&place section =    717.89256, "SLIDING_JOINT#3", "SLIDING_JOINT#3" /
+&place section =    717.90736, "SLIDING_JOINT#4", "SLIDING_JOINT#4" /
+&place section =    717.90746, "SLIDING_JOINT#5", "SLIDING_JOINT#5" /
+&place section =    717.92286, "SLIDING_JOINT#6", "SLIDING_JOINT#6" /
+&place section =    717.92296, "SLIDING_JOINT#7", "SLIDING_JOINT#7" /
+&place section =    717.95696, "SLIDING_JOINT#8", "SLIDING_JOINT#8" /
+&place section =    717.99806, "VALVE_GATE#1", "VALVE_GATE#1" /
+&place section =    717.99906, "VALVE_GATE#2", "VALVE_GATE#2" /
+&place section =    718.07206, "VALVE_GATE#3", "VALVE_GATE#3" /
+&place section =    718.07306, "VALVE_GATE#4", "VALVE_GATE#4" /
+&place section =    718.07596, "TRANSITION_SRF#1", "TRANSITION_SRF#1" /
+&place section =    718.16396, "TRANSITION_SRF#2", "TRANSITION_SRF#2" /
+&place section =    718.31051, "SRF_CAVITY#1", "SRF_CAVITY#1" /
+&place section =    720.33341, "SRF_CAVITY#2", "SRF_CAVITY#2" /
+&place section =    720.48196, "BEAMPIPE_ERFCENTER#1", "BEAMPIPE_ERFCENTER#1" /
+&place section =    721.69796, "BEAMPIPE_ERFCENTER#2", "BEAMPIPE_ERFCENTER#2" /
+&place section =    721.84651, "SRF_CAVITY#2", "SRF_CAVITY#2" /
+&place section =    723.86941, "SRF_CAVITY#1", "SRF_CAVITY#1" /
+&place section =    724.05734, "TRANSITION_SRF_2#1", "TRANSITION_SRF_2#1" /
+&place section =    724.15734, "TRANSITION_SRF_2#2", "TRANSITION_SRF_2#2" /
+&place section =     724.94800, "CESR_ELLIPSE","CESR_ELLIPSE" /
+&place section =     725.24800, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     729.34400, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     729.64400, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     738.6730, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     738.9730, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     743.1160, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     743.4160, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     752.6450, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     752.9450, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     756.8880, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     757.1880, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     765.9180, "SARC_DQMAGNET","SARC_DQMAGNET" /
+&place section =     766.2180, "CCU_STRAIGHT","CCU_STRAIGHT" /
+&place section =     768.4390, "CCU_STRAIGHT","CCU_STRAIGHT" /
+ 
+&shape_def
+name = "BEAMPIPE_B03E#1"
+v(  1) =  0.0695,  0.0000
+v(  2) =  0.0695,  0.0158
+v(  3) =  0.0626,  0.0255,  0.0101
+v(  4) =  0.0000,  0.0255
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#2"
+v(  1) =  0.0695,  0.0000
+v(  2) =  0.0695,  0.0158
+v(  3) =  0.0626,  0.0255,  0.0101
+v(  4) =  0.0000,  0.0255
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#3"
+v(  1) =  0.0600,  0.0000
+v(  2) =  0.0600,  0.0158
+v(  3) =  0.0531,  0.0255,  0.0101
+v(  4) = -0.0571,  0.0255
+v(  5) = -0.0640,  0.0158,  0.0101
+v(  6) = -0.0640,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#4"
+v(  1) =  0.1036,  0.0000
+v(  2) =  0.1036,  0.0158
+v(  3) =  0.0967,  0.0255,  0.0101
+v(  4) = -0.0571,  0.0255
+v(  5) = -0.0640,  0.0158,  0.0101
+v(  6) = -0.0640,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0158
+v(  3) =  0.0381,  0.0255,  0.0101
+v(  4) = -0.0571,  0.0255
+v(  5) = -0.0640,  0.0158,  0.0101
+v(  6) = -0.0640,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#6"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0158
+v(  3) =  0.0381,  0.0255,  0.0101
+v(  4) = -0.0571,  0.0255
+v(  5) = -0.0640,  0.0158,  0.0101
+v(  6) = -0.0640,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#7"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B03E#8"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B34_INJECTION#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B34_INJECTION#2"
+v(  1) =  0.0433,  0.0000
+v(  2) =  0.0433,  0.0083
+v(  3) =  0.0210,  0.0240
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_B34_INJECTION#3"
+v(  1) =  0.0433,  0.0000
+v(  2) =  0.0433,  0.0083
+v(  3) =  0.0210,  0.0240
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#1"
+v(  1) =  0.1781,  0.0000
+v(  2) =  0.1781,  0.0062
+v(  3) =  0.1718,  0.0126,  0.0063
+v(  4) =  0.0414,  0.0126
+v(  5) = -0.0422,  0.0120,  0.0750
+v(  6) = -0.0450,  0.0067,  0.0063
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#2"
+v(  1) =  0.1781,  0.0000
+v(  2) =  0.1781,  0.0062
+v(  3) =  0.1718,  0.0126,  0.0063
+v(  4) =  0.0414,  0.0126
+v(  5) = -0.0422,  0.0120,  0.0750
+v(  6) = -0.0450,  0.0067,  0.0063
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#3"
+v(  1) =  0.1797,  0.0000
+v(  2) =  0.1797,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#4"
+v(  1) =  0.1716,  0.0000
+v(  2) =  0.1716,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#5"
+v(  1) =  0.1549,  0.0000
+v(  2) =  0.1549,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#6"
+v(  1) =  0.1391,  0.0000
+v(  2) =  0.1391,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#7"
+v(  1) =  0.1243,  0.0000
+v(  2) =  0.1243,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#8"
+v(  1) =  0.1105,  0.0000
+v(  2) =  0.1105,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#9"
+v(  1) =  0.0975,  0.0000
+v(  2) =  0.0975,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#10"
+v(  1) =  0.0855,  0.0000
+v(  2) =  0.0855,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#11"
+v(  1) =  0.0745,  0.0000
+v(  2) =  0.0745,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#12"
+v(  1) =  0.0644,  0.0000
+v(  2) =  0.0644,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#13"
+v(  1) =  0.0552,  0.0000
+v(  2) =  0.0552,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#14"
+v(  1) =  0.0469,  0.0000
+v(  2) =  0.0469,  0.0110
+v(  3) =  0.0436,  0.0110
+v(  4) = -0.0450,  0.0100,  0.0750
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_W#15"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_E#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0101
+v(  3) =  0.0403,  0.0131
+v(  4) =  0.0349,  0.0165
+v(  5) =  0.0284,  0.0196
+v(  6) =  0.0204,  0.0223
+v(  7) =  0.0099,  0.0242
+v(  8) =  0.0009,  0.0251
+v(  9) = -0.0042,  0.0248
+v( 10) = -0.0120,  0.0239
+v( 11) = -0.0222,  0.0219
+v( 12) = -0.0331,  0.0175
+v( 13) = -0.0396,  0.0137
+v( 14) = -0.0447,  0.0098
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_E#2"
+v(  1) =  0.1854,  0.0000
+v(  2) =  0.1854,  0.0127
+v(  3) =  0.0457,  0.0127
+v(  4) = -0.0457,  0.0127,  0.0749
+v(  5) = -0.0457,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_G#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0101
+v(  3) =  0.0403,  0.0131
+v(  4) =  0.0349,  0.0165
+v(  5) =  0.0284,  0.0196
+v(  6) =  0.0204,  0.0223
+v(  7) =  0.0099,  0.0242
+v(  8) =  0.0009,  0.0251
+v(  9) = -0.0042,  0.0248
+v( 10) = -0.0120,  0.0239
+v( 11) = -0.0222,  0.0219
+v( 12) = -0.0331,  0.0175
+v( 13) = -0.0396,  0.0137
+v( 14) = -0.0447,  0.0098
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_CROTCH_FLARE_G#2"
+v(  1) =  0.3094,  0.0000
+v(  2) =  0.3094,  0.0127
+v(  3) =  0.0457,  0.0127
+v(  4) = -0.0457,  0.0127,  0.0749
+v(  5) = -0.0457,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_ERFCENTER#1"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_ERFCENTER#2"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#1"
+v(  1) =  0.0567,  0.0000
+v(  2) =  0.0567,  0.0215
+v(  3) =  0.0507,  0.0275,  0.0060
+v(  4) = -0.0389,  0.0275
+v(  5) = -0.0449,  0.0210,  0.0060
+v(  6) = -0.0449,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#2"
+v(  1) =  0.0567,  0.0000
+v(  2) =  0.0567,  0.0215
+v(  3) =  0.0507,  0.0275,  0.0060
+v(  4) = -0.0389,  0.0275
+v(  5) = -0.0449,  0.0210,  0.0060
+v(  6) = -0.0449,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#3"
+v(  1) =  0.0521,  0.0000
+v(  2) =  0.0521,  0.0155
+v(  3) =  0.0472,  0.0214,  0.0060
+v(  4) = -0.0400,  0.0214,  0.1920
+v(  5) = -0.0450,  0.0155,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#4"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0451,  0.0067
+v(  3) =  0.0423,  0.0120,  0.0060
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#6"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#7"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0080
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#8"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0080
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#9"
+v(  1) =  0.0540,  0.0000
+v(  2) =  0.0540,  0.0046
+v(  3) =  0.0474,  0.0158,  0.0109
+v(  4) =  0.0025,  0.0288,  0.0910
+v(  5) = -0.0433,  0.0158,  0.0786
+v(  6) = -0.0488,  0.0056,  0.0125
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#10"
+v(  1) =  0.0577,  0.0000
+v(  2) =  0.0577,  0.0024
+v(  3) =  0.0524,  0.0125,  0.0122
+v(  4) =  0.0000,  0.0288,  0.0922
+v(  5) = -0.0433,  0.0158,  0.0788
+v(  6) = -0.0488,  0.0056,  0.0122
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#11"
+v(  1) =  0.0577,  0.0000
+v(  2) =  0.0577,  0.0024
+v(  3) =  0.0524,  0.0125,  0.0122
+v(  4) =  0.0000,  0.0288,  0.0922
+v(  5) = -0.0433,  0.0158,  0.0788
+v(  6) = -0.0488,  0.0056,  0.0122
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#12"
+v(  1) =  0.0539,  0.0000
+v(  2) =  0.0539,  0.0024
+v(  3) =  0.0502,  0.0093,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0884
+v(  5) = -0.0412,  0.0126,  0.0750
+v(  6) = -0.0450,  0.0060,  0.0084
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#13"
+v(  1) =  0.0539,  0.0000
+v(  2) =  0.0539,  0.0024
+v(  3) =  0.0502,  0.0093,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0884
+v(  5) = -0.0412,  0.0126,  0.0750
+v(  6) = -0.0450,  0.0060,  0.0084
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#14"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0080
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#15"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0080
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#16"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#17"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_HB04#18"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0040
+v(  3) =  0.0470,  0.0090,  0.0060
+v(  4) =  0.0420,  0.0120,  0.0750
+v(  5) = -0.0420,  0.0120,  0.0750
+v(  6) = -0.0450,  0.0070,  0.0060
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_INJECTION#1"
+v(  1) =  0.0433,  0.0000
+v(  2) =  0.0433,  0.0083
+v(  3) =  0.0183,  0.0217
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_INJECTION#2"
+v(  1) =  0.0433,  0.0000
+v(  2) =  0.0433,  0.0083
+v(  3) =  0.0183,  0.0217
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_INJECTION#3"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#1"
+v(  1) =  0.0673,  0.0000
+v(  2) =  0.0666,  0.0088
+v(  3) =  0.0632,  0.0159
+v(  4) =  0.0585,  0.0229
+v(  5) =  0.0502,  0.0264
+v(  6) = -0.0495,  0.0264
+v(  7) = -0.0586,  0.0229
+v(  8) = -0.0636,  0.0159
+v(  9) = -0.0666,  0.0088
+v( 10) = -0.0673,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#2"
+v(  1) =  0.0673,  0.0000
+v(  2) =  0.0666,  0.0088
+v(  3) =  0.0632,  0.0159
+v(  4) =  0.0585,  0.0229
+v(  5) =  0.0502,  0.0264
+v(  6) = -0.0495,  0.0264
+v(  7) = -0.0586,  0.0229
+v(  8) = -0.0636,  0.0159
+v(  9) = -0.0666,  0.0088
+v( 10) = -0.0673,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#3"
+v(  1) =  0.0665,  0.0000
+v(  2) =  0.0658,  0.0123
+v(  3) =  0.0651,  0.0194
+v(  4) =  0.0615,  0.0229
+v(  5) =  0.0527,  0.0264
+v(  6) = -0.0457,  0.0264
+v(  7) = -0.0558,  0.0229
+v(  8) = -0.0625,  0.0159
+v(  9) = -0.0655,  0.0123
+v( 10) = -0.0665,  0.0053
+v( 11) = -0.0665,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#4"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#5"
+v(  1) =  0.0645,  0.0000,  0.0645
+v(  2) =  0.0000,  0.0645,  0.0645
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#6"
+v(  1) =  0.0648,  0.0000,  0.0648
+v(  2) =  0.0000,  0.0648,  0.0648
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#7"
+v(  1) =  0.0638,  0.0000,  0.0638
+v(  2) =  0.0000,  0.0638,  0.0638
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#8"
+v(  1) =  0.0643,  0.0000,  0.0643
+v(  2) =  0.0000,  0.0643,  0.0643
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#9"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#10"
+v(  1) =  0.0691,  0.0000,  0.0691
+v(  2) =  0.0000,  0.0691,  0.0691
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#11"
+v(  1) =  0.0691,  0.0000,  0.0691
+v(  2) =  0.0000,  0.0691,  0.0691
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#12"
+v(  1) =  0.0634,  0.0000,  0.0634
+v(  2) =  0.0000,  0.0634,  0.0634
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#13"
+v(  1) =  0.0634,  0.0000,  0.0634
+v(  2) =  0.0000,  0.0634,  0.0634
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#14"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#15"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#16"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#17"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#18"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#19"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#20"
+v(  1) =  0.0550,  0.0000,  0.0550
+v(  2) =  0.0000,  0.0550,  0.0550
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#21"
+v(  1) =  0.0550,  0.0000,  0.0550
+v(  2) =  0.0000,  0.0550,  0.0550
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#22"
+v(  1) =  0.0445,  0.0000,  0.0445
+v(  2) =  0.0000,  0.0445,  0.0445
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#23"
+v(  1) =  0.0445,  0.0000,  0.0445
+v(  2) =  0.0000,  0.0445,  0.0445
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#24"
+v(  1) =  0.0445,  0.0000,  0.0445
+v(  2) =  0.0000,  0.0445,  0.0445
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#25"
+v(  1) =  0.0478,  0.0000,  0.0478
+v(  2) =  0.0000,  0.0478,  0.0478
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#26"
+v(  1) =  0.0478,  0.0000,  0.0478
+v(  2) =  0.0000,  0.0478,  0.0478
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#27"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#28"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#29"
+v(  1) =  0.0650,  0.0000,  0.0650
+v(  2) =  0.0000,  0.0650,  0.0650
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#30"
+v(  1) =  0.0634,  0.0000,  0.0634
+v(  2) =  0.0000,  0.0634,  0.0634
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#31"
+v(  1) =  0.0687,  0.0000,  0.0687
+v(  2) =  0.0000,  0.0687,  0.0687
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#32"
+v(  1) =  0.0687,  0.0000,  0.0687
+v(  2) =  0.0000,  0.0687,  0.0687
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#33"
+v(  1) =  0.0634,  0.0000,  0.0634
+v(  2) =  0.0000,  0.0634,  0.0634
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#34"
+v(  1) =  0.0652,  0.0000,  0.0652
+v(  2) =  0.0000,  0.0652,  0.0652
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#35"
+v(  1) =  0.0652,  0.0000,  0.0652
+v(  2) =  0.0000,  0.0652,  0.0652
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#36"
+v(  1) =  0.0652,  0.0000
+v(  2) =  0.0652,  0.0171
+v(  3) =  0.0581,  0.0231
+v(  4) =  0.0476,  0.0263
+v(  5) = -0.0511,  0.0263
+v(  6) = -0.0581,  0.0231
+v(  7) = -0.0652,  0.0171
+v(  8) = -0.0652,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#37"
+v(  1) =  0.0687,  0.0000
+v(  2) =  0.0687,  0.0086
+v(  3) =  0.0652,  0.0153
+v(  4) =  0.0581,  0.0224
+v(  5) =  0.0476,  0.0266
+v(  6) = -0.0511,  0.0266
+v(  7) = -0.0581,  0.0234
+v(  8) = -0.0652,  0.0171
+v(  9) = -0.0687,  0.0086
+v( 10) = -0.0687,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_L3_CENTER#38"
+v(  1) =  0.0687,  0.0000
+v(  2) =  0.0687,  0.0083
+v(  3) =  0.0652,  0.0150
+v(  4) =  0.0581,  0.0213
+v(  5) =  0.0476,  0.0263
+v(  6) = -0.0511,  0.0263
+v(  7) = -0.0581,  0.0234
+v(  8) = -0.0652,  0.0178
+v(  9) = -0.0687,  0.0107
+v( 10) = -0.0687,  0.0030
+v( 11) = -0.0687,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#1"
+v(  1) =  0.0641,  0.0000
+v(  2) =  0.0641,  0.0224
+v(  3) = -0.0522,  0.0224
+v(  4) = -0.0558,  0.0213,  0.0060
+v(  5) = -0.0647,  0.0043,  0.0210
+v(  6) = -0.0647,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#2"
+v(  1) =  0.0641,  0.0000
+v(  2) =  0.0641,  0.0224
+v(  3) = -0.0522,  0.0224
+v(  4) = -0.0558,  0.0213,  0.0060
+v(  5) = -0.0647,  0.0043,  0.0210
+v(  6) = -0.0647,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#3"
+v(  1) =  0.0641,  0.0000
+v(  2) =  0.0641,  0.0220
+v(  3) = -0.0647,  0.0220
+v(  4) = -0.0647,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#4"
+v(  1) =  0.0626,  0.0000
+v(  2) =  0.0626,  0.0220
+v(  3) = -0.0646,  0.0220
+v(  4) = -0.0646,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#5"
+v(  1) =  0.0602,  0.0000
+v(  2) =  0.0602,  0.0220
+v(  3) = -0.0641,  0.0220
+v(  4) = -0.0641,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#6"
+v(  1) =  0.0581,  0.0000
+v(  2) =  0.0581,  0.0220
+v(  3) = -0.0633,  0.0220
+v(  4) = -0.0633,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#7"
+v(  1) =  0.0563,  0.0000
+v(  2) =  0.0563,  0.0220
+v(  3) = -0.0622,  0.0220
+v(  4) = -0.0622,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#8"
+v(  1) =  0.0548,  0.0000
+v(  2) =  0.0548,  0.0220
+v(  3) = -0.0608,  0.0220
+v(  4) = -0.0608,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#9"
+v(  1) =  0.0536,  0.0000
+v(  2) =  0.0536,  0.0220
+v(  3) = -0.0591,  0.0220
+v(  4) = -0.0591,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#10"
+v(  1) =  0.0527,  0.0000
+v(  2) =  0.0527,  0.0220
+v(  3) = -0.0571,  0.0220
+v(  4) = -0.0571,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#11"
+v(  1) =  0.0521,  0.0000
+v(  2) =  0.0521,  0.0220
+v(  3) = -0.0548,  0.0220
+v(  4) = -0.0548,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#12"
+v(  1) =  0.0519,  0.0000
+v(  2) =  0.0519,  0.0220
+v(  3) = -0.0522,  0.0220
+v(  4) = -0.0522,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#13"
+v(  1) =  0.0519,  0.0000
+v(  2) =  0.0519,  0.0220
+v(  3) = -0.0492,  0.0220
+v(  4) = -0.0492,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#14"
+v(  1) =  0.0523,  0.0000
+v(  2) =  0.0523,  0.0220
+v(  3) = -0.0460,  0.0220
+v(  4) = -0.0460,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#15"
+v(  1) =  0.0517,  0.0000
+v(  2) =  0.0517,  0.0220
+v(  3) = -0.0450,  0.0220
+v(  4) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#16"
+v(  1) =  0.0517,  0.0000
+v(  2) =  0.0517,  0.0220
+v(  3) = -0.0402,  0.0220
+v(  4) = -0.0450,  0.0172,  0.0048
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#17"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0220
+v(  3) = -0.0402,  0.0220
+v(  4) = -0.0450,  0.0172,  0.0048
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#18"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0172
+v(  3) =  0.0402,  0.0220,  0.0048
+v(  4) =  0.0000,  0.0220
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#19"
+v(  1) =  0.0566,  0.0000
+v(  2) =  0.0566,  0.0210
+v(  3) =  0.0506,  0.0270,  0.0060
+v(  4) = -0.0390,  0.0270
+v(  5) = -0.0450,  0.0210,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_PHOTON_STOP#20"
+v(  1) =  0.0566,  0.0000
+v(  2) =  0.0566,  0.0210
+v(  3) =  0.0506,  0.0270,  0.0060
+v(  4) = -0.0390,  0.0270
+v(  5) = -0.0450,  0.0210,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q00#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0430,  0.0150,  0.0060
+v(  6) =  0.0350,  0.0230
+v(  7) =  0.0310,  0.0250
+v(  8) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q00#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q00#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q00#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q00#5"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0430,  0.0150,  0.0060
+v(  6) =  0.0350,  0.0230
+v(  7) =  0.0310,  0.0250
+v(  8) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0109
+v(  3) =  0.0430,  0.0150,  0.0060
+v(  4) =  0.0350,  0.0230
+v(  5) =  0.0310,  0.0250,  0.0060
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0130,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#5"
+v(  1) =  0.0490,  0.0000,  0.0250
+v(  2) =  0.0240,  0.0250,  0.0250
+v(  3) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#6"
+v(  1) =  0.0490,  0.0000,  0.0250
+v(  2) =  0.0240,  0.0250,  0.0250
+v(  3) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#7"
+v(  1) =  0.0540,  0.0000,  0.0300
+v(  2) =  0.0240,  0.0300,  0.0300
+v(  3) =  0.0000,  0.0300
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#8"
+v(  1) =  0.0540,  0.0000,  0.0300
+v(  2) =  0.0240,  0.0300,  0.0300
+v(  3) =  0.0000,  0.0300
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#9"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0470,  0.0140
+v(  4) =  0.0340,  0.0270
+v(  5) =  0.0250,  0.0290
+v(  6) =  0.0000,  0.0290
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#10"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0110
+v(  3) =  0.0430,  0.0150,  0.0060
+v(  4) =  0.0350,  0.0230
+v(  5) =  0.0310,  0.0250,  0.0060
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#11"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#12"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q01#13"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#1"
+v(  1) =  0.0670,  0.0000
+v(  2) =  0.0670,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#2"
+v(  1) =  0.0620,  0.0000
+v(  2) =  0.0620,  0.0060
+v(  3) =  0.0610,  0.0110
+v(  4) =  0.0570,  0.0170
+v(  5) =  0.0470,  0.0240
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#3"
+v(  1) =  0.0510,  0.0000
+v(  2) =  0.0510,  0.0050
+v(  3) =  0.0470,  0.0100,  0.0050
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0120
+v(  6) =  0.0440,  0.0150,  0.0050
+v(  7) =  0.0350,  0.0240
+v(  8) =  0.0320,  0.0250,  0.0050
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0050
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0050
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0110
+v(  3) =  0.0430,  0.0150,  0.0060
+v(  4) =  0.0350,  0.0230
+v(  5) =  0.0310,  0.0250,  0.0060
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#6"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0090,  0.0030
+v(  4) =  0.0450,  0.0090
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_LONG#7"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0090,  0.0030
+v(  4) =  0.0450,  0.0090
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_SHORT#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_SHORT#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_SHORT#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0110
+v(  3) =  0.0430,  0.0150,  0.0060
+v(  4) =  0.0350,  0.0230
+v(  5) =  0.0310,  0.0250,  0.0060
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02E_SHORT#4"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0350,  0.0230
+v(  6) =  0.0310,  0.0250,  0.0060
+v(  7) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#1"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0030
+v(  3) =  0.0480,  0.0080,  0.0060
+v(  4) = -0.0420,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0070,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#2"
+v(  1) =  0.0480,  0.0000
+v(  2) =  0.0480,  0.0050
+v(  3) =  0.0470,  0.0080
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0330,  0.0180
+v(  6) =  0.0130,  0.0240
+v(  7) =  0.0000,  0.0250
+v(  8) = -0.0180,  0.0230
+v(  9) = -0.0320,  0.0180
+v( 10) = -0.0420,  0.0120
+v( 11) = -0.0450,  0.0070,  0.0060
+v( 12) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0050
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0050
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0050
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0050
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#5"
+v(  1) =  0.0510,  0.0000
+v(  2) =  0.0510,  0.0050
+v(  3) =  0.0470,  0.0100,  0.0050
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0120
+v(  6) =  0.0440,  0.0150,  0.0050
+v(  7) =  0.0350,  0.0240
+v(  8) =  0.0320,  0.0250,  0.0050
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#6"
+v(  1) =  0.0620,  0.0000
+v(  2) =  0.0620,  0.0040
+v(  3) =  0.0610,  0.0110
+v(  4) =  0.0560,  0.0190
+v(  5) =  0.0480,  0.0240
+v(  6) =  0.0420,  0.0250
+v(  7) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_LONG#7"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SLAC#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SLAC#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0430,  0.0150,  0.0060
+v(  6) =  0.0350,  0.0230
+v(  7) =  0.0310,  0.0250,  0.0060
+v(  8) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0430,  0.0150,  0.0060
+v(  6) =  0.0350,  0.0230
+v(  7) =  0.0310,  0.0250,  0.0060
+v(  8) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0040
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0120
+v(  3) =  0.0440,  0.0150,  0.0040
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250,  0.0050
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0070
+v(  3) =  0.0420,  0.0120
+v(  4) =  0.0320,  0.0180
+v(  5) =  0.0130,  0.0240
+v(  6) =  0.0000,  0.0250
+v(  7) = -0.0090,  0.0240
+v(  8) = -0.0280,  0.0200
+v(  9) = -0.0370,  0.0150
+v( 10) = -0.0410,  0.0100
+v( 11) = -0.0410,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#6"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0030
+v(  3) =  0.0480,  0.0080
+v(  4) =  0.0350,  0.0160
+v(  5) =  0.0200,  0.0220
+v(  6) = -0.0010,  0.0250
+v(  7) = -0.0210,  0.0220
+v(  8) = -0.0310,  0.0180
+v(  9) = -0.0420,  0.0120
+v( 10) = -0.0450,  0.0070,  0.0060
+v( 11) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#7"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0030
+v(  3) =  0.0480,  0.0080,  0.0060
+v(  4) = -0.0420,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0070,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_Q02W_SHORT#8"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0030
+v(  3) =  0.0480,  0.0080,  0.0060
+v(  4) = -0.0420,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0070,  0.0060
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#1"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#2"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#3"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#4"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#5"
+v(  1) =  0.0566,  0.0000
+v(  2) =  0.0566,  0.0240
+v(  3) = -0.0684,  0.0240
+v(  4) = -0.0684,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#6"
+v(  1) =  0.0555,  0.0000
+v(  2) =  0.0555,  0.0240
+v(  3) = -0.0695,  0.0240
+v(  4) = -0.0695,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#7"
+v(  1) =  0.0687,  0.0000
+v(  2) =  0.0687,  0.0240
+v(  3) = -0.0723,  0.0240
+v(  4) = -0.0723,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#8"
+v(  1) =  0.0826,  0.0000
+v(  2) =  0.0826,  0.0240
+v(  3) = -0.0744,  0.0240
+v(  4) = -0.0744,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#9"
+v(  1) =  0.0970,  0.0000
+v(  2) =  0.0970,  0.0240
+v(  3) = -0.0760,  0.0240
+v(  4) = -0.0760,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#10"
+v(  1) =  0.1121,  0.0000
+v(  2) =  0.1121,  0.0240
+v(  3) = -0.0769,  0.0240
+v(  4) = -0.0769,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#11"
+v(  1) =  0.1278,  0.0000
+v(  2) =  0.1278,  0.0240
+v(  3) = -0.0772,  0.0240
+v(  4) = -0.0772,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#12"
+v(  1) =  0.1121,  0.0000
+v(  2) =  0.1121,  0.0240
+v(  3) = -0.0769,  0.0240
+v(  4) = -0.0769,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#13"
+v(  1) =  0.0970,  0.0000
+v(  2) =  0.0970,  0.0240
+v(  3) = -0.0760,  0.0240
+v(  4) = -0.0760,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#14"
+v(  1) =  0.0826,  0.0000
+v(  2) =  0.0826,  0.0240
+v(  3) = -0.0744,  0.0240
+v(  4) = -0.0744,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#15"
+v(  1) =  0.0687,  0.0000
+v(  2) =  0.0687,  0.0240
+v(  3) = -0.0723,  0.0240
+v(  4) = -0.0723,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#16"
+v(  1) =  0.0555,  0.0000
+v(  2) =  0.0555,  0.0240
+v(  3) = -0.0695,  0.0240
+v(  4) = -0.0695,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#17"
+v(  1) =  0.0566,  0.0000
+v(  2) =  0.0566,  0.0240
+v(  3) = -0.0684,  0.0240
+v(  4) = -0.0684,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#18"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#19"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#20"
+v(  1) =  0.0730,  0.0000
+v(  2) =  0.0730,  0.0045
+v(  3) =  0.0452,  0.0300,  0.0260
+v(  4) =  0.0000,  0.0300
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03W#21"
+v(  1) =  0.0730,  0.0000
+v(  2) =  0.0730,  0.0045
+v(  3) =  0.0452,  0.0300,  0.0260
+v(  4) =  0.0000,  0.0300
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#1"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#2"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0040
+v(  3) =  0.0470,  0.0250,  0.0210
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#3"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#4"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#5"
+v(  1) =  0.0575,  0.0000
+v(  2) =  0.0575,  0.0240
+v(  3) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#6"
+v(  1) =  0.1901,  0.0000
+v(  2) =  0.1901,  0.0240
+v(  3) = -0.0849,  0.0240
+v(  4) = -0.0849,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#7"
+v(  1) =  0.0575,  0.0000
+v(  2) =  0.0575,  0.0240
+v(  3) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#8"
+v(  1) =  0.0675,  0.0000
+v(  2) =  0.0675,  0.0155
+v(  3) =  0.0590,  0.0240,  0.0080
+v(  4) =  0.0000,  0.0240
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB03E#9"
+v(  1) =  0.0730,  0.0000
+v(  2) =  0.0730,  0.0045
+v(  3) =  0.0452,  0.0300,  0.0260
+v(  4) =  0.0000,  0.0300
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#1"
+v(  1) =  0.0700,  0.0000
+v(  2) =  0.0700,  0.0230
+v(  3) = -0.0650,  0.0230
+v(  4) = -0.0650,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#2"
+v(  1) =  0.0700,  0.0000
+v(  2) =  0.0700,  0.0230
+v(  3) = -0.0650,  0.0230
+v(  4) = -0.0650,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#3"
+v(  1) =  0.0600,  0.0000
+v(  2) =  0.0600,  0.0230
+v(  3) = -0.0690,  0.0230
+v(  4) = -0.0690,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#4"
+v(  1) =  0.1400,  0.0000
+v(  2) =  0.1400,  0.0230
+v(  3) = -0.0690,  0.0230
+v(  4) = -0.0690,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#5"
+v(  1) =  0.0600,  0.0000
+v(  2) =  0.0600,  0.0230
+v(  3) = -0.0690,  0.0230
+v(  4) = -0.0690,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#6"
+v(  1) =  0.0700,  0.0000
+v(  2) =  0.0700,  0.0230
+v(  3) = -0.0650,  0.0230
+v(  4) = -0.0650,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_SB48E#7"
+v(  1) =  0.0700,  0.0000
+v(  2) =  0.0700,  0.0230
+v(  3) = -0.0650,  0.0230
+v(  4) = -0.0650,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_WRFCENTER#1"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "BEAMPIPE_WRFCENTER#2"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "BUMPER#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "BUMPER#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CERAMIC_REPLACEMENT#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CERAMIC_REPLACEMENT#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#2"
+v(  1) =  0.0680,  0.0000,  0.0680
+v(  2) =  0.0000,  0.0380,  0.0680
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#3"
+v(  1) =  0.0640,  0.0000,  0.0640
+v(  2) =  0.0000,  0.0348,  0.0640
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#4"
+v(  1) =  0.0640,  0.0000,  0.0640
+v(  2) =  0.0000,  0.0348,  0.0640
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#5"
+v(  1) =  0.0680,  0.0000,  0.0680
+v(  2) =  0.0000,  0.0380,  0.0680
+/
+ 
+ 
+&shape_def
+name = "CERN_CURRENT_MONITOR#6"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#3"
+v(  1) =  0.0486,  0.0000
+v(  2) =  0.0486,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#4"
+v(  1) =  0.0590,  0.0000
+v(  2) =  0.0590,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#5"
+v(  1) =  0.0744,  0.0000
+v(  2) =  0.0744,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#6"
+v(  1) =  0.0926,  0.0000
+v(  2) =  0.0926,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#7"
+v(  1) =  0.1833,  0.0000
+v(  2) =  0.1833,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_W#8"
+v(  1) =  0.1829,  0.0000
+v(  2) =  0.1829,  0.0126
+v(  3) =  0.0414,  0.0126
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_E#1"
+v(  1) =  0.1854,  0.0000
+v(  2) =  0.1854,  0.0125
+v(  3) =  0.0420,  0.0125
+v(  4) = -0.0420,  0.0125,  0.0749
+v(  5) = -0.0420,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_E#2"
+v(  1) =  0.1854,  0.0000
+v(  2) =  0.1854,  0.0125
+v(  3) =  0.0420,  0.0125
+v(  4) = -0.0420,  0.0125,  0.0749
+v(  5) = -0.0420,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_E#3"
+v(  1) =  0.0935,  0.0000
+v(  2) =  0.0935,  0.0125
+v(  3) =  0.0420,  0.0125
+v(  4) = -0.0420,  0.0125,  0.0749
+v(  5) = -0.0420,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_E#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0125
+v(  3) = -0.0450,  0.0125,  0.0749
+v(  4) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_E#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0125
+v(  3) = -0.0450,  0.0125,  0.0749
+v(  4) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_G#1"
+v(  1) =  0.3094,  0.0000
+v(  2) =  0.3094,  0.0125
+v(  3) =  0.0420,  0.0125
+v(  4) = -0.0420,  0.0125,  0.0749
+v(  5) = -0.0420,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_G#2"
+v(  1) =  0.1420,  0.0000
+v(  2) =  0.1420,  0.0127
+v(  3) =  0.0450,  0.0127
+v(  4) = -0.0450,  0.0127,  0.0749
+v(  5) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_G#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0127
+v(  3) = -0.0450,  0.0127,  0.0749
+v(  4) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "CROTCH_BODY_G#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0127
+v(  3) = -0.0450,  0.0127,  0.0749
+v(  4) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#2"
+v(  1) =  0.0496,  0.0000
+v(  2) =  0.0496,  0.0055
+v(  3) =  0.0466,  0.0125,  0.0080
+v(  4) =  0.0000,  0.0250,  0.1000
+v(  5) = -0.0420,  0.0125,  0.1000
+v(  6) = -0.0450,  0.0055,  0.0080
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#3"
+v(  1) =  0.0880,  0.0000,  0.0880
+v(  2) =  0.0000,  0.0880,  0.0880
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#4"
+v(  1) =  0.0880,  0.0000,  0.0880
+v(  2) =  0.0000,  0.0880,  0.0880
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#5"
+v(  1) =  0.1000,  0.0000,  0.1000
+v(  2) =  0.0000,  0.1000,  0.1000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#6"
+v(  1) =  0.1000,  0.0000,  0.1000
+v(  2) =  0.0000,  0.1000,  0.1000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#7"
+v(  1) =  0.0880,  0.0000,  0.0880
+v(  2) =  0.0000,  0.0880,  0.0880
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#8"
+v(  1) =  0.0880,  0.0000,  0.0880
+v(  2) =  0.0000,  0.0880,  0.0880
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#9"
+v(  1) =  0.0496,  0.0000
+v(  2) =  0.0496,  0.0055
+v(  3) =  0.0466,  0.0125,  0.0080
+v(  4) =  0.0000,  0.0250,  0.1000
+v(  5) = -0.0420,  0.0125,  0.1000
+v(  6) = -0.0450,  0.0055,  0.0080
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FEEDBACK_CAVITY#10"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FLEX_JOINT_FLANGE_ASSEMB#1"
+v(  1) =  0.0620,  0.0000
+v(  2) =  0.0620,  0.0090
+v(  3) =  0.0490,  0.0220,  0.0130
+v(  4) = -0.0505,  0.0220
+v(  5) = -0.0685,  0.0040,  0.0180
+v(  6) = -0.0685,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FLEX_JOINT_FLANGE_ASSEMB#2"
+v(  1) =  0.0616,  0.0000
+v(  2) =  0.0616,  0.0090
+v(  3) =  0.0486,  0.0220,  0.0130
+v(  4) = -0.0491,  0.0220
+v(  5) = -0.0671,  0.0040,  0.0180
+v(  6) = -0.0671,  0.0000
+/
+ 
+ 
+&shape_def
+name = "FLEX_JOINT_FLANGE_ASSEMB#3"
+v(  1) =  0.0641,  0.0000
+v(  2) =  0.0641,  0.0090
+v(  3) =  0.0511,  0.0220,  0.0130
+v(  4) = -0.0467,  0.0220
+v(  5) = -0.0647,  0.0040,  0.0180
+v(  6) = -0.0647,  0.0000
+/
+ 
+ 
+&shape_def
+name = "KICKER_HORIZONTAL#1"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "KICKER_HORIZONTAL#2"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "KICKER_VERTICAL#1"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "KICKER_VERTICAL#2"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "PINGER#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "PINGER#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "PINGER_HORIZONTAL#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "PINGER_HORIZONTAL#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "PINGER_VERTICAL#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "PINGER_VERTICAL#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0098
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0098
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#3"
+v(  1) =  0.1730,  0.0000,  0.1730
+v(  2) =  0.0000,  0.1730,  0.1730
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#4"
+v(  1) =  0.1730,  0.0000,  0.1730
+v(  2) =  0.0000,  0.1730,  0.1730
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0098
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SEPARATOR_HORIZONTAL#6"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0098
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SHAKER#1"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SHAKER#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#3"
+v(  1) =  0.0539,  0.0000
+v(  2) =  0.0539,  0.0024
+v(  3) =  0.0502,  0.0093,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0884
+v(  5) = -0.0412,  0.0126,  0.0750
+v(  6) = -0.0450,  0.0056,  0.0084
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#4"
+v(  1) =  0.0539,  0.0000
+v(  2) =  0.0539,  0.0024
+v(  3) =  0.0502,  0.0093,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0884
+v(  5) = -0.0412,  0.0126,  0.0750
+v(  6) = -0.0450,  0.0056,  0.0084
+v(  7) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#5"
+v(  1) =  0.0577,  0.0000
+v(  2) =  0.0577,  0.0024
+v(  3) =  0.0524,  0.0125,  0.0122
+v(  4) =  0.0000,  0.0288,  0.0922
+v(  5) = -0.0433,  0.0158,  0.0788
+v(  6) = -0.0488,  0.0056,  0.0122
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#6"
+v(  1) =  0.0577,  0.0000
+v(  2) =  0.0577,  0.0024
+v(  3) =  0.0524,  0.0125,  0.0122
+v(  4) =  0.0000,  0.0288,  0.0922
+v(  5) = -0.0433,  0.0158,  0.0788
+v(  6) = -0.0488,  0.0056,  0.0122
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#7"
+v(  1) =  0.0496,  0.0000
+v(  2) =  0.0496,  0.0056
+v(  3) =  0.0431,  0.0181,  0.0122
+v(  4) =  0.0000,  0.0288,  0.0922
+v(  5) = -0.0433,  0.0158,  0.0788
+v(  6) = -0.0488,  0.0056,  0.0122
+v(  7) = -0.0488,  0.0000
+/
+ 
+ 
+&shape_def
+name = "SLIDING_JOINT#8"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "SRF_CAVITY#1"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "SRF_CAVITY#2"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_CERAMIC#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_CERAMIC#2"
+v(  1) =  0.0650,  0.0000,  0.0072
+v(  2) =  0.0630,  0.0057,  0.0072
+v(  3) =  0.0000,  0.0250,  0.1100
+v(  4) = -0.0448,  0.0111,  0.0750
+v(  5) = -0.0450,  0.0109,  0.0300
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_1#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0065
+v(  3) =  0.0420,  0.0120,  0.0060
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_1#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0065
+v(  3) =  0.0420,  0.0120,  0.0060
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_1#3"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_2#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0065
+v(  3) =  0.0420,  0.0120,  0.0060
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_2#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0065
+v(  3) =  0.0420,  0.0120,  0.0060
+v(  4) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_2#3"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_3#1"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_KICKER_3#2"
+v(  1) =  0.0500,  0.0000
+v(  2) =  0.0500,  0.0500
+v(  3) =  0.0000,  0.0500
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_L3#1"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_L3#2"
+v(  1) =  0.0451,  0.0000
+v(  2) =  0.0447,  0.0098
+v(  3) =  0.0396,  0.0137
+v(  4) =  0.0331,  0.0175
+v(  5) =  0.0222,  0.0219
+v(  6) =  0.0120,  0.0239
+v(  7) =  0.0042,  0.0248
+v(  8) = -0.0009,  0.0251
+v(  9) = -0.0099,  0.0242
+v( 10) = -0.0204,  0.0223
+v( 11) = -0.0284,  0.0196
+v( 12) = -0.0349,  0.0165
+v( 13) = -0.0403,  0.0131
+v( 14) = -0.0447,  0.0101
+v( 15) = -0.0451,  0.0000
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_L3#3"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0045
+v(  3) =  0.0470,  0.0270,  0.0210
+v(  4) =  0.0000,  0.0270
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_L3#4"
+v(  1) =  0.0680,  0.0000
+v(  2) =  0.0680,  0.0045
+v(  3) =  0.0470,  0.0270,  0.0210
+v(  4) =  0.0000,  0.0270
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_SRF#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0067
+v(  3) =  0.0422,  0.0120,  0.0064
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_SRF#2"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_SRF_2#1"
+v(  1) =  0.1200,  0.0000,  0.1200
+v(  2) =  0.0000,  0.1200,  0.1200
+/
+ 
+ 
+&shape_def
+name = "TRANSITION_SRF_2#2"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0067
+v(  3) =  0.0422,  0.0120,  0.0064
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "VALVE_GATE#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "VALVE_GATE#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0038
+v(  3) =  0.0466,  0.0088,  0.0064
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "VALVE_GATE#3"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0038
+v(  3) =  0.0466,  0.0088,  0.0064
+v(  4) = -0.0422,  0.0120,  0.0750
+v(  5) = -0.0450,  0.0067,  0.0064
+v(  6) = -0.0450,  0.0000
+/
+ 
+ 
+&shape_def
+name = "VALVE_GATE#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0056
+v(  3) =  0.0412,  0.0126,  0.0084
+v(  4) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0078
+v(  3) =  0.0440,  0.0118
+v(  4) =  0.0350,  0.0208
+v(  5) =  0.0320,  0.0218
+v(  6) =  0.0000,  0.0218
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0078
+v(  3) =  0.0440,  0.0118
+v(  4) =  0.0350,  0.0208
+v(  5) =  0.0320,  0.0218
+v(  6) =  0.0000,  0.0218
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#5"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_TA#6"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#1"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#2"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#3"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0110
+v(  3) =  0.0440,  0.0150
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#4"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0110
+v(  3) =  0.0440,  0.0150
+v(  4) =  0.0350,  0.0240
+v(  5) =  0.0320,  0.0250
+v(  6) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#5"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_C#6"
+v(  1) =  0.0490,  0.0000
+v(  2) =  0.0490,  0.0060
+v(  3) =  0.0460,  0.0100,  0.0030
+v(  4) =  0.0450,  0.0100
+v(  5) =  0.0450,  0.0110
+v(  6) =  0.0430,  0.0150,  0.0060
+v(  7) =  0.0350,  0.0230
+v(  8) =  0.0310,  0.0250,  0.0060
+v(  9) =  0.0000,  0.0250
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_A_LINE#1"
+v(  1) =  0.0446,  0.0000
+v(  2) =  0.0446,  0.0107
+v(  3) =  0.0000,  0.0190,  0.1000
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_A_LINE#2"
+v(  1) =  0.0446,  0.0000
+v(  2) =  0.0446,  0.0107
+v(  3) =  0.0000,  0.0190,  0.1000
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_G_LINE#1"
+v(  1) =  0.0446,  0.0000
+v(  2) =  0.0446,  0.0107
+v(  3) =  0.0000,  0.0190,  0.1000
+/
+ 
+ 
+&shape_def
+name = "WIGGLER_G_LINE#2"
+v(  1) =  0.0446,  0.0000
+v(  2) =  0.0446,  0.0107
+v(  3) =  0.0000,  0.0190,  0.1000
+/
+ 
+ 
+&shape_def
+name = "COLLIMATOR#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "COLLIMATOR#2"
+v(  1) =  0.0450,  0.0000,  0.0170
+v(  2) =  0.0410,  0.0110,  0.0170
+v(  3) =  0.0000,  0.0250,  0.0840
+v(  4) = -0.0390,  0.0120,  0.0840
+v(  5) = -0.0450,  0.0000,  0.0170
+/
+ 
+ 
+&shape_def
+name = "COLLIMATOR#3"
+v(  1) =  0.0450,  0.0000,  0.0150
+v(  2) =  0.0300,  0.0150,  0.0150
+v(  3) =  0.0000,  0.0150
+/
+ 
+ 
+&shape_def
+name = "COLLIMATOR#4"
+v(  1) =  0.0450,  0.0000,  0.0170
+v(  2) =  0.0410,  0.0110,  0.0170
+v(  3) =  0.0000,  0.0250,  0.0840
+v(  4) = -0.0390,  0.0120,  0.0840
+v(  5) = -0.0450,  0.0000,  0.0170
+/
+ 
+ 
+&shape_def
+name = "COLLIMATOR#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "UNDULATOR#1"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+ 
+&shape_def
+name = "UNDULATOR#2"
+v(  1) =  0.0450,  0.0000,  0.0110
+v(  2) =  0.0340,  0.0110,  0.0110
+v(  3) =  0.0000,  0.0110
+/
+ 
+ 
+&shape_def
+name = "UNDULATOR#3"
+v(  1) =  0.0450,  0.0000,  0.0025
+v(  2) =  0.0425,  0.0025,  0.0025
+v(  3) =  0.0000,  0.0025
+/
+ 
+ 
+&shape_def
+name = "UNDULATOR#4"
+v(  1) =  0.0450,  0.0000,  0.0110
+v(  2) =  0.0340,  0.0110,  0.0110
+v(  3) =  0.0000,  0.0110
+/
+ 
+ 
+&shape_def
+name = "UNDULATOR#5"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+&shape_def
+name = "CESR_ELLIPSE"
+v(  1) =  0.0450,  0.0000
+v(  2) =  0.0450,  0.0100
+v(  3) =  0.0000,  0.0250,  0.0750
+/
+ 
+&shape_def
+name = "CCU_STRAIGHT"
+v(  1) =  0.0260,  0.0000
+v(  2) =  0.0260,  0.0025
+v(  3) =  -0.0750,  0.0025
+v(  4) =  -0.0750,  0.0000
+/
+ 
+&shape_def
+name = "SARC_DQMAGNET"
+v(  1) =  0.0260,  0.0000
+v(  2) =  0.0260,  0.0050
+v(  3) =  0.0000,  0.011, 0.0600
+ 
+&shape_def
+name = "SARC_QUAD"
+v(  1) =  0.0250,  0.0000
+v(  2) =  0.0250,  0.0050
+v(  3) =  0.0000,  0.011, 0.0600
+/
+ 
