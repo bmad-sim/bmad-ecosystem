@@ -43,5 +43,10 @@ export BMAD_LAYOUT=$DIST_CONFIG/bmad/layout
 #--------------------------------------------------------------
 export TAO_DIR=$DIST_BASE_DIR/tao
 
+#--------------------------------------------------------------
+# Enable fPIC flag as default 
+#--------------------------------------------------------------
+export ACC_ENABLE_FPIC=Y
+
 
 
