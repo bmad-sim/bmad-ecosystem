@@ -156,7 +156,7 @@ call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! title
 
-forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%title .ne. ' ')) &
+forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string .ne. ' ')) &
             s%plot_page%title(i)%draw_it = .true.
 
 ! Plot window geometry specified on cmd line?

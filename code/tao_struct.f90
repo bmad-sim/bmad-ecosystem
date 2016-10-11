@@ -126,7 +126,7 @@ end type
 ! Plot structures.
 
 type tao_title_struct
-  character(100) :: title = ''       ! title character string.
+  character(100) :: string = ''       ! title character string.
   real(rp) :: x = 0.5, y = 0.97      ! x, y rwt lower left corner
   character(16) :: units = '%PAGE'   ! %BOX, POINTS, etc...
   character(2) :: justify = 'CC'     ! Left, Center, or Right justification.
