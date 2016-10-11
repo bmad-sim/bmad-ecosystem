@@ -729,8 +729,10 @@ the global coordinate system. See also \vn{floor.}.
 
   \index{sigma.}
   \item[sigma.] \Newline
-  Beam sizes, correlations, and angular momentum calculated from the
-  beam sigma matrix. The angular momentum $\vn{Lxy} = <xp_x - yp_x>$. 
+Beam sizes \vn{sigma.x}, \vn{sigma.px}, etc., and angular momentum
+\vn{sigma.Lxy} = $<xp_x - yp_x>$ are calculated from the beam sigma matrix
+if the \vn{data_source} is set to \vn{beam} and calculated from the linear
+Twiss parmeters if the \vn{data_source} is set to \vn{lat}.
 
   \index{t. tt.} 
   \item[t. tt.] \Newline
@@ -872,11 +874,11 @@ squared.
   \label{t:data.types}
   \\ \hline
 
-  {\it Data\_Type}                    & {\it Description}                             & Source    \\ \hline\hline 
+  {\it Data\_Type}                    & {\it Description}                             & data_source \\ \hline\hline 
   \endfirsthead
 
   \caption[]{(continued)} \\ \hline
-  {\it Data\_Type}                    & {\it Description}                             & source    \\ \hline\hline 
+  {\it Data\_Type}                    & {\it Description}                             & data_source \\ \hline\hline 
   \endhead
 
   alpha.a, alpha.b                    & Normal-Mode alpha function                    & lat       \\ \hline 
@@ -904,12 +906,12 @@ squared.
   cbar.11, cbar.12, cbar.21, cbar.22
                                       & Coupling                                      & lat       \\ \hline 
 
-  chrom.dtune.a, chrom.dtune.b        & Chromaticities for a ring                       & lat       \\ \hline
+  chrom.dtune.a, chrom.dtune.b        & Chromaticities for a ring                     & lat       \\ \hline
   chrom.dbeta.a, chrom.dbeta.b        & Normalized Chromatic beta beats  \\ 
-  									  &$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$			& lat       \\ \hline
-  chrom.dphi.a, chrom.dphi.b        & Chromatic phase deviations $\partial\phi_{a,b}/\partial\delta$		& lat       \\ \hline
-  chrom.deta.x, chrom.deta.y        & Second order dispersions $\partial\eta_{x,y}/\partial\delta$		& lat       \\ \hline
-  chrom.detap.x, chrom.detap.y        & Second order dispersion slopes $\partial\eta'_{x,y}/\partial\delta$		& lat       \\ \hline
+                      &$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$            & lat       \\ \hline
+  chrom.dphi.a, chrom.dphi.b          & Chromatic phase deviations $\partial\phi_{a,b}/\partial\delta$    & lat       \\ \hline
+  chrom.deta.x, chrom.deta.y          & Second order dispersions $\partial\eta_{x,y}/\partial\delta$      & lat       \\ \hline
+  chrom.detap.x, chrom.detap.y        & Second order dispersion slopes $\partial\eta'_{x,y}/\partial\delta$    & lat       \\ \hline
 
   damp.j_a, damp.j_b, damp.j_z        & Damping partition number                      & lat       \\ \hline
 
@@ -966,12 +968,12 @@ squared.
   norm\_emit.x, norm\_emit.y, norm\_emit.z
                                       & Energy Normalized projected emittance         & beam, lat \\ \hline 
   normal.<type>.$i$.<monomial>, $1\leq i \leq 6$
-                                      & Normal Form map component, 				          & lat \\
-                                      & <type> is: M, A, A\_inv, dhdj, ReF, ImF			  	  &  \\
-  									  & <monomial> is for example: 100001		          &  \\ \hline
+                                      & Normal Form map component,                    & lat \\
+                                      & <type> is: M, A, A\_inv, dhdj, ReF, ImF       &  \\
+                                      & <monomial> is for example: 100001             &  \\ \hline
   
   orbit.x, orbit.y, orbit.z           & Orbit                                         & beam, lat \\ \hline 
-  orbit.px, orbit.py, orbit.pz       & Momenta                                       & beam, lat  \\ \hline 
+  orbit.px, orbit.py, orbit.pz        & Momenta                                       & beam, lat  \\ \hline 
   orbit.amp\_a, orbit.amp\_b          & ``Invariant'' amplitude                       & lat       \\ \hline 
   orbit.norm\_amp\_a, orbit.norm\_amp\_b  
                                       & Energy normalized ``invariant'' amplitude     & lat       \\ \hline 
@@ -984,12 +986,12 @@ squared.
   phase\_frac.a, phase\_frac.b        & \begin{tabular}{@{}l}
                                          Fractional betatron phase \\       
                                          $-\pi < \phi_{\mbox{frac}} < \pi$ \\
-                                       \end{tabular}                                 & lat        \\ \hline 
+                                       \end{tabular}                                  & lat        \\ \hline 
 
   phase\_frac\_diff                   & \begin{tabular}{@{}l}
                                          Fractional betatron phase \\
                                         difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
-                                       \end{tabular}                                 & lat       \\ \hline 
+                                       \end{tabular}                                  & lat       \\ \hline 
 
   photon.intensity_x, photon.intensity_y
                                       & Photon intensity                              & beam, lat \\ \hline
