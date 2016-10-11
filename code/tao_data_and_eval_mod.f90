@@ -385,6 +385,7 @@ if (ubound(scratch%cc, 1) < m) then
 endif
 
 scratch%cc%coupling_calc_done = .false.
+scratch%cc%sigma_calc_done = .false.
 scratch%cc%amp_calc_done = .false.
 
 end subroutine
@@ -2107,31 +2108,43 @@ case ('sigma.')
 
   select case (datum%data_type)
 
-  case ('sigma.x')  
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    datum_value = sqrt(datum_value)
+  case ('sigma.x')
+    if (data_source == 'lat') then
+      call tao_load_this_datum (scratch%cc%sigma(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    else
+      call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      datum_value = sqrt(datum_value)
+    endif
 
   case ('sigma.px')  
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    datum_value = sqrt(datum_value)
-    
+    if (data_source == 'lat') then
+      call tao_load_this_datum (scratch%cc%sigma(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    else
+      call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      datum_value = sqrt(datum_value)
+    endif
+
   case ('sigma.y')  
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    datum_value = sqrt(datum_value)
+    if (data_source == 'lat') then
+      call tao_load_this_datum (scratch%cc%sigma(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    else
+      call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      datum_value = sqrt(datum_value)
+    endif
     
   case ('sigma.py')  
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    datum_value = sqrt(datum_value)
+    if (data_source == 'lat') then
+      call tao_load_this_datum (scratch%cc%sigma(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    else
+      call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      datum_value = sqrt(datum_value)
+    endif
     
   case ('sigma.z')
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    
+
   case ('sigma.pz')  
     if (data_source == 'lat') then
       if (lat%param%geometry == closed$) return
@@ -2139,10 +2152,10 @@ case ('sigma.')
       datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
                                sum(tao_lat%rad_int%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
       valid_value = .true.
-      return
+    else
+      call tao_load_this_datum (bunch_params(:)%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      datum_value = sqrt(datum_value)
     endif
-    call tao_load_this_datum (bunch_params(:)%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    datum_value = sqrt(datum_value)
     
   case ('sigma.xy')  
     if (data_source == 'lat') return
@@ -2762,13 +2775,14 @@ end subroutine
 subroutine data_calc (ix_ele, datum, lat, orbit)
 
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 type (this_array_struct), pointer :: cc_p
 type (tao_data_struct) datum
 type (lat_struct) lat
 type (coord_struct) orbit(0:)
 
 integer ix_ele
-real(rp) f, f1, f2
+real(rp) f, f1, f2, gam_c, E_ratio, a_emit, b_emit, z_emit, px_b1, px_b2, py_a1, py_a2
 
 !
 
@@ -2788,7 +2802,33 @@ case ('k.11b', 'k.12a', 'k.12b', 'k.22a', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar
   cc_p%k_12a = cc_p%cbar(1,2) * f2
   cc_p%k_12b = cc_p%cbar(1,2) * f1
   cc_p%k_22b = cc_p%cbar(2,2) * f2
+
   cc_p%coupling_calc_done = .true.
+
+! Sigma_calc
+
+case ('sigma.x', 'sigma.px', 'sigma.y', 'sigma.py', 'sigma.z', 'sigma.pz')
+  if (cc_p%sigma_calc_done) return
+
+  call c_to_cbar (ele, cc_p%cbar)
+  gam_c = ele%gamma_c
+  branch => pointer_to_branch(ele)
+  E_ratio = ele%value(E_tot$) / branch%ele(0)%value(E_tot$)
+  a_emit = branch%a%emit / E_ratio
+  b_emit = branch%b%emit / E_ratio
+  z_emit = branch%z%emit / E_ratio
+  if (z_emit == 0) z_emit = branch%z%sigma * branch%z%sigmap / E_ratio
+  px_b1 = -ele%a%alpha * cc_p%cbar(1,1) + cc_p%cbar(2,1)
+  px_b2 = -ele%a%alpha * cc_p%cbar(1,2) + cc_p%cbar(2,2)
+  py_a1 =  ele%b%alpha * cc_p%cbar(2,2) + cc_p%cbar(2,1)
+  py_a2 = -ele%b%alpha * cc_p%cbar(1,2) - cc_p%cbar(1,1)
+
+  cc_p%sigma(1) = sqrt(gam_c**2 * a_emit * ele%a%beta  + b_emit * ele%a%beta * (cc_p%cbar(1,1)**2 + cc_p%cbar(1,2)**2) + (z_emit * ele%x%eta)**2)
+  cc_p%sigma(2) = sqrt(gam_c**2 * a_emit * ele%a%gamma + b_emit * (px_b1**2 + px_b2**2) / ele%a%beta                   + (z_emit * ele%x%etap)**2)
+  cc_p%sigma(3) = sqrt(gam_c**2 * b_emit * ele%b%beta  + a_emit * ele%b%beta * (cc_p%cbar(1,2)**2 + cc_p%cbar(2,2)**2) + (z_emit * ele%y%eta)**2)
+  cc_p%sigma(4) = sqrt(gam_c**2 * b_emit * ele%b%gamma + a_emit * (py_a1**2 + py_a2**2) / ele%b%beta                   + (z_emit * ele%y%etap)**2)
+
+  cc_p%sigma_calc_done = .true.
 
 ! Amplitude calc
 
@@ -2797,6 +2837,7 @@ case ('orbit.amp_a', 'orbit.amp_b', 'orbit.norm_amp_a', 'orbit.norm_amp_b')
   call orbit_amplitude_calc (ele, orbit(ix_ele), cc_p%amp_a, cc_p%amp_b, &
                            cc_p%amp_na, cc_p%amp_nb, lat%param%particle)
   cc_p%amp_calc_done = .true.
+
 end select
 
 end subroutine data_calc
