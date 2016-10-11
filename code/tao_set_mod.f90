@@ -761,11 +761,11 @@ namelist / params / plot_page
 select case (component)
 
 case ('title')
-  s%plot_page%title(1)%title = trim(set_value)
+  s%plot_page%title(1)%string = trim(set_value)
   return
 
 case ('subtitle')
-  s%plot_page%title(2)%title = trim(set_value)
+  s%plot_page%title(2)%string = trim(set_value)
   s%plot_page%title(2)%draw_it = .true.
   return
 
