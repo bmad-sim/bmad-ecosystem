@@ -634,7 +634,7 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$, mask$)
 ! Match
 
 case (match$)
-  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
+  call match_ele_to_mat6 (ele, err_flag)
   if (present(err)) err = err_flag
   if (err_flag) return
   if (.not. logic_option (.false., end_in)) then

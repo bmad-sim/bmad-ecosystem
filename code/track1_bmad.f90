@@ -569,7 +569,7 @@ case (match$)
 
   ! Until match_end = False, use unit matrix.
 
-  call match_ele_to_mat6 (ele, vec0, mat6, err)
+  call match_ele_to_mat6 (ele, err)
   if (err) then
     ! Since there are cases where this error may be raised many 
     ! times, do not print an error message.
@@ -578,7 +578,7 @@ case (match$)
     return
   endif
 
-  end_orb%vec = matmul (mat6, end_orb%vec) + vec0
+  end_orb%vec = matmul (ele%mat6, end_orb%vec) + ele%vec0
 
   call time_and_s_calc ()
 

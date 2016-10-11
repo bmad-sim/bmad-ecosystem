@@ -72,7 +72,7 @@ key2 = ele2%key
 ! Special match case
 
 if (ele2%key == match$ .and. is_true(ele2%value(match_end$))) then
-  call match_ele_to_mat6 (ele2, ele2%vec0, ele2%mat6, error, ele1)
+  call match_ele_to_mat6 (ele2, error, ele1)
 endif
 
 !---------------------------------------------------------------------
