@@ -2809,6 +2809,24 @@ logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
 
+! Match elements are not implemented in PTC so just use the matrix.
+! Also Taylor elements already have a taylor map.
+
+if (ele%key == match$) then
+  call match_ele_to_mat6 (ele, err_flag)
+  if (err_flag) then
+    call out_io (s_error$, r_name, 'CANNOT CONSTRUCT TAYLOR MAP FOR MATCH ELEMENT: ' // ele%name)
+    return
+  endif
+  call mat6_to_taylor (ele%vec0, ele%mat6, bmad_taylor)
+  if (.not. warning_given) then
+    call out_io (s_warn$, r_name, &
+      'Note: Taylor maps for Match elements are always 1st order!')
+    warning_given = .true.
+  endif
+  return
+endif
+
 ! Init. Note that the fibre must be made before any map manipulation in case ele contains a taylor_field.
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
@@ -2833,20 +2851,6 @@ call alloc (y8)
 call alloc (bet)
 
 call attribute_bookkeeper (ele, param, .true.)
-
-! Match elements are not implemented in PTC so just use the matrix.
-! Also Taylor elements already have a taylor map.
-
-if (ele%key == match$) then
-  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
-  call mat6_to_taylor (ele%vec0, ele%mat6, bmad_taylor)
-  if (.not. warning_given) then
-    call out_io (s_warn$, r_name, &
-      'Note: Taylor maps for Match elements are always 1st order!')
-    warning_given = .true.
-  endif
-  return
-endif
 
 ! Initial map
 
@@ -3189,7 +3193,7 @@ if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
   ptc_key%nstep = 1
-elseif (ele%key == taylor$) then
+elseif (ele%key == taylor$ .or. ele%key == match$) then
   ptc_key%nstep = 1
 else
   if (ele%value(ds_step$) == 0) then
@@ -3317,7 +3321,7 @@ case (sextupole$)
   ptc_key%magnet = 'sextupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
-case (taylor$)
+case (taylor$, match$)
   ptc_key%magnet = 'marker'
 
 case (octupole$)
@@ -3799,15 +3803,14 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 ptc_fibre%charge = track_charge
 
 ! Taylor maps
-! In theory can put in a taylor map for any element but for now only setup Bmad taylor elements.
+! In theory can put in a taylor map for any element but for now only setup Bmad taylor and match elements.
 
-if (ele%key == taylor$) then
-!!if (associated(ele%taylor(1)%term)) then
+if (ele%key == taylor$ .or. ele%key == match$) then
   ! The map can be split into pieces by taking the log of the map.
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
 
-  !!print *, 'TESTING BMAD TO PTC CONVERSION...'
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele, param, ele%taylor)
 
   onemap = .true.
 
@@ -3819,7 +3822,7 @@ if (ele%key == taylor$) then
 
   ! 
 
-  call vec_bmad_to_ptc (ele%taylor%ref, beta0, ref0)
+  call vec_bmad_to_ptc (ele%taylor%ref, beta0, ref0)  ! %ref = 0 for match elements.
 
   ! taylor_to_real_8 will take out the entrance ref orbit.
 
@@ -4143,6 +4146,7 @@ character(16) :: r_name = 'ele_to_an_bn'
 !
 
 if (ele%key == taylor$) return
+if (ele%key == match$) return
 
 leng = ele%value(l$)
 

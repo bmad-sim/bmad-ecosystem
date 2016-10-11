@@ -36,6 +36,7 @@ contains
 ! Input:
 !   t6(6,6)     -- real(rp): 1-turn transfer matrix.  RF assumed to be on.
 !   abz_tunes(3) -- real(rp): a-mode and b-mode tunes.  Used to order eigensystem.
+!
 ! Output:
 !   B1(6,6)     -- real(rp): Beta matrix associated with a-mode.
 !   B2(6,6)     -- real(rp): Beta matrix associated with b-mode.
@@ -44,57 +45,57 @@ contains
 
 subroutine t6_to_B123(t6, abz_tunes, B1, B2, B3)
 
-  use bmad
+use bmad
 
-  real(rp) t6(6,6)
-  real(rp) abz_tunes(3)
-  real(rp) B1(6,6), B2(6,6), B3(6,6)
-  logical err_flag
+real(rp) t6(6,6)
+real(rp) abz_tunes(3)
+real(rp) B1(6,6), B2(6,6), B3(6,6)
+logical err_flag
 
-  real(rp) mat_tunes(3)
-  real(rp) T1(6,6), T2(6,6), T3(6,6)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) evec_r(6,6), evec_i(6,6)
-  integer i
+real(rp) mat_tunes(3)
+real(rp) T1(6,6), T2(6,6), T3(6,6)
+real(rp) eval_r(6), eval_i(6)
+real(rp) evec_r(6,6), evec_i(6,6)
+integer i
 
-  character(*), parameter :: r_name = 't6_to_b123'
+character(*), parameter :: r_name = 't6_to_b123'
 
-  !
+!
 
-  T1 = 0.0d0
-  T2 = 0.0d0
-  T3 = 0.0d0
+T1 = 0.0d0
+T2 = 0.0d0
+T3 = 0.0d0
 
-  T1(1,2) = 1.0d0
-  T1(2,1) = 1.0d0
-  T2(3,4) = 1.0d0
-  T2(4,3) = 1.0d0
-  T3(5,6) = 1.0d0
-  T3(6,5) = 1.0d0
+T1(1,2) = 1.0d0
+T1(2,1) = 1.0d0
+T2(3,4) = 1.0d0
+T2(4,3) = 1.0d0
+T3(5,6) = 1.0d0
+T3(6,5) = 1.0d0
 
-  call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
-    B1 = 0.0d0
-    B2 = 0.0d0
-    B3 = 0.0d0
-    return
-  endif
+call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
+  B1 = 0.0d0
+  B2 = 0.0d0
+  B3 = 0.0d0
+  return
+endif
 
-  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
-    B1 = 0.0d0
-    B2 = 0.0d0
-    B3 = 0.0d0
-    return
-  endif
+call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
+  B1 = 0.0d0
+  B2 = 0.0d0
+  B3 = 0.0d0
+  return
+endif
 
-  call normalize_evecs(evec_r, evec_i)
+call normalize_evecs(evec_r, evec_i)
 
-  B1 = matmul(evec_r, matmul(T1, transpose(evec_r))) - matmul(evec_i, matmul(T1, transpose(evec_i))) 
-  B2 = matmul(evec_r, matmul(T2, transpose(evec_r))) - matmul(evec_i, matmul(T2, transpose(evec_i))) 
-  B3 = matmul(evec_r, matmul(T3, transpose(evec_r))) - matmul(evec_i, matmul(T3, transpose(evec_i))) 
+B1 = matmul(evec_r, matmul(T1, transpose(evec_r))) - matmul(evec_i, matmul(T1, transpose(evec_i))) 
+B2 = matmul(evec_r, matmul(T2, transpose(evec_r))) - matmul(evec_i, matmul(T2, transpose(evec_i))) 
+B3 = matmul(evec_r, matmul(T3, transpose(evec_r))) - matmul(evec_i, matmul(T3, transpose(evec_i))) 
 
 end subroutine t6_to_B123
 
@@ -102,19 +103,18 @@ end subroutine t6_to_B123
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine normal_mode3_calc (mat, tune, B, HV)
+! Subroutine normal_mode3_calc (mat, tune, B, HV, above_transition)
 !
 ! Does an Eigen decomposition of the 1-turn transfer matrix (mat) and generates
 ! B, V, H.
 !
-! If counter_rotating_z is present and false, then 3rd mode assumes positive slip factor.
-! Else negative slip factor assumed.  A positive slip factor means the z-mode rotates counter
-! clockwise in phase space.  A negative slip factor means the z-mode rotates clock-wise in
-! phase space.
+! If the above_transition argument is present and false, then the 3rd (z) mode is assumed
+! to have a positive slip factor (z-mode rotates counter clockwise in phase space).
+! Default is True ==> z-mode has a negative slip factor so the mode rotates clock-wise in phase space.
 !
 ! Input:
 !  mat(6,6)            -- real(rp): 1-turn transfer matrix
-!  counter_rotating_z  -- logical, optional:  If present and false, then 3rd mode assumes positive slip factor.
+!  above_transition    -- logical, optional:  If present and false, then z-mode assumes positive slip factor.
 !                                             Else negative slip factor assumed.
 !
 ! Output:
@@ -124,44 +124,41 @@ end subroutine t6_to_B123
 !
 !-
 
-subroutine normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)
-  use bmad
+subroutine normal_mode3_calc (t6, tunes, B, HV, above_transition)
 
-  real(rp) t6(6,6)
-  real(rp) tunes(3)
-  real(rp) B(6,6)
-  real(rp) HV(6,6)
-  logical, optional :: counter_rotating_z
+use bmad
 
-  real(rp) N(6,6)
-  real(rp) V(6,6)
-  real(rp) H(6,6)
-  logical err_flag
+real(rp) t6(6,6)
+real(rp) tunes(3)
+real(rp) B(6,6)
+real(rp) HV(6,6)
+logical, optional :: above_transition
 
-  character(*), parameter :: r_name = 'normal_mode3_calc'
+real(rp) N(6,6)
+real(rp) V(6,6)
+real(rp) H(6,6)
+logical err_flag
 
-  !
+character(*), parameter :: r_name = 'normal_mode3_calc'
 
-  call make_N(t6, N, err_flag, tunes_out=tunes)
-  if( err_flag ) then
-    call out_io (s_error$, r_name, "Error received from make_N.")
-    tunes = 0.0d0
-    B = 0.0d0
-    HV = 0.0d0
-    return
-  endif
+!
 
-  if( present(counter_rotating_z) ) then
-    if( .not. counter_rotating_z ) then
-      tunes(3) = tunes(3) + twopi
-    endif
-  endif
+call make_N(t6, N, err_flag, tunes_out=tunes)
+if ( err_flag ) then
+  call out_io (s_error$, r_name, "Error received from make_N.")
+  tunes = 0.0d0
+  B = 0.0d0
+  HV = 0.0d0
+  return
+endif
 
-  call make_HVBP (N, B, V, H)
-  HV = matmul(H, V)
+if (.not. logic_option(.false., above_transition)) tunes(3) = tunes(3) + twopi
+
+call make_HVBP (N, B, V, H)
+HV = matmul(H, V)
 
 !  HV=mat_symp_conj(HV) 
-  B = mat_symp_conj(B)  !for legacy compatability
+B = mat_symp_conj(B)  !for legacy compatability
 
 end subroutine normal_mode3_calc
 
@@ -197,95 +194,96 @@ end subroutine normal_mode3_calc
 !-
 
 subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
-  use bmad
 
-  real(rp) N(6,6)
-  real(rp) B(6,6)
-  real(rp) R(6,6)
-  real(rp) H(6,6)
-  real(rp), optional :: Vbar(6,6)
-  real(rp), optional :: Hbar(6,6)
+use bmad
 
-  integer i
+real(rp) N(6,6)
+real(rp) B(6,6)
+real(rp) R(6,6)
+real(rp) H(6,6)
+real(rp), optional :: Vbar(6,6)
+real(rp), optional :: Hbar(6,6)
 
-  ! Note: the variables are named here to according to the convention in the above mentioned paper.
-  real(rp) V(6,6)
-  real(rp) a, ax, ay
-  real(rp) BcPc(2, 2)
-  real(rp) Hx(2, 2)
-  real(rp) Hy(2, 2)
-  real(rp) VBP(6,6)
-  real(rp) mu
-  real(rp) BbPb(2, 2)
-  real(rp) BaPa(2, 2)
-  real(rp) V2(2, 2)
-  real(rp) BP(6,6)
-  real(rp) cospa, sinpa
-  real(rp) cospb, sinpb
-  real(rp) cospc, sinpc
-  real(rp) Pinv(6,6)
+integer i
 
-  a = sqrt(abs(determinant(N(5:6, 5:6))))
-  BcPc = N(5:6, 5:6) / a
-  Hx = matmul(N(1:2, 5:6), mat_symp_conj(BcPc))
-  Hy = matmul(N(3:4, 5:6), mat_symp_conj(BcPc))
-  ax = determinant(Hx)/(1.0d0+a)  !shorthand
-  ay = determinant(Hy)/(1.0d0+a)  !shorthand
+! Note: the variables are named here to according to the convention in the above mentioned paper.
+real(rp) V(6,6)
+real(rp) a, ax, ay
+real(rp) BcPc(2, 2)
+real(rp) Hx(2, 2)
+real(rp) Hy(2, 2)
+real(rp) VBP(6,6)
+real(rp) mu
+real(rp) BbPb(2, 2)
+real(rp) BaPa(2, 2)
+real(rp) V2(2, 2)
+real(rp) BP(6,6)
+real(rp) cospa, sinpa
+real(rp) cospb, sinpb
+real(rp) cospc, sinpc
+real(rp) Pinv(6,6)
 
-  H(1:2, 1:2) = (1.0d0-ax)*I2
-  H(3:4, 3:4) = (1.0d0-ay)*I2
-  H(5:6, 5:6) = a*I2
-  H(1:2, 5:6) = Hx
-  H(3:4, 5:6) = Hy
-  H(5:6, 1:2) = -1.0d0*mat_symp_conj(Hx)
-  H(5:6, 3:4) = -1.0d0*mat_symp_conj(Hy)
-  H(1:2, 3:4) = -1.0d0 * matmul(Hx, mat_symp_conj(Hy)) / (1.0d0 + a)
-  H(3:4, 1:2) = -1.0d0 * matmul(Hy, mat_symp_conj(Hx)) / (1.0d0 + a)
+a = sqrt(abs(determinant(N(5:6, 5:6))))
+BcPc = N(5:6, 5:6) / a
+Hx = matmul(N(1:2, 5:6), mat_symp_conj(BcPc))
+Hy = matmul(N(3:4, 5:6), mat_symp_conj(BcPc))
+ax = determinant(Hx)/(1.0d0+a)  !shorthand
+ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
-  VBP = matmul(mat_symp_conj(H), N)
+H(1:2, 1:2) = (1.0d0-ax)*I2
+H(3:4, 3:4) = (1.0d0-ay)*I2
+H(5:6, 5:6) = a*I2
+H(1:2, 5:6) = Hx
+H(3:4, 5:6) = Hy
+H(5:6, 1:2) = -1.0d0*mat_symp_conj(Hx)
+H(5:6, 3:4) = -1.0d0*mat_symp_conj(Hy)
+H(1:2, 3:4) = -1.0d0 * matmul(Hx, mat_symp_conj(Hy)) / (1.0d0 + a)
+H(3:4, 1:2) = -1.0d0 * matmul(Hy, mat_symp_conj(Hx)) / (1.0d0 + a)
 
-  mu = sqrt(abs(determinant(VBP(1:2, 1:2))))
-  BaPa = VBP(1:2, 1:2)/mu
-  BbPb = VBP(3:4, 3:4)/mu
-  V2 = matmul(VBP(1:2, 3:4), mat_symp_conj(BbPb))
+VBP = matmul(mat_symp_conj(H), N)
 
-  V = 0.0d0
-  V(1:2, 1:2) = mu*I2
-  V(3:4, 3:4) = mu*I2
-  V(5:6, 5:6) = I2
-  V(1:2, 3:4) = V2
-  V(3:4, 1:2) = -1.0d0*mat_symp_conj(V2)
+mu = sqrt(abs(determinant(VBP(1:2, 1:2))))
+BaPa = VBP(1:2, 1:2)/mu
+BbPb = VBP(3:4, 3:4)/mu
+V2 = matmul(VBP(1:2, 3:4), mat_symp_conj(BbPb))
 
-  BP = 0.0d0
-  BP(1:2, 1:2) = BaPa
-  BP(3:4, 3:4) = BbPb
-  BP(5:6, 5:6) = BcPc
+V = 0.0d0
+V(1:2, 1:2) = mu*I2
+V(3:4, 3:4) = mu*I2
+V(5:6, 5:6) = I2
+V(1:2, 3:4) = V2
+V(3:4, 1:2) = -1.0d0*mat_symp_conj(V2)
 
-  !- The following convention for P, puts B (the Twiss matrix) into the form where the upper right element is zero.
-  cospa = 1.0d0 / sqrt(1.0d0 + (BP(1,2)/BP(1,1))**2)
-  sinpa = 1.0d0 * BP(1,2) / BP(1,1) * cospa
-  cospb = 1.0d0 / sqrt(1.0d0 + (BP(3,4)/BP(3,3))**2)
-  sinpb = 1.0d0 * BP(3,4) / BP(3,3) * cospb
-  cospc = 1.0d0 / sqrt(1.0d0 + (BP(5,6)/BP(5,5))**2)
-  sinpc = 1.0d0 * BP(5,6) / BP(5,5) * cospc
-  Pinv = 0.0d0
-  Pinv(1,1) = cospa
-  Pinv(2,2) = cospa
-  Pinv(1,2) = -1.0d0 * sinpa
-  Pinv(2,1) = sinpa
-  Pinv(3,3) = cospb
-  Pinv(4,4) = cospb
-  Pinv(3,4) = -1.0d0 * sinpb
-  Pinv(4,3) = sinpb
-  Pinv(5,5) = cospc
-  Pinv(6,6) = cospc
-  Pinv(5,6) = -1.0d0 * sinpc
-  Pinv(6,5) = sinpc
+BP = 0.0d0
+BP(1:2, 1:2) = BaPa
+BP(3:4, 3:4) = BbPb
+BP(5:6, 5:6) = BcPc
 
-  B = matmul(BP, Pinv)
+!- The following convention for P, puts B (the Twiss matrix) into the form where the upper right element is zero.
+cospa = 1.0d0 / sqrt(1.0d0 + (BP(1,2)/BP(1,1))**2)
+sinpa = 1.0d0 * BP(1,2) / BP(1,1) * cospa
+cospb = 1.0d0 / sqrt(1.0d0 + (BP(3,4)/BP(3,3))**2)
+sinpb = 1.0d0 * BP(3,4) / BP(3,3) * cospb
+cospc = 1.0d0 / sqrt(1.0d0 + (BP(5,6)/BP(5,5))**2)
+sinpc = 1.0d0 * BP(5,6) / BP(5,5) * cospc
+Pinv = 0.0d0
+Pinv(1,1) = cospa
+Pinv(2,2) = cospa
+Pinv(1,2) = -1.0d0 * sinpa
+Pinv(2,1) = sinpa
+Pinv(3,3) = cospb
+Pinv(4,4) = cospb
+Pinv(3,4) = -1.0d0 * sinpb
+Pinv(4,3) = sinpb
+Pinv(5,5) = cospc
+Pinv(6,6) = cospc
+Pinv(5,6) = -1.0d0 * sinpc
+Pinv(6,5) = sinpc
 
-  if( present(Vbar) ) Vbar = matmul(mat_symp_conj(B), matmul(V, B))
-  if( present(Hbar) ) Hbar = matmul(mat_symp_conj(B), matmul(H, B))
+B = matmul(BP, Pinv)
+
+if ( present(Vbar) ) Vbar = matmul(mat_symp_conj(B), matmul(V, B))
+if ( present(Hbar) ) Hbar = matmul(mat_symp_conj(B), matmul(H, B))
 
 end subroutine make_HVBP
 
@@ -320,56 +318,56 @@ end subroutine make_HVBP
 ! Output:
 !  J(1:6)   -- real(rp): Vector containing normal mode invariants and phases
 !  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
-!
 !-
 
 subroutine xyz_to_action(ring, loc, X, J, err_flag)
-  use bmad
 
-  type(lat_struct) ring
-  class(*) :: loc
-  real(rp) X(6)
-  real(rp) J(6)
-  logical err_flag
+use bmad
 
-  real(rp) t6(6,6)
-  real(rp) N(6,6)
-  real(rp) abz_tunes(3)
+type(lat_struct) ring
+class(*) :: loc
+real(rp) X(6)
+real(rp) J(6)
+logical err_flag
 
-  integer ix_use
+real(rp) t6(6,6)
+real(rp) N(6,6)
+real(rp) abz_tunes(3)
 
-  type(ele_struct) ele_at_s
+integer ix_use
 
-  character(*), parameter :: r_name = 'xyz_to_action'
+type(ele_struct) ele_at_s
 
-  !
+character(*), parameter :: r_name = 'xyz_to_action'
 
-  abz_tunes(1) = ring%a%tune
-  abz_tunes(2) = ring%b%tune
-  abz_tunes(3) = ring%z%tune
+!
 
-  select type(loc)
-  type is (integer)
-    call transfer_matrix_calc (ring, t6, ix1=loc, one_turn=.true.)
-  type is (real(rp))
-    ix_use = element_at_s(ring, loc, .false.)
-    call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
-    call twiss_and_track_at_s(ring, loc, ele_at_s)
-    t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
-  end select
+abz_tunes(1) = ring%a%tune
+abz_tunes(2) = ring%b%tune
+abz_tunes(3) = ring%z%tune
 
-  if(all(abs(abz_tunes).gt. 0.0001)) then
-    call make_N(t6, N, err_flag, abz_tunes)
-  else
-    call make_N(t6, N, err_flag)
-  endif
-  if( err_flag ) then
-    call out_io (s_error$, r_name, "Error received from make_N.")
-    J = 0.0d0
-    return
-  endif
+select type(loc)
+type is (integer)
+  call transfer_matrix_calc (ring, t6, ix1=loc, one_turn=.true.)
+type is (real(rp))
+  ix_use = element_at_s(ring, loc, .false.)
+  call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
+  call twiss_and_track_at_s(ring, loc, ele_at_s)
+  t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
+end select
 
-  J = matmul(mat_symp_conj(N), X)
+if (all(abs(abz_tunes).gt. 0.0001)) then
+  call make_N(t6, N, err_flag, abz_tunes)
+else
+  call make_N(t6, N, err_flag)
+endif
+if ( err_flag ) then
+  call out_io (s_error$, r_name, "Error received from make_N.")
+  J = 0.0d0
+  return
+endif
+
+J = matmul(mat_symp_conj(N), X)
 end subroutine xyz_to_action
 
 !-----------------------------------------------------------------------------------------------
@@ -395,41 +393,40 @@ end subroutine xyz_to_action
 ! Output:
 !  X(1:6)   -- real(rp): canonical phase space coordinates of the particle
 !  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
-!
 !-
 subroutine action_to_xyz(ring, ix, J, X, err_flag)
-  use bmad
+use bmad
 
-  type(lat_struct) ring
-  integer ix
-  real(rp) J(1:6)
-  real(rp) X(1:6)
-  logical err_flag 
+type(lat_struct) ring
+integer ix
+real(rp) J(1:6)
+real(rp) X(1:6)
+logical err_flag 
 
-  real(rp) t6(1:6, 1:6)
-  real(rp) N(1:6, 1:6)
-  real(rp) Ninv(1:6, 1:6)
-  real(rp) abz_tunes(3)
-  real(rp) gamma(3)
-  integer i
+real(rp) t6(1:6, 1:6)
+real(rp) N(1:6, 1:6)
+real(rp) Ninv(1:6, 1:6)
+real(rp) abz_tunes(3)
+real(rp) gamma(3)
+integer i
 
-  character(*), parameter :: r_name = 'action_to_xyz'
+character(*), parameter :: r_name = 'action_to_xyz'
 
-  !
+!
 
-  abz_tunes(1) = ring%a%tune
-  abz_tunes(2) = ring%b%tune
-  abz_tunes(3) = ring%z%tune
+abz_tunes(1) = ring%a%tune
+abz_tunes(2) = ring%b%tune
+abz_tunes(3) = ring%z%tune
 
-  call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
-  call make_N(t6, N, err_flag, abz_tunes)
-  if( err_flag ) then
-    call out_io (s_error$, r_name, "Error received from make_N.")
-    X = 0.0d0
-    return
-  endif
+call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
+call make_N(t6, N, err_flag, abz_tunes)
+if ( err_flag ) then
+  call out_io (s_error$, r_name, "Error received from make_N.")
+  X = 0.0d0
+  return
+endif
 
-  X = matmul(N, J)
+X = matmul(N, J)
 
 end subroutine action_to_xyz
 
@@ -439,8 +436,8 @@ end subroutine action_to_xyz
 !+
 ! Subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, tunes, err_flag)
 !
-! Compute eigenvalues and eigenvectors of a real 6x6 matrix.  The evals
-! and evecs are in general complex.
+! Compute eigenvalues and eigenvectors of a real 6x6 matrix.
+! The evals and evecs are in general complex.
 !
 ! Input:
 !   mat(6,6)     - real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
@@ -456,102 +453,103 @@ end subroutine action_to_xyz
 
 subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
 
-  use bmad
-  !use eigen_mod
-  use la_precision, only: wp => dp
-  use f95_lapack
-  
-  real(rp) mat(6,6)
-  real(rp) A(6,6)
-  real(rp) VR(6,6)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) evec_r(6,6), evec_i(6,6)
-  logical err_flag
-  real(rp), optional :: tunes(3)
-  
-  integer i_error
-  integer pair1, pair2, pair3, pairIndexes(6)
-  integer i
-  complex(rp) evec(6,6)
-  complex(rp) check_mat(6,6)
+use bmad
+!use eigen_mod
+use la_precision, only: wp => dp
+use f95_lapack
 
-  character(*), parameter :: r_name = 'eigen_decomp_6mat'
+real(rp) mat(6,6)
+real(rp) A(6,6)
+real(rp) VR(6,6)
+real(rp) eval_r(6), eval_i(6)
+real(rp) evec_r(6,6), evec_i(6,6)
+logical err_flag
+real(rp), optional :: tunes(3)
 
-  !call mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, err_flag)
-  !evec_r = transpose(evec_r)
-  !evec_i = transpose(evec_i)
+integer i_error
+integer pair1, pair2, pair3, pairIndexes(6)
+integer i
+complex(rp) evec(6,6)
+complex(rp) check_mat(6,6)
 
-  err_flag = .true.
+character(*), parameter :: r_name = 'eigen_decomp_6mat'
 
-  A = mat  !LA_GEEV destroys the contents of its first argument.
-  CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
-  if( i_error /= 0 ) THEN
-    call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
-    if(global_com%exit_on_error) call err_exit
-    eval_r = 0.0d0
-    eval_i = 0.0d0
-    evec_r = 0.0d0
-    evec_i = 0.0d0
-    return
-  endif
-  evec_r(:, 1) = VR(:, 1)
-  evec_r(:, 2) = VR(:, 1)
-  evec_r(:, 3) = VR(:, 3)
-  evec_r(:, 4) = VR(:, 3)
-  evec_r(:, 5) = VR(:, 5)
-  evec_r(:, 6) = VR(:, 5)
-  evec_i(:, 1) = VR(:, 2)
-  evec_i(:, 2) = -VR(:, 2)
-  evec_i(:, 3) = VR(:, 4)
-  evec_i(:, 4) = -VR(:, 4)
-  evec_i(:, 5) = VR(:, 6)
-  evec_i(:, 6) = -VR(:, 6)
+!call mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, err_flag)
+!evec_r = transpose(evec_r)
+!evec_i = transpose(evec_i)
 
-  evec = cmplx(evec_r, evec_i, rp)
-  check_mat = matmul(transpose(conjg(evec)), matmul(S, evec))
+err_flag = .true.
 
-  if( aimag(check_mat(1,1)) > 0.0 ) then
-    evec_i(:, 1) = -evec_i(:, 1)
-    evec_i(:, 2) = -evec_i(:, 2)
-    eval_i(1) = -eval_i(1)
-    eval_i(2) = -eval_i(2)
-  endif
-  if( aimag(check_mat(3,3)) > 0.0 ) then
-    evec_i(:, 3) = -evec_i(:, 3)
-    evec_i(:, 4) = -evec_i(:, 4)
-    eval_i(3) = -eval_i(3)
-    eval_i(4) = -eval_i(4)
-  endif
-  if( aimag(check_mat(5,5)) > 0.0 ) then
-    evec_i(:, 5) = -evec_i(:, 5)
-    evec_i(:, 6) = -evec_i(:, 6)
-    eval_i(5) = -eval_i(5)
-    eval_i(6) = -eval_i(6)
-  endif
+A = mat  !LA_GEEV destroys the contents of its first argument.
+CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
+if ( i_error /= 0 ) THEN
+  call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
+  if (global_com%exit_on_error) call err_exit
+  eval_r = 0.0d0
+  eval_i = 0.0d0
+  evec_r = 0.0d0
+  evec_i = 0.0d0
+  return
+endif
 
-  if(present(tunes)) then
-    tunes(1) = MyTan(-eval_i(1), eval_r(1))
-    tunes(2) = MyTan(-eval_i(3), eval_r(3))
-    tunes(3) = MyTan(-eval_i(5), eval_r(5))
-  endif
+evec_r(:, 1) = VR(:, 1)
+evec_r(:, 2) = VR(:, 1)
+evec_r(:, 3) = VR(:, 3)
+evec_r(:, 4) = VR(:, 3)
+evec_r(:, 5) = VR(:, 5)
+evec_r(:, 6) = VR(:, 5)
+evec_i(:, 1) = VR(:, 2)
+evec_i(:, 2) = -VR(:, 2)
+evec_i(:, 3) = VR(:, 4)
+evec_i(:, 4) = -VR(:, 4)
+evec_i(:, 5) = VR(:, 6)
+evec_i(:, 6) = -VR(:, 6)
 
-  err_flag = .false.
+evec = cmplx(evec_r, evec_i, rp)
+check_mat = matmul(transpose(conjg(evec)), matmul(S, evec))
+
+if ( aimag(check_mat(1,1)) > 0.0 ) then
+  evec_i(:, 1) = -evec_i(:, 1)
+  evec_i(:, 2) = -evec_i(:, 2)
+  eval_i(1) = -eval_i(1)
+  eval_i(2) = -eval_i(2)
+endif
+if ( aimag(check_mat(3,3)) > 0.0 ) then
+  evec_i(:, 3) = -evec_i(:, 3)
+  evec_i(:, 4) = -evec_i(:, 4)
+  eval_i(3) = -eval_i(3)
+  eval_i(4) = -eval_i(4)
+endif
+if ( aimag(check_mat(5,5)) > 0.0 ) then
+  evec_i(:, 5) = -evec_i(:, 5)
+  evec_i(:, 6) = -evec_i(:, 6)
+  eval_i(5) = -eval_i(5)
+  eval_i(6) = -eval_i(6)
+endif
+
+if (present(tunes)) then
+  tunes(1) = MyTan(-eval_i(1), eval_r(1))
+  tunes(2) = MyTan(-eval_i(3), eval_r(3))
+  tunes(3) = MyTan(-eval_i(5), eval_r(5))
+endif
+
+err_flag = .false.
 
 !---------------------------------------------------------
 contains
 
-  function MyTan(y, x) result(arg)
-    !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
-    !between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
-    !This routine returns a number between 0 and 2pi.
-    real(rp) x, y, arg
+function MyTan(y, x) result(arg)
+  !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
+  !between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
+  !This routine returns a number between 0 and 2pi.
+  real(rp) x, y, arg
 
-    if(y .ge. 0) then
-      arg = atan2(y, x)
-    else
-      arg = atan2(y, x) + 2.0d0*pi
-    endif
-  end function MyTan
+  if (y .ge. 0) then
+    arg = atan2(y, x)
+  else
+    arg = atan2(y, x) + 2.0d0*pi
+  endif
+end function MyTan
 
 end subroutine eigen_decomp_6mat
 
@@ -581,68 +579,71 @@ end subroutine eigen_decomp_6mat
 !-
 
 subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
-  use bmad
+use bmad
 
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) mat_tunes(3)
-  real(rp) Nmat(6,6)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) eval_r(6), eval_i(6)
+real(rp) mat_tunes(3)
+real(rp) Nmat(6,6)
 
-  real(rp) evec_r_local(6,6), evec_i_local(6,6)
-  real(rp) Nlocal(6,6)
-  integer pair1, pair2, pair3
-  integer pairIndexes(6)
-  integer iterations(6, 3)
-  real(rp) check_mat(6,6)
-  real(rp) checks(6)
-  integer i, best
+real(rp) evec_r_local(6,6), evec_i_local(6,6)
+real(rp) Nlocal(6,6)
+integer pair1, pair2, pair3
+integer pairIndexes(6)
+integer iterations(6, 3)
+real(rp) check_mat(6,6)
+real(rp) checks(6)
+integer i, best
 
-  iterations(1, :) = [1, 2, 3]
-  iterations(2, :) = [1, 3, 2]
-  iterations(3, :) = [2, 1, 3]
-  iterations(4, :) = [2, 3, 1]
-  iterations(5, :) = [3, 1, 2]
-  iterations(6, :) = [3, 2, 1]
+iterations(1, :) = [1, 2, 3]
+iterations(2, :) = [1, 3, 2]
+iterations(3, :) = [2, 1, 3]
+iterations(4, :) = [2, 3, 1]
+iterations(5, :) = [3, 1, 2]
+iterations(6, :) = [3, 2, 1]
 
-  do i=1, 6
-    pair1 = iterations(i, 1)
-    pair2 = iterations(i, 2)
-    pair3 = iterations(i, 3)
+do i=1, 6
+  pair1 = iterations(i, 1)
+  pair2 = iterations(i, 2)
+  pair3 = iterations(i, 3)
 
-    pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
-    evec_r_local = evec_r(:, pairIndexes)
-    evec_i_local = evec_i(:, pairIndexes)
-    call normalize_evecs(evec_r_local, evec_i_local)
-
-    Nlocal = matmul(evec_r_local, Qr) - matmul(evec_i_local, Qi)
-
-    check_mat = matmul(mat_symp_conj(Nlocal), Nmat)
-
-    checks(i) = abs(trace(abs(check_mat)) - 6.0d0)
-  enddo
-  best= minloc(checks, 1)
-  pair1 = iterations(best, 1)
-  pair2 = iterations(best, 2)
-  pair3 = iterations(best, 3)
   pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+  evec_r_local = evec_r(:, pairIndexes)
+  evec_i_local = evec_i(:, pairIndexes)
+  call normalize_evecs(evec_r_local, evec_i_local)
 
-  evec_r = evec_r(:, pairIndexes)
-  evec_i = evec_i(:, pairIndexes)
-  eval_r = eval_r(pairIndexes)
-  eval_i = eval_i(pairIndexes)
-  mat_tunes = mat_tunes([pair1, pair2, pair3])
+  Nlocal = matmul(evec_r_local, Qr) - matmul(evec_i_local, Qi)
 
-  contains
-    function trace(mat)
-      real(rp) trace
-      real(rp) mat(:, :)
-      integer i
-      trace = 0.0d0
-      do i=1, size(mat(:, 1))
-        trace = trace + mat(i, i) 
-      enddo
-    end function
-end subroutine
+  check_mat = matmul(mat_symp_conj(Nlocal), Nmat)
+
+  checks(i) = abs(trace(abs(check_mat)) - 6.0d0)
+enddo
+best= minloc(checks, 1)
+pair1 = iterations(best, 1)
+pair2 = iterations(best, 2)
+pair3 = iterations(best, 3)
+pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+
+evec_r = evec_r(:, pairIndexes)
+evec_i = evec_i(:, pairIndexes)
+eval_r = eval_r(pairIndexes)
+eval_i = eval_i(pairIndexes)
+mat_tunes = mat_tunes([pair1, pair2, pair3])
+
+!--------------------------------
+contains
+
+function trace(mat)
+  real(rp) trace
+  real(rp) mat(:, :)
+  integer i
+  trace = 0.0d0
+  do i=1, size(mat(:, 1))
+    trace = trace + mat(i, i) 
+  enddo
+end function trace
+
+end subroutine order_evecs_by_N_similarity
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -671,32 +672,34 @@ end subroutine
 !-
 
 subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
-  use bmad
 
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) mat_tunes(3)
-  real(rp) vec(3)
-  integer pair1, pair2, pair3
-  integer pairindexes(6)
+use bmad
 
-  pair1 = maxloc([abs(evec_r(1,1)), abs(evec_r(1,3)), abs(evec_r(1,5))], 1)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) eval_r(6), eval_i(6)
+real(rp) mat_tunes(3)
+real(rp) vec(3)
+integer pair1, pair2, pair3
+integer pairindexes(6)
 
-  vec = [abs(evec_r(3,1)), abs(evec_r(3,3)), abs(evec_r(3,5))]
-  vec(pair1) = -1
-  pair2 = maxloc(vec, 1)
+pair1 = maxloc([abs(evec_r(1,1)), abs(evec_r(1,3)), abs(evec_r(1,5))], 1)
 
-  pair3 = 6 - pair1 - pair2
+vec = [abs(evec_r(3,1)), abs(evec_r(3,3)), abs(evec_r(3,5))]
+vec(pair1) = -1
+pair2 = maxloc(vec, 1)
 
-  pairIndexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
+pair3 = 6 - pair1 - pair2
 
-  evec_r = evec_r(:, pairIndexes)
-  evec_i = evec_i(:, pairIndexes)
-  eval_r = eval_r(pairIndexes)
-  eval_i = eval_i(pairIndexes)
+pairIndexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
 
-  mat_tunes = mat_tunes([pair1, pair2, pair3])
-end subroutine
+evec_r = evec_r(:, pairIndexes)
+evec_i = evec_i(:, pairIndexes)
+eval_r = eval_r(pairIndexes)
+eval_i = eval_i(pairIndexes)
+
+mat_tunes = mat_tunes([pair1, pair2, pair3])
+
+end subroutine order_evecs_by_plane_dominance
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -724,91 +727,92 @@ end subroutine
 !   err_flag     - logical, optional:  Set to true if an error occured.
 !-
 
-subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
-  use bmad
+subroutine order_evecs_by_tune (evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
 
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) mat_tunes(3)
-  logical err_flag
+use bmad
 
-  real(rp) abz_tunes(3)
-  real(rp) val(6)
-  integer pairindexes(6)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) eval_r(6), eval_i(6)
+real(rp) mat_tunes(3)
+logical err_flag
 
-  character(*), parameter :: r_name = 'order_evecs_by_tune'
+real(rp) abz_tunes(3)
+real(rp) val(6)
+integer pairindexes(6)
 
-  ! Order eigenvector pairs
+character(*), parameter :: r_name = 'order_evecs_by_tune'
 
-  err_flag = .true.
+! Order eigenvector pairs
 
-  if( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
-    call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
-    write(*, '(3f14.5)') mat_tunes(1:3)
-    if(global_com%exit_on_error) call err_exit
-    return
-  endif
-  if( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
-    call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing abz_tunes.")
-    write(*, '(3f14.5)') abz_tunes(1:3)
-    if(global_com%exit_on_error) call err_exit
-    return
-  endif
+err_flag = .true.
 
-  val(1) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
-  val(2) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
-  val(3) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
-  val(4) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
-  val(5) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
-  val(6) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
-           modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
-           modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
+if ( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
+  call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
+  write(*, '(3f14.5)') mat_tunes(1:3)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+if ( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
+  call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing abz_tunes.")
+  write(*, '(3f14.5)') abz_tunes(1:3)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
-  if(minval(val, 1) .gt. 0.1) then
-    call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing mat_tunes and abz_tunes.")
-    write(*, '(3f14.5)') mat_tunes(1:3)
-    write(*, '(3f14.5)') abz_tunes(1:3)
-  endif
+val(1) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
+val(2) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
+val(3) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
+val(4) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
+val(5) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
+val(6) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
+         modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
+         modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
 
-  select case(minloc(val, 1))
-    case(1)
-      pairindexes = [1, 2, 3, 4, 5, 6]
-      mat_tunes = mat_tunes([1, 2, 3])
-    case(2)
-      pairindexes = [1, 2, 5, 6, 3, 4]
-      mat_tunes = mat_tunes([1, 3, 2])
-    case(3)
-      pairindexes = [3, 4, 1, 2, 5, 6]
-      mat_tunes = mat_tunes([2, 1, 3])
-    case(4)
-      pairindexes = [3, 4, 5, 6, 1, 2]
-      mat_tunes = mat_tunes([2, 3, 1])
-    case(5)
-      pairindexes = [5, 6, 1, 2, 3, 4]
-      mat_tunes = mat_tunes([3, 1, 2])
-    case(6)
-      pairindexes = [5, 6, 3, 4, 1, 2]
-      mat_tunes = mat_tunes([3, 2, 1])
-  end select
+if (minval(val, 1) .gt. 0.1) then
+  call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing mat_tunes and abz_tunes.")
+  write(*, '(3f14.5)') mat_tunes(1:3)
+  write(*, '(3f14.5)') abz_tunes(1:3)
+endif
 
-  evec_r = evec_r(:, pairindexes)
-  evec_i = evec_i(:, pairIndexes)
-  eval_r = eval_r(pairIndexes)
-  eval_i = eval_i(pairIndexes)
+select case(minloc(val, 1))
+  case(1)
+    pairindexes = [1, 2, 3, 4, 5, 6]
+    mat_tunes = mat_tunes([1, 2, 3])
+  case(2)
+    pairindexes = [1, 2, 5, 6, 3, 4]
+    mat_tunes = mat_tunes([1, 3, 2])
+  case(3)
+    pairindexes = [3, 4, 1, 2, 5, 6]
+    mat_tunes = mat_tunes([2, 1, 3])
+  case(4)
+    pairindexes = [3, 4, 5, 6, 1, 2]
+    mat_tunes = mat_tunes([2, 3, 1])
+  case(5)
+    pairindexes = [5, 6, 1, 2, 3, 4]
+    mat_tunes = mat_tunes([3, 1, 2])
+  case(6)
+    pairindexes = [5, 6, 3, 4, 1, 2]
+    mat_tunes = mat_tunes([3, 2, 1])
+end select
 
-  err_flag = .false.
+evec_r = evec_r(:, pairindexes)
+evec_i = evec_i(:, pairIndexes)
+eval_r = eval_r(pairIndexes)
+eval_i = eval_i(pairIndexes)
 
-end subroutine
+err_flag = .false.
+
+end subroutine order_evecs_by_tune
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -840,57 +844,57 @@ end subroutine
 !-
 
 subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
-  use bmad
+use bmad
 
-  real(rp) t6(6,6)
-  real(rp) N(6,6)
-  logical err_flag
-  real(rp), optional :: abz_tunes(3)
-  real(rp), optional :: tunes_out(3)
+real(rp) t6(6,6)
+real(rp) N(6,6)
+logical err_flag
+real(rp), optional :: abz_tunes(3)
+real(rp), optional :: tunes_out(3)
 
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) mat_tunes(3)
-  real(rp) mat(6,6)
-  integer i
+real(rp) eval_r(6), eval_i(6)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) mat_tunes(3)
+real(rp) mat(6,6)
+integer i
 
-  character(*), parameter :: r_name = 'make_N'
+character(*), parameter :: r_name = 'make_N'
 
-  !
+!
 
-  call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
+call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
+  N = 0.0d0
+  if (present(abz_tunes)) abz_tunes = 0.0d0
+  if (present(tunes_out)) tunes_out = 0.0d0
+  return
+endif
+
+if ( present(abz_tunes) ) then
+  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+  if (err_flag) then
+    call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
     N = 0.0d0
-    if(present(abz_tunes)) abz_tunes = 0.0d0
-    if(present(tunes_out)) tunes_out = 0.0d0
+    if (present(abz_tunes)) abz_tunes = 0.0d0
+    if (present(tunes_out)) tunes_out = 0.0d0
     return
   endif
+else
+  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
+endif
 
-  if( present(abz_tunes) ) then
-    call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
-    if(err_flag) then
-      call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
-      N = 0.0d0
-      if(present(abz_tunes)) abz_tunes = 0.0d0
-      if(present(tunes_out)) tunes_out = 0.0d0
-      return
-    endif
-  else
-    call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
-  endif
+if (abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
+  mat_tunes(3) = mat_tunes(3) - twopi
+endif
 
-  if(abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
-    mat_tunes(3) = mat_tunes(3) - twopi
-  endif
+call normalize_evecs(evec_r, evec_i)
 
-  call normalize_evecs(evec_r, evec_i)
+N = matmul(evec_r, Qr) - matmul(evec_i, Qi)
 
-  N = matmul(evec_r, Qr) - matmul(evec_i, Qi)
-
-  if(present(tunes_out)) then
-    tunes_out = mat_tunes
-  endif
+if (present(tunes_out)) then
+  tunes_out = mat_tunes
+endif
 end subroutine make_N
 
 !-----------------------------------------------------------------------------------------------
@@ -924,42 +928,44 @@ end subroutine make_N
 !  normal(3)        -- real(rp): normal mode emittances
 !  err_flag         -- logical: Set to true if something went wrong.  Otherwise set to false.
 !-
+
 subroutine get_emit_from_sigma_mat(sigma_mat, normal, Nmat, err_flag)
-  use bmad
+use bmad
 
-  real(rp) sigma_mat(6,6)
-  real(rp) normal(3)
-  logical err_flag
-  real(rp), optional :: Nmat(6,6)
+real(rp) sigma_mat(6,6)
+real(rp) normal(3)
+logical err_flag
+real(rp), optional :: Nmat(6,6)
 
-  real(rp) tunes(3)
-  real(rp) eval_r(6), eval_i(6)
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) sigmas(6,6)
+real(rp) tunes(3)
+real(rp) eval_r(6), eval_i(6)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) sigmas(6,6)
 
-  integer i
+integer i
 
-  character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
+character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
 
-  !
-  sigmaS = matmul(sigma_mat, S)
+!
+sigmaS = matmul(sigma_mat, S)
 
-  call eigen_decomp_6mat(sigmas, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
-    normal = 0.0d0
-    return
-  endif
+call eigen_decomp_6mat(sigmas, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
+  normal = 0.0d0
+  return
+endif
 
-  if(present(Nmat)) then
-    call order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, tunes, Nmat)
-  else
-    call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, tunes)
-  endif
+if (present(Nmat)) then
+  call order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, tunes, Nmat)
+else
+  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, tunes)
+endif
 
-  normal(1) = abs(eval_i(1))
-  normal(2) = abs(eval_i(3))
-  normal(3) = abs(eval_i(5))
+normal(1) = abs(eval_i(1))
+normal(2) = abs(eval_i(3))
+normal(3) = abs(eval_i(5))
+
 end subroutine get_emit_from_sigma_mat
 
 !-----------------------------------------------------------------------------------------------
@@ -986,27 +992,32 @@ end subroutine get_emit_from_sigma_mat
 !
 ! Input:
 !   S(6,6)              -- real(rp): matrix of second order moments of beam envelope
+!
 ! Output:
 !   angle_xy            -- real(rp): transverse tilt of beam envelope
 !   angle_xz            -- real(rp): horizontal crabbing of beam envelope
 !   angle_yz            -- real(rp): vertical crabbing of beam envelope
 !   angle_xpz           -- real(rp): x-pz coupling
 !   angle_ypz           -- real(rp): y-pz coupling
-!
 !-
+
 subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
 
-  real(rp) S(6,6)
-  real(rp) angle_xy, angle_xz, angle_yz
-  real(rp) angle_xpz, angle_ypz
+real(rp) S(6,6)
+real(rp) angle_xy, angle_xz, angle_yz
+real(rp) angle_xpz, angle_ypz
 
-  angle_xy  = 0.5_rp * atan2( 2.0d0*S(1, 3), S(1,1)-S(3,3) )
-  angle_xz  = 0.5_rp * atan2( 2.0d0*S(1, 5), S(5,5)-S(1,1) )
-  angle_yz  = 0.5_rp * atan2( 2.0d0*S(3, 5), S(5,5)-S(3,3) )
-  angle_xpz = 0.5_rp * atan2( 2.0d0*S(1, 6), S(6,6)-S(1,1) )
-  angle_ypz = 0.5_rp * atan2( 2.0d0*S(3, 6), S(6,6)-S(3,3) )
+angle_xy  = 0.5_rp * atan2( 2.0d0*S(1, 3), S(1,1)-S(3,3) )
+angle_xz  = 0.5_rp * atan2( 2.0d0*S(1, 5), S(5,5)-S(1,1) )
+angle_yz  = 0.5_rp * atan2( 2.0d0*S(3, 5), S(5,5)-S(3,3) )
+angle_xpz = 0.5_rp * atan2( 2.0d0*S(1, 6), S(6,6)-S(1,1) )
+angle_ypz = 0.5_rp * atan2( 2.0d0*S(3, 6), S(6,6)-S(3,3) )
+
 end subroutine beam_tilts
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
 !+
 ! Subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 !
@@ -1028,6 +1039,7 @@ end subroutine beam_tilts
 !      %z%emittance -- real(rp): z-mode emittance
 !      %a%tune      -- real(rp): a-mode tune.  Used to associate emittances with the proper mode.
 !      %b%tune      -- real(rp): b-mode tune.  Used to associate emittances with the proper mode.
+!
 ! Output:
 !  sigma_mat(6,6)   -- real(rp): beam envelop sigma matrix
 !  err_flag            -- logical:  set to true if something goes wrong.  Usually means Eigen decomposition of the 1-turn matrix failed.
@@ -1036,50 +1048,51 @@ end subroutine beam_tilts
 
 subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
 
-  use bmad
+use bmad
 
-  real(rp) t6(6,6)
-  type(normal_modes_struct) mode
-  real(rp) sigma_mat(6,6)
-  logical err_flag
-  real(rp), optional :: Nout(6,6)
+real(rp) t6(6,6)
+type(normal_modes_struct) mode
+real(rp) sigma_mat(6,6)
+logical err_flag
+real(rp), optional :: Nout(6,6)
 
-  real(rp) N(6,6)
-  real(rp) D(6,6)
-  real(rp) abz_tunes(3)
+real(rp) N(6,6)
+real(rp) D(6,6)
+real(rp) abz_tunes(3)
 
-  integer i
+integer i
 
-  character(*), parameter :: r_name = 'make_smat_from_abc'
+character(*), parameter :: r_name = 'make_smat_from_abc'
 
-  !
+!
 
-  abz_tunes(1) = mode%a%tune
-  abz_tunes(2) = mode%b%tune
-  abz_tunes(3) = mode%z%tune
+abz_tunes(1) = mode%a%tune
+abz_tunes(2) = mode%b%tune
+abz_tunes(3) = mode%z%tune
 
-  call make_N(t6, N, err_flag, abz_tunes)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from make_N.")
-    sigma_mat = 0.0d0
-    if(present(Nout)) Nout = 0.0d0
-    return
-  endif
+call make_N(t6, N, err_flag, abz_tunes)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from make_N.")
+  sigma_mat = 0.0d0
+  if (present(Nout)) Nout = 0.0d0
+  return
+endif
 
-  if(present(Nout)) Nout = N
+if (present(Nout)) Nout = N
 
-  ! make_N takes the normal mode tunes and sorts N such that the first two columns are associated with the a-mode, 
-  ! second two with b-mode, and last two with z-mode.
+! make_N takes the normal mode tunes and sorts N such that the first two columns are associated with the a-mode, 
+! second two with b-mode, and last two with z-mode.
 
-  D=0.0d0
-  D(1,1) = mode%a%emittance
-  D(2,2) = mode%a%emittance
-  D(3,3) = mode%b%emittance
-  D(4,4) = mode%b%emittance
-  D(5,5) = mode%z%emittance
-  D(6,6) = mode%z%emittance
+D=0.0d0
+D(1,1) = mode%a%emittance
+D(2,2) = mode%a%emittance
+D(3,3) = mode%b%emittance
+D(4,4) = mode%b%emittance
+D(5,5) = mode%z%emittance
+D(6,6) = mode%z%emittance
 
-  sigma_mat = matmul( matmul(N, D), transpose(N) )
+sigma_mat = matmul( matmul(N, D), transpose(N) )
+
 end subroutine make_smat_from_abc
 
 !-----------------------------------------------------------------------------------------------
@@ -1099,26 +1112,27 @@ end subroutine make_smat_from_abc
 !-
 
 subroutine normalize_evecs(evec_r, evec_i)
-  use bmad
+use bmad
 
-  real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) norm1, norm2, norm3
-  complex(rp) evec(6,6)
-  complex(rp) mat(6,6)
+real(rp) evec_r(6,6), evec_i(6,6)
+real(rp) norm1, norm2, norm3
+complex(rp) evec(6,6)
+complex(rp) mat(6,6)
 
-  evec = cmplx(evec_r, evec_i, rp)
-  mat = matmul(transpose(conjg(evec)), matmul(S, evec))
+evec = cmplx(evec_r, evec_i, rp)
+mat = matmul(transpose(conjg(evec)), matmul(S, evec))
 
-  norm1 = sqrt(abs(mat(1,1)))
-  norm2 = sqrt(abs(mat(3,3)))
-  norm3 = sqrt(abs(mat(5,5)))
+norm1 = sqrt(abs(mat(1,1)))
+norm2 = sqrt(abs(mat(3,3)))
+norm3 = sqrt(abs(mat(5,5)))
 
-  evec_r(:, 1:2) = evec_r(:, 1:2) / norm1
-  evec_i(:, 1:2) = evec_i(:, 1:2) / norm1
-  evec_r(:, 3:4) = evec_r(:, 3:4) / norm2
-  evec_i(:, 3:4) = evec_i(:, 3:4) / norm2
-  evec_r(:, 5:6) = evec_r(:, 5:6) / norm3
-  evec_i(:, 5:6) = evec_i(:, 5:6) / norm3
+evec_r(:, 1:2) = evec_r(:, 1:2) / norm1
+evec_i(:, 1:2) = evec_i(:, 1:2) / norm1
+evec_r(:, 3:4) = evec_r(:, 3:4) / norm2
+evec_i(:, 3:4) = evec_i(:, 3:4) / norm2
+evec_r(:, 5:6) = evec_r(:, 5:6) / norm3
+evec_i(:, 5:6) = evec_i(:, 5:6) / norm3
+
 end subroutine normalize_evecs
 
 !-----------------------------------------------------------------------------------------------
@@ -1149,41 +1163,44 @@ end subroutine normalize_evecs
 !      %z%emittance -- real(rp): z-mode emittance
 !      %a%tune      -- real(rp): a-mode tune.  Used to associate emittances with the proper mode.
 !      %b%tune      -- real(rp): b-mode tune.  Used to associate emittances with the proper mode.
+!
 ! Output:
 !  sigma_x          -- real(rp): projected horizontal beamsize
 !  sigma_y          -- real(rp): projected vertical beamsize
 !  sigma_z          -- real(rp): projected longitudinal beamsize
 !-
+
 subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 
-  use bmad
+use bmad
 
-  type(lat_struct) ring
-  integer ix
-  type(normal_modes_struct) mode
-  real(rp) sigma_x, sigma_y, sigma_z
-  logical err_flag
+type(lat_struct) ring
+integer ix
+type(normal_modes_struct) mode
+real(rp) sigma_x, sigma_y, sigma_z
+logical err_flag
 
-  real(rp) t6(6,6)
-  real(rp) sigma_mat(6,6)
+real(rp) t6(6,6)
+real(rp) sigma_mat(6,6)
 
-  character(*), parameter :: r_name = 'project_emit_to_xyz'
+character(*), parameter :: r_name = 'project_emit_to_xyz'
 
-  !
+!
 
-  call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
-  call make_smat_from_abc(t6, mode, sigma_mat, err_flag)
-  if(err_flag) then
-    call out_io (s_error$, r_name, "Error received from make_smat_from_abc.")
-    sigma_x = 0.0d0
-    sigma_y = 0.0d0
-    sigma_z = 0.0d0
-    return
-  endif
+call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
+call make_smat_from_abc(t6, mode, sigma_mat, err_flag)
+if (err_flag) then
+  call out_io (s_error$, r_name, "Error received from make_smat_from_abc.")
+  sigma_x = 0.0d0
+  sigma_y = 0.0d0
+  sigma_z = 0.0d0
+  return
+endif
 
-  sigma_x = sqrt(sigma_mat(1, 1))
-  sigma_y = sqrt(sigma_mat(3, 3))
-  sigma_z = sqrt(sigma_mat(5, 5))
+sigma_x = sqrt(sigma_mat(1, 1))
+sigma_y = sqrt(sigma_mat(3, 3))
+sigma_z = sqrt(sigma_mat(5, 5))
+
 end subroutine project_emit_to_xyz
 
 !-----------------------------------------------------------------------------------------------
@@ -1267,7 +1284,7 @@ if (err) return
 
 err_flag = .false.
 
-end subroutine
+end subroutine twiss3_propagate1 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -1332,21 +1349,21 @@ err_flag = .false.
 !-------------------------------------------------------------------------------------
 contains
 
-  subroutine mode1_calc (gg, tune, twiss)
+subroutine mode1_calc (gg, tune, twiss)
 
-  type(twiss_struct) twiss
-  real(rp) gg(:, :), tune
+type(twiss_struct) twiss
+real(rp) gg(:, :), tune
 
-  !
+!
 
-  twiss%beta = gg(2, 2)**2
-  twiss%alpha = gg(2, 1) * gg(2, 2)
-  twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
-  twiss%phi = 0
+twiss%beta = gg(2, 2)**2
+twiss%alpha = gg(2, 1) * gg(2, 2)
+twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
+twiss%phi = 0
 
-  end subroutine
+end subroutine mode1_calc
 
-end subroutine
+end subroutine twiss3_at_start 
 
 end module mode3_mod
 
