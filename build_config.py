@@ -210,6 +210,16 @@ release_build_list = [
                 '/CESR/CESR_progs/tools',
                 '/CESR/CESR_progs/tune',
                 '/CESR/CESR_progs/univ_tune_tracker',
+                '/CESR/CESR_progs/refresh',
+                '/CESR/CESR_progs/analyze_transient',
+                '/CESR/CESR_progs/sig_acq',
+                '/CESR/CESR_progs/knobs',
+                '/CESR/CESR_progs/xbus_load',
+                '/CESR/CESR_progs/moorecon',
+                '/CESR/CESR_progs/qadcon',
+                '/CESR/CESR_progs/scwigcon',
+                '/CESR/CESR_progs/scwig_mpmdb',
+                '/CESR/CESR_progs/vacmap',
 ]
 
 packages_build_list = [
