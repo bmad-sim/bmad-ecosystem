@@ -1029,39 +1029,66 @@ case ('damp.')
 !-----------
 
 case ('dpx_dx') 
-  if (data_source == 'lat') return
-
-  if (ix_start == ix_ele) then
-    if (ix_ref > -1) value_vec(ix_ref) = bunch_params(ix_ref)%sigma(1,2) / bunch_params(ix_ref)%sigma(1,1)
-    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(1,2) / bunch_params(ix_ele)%sigma(1,1)
-    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  if (data_source == 'lat') then
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) = lat_branch%linear(ix_ref)%sigma(1,2) / lat_branch%linear(ix_ref)%sigma(1,1)
+      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(1,2) / lat_branch%linear(ix_ele)%sigma(1,1)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (lat_branch%linear%sigma(1,2) / lat_branch%linear%sigma(1,1), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   else
-    call tao_load_this_datum (bunch_params%sigma(1,2) / bunch_params%sigma(1,1), &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) = bunch_params(ix_ref)%sigma(1,2) / bunch_params(ix_ref)%sigma(1,1)
+      value_vec(ix_ele) = bunch_params(ix_ele)%sigma(1,2) / bunch_params(ix_ele)%sigma(1,1)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (bunch_params%sigma(1,2) / bunch_params%sigma(1,1), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   endif
 
 case ('dpy_dy') 
-  if (data_source == 'lat') return
-
-  if (ix_start == ix_ele) then
-    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(3,4) / bunch_params(ix_ref)%sigma(3,3)
-    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(3,4) / bunch_params(ix_ele)%sigma(3,3)
-    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  if (data_source == 'lat') then
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) =  lat_branch%linear(ix_ref)%sigma(3,4) / lat_branch%linear(ix_ref)%sigma(3,3)
+      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(3,4) / lat_branch%linear(ix_ele)%sigma(3,3)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (lat_branch%linear%sigma(3,4) / lat_branch%linear%sigma(3,3), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   else
-    call tao_load_this_datum (bunch_params%sigma(3,4) / bunch_params%sigma(3,3), &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(3,4) / bunch_params(ix_ref)%sigma(3,3)
+      value_vec(ix_ele) = bunch_params(ix_ele)%sigma(3,4) / bunch_params(ix_ele)%sigma(3,3)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (bunch_params%sigma(3,4) / bunch_params%sigma(3,3), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   endif
 
 case ('dpz_dz') 
-  if (data_source == 'lat') return
-
-  if (ix_start == ix_ele) then
-    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(5,6) / bunch_params(ix_ref)%sigma(5,5)
-    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(5,6) / bunch_params(ix_ele)%sigma(5,5)
-    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  if (data_source == 'lat') then
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) =  lat_branch%linear(ix_ref)%sigma(5,6) / lat_branch%linear(ix_ref)%sigma(5,5)
+      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(5,6) / lat_branch%linear(ix_ele)%sigma(5,5)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (lat_branch%linear%sigma(5,6) / lat_branch%linear%sigma(5,5), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   else
-    call tao_load_this_datum (bunch_params%sigma(5,6) / bunch_params%sigma(5,5), &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    if (ix_start == ix_ele) then
+      if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(5,6) / bunch_params(ix_ref)%sigma(5,5)
+      value_vec(ix_ele) = bunch_params(ix_ele)%sigma(5,6) / bunch_params(ix_ele)%sigma(5,5)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (bunch_params%sigma(5,6) / bunch_params%sigma(5,5), &
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
   endif
 
 case ('e_tot')
