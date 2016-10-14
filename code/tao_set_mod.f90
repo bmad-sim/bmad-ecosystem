@@ -1565,7 +1565,7 @@ case ('universe')
   call tao_integer_set_value (s%com%default_universe, 'UNIVERSE', value_str, &
                                                                      err, lbound(s%u, 1), ubound(s%u, 1))
   if (err) return
-  call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting()
+  call tao_turn_on_special_calcs_if_needed_for_plotting()
 
 case ('branch')
   u => tao_pointer_to_universe(-1)

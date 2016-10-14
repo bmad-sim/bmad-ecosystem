@@ -678,10 +678,8 @@ type this_array_struct
   real(rp) k_11a, k_12a, k_12b, k_22b
   real(rp) amp_a, amp_b, amp_na, amp_nb
   real(rp) :: one = 1.0
-  real(rp) :: sigma(6)
   logical :: coupling_calc_done = .false.
   logical :: amp_calc_done = .false.
-  logical :: sigma_calc_done = .false.
 end type
 
 type tao_scratch_space_struct
@@ -714,10 +712,15 @@ type tao_lat_mode_struct
   real(rp) growth_rate
 end type
 
+type tao_sigma_mat_struct
+  real(rp) sigma(6,6)
+end type
+
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
 
 type tao_lattice_branch_struct
   type (bunch_params_struct), allocatable :: bunch_params(:)
+  type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
   type (coord_struct), allocatable :: orbit(:)
   type (coord_struct) orb0                     ! For saving beginning orbit
   integer track_state
@@ -775,13 +778,16 @@ type tao_beam_struct
   character(160) saved_at
 end type
 
-! Logicals that determine what calculations need to be done
+! Logicals that determine what calculations need to be done.
+! Keep data and plotting separate since when optimizing will only do a calc if the data needs it
 
 type tao_universe_calc_struct
   logical rad_int_for_data               ! Do the radiation integrals need to be computed for
   logical rad_int_for_plotting           !   data or plotting?
   logical chrom_for_data                 ! Does the chromaticity need to be computed for
   logical chrom_for_plotting             !   data or plotting? 
+  logical beam_sigma_for_data            ! Do the beam sigmas need to be computed for
+  logical beam_sigma_for_plotting        !   data or plotting? 
   logical :: dynamic_aperture = .false.  ! Do the dynamic_aperture calc?
   logical :: one_turn_map = .false.      ! Compute the one turn map?
   logical lattice                        ! Used to indicate which lattices need tracking done.
@@ -791,6 +797,7 @@ end type
 
 !-----------------------------------------------------------------------
 ! MPI information structure
+
 type tao_mpi_struct
   logical :: on = .false.           ! Is MPI on?
   logical :: master = .true.        ! Is this the master task? If yes, rank == 0
@@ -828,7 +835,6 @@ type tao_universe_struct
   logical :: reverse_tracking = .false.  ! Reverse tracking direction?
   logical is_on                          ! universe turned on
   logical picked_uni                     ! Scratch logical.
-  logical picked2_uni                    ! Scratch logical.
 end type
 
 !-----------------------------------------------------------------------

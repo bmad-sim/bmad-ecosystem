@@ -37,7 +37,7 @@ character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
 logical abort
-logical, allocatable :: do_rad_int_data(:), do_chrom_data(:)
+logical, allocatable :: do_rad_int_data(:), do_chrom_data(:), do_beam_sigma_data(:)
 
 !
 
@@ -67,25 +67,27 @@ endif
 s%com%have_datums_using_expressions = .false.
 
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
-allocate (do_rad_int_data(iu0:iu1), do_chrom_data(iu0:iu1))
+allocate (do_rad_int_data(iu0:iu1), do_chrom_data(iu0:iu1), do_beam_sigma_data(iu0:iu1))
 
 do i = iu0, iu1
   u => s%u(i)
 
-  do_rad_int_data(i) = u%calc%rad_int_for_data
-  do_chrom_data(i)   = u%calc%chrom_for_data
+  do_rad_int_data(i)    = u%calc%rad_int_for_data
+  do_chrom_data(i)      = u%calc%chrom_for_data
+  do_beam_sigma_data(i) = u%calc%beam_sigma_for_data
 
-  u%calc%rad_int_for_data     = .false.
-  u%calc%rad_int_for_plotting = .false.
-  u%calc%chrom_for_data     = .false.
-  u%calc%chrom_for_plotting = .false.
+  u%calc%rad_int_for_data        = .false.
+  u%calc%rad_int_for_plotting    = .false.
+  u%calc%chrom_for_data          = .false.
+  u%calc%chrom_for_plotting      = .false.
+  u%calc%beam_sigma_for_data     = .false.
+  u%calc%beam_sigma_for_plotting = .false.
 
   do j = 1, size(u%data)
     if (.not. u%data(j)%useit_opt) cycle
-    if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) &
-                                                       u%calc%rad_int_for_data = .true.
-    if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) &
-                                                       u%calc%chrom_for_data = .true.
+    if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%rad_int_for_data = .true.
+    if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%chrom_for_data = .true.
+    if (tao_beam_sigma_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%beam_sigma_for_data = .true.
     if (u%data(j)%data_type(1:11) == 'expression:') s%com%have_datums_using_expressions = .true.
   enddo
 enddo
@@ -154,10 +156,11 @@ enddo
 
 s%com%optimizer_running = .false.
 
-s%u(:)%calc%rad_int_for_data = do_rad_int_data
-s%u(:)%calc%chrom_for_data = do_chrom_data
-call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
-deallocate (do_rad_int_data, do_chrom_data)
+s%u(:)%calc%rad_int_for_data    = do_rad_int_data
+s%u(:)%calc%chrom_for_data      = do_chrom_data
+s%u(:)%calc%beam_sigma_for_data = do_beam_sigma_data
+
+call tao_turn_on_special_calcs_if_needed_for_plotting ()
 
 if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
 s%u(:)%calc%lattice = .true.

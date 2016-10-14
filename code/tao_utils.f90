@@ -2949,12 +2949,12 @@ end subroutine tao_split_component
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
+! Subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
 ! 
-! Routine to set u%dynch_rad_int_clac = T if needed for a plot.
+! Routine to set u%dynch_rad_int_clac, etc to True if needed for a plot.
 !-
 
-subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
+subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
 
 implicit none
 
@@ -2964,16 +2964,16 @@ type (tao_curve_struct), pointer :: curve
 
 integer i, j, k
 
-character(*), parameter :: r_name = 'tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting'
+character(*), parameter :: r_name = 'tao_turn_on_special_calcs_if_needed_for_plotting'
 
-! Go through all the plots and find which universes need chrom_or_rad_int_calcs.
+! Go through all the plots and find which universes need special_calcs.
 ! u%picked_uni = True => need calc.
 
 s%u(:)%picked_uni  = s%u(:)%calc%rad_int_for_plotting
-s%u(:)%picked2_uni = s%u(:)%calc%chrom_for_plotting
 
-s%u(:)%calc%rad_int_for_plotting = .false.
-s%u(:)%calc%chrom_for_plotting   = .false.
+s%u(:)%calc%rad_int_for_plotting    = .false.
+s%u(:)%calc%chrom_for_plotting      = .false.
+s%u(:)%calc%beam_sigma_for_plotting = .false.
 
 do i = 1, size(s%plot_page%region)
   if (.not. s%plot_page%region(i)%visible) cycle
@@ -2997,21 +2997,21 @@ do i = 1, size(s%plot_page%region)
         u%picked_uni = .true.
       endif
 
-      if (.not. u%picked2_uni .and. tao_chrom_calc_needed(curve%data_type, curve%data_source)) then
-        if (curve%ix_branch /= 0) then
-          call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // curve%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-          call err_exit
-        endif
+      if (tao_chrom_calc_needed(curve%data_type, curve%data_source)) then
         u%calc%chrom_for_plotting = .true.
         u%calc%lattice = .true.
-        u%picked2_uni = .true.
+      endif
+
+      if (tao_beam_sigma_calc_needed(curve%data_type, curve%data_source)) then
+        u%calc%beam_sigma_for_plotting = .true.
+        u%calc%lattice = .true.
       endif
 
     enddo     ! graph%curve
   enddo     ! plot%graph
 enddo     ! plotting%region
 
-end subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting
+end subroutine tao_turn_on_special_calcs_if_needed_for_plotting
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -3068,6 +3068,31 @@ if (data_source /= 'lat') return
 if (data_type(1:6)  == 'chrom.') do_chrom = .true. 
 
 end function tao_chrom_calc_needed
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sigma)
+! 
+! Routine decide if a datum or plot curve needs a beam sigma calculation.
+!-
+
+function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sigma)
+
+implicit none
+
+character(*) data_type, data_source
+logical do_beam_sigma
+
+!
+
+do_beam_sigma = .false.
+
+if (data_source /= 'lat') return
+if (data_type(1:6)  == 'sigma.') do_beam_sigma = .true. 
+
+end function tao_beam_sigma_calc_needed
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
