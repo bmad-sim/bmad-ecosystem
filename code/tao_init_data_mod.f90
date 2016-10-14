@@ -556,6 +556,10 @@ do j = n1, n2
     endif  
   endif
 
+  if (tao_beam_sigma_calc_needed(dat%data_type, dat%data_source)) then
+    u%calc%beam_sigma_for_data = .true. 
+  endif
+
   ! Some data types are global and are not associated with a particular element. Check for this.
 
   if (dat%data_type == 'unstable.orbit') then

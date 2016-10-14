@@ -440,7 +440,7 @@ Description of the data types:
 
   \index{alpha.}
   \item[alpha.] \Newline
-Possible subdata types of the Twiss function \vn{alpha} are \vn{alpha.a} and \vn{alpha.b}.
+Possible sub-data types of the Twiss function \vn{alpha} are \vn{alpha.a} and \vn{alpha.b}.
 
   \index{apparent_emit.}
   \item[apparent_emit.] \Newline
@@ -650,13 +650,18 @@ decomposition of the one-turn-map $M$ for a ring. In the symplectic case:
 \Begineq \label{normalform1}
   M = A\circ \exp\left(:h:\right)\circ A^{-1},
 \Endeq
-where $A$ is the nonlinear normalizing map, and $h$ is a function of the amplitudes $J_i = (1/2)(x_i^2 + p_i^2)$ only. The amplitude dependent tune shifts are given by $\mu_i  = -dh/dJ_i$, and can be accessed through \vn{normal.dhdj}. Terms of $A$ and $A^{-1}$ can be accessed through \vn{normal.A} and \vn{normal.A_inv}.  
-In the general case, 
+where $A$ is the nonlinear normalizing map, and $h$ is a function of the amplitudes $J_i =
+(1/2)(x_i^2 + p_i^2)$ only. The amplitude dependent tune shifts are given by $\mu_i =
+-dh/dJ_i$, and can be accessed through \vn{normal.dhdj}. Terms of $A$ and $A^{-1}$ can be
+accessed through \vn{normal.A} and \vn{normal.A_inv}.  In the general case,
 \Begineq \label{normalform2}
 M = A_1\circ C \circ L \circ \exp\left(F\cdot\nabla\right)I\circ C^{-1} \circ A_1^{-1}.
 \Endeq
-Here $C$ is the linear map to the resonance basis: $h_\pm = x \pm i p$, $L$ is a complex linear map, $A_1$ is the (real) first order normalizing map, and $I$ is the identity map. All of the nonlinearities are therefore in the complex vector field $F$. The real and imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{normal.ImF}, \vn{normal.ReL}, and \vn{normal.ImL}.  
-
+Here $C$ is the linear map to the resonance basis: $h_\pm = x \pm i p$, $L$ is a complex
+linear map, $A_1$ is the (real) first order normalizing map, and $I$ is the identity
+map. All of the nonlinearities are therefore in the complex vector field $F$. The real and
+imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{normal.ImF},
+\vn{normal.ReL}, and \vn{normal.ImL}.
 
   \index{periodic.tt.}
   \item[periodic.tt.] \Newline
@@ -732,7 +737,11 @@ the global coordinate system. See also \vn{floor.}.
 Beam sizes \vn{sigma.x}, \vn{sigma.px}, etc., and angular momentum
 \vn{sigma.Lxy} = $<xp_x - yp_x>$ are calculated from the beam sigma matrix
 if the \vn{data_source} is set to \vn{beam} and calculated from the linear
-Twiss parmeters if the \vn{data_source} is set to \vn{lat}.
+Twiss parameters if the \vn{data_source} is set to \vn{lat}.
+
+Irregardless of the setting of \vn{data_source}, the beam emittance and longitudinal sigma
+values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and {\em not}
+any emittances or longitudinal sigma values specified in the lattice file.
 
   \index{t. tt.} 
   \item[t. tt.] \Newline

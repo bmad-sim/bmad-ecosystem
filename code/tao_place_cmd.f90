@@ -111,6 +111,6 @@ endif
 
 ! Check to see if radiation integrals need be computed
 
-call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting()
+call tao_turn_on_special_calcs_if_needed_for_plotting()
 
 end subroutine

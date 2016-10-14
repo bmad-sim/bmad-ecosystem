@@ -283,17 +283,22 @@ end subroutine tao_lattice_calc
 
 subroutine tao_single_track (u, tao_lat, calc_ok, ix_branch)
 
+use mode3_mod
+
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
-type (tao_universe_struct) u
+type (tao_universe_struct), target :: u
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (ele_struct), pointer :: ele
+type (beam_init_struct), pointer :: beam_init
 
 real(rp), parameter :: vec0(6) = 0
+real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
+
 integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
 character(20) :: r_name = "tao_single_track"
@@ -389,7 +394,6 @@ endif
 ! Twiss
 
 if (u%calc%mat6 .and. branch%param%particle /= photon$) then
-
   do i = 1, ix_lost - 1
     if (branch%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i, ix_branch = ix_branch)
@@ -407,7 +411,77 @@ if (u%calc%mat6 .and. branch%param%particle /= photon$) then
   endif
 
   call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+endif
 
+! Sigma matric calc.
+
+if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
+  beam_init => u%beam%beam_init
+  ele => branch%ele(0)
+  if (.not. associated(ele%mode3)) allocate (ele%mode3)
+  if (.not. allocated(lat_branch%linear)) allocate(lat_branch%linear(0:branch%n_ele_max))
+
+  if (branch%param%geometry == closed$) then
+    call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
+    call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+    D_mat = 0
+    D_mat(1,1) = beam_init%a_emit
+    D_mat(2,2) = beam_init%a_emit
+    D_mat(3,3) = beam_init%b_emit
+    D_mat(4,4) = beam_init%b_emit
+    D_mat(5,5) = beam_init%sig_z * beam_init%sig_E
+    D_mat(6,6) = beam_init%sig_z * beam_init%sig_E
+
+    lat_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+
+  else
+    covar = beam_init%dPz_dz * beam_init%sig_z**2
+    radix = (beam_init%sig_z * beam_init%sig_e)**2 - covar**2
+    if (radix < 0) then
+      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_E/Sig_z')
+      calc_ok = .false.
+      return
+    endif
+
+    ele%z%emit  = sqrt(radix)
+
+    if (ele%z%emit == 0) then
+      ele%z%beta  = 1
+      ele%z%alpha = 0
+      ele%z%gamma = 1
+    else
+      ele%z%beta  = beam_init%sig_z**2 / ele%z%emit
+      ele%z%alpha = - covar / ele%z%emit
+      ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
+    endif
+
+    call twiss3_from_twiss2 (branch%ele(0))
+
+    G_inv = 0
+    G_inv(1,1) = sqrt(ele%a%beta)
+    G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
+    G_inv(3,3) = sqrt(ele%b%beta)
+    G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
+    G_inv(5,5) = sqrt(ele%z%beta)
+    G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
+
+    N_mat = matmul(ele%mode3%v, G_inv)
+
+    D_mat = 0
+    D_mat(1,1) = beam_init%a_emit
+    D_mat(2,2) = beam_init%a_emit
+    D_mat(3,3) = beam_init%b_emit
+    D_mat(4,4) = beam_init%b_emit
+    D_mat(5,5) = ele%z%emit
+    D_mat(6,6) = ele%z%emit
+
+    lat_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+  endif
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    lat_branch%linear(i)%sigma = matmul(matmul(ele%mat6, lat_branch%linear(i-1)%sigma), transpose(ele%mat6))
+  enddo
 endif
 
 end subroutine tao_single_track
