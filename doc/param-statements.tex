@@ -5,7 +5,7 @@ parameter values. That is, parameter values that are associated with
 the lattice as a whole and not simply associated with a single element.
 
 %-----------------------------------------------------------------------------
-\section{Parameter Statement}
+\section{Parameter Statements}
 \label{s:param}
 \index{parameter statement|hyperbf}
 
@@ -15,10 +15,9 @@ the lattice as a whole and not simply associated with a single element.
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
-The \vn{parameter} statement is used to set the \vn{lattice} name and
-other variables. If multiple branches are present (\sref{s:branch.def}), these
-variables pertain to the \vn{root} branch. The variables that can be
-set by \vn{parameter} are
+\vn{Parameter} statements are used to set a number of global variables.
+If multiple branches are present (\sref{s:branch.def}), these variables pertain
+to the \vn{root} branch. The variables that can be set by \vn{parameter} are
 \begin{example}
   parameter[absolute_time_tracking]   = <Logical>  ! Absolute time used for RF clock?
   parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:cust.att}).
@@ -259,7 +258,7 @@ cavity to keep the total length constant. Default is \vn{True}.
   \end{description}
 
 %-----------------------------------------------------------------------------
-\section{Beam_start Statement} \label{s:beam.start}
+\section{Beam_Start Statements} \label{s:beam.start}
 \index{beam_start statement|hyperbf}
 
 \index{e_gun}
@@ -268,24 +267,23 @@ cavity to keep the total length constant. Default is \vn{True}.
 \index{field_x}\index{field_y}\index{phase_x}\index{phase_y}
 \index{spin_x}\index{spin_y}\index{spin_z}\index{spinor_theta}
 \index{spinor_phi}\index{spinor_xi}\index{spinor_polarization}
-The \vn{beam_start} statement is used to set the starting coordinates
-for particle tracking. If multiple branches are present
-(\sref{s:branch.def}), these variables pertain to the \vn{root}
-branch.
+\vn{Beam_start} statements are used, among other things to set the starting coordinates
+for particle tracking. If multiple branches are present (\sref{s:branch.def}), these
+variables pertain to the \vn{root} branch.
 \begin{example}
   beam_start[x]                   = <Real>   ! Horizontal position.
   beam_start[px]                  = <Real>   ! Horizontal momentum.
   beam_start[y]                   = <Real>   ! Vertical position.
   beam_start[py]                  = <Real>   ! Vertical momentum.
   beam_start[z]                   = <Real>   ! Longitudinal position.
-  beam_start[pz]                  = <Real>   ! Momentum deviation. Only used for non-photons
+  beam_start[pz]                  = <Real>   ! Momentum deviation. Only for non-photons.
   beam_start[direction]           = +/-1     ! Longitudinal direction of travel.
   beam_start[E_photon]            = <Real>   ! Energy (eV). Only used for photons.
   beam_start[emittance_a]         = <Real>   ! A-mode emittance
   beam_start[emittance_b]         = <Real>   ! B-mode emittance
   beam_start[emittance_z]         = <Real>   ! Z-mode emittance
   beam_start[sig_z]               = <Real>   ! Beam sigma in z-direction
-  beam_start[sig_e]               = <Real>   ! Relative beam energy sigma (Actually: Sigma_E/E)
+  beam_start[sig_e]               = <Real>   ! Sigma_E/E relative beam energy sigma.
   beam_start[field_x]             = <Real>   ! Photon beam field along x-axis
   beam_start[field_y]             = <Real>   ! Photon beam field along y-axis
   beam_start[phase_x]             = <Real>   ! Photon beam phase along x-axis

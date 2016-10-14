@@ -1,5 +1,6 @@
 module mode3_mod
-use bmad
+
+use twiss_and_track_mod
 
 implicit none
 
@@ -44,8 +45,6 @@ contains
 !-
 
 subroutine t6_to_B123(t6, abz_tunes, B1, B2, B3)
-
-use bmad
 
 real(rp) t6(6,6)
 real(rp) abz_tunes(3)
@@ -126,8 +125,6 @@ end subroutine t6_to_B123
 
 subroutine normal_mode3_calc (t6, tunes, B, HV, above_transition)
 
-use bmad
-
 real(rp) t6(6,6)
 real(rp) tunes(3)
 real(rp) B(6,6)
@@ -194,8 +191,6 @@ end subroutine normal_mode3_calc
 !-
 
 subroutine make_HVBP (N, B, V, H, Vbar, Hbar)
-
-use bmad
 
 real(rp) N(6,6)
 real(rp) B(6,6)
@@ -312,17 +307,15 @@ end subroutine make_HVBP
 !
 ! Input:
 !  ring     -- lat_struct: lattice
-!  loc       -- class(integer or real(rp)): location in ring: either element index or s coordinate.
+!  loc      -- class(integer or real(rp)): location in ring: either element index or s coordinate.
 !  X(1:6)   -- real(rp): canonical phase space coordinates of the particle
 !
 ! Output:
 !  J(1:6)   -- real(rp): Vector containing normal mode invariants and phases
-!  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
+!  err_flag -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !-
 
 subroutine xyz_to_action(ring, loc, X, J, err_flag)
-
-use bmad
 
 type(lat_struct) ring
 class(*) :: loc
@@ -352,7 +345,7 @@ type is (integer)
 type is (real(rp))
   ix_use = element_at_s(ring, loc, .false.)
   call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
-  call twiss_and_track_at_s(ring, loc, ele_at_s)
+  call twiss_and_track_at_s (ring, loc, ele_at_s)
   t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
 end select
 
@@ -395,7 +388,6 @@ end subroutine xyz_to_action
 !  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !-
 subroutine action_to_xyz(ring, ix, J, X, err_flag)
-use bmad
 
 type(lat_struct) ring
 integer ix
@@ -453,8 +445,6 @@ end subroutine action_to_xyz
 
 subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
 
-use bmad
-!use eigen_mod
 use la_precision, only: wp => dp
 use f95_lapack
 
@@ -579,7 +569,6 @@ end subroutine eigen_decomp_6mat
 !-
 
 subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
-use bmad
 
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) eval_r(6), eval_i(6)
@@ -673,8 +662,6 @@ end subroutine order_evecs_by_N_similarity
 
 subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
 
-use bmad
-
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) eval_r(6), eval_i(6)
 real(rp) mat_tunes(3)
@@ -728,8 +715,6 @@ end subroutine order_evecs_by_plane_dominance
 !-
 
 subroutine order_evecs_by_tune (evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
-
-use bmad
 
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) eval_r(6), eval_i(6)
@@ -835,7 +820,7 @@ end subroutine order_evecs_by_tune
 !
 ! Input:
 !  t6(6,6)             -- real(rp): 1-turn transfer matrix
-!  abz_tunes(3)         -- real(rp), optional: a-mode is abz_tunes(1), b-mode is abz_tunes(2), synch tune is abz_tunes(3)
+!  abz_tunes(3)        -- real(rp), optional: a-mode is abz_tunes(1), b-mode is abz_tunes(2), synch tune is abz_tunes(3)
 !
 ! Output:
 !  N(6,6)              -- real(rp): X = N.J
@@ -844,7 +829,6 @@ end subroutine order_evecs_by_tune
 !-
 
 subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
-use bmad
 
 real(rp) t6(6,6)
 real(rp) N(6,6)
@@ -930,7 +914,6 @@ end subroutine make_N
 !-
 
 subroutine get_emit_from_sigma_mat(sigma_mat, normal, Nmat, err_flag)
-use bmad
 
 real(rp) sigma_mat(6,6)
 real(rp) normal(3)
@@ -1039,16 +1022,15 @@ end subroutine beam_tilts
 !      %z%emittance -- real(rp): z-mode emittance
 !      %a%tune      -- real(rp): a-mode tune.  Used to associate emittances with the proper mode.
 !      %b%tune      -- real(rp): b-mode tune.  Used to associate emittances with the proper mode.
+!      %z%tune      -- real(rp): z-mode tune.  Used to associate emittances with the proper mode.
 !
 ! Output:
 !  sigma_mat(6,6)   -- real(rp): beam envelop sigma matrix
-!  err_flag            -- logical:  set to true if something goes wrong.  Usually means Eigen decomposition of the 1-turn matrix failed.
+!  err_flag         -- logical:  set to true if something goes wrong.  Usually means Eigen decomposition of the 1-turn matrix failed.
 !  Nout(6,6)        -- real(rp), optional: Contains the normalized eigenvectors that were used to make the sigma matrix.
 !-
 
 subroutine make_smat_from_abc(t6, mode, sigma_mat, err_flag, Nout)
-
-use bmad
 
 real(rp) t6(6,6)
 type(normal_modes_struct) mode
@@ -1112,7 +1094,6 @@ end subroutine make_smat_from_abc
 !-
 
 subroutine normalize_evecs(evec_r, evec_i)
-use bmad
 
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) norm1, norm2, norm3
@@ -1172,8 +1153,6 @@ end subroutine normalize_evecs
 
 subroutine project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 
-use bmad
-
 type(lat_struct) ring
 integer ix
 type(normal_modes_struct) mode
@@ -1207,21 +1186,31 @@ end subroutine project_emit_to_xyz
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine twiss3_propagate_all (lat)
+! Subroutine twiss3_propagate_all (lat, ix_branch)
 !
 ! Subroutine to propagate the twiss parameters using all three normal modes.
 ! Subroutine from original mode3_mod.
+!
+! Input:
+!   lat       -- lat_struct: Lattice
+!   ix_branch -- integer, optional :: Branch index. 0 = default.
 !-
 
-subroutine twiss3_propagate_all (lat)
+subroutine twiss3_propagate_all (lat, ix_branch)
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 
+integer, optional :: ix_branch
 integer i
 logical err_flag
 
-do i = 1, lat%n_ele_track
-  call twiss3_propagate1 (lat%ele(i-1), lat%ele(i), err_flag)
+!
+
+branch => lat%branch(integer_option(0, ix_branch))
+
+do i = 1, branch%n_ele_track
+  call twiss3_propagate1 (branch%ele(i-1), branch%ele(i), err_flag)
 enddo
 
 end subroutine twiss3_propagate_all
@@ -1290,69 +1279,122 @@ end subroutine twiss3_propagate1
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine twiss3_at_start (lat, error)
+! Subroutine twiss3_from_twiss2 (ele)
 !
-! Subroutine to calculate the twiss parameters of the three modes of the full 6D transfer matrix.
-! Subroutine from original mode3_mod.
+! Routine to calculate the 3D Twiss parameters given the 2D transverse Twiss parameters and some 
+! longitudinal parameters.
+! Also see: twiss3_at_start
+!
+! Input:
+!   ele     -- ele_struct: Lattice element at which the calculation is made.
+!
+! Output:
+!   ele     -- ele_struct: Element
+!-
+
+subroutine twiss3_from_twiss2 (ele)
+
+type (ele_struct) ele
+real(rp) tune3(3), d_mat(6,6)
+
+!
+
+if (.not. associated(ele%mode3)) allocate(ele%mode3)
+
+ele%mode3%a = ele%a
+ele%mode3%b = ele%b
+ele%mode3%c = ele%z
+
+call mat_make_unit(ele%mode3%v)
+call make_v_mats(ele, ele%mode3%v(1:4,1:4))
+
+ele%mode3%v(1,1:6) = ele%mode3%v(1,1:6) + ele%mode3%x%eta
+
+call mat_make_unit(d_mat)
+d_mat(1:4,6) = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
+d_mat(5,1:4) = [-ele%x%etap, ele%x%eta, -ele%y%etap, ele%y%eta]
+ele%mode3%v = matmul(d_mat, ele%mode3%v)
+
+end subroutine twiss3_from_twiss2
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine twiss3_at_start (lat, error, ix_branch, tune3)
+!
+! Subroutine to calculate the 3D twiss parameters of the three modes of the full 6D 1-turn transfer matrix.
+! This routine is for lattices with closed geometries. For open lattices see: twiss3_from_twiss2.
 !
 ! Note: The rf must be on for this calculation.
 !
-! Modules needed:
-!   use mode3_mod
-!
 ! Input:
-!   lat -- lat_struct: Lattice with
+!   lat         -- lat_struct: Lattice with
+!   ix_branch   -- integer, optional: Branch index. 0 = default.
 !
 ! Output:
-!   lat   -- lat-struct:
-!     %ele(0)  -- Ele_struct: Starting element
+!   lat       -- lat-struct:
+!     %branch(ix_branch)%ele(0)  -- Ele_struct: Starting element
 !       %mode3    -- Mode3_struct: Structure holding the normal modes.
 !         %v(6,6)    -- Real(rp): V coupling matrix.
 !         %a            -- Twiss_struct: "a" normal mode Twiss parameters.
 !         %b            -- Twiss_struct: "b" normal mode Twiss parameters.
 !         %c            -- Twiss_struct: "c" normal mode Twiss parameters.
-!   error -- Logical: Set True if there is no RF. False otherwise.
+!   error     -- Logical: Set True if there is no RF. False otherwise.
+!   tune3(3)  -- real(rp), optional: Normal mode tunes
 !-
 
-subroutine twiss3_at_start (lat, err_flag)
+subroutine twiss3_at_start (lat, err_flag, ix_branch, tune3)
 
-type (lat_struct) lat
-logical err_flag
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 
-real(rp) g(6,6), tune3(3)
+real(rp), optional :: tune3(3)
+real(rp) g(6,6), t3(3)
+
+integer, optional :: ix_branch
 integer n
+
+logical err_flag
 character(20) :: r_name = 'twiss3_at_start'
 
+!
+
+branch => lat%branch(integer_option(0, ix_branch))
+ele => branch%ele(0)
 err_flag = .true.
 
-if (.not. associated(lat%ele(0)%mode3)) allocate(lat%ele(0)%mode3)
+if (.not. associated(ele%mode3)) allocate(ele%mode3)
 
-call transfer_matrix_calc (lat, lat%param%t1_with_RF, one_turn=.true.)
-if (all(lat%param%t1_with_RF(6, 1:5) == 0)) then
+call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
+if (all(branch%param%t1_with_RF(6, 1:5) == 0)) then
   call out_io (s_error$, r_name, 'RF IS OFF FOR THE MODE3 CALCULATION!')
   return
 endif
-call normal_mode3_calc (lat%param%t1_with_RF, tune3, g, lat%ele(0)%mode3%v)
+call normal_mode3_calc (branch%param%t1_with_RF, t3, g, ele%mode3%v)
 
-lat%ele(0)%mode3%x%eta = lat%ele(0)%mode3%v(1,6)
-lat%ele(0)%mode3%y%eta = lat%ele(0)%mode3%v(3,6)
+if (present(tune3)) tune3 = t3
 
-lat%ele(0)%mode3%x%etap = lat%ele(0)%mode3%v(2,6)
-lat%ele(0)%mode3%y%etap = lat%ele(0)%mode3%v(4,6)
+ele%mode3%x%eta = ele%mode3%v(1,6)
+ele%mode3%y%eta = ele%mode3%v(3,6)
 
-call mode1_calc (g(1:2, 1:2), tune3(1), lat%ele(0)%mode3%a)
-call mode1_calc (g(3:4, 3:4), tune3(2), lat%ele(0)%mode3%b)
-call mode1_calc (g(5:6, 5:6), tune3(3), lat%ele(0)%mode3%c)
+ele%mode3%x%etap = ele%mode3%v(2,6)
+ele%mode3%y%etap = ele%mode3%v(4,6)
+
+call mode1_calc (g(1:2, 1:2), ele%mode3%a)
+call mode1_calc (g(3:4, 3:4), ele%mode3%b)
+call mode1_calc (g(5:6, 5:6), ele%mode3%c)
 
 err_flag = .false.
 
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine mode1_calc (gg, tune, twiss)
+subroutine mode1_calc (gg, twiss)
 
 type(twiss_struct) twiss
-real(rp) gg(:, :), tune
+real(rp) gg(:, :)
 
 !
 

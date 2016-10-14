@@ -319,7 +319,7 @@ are:
     integer n_bunch = 1                  ! Number of bunches.
     integer species = not_set\$           ! Species. Default is branch reference species.
     logical init_spin = F                ! initialize beam spinors
-    logical full_6D_coupling_calc = F    ! Use 6x6 1-turn mat to match distribution?  
+    logical full_6D_coupling_calc = F    ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = .false.  ! If true, the distributions will be 
                                     !   calculated using time coordinates  
     logical use_z_as_t   = .false.  ! Only used if  use_t_coords = .true.
@@ -343,12 +343,11 @@ phase space, if the Kapchinsky-Vladimirsky distribution is used,
 \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)}
 array. 
 
-Unlike all other distribution types, the \vn{GRID} distribution is
-independent of the Twiss parameters at the point of generation.  For
-the non-\vn{GRID} distributions, the distributions are adjusted if
-there is local $x$-$y$ coupling (\sref{s:coupling}). If
-\vn{full_6D_coupling_calc} is set to \vn{True}, the full 6-dimensional
-coupling matrix is used. If \vn{False}, which is the default, The
+Unlike all other distribution types, the \vn{GRID} distribution is independent of the
+Twiss parameters at the point of generation.  For the non-\vn{GRID} distributions, the
+distributions are adjusted if there is local $x$-$y$ coupling (\sref{s:coupling}). For
+lattices with a closed geometry, if \vn{full_6D_coupling_calc} is set to \vn{True}, the
+full 6-dimensional coupling matrix is used. If \vn{False}, which is the default, The
 4-dimensional $\bfV$ matrix of \Eq{vgicc1} is used.
 
 The parameters common to all the distribution types are marked in the
