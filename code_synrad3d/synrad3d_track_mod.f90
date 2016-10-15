@@ -931,6 +931,7 @@ wall_hit(n_wall_hit)%cos_perp_out = 0
 wall_hit(n_wall_hit)%reflectivity = 0
 wall_hit(n_wall_hit)%after_reflect%vec = 0
 wall_hit(n_wall_hit)%ix_wall3d = photon%now%ix_wall3d
+wall_hit(n_wall_hit)%ix_branch = photon%now%ix_branch
 
 absorbed = .true.
 

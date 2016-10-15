@@ -14,6 +14,7 @@ type sr3d_photon_wall_hit_struct
   real(rp) cos_perp_out                 ! Cosine of hit angle
   real(rp) reflectivity                 ! Reflectivity probability
   integer ix_wall3d                     ! Index of wall hit.
+  integer ix_branch                     ! Lattice branch photon in in.
 end type
 
 type sr3d_coord_struct
