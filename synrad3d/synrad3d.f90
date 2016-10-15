@@ -599,8 +599,7 @@ endif
 ! NOTE: recl = 40 must match first line length in write_this_header!
 
 iu = sr3d_params%iu_dat_file
-photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / &
-                                        (6 * h_bar_planck * c_light * n_photon_generated)
+photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / (6 * h_bar_planck * c_light * n_photon_generated)
 write (line, '(a, es11.3)') '# photon_number_factor    =', photon_number_factor
 
 close (iu)
@@ -614,12 +613,14 @@ contains
 subroutine write_photon_data (n_photon, photon)
 
 type (sr3d_photon_track_struct) :: photon
+type (branch_struct), pointer :: branch
 real(rp) start_vec(6), now_vec(6), dtrack
 integer n_photon, j, iu
 character(40) wall_name
 
 !
 
+branch => lat%branch(photon%now%ix_branch)
 start_vec = [photon%start%orb%vec(1:4), photon%start%orb%s, photon%start%orb%vec(6)]
 now_vec = [photon%now%orb%vec(1:4), photon%now%orb%s, photon%now%orb%vec(6)]
 dtrack = photon%now%orb%path_len - photon_direction * modulo2((photon%now%orb%s - photon%start%orb%s), branch%param%total_length/2)
@@ -628,9 +629,9 @@ wall_name = branch%wall3d(photon%now%ix_wall3d)%name
 if (wall_name == '') wall_name = '<default_subchamber>'
 
 iu = sr3d_params%iu_dat_file
-write (iu, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a16, 3x, a)') &
-        n_photon, photon%n_wall_hit, photon%start%orb%p0c, start_vec, now_vec, &
-        photon%now%orb%path_len, dtrack, j, key_name(branch%ele(j)%key), trim(wall_name)
+write (iu, '(i8, i6, es14.6, (4f12.6, f12.3, f12.6), i4, (4f12.6, f12.3, f12.6), 2f12.6, i4, i7, 3x, a16, 3x, a)') &
+        n_photon, photon%n_wall_hit, photon%start%orb%p0c, start_vec, photon%start%ix_branch, now_vec, &
+        photon%now%orb%path_len, dtrack, branch%ix_branch, j, key_name(branch%ele(j)%key), trim(wall_name)
 
 end subroutine write_photon_data
 
@@ -776,10 +777,9 @@ write (iu, '(a, es10.3)') '# roughness_correlation_len (input)     = ', roughnes
 write (iu, '(a, es10.3)') '# roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)')     '# sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)')     '# sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
-write (iu, *)
-write (iu, '(a)') '# Photon     num               |                        Init Postion                                   |                        Final Position                                 |   Path     ds_photon   Ix_ele    Ele Type'
-write (iu, '(a)') '#  index     hit   E_photon    |    x             vx          y          vy             s          pz  |    x             vx          y          vy             s          pz  |   Length   - ds_beam    @ Hit    @ Hit             Chamber_name'
-write (iu, *)
+write (iu, '(a)') '#                                                                                                                                                                                                         Ix_Branch'
+write (iu, '(a)') '# Photon   Num               |                        Init Postion                                   Ix_   |                        Final Position                                 |   Path     ds_photon    Ix_Ele   Ele Type'
+write (iu, '(a)') '#  index   Hit   E_photon    |    x           Vx          y           Vy          s           Vz    Branch |    x           Vx          y          Vy          s           Vz      |   Length   - ds_beam     @ Hit   @ Hit              Chamber_name'
 
 end subroutine
 

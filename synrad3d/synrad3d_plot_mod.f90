@@ -714,20 +714,19 @@ do
   ! Query
 
   print *
-  print '(a)', 'Commands:'
-  print '(a)', '   iw <sub-ch>      ! Select sub-chamber to use with other commands'
-  print '(a)', '   <CR>             ! Next section of selected sub-chamber (increment viewed section index by 1).'
-  print '(a)', '   b                ! Back section of selected sub-chamber (decrement viewed section index by 1).'
-  print '(a)', '   <Section #>      ! Index of section to view'
-  print '(a)', '   s <s-value>      ! Plot section at <s-value>.'
-  print '(a)', '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
-  print '(a)', '   x auto           ! Auto scale plot.'
-  print '(a)', '   write            ! Write (x,y) points to a file.'
-  print '(a)', '   branch <name>    ! Name or index of branch. Branch indexes for this lattice range from 0 to', ubound(lat%branch, 1)
-  print '(a)', '   normal           ! Toggle drawing of a set of vectors normal to the wall'
-  print '(a)', '   reverse          ! Toggle reversing the x-axis to point left for +x'
-  print '(a)', '   list             ! List sections for current lattice branch.'
-
+  print '(a)',     'Commands:'
+  print '(a)',     '   iw <sub-ch>      ! Select sub-chamber to use with other commands'
+  print '(a)',     '   <CR>             ! Next section of selected sub-chamber (increment viewed section index by 1).'
+  print '(a)',     '   b                ! Back section of selected sub-chamber (decrement viewed section index by 1).'
+  print '(a)',     '   <Section #>      ! Index of section to view'
+  print '(a)',     '   s <s-value>      ! Plot section at <s-value>.'
+  print '(a)',     '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
+  print '(a)',     '   x auto           ! Auto scale plot.'
+  print '(a)',     '   write            ! Write (x,y) points to a file.'
+  print '(a, i0)', '   branch <name>    ! Name or index of branch. Branch indexes for this lattice range from 0 to ', ubound(lat%branch, 1)
+  print '(a)',     '   normal           ! Toggle drawing of a set of vectors normal to the wall'
+  print '(a)',     '   reverse          ! Toggle reversing the x-axis to point left for +x'
+  print '(a)',     '   list             ! List sections for current lattice branch.'
 
   if (write_cross_section) then
     close (iu)

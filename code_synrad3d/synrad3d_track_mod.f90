@@ -118,9 +118,14 @@ main_loop: do
       orb => photon2%now%orb
       ele0 => branch%ele(orb%ix_ele)
       floor%r = [orb%vec(1), orb%vec(3), orb%s - (ele0%s - ele0%value(l$))]
+      call axis_angle_to_w_mat ([-orb%vec(4), orb%vec(2), 0.0_rp], asin(sqrt(orb%vec(2)**2 + orb%vec(4)**2)), floor%w)
       floor = coords_local_curvilinear_to_floor(floor, ele0, calculate_angles = .false.)
       floor = coords_floor_to_curvilinear (floor, branch2%ele((ie_start+ie_end)/2), ele1, status)
       if (status == outside$ .or. status == patch_problem$) cycle
+
+      orb%vec(1:5:2) = floor%r
+      orb%vec(2:6:2) = floor%w(1:3,3) * sign_of(photon%now%orb%vec(6))
+      orb%ix_ele = ele1%ix_ele
 
       do iw = 1, size(branch2%wall3d)
         status = sr3d_photon_status_calc (photon2, branch2, iw)
@@ -128,6 +133,7 @@ main_loop: do
         photon%now = photon2%now
         photon%now%ix_wall3d = iw
         photon%status = status
+        branch => branch2
         cycle main_loop
       enddo
     enddo
