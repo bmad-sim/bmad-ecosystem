@@ -90,6 +90,29 @@ write (1, '(3a)')       '"Multi-sec23-name"  STR  "', trim(section(23)%name), '"
 write (1, '(a, f12.4)') '"Multi-sec22-s"   ABS 0 ', section(22)%s
 write (1, '(a, f12.4)') '"Multi-sec23-s"   ABS 0 ', section(23)%s
 write (1, '(a, i3)')    '"Multi-sec-size"  ABS 0  ', size(section)
+
+! Branch test
+
+call bmad_parser ('branch.bmad', lat)
+call sr3d_read_wall_file ('branch.wall', lat)
+
+ele => lat%ele(1)
+p%s = 1.2_rp - 1d-12
+p%vec = 0
+p%vec(6) = 1
+p%ix_ele = 1
+p%location = inside$
+p%vec(5) = p%s - (ele%s - ele%value(l$))
+photon%start%orb = p
+photon%start%ix_branch = 0
+photon%n_wall_hit = 0
+
+call sr3d_track_photon (photon, lat, wall_hit, err, .true.)
+write (1, '(a, 3f20.16)') '"Branch-Photon"    ABS   1.0E-14', wall_hit(1)%before_reflect%vec(2:6:2)
+write (1, '(a, i0)')      '"Ix_Branch"        ABS   0      ', photon%now%ix_branch
+
+!
+
 close (1)
 
 end program

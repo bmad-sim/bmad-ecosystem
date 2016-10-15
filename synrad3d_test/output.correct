@@ -13,3 +13,5 @@
 "Multi-sec22-s"   ABS 0      10.8000
 "Multi-sec23-s"   ABS 0     101.0000
 "Multi-sec-size"  ABS 0   24
+"Branch-Photon"    ABS   1.0E-14  0.0000000000001000  0.0000000000000000  1.0000000000000002
+"Ix_Branch"        ABS   0      1
