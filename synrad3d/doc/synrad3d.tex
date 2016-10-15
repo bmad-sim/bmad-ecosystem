@@ -596,6 +596,8 @@ the Bmad format or, if the \vn{lattice_file} string is prefixed by
 \vn{``xsif::''}, may be in xsif format. See the Bmad manual for more details.
   \item[\vn{photon_track_file}] \Newline
 This string, if not blank, will create a data file with a table of points along the photon tracks.
+This file is useful for plotting photon trajectories since it records intermediate points between
+points where the photon hits a wall.
 See \sref{s:photon.track.file} for more details
   \item[\vn{wall_file}] \Newline
 This string gives the name of the vacuum chamber wall definition
@@ -1129,12 +1131,46 @@ branch. The form of this namelist is:
   &subchamber_branch
     subchamber_name = <name>
     branch_name = <name-or-index>
- /
+  /
 \end{example}
 The \vn{subchamber_name} is the name of the subchamber to be associated and
-\vn{branch_name> is name or index of the associated branch.
+\vn{branch_name} is name or index of the associated branch.
 
-Example: 
+As an example, consider the following lattice:
+\begin{example}
+  parameter[E_tot] = 1e9
+  b: sbend, l = 2.0, g = 0.1
+  fk: fork, superimpose, ref = b, offset = 0.2, to_line = b1
+  dd: drift, l = 3
+  ring: line = (..., b, ...)
+  b1: line = (dd)
+  b1[geometry] = open
+  use, ring
+\end{example}
+This lattice has two branches. The root branch is named \vn{ring} and this branch contains
+a bend called \vn{b}. Superimposed upon \vn{b} is a \vn{fork} element called \vn{fk} which
+forks to the second branch called \vn{b1}.
+
+The wall file for this example is:
+\begin{example}
+  &place section = 0.0,  "", "main:sdef" /
+  &place section = 2.0,  "", "main:sdef" /
+  &place section = 0.0,  "", "x_wall:sdef" /
+  &place section = 3.0,  "", "x_wall:sdef" /
+
+  &shape_def
+    name = "sdef"
+    v(1) =    0.01,    0.01
+  /
+
+  &subchamber_branch
+    subchamber_name = 'x_wall'
+    branch_name = 'b1'
+  /
+\end{example}
+There are two subchambers. One subchamber named \vn{main} is, by default, associatedto the
+root branch -- \vn{ring}. The other subchamber, named \vn{x_wall}, is associated with the
+\vn{b1} branch.
 
 %------------------------------------------------------------------
 \section{Subchamber Wall Interpolation} 
@@ -1747,14 +1783,16 @@ The columns of the file are:
   2:      The number of times the photon has struck the vacuum 
               chamber wall including the final hit. 
   3:      The photon energy (in eV).
-  4-9:    Initial photon position $x$, $v_x/c$, $y$, $v_y/c$, $s$, $v_s/c.$
-  10-15:  Final photon position
-  16:     Photon travel length
-  17:     Photon longitudinal travel length - beam travel length 
+  4-9:    Initial photon position $x$, $V_x/c$, $y$, $V_y/c$, $s$, $V_s/c$.
+  10      Index of the lattice branch where the photon was created
+  11-16:  Final photon position
+  17:     Photon travel length
+  18:     Photon longitudinal travel length - beam travel length 
                                                        in the same time period.
-  18:     Lattice element index where photon is absorbed.
-  19:     Lattice element type (Eg: quadrupole, etc.) where photon is absorbed.
-  20:     sub-chamber name where photon is absorbed.
+  19:     Index of the lattice branch where the photon is absorbed.
+  20:     Lattice element index where photon is absorbed.
+  21:     Lattice element type (Eg: quadrupole, etc.) where photon is absorbed.
+  22:     sub-chamber name where photon is absorbed.
 \end{example}  
 
 $x$ is the horizontal position (direction along the
@@ -1793,13 +1831,14 @@ The columns of this file are:
   2:     wall_hit_index  
   3:     photon_energy             ! When wall_hit_index = 0 this is 0]
   4-6:   (x, y, s)                 ! Coordinates of photon at wall
-  7-9:   (vx, vy, vs)              ! Velocity before bounce
-  10-12: (vx, vy, vs)              ! Velocity after bounce 
-  13-15: (perp_x, perp_y, perp_z)  ! Wall perpendicular
-  16:    cos_perp_in               ! Cosine of photon incoming direction wrt wall.
-  17:    cos_perp_out              ! Cosine of photon outgoing direction wrt wall.
-  18:    reflectivity              ! Reflectivity coef
-  19:    sub-chamber               ! Subchamber name where photon hits.
+  7:     ix_branch                 ! Index of lattice branch where photon is.
+  8-10:  (vx, vy, vs)              ! Velocity before bounce.
+  11-13: (vx, vy, vs)              ! Velocity after bounce.
+  14-16: (perp_x, perp_y, perp_z)  ! Wall perpendicular.
+  17:    cos_perp_in               ! Cosine of photon incoming direction wrt wall.
+  18:    cos_perp_out              ! Cosine of photon outgoing direction wrt wall.
+  19:    reflectivity              ! Reflectivity coef.
+  20:    sub-chamber               ! Subchamber name where photon hits.
 \end{example}
 The \vn{photon_index} is the same index as in the main output file. The
 \vn{wall_hit_index} starts at 0 for the emission point and increases up to the value for
@@ -1809,14 +1848,14 @@ file.
 Columns 4 through 6 give the coordinates of the photon where it strikes the wall.  except
 that the entry for wall_hit_index = 0 gives the emission point coordinates.
 
-Columns 7 through 9 gives the velocity of the photon just before it bounces and columns 10
-through 12 gives the velocity just after it bounces (or what would be its velocity if it
+Columns 8 through 10 gives the velocity of the photon just before it bounces and columns 11
+through 13 gives the velocity just after it bounces (or what would be its velocity if it
 does not get absorbed).
 
-Columns 13 through 15 give the perpendicular vector to the wall at the point of photon
+Columns 14 through 16 give the perpendicular vector to the wall at the point of photon
 impact.
 
-Columns 16 and 17 give the cosine of the angle between the wall perpendicular and the
+Columns 17 and 18 give the cosine of the angle between the wall perpendicular and the
 photon velocity just before and just after the bounce.
 
 Column 18 gives reflectivity which is a function of the type of surface and the photon
@@ -1843,32 +1882,36 @@ generated. Caution: \vn{photon_track_file}s are over an order of magnitude large
 \section{Photon Track Output File}
 \label{s:photon.track.file}
 
-A photon track file records the photon position after each propagation step.
-A photon track file is generated if the \vn{photon_track_file} parameter is
-set to something that is not blank in the master input file (\sref{s:master}).
+A photon track file records the photon position after each propagation step.  A photon
+track file is generated if the \vn{photon_track_file} parameter is set to something that
+is not blank in the master input file (\sref{s:master}). 
 
-Example track file output
+This file is useful for plotting photon trajectories since it records intermediate points
+between points where the photon hits a wall.
+
+Example track file output:
 \begin{example}
-  1   1  -0.000823    0.000054    67.785765      0.000000    0.000000    0.000000
-  1   1   0.045000   -0.000229    70.515079      0.032303   -0.000104    0.999478
-  1   1  -0.039304   -0.013811    71.216813     -0.115289   -0.019212    0.993146
-  2   4  -0.000740    0.000054    67.851507      0.000000    0.000000    0.000000
-  2   4   0.045000    0.000128    70.578267      0.032274    0.000027    0.999479
-  3   5  -0.000658    0.000054    67.917250      0.000000    0.000000    0.000000
-  3   5   0.045000    0.000465    70.641452      0.032245    0.000151    0.999480
-  3   5  -0.045000   -0.002062    71.036893     -0.219720   -0.006232    0.975543
-  4   7  -0.000575    0.000053    67.982992      0.000000    0.000000    0.000000
-  4   7   0.045000   -0.000370    70.704636      0.032216   -0.000155    0.999481
-  4   7  -0.045000   -0.001490    71.234797     -0.164390   -0.002083    0.986393
-  5   9  -0.000493    0.000053    68.048735      0.000000    0.000000    0.000000
-  5   9   0.045000    0.000393    70.767817      0.032187    0.000125    0.999482
+  1   1  -0.000823    0.000054    67.785765   0      0.000000    0.000000    0.000000
+  1   1   0.045000   -0.000229    70.515079   0      0.032303   -0.000104    0.999478
+  1   1  -0.039304   -0.013811    71.216813   0     -0.115289   -0.019212    0.993146
+  2   4  -0.000740    0.000054    67.851507   0      0.000000    0.000000    0.000000
+  2   4   0.045000    0.000128    70.578267   0      0.032274    0.000027    0.999479
+  3   5  -0.000658    0.000054    67.917250   0      0.000000    0.000000    0.000000
+  3   5   0.045000    0.000465    70.641452   0      0.032245    0.000151    0.999480
+  3   5  -0.045000   -0.002062    71.036893   0     -0.219720   -0.006232    0.975543
+  4   7  -0.000575    0.000053    67.982992   0      0.000000    0.000000    0.000000
+  4   7   0.045000   -0.000370    70.704636   0      0.032216   -0.000155    0.999481
+  4   7  -0.045000   -0.001490    71.234797   0     -0.164390   -0.002083    0.986393
+  5   9  -0.000493    0.000053    68.048735   0      0.000000    0.000000    0.000000
+  5   9   0.045000    0.000393    70.767817   0      0.032187    0.000125    0.999482
 \end{example}
 The columns of this file are
 \begin{example}
   1:     Photon index  
   2:     Generated photon index.
   3-5:   (x, y, s)                 ! Coordinates of photon 
-  6-8:   (vx, vy, vs)              ! Velocity of the photon
+  7:     ix_branch                 ! Index of lattice branch photon is in.
+  7-9:   (vx, vy, vs)              ! Velocity of the photon
 \end{example}
 
 Column 1 gives the photon index which gives a count of the photons that have been tracked
@@ -1883,7 +1926,7 @@ the file.
 
 Columns 3 through 5 give the position of the photon.
 
-Columns 6 through 8 gives the velocity of the photon.
+Columns 7 through 9 gives the velocity of the photon.
 
 %------------------------------------------------------------------
 \chapter{Test Modes}

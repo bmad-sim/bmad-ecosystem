@@ -27,10 +27,10 @@ character(40) wall_name
 
 if (logic_option(.false., lots_of_digits)) then
   fm  = '(6es25.15)'
-  fm2 = '(i7, i4, f10.2, 5x, 3es25.15, 2(5x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10, 3x, a)' 
+  fm2 = '(i7, i4, f10.2, 5x, 3es25.15, i4, 2(5x, 3es25.15), 10x, 3f18.12, 5x, 3f16.10, 3x, a)' 
 else
   fm  = '(6f12.6)'
-  fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6, 3x, a)'
+  fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, i4, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6, 3x, a)'
 endif
 
 
@@ -53,7 +53,7 @@ do n = 0, photon%n_wall_hit
     if (wall_name == '') wall_name = '<default_subchamber>'
   endif
   write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
-          hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
+          hit%ix_branch, hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
           hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity, trim(wall_name)
 enddo
 
@@ -126,8 +126,8 @@ case ('RECORD_TRACK_POINT')
   ! Record a track point in the scratch file.
   if (iu == 0) call err_exit ! Should be non-zero
   orb => photon%now%orb
-  write (iu, '(i8, i10, 2f11.6, f13.6, 5x, 3f11.6)') &
-     photon%ix_photon, photon%ix_photon_generated, orb%vec(1:3:2), orb%s, orb%vec(2:6:2)
+  write (iu, '(i8, i10, 2f11.6, f13.6, i4, 5x, 3f11.6)') &
+     photon%ix_photon, photon%ix_photon_generated, orb%vec(1:3:2), orb%s, photon%now%ix_branch, orb%vec(2:6:2)
 
 case default
   call err_exit   ! Should not be here
