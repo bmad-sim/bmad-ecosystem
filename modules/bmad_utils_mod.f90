@@ -1741,11 +1741,14 @@ integer ib, ios
 logical, optional :: parameter_is_branch0
 
 character(*) branch_name
-character(32), parameter :: r_name = 'pointer_to_branch_given_name'
+character(40) b_name
+character(*), parameter :: r_name = 'pointer_to_branch_given_name'
 
 ! parameter
 
-if (logic_option(.false., parameter_is_branch0) .and. branch_name == 'PARAMETER') then
+call str_upcase (b_name, branch_name)
+
+if (logic_option(.false., parameter_is_branch0) .and. b_name == 'PARAMETER') then
   branch_ptr => lat%branch(0)
   return
 endif
@@ -1756,10 +1759,10 @@ nullify(branch_ptr)
 
 ! Is index.
 
-if (is_integer(trim(branch_name))) then
-  read (branch_name, *, iostat = ios) ib
+if (is_integer(trim(b_name))) then
+  read (b_name, *, iostat = ios) ib
   if (ib < 0 .or. ib > ubound(lat%branch, 1)) then
-    !! call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // branch_name)
+    !! call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // b_name)
     return
   endif
   branch_ptr => lat%branch(ib)
@@ -1768,7 +1771,7 @@ if (is_integer(trim(branch_name))) then
 
 else
   do ib = lbound(lat%branch, 1), ubound(lat%branch, 1)
-    if (lat%branch(ib)%name == branch_name) then
+    if (lat%branch(ib)%name == b_name) then
       branch_ptr => lat%branch(ib)
       return
     endif
