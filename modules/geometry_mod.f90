@@ -975,16 +975,19 @@ type (floor_position_struct) :: global_position, local_position
 type (ele_struct)   :: ele
 type (floor_position_struct) :: floor0
 real(rp), optional :: w_mat(3,3)
-real(rp) s_local, z_min, z_max
+real(rp) s_local, z_min, z_max, theta, dtheta, r1
 integer :: status
 
 ! sbend case
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
   floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
   local_position = coords_floor_to_relative (floor0, global_position)
-  z_min = local_position%r(3) - abs(local_position%r(1)) - abs(local_position%r(2))
-  z_max = local_position%r(3) + abs(local_position%r(1)) + abs(local_position%r(2))
+  theta = atan(local_position%r(3) / ele%value(rho$))
+  r1 = sqrt(local_position%r(3)**2 + ele%value(rho$)**2)
+  dtheta = abs(atan(sqrt(local_position%r(1)**2 + local_position%r(2)**2) / r1) + 1d-6)
+  z_min = (theta - dtheta) * ele%value(rho$)
+  z_max = (theta + dtheta) * ele%value(rho$)
   local_position%r(3) = zbrent (delta_s_func, z_min, z_max, 1d-9)
 
 ! Straight line case
@@ -1081,7 +1084,7 @@ type (branch_struct), pointer :: branch
 
 real(rp), optional :: w_mat(3,3)
 real(rp) w_mat0(3,3), w_mat1(3,3)
-integer status, last_direction, ix_ele
+integer status, last_direction, ix_ele, n_try
 character(*), parameter :: r_name = 'coords_floor_to_curvilinear'
 
 ! Loop over neighboring elements until an encompassing one is found
@@ -1089,18 +1092,19 @@ character(*), parameter :: r_name = 'coords_floor_to_curvilinear'
 branch => ele0%branch
 ix_ele = ele0%ix_ele
 last_direction = 0
-
+n_try = 0
 
 do
   ele1 => branch%ele(ix_ele)
   local_coords = coords_floor_to_local_curvilinear (floor_coords, ele1, status) 
   local_coords%r(3) = local_coords%r(3) + branch%ele(ix_ele-1)%s
   if (status == inside$) exit
+  n_try = n_try + 1
 
   ! No good so look for a problem and keep on searching if warranted
 
   if (status == upstream_end$) then
-    if (ix_ele == 1 .and. branch%param%geometry == open$) then
+    if (n_try >= branch%n_ele_track .or. (ix_ele == 1 .and. branch%param%geometry == open$)) then
       status = outside$
       return
     endif
@@ -1117,7 +1121,7 @@ do
     cycle
 
   else if (status == downstream_end$) then
-    if (ix_ele == branch%n_ele_track .and. branch%param%geometry == open$) then
+    if (n_try >= branch%n_ele_track .or. (ix_ele == branch%n_ele_track .and. branch%param%geometry == open$)) then
       status = outside$
       return
     endif
