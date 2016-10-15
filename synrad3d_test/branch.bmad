@@ -1,0 +1,17 @@
+parameter[particle] = electron
+parameter[e_tot] = 2.40000e+09
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+
+b: sbend, l = 2.0, g = 0.1
+pf: fork, superimpose, ref = b, offset = 0.2, to_line = b1
+
+dd: drift, l = 3
+
+b0: line = (b)
+b1: line = (dd)
+b1[geometry] = open
+
+use, b0
