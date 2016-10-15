@@ -126,7 +126,7 @@ namelist / place / section, surface
 namelist / shape_def / name, v, r0, absolute_vertices
 namelist / surface_def / reflectivity_file
 namelist / slow_fast / slow, fast
-namelist / subchamber_in_branch_placement / subchamber_name, branch_name 
+namelist / subchamber_branch / subchamber_name, branch_name 
 
 ! Open file
 
@@ -257,19 +257,19 @@ enddo
 rewind(iu)
 do
   
-  read (iu, nml = subchamber_in_branch_placement, iostat = ios)
+  read (iu, nml = subchamber_branch, iostat = ios)
   if (ios > 0) then ! If error
-    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_IN_BRANCH_PLACEMENT NAMELIST IN WALL FILE:' // trim(wall_file))
+    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_BRANCH NAMELIST IN WALL FILE:' // trim(wall_file))
     rewind (iu)
     do
-      read (iu, nml = subchamber_in_branch_placement) ! generate error message
+      read (iu, nml = subchamber_branch) ! generate error message
     enddo
   endif
   if (ios < 0) exit  ! End of file
 
   branch => pointer_to_branch (branch_name, lat)
   if (.not. associated(branch)) then
-    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_IN_BRANCH_PLACEMENT NAMELIST', &
+    call out_io (s_fatal$, r_name, 'ERROR READING SUBCHAMBER_BRANCH NAMELIST', &
                     'CANNOT FIND LATTICE BRANCH ASSOCIATED WITH BRANCH NAME: ' // branch_name)
     stop
   endif
@@ -781,27 +781,32 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (.not. associated(branch%wall3d)) cycle
 
-  do ie = 1, lat%n_ele_track
+  do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (ele%key /= fork$ .and. ele%key /= photon_fork$) cycle
 
     branch2 => lat%branch(nint(ele%value(ix_to_branch$)))
     if (.not. associated(branch2%wall3d)) cycle
-    ele2 = branch%ele(nint(ele%value(ix_to_branch$)))
+    ele2 => branch2%ele(nint(ele%value(ix_to_element$)))
 
-    call init_overlap_ends (ele, branch, ix_ele1_start, ix_ele1_end, max_r1)
-    call init_overlap_ends (ele2, branch2, ix_ele2_start, ix_ele2_end, max_r2)
+    ! In branch:  Overlap region are elements with indexes in the range [ix_ele1_start, ix_ele1_end]
+    !             max_r1 is the maximum chamber radius in this range
+    ! In branch2: Overlap region are elements with indexes in the range [ix_ele2_start, ix_ele2_end]
+    !             max_r2 is the maximum chamber radius in this range
+
+    call overlap_region_rough_guess (ele, branch, ix_ele1_start, ix_ele1_end, max_r1) 
+    call overlap_region_rough_guess (ele2, branch2, ix_ele2_start, ix_ele2_end, max_r2)
     max_r = 2 * (max_r1 + max_r2) ! Factor of two is a safety factor.
 
     n_overlap = n_overlap + 1
-    call move_alloc(sr3d_com%branch_overlap, branch_overlap)
+    call move_alloc (sr3d_com%branch_overlap, branch_overlap)
     allocate (sr3d_com%branch_overlap(n_overlap))
     if (n_overlap > 1) sr3d_com%branch_overlap(1:n_overlap-1) = branch_overlap(1:n_overlap-1)
 
     sr3d_com%branch_overlap(n_overlap)%ix_branch1 = ib
     sr3d_com%branch_overlap(n_overlap)%ix_branch2 = branch2%ix_branch
 
-    ! Adjust ix_ele1_start
+    ! Refine ix_ele1_start
 
     ixe = (ix_ele2_start + ix_ele2_end) / 2
     ele0 => branch%ele(ix_ele1_start)
@@ -815,7 +820,7 @@ do ib = 0, ubound(lat%branch, 1)
     enddo
     sr3d_com%branch_overlap(n_overlap)%ix_ele1_start = ele0%ix_ele
 
-    ! Adjust ix_ele1_end
+    ! Refine ix_ele1_end
 
     ele0 => branch%ele(ix_ele1_end)
     do
@@ -829,12 +834,12 @@ do ib = 0, ubound(lat%branch, 1)
     sr3d_com%branch_overlap(n_overlap)%ix_ele1_end = ele0%ix_ele
 
 
-    ! Adjust ix_ele2_start
+    ! Refine ix_ele2_start
 
     ixe = (ix_ele1_start + ix_ele1_end) / 2
     ele0 => branch2%ele(ix_ele2_start)
     do
-      if (overlaps(0.0_rp, ele0, branch%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch%ele(ixe))) exit
+      if (overlaps(0.0_rp, ele0, branch2%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch2%ele(ixe))) exit
       if (ele0%ix_ele == ix_ele2_end) then
         call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
         stop
@@ -843,11 +848,11 @@ do ib = 0, ubound(lat%branch, 1)
     enddo
     sr3d_com%branch_overlap(n_overlap)%ix_ele2_start = ele0%ix_ele
 
-    ! Adjust ix_ele2_end
+    ! Refine ix_ele2_end
 
     ele0 => branch2%ele(ix_ele2_end)
     do
-      if (overlaps(0.0_rp, ele0, branch%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch%ele(ixe))) exit
+      if (overlaps(0.0_rp, ele0, branch2%ele(ixe)) .or. overlaps(ele0%value(l$), ele0, branch2%ele(ixe))) exit
       if (ele0%ix_ele == ix_ele2_start) then
         call out_io (s_fatal$, r_name, 'CANNOT FIND OVERLAP REGION FOR THE WALLS OF TWO LATTICE BRANCHES.')
         stop
@@ -861,7 +866,11 @@ enddo
 
 ! Cleanup
 
-call mark_patch_regions (branch)
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  if (.not. associated(branch%wall3d)) cycle
+  call mark_patch_regions (branch)
+enddo
 
 deallocate(shape)
 if (present(err_flag)) err_flag = .false.
@@ -869,9 +878,9 @@ if (present(err_flag)) err_flag = .false.
 !-------------------------------------------------------------------------
 contains
 
-! Init to 10meters from branch point
+! Init to 10 meters from branch point
 
-subroutine init_overlap_ends (ele, branch, ix_ele_start, ix_ele_end, max_r)
+subroutine overlap_region_rough_guess (ele, branch, ix_ele_start, ix_ele_end, max_r)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
@@ -889,22 +898,28 @@ len_region = min(10.0_rp, branch%param%total_length/2)
 
 ele2 => ele
 ll = 0
+
 do
+  if (branch%param%geometry == open$ .and. ele2%ix_ele == 1) exit
   ele2 => pointer_to_next_ele(ele2, -1)
   ll = ll + ele2%value(l$)
-
-
   if (ll > len_region) exit
 enddo
+
 ix_ele_start = ele2%ix_ele 
+
+!
 
 ele2 => ele
 ll = 0
+
 do
+  if (branch%param%geometry == open$ .and. ele2%ix_ele == branch%n_ele_track) exit
   ele2 => pointer_to_next_ele(ele2, 1)
   ll = ll + ele2%value(l$)
   if (ll > len_region) exit
 enddo
+
 ix_ele_end = ele2%ix_ele 
 
 !
@@ -930,7 +945,7 @@ do iw = 1, size(branch%wall3d)
   enddo
 enddo
 
-end subroutine init_overlap_ends
+end subroutine overlap_region_rough_guess
 
 !-------------------------------------------------------------------------
 ! contains
@@ -942,7 +957,7 @@ type (ele_struct) ele, ele2
 type (ele_struct), pointer :: ele2_p
 type (floor_position_struct) floor
 
-real(rp) s, max_r
+real(rp) s
 integer ix_ele_start, ix_ele2_start, ix_ele2_end, status
 logical has_overlap
 
