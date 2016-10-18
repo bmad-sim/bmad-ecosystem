@@ -518,6 +518,7 @@ implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
+type (branch_struct), pointer :: branch
 type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
@@ -553,10 +554,11 @@ logical shape_has_box, is_bend
 !
 
 isu = tao_universe_number(ix_uni)
-orbit => s%u(isu)%model%lat_branch(ele%ix_branch)%orbit
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
+
+orbit => s%u(isu)%model%lat_branch(ele1%ix_branch)%orbit
 
 orb_start = orbit(ele1%ix_ele)
 orb_end = orbit(ele2%ix_ele)
