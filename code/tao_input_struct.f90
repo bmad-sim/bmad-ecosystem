@@ -92,6 +92,7 @@ type tao_curve_input
   character(100) :: data_type = ''
   character(100) :: data_index = ''
   character(40) :: legend_text = ''
+  character(40) :: units = ''
   real(rp) :: y_axis_scale_factor = 1
   real(rp) :: z_color0 = 0, z_color1 = 0
   integer :: symbol_every = 1

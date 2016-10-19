@@ -159,6 +159,7 @@ type tao_curve_struct
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
+  character(40) :: units = ''            ! Data units.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
   type (tao_histogram_struct) hist
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve

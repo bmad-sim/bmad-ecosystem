@@ -406,17 +406,6 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
     nl=nl+1; lines(nl) = ''
-    if (lat%param%particle == photon$) then
-      nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
-      nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
-    else
-      call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma = gam)
-      nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
-      nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', lat%a%emit * gam
-      nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
-      nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
-    endif
-    nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type          = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on       = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), amt) 'track_start                = ', trim(uni_branch%track_start)

@@ -1061,6 +1061,7 @@ do i = 1, size(plot)
 
     case ('visible')
       call tao_logical_set_value (plot(i)%p%r%visible, component, set_value, error)
+      call tao_turn_on_special_calcs_if_needed_for_plotting()
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)

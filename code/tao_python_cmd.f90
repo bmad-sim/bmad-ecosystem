@@ -400,6 +400,7 @@ case ('plot_curve')
   nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
   nl=nl+1; write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
   nl=nl+1; write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text
+  nl=nl+1; write (li(nl), amt) 'units;STR;T;',                            cur%units
   nl=nl+1; write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
   nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               cur%s
   nl=nl+1; write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
@@ -974,12 +975,12 @@ case ('bunch1')
 
   bunch_params => tao_lat%lat_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
 
-  call twiss_out(bunch_params%x, 'x')
-  call twiss_out(bunch_params%y, 'y')
-  call twiss_out(bunch_params%z, 'z')
-  call twiss_out(bunch_params%a, 'a')
-  call twiss_out(bunch_params%b, 'b')
-  call twiss_out(bunch_params%c, 'c')
+  call twiss_out(bunch_params%x, 'x', .true.)
+  call twiss_out(bunch_params%y, 'y', .true.)
+  call twiss_out(bunch_params%z, 'z', .true.)
+  call twiss_out(bunch_params%a, 'a', .true.)
+  call twiss_out(bunch_params%b, 'b', .true.)
+  call twiss_out(bunch_params%c, 'c', .true.)
 
   nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=nl+1; write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
@@ -1065,6 +1066,7 @@ type (tao_universe_struct), pointer :: u
 logical has_ampersand, err
 character(40) str
 
+nullify(u)
 err = .false.
 
 if (has_ampersand) then
@@ -1119,6 +1121,7 @@ type (tao_lattice_struct), pointer :: tao_lat
 logical err
 
 err = .false.
+nullify(tao_lat)
 
 call string_trim(line, line, ix)
 call string_trim(line(ix+1:), who, i)
@@ -1159,6 +1162,7 @@ logical err
 
 !
 
+nullify(ele)
 call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
 
 if (n_loc /= 1) then
@@ -1273,11 +1277,12 @@ end subroutine orbit_out
 !----------------------------------------------------------------------
 ! contains
 
-subroutine twiss_out (twiss, suffix)
+subroutine twiss_out (twiss, suffix, emit_out)
 
 type (twiss_struct) twiss
 character(*) suffix
 character(20) fmt
+logical, optional :: emit_out
 
 fmt = '(3a, es21.13)'
 
@@ -1287,10 +1292,13 @@ nl=nl+1; write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                      
 nl=nl+1; write (li(nl), fmt) 'phi_', suffix, ';REAL;F;',                           twiss%phi
 nl=nl+1; write (li(nl), fmt) 'eta_', suffix, ';REAL;F;',                           twiss%eta
 nl=nl+1; write (li(nl), fmt) 'etap_', suffix, ';REAL;F;',                          twiss%etap
-nl=nl+1; write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
-nl=nl+1; write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
-nl=nl+1; write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
-nl=nl+1; write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
+
+if (logic_option(.false., emit_out)) then
+  nl=nl+1; write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
+  nl=nl+1; write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
+  nl=nl+1; write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
+  nl=nl+1; write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
+endif
 
 end subroutine twiss_out
 
