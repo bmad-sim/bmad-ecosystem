@@ -1006,8 +1006,8 @@ Note: \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be
 used together.
 
 %-----------------------------------------------------------------
-\section{Initializing Data and
-Constraints}\index{initialization!data}\index{initialization!constants}
+\section{Initializing Data and Constraints}
+\index{initialization!data}\index{initialization!constants}
 \label{s:init.data} 
 
 A set of data (\sref{c:data}) is initialized using a \vn{tao_d2_data}
@@ -1723,6 +1723,7 @@ namelists should be placed directly after their respective
     curve(i)%ele_ref_name     = "<string>"    ! Name of reference element.
     curve(i)%ix_ele_ref       = <num>         ! Index number of reference element.
     curve(i)%smooth_line_calc = <Logical>     ! Calc data between symbol points? 
+    curve(i)%units            = "<string>"    ! Data units
   /
 \end{example}
 For example:

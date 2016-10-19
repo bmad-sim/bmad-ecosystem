@@ -430,9 +430,9 @@ do k = 1, size(graph%curve)
     call make_g_mats (ele, g_mat, g_inv_mat)
 
     mat4 = matmul(v_mat, g_inv_mat)
-    emit_a = u%model%lat%a%emit
+    emit_a = u%beam%beam_init%a_emit
     if (emit_a == 0) emit_a = 1e-6  ! default value
-    emit_b = u%model%lat%b%emit
+    emit_b = u%beam%beam_init%b_emit
     if (emit_b == 0) emit_b = 1e-6  ! default value
 
     sigma_mat =  0
