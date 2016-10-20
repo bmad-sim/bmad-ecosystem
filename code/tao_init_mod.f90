@@ -25,7 +25,6 @@ contains
 subroutine tao_init_global (init_file)
 
 use random_mod
-use beam_def_struct, only: csr_param
 use opti_de_mod, only: opti_de_param
 
 type (tao_global_struct), save :: global, default_global

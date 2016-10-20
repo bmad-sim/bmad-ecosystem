@@ -129,7 +129,6 @@ end subroutine
 subroutine tao_show_this (what, stuff, result_id, lines, nl)
 
 use random_mod
-use beam_def_struct, only: csr_param
 use location_encode_mod
 use transfer_map_mod
 use opti_de_mod

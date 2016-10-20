@@ -3237,8 +3237,6 @@ end function tao_lat_emit_calc
 
 function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
 
-use beam_def_struct
-
 implicit none
 
 type (ele_struct) ele
