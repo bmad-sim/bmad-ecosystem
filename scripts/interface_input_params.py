@@ -6,7 +6,6 @@ struct_def_files = [
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/twiss_mod.f90', 
     '../bmad/modules/taylor_mod.f90',
-    '../bmad/multiparticle/beam_def_struct.f90',
     '../bmad/multiparticle/csr_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
     '../bmad/modules/dynamic_aperture_mod.f90',
@@ -14,8 +13,8 @@ struct_def_files = [
 
 # List of use statements needed in various Fortran modules.
 
-conversion_use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
-equality_use_statements = ['use beam_def_struct', 'use dynamic_aperture_mod']
+conversion_use_statements = ['use dynamic_aperture_mod']
+equality_use_statements = ['use dynamic_aperture_mod']
 test_use_statements = []
 
 # List of structures to setup interfaces for.
