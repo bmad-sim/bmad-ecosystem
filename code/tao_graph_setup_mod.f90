@@ -1762,9 +1762,14 @@ end select
 
 if ((curve%data_type(1:6) == 'phase.' .or. curve%data_type(1:10) == 'bpm_phase.') &
                                     .and. n_dat /= 0 .and. zero_average_phase) then
-  f = sum(curve%y_symb) / n_dat
-  curve%y_symb = curve%y_symb - f
-  curve%y_line = curve%y_line - f 
+  if (allocated(curve%y_symb)) then
+    f = sum(curve%y_symb) / n_dat
+    curve%y_symb = curve%y_symb - f
+    if (allocated(curve%y_line)) curve%y_line = curve%y_line - f 
+  elseif (allocated(curve%y_line)) then
+    f = sum(curve%y_line) / n_dat
+    curve%y_line = curve%y_line - f
+  endif
 endif 
 
 err_flag = .false.
