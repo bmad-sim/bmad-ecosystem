@@ -1,6 +1,5 @@
 module photon_bunch_mod
 
-use beam_def_struct
 use photon_target_mod
 use track1_photon_mod
 

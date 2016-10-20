@@ -11,7 +11,6 @@
 !- 
 
 module equality_mod
-use beam_def_struct
 use dynamic_aperture_mod
 
 interface operator (==)

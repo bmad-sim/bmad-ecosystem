@@ -2785,7 +2785,7 @@ subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_off
 use s_tracking
 use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
 use ptc_spin, only: track_probe_x, track_probe
-use s_family, only: survey
+use s_family, only: survey, lielib_print
 use madx_ptc_module, only: bmadl
 
 implicit none
@@ -2801,7 +2801,7 @@ type (real_8) y0(6), y2(6), y8(6), bet
 type (c_damap) ptc_cdamap
 
 real(dp) x(6), beta
-integer i
+integer i, print12
 
 logical, optional :: taylor_map_includes_offsets
 logical :: warning_given = .false.
@@ -2842,7 +2842,10 @@ if (tracking_uses_end_drifts(ele)) then
   bmadl%closed = .true.
   call ring_l (bmadl, bmadl%closed)
   call survey (bmadl)
+  print12 = lielib_print(12)
+  lielib_print(12) = 0
   call make_node_layout(bmadl)
+  lielib_print(12) = print12
 else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
 endif
