@@ -619,12 +619,12 @@ elseif (page_type == 'PS-L') then
   iw = pgopen (trim(plot_file) // '/CPS')
 
 elseif (page_type == 'GIF') then
-  iw = pgopen (trim(plot_file) // '/GIF')
+  iw = pgopen (trim(plot_file) // '/VGIF')
   call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
   call pgscr (0, 1.0, 1.0, 1.0)    ! white background
 
 elseif (page_type == 'GIF-L') then
-  iw = pgopen (trim(plot_file) // '/VGIF')
+  iw = pgopen (trim(plot_file) // '/GIF')
   call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
   call pgscr (0, 1.0, 1.0, 1.0)    ! white background
 
