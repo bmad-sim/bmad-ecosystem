@@ -1,6 +1,5 @@
 module beam_file_io
 
-use beam_def_struct
 use spin_mod
 
 implicit none

@@ -1,6 +1,6 @@
 module custom_bmad_interface
 
-use beam_def_struct
+use bmad_struct
 
 interface 
 

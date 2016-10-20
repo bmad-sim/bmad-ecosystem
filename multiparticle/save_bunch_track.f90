@@ -6,7 +6,7 @@
 ! a program must be linked with a custom save_bunch_track routine.
 ! 
 ! Modules needed:
-!   use beam_def_struct
+!   use bmad_struct
 !
 ! Input:
 !   bunch    -- bunch_struct: A bunch of particles.
@@ -16,7 +16,7 @@
 
 subroutine save_bunch_track (bunch, ele, s_travel)
 
-use beam_def_struct, only: bunch_struct, ele_struct, rp
+use bmad_struct, only: bunch_struct, ele_struct, rp
 
 implicit none
 

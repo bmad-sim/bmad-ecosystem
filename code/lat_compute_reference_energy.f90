@@ -684,8 +684,11 @@ subroutine calc_time_ref_orb_out ()
 ! corrected value computed later.
 
 ele%time_ref_orb_out = orb_end
-ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
-ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
+! Note: zero length slice of e_gun can have orb_end%vec(6) = -1
+if (orb_end%vec(6) /= -1) then
+  ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
+  ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
+endif
 ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
 !ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
 !            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light

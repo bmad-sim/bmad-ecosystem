@@ -1,6 +1,5 @@
 module time_tracker_mod
 
-use beam_def_struct
 use em_field_mod
 use wall3d_mod
 use geometry_mod

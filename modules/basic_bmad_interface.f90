@@ -672,6 +672,18 @@ subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+subroutine reallocate_beam (beam, n_bunch, n_particle)
+  import
+  type (beam_struct) beam
+  integer n_bunch, n_particle
+end subroutine
+
+subroutine reallocate_bunch (bunch, n_particle)
+  import
+  type (bunch_struct) bunch
+  integer n_particle
+end subroutine
+
 function relative_mode_flip (ele1, ele2)
   import
   implicit none
@@ -694,7 +706,7 @@ subroutine set_status_flags (bookkeeping_state, stat)
 end subroutine
 
 subroutine save_bunch_track (bunch, ele, s_travel)
-  use beam_def_struct, only: bunch_struct, ele_struct, rp
+  import
   implicit none
   type (bunch_struct) bunch
   type (ele_struct) ele
