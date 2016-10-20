@@ -9,13 +9,10 @@
 
 module tao_struct
 
-use iso_c_binding, only: c_char
-use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct, &
-                       rad_int_all_ele_struct
+use iso_c_binding
 use equal_mod
 use quick_plot_struct
 use dynamic_aperture_mod
-use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
