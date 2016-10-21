@@ -1,31 +1,9 @@
 module dynamic_aperture_mod
 
 use coord_mod
+use equal_mod
 
 implicit none
-
-type aperture_data_struct
-  real(rp) x, y     ! (x,y) aperture point
-  integer plane     ! plane determining loss
-  integer ix_lat    ! ele index lost at
-  integer i_turn    ! turn lost at
-end type
-
-type aperture_param_struct
-  real(rp) :: min_angle = 0
-  real(rp) :: max_angle = pi
-  integer :: n_angle   = 9
-  integer :: n_turn = 100         ! Number of turns a particle must survive
-  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
-  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
-  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture (meters.)
-end type
-
-type aperture_scan_struct
-  type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
-  type(aperture_param_struct) :: param                   ! parameters used for the scan            
-  type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
-end type
 
 contains
 

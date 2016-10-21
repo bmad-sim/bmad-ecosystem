@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 185
+integer, parameter :: bmad_inc_version$ = 186
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -768,6 +768,108 @@ type photon_element_struct
   type (photon_material_struct) :: material = photon_material_struct()
 end type
 
+!------------------------------------------------------------------------------
+! Beam structures
+
+type bunch_struct
+  type (coord_struct), allocatable :: particle(:)
+  integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
+  real(rp) :: charge_tot = 0  ! Total charge in a bunch (Coul).
+  real(rp) :: charge_live = 0 ! Charge of live particles (Coul).
+  real(rp) :: z_center = 0    ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+                              !   bunch #1 is 0 and z_center of the other bunches is negative.
+  real(rp) :: t_center = 0    ! Center of bunch creation time relative to head bunch.
+  integer :: ix_ele = 0       ! Element this bunch is at.
+  integer :: ix_bunch = 0     ! Bunch index. Head bunch = 1, etc.
+  integer :: n_live = 0
+end type
+
+type beam_struct
+  type (bunch_struct), allocatable :: bunch(:)
+end type
+
+type ellipse_beam_init_struct
+  integer :: part_per_ellipse = 0  ! number of particles per ellipse
+  integer :: n_ellipse = 1         ! number of ellipses (>= 1)
+  real(rp) :: sigma_cutoff = 0     ! sigma cutoff of the representation
+end type
+
+type kv_beam_init_struct
+  integer :: part_per_phi(2) = 0    ! number of particles per angle variable.
+  integer :: n_I2 = 0               ! number of I2
+  real(rp) :: A = 0                 ! A = I1/e
+end type
+
+type grid_beam_init_struct
+  integer :: n_x = 0         ! Number of columns.
+  integer :: n_px = 0        ! Number of rows.
+  real(rp) :: x_min = 0      ! Lower x limit.
+  real(rp) :: x_max = 0      ! Upper x limit.
+  real(rp) :: px_min = 0     ! Lower px limit.
+  real(rp) :: px_max = 0     ! Upper px limit,
+end type
+
+type beam_init_struct
+  character(200) :: file_name = ''           ! For distribution_type(1) = 'FILE'
+  character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
+                                             ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
+  type(spin_polar_struct) :: spin = spin_polar_struct()                      ! Initialize the spin
+  type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
+  type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution
+  type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
+  !!! The following are for Random distributions
+  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
+  real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
+  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
+  integer :: n_particle = 0           ! Number of random particles per bunch.
+  logical :: renorm_center = .true.   ! Renormalize centroid?
+  logical :: renorm_sigma = .true.    ! Renormalize sigma?
+  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
+  character(16) :: random_gauss_converter = 'exact'  
+                                            ! Or 'quick'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
+  !!! The following are used  by all distribution types
+  real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
+  real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
+  real(rp) :: a_emit = 0                     ! a-mode emittance
+  real(rp) :: b_emit = 0                     ! b-mode emittance
+  real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
+  real(rp) :: center(6) = 0                  ! Bench center offset relative to reference.
+  real(rp) :: dt_bunch = 0                   ! Time between bunches.
+  real(rp) :: sig_z = 0                      ! Z sigma in m.
+  real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
+  real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
+  integer :: n_bunch = 1                     ! Number of bunches.
+  integer :: species = not_set$              ! positron$, etc. not_set$ => use referece particle.
+  logical :: init_spin     = .false.         ! initialize beam spinors
+  logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
+                                             !   Else use 4x4 1-turn mat used.
+  logical :: use_lattice_center = .false.    ! Use beam_start[...] in lattice rather than beam_init%center(:)?
+  logical :: use_t_coords = .false.          ! If true, the distributions will be taken as in t-coordinates  
+  logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
+                                             !   If true,  z describes the t distribution 
+                                             !   If false, z describes the s distribution
+end type
+
+! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
+
+type bunch_params_struct
+  type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
+  type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
+  type (coord_struct) :: centroid  ! Lab frame
+  type (spin_polar_struct) :: spin ! polarization
+  real(rp) sigma(6,6)              ! beam size matrix
+  real(rp) rel_max(6)              ! Max orbit relative to centroid
+  real(rp) rel_min(6)              ! Min orbit relative to_centroid
+  real(rp) s                       ! Longitudinal position.
+  real(rp) charge_live             ! Charge of all non-lost particle
+  integer n_particle_tot           ! Total number of particles
+  integer n_particle_live          ! Number of non-lost particles
+  integer n_particle_lost_in_ele   ! Number lost in element (not calculated by Bmad)
+end type
+
+!-------------------------------------------------------------------------
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -896,6 +998,7 @@ type lat_param_struct
   logical :: backwards_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
+  type (beam_init_struct) :: beam_init = beam_init_struct() ! For beam initialization.
 end type
 
 ! Structure for linking a branch_struct with a collection of ptc layouts
@@ -1367,104 +1470,29 @@ type track_struct
 end type
 
 !------------------------------------------------------------------------------
-! Beam structures
+! Dynamic aperture structures
 
-type bunch_struct
-  type (coord_struct), allocatable :: particle(:)
-  integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
-  real(rp) :: charge_tot = 0  ! Total charge in a bunch (Coul).
-  real(rp) :: charge_live = 0 ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0    ! Longitudinal center of bunch (m). Note: Generally, z_center of 
-                              !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0    ! Center of bunch creation time relative to head bunch.
-  integer :: ix_ele = 0       ! Element this bunch is at.
-  integer :: ix_bunch = 0     ! Bunch index. Head bunch = 1, etc.
-  integer :: n_live = 0
+type aperture_data_struct
+  real(rp) x, y     ! (x,y) aperture point
+  integer plane     ! plane determining loss
+  integer ix_lat    ! ele index lost at
+  integer i_turn    ! turn lost at
 end type
 
-type beam_struct
-  type (bunch_struct), allocatable :: bunch(:)
+type aperture_param_struct
+  real(rp) :: min_angle = 0
+  real(rp) :: max_angle = pi
+  integer :: n_angle   = 9
+  integer :: n_turn = 100         ! Number of turns a particle must survive
+  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
+  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
+  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture (meters.)
 end type
 
-type ellipse_beam_init_struct
-  integer :: part_per_ellipse = 0  ! number of particles per ellipse
-  integer :: n_ellipse = 1         ! number of ellipses (>= 1)
-  real(rp) :: sigma_cutoff = 0     ! sigma cutoff of the representation
-end type
-
-type kv_beam_init_struct
-  integer :: part_per_phi(2) = 0    ! number of particles per angle variable.
-  integer :: n_I2 = 0               ! number of I2
-  real(rp) :: A = 0                 ! A = I1/e
-end type
-
-type grid_beam_init_struct
-  integer :: n_x = 0         ! Number of columns.
-  integer :: n_px = 0        ! Number of rows.
-  real(rp) :: x_min = 0      ! Lower x limit.
-  real(rp) :: x_max = 0      ! Upper x limit.
-  real(rp) :: px_min = 0     ! Lower px limit.
-  real(rp) :: px_max = 0     ! Upper px limit,
-end type
-
-type beam_init_struct
-  character(200) :: file_name = ''           ! For distribution_type(1) = 'FILE'
-  character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
-                                             ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
-  type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
-  type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
-  type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
-  !!! The following are for Random distributions
-  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-  real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
-  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
-  integer :: n_particle = 0           ! Number of random particles per bunch.
-  logical :: renorm_center = .true.   ! Renormalize centroid?
-  logical :: renorm_sigma = .true.    ! Renormalize sigma?
-  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
-  character(16) :: random_gauss_converter = 'exact'  
-                                            ! Or 'quick'. Uniform to gauss conversion method.
-  real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
-  !!! The following are used  by all distribution types
-  type(spin_polar_struct) spin               ! Initialize the spin
-  real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
-  real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
-  real(rp) :: a_emit = 0                     ! a-mode emittance
-  real(rp) :: b_emit = 0                     ! b-mode emittance
-  real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
-  real(rp) :: center(6) = 0                  ! Bench center offset relative to reference.
-  real(rp) :: dt_bunch = 0                   ! Time between bunches.
-  real(rp) :: sig_z = 0                      ! Z sigma in m.
-  real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
-  real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
-  integer :: n_bunch = 1                     ! Number of bunches.
-  integer :: species = not_set$              ! positron$, etc. not_set$ => use referece particle.
-  logical :: init_spin     = .false.         ! initialize beam spinors
-  logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
-                                             !   Else use 4x4 1-turn mat used.
-  logical :: use_lattice_center = .false.    ! Use beam_start[...] in lattice rather than beam_init%center(:)?
-  logical :: use_t_coords = .false.          ! If true, the distributions will be taken as in t-coordinates  
-  logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
-                                             !   If true,  z describes the t distribution 
-                                             !   If false, z describes the s distribution
-end type
-
-! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
-
-type bunch_params_struct
-  type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
-  type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
-  type (coord_struct) :: centroid  ! Lab frame
-  type (spin_polar_struct) :: spin ! polarization
-  real(rp) sigma(6,6)              ! beam size matrix
-  real(rp) rel_max(6)              ! Max orbit relative to centroid
-  real(rp) rel_min(6)              ! Min orbit relative to_centroid
-  real(rp) s                       ! Longitudinal position.
-  real(rp) charge_live             ! Charge of all non-lost particle
-  integer n_particle_tot           ! Total number of particles
-  integer n_particle_live          ! Number of non-lost particles
-  integer n_particle_lost_in_ele   ! Number lost in element (not calculated by Bmad)
+type aperture_scan_struct
+  type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
+  type(aperture_param_struct) :: param                   ! parameters used for the scan            
+  type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
 end type
 
 !-------------------------------------------------------------------------
