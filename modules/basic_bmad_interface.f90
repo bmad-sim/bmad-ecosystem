@@ -252,7 +252,7 @@ subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   logical err_flag
 end subroutine
 
-subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potential, return_kick)
+subroutine exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field, potential, calc_dfield)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -261,7 +261,7 @@ subroutine exact_bend_field (ele, param, orbit, local_ref_frame, field, potentia
   type (em_field_struct) field
   type (em_potential_struct) potential
   logical local_ref_frame
-  logical, optional :: return_kick
+  logical, optional :: calc_dfield
 end subroutine
 
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)

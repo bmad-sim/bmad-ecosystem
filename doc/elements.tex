@@ -409,27 +409,28 @@ See \sref{s:list.bend} for a full list of element attributes.
 \index{hgap}\index{hgapx}\index{roll}\index{k1}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
-  angle       = <Real>     ! Design bend angle. A settable dependent variable (\sref{s:depend}).
-  b_field     = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
-  b_field_err = <Real>     ! Field strength error (\sref{s:depend}).
-  b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
-  b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  e1, e2      = <Real>     ! Face angles.
-  fint, fintx = <Real>     ! Face field integrals.
-  g           = <Real>     ! Design bend strength (= 1/rho).
-  g_err       = <Real>     ! Bend strength error (\sref{s:depend}).
-  h1, h2      = <Real>     ! Face curvature.
-  hgap, hgapx = <Real>     ! Pole half gap.
-  k1          = <Real>     ! Quadrupole strength.
-  k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
-  l           = <Real>     ! ``Length'' of bend. See below.
-  l_arc       = <Real>     ! Arc length. For \vn{rbend}s only. 
-  l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
-  n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  angle           = <Real>     ! Design bend angle. A settable dependent var (\sref{s:depend}).
+  b_field         = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
+  b_field_err     = <Real>     ! Field strength error (\sref{s:depend}).
+  b1_gradient     = <Real>     ! Quadrupole field strength (\sref{s:depend}).
+  b2_gradient     = <Real>     ! Sextupole field strength (\sref{s:depend}).
+  e1, e2          = <Real>     ! Face angles.
+  exact_multipole = <Logical>  ! Curved coordinate correction? Default False.
+  fint, fintx     = <Real>     ! Face field integrals.
+  g               = <Real>     ! Design bend strength (= 1/rho).
+  g_err           = <Real>     ! Bend strength error (\sref{s:depend}).
+  h1, h2          = <Real>     ! Face curvature.
+  hgap, hgapx     = <Real>     ! Pole half gap.
+  k1              = <Real>     ! Quadrupole strength.
+  k2              = <Real>     ! Sextupole strength (\sref{s:depend}).
+  l               = <Real>     ! ``Length'' of bend. See below.
+  l_arc           = <Real>     ! Arc length. For \vn{rbend}s only. 
+  l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
+  n_ref_pass      = <Int>      ! Multipass reference turn (\sref{s:multipass}).
   ptc_field_geometry 
-              = <Switch>   ! See below.
-  rho         = <Real>     ! Design bend radius. A settable dependent variable (\sref{s:depend}).
-  roll        = <Real>     ! See \ref{s:offset}.
+                  = <Switch>   ! See below.
+  rho             = <Real>     ! Design bend radius. A settable dependent var (\sref{s:depend}).
+  roll            = <Real>     ! See \ref{s:offset}.
 \end{example}
 
 \begin{figure}[tb]
@@ -453,13 +454,12 @@ The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see \fig{f:local.coords}).
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
-The rotation angle of the entrance pole face is \vn{e1} and at the
-exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend}
-gives a rectangular magnet  (\fig{f:bend}a). Zero \vn{e1} and \vn{e2}
-for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
-An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
-to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
-This formula holds for both positive and negative angles.
+The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is
+\vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet
+(\fig{f:bend}a). Zero \vn{e1} and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet
+(\fig{f:bend}b).  An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to
+an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).  This formula holds for both
+positive and negative angles.
 
 Note: The correspondence between \vn{e1} and \vn{e2} and the
 corresponding SAD parameters is:
@@ -467,6 +467,11 @@ corresponding SAD parameters is:
   e1(Bmad) =  e1(SAD) * angle + ae1(SAD)
   e2(Bmad) =  e2(SAD) * angle + ae2(SAD)
 \end{example}
+  \index{exact_multipoles}
+  \item[exact_multipoles] \Newline
+The \vn{exact_multipoles} logical determines if the multipole fields, both magnetic and
+electric, and including \vn{k1} and\vn{k2}, are corrected for the finite curvature of the
+reference orbit in a bend.  Default is \vn{False}.
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
@@ -476,17 +481,15 @@ exit pole faces are give by \vn{fint} and \vn{fintx} respectively
   {2 \, H_{gap} \, B_{y0}^2}
   \label{fsbbb}
 \Endeq
-with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is
-the field in the interior of the dipole and $H_{gap}$ is the pole half
-gap.  The parameters \vn{hgap} and \vn{hgapx} are the half gaps at the
-entrance and exit faces. If \vn{fint} or \vn{fintx} is given without a
-value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not
-present, the default value of 0 is used. Note: \mad does not have the
-\vn{fintx} and \vn{hgapx} attributes. \mad just assumes that the
-values are the same for the entrance and exit faces. For compatibility
-with \mad, if \vn{fint} is given but \vn{fintx} is not, then
-\vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be
-set to \vn{hgap} if \vn{hgapx} is not given.
+with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is the field in the
+interior of the dipole and $H_{gap}$ is the pole half gap.  The parameters \vn{hgap} and
+\vn{hgapx} are the half gaps at the entrance and exit faces. If \vn{fint} or \vn{fintx} is
+given without a value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not
+present, the default value of 0 is used. Note: \mad does not have the \vn{fintx} and
+\vn{hgapx} attributes. \mad just assumes that the values are the same for the entrance and
+exit faces. For compatibility with \mad, if \vn{fint} is given but \vn{fintx} is not, then
+\vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
+\vn{hgapx} is not given.
 
 Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and
 \vn{fb2+f1} for the exit fringe. The correspondence between the two is

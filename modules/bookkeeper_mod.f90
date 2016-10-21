@@ -2886,6 +2886,9 @@ case (overlay$, group$, hybrid$)
   return
 end select
 
+! Check_sum is a hash number that is used to see if a value has been changed.
+! This is used implicitly in attribute_bookkeeper.
+
 if (ele%key == sad_mult$) then
   ele0 => ele
   if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)

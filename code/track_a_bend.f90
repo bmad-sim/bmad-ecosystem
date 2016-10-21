@@ -77,6 +77,11 @@ if (ele%value(k2$) /= 0) then
   has_nonzero_pole = .true.
 endif
 
+if (ele%value(k1$) /= 0 .and. is_true(ele%value(exact_multipoles$))) then
+  bn(1) = bn(1) + ele%value(k1$) * ele%value(l$)
+  has_nonzero_pole = .true.
+endif
+
 if (has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
 ! Set some parameters
@@ -91,6 +96,7 @@ pz = orbit%vec(6)
 rel_p  = 1 + pz
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
+if (is_true(ele%value(exact_multipoles$))) k_1 = 0  ! Is folded in with multipoles.
 drifting = .false.
 
 if (.not. ele%is_on) then
