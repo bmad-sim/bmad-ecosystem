@@ -2244,6 +2244,7 @@ public:
   Bool stable;
   Bool backwards_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
+  CPP_beam_init beam_init;
 
   CPP_lat_param() :
     n_part(0.0),
@@ -2257,7 +2258,8 @@ public:
     ixx(0),
     stable(false),
     backwards_time_tracking(false),
-    bookkeeping_state()
+    bookkeeping_state(),
+    beam_init()
     {}
 
   ~CPP_lat_param() {
@@ -3470,6 +3472,7 @@ class CPP_beam_init {
 public:
   string file_name;
   String_ARRAY distribution_type;
+  CPP_spin_polar spin;
   CPP_ellipse_beam_init_ARRAY ellipse;
   CPP_kv_beam_init kv;
   CPP_grid_beam_init_ARRAY grid;
@@ -3483,7 +3486,6 @@ public:
   string random_engine;
   string random_gauss_converter;
   Real random_sigma_cutoff;
-  CPP_spin_polar spin;
   Real a_norm_emit;
   Real b_norm_emit;
   Real a_emit;
@@ -3505,6 +3507,7 @@ public:
   CPP_beam_init() :
     file_name(),
     distribution_type(String_ARRAY(string(), 3)),
+    spin(),
     ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
     kv(),
     grid(CPP_grid_beam_init_ARRAY(CPP_grid_beam_init(), 3)),
@@ -3518,7 +3521,6 @@ public:
     random_engine(),
     random_gauss_converter(),
     random_sigma_cutoff(-1),
-    spin(),
     a_norm_emit(0.0),
     b_norm_emit(0.0),
     a_emit(0.0),

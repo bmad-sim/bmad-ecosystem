@@ -3696,6 +3696,9 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
 
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_beam_init_test_pattern(C.beam_init, ix_patt);
+
 
 }
 
@@ -6100,49 +6103,49 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
       {C.distribution_type[i][j] = 'a' + (101 + i + 10*(j+1) + 2 + offset) % 26;}
   }
 
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
+
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.ellipse.size(); i++)
-    {int rhs = 101 + i + 3 + offset; set_CPP_ellipse_beam_init_test_pattern(C.ellipse[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 4 + offset; set_CPP_ellipse_beam_init_test_pattern(C.ellipse[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, NOT]
   set_CPP_kv_beam_init_test_pattern(C.kv, ix_patt);
 
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.grid.size(); i++)
-    {int rhs = 101 + i + 5 + offset; set_CPP_grid_beam_init_test_pattern(C.grid[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 6 + offset; set_CPP_grid_beam_init_test_pattern(C.grid[i], ix_patt+i+1);}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.center_jitter.size(); i++)
-    {int rhs = 101 + i + 6 + offset; C.center_jitter[i] = rhs;}
+    {int rhs = 101 + i + 7 + offset; C.center_jitter[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.emit_jitter.size(); i++)
-    {int rhs = 101 + i + 7 + offset; C.emit_jitter[i] = rhs;}
+    {int rhs = 101 + i + 8 + offset; C.emit_jitter[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.sig_z_jitter = rhs;
+  rhs = 9 + offset; C.sig_z_jitter = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.sig_e_jitter = rhs;
+  rhs = 10 + offset; C.sig_e_jitter = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.n_particle = rhs;
+  rhs = 11 + offset; C.n_particle = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.renorm_center = (rhs % 2 == 0);
+  rhs = 12 + offset; C.renorm_center = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.renorm_sigma = (rhs % 2 == 0);
+  rhs = 13 + offset; C.renorm_sigma = (rhs % 2 == 0);
 
   // c_side.test_pat[character, 0, NOT]
   C.random_engine.resize(16);
   for (unsigned int i = 0; i < C.random_engine.size(); i++)
-    {int rhs = 101 + i + 13 + offset; C.random_engine[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 14 + offset; C.random_engine[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.random_gauss_converter.resize(16);
   for (unsigned int i = 0; i < C.random_gauss_converter.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.random_gauss_converter[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 15 + offset; C.random_gauss_converter[i] = 'a' + rhs % 26;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 15 + offset; C.random_sigma_cutoff = rhs;
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
+  rhs = 16 + offset; C.random_sigma_cutoff = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 17 + offset; C.a_norm_emit = rhs;

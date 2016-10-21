@@ -935,6 +935,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.backwards_time_tracking == y.backwards_time_tracking);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
+  is_eq = is_eq && (x.beam_init == y.beam_init);
   return is_eq;
 };
 
@@ -1523,6 +1524,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file_name == y.file_name);
   is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
+  is_eq = is_eq && (x.spin == y.spin);
   is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
   is_eq = is_eq && (x.kv == y.kv);
   is_eq = is_eq && is_all_equal(x.grid, y.grid);
@@ -1536,7 +1538,6 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.random_engine == y.random_engine);
   is_eq = is_eq && (x.random_gauss_converter == y.random_gauss_converter);
   is_eq = is_eq && (x.random_sigma_cutoff == y.random_sigma_cutoff);
-  is_eq = is_eq && (x.spin == y.spin);
   is_eq = is_eq && (x.a_norm_emit == y.a_norm_emit);
   is_eq = is_eq && (x.b_norm_emit == y.b_norm_emit);
   is_eq = is_eq && (x.a_emit == y.a_emit);

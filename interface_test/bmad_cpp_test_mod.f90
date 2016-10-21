@@ -5558,6 +5558,8 @@ rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 rhs = 11 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_beam_init_test_pattern (F%beam_init, ix_patt)
 
 end subroutine set_lat_param_test_pattern
 
@@ -8830,50 +8832,50 @@ do jd1 = lbound(F%distribution_type, 1), ubound(F%distribution_type, 1)
     F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+2+offset+10*jd+jd1, 26))
   enddo
 enddo
+!! f_side.test_pat[type, 0, NOT]
+call set_spin_polar_test_pattern (F%spin, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%ellipse,1); lb1 = lbound(F%ellipse,1) - 1
-  rhs = 100 + jd1 + 3 + offset
+  rhs = 100 + jd1 + 4 + offset
   call set_ellipse_beam_init_test_pattern (F%ellipse(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]
 call set_kv_beam_init_test_pattern (F%kv, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%grid,1); lb1 = lbound(F%grid,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 6 + offset
   call set_grid_beam_init_test_pattern (F%grid(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%center_jitter,1); lb1 = lbound(F%center_jitter,1) - 1
-  rhs = 100 + jd1 + 6 + offset
+  rhs = 100 + jd1 + 7 + offset
   F%center_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%emit_jitter,1); lb1 = lbound(F%emit_jitter,1) - 1
-  rhs = 100 + jd1 + 7 + offset
+  rhs = 100 + jd1 + 8 + offset
   F%emit_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%sig_z_jitter = rhs
+rhs = 9 + offset; F%sig_z_jitter = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%sig_e_jitter = rhs
+rhs = 10 + offset; F%sig_e_jitter = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%n_particle = rhs
+rhs = 11 + offset; F%n_particle = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_engine)
-  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+13+offset+jd1, 26))
+  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_gauss_converter)
-  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
+  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 15 + offset; F%random_sigma_cutoff = rhs
-!! f_side.test_pat[type, 0, NOT]
-call set_spin_polar_test_pattern (F%spin, ix_patt)
+rhs = 16 + offset; F%random_sigma_cutoff = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 17 + offset; F%a_norm_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
