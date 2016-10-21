@@ -3654,6 +3654,340 @@ extern "C" void test_c_control (Opaque_control_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_ellipse_beam_init (CPP_ellipse_beam_init&, bool&);
+
+void set_CPP_ellipse_beam_init_test_pattern (CPP_ellipse_beam_init& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.part_per_ellipse = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_ellipse = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.sigma_cutoff = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_ellipse_beam_init (Opaque_ellipse_beam_init_class* F, bool& c_ok) {
+
+  CPP_ellipse_beam_init C, C2;
+
+  c_ok = true;
+
+  ellipse_beam_init_to_c (F, C);
+  set_CPP_ellipse_beam_init_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " ellipse_beam_init: C side convert F->C: Good" << endl;
+  } else {
+    cout << " ellipse_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ellipse_beam_init_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_ellipse_beam_init (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_ellipse_beam_init_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " ellipse_beam_init: F side convert F->C: Good" << endl;
+  } else {
+    cout << " ellipse_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ellipse_beam_init_test_pattern (C2, 4);
+  ellipse_beam_init_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_kv_beam_init (CPP_kv_beam_init&, bool&);
+
+void set_CPP_kv_beam_init_test_pattern (CPP_kv_beam_init& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.part_per_phi.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.part_per_phi[i] = rhs;}
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_i2 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.a = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_kv_beam_init (Opaque_kv_beam_init_class* F, bool& c_ok) {
+
+  CPP_kv_beam_init C, C2;
+
+  c_ok = true;
+
+  kv_beam_init_to_c (F, C);
+  set_CPP_kv_beam_init_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " kv_beam_init: C side convert F->C: Good" << endl;
+  } else {
+    cout << " kv_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_kv_beam_init_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_kv_beam_init (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_kv_beam_init_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " kv_beam_init: F side convert F->C: Good" << endl;
+  } else {
+    cout << " kv_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_kv_beam_init_test_pattern (C2, 4);
+  kv_beam_init_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_grid_beam_init (CPP_grid_beam_init&, bool&);
+
+void set_CPP_grid_beam_init_test_pattern (CPP_grid_beam_init& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.n_x = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_px = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.x_min = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.x_max = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.px_min = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.px_max = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_grid_beam_init (Opaque_grid_beam_init_class* F, bool& c_ok) {
+
+  CPP_grid_beam_init C, C2;
+
+  c_ok = true;
+
+  grid_beam_init_to_c (F, C);
+  set_CPP_grid_beam_init_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " grid_beam_init: C side convert F->C: Good" << endl;
+  } else {
+    cout << " grid_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_grid_beam_init_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_grid_beam_init (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_grid_beam_init_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " grid_beam_init: F side convert F->C: Good" << endl;
+  } else {
+    cout << " grid_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_grid_beam_init_test_pattern (C2, 4);
+  grid_beam_init_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_beam_init (CPP_beam_init&, bool&);
+
+void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file_name.resize(200);
+  for (unsigned int i = 0; i < C.file_name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file_name[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 1, NOT]
+  for (unsigned int i = 0; i < C.distribution_type.size(); i++) {
+    C.distribution_type[i].resize(16);
+    for (unsigned int j = 0; j < C.distribution_type[i].size(); j++) 
+      {C.distribution_type[i][j] = 'a' + (101 + i + 10*(j+1) + 2 + offset) % 26;}
+  }
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
+
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.ellipse.size(); i++)
+    {int rhs = 101 + i + 4 + offset; set_CPP_ellipse_beam_init_test_pattern(C.ellipse[i], ix_patt+i+1);}
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_kv_beam_init_test_pattern(C.kv, ix_patt);
+
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.grid.size(); i++)
+    {int rhs = 101 + i + 6 + offset; set_CPP_grid_beam_init_test_pattern(C.grid[i], ix_patt+i+1);}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.center_jitter.size(); i++)
+    {int rhs = 101 + i + 7 + offset; C.center_jitter[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.emit_jitter.size(); i++)
+    {int rhs = 101 + i + 8 + offset; C.emit_jitter[i] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.sig_z_jitter = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.sig_e_jitter = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 11 + offset; C.n_particle = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 12 + offset; C.renorm_center = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 13 + offset; C.renorm_sigma = (rhs % 2 == 0);
+
+  // c_side.test_pat[character, 0, NOT]
+  C.random_engine.resize(16);
+  for (unsigned int i = 0; i < C.random_engine.size(); i++)
+    {int rhs = 101 + i + 14 + offset; C.random_engine[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
+  C.random_gauss_converter.resize(16);
+  for (unsigned int i = 0; i < C.random_gauss_converter.size(); i++)
+    {int rhs = 101 + i + 15 + offset; C.random_gauss_converter[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 16 + offset; C.random_sigma_cutoff = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 17 + offset; C.a_norm_emit = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 18 + offset; C.b_norm_emit = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 19 + offset; C.a_emit = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 20 + offset; C.b_emit = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 21 + offset; C.dpz_dz = rhs;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.center.size(); i++)
+    {int rhs = 101 + i + 22 + offset; C.center[i] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 23 + offset; C.dt_bunch = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 24 + offset; C.sig_z = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 25 + offset; C.sig_e = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 26 + offset; C.bunch_charge = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 27 + offset; C.n_bunch = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 28 + offset; C.species = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 29 + offset; C.init_spin = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 30 + offset; C.full_6d_coupling_calc = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 31 + offset; C.use_lattice_center = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 32 + offset; C.use_t_coords = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 33 + offset; C.use_z_as_t = (rhs % 2 == 0);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_beam_init (Opaque_beam_init_class* F, bool& c_ok) {
+
+  CPP_beam_init C, C2;
+
+  c_ok = true;
+
+  beam_init_to_c (F, C);
+  set_CPP_beam_init_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " beam_init: C side convert F->C: Good" << endl;
+  } else {
+    cout << " beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_init_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_beam_init (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_beam_init_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " beam_init: F side convert F->C: Good" << endl;
+  } else {
+    cout << " beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_init_test_pattern (C2, 4);
+  beam_init_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_lat_param (CPP_lat_param&, bool&);
 
 void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
@@ -5900,340 +6234,6 @@ extern "C" void test_c_beam (Opaque_beam_class* F, bool& c_ok) {
 
   set_CPP_beam_test_pattern (C2, 4);
   beam_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_ellipse_beam_init (CPP_ellipse_beam_init&, bool&);
-
-void set_CPP_ellipse_beam_init_test_pattern (CPP_ellipse_beam_init& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.part_per_ellipse = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_ellipse = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.sigma_cutoff = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_ellipse_beam_init (Opaque_ellipse_beam_init_class* F, bool& c_ok) {
-
-  CPP_ellipse_beam_init C, C2;
-
-  c_ok = true;
-
-  ellipse_beam_init_to_c (F, C);
-  set_CPP_ellipse_beam_init_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " ellipse_beam_init: C side convert F->C: Good" << endl;
-  } else {
-    cout << " ellipse_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_ellipse_beam_init_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_ellipse_beam_init (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_ellipse_beam_init_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " ellipse_beam_init: F side convert F->C: Good" << endl;
-  } else {
-    cout << " ellipse_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_ellipse_beam_init_test_pattern (C2, 4);
-  ellipse_beam_init_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_kv_beam_init (CPP_kv_beam_init&, bool&);
-
-void set_CPP_kv_beam_init_test_pattern (CPP_kv_beam_init& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 1, NOT]
-  for (unsigned int i = 0; i < C.part_per_phi.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.part_per_phi[i] = rhs;}
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_i2 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.a = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_kv_beam_init (Opaque_kv_beam_init_class* F, bool& c_ok) {
-
-  CPP_kv_beam_init C, C2;
-
-  c_ok = true;
-
-  kv_beam_init_to_c (F, C);
-  set_CPP_kv_beam_init_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " kv_beam_init: C side convert F->C: Good" << endl;
-  } else {
-    cout << " kv_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_kv_beam_init_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_kv_beam_init (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_kv_beam_init_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " kv_beam_init: F side convert F->C: Good" << endl;
-  } else {
-    cout << " kv_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_kv_beam_init_test_pattern (C2, 4);
-  kv_beam_init_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_grid_beam_init (CPP_grid_beam_init&, bool&);
-
-void set_CPP_grid_beam_init_test_pattern (CPP_grid_beam_init& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.n_x = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_px = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.x_min = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.x_max = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.px_min = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.px_max = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_grid_beam_init (Opaque_grid_beam_init_class* F, bool& c_ok) {
-
-  CPP_grid_beam_init C, C2;
-
-  c_ok = true;
-
-  grid_beam_init_to_c (F, C);
-  set_CPP_grid_beam_init_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " grid_beam_init: C side convert F->C: Good" << endl;
-  } else {
-    cout << " grid_beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_grid_beam_init_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_grid_beam_init (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_grid_beam_init_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " grid_beam_init: F side convert F->C: Good" << endl;
-  } else {
-    cout << " grid_beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_grid_beam_init_test_pattern (C2, 4);
-  grid_beam_init_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_beam_init (CPP_beam_init&, bool&);
-
-void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[character, 0, NOT]
-  C.file_name.resize(200);
-  for (unsigned int i = 0; i < C.file_name.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.file_name[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[character, 1, NOT]
-  for (unsigned int i = 0; i < C.distribution_type.size(); i++) {
-    C.distribution_type[i].resize(16);
-    for (unsigned int j = 0; j < C.distribution_type[i].size(); j++) 
-      {C.distribution_type[i][j] = 'a' + (101 + i + 10*(j+1) + 2 + offset) % 26;}
-  }
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
-
-  // c_side.test_pat[type, 1, NOT]
-  for (unsigned int i = 0; i < C.ellipse.size(); i++)
-    {int rhs = 101 + i + 4 + offset; set_CPP_ellipse_beam_init_test_pattern(C.ellipse[i], ix_patt+i+1);}
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_kv_beam_init_test_pattern(C.kv, ix_patt);
-
-  // c_side.test_pat[type, 1, NOT]
-  for (unsigned int i = 0; i < C.grid.size(); i++)
-    {int rhs = 101 + i + 6 + offset; set_CPP_grid_beam_init_test_pattern(C.grid[i], ix_patt+i+1);}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.center_jitter.size(); i++)
-    {int rhs = 101 + i + 7 + offset; C.center_jitter[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.emit_jitter.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.emit_jitter[i] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.sig_z_jitter = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.sig_e_jitter = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.n_particle = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.renorm_center = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.renorm_sigma = (rhs % 2 == 0);
-
-  // c_side.test_pat[character, 0, NOT]
-  C.random_engine.resize(16);
-  for (unsigned int i = 0; i < C.random_engine.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.random_engine[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[character, 0, NOT]
-  C.random_gauss_converter.resize(16);
-  for (unsigned int i = 0; i < C.random_gauss_converter.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.random_gauss_converter[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 16 + offset; C.random_sigma_cutoff = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 17 + offset; C.a_norm_emit = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 18 + offset; C.b_norm_emit = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 19 + offset; C.a_emit = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 20 + offset; C.b_emit = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 21 + offset; C.dpz_dz = rhs;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.center.size(); i++)
-    {int rhs = 101 + i + 22 + offset; C.center[i] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 23 + offset; C.dt_bunch = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 24 + offset; C.sig_z = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 25 + offset; C.sig_e = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 26 + offset; C.bunch_charge = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_bunch = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.species = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.init_spin = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.full_6d_coupling_calc = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.use_lattice_center = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.use_t_coords = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.use_z_as_t = (rhs % 2 == 0);
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_beam_init (Opaque_beam_init_class* F, bool& c_ok) {
-
-  CPP_beam_init C, C2;
-
-  c_ok = true;
-
-  beam_init_to_c (F, C);
-  set_CPP_beam_init_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " beam_init: C side convert F->C: Good" << endl;
-  } else {
-    cout << " beam_init: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_beam_init_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_beam_init (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_beam_init_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " beam_init: F side convert F->C: Good" << endl;
-  } else {
-    cout << " beam_init: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_beam_init_test_pattern (C2, 4);
-  beam_init_to_f (C2, F);
 
 }
 

@@ -281,6 +281,26 @@ typedef valarray<CPP_control>          CPP_control_ARRAY;
 typedef valarray<CPP_control_ARRAY>    CPP_control_MATRIX;
 typedef valarray<CPP_control_MATRIX>   CPP_control_TENSOR;
 
+class CPP_ellipse_beam_init;
+typedef valarray<CPP_ellipse_beam_init>          CPP_ellipse_beam_init_ARRAY;
+typedef valarray<CPP_ellipse_beam_init_ARRAY>    CPP_ellipse_beam_init_MATRIX;
+typedef valarray<CPP_ellipse_beam_init_MATRIX>   CPP_ellipse_beam_init_TENSOR;
+
+class CPP_kv_beam_init;
+typedef valarray<CPP_kv_beam_init>          CPP_kv_beam_init_ARRAY;
+typedef valarray<CPP_kv_beam_init_ARRAY>    CPP_kv_beam_init_MATRIX;
+typedef valarray<CPP_kv_beam_init_MATRIX>   CPP_kv_beam_init_TENSOR;
+
+class CPP_grid_beam_init;
+typedef valarray<CPP_grid_beam_init>          CPP_grid_beam_init_ARRAY;
+typedef valarray<CPP_grid_beam_init_ARRAY>    CPP_grid_beam_init_MATRIX;
+typedef valarray<CPP_grid_beam_init_MATRIX>   CPP_grid_beam_init_TENSOR;
+
+class CPP_beam_init;
+typedef valarray<CPP_beam_init>          CPP_beam_init_ARRAY;
+typedef valarray<CPP_beam_init_ARRAY>    CPP_beam_init_MATRIX;
+typedef valarray<CPP_beam_init_MATRIX>   CPP_beam_init_TENSOR;
+
 class CPP_lat_param;
 typedef valarray<CPP_lat_param>          CPP_lat_param_ARRAY;
 typedef valarray<CPP_lat_param_ARRAY>    CPP_lat_param_MATRIX;
@@ -400,26 +420,6 @@ class CPP_beam;
 typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
-
-class CPP_ellipse_beam_init;
-typedef valarray<CPP_ellipse_beam_init>          CPP_ellipse_beam_init_ARRAY;
-typedef valarray<CPP_ellipse_beam_init_ARRAY>    CPP_ellipse_beam_init_MATRIX;
-typedef valarray<CPP_ellipse_beam_init_MATRIX>   CPP_ellipse_beam_init_TENSOR;
-
-class CPP_kv_beam_init;
-typedef valarray<CPP_kv_beam_init>          CPP_kv_beam_init_ARRAY;
-typedef valarray<CPP_kv_beam_init_ARRAY>    CPP_kv_beam_init_MATRIX;
-typedef valarray<CPP_kv_beam_init_MATRIX>   CPP_kv_beam_init_TENSOR;
-
-class CPP_grid_beam_init;
-typedef valarray<CPP_grid_beam_init>          CPP_grid_beam_init_ARRAY;
-typedef valarray<CPP_grid_beam_init_ARRAY>    CPP_grid_beam_init_MATRIX;
-typedef valarray<CPP_grid_beam_init_MATRIX>   CPP_grid_beam_init_TENSOR;
-
-class CPP_beam_init;
-typedef valarray<CPP_beam_init>          CPP_beam_init_ARRAY;
-typedef valarray<CPP_beam_init_ARRAY>    CPP_beam_init_MATRIX;
-typedef valarray<CPP_beam_init_MATRIX>   CPP_beam_init_TENSOR;
 
 class CPP_aperture_data;
 typedef valarray<CPP_aperture_data>          CPP_aperture_data_ARRAY;
@@ -2226,6 +2226,184 @@ bool operator== (const CPP_control&, const CPP_control&);
 
 
 //--------------------------------------------------------------------
+// CPP_ellipse_beam_init
+
+class Opaque_ellipse_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ellipse_beam_init {
+public:
+  Int part_per_ellipse;
+  Int n_ellipse;
+  Real sigma_cutoff;
+
+  CPP_ellipse_beam_init() :
+    part_per_ellipse(0),
+    n_ellipse(1),
+    sigma_cutoff(0.0)
+    {}
+
+  ~CPP_ellipse_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void ellipse_beam_init_to_c (const Opaque_ellipse_beam_init_class*, CPP_ellipse_beam_init&);
+extern "C" void ellipse_beam_init_to_f (const CPP_ellipse_beam_init&, Opaque_ellipse_beam_init_class*);
+
+bool operator== (const CPP_ellipse_beam_init&, const CPP_ellipse_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_kv_beam_init
+
+class Opaque_kv_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_kv_beam_init {
+public:
+  Int_ARRAY part_per_phi;
+  Int n_i2;
+  Real a;
+
+  CPP_kv_beam_init() :
+    part_per_phi(0, 2),
+    n_i2(0),
+    a(0.0)
+    {}
+
+  ~CPP_kv_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void kv_beam_init_to_c (const Opaque_kv_beam_init_class*, CPP_kv_beam_init&);
+extern "C" void kv_beam_init_to_f (const CPP_kv_beam_init&, Opaque_kv_beam_init_class*);
+
+bool operator== (const CPP_kv_beam_init&, const CPP_kv_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_grid_beam_init
+
+class Opaque_grid_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_grid_beam_init {
+public:
+  Int n_x;
+  Int n_px;
+  Real x_min;
+  Real x_max;
+  Real px_min;
+  Real px_max;
+
+  CPP_grid_beam_init() :
+    n_x(0),
+    n_px(0),
+    x_min(0.0),
+    x_max(0.0),
+    px_min(0.0),
+    px_max(0.0)
+    {}
+
+  ~CPP_grid_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void grid_beam_init_to_c (const Opaque_grid_beam_init_class*, CPP_grid_beam_init&);
+extern "C" void grid_beam_init_to_f (const CPP_grid_beam_init&, Opaque_grid_beam_init_class*);
+
+bool operator== (const CPP_grid_beam_init&, const CPP_grid_beam_init&);
+
+
+//--------------------------------------------------------------------
+// CPP_beam_init
+
+class Opaque_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_beam_init {
+public:
+  string file_name;
+  String_ARRAY distribution_type;
+  CPP_spin_polar spin;
+  CPP_ellipse_beam_init_ARRAY ellipse;
+  CPP_kv_beam_init kv;
+  CPP_grid_beam_init_ARRAY grid;
+  Real_ARRAY center_jitter;
+  Real_ARRAY emit_jitter;
+  Real sig_z_jitter;
+  Real sig_e_jitter;
+  Int n_particle;
+  Bool renorm_center;
+  Bool renorm_sigma;
+  string random_engine;
+  string random_gauss_converter;
+  Real random_sigma_cutoff;
+  Real a_norm_emit;
+  Real b_norm_emit;
+  Real a_emit;
+  Real b_emit;
+  Real dpz_dz;
+  Real_ARRAY center;
+  Real dt_bunch;
+  Real sig_z;
+  Real sig_e;
+  Real bunch_charge;
+  Int n_bunch;
+  Int species;
+  Bool init_spin;
+  Bool full_6d_coupling_calc;
+  Bool use_lattice_center;
+  Bool use_t_coords;
+  Bool use_z_as_t;
+
+  CPP_beam_init() :
+    file_name(),
+    distribution_type(String_ARRAY(string(), 3)),
+    spin(),
+    ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
+    kv(),
+    grid(CPP_grid_beam_init_ARRAY(CPP_grid_beam_init(), 3)),
+    center_jitter(0.0, 6),
+    emit_jitter(0.0, 2),
+    sig_z_jitter(0.0),
+    sig_e_jitter(0.0),
+    n_particle(0),
+    renorm_center(true),
+    renorm_sigma(true),
+    random_engine(),
+    random_gauss_converter(),
+    random_sigma_cutoff(-1),
+    a_norm_emit(0.0),
+    b_norm_emit(0.0),
+    a_emit(0.0),
+    b_emit(0.0),
+    dpz_dz(0.0),
+    center(0.0, 6),
+    dt_bunch(0.0),
+    sig_z(0.0),
+    sig_e(0.0),
+    bunch_charge(1),
+    n_bunch(1),
+    species(Bmad::NOT_SET),
+    init_spin(false),
+    full_6d_coupling_calc(false),
+    use_lattice_center(false),
+    use_t_coords(false),
+    use_z_as_t(false)
+    {}
+
+  ~CPP_beam_init() {
+  }
+
+};   // End Class
+
+extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
+extern "C" void beam_init_to_f (const CPP_beam_init&, Opaque_beam_init_class*);
+
+bool operator== (const CPP_beam_init&, const CPP_beam_init&);
+
+
+//--------------------------------------------------------------------
 // CPP_lat_param
 
 class Opaque_lat_param_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -3371,184 +3549,6 @@ extern "C" void beam_to_c (const Opaque_beam_class*, CPP_beam&);
 extern "C" void beam_to_f (const CPP_beam&, Opaque_beam_class*);
 
 bool operator== (const CPP_beam&, const CPP_beam&);
-
-
-//--------------------------------------------------------------------
-// CPP_ellipse_beam_init
-
-class Opaque_ellipse_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_ellipse_beam_init {
-public:
-  Int part_per_ellipse;
-  Int n_ellipse;
-  Real sigma_cutoff;
-
-  CPP_ellipse_beam_init() :
-    part_per_ellipse(0),
-    n_ellipse(1),
-    sigma_cutoff(0.0)
-    {}
-
-  ~CPP_ellipse_beam_init() {
-  }
-
-};   // End Class
-
-extern "C" void ellipse_beam_init_to_c (const Opaque_ellipse_beam_init_class*, CPP_ellipse_beam_init&);
-extern "C" void ellipse_beam_init_to_f (const CPP_ellipse_beam_init&, Opaque_ellipse_beam_init_class*);
-
-bool operator== (const CPP_ellipse_beam_init&, const CPP_ellipse_beam_init&);
-
-
-//--------------------------------------------------------------------
-// CPP_kv_beam_init
-
-class Opaque_kv_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_kv_beam_init {
-public:
-  Int_ARRAY part_per_phi;
-  Int n_i2;
-  Real a;
-
-  CPP_kv_beam_init() :
-    part_per_phi(0, 2),
-    n_i2(0),
-    a(0.0)
-    {}
-
-  ~CPP_kv_beam_init() {
-  }
-
-};   // End Class
-
-extern "C" void kv_beam_init_to_c (const Opaque_kv_beam_init_class*, CPP_kv_beam_init&);
-extern "C" void kv_beam_init_to_f (const CPP_kv_beam_init&, Opaque_kv_beam_init_class*);
-
-bool operator== (const CPP_kv_beam_init&, const CPP_kv_beam_init&);
-
-
-//--------------------------------------------------------------------
-// CPP_grid_beam_init
-
-class Opaque_grid_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_grid_beam_init {
-public:
-  Int n_x;
-  Int n_px;
-  Real x_min;
-  Real x_max;
-  Real px_min;
-  Real px_max;
-
-  CPP_grid_beam_init() :
-    n_x(0),
-    n_px(0),
-    x_min(0.0),
-    x_max(0.0),
-    px_min(0.0),
-    px_max(0.0)
-    {}
-
-  ~CPP_grid_beam_init() {
-  }
-
-};   // End Class
-
-extern "C" void grid_beam_init_to_c (const Opaque_grid_beam_init_class*, CPP_grid_beam_init&);
-extern "C" void grid_beam_init_to_f (const CPP_grid_beam_init&, Opaque_grid_beam_init_class*);
-
-bool operator== (const CPP_grid_beam_init&, const CPP_grid_beam_init&);
-
-
-//--------------------------------------------------------------------
-// CPP_beam_init
-
-class Opaque_beam_init_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_beam_init {
-public:
-  string file_name;
-  String_ARRAY distribution_type;
-  CPP_spin_polar spin;
-  CPP_ellipse_beam_init_ARRAY ellipse;
-  CPP_kv_beam_init kv;
-  CPP_grid_beam_init_ARRAY grid;
-  Real_ARRAY center_jitter;
-  Real_ARRAY emit_jitter;
-  Real sig_z_jitter;
-  Real sig_e_jitter;
-  Int n_particle;
-  Bool renorm_center;
-  Bool renorm_sigma;
-  string random_engine;
-  string random_gauss_converter;
-  Real random_sigma_cutoff;
-  Real a_norm_emit;
-  Real b_norm_emit;
-  Real a_emit;
-  Real b_emit;
-  Real dpz_dz;
-  Real_ARRAY center;
-  Real dt_bunch;
-  Real sig_z;
-  Real sig_e;
-  Real bunch_charge;
-  Int n_bunch;
-  Int species;
-  Bool init_spin;
-  Bool full_6d_coupling_calc;
-  Bool use_lattice_center;
-  Bool use_t_coords;
-  Bool use_z_as_t;
-
-  CPP_beam_init() :
-    file_name(),
-    distribution_type(String_ARRAY(string(), 3)),
-    spin(),
-    ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
-    kv(),
-    grid(CPP_grid_beam_init_ARRAY(CPP_grid_beam_init(), 3)),
-    center_jitter(0.0, 6),
-    emit_jitter(0.0, 2),
-    sig_z_jitter(0.0),
-    sig_e_jitter(0.0),
-    n_particle(0),
-    renorm_center(true),
-    renorm_sigma(true),
-    random_engine(),
-    random_gauss_converter(),
-    random_sigma_cutoff(-1),
-    a_norm_emit(0.0),
-    b_norm_emit(0.0),
-    a_emit(0.0),
-    b_emit(0.0),
-    dpz_dz(0.0),
-    center(0.0, 6),
-    dt_bunch(0.0),
-    sig_z(0.0),
-    sig_e(0.0),
-    bunch_charge(1),
-    n_bunch(1),
-    species(Bmad::NOT_SET),
-    init_spin(false),
-    full_6d_coupling_calc(false),
-    use_lattice_center(false),
-    use_t_coords(false),
-    use_z_as_t(false)
-    {}
-
-  ~CPP_beam_init() {
-  }
-
-};   // End Class
-
-extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
-extern "C" void beam_init_to_f (const CPP_beam_init&, Opaque_beam_init_class*);
-
-bool operator== (const CPP_beam_init&, const CPP_beam_init&);
 
 
 //--------------------------------------------------------------------

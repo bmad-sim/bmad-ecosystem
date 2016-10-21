@@ -2223,6 +2223,214 @@ extern "C" void control_to_c2 (CPP_control& C, Opaque_expression_atom_class** z_
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_ellipse_beam_init
+
+extern "C" void ellipse_beam_init_to_c (const Opaque_ellipse_beam_init_class*, CPP_ellipse_beam_init&);
+
+// c_side.to_f2_arg
+extern "C" void ellipse_beam_init_to_f2 (Opaque_ellipse_beam_init_class*, c_Int&, c_Int&,
+    c_Real&);
+
+extern "C" void ellipse_beam_init_to_f (const CPP_ellipse_beam_init& C, Opaque_ellipse_beam_init_class* F) {
+
+  // c_side.to_f2_call
+  ellipse_beam_init_to_f2 (F, C.part_per_ellipse, C.n_ellipse, C.sigma_cutoff);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void ellipse_beam_init_to_c2 (CPP_ellipse_beam_init& C, c_Int& z_part_per_ellipse,
+    c_Int& z_n_ellipse, c_Real& z_sigma_cutoff) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.part_per_ellipse = z_part_per_ellipse;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_ellipse = z_n_ellipse;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sigma_cutoff = z_sigma_cutoff;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_kv_beam_init
+
+extern "C" void kv_beam_init_to_c (const Opaque_kv_beam_init_class*, CPP_kv_beam_init&);
+
+// c_side.to_f2_arg
+extern "C" void kv_beam_init_to_f2 (Opaque_kv_beam_init_class*, c_IntArr, c_Int&, c_Real&);
+
+extern "C" void kv_beam_init_to_f (const CPP_kv_beam_init& C, Opaque_kv_beam_init_class* F) {
+
+  // c_side.to_f2_call
+  kv_beam_init_to_f2 (F, &C.part_per_phi[0], C.n_i2, C.a);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void kv_beam_init_to_c2 (CPP_kv_beam_init& C, c_IntArr z_part_per_phi, c_Int&
+    z_n_i2, c_Real& z_a) {
+
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.part_per_phi << z_part_per_phi;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_i2 = z_n_i2;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.a = z_a;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_grid_beam_init
+
+extern "C" void grid_beam_init_to_c (const Opaque_grid_beam_init_class*, CPP_grid_beam_init&);
+
+// c_side.to_f2_arg
+extern "C" void grid_beam_init_to_f2 (Opaque_grid_beam_init_class*, c_Int&, c_Int&, c_Real&,
+    c_Real&, c_Real&, c_Real&);
+
+extern "C" void grid_beam_init_to_f (const CPP_grid_beam_init& C, Opaque_grid_beam_init_class* F) {
+
+  // c_side.to_f2_call
+  grid_beam_init_to_f2 (F, C.n_x, C.n_px, C.x_min, C.x_max, C.px_min, C.px_max);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void grid_beam_init_to_c2 (CPP_grid_beam_init& C, c_Int& z_n_x, c_Int& z_n_px,
+    c_Real& z_x_min, c_Real& z_x_max, c_Real& z_px_min, c_Real& z_px_max) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_x = z_n_x;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_px = z_n_px;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_min = z_x_min;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_max = z_x_max;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.px_min = z_px_min;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.px_max = z_px_max;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_beam_init
+
+extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
+
+// c_side.to_f2_arg
+extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char*, const
+    CPP_spin_polar&, const CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const
+    CPP_grid_beam_init**, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&,
+    c_Char, c_Char, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+
+extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
+  // c_side.to_f_setup[character, 1, NOT]
+  c_Char z_distribution_type[3];
+  for (int i = 0; i < 3; i++) {z_distribution_type[i] = C.distribution_type[i].c_str();}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_ellipse_beam_init* z_ellipse[3];
+  for (int i = 0; i < 3; i++) {z_ellipse[i] = &C.ellipse[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_grid_beam_init* z_grid[3];
+  for (int i = 0; i < 3; i++) {z_grid[i] = &C.grid[i];}
+
+  // c_side.to_f2_call
+  beam_init_to_f2 (F, C.file_name.c_str(), z_distribution_type, C.spin, z_ellipse, C.kv,
+      z_grid, &C.center_jitter[0], &C.emit_jitter[0], C.sig_z_jitter, C.sig_e_jitter,
+      C.n_particle, C.renorm_center, C.renorm_sigma, C.random_engine.c_str(),
+      C.random_gauss_converter.c_str(), C.random_sigma_cutoff, C.a_norm_emit, C.b_norm_emit,
+      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch, C.sig_z, C.sig_e, C.bunch_charge,
+      C.n_bunch, C.species, C.init_spin, C.full_6d_coupling_calc, C.use_lattice_center,
+      C.use_t_coords, C.use_z_as_t);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_file_name, c_Char*
+    z_distribution_type, const Opaque_spin_polar_class* z_spin, const
+    Opaque_ellipse_beam_init_class** z_ellipse, const Opaque_kv_beam_init_class* z_kv, const
+    Opaque_grid_beam_init_class** z_grid, c_RealArr z_center_jitter, c_RealArr z_emit_jitter,
+    c_Real& z_sig_z_jitter, c_Real& z_sig_e_jitter, c_Int& z_n_particle, c_Bool&
+    z_renorm_center, c_Bool& z_renorm_sigma, c_Char z_random_engine, c_Char
+    z_random_gauss_converter, c_Real& z_random_sigma_cutoff, c_Real& z_a_norm_emit, c_Real&
+    z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real& z_dpz_dz, c_RealArr z_center,
+    c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_e, c_Real& z_bunch_charge, c_Int&
+    z_n_bunch, c_Int& z_species, c_Bool& z_init_spin, c_Bool& z_full_6d_coupling_calc, c_Bool&
+    z_use_lattice_center, c_Bool& z_use_t_coords, c_Bool& z_use_z_as_t) {
+
+  // c_side.to_c2_set[character, 0, NOT]
+  C.file_name = z_file_name;
+  // c_side.to_c2_set[character, 1, NOT]
+  for (unsigned int i = 0; i < C.distribution_type.size(); i++) C.distribution_type[i] = z_distribution_type[i];
+  // c_side.to_c2_set[type, 0, NOT]
+  spin_polar_to_c(z_spin, C.spin);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.ellipse.size(); i++) ellipse_beam_init_to_c(z_ellipse[i], C.ellipse[i]);
+  // c_side.to_c2_set[type, 0, NOT]
+  kv_beam_init_to_c(z_kv, C.kv);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.grid.size(); i++) grid_beam_init_to_c(z_grid[i], C.grid[i]);
+  // c_side.to_c2_set[real, 1, NOT]
+  C.center_jitter << z_center_jitter;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.emit_jitter << z_emit_jitter;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_z_jitter = z_sig_z_jitter;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_e_jitter = z_sig_e_jitter;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_particle = z_n_particle;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.renorm_center = z_renorm_center;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.renorm_sigma = z_renorm_sigma;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.random_engine = z_random_engine;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.random_gauss_converter = z_random_gauss_converter;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.random_sigma_cutoff = z_random_sigma_cutoff;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.a_norm_emit = z_a_norm_emit;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.b_norm_emit = z_b_norm_emit;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.a_emit = z_a_emit;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.b_emit = z_b_emit;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dpz_dz = z_dpz_dz;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.center << z_center;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dt_bunch = z_dt_bunch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_z = z_sig_z;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_e = z_sig_e;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.bunch_charge = z_bunch_charge;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_bunch = z_n_bunch;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.species = z_species;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.init_spin = z_init_spin;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.full_6d_coupling_calc = z_full_6d_coupling_calc;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.use_lattice_center = z_use_lattice_center;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.use_t_coords = z_use_t_coords;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.use_z_as_t = z_use_z_as_t;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_lat_param
 
 extern "C" void lat_param_to_c (const Opaque_lat_param_class*, CPP_lat_param&);
@@ -3945,214 +4153,6 @@ extern "C" void beam_to_c2 (CPP_beam& C, Opaque_bunch_class** z_bunch, Int n1_bu
   C.bunch.resize(n1_bunch);
   for (int i = 0; i < n1_bunch; i++) bunch_to_c(z_bunch[i], C.bunch[i]);
 
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_ellipse_beam_init
-
-extern "C" void ellipse_beam_init_to_c (const Opaque_ellipse_beam_init_class*, CPP_ellipse_beam_init&);
-
-// c_side.to_f2_arg
-extern "C" void ellipse_beam_init_to_f2 (Opaque_ellipse_beam_init_class*, c_Int&, c_Int&,
-    c_Real&);
-
-extern "C" void ellipse_beam_init_to_f (const CPP_ellipse_beam_init& C, Opaque_ellipse_beam_init_class* F) {
-
-  // c_side.to_f2_call
-  ellipse_beam_init_to_f2 (F, C.part_per_ellipse, C.n_ellipse, C.sigma_cutoff);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void ellipse_beam_init_to_c2 (CPP_ellipse_beam_init& C, c_Int& z_part_per_ellipse,
-    c_Int& z_n_ellipse, c_Real& z_sigma_cutoff) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.part_per_ellipse = z_part_per_ellipse;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_ellipse = z_n_ellipse;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sigma_cutoff = z_sigma_cutoff;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_kv_beam_init
-
-extern "C" void kv_beam_init_to_c (const Opaque_kv_beam_init_class*, CPP_kv_beam_init&);
-
-// c_side.to_f2_arg
-extern "C" void kv_beam_init_to_f2 (Opaque_kv_beam_init_class*, c_IntArr, c_Int&, c_Real&);
-
-extern "C" void kv_beam_init_to_f (const CPP_kv_beam_init& C, Opaque_kv_beam_init_class* F) {
-
-  // c_side.to_f2_call
-  kv_beam_init_to_f2 (F, &C.part_per_phi[0], C.n_i2, C.a);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void kv_beam_init_to_c2 (CPP_kv_beam_init& C, c_IntArr z_part_per_phi, c_Int&
-    z_n_i2, c_Real& z_a) {
-
-  // c_side.to_c2_set[integer, 1, NOT]
-  C.part_per_phi << z_part_per_phi;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_i2 = z_n_i2;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.a = z_a;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_grid_beam_init
-
-extern "C" void grid_beam_init_to_c (const Opaque_grid_beam_init_class*, CPP_grid_beam_init&);
-
-// c_side.to_f2_arg
-extern "C" void grid_beam_init_to_f2 (Opaque_grid_beam_init_class*, c_Int&, c_Int&, c_Real&,
-    c_Real&, c_Real&, c_Real&);
-
-extern "C" void grid_beam_init_to_f (const CPP_grid_beam_init& C, Opaque_grid_beam_init_class* F) {
-
-  // c_side.to_f2_call
-  grid_beam_init_to_f2 (F, C.n_x, C.n_px, C.x_min, C.x_max, C.px_min, C.px_max);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void grid_beam_init_to_c2 (CPP_grid_beam_init& C, c_Int& z_n_x, c_Int& z_n_px,
-    c_Real& z_x_min, c_Real& z_x_max, c_Real& z_px_min, c_Real& z_px_max) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_x = z_n_x;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_px = z_n_px;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_min = z_x_min;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_max = z_x_max;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.px_min = z_px_min;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.px_max = z_px_max;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_beam_init
-
-extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
-
-// c_side.to_f2_arg
-extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char*, const
-    CPP_spin_polar&, const CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const
-    CPP_grid_beam_init**, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&,
-    c_Char, c_Char, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
-
-extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
-  // c_side.to_f_setup[character, 1, NOT]
-  c_Char z_distribution_type[3];
-  for (int i = 0; i < 3; i++) {z_distribution_type[i] = C.distribution_type[i].c_str();}
-  // c_side.to_f_setup[type, 1, NOT]
-  const CPP_ellipse_beam_init* z_ellipse[3];
-  for (int i = 0; i < 3; i++) {z_ellipse[i] = &C.ellipse[i];}
-  // c_side.to_f_setup[type, 1, NOT]
-  const CPP_grid_beam_init* z_grid[3];
-  for (int i = 0; i < 3; i++) {z_grid[i] = &C.grid[i];}
-
-  // c_side.to_f2_call
-  beam_init_to_f2 (F, C.file_name.c_str(), z_distribution_type, C.spin, z_ellipse, C.kv,
-      z_grid, &C.center_jitter[0], &C.emit_jitter[0], C.sig_z_jitter, C.sig_e_jitter,
-      C.n_particle, C.renorm_center, C.renorm_sigma, C.random_engine.c_str(),
-      C.random_gauss_converter.c_str(), C.random_sigma_cutoff, C.a_norm_emit, C.b_norm_emit,
-      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch, C.sig_z, C.sig_e, C.bunch_charge,
-      C.n_bunch, C.species, C.init_spin, C.full_6d_coupling_calc, C.use_lattice_center,
-      C.use_t_coords, C.use_z_as_t);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_file_name, c_Char*
-    z_distribution_type, const Opaque_spin_polar_class* z_spin, const
-    Opaque_ellipse_beam_init_class** z_ellipse, const Opaque_kv_beam_init_class* z_kv, const
-    Opaque_grid_beam_init_class** z_grid, c_RealArr z_center_jitter, c_RealArr z_emit_jitter,
-    c_Real& z_sig_z_jitter, c_Real& z_sig_e_jitter, c_Int& z_n_particle, c_Bool&
-    z_renorm_center, c_Bool& z_renorm_sigma, c_Char z_random_engine, c_Char
-    z_random_gauss_converter, c_Real& z_random_sigma_cutoff, c_Real& z_a_norm_emit, c_Real&
-    z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real& z_dpz_dz, c_RealArr z_center,
-    c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_e, c_Real& z_bunch_charge, c_Int&
-    z_n_bunch, c_Int& z_species, c_Bool& z_init_spin, c_Bool& z_full_6d_coupling_calc, c_Bool&
-    z_use_lattice_center, c_Bool& z_use_t_coords, c_Bool& z_use_z_as_t) {
-
-  // c_side.to_c2_set[character, 0, NOT]
-  C.file_name = z_file_name;
-  // c_side.to_c2_set[character, 1, NOT]
-  for (unsigned int i = 0; i < C.distribution_type.size(); i++) C.distribution_type[i] = z_distribution_type[i];
-  // c_side.to_c2_set[type, 0, NOT]
-  spin_polar_to_c(z_spin, C.spin);
-  // c_side.to_c2_set[type, 1, NOT]
-  for (unsigned int i = 0; i < C.ellipse.size(); i++) ellipse_beam_init_to_c(z_ellipse[i], C.ellipse[i]);
-  // c_side.to_c2_set[type, 0, NOT]
-  kv_beam_init_to_c(z_kv, C.kv);
-  // c_side.to_c2_set[type, 1, NOT]
-  for (unsigned int i = 0; i < C.grid.size(); i++) grid_beam_init_to_c(z_grid[i], C.grid[i]);
-  // c_side.to_c2_set[real, 1, NOT]
-  C.center_jitter << z_center_jitter;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.emit_jitter << z_emit_jitter;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_z_jitter = z_sig_z_jitter;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e_jitter = z_sig_e_jitter;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_particle = z_n_particle;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.renorm_center = z_renorm_center;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.renorm_sigma = z_renorm_sigma;
-  // c_side.to_c2_set[character, 0, NOT]
-  C.random_engine = z_random_engine;
-  // c_side.to_c2_set[character, 0, NOT]
-  C.random_gauss_converter = z_random_gauss_converter;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.random_sigma_cutoff = z_random_sigma_cutoff;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.a_norm_emit = z_a_norm_emit;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.b_norm_emit = z_b_norm_emit;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.a_emit = z_a_emit;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.b_emit = z_b_emit;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.dpz_dz = z_dpz_dz;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.center << z_center;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.dt_bunch = z_dt_bunch;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_z = z_sig_z;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e = z_sig_e;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.bunch_charge = z_bunch_charge;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_bunch = z_n_bunch;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.species = z_species;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.init_spin = z_init_spin;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.full_6d_coupling_calc = z_full_6d_coupling_calc;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_lattice_center = z_use_lattice_center;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_t_coords = z_use_t_coords;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_z_as_t = z_use_z_as_t;
 }
 
 //--------------------------------------------------------------------

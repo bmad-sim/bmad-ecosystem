@@ -921,6 +921,91 @@ template bool is_all_equal (const CPP_control_MATRIX&, const CPP_control_MATRIX&
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_ellipse_beam_init& x, const CPP_ellipse_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.part_per_ellipse == y.part_per_ellipse);
+  is_eq = is_eq && (x.n_ellipse == y.n_ellipse);
+  is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ellipse_beam_init_ARRAY&, const CPP_ellipse_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_ellipse_beam_init_MATRIX&, const CPP_ellipse_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_kv_beam_init& x, const CPP_kv_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.part_per_phi, y.part_per_phi);
+  is_eq = is_eq && (x.n_i2 == y.n_i2);
+  is_eq = is_eq && (x.a == y.a);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_kv_beam_init_ARRAY&, const CPP_kv_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_kv_beam_init_MATRIX&, const CPP_kv_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_grid_beam_init& x, const CPP_grid_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.n_x == y.n_x);
+  is_eq = is_eq && (x.n_px == y.n_px);
+  is_eq = is_eq && (x.x_min == y.x_min);
+  is_eq = is_eq && (x.x_max == y.x_max);
+  is_eq = is_eq && (x.px_min == y.px_min);
+  is_eq = is_eq && (x.px_max == y.px_max);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_grid_beam_init_ARRAY&, const CPP_grid_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_grid_beam_init_MATRIX&, const CPP_grid_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file_name == y.file_name);
+  is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
+  is_eq = is_eq && (x.spin == y.spin);
+  is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
+  is_eq = is_eq && (x.kv == y.kv);
+  is_eq = is_eq && is_all_equal(x.grid, y.grid);
+  is_eq = is_eq && is_all_equal(x.center_jitter, y.center_jitter);
+  is_eq = is_eq && is_all_equal(x.emit_jitter, y.emit_jitter);
+  is_eq = is_eq && (x.sig_z_jitter == y.sig_z_jitter);
+  is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
+  is_eq = is_eq && (x.n_particle == y.n_particle);
+  is_eq = is_eq && (x.renorm_center == y.renorm_center);
+  is_eq = is_eq && (x.renorm_sigma == y.renorm_sigma);
+  is_eq = is_eq && (x.random_engine == y.random_engine);
+  is_eq = is_eq && (x.random_gauss_converter == y.random_gauss_converter);
+  is_eq = is_eq && (x.random_sigma_cutoff == y.random_sigma_cutoff);
+  is_eq = is_eq && (x.a_norm_emit == y.a_norm_emit);
+  is_eq = is_eq && (x.b_norm_emit == y.b_norm_emit);
+  is_eq = is_eq && (x.a_emit == y.a_emit);
+  is_eq = is_eq && (x.b_emit == y.b_emit);
+  is_eq = is_eq && (x.dpz_dz == y.dpz_dz);
+  is_eq = is_eq && is_all_equal(x.center, y.center);
+  is_eq = is_eq && (x.dt_bunch == y.dt_bunch);
+  is_eq = is_eq && (x.sig_z == y.sig_z);
+  is_eq = is_eq && (x.sig_e == y.sig_e);
+  is_eq = is_eq && (x.bunch_charge == y.bunch_charge);
+  is_eq = is_eq && (x.n_bunch == y.n_bunch);
+  is_eq = is_eq && (x.species == y.species);
+  is_eq = is_eq && (x.init_spin == y.init_spin);
+  is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
+  is_eq = is_eq && (x.use_lattice_center == y.use_lattice_center);
+  is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
+  is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_beam_init_ARRAY&, const CPP_beam_init_ARRAY&);
+template bool is_all_equal (const CPP_beam_init_MATRIX&, const CPP_beam_init_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.n_part == y.n_part);
@@ -1475,91 +1560,6 @@ bool operator== (const CPP_beam& x, const CPP_beam& y) {
 
 template bool is_all_equal (const CPP_beam_ARRAY&, const CPP_beam_ARRAY&);
 template bool is_all_equal (const CPP_beam_MATRIX&, const CPP_beam_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_ellipse_beam_init& x, const CPP_ellipse_beam_init& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.part_per_ellipse == y.part_per_ellipse);
-  is_eq = is_eq && (x.n_ellipse == y.n_ellipse);
-  is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_ellipse_beam_init_ARRAY&, const CPP_ellipse_beam_init_ARRAY&);
-template bool is_all_equal (const CPP_ellipse_beam_init_MATRIX&, const CPP_ellipse_beam_init_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_kv_beam_init& x, const CPP_kv_beam_init& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.part_per_phi, y.part_per_phi);
-  is_eq = is_eq && (x.n_i2 == y.n_i2);
-  is_eq = is_eq && (x.a == y.a);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_kv_beam_init_ARRAY&, const CPP_kv_beam_init_ARRAY&);
-template bool is_all_equal (const CPP_kv_beam_init_MATRIX&, const CPP_kv_beam_init_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_grid_beam_init& x, const CPP_grid_beam_init& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.n_x == y.n_x);
-  is_eq = is_eq && (x.n_px == y.n_px);
-  is_eq = is_eq && (x.x_min == y.x_min);
-  is_eq = is_eq && (x.x_max == y.x_max);
-  is_eq = is_eq && (x.px_min == y.px_min);
-  is_eq = is_eq && (x.px_max == y.px_max);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_grid_beam_init_ARRAY&, const CPP_grid_beam_init_ARRAY&);
-template bool is_all_equal (const CPP_grid_beam_init_MATRIX&, const CPP_grid_beam_init_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.file_name == y.file_name);
-  is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
-  is_eq = is_eq && (x.spin == y.spin);
-  is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
-  is_eq = is_eq && (x.kv == y.kv);
-  is_eq = is_eq && is_all_equal(x.grid, y.grid);
-  is_eq = is_eq && is_all_equal(x.center_jitter, y.center_jitter);
-  is_eq = is_eq && is_all_equal(x.emit_jitter, y.emit_jitter);
-  is_eq = is_eq && (x.sig_z_jitter == y.sig_z_jitter);
-  is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
-  is_eq = is_eq && (x.n_particle == y.n_particle);
-  is_eq = is_eq && (x.renorm_center == y.renorm_center);
-  is_eq = is_eq && (x.renorm_sigma == y.renorm_sigma);
-  is_eq = is_eq && (x.random_engine == y.random_engine);
-  is_eq = is_eq && (x.random_gauss_converter == y.random_gauss_converter);
-  is_eq = is_eq && (x.random_sigma_cutoff == y.random_sigma_cutoff);
-  is_eq = is_eq && (x.a_norm_emit == y.a_norm_emit);
-  is_eq = is_eq && (x.b_norm_emit == y.b_norm_emit);
-  is_eq = is_eq && (x.a_emit == y.a_emit);
-  is_eq = is_eq && (x.b_emit == y.b_emit);
-  is_eq = is_eq && (x.dpz_dz == y.dpz_dz);
-  is_eq = is_eq && is_all_equal(x.center, y.center);
-  is_eq = is_eq && (x.dt_bunch == y.dt_bunch);
-  is_eq = is_eq && (x.sig_z == y.sig_z);
-  is_eq = is_eq && (x.sig_e == y.sig_e);
-  is_eq = is_eq && (x.bunch_charge == y.bunch_charge);
-  is_eq = is_eq && (x.n_bunch == y.n_bunch);
-  is_eq = is_eq && (x.species == y.species);
-  is_eq = is_eq && (x.init_spin == y.init_spin);
-  is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
-  is_eq = is_eq && (x.use_lattice_center == y.use_lattice_center);
-  is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
-  is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_beam_init_ARRAY&, const CPP_beam_init_ARRAY&);
-template bool is_all_equal (const CPP_beam_init_MATRIX&, const CPP_beam_init_MATRIX&);
 
 //--------------------------------------------------------------
 
