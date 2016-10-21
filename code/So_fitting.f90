@@ -2664,7 +2664,7 @@ eta2=0.0_dp
     integer, optional :: limit_wiggler(2),lim(2)
     real(dp) gg,RHOI,XL,QUAD,THI,lm,dl,ggbt,xbend1,gf(7),sexr0,quad0,dq
     INTEGER M1,M2,M3, MK1,MK2,MK3,limit(2),parity,inc,nst_tot,ntec,ii,metb,sexk
-    integer incold ,parityold, nt,nsag,lim0(2),lims(2)
+    integer incold ,parityold, nt,nsag,lim0(2),lims(2),kkk
 
     logical(lp) MANUAL,eject,doit,DOBEND
     TYPE (fibre), POINTER :: C
@@ -2673,6 +2673,8 @@ eta2=0.0_dp
     logical f1,f2,m_t_pres,uni
     
 !!!! gymnastic for M_u and M_t (these are local m_u and m_t)
+     kkk=lielib_print(12) 
+     lielib_print(12)=0
 
 m_t_pres=my_false
 if(associated(m_u)) then
@@ -3333,9 +3335,20 @@ endif
        ELSE
           GOTO 1001
        ENDIF
+    else
+          if(f1) then
+             l=>r%parent_universe%start
+             do ii=1,r%parent_universe%n
+                call make_node_layout(l)
+                l=>l%next
+             enddo
+          elseif(f2) then
+             call make_node_layout(r)  !!! bug (l) was wrong
+          endif
+
     ENDIF
 
-
+     lielib_print(12)=kkk
     !    limit(1)=limit0(1)
     !    limit(2)=limit0(2)
 

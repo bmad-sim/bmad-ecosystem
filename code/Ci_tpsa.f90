@@ -430,6 +430,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
      MODULE PROCEDURE c_logc
      MODULE PROCEDURE c_logf  !# log of a map see subroutine c_flofacg
      MODULE PROCEDURE c_log_spinmatrix  !#  spinor=log(s)
+! c_logf_spin is not overloaded
   END INTERFACE
 
 
@@ -9566,8 +9567,8 @@ endif
       tt=s1%v(i)+ s2%v(i) 
       c_add_map%v(i)=tt
     enddo
-    c_add_map%s=s1%s+ s1%s 
-    c_add_map%e_ij=s1%e_ij+ s1%e_ij 
+    c_add_map%s=s1%s+ s2%s 
+    c_add_map%e_ij=s1%e_ij+ s2%e_ij 
 
     c_master=localmaster
  call kill(tt)
@@ -9594,8 +9595,8 @@ endif
       tt=s1%v(i)- s2%v(i) 
       c_sub_map%v(i)=tt
     enddo
-    c_sub_map%s=s1%s- s1%s 
-    c_sub_map%e_ij=s1%e_ij- s1%e_ij 
+    c_sub_map%s=s1%s- s2%s 
+    c_sub_map%e_ij=s1%e_ij- s2%e_ij 
 
     c_master=localmaster
  call kill(tt)

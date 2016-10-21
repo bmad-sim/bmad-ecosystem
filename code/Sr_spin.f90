@@ -14,7 +14,7 @@ module ptc_spin
   private B_PANCAkEr,B_PANCAkEp,B_PANCAkE
   PRIVATE DIRECTION_VR,DIRECTION_VP,DIRECTION_V
   PRIVATE  B_PARA_PERPr,B_PARA_PERPp,B_PARA_PERP
-  PRIVATE get_omega_spinR,get_omega_spinP ,get_omega_spin
+  PRIVATE get_omega_spinR,get_omega_spinP,get_omega_spin
   PRIVATE PUSH_SPINR,PUSH_SPINP !,PUSH_SPIN
   PRIVATE TRACK_FRINGE_spin_R,TRACK_FRINGE_spin_P,TRACK_FRINGE_spin
   PRIVATE TRACK_NODE_LAYOUT_FLAG_pr_s12_R,TRACK_NODE_LAYOUT_FLAG_pr_s12_P
@@ -980,62 +980,63 @@ contains
     xp(1)=x(2)
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
+    del=x(5)
     CALL get_field(EL,B,E,phi,X,k,POS)
-
-    SELECT CASE(EL%KIND)
+    SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ELSE
-          DLDS=1.0_dp/root((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
-
        if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KIND4) ! CAVITY
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ELSE
-          DLDS=1.0_dp/root((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/root((1.0_dp+del)**2-X(2)**2-X(4)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
     case(KIND16:kind17,KIND20)
-       CALL B_PARA_PERP(k,EL,0,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
+       CALL B_PARA_PERP(k,el,0,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)
        ELSE
-          DLDS=1.0_dp/root((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)
        ENDIF
     case(kind10)     ! TEAPOT real curvilinear
+       x(5)=x(5)-phi*EL%P%CHARGE
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
+       x(5)=x(5)+phi*EL%P%CHARGE   
+
            DEL=x(5)-phi*EL%P%CHARGE
        IF(k%TIME) THEN
           DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ELSE
           DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
-
        if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        if(k%time) then
           beta0=p%beta0;GAMMA0I=p%GAMMA0I;
        else
-          beta0=1.0_dp;GAMMA0I=0.0_dp;
+          beta0=1.0_dp;GAMMA0I=0.0_dp;  
        endif
        d1=root(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
-       d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
+       d2=1.0_dp+2.0_dp*del/beta0+del**2
        d2=gamma0I/beta0/d2
-       DLDS=root((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
+       DLDS=root((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+del)
        OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
        CALL B_PARA_PERP(k,EL,0,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)
        ELSE
-          DLDS=1.0_dp/root((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)
        ENDIF
     case default
        OM(1)=0.0_dp
@@ -1044,24 +1045,25 @@ contains
     END SELECT
 
     IF(.not.k%TIME) THEN
-      x(5)=(2*x(5)+x(5)**2)/(sqrt(1.0_dp/p%beta0**2+2.0_dp*x(5)+x(5)**2)+1.0_dp/p%beta0)
+      del=(2*del+del**2)/(root(1.0_dp/p%beta0**2+2.0_dp*del+del**2)+1.0_dp/p%beta0)
     endif
 
     !  MUST ALWAYS COMPUTER GAMMA EVEN IF TIME=FALSE.
-    GAMMA=P%BETA0/P%GAMMA0I*( 1.0_dp/P%BETA0 + X(5) )
-    beta=sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)/(1.0_dp/P%BETA0 + x(5))  ! replaced  
+    GAMMA=P%BETA0/P%GAMMA0I*( 1.0_dp/P%BETA0 + del )
 
-    OM(1)=-DLDS*( (1.0_dp+p%AG*GAMMA)*BPE(1) + (1.0_dp+p%AG)*BPA(1) )
-    OM(2)=-DLDS*( (1.0_dp+p%AG*GAMMA)*BPE(2) + (1.0_dp+p%AG)*BPA(2) )+OM(2)
-    OM(3)=-DLDS*( (1.0_dp+p%AG*GAMMA)*BPE(3) + (1.0_dp+p%AG)*BPA(3) )
+    OM(1)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(1) + (1.0_dp+p%AG)*BPA(1) )
+    OM(2)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(2) + (1.0_dp+p%AG)*BPA(2) )+OM(2)
+    OM(3)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(3) + (1.0_dp+p%AG)*BPA(3) )
 
+
+    beta=root(1.0_dp+2.0_dp*del/p%beta0+del**2)/(1.0_dp/P%BETA0 + del)  ! replaced 
 
 
     DO I=1,3
-       OM(I)=OM(I)+DLDS*beta*gamma*(p%AG+1.0_dp/(1.0_dp+GAMMA))*EB(I)
+       OM(I)=OM(I)+a_spin_scale*DLDS*beta*gamma*(p%AG+1.0_dp/(1.0_dp+GAMMA))*EB(I)
     ENDDO
-    
-   beta=sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)*P%BETA0/P%GAMMA0I  ! replace  this
+
+   beta=root(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)*P%BETA0/P%GAMMA0I  ! replace  this
 
     om(1)=-DLDS*0.5_dp*e_muon*beta*(ed(2)*BPE(3)-ed(3)*BPE(2)) +  om(1)
     om(2)=-DLDS*0.5_dp*e_muon*beta*(ed(3)*BPE(1)-ed(1)*BPE(3)) +  om(2)
@@ -1072,7 +1074,7 @@ contains
     ENDDO
 
     IF(.not.k%TIME) THEN
-       x(5)=(2.0_dp*x(5)/p%beta0+x(5)**2)/(sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)+1.0_dp)
+       x(5)=(2.0_dp*x(5)/p%beta0+x(5)**2)/(root(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)+1.0_dp)
     endif
 
     if((k%radiation.or.k%envelope)) then
@@ -1134,45 +1136,35 @@ contains
     xp(1)=x(2)
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
-
+    del=x(5)
     CALL get_field(EL,B,E,phi,X,k,POS)
     SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ELSE
-          DLDS=1.0_dp/SQRT((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/SQRT((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
        if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KIND4) ! CAVITY
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+P%b0*X(1))
        ELSE
-          DLDS=1.0_dp/SQRT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)*(1.0_dp+P%b0*X(1))
+          DLDS=1.0_dp/SQRT((1.0_dp+del)**2-X(2)**2-X(4)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
     case(KIND16:kind17,KIND20)
        CALL B_PARA_PERP(k,el,0,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)
        ELSE
-          DLDS=1.0_dp/SQRT((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/SQRT((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)
        ENDIF
     case(kind10)     ! TEAPOT real curvilinear
+       x(5)=x(5)-phi*EL%P%CHARGE   
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
-       !       do i=1,3
-       !        call clean_real_8(bpa(i),bpa(i),1.d-8)
-       !        call clean_real_8(bpe(i),bpe(i),1.d-8)
-       !        write(6,*) i
-       !        write(6,*) " B field "
-       !        call print(b(i),6)
-       !        write(6,*) " parallel "
-       !        call print(bpa(i),6)
-       !        write(6,*) " perpendicular "
-       !        call print(bpe(i),6)
-       !        pause 12
-       !       enddo
+       x(5)=x(5)+phi*EL%P%CHARGE   
 
            DEL=x(5)-phi*EL%P%CHARGE
        IF(k%TIME) THEN
@@ -1186,21 +1178,21 @@ contains
        if(k%time) then
           beta0=p%beta0;GAMMA0I=p%GAMMA0I;
        else
-          beta0=1.0_dp;GAMMA0I=0.0_dp;
+          beta0=1.0_dp;GAMMA0I=0.0_dp;  
        endif
        d1=sqrt(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
-       d2=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
+       d2=1.0_dp+2.0_dp*del/beta0+del**2
        d2=gamma0I/beta0/d2
-       DLDS=sqrt((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+X(5))
+       DLDS=sqrt((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+del)
        OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        WRITE(6,*) EL%KIND,EL%NAME," NOT DONE "
     case(KIND22)
        CALL B_PARA_PERP(k,EL,0,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
        IF(k%TIME) THEN
-          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/SQRT(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)
        ELSE
-          DLDS=1.0_dp/SQRT((1.0_dp+X(5))**2-XPA(2)**2-XPA(1)**2)
+          DLDS=1.0_dp/SQRT((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)
        ENDIF
     case default
        OM(1)=0.0_dp
@@ -1209,18 +1201,18 @@ contains
     END SELECT
 
     IF(.not.k%TIME) THEN
-      x(5)=(2*x(5)+x(5)**2)/(sqrt(1.0_dp/p%beta0**2+2.0_dp*x(5)+x(5)**2)+1.0_dp/p%beta0)
+      del=(2*del+del**2)/(sqrt(1.0_dp/p%beta0**2+2.0_dp*del+del**2)+1.0_dp/p%beta0)
     endif
 
     !  MUST ALWAYS COMPUTER GAMMA EVEN IF TIME=FALSE.
-    GAMMA=P%BETA0/P%GAMMA0I*( 1.0_dp/P%BETA0 + X(5) )
+    GAMMA=P%BETA0/P%GAMMA0I*( 1.0_dp/P%BETA0 + del )
 
     OM(1)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(1) + (1.0_dp+p%AG)*BPA(1) )
     OM(2)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(2) + (1.0_dp+p%AG)*BPA(2) )+OM(2)
     OM(3)=-DLDS*a_spin_scale*( (1.0_dp+p%AG*GAMMA)*BPE(3) + (1.0_dp+p%AG)*BPA(3) )
 
 
-    beta=sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)/(1.0_dp/P%BETA0 + x(5))  ! replaced 
+    beta=sqrt(1.0_dp+2.0_dp*del/p%beta0+del**2)/(1.0_dp/P%BETA0 + del)  ! replaced 
 
 
     DO I=1,3
@@ -1228,7 +1220,7 @@ contains
     ENDDO
 
     e_muon_scale%r=e_muon
-    beta=sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)*P%BETA0/P%GAMMA0I 
+    beta=sqrt(1.0_dp+2.0_dp*del/p%beta0+del**2)*P%BETA0/P%GAMMA0I 
 
     om(1)=-DLDS*0.5_dp*e_muon_scale*beta*(ed(2)*BPE(3)-ed(3)*BPE(2)) +  om(1)
     om(2)=-DLDS*0.5_dp*e_muon_scale*beta*(ed(3)*BPE(1)-ed(1)*BPE(3)) +  om(2)
@@ -1239,7 +1231,7 @@ contains
     ENDDO
 
     IF(.not.k%TIME) THEN
-       x(5)=(2.0_dp*x(5)/p%beta0+x(5)**2)/(sqrt(1.0_dp+2.0_dp*x(5)/p%beta0+x(5)**2)+1.0_dp)
+       del=(2.0_dp*del/p%beta0+del**2)/(sqrt(1.0_dp+2.0_dp*del/p%beta0+del**2)+1.0_dp)
     endif
 
     if((k%radiation.or.k%envelope)) then

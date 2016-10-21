@@ -1181,14 +1181,14 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     SELECT CASE(T%CAS)
     CASE(CASEP1)
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
-     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
-TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==-1.OR.T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==0
-          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
+TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==-1.OR.T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
+          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
      endif
     CASE(CASEP2)
-     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
-TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==0
-          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
+TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
+          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
      endif
        CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
 
@@ -1328,8 +1328,8 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
           WRITE(6,*) "NOT IMPLEMENTED ",EL%KIND
           stop 999
        END SELECT
-       if(associated(T%PARENT_FIBRE%MAG%p%aperture).and.aperture_all_case0) &
-            call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+       if(associated(T%PARENT_FIBRE%MAGP%p%aperture).and.aperture_all_case0) &
+            call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
 
     case(CASET)
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
