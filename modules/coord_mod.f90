@@ -6,6 +6,45 @@ use basic_bmad_interface
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine reallocate_coord (...)
+!
+! Routine to allocate or reallocate at allocatable coord_struct array.
+! reallocate_coord is an overloaded name for:
+!   reallocate_coord_n (coord, n_coord)
+!   reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable coord_struct array to at least:
+!     coord(0:n_coord)                            if n_coord arg is used.
+!     coord(0:lat%branch(ix_branch)%n_ele_max)    if lat arg is used.
+!
+! The old coordinates are saved
+! If, at input, coord(:) is not allocated, coord(0)%vec is set to zero.
+! In any case, coord(n)%vec for n > 0 is set to zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   coord(:)  -- Coord_struct, allocatable: Allocatable array.
+!   n_coord   -- Integer: Minimum array upper bound wanted.
+!   lat       -- lat_struct: Lattice 
+!   ix_branch -- Integer, optional: Branch to use. Default is 0 (main branch).
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+interface reallocate_coord
+  module procedure reallocate_coord_n
+  module procedure reallocate_coord_lat
+end interface
+
+private reallocate_coord_n, reallocate_coord_lat
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine init_coord (...)
 !
 ! Routine to initialize a coord_struct. 
@@ -61,6 +100,150 @@ private init_coord1, init_coord2
 
 contains
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord_n (coord, n_coord)
+!
+! Subroutine to allocate an allocatable  coord_struct array.
+! This is an overloaded subroutine. See reallocate_coord.
+!-
+
+subroutine reallocate_coord_n (coord, n_coord)
+
+type (coord_struct), allocatable :: coord(:)
+type (coord_struct), allocatable :: old(:)
+
+integer, intent(in) :: n_coord
+integer i, n_old
+
+character(*), parameter :: r_name = 'reallocate_coord_n'
+
+!
+
+if (allocated (coord)) then
+
+  if (lbound(coord, 1) /= 0) then
+    call out_io (s_fatal$, r_name, 'ORBIT ARRAY LOWER BOUND NOT EQUAL TO ZERO!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  n_old = ubound(coord, 1)
+  if (n_old >= n_coord) return
+  allocate(old(0:n_old))
+
+  do i = 0, n_old
+    old(i) = coord(i)
+  enddo
+
+  deallocate (coord)
+  allocate (coord(0:n_coord))
+
+  do i = 0, n_old
+    coord(i) = old(i)
+  enddo
+
+  deallocate(old)
+
+else
+  allocate (coord(0:n_coord))
+endif
+
+end subroutine reallocate_coord_n
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable  coord_struct array.
+! This is an overloaded subroutine. See reallocate_coord.
+!-
+
+subroutine reallocate_coord_lat (coord, lat, ix_branch)
+
+type (coord_struct), allocatable :: coord(:)
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+
+integer, optional :: ix_branch
+
+!
+
+branch => lat%branch(integer_option(0, ix_branch))
+
+if (allocated(coord)) then
+  call reallocate_coord_n (coord, branch%n_ele_max)
+else
+  allocate (coord(0:branch%n_ele_max))
+endif
+
+end subroutine reallocate_coord_lat
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord_array (coord_array, lat)
+!
+! Subroutine to allocate an allocatable coord_array_struct array to
+! the proper size for a lattice.
+!
+! Note: Any old coordinates are not saved except for coord_array(:)%orbit(0).
+! If, at input, coord_array is not allocated, coord_array(:)%orbit(0)%vec is set to zero.
+! In any case, all other %vec components are set to zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   coord(:) -- Coord_struct, allocatable: Allocatable array.
+!   lat      -- lat_struct: 
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+subroutine reallocate_coord_array (coord_array, lat)
+
+implicit none
+
+type (coord_array_struct), allocatable :: coord_array(:)
+type (lat_struct) lat
+type (coord_struct), allocatable :: start(:)
+
+integer i, j, nb
+
+!
+
+if (.not. allocated(lat%branch)) return
+nb = ubound(lat%branch, 1)
+
+if (allocated (coord_array)) then
+  if (size(coord_array) /= nb + 1) then
+    call reallocate_coord(start, nb)
+    do i = 0, nb
+      start(i) = coord_array(i)%orbit(0)
+    enddo
+    deallocate (coord_array)
+    allocate (coord_array(0:nb))
+    do i = 0, nb
+      call reallocate_coord (coord_array(i)%orbit, lat%branch(i)%n_ele_max)
+      coord_array(i)%orbit(0) = start(i)
+    enddo
+  endif
+else
+  allocate (coord_array(0:nb))
+  do i = 0, nb
+    call reallocate_coord (coord_array(i)%orbit, lat%branch(i)%n_ele_max)
+  enddo
+endif
+
+end subroutine reallocate_coord_array
+
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -87,7 +270,6 @@ orb_temp = coord_struct()
 if (present(vec)) orb_temp%vec = vec
 
 call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
-
 
 end subroutine init_coord1
 
