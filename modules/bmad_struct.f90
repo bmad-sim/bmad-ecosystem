@@ -637,7 +637,7 @@ end type
 
 ! Structure for calculating the exact multipole kick in a bend
 
-type exact_bend_struct
+type exact_bend_multipole_struct
   real(rp), allocatable :: bf_x(:), bf_y(:), vm(:)
   real(rp), allocatable :: e_x(:), e_y(:), phi(:)
   real(rp) :: an(0:n_pole_maxx) = 0, bn(0:n_pole_maxx) = 0
@@ -895,7 +895,7 @@ type ele_struct
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
-  type (exact_bend_struct), pointer :: exact_bend => null()              ! Exact multipole kick in a bend coefs.
+  type (exact_bend_multipole_struct), pointer :: exact_bend_multipole => null() ! Exact multipole kick in a bend coefs.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fibre => null()                               ! PTC tracking.
@@ -1219,7 +1219,7 @@ integer, parameter :: fringe_type$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
 integer, parameter :: spin_fringe_on$ = 13
-integer, parameter :: fb1$ = 14, sig_x$ = 14
+integer, parameter :: fb1$ = 14, sig_x$ = 14, exact_multipoles$ = 14
 integer, parameter :: fb2$ = 15, sig_y$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16
 integer, parameter :: fq2$ = 17, sig_vx$ = 17

@@ -1253,6 +1253,7 @@ call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_M
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
 call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD')
 call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
+call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -1584,7 +1585,7 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
+case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'EXACT_MULTIPOLES', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &

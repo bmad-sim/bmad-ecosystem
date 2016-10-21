@@ -181,9 +181,10 @@ use geometry_mod
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
-type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb
+type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
 type (em_potential_struct), optional :: potential
-type (em_field_struct) :: field, field2, lord_field, l1_field, mode_field
+type (em_potential_struct) :: p2
+type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
@@ -482,16 +483,9 @@ case (bmad_standard$)
 
   case (sbend$)
 
-    field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
-    field%b(2) = (x * ele%value(k1$) + ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
+    ! Finite k1 or k2 is handled with rest of multipoles
+    field%b(2) = (ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
-    if (do_df_calc) then
-      dfield_computed = .true.
-      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
-      field%dB(1,2) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
-      field%dB(2,1) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
-      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
-    endif
 
   !------------------------------------------
   ! Sol_quad
@@ -540,31 +534,49 @@ case (bmad_standard$)
   ! Add multipoles
 
   call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+
+  if (ele%key == sbend$) then
+    b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
+    b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
+    has_nonzero_pole = (has_nonzero_pole .or. (b_pole(1) /= 0) .or. (b_pole(2) /= 0))
+  endif
+
   if (has_nonzero_pole) then
 
     if (ele%value(l$) == 0) then
-      call out_io (s_fatal$, r_name, 'dField NOT YET IMPLEMENTED FOR MULTIPOLES!', 'FOR: ' // ele%name)
+      call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
       if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return
     endif
 
-    do i = 0, n_pole_maxx
-      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+    if (ele%key == sbend$ .and. is_true(ele%value(exact_multipoles$))) then
+      call exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field2, p2, do_df_calc)
+      field%e = field%e + field2%e
+      field%b = field%b + field2%b
       if (do_df_calc) then
-        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
-      else
-        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
+        field%de = field2%de
+        field%db = field2%db
       endif
-      field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
-      field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
-      if (do_df_calc) then
-        field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
-        field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
-        field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
-        field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
-      endif
-    enddo
+
+    else
+      do i = 0, n_pole_maxx
+        if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+        if (do_df_calc) then
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
+        else
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
+        endif
+        field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
+        field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
+        if (do_df_calc) then
+          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
+          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
+          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
+          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+        endif
+      enddo
+    endif
 
   endif
 
