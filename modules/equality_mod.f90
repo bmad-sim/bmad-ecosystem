@@ -11,7 +11,7 @@
 !- 
 
 module equality_mod
-use dynamic_aperture_mod
+use bmad_struct
 
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table
@@ -1641,6 +1641,8 @@ is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 is_eq = is_eq .and. (f1%backwards_time_tracking .eqv. f2%backwards_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%beam_init == f2%beam_init)
 
 end function eq_lat_param
 
@@ -2804,6 +2806,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%file_name == f2%file_name)
 !! f_side.equality_test[character, 1, NOT]
 is_eq = is_eq .and. all(f1%distribution_type == f2%distribution_type)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%spin == f2%spin)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%ellipse == f2%ellipse)
 !! f_side.equality_test[type, 0, NOT]
@@ -2830,8 +2834,6 @@ is_eq = is_eq .and. (f1%random_engine == f2%random_engine)
 is_eq = is_eq .and. (f1%random_gauss_converter == f2%random_gauss_converter)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%random_sigma_cutoff == f2%random_sigma_cutoff)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%spin == f2%spin)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%a_norm_emit == f2%a_norm_emit)
 !! f_side.equality_test[real, 0, NOT]
