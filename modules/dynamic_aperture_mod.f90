@@ -1,7 +1,6 @@
 module dynamic_aperture_mod
 
-use basic_bmad_interface
-use bmad_core_struct_mod
+use coord_mod
 
 implicit none
 
