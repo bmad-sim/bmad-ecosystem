@@ -44,9 +44,10 @@ func_dist_clean () {
 
 }
 
+# Check for the script requested 
+[ -z "${DIST_SCRIPT}" ] &&  DIST_SCRIPT=$(basename $0)
 
-DIST_SCRIPT=$(basename $0)
-
+# Perform the requested script
 case ${DIST_SCRIPT} in
 
     dist_clean)
