@@ -55,9 +55,11 @@ func_display_build_time () {
     fi
 }
 
+# Check for the type obuild requested
+[ -z "${THIS_SCRIPT}" ] && THIS_SCRIPT=`basename $0` 
+
 # Assign build type based on invoked name of script.
-THIS_SCRIPT=`basename $0`
-[ "${THIS_SCRIPT}" == "mk" ] &&  BUILD_TYPE="production" || BUILD_TYPE="debug"
+[ "${THIS_SCRIPT}" == "mk" ] && BUILD_TYPE="production" || BUILD_TYPE="debug"
 
 # Determine if the current working directory is a buildable project
 if [ ! -e CMakeLists.txt ] && [ ! -e acc_build ]
