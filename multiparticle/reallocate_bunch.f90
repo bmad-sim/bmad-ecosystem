@@ -15,7 +15,7 @@
 
 subroutine reallocate_bunch (bunch, n_particle)
 
-use basic_bmad_interface
+use basic_bmad_interface, except_dummy => reallocate_bunch
 
 implicit none
 
