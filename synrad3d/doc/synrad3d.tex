@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{August 31, 2016}
+\date{October 17, 2016}
 
 %---------------------------------------------------------------------------------
 
@@ -1122,7 +1122,15 @@ the ``normal'' subchambers that do not have any fast or slow associations.
 \section{Lattices with Branches}
 \label{s:lat.branch}
 
-A lattice that things like injection lines or a ring attached to X-ray beam lines will
+  \begin{figure}
+  \centering
+  \includegraphics[width=6in]{branch-line.pdf}
+\caption{Branch line illustration. Here a branch line named \vn{b1} is connected to the
+root branch, named \vn{ring}, via a fork element named \vn{fk}.}
+  \label{f:branch.line}
+  \end{figure}
+
+To describe things like injection lines or a ring attached to a X-ray beam line, a lattice will
 have multiple ``branches''. [See the Bmad manual\cite{b:bmad} for more details on lattice
 branches.] By default, subchambers will be associated with the ``root'' branch (branch 0).
 A \vn{subchamber_branch} namelist is used to associate a subchamber with a given
@@ -1139,17 +1147,18 @@ The \vn{subchamber_name} is the name of the subchamber to be associated and
 As an example, consider the following lattice:
 \begin{example}
   parameter[E_tot] = 1e9
-  b: sbend, l = 2.0, g = 0.1
-  fk: fork, superimpose, ref = b, offset = 0.2, to_line = b1
+  bnd: sbend, l = 2.0, g = 0.1
+  fk: fork, superimpose, ref = bnd, offset = -0.2, to_line = b1
   dd: drift, l = 3
   ring: line = (..., b, ...)
-  b1: line = (dd)
+  b1: line = (dd, ...)
   b1[geometry] = open
   use, ring
 \end{example}
-This lattice has two branches. The root branch is named \vn{ring} and this branch contains
-a bend called \vn{b}. Superimposed upon \vn{b} is a \vn{fork} element called \vn{fk} which
-forks to the second branch called \vn{b1}.
+This lattice is illustrated in \fig{f:branch.line}.  This lattice has two branches. The
+root branch is named \vn{ring} and this branch contains a bend called \vn{bnd}.
+Superimposed upon \vn{bnd} is a \vn{fork} element called \vn{fk} which forks to the second
+branch called \vn{b1}.
 
 The wall file for this example is:
 \begin{example}
@@ -1168,9 +1177,9 @@ The wall file for this example is:
     branch_name = 'b1'
   /
 \end{example}
-There are two subchambers. One subchamber named \vn{main} is, by default, associatedto the
-root branch -- \vn{ring}. The other subchamber, named \vn{x_wall}, is associated with the
-\vn{b1} branch.
+There are two subchambers. One subchamber named \vn{main} is, by default, associated with
+the root branch -- \vn{ring}. The other subchamber, named \vn{x_wall}, is associated with
+the \vn{b1} branch.
 
 %------------------------------------------------------------------
 \section{Subchamber Wall Interpolation} 
@@ -2056,7 +2065,7 @@ methodology of Beckmann, to derive results for the mean value of the
 scattered power. We have done this for both a Gaussian and an
 exponential transverse autocorrelation function.
 
-These expressions agree with Beckmann's for the Gaussian
+These expressions agree with Beckmann for the Gaussian
 autocorrelation function. (Beckmann does not consider the exponential
 function).
 

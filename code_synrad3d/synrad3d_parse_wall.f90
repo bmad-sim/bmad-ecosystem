@@ -497,6 +497,8 @@ do ib = 0, ubound(lat%branch, 1)
   ! Allocate space for walls
 
   if (associated(branch%wall3d)) deallocate (branch%wall3d)
+  if (n_sub == 0) cycle
+
   if (allocated(sr3d_com%branch(ib)%fast)) deallocate (sr3d_com%branch(ib)%fast)
   allocate (branch%wall3d(n_sub), sr3d_com%branch(ib)%fast(n_sub))
 
