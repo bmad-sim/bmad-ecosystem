@@ -1,0 +1,595 @@
+#!/bin/bash
+
+# Script to define and execute the common acc_build 
+# functions, as well as loading Package Specific functions. 
+# This script is invoked by acc_build.
+# No Package Specific settings are in this file.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+# Function to set the base environmental variables
+
+func_set_base_env () {
+
+    [ "${ACC_CMAKE_VERSION}" ] && export CMAKE_UTIL="cmake-${ACC_CMAKE_VERSION}" || export CMAKE_UTIL="cmake-2.8.5"
+
+    export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
+
+    [ "${BUILD_TYPE}" == "production" ] && export OTHER_BUILD_TYPE="debug" || export OTHER_BUILD_TYPE="production"
+
+    export BASE_DIR=$(dirname `pwd`)
+    export PROJ_DIR_NAME=$(basename `pwd`)
+    export OUTPUT_DIR=${BASE_DIR}/${BUILD_TYPE}
+    export OTHER_OUTPUT_DIR=${BASE_DIR}/${OTHER_BUILD_TYPE}
+    export WORK_DIR=${BASE_DIR}/${PROJ_DIR_NAME}/${BUILD_TYPE}
+
+}
+
+
+# Load Package Specific functions
+
+. ${BASE_DIR}/${PROJ_DIR_NAME}/acc_build_${PROJ_DIR_NAME}
+
+
+# Function to unset Compiler and Linker flags to reduce confusion
+
+func_initialize_flags () {
+
+    unset CFLAGS
+    unset FCFLAGS
+    unset FFLAGS
+    unset LDFLAGS
+    unset BASE_OPTS
+
+}
+
+
+# Function to Read in Package Version information
+
+func_read_version () {
+
+    if [ "${PACKAGE_VERSION}" ] ; then
+	export PACKAGE_VERSION=${PACKAGE_VERSION}
+    elif ( [ -e VERSION ] && [ "$(cat VERSION | head -1 | awk ' { print $2 } ' )" == "VERSION" ] ) ; then
+	export PACKAGE_VERSION=$(cat VERSION)
+    else
+	export PACKAGE_VERSION="$(basename `pwd`| cut -d- -f1) VERSION unknown"
+    fi
+
+}
+
+
+# Function to set default Fortran compiler from environmental variables
+
+func_set_fortran_compiler () {
+
+    if ( [ "${DIST_BUILD}" ] ) ; then
+        export FC="${DIST_F90}"
+    elif ( [ "${ACC_SET_F_COMPILER}" ] ) ; then
+        export FC="${ACC_SET_F_COMPILER}"
+    elif [ "$(type ifort &> /dev/null ; echo $?)" -eq 0 ] ; then
+        export FC="ifort"
+    elif [ "$(type gfortran &> /dev/null ; echo $?)" -eq 0 ] ; then
+        export FC="gfortran"
+    else
+        echo -e \
+	    "\nError: Fortran compiler not specified or installed." \
+	    "\n\nTo install GNU GCC/GFORTRAN, please follow instructions on:" \
+	    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+        exit 69
+    fi
+    
+    [ "${FC}" == "ifort" ] \
+        && ifort -v &> /tmp/ifort_version_tmp_${USER} \
+        && export IFORT_MAJOR_VERSION="$(cat /tmp/ifort_version_tmp_${USER} | awk ' { print $3 } ' | cut -d. -f1)"
+}
+
+
+# Function to set gmake -j level, we'll set it here to "2"
+
+func_set_gmake_job_level () {
+
+    if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ] ; then 
+	export ACC_SET_GMAKE_JOBS=2 
+    fi
+}
+
+
+# Function to set compiler and Linker flags, if OpenMP is enabled
+
+func_set_openmp_flags () {
+
+    case "${ACC_ENABLE_OPENMP}" in
+	"Y" | "y" | "1" )
+	    export CFLAGS="-fopenmp ${CFLAGS}"
+	    if ( [ "${FC}" == "gfortran" ] ) ; then
+		export FCFLAGS="-fopenmp"
+		export LDFLAGS="-lgomp"
+	    elif [ "${IFORT_MAJOR_VERSION}" ] ; then
+		if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
+		    export FCFLAGS="-qopenmp" 
+		else
+		    export FCFLAGS="-openmp"
+		fi
+		export LDFLAGS="-liomp5"
+	    fi
+            ;;
+	*)
+	    ;;
+    esac
+}
+
+
+# Function to set compiler and Linker flags, if fPIC is enabled
+
+func_set_fpic_flags () {
+
+    case "${ACC_ENABLE_FPIC}" in
+	"Y" | "y" | "1" )
+	    export FCFLAGS="-fPIC ${FCFLAGS}"
+            ;;
+	*)
+	    ;;
+    esac
+}
+
+
+# Function to check for required MacPorts install on Mac OS X
+
+func_check_macports () {
+    
+    if ( [ `uname` == "Darwin" ] ) ; then
+	if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
+	    export VER=$(uname -r | cut -d. -f1)
+	    export GCC_PATH=$(type gcc | cut -d" " -f3)
+	    if ( [ "${VER}" -gt 11 ] && [ ! -d "/opt/local/etc/macports" ] ) ; then 
+		echo -e \
+		    "\nCan't find GNU GCC, please install MacPorts, using instructions on:" \
+		    "\n\n    http://www.macports.org/install.php" \
+		    "\n\nThen follow instructions on:" \
+		    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+		exit 69
+	    elif [ ! -L /opt/local/bin/gcc ] ; then
+		echo -e \
+		    "\nNo selected MacPorts gcc version..." \
+		    "\n\nPlease follow instructions on:" \
+		    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+		exit 70
+	    elif ( [ "${GCC_PATH}" == "/usr/bin/gcc" ] && [ -d "/opt/local/etc/macports" ] ) ; then
+		echo -e \
+		    "\nWarning: MacPorts gcc is not in your PATH..." \
+		    "\nPlease add the following line to the bottom of your ~/.bash_profile or ~/.bashrc file:" \
+		    "\n\n    export PATH=/opt/local/bin:/opt/local/sbin:\$PATH" \
+		    "\n\nThen logout and log back in, cd into the Bmad distribution folder and" \
+		    "\nreinitialize the Bmad Environment using:" \
+		    "\n\n    source util/dist_source_me\n"
+		exit 78
+            elif [ "${GCC_PATH}" == "/opt/local/bin/gcc" ] ; then
+		export CC=gcc
+	    fi
+	elif ( [ `uname` == "Darwin" ] ) ; then
+	    echo -e \
+		"\nCan't find GCC, please install Xcode and MacPorts, using instructions on:" \
+		"\n\n    http://www.macports.org/install.php:" \
+		"\n\nThen follow instructions on:" \
+		"\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+	    exit 69
+	fi
+    fi
+}
+
+     
+# Function to check for GCC, and if gfortran is requested, a minimum 4.9 version
+
+func_check_gcc_version () {
+
+    if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
+
+	GCC_VER_STR=$(gcc --version | head -1 | cut -d. -f1)
+	GCC_MAJOR_VER="${GCC_VER_STR: -1}"
+	GCC_MINOR_VER=$(gcc --version | head -1 | cut -d. -f2)
+
+	if ( [ "${FC}" == "gfortran" ] ) ; then
+
+            if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
+		echo -e "\nPlease upgrade your version of GCC or set your PATH to where a minimum 4.9 version of GCC is located.\n"
+		exit 69
+	    elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
+		if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then 
+		    DEVTOOLSET_DIR=/opt/rh/devtoolset
+		    if [ -d "${DEVTOOLSET_DIR}-3" ] ; then
+			. ${DEVTOOLSET_DIR}-3/enable
+			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-3"
+		    elif [ -d "${DEVTOOLSET_DIR}-4" ] ; then
+			. ${DEVTOOLSET_DIR}-4/enable
+			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-4"
+		    elif [ -d "${DEVTOOLSET_DIR}-5" ] ; then
+			. ${DEVTOOLSET_DIR}-5/enable
+			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-5"
+		    else
+			echo -e "\nPlease upgrade to Red Hat Developer Toolset 3 or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
+			exit 69
+		    fi
+		else
+		    echo -e "\nPlease upgrade your version of GNU GCC or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
+		    exit 69
+		fi
+	    fi
+	fi
+	
+	echo -e "\nUsing: $(gcc --version | head -1)"
+
+    else
+	echo -e "\nPlease install GNU GCC (version 4.9 or greater is recommended) or set your PATH to where GNU GCC is located.\n"
+	exit 69
+    fi
+}
+
+
+# Function to check minimium version of GNU Utility Programs needed, install which is needed
+    
+func_install_utilities () {
+
+    UTIL_DIR=${OUTPUT_DIR}/gnu_utilities
+    UTIL_SRC_DIR=${BASE_DIR}/gnu_utilities_src
+
+    # Inner Function to download and build GNU Utility Programs
+
+    func_get_build_utilities () {
+
+	echo -e \
+	    "\nThe installed version of ${UTIL_NAME} cannot be used." \
+
+	[ -d ${UTIL_DIR}/log ] || mkdir -p ${UTIL_DIR}/log
+	[ -d ${UTIL_DIR}/src ] || mkdir -p ${UTIL_DIR}/src
+
+	[ -e ${UTIL_SRC_DIR}/${UTIL}.tar.gz ] && ln -s ${UTIL_SRC_DIR}/${UTIL}.tar.gz ${UTIL_DIR}/src/
+
+	cd ${UTIL_DIR}/src
+
+	[ ${UTIL} == "makeinfo-4.8" ] && UTIL="texinfo-4.8" && UTIL_NAME="texinfo"
+
+	DATE=$(date)
+
+	if [ ! -e ${UTIL_DIR}/src/${UTIL}.tar.gz ] ; then
+            echo -e "\nAttempting to download ${UTIL}..."
+	    echo -e "\nAttempting to download ${UTIL}... at ${DATE}" 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+            [ ${UTIL} == ${CMAKE_UTIL} ] \
+		&& export FTP_SERVER_NAME="cmake.org" \
+		|| export FTP_SERVER_NAME="ftp.gnu.org"
+
+	    ping -c1 ${FTP_SERVER_NAME} &> /dev/null 2>&1 \
+
+	    if [ $? -eq 0 ] ; then
+		[ ${UTIL_NAME} == "cmake" ] \
+		    && export CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2) \
+		    && curl https://${FTP_SERVER_NAME}/files/v${CMAKE_VER_DIR}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 \
+		    || curl http://${FTP_SERVER_NAME}/gnu/${UTIL_NAME}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+		if [ $? -ne 0 ] ; then
+		    echo -e \
+			"\nError downloading ${UTIL}...\n" \
+			"\nPlease retry build later or manually upgrade to ${UTIL}." \
+			exit 70
+		fi
+	    else
+		echo -e \
+		    "\nUnable to contact ${FTP_SERVER_NAME} and download ${UTIL}"
+		exit 70
+	    fi
+	fi
+
+	if [ -a ${UTIL_DIR}/src/${UTIL}.tar.gz ] ; then
+            echo -e "\nAttempting to build ${UTIL}..."
+	    echo -e "\nAttempting to build ${UTIL}... at ${DATE}\n" 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+
+            tar -xf ${UTIL}.tar.gz  1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+	    cd ${UTIL}  1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+	    ./configure --prefix=${UTIL_DIR} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+	    gmake 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+	    gmake install 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+
+	    if [ $? -ne 0 ] ; then
+		echo -e \
+		    "\nError in building ${UTIL}, Please see ${UTIL_DIR}/log/${UTIL}.log." \
+		    "\n\nError in building ${PACKAGE_VERSION}.\n"
+		[ -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] && rm ${UTIL_DIR}/bin/.BUILDCOMPLETE
+		exit 70
+	    fi
+
+	    #[ "${ARGUMENTS[1]}" == "-test" ] && gmake check
+	    [ -e ${UTIL_DIR}/bin/${UTIL_NAME} ] && echo -e "Success!\n"
+	    #rm -rf ${UTIL_DIR}/src/${UTIL}*
+            cd ${WORK_DIR}
+
+	else
+            echo -e \
+		"\n\nError in building ${PACKAGE_VERSION}.\n"
+	    exit 75
+	fi
+    }
+
+    if ( [ `uname` == "Darwin" ] && [ -d "/opt/local/libexec/gnubin" ] ) ; then
+        export PATH=/opt/local/libexec/gnubin${PATH:+:${PATH}}
+    fi
+
+    export PATH=${UTIL_DIR}/bin:${OTHER_OUTPUT_DIR}/gnu_utilities/bin${PATH:+:${PATH}}
+    export LD_LIBRARY_PATH=${UTIL_DIR}/lib:${OTHER_OUTPUT_DIR}/gnu_utilities/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+    if [ ! -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] ; then
+	echo -e "\nChecking minimium version of GNU Utility Programs needed...\n"
+
+	UTIL_PROG=( "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.12.2" "makeinfo-4.8" "${CMAKE_UTIL}" )
+
+	for UTIL in "${UTIL_PROG[@]}"
+	do
+	    UTIL_NAME=$(echo ${UTIL} | cut -d- -f1)
+            UTIL_MIN_VERSION=$(echo ${UTIL} | cut -d- -f2)
+	    UTIL_MIN_MAJOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f1)
+	    UTIL_MIN_MINOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f2)
+	    UTIL_MIN_SUB_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f3)
+
+	    ${UTIL_NAME} --version &>/dev/null 2>&1
+	    local STATUS=$?
+
+	    if [ ${STATUS} -eq 0 ] ; then
+
+		if ( [ `uname` == "Darwin" ] && [ ! -d "/opt/local/etc/macports" ] ) ; then
+		    echo -e \
+			"\nCan't find GNU GCC, please install MacPorts:" \
+			"\n\n    http://www.macports.org/install.php" \
+			"\n\nThen follow instructions on:" \
+			"\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+		    exit 69
+		else
+		    UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
+		    UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
+		    UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
+		    UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
+		    if [ -z ${UTIL_INSTALLED_VERSION} ] ; then 
+			UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $3 } ')
+			UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
+			UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
+			UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
+		    fi
+		fi
+	    else
+		echo -e \
+		    "\nCannot check version of ${UTIL_NAME}" \
+		    "\nThe installed version of ${UTIL_NAME} maybe too old.\n"
+		export UTIL_INSTALLED_MAJOR_VERSION=0
+		export UTIL_INSTALLED_MINOR_VERSION=0
+	    fi
+
+	    if ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -lt "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
+		func_get_build_utilities
+	    elif ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -eq "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
+		if ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -lt "${UTIL_MIN_MINOR_VERSION}" ] ) ; then
+		    func_get_build_utilities
+		elif ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -eq "${UTIL_MIN_MINOR_VERSION}" ] ) ; then 
+		    if [ ${UTIL_INSTALLED_SUB_VERSION} ] ; then
+			[ "${UTIL_INSTALLED_SUB_VERSION}" -lt "${UTIL_MIN_SUB_VERSION}" ] && func_get_build_utilities \
+			    || echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+		    fi
+		else
+		    echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+		fi
+	    else
+		echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+	    fi
+	done
+	[ -e ${UTIL_DIR}/bin ] && date > ${UTIL_DIR}/bin/.BUILDCOMPLETE
+    else
+	echo -e "\nRequired local GNU Utility Programs are present, skipping version check...\n"
+    fi
+}
+
+
+# Function to set base OS and Package specific Debug or Production C Flags
+
+func_set_c_flags () {
+
+    if ( [ `uname` == "Linux" ] && [ `uname -m` == "x86_64" ] ) ; then
+	export CFLAGS="-std=gnu99 -fPIC ${CFLAGS}"
+	export LDFLAGS="${LDFLAGS}"
+    elif ( [ `uname` == "Darwin" ] ) ; then
+	export CFLAGS="-std=gnu99 -Wall -fPIC -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
+	export LDFLAGS="-v"
+    else
+	export CFLAGS="-std=gnu99 -Wall -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
+	export LDFLAGS="${LDFLAGS}"
+    fi
+
+    if [ "${BUILD_TYPE}" == "debug" ] ; then
+	export CFLAGS="-O0 -Wall -Wno-trigraphs -Wno-unused -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wnested-externs -Wconversion -Wshadow -Wcast-qual -Wcast-align -Wwrite-strings -g ${CFLAGS}"
+    else
+	export CFLAGS="-O2 -w ${CFLAGS}"
+    fi
+}
+
+
+# Function to set base OS and Package specific Debug or Production Fortran Flags
+
+func_set_fortran_flags () {
+    
+    if ( [ `uname` == "Linux" ] && [ `uname -m` == "x86_64" ] && [ "${FC}" != "gfortran" ] ) ; then
+	export BASE_OPTS="-u -traceback -mcmodel=medium"
+    elif ( [ `uname` == "Darwin" ] && [ "${FC}" != "gfortran" ] ) ; then
+	export DYLD_LIBRARY_PATH="/opt/intel/lib:${DYLD_LIBRARY_PATH}"
+	export BASE_OPTS="-u -traceback"
+    else
+	export BASE_OPTS="-u -traceback"
+    fi
+
+    if [ "${BUILD_TYPE}" == "debug" ] ; then
+	if [ "${FC}" == "gfortran" ] ; then
+	    export FCFLAGS="-O0 -fno-range-check -fbounds-check -Wuninitialized -fimplicit-none -Wall -Wextra -Bstatic -g ${FCFLAGS}" 
+	else
+	    export FCFLAGS="-O0 -check bounds -check format -check uninit -warn declarations -fltconsistency -g ${BASE_OPTS} ${FCFLAGS}"
+	fi
+    else
+	if [ "${FC}" == "gfortran" ] ; then
+	    export FCFLAGS="-O2 -cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -w ${FCFLAGS}" 
+	else
+	    export FCFLAGS="-O2 -fltconsistency ${BASE_OPTS} ${FCFLAGS}"
+	fi
+    fi
+    export FFLAGS=${FCFLAGS}
+    echo -e "\nUsing: $(${FC} --version | head -1)"
+}
+
+
+# Function to make the Production or Debug directory                                                                                    
+
+func_make_build_directory () {
+    
+    [ ! -d ${BUILD_TYPE} ] && mkdir ${BUILD_TYPE}
+    [ ! -d ${OUTPUT_DIR} ] && mkdir -p ${OUTPUT_DIR}
+    [ ! -d ${OUTPUT_DIR}/bin ] && mkdir -p ${OUTPUT_DIR}/bin
+    [ ! -d ${OUTPUT_DIR}/modules ] && mkdir -p ${OUTPUT_DIR}/modules
+    [ ! -d ${OUTPUT_DIR}/lib ] && mkdir -p ${OUTPUT_DIR}/lib
+
+    # Prepare the build diretcory
+
+    [ ! -e ${WORK_DIR}/ALREADY_BUILT ] && ( cd `pwd` ; tar --exclude=production --exclude=debug --exclude=.svn --exclude=.git -cf - . ) | ( cd ${WORK_DIR} ; tar -xf - )
+}
+
+
+# Function to set LD_LIBRARY_PATH based on whether the ACC envirnoment has been set
+ 
+func_set_LD_LIBRARY_PATH () {
+
+    [ "$(typeset -f | grep accinfo)" ] || export LD_LIBRARY_PATH=${DIST_BASE_DIR}/${BUILD_TYPE}/lib:${LD_LIBRARY_PATH}
+}
+
+
+# Function to print compiler and linker flags
+
+func_print_compiler_linker_flags () {
+
+    [ "${CFLAGS}" ] && echo -e "\n  C Flags      : ${CFLAGS}"
+    [ "${CXXFLAGS}" ] && echo -e "  C++ Flags    : ${CXXFLAGS}"
+    [ "${FFLAGS}" ] && echo -e "  Fortran Flags: ${FFLAGS}"
+    [ "${LDFLAGS}" ] && echo -e "  Linker Flags : ${LDFLAGS}"
+    echo -e "\n\n"
+}
+
+
+# Function to clean up variables
+
+func_cleanup_variables () {
+
+    unset FC
+    unset CFLAGS
+    unset FCFLAGS
+    unset FFLAGS
+    unset LDFLAGS
+    unset BASE_OPTS
+    unset OUTPUT_DIR
+    unset WORK_DIR
+    unset BUILD_TYPE
+    unset ARGUMENTS
+    unset OTHER_OUTPUT_DIR
+    unset OTHER_BUILD_TYPE
+    unset DYLD_LIBRARY_PATH
+    unset PACKAGE_VERSION
+
+    [ -e /tmp/ifort_version_tmp_${USER} ] && rm -f /tmp/ifort_version_tmp_${USER} || echo -e "\n"
+}
+
+
+# Main script
+
+if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
+
+    export BUILD_TYPE=$(echo ${1} | cut -d- -f2)
+    export ARGUMENTS=("$@")
+    [ "${BUILD_TYPE}" == "production" ] && BUILD_CMD="mk" || BUILD_CMD="mkd"
+
+    func_initialize_flags
+    func_set_base_env
+    func_read_version
+    func_set_fortran_compiler
+
+    # Clean up the build, if requested
+
+    if [ "${2}" == "-cleaner" ] ; then
+	func_remove_package
+	func_cleanup_variables
+
+    elif ( [ "${2}" != "-cleaner" ] && [ "${2}" != "-test" ] && [ ! -z "${2}" ] ) ; then
+
+	echo -e \
+	    "\nError in acc_build..." \
+	    "\nThe second command line flag ${2} is not valid, must be ethier:" \
+	    "\n\n   -cleaner" \
+	    "\n\nor" \
+	    "\n\n   -test\n"
+	exit 64
+
+    # Or Start the build 
+    
+    elif ( [ ! -e ${WORK_DIR}/ALREADY_BUILT ] || [ "${2}" == "-test" ] ) ; then
+	echo -e "\nPreparing "${BUILD_TYPE}" build of `echo ${PACKAGE_VERSION}`...\n"
+
+	func_set_gmake_job_level
+	func_set_openmp_flags
+	func_set_fpic_flags
+	func_check_macports
+	func_check_gcc_version
+	func_set_c_flags
+        func_set_fortran_flags
+	func_make_build_directory
+	func_set_LD_LIBRARY_PATH 
+	func_install_utilities
+
+	echo -e "\nThe search PATH is: ${PATH}\n"
+	echo -e "\nThe search LD_LIBRARY_PATH is: ${LD_LIBRARY_PATH}\n"	
+	echo -e "\nBuilding `echo ${PACKAGE_VERSION}`...\n"
+
+	func_configure_make_install
+
+	if [ "${RETVAL}" -eq 0 ] ; then 
+	    [ ! -e ${WORK_DIR}/ALREADY_BUILT ] && touch ${WORK_DIR}/ALREADY_BUILT
+	
+	    func_cleanup_variables
+
+	else
+
+	    echo -e "\nError in building ${PACKAGE_VERSION}.\n"
+	    exit 1
+
+	fi
+	
+    else
+
+	echo -e \
+	    "\nThe ${BUILD_TYPE} build already exists. To force a rebuild, please type:" \
+	    "\n\n ${BUILD_CMD} cleaner" \
+	    "\n\nthen type:" \
+	    "\n\n ${BUILD_CMD}\n"
+	exit 0
+
+    fi
+
+elif [ -z "${1}" ] ; then
+
+    echo -e \
+	"\nPlease specify either:" \
+	"\n\n   -debug" \
+	"\n\nor" \
+	"\n\n   -production\n"
+    exit 64
+
+else
+
+    echo -e "\nError in acc_build..." \
+	"\nFirst command line flag $1 is not valid, must be either:" \
+	"\n\n   -debug" \
+	"\n\nor" \
+	"\n\n   -production\n"
+    exit 64
+
+fi
