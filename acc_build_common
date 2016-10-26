@@ -27,11 +27,6 @@ func_set_base_env () {
 }
 
 
-# Load Package Specific functions
-
-. ${BASE_DIR}/${PROJ_DIR_NAME}/acc_build_${PROJ_DIR_NAME}
-
-
 # Function to unset Compiler and Linker flags to reduce confusion
 
 func_initialize_flags () {
@@ -512,6 +507,10 @@ if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
     func_set_base_env
     func_read_version
     func_set_fortran_compiler
+
+    # Load Package Specific functions
+
+    . ${BASE_DIR}/${PROJ_DIR_NAME}/acc_build_${PROJ_DIR_NAME}
 
     # Clean up the build, if requested
 
