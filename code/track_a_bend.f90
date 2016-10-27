@@ -69,16 +69,15 @@ call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., ma
 
 n_step = 1
 
-call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an,      bn,      magnetic$, include_kicks = .true.)
-call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
-
-if (ele%value(k2$) /= 0) then
-  bn(2) = bn(2) + ele%value(k2$) * ele%value(l$) / 2
-  has_nonzero_pole = .true.
+if (is_true(ele%value(exact_multipoles$))) then
+  call init_exact_bend_multipole_coefs (ele, param, .true., has_nonzero_pole) 
+else
+  call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an,      bn,      magnetic$, include_kicks = .true.)
+  call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
 endif
 
-if (ele%value(k1$) /= 0 .and. is_true(ele%value(exact_multipoles$))) then
-  bn(1) = bn(1) + ele%value(k1$) * ele%value(l$)
+if (ele%value(k2$) /= 0 .and. is_false(ele%value(exact_multipoles$))) then
+  bn(2) = bn(2) + ele%value(k2$) * ele%value(l$) / 2
   has_nonzero_pole = .true.
 endif
 
@@ -107,8 +106,7 @@ endif
 
 ! multipole kick at the beginning.
 
-if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step/2,   mat6, make_matrix)
-if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len/2, mat6, make_matrix)
+if (has_nonzero_pole .or. has_nonzero_elec) call apply_multipole_kicks (0.5_rp)
 
 ! And track with n_step steps
 
@@ -353,12 +351,12 @@ do n = 1, n_step
 
   ! multipole kick
 
-  if (n == n_step) then
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step/2,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len/2, mat6, make_matrix)
-  else
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len, mat6, make_matrix)
+  if (has_nonzero_pole .or. has_nonzero_elec) then
+    if (n == n_step) then
+      call apply_multipole_kicks (0.5_rp)
+    else
+      call apply_multipole_kicks (1.0_rp)
+    endif
   endif
 
 enddo
@@ -437,6 +435,156 @@ if (logic_option(.false., make_matrix)) then
   ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
 endif
 
+!-------------------------------------------------------------------------------------------------------
+contains
+
+subroutine apply_multipole_kicks (coef)
+
+type (em_field_struct) field
+type (em_potential_struct) potential
+
+real(rp) coef, dmat6(6,6), dr_ds(7)
+real(rp) rel_p, beta0, dt_ds_ref, p0, e_tot, direction, charge
+real(rp) db_coef, dz_coef, vel(3), v2, E_force(3), B_force(3), f_bend, dt_ds, dp_ds, dbeta_ds, pz_p0
+real(rp) dbeta_dpz, dE_dpz, dvel_dpx(3), dvel_dpy(3), dvel_dpz(3), dt_ds_dpx, dt_ds_dpy, dt_ds_dpz
+real(rp) dp_ds_dx, dp_ds_dpx, dp_ds_dy, dp_ds_dpy, dp_ds_dpz, cc, beta
+
+logical err
+
+!
+
+if (is_true(ele%value(exact_multipoles$)) .and. ele%value(g$) /= 0) then
+
+  rel_p = 1 + orbit%vec(6)
+  beta = orbit%beta
+  beta0 = ele%value(p0c$) / ele%value(e_tot$) 
+  dt_ds_ref = orbit%direction / (beta0 * c_light)
+  p0 = ele%value(p0c$) / c_light
+  e_tot = orbit%p0c * rel_p / beta
+  direction = ele%orientation * orbit%direction
+  charge = charge_of(orbit%species)
+
+  ! Calculate the field. 
+  ! Important: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
+
+  call  exact_bend_multipole_field (ele, param, orbit, .true., field, potential, make_matrix)
+
+  ! Bend factor
+
+  db_coef = mass_of(orbit%species)**2 * c_light / e_tot**3
+  dz_coef = db_coef * orbit%vec(5) / beta
+
+  vel(1:2) = [orbit%vec(2), orbit%vec(4)] / rel_p
+  v2 = vel(1)**2 + vel(2)**2
+  if (v2 > 0.99999999_rp) return
+  vel = beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * direction]
+  field%E = charge * field%E
+  field%B = charge * field%B
+  E_force = field%E
+  B_force = cross_product(vel, field%B)
+
+  f_bend = 1 + orbit%vec(1) * ele%value(g$) ! Longitudinal distance per unit s-distance. 
+  dt_ds = orbit%direction * f_bend / abs(vel(3))
+  dp_ds = dot_product(E_force, vel) * dt_ds / (beta * c_light)
+  dbeta_ds = db_coef * dp_ds
+  pz_p0 = rel_p * orbit%direction * abs(vel(3)) / (beta * c_light)  ! Pz / P0
+
+  if (logic_option(.false., make_matrix)) then
+    cc = ele%value(g$) * orbit%direction / c_light
+    field%dE = charge * field%dE
+    field%dB = charge * field%dB
+
+    dbeta_dpz = (1 - beta**2) / e_tot
+    dE_dpz = orbit%p0c * beta
+
+    dvel_dpx = [1.0_rp, 0.0_rp, -vel(1) / vel(3)] * (beta * c_light / rel_p)
+    dvel_dpy = [0.0_rp, 1.0_rp, -vel(2) / vel(3)] * (beta * c_light / rel_p)
+    dvel_dpz = [-vel(1) * dE_dpz / E_tot, -vel(2) * dE_dpz / E_tot, (c_light * dbeta_dpz - ((vel(1)  + vel(2)) * dE_dpz / E_tot)) / vel(3)]
+
+    dt_ds_dpx = orbit%direction / (ele%value(g$) * abs(vel(3))) - orbit%direction * f_bend * dvel_dpx(3) * sign_of(vel(3)) / vel(3)**2
+    dt_ds_dpy = -orbit%direction * f_bend * dvel_dpy(3) * sign_of(vel(3)) / vel(3)**2
+    dt_ds_dpz = -orbit%direction * f_bend * dvel_dpz(3) * sign_of(vel(3)) / vel(3)**2
+
+    dp_ds_dx  = dot_product(field%dE(:,1), vel) * dt_ds / (beta * c_light)
+    dp_ds_dpx = (dot_product(E_force, vel) * dt_ds_dpx + dot_product(E_force, dvel_dpx) * dt_ds) / (beta * c_light)
+    dp_ds_dy  = dot_product(field%dE(:,2), vel) * dt_ds / (beta * c_light)
+    dp_ds_dpy = (dot_product(E_force, vel) * dt_ds_dpy + dot_product(E_force, dvel_dpz) * dt_ds) / (beta * c_light)
+    dp_ds_dpz = (dot_product(E_force, vel) * dt_ds_dpz + dot_product(E_force, dvel_dpz) * dt_ds) / (beta * c_light) - dp_ds * dbeta_dpz / beta
+
+    dmat6 = 0
+
+    dmat6(1,1) = 1 + dt_ds
+    dmat6(1,2) = vel(1) * dt_ds_dpx
+    dmat6(1,4) = vel(1) * dt_ds_dpy
+    dmat6(1,6) = vel(1) * dt_ds_dpz
+
+    dmat6(2,1) =     (field%dE(1,1) + field%dB(1,1)) * dt_ds / p0
+    dmat6(2,2) = 1 + (E_force(1) + B_force(1)) * dt_ds_dpx / p0 + cross(dvel_dpx, field%B, 1) * dt_ds / p0 !! + cc * rel_p * direction * dvel_dpx(3) / beta
+    dmat6(2,3) =     (field%dE(1,2) + field%dB(1,2)) * dt_ds / p0
+    dmat6(2,4) =     (E_force(1) + B_force(1)) * dt_ds_dpy / p0 + cross(dvel_dpy, field%B, 1) * dt_ds / p0 !! + cc * rel_p * direction * dvel_dpy(3) / beta
+    dmat6(2,6) =     (E_force(1) + B_force(1)) * dt_ds_dpz / p0 + cross(dvel_dpz, field%B, 1) * dt_ds / p0 !! + &
+                          !! cc * (abs(vel(3)) / beta + rel_p * direction * dvel_dpx(3) / beta - rel_p * abs(vel(3)) * dbeta_dpz / beta**2)
+
+    dmat6(3,2) = vel(2) * dt_ds_dpx
+    dmat6(3,3) = 1
+    dmat6(3,4) = vel(2) * dt_ds_dpy
+    dmat6(3,6) = vel(2) * dt_ds_dpz
+
+    dmat6(4,1) =     (field%dE(2,1) + field%dB(2,1)) * dt_ds / p0
+    dmat6(4,2) = 1 + (E_force(2) + B_force(2)) * dt_ds_dpx / p0 + cross(dvel_dpx, field%B, 2) * dt_ds / p0
+    dmat6(4,3) =     (field%dE(2,2) + field%dB(2,2)) * dt_ds / p0
+    dmat6(4,4) =     (E_force(2) + B_force(2)) * dt_ds_dpy / p0 + cross(dvel_dpy, field%B, 2) * dt_ds / p0
+    dmat6(4,6) =     (E_force(2) + B_force(2)) * dt_ds_dpz / p0 + cross(dvel_dpz, field%B, 2) * dt_ds / p0
+
+    dmat6(5,1) =                                     dz_coef * dp_ds_dx
+    dmat6(5,2) = -beta * c_light * dt_ds_dpx + dz_coef * dp_ds_dpx
+    dmat6(5,3) =                                     dz_coef * dp_ds_dy
+    dmat6(5,4) = -beta * c_light * dt_ds_dpy + dz_coef * dp_ds_dpy
+    dmat6(5,5) = 1 + dbeta_ds / beta
+    dmat6(5,6) = dbeta_dpz * c_light * (dt_ds_ref - dt_ds) + beta * c_light * dt_ds_dpz + &
+                    dz_coef * dp_ds_dpz - 4 * db_coef * dp_ds / e_tot - dbeta_ds * orbit%vec(5) / beta**2
+
+    dmat6(6,1) = dp_ds_dx / p0
+    dmat6(6,2) = dp_ds_dpx / p0
+    dmat6(6,3) = dp_ds_dy / p0
+    dmat6(6,4) = dp_ds_dpy / p0
+    dmat6(6,6) = dp_ds_dpz / p0
+
+    mat6 = matmul(dmat6, mat6)
+
+  endif
+
+  dr_ds(1) = vel(1) * dt_ds
+  dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 !! + ele%value(g$) * pz_p0
+  dr_ds(3) = vel(2) * dt_ds
+  dr_ds(4) = (E_force(2) + B_force(2)) * dt_ds / p0
+  dr_ds(5) = beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / beta
+  dr_ds(6) = dp_ds / p0
+  dr_ds(7) = dt_ds
+
+  orbit%vec = orbit%vec + coef * step_len * dr_ds(1:6)
+
+!
+
+else
+  if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, coef * r_step,   mat6, make_matrix)
+  if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, coef * step_len, mat6, make_matrix)
+endif
+
+end subroutine apply_multipole_kicks
+
+!---------------------------------------------------------------------------
+! contains
+
+function cross(A, B, ix) result (C_ix)
+
+real(rp) A(3), B(3), C(3), C_ix
+integer ix
+
+C = cross_product(A, B)
+C_ix = C(ix)
+
+end function cross
 
 end subroutine track_a_bend
 

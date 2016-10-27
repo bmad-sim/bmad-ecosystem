@@ -1,11 +1,14 @@
 !+
 ! Subroutine exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field, potential, calc_dfield)
 !
-! Routine to calculate the electric and magnetic field at a given point in a bend element with multipoles.
-! The field due to a multipole in a bend is different from a straight element due Maxwell's equations
-! being modified due to the curvature of the reference orbit.
+! Routine to calculate the electric and magnetic field at a given point in a bend element due to any multipoles.
+! The field due to a multipole in a bend is different from a straight element since Maxwell's equations
+! are modified due to the curvature of the reference orbit.
 !
-! This routine is a port of the getelectricr routine from the forest library
+! Note: The returned field does not include the bend field (g) itself or the bend field error (g_err).
+! Note: init_exact_bend_multipole_coefs must be called before this routine is called.
+!
+! This routine is a port of the getelectricr routine from PTC.
 !
 ! Input:
 !   ele             -- ele_stuct: Bend element.
@@ -13,7 +16,7 @@
 !   orbit           -- coord_struct: particle position.
 !   local_ref_frame -- logical: Is the particle position in the local element ref 
 !                         frame (as opposed to the lab frame)?
-!   calc_dfield     -- Logical, optional: If present and True then calculate the field derivatives.
+!   calc_dfield     -- logical, optional: If present and True then calculate the field derivatives.
 !
 ! Output:
 !   field           -- em_field_struct: Field
@@ -23,7 +26,6 @@
 subroutine exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field, potential, calc_dfield)
 
 use bmad_interface, except_dummy => exact_bend_multipole_field
-use s_status, only: s_b_from_v, s_e, sector_nmul_max
 
 implicit none
 
@@ -54,8 +56,7 @@ b0 = ele%value(g$)
 field = em_field_struct()
 potential = em_potential_struct()
 
-call init_exact_bend_multipole_coefs(ele, param, has_nonzero_pole)
-if (.not. has_nonzero_pole) return
+if (.not. associated(ele%exact_bend_multipole)) return
 
 do_dfield_calc = logic_option(.false., calc_dfield)
 eb => ele%exact_bend_multipole
@@ -188,13 +189,16 @@ field%e(2) = ey
 potential%phi   = potential%phi   * c_light / ele%value(p0c$)
 potential%phi_B = potential%phi_B * ele%value(p0c$) / c_light
 
+end subroutine exact_bend_multipole_field
 
-!--------------------------------------------------------------------------
-contains
-
+!------------------------------------------------------------------------------------------------------
 ! This is a port of the getanbnr routine from the forest library
+! Note: k1 and k2 multipoles will be folded in to the multipole array.
 
-subroutine init_exact_bend_multipole_coefs (ele, param, has_nonzero_pole)
+subroutine init_exact_bend_multipole_coefs (ele, param, local_ref_frame, has_nonzero_pole)
+
+use multipole_mod, except_dummy => init_exact_bend_multipole_coefs
+use s_status, only: s_b_from_v, s_e, sector_nmul_max
 
 implicit none
 
@@ -205,18 +209,22 @@ type (lat_param_struct) param
 real(rp) b0, f, a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 
 integer i, j, k, pow, n_mono, n_max
-logical has_nonzero_pole, has_nonzero_mag, has_nonzero_elec
+
+logical :: local_ref_frame, has_nonzero_pole, has_nonzero_mag, has_nonzero_elec
 
 !
 
 call multipole_ele_to_ab (ele, .not. local_ref_frame, has_nonzero_mag, a_pole, b_pole)
 call multipole_ele_to_ab (ele, .not. local_ref_frame, has_nonzero_elec, a_pole_elec, b_pole_elec, electric$)
 
-has_nonzero_pole = (has_nonzero_mag .or. has_nonzero_elec) 
+has_nonzero_pole = (has_nonzero_mag .or. has_nonzero_elec .or. ele%value(k1$) /= 0 .or. ele%value(k2$) /= 0) 
 if (.not. has_nonzero_pole) return
 
 if (.not. associated(ele%exact_bend_multipole)) allocate(ele%exact_bend_multipole)
 eb => ele%exact_bend_multipole
+
+if (ele%value(k1$) /= 0) eb%bn(1) = eb%bn(1) + ele%value(k1$) * ele%value(l$)
+if (ele%value(k2$) /= 0) eb%bn(2) = eb%bn(2) + ele%value(k2$) * ele%value(l$) / 2
 
 n_mono = s_b_from_v%n_mono
 n_max = sector_nmul_max
@@ -283,6 +291,4 @@ eb%bf_y = eb%bf_y * f
 eb%phi  = eb%phi * f
 
 end subroutine init_exact_bend_multipole_coefs
-
-end subroutine exact_bend_multipole_field
 
