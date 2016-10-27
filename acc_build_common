@@ -540,7 +540,7 @@ if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
 	func_check_gcc_version
 	func_set_c_flags
         func_set_fortran_flags
-	func_make_build_directory
+	[ "${PROJ_DIR_NAME}" == "LAPACK95" ] || func_make_build_directory
 	func_set_LD_LIBRARY_PATH 
 	func_install_utilities
 
