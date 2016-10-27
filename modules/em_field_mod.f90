@@ -533,24 +533,9 @@ case (bmad_standard$)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
-
-  if (ele%key == sbend$) then
-    b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
-    b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
-    has_nonzero_pole = (has_nonzero_pole .or. (b_pole(1) /= 0) .or. (b_pole(2) /= 0))
-  endif
-
-  if (has_nonzero_pole) then
-
-    if (ele%value(l$) == 0) then
-      call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return
-    endif
-
-    if (ele%key == sbend$ .and. is_true(ele%value(exact_multipoles$))) then
+  if (ele%key == sbend$ .and. is_true(ele%value(exact_multipoles$))) then
+    call init_exact_bend_multipole_coefs(ele, param, local_ref_frame, has_nonzero_pole)
+    if (has_nonzero_pole) then
       call exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field2, p2, do_df_calc)
       field%e = field%e + field2%e
       field%b = field%b + field2%b
@@ -558,8 +543,29 @@ case (bmad_standard$)
         field%de = field2%de
         field%db = field2%db
       endif
+    endif
 
-    else
+  ! Not exact multipole calc for a bend case
+
+  else
+
+    call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+
+    if (ele%key == sbend$) then
+      b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
+      b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
+      has_nonzero_pole = (has_nonzero_pole .or. (b_pole(1) /= 0) .or. (b_pole(2) /= 0))
+    endif
+
+    if (has_nonzero_pole) then
+
+      if (ele%value(l$) == 0) then
+        call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
+        if (global_com%exit_on_error) call err_exit
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
+
       do i = 0, n_pole_maxx
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then

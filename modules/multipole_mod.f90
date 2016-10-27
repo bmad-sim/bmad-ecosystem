@@ -15,9 +15,6 @@ contains
 ! Subroutine to convert ab type multipoles to kt (MAD standard) multipoles.
 ! Also see: multipole1_ab_to_kt.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   an(0:n_pole_maxx) -- Real(rp): Skew multipole component.
 !   bn(0:n_pole_maxx) -- Real(rp): Normal multipole component.
@@ -50,9 +47,6 @@ end subroutine multipole_ab_to_kt
 !
 ! Subroutine to convert ab type multipole to kt (MAD standard) multipole.
 ! Also see: multipole_ab_to_kt.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   an -- Real(rp): Skew multipole component.
@@ -107,9 +101,6 @@ end subroutine multipole1_ab_to_kt
 ! Note: To save time, if the element does not have ele%a/b_pole allocated, the knl array 
 !       will NOT be set to zero (has_nonzero_pole will be False). 
 !       That is, the has_nonzero_pole argument needs to be tested before any calculations!
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Lattice element.
@@ -195,9 +186,6 @@ end subroutine multipole_ele_to_kt
 ! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 ! Also see: multipole1_kt_to_ab.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   knl(0:) -- Real(rp): Multitude magnatude.
 !   tn(0:)  -- Real(rp): Multipole angle.
@@ -230,9 +218,6 @@ end subroutine multipole_kt_to_ab
 !
 ! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 ! Also see: multipole_kt_to_ab.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   knl -- Real(rp): Multitude magnatude.
@@ -274,9 +259,6 @@ end subroutine multipole1_kt_to_ab
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele           -- ele_struct: Element.
@@ -565,9 +547,6 @@ end subroutine multipole_ele_to_ab
 !
 ! Subroutine to put in the kick due to a multipole.
 !
-! Modules Needed:
-!   use bmad
-!                          
 ! Input:
 !   knl(0:)        -- real(rp): Multipole strengths (mad units).
 !   tilt(0:)       -- real(rp): Multipole tilts.
@@ -607,11 +586,8 @@ end subroutine multipole_kicks
 !+
 ! Subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matrix)
 !
-! Subroutine to put in the kick due to ab_multipole components.
+! Routine to put in the kick due to ab_multipole components.
 !
-! Modules Needed:
-!   use bmad
-!                          
 ! Input:
 !   an(0:)       -- real(rp): Skew multipole strengths.
 !   bn(0:)       -- real(rp): Normal multipole tilts.
@@ -689,9 +665,6 @@ end subroutine ab_multipole_kicks
 ! Subroutine to put in the kick due to a multipole.
 ! Note: The kick for an electric multipole does not include any energy change.
 !
-! Modules Needed:
-!   use bmad
-!                          
 ! Input:
 !   knl            -- real(rp): Multipole integrated strength.
 !   tilt           -- real(rp): Multipole tilt.
@@ -797,9 +770,6 @@ end subroutine multipole_kick
 ! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
-!
-! Modules Needed:
-!   use bmad
 !                          
 ! Input:
 !   a            -- Real(rp): Multipole skew component.
@@ -908,9 +878,6 @@ end subroutine ab_multipole_kick
 !
 ! Subroutine to put in the field due to an electric_multipole.
 !
-! Modules Needed:
-!   use bmad
-!                          
 ! Input:
 !   a       -- Real(rp): Multipole skew component.
 !   b       -- Real(rp): Multipole normal component.

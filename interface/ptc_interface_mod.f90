@@ -4136,7 +4136,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 
 real(rp) k(:), ks(:)
-real(rp) cos_t, sin_t, leng, hk, vk, tilt
+real(rp) cos_t, sin_t, leng, hk, vk, tilt, ref_charge
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
@@ -4165,6 +4165,7 @@ ks = 0
 n_max = 0
 n_relavent = 0
 add_kick = .true.
+ref_charge = charge_of(param%particle)
 
 select case (key)
 
@@ -4191,11 +4192,6 @@ case (sbend$)
   else
     k(1) = -ele%value(g$)
   endif
-
-  ! On ptc side k(1) is error field when creating a fibre but 
-  ! is total field when fibre is being modified.
-
-  if (.not. creating_fibre) k(1) = k(1) + ele%value(g$)
 
   k(2) = val(k1$)
   k(3) = val(k2$) / 2
@@ -4289,8 +4285,12 @@ else
   n_max = min(n_pole_maxx, size(k))
 endif
 
-k = k / charge_of (param%particle)
-ks = ks / charge_of (param%particle)
+k = k / ref_charge
+ks = ks / ref_charge
+
+! On ptc side with a bend when creating a fibre k(1) -> k(1) + g which is confusing when the charge is negative.
+
+if (ele%key == sbend$ .and. creating_fibre) k(1) = k(1) + ele%value(g$) * (1/ref_charge - 1)
 
 end subroutine ele_to_an_bn
 

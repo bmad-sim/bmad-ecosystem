@@ -299,6 +299,15 @@ subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   type (coord_struct) orbit
 end subroutine
 
+subroutine init_exact_bend_multipole_coefs (ele, param, local_ref_frame, has_nonzero_pole)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  logical local_ref_frame
+  logical has_nonzero_pole
+end subroutine
+
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
   import
   implicit none
