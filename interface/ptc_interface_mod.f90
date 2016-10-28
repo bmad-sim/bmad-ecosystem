@@ -3140,7 +3140,7 @@ type (em_taylor_term_struct), pointer :: tm
 type(taylor), allocatable :: pancake_field(:,:)
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, track_charge, k1l, t1
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp) beta0, beta1, ref0(6), ref1(6)
 real(rp), pointer :: val(:)
@@ -3168,9 +3168,9 @@ case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
 if (present(track_particle)) then
-  track_charge = charge_of(track_particle%species)
+  rel_charge = charge_of(track_particle%species) / charge_of(param%particle)
 else
-  track_charge = charge_of(default_tracking_species(param))
+  rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
 endif
 
 leng = ele%value(l$)
@@ -3667,7 +3667,7 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
-  fh = 1d-9 / VOLT_C
+  fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
   call multipole_ele_to_ab(ele, .false., has_nonzero_pole, a_pole, b_pole, electric$)
 
   if (ele%key == elseparator$) then
@@ -3803,7 +3803,7 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
-ptc_fibre%charge = track_charge
+ptc_fibre%charge = rel_charge
 
 ! Taylor maps
 ! In theory can put in a taylor map for any element but for now only setup Bmad taylor and match elements.
@@ -4136,7 +4136,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 
 real(rp) k(:), ks(:)
-real(rp) cos_t, sin_t, leng, hk, vk, tilt, ref_charge
+real(rp) cos_t, sin_t, leng, hk, vk, tilt
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
@@ -4165,7 +4165,6 @@ ks = 0
 n_max = 0
 n_relavent = 0
 add_kick = .true.
-ref_charge = charge_of(param%particle)
 
 select case (key)
 
@@ -4285,12 +4284,13 @@ else
   n_max = min(n_pole_maxx, size(k))
 endif
 
-k = k / ref_charge
-ks = ks / ref_charge
+k = k / charge_of (param%particle)
+ks = ks / charge_of (param%particle)
 
-! On ptc side with a bend when creating a fibre k(1) -> k(1) + g which is confusing when the charge is negative.
-
-if (ele%key == sbend$ .and. creating_fibre) k(1) = k(1) + ele%value(g$) * (1/ref_charge - 1)
+! On ptc side k(1) is error field when creating a fibre but	 
+! is total field when fibre is being modified.	 
+ 	 
+if (.not. creating_fibre) k(1) = k(1) + ele%value(g$)	 
 
 end subroutine ele_to_an_bn
 
