@@ -852,6 +852,34 @@ if (global_com%exit_on_error) call err_exit
 
 end function mass_of
 
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function charge_to_mass_of (species) result (charge_mass_ratio)
+!
+! Routine to return the charge (in units of e+) to mass (units of eV/c^2) ration of a particle.
+!
+! Input:
+!   species -- Integer: Species ID.
+!
+! Output:
+!   charge_mass_ratio -- real(rp): particle charge to mass ratio.
+!-
+
+function charge_to_mass_of (species) result (charge_mass_ratio)
+
+integer :: species
+real(rp) charge_mass_ratio
+
+character(*), parameter :: r_name = 'charge_to_mass_of'
+
+!
+
+charge_mass_ratio = charge_of(species) / mass_of(species)
+
+end function charge_to_mass_of
+
 end module
 
 
