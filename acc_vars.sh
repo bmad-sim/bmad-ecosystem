@@ -76,8 +76,6 @@ ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
 #--------------------------------------------------------------
 
-export OFFLINE_LOCAL_ARCHIVE_BASE_DIR='/mnt/acc/libs'
-
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_OPT_DIR='/nfs/opt'
 
