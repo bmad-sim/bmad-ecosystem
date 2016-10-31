@@ -280,7 +280,7 @@ if (set) then
   if (set_multi) then
     call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
+      call multipole_kicks (knl*charge_dir/2, tilt, param%particle, coord)
       if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
 
@@ -288,7 +288,7 @@ if (set) then
     if (has_nonzero_pole) then
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
+        call ab_multipole_kick (an(n), bn(n), n, param%particle, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
         ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
         ! Are taken into account is not to have any energy shifts.
         coord%vec(2) = coord%vec(2) + kx
@@ -356,7 +356,7 @@ else
   if (set_multi) then
     call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      call multipole_kicks (knl*charge_dir/2, tilt, coord)
+      call multipole_kicks (knl*charge_dir/2, tilt, param%particle, coord)
       if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
 
@@ -364,7 +364,7 @@ else
     if (has_nonzero_pole) then
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
+        call ab_multipole_kick (an(n), bn(n), n, param%particle, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
         ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
         ! Are taken into account is not to have any energy shifts.
         coord%vec(2) = coord%vec(2) + kx

@@ -249,7 +249,7 @@ do i = 1, size(ele%wake%lr_mode)
     c = cos (-dt_phase * omega)
     s = sin (-dt_phase * omega)
 
-    call ab_multipole_kick (0.0_rp, 1.0_rp, lr%m, particle, kx0, ky0)
+    call ab_multipole_kick (0.0_rp, 1.0_rp, lr%m, particle%species, particle, kx0, ky0)
 
     ! Accumulate longitudinal self-wake
 
@@ -285,7 +285,7 @@ do i = 1, size(ele%wake%lr_mode)
       w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
       w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
 
-      call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle, kx, ky)
+      call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle%species, particle, kx, ky)
 
       particle%vec(2) = particle%vec(2) + lr%m * kx
       particle%vec(4) = particle%vec(4) + lr%m * ky

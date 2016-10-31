@@ -496,25 +496,26 @@ end subroutine sol_quad_mat6_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine multipole_kick_mat (knl, tilt, orbit, factor, mat6)
+! Subroutine multipole_kick_mat (knl, tilt, ref_species, orbit, factor, mat6)
 !
 ! Subroutine to return the multipole kick components needed to
 ! construct the transfer matrix.
 ! This routine is not meant for general use.
 !
 ! Input:
-!   knl(0:)   -- Real(rp): Strength of multipoles
-!   tilt(0:)  -- Real(rp): Tilt of multipoles
-!   orbit     -- Coord_struct: coordinates of particle around which the
-!                  multipole kick matrix is computed.
-!   factor    -- real(rp): Factor to scale knl by.
+!   knl(0:)     -- Real(rp): Strength of multipoles
+!   tilt(0:)    -- Real(rp): Tilt of multipoles
+!   ref_species -- integer: Reference species.
+!   orbit       -- Coord_struct: coordinates of particle around which the
+!                    multipole kick matrix is computed.
+!   factor      -- real(rp): Factor to scale knl by.
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): matrix with kick values at mat6(2:4:2, 1:3:2).
-!                 The rest of the matrix is untouched.
+!   mat6(6,6)   -- Real(rp): matrix with kick values at mat6(2:4:2, 1:3:2).
+!                   The rest of the matrix is untouched.
 !-
 
-subroutine multipole_kick_mat (knl, tilt, orbit, factor, mat6)
+subroutine multipole_kick_mat (knl, tilt, ref_species, orbit, factor, mat6)
 
 implicit none
 
@@ -523,7 +524,7 @@ type (coord_struct) orbit
 real(rp) mat6(6,6), kmat1(4,4), factor
 real(rp) knl(0:), tilt(0:)
 
-integer n
+integer ref_species, n
 
 !                        
 

@@ -67,8 +67,8 @@ call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., ma
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
-if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step/2,   mat6, make_matrix)
-if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len/2, mat6, make_matrix)
+if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
 
 ! Body
 
@@ -112,11 +112,11 @@ do i = 1, n_step
   orbit%vec(3:4) = matmul(kmat6(3:4,3:4), orbit%vec(3:4))
 
   if (i == n_step) then
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step/2,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len/2, mat6, make_matrix)
+    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
   else
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      orbit, magnetic$, r_step,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, orbit, electric$, step_len, mat6, make_matrix)
+    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step,   mat6, make_matrix)
+    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len, mat6, make_matrix)
   endif
 
 enddo
