@@ -682,7 +682,7 @@ case (multipole$, ab_multipole$)
 
   call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
-    call multipole_kick_mat (knl*charge_dir, tilt, c00, 1.0_rp, ele%mat6)
+    call multipole_kick_mat (knl*charge_dir, tilt, param%particle, c00, 1.0_rp, ele%mat6)
 
     ! if knl(0) is non-zero then the reference orbit itself is bent
     ! and we need to account for this.
@@ -1067,12 +1067,12 @@ real(rp) mat6(6,6), factor, mat6_m(6,6)
 
 !
 
-call multipole_kick_mat (knl, tilt, orb, factor, mat6_m)
+call multipole_kick_mat (knl, tilt, param%particle, orb, factor, mat6_m)
 
 mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
 mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
 
-call multipole_kicks (knl*factor, tilt, orb)
+call multipole_kicks (knl*factor, tilt, param%particle, orb)
 
 end subroutine
 
@@ -1102,11 +1102,11 @@ logical has_nonzero_pole, add_pole
 if (add_pole) then
   call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
-    knl = knl * charge_dir
-    call multipole_kick_mat (knl, tilt, orb_in, 0.5_rp, mat6_m)
+    knl = knl * ele%orientation
+    call multipole_kick_mat (knl, tilt, param%particle, orb_in, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call multipole_kick_mat (knl, tilt, orb_out, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, param%particle, orb_out, 0.5_rp, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif

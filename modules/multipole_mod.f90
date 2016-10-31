@@ -543,13 +543,14 @@ end subroutine multipole_ele_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)
+! Subroutine multipole_kicks (knl, tilt, ref_species, coord, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
 !
 ! Input:
 !   knl(0:)        -- real(rp): Multipole strengths (mad units).
 !   tilt(0:)       -- real(rp): Multipole tilts.
+!   ref_species    -- integer: Reference species.
 !   coord          -- coord_struct: Particle position.
 !   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   ref_orb_offset -- logical, optional: If present and n = 0 then the
@@ -560,13 +561,13 @@ end subroutine multipole_ele_to_ab
 !   coord -- coord_struct: Kicked particle.
 !-
 
-subroutine multipole_kicks (knl, tilt, coord, pole_type, ref_orb_offset)
+subroutine multipole_kicks (knl, tilt, ref_species, coord, pole_type, ref_orb_offset)
 
 type (coord_struct)  coord
 
 real(rp) knl(0:), tilt(0:)
 
-integer n
+integer ref_species, n
 
 integer, optional :: pole_type
 logical, optional :: ref_orb_offset
@@ -575,7 +576,7 @@ logical, optional :: ref_orb_offset
 
 do n = 0, n_pole_maxx
   if (knl(n) == 0) cycle
-  call multipole_kick (knl(n), tilt(n), n, coord, pole_type, ref_orb_offset)
+  call multipole_kick (knl(n), tilt(n), n, ref_species, coord, pole_type, ref_orb_offset)
 enddo
 
 end subroutine multipole_kicks
@@ -584,13 +585,14 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matrix)
+! Subroutine ab_multipole_kicks (an, bn, ref_species, coord, pole_type, scale, mat6, make_matrix)
 !
 ! Routine to put in the kick due to ab_multipole components.
 !
 ! Input:
 !   an(0:)       -- real(rp): Skew multipole strengths.
 !   bn(0:)       -- real(rp): Normal multipole tilts.
+!   ref_species    -- integer: Reference species.
 !   coord        -- coord_struct: Particle position.
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
@@ -603,7 +605,7 @@ end subroutine multipole_kicks
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including multipole.
 !-
 
-subroutine ab_multipole_kicks (an, bn, coord, pole_type, scale, mat6, make_matrix)
+subroutine ab_multipole_kicks (an, bn, ref_species, coord, pole_type, scale, mat6, make_matrix)
 
 type (coord_struct)  coord
 
@@ -612,7 +614,7 @@ real(rp) kx, ky, pz2, rel_p2, dk(2,2), alpha, kx_tot, ky_tot
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
-integer n
+integer ref_species, n
 
 logical, optional :: make_matrix
 
@@ -629,11 +631,11 @@ do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
 
   if (logic_option(.false., make_matrix)) then
-    call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, dk, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (an(n), bn(n), n, ref_species, coord, kx, ky, dk, pole_type = pole_type, scale = scale)
     mat6(2,:) = mat6(2,:) + dk(1,1) * mat6(1,:) + dk(1,2) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + dk(2,1) * mat6(1,:) + dk(2,2) * mat6(3,:)
   else
-    call ab_multipole_kick (an(n), bn(n), n, coord, kx, ky, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (an(n), bn(n), n, ref_species, coord, kx, ky, pole_type = pole_type, scale = scale)
   endif
 
   kx_tot = kx_tot + kx
@@ -660,7 +662,7 @@ end subroutine ab_multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)
+! Subroutine multipole_kick (knl, tilt, n, ref_species, coord, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
 ! Note: The kick for an electric multipole does not include any energy change.
@@ -669,6 +671,7 @@ end subroutine ab_multipole_kicks
 !   knl            -- real(rp): Multipole integrated strength.
 !   tilt           -- real(rp): Multipole tilt.
 !   n              -- real(rp): Multipole order.
+!   ref_species    -- integer: Reference species.
 !   coord          -- coord_struct:
 !     %vec(1)         -- X position.
 !     %vec(3)         -- Y position.
@@ -683,12 +686,12 @@ end subroutine ab_multipole_kicks
 !     %vec(4) -- Y kick.
 !-
 
-subroutine multipole_kick (knl, tilt, n, coord, pole_type, ref_orb_offset)
+subroutine multipole_kick (knl, tilt, n, ref_species, coord, pole_type, ref_orb_offset)
 
 type (coord_struct) coord
 
 real(rp) knl, tilt, x, y, sin_ang, cos_ang
-real(rp) x_vel, y_vel
+real(rp) x_vel, y_vel, charge
 real(rp) x_value, y_value
 real(rp) cval, rp_dummy, t
 real(rp) x_terms(0:n)
@@ -698,7 +701,7 @@ real(rp), save :: cc(0:n_pole_maxx, 0:n_pole_maxx)
 logical, save :: first_call = .true.
 
 integer, optional :: pole_type
-integer n, m
+integer ref_species, n, m
 
 logical, optional :: ref_orb_offset
 
@@ -709,7 +712,12 @@ if (knl == 0) return
 ! normal case
 
 t = tilt
-if (integer_option(magnetic$, pole_type) == electric$) t = pi/(n+1) - t
+if (integer_option(magnetic$, pole_type) == magnetic$) then
+  charge = charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
+else
+  charge = charge_of(coord%species) / (coord%beta * coord%p0c)
+  t = pi/(n+1) - t
+endif
 
 if (t == 0) then
   sin_ang = 0
@@ -726,9 +734,9 @@ endif
 ! ref_orb_offset with n = 0 means that we are simulating a zero length dipole.
 
 if (n == 0 .and. logic_option(.false., ref_orb_offset)) then
-  coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
-  coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
-  coord%vec(5) = coord%vec(5) - knl * (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
+  coord%vec(2) = coord%vec(2) + charge * knl * cos_ang * coord%vec(6)
+  coord%vec(4) = coord%vec(4) + charge * knl * sin_ang * coord%vec(6)
+  coord%vec(5) = coord%vec(5) - charge * knl * (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
   return
 endif
 
@@ -750,8 +758,8 @@ endif
 x_value = SUM(cc(n,0:n:2) * x_terms(0:n:2) * y_terms(0:n:2))
 y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
 
-x_vel = knl * x_value
-y_vel = knl * y_value
+x_vel = charge * knl * x_value
+y_vel = charge * knl * y_value
 
 if (t == 0) then
   coord%vec(2) = coord%vec(2) + x_vel
@@ -767,7 +775,7 @@ end subroutine multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)
+! Subroutine ab_multipole_kick (a, b, n, ref_species, coord, kx, ky, dk, pole_type, scale)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
 !                          
@@ -775,6 +783,7 @@ end subroutine multipole_kick
 !   a            -- Real(rp): Multipole skew component.
 !   b            -- Real(rp): Multipole normal component.
 !   n            -- Real(rp): Multipole order.
+!   ref_species  -- integer: Reference species.
 !   coord        -- Coord_struct:
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
@@ -786,7 +795,7 @@ end subroutine multipole_kick
 !   dk(2,2) -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
 !-
 
-subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)
+subroutine ab_multipole_kick (a, b, n, ref_species, coord, kx, ky, dk, pole_type, scale)
 
 type (coord_struct)  coord
 
@@ -796,7 +805,7 @@ real(rp), optional :: scale
 real(rp) kx, ky, f, a2, b2
 
 integer, optional :: pole_type
-integer n, m, n1
+integer ref_species, n, m, n1
 
 ! Init
 
@@ -817,8 +826,9 @@ if (integer_option(magnetic$, pole_type) == electric$) then
   a2 =  a * f
   b2 = -b * f
 else
-  a2 = a
-  b2 = b
+  f = charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
+  a2 = a * f
+  b2 = b * f
 endif
 
 if (present(scale)) then
@@ -844,7 +854,6 @@ enddo
 ! dk calc
 
 if (present(dk)) then
-
   n1 = n - 1
   
   do m = 0, n1, 2
@@ -865,7 +874,6 @@ if (present(dk)) then
     dk(1,1) = dk(1,1) + a2 * f
     dk(2,1) = dk(2,1) + b2 * f
   enddo
-
 endif
 
 end subroutine ab_multipole_kick

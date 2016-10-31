@@ -590,7 +590,7 @@ case (multipole$, ab_multipole$)
   call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
   call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-  if (has_nonzero_pole) call multipole_kicks (knl*charge_dir, tilt, end_orb, ref_orb_offset = (ele%key == multipole$))
+  if (has_nonzero_pole) call multipole_kicks (knl*ele%orientation, tilt, param%particle, end_orb, ref_orb_offset = (ele%key == multipole$))
 
   call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
 

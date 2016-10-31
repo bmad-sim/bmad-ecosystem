@@ -545,7 +545,7 @@ case (bmad_standard$)
       endif
     endif
 
-  ! Not exact multipole calc for a bend case
+  ! Everything but exact bend multipoles
 
   else
 
@@ -569,9 +569,9 @@ case (bmad_standard$)
       do i = 0, n_pole_maxx
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, local_orb, kx, ky, dkm)
         else
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, local_orb, kx, ky)
         endif
         field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
         field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
@@ -584,20 +584,19 @@ case (bmad_standard$)
       enddo
     endif
 
-  endif
+    ! Add electric multipoles
 
-  !---------------------------------------------------------------------
-  ! Add electric multipoles
+    call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole, electric$)
+    if (has_nonzero_pole) then
+      do i = 0, n_pole_maxx
+        if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+        call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
+        field%E(1) = field%E(1) + Ex
+        field%E(2) = field%E(2) + Ey
+        if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
+      enddo
+    endif
 
-  call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole, electric$)
-  if (has_nonzero_pole) then
-    do i = 0, n_pole_maxx
-      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
-      field%E(1) = field%E(1) + Ex
-      field%E(2) = field%E(2) + Ey
-      if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
-    enddo
   endif
 
   !-------------------------------

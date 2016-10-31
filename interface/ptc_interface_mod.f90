@@ -4284,8 +4284,8 @@ else
   n_max = min(n_pole_maxx, size(k))
 endif
 
-k = k / charge_of (param%particle)
-ks = ks / charge_of (param%particle)
+k = k
+ks = ks
 
 ! On ptc side k(1) is error field when creating a fibre but	 
 ! is total field when fibre is being modified.	 

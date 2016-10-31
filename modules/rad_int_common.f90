@@ -472,7 +472,7 @@ if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_ty
   if (has_nonzero_pole) then
     do ip = 0, ubound(a_pole, 1)
       if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
-      call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, orb_end, kx, ky, dk)
+      call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, param%particle, orb_end, kx, ky, dk)
       info%dg2_x = info%dg2_x - 2 * (info%g_x * dk(1,1) + info%g_y * dk(2,1)) / ele%value(l$)
       info%dg2_y = info%dg2_y - 2 * (info%g_x * dk(1,2) + info%g_y * dk(2,2)) / ele%value(l$)
     enddo
