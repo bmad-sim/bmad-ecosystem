@@ -136,6 +136,7 @@ def build_directory( dir, statlist, target ):
                     ' ; source ' + invars.util_dir + '/acc_vars.sh' \
                       + use_gcc482 + \
                     ' ; export PATH=/usr/local/bin:$PATH' \
+                    ' ; cmake --version ' \
                     ' ; export ACC_BUILD_EXES=Y ; export ACC_ENABLE_SHARED=Y ; env | grep ACC ; ' + make_command
     print '-------- Using Build Command: ' + build_command
 

@@ -244,7 +244,9 @@ packages_build_list = [
 #-----------------------------------------------------
 #-----------------------------------------------------
 repository_addresses = {
-    'ACC-CLASSE'        : 'https://accserv.classe.cornell.edu/svn',
+#    'ACC-CLASSE'        : 'https://accserv.classe.cornell.edu/svn',
+#    'ACC-CLASSE-local'  : '/mnt/svn',
+    'ACC-CLASSE'        : 'https://accserv.lepp.cornell.edu/svn',
     'ACC-CLASSE-local'  : '/mnt/svn',
     'ACC-LEPP'          : 'https://accserv.lepp.cornell.edu/svn',
     'ACC-LEPP-local'    : '/mnt/svn',

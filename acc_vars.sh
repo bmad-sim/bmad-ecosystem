@@ -76,6 +76,8 @@ ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
 #--------------------------------------------------------------
 
+export OFFLINE_LOCAL_ARCHIVE_BASE_DIR='/mnt/acc/libs'
+
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_OPT_DIR='/nfs/opt'
 
@@ -354,8 +356,8 @@ add_path ${ACC_BIN}
 #--------------------------------------------------------------
 # Append path to guarantee proper cmake executable is used
 #--------------------------------------------------------------
-PATH=$PATH:${PLATFORM_DIR}/extra/bin
-
+#PATH=$PATH:${PLATFORM_DIR}/extra/bin
+PATH=${PLATFORM_DIR}/extra/bin:$PATH
 
 #--------------------------------------------------------------
 # Ensure that there is only one reference to the release's
@@ -418,7 +420,8 @@ function accinfo() {
     export ACC_TRUE_RELEASE=`readlink ${ACC_RELEASE_DIR}`
     echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
 Architecture     : ${ACC_ARCH}
-Fortran compiler : ${ACC_FC}"
+Fortran compiler : ${ACC_FC}
+Cmake version    : $(cmake --version | head -1 | awk ' { print $3 } ')"
 }
 
 alias ACCINFO='accinfo'
