@@ -406,31 +406,30 @@ See \sref{s:list.bend} for a full list of element attributes.
 \index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
 \index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
-\index{hgap}\index{hgapx}\index{roll}\index{k1}
+\index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
-  angle           = <Real>     ! Design bend angle. A settable dependent var (\sref{s:depend}).
-  b_field         = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
-  b_field_err     = <Real>     ! Field strength error (\sref{s:depend}).
-  b1_gradient     = <Real>     ! Quadrupole field strength (\sref{s:depend}).
-  b2_gradient     = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  e1, e2          = <Real>     ! Face angles.
-  exact_multipole = <Logical>  ! Curved coordinate correction? Default False.
-  fint, fintx     = <Real>     ! Face field integrals.
-  g               = <Real>     ! Design bend strength (= 1/rho).
-  g_err           = <Real>     ! Bend strength error (\sref{s:depend}).
-  h1, h2          = <Real>     ! Face curvature.
-  hgap, hgapx     = <Real>     ! Pole half gap.
-  k1              = <Real>     ! Quadrupole strength.
-  k2              = <Real>     ! Sextupole strength (\sref{s:depend}).
-  l               = <Real>     ! ``Length'' of bend. See below.
-  l_arc           = <Real>     ! Arc length. For \vn{rbend}s only. 
-  l_chord                      ! Chord length. Dependent attribute. See \sref{s:l}.
-  n_ref_pass      = <Int>      ! Multipass reference turn (\sref{s:multipass}).
-  ptc_field_geometry 
-                  = <Switch>   ! See below.
-  rho             = <Real>     ! Design bend radius. A settable dependent var (\sref{s:depend}).
-  roll            = <Real>     ! See \ref{s:offset}.
+  angle              = <Real>     ! Design bend angle. A settable dependent var (\sref{s:depend}).
+  b_field            = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
+  b_field_err        = <Real>     ! Field strength error (\sref{s:depend}).
+  b1_gradient        = <Real>     ! Quadrupole field strength (\sref{s:depend}).
+  b2_gradient        = <Real>     ! Sextupole field strength (\sref{s:depend}).
+  e1, e2             = <Real>     ! Face angles.
+  exact_multipoles   = <Logical>  ! Curved coordinate correction? Default False.
+  fint, fintx        = <Real>     ! Face field integrals.
+  g                  = <Real>     ! Design bend strength (= 1/rho).
+  g_err              = <Real>     ! Bend strength error (\sref{s:depend}).
+  h1, h2             = <Real>     ! Face curvature.
+  hgap, hgapx        = <Real>     ! Pole half gap.
+  k1                 = <Real>     ! Quadrupole strength.
+  k2                 = <Real>     ! Sextupole strength (\sref{s:depend}).
+  l                  = <Real>     ! ``Length'' of bend. See below.
+  l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
+  l_chord                         ! Chord length. Dependent attribute. See \sref{s:l}.
+  n_ref_pass         = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  ptc_field_geometry = <Switch>   ! See below.
+  rho                = <Real>     ! Design bend radius. A settable dependent var (\sref{s:depend}).
+  roll               = <Real>     ! See \ref{s:offset}.
 \end{example}
 
 \begin{figure}[tb]
@@ -469,9 +468,18 @@ corresponding SAD parameters is:
 \end{example}
   \index{exact_multipoles}
   \item[exact_multipoles] \Newline
-The \vn{exact_multipoles} logical determines if the multipole fields, both magnetic and
-electric, and including \vn{k1} and\vn{k2}, are corrected for the finite curvature of the
-reference orbit in a bend.  Default is \vn{False}.
+The \vn{exact_multipoles} logical (default \vn{False}) determines if the multipole fields,
+both magnetic and electric, and including \vn{k1} and\vn{k2}, are corrected for the finite
+curvature of the reference orbit in a bend. ``exact'' here means that the multipole fields
+are corrected using a multipole expansion up to 21\St order. That is, the difference
+between what is implemented here and a true exact calculation should be insignificant
+under realistic conditions.
+
+The implementation of the multipole field is imported from PTC (\sref{c:ptc}) with the kind help
+of \'Etienne Forest. To turn on the calculation with PTC based tracking (\sref{c:methods}), set
+\begin{example}
+  parameter[ptc_exact_model] = T
+\end{example}
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and

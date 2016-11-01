@@ -401,6 +401,18 @@ if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bm
 if (key == def_beam_start$ .or. key == def_bmad_com$) then
   name = ele%name
   if (ele%name == 'PARAMETER') name = 'BMAD_COM'
+
+  if (delim == '(') then
+    ix = index(bp_com%parse_line, '=')
+    if (ix == 0) then
+      call parser_error ('MALFORMED BMAD_COM OR PARAMETER SET')
+      return
+    endif
+    word = trim(word) // '(' // bp_com%parse_line(:ix-1)
+    delim = '='
+    call string_trim(bp_com%parse_line(ix+1:), bp_com%parse_line, ix)
+  endif
+
   call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
   if (err_flag .or. size(a_ptrs) /= 1) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
@@ -430,6 +442,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
+    if (name(1:5) == 'D_ORB')                                             bp_com%extra%d_orb_set                           = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
