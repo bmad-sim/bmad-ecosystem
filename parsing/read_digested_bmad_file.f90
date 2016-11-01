@@ -276,6 +276,7 @@ if (found_it) then
   if (extra%electric_dipole_moment_set)         bmad_com%electric_dipole_moment          = bmad_com_read%electric_dipole_moment
   if (extra%ptc_cut_factor_set)                 bmad_com%ptc_cut_factor                  = bmad_com_read%ptc_cut_factor
   if (extra%taylor_order_set)                   bmad_com%taylor_order                    = bmad_com_read%taylor_order
+  if (extra%d_orb_set)                          bmad_com%d_orb                           = bmad_com_read%d_orb
   if (extra%default_integ_order_set)            bmad_com%default_integ_order             = bmad_com_read%default_integ_order
   if (extra%ptc_max_fringe_order_set)           bmad_com%ptc_max_fringe_order            = bmad_com_read%ptc_max_fringe_order
   if (extra%use_hard_edge_drifts_set)           bmad_com%use_hard_edge_drifts            = bmad_com_read%use_hard_edge_drifts

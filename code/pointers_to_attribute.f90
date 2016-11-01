@@ -63,10 +63,9 @@ type (all_pointer_struct) a_ptr
 integer, optional :: ix_attrib
 integer n, i, ix, key, ix_a, n_loc
 
-character(*) ele_name
-character(100) ele_name_temp
-character(*) attrib_name
-character(24) :: r_name = 'pointers_to_attribute'
+character(*) ele_name, attrib_name
+character(20) str
+character(*), parameter :: r_name = 'pointers_to_attribute'
 
 logical err_flag, do_allocation, do_print
 logical, optional :: err_print_flag
@@ -88,6 +87,21 @@ case ('BMAD_COM')
   if (present(eles)) then
     call re_allocate_eles (eles, 0)
   endif
+
+  if (attrib_name(1:5) == 'D_ORB') then
+    call string_trim(attrib_name(6:), str, ix)
+    if (str(1:1) /= '(')   err_flag = .true.
+    call string_trim(str(2:), str, ix)
+    n = index('123456', str(1:1))
+    if (n == 0) err_flag = .true.
+    call string_trim(str(2:), str, ix)
+    if (str /= ')') err_flag = .true.
+    if (.not. err_flag) then
+      call re_allocate (ptr_array, 1)
+      ptr_array(1)%r => bmad_com%d_orb(n)
+      return
+    endif
+  endif    
 
   call re_allocate (ptr_array, 1)
 

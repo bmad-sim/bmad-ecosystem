@@ -1558,6 +1558,7 @@ type extra_parsing_info_struct
   integer :: deterministic                          = 0
   logical :: ran_function_was_called                = .false.
   logical :: deterministic_ran_function_was_called  = .false.
+  logical :: d_orb_set                              = .false.
   logical :: max_aperture_limit_set                 = .false.
   logical :: default_ds_step_set                    = .false.
   logical :: significant_length_set                 = .false.
