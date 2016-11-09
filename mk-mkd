@@ -41,6 +41,15 @@
 # Start time
 DATE1=$(date +"%s")
 
+# Just in case, re-check and reset ACC Release variable - taken from acc_vars.sh
+if [ "${DIST_BUILD}" != "TRUE" ] 
+then
+    export ACC_TRUE_RELEASE=`readlink ${ACC_RELEASE_DIR}`
+    if ( [ "${ACC_TRUE_RELEASE}" == "" ] ) then
+	ACC_TRUE_RELEASE=${ACC_RELEASE}
+    fi
+fi
+
 # Function to calculate and display total Compile and Link time
 func_display_build_time () {
     DATE2=$(date +"%s")
