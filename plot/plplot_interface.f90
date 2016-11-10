@@ -80,34 +80,34 @@ contains
 
 subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
 
-  implicit none
-  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, fx, fy
+implicit none
+real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, fx, fy
 
-  !
+!
 
-  if (x1 == x2 .or. y1 == y2) return
+if (x1 == x2 .or. y1 == y2) return
 
-  fx = pl_com%x_inch_to_mm 
-  fy = pl_com%y_inch_to_mm 
+fx = pl_com%x_inch_to_mm 
+fy = pl_com%y_inch_to_mm 
 
-  x1m = x1 * fx
-  x2m = x2 * fx
-  y1m = y1 * fy
-  y2m = y2 * fy
+x1m = x1 * fx
+x2m = x2 * fx
+y1m = y1 * fy
+y2m = y2 * fy
 
-  pl_com%graph_pos%x1 = x1m
-  pl_com%graph_pos%x2 = x2m
-  pl_com%graph_pos%y1 = y1m
-  pl_com%graph_pos%y2 = y2m
+pl_com%graph_pos%x1 = x1m
+pl_com%graph_pos%x2 = x2m
+pl_com%graph_pos%y1 = y1m
+pl_com%graph_pos%y2 = y2m
 
-  if (.not. pl_com%clip) then
-    call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
-    call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
-    call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
-  else
-    call plsvpa (x1m, x2m, y1m, y2m)  ! Set viewport in abs coords
-    call plwind (x1m, x2m, y1m, y2m)  ! Set world coords
-  endif
+if (.not. pl_com%clip) then
+  call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+  call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+  call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
+else
+  call plsvpa (x1m, x2m, y1m, y2m)  ! Set viewport in abs coords
+  call plwind (x1m, x2m, y1m, y2m)  ! Set world coords
+endif
 
 end subroutine
 
@@ -127,60 +127,60 @@ end subroutine
 
 subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 
-  implicit none
+implicit none
 
-  real(rp) height, h, d, dum
+real(rp) height, h, d, dum
 
-  integer symbol_type
+integer symbol_type
 
-  logical uniform_size
+logical uniform_size
 
 ! The PLPLOT symbol set does not have a constant symbol size.
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
-        
-  h = height * pl_com%page_scale / 3  ! 3 => conversion from points to mm.
+      
+h = height * pl_com%page_scale / 3  ! 3 => conversion from points to mm.
 
-  if (uniform_size) then
+if (uniform_size) then
 
+  select case (symbol_type)
+  case (dot_sym$)
+    h = h * 2.0       ! I like bigger dots
+  case (square_filled_sym$)
+    h = h * 1.56
+  case (circle_filled_sym$)
+    h = h * 1.60
+  case (star5_filled_sym$)
+    h = h * 1.30
+  case (square_concave_sym$)
+    h = h * 0.73
+  end select
+
+  if (pl_com%page_type == 'X' .or. pl_com%page_type == 'TK') then
     select case (symbol_type)
-    case (dot_sym$)
-      h = h * 2.0       ! I like bigger dots
-    case (square_filled_sym$)
-      h = h * 1.56
-    case (circle_filled_sym$)
-      h = h * 1.60
-    case (star5_filled_sym$)
-      h = h * 1.30
-    case (square_concave_sym$)
-      h = h * 0.73
+    case (circle_plus_sym$)
+      h = h * 0.55
+    case (circle_dot_sym$)
+      h = h * 0.59
+    case (circle_sym$)
+      h = h * 0.89
+    case (triangle_filled_sym$)
+      h = h * 1.22
     end select
-
-    if (pl_com%page_type == 'X' .or. pl_com%page_type == 'TK') then
-      select case (symbol_type)
-      case (circle_plus_sym$)
-        h = h * 0.55
-      case (circle_dot_sym$)
-        h = h * 0.59
-      case (circle_sym$)
-        h = h * 0.89
-      case (triangle_filled_sym$)
-        h = h * 1.22
-      end select
-    else
-      if (symbol_type == triangle_filled_sym$) h = h * 1.03
-    endif
-
+  else
+    if (symbol_type == triangle_filled_sym$) h = h * 1.03
   endif
 
-  ! Set symbol size and save this state.
+endif
 
-  if (pl_com%page_type == 'X' .or. pl_com%page_type(1:2) == 'PS') then
-    h = h * 0.5
-  endif
+! Set symbol size and save this state.
 
-  call plssym(h, 1.0_rp)  ! Set symbol scale factor in mm.
-  pl_com%sym_size = h
+if (pl_com%page_type == 'X' .or. pl_com%page_type(1:2) == 'PS') then
+  h = h * 0.5
+endif
+
+call plssym(h, 1.0_rp)  ! Set symbol scale factor in mm.
+pl_com%sym_size = h
 
 end subroutine
 
@@ -202,41 +202,41 @@ end subroutine
 
 subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 
-  implicit none
+implicit none
 
-  real(rp) x1, x2, y1, y2
-  real(rp) xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, fx, fy
-  integer color, fill_pattern
-  integer ci, fs
+real(rp) x1, x2, y1, y2
+real(rp) xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, fx, fy
+integer color, fill_pattern
+integer ci, fs
 
 !
 
-  if (x1 == x2 .or. y1 == y2) return
-  if (color == transparent$) return
+if (x1 == x2 .or. y1 == y2) return
+if (color == transparent$) return
 
-  call qp_save_state_basic              ! Buffer the following calls
+call qp_save_state_basic              ! Buffer the following calls
 
-  fx = pl_com%x_inch_to_mm
-  fy = pl_com%y_inch_to_mm
+fx = pl_com%x_inch_to_mm
+fy = pl_com%y_inch_to_mm
 
-  call qp_set_color_basic(color)    ! Set color index to background
+call qp_set_color_basic(color)    ! Set color index to background
 
-  select case (fill_pattern)
-  case (hatched$) 
-    call plpsty(3)
-  case (cross_hatched$)
-    call plpsty(5)
-  case (solid_fill$)
-    call plpsty(0)
-  end select
+select case (fill_pattern)
+case (hatched$) 
+  call plpsty(3)
+case (cross_hatched$)
+  call plpsty(5)
+case (solid_fill$)
+  call plpsty(0)
+end select
 
-  if (fill_pattern == no_fill$) then
-    call plline (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! No fill
-  else
-    call plfill (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! color the box
-  endif
+if (fill_pattern == no_fill$) then
+  call plline (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! No fill
+else
+  call plfill (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! color the box
+endif
 
-  call qp_restore_state_basic                 ! Flush the buffer.
+call qp_restore_state_basic                 ! Flush the buffer.
 
 end subroutine
 
@@ -253,13 +253,13 @@ end subroutine
 !+
 
 subroutine qp_set_symbol_fill_basic (fill)
-  implicit none
-  integer fill
+implicit none
+integer fill
 
-  call plpsty (fill)       ! set fill
+call plpsty (fill)       ! set fill
 
-  !Save this state
-  pl_com%fill_pattern = fill
+!Save this state
+pl_com%fill_pattern = fill
 
 end subroutine
 
@@ -276,13 +276,13 @@ end subroutine
 !+
 
 subroutine qp_set_line_width_basic (line_width)
-  implicit none  
-  integer line_width
+implicit none  
+integer line_width
  
-  call plwid (line_width/4) ! set line width
+call plwid (line_width/4) ! set line width
 
-  !Save this state
-  pl_com%line_width = line_width
+!Save this state
+pl_com%line_width = line_width
 
 end subroutine
 
@@ -299,13 +299,13 @@ end subroutine
 !+
 
 subroutine qp_set_line_pattern_basic (line_pattern)
-  implicit none
-  integer line_pattern
+implicit none
+integer line_pattern
 
-  call pllsty (line_pattern)       ! Set line_pattern
+call pllsty (line_pattern)       ! Set line_pattern
 
-  !Save this state
-  pl_com%line_pattern = line_pattern
+!Save this state
+pl_com%line_pattern = line_pattern
 
 end subroutine
 
@@ -323,24 +323,24 @@ end subroutine
 !-
 
 subroutine qp_set_clip_basic (clip) 
-  implicit none
-  logical :: clip
-  real(rp) xp1, xp2, yp1, yp2
-  type(viewport_size), pointer :: gp
+implicit none
+logical :: clip
+real(rp) xp1, xp2, yp1, yp2
+type(viewport_size), pointer :: gp
 
-  !
+!
 
-  if (.not. clip) then
-     call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
-     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
-     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
-  else
-    gp => pl_com%graph_pos
-    call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
-    call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set wold coords
-  endif
+if (.not. clip) then
+   call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+   call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+   call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
+else
+  gp => pl_com%graph_pos
+  call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
+  call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set wold coords
+endif
 
-   pl_com%clip = clip
+ pl_com%clip = clip
 
 end subroutine
 
@@ -357,24 +357,24 @@ end subroutine
 !+
 
 subroutine qp_set_char_size_basic (height)
-  implicit none
-  real(rp) height, d, h
+implicit none
+real(rp) height, d, h
 
-  ! call plschr(pl_com%default_cs, height)
-  h = height
-  if (pl_com%page_type(1:2) == 'X') then
-    !do nothing. Old: h = h ! !0.7
-  elseif (pl_com%page_type == 'TK') then
-    h = h * 1.3    
-  elseif (pl_com%page_type(1:2) == 'PS') then
-    h = h * 0.85
-  endif
+! call plschr(pl_com%default_cs, height)
+h = height
+if (pl_com%page_type(1:2) == 'X') then
+  !do nothing. Old: h = h ! !0.7
+elseif (pl_com%page_type == 'TK') then
+  h = h * 1.3    
+elseif (pl_com%page_type(1:2) == 'PS') then
+  h = h * 0.85
+endif
 
-  call plschr(0.0_rp, h)  ! Set
-  call plgchr(d,h)        ! Get
+call plschr(0.0_rp, h)  ! Set
+call plgchr(d,h)        ! Get
 
-  !Save this state
-  pl_com%char_size = h
+!Save this state
+pl_com%char_size = h
 
 end subroutine
 
@@ -391,9 +391,9 @@ end subroutine
 !+
 
 subroutine qp_set_text_background_color_basic (color)
-  implicit none
-  integer color
-  !call pgstbg (color)            ! set text background color
+implicit none
+integer color
+!call pgstbg (color)            ! set text background color
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -413,22 +413,22 @@ end subroutine
 
 function qp_text_len_basic (text) result (t_len)
 
-  implicit none
+implicit none
 
-  real(rp) t_len, d, h
-  integer i, n_text
-  character(*) text
+real(rp) t_len, d, h
+integer i, n_text
+character(*) text
 
-  ! This is kind-of a 1st order approx since there is no plplot subroutine for this action
+! This is kind-of a 1st order approx since there is no plplot subroutine for this action
 
-  call plgchr(d,h)
-  
-  n_text = len_trim(text)
-  do i = 1, len_trim(text)
-    if (text(i:i) == '\') n_text = n_text - 1    !'
-  enddo
+call plgchr(d,h)
 
-  t_len = 0.8 * 0.03937 * n_text * h  
+n_text = len_trim(text)
+do i = 1, len_trim(text)
+  if (text(i:i) == '\') n_text = n_text - 1    !'
+enddo
+
+t_len = 0.8 * 0.03937 * n_text * h  
 
 end function
 
@@ -449,56 +449,56 @@ end function
 !+
 
 subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
-  implicit none
-  character(*) text
-  character(len(text)+20) text2
-  integer len_text, i, ix
-  real(rp) x0, y0, angle, justify, dx, dy, x0m, y0m, d, h, t_len
-  real(rp), parameter :: pi=3.141592
+implicit none
+character(*) text
+character(len(text)+20) text2
+integer len_text, i, ix
+real(rp) x0, y0, angle, justify, dx, dy, x0m, y0m, d, h, t_len
+real(rp), parameter :: pi=3.141592
 
-  ! plplot uses '#' for the meta character instead of pgplot's '\'
+! plplot uses '#' for the meta character instead of pgplot's '\'
 
-  text2 = text
+text2 = text
 
-  do
-    ix = index(text2, '\A')
-    if (ix == 0) exit
-    ! PS does not backspace properly so leave off the "o"
-    if (pl_com%page_type(1:2) == 'PS') then
-      text2 = text2(1:ix-1) // 'A' // text2(ix+2:)
-    else
-      text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
-    endif
-  enddo
+do
+  ix = index(text2, '\A')
+  if (ix == 0) exit
+  ! PS does not backspace properly so leave off the "o"
+  if (pl_com%page_type(1:2) == 'PS') then
+    text2 = text2(1:ix-1) // 'A' // text2(ix+2:)
+  else
+    text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
+  endif
+enddo
 
-  do
-    ix = index(text2, '\.')
-    if (ix == 0) exit
-    text2 = text2(1:ix-1) // '\u.\d' // text2(ix+2:)
-  enddo
+do
+  ix = index(text2, '\.')
+  if (ix == 0) exit
+  text2 = text2(1:ix-1) // '\u.\d' // text2(ix+2:)
+enddo
 
-  do
-    ix = index(text2, '\x')
-    if (ix == 0) exit
-    text2 = text2(1:ix-1) // 'x' // text2(ix+2:)
-  enddo
+do
+  ix = index(text2, '\x')
+  if (ix == 0) exit
+  text2 = text2(1:ix-1) // 'x' // text2(ix+2:)
+enddo
 
-  do
-    ix = index(text2, '\') ! '
-    if (ix == 0) exit
-    text2(ix:ix) = '#'
-  enddo
+do
+  ix = index(text2, '\') ! '
+  if (ix == 0) exit
+  text2(ix:ix) = '#'
+enddo
 
-  !
+!
 
-  call plgchr(d,h)
-  t_len = len_trim(text2)*h
-  dx = cos(angle*pi/180)
-  dy = sin(angle*pi/180)
-  x0m = x0 * pl_com%x_inch_to_mm - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
-  y0m = y0 * pl_com%y_inch_to_mm + 0.5*h*dx  ! but plptex needs the coordinates of the midline
+call plgchr(d,h)
+t_len = len_trim(text2)*h
+dx = cos(angle*pi/180)
+dy = sin(angle*pi/180)
+x0m = x0 * pl_com%x_inch_to_mm - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
+y0m = y0 * pl_com%y_inch_to_mm + 0.5*h*dx  ! but plptex needs the coordinates of the midline
 
-  call plptex (x0m, y0m, dx, dy, justify, trim(text2))
+call plptex (x0m, y0m, dx, dy, justify, trim(text2))
 
 end subroutine
 
@@ -541,14 +541,14 @@ end subroutine qp_draw_arrow_basic
 !+
 
 subroutine qp_draw_symbol_basic (x, y, symbol)
-  implicit none
-  real(rp) x, y, xm, ym
-  integer symbol
-  
-  xm = x * pl_com%x_inch_to_mm
-  ym = y * pl_com%y_inch_to_mm
+implicit none
+real(rp) x, y, xm, ym
+integer symbol
 
-  call plpoin (1, xm, ym, symbol)
+xm = x * pl_com%x_inch_to_mm
+ym = y * pl_com%y_inch_to_mm
+
+call plpoin (1, xm, ym, symbol)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -561,13 +561,13 @@ end subroutine
 !+
 
 subroutine qp_save_state_basic 
-  implicit none
+implicit none
 
-  !
+!
 
-  i_save = i_save + 1
-  pl_interface_save_com(i_save) = pl_com
-  pl_com => pl_interface_save_com(i_save) 
+i_save = i_save + 1
+pl_interface_save_com(i_save) = pl_com
+pl_com => pl_interface_save_com(i_save) 
 
 end subroutine
 
@@ -581,45 +581,45 @@ end subroutine
 !+
 
 subroutine qp_restore_state_basic ()
-  implicit none
-  type(viewport_size), pointer :: gp
-  real(rp) def,dum,xp1,xp2,yp1,yp2
+implicit none
+type(viewport_size), pointer :: gp
+real(rp) def,dum,xp1,xp2,yp1,yp2
 
-  !
+!
 
-  i_save = i_save - 1
-  pl_com => pl_interface_save_com(i_save)
+i_save = i_save - 1
+pl_com => pl_interface_save_com(i_save)
 
-  call plgchr(def, dum)
-  call plschr(def, pl_com%char_size)
+call plgchr(def, dum)
+call plschr(def, pl_com%char_size)
 
-  call plssym(pl_com%sym_size, 1.0_rp)  ! Set symbol scale factor
+call plssym(pl_com%sym_size, 1.0_rp)  ! Set symbol scale factor
 
-  if(pl_com%fill_pattern /= 0) then
-     call plpsty(pl_com%fill_pattern)
+if(pl_com%fill_pattern /= 0) then
+   call plpsty(pl_com%fill_pattern)
+endif
+
+call plwid(pl_com%line_width)
+
+if(pl_com%line_pattern /= 0) then
+   call pllsty(pl_com%line_pattern)
+endif
+
+call qp_set_color_basic (pl_com%fg_color)
+
+if (pl_com%clip) then
+  gp => pl_com%graph_pos
+  if (gp%x1 /= gp%x2 .and. gp%y1 /= gp%y2) then
+    call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
+    call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set world coords
   endif
+else
+  call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+  call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+  call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
+endif
 
-  call plwid(pl_com%line_width)
-  
-  if(pl_com%line_pattern /= 0) then
-     call pllsty(pl_com%line_pattern)
-  endif
-
-  call qp_set_color_basic (pl_com%fg_color)
-
-  if (pl_com%clip) then
-    gp => pl_com%graph_pos
-    if (gp%x1 /= gp%x2 .and. gp%y1 /= gp%y2) then
-      call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
-      call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set world coords
-    endif
-  else
-    call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
-    call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
-    call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
-  endif
-  
-  call plflush()
+call plflush()
 
 end subroutine
 
@@ -638,30 +638,30 @@ end subroutine
 
 subroutine qp_set_color_basic (ix_color)
 
-  implicit none
+implicit none
 
-  integer ix_color
+integer ix_color
 
 ! Error check
 
-  if (ix_color < 0) then
-    print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
-                                                                      ix_color
-    if (global_com%exit_on_error) call err_exit
-  endif
+if (ix_color < 0) then
+  print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
+                                                                    ix_color
+  if (global_com%exit_on_error) call err_exit
+endif
 
 ! Set plplot color
 
-  if (ix_color >16) then
-    ! Set continuous color
-     call plcol1 ( (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17)) )
-  else
-    ! set discrete color
-    call plcol0 (ix_color)
-  endif
-    
-  !Save this state
-  pl_com%fg_color = ix_color
+if (ix_color >16) then
+  ! Set continuous color
+   call plcol1 ( (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17)) )
+else
+  ! set discrete color
+  call plcol0 (ix_color)
+endif
+  
+!Save this state
+pl_com%fg_color = ix_color
 
 end subroutine
 
@@ -675,11 +675,11 @@ end subroutine
 !-
 
 subroutine qp_clear_page_basic
-  implicit none
-  ! plclear should work but does not.
-  ! So also call qp_clear_box_basic which does the job.
-  call plclear()  
-  call qp_clear_box_basic (0.0_rp, pl_com%x_inch_page, 0.0_rp, pl_com%y_inch_page)
+implicit none
+! plclear should work but does not.
+! So also call qp_clear_box_basic which does the job.
+call plclear()  
+call qp_clear_box_basic (0.0_rp, pl_com%x_inch_page, 0.0_rp, pl_com%y_inch_page)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -698,28 +698,28 @@ end subroutine
 !-
 
 subroutine qp_clear_box_basic (x1, x2, y1, y2)
-                
-  implicit none
 
-  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m
-  real(rp) :: x_vec(0:4)
-  real(rp) :: y_vec(0:4)
+implicit none
 
-  x1m = pl_com%x_inch_to_mm * x1
-  x2m = pl_com%x_inch_to_mm * x2
-  y1m = pl_com%y_inch_to_mm * y1
-  y2m = pl_com%y_inch_to_mm * y2
+real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m
+real(rp) :: x_vec(0:4)
+real(rp) :: y_vec(0:4)
+
+x1m = pl_com%x_inch_to_mm * x1
+x2m = pl_com%x_inch_to_mm * x2
+y1m = pl_com%y_inch_to_mm * y1
+y2m = pl_com%y_inch_to_mm * y2
 !
-  call qp_save_state_basic              ! Buffer the following calls
+call qp_save_state_basic              ! Buffer the following calls
 
-  call qp_set_color_basic(0)            ! Set color index to background
-  call plpsty(0)                        ! Set fill-area pattern to solid
-  
-  x_vec = [x1m, x2m, x2m, x1m, x1m]
-  y_vec = [y1m, y1m, y2m, y2m, y1m]
-  call plfill (5, x_vec, y_vec)         ! Fills a polygon with 4 vertices
-  
-  call qp_restore_state_basic           ! Flush the buffer.
+call qp_set_color_basic(0)            ! Set color index to background
+call plpsty(0)                        ! Set fill-area pattern to solid
+
+x_vec = [x1m, x2m, x2m, x1m, x1m]
+y_vec = [y1m, y1m, y2m, y2m, y1m]
+call plfill (5, x_vec, y_vec)         ! Fills a polygon with 4 vertices
+
+call qp_restore_state_basic           ! Flush the buffer.
 
 end subroutine
 
@@ -738,25 +738,25 @@ end subroutine
 
 subroutine qp_draw_polyline_basic (x, y)
 
-  implicit none
+implicit none
 
-  real(rp) :: x(:), y(:)
-  real(rp) :: xm(size(x))
-  real(rp) :: ym(size(y))
+real(rp) :: x(:), y(:)
+real(rp) :: xm(size(x))
+real(rp) :: ym(size(y))
 
 !
 
-  if (size(x) /= size(y)) then
-    print *, 'ERROR IN QP_DRAW_POLYLINE_BASIC: X, Y COORD VECTORS HAVE'
-    print *, '      UNEQUAL LENGTH!', size(x), size(y)
-    if (global_com%exit_on_error) call err_exit
-  endif
-  
-  xm = pl_com%x_inch_to_mm * x
-  ym = pl_com%y_inch_to_mm * y
+if (size(x) /= size(y)) then
+  print *, 'ERROR IN QP_DRAW_POLYLINE_BASIC: X, Y COORD VECTORS HAVE'
+  print *, '      UNEQUAL LENGTH!', size(x), size(y)
+  if (global_com%exit_on_error) call err_exit
+endif
 
-  if (size(x) < 2) return
-  call plline (size(x), xm, ym)
+xm = pl_com%x_inch_to_mm * x
+ym = pl_com%y_inch_to_mm * y
+
+if (size(x) < 2) return
+call plline (size(x), xm, ym)
 
 end subroutine
 
@@ -787,163 +787,164 @@ end subroutine
 !                 To be used with qp_select_page.
 !-
 
-subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
-                                             x_page, y_page, i_chan, page_scale)
+subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, x_page, y_page, i_chan, page_scale)
 
-  implicit none
+implicit none
 
-  type (pl_interface_struct), pointer :: pl_ptr
+type (pl_interface_struct), pointer :: pl_ptr
 
-  real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
-  real(rp), optional :: page_scale
+real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
+real(rp), optional :: page_scale
 
-  integer, optional :: i_chan
-  integer ix, xp, yp, ix_len, iy_len, i_ch
+integer, optional :: i_chan
+integer ix, xp, yp, ix_len, iy_len, i_ch
 
-  character(*) page_type, plot_file
-  character(40) geom
-  character(16) :: r_name = 'qp_open_page_basic'
+character(*) page_type, plot_file
+character(40) geom
+character(16) :: r_name = 'qp_open_page_basic'
 
-  integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
-                             , 0, 0, 127, 255, 85, 170]
-  integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127,&
-                             255, 255, 127, 0, 0, 85, 170]
-  integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0,&
-                             127, 255, 255, 127, 85, 170]
+integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
+                           , 0, 0, 127, 255, 85, 170]
+integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127,&
+                           255, 255, 127, 0, 0, 85, 170]
+integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0,&
+                           127, 255, 255, 127, 85, 170]
 
 ! set plot type
 
-  if (i_save == 0) then
-    i_ch = 0
-  else
-    i_ch = pl_com%i_chan + 1
-    call plsstrm(i_ch)
-  endif
+if (i_save == 0) then
+  i_ch = 0
+else
+  i_ch = pl_com%i_chan + 1
+  call plsstrm(i_ch)
+endif
 
 
-  select case (page_type)
-  case ('X')
-    call plsdev ('xwin')
-    call plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
+select case (page_type)
+case ('X')
+  call plsdev ('xwin')
+  call plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
 
-  case ('TK')
-    call plsdev ('tk')
+case ('TK')
+  call plsdev ('tk')
 
-  case ('QT')
-    call plsdev ('qtwidget')
+case ('QT')
+  call plsdev ('qtwidget')
 
-  case ('PS')
-    call plsori(1)   ! portrait mode
-    call plsdev ('psc')
+case ('PS')
+  call plsori(1)   ! portrait mode
+  call plsdev ('psc')
 
-  case ('PS-L')
-    call plsdev ('psc')
+case ('PS-L')
+  call plsori(0)   ! Landscape mode
+  call plsdev ('psc')
 
-  case ('GIF')
-    call plsori(1)   ! portrait mode
-    call plsdev ('png')
+case ('GIF')
+  call plsori(1)   ! portrait mode
+  call plsdev ('png')
 
-  case ('GIF-L')
-    call plsdev ('png')
+case ('GIF-L')
+  call plsori(0)   ! Landscape mode
+  call plsdev ('png')
 
-  case ('SVG')
-    call plsdev ('svg')
+case ('SVG')
+  call plsdev ('svg')
 
-  case ('PDF')
-    call plsdev ('pdf')
+case ('PDF')
+  call plsori(1)   ! portrait mode
+  call plsdev ('pdf')
 
-  case ('PDF-L')
-    call plsori(1)   ! portrait mode
-    call plsdev ('pdf')
+case ('PDF-L')
+  call plsori(0)   ! Landscape mode
+  call plsdev ('pdf')
 
-  case default
-    call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
-    if (global_com%exit_on_error) call err_exit
-  end select
+case default
+  call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
+  if (global_com%exit_on_error) call err_exit
+end select
 
 ! Set output file name  
 
-  if (page_type /= 'X' .and. page_type /= 'TK' .and. page_type /= 'QT') then
-     call plsfnam (trim(plot_file))
-  endif
+if (page_type /= 'X' .and. page_type /= 'TK' .and. page_type /= 'QT') then
+   call plsfnam (trim(plot_file))
+endif
 
 ! Set color map
-  call plscmap0(red, green, blue, 16)
+call plscmap0(red, green, blue, 16)
 
 ! Set continuous color map (cmap1)
-  call plscmap1n(1048576)
-  call plscmap1l(0, 2, [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0], [0, 0])
+call plscmap1n(1048576)
+call plscmap1l(0, 2, [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0], [0, 0])
 
 
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
-  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT' &
-     .or. page_type(1:3) == 'GIF') then
-    ix_len = nint(72*x_len)  ! 72 pixels per inch for a screen
-    iy_len = nint(72*y_len)
-    call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
-    !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
-    !call plsetopt ("geometry", trim(geom))
-  endif
+if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT' .or. page_type(1:3) == 'GIF') then
+  ix_len = nint(72*x_len)  ! 72 pixels per inch for a screen
+  iy_len = nint(72*y_len)
+  call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+  !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
+  !call plsetopt ("geometry", trim(geom))
+endif
 
 ! Initialize plplot
-  call plstar(1,1)
-  call pladv(0)
+call plstar(1,1)
+call pladv(0)
 
 ! set viewport/window size
 
-  call plvpor (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! viewport to entire page
-  call plgspa(x1i, x2i, y1i, y2i)                ! Get current subpage in mm.
-  call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
+call plvpor (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! viewport to entire page
+call plgspa(x1i, x2i, y1i, y2i)                ! Get current subpage in mm.
+call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 
 ! Get page size info.
-  call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
+call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-  if (page_type == 'X') then 
-    call plschr(0.7 * point_to_mm_conv, 1.0_rp)
-  elseif (page_type == 'TK' .or. page_type == 'QT') then
-    call plschr(point_to_mm_conv, 1.0_rp)
-  else
-    call plschr(point_to_mm_conv, 1.0_rp)
-  endif
+if (page_type == 'X') then 
+  call plschr(0.7 * point_to_mm_conv, 1.0_rp)
+elseif (page_type == 'TK' .or. page_type == 'QT') then
+  call plschr(point_to_mm_conv, 1.0_rp)
+else
+  call plschr(point_to_mm_conv, 1.0_rp)
+endif
 
-  call plgchr(d, h)
+call plgchr(d, h)
 
 ! Remember plot area parameters
 
-  if (present(i_chan)) i_chan = i_ch
+if (present(i_chan)) i_chan = i_ch
 
-  i_save = i_save + 1
-  pl_com => pl_interface_save_com(i_save)
+i_save = i_save + 1
+pl_com => pl_interface_save_com(i_save)
 
-  pl_com%graph_pos%x1 = 0
-  pl_com%graph_pos%x2 = x2i
-  pl_com%graph_pos%y1 = 0
-  pl_com%graph_pos%y2 = y2i
-  pl_com%i_chan = i_ch
-  pl_com%char_size = d*h
-  pl_com%sym_size = 10
-  pl_com%page_scale = real_option(1.0_rp, page_scale)
-  pl_com%page_type = page_type
+pl_com%graph_pos%x1 = 0
+pl_com%graph_pos%x2 = x2i
+pl_com%graph_pos%y1 = 0
+pl_com%graph_pos%y2 = y2i
+pl_com%i_chan = i_ch
+pl_com%char_size = d*h
+pl_com%sym_size = 10
+pl_com%page_scale = real_option(1.0_rp, page_scale)
+pl_com%page_type = page_type
 
-  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
-    pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
-    pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
-    x_page = x_len
-    y_page = y_len
-  else
-    pl_com%x_inch_to_mm = pl_com%page_scale * 25.4
-    pl_com%y_inch_to_mm = pl_com%page_scale * 25.4
-    x_page = (x2i-x1i) / 25.4         ! convert to inches
-    y_page = (y2i-y1i) / 25.4
-  endif
+if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
+  pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
+  pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
+  x_page = x_len
+  y_page = y_len
+else
+  pl_com%x_inch_to_mm = pl_com%page_scale * 25.4
+  pl_com%y_inch_to_mm = pl_com%page_scale * 25.4
+  x_page = (x2i-x1i) / 25.4         ! convert to inches
+  y_page = (y2i-y1i) / 25.4
+endif
 
-  pl_com%x_inch_page = x_page
-  pl_com%y_inch_page = y_page
-  pl_com%page_type   = page_type
+pl_com%x_inch_page = x_page
+pl_com%y_inch_page = y_page
+pl_com%page_type   = page_type
 
-  call qp_set_clip_basic(.false.)
+call qp_set_clip_basic(.false.)
 
 end subroutine
 
@@ -960,12 +961,12 @@ end subroutine
 !-
 
 subroutine qp_select_page_basic (iw)
-  implicit none
-  integer iw
-  !
-  call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
-  if (global_com%exit_on_error) call err_exit
-  call plsstrm(iw)
+implicit none
+integer iw
+!
+call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
+if (global_com%exit_on_error) call err_exit
+call plsstrm(iw)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -979,14 +980,14 @@ end subroutine
 !-
 
 subroutine qp_close_page_basic
-  implicit none
-  call plspause(.false.)  ! Disable end of page pause
-  call plend1()
-  i_save = i_save - 1
-  pl_com => pl_interface_save_com(i_save)
-  if (i_save /= 0) then
-    call plsstrm(pl_com%i_chan)
-  endif
+implicit none
+call plspause(.false.)  ! Disable end of page pause
+call plend1()
+i_save = i_save - 1
+pl_com => pl_interface_save_com(i_save)
+if (i_save /= 0) then
+  call plsstrm(pl_com%i_chan)
+endif
 end subroutine
 
 !-----------------------------------------------------------------------
