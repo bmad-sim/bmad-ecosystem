@@ -412,9 +412,13 @@ if (ios > 0) then
   rewind (iu)
   read (iu, nml = tao_dynamic_aperture)  ! To give error message
 endif
-if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
 
 close(iu)
+
+if (ios < 0) then
+  call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
+  return
+endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Count the list of pz

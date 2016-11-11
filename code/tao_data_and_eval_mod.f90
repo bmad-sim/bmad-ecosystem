@@ -312,55 +312,6 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_load_data_array (uni, ix_ele, ix_branch, who_dat)
-!
-! Routine to take data from the model lattice and model orbit
-! and put that into the s%u(:)%data(:) arrays.
-!
-! Input:
-!   uni         -- Integer: universe where data resides
-!   ix_ele      -- Integer: element to evaluate data at
-!   who_dat     -- Integer: Either: model$, base$, or design$
-!-
-
-subroutine tao_load_data_array (u, ix_ele, ix_branch, who_dat)
-
-type (tao_universe_struct), target :: u
-type (tao_data_struct), pointer :: datum
-
-integer, pointer :: ix_datum(:)
-integer uni, ix_ele, ix_branch, who_dat
-integer i
-
-character(20) data_source
-character(20) :: r_name = 'tao_load_data_array'
-
-logical good
-
-! find which datums to evaluate here
-
-if (.not. allocated(u%uni_branch(ix_branch)%ele(ix_ele)%ix_datum)) return
-
-ix_datum => u%uni_branch(ix_branch)%ele(ix_ele)%ix_datum
-do i = 1, size(ix_datum)
-  datum => u%data(ix_datum(i))
-
-  select case (who_dat)
-  case (model$)
-    call tao_evaluate_a_datum (datum, u, u%model, datum%model_value, datum%good_model)
-  case (design$)
-    call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, datum%good_design)
-  case (base$)
-    call tao_evaluate_a_datum (datum, u, u%base, datum%base_value, datum%good_base)
-  end select
-enddo
-
-end subroutine tao_load_data_array
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
 ! Subroutine tao_data_coupling_init (u)
 !
 ! Routine to initialize the coupling structure for a lattice branch.
@@ -431,7 +382,6 @@ type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
 type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
-type (tao_element_struct), pointer :: uni_ele(:)
 type (normal_form_struct), pointer :: normal_form
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
@@ -512,7 +462,6 @@ branch => lat%branch(datum%ix_branch)
 lat_branch => tao_lat%lat_branch(datum%ix_branch)
 orbit => lat_branch%orbit
 bunch_params => lat_branch%bunch_params
-uni_ele => u%uni_branch(datum%ix_branch)%ele
 
 n_track = branch%n_ele_track
 n_max   = branch%n_ele_max
@@ -2429,7 +2378,7 @@ case ('unstable.')
       do i = 1, ix_ele
         datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
       enddo
-      datum_value = datum_value / size(u%beam%current%bunch(s%global%bunch_to_plot)%particle)
+      datum_value = datum_value / lat_branch%bunch_params(ix_ele)%n_particle_tot
       datum%ix_ele_merit = -1
 
     else
@@ -2520,7 +2469,7 @@ case ('wall.')
 case ('wire.')  
   if (data_source == 'lat') return
   read (datum%data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (ele, angle, u%beam%current)
+  datum_value = tao_do_wire_scan (ele, angle, u%uni_branch(datum%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
   
 case default

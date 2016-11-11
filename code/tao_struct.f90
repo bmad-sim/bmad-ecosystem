@@ -742,17 +742,9 @@ end type
 
 !-----------------------------------------------------------------------
 ! tao_element_struct is for saving per-element information.
-!
-! ix_datum(:) keeps track of which datumns to evaluate at this element
-! The point of this is to save time by not looping through all the data at all the
-! elements finding which datums need to be evaluated. Instead, do the sorting
-! beforehand and just keep a log of where to evaluate.
 
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
-  integer, allocatable :: ix_datum(:)
-  integer n_datum
-  integer ixx                     ! Scratch variable
   logical save_beam               ! Save beam here?
 end type
 
@@ -769,7 +761,7 @@ end type
 
 type tao_beam_struct
   type (beam_init_struct) :: beam_init ! Beam distrubution at beginning of lattice
-  type (beam_struct) current           ! Beam at the current position
+  type (beam_struct) start             ! Initial
   logical :: init_beam0 = .false.      ! Init beam
   character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
   character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
