@@ -137,14 +137,14 @@ plot_file = plot_file_array(1:ix)
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 if (iu == 0) then
-  call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+  call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file, 'WILL EXIT HERE...')
   call err_exit
 endif
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, iostat = ios)
 if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST.')
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
   rewind (iu)
   read (iu, nml = tao_plot_page)  ! To give error message
 endif
@@ -165,10 +165,10 @@ if (s%com%plot_geometry /= '') then
    str = s%com%plot_geometry
    ix = index(str, 'x')
    if (ix == 0) then
-     call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)
+     call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT. NO "x" PRESENT: ' // str, 'IN FILE: ' // plot_file)
    else
      if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
-       call out_io (s_error$, r_name, 'Malformed -geometry argument: ' // str)
+       call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT: ' // str, 'IN FILE: ' // plot_file)
      else
        read (str(:ix-1), *) plot_page%size(1)
        read (str(ix+1:), *) plot_page%size(2)
@@ -200,14 +200,14 @@ shape(:)%ele_name = ''
 read (iu, nml = element_shapes, iostat = ios)
 
 if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST IN FILE.')
+  call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST.', 'IN FILE: ' // plot_file)
   rewind (iu)
   read (iu, nml = element_shapes)  ! To generate error message
 endif
 
 if (ios == 0) then
   call out_io (s_error$, r_name, 'ELEMNET_SHAPES NAMELIST IS DEPRECATED.', &
-                                'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.')
+                                 'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.', 'IN FILE: ' // plot_file)
   do i = 1, size(shape)
     ele_shape(i)%ele_id = shape(i)%ele_name
     if (shape(i)%key_name /= '') shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_id
@@ -251,13 +251,13 @@ if (ios < 0) then
 
   if (ios1 > 0) then 
     rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST', 'IN FILE: ' // plot_file)
     read (iu, nml = element_shapes_floor_plan)  ! To generate error message
   endif
 
   if (ios2 > 0) then 
     rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING FLOOR_PLAN_DRAWING NAMELIST')
+    call out_io (s_error$, r_name, 'ERROR READING FLOOR_PLAN_DRAWING NAMELIST', 'IN FILE: ' // plot_file)
     read (iu, nml = floor_plan_drawing)
   endif
 
@@ -289,13 +289,13 @@ if (ios < 0) then
 
   if (ios1 > 0) then 
     rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST', 'IN FILE: ' // plot_file)
     read (iu, nml = element_shapes_lat_layout)  ! To generate error message
   endif
 
   if (ios2 > 0) then 
     rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING LAT_LAYOUT_DRAWING NAMELIST')
+    call out_io (s_error$, r_name, 'ERROR READING LAT_LAYOUT_DRAWING NAMELIST', 'IN FILE: ' // plot_file)
     read (iu, nml = lat_layout_drawing)
   endif
 
@@ -315,10 +315,11 @@ if (allocated(s%plot_page%lat_layout%ele_shape)) then
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id)
+        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
+                                       'IN FILE: ' // plot_file)
       endif
     case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape)
+      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
       call err_exit
     end select
   enddo
@@ -331,14 +332,15 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id)
+        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
+                                       'IN FILE: ' // plot_file)
       endif
     case ('-')
       if (e_shape%ele_id /= 'wall::building') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE "-" CAN ONLY BE USED WITH WALL::BUILDING. NOT: ' // e_shape%ele_id)
+        call out_io (s_error$, r_name, 'ELE_SHAPE "-" CAN ONLY BE USED WITH WALL::BUILDING. NOT: ' // e_shape%ele_id, 'IN FILE: ' // plot_file)
       endif
     case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape)
+      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
       call err_exit
     end select
   enddo
@@ -418,7 +420,7 @@ do  ! Loop over plot files
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
     do i = 1, ip
       if (plot%name == s%plot_page%template(ip)%name) then
-        call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
+        call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name, 'IN FILE: ' // plot_file)
         exit
       endif
     enddo
@@ -444,7 +446,7 @@ do  ! Loop over plot files
       ix = index(plt%name, '.')
       if (ix == 0) exit
       call out_io (s_error$, r_name, 'PLOT NAME HAS ".": ' // plt%name, &
-                   'SUBSTITUTING "-"')
+                   'SUBSTITUTING "-"', 'IN FILE: ' // plot_file)
       plt%name(ix:ix) = '-'
     enddo
 
@@ -481,7 +483,7 @@ do  ! Loop over plot files
         call out_io (s_error$, r_name, &
               'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
               'LOOKING FOR GRAPH_INDEX: \I0\ ', &
-              'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', &
+              'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', 'IN FILE: ' // plot_file, &
               i_array = [i_graph, graph_index] )
         call err_exit
       endif
@@ -528,7 +530,7 @@ do  ! Loop over plot files
         ix = index(grph%name, '.')
         if (ix == 0) exit
         call out_io (s_error$, r_name, 'GRAPH NAME HAS ".": ' // grph%name, &
-                     'SUBSTITUTING "-"')
+                     'SUBSTITUTING "-"', 'IN FILE: ' // plot_file)
         grph%name(ix:ix) = '-'
       enddo
 
@@ -549,19 +551,19 @@ do  ! Loop over plot files
 
       if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
         call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
-                                       'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, &
+                                       'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, , 'IN FILE: ' // plot_file, &
                                        i_array = [grph%ix_universe] )
         call err_exit
       endif
 
       if (grph%type == 'floor_plan' .and. .not. allocated (s%plot_page%floor_plan%ele_shape)) &
-                call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
+                call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.', 'IN FILE: ' // plot_file)
    
       if (grph%type == 'lat_layout') then
         if (.not. allocated (s%plot_page%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
-                              'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
+                              'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.', 'IN FILE: ' // plot_file)
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
-                              'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
+                              'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!', 'IN FILE: ' // plot_file)
         plt%autoscale_gang_y = .false.  ! True does not make sense.
       endif
 
@@ -646,7 +648,7 @@ do  ! Loop over plot files
         do
           ix = index(crv%name, '.')
           if (ix == 0) exit
-          call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, 'SUBSTITUTING "-"')
+          call out_io (s_error$, r_name, 'CURVE NAME HAS ".": ' // crv%name, 'SUBSTITUTING "-"', 'IN FILE: ' // plot_file)
           crv%name(ix:ix) = '-'
         enddo
 
@@ -698,7 +700,7 @@ do  ! Loop over plot files
         if (i_uni > ubound(s%u, 1)) then
           call out_io (s_error$, r_name, &
                           'CURVE OF PLOT: ' // plot%name, &
-                          'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', &
+                          'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', 'IN FILE: ' // plot_file, &
                           i_array = [i_uni] )
           call err_exit
         endif
@@ -2733,7 +2735,7 @@ do  ! Loop over all patterns
   read (iu, nml = shape_pattern, iostat = ios) 
   if (ios < 0) exit
   if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST IN FILE.')
+    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST IN FILE.', 'IN FILE: ' // plot_file)
     rewind (iu)
     do
       read (iu, nml = shape_pattern)  ! To generate error message

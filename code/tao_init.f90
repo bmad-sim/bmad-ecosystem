@@ -369,7 +369,7 @@ if (allocated (s%u)) then
       deallocate (u%uni_branch)
     endif
 
-    call reallocate_beam(u%beam%current, 0, 0)
+    call reallocate_beam(u%beam%start, 0, 0)
 
     ! Lattices
 

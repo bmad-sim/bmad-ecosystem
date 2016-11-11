@@ -251,8 +251,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo branch_loop
 
-  call tao_load_data_array (u, -1, 0, model$)
-
   ! If calc is on common model then transfer data to base of all other universes
 
   if (s%com%common_lattice .and. iuni == ix_common_uni$) then
@@ -261,6 +259,12 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       s%u(j)%data(:)%base_value = u%data(:)%model_value
     enddo
   endif
+
+  ! Calculate data 
+
+  do id = 1, size(u%data)
+    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+  enddo
 
   ! Mark this lattice as done 
 
@@ -504,8 +508,7 @@ type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (tao_universe_struct), target :: u
-type (beam_struct), pointer :: beam
-type (beam_init_struct), pointer :: beam_init
+type (beam_struct) :: beam
 type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
@@ -536,10 +539,6 @@ branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 uni_ele => uni_branch%ele
-
-beam_init => u%beam%beam_init
-
-beam => u%beam%current
 
 lat => tao_lat%lat
 
@@ -589,7 +588,7 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
-beam = uni_branch%ele(ie1)%beam
+beam = u%beam%start
 
 n_lost_old = 0
 do j = ie1, ie2
@@ -641,10 +640,8 @@ do j = ie1, ie2
 
   ! calc bunch params
 
-  call calc_bunch_params (u%beam%current%bunch(s%global%bunch_to_plot), &
-                                                  bunch_params, err, print_err)
+  call calc_bunch_params (beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
-  call tao_load_data_array (u, j, ix_branch, model$) 
 
   if (j == ie1) then
     bunch_params%n_particle_lost_in_ele = 0
@@ -820,7 +817,6 @@ logical err, init_ok
 ! If using beam info from a file then no init necessary.
 
 init_ok = .false.
-ix_ele0 = 0
 
 if (s%com%use_saved_beam_in_tracking) return
 
@@ -838,8 +834,7 @@ if (ix_branch > 0) then
     return
   endif
 
-  ix_ele0 = nint(model%lat%branch(ib)%ele(ie)%value(ix_to_element$))
-  uni_branch%ele(ix_ele0)%beam = u%uni_branch(ib)%ele(ie)%beam
+  u%beam%start = u%uni_branch(ib)%ele(ie)%beam
   init_ok = .true.
   return
 endif
@@ -849,7 +844,7 @@ endif
 
 ix_ele0 = uni_branch%ix_track_start
 beam_init => u%beam%beam_init
-beam => uni_branch%ele(ix_ele0)%beam
+beam => u%beam%start
 
 if (u%beam%beam0_file /= "") then
   if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then

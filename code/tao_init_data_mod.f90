@@ -614,52 +614,8 @@ logical err
 !
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-
   u => s%u(i)
   call tao_allocate_data_array (u, u%n_data_used, .true.) ! Trim u%data size
-
-  do ib = 0, ubound(u%model%lat%branch, 1)
-    uni_ele => u%uni_branch(ib)%ele
-    uni_ele(:)%n_datum = 0
-  end do
-
-  ! Since some beam distributions information is not saved during tracking,
-  !   find where each datum gets evaluated when tao_load_data_array is called.
-  ! ix_ele = -1  -->  Gets evaluated after all tracking
-
-  do j = 1, size(u%data)
-    data => u%data(j)
-    ix_ele = choose_ix_ele()  ! Contained routine
-    if (ix_ele == int_garbage$) cycle
-    uni_ele => u%uni_branch(data%ix_branch)%ele
-    uni_ele(ix_ele)%n_datum = uni_ele(ix_ele)%n_datum + 1 
-  enddo
-    
-  ! allocate ix_datum array for each element
-
-  do ib = 0, ubound(u%model%lat%branch, 1)
-    uni_ele => u%uni_branch(ib)%ele
-    do j = -1, ubound(uni_ele, 1)
-      if (uni_ele(j)%n_datum == 0) cycle
-      allocate (uni_ele(j)%ix_datum(uni_ele(j)%n_datum))
-    enddo
-    uni_ele(:)%n_datum = 0
-  end do
-
-  ! setup ix_ele array for each element
-  ! This is the point where the datum is evaluated
-  ! if ix_ele_ref > ix_ele then there is "wrap around"
-
-  do j = 1, size(u%data)
-    data => u%data(j)
-    ix_ele = choose_ix_ele()  ! Contained routine
-    if (ix_ele == int_garbage$) cycle
-    uni_ele => u%uni_branch(data%ix_branch)%ele
-    k = uni_ele(ix_ele)%n_datum + 1
-    uni_ele(ix_ele)%ix_datum(k) = j
-    uni_ele(ix_ele)%n_datum = k
-  enddo
-
 enddo
 
 call tao_data_check (err)
