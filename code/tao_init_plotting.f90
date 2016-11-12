@@ -350,7 +350,7 @@ endif
 ! Read in patterns
 ! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
 
-call tao_read_in_patterns(iu)
+call tao_read_in_patterns(iu, plot_file)
 close (iu)
 
 
@@ -551,7 +551,7 @@ do  ! Loop over plot files
 
       if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
         call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
-                                       'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, , 'IN FILE: ' // plot_file, &
+                                       'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, 'IN FILE: ' // plot_file, &
                                        i_array = [grph%ix_universe] )
         call err_exit
       endif
@@ -2697,7 +2697,7 @@ end subroutine tao_init_plotting
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine tao_read_in_patterns(iu)
+subroutine tao_read_in_patterns(iu, plot_file)
 
 use tao_struct
 
@@ -2715,6 +2715,7 @@ type (tao_shape_pattern_struct), pointer :: pat
 
 integer iu, ios, nn, j, jc, jpt, nc, npt
 character(40) name
+character(*) plot_file
 character(*), parameter :: r_name = 'tao_read_in_patterns'
 
 namelist / shape_pattern / name, curve
@@ -2735,7 +2736,7 @@ do  ! Loop over all patterns
   read (iu, nml = shape_pattern, iostat = ios) 
   if (ios < 0) exit
   if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST IN FILE.', 'IN FILE: ' // plot_file)
+    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST.', 'IN FILE: ' // plot_file)
     rewind (iu)
     do
       read (iu, nml = shape_pattern)  ! To generate error message

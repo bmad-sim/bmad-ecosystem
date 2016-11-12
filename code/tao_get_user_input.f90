@@ -192,8 +192,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   ! If still lower nested command file to complete then return
   if (s%com%cmd_file_level /= 0) then
     if (s%com%cmd_file(n_level-1)%paused) then
-      call out_io (s_info$, r_name, &
-                      'To continue the paused command file type "continue".')
+      call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
     else
       return 
     endif
