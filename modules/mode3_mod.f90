@@ -695,8 +695,7 @@ end subroutine order_evecs_by_plane_dominance
 ! Subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
 ! 
 ! This subroutine orders the eigensystem by matching the tunes of the eigensystem to 
-! externally supplied tunes abz_tunes.  abz_tunes is in radians, and contains two
-! tunes.  The remaing tune is ordered last.
+! externally supplied tunes abz_tunes.  abz_tunes is in radians.
 !
 ! Input:
 !   eval_r(6)    - real(rp):  real part of eigenvalues.
@@ -764,9 +763,10 @@ val(6) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
          modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
 
 if (minval(val, 1) .gt. 0.1) then
-  call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing mat_tunes and abz_tunes.")
+  call out_io (s_fatal$, r_name, "Unable to match mat_tunes.  Printing mat_tunes and abz_tunes.")
   write(*, '(3f14.5)') mat_tunes(1:3)
   write(*, '(3f14.5)') abz_tunes(1:3)
+  return
 endif
 
 select case(minloc(val, 1))
