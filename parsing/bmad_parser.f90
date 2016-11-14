@@ -423,7 +423,7 @@ parsing_loop: do
 
     if (word_1(1:1) == '+') then 
       word_1 = word_1(2:)
-      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', warn_only = .true.)
+      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', level = s_warn$)
     endif
 
     ixc = index(word_1, '::')
@@ -633,12 +633,12 @@ parsing_loop: do
   if (.not. match_found) then
     if (word_2 == 'BRANCH') then
       call parser_error ('"BRANCH" ELEMENT IS NOW NAMED A "FORK" ELEMENT.', &
-                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', level = s_warn$)
       word_2 = 'FORK'
     endif
     if (word_2 == 'PHOTON_BRANCH') then
       call parser_error ('"PHOTON_BRANCH" ELEMENT IS NOW NAMED A "PHOTON_FORK" ELEMENT.', &
-                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', level = s_warn$)
       word_2 = 'PHOTON_FORK'
     endif
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
@@ -918,9 +918,9 @@ branch_loop: do i_loop = 1, n_branch_max
     else
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
         if (branch%param%particle == photon$) then
-          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 eV!', warn_only = .true.)
+          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 eV!', level = s_warn$)
         else
-          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 * MC^2!', warn_only = .true.)
+          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 * MC^2!', level = s_warn$)
         endif
       else
         call parser_error ('REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH ' // branch%name, ' WILL USE 1000 * MC^2!')

@@ -314,7 +314,7 @@ parsing_loop: do
 
     if (word_1(1:1) == '+') then
       word_1 = word_1(2:)
-      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', warn_only = .true.)
+      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', level = s_warn$)
     endif
 
     parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 

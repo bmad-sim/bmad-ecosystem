@@ -421,7 +421,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
 
   if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') then
     call parser_error ('SYNTAX HAS CHANGED: PARAMETER[APERTURE_LIMIT_ON] = ... NEEDS TO BE REPLACED BY BMAD_COM[APERTURE_LIMIT_ON] = ...', &
-                       'THIS IS A WARNING ONLY. THE PROGRAM WILL RUN NORMALLY.', warn_only = .true.)
+                       'THIS IS A WARNING ONLY. THE PROGRAM WILL RUN NORMALLY.', level = s_warn$)
   endif
 
   if (associated(a_ptrs(1)%r)) then
@@ -580,7 +580,7 @@ endif
 select case (word)
 case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', 'REF_END')
   call parser_error ('OLD SUPERPOSITION SYNTAX: ' // word, &
-              'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+              'PLEASE CONVERT (SEE THE BMAD MANUAL)', 'WARNING ONLY, PROGRAM WILL RUN NORMALLY...', level = s_warn$)
 end select
 
 select case (word)
@@ -592,7 +592,7 @@ case ('TILT')
 case ('DPHI0')
   call parser_error ('THE ATTRIBUTE NAME "DPHI0" HAS BEEN CHANGED TO "PHI0_MULTIPASS"', &
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
-                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
+                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', level = s_warn$)
   word = 'PHI0_MULTIPASS'
 
 case ('REL_TRACKING_CHARGE') 
@@ -602,7 +602,7 @@ case ('REL_TRACKING_CHARGE')
 case ('RADIUS')
   call parser_error ('THE ATTRIBUTE "RADIUS" HAS BEEN CHANGED TO "R0_MAG"', &
                      'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
-                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
+                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', level = s_warn$)
   word = 'R0_MAG'
 
 case ('FIELD')
@@ -1227,7 +1227,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
-    call parser_error ('"HYBRID" STYLE WIGGLER TERMS DEPRECATED. PLEASE CONVERT TO CARTESIAN_MAP FORM.', warn_only = .true.)
+    call parser_error ('"HYBRID" STYLE WIGGLER TERMS DEPRECATED. PLEASE CONVERT TO CARTESIAN_MAP FORM.', level = s_warn$)
   endif
 
   kx = ct_term%kx
@@ -1429,7 +1429,7 @@ case ('REF_ORBIT')
   if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 
 case ('PTC_MAX_FRINGE_ORDER')
-  call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', warn_only = .true.)
+  call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', level = s_warn$)
   call parser_get_integer (bmad_com%ptc_max_fringe_order, word, ix_word, delim, delim_found, err_flag)
   bp_com%extra%ptc_max_fringe_order_set = .true.
 
@@ -1453,7 +1453,7 @@ case ('IS_ON')
   call get_logical (attrib_word, ele%is_on, err_flag)
 
 case ('USE_HARD_EDGE_DRIFTS')
-  call parser_error ('PLEASE CONVERT "PARAMETER[USE_HARD_EDGE_DRIFTS]" TO "BMAD_COM[USE_HARD_EDGE_DRIFTS]"', warn_only = .true.)
+  call parser_error ('PLEASE CONVERT "PARAMETER[USE_HARD_EDGE_DRIFTS]" TO "BMAD_COM[USE_HARD_EDGE_DRIFTS]"', level = s_warn$)
   call get_logical (attrib_word, bmad_com%use_hard_edge_drifts, err_flag)
   bp_com%extra%use_hard_edge_drifts_set = .true.
 
@@ -1607,7 +1607,7 @@ case ('PHOTON_TYPE')
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
                      'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
-                     'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+                     'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(geometry$) = ix
 
@@ -1627,7 +1627,7 @@ case ('SPIN_TRACKING_METHOD')
   if (attrib_word == 'BMAD_STANDARD') then
     call parser_error ('SPIN_TRACKING_METHOD = BMAD_STANDARD NOW NO LONGER VALID.', &
                      'PLEASE REPLACE WITH SPIN_TRACKING_METHOD = TRACKING.', &
-                     'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
+                     'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
     attrib_word = 'TRACKING'
   endif
   call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
@@ -2310,7 +2310,7 @@ case ('push', 'push_inline')
 !    do i = 1, n_file - 1
 !      if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
 !      call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
-!                         warn_only = .true.)
+!                         level = s_warn$)
 !      exit
 !    enddo
 !  endif
@@ -2783,7 +2783,7 @@ ix1 = index(var_name, '[')
 if (ix1 == 0) then   
   call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
-    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', warn_only = .true.)
+    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
     value = 0
     ! To prevent multiple error messages define this variable.
     bp_com%ivar_tot = bp_com%ivar_tot + 1
@@ -2923,7 +2923,7 @@ if (i /= 0) then
   call evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
 
   if (bp_com%var(i)%value == old_val) then
-    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', warn_only = .true.)
+    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', level = s_warn$)
   else
     call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
   endif
@@ -3788,7 +3788,7 @@ end function verify_valid_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, warn_only, r_array, i_array)
+subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, level, r_array, i_array)
 
 implicit none
 
@@ -3800,23 +3800,27 @@ character(*), optional :: what2, what3, what4
 character(160) lines(12)
 character(16), parameter :: r_name = 'parser_error'
 real(rp), optional :: r_array(:)
+integer, optional :: level
 integer nl, err_level
 integer, optional :: i_array(:)
-logical, optional :: stop_here, warn_only
+logical, optional :: stop_here
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
+
+err_level = integer_option(s_error$, level)
 
 if (bp_com%print_err) then
 
   nl = 0
 
-  if (logic_option(.false., warn_only)) then
+  select case (err_level)
+  case (s_info$)
+    nl=nl+1; lines(nl) = 'Note from: ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+  case (s_warn$)
     nl=nl+1; lines(nl) = 'WARNING IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
-    err_level = s_warn$
-  else
+  case (s_error$)
     nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
-    err_level = s_error$
-  endif
+  end select
 
   if (present(what2)) then
     nl=nl+1; lines(nl) = '     ' // trim(what2)
@@ -3864,9 +3868,9 @@ endif
 
 ! Warnings do not result in bp_com%error_flag being set. Just no digested file is generated.
 
-if (logic_option(.false., warn_only)) then
+if (err_level == s_warn$) then
   bp_com%write_digested = .false.
-else
+elseif (err_level == s_error$) then
   bp_com%error_flag = .true.
   if (logic_option(.false., stop_here)) then
     if (global_com%exit_on_error) stop
@@ -5193,7 +5197,7 @@ main_loop: do n_in = 1, n_ele_max
 
         if (n_slave == 0) then
           call parser_error ('LIST OF GIRDER SLAVES IN LATTICE FILE DOES NOT INCLUDE A NON-DRIFT ELEMENT: ' // &
-                              lord%name, warn_only = .true.)
+                              lord%name, level = s_warn$)
           cycle main_loop
         endif
 
@@ -5208,7 +5212,7 @@ main_loop: do n_in = 1, n_ele_max
 
     if (.not. created_girder_lord) then
       call parser_error ('FAILED TO FIND REGION IN LATTICE FOR CREATING GIRDER: ' // &
-                          lord%name, warn_only = .true.)
+                          lord%name, level = s_warn$)
     endif
 
   end select
@@ -5594,7 +5598,7 @@ case (rfcavity$)
 
   if (ele%value(rf_frequency$) /= 0 .and. ele%value(harmon$) /= 0) call parser_error &
               ('BOTH RF_FREQUENCY AND HARMON SET FOR RFCAVITY: ' // ele%name, &
-               'SETTING OF HARMON WILL BE IGNORED!', warn_only = .true.)
+               'SETTING OF HARMON WILL BE IGNORED!', level = s_warn$)
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
 
@@ -7111,9 +7115,10 @@ allocate(g_field%ptr%pt(ix0:ix1, iy0:iy1, iz0:iz1))
 
 n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
 if (n /= pt_counter) then
-  call parser_error ('Number of grid_field points (\i0\) in the file not equal to grid_field array size (\i0\ x \i0\ x \i0\).', &
-                     'for element: ' // ele%name, warn_only = .true., &
-                    i_array = [pt_counter, (ix1+1-ix0), (iy1+1-iy0), (iz1+1-iz0)])
+  call out_io (s_warn$, bp_com%parser_name, &
+                 'Note: Number of grid_field points (\i0\) in the file not equal to grid_field array size (\i0\ x \i0\ x \i0\).', &
+                 'for element: ' // ele%name, &
+                 i_array = [pt_counter, (ix1+1-ix0), (iy1+1-iy0), (iz1+1-iz0)])
 endif
 
 ! Assign grid_field values
@@ -7930,7 +7935,7 @@ if (name == 'FIELD_CALC') then
     
     call parser_error ('FIELD_CALC = ' // word, 'HAS BEEN CHANGED TO FIELD_CALC = FIELDMAP', &
                        'Program will execute as normal...', &
-                       '[But eventually this warning will be converted to an error. You have been warned!]', warn_only = .true.)
+                       '[But eventually this warning will be converted to an error. You have been warned!]', level = s_warn$)
     word = 'FIELDMAP'
   endif
 endif
