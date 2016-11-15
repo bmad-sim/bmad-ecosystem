@@ -3,7 +3,7 @@ program ibs_ring
 use bmad
 use mode3_mod
 use ibs_mod
-!use ibs_rates_mod, only: ibs_struct
+use ibs_rates_mod, only: ibs_struct
 use ptc_layout_mod
 use sim_utils_interface
 use mode3_mod
@@ -24,7 +24,7 @@ end type ibs_data_struct
 
 type(ibs_data_struct), allocatable :: ibs_data(:)
 type(ele_struct) ele_at_s
-!type(ele_struct) pwd_ele
+type(ele_struct) pwd_ele
 
 integer, parameter :: N_MAX_CURRENTS = 1000
 real(rp) currents(N_MAX_CURRENTS)
@@ -47,8 +47,8 @@ real(rp) L_ratio
 real(rp) fake_3HC
 
 logical error, do_pwd
-logical set_dispersion
 logical ptc_calc
+logical set_dispersion
 
 character(50) in_file
 character(4) ibs_formula
@@ -85,7 +85,7 @@ namelist /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       delta_current, &        ! mA step size.
                       low_current, &         ! Smallest current per bunch in mA.
 
-                      ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', 'kubo'
+                      ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx'
                       clog_to_use, &     ! 1=classic, no tail cut.  2=Raubenheimer.  3=Oide, 4=Bane.  See multi_coulomb_log in ibs_mod.f90
 
                       eqb_method, &      ! 'der' for derivatives.  'rlx' for relaxation approach.  Use 'der'.
@@ -95,36 +95,44 @@ namelist /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       y_view, &          ! index of element where projection is taken for vertical beam size calculation.
                       z_view, &          ! index of element where projection is taken for longitudinal beam size calculation.
 
-                      do_pwd, &          ! .true. or .false., whether to do PWD calculation.
+                      do_pwd, &          ! .true. or .false.: Simulate PWD by inserting element at start of lattice with 
+                                         ! some 
                       inductance, &      ! Longitudinal inductance for PWD calc.  Effects bunch length vs. current.
 
                       set_dispersion, &  ! If true, then apply eta_set and etap_set.  If false, then do not.
-                      eta_set, &         ! Used only if ibs_formula set to 'kubo'.  Applies x-pz coupling to each element of lattice when calculating IBS rates.
-                      etap_set           ! Used only if ibs_formula set to 'kubo'.  Applies px-pz coupling to each element of lattice when calculating IBS rates.
+                                         ! Note: this adjusts the vertical dispersion that is plugged into the IBS formulas.
+                                         ! This vertical dispersion is included in the sigma_x, sigma_y, sigma_z values that
+                                         ! emittance.dat is populated with.  See set_t6_eta for details.
+                      eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
+                      etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
 
 call load_parameters_file()
+if(do_pwd) then
+  write(*,*) "PWD is currently disabled pending calculation improvements."
+  do_pwd = .false.
+endif
 
 write(*,*) "Preparing lattice..."
 
 call bmad_parser(lat_file, lat)
-! if(do_pwd) then
-!   call init_ele(pwd_ele)
-!   pwd_ele%key = taylor$
-!   do i=1,5
-!     call init_taylor_series (pwd_ele%taylor(i), 1)
-!     pwd_ele%taylor(i)%term(1)%coef = 1.0
-!     pwd_ele%taylor(i)%term(1)%expn = 0
-!     pwd_ele%taylor(i)%term(1)%expn(i) = 1
-!   enddo
-!   call init_taylor_series (pwd_ele%taylor(6), 2)
-!   pwd_ele%taylor(6)%term(1)%coef = 1.0
-!   pwd_ele%taylor(6)%term(1)%expn = 0
-!   pwd_ele%taylor(6)%term(1)%expn(6) = 1
-!   pwd_ele%taylor(6)%term(2)%coef = 0.0
-!   pwd_ele%taylor(6)%term(2)%expn = 0
-!   pwd_ele%taylor(6)%term(2)%expn(5) = 1
-!   call insert_element(lat,pwd_ele,1)
-! endif
+if(do_pwd) then
+  call init_ele(pwd_ele)
+  pwd_ele%key = taylor$
+  do i=1,6
+    call init_taylor_series (pwd_ele%taylor(i), 1)
+    pwd_ele%taylor(i)%term(1)%coef = 1.0
+    pwd_ele%taylor(i)%term(1)%expn = 0
+    pwd_ele%taylor(i)%term(1)%expn(i) = 1
+  enddo
+  call init_taylor_series (pwd_ele%taylor(6), 2)
+  pwd_ele%taylor(6)%term(1)%coef = 1.0
+  pwd_ele%taylor(6)%term(1)%expn = 0
+  pwd_ele%taylor(6)%term(1)%expn(6) = 1
+  pwd_ele%taylor(6)%term(2)%coef = 0.0
+  pwd_ele%taylor(6)%term(2)%expn = 0
+  pwd_ele%taylor(6)%term(2)%expn(5) = 1
+  call insert_element(lat,pwd_ele,1)
+endif
 bmad_com%radiation_damping_on = .true.
 IF(ptc_calc)  call lat_to_ptc_layout(lat)
 call closed_orbit_calc(lat,orb,6)
@@ -152,9 +160,12 @@ else
   call calc_z_tune(lat)
   mode%a%tune = lat%a%tune
   mode%b%tune = lat%b%tune
-  mode%z%tune = -lat%z%tune
+  if(lat%z%tune .lt. 0) then
+    mode%z%tune = twopi+lat%z%tune
+  else
+    mode%z%tune = lat%z%tune
+  endif
 endif
-
 write(*,*) "Lattice preparation complete..."
 
 stdoutlun = lunget()
@@ -184,7 +195,7 @@ endif
 
 lat%param%n_part = 0.0d0
 ! without current, set_pwd_ele effectively adjusts bunch length for sigE_E
-!FOO call set_pwd_ele(lat, mode, inductance)
+if(do_pwd) call set_pwd_ele(lat, mode, inductance)
 
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "User-adjusted beam parameters at zero current:"
@@ -198,7 +209,7 @@ enddo
 mode0=mode
 
 lat%param%n_part = high_current*0.001_rp*(lat%param%total_length/c_light)/e_charge
-!FOO call set_pwd_ele(lat, mode, inductance)
+if(do_pwd) call set_pwd_ele(lat, mode, inductance)
 mode%z%emittance = mode%sigE_E * mode%sig_z
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "Beam parameters at full current with PWD, but without IBS:"
@@ -215,8 +226,8 @@ ibs_sim_params%clog_to_use = clog_to_use
 ibs_sim_params%set_dispersion = set_dispersion
 ibs_sim_params%eta_set = eta_set
 ibs_sim_params%etap_set = etap_set
-ibs_sim_params%inductance = inductance
 ibs_sim_params%do_pwd = do_pwd
+ibs_sim_params%inductance = inductance
 ibs_sim_params%formula = ibs_formula
 ibs_sim_params%tau_a = lat%param%total_length / c_light / mode%a%alpha_damp  !needed for tail cut calculation
 
@@ -289,7 +300,6 @@ do i=1,n_steps
     write(*,*) "TERMINATING EXECUTION"
     stop
   endif
-
 
   call transfer_matrix_calc (lat, t6, ix1=x_view, one_turn=.TRUE.)
   if(set_dispersion) call set_t6_eta(t6,t6)
@@ -376,9 +386,7 @@ close(rateslun)
 close(int_rateslun)
 close(scalinglun)
 
-
 contains
-
   subroutine set_t6_eta(t6,t6mod)
     real(rp) t6(6,6), t6mod(6,6), W(6,6)
     integer i
@@ -394,7 +402,6 @@ contains
 
     t6mod = matmul(t6,W)
   end subroutine
-
 
   subroutine load_parameters_file()
     !-Set bogus values for namelist parameters, so we can check that they were
@@ -416,11 +423,10 @@ contains
     clog_to_use   = -99
     eqb_method    = ''
 
-    set_dispersion = .false.
     eta_set = -99.0
     etap_set = -99.0
     ptc_calc      = .false.
-    do_pwd = .true.
+    do_pwd = .false.
 
     dotinlun = LUNGET()
     call getarg(1,in_file)

@@ -9,17 +9,20 @@ set (SRC_DIRS
   code_synrad
   code_synrad3d
 )
+# set (FFLAGS "-openmp")
+# set (LINK_FLAGS "-openmp")
 
 set (EXE_SPECS
-  cmake.s3drefl
-  cmake.bbu
-  cmake.dynamic_aperture
-  cmake.ibs_linac
+#  cmake.analyzer
+#  cmake.bbu
+#  cmake.dynamic_aperture
+#  cmake.ibs_linac
   cmake.ibs_ring
-  cmake.synrad
-  cmake.synrad3d
-  cmake.synrad_aperture_to_wall
-  cmake.tune_plane_res_plot
+  #cmake.plot_freq_map
+#  cmake.synrad
+#  cmake.synrad3d
+#  cmake.synrad_aperture_to_wall
+#  cmake.tune_plane_res_plot
 )
 
 #set (FFLAGS "-openmp")
