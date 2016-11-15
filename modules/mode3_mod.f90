@@ -743,24 +743,24 @@ if ( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
   return
 endif
 
-val(1) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
-val(2) = modulo2(mat_tunes(1)-abz_tunes(1), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
-val(3) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(3), pi)**2
-val(4) = modulo2(mat_tunes(1)-abz_tunes(2), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(3), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
-val(5) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(1), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(2), pi)**2
-val(6) = modulo2(mat_tunes(1)-abz_tunes(3), pi)**2 + &
-         modulo2(mat_tunes(2)-abz_tunes(2), pi)**2 + &
-         modulo2(mat_tunes(3)-abz_tunes(1), pi)**2
+val(1) = ( (mat_tunes(1)-abz_tunes(1)) / (mat_tunes(1)+abz_tunes(1)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(2)) / (mat_tunes(2)+abz_tunes(2)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(3)) / (mat_tunes(3)+abz_tunes(3)) )**2
+val(2) = ( (mat_tunes(1)-abz_tunes(1)) / (mat_tunes(1)+abz_tunes(1)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(3)) / (mat_tunes(2)+abz_tunes(3)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(2)) / (mat_tunes(3)+abz_tunes(2)) )**2
+val(3) = ( (mat_tunes(1)-abz_tunes(2)) / (mat_tunes(1)+abz_tunes(2)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(1)) / (mat_tunes(2)+abz_tunes(1)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(3)) / (mat_tunes(3)+abz_tunes(3)) )**2
+val(4) = ( (mat_tunes(1)-abz_tunes(2)) / (mat_tunes(1)+abz_tunes(2)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(3)) / (mat_tunes(2)+abz_tunes(3)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(1)) / (mat_tunes(3)+abz_tunes(1)) )**2
+val(5) = ( (mat_tunes(1)-abz_tunes(3)) / (mat_tunes(1)+abz_tunes(3)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(1)) / (mat_tunes(2)+abz_tunes(1)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(2)) / (mat_tunes(3)+abz_tunes(2)) )**2
+val(6) = ( (mat_tunes(1)-abz_tunes(3)) / (mat_tunes(1)+abz_tunes(3)) )**2 + &
+         ( (mat_tunes(2)-abz_tunes(2)) / (mat_tunes(2)+abz_tunes(2)) )**2 + &
+         ( (mat_tunes(3)-abz_tunes(1)) / (mat_tunes(3)+abz_tunes(1)) )**2
 
 if (minval(val, 1) .gt. 0.1) then
   call out_io (s_fatal$, r_name, "Unable to match mat_tunes.  Printing mat_tunes and abz_tunes.")
@@ -868,9 +868,9 @@ else
   call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
 endif
 
-if (abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
-  mat_tunes(3) = mat_tunes(3) - twopi
-endif
+! if (abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
+!   mat_tunes(3) = mat_tunes(3) - twopi
+! endif
 
 call normalize_evecs(evec_r, evec_i)
 
