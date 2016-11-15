@@ -1,31 +1,35 @@
 &parameters
-  !See ibs_ring.f90 for documentation
   lat_file = 'lat/cta_2085_xr40m_cd_20111210.lat'
-  ibs_formula = 'kubo'
-  use_t6_cache = .true.
-  eqb_method = 'der'
-  clog_to_use = 4   ! 1=no tail cut, 2=raubenheimer, 3=bane, 4=kubo
-  do_pwd = .false. 
-  inductance = 25.9E-9
-  resistance = 1500.0
-
-  set_dispersion = .true.
-  eta_set = 0.010
-  etap_set = 0.002
-
-  b_emit = 17.90E-12  ! 16.9E-12
-  a_emit = 3.8E-9
-  energy_spread = -1
-
-  ratio = 0.0  ! Coupling 'r' parameter.  Used only if eqb_method set to 'rlx'.
-
   granularity = -1.0   ! Step size in meters.  -1 for element-by-element.
 
-  x_view = 479    !vBSM positrons   !element number in lattice where horizontal and longitudinal projection to be taken.
-  y_view = 939    !xBSM positrons (dline)
-  z_view = 479    !vBSM positrons
+  ibs_formula = 'bjmt' ! 'cimp': completely integrated modified piwinski
+                       ! 'bjmt': Bjorken-Mtingwa
+                       ! 'bane': Karl Bane's IBS formula
+                       ! 'mpzt': Modified Piwinski with Zotter's integral
+                       ! 'mpxx': Modieied Piwinski integrated such that is has a Coulomb Log, allowing for tail cut.
+  eqb_method = 'der'  ! 'der': step through time using derivatives. 
+                      ! 'rlx': relax the solution for the differential equations, allowing for coupling 'r' parameter to be used.
+  ratio = 0.0  ! Coupling 'r' parameter.  Used only if eqb_method set to 'rlx'.
 
-  mA_per_bunch = 8.0   !highest current
-  stop_mA = 0.01  !lowest current
-  delta_mA = 0.40  !step size
+  clog_to_use = 4   ! 1=no tail cut, 2=raubenheimer, 3=bane, 4=kubo
+
+  set_dispersion = .true.
+  eta_set = 0.010  !sets vertical dispersion that is plugged into IBS formulas.
+  etap_set = 0.002  !sets vertical dispersion prime that is plugged in to IBS formulas.
+
+  do_pwd = .false. 
+  inductance = 25.9E-9
+
+  ptc_calc = .false.  !use ptc to calculate emittances
+  a_emit = 3.8E-9  !negative value to use radiation integrals
+  b_emit = 17.90E-12  ! 16.9E-12  !negative value to use radiation integrals
+  energy_spread = -1   !negative value to use radiation integrals
+
+  high_current = 8.0   !highest current
+  delta_current = 0.40  !step size
+  low_current = 0.01  !lowest current
+
+  x_view = 479    !vBSM positrons   !element number in lattice where horizontal projection to be taken.
+  y_view = 939    !xBSM positrons   !element number in lattice where vertical projection to be taken.
+  z_view = 479    !vBSM positrons   !element number in lattice where longitudinal projection to be taken.
 /

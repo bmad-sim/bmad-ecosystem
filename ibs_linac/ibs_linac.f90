@@ -35,7 +35,6 @@ type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (bunch_params_struct) :: bunch_params
 type (ibs_sim_param_struct) :: ibs_sim_params
-type (ibs_struct) :: ibs_rates
 
 real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, rad_delta_eV2, gamma
 real(rp), parameter :: c_q = 3.84e-13
