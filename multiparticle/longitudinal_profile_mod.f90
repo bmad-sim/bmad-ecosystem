@@ -522,7 +522,17 @@ SUBROUTINE get_bl_from_fwhm(bound,args,sigma)
 END SUBROUTINE get_bl_from_fwhm
 
 !+
+! Subroutine set_pwd_ele(lat,mode0,inductance)
 !
+! Simulates the effect of potential well distortion by adjusting lat%ele(ix_pwd)%taylor(6)%term(2)%coef for an
+! element in the lattice.  Element is assumed to be at lat%ele(1)
+!
+! Input:
+!   lat       -- lat_struct: lattice
+!   mode0     -- normal_modes_struct: %sig_z and %z%sige_e should be populated before calling this subroutine.
+!   inductance -- real(rp): An inductance-like parameter describing the distortion of the potential well.
+! Output:
+!   sigma     -- real(rp): Bunch length
 !-
 subroutine set_pwd_ele(lat, mode0, inductance)
   use mode3_mod
