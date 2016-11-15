@@ -115,6 +115,85 @@ END SUBROUTINE touschek_lifetime
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !+
+! Subroutine touschek_lifetime_ele_by_ele(mode, Tl, lat, momentum_aperture)
+!
+! Calculates the touschek lifetime for a lattice by calling touschek_rate1
+! for each element the momentum_aperture array of momentum_aperture_structs.
+! This calculation is based on Piwinski 1998 "The Touschek Effect In
+! Strong Focusing Storage Rings".  This is the most general case, equation 31.
+! 42.
+!
+! A common way to call this function is to first populate mode using
+! radiation integrals.  If an ideal lattice is used, the vertical
+! emittance must also be set to a reasonable value.  If the vertical
+! emittance is due only to quantum excitation, then it will likely be
+! several orders of magnitude smaller than any real physical situation, in which
+! case the integral in this function will have problems converging.
+!
+! In addition to setting mode, also set lat%param%n_part to the number of particles
+! per bunch.
+!
+! This function assumes that the twiss parameters 
+! been calculated, and that mode has been populated with emittance and bunch length.
+!
+! Modules needed:
+!   use touschek_mod
+!
+! Input:
+!   mode                     -- TYPE(normal_modes_struct), INTENT(INOUT): beam properties
+!   lat                      -- TYPE(lat_struct), INTENT(IN): Lattice
+!   momentum_aperture(:)     -- TYPE(momentum_aperture_struct), INTENT(IN): ele-by-ele unsymmatric apertures
+!                       %s   -- Real(rp): ignored: in this subroutine, momentum_aperture is indexed by element index
+!                       %pos -- Real(rp): positive momentum aperture
+!                       %neg -- Real(rp): negative momentum aperture
+!
+! Output:
+!   Tl                       -- Real(rp): Touschek lifetime in seconds
+!-
+
+subroutine touschek_lifetime_ele_by_ele(mode, Tl, lat, momentum_aperture)
+
+implicit none
+
+type(normal_modes_struct), intent(inout) :: mode
+real(rp), intent(out) :: Tl
+type(lat_struct), intent(in) :: lat
+type(momentum_aperture_struct), intent(in) :: momentum_aperture(:)
+
+integer i
+real(rp) pos_rate, neg_rate
+real(rp) sum_Tl_inv, rate, norm_sum_Tl_inv,Tl_inv
+
+sum_Tl_inv = 0.0
+
+do i=1,lat%n_ele_track
+  if( lat%ele(i)%value(l$) .gt. 0.0001 ) then
+    mode%pz_aperture = momentum_aperture(i)%pos
+    call touschek_rate1(mode, rate, lat, ix=i)
+    !call touschek_rate1_zap(mode, rate, lat, ix=i)
+    pos_rate = rate / 2.0 !divide by two because Piwinski's formula assumes that two particles
+                          !are lost per scattering event
+
+    mode%pz_aperture = momentum_aperture(i)%neg
+    call touschek_rate1(mode, rate, lat, ix=i)
+    !call touschek_rate1_zap(mode, rate, lat, ix=i)
+    neg_rate = rate / 2.0 
+
+    Tl_inv = (pos_rate + neg_rate) / lat%param%n_part
+
+    sum_Tl_inv = sum_Tl_inv + Tl_inv * lat%ele(i)%value(l$)
+  endif
+enddo
+
+norm_sum_Tl_inv = sum_Tl_inv / lat%param%total_length
+Tl = 1 / norm_sum_Tl_inv
+
+end subroutine touschek_lifetime_ele_by_ele
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
 ! Subroutine touschek_lifetime_detailed_aperture(mode, Tl, lat, momentum_aperture)
 !
 ! Calculates the touschek lifetime for a lattice by calling touschek_rate1
@@ -153,48 +232,153 @@ END SUBROUTINE touschek_lifetime
 !   Tl                       -- Real(rp): Touschek lifetime in seconds
 !-
 
-SUBROUTINE touschek_lifetime_with_aperture(mode, Tl, lat, momentum_aperture)
+subroutine touschek_lifetime_with_aperture(mode, Tl, lat, momentum_aperture)
 
-IMPLICIT NONE
+implicit none
 
-TYPE(normal_modes_struct), INTENT(INOUT) :: mode
-REAL(rp), INTENT(OUT) :: Tl
-TYPE(lat_struct), INTENT(IN) :: lat
-TYPE(momentum_aperture_struct), INTENT(IN) :: momentum_aperture(:)
+type(normal_modes_struct), intent(inout) :: mode
+real(rp), intent(out) :: Tl
+type(lat_struct), intent(in) :: lat
+type(momentum_aperture_struct), intent(in) :: momentum_aperture(:)
 
-INTEGER i
-INTEGER nlocs
-REAL(rp) pos_rate, neg_rate
-REAL(rp) sum_Tl_inv, rate, norm_sum_Tl_inv,Tl_inv
+integer i
+integer nlocs
+real(rp) pos_rate, neg_rate
+real(rp) sum_Tl_inv, rate, norm_sum_Tl_inv,Tl_inv
 
-nlocs = SIZE(momentum_aperture)
+nlocs = size(momentum_aperture)
 sum_Tl_inv = 0.0
 
-DO i=1,nlocs
+do i=2,nlocs
   mode%pz_aperture = momentum_aperture(i)%pos
-  CALL touschek_rate1(mode, rate, lat, s=momentum_aperture(i)%s)
+  call touschek_rate1(mode, rate, lat, s=momentum_aperture(i)%s)
+  !call touschek_rate1_zap(mode, rate, lat, s=momentum_aperture(i)%s)
   pos_rate = rate / 2.0 !divide by two because Piwinski's formula assumes that two particles
                         !are lost per scattering event
 
   mode%pz_aperture = momentum_aperture(i)%neg
-  CALL touschek_rate1(mode, rate, lat, s=momentum_aperture(i)%s)
+  call touschek_rate1(mode, rate, lat, s=momentum_aperture(i)%s)
+  !call touschek_rate1_zap(mode, rate, lat, s=momentum_aperture(i)%s)
   neg_rate = rate / 2.0 
 
   Tl_inv = (pos_rate + neg_rate) / lat%param%n_part
 
-  IF(i == nlocs) THEN
-    sum_Tl_inv = sum_Tl_inv + Tl_inv &
-      * (  lat%param%total_length - momentum_aperture(i)%s )
-  ELSE
-    sum_Tl_inv = sum_Tl_inv + Tl_inv &
-      * ( momentum_aperture(i+1)%s - momentum_aperture(i)%s )
-  ENDIF
-ENDDO
+  sum_Tl_inv = sum_Tl_inv + Tl_inv * ( momentum_aperture(i)%s - momentum_aperture(i-1)%s )
+enddo
 
 norm_sum_Tl_inv = sum_Tl_inv / momentum_aperture(nlocs)%s
 Tl = 1 / norm_sum_Tl_inv
 
-END SUBROUTINE touschek_lifetime_with_aperture
+end subroutine touschek_lifetime_with_aperture
+
+!-
+!-
+! Touschek ZAP
+!-
+subroutine touschek_rate1_zap(mode, rate, lat, ix, s)
+
+  implicit none
+
+  type(normal_modes_struct) mode
+  real(rp) rate
+  type(lat_struct) lat
+  real(rp), optional :: s
+  integer, optional :: ix
+
+  real(rp) E_tot, gamma, KE, beta, g2, beta2
+  real(rp) sigma_p2, sigma_z
+  real(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
+  real(rp) sigma_xp
+  real(rp) NB
+  real(rp) Da,Db,Dap
+  real(rp) integral
+  real(rp) emit_a, emit_b
+  real(rp) tau_m,  tau_param
+  real(rp) Ha
+  type(ele_struct) ele
+
+  real(fgsl_double), target :: args(1:1)
+  type(fgsl_function) :: integrand_ready
+  real(fgsl_double) :: integration_result
+  real(fgsl_double) :: abserr
+  type(c_ptr) :: ptr
+  type(fgsl_integration_workspace) :: integ_wk
+  integer(fgsl_int) :: fgsl_status
+
+  if(present(s) .and. present(ix)) then
+    write(*,*) "ERROR: ix and s cannot be specified at the same time."
+    stop
+  elseif(present(s)) then
+    call twiss_and_track_at_s(lat, s, ele)
+  elseif(present(ix)) then
+    ele = lat%ele(ix)
+  else
+    write(*,*) "error: either ix or s must be specified when calling touschek_rate1."
+    stop
+  endif
+
+  sigma_p2 = mode%sigE_E**2
+  sigma_z = mode%sig_z
+  E_tot = lat%ele(0)%value(E_TOT$)
+  calL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
+
+  !Emittance is assumed to be normalized here.
+  emit_a = mode%a%emittance
+  emit_b = mode%b%emittance 
+  tau_m = mode%pz_aperture
+
+  NB = lat%param%n_part
+
+  Da = ele%a%eta
+  Db = ele%b%eta
+  Dap = ele%a%etap
+
+  sigma_x_beta = sqrt(ele%a%beta * emit_a)
+  sigma_y_beta = sqrt(ele%b%beta * emit_b)
+  sigma_x = sqrt(sigma_x_beta**2 + (Da**2)*sigma_p2)
+  sigma_y = sqrt(sigma_y_beta**2 + (Db**2)*sigma_p2)
+  Ha = ele%a%gamma*Da*Da + 2.0d0*ele%a%alpha*Da*Dap + ele%a%beta*Dap*Dap
+  sigma_xp = emit_a/sigma_x*sqrt(1.0d0 + Ha*sigma_p2/emit_a)
+
+  tau_param = ( tau_m / gamma / sigma_xp ) ** 2
+
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  ptr = c_loc(args)
+  integrand_ready = fgsl_function_init(integrand_zap, ptr)
+  args = (/tau_param/)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  integral = integration_result
+  call fgsl_integration_workspace_free(integ_wk)
+  call fgsl_function_free(integrand_ready)
+
+  rate = (r_e**2)*c_light*(NB**2)/8.0_rp/pi/(gamma**3)/sigma_z/sigma_x/sigma_y/sigma_xp/tau_m/tau_m * integral
+
+  if(rate .lt. 0.0_rp) rate = 0.0_rp
+
+end subroutine touschek_rate1_zap
+
+function integrand_zap(u,args) bind(c)
+
+implicit none
+
+real(c_double), value :: u
+type(c_ptr), value :: args
+real(c_double) :: integrand_zap
+real(c_double), pointer :: local_args(:)
+real(rp) tau_param
+real(rp) oou
+
+call c_f_pointer(args,local_args,[1])
+
+tau_param = local_args(1)
+oou = 1.0d0/u
+
+integrand_zap = ( oou - 0.5d0*log(oou) - 1.0d0 ) * exp(-tau_param*oou)
+
+!integrand_zap = MAX(integrand_base,0._rp)
+
+END FUNCTION integrand_zap
 
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
@@ -266,15 +450,15 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   REAL(rp) sigma_p2, sigma_z
   REAL(rp) sigma_x2, sigma_y2, sigma_x_beta2, sigma_y_beta2
   REAL(rp) NB,alpha_a,alpha_b,beta_a2,beta_b2
-  REAL(rp) Dx,Dy,Dxp,Dyp,Dxt,Dyt
+  REAL(rp) Da,Db,Dap,Dbp,Dat,Dbt
   REAL(rp) pi_2, integral
-  REAL(rp) emit_x, emit_y
+  REAL(rp) emit_a, emit_b
   REAL(rp) sigma_h2
   REAL(rp) sigma_x_t2
   REAL(rp) tau_min, tau_max
   REAL(rp) tau_m
   REAL(rp) B1
-  REAL(rp) B2
+  REAL(rp) B2, B2alt
   TYPE(ele_struct) ele
 
   REAL(fgsl_double), TARGET :: args(1:3)
@@ -307,8 +491,8 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     g2 = gamma**2
     beta2 = beta**2
     !Emittance is assumed to be normalized here.
-    emit_x = mode%a%emittance
-    emit_y = mode%b%emittance 
+    emit_a = mode%a%emittance
+    emit_b = mode%b%emittance 
     tau_m = beta2 * mode%pz_aperture**2
   ELSEIF (lat%param%geometry == open$) THEN
     sigma_p2 = ele%z%sigma_p**2
@@ -318,8 +502,8 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     g2 = gamma**2
     beta2 = beta**2
     !Emittance is assumes to be UNNORMALIZED here
-    emit_x = mode%a%emittance / gamma
-    emit_y = mode%b%emittance / gamma
+    emit_a = mode%a%emittance / gamma
+    emit_b = mode%b%emittance / gamma
     tau_m = beta2 * mode%pz_aperture**2
   ELSE
     WRITE(*,*) "ERROR: geometry unknown. Halting."
@@ -332,29 +516,33 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   alpha_b = ele%b%alpha
   beta_a2 = ele%a%beta**2
   beta_b2 = ele%b%beta**2
-  Dx = ele%a%eta
-  Dxp = ele%a%etap
-  Dy = ele%b%eta
-  Dyp = ele%b%etap
-  Dxt = alpha_a*Dx + ele%a%beta*Dxp
-  Dyt = alpha_b*Dy + ele%b%beta*Dyp
-  sigma_x_beta2 = ele%a%beta * emit_x
-  sigma_y_beta2 = ele%b%beta * emit_y
-  sigma_x2 = sigma_x_beta2 + (Dx**2)*sigma_p2
-  sigma_y2 = sigma_y_beta2 + (Dy**2)*sigma_p2
-  sigma_x_t2 = sigma_x2 + sigma_p2*(Dxt**2)
+  Da = ele%a%eta
+  Dap = ele%a%etap
+  Db = ele%b%eta
+  Dbp = ele%b%etap
+  Dat = alpha_a*Da + ele%a%beta*Dap
+  Dbt = alpha_b*Db + ele%b%beta*Dbp
+  sigma_x_beta2 = ele%a%beta * emit_a
+  sigma_y_beta2 = ele%b%beta * emit_b
+  sigma_x2 = sigma_x_beta2 + (Da**2)*sigma_p2
+  sigma_y2 = sigma_y_beta2 + (Db**2)*sigma_p2
+  sigma_x_t2 = sigma_x2 + sigma_p2*(Dat**2)
 
   sigma_h2 = 1._rp/( 1._rp/sigma_p2 &
-    + ( (Dx**2)+(Dxt**2))/sigma_x_beta2 + ((Dy**2)+(Dyt**2))/sigma_y_beta2 )
+    + ( (Da**2)+(Dat**2))/sigma_x_beta2 + ((Db**2)+(Dbt**2))/sigma_y_beta2 )
 
-  B1 = beta_a2/2.0_rp/beta2/g2/sigma_x_beta2*(1.0_rp - sigma_h2*(Dxt**2)/sigma_x_beta2) &
-       + beta_b2/2.0_rp/beta2/g2/sigma_y_beta2*(1.0_rp - sigma_h2*(Dyt**2)/sigma_y_beta2) 
+  B1 = beta_a2/2.0_rp/beta2/g2/sigma_x_beta2*(1.0_rp - sigma_h2*(Dat**2)/sigma_x_beta2) &
+       + beta_b2/2.0_rp/beta2/g2/sigma_y_beta2*(1.0_rp - sigma_h2*(Dbt**2)/sigma_y_beta2) 
 
-  B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) &
-                    *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dxt**2)/sigma_x_beta2) - &
-                      beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dyt**2)/sigma_y_beta2) )**2 &
-                    + ( (sigma_h2**2)*beta_a2*beta_b2*(Dxt**2)*(Dyt**2)/(beta2**2)/(g2**2) &
-                      /(sigma_x_beta2**2)/(sigma_y_beta2**2) ) )
+  ! B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) &
+  !                   *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dat**2)/sigma_x_beta2) - &
+  !                      beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dbt**2)/sigma_y_beta2) )**2 &
+  !                   + ( (sigma_h2**2)*beta_a2*beta_b2*(Dat**2)*(Dbt**2)/(beta2**2)/(g2**2) &
+  !                     /(sigma_x_beta2**2)/(sigma_y_beta2**2) ) )
+
+  B2 = B1*B1 - beta_a2*beta_b2*sigma_h2/beta2/beta2/g2/g2/sigma_x_beta2/sigma_x_beta2/sigma_y_beta2/sigma_y_beta2/sigma_p2 * &
+                  (sigma_x2*sigma_y2-sigma_p2*sigma_p2*Da*Da*Db*Db)
+  B2 = sqrt(B2)
 
   tau_min = tau_m
   tau_max = 1.0_rp
@@ -372,12 +560,12 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   !integral = qtrap(integrand_base_cov, LOG(tau_min), LOG(tau_max))
 
   rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
-         (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
+         (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_a/emit_b* &
          integral
 
-  !Simplified (a small bit) from thesis !FOO
+  !Simplified (a small bit) from thesis
   !rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
-  !       (g2*g2)/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
+  !       (g2*g2)/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_a/emit_b* &
   !       integral
 
 
@@ -427,7 +615,7 @@ integrand_base = ( (2._rp+1._rp/t)**2*(t/tm/(1.+t)-1._rp)+ 1._rp - SQRT(1._rp+t)
                         - 0.5_rp/t*(4._rp+1._rp/t)*LOG(t/tm/(1._rp+t)) ) * SQRT(t) / SQRT(1._rp+t) &
                       * exp_bessi0(t, B1, B2)
 
-! Simplified from thesis FOO
+! Simplified from thesis
 ! Also set tm=deltaE,max**2
 !integrand_base =   ( (1.0d0/t+2.0d0)**2*(t/tm/(1.0d0+t) - 1.0d0) + 1.0d0 - SQRT(tm*(1.0d0+t)/t) &
 !                     + (1.0d0/t/t+4.0d0/t)*LOG(SQRT(tm*(1.0d0+t)/t)) ) * SQRT(t) / SQRT(1.0d0+t) &
