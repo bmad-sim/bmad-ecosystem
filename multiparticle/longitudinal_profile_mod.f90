@@ -185,7 +185,7 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
 
   status = fgsl_odeiv2_driver_apply(ode_drv, t0, t1, y)
 
-  IF(status /= fgsl_success) THEN
+  IF(status .ne. fgsl_success) THEN
     WRITE(*,'(A)') "ERROR: fgsl_odeiv2_driver_apply failed during bunch length calculation."
     WRITE(*,'(A,2I6)') "fgsl_odeiv2_driver_apply returned (success is zero): ", status
     STOP
@@ -252,7 +252,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
   DO i=2,n
     status = fgsl_odeiv2_driver_apply_fixed_step(ode_drv, tcur, step_size, 1_fgsl_long, y)
 
-    IF(status /= fgsl_success) THEN
+    IF(status .ne. fgsl_success) THEN
       WRITE(*,'(A)') "ERROR: fgsl_odeiv2_driver_apply_fixed_step failed during bunch length calculation."
       WRITE(*,'(A,2I6)') "fgsl_odeiv2_driver_apply_fixed_step returned ", status, fgsl_success
       STOP
@@ -520,6 +520,122 @@ SUBROUTINE get_bl_from_fwhm(bound,args,sigma)
 
   sigma = fwhm * c_light / TwoRtTwoLnTwo
 END SUBROUTINE get_bl_from_fwhm
+
+!+
+!
+!-
+subroutine set_pwd_ele(lat, mode0, inductance)
+  use mode3_mod
+  type(lat_struct) lat
+  type(normal_modes_struct) mode, mode0
+  real(rp) inductance
+
+  real(rp) z1, z2, f, df
+  integer :: ix_pwd = 1
+  logical error
+  real(rp) :: target_accuracy = 0.00000001
+
+  integer relax
+
+  mode=mode0
+
+  !Newton-Raphson root finder with a relaxer
+  relax = 0 
+  z1 = mode%sig_z
+  do while(.true.)
+    call residual_set_pwd_ele(z1,f,df)
+    if(error) then
+      relax = relax + 1
+    else
+      exit
+    endif
+  enddo
+  do while(relax .ge. 0)
+    do while(.true.)
+      z2 = z1 - f/df/4.0
+      if( (z2 .lt. mode0%sig_z/2.0) .or. (z2 .gt. mode0%sig_z*2.0) ) then
+        write(*,*) "Bunch length ran away during PWD calculation."
+        error = .true.
+        exit
+      endif
+      if( abs((z1-z2)*2.0/(z1+z2)) .lt. target_accuracy ) then
+        exit
+      endif
+      call residual_set_pwd_ele(z2,f,df)
+      z1 = z2
+    enddo
+    relax = relax - 1
+  enddo
+
+  if(error) then
+    write(*,*) "Sigma matrix calculation failed in PWD sigma_z solver."  
+    mode0%sig_z = 0.0d0
+  else
+    mode0%sig_z = z2
+    mode0%z%emittance = mode%sig_z * mode%sigE_E
+  endif
+
+  contains
+    subroutine residual_set_pwd_ele(z0,f1,df)
+      real(rp) z0
+      real(rp) test_z1, f1
+      real(rp) test_z2, f2
+      real(rp) df
+      real(rp) :: delta = 1.01
+
+      real(rp) t6(6,6)
+      real(rp) sigma_mat(6,6)
+
+      error = .true.
+
+      test_z1 = z0
+      lat%ele(ix_pwd)%taylor(6)%term(2)%coef = &
+            -inductance / (1.0d0+relax) * lat%param%n_part * e_charge * c_light**2 / SQRT(twopi) / test_z1**3 / lat%ele(0)%value(E_TOT$)
+      call set_flags_for_changed_attribute(lat%ele(ix_pwd),lat%ele(ix_pwd)%taylor(6)%term(2)%coef)
+      call lat_make_mat6(lat,ix_pwd)
+      call transfer_matrix_calc (lat, t6, ix1=ix_pwd, one_turn=.true.)
+      if( isunstable(t6) ) return
+      mode%z%emittance = mode%sigE_E * test_z1
+      call make_smat_from_abc(t6, mode, sigma_mat, error)
+      if( error ) return
+      f1 = sqrt(sigma_mat(5,5)) - test_z1
+
+      test_z2 = z0*delta
+      lat%ele(ix_pwd)%taylor(6)%term(2)%coef = &
+            -inductance / (1.0d0+relax) * lat%param%n_part * e_charge * c_light**2 / SQRT(twopi) / test_z2**3 / lat%ele(0)%value(E_TOT$)
+      call set_flags_for_changed_attribute(lat%ele(ix_pwd),lat%ele(ix_pwd)%taylor(6)%term(2)%coef)
+      call lat_make_mat6(lat,ix_pwd)
+      call transfer_matrix_calc (lat, t6, ix1=ix_pwd, one_turn=.true.)
+      if( isunstable(t6) ) return
+      mode%z%emittance = mode%sigE_E * test_z2
+      call make_smat_from_abc(t6, mode, sigma_mat, error)
+      if( error ) return
+      f2 = sqrt(sigma_mat(5,5)) - test_z2
+
+      df = (f1-f2)/(test_z1-test_z2)
+
+      error = .false.
+    end subroutine
+    !+
+    ! Function isunstable(mat)
+    !-
+    function isunstable(mat)
+      use bmad
+      real(rp) mat(6,6)
+      real(rp) evec_r(6,6), evec_i(6,6)
+      real(rp) eval_r(6), eval_i(6)
+      complex(rp) eval(6)
+      logical error
+      logical isunstable
+
+      call eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
+      eval = cmplx(eval_r,eval_i)
+      isunstable = error
+      isunstable = isunstable .or. ( abs(eval(1)-conjg(eval(2))) .gt. 1.0e-15 )
+      isunstable = isunstable .or. ( abs(eval(3)-conjg(eval(4))) .gt. 1.0e-15 )
+      isunstable = isunstable .or. ( abs(eval(5)-conjg(eval(6))) .gt. 1.0e-15 )
+    end function
+end subroutine
 
 !+
 ! Function pwd_mat(t6, inductance, sig_z) result (t6_pwd)
