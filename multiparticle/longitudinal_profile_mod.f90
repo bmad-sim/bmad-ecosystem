@@ -525,7 +525,9 @@ END SUBROUTINE get_bl_from_fwhm
 ! Subroutine set_pwd_ele(lat,mode0,inductance)
 !
 ! Simulates the effect of potential well distortion by adjusting lat%ele(ix_pwd)%taylor(6)%term(2)%coef for an
-! element in the lattice.  Element is assumed to be at lat%ele(1)
+! element in the lattice.  This element will apply a pz kick based on the z coordinate.
+! Element is assumed to be at lat%ele(1).  The ibs_ring driver program
+! inserts a taylor element into lat%ele(1) if set to perform pwd calculations.
 !
 ! Input:
 !   lat       -- lat_struct: lattice
