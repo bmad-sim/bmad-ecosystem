@@ -848,7 +848,7 @@ coef = 0
 
 ! If expression = "Var" then coef = 1.
 
-if (n == 1 .and. stack(1)%type > var_offset$) then
+if (n == 1 .and. is_attribute(stack(1)%type, control_var$)) then
   err_flag = .false.
   coef = 1
   return
@@ -860,10 +860,10 @@ if (stack(n)%type /= times$) return
 
 ! To be linear, stack(1) or stack(n-1) must be variable and have no other variables.
 
-if (stack(1)%type > var_offset$) then
+if (is_attribute(stack(1)%type, control_var$)) then
   i0 = 2
   i1 = n-1
-elseif (stack(n-1)%type > var_offset$) then
+elseif (is_attribute(stack(n-1)%type, control_var$)) then
   i0 = 1
   i1 = n-2
 else

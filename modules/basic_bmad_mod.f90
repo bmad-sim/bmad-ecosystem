@@ -13,7 +13,8 @@ implicit none
 integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
 integer, parameter :: old_control_var_offset$ = 1000  ! For indexing into ele%control_var(:) array
-integer, parameter :: var_offset$ = 2000      ! Important: var_offset$ > old_control_var_offset$
+integer, parameter :: var_offset$ = 2000              ! Important: var_offset$ > old_control_var_offset$
+integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
 
 type expression_atom_struct
   character(40) :: name = ''

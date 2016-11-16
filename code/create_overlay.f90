@@ -143,7 +143,7 @@ do j = 1, n_slave
   ! Convert a stack of a single constant "const" to "const * control_var(1)"
   var_found = .false.
   do is = 1, size(c%stack)
-    if (c%stack(is)%type < old_control_var_offset$) cycle
+    if (.not. is_attribute (c%stack(is)%type, all_control_var$)) cycle
     if (c%stack(is)%type == end_stack$) exit
     var_found = .true.
     exit
