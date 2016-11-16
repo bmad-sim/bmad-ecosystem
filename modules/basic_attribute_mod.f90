@@ -193,11 +193,16 @@ if (ilen < 3) ilen = 3  ! Need at least three characters.
 n_abbrev = 0            ! number of abbreviation matches.
 
 name40 = name           ! make sure we have 40 characters
-if (ilen > 3 .and. name40(1:2) == 'TT') then
+
+!
+
+if (ilen > 3 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) then
   do i = 3, ilen
     if (index('123456', name(i:i)) == 0) return
   enddo
-  name40 = 'TT*'
+  read (name40(3:), *) attrib_index
+  attrib_index = attrib_index + taylor_offset$
+  return
 endif
 
 !-----------------------------------------------------------------------
@@ -211,7 +216,6 @@ if (key == 0) then
         attrib_index = attrib_ix(k, i)
         if (present(full_name)) then
           full_name = short_attrib_array(k, i)
-          if (name40 == 'TT*') full_name = name
         endif
         return
       endif
@@ -236,8 +240,7 @@ elseif (key > 0 .and. key <= n_key$) then
       attrib_index = attrib_ix(key, i)
       if (present(full_name)) then
         full_name = short_attrib_array(key, i)
-          if (name40 == 'TT*') full_name = name
-        endif
+      endif
       return
     endif
 
@@ -300,6 +303,7 @@ function attribute_name2 (ele, ix_att) result (attrib_name)
 type (ele_struct) ele
 integer i, key, ix_att, ix
 character(40) attrib_name
+character(10) str
 
 !
 
@@ -309,6 +313,15 @@ key = ele%key
 
 if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
+
+elseif (key == taylor$ .and. ix_att > taylor_offset$) then
+  write (str, '(i0)') ix_att - taylor_offset$
+  if (str(1:1) == ' ') return
+  do i = 1, len(str)
+    if (str(i:i) == ' ') exit
+    if (index('123456', str(i:i)) == 0) return
+  enddo
+  attrib_name = 'TT' // str(1:i-1)
 
 elseif ((key == group$ .or. key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
@@ -382,28 +395,31 @@ integer i, ix, key, ix_att
 if (attribute_array_init_needed) call init_attribute_name_array()
 
 attrib_info%type = does_not_exist$
+attrib_info%name = '!BAD INDEX'
+
+! Taylor term
+
+if (ele%key == taylor$ .and. ix_att > taylor_offset$) then
+  attrib_info%name = attribute_name2(ele, ix_att)
+  if (attrib_info%name /= '!BAD INDEX') attrib_info%type = is_free$
+  return
+endif
 
 ! Overlay and group control vars.
 
 if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
-  if (ix > size(ele%control_var)) then
-    attrib_info%name = '!BAD INDEX'
-  else
-    attrib_info%name = ele%control_var(ix)%name
-    attrib_info%type = is_free$
-  endif
+  if (ix > size(ele%control_var)) return
+  attrib_info%name = ele%control_var(ix)%name
+  attrib_info%type = is_free$
   return
 endif
 
 if (ele%key == group$ .and. ix_att > old_control_var_offset$) then
   ix = ix_att - old_control_var_offset$
-  if (ix > size(ele%control_var)) then
-    attrib_info%name = '!BAD INDEX'
-  else
-    attrib_info%name = 'OLD_' // ele%control_var(ix)%name
-    attrib_info%type = is_free$
-  endif
+  if (ix > size(ele%control_var)) return
+  attrib_info%name = 'OLD_' // ele%control_var(ix)%name
+  attrib_info%type = is_free$
   return
 endif
 

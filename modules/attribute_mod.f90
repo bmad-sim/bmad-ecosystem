@@ -816,9 +816,10 @@ type (ele_struct), target :: ele
 type (all_pointer_struct) :: a_ptr
 
 integer :: ix_attrib
-integer ix, iy
+integer i, j, n, ix, iy, expn(6)
 
 character(40) a_name
+character(10) str
 character(*), parameter :: r_name = 'pointer_to_indexed_attribute'
 
 logical err_flag, do_allocation, do_print
@@ -830,7 +831,33 @@ err_flag = .true.
 nullify (a_ptr%r, a_ptr%i, a_ptr%l)
 do_print = logic_option (.true., err_print_flag)
 
-! overlay or group
+! Taylor
+
+if (ele%key == taylor$ .and. ix_attrib > taylor_offset$) then
+  write (str, '(i0)') ix_attrib - taylor_offset$
+  n = index('123456', str(1:1))
+  if (.not. associated(ele%taylor(1)%term)) then
+    if (.not. do_allocation) return
+    do i = 1, 6
+      call init_taylor_series(ele%taylor(i), 0)
+    enddo
+  endif
+
+  expn = 0
+  do i = 2, len_trim(str)
+    j = index('123456', str(i:i))
+    expn(j) = expn(j) + 1
+  enddo
+
+  i = taylor_term_index(ele%taylor(n), expn, do_allocation)
+  if (i /= 0) then
+    a_ptr%r => ele%taylor(n)%term(i)%coef
+    err_flag = .false.
+  endif
+  return
+endif
+
+! Overlay or Group
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (is_attribute(ix_attrib, control_var$)) then
