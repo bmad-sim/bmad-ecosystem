@@ -522,13 +522,14 @@ function word_len (wording) result (wlen)
   character(*) wording
 end function
 
-subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str)
+subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str, ignore_interior)
   implicit none
   character(*) in_str, out_str
   character(*) word
   character(*) delim_list, delim
   integer ix_word
   logical delim_found
+  logical, optional :: ignore_interior
 end subroutine
 
 subroutine str_substitute (string, str_match, str_replace, do_trim)

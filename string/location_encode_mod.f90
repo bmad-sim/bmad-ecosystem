@@ -141,7 +141,7 @@ integer loc
 !
 
 write (str, '(a, i0)') prefix, loc
-if (len_trim(string) < ix_str + len_trim(str) - 1) then
+if (len(string) < ix_str + len_trim(str) - 1) then
   err = .true.
   if (present(err_flag)) err_flag = .true.
 endif
