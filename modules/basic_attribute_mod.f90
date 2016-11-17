@@ -140,7 +140,7 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_va
   n = min(4, len(name))
   if (name(1:n) == 'OLD_') then
     do i = 1, size(ele%control_var)
-      if (full_name(5:) /= ele%control_var(i)%name) cycle
+      if (name(5:) /= ele%control_var(i)%name) cycle
       attrib_index = i + old_control_var_offset$
       if (present(full_name)) full_name = name
       return
