@@ -426,6 +426,7 @@ do ib = 0, ubound(lat%branch, 1)
           found = .true.
           exit
         enddo
+        if (found) exit
       enddo
 
       if (found) then
@@ -568,7 +569,7 @@ do ib = 0, ubound(lat%branch, 1)
           write (iu2, '(2x, a, i0, a)') 'harmonic          = ', cl_map%harmonic, ','
           write (iu2, '(2x, 3a)')       'dz                = ', trim(re_str(cl_map%dz)), ','
           write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(cl_map%r0)), ','
-          write (iu2, '(2x, 3a)')       'phi0_fieldmap          = ', trim(re_str(cl_map%phi0_fieldmap)), ','
+          write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(cl_map%phi0_fieldmap)), ','
           write (iu2, '(2x, 3a)', advance = 'NO') 'theta0_azimuth      = ', trim(re_str(cl_map%theta0_azimuth))
 
           if (any(real(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_re', real(cl_map%ptr%term%e_coef))
@@ -612,69 +613,52 @@ do ib = 0, ubound(lat%branch, 1)
           write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(g_field%ele_anchor_pt)), ','
           write (iu2, '(2x, 3a)')       'field_type        = ', trim(em_field_type_name(g_field%field_type)), ','
           write (iu2, '(2x, a, i0, a)') 'harmonic          = ', g_field%harmonic, ','
-          write (iu2, '(2x, 3a)')       'phi0_fieldmap          = ', trim(re_str(g_field%phi0_fieldmap)), ','
+          write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(g_field%phi0_fieldmap)), ','
           write (iu2, '(2x, 4a)')       'dr                = ', trim(array_re_str(g_field%dr(1:n))), ','
           write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(g_field%r0(1:n))), ','
           write (iu2, '(2x, a, l1, a)') 'curved_ref_frame  = ', g_field%curved_ref_frame, ','
 
           end_str = '),'
 
-          select case (grid_field_dimension(g_field%geometry))
-          case (1)
-            do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)
-              if (id1 == ubound(g_field%ptr%pt, 1)) end_str = ') &'
-              write (iu2, '(2x, a, i0, 13a)') 'pt(', id1, ') = (', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%e(1))), ',', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%e(2))), ',', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%e(3))), ',', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%b(1))), ',', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%b(2))), ',', &
-                                                      trim(cmplx_re_str(g_field%ptr%pt(id1,1,1)%b(3))), end_str
-            enddo
+          do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
+          do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
+          do id3 = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
 
-          case (2)
-            do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
-            do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
-              if (all([id1, id2, 1] == ubound(g_field%ptr%pt))) end_str = ') &'
-              write (iu2, '(2x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = (', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%e(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%e(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%e(3))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%b(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%b(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,1)%b(3))), end_str
-            enddo
-            enddo
+            if (all([id1, id2, id3] == ubound(g_field%ptr%pt))) end_str = ') &'
 
-          case (3)
-            do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
-            do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
-            do id3 = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
-              if (all([id1, id2, id3] == ubound(g_field%ptr%pt))) end_str = ') &'
-              select case (g_field%field_type)
-              case (mixed$)
-                write (iu2, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = (', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
-              case (electric$)
-                write (iu2, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = (', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), end_str
-              case (magnetic$)
-                write (iu2, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = (', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
-                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
-              end select
-            enddo
-            enddo
-            enddo
-          end select
+            select case (grid_field_dimension(g_field%geometry))
+            case (1)
+              write (string, '(2x, a, i0, 13a)') 'pt(', id1, ') = ('
+            case (2)
+              write (string, '(2x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = ('
+            case (3)
+              write (string, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = ('
+            end select
+
+            select case (g_field%field_type)
+            case (mixed$)
+              write (iu2, '(2x, a, 13a)') string, &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
+            case (electric$)
+              write (iu2, '(2x, a, 13a)') string, &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), end_str
+            case (magnetic$)
+              write (iu2, '(2x, a, 13a)') string, &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
+            end select
+
+          enddo
+          enddo
+          enddo
 
           write (iu2, '(4x, a)') '}'
           close (iu2)
