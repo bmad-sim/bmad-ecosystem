@@ -13,8 +13,8 @@ contains
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
 !+
-! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, 
-!                                                 save_null_drift, create_jumbo_slave, ix_insert)
+! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out,
+!                                         save_null_drift, create_jumbo_slave, ix_insert)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -59,7 +59,7 @@ contains
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                                    save_null_drift, create_jumbo_slave, ix_insert)
+                                              save_null_drift, create_jumbo_slave, ix_insert)
 
 implicit none
 
@@ -278,7 +278,7 @@ do
       lat%control(j)%slave%ix_ele = ix ! point to new null_ele.
     enddo
     branch%ele(i)%key = -1  ! Mark old null_ele for deletion
-    call remove_eles_from_lat (lat)
+    call remove_eles_from_lat (lat, .false.)
     i = i - 1
     if (ix2_split > i) ix2_split = ix2_split - 1
     if (ix1_split > i) ix1_split = ix1_split - 1
@@ -300,7 +300,7 @@ if (all_drift) then
   do i = ix1_split+2, ix2_split    ! remove all drifts but one
     branch%ele(i)%key = -1    ! mark for deletion
   enddo
-  call remove_eles_from_lat(lat)    ! And delete
+  call remove_eles_from_lat(lat, .false.)    ! And delete
   ix_super = ix1_split + 1
   branch%ele(ix_super) = super_saved
   branch%ele(ix_super)%lord_status  = not_a_lord$
