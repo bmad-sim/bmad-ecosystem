@@ -29,13 +29,13 @@ type(ele_struct) pwd_ele
 integer, parameter :: N_MAX_CURRENTS = 1000
 real(rp) currents(N_MAX_CURRENTS)
 
-real(rp) high_current
-real(rp) a_emit, b_emit
-real(rp) energy_spread
-real(rp) ratio
+real(rp) :: high_current = 0
+real(rp) :: a_emit = 0, b_emit = 0
+real(rp) :: energy_spread = 0
+real(rp) :: ratio = 0
 real(rp) view_sigma_x, view_sigma_y, view_sigma_z
-real(rp) delta_current, low_current
-real(rp) granularity
+real(rp) :: delta_current = 0, low_current = 0
+real(rp) :: granularity = 0
 real(rp) inductance
 real(rp) eta_set, etap_set
 real(rp) t6(6,6)
@@ -44,25 +44,25 @@ real(rp) inv_Ta_int, inv_Tb_int, inv_Tz_int
 real(rp) s, delta_s
 real(rp) Ha, Hb
 real(rp) L_ratio
-real(rp) fake_3HC
+real(rp) :: fake_3HC = 0
 
 logical error, do_pwd
-logical ptc_calc
+logical :: ptc_calc = .false.
 logical set_dispersion
 
 character(50) in_file
-character(4) ibs_formula
-character(3) eqb_method
+character(4) :: ibs_formula = ''
+character(3)::  eqb_method = ''
 character(130) lat_file
 
-integer x_view, y_view, z_view
+integer :: x_view = 0, y_view = 0, z_view = 0
 integer i, n_steps
 integer radcache
 integer stdoutlun, dotinlun, scalinglun
 integer emitlun
 integer rateslun
 integer int_rateslun
-integer clog_to_use
+integer :: clog_to_use = 0
 
 type(ibs_struct) rates
 type(normal_modes_struct) mode
