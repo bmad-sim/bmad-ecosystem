@@ -10,6 +10,7 @@
   eqb_method = 'der'  ! 'der': step through time using derivatives. 
                       ! 'rlx': relax the solution for the differential equations, allowing for coupling 'r' parameter to be used.
   ratio = 0.0  ! Coupling 'r' parameter.  Used only if eqb_method set to 'rlx'.
+  fake_3HC = -1  ! Multiply zero-current bunch length by this factor.  -1 to disable.
 
   clog_to_use = 4   ! 1=no tail cut, 2=raubenheimer, 3=bane, 4=kubo
 

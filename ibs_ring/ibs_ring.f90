@@ -29,13 +29,13 @@ type(ele_struct) pwd_ele
 integer, parameter :: N_MAX_CURRENTS = 1000
 real(rp) currents(N_MAX_CURRENTS)
 
-real(rp) :: high_current = 0
-real(rp) :: a_emit = 0, b_emit = 0
-real(rp) :: energy_spread = 0
-real(rp) :: ratio = 0
+real(rp) :: high_current
+real(rp) :: a_emit, b_emit
+real(rp) :: energy_spread
+real(rp) :: ratio
 real(rp) view_sigma_x, view_sigma_y, view_sigma_z
-real(rp) :: delta_current = 0, low_current = 0
-real(rp) :: granularity = 0
+real(rp) :: delta_current, low_current
+real(rp) :: granularity
 real(rp) inductance
 real(rp) eta_set, etap_set
 real(rp) t6(6,6)
@@ -44,25 +44,25 @@ real(rp) inv_Ta_int, inv_Tb_int, inv_Tz_int
 real(rp) s, delta_s
 real(rp) Ha, Hb
 real(rp) L_ratio
-real(rp) :: fake_3HC = 0
+real(rp) :: fake_3HC
 
 logical error, do_pwd
-logical :: ptc_calc = .false.
+logical :: ptc_calc
 logical set_dispersion
 
 character(50) in_file
-character(4) :: ibs_formula = ''
-character(3)::  eqb_method = ''
+character(4) :: ibs_formula
+character(3)::  eqb_method
 character(130) lat_file
 
-integer :: x_view = 0, y_view = 0, z_view = 0
+integer :: x_view, y_view, z_view
 integer i, n_steps
 integer radcache
 integer stdoutlun, dotinlun, scalinglun
 integer emitlun
 integer rateslun
 integer int_rateslun
-integer :: clog_to_use = 0
+integer :: clog_to_use
 
 type(ibs_struct) rates
 type(normal_modes_struct) mode
@@ -274,6 +274,7 @@ ALLOCATE(ibs_data(1:n_steps))
 rateslun = lunget()
 open(rateslun,file='ibs_rates0.out')
 write(rateslun,'(4a14)') "#s", "invTz", "invTa", "invTb"
+write(rateslun,'(a)') "# Element-by-element rates at start of simulation at full current."
 lat%param%n_part = high_current * lat%param%total_length / e_charge / c_light
 call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
 write(rateslun,'(a,3f15.7)') "# Initial average rates: ", rates%inv_Tz, rates%inv_Ta, rates%inv_Tb
@@ -353,9 +354,10 @@ int_rateslun = lunget()
 open(int_rateslun,file='ibs_rates_integrated.out')
 scalinglun = lunget()
 open(scalinglun,file='ibs_scaling.out')
-write(rateslun,'(4a14)') "s", "inv_Ta", "inv_Tb", "inv_Tz"
-write(int_rateslun,'(4a14)') "s", "inv_Ta", "inv_Tb", "inv_Tz"
-write(scalinglun,'(5a14)') "s", "inv_Ta", "inv_Tb", "Ha", "Hb"
+write(rateslun,'(a)') "# Element-by-element rates at equilibrium at full current"
+write(rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(int_rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(scalinglun,'(5a14)') "# s", "inv_Ta", "inv_Tb", "Ha", "Hb"
 
 
 inv_Ta_int = 0.0d0
@@ -410,6 +412,7 @@ contains
     b_emit        = -99.0
     a_emit        = -99.0
     energy_spread = -99.0
+    fake_3HC      = -99.0
     high_current  = -99.0
     ibs_formula   = ''
     ratio         = -99.0
@@ -438,6 +441,7 @@ contains
     if( lat_file == '' ) call param_bomb('lat_file')
     if( b_emit .lt. -90 ) call param_bomb('b_emit')
     if( a_emit .lt. -90 ) call param_bomb('a_emit')
+    if( fake_3HC .lt. -90 ) call param_bomb('fake_3HC')
     if( energy_spread .lt. -90 ) call param_bomb('energy_spread')
     if( high_current .lt. -90 ) call param_bomb('high_current')
     if( ibs_formula == '' ) call param_bomb('ibs_formula')
