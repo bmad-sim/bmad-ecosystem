@@ -302,17 +302,17 @@ do i=1,n_steps
   endif
 
   call transfer_matrix_calc (lat, t6, ix1=x_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6,t6)
+  if(set_dispersion) call set_t6_eta(t6)
   call make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_x = SQRT(sigma_mat(1,1))
 
   call transfer_matrix_calc (lat, t6, ix1=y_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6,t6)
+  if(set_dispersion) call set_t6_eta(t6)
   call make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_y = SQRT(sigma_mat(3,3))
 
   call transfer_matrix_calc (lat, t6, ix1=z_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6,t6)
+  if(set_dispersion) call set_t6_eta(t6)
   call make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_z = sqrt(sigma_mat(5,5))
 
@@ -387,8 +387,8 @@ close(int_rateslun)
 close(scalinglun)
 
 contains
-  subroutine set_t6_eta(t6,t6mod)
-    real(rp) t6(6,6), t6mod(6,6), W(6,6)
+  subroutine set_t6_eta(t6)
+    real(rp) t6(6,6), W(6,6)
     integer i
 
     W = 0.0_rp
@@ -400,7 +400,7 @@ contains
     W(5,3) =  ibs_sim_params%etap_set
     W(5,4) = -ibs_sim_params%eta_set
 
-    t6mod = matmul(t6,W)
+    t6 = matmul(t6,W)
   end subroutine
 
   subroutine load_parameters_file()
