@@ -956,7 +956,7 @@ main_loop: do itt = 1, size(x)
     qexp = (2-xysq-2*h)*s**2/4
     bs = s**2*h/2
     fz = zzfi(a,bs,xyzero)
-    prob_x(itt) = 0.5*(1+x(itt)*y)**2*r**2*s**2*exp(-qexp)*fz
+    prob_x(itt) = 0.5*(1+x(itt)*y)**2*r**2*s**2*exp(-qexp-g)*fz
     cycle main_loop
   end if
 
@@ -1061,7 +1061,7 @@ h = sqrt(1-x**2)*sqrt(1-y**2)
 a = h/(1+x*y)
 if (g < gmin) then
   qexp = (2-xysq-2*h*cp)*s**2/4
-  p_two = 0.5/twopi*(1+x*y)**2*(1-a*cp)**2*r**2*s**2*exp(-qexp)
+  p_two = 0.5/twopi*(1+x*y)**2*(1-a*cp)**2*r**2*s**2*exp(-qexp-g)
   return
 end if
 b = h*tau**2/2/xpy**2
@@ -1195,7 +1195,7 @@ if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
   bs = s**2*h/2
   fz = zzfp(a,bs,phi,xyzero, cheb_param)
-  cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp)*fz
+  cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp-g)*fz
   return
 end if
 
