@@ -318,7 +318,7 @@ module definition
   type TEMPORAL_PROBE
      TYPE(probe)  XS
      TYPE(INTEGRATION_NODE), POINTER :: NODE
-     real(DP)  DS,POS(6)
+     real(DP)  DS,POS(6),xb(6)
   END type TEMPORAL_PROBE
   !@3 ---------------------------------------------</br>
   type TEMPORAL_BEAM

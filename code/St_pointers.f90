@@ -29,7 +29,7 @@ module pointer_lattice
   !  BEAM STUFF
   REAL(DP) SIG(6) 
   REAL(DP) ait(6,6)
- 
+  private equal_spinor_fourier_spinor_fourier
 
   INTEGER :: N_BEAM=0,USE_BEAM=1
   logical, private :: m_u_t = .true.
@@ -42,11 +42,48 @@ module pointer_lattice
   integer,target:: START ,FIN,ORDER,np,start_t
   real(dp),target:: xfix(6) ,DELT0
   integer :: logs_exp=30, num_iter = 20
+  !logical :: absolute = .false.
+ !private ind1,ind2,ipos,ireal,a_f,a_f0,yfit
+  integer, allocatable:: ind1(:),ind2(:),ipos(:)
+  logical, allocatable :: ireal(:)
+  real(dp), allocatable :: a_f(:),a_f0(:),yfit(:),dyfit(:,:)
+  integer sizeind1
+  logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
+ 
+   INTERFACE assignment (=)
+        MODULE PROCEDURE     equal_spinor_fourier_spinor_fourier
+        MODULE PROCEDURE     equal_matrix_fourier_matrix_fourier
+   end INTERFACE 
+   
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
   END INTERFACE
 
-!!  new stuff on non-perturbative !!
+!!  new stuff on non-perturbative !
+
+type  vector_field_fourier 
+     real(dp) fix(6)    !   closed orbit of map
+     integer :: ns(3)=0   ! integer for Fourier transform
+     real(dp), pointer :: mr(:,:,:,:,:) =>null()   ! spin matrices produced by code (i,j,k,1:3,1:3)
+     real(dp), pointer ::  x_i(:,:,:,:) =>null()   ! starting position in phase  x_i(i,j,k,1:6)=r%x(1:6)
+     real(dp), pointer :: phis(:,:,:,:) =>null()   ! %phis(i,j,k,2)=j*dphi2
+     type(spinor), pointer :: sp(:,:,:)            ! sp(:i,j,k)   spinor for all the matrices mr  
+     integer n1,n2,n3,nd                           ! # fourier modes -n1:n1, etc... nd=degree of freedom
+     real(dp)  mu(3),muf(3),em(3)                  ! tune and initial emitances
+     complex(dp),  DIMENSION(:,:,:,:), POINTER :: f  !  vector field expansion f(1:3,-n1:n1,-n2:n2,-n3:n3)
+end  type vector_field_fourier
+   type(vector_field_fourier) af
+
+type  spinor_fourier 
+     integer n1,n2,n3
+     complex(dp),  DIMENSION(:,:,:,:), POINTER :: s
+end  type spinor_fourier 
+
+type  matrix_fourier 
+      real(dp) muf(3)
+     type(spinor_fourier) v(3)
+end  type matrix_fourier 
+
   type  explogs  
      integer n1,n2
      complex(dp),  DIMENSION(:,:,:), POINTER :: h
@@ -64,7 +101,7 @@ module pointer_lattice
      real(dp) em(2),mu(2),fix(6)
      real(dp), pointer :: x_i(:,:,:),phis(:,:,:)
   end  type logs
-   
+
 
 contains
   subroutine set_lattice_pointers
@@ -1297,6 +1334,7 @@ endif
           READ(MF,*) i1,i3  ! position
           READ(MF,*) I2  ! ORDER OF THE MAP
           READ(MF,*) fixp,fact,noca  !  SYMPLECTIC , factored
+    !      READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           
            p=>my_ering%start
@@ -1316,9 +1354,13 @@ endif
                 ft=>my_fring%start       
              endif
              call FIND_ORBIT_x(x_ref,time0,1.d-7,fibre1=f1)
-  
-             call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca)
-
+         !    name_root=filename
+        !     call context(name_root)
+       !      if(name_root(1:2)=='NO') then
+              call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca)
+       !      else
+        !      call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca,file=filename)
+      !       endif
                     ft%mag%forward(3)%symptrack=FIXP
                     ft%magP%forward(3)%symptrack=FIXP
                     ft%mag%do1mapf=.true.
@@ -1343,6 +1385,7 @@ endif
           READ(MF,*) fixp,fact  !  SYMPLECTIC , factored
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           x_ref=0.0_DP
+
           READ(MF,*) x_ref
           n_ac=0
           CALL CONTEXT(NAME)
@@ -1392,6 +1435,8 @@ endif
           READ(MF,*)  onemap  ! use one map : no cutting
           READ(MF,*) fixp,fact  !  SYMPLECTIC 
           READ(MF,*) skipcav  !  skip cavity 
+          icnmin=0
+          icnmax=0
           x_ref=0.0_DP
            n_ac=0
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
@@ -1400,8 +1445,9 @@ endif
    
 
              IF(p%mag%kind/=kind0) THEN
+             icnmax=icnmax+1
               if(.not.skipcav.or.(p%mag%kind/=kind4.and.p%mag%kind/=kind21)) then
-                write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
+              !  write(6,*) "  magnet found FOR MAP REPLACEMENT ",P%MAG%name
                  n_ac=n_ac+1
                 call fill_tree_element(p,I1,x_REF,onemap,fact)
                    IF(P%DIR==1) THEN
@@ -1423,12 +1469,16 @@ endif
                    ENDIF
   
               endif
+             else
+              icnmin=icnmin+1
              ENDIF
 
 
              p=>p%next
           enddo
-    
+         write(6,*) icnmax, " changed into Taylor maps "
+         write(6,*) icnmin, " markers "
+         write(6,*) my_ering%N, " total number of fibres "
        case('REMOVEALLMAP')
 
           p=>my_ering%start
@@ -2890,15 +2940,1250 @@ endif
 
   end subroutine Universe_max_node_n
 
+  
+  !!!! new non perturbative  !!!
+  
 !!!!!!!!!!!!!!!!!!  new non-perturbative
-!  type  logs    
-!     integer n1,n2,ns,no
-!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
-!     type(spinor), pointer :: sp(:,:)
-!     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
-!     real(dp) em(2)
-!  end  type logs
 
+subroutine make_matrix_fourier(af,a)
+ implicit none
+  type(vector_field_fourier)  af
+ type(matrix_fourier) a
+  type(spinor_fourier)  s
+  integer i
+  
+
+  call alloc_spinor_fourier(s,h=af)
+do i=1,3
+ s%s(1:3,0,0,0)=0.d0
+ s%s(i,0,0,0)=1.d0
+ call exp_h_s(af,s,a%v(i))
+enddo
+  call kill_spinor_fourier(s)
+
+end subroutine make_matrix_fourier
+
+subroutine exp_h_m(af,a,b)
+ implicit none
+  type(vector_field_fourier)  af
+ type(matrix_fourier) a,b
+  type(spinor_fourier)  s
+  integer i
+  
+
+  call alloc_spinor_fourier(s,h=af)
+
+do i=1,3
+ call exp_h_s(af,a%v(i),s)
+ b%v(i)=s
+enddo
+
+  call kill_spinor_fourier(s)
+
+end subroutine exp_h_m  
+
+subroutine find_log_tpsa(a,af)
+ implicit none
+  type(vector_field_fourier)  af
+ type(matrix_fourier) a,b
+  type(spinor_fourier)  s
+  type(vector_field_fourier)  bf
+  real(dp)  norm,c
+  integer i,mf
+  
+  call alloc_matrix_fourier(b,h=af)
+  call alloc_vector_field_fourier(bf,h=af)
+
+call norm_matrix_fourier(a,norm)
+
+a%muf=0
+
+b=a
+
+b%v(1)%s(1,0,0,0)=b%v(1)%s(1,0,0,0)-1.0_dp
+b%v(2)%s(2,0,0,0)=b%v(2)%s(2,0,0,0)-1.0_dp
+b%v(3)%s(3,0,0,0)=b%v(3)%s(3,0,0,0)-1.0_dp
+
+c=-1
+do i=2,logs_exp*20
+call  mul_matrix_fourier(a,b,b)
+ a%v(1)%s=a%v(1)%s+(c/i)*b%v(1)%s
+ a%v(2)%s=a%v(2)%s+(c/i)*b%v(2)%s
+ a%v(3)%s=a%v(3)%s+(c/i)*b%v(3)%s
+call norm_matrix_fourier(a,norm)
+write(6,*) i,norm
+c=-c
+enddo
+
+ call find_symetric_log(a,af)
+call norm_vector_field_fourier(af,norm)
+write(6,*) " symetric ",norm
+ call find_asymetric_log(a,af)
+write(6,*) " asymetric ",norm
+call norm_vector_field_fourier(af,norm)
+
+af%mu=0.0_dp
+af%muf=0.0_dp
+
+
+  call kill_matrix_fourier(b)
+  call kill_vector_field_fourier(bf)
+
+end subroutine find_log_tpsa
+
+subroutine mul_matrix_fourier(a,b,c)
+ implicit none
+ type(matrix_fourier) a,b,c,t,bt
+
+  integer i,j,k,n1,n2,n3
+  integer i1,i2,i3,j1,j2,j3,k1,k2,k3
+
+  call alloc_matrix_fourier(t,s=a%v(1))
+  call alloc_matrix_fourier(bt,s=a%v(1))
+ 
+n1=(size(a%v(1)%s,2)-1)/2
+n2=(size(a%v(1)%s,3)-1)/2
+n3=(size(a%v(1)%s,4)-1)/2
+
+bt=a
+call trans_mu_matrix(a%muf,bt)
+
+ do i=1,3
+ do j=1,3
+ do k=1,3
+ do j1=-n1,n1
+ do k1=-n1,n1
+     i1=j1+k1
+    if(abs(i1)>n1) cycle
+ do j2=-n2,n2
+ do k2=-n2,n2
+     i2=j2+k2
+     if(abs(i2)>n2) cycle
+ do j3=-n3,n3
+ do k3=-n3,n3     
+     i3=j3+k3
+if(abs(i3)>n3) cycle
+
+
+  t%v(k)%s(i,i1,i2,i3) = bt%v(j)%s(i,j1,j2,j3)*b%v(k)%s(j,k1,k2,k3) +  t%v(k)%s(i,i1,i2,i3)
+
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+
+c=t
+  call kill_matrix_fourier(t)
+  call kill_matrix_fourier(bt)
+
+end subroutine mul_matrix_fourier
+
+
+subroutine find_log(a,af)
+ implicit none
+  type(vector_field_fourier)  af
+ type(matrix_fourier) a,b
+  type(spinor_fourier)  s
+  type(vector_field_fourier)  bf
+  real(dp)  norm
+  integer i,mf
+  
+call kanalnummer(mf,"junk.txt")
+  call alloc_matrix_fourier(b,h=af)
+  call alloc_vector_field_fourier(bf,h=af)
+
+123 call norm_matrix_fourier(a,norm)
+write(6,*) "1",norm
+af%mu=-af%mu
+af%f=-af%f
+bf%f=0.d0
+call exp_h_m(af,a,b)
+af%mu=-af%mu
+af%f=-af%f
+call norm_matrix_fourier(b,norm)
+write(6,*) "2",norm
+
+call find_asymetric_log(b,bf)
+
+
+!call find_log_tpsa(b,bf)
+
+!stop
+
+af%f=af%f+bf%f
+
+pause 
+goto 123
+  call kill_matrix_fourier(b)
+  call kill_vector_field_fourier(bf)
+close(mf)
+
+end subroutine find_log  
+
+
+subroutine norm_spinor_fourier(s,norm)
+implicit none
+type(spinor_fourier)  s
+integer i,j,k,l
+real(dp) norm
+
+norm=0.0_dp
+
+do i=1,3
+do j=-s%n1,s%n1
+do k=-s%n2,s%n2
+do l=-s%n3,s%n3
+ 
+norm=norm+abs(s%s(i,j,k,l))
+
+enddo
+enddo
+enddo
+enddo
+
+end subroutine norm_spinor_fourier
+
+
+subroutine norm_matrix_fourier(ma,norm)
+implicit none
+type(matrix_fourier)  ma
+integer i,j,k,l
+real(dp) norm,norm1
+
+norm=0.0_dp
+
+do i=1,3
+ call norm_spinor_fourier(ma%v(i),norm1)
+ norm=norm+norm1
+enddo
+
+norm=abs(norm-3)
+
+end subroutine norm_matrix_fourier
+
+subroutine norm_vector_field_fourier(af,norm)
+implicit none
+type(vector_field_fourier)  af
+integer i,j,k,l
+real(dp) norm,norm1
+
+
+norm=0.0_dp
+
+do i=1,3
+do j=-af%n1,af%n1
+do k=-af%n2,af%n2
+do l=-af%n3,af%n3
+ 
+norm=norm+abs(af%f(i,j,k,l))
+
+enddo
+enddo
+enddo
+enddo
+
+norm=abs(norm-3)
+
+end subroutine norm_vector_field_fourier
+
+
+subroutine find_symetric_log(a,af)
+implicit none
+type(vector_field_fourier)  af
+type(matrix_fourier)  a
+integer n1,n2,n3
+
+n1=af%n1
+n2=af%n2
+n3=af%n3
+af%f=0.0_dp
+ 
+af%f(3,-n1:n1,-n2:n2,-n3:n3) =(a%v(1)%s(2,-n1:n1,-n2:n2,-n3:n3)+a%v(2)%s(1,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+af%f(1,-n1:n1,-n2:n2,-n3:n3) =(a%v(2)%s(3,-n1:n1,-n2:n2,-n3:n3)+a%v(3)%s(2,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+af%f(2,-n1:n1,-n2:n2,-n3:n3) =(a%v(3)%s(1,-n1:n1,-n2:n2,-n3:n3)+a%v(1)%s(3,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+
+end subroutine find_symetric_log
+
+subroutine find_asymetric_log(a,af)
+implicit none
+type(vector_field_fourier)  af
+type(matrix_fourier)  a
+integer n1,n2,n3
+
+n1=af%n1
+n2=af%n2
+n3=af%n3
+af%f=0.0_dp
+ 
+af%f(3,-n1:n1,-n2:n2,-n3:n3) =(a%v(1)%s(2,-n1:n1,-n2:n2,-n3:n3)-a%v(2)%s(1,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+af%f(1,-n1:n1,-n2:n2,-n3:n3) =(a%v(2)%s(3,-n1:n1,-n2:n2,-n3:n3)-a%v(3)%s(2,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+af%f(2,-n1:n1,-n2:n2,-n3:n3) =(a%v(3)%s(1,-n1:n1,-n2:n2,-n3:n3)-a%v(1)%s(3,-n1:n1,-n2:n2,-n3:n3))/2.0_dp
+
+ 
+end subroutine find_asymetric_log
+
+
+subroutine print_spinor_fourier(s,mf)
+implicit none
+type(spinor_fourier)  s
+integer mf,i,j,k,l
+
+do i=1,3
+write(mf,*) " term ",i
+do j=-s%n1,s%n1
+do k=-s%n2,s%n2
+do l=-s%n3,s%n3
+write(mf,'(4(i4,1x),2(1x,E15.8))') i,j,k,l,s%s(i,j,k,l)
+
+enddo
+enddo
+enddo
+enddo
+
+
+end subroutine print_spinor_fourier
+
+subroutine print_vector_field(af,mf)
+implicit none
+type(vector_field_fourier)  af
+integer mf,i,j,k,l
+
+do i=1,3
+write(mf,*) " term ",i
+
+do j=-af%n1,af%n1
+do k=-af%n2,af%n2
+do l=-af%n3,af%n3
+
+write(mf,'(4(i4,1x),2(1x,E15.8))') i,j,k,l,af%f(i,j,k,l)
+
+enddo
+enddo
+enddo
+enddo
+
+
+end subroutine print_vector_field 
+
+subroutine print_a_f0(mf)
+implicit none
+integer mf,i
+
+do i=1,size(ind1)
+ write(mf,'(L1,1x,3(i4,1x),1(1x,E15.8))') ireal(i),ipos(i),ind1(i),ind2(i),a_f0(i)
+enddo
+
+end subroutine print_a_f0
+ 
+subroutine print_a_f(mf)
+implicit none
+integer mf,i
+
+do i=1,size(ind1)
+ write(mf,'(L1,1x,3(i4,1x),1(1x,E15.8))') ireal(i),ipos(i),ind1(i),ind2(i),a_f(i)
+enddo
+
+end subroutine print_a_f
+
+subroutine alloc_matrix_fourier(a,n1,n2,n3,s,h)
+ implicit none
+ type(matrix_fourier) a
+  type(spinor_fourier),optional :: s
+  type(vector_field_fourier),optional :: h
+ integer,optional :: n1,n2,n3
+ integer i
+a%muf=0.0_dp
+do i=1,3
+ call alloc_spinor_fourier(a%v(i),n1,n2,n3,s,h)
+enddo
+
+end subroutine alloc_matrix_fourier
+
+
+subroutine kill_matrix_fourier(a)
+ implicit none
+ type(matrix_fourier) a
+ integer i
+a%muf=0.0_dp
+do i=1,3
+ call kill_spinor_fourier(a%v(i))
+enddo
+
+end subroutine kill_matrix_fourier
+
+
+subroutine alloc_spinor_fourier(a,n1,n2,n3,s,h)
+ implicit none
+ type(spinor_fourier) a
+  type(spinor_fourier),optional :: s
+  type(vector_field_fourier),optional :: h
+ integer,optional :: n1,n2,n3
+ 
+if(present(n1)) then
+a%n1=n1
+a%n2=n2
+a%n3=n3
+elseif(present(h)) then
+a%n1=h%n1
+a%n2=h%n2
+a%n3=h%n3    
+elseif(present(s)) then   
+a%n1=s%n1
+a%n2=s%n2
+a%n3=s%n3   
+endif
+    
+allocate(a%s(3,-a%n1:a%n1,-a%n2:a%n2,-a%n3:a%n3) )
+a%s=0.0_dp
+
+
+end subroutine alloc_spinor_fourier
+
+
+subroutine kill_spinor_fourier(a)
+ implicit none
+ type(spinor_fourier) a
+a%n1=0
+a%n2=0
+a%n3=0
+deallocate(a%s)
+end subroutine kill_spinor_fourier
+
+subroutine alloc_vector_field_fourier(a,n1,n2,n3,h,s)
+ implicit none
+ type(vector_field_fourier) a
+type(spinor_fourier),optional :: s
+type(vector_field_fourier),optional :: h
+ integer,optional :: n1,n2,n3
+integer i1,i2,k,i
+ 
+
+if(present(n1)) then
+a%n1=n1
+a%n2=n2
+a%n3=n3
+elseif(present(h)) then
+a%n1=h%n1
+a%n2=h%n2
+a%n3=h%n3    
+elseif(present(s)) then   
+a%n1=s%n1
+a%n2=s%n2
+a%n3=s%n3   
+endif
+
+allocate(a%f(3,-a%n1:a%n1,-a%n2:a%n2,-a%n3:a%n3))
+a%f=0.0_dp
+a%mu=0.0_dp  
+a%muf=0.0_dp  
+a%em=0.0_dp  
+
+
+if(.not.allocated(ind1)) then
+if(skipcomplex.and.skipzero) then
+write(6,*) " skipcomplex and skipzero are true "
+stop
+endif
+
+ k=1
+ do  i1=-a%n1,a%n1
+ do  i2=-a%n2,a%n2
+ if(skipzero.and.i1==0.and.i2==0)goto 101
+  k=k+1
+ if(i1==0.and.i2==0)goto 101
+ enddo
+
+ enddo
+
+101  continue
+ k=k-1
+
+if(skipcomplex) then
+ allocate(ind1(6*k-3),ind2(6*k-3),a_f(6*k-3),a_f0(6*k-3),ipos(6*k-3),ireal(6*k-3))
+else
+ allocate(ind1(6*k),ind2(6*k),a_f(6*k),a_f0(6*k),ipos(6*k),ireal(6*k))
+endif
+
+
+a_f=0.0_dp
+ireal=.true.
+k=1
+ do  i1=-a%n1,a%n1
+ do  i2=-a%n2,a%n2
+ if(skipzero.and.i1==0.and.i2==0)goto 102 
+  ind1(k)=i1
+  ind2(k)=i2
+  k=k+1
+ if(i1==0.and.i2==0)goto 102
+ enddo
+
+enddo
+
+102  continue
+k=k-1
+
+
+
+if(skipcomplex) then
+  ind1(k+1:2*k-1)=ind1(1:k-1)
+  ind2(k+1:2*k-1)=ind2(1:k-1)
+  ind1(2*k:3*k-1)=ind1(1:k)
+  ind2(2*k:3*k-1)=ind2(1:k)
+  ind1(3*k:4*k-2)=ind1(1:k-1)
+  ind2(3*k:4*k-2)=ind2(1:k-1)
+  ind1(4*k-1:5*k-2)=ind1(1:k)
+  ind2(4*k-1:5*k-2)=ind2(1:k)
+  ind1(5*k-1:6*k-3)=ind1(1:k-1)
+  ind2(5*k-1:6*k-3)=ind2(1:k-1)
+ ireal(k+1:2*k-1)=.false.
+ ireal(3*k:4*k-2)=.false.
+ ireal(5*k-1:6*k-3)=.false.
+ ipos(1:2*k-1)=1
+ ipos(2*k:4*k-2)=2
+ ipos(4*k-1:6*k-3)=3
+else
+do i=1,k
+  ind1(k+i)=ind1(i)
+  ind2(k+i)=ind2(i)
+  ind1(2*k+i)=ind1(i)
+  ind2(2*k+i)=ind2(i)
+  ind1(3*k+i)=ind1(i)
+  ind2(3*k+i)=ind2(i)
+  ind1(4*k+i)=ind1(i)
+  ind2(4*k+i)=ind2(i)
+  ind1(5*k+i)=ind1(i)
+  ind2(5*k+i)=ind2(i)
+enddo
+ ireal(k+1:2*k)=.false.
+ ireal(3*k+1:4*k)=.false.
+ ireal(5*k+1:6*k)=.false.
+ ipos(1:2*k)=1
+ ipos(2*k+1:4*k)=2
+ ipos(4*k+1:6*k)=3
+endif
+
+
+
+
+sizeind1=size(ind1)
+a_f=0
+a_f0=0
+endif
+
+
+
+end subroutine alloc_vector_field_fourier
+
+
+subroutine set_a_f_a_f0
+implicit none
+integer i,k
+if(skipcomplex) then
+
+k=(size(ind1)+3)/6
+do i=1,k
+a_f(i)=real(af%f(1,ind1(i),ind2(i),0))
+enddo
+do i=k+1,2*k-1
+a_f(i)=aimag(af%f(1,ind1(i),ind2(i),0))
+enddo
+do i=2*k,3*k-1
+a_f(i)=real(af%f(2,ind1(i),ind2(i),0))
+enddo
+do i=3*k,4*k-2
+a_f(i)=aimag(af%f(2,ind1(i),ind2(i),0))
+enddo
+do i=4*k-1,5*k-2
+a_f(i)=real(af%f(3,ind1(i),ind2(i),0))
+enddo
+do i=5*k-1,6*k-3
+a_f(i)=aimag(af%f(3,ind1(i),ind2(i),0))
+enddo
+
+else
+
+k=size(ind1)/6
+do i=1,k
+a_f(i)=real(af%f(1,ind1(i),ind2(i),0))
+enddo
+do i=k+1,2*k
+a_f(i)=aimag(af%f(1,ind1(i),ind2(i),0))
+enddo
+do i=2*k+1,3*k
+a_f(i)=real(af%f(2,ind1(i),ind2(i),0))
+enddo
+do i=3*k+1,4*k
+a_f(i)=aimag(af%f(2,ind1(i),ind2(i),0))
+enddo
+do i=4*k+1,5*k
+a_f(i)=real(af%f(3,ind1(i),ind2(i),0))
+enddo
+do i=5*k+1,6*k
+a_f(i)=aimag(af%f(3,ind1(i),ind2(i),0))
+enddo
+endif
+
+
+a_f0=a_f
+
+end subroutine set_a_f_a_f0
+
+
+subroutine kill_vector_field_fourier(a)
+ implicit none
+ type(vector_field_fourier) a
+ integer n1,n2,nd
+ a%nd=0
+ a%muf=0
+ a%mu=0
+a%n1=0
+a%n2=0
+a%n3=0
+deallocate(a%f)
+ 
+end subroutine kill_vector_field_fourier
+
+subroutine mul_op_h1_h2(h1,h2,hf)
+! h1.L h2  
+implicit none
+ type(vector_field_fourier) h1
+ type(spinor_fourier) h2
+  type(spinor_fourier) hf
+complex(dp), allocatable :: ht(:,:,:,:)
+integer k,n1,n2,n3
+integer i1,i2,i3,j1,j2,j3,k1,k2,k3
+integer i1k,i2k,i3k
+complex(dp) c
+
+k=size(h1%f,1)
+n1=(size(h1%f,2)-1)/2
+n2=(size(h1%f,3)-1)/2
+n3=(size(h1%f,4)-1)/2
+
+call alloc_h(ht,h1%f)
+
+ do j1=-n1,n1
+ do k1=-n1,n1
+     i1=j1+k1
+ !if(absolute) then
+ !    i1k=abs(i1)+abs(k1)
+ !else
+     i1k=i1
+ !endif
+    if(abs(i1k)>n1) cycle
+ do j2=-n2,n2
+ do k2=-n2,n2
+     i2=j2+k2
+ !if(absolute) then
+ !    i2k=abs(i2)+abs(k2)
+ !else
+     i2k=i2
+ !endif
+     if(abs(i2k)>n2) cycle     
+ do j3=-n3,n3
+ do k3=-n3,n3     
+     i3=j3+k3
+ !if(absolute) then
+ !    i3k=abs(i3)+abs(k3)
+ !else
+     i3k=i3
+ !endif
+     if(abs(i3k)>n3) cycle         
+ht(1,i1,i2,i3)=h1%f(2,j1,j2,j3)*h2%s(3,k1,k2,k3)-h1%f(3,j1,j2,j3)*h2%s(2,k1,k2,k3)+ht(1,i1,i2,i3)
+ht(2,i1,i2,i3)=h1%f(3,j1,j2,j3)*h2%s(1,k1,k2,k3)-h1%f(1,j1,j2,j3)*h2%s(3,k1,k2,k3)+ht(2,i1,i2,i3)
+ht(3,i1,i2,i3)=h1%f(1,j1,j2,j3)*h2%s(2,k1,k2,k3)-h1%f(2,j1,j2,j3)*h2%s(1,k1,k2,k3)+ht(3,i1,i2,i3)
+
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ enddo
+ 
+
+
+
+ do k1=-n1,n1
+ do k2=-n2,n2
+ do k3=-n3,n3     
+
+c=i_*(k1*h1%mu(1)+k2*h1%mu(2)+k3*h1%mu(3))
+        
+ht(1,k1,k2,k3)=c*h2%s(1,k1,k2,k3)+ht(1,k1,k2,k3)
+ht(2,k1,k2,k3)=c*h2%s(2,k1,k2,k3)+ht(2,k1,k2,k3)
+ht(3,k1,k2,k3)=c*h2%s(3,k1,k2,k3)+ht(3,k1,k2,k3)
+
+ enddo
+ enddo
+ enddo
+
+ hf%s=ht
+ 
+deallocate(ht) 
+end subroutine mul_op_h1_h2
+
+subroutine trans_mu_s(mu,s)
+! h1.L h2  
+implicit none
+  real(dp) mu(3)
+  type(spinor_fourier) s
+integer  k1,k2,k3,n1,n2,n3
+complex(dp) c
+ 
+
+ do k1=-n1,n1
+ do k2=-n2,n2
+ do k3=-n3,n3     
+
+c=exp(i_*(k1*mu(1)+k2*mu(2)+k3*mu(3)))
+        
+s%s(1,k1,k2,k3)=c*s%s(1,k1,k2,k3) 
+s%s(2,k1,k2,k3)=c*s%s(2,k1,k2,k3) 
+s%s(3,k1,k2,k3)=c*s%s(3,k1,k2,k3) 
+
+ enddo
+ enddo
+ enddo
+
+end subroutine trans_mu_s
+
+
+subroutine trans_mu_matrix(mu,a)
+! h1.L h2  
+implicit none
+  real(dp) mu(3)
+  type(matrix_fourier) a
+  integer i
+
+ do i=1,3
+  call trans_mu_s(mu,a%v(i))
+ enddo
+ 
+end subroutine trans_mu_matrix
+
+
+
+subroutine exp_h_s(h,s,sf)
+implicit none
+type(vector_field_fourier), intent(in):: h
+type(spinor_fourier), intent(inout):: s,sf
+type(spinor_fourier) st,stt
+real(dp) fac
+integer i
+
+call alloc_spinor_fourier(st,s=s)
+call alloc_spinor_fourier(stt,s=s)
+
+st=s
+stt=s
+ 
+do i=1,logs_exp
+
+!call mul_op_h1_h2(h%f,stt%s,stt%s)
+call mul_op_h1_h2(h,stt,stt)
+ 
+ 
+  stt%s=stt%s/i
+  st%s=st%s + stt%s
+ 
+enddo
+ sf%s= st%s
+ 
+call kill_spinor_fourier(st)
+call kill_spinor_fourier(stt)
+
+end subroutine exp_h_s
+
+subroutine evaluate_matrix_fourier(phi,a,mc,mr)
+implicit none
+type(matrix_fourier), intent(in):: a
+complex(dp), optional :: mc(3,3)
+complex(dp) c,mt(3)
+real(dp), optional ::  mr(3,3)
+real(dp) phi(3)    
+integer i
+
+do i=1,3
+
+call  evaluate_spinor_fourier(phi,a%v(i),mc(1:3,i),mr(1:3,i))
+
+enddo
+ 
+end subroutine evaluate_matrix_fourier
+
+subroutine evaluate_spinor_fourier(phi,sf,mc,mr)
+implicit none
+type(spinor_fourier), intent(in):: sf
+complex(dp), optional :: mc(3)
+complex(dp) c,mt(3)
+real(dp), optional ::  mr(3)
+real(dp) phi(3)    
+integer i,j,k,l
+
+
+
+mt=0.0_dp
+ 
+
+
+do j=-sf%n1,sf%n1
+do k=-sf%n2,sf%n2
+do l=-sf%n3,sf%n3
+do i=1,3
+ c=i_*(j*phi(1)+k*phi(2)+l*phi(3))
+mt(i)=mt(i)+ sf%s(i,j,k,l)*exp(c) 
+enddo
+enddo
+enddo
+enddo
+ 
+if(present(mc)) mc=mt
+if(present(mr)) mr=mt
+ 
+ 
+end subroutine evaluate_spinor_fourier
+
+
+subroutine equal_spinor_fourier_spinor_fourier(s2,s1)
+implicit none
+type(spinor_fourier), intent(in):: s1
+type(spinor_fourier), intent(inout):: s2
+
+if(.not.associated(s2%s)) call alloc_spinor_fourier(s2,s=s1)
+s2%n1=s1%n1
+s2%n2=s1%n2
+s2%n3=s1%n3
+s2%s=s1%s
+
+end subroutine equal_spinor_fourier_spinor_fourier
+
+subroutine equal_matrix_fourier_matrix_fourier(a2,a1)
+implicit none
+type(matrix_fourier), intent(in):: a1
+type(matrix_fourier), intent(inout):: a2
+integer i
+!if(.not.allocated(a2%v)) call alloc_matrix_fourier(a2,s=a1%v(1))
+
+a2%muf=a1%muf
+ 
+do i=1,3
+ a2%v(i)=a1%v(i)
+enddo
+
+end subroutine equal_matrix_fourier_matrix_fourier
+
+subroutine alloc_h(h,h1)
+implicit none
+complex(dp), intent (in) :: h1(:,:,:,:) 
+complex(dp), allocatable :: h(:,:,:,:) 
+integer k,n1,n2,n3
+
+k=size(h1,1)
+n1=(size(h1,2)-1)/2
+n2=(size(h1,3)-1)/2
+n3=(size(h1,4)-1)/2
+allocate(h(k,-n1:n1,-n2:n2,-n3:n3))
+h=0.0_dp
+
+
+end subroutine alloc_h
+
+
+
+ subroutine fourier_logs_new(spinmap,ns,U,fix,tune)  !,em,ns)
+! part 1 just compute h before factorization
+ implicit none
+ type(vector_field_fourier) spinmap
+ integer i,j,ns(3),k,i1,i2
+ real(dp) dphi1,dphi2,x(6),mphi
+type(c_damap), optional, intent(inout):: U
+real(dp), optional, intent(inout):: fix(6),tune(:)
+
+type(c_damap) c_map, c_id
+type(c_normal_form) c_n
+ type(probe) xs0
+ type(probe_8) xs
+type(internal_state) state
+type(c_ray) r
+type(c_spinor) n
+type(spinor) nr
+
+
+ allocate(spinmap%mr(0:ns(1)-1,0:ns(2)-1,0:ns(3)-1,3,3))
+ allocate(spinmap%phis(0:ns(1)-1,0:ns(2)-1,0:ns(3)-1,3))
+ allocate(spinmap%x_i(0:ns(1)-1,0:ns(2)-1,0:ns(3)-1,1:6))
+ allocate(spinmap%sp(0:ns(1)-1,0:ns(2)-1,0:ns(3)-1))
+if(onefunc) then
+ if(.not.allocated(yfit)) allocate( yfit(1) )
+else
+ if(.not.allocated(yfit)) allocate( yfit(ns(1)*ns(2)*ns(3)) )
+
+endif
+ yfit=0
+write(6,*) sizeind1
+allocate(dyfit(size(yfit),sizeind1))
+dyfit=0
+pause 76
+spinmap%phis=0.0_dp
+spinmap%mr=0.0_dp
+spinmap%ns=ns
+spinmap%f=0.0_dp
+
+ 
+state=my_eSTATE-spin0
+ 
+if(present(fix)) then
+my_fix=fix
+else
+ my_fix=0.0_dp
+ call find_orbit_x(my_ering,my_fix,my_eSTATE,1.e-8_dp,fibre1=start)  
+endif
+
+if(present(U))  then
+spinmap%muf(1:spinmap%nd) = twopi*tune(1:spinmap%nd)
+ call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
+c_id=U
+ 
+else
+ call init_all(my_estate,1,0)
+ call alloc(c_map,c_id); call alloc(c_n); call alloc(n)
+
+c_id=1
+xs0=my_fix
+xs=xs0+c_id
+call propagate(my_ering,xs,my_estate,fibre1=start)  
+c_id=xs
+call c_normal(c_id,c_n)
+
+spinmap%muf(1:2)=twopi*c_n%tune(1:2)
+
+c_id=c_n%a_t
+endif
+
+dphi1=twopi/ns(1)
+dphi2=twopi/ns(2)
+
+
+r=0
+do i=0,ns(1)-1
+do j=0,ns(2)-1
+r%x(1)= sqrt(spinmap%em(1))*cos(i*dphi1)
+r%x(2)=-sqrt(spinmap%em(1))*sin(i*dphi1)
+r%x(3)= sqrt(spinmap%em(2))*cos(j*dphi2)
+r%x(4)=-sqrt(spinmap%em(2))*sin(j*dphi2)
+spinmap%phis(i,j,0,1)=i*dphi1
+spinmap%phis(i,j,0,2)=j*dphi2
+ xs0=0
+ r=c_id.o.r
+ do k=1,6
+   x(k)=r%x(k)+my_fix(k)
+ enddo
+
+
+ spinmap%x_i(i,j,0,1:6)=r%x(1:6)
+ spinmap%fix=my_fix
+
+ xs0=x
+ call propagate(my_ering,xs0,my_estate,fibre1=start)  
+ 
+ spinmap%mr(i,j,0,1:3,1:3)=xs0
+ 
+call get_logs(xs0,spinmap%sp(i,j,0))
+ 
+enddo
+enddo
+
+ 
+call fourier_trans_logs_new(spinmap) 
+ 
+ call kill(c_map,c_id); call kill(c_n); call kill(n) 
+
+ end  subroutine fourier_logs_new
+
+!type  vector_field_fourier 
+!     real(dp) fix(6)    !   closed orbit of map
+!     integer :: ns(3)=0   ! integer for Fourier transform
+!     real(dp), pointer :: mr(:,:,:,:,:) =>null()   ! spin matrices produced by code (i,j,k,1:3,1:3)
+!     real(dp), pointer ::  x_i(:,:,:,:) =>null()   ! starting position in phase  x_i(i,j,k,1:6)=r%x(1:6)
+!     real(dp), pointer :: phis(:,:,:,:) =>null()   !%phis(i,j,k,2)=j*dphi2
+!     type(spinor), pointer :: sp(:,:,:)            !sp(:i,j,k)   spinor for all the matrices mr  
+!     integer n1,n2,n3,nd                           ! # fourier modes -n1:n1, etc... nd=degree of freedom
+!     real(dp)  mu(3),em(3)                         ! tune and initial emitances
+!     complex(dp),  DIMENSION(:,:,:,:), POINTER :: f  !  vector field expansion f(1:3,-n1:n1,-n2:n2,-n3:n3)
+!end  type vector_field_fourier
+
+subroutine fourier_trans_logs_new(spinmap)
+! fourier trnasforms all the matrices
+implicit none
+integer i1,i2,i3,i,j,k,l,ns(3)
+real(dp) mphi,dphi1,dphi2,dphi3
+type(vector_field_fourier) spinmap
+
+do i=1,3
+ ns(i)=size(spinmap%mr,i)
+enddo
+spinmap%f=0.0_dp
+
+dphi1=1.0_dp/ns(1)
+dphi2=1.0_dp/ns(2)
+dphi3=1.0_dp/ns(3)
+
+!allocate(a%f(3,-a%n1:a%n1,-a%n2:a%n2,-a%n3:a%n3))
+
+do i1=-spinmap%n1,spinmap%n1
+do i2=-spinmap%n2,spinmap%n2
+do i3=-spinmap%n3,spinmap%n3
+
+do i=0,ns(1)-1
+do j=0,ns(2)-1
+do k=0,ns(3)-1
+
+mphi=(i1*i*dphi1+i2*j*dphi2+i3*k*dphi3)*twopi
+do l=1,3
+ spinmap%f(l,i1,i2,i3)=spinmap%f(l,i1,i2,i3) + exp(-i_*mphi)*spinmap%sp(i,j,k)%x(l)*dphi1*dphi2*dphi3
+enddo
+
+enddo
+enddo
+enddo
+enddo
+enddo
+enddo
+end subroutine fourier_trans_logs_new
+
+subroutine get_logs(xs0,nr)
+implicit none
+type(probe) xs0
+type(spinor) nr
+type(c_spinor) n
+type(c_spinmatrix) s
+real(dp) x(3)
+
+call alloc(s)
+call alloc(n)
+
+
+ s=xs0
+n=log(s)
+nr=n
+x(2)=nr%x(2)
+if(x(2)<0) then
+x(1)=nr%x(1)
+x(3)=nr%x(3)
+
+x(1:3)=-x(1:3)*(twopi/sqrt(x(1)**2+x(2)**2+x(3)**2))
+
+nr%x(1)=nr%x(1)+x(1)
+nr%x(2)=nr%x(2)+x(2)
+nr%x(3)=nr%x(3)+x(3)
+ 
+endif 
+
+call kill(s)
+call kill(n)
+
+end subroutine get_logs
+
+subroutine change_vector_field_fourier(af,k,epsi,norm)
+implicit none
+type(vector_field_fourier) af
+type(matrix_fourier) ma
+integer i1,i2,i,k,j1,j2,pos,ifit,mf,mft
+real(dp) epsi
+complex(dp) mac(3,3),zer(3)
+real(dp) phi(3),mar(3,3),norm,dmar(3,3),dnorm
+ 
+if(abs(k)>size(ind1) ) then
+ write(6,*) " k,size(ind1),size(ind2)",k,size(ind1),size(ind2)
+ stop 100 
+endif
+
+zer= af%f(1:3,0,0,0) 
+ 
+
+af%f=0
+ 
+ 
+do i=1,sizeind1 
+ 
+ if(ireal(i)) then
+  af%f(ipos(i),ind1(i),ind2(i),0)  =  a_f(i)  +af%f(ipos(i),ind1(i),ind2(i),0)
+  af%f(ipos(i),-ind1(i),-ind2(i),0)=  a_f(i)  +af%f(ipos(i),-ind1(i),-ind2(i),0)
+ else
+  af%f(ipos(i),ind1(i),ind2(i),0)  =  i_*a_f(i)  +af%f(ipos(i),ind1(i),ind2(i),0)
+  af%f(ipos(i),-ind1(i),-ind2(i),0)=  -i_*a_f(i)  +af%f(ipos(i),-ind1(i),-ind2(i),0)
+ endif
+enddo
+
+ 
+do i=1,3
+ af%f(i,0,0,0)=af%f(i,0,0,0)/2
+enddo
+
+ 
+
+if(skipzero)  af%f(1:3,0,0,0)=zer
+
+if(epsi>0) then
+if(ireal(k)) then
+j1=ind1(k);j2=ind2(k);pos=ipos(k);
+ 
+ af%f(pos,j1,j2,0)=af%f(pos,j1,j2,0)+epsi
+ af%f(pos,-j1,-j2,0)=af%f(pos,-j1,-j2,0)+epsi
+else 
+j1=ind1(k);j2=ind2(k);pos=ipos(k);
+ 
+ af%f(pos,j1,j2,0)=af%f(pos,j1,j2,0)+i_*epsi
+ af%f(pos,-j1,-j2,0)=af%f(pos,-j1,-j2,0)-i_*epsi
+endif
+endif
+
+call alloc_matrix_fourier(ma,h=af)
+
+call make_matrix_fourier(af,ma)
+
+norm=0
+
+!write(6,*) size(af%phis,1),size(af%phis,2)
+yfit=0
+ifit=0
+do i1=0,size(af%phis,1)-1
+do i2=0,size(af%phis,2)-1
+
+phi=0
+phi(1)=af%phis(i1,i2,0,1)
+phi(2)=af%phis(i1,i2,0,2)
+
+
+
+
+
+
+
+
+call evaluate_matrix_fourier(phi,ma,mc=mac,mr=mar)
+
+!write(6,*) ' '
+!do i=1,3
+! WRITE(6,'(3(1x,g21.14))') mar(i,1:3)
+!enddo
+
+dmar=mar-af%mr(i1,i2,0,1:3,1:3)
+call norm_spin_mat2(dmar,dnorm)
+norm=dnorm+norm
+
+if(.not.onefunc) then
+ifit=ifit+1
+yfit(ifit)=dnorm
+endif
+
+enddo
+enddo
+
+norm=norm/size(af%phis,1)/size(af%phis,2)
+if(onefunc) yfit(1)=norm
+!write(6,*) " norm ",norm
+
+call kill_matrix_fourier(ma)
+end subroutine change_vector_field_fourier
+
+subroutine norm_spin_mat2(ma,norm)
+implicit none
+real(dp) ma(3,3),norm
+integer i,j
+
+norm=0.d0
+
+do i=1,3
+do j=1,3
+norm=norm + ma(i,j)**2
+enddo
+enddo
+
+norm=norm/9.0_dp
+
+end subroutine norm_spin_mat2
+
+subroutine merit_fourier(a1, yfit1, dyda1, status)
+implicit none
+  real(dp) eps,del1
+  real(dp), intent(in) :: a1(:)
+  real(dp), intent(out) :: yfit1(:)
+  real(dp), intent(out) :: dyda1(:, :)
+
+  integer status
+  integer i,j,k
+ 
+ del1=0.d0
+
+a_f=a1
+  eps=0.0_dp
+ call change_vector_field_fourier(af,0,eps,del1) 
+write(6,*) "norm  ",del1
+  yfit1=yfit
+
+  eps=1.d-8
+  call set_af_eps(eps,yfit1)
+  dyda1=dyfit
+
+!write(6,*) size(yfit)
+!write(6,*) size(yfit1)
+!write(6,*) size(dyfit,1),size(dyfit,2)
+!write(6,*) size(dyda1,1),size(dyda1,2)
+!pause 6
+
+!pause 7
+!do i=1,size(dyfit,1)
+!do j=1,size(dyfit,2)
+!write(6,*) i,j,dyfit(i,j)
+!enddo
+!enddo
+!pause 7
+
+end  subroutine merit_fourier
+
+subroutine merit_fourier1(a1, yfit1, dyda1, status)
+implicit none
+  real(dp) eps,del1
+  real(dp), intent(in) :: a1(:)
+  real(dp), intent(out) :: yfit1(:)
+  real(dp), intent(out) :: dyda1(:, :)
+
+  integer status
+  integer i,j,k
+ 
+ del1=0.d0
+
+
+  yfit1(1)=sin(a1(1)+2*a1(2))-0.1d0
+
+  eps=1.d-8
+
+  dyda1(1,1)= (sin(a1(1)+eps+2*a1(2))-0.1d0-yfit1(1))/eps
+  dyda1(1,2)= (sin(a1(1)+2*(a1(2)+eps))-0.1d0-yfit1(1))/eps
+
+
+end  subroutine merit_fourier1
+
+subroutine set_af_eps(eps,yfit1)
+implicit none
+integer k
+real(dp) yfit1(:)
+real(dp) del1,eps
+
+do k=1,sizeind1
+ call change_vector_field_fourier(af,k,eps,del1) 
+dyfit(:,k)=(yfit-yfit1)/eps
+enddo
+
+end subroutine set_af_eps
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  subroutine alloc_logs(a,n1,n2,ns,em,no)
  implicit none
  type(logs) a
@@ -3078,38 +4363,6 @@ call fourier_trans_logs(spinmap)
 
  end  subroutine fourier_logs
 
-subroutine get_logs(xs0,nr)
-implicit none
-type(probe) xs0
-type(spinor) nr
-type(c_spinor) n
-type(c_spinmatrix) s
-real(dp) x(3)
-
-call alloc(s)
-call alloc(n)
-
-
- s=xs0
-n=log(s)
-nr=n
-x(2)=nr%x(2)
-if(x(2)<0) then
-x(1)=nr%x(1)
-x(3)=nr%x(3)
-
-x(1:3)=-x(1:3)*(twopi/sqrt(x(1)**2+x(2)**2+x(3)**2))
-
-nr%x(1)=nr%x(1)+x(1)
-nr%x(2)=nr%x(2)+x(2)
-nr%x(3)=nr%x(3)+x(3)
- 
-endif 
-
-call kill(s)
-call kill(n)
-
-end subroutine get_logs
 
 subroutine fourier_trans_logs(spinmap)
 ! fourier trnasforms all the matrices
@@ -3614,6 +4867,152 @@ end subroutine print_explogs
 
   end subroutine norm_explogs
 
+
+!!!!!!!  stuff for demin  !!!!!!!
+
+subroutine remove_energy_patches(r)
+implicit none
+type(layout), target :: r
+type(fibre), pointer :: p
+integer i
+type(work) w
+
+w=0
+
+p=>r%start
+w=p
+
+do i=1,r%n
+ p%patch%energy=0
+ p=w
+ p=>p%next
+enddo
+ 
+end subroutine remove_energy_patches
+
+subroutine set_fcc(r,xr,norescale,state,del)
+implicit none
+type(layout), target :: r
+type(fibre), pointer :: p
+type(work) werk
+real(dp) del0,deld,x(6),xb(6),del,xr(6)
+integer nresc,i
+logical norescale
+type(internal_state) state
+
+if(norescale) then
+ call remove_energy_patches(r)
+endif
+
+x=xr
+p=>r%start
+werk=p
+del0=werk%energy
+deld=werk%p0c
+
+ 
+ nresc=0
+do i=1,r%n-1
+
+xb=x
+call track_probe_x(x,state,fibre1=p,fibre2=p%next)
+!write(mf,*) p%t2%s(1),x(5)
+
+if(norescale) then
+ if(abs(x(5)-xb(5))>del) then
+ nresc=nresc+1
+  call no_rescale_fcc(r,p,x)  
+ 
+  x=xb
+  call track_probe_x(x,state,fibre1=p,fibre2=p%next)
+ 
+  endif
+else
+ 
+  call rescale_fcc(r,p,x)  
+
+endif
+ 
+
+p=>p%next
+enddo
+
+p=>r%start
+x=xr
+ call track_probe_x(x,state,fibre1=p)
+write(6,*) x
+
+ werk=r%end
+if(norescale) then
+ write(6,*) " final energy = ",werk%energy
+write(6,*) "delta/p0c = ", (werk%energy-del0)/deld
+ x(5)=(werk%energy-del0)/deld
+write(6,*) nresc, " # of energy patches "
+else
+ write(6,*)  " final energy = ",werk%energy+werk%p0c*x(5)
+endif
+
+xr=x
+end subroutine set_fcc
+
+subroutine no_rescale_fcc(r,f,x)
+implicit none
+type(layout), target ::r
+type(fibre), target ::f
+type(fibre), pointer ::p
+real(dp) x5,x(6),e
+integer i
+type(work) w,we
+type(internal_state) state
+
+w=f
+we=f
+!write(6,*) w%energy,w%p0c,w%beta0
+
+e=w%energy+w%p0c*x(5)
+!write(6,*) e
+
+call find_energy(w,energy=e)
+
+!write(6,*) w%energy,w%p0c,w%beta0
+
+p=>f%next
+do i=1,r%n
+
+p=w
+
+if(associated(p,r%end)) exit
+p=>p%next
+enddo
+
+!x(2)= we%p0c*x(2)/w%p0c
+!x(4)= we%p0c*x(4)/w%p0c
+!x(5)=0.d0
+
+f%patch%energy=2
+
+end subroutine no_rescale_fcc
+
+subroutine rescale_fcc(r,f,x)
+implicit none
+type(layout), target ::r
+type(fibre), target ::f
+type(fibre), pointer ::p
+real(dp) x5,x(6),e
+integer i
+type(work) w
+type(internal_state) state
+
+w=f
+e=w%energy+w%p0c*x(5)
+call find_energy(w,energy=e)
+w%rescale=.true.
+w%power=-1
+f%next=w
+
+
+end subroutine rescale_fcc
+
 end module pointer_lattice
 
 
@@ -3684,6 +5083,8 @@ subroutine read_mad_command77(ptc_fichier)
 2001 continue
 
   write(6,*) " Warning: mad command file does not exit "
+
+
 
 end  subroutine read_mad_command77
 

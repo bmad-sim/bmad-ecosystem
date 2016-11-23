@@ -1217,8 +1217,8 @@ nmark=0
     BRHO=el%p%p0c*10.0_dp/cl
 
 
-    call kanalnummer(mf)
-    open(unit=mf,file=filename)
+    call kanalnummer(mf,filename,old=.true.)
+  !  open(unit=mf,file=filename)
     read(mf,*) nst,L,hc, ORDER,REPEAT
     CALL INIT(ORDER,2)
     CALL ALLOC(B)
@@ -2452,7 +2452,7 @@ character(*) filename
 integer mf
 ELE0%NAME_VORNAME(1)=' '
 ELE0%NAME_VORNAME(2)=' '
- call kanalnummer(mf,filename(1:len_trim(filename)))
+ call kanalnummer(mf,filename(1:len_trim(filename)),old=.true.)
 
            call append_empty_layout(un)  
            call set_up(un%end)
@@ -2481,7 +2481,7 @@ integer mf,n
 if(present(mfile)) then
  mf=mfile
 else
- call kanalnummer(mf,filename(1:len_trim(filename)))
+ call kanalnummer(mf,filename(1:len_trim(filename)),old=.true.)
 endif
 surv=my_true
 
@@ -3636,8 +3636,8 @@ logical(lp) doneit,first
 character(nlp) name
 logical, allocatable :: dna(:)
  
-call kanalnummer(mf)
-open(unit=mf,file=filename)
+call kanalnummer(mf,filename,old=.true.)
+!open(unit=mf,file=filename)
 
 
 call TIE_MAD_UNIVERSE(ud)

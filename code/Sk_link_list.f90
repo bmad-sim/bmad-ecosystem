@@ -28,7 +28,7 @@ MODULE S_FIBRE_BUNDLE
   logical(lp),PRIVATE,PARAMETER::T=.TRUE.,F=.FALSE.
   real(dp),target :: eps_pos=1e-10_dp
   integer(2),parameter::it0=0,it1=1,it2=2,it3=3,it4=4,it5=5,it6=6,it7=7,it8=8,it9=9
-  INTEGER,parameter :: IPOS =1000
+  INTEGER,private,parameter :: IPOS =1000
 
   INTERFACE kill
      MODULE PROCEDURE kill_layout

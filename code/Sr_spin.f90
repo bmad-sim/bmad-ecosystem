@@ -4543,6 +4543,105 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
   END SUBROUTINE TRACK_time
 
+
+  ! time tracking
+  SUBROUTINE TRACK_time_new(xT,DT,K)
+    ! Tracks a single particle   of the beam for a time DT
+    implicit none
+    TYPE(INTEGRATION_NODE), POINTER:: T
+    TYPE(temporal_probe),INTENT(INOUT):: xT
+    REAL(DP), INTENT(IN) :: DT
+    REAL(DP) XTT(6),DT0,YL,DT_BEFORE,X(6),fac
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    LOGICAL(LP) END_OF_LINE
+    END_OF_LINE=.FALSE.
+
+    CALL RESET_APERTURE_FLAG
+
+    IF(K%TOTALPATH==0) then
+       write(6,*) " Must used totalpath in tracking state "
+       STOP 451
+    endif
+    IF(XT%xs%u) RETURN
+
+    !    X=xs%x
+
+    T=>XT%NODE
+    !    T%PARENT_FIBRE%MAG=K
+    !    T%PARENT_FIBRE%MAG%P%DIR=>T%PARENT_FIBRE%DIR
+    T%PARENT_FIBRE%MAG%P%CHARGE=>T%PARENT_FIBRE%CHARGE
+
+
+  
+    XT%Ds=0.0_dp
+    DT0=XT%Xb(6)-XT%xs%X(6)
+    XT%Xb=XT%xs%X
+
+    YL=0.0_dp
+
+    DO WHILE(DT0<=DT)
+       XTT=XT%xs%X
+       DT_BEFORE=DT0
+       XT%Xb=XT%xs%X
+       !         WRITE(6,*) " POS ",T%s(1),t%pos_in_fibre
+       !         WRITE(6,*) " POS ",T%POS,T%CAS,T%PARENT_FIBRE%MAG%NAME
+       ! putting spin and radiation
+       CALL TRACK_NODE_PROBE(t,XT%XS,K) !,charge)
+       ! no spin and no radiation
+       !        CALL TRACK_NODE_SINGLE(t,XT%XS%X,K)  !,CHARGE
+
+       !
+       !
+       DT0=DT0+(XT%xs%X(6)-XTT(6))
+       T=>T%NEXT
+       IF(.NOT.ASSOCIATED(T%NEXT)) THEN
+          END_OF_LINE=.TRUE.
+          EXIT
+       ENDIF
+       if(.not.check_stable) exit
+
+    ENDDO
+
+    IF(.NOT.END_OF_LINE.and.check_stable) THEN
+       IF(DT0/=DT) THEN
+          XT%NODE=>T%PREVIOUS
+  !        DT0=DT-DT_BEFORE
+          fac=(dt-DT_BEFORE)/(dt0-DT_BEFORE)
+          X=fac*(XT%xs%X-XT%Xb)+XT%Xb
+       yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
+       ELSE
+          XT%NODE=>T
+       ENDIF
+    ELSE
+
+
+       IF(DT0<DT.and.check_stable) THEN
+          XT%NODE=>T%PREVIOUS
+          fac=(dt-DT_BEFORE)/(dt0-DT_BEFORE)
+          X=fac*(XT%xs%X-XT%Xb)+XT%Xb
+       yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
+       ELSE
+          XT%NODE=>T
+       ENDIF
+
+    ENDIF
+
+
+    XT%Ds=yl
+    XT%xs%X=x
+    !   xs%x=X
+    !    XT%NODE=>T
+    if(.not.CHECK_STABLE) then
+       !       write(6,*) "unstable "
+       lost_fibre=>t%parent_fibre
+       lost_node=>t
+       XT%xs%u=.true.
+    endif
+
+    call ptc_global_x_p(xt,k)
+
+  END SUBROUTINE TRACK_time_new
+
   Subroutine ptc_global_x_p(xt,k)
     implicit none
     TYPE(temporal_probe),INTENT(INOUT):: xT
@@ -4638,6 +4737,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     p%xs%s(3)=0
     p%ds=0.0_dp
     p%pos=0.0_dp
+    p%xb=0.0_dp
     nullify(p%node)
     nullify(p%xs%lost_node)
 
@@ -4900,7 +5000,7 @@ state=time0
 xs0=fix0
 m=1
 xs=xs0+m
-write(6,*) t1c%parent_fibre%mag%name,t1c%parent_fibre%mag%p%nst
+!write(6,*) t1c%parent_fibre%mag%name,t1c%parent_fibre%mag%p%nst
 call propagate(xs,state,node1=t1c,node2=t2c)
 fix=xs%x
 ! For David
@@ -5051,6 +5151,7 @@ logical :: fact,noca
 logical,optional :: factor,nocav
 integer no,i
 type(fibre), pointer :: p
+ 
 
 fact=.false. 
 noca=.false. 

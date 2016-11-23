@@ -1156,7 +1156,7 @@ end subroutine c_get_indices
     type (c_taylor),INTENT(INOUT)::S1
 
     !    IF(first_time) THEN
-    IF(last_tpsa==0) THEN
+    IF(c_last_tpsa==0) THEN
  
       write(6,*) " No TPSA package ever initialized c_allocda " 
  
@@ -3866,12 +3866,13 @@ endif
 
   END FUNCTION GETINTegrate
 
-! computes Lie polynomial in relevant planes
+! computes Lie polynomial in relevant planes : s2=1 generating function, ss=0 potential
 ! Does not included the nonsymplectic modulated planes
-  FUNCTION getpb( S1, S2 )  
+  FUNCTION getpb( S1,S1p, S2 )  
     implicit none
     TYPE (c_taylor) getpb
-    TYPE (c_vector_field), INTENT (IN) :: S1
+    TYPE (c_vector_field),optional, INTENT (IN) :: S1
+    TYPE (c_damap),optional, INTENT (IN) :: S1p
     INTEGER,optional, INTENT (IN) ::  S2
     integer localmaster,n,i,j,l,fac,nd2here,ss
     type(c_taylor) t,x
@@ -3895,8 +3896,15 @@ endif
     call alloc(t,x)
 
     do j=1,nd2here
-    t=s1%v(j)
-
+    if(present(s1)) then
+     t=s1%v(j)
+    elseif(present(s1p)) then
+     t=s1p%v(j)
+     if(.not.present(s2))ss=1
+     else
+     write(6,*) " error in getpb "
+     stop
+    endif
     x=0
     call c_taylor_cycle(t,size=n)
 
@@ -3907,11 +3915,11 @@ endif
          fac=jc(l)+fac
         enddo
         fac=fac+1
-       if(ss==-1) then
+       if(ss>0) then
         if(mod(j,2)==0) then  
           x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j-1))+x
         else
-          x=-((value/fac).cmono.jc)*(1.0_dp.cmono.(j+1))+x        
+          x=ss*((value/fac).cmono.jc)*(1.0_dp.cmono.(j+1))+x        
         endif
        else
           x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j))+x
@@ -3939,7 +3947,7 @@ endif
  
  
     call ass(cgetpb)
-     cgetpb=getpb( S1, S2 )/n_cai
+     cgetpb=getpb( s1=S1, s2=S2 )/n_cai
     c_master=localmaster
     END FUNCTION cgetpb
     
@@ -6492,7 +6500,8 @@ endif
 
    ! order_gofix=no1
 
- 
+     call set_da_pointers()
+
      C_STABLE_DA=.true.
      C_watch_user=.true.
      read77=.true.
@@ -6573,6 +6582,7 @@ endif
 
 
  
+
     subroutine c_etcct(x,n1,y,n2,z)
 !*
     implicit none

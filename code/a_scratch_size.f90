@@ -193,8 +193,8 @@ module precision_constants
   character*255 :: file_block_name="noprint"
   real(dp) :: lmax=1.e38_dp
   logical(lp) :: printdainfo=my_false
-  integer   lielib_print(14)
-  DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0,1/
+  integer   lielib_print(15)
+  DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0,1,1/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
 !  integer, parameter :: no_e=5  !  electric 
@@ -220,6 +220,7 @@ module precision_constants
   !  lielib_print(12)=1  print info in make_node_layout
   !  lielib_print(13)=1  print info of normal form kernel into file kernel.txt and kernel_spin.txt
   !  lielib_print(14)=1  print info about recutting
+  !  lielib_print(15)=1  print info during flat file reading and printing
 
   INTERFACE read
      MODULE PROCEDURE read_d
@@ -699,12 +700,13 @@ CONTAINS
     enddo
   END SUBROUTINE ZEROFILE
 
-  SUBROUTINE KanalNummer(iff,file)
+  SUBROUTINE KanalNummer(iff,file,old)
     implicit none
     integer, INTENT(OUT) :: iff
     character(*),optional :: file
+    logical,optional :: old
     logical :: opened, exists
-    integer :: i
+    integer :: i,ier
 
     DO i= 9999, 7, -1
        INQUIRE(UNIT= i, EXIST= exists, OPENED= opened)
@@ -717,7 +719,23 @@ CONTAINS
     iff= I
 
     if(present(file)) then
-       open(unit=iff,file=file)
+       if(present(old)) then
+        if(old) then
+        open(unit=iff,file=file,status='OLD',iostat=ier)
+         if(ier/=0) then
+          write(6,*) " file ",file," does not exist "
+          stop 864
+          endif
+        else
+         open(unit=iff,file=file,status='NEW',iostat=ier)
+         if(ier/=0) then
+          write(6,*) " file ",file,"  exists already "
+          stop 865
+         endif
+        endif
+       else
+        open(unit=iff,file=file)
+       endif
     endif
   END SUBROUTINE KanalNummer
 

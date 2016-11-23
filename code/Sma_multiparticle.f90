@@ -1182,12 +1182,14 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     CASE(CASEP1)
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
      if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
-TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==-1.OR.T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
+TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==-1.OR.T%PARENT_FIBRE%MAGP%p%dir  &
+*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
           if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
      endif
     CASE(CASEP2)
      if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
-TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
+TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_FIBRE%MAGP%p%dir  &
+*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
           if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
      endif
        CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
@@ -2261,7 +2263,7 @@ call survey_integration_fibre(p1,p1%previous%chart%f%b,p1%previous%chart%f%exi)
 write(6,*) p1%mag%name
 write(6,*) p1%chart%f%a
 write(6,*) p1%chart%f%b
-pause
+!pause
 p1=>p1%next
 enddo
 

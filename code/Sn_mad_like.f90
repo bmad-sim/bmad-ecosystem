@@ -1825,7 +1825,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,a72,/),(1x,a72))'
           !w_p%c(1)=name
-          write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
+          if(tempkind/=kind2) write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
           ! call ! WRITE_I
 
        endif
@@ -1835,7 +1835,7 @@ CONTAINS
        !w_p%nc=2
        !w_p%fc='((1X,a72,/),(1x,a72))'
        !w_p%c(1)=name
-       write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
+       if(tempkind/=kind2) write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', NAME,' CHANGED TO DRIFT-KICK '
        ! call ! WRITE_I
     ENDIF
 
@@ -2893,7 +2893,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,a72,/),(1x,a72))'
           !w_p%c(1)=S2%name
-          write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', S2%name,' CHANGED TO DRIFT-KICK '
+          if(madkind2/=kind2)write(6,'(a12,a16,a23)') ' ANGLE=0 IN ', S2%name,' CHANGED TO DRIFT-KICK '
           ! call ! WRITE_I
        endif
     endif

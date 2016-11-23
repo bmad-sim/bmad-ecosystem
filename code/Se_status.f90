@@ -6812,7 +6812,7 @@ endif ! jumpnot
     endif 
   end SUBROUTINE orthonormaliser
 
-  SUBROUTINE track_TREE_probe_complexp(T,xs,dofix0,dofix,sta)
+  SUBROUTINE track_TREE_probe_complexp_old(T,xs,dofix0,dofix,sta)
     use da_arrays
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(IN) :: T(:)
@@ -7038,6 +7038,273 @@ endif ! spin
       xs%x(i)=x(i)
     enddo
 
+    call kill(dx6)
+    call kill(x0,size_tree)
+    call kill(x,size_tree)  
+    do i=1,3
+    do j=1,3
+     call kill(s0(i,j))
+     call kill(r(i,j))
+    enddo
+    enddo
+
+  end SUBROUTINE track_TREE_probe_complexp_old
+
+  SUBROUTINE track_TREE_probe_complexp(T,xs,dofix0,dofix,sta)
+    use da_arrays
+    IMPLICIT NONE
+    TYPE(TREE_ELEMENT), INTENT(IN) :: T(:)
+    type(probe_8) xs
+    type(probe) xs0
+    type(real_8) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta
+    real(dp) m(6,6),xi(6),norm,z0(6)
+    type(damap) dm,md,iq
+    type(c_damap) m0,mt
+    integer i,j,k
+    type(internal_state) sta
+    logical dofix0,dofix
+    integer, allocatable :: js(:)
+ 
+    call alloc(x,size_tree)
+    call alloc(x0,size_tree)
+    call alloc(dx6)
+    do i=1,3
+    do j=1,3
+     call alloc(s0(i,j))
+     call alloc(r(i,j))
+    enddo
+    enddo
+ 
+
+   if(c_%nd2/=6) then
+    write(6,*) " problem in track_TREE_probe_complexp for the moment if nd2/=6 "
+    stop
+   else
+    call alloc(m0,mt)
+    m0=xs
+    z0=xs%x
+ !   call print(m0,6)
+ !   write(6,*) z0
+    call KILL(xs)
+    call alloc(xs)
+    mt=1
+    xs0=0
+    xs0=z0
+    xs=mt+xs0
+   endif
+
+
+    if(sta%envelope.and.c_%no>1) then
+    call alloc(dm)
+     dm=xs
+     m=(dm.sub.1)**(-1)
+        xs%e_ij=xs%e_ij+matmul(matmul(m,t(1)%e_ij),transpose(m))
+    call kill(dm)
+     endif
+
+    do i=1,6
+      x(i)=xs%x(i)
+      x0(i)=xs%x(i)
+      x(i+6)=x(i)
+    enddo
+
+
+     if(.not.sta%time) then
+     dx6=x(6)
+     x(5)=(2*x(5)+x(5)**2)/(sqrt(1.0_dp/t(1)%beta0**2+2.0_dp*x(5)+x(5)**2)+1.0_dp/t(1)%beta0)
+     x(11)=x(5)
+     x0(5)=x(5)
+    endif
+
+
+    if(dofix0) then
+
+     do i=1,6
+      x(i)=x(i)-t(1)%fix0(i)
+      x0(i)=x0(i)-t(1)%fix0(i)
+      x(i+6)=x(i)
+     enddo
+    endif
+
+    if(sta%radiation) then
+     do i=1,6
+      x(i)=0.0_dp
+     enddo
+
+     do i=1,6
+     do j=1,6
+      x(i)=t(1)%rad(i,j)*x(j+6)+x(i)
+     enddo
+     enddo
+
+
+      do i=1,6
+       x0(i)=x(i)
+       x(i+6)=x(i)
+     enddo
+
+    endif
+
+ 
+    if(t(3)%symptrack) then
+     xs0=0
+     do i=1,6
+      xs0%x(i)=x0(i)
+      xi(i)=x0(i)
+     enddo
+      call  track_TREE_probe_complexr(T,xs0,.false.,.false.,sta,jump=.true.)
+
+!!! compute map  for speed up
+     norm=0.d0
+     do i=1,6
+      norm=norm+abs(x(1).sub.'1')
+     enddo
+!     write(6,*) "norm = ",norm
+     if(norm>0) then
+     call alloc(dm,md,iq)
+     allocate(js(c_%nd2))
+      do i=1,3   !c_%nd
+       xi(2*i-1)=xs0%x(2*i-1)
+      enddo
+
+      do i=1,c_%nd2
+      x0(i)=xi(i)+(1.0_dp.mono.i)
+      enddo
+      if(c_%nd2==4.and.C_%NPARA==5) then
+     !  x0(5)=xi(5)+(1.0_dp.mono.5)
+       x0(6)=0.0_dp !xi(6)
+      elseif(C_%NPARA==4) then
+       write(6,*) C_%NPARA
+       x0(5)=xi(5)
+       x0(6)=0.0_dp !xi(6)       
+      endif
+          call track_TREE_G_complex(T(3),X0(1:15))
+       js=0
+      do i=1,c_%nd2
+       if(mod(i,2)==1) js(i)=1
+       dm%v(i)=x0(i)-(x0(i).sub.'0') 
+      enddo
+       dm=dm**(js)
+        do i=1,c_%nd2
+          md%v(i)=x(i)-(x(i).sub.'0') 
+        enddo 
+      if(c_%nd2==4) then
+        do i=1,c_%nd
+          iq%v(2*i-1)=dm%v(2*i-1) 
+          iq%v(2*i)=1.0_dp.mono.(2*i)
+        enddo 
+        x0(6)=x0(6)*iq  ! partial invertion undone
+        x0(6)=x0(6)*md  ! previous line concatenated
+       endif
+          md=dm*md
+        do i=1,c_%nd2
+         x(i)=md%v(i)+xs0%x(i)
+        enddo
+
+      if(c_%nd2==4) then
+       x(6)=x0(6)+x(6)
+      endif
+
+     call kill(dm,md,iq)
+     deallocate(js)
+     else
+       do i=1,6  !c_%nd2
+         x(i)=xs0%x(i)
+        enddo
+     endif
+       do i=1,6
+        x0(i)=0.0_dp
+       enddo
+       do i=1,6
+        do j=1,6
+       x0(i)=t(3)%rad(i,j)*x(j)+x0(i)
+       enddo
+      enddo
+        do i=1,6
+         x(i)=x0(i)
+        enddo
+     else
+       call track_TREE_G_complex(T(1),X(1:6))
+     endif
+ 
+
+
+
+
+
+ 
+    if(sta%spin) then  ! spin
+    call track_TREE_G_complex(T(2),X(7:15))
+ 
+
+    do i=1,3
+    do j=1,3
+     r(i,j)=x(ind_spin(i,j))
+    enddo
+    enddo
+
+    call orthonormalise(r)
+
+    do k=1,3
+     do i=1,3
+     do j=1,3
+       s0(k,i)=r(i,j)*xs%s(k)%x(j)+s0(k,i)
+     enddo
+    enddo
+    enddo
+
+    do k=1,3
+     do j=1,3
+       xs%s(k)%x(j)=s0(k,j)
+     enddo
+    enddo   
+endif ! spin
+
+
+
+    if(dofix) then
+       if(sta%radiation) then
+         do i=1,6
+           x(i)=x(i)+t(1)%fixr(i)
+         enddo
+       else
+         do i=1,6
+           x(i)=x(i)+t(1)%fix(i)
+         enddo
+       endif
+    endif
+
+
+    if(.not.sta%time) then
+     dx6=X(6)-dx6
+      beta=sqrt(1.0_dp+2.0_dp*x(5)/t(1)%beta0+x(5)**2)/(1.0_dp/t(1)%BETA0 + x(5))
+      x(6)=x(6)-dx6+beta*dx6 +  (beta/t(1)%beta0-1.0_dp)*t(1)%ds
+      x(5)=(2.0_dp*x(5)/t(1)%beta0+x(5)**2)/(sqrt(1.0_dp+2.0_dp*x(5)/t(1)%beta0+x(5)**2)+1.0_dp)
+       if(sta%totalpath==1) then
+        x(6)=x(6)+t(1)%ds
+       endif
+    call kill(dx6)
+    else
+        if(sta%totalpath==1) then
+        x(6)=x(6)+t(1)%ds/t(1)%beta0 
+       endif     
+    endif
+
+    do i=1,6
+      xs%x(i)=x(i)
+      z0(i)=x(i)
+    enddo
+
+    mt=xs
+    xs=mt*m0
+    
+    do i=1,6
+     xs%x(i)=xs%x(i)-(xs%x(i).sub.'0')+z0(i)
+    enddo
+    
+
+
+    call kill(m0,mt)
     call kill(dx6)
     call kill(x0,size_tree)
     call kill(x,size_tree)  
