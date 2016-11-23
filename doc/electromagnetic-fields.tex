@@ -186,6 +186,7 @@ where $r_0$ is a ``measurement radius'' set by the \vn{r0_elec} attribute of an 
 The electric field for the $n$\Th order multipole is
 \Begineq
   E_x - i E_y = (b_{en} - i a_{en}) \, \frac{(x + i y)^n}{r_0^n}
+  \label{exiey}
 \Endeq
 Notice that the magnetic multipole components $a_n$ and $b_n$ are normalized by the
 element length, reference charge, and reference momentum (\Eq{qlpbb}) while their electric
@@ -196,6 +197,100 @@ Using the paraxial approximation, The kick given a particle due to the electric 
   \frac{dp_x}{ds} = \frac{q \, E_x}{\beta \, P_0}, \qquad \frac{dp_y}{ds} = \frac{q \, E_y}{\beta \, P_0}
 \Endeq
 Where $\beta$ is the normalized velocity.
+
+%-----------------------------------------------------------------
+\section{Exact Multipole Fields in a Bend}
+\label{s:field.exact}
+
+For static magnetic and electric multipole fields in a bend, the spacial dependence of the
+field is different from multipole fields in an element with straight geometry as given by
+\Eqs{qlpbb} and \eq{exiey}. The analysis here follows McMillan\cite{b:mcmillan}.  An
+electric or magnetic multipole can be characterized by a scaler potential $\phi$ with the
+field given by $-\Delta \phi$. The potential is a solution to Laplace's equation
+\Begineq
+  \frac{1}{r} \, \frac{\partial}{\partial \, r} 
+  \left( r \, \frac{\partial \, \phi}{\partial \, r} \right) +
+  \frac{\partial^2 \phi}{\partial \, y^2} = 0
+\Endeq
+where $r$ is the distance, in the plane of the bend, from the bend center to the observation point.
+In the equations that follow, $r$, and $y$ will be normalized by the bending radius $\rho$. With this
+convention, the normalized distance $x$ from the reference trajectory is related to $r$ by $r = 1 + x$.
+
+Solutions to Laplace's equation can be found in form
+\Begineq
+  \phi_{n1} = \sum_{m = 0}^{\lfloor (n+1)/2 \rfloor} 
+             \begin{pmatrix} n + 1 \cr 2m \end{pmatrix} \,
+             (-1)^{m+1} \, F_{n+1-2m}(r) \, y^{2m}
+  \label{psmn1}
+\Endeq
+and in the form
+\Begineq
+  \phi_{n2} = \sum_{m = 0}^{\lfloor n/2 \rfloor} 
+             \begin{pmatrix} n + 1 \cr 2m +1 \end{pmatrix} \,
+             (-1)^{m} \, F_{n-2m}(r) \, y^{2m+1}
+  \label{psmn2}
+\Endeq
+where the $F_m(r)$ are related by 
+\Begineq
+  F_{m+2} = (m + 1) \, (m + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{m} \right]
+\Endeq
+
+For magnetic fields, the $\phi_{n1}$ solutions will correspond to skew fields of order $n$ and the
+$\phi_{n2}$ solutions will correspond to normal fields of order $n$. For electric fields, the reverse
+is true with the $\phi_{n1}$ solutions corresponding to normal fields and and the $\phi_{n2}$ 
+solutions corresponding to skew fields both of order $n$.
+
+In order for the series to terminate at $F_0$ or $F_1$ in \Eq{psmn1} and \Eq{psmn2} the
+condition is imposed that
+\begin{align}
+  F_0(r) &= 1 \CRNO
+  F_1(r) &= \ln \, r = x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \ldots
+\end{align}
+[Note that this is not a unique solution.] With this, the higher order $F_m$ can be calculated
+\begin{align}
+  F_2 &= \frac{1}{2} (r^2 - 1) - \ln r = x^2 - \frac{1}{3}x^3 + \frac{1}{4} x^4 - \ldots \CRNO
+  F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots \\
+  F_4 &= 3 [ \frac{1}{8} (r^4 - 1) + \frac{1}{2} (r^2 - 1) - (r^2 + \frac{1}{2}) \ln r] = 
+         x^4 - \frac{2}{5} x^5 + \ldots \CRNO
+  &\text{Etc...} \nonumber
+\end{align}
+Care must be taken in evaluating the $F_m(r)$ near $r = 1$ ($x = 0$), especially for large
+$m$, since there is considerable loss in accuracy due to the near cancellation of
+terms. \bmad uses a Pad\'e approximate to avoid undue accuracy loss.
+
+In the vertical plane, with $x = 0$, the solutions $\phi_{n1}$ and $\phi_{n2}$ have the
+same variation in $y$ as the multipole fields with a straight geometry. For example, the
+field strength of a quadrupole multipole will be linear in $y$ for $x = 0$. In the
+horizontal plane, with $y = 0$, this is not the case. Thus, for example, a quadrupole
+multipole field in the horizontal plane will vary like $dF_2/dx$ which has terms of all orders in
+$x$. In light of this, the solutions $\phi_{n1}$ and $\phi_{n2}$ are called ``vertically
+pure'' solutions.
+
+It is possible to construct ``horizontally pure'' solutions as well. That is, it is
+possible to construct solutions that in the horizontal plane with $y = 0$ behave the same
+as the corresponding multipole fields with a straight geometry. A straight forward way to
+do this is, for some given multipole of order $n$, is to construct the horizontally pure
+solutions from the vertically pure solutions via
+\begin{align}
+  \Phi_{n1} &= \phi_{n1} + \sum_{k = n+1}^\infty C_{nk} \, \phi_{k1} \CRNO
+  \Phi_{n2} &= \phi_{n2} + \sum_{k = n+1}^\infty D_{nk} \, \phi_{k2}
+\end{align}
+The $C_{nk}$ and $D_{nk}$ are chosen, order by order, so that $\Phi_{n1}$ and $\Phi_{n2}$
+are horizontally pure (see McMillan).
+
+The vertically pure solutions form a complete set. That is, any given field that satisfies
+Maxwell's equations and is independent of $z$ can be expressed as a linear combination of
+$\phi_{n1}$ and $\phi_{n2}$. Similarly, the horizontally pure solutions form a complete
+set. Additionally, it is possible to construct other complete sets in which the
+basis functions are neither horizontally pure nor vertically pure.
+
+This brings up an important point. to properly simulate a machine, one must first of all
+understand whether the multipole values that have been handed to you are for horizontally
+pure multipoles, vertically, pure multipoles, or perhaps the values do not correspond to
+either horizontally pure nor vertically pure solutions! Furthermore, it is important to
+know how a program models multipoles. For example, a horizontally pure quadrupole field
+will lead to a different chromatisity than a vertically pure quadrupole field of the same
+strength.
 
 %-----------------------------------------------------------------
 \section{Map Decomposition of Magnetic and Electric Fields}

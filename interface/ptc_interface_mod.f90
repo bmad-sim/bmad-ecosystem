@@ -3167,7 +3167,12 @@ case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
 case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
-if (ele%key == sbend$ .and. ele%value(angle$) == 0) ptc_key%model = 'DRIFT_KICK'
+if (ele%key == sbend$ .and. ele%value(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+  ptc_key%model = 'DRIFT_KICK'
+  ! Only need to issue a warning if K1 is nonzero.
+  if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
+            'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
+endif
 
 if (present(track_particle)) then
   rel_charge = charge_of(track_particle%species) / charge_of(param%particle)
