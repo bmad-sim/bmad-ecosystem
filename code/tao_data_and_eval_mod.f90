@@ -3117,8 +3117,7 @@ parsing_loop: do
 
   ! get a word
 
-  call word_read (phrase, '+-*/()^,}[ ', word, ix_word, delim, &
-                    delim_found, phrase)
+  call word_read (phrase, '+-*/()^,}[ ', word, ix_word, delim, delim_found, phrase)
 
   if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
     call out_io (s_warn$, r_name, 'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
@@ -3177,8 +3176,7 @@ parsing_loop: do
         phrase = phrase(2:)
       endif
     else          ! even more...
-      call word_read (phrase, '[+-*/()^,}', word2, ix_word2, delim, &
-                                                  delim_found, phrase)
+      call word_read (phrase, '[+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
       word = word(:ix_word) // trim(word2)       
       ix_word = ix_word + ix_word2 
     endif
@@ -3205,8 +3203,7 @@ parsing_loop: do
     if (wild) then
       word = word(:ix_word) // '*' // phrase(1:ixb) 
       phrase = phrase(ixb+1:)
-      call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, &
-                                                delim_found, phrase)
+      call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
       word = trim(word) // trim(word2)       
       ix_word = len_trim(word)
     endif
@@ -3286,8 +3283,7 @@ parsing_loop: do
       case ('ceiling')
         call pushit (op, i_op, ceiling$)
       case default
-        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', &
-                                      'IN EXPRESSION: ' // expression)
+        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
     endif
@@ -3311,14 +3307,13 @@ parsing_loop: do
   elseif (delim == ')') then
     if (ix_word == 0) then
       if (.not. ran_function_pending) then
-        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"', &
-                                      'IN EXPRESSION: ' // expression)
+        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"', 'IN EXPRESSION: ' // expression)
         return
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
-             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_component, dflt_uni)
+             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -3342,11 +3337,9 @@ parsing_loop: do
 
       i_op = i - 1
 
-      call word_read (phrase, '+-*/()^,}', word, ix_word, delim, &
-                    delim_found, phrase)
+      call word_read (phrase, '+-*/()^,}', word, ix_word, delim, delim_found, phrase)
       if (ix_word /= 0) then
-        call out_io (s_warn$, r_name, &
-                'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
+        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -3355,8 +3348,7 @@ parsing_loop: do
 
 
     if (delim == '(') then
-      call out_io (s_warn$, r_name, &
-          '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
+      call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
       return
     endif
 
@@ -3364,13 +3356,12 @@ parsing_loop: do
 
   else
     if (ix_word == 0) then
-      call out_io (s_warn$, r_name, &
-            'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
+      call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
-            default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_component, dflt_uni)
+            dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -3514,10 +3505,11 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
+recursive &
 subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, &
-      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_component, dflt_uni)
+      dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
 
-type (tao_eval_stack1_struct) stack
+type (tao_eval_stack1_struct) stack, stack2
 type (tao_real_pointer_struct), allocatable, save :: re_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
@@ -3526,17 +3518,19 @@ type (tao_data_struct) datum
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 integer, optional :: dflt_uni
-integer ios, i, n, ix, ix2
+integer ios, i, m, n, ix, ix2, ix_word
 
 character(*) str, saved_prefix
 character(*), optional :: dflt_source, dflt_component
 character(*), optional :: dflt_dat_or_var_index
 
+character(1) delim
 character(16) s, source
-character(60) name
-character(40) :: r_name = 'tao_param_value_routine'
+character(60) name, word2
+character(200) str2
+character(*), parameter :: r_name = 'tao_param_value_routine'
 
-logical err_flag, print_err, print_error
+logical err_flag, print_err, print_error, delim_found
 
 ! pi, etc
 
@@ -3560,6 +3554,33 @@ case ('sqrt_2')
   stack%value(1) = sqrt(2.0_rp)  
   return
 end select
+
+! An array "[...]"
+
+if (str(1:1) == '[') then
+  n = len_trim(str)
+  if (str(n:n) /= ']') then
+    if (print_err) call out_io (s_warn$, r_name, "Malformed array: " // str)
+    err_flag = .true.
+    return
+  endif
+
+  str2 = str(2:n-1)
+  call re_allocate (stack%value, 0)
+
+  do
+    call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
+    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, &
+      dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+    if (err_flag) return
+    m = size(stack%value)
+    n = size(stack2%value)
+    call re_allocate(stack%value, m+n)
+    stack%value(m+1:m+n) = stack2%value
+    if (.not. delim_found) return
+  enddo
+
+endif
 
 ! Case where str represents a number.
 
