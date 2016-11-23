@@ -20,7 +20,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_expression_info (info, n, exact, init_val)
+! Subroutine tao_re_allocate_expression_info (info, n, exact, init_val)
 !
 ! Routine to reallocate an array of tao_expression_info_struct structs.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -38,7 +38,7 @@ contains
 !   info(:) -- Real(rp), Allocatable: Allocated array with size(re) >= n.
 !-
 
-subroutine re_allocate_expression_info (info, n, exact)
+subroutine tao_re_allocate_expression_info (info, n, exact)
 
 implicit none
 
@@ -65,7 +65,7 @@ else
   allocate (info(n))
 endif
 
-end subroutine re_allocate_expression_info
+end subroutine tao_re_allocate_expression_info
 
 
 !--------------------------------------------------------------------------

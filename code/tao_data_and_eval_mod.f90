@@ -3635,7 +3635,7 @@ endif
 if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, &
                                 dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
-  call re_allocate_expression_info (stack%info, size(stack%value))
+  call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = .not. err_flag
   stack%type = lat_num$
   return
@@ -3644,7 +3644,7 @@ if (source == 'lat' .or. source == 'beam') then
 
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_source, dflt_component)
-  call re_allocate_expression_info (stack%info, size(stack%value))
+  call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = .not. err_flag
   stack%type = ele_num$
   return
@@ -3687,7 +3687,7 @@ if (size(re_array) /= 0) then
 
   if (.not. allocated(stack%value_ptr)) allocate (stack%value_ptr(n))
   call re_allocate (stack%value, n)
-  call re_allocate_expression_info (stack%info, n)
+  call tao_re_allocate_expression_info (stack%info, n)
 
   do i = 1, n
     stack%value(i) = re_array(i)%r
@@ -3721,7 +3721,7 @@ if (size(re_array) /= 0) then
 elseif (size(int_array) /= 0) then
   n = size(int_array)
   call re_allocate (stack%value, n)
-  call re_allocate_expression_info (stack%info, n)
+  call tao_re_allocate_expression_info (stack%info, n)
   do i = 1, n
     stack%value(i) = int_array(i)%i
     stack%info(i)%good  = .true.
@@ -3782,7 +3782,7 @@ s => stack   ! For debugging purposes
 err_flag = .true.
 
 call re_allocate (value, n_size)
-call re_allocate_expression_info (info, n_size)
+call tao_re_allocate_expression_info (info, n_size)
 info = tao_expression_info_struct()
 
 do i = 1, size(stack)
