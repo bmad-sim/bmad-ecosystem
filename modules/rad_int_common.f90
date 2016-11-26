@@ -552,7 +552,7 @@ real(rp) f
 
 ! calculate the field
 
-call em_field_calc (ele, param, s_rel, t_rel, orbit, .false., field, present(dg))
+call em_field_calc (ele, param, s_rel, orbit, .false., field, present(dg))
 
 !
 

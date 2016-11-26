@@ -68,7 +68,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target
+real(rp) s1, s2, s_sav, ds, s, beta, s_edge_track, s_target
 real(rp) dref_time, s0, ds_ref, beta0
 
 integer i, n_step
@@ -115,13 +115,11 @@ call reference_energy_correction (ele, orb_end, first_track_edge$)
 
 call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
 
-t = particle_ref_time(orb_end, ele)
-
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
-  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav, t)
+  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav, .true.)
 endif
 
 ! track through the body
@@ -133,7 +131,7 @@ do
   do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(fringe_info%hard_ele)) exit
     track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-    call apply_element_edge_kick (orb_end, fringe_info, t, ele, param, track_spin)
+    call apply_element_edge_kick (orb_end, fringe_info, ele, param, track_spin)
     call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, fringe_info, orb_end)
   enddo
 
@@ -142,10 +140,10 @@ do
   s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
-  call track1_boris_partial (orb_end, ele, param, s, t, ds, orb_end)
+  call track1_boris_partial (orb_end, ele, param, s, ds, orb_end)
   s = s + ds
 
-  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav, t)
+  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav, .true.)
   
 enddo
 
@@ -172,7 +170,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris_partial (start, ele, param, s, t, ds, end)
+! Subroutine track1_boris_partial (start, ele, param, s, ds, end)
 !
 ! Subroutine to track 1 step using boris tracking.
 ! This subroutine is used by track1_boris.
@@ -199,7 +197,7 @@ end subroutine
 !   end   -- Coord_struct: Ending coordinates.
 !-
 
-subroutine track1_boris_partial (start, ele, param, s, t, ds, end)
+subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 implicit none
 
@@ -211,7 +209,7 @@ type (em_field_struct) :: field
 real(rp), intent(in) :: s, ds
 real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
-real(rp) :: p2, t, dt, beta_ref, p2_z
+real(rp) :: p2, dt, beta_ref, p2_z
 
 !
 
@@ -242,11 +240,10 @@ end%vec(5) = end%vec(5) + ds2 * (old_beta/beta_ref - p_tot/p_z)
 
 end%s = end%s + ds2
 end%t = end%t + dt
-t = t + dt
 
 ! 2) Evaluate the fields.
 
-call em_field_calc (ele, param, s+ds2, t, end, .true., field)
+call em_field_calc (ele, param, s+ds2, end, .true., field)
 
 ! 2.5) Push the spin 1/2 step
 ! This uses the momentum at the beginning and the fields at (ds2)
@@ -323,7 +320,6 @@ end%vec(6) = p_tot - 1
 end%s = end%s + ds2
 dt = ds2 * p_tot / (p_z * beta * c_light)
 end%t = end%t + dt
-t = t + dt
 end%beta = beta
 
 ! 6.5) Push the spin 1/2 step

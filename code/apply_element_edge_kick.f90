@@ -1,5 +1,5 @@
 !+
-! Subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
+! Subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix)
 !
 ! Subroutine, used with runge_kutta and boris tracking, to track through the edge fringe field of an element.
 ! This routine is used and with the bmad_standard field_calc where the field can have an abrubt, 
@@ -19,7 +19,6 @@
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
 !   fringe_info -- fringe_edge_info_struct: Fringe information.
-!   t_rel       -- real(rp): Time relative to track_ele entrance edge
 !   track_ele   -- ele_struct: Element being tracked through. Is different from fringe_info%hard_ele
 !                    when there are superpositions and track_ele can be a super_slave of fringe_info%hard_ele.
 !   param       -- lat_param_struct: lattice parameters.
@@ -32,7 +31,7 @@
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
 
-subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
+subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix)
 
 use track1_mod, except_dummy => apply_element_edge_kick
 
@@ -46,7 +45,7 @@ type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele
 
 real(rp), optional :: mat6(6,6)
-real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi, omega(3), pc
+real(rp) f, l_drift, ks, s_edge, s, phi, omega(3), pc
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
@@ -87,7 +86,7 @@ endif
 
 ! Custom edge kick?
 
-call apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished, mat6, make_matrix)
+call apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix)
 if (finished) return
 
 !------------------------------------------------------------------------------------
@@ -150,16 +149,15 @@ case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
   f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
-  t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
   if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$)))) then
     if (particle_at == first_track_edge$) then
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
-      call em_field_calc (hard_ele, param, s, t, orb, .true., field)
+      call em_field_calc (hard_ele, param, s, orb, .true., field)
     else
       s = s - bmad_com%significant_length / 10 ! Make sure inside field region
-      call em_field_calc (hard_ele, param, s, t, orb, .true., field)
+      call em_field_calc (hard_ele, param, s, orb, .true., field)
     endif
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
