@@ -12,7 +12,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, t_rel, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad_time (orb, ele, param, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -27,7 +27,6 @@ contains
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
 !   param   -- lat_param_struct: Beam parameters.
-!   t_rel   -- Real: The effective start time.
 !   local_ref_frame 
 !           -- Logical: If True then take the 
 !                input and output coordinates as being with 
@@ -38,13 +37,12 @@ contains
 !
 ! Output:
 !   orb      -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
-!   t_rel    -- Real: The effective end time.
 !   err_flag -- Logical: Set True if there is an error. False otherwise.
 !   track    -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, t_rel, local_ref_frame, err_flag, track)
+subroutine odeint_bmad_time (orb, ele, param, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
@@ -59,7 +57,7 @@ type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
-real(rp), target :: t_rel, t_old, dt_tol
+real(rp), target :: dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
@@ -81,9 +79,8 @@ call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb, .true.)
 old_direction = orb%direction
 
-if ( present(track) ) then
+if (present(track)) then
    dt_save = track%ds_save/c_light
-   t_save = t_rel
 endif 
 
 at_edge_flag = .false.
@@ -145,7 +142,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       s_save = orb%vec(5)
       call convert_particle_coordinates_t_to_s(orb, ref_time) 
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-      call apply_element_edge_kick (orb, fringe_info, t_rel, ele, param, track_spin)
+      call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin)
       call convert_particle_coordinates_s_to_t(orb, s_save)
       call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
@@ -193,7 +190,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       orb%state = lost$
       ! Convert for wall handler
       call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
-      call wall_hit_handler_custom (orb, ele, orb%s, orb%t)
+      call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore vec(5) to relative s 
       call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$)))
     endif
@@ -204,15 +201,15 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   !Save track
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
-    if (t_rel >= t_save .or. exit_flag) then
+    if (orb%t >= t_save .or. exit_flag) then
       ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
       call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
       ! Query the local field to save
-      call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
+      call em_field_calc (ele, param, orb%vec(5), orb, local_ref_frame, saved_field, .false., err_flag)
       if (err_flag) return
       track%field(track%n_pt) = saved_field
       ! Set next save time 
-      t_save = t_rel + dt_save
+      t_save = orb%t + dt_save
     end if
   endif
 
@@ -240,9 +237,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   endif
 
   orb_old = orb
-  t_old = t_rel
 
-  call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
+  call rk_adaptive_time_step (ele, param, orb, dt, dt_did, dt_next, local_ref_frame, err)
 
   if (stop_time_limited) then
     dt_next = dt_next_save
@@ -278,9 +274,9 @@ real(rp), intent(in)  :: this_dt
 real(rp) :: delta_s_target
 logical err_flag
 !
-call rk_time_step1 (ele, param, orb_old, t_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
+call rk_time_step1 (ele, param, orb_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
 delta_s_target = orb%vec(5) - s_fringe_edge
-t_rel = t_old + this_dt
+orb%t = orb_old%t + this_dt
 	
 end function delta_s_target
 
@@ -293,11 +289,10 @@ real(rp), intent(in) :: this_dt
 real(rp) d_radius
 logical err_flag
 !
-call rk_time_step1 (ele, param, orb_old, t_old, this_dt, &
-	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
+call rk_time_step1 (ele, param, orb_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
 				  	 				  
 d_radius = ref_frame_wall3d_d_radius (orb)
-t_rel = t_old + this_dt
+orb%t = orb_old%t + this_dt
 
 end function wall_intersection_func
 
@@ -318,7 +313,7 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_adaptive_time_step (ele, param, orb, t, dt_try, dt_did, dt_next, local_ref_frame, err_flag)
+subroutine rk_adaptive_time_step (ele, param, orb, dt_try, dt_did, dt_next, local_ref_frame, err_flag)
 
 implicit none
 
@@ -326,7 +321,6 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
 
-real(rp), intent(inout) :: t
 real(rp), intent(in)    :: dt_try
 real(rp), intent(out)   :: dt_did, dt_next
 
@@ -343,7 +337,7 @@ character(24), parameter :: r_name = 'rk_adaptive_time_step'
 ! Calc tolerances
 ! Note that s is in the element frame
 
-call em_field_kick_vector_time (ele, param, t, orb, local_ref_frame, dr_dt, err_flag) 
+call em_field_kick_vector_time (ele, param, orb, local_ref_frame, dr_dt, err_flag) 
 if (err_flag) return
 
 sqrt_N = sqrt(abs(1/(c_light*dt_try)))  ! number of steps we would take to cover 1 meter
@@ -357,7 +351,7 @@ orb_new = orb
 
 do
 
-  call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
+  call rk_time_step1 (ele, param, orb, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
     if (dt < 1d-3/c_light) then
@@ -377,9 +371,9 @@ do
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
   dt = sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
-  t_new = t + dt
+  t_new = orb%t + dt
 
-  if (t_new == t) then
+  if (t_new == orb%t) then
     err_flag = .true.
     call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
@@ -403,7 +397,7 @@ endif
 ! finish
 
 dt_did = dt
-t = t+dt
+orb%t = orb%t + dt
 
 orb = orb_new
 
@@ -415,7 +409,7 @@ end subroutine rk_adaptive_time_step
 ! Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
 !  and orb_new%s and %t are updated to the global values
 
-subroutine rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
+subroutine rk_time_step1 (ele, param, orb, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
 
 implicit none
 
@@ -424,7 +418,7 @@ type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp
 
 real(rp), optional, intent(in) :: dr_dt(9)
-real(rp), intent(in) :: t, dt
+real(rp), intent(in) :: dt
 real(rp), intent(out) :: r_err(9)
 real(rp) :: dr_dt1(9), dr_dt2(9), dr_dt3(9), dr_dt4(9), dr_dt5(9), dr_dt6(9), r_temp(9), pc
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
@@ -448,30 +442,30 @@ logical local_ref_frame, err_flag
 if (present(dr_dt)) then
   dr_dt1 = dr_dt
 else
-  call em_field_kick_vector_time(ele, param, t, orb, local_ref_frame, dr_dt1, err_flag)
+  call em_field_kick_vector_time(ele, param, orb, local_ref_frame, dr_dt1, err_flag)
   if (err_flag) return
 endif
 
 orb_temp = orb
 
 call transfer_this_orbit (orb_temp, orb, b21*dt*dr_dt1)
-call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2, err_flag)
+call em_field_kick_vector_time(ele, param, orb_temp, local_ref_frame, dr_dt2, err_flag)
 if (err_flag) return
 
 call transfer_this_orbit (orb_temp, orb, dt*(b31*dr_dt1+b32*dr_dt2))
-call em_field_kick_vector_time(ele, param, t+a3*dt, orb_temp, local_ref_frame, dr_dt3, err_flag) 
+call em_field_kick_vector_time(ele, param, orb_temp, local_ref_frame, dr_dt3, err_flag) 
 if (err_flag) return
 
 call transfer_this_orbit (orb_temp, orb, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
-call em_field_kick_vector_time(ele, param, t+a4*dt, orb_temp, local_ref_frame, dr_dt4, err_flag)
+call em_field_kick_vector_time(ele, param, orb_temp, local_ref_frame, dr_dt4, err_flag)
 if (err_flag) return
 
 call transfer_this_orbit (orb_temp, orb, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
-call em_field_kick_vector_time(ele, param, t+a5*dt, orb_temp, local_ref_frame, dr_dt5, err_flag)
+call em_field_kick_vector_time(ele, param, orb_temp, local_ref_frame, dr_dt5, err_flag)
 if (err_flag) return
 
 call transfer_this_orbit (orb_temp, orb, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
-call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, dr_dt6, err_flag)
+call em_field_kick_vector_time(ele, param, orb_temp, local_ref_frame, dr_dt6, err_flag)
 if (err_flag) return
 
 ! Output new orb and error vector
@@ -523,7 +517,7 @@ end subroutine rk_time_step1
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !+
-! Subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt, err_flag)
+! Subroutine em_field_kick_vector_time (ele, param, orbit, local_ref_frame, dvec_dt, err_flag)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -533,7 +527,6 @@ end subroutine rk_time_step1
 ! Input:
 !   ele             -- coord_struct: input particle
 !   param           -- real: Reference momentum. The sign indicates direction of p_s. 
-!   t_rel           -- real: element coordinate system: t
 !   orbit           -- coord_struct:
 !                    %vec(1:6)  in t-based system
 !   local_ref_frame --
@@ -542,7 +535,7 @@ end subroutine rk_time_step1
 !    dvec_dt(9)  -- real(rp): Derivatives.
 !-
 
-subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt, err_flag)
+subroutine em_field_kick_vector_time (ele, param, orbit, local_ref_frame, dvec_dt, err_flag)
 
 implicit none
 
@@ -552,7 +545,6 @@ type (em_field_struct) field
 
 type (coord_struct), intent(in) :: orbit
 
-real(rp), intent(in) :: t_rel    
 real(rp), intent(out) :: dvec_dt(9)
 
 real(rp) f_bend, kappa_x, kappa_y
@@ -567,7 +559,7 @@ character(28), parameter :: r_name = 'em_field_kick_vector_time'
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
 !	and they coincide in both coordinate systems, so we can use the 'normal' routine:
 
-call em_field_calc (ele, param, orbit%vec(5), t_rel, orbit, local_ref_frame, field, .false., err_flag)
+call em_field_calc (ele, param, orbit%vec(5), orbit, local_ref_frame, field, .false., err_flag)
 if (err_flag) return
 
 ! Get e_tot from momentum

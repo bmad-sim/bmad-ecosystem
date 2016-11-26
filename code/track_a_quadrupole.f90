@@ -63,7 +63,7 @@ call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvk
 
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
@@ -124,7 +124,7 @@ enddo
 ! Exit edge
 
 fringe_info%particle_at = second_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, 0.0_rp, ele, param, .false., mat6, make_matrix)
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
 call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)  
 

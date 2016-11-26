@@ -707,7 +707,7 @@ call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info,
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
 if (fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
-  call apply_element_edge_kick (temp_start, fringe_info, temp_start%t, ele, param, .true.)
+  call apply_element_edge_kick (temp_start, fringe_info, ele, param, .true.)
   call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
@@ -792,7 +792,7 @@ end select
 !----------
 
 if (fringe_info%particle_at == second_track_edge$) then
-  call apply_element_edge_kick (temp_end, fringe_info, temp_end%t, ele, param, .true.)
+  call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
 endif
 call offset_particle (ele, param, unset$, temp_end, .true., .true., .true., set_spin = .true.)
 
@@ -1039,7 +1039,7 @@ orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_t
 orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
 orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
 
-call em_field_calc (ele, param, s_eval, orb%t, orb, .true., field)
+call em_field_calc (ele, param, s_eval, orb, .true., field)
 
 omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
 

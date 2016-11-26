@@ -8,6 +8,8 @@
 ! absolute time tracking is used or are synched relative to the reference particle
 ! if relative time tracking is used. See the Bmad manual for more details.
 !
+! Also see set_particle_from_rf_time which is the inverse of this routine.
+!
 ! Input:
 !   orbit -- Coord_struct: Particle coordinates
 !   ele   -- ele_struct: Element being tracked through.

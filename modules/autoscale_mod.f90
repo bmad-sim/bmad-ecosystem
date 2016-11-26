@@ -273,9 +273,9 @@ if (do_scale_amp) then
       s = ele%value(l$) * (2*i - 1.0) / (2*n_pts)
       ! Sample field at two phases and take the max. This is crude but effective.
       ele%value(phi0_autoscale$) = 0
-      call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field1)
+      call em_field_calc (ele, param, s, orbit0, .true., field1)
       ele%value(phi0_autoscale$) = pi/2
-      call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field2)
+      call em_field_calc (ele, param, s, orbit0, .true., field2)
       integral = integral + max(abs(field1%e(3)), abs(field2%e(3))) * ele%value(l$) / n_pts
     enddo
 
