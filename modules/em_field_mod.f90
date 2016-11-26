@@ -53,7 +53,7 @@ end function g_bend_from_em_field
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav, save_field)
+! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav, t_ref)
 !
 ! Routine used by Runge-Kutta and Boris tracking routines to save
 ! the trajectory through an element.
@@ -62,19 +62,19 @@ end function g_bend_from_em_field
 ! element coordinates. The actual track saved will be in laboratory coordinates.
 !
 ! Input:
-!   ele        -- ele_struct: Element being tracked through.
-!   param      -- lat_param_struct: Lattice parameters.
+!   ele      -- ele_struct: Element being tracked through.
+!   param    -- lat_param_struct: Lattice parameters.
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
-!   s          -- Real(rp): S-position with respect to start of element
-!   orb        -- Coord_struct: trajectory at s with respect to element coordinates.
-!   save_field -- logical, optional: Save electric and magnetic field values? Default is False.
+!   s        -- Real(rp): S-position with respect to start of element
+!   orb      -- Coord_struct: trajectory at s with respect to element coordinates.
+!   t_ref    -- real(rp), optional: Reference time. If present then track%field call be evaluated.
 !
 ! Ouput:
 !   track    -- track_struct: Trajectory structure to save to.
 !   s_sav    -- Real(rp): Set equal to s.
 !-
 
-subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, save_field)
+subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, t_ref)
 
 type (track_struct) track, track2
 type (ele_struct), target :: ele
@@ -82,8 +82,8 @@ type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb, orb2
 integer n_pt, n, n_old
 real(rp) s, s_sav
+real(rp), optional :: t_ref
 logical local_ref_frame
-logical, optional :: save_field
 
 ! Not allocated
 
@@ -124,8 +124,8 @@ track%map(n_pt)%mat6 = 0
 
 s_sav = s
 
-if (logic_option(.false., save_field)) then
-  call em_field_calc (ele, param, s, orb, local_ref_frame, track%field(n_pt), .false.)
+if (present(t_ref)) then
+  call em_field_calc (ele, param, s, t_ref, orb, local_ref_frame, track%field(n_pt), .false.)
 endif
 
 end subroutine save_a_step
@@ -134,8 +134,8 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-!                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time)
+! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
+!                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -154,19 +154,17 @@ end subroutine save_a_step
 !   ele             -- Ele_struct: Element
 !   param           -- lat_param_struct: Lattice parameters.
 !   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   time            -- Real(rp): Particle time.
+!                       For absolute time tracking this is the absolute time.
+!                       For relative time tracking this is relative to the reference particle entering the element.
 !   orbit           -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3) -- Transverse coords. These are the only components used in the calculation.
-!     %t               -- Used with absolute time tracking.
-!     %vec(5)          -- Used with relative time tracking.
-!   local_ref_frame  -- Logical, If True then take the input coordinates and output fields 
-!                         as being with respect to the frame of referene of the element (ignore misalignments). 
+!   local_ref_frame -- Logical, If True then take the input coordinates and output fields 
+!                                as being with respect to the frame of referene of the element (ignore misalignments). 
 !   calc_dfield      -- Logical, optional: If present and True then calculate the field derivatives.
 !   use_overlap      -- logical, optional: Add in overlap fields from other elements? Default is True.
-!   grid_allow_s_out_of_bounds 
-!                    -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
-!                          and return zero instead of an error? Default: False. Used internally for overlapping fields.
-!   rf_time          -- real(rp), optional: Set the time relative to the RF clock. Normally this time is calculated using
-!                          orbit%t or orbit%vec(5) but sometimes it is convenient to be able to override this. 
+!   grid_allow_s_out_of_bounds -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
+!                                     and return zero instead of an error? Default: False. Used internally for overlapping fields.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -175,8 +173,8 @@ end subroutine save_a_step
 !                   This is experimental and only implemented for wigglers at present.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-                                          err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time)
+recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, &
+                                          err_flag, potential, use_overlap, grid_allow_s_out_of_bounds)
 
 use geometry_mod
 
@@ -198,8 +196,7 @@ type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
 
-real(rp), optional :: rf_time
-real(rp) :: x, y, s, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, y, s, t, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
@@ -240,12 +237,6 @@ else
   s_rel = ele%value(l$) - s_pos
 endif
 
-if (present(rf_time)) then
-  time = rf_time
-else
-  time = particle_ref_time(orbit, ele)
-endif
-
 !----------------------------------------------------------------------------
 ! convert to local coords
 
@@ -268,8 +259,12 @@ if (ele%field_calc == refer_to_lords$) then
     if (ele%key == em_field$) local_ref = .false.
 
     s = s_pos + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    t = time
+    if (.not. absolute_time_tracking(ele)) then
+      t = t + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
+    endif
 
-    call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err)
+    call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield, err)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
@@ -291,7 +286,7 @@ endif
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then 
-  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield)
+  call em_field_custom (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield)
   return
 end if
 
@@ -1248,7 +1243,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(1) = lord_position%r(1)
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
-    call em_field_calc (lord, param, lord_position%r(3), lord_orb, .false., l1_field, calc_dfield, err, &
+    call em_field_calc (lord, param, lord_position%r(3), time, lord_orb, .false., l1_field, calc_dfield, err, &
                         use_overlap = .false., grid_allow_s_out_of_bounds = .true.)
     if (err) then
       if (present(err_flag)) err_flag = .true.
@@ -1283,7 +1278,7 @@ endif
 if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_rel, .true., field)
 
 if (do_df_calc .and. .not. dfield_computed) then
-  call em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, field)
+  call em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, field)
 endif
 
 !----------------------------------------------------------------------------
@@ -1794,7 +1789,7 @@ end function e_accel_field
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield)
+! Subroutine em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, dfield)
 !
 ! Routine to calculate field derivatives.
 ! In theory this should be handled by em_filed_calc. In practice, em_field_calc is currently incomplete.
@@ -1815,14 +1810,14 @@ end function e_accel_field
 !   dfield       -- em_field_struct: E and B field derivatives. dfield%E and dfield%B are not touched.
 !-
 
-subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield)
+subroutine em_field_derivatives (ele, param, s_pos, time, orbit, local_ref_frame, dfield)
 
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (em_field_struct) :: dfield, f0, f1
 type (coord_struct) :: orbit, orb
 
-real(rp) s_pos, s0, s1, del
+real(rp) s_pos, time, s0, s1, del
 logical local_ref_frame
 
 !
@@ -1831,9 +1826,9 @@ orb = orbit
 del = bmad_com%d_orb(1)
 
 orb%vec(1) = orbit%vec(1) - del
-call em_field_calc (ele, param, s_pos, orb, .true., f0)
+call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
 orb%vec(1) = orbit%vec(1) + del
-call em_field_calc (ele, param, s_pos, orb, .true., f1)
+call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
 
 dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
@@ -1844,9 +1839,9 @@ orb = orbit
 del = bmad_com%d_orb(3)
 
 orb%vec(3) = orbit%vec(3) - del
-call em_field_calc (ele, param, s_pos, orb, .true., f0)
+call em_field_calc (ele, param, s_pos, time, orb, .true., f0)
 orb%vec(3) = orbit%vec(3) + del
-call em_field_calc (ele, param, s_pos, orb, .true., f1)
+call em_field_calc (ele, param, s_pos, time, orb, .true., f1)
 
 dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
@@ -1856,8 +1851,8 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 orb = orbit
 del = bmad_com%d_orb(5)
 
-call em_field_calc (ele, param, s_pos-del, orbit, .true., f0)
-call em_field_calc (ele, param, s_pos+del, orbit, .true., f1)
+call em_field_calc (ele, param, s_pos-del, time, orbit, .true., f0)
+call em_field_calc (ele, param, s_pos+del, time, orbit, .true., f1)
 
 dfield%dB(:,3) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,3) = (f1%E - f0%E) / (2 * del)
