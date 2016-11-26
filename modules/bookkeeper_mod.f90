@@ -988,7 +988,7 @@ do j = 1, slave%n_lord
     slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
   endif
 
-  if (has_attribute (lord, 'FRINGE_TYPE')) then
+  if (ele_has(lord, 'FRINGE_TYPE')) then
     if (is_first .and. at_this_ele_end(entrance_end$, nint(lord%value(fringe_at$)))) then
       call set_fringe_on_off(value(fringe_at$), entrance_end$, on$)
       value(fringe_type$) = lord%value(fringe_type$)
@@ -1021,7 +1021,7 @@ do j = 1, slave%n_lord
             'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
         if (global_com%exit_on_error) call err_exit
       endif
-      if ((is_first .or. is_last) .and. has_attribute (lord, 'FRINGE_TYPE')) then
+      if ((is_first .or. is_last) .and. ele_has(lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
          call out_io(s_abort$, r_name, &
             'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)

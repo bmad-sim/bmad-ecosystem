@@ -4,7 +4,7 @@ use bmad_struct
 
 interface 
 
-subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix)
+subroutine apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, finished, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orb
@@ -12,6 +12,7 @@ subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, fin
   type (ele_struct) track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
+  real(rp) t_rel
   logical, optional :: make_matrix
   logical finished
 end subroutine
@@ -35,21 +36,21 @@ subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
   logical finished
 end subroutine ele_geometry_hook
 
-subroutine wall_hit_handler_custom (orb, ele, s)
+subroutine wall_hit_handler_custom (orb, ele, s, t)
   import
   implicit none
   type (coord_struct) :: orb
   type (ele_struct) :: ele
-  real(rp) s
+  real(rp) s, t
 end subroutine
 
-subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
+subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
   import
   implicit none
   type (ele_struct) :: ele
   type (lat_param_struct) param
   type (coord_struct), intent(in) :: orb
-  real(rp), intent(in) :: s_rel
+  real(rp), intent(in) :: s_rel, t_rel
   logical local_ref_frame
   type (em_field_struct) :: field
   logical, optional :: err_flag

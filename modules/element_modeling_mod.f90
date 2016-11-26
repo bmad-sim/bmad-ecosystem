@@ -164,7 +164,7 @@ if (wiggler%sub_key == map_type$) then
   do i = 0, i_max
 
     s = i * wiggler%value(l$) / i_max
-    call em_field_calc (wiggler, param, s, here, .true., field)
+    call em_field_calc (wiggler, param, s, 0.0_rp, here, .true., field)
     B_y = field%b(2)
 
     b2_int = b2_int + B_y**2
@@ -192,7 +192,7 @@ if (wiggler%sub_key == map_type$) then
   do i = 0, i_max
 
     s = i * wiggler%value(l$) / i_max
-    call em_field_calc (wiggler, param, s, here, .true., field)
+    call em_field_calc (wiggler, param, s, 0.0_rp, here, .true., field)
     r = field%b(2) / B_max
 
     if (r > 0.1) then

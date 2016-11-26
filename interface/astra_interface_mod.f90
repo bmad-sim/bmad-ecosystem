@@ -582,13 +582,13 @@ case (lcavity$, rfcavity$, e_gun$)
   do iz = 0, nz
     z = z_step * iz 
     ! Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
-    call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
+    call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
     ! if frequency is zero, zero out field_im
     if(freq == 0) then
       field_im%E=0
       field_im%B=0
-    else
-      call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.0_rp)
+    else 
+      call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
     endif
     pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
     pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
@@ -627,8 +627,8 @@ case (lcavity$, rfcavity$, e_gun$)
   maxfield = 0
   
   do iz = 0, nz
-    z = z_step * iz
-    call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
+    z = z_step * iz 
+    call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
     field_im%E = 0
     field_im%B = 0
     pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
@@ -814,13 +814,13 @@ do ix=1, nx
   orb%vec(3) = y_min + (iy-1)*y_step
   z = z_min + (iz-1)*z_step
   ! Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
-  call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
+  call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
   ! if frequency is zero, zero out field_im
   if(freq == 0) then
     field_im%E=0
     field_im%B=0
   else 
-    call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
+    call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
   endif
   pt(ix, iy, iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
   pt(ix, iy, iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)

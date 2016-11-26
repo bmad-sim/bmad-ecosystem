@@ -510,13 +510,13 @@ case (lcavity$, rfcavity$, e_gun$)
       orb%vec(3) = 0.0_rp
       
       ! Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
-      call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
+      call em_field_calc (ele, param, z, 0.0_rp,     orb, loc_ref_frame, field_re)
       ! if frequency is zero, zero out field_im
       if(freq == 0) then
         field_im%E=0
         field_im%B=0
       else 
-        call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
+        call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
       endif
 
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
@@ -591,7 +591,7 @@ case (lcavity$, rfcavity$, e_gun$)
       orb%vec(1) = x
       orb%vec(3) = 0.0_rp
 
-      call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
+      call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
       field_im%E = 0
       field_im%B = 0
 

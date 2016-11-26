@@ -1,5 +1,5 @@
 !+
-! Subroutine wall_hit_handler_custom (orb, ele, s)
+! Subroutine wall_hit_handler_custom (orb, ele, s, t)
 !
 ! Dummy routine.
 ! This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
@@ -12,12 +12,14 @@
 !   orb   -- coord_struct: coordinates of particle.
 !   ele   -- ele_struct: Element holding the aperture
 !   s     -- real(rp): Longitudinal position from start of element.
+!   t     -- real(rp): Time of hit. May be relative or absolute depending upon 
+!              what type of tracking is being done.
 !
 ! Output:
 !   Any argument may be modified...
 !-
 
-subroutine wall_hit_handler_custom (orb, ele, s)
+subroutine wall_hit_handler_custom (orb, ele, s, t)
 
 use bmad_interface, dummy => wall_hit_handler_custom
 
@@ -26,7 +28,7 @@ implicit none
 type (coord_struct) :: orb
 type (ele_struct) :: ele
 
-real(rp) :: s
+real(rp) :: s, t
 
 character(*), parameter :: r_name = 'wall_hit_handler_custom'
 
