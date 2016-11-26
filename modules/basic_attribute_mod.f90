@@ -2103,7 +2103,6 @@ end function
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Fuction ele_has (ele, attrib) result(has_it)
 !
 ! Routine to determine if a given type of lattice element has a particular attribute.
 !
@@ -2115,7 +2114,6 @@ end function
 !   has_it  -- logical: True if element has an attribute of that name.
 !-
 
-function ele_has (ele, attrib) result (has_it)
 
 type (ele_struct) ele
 character(*) attrib
