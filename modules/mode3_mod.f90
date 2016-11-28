@@ -651,20 +651,21 @@ end subroutine order_evecs_by_N_similarity
 !   eval_i(6)    - real(rp):  complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
 !   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
+!   mat_tunes(3) - real(rp), optional:  Three normal mode tunes, in radians.
 !
 ! Output:
 !   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
 !   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
 !   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors.
 !   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors.
+!   mat_tunes(3) - real(rp), optional:  Reordered same as evecs.
 !-
 
 subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
 
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) eval_r(6), eval_i(6)
-real(rp) mat_tunes(3)
+real(rp), optional :: mat_tunes(3)
 real(rp) vec(3)
 integer pair1, pair2, pair3
 integer pairindexes(6)
@@ -684,7 +685,9 @@ evec_i = evec_i(:, pairIndexes)
 eval_r = eval_r(pairIndexes)
 eval_i = eval_i(pairIndexes)
 
-mat_tunes = mat_tunes([pair1, pair2, pair3])
+if(present(mat_tunes)) then
+  mat_tunes = mat_tunes([pair1, pair2, pair3])
+endif
 
 end subroutine order_evecs_by_plane_dominance
 
