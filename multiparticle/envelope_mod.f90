@@ -1,0 +1,301 @@
+module envelope_mod
+
+use twiss_and_track_mod
+
+implicit none
+
+real(rp), parameter :: o = 0.0d0  ! for compact code
+real(rp), parameter :: l = 1.0d0  ! for compact code
+real(rp), parameter :: S6(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
+                                          o, o, o, -l, o, o, o, o, l, o, o, o, &
+                                          o, o, o, o, o, -l, o, o, o, o, l, o], [6,6] )
+real(rp), parameter :: S2(2,2)= reshape( [o, -l, l, o], [2,2] )
+real(rp), parameter :: I2(2,2)= reshape( [l,  o, o, l], [2,2] )
+
+contains
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! subroutine make_SR_mats(ele,co,M,Bbar)
+!
+! Equation references are to "From the beam-envelope matrix to synchrotron-radiation
+! integrals" by K. Ohmi, K. Hirata, and K. Oide.  Phys.Rev.E v49n1, January 1994.
+!
+! This subroutine makes the synchrotron radiation damping and diffusion matrices.
+! The damping is contained in M, and the diffusion is contained in Bbar.
+!
+! See transport_with_sr_ele in this module for how to track through an element 
+! using these matrices.
+!
+! Modules needed:
+!   use envelope_mod
+!
+! Input:
+!   ele                    -- ele_struct: 
+!     %value(l$)           -- real(rp): element or slice length
+!     %mat6(6,6)           -- real(rp): 6x6 transfer matrix
+!     %value(b_field$)     -- real(rp): bend field
+!     %value(b1_gradient$) -- real(rp): quadrupole field
+!   co                     -- coord_struct:
+!     %vec(6)              -- real(rp): p_z
+! Output:
+!   M(6,6)                 -- real(rp): transfer matrix with damping.
+!   Bbar(6,6)              -- real(rp): diffusion matrix.
+! 
+!-
+subroutine make_SR_mats(ele,co,M,Bbar)
+  use bmad
+
+  type(ele_struct) ele
+  type(coord_struct) co
+  real(rp) M(:,:), Bbar(:,:)
+
+  real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
+  real(rp) M0(6,6)
+  real(rp) B0, B1, delta
+  real(rp) l, gamma, rho
+
+  M0 = ele%mat6
+  if(any(ele%key==(/sbend$,rbend$/))) then
+    l = ele%value(l$)
+    call convert_total_energy_to(ele%value(E_TOT$), -1, gamma=gamma)
+    rho = ele%value(rho$)
+    B0 = ele%value(b_field$)
+    B1 = ele%value(b1_gradient$)
+    delta = co%vec(6)
+
+    M = M0 - l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta))  !Eqn. 80 & 81
+
+    Bbar = l*matmul(M,matmul(diffusion_matrix_B(gamma,rho),transpose(M)))  !Eqn. 88
+  else
+    M = M0
+    Bbar = 0.0d0
+  endif
+
+contains
+  !+
+  ! Calculate diffusion matrix B from Ohmi Eqn 114 & 115.
+  !-
+  function diffusion_matrix_B(gamma,rho) result(mat)
+    real(rp) mat(6,6)
+    real(rp) gamma, rho
+    real(rp), parameter :: D_const = 55.0d0/24.0d0/sqrt(3.0d0)*r_e*(1.055e-34)/(9.11e-31)/c_light
+
+    mat = 0.0d0
+
+    mat(6,6) = D_const * gamma**5 / abs(rho)**3
+  end function
+
+  !+
+  ! Calculate damping matrix D from Ohmi Eqn 121.
+  !
+  ! This routine assumes zero scalar potential.
+  !-
+  function damping_matrix_D(gamma, rho, B0, B1, delta) result(mat)
+    real(rp) mat(6,6)
+    real(rp) gamma, rho, B0, B1, delta
+    real(rp) delta_f
+
+    mat = 0.0d0
+
+    delta_f = 1.0d0/(1.0d0+delta)
+
+    mat(2,2) = delta_f
+    mat(4,4) = delta_f
+    mat(6,6) = 2.0d0*delta_f
+
+    mat(6,1) = 1.0d0/rho + 2.0d0/B0*B1
+    mat(6,3) = 2.0d0/B0*B1
+
+    mat = energy_loss_rate(gamma,rho)*mat
+  end function
+
+  !+
+  ! Calculate energy-loss rate from Ohmi Eqn 43.
+  !
+  ! This implementation assumes dl/ds = 1
+  !-
+  function energy_loss_rate(gamma,rho) result(P)
+    real(rp) P
+    real(rp) gamma, rho
+    real(rp), parameter :: P_const = 2.0d0/3.0d0*r_e
+
+    P = P_const * gamma**3 / rho**2
+  end function
+end subroutine
+
+!+
+! subroutine transport_with_sr_ele(ele,M,Bbar,Sigma_ent,Sigma_exit)
+!
+! Transport a 6x6 beam envelope matrix through an element including
+! damping and diffusion.
+!
+! Only bends include damping & diffusion.
+!
+! Input:
+!   ele            -- integer: element key
+!   M(6,6)         -- real(rp): transfer matrix with damping, populated by make_SR_mats
+!   Bbar(6,6)      -- real(rp): diffusion matrix, populated by make_SR_mats
+!   Sigma_ent(6,6) -- real(rp): incoming beam envelope matrix
+! Output:
+!   Sigma_exit(6,6) -- real(rp): outgoing beam envelope matrix
+!-
+subroutine transport_with_sr_ele(ele,M,Bbar,Sigma_ent,Sigma_exit)
+  use bmad
+
+  type(ele_struct) ele
+  real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
+  real(rp) M(:,:), Bbar(:,:)
+
+  if(any(ele%key==(/sbend$,rbend$/))) then
+    Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bbar
+  else
+    Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6)))
+  endif
+end subroutine
+
+!+
+! subroutine make_PBRH(M, P, Bp, R, H)
+!
+! Decomposes the 1-turn transfer matrix into normal mode twiss-like parameters,
+! according to Sec. IIIB of Ohmi, Hirata, and Oide paper.
+!
+! Note:  The Twiss parameters generated by this function are identical to those delivered
+!        by mode3_mod.
+!
+! Input:
+!   M(6,6)     -- real(rp): 1-turn transfer matrix
+! Output:
+!   P(6,6)     -- complex(rp):  Eqn. 97.  Phase advances.
+!   Bp(6,6)    -- complex(rp):  Eqns. 89 & 101.  Beta functions.
+!   R(6,6)     -- complex(rp):  Eqn. 99.  Transverse coupling.
+!   H(6,6)     -- complex(rp):  Eqn. 100.  Longitudinal coupling.
+!-
+subroutine make_PBRH(M, P, Bp, R, H)
+
+  use mode3_mod, only: normalize_evecs, order_evecs_by_plane_dominance
+  use f95_lapack
+
+  real(rp) M(6,6)
+  complex(rp) P(6,6)
+  complex(rp) Bp(6,6)
+  complex(rp) R(6,6)
+  complex(rp) H(6,6)
+  
+  complex(rp) V(6,6)
+  complex(rp) Vinv(6,6)
+  complex(rp) U(6,6), Up(6,6)
+  complex(rp) Hx(2,2), Hy(2,2)
+  complex(rp) R2(2,2)
+
+  real(rp) a, b
+  real(rp) temp_mat(6,6), VR(6,6)
+  real(rp) eval_r(6), eval_i(6)
+  real(rp) evec_r(6,6), evec_i(6,6)
+  real(rp) V_r(6,6), V_i(6,6)
+  real(rp) v1_r(6), v1_i(6)
+  real(rp) v2_r(6), v2_i(6)
+  real(rp) v3_r(6), v3_i(6)
+
+  integer i
+  integer i_error
+
+  logical ok, err_flag
+
+  character(*), parameter :: r_name = 'make_V'
+
+  temp_mat = M  !LA_GEEV destroys the contents of its first argument.
+  CALL la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
+  if ( i_error /= 0 ) THEN
+    call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
+    if (global_com%exit_on_error) call err_exit
+    eval_r = 0.0d0
+    eval_i = 0.0d0
+    evec_r = 0.0d0
+    evec_i = 0.0d0
+    return
+  endif
+
+  v1_r = VR(:, 1)  !v1_r
+  v1_i = VR(:, 2)  !v1_i
+
+  v2_r = VR(:, 3)  !v2_r
+  v2_i = VR(:, 4)  !v2_i
+
+  v3_r = VR(:, 5)  !v3_r
+  v3_i = VR(:, 6)  !v3_i
+
+  Vinv(:,1) = cmplx(v1_r,v1_i)
+  Vinv(:,2) = (0.0d0,1.0d0)*conjg(Vinv(:,1))
+  Vinv(:,3) = cmplx(v2_r,v2_i)
+  Vinv(:,4) = (0.0d0,1.0d0)*conjg(Vinv(:,3))
+  Vinv(:,5) = cmplx(v3_r,v3_i)
+  Vinv(:,6) = (0.0d0,1.0d0)*conjg(Vinv(:,5))
+  evec_r = real(Vinv)
+  evec_i = aimag(Vinv)
+  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i)
+  call normalize_evecs(evec_r, evec_i)
+  Vinv = cmplx(evec_r,evec_i)
+  V = mat_symp_conj_i(Vinv)   
+  P = matmul(V,matmul(M,Vinv))  ! Ohmi Eqn. 110
+  U = matmul(mat_symp_conj_i(P),V)  ! Ohmi Eqn. 104
+  a = sqrt(U(5,5)*U(6,6)-U(5,6)*U(6,5))  ! Ohmi Eqn. 105
+  Hx = matmul(mat_symp_conj_i(U(5:6,1:2)),U(5:6,5:6))/a
+  Hy = matmul(mat_symp_conj_i(U(5:6,3:4)),U(5:6,5:6))/a
+  H(1:2,1:2) = (1.0d0-Hx(1,1)*Hx(2,2)+Hx(1,2)*Hx(2,1)/(1.0d0+a))*I2
+  H(3:4,3:4) = (1.0d0-Hy(1,1)*Hy(2,2)+Hy(1,2)*Hy(2,1)/(1.0d0+a))*I2
+  H(5:6,5:6) = a*I2
+  H(1:2,3:4) = matmul(Hx,-mat_symp_conj_i(Hy))/(1.0d0+a)
+  H(3:4,1:2) = matmul(Hy,-mat_symp_conj_i(Hx))/(1.0d0+a)
+  H(1:2,5:6) = -Hx
+  H(3:4,5:6) = -Hy
+  H(5:6,1:2) = mat_symp_conj_i(Hx)
+  H(5:6,3:4) = mat_symp_conj_i(Hy)
+  Up = matmul(V,mat_symp_conj_i(H))
+  b = sqrt(Up(3,3)*Up(4,4)-Up(3,4)*Up(4,3))
+  R2 = matmul(mat_symp_conj_i(Up(3:4,3:4)),Up(3:4,1:2))/b
+  R = 0.0d0
+  R(1:2,1:2) = b*I2
+  R(3:4,3:4) = b*I2
+  R(5:6,5:6) = I2
+  R(1:2,3:4) = -mat_symp_conj_i(R2)
+  R(3:4,1:2) = R2
+  Bp = matmul(Up,mat_symp_conj_i(R))
+  ! write(*,*) "Bp = "
+  ! do i=1,6
+  !   write(*,'(6es14.5)') real(Bp(i,:))
+  !   write(*,'(6es14.5)') aimag(Bp(i,:))
+  !   write(*,*)
+  ! enddo
+  ! write(*,*) "Beta x  = ", Bp(2,2)**2*2.0d0, -2.0*(Bp(1,2)**2)
+  ! write(*,*) "Alpha x = ", Bp(1,1)*Bp(2,2)*2.0d0-(1.0d0,0.0d0)
+  ! write(*,*) "Alpha x = ", Bp(2,1)*Bp(2,2)*2.0d0+(0.0d0,1.0d0)
+end subroutine
+
+end module
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
