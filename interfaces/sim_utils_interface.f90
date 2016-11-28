@@ -325,6 +325,13 @@ function mat_symp_conj(mat) result (mat_conj)
   real(rp) mat_conj(size(mat, 1), size(mat, 2))
 end function
 
+function mat_symp_conj_i(mat) result (mat_conj)
+  import
+  implicit none
+  complex(rp) mat(:,:)
+  complex(rp) mat_conj(size(mat, 1), size(mat, 2))
+end function
+
 function mat_symp_error (mat, p0_ratio, err_mat) result (error)
   import
   real(rp), intent(in) :: mat(:,:)
