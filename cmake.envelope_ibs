@@ -5,11 +5,8 @@ set (SRC_FILES
 )
 
 set (LINK_LIBS
-  sls_sim
-  sls_lib
   bmad
   sim_utils
-  cesr_utils
   recipes_f-90_LEPP
   forest
   fgsl
