@@ -54,19 +54,19 @@ program make_a_matching_knob
   enddo
   n_vars = i
 
-  n_cons = 4
+  n_cons = 5
   if(set_x .and. .not. set_y) then
-    n_cons = 5
-    xix = 5
+    n_cons = 6
+    xix = 6
     nQy = 1
   elseif(set_y .and. .not. set_x) then
-    n_cons = 5
-    yix = 5
+    n_cons = 6
+    yix = 6
     nQx = 1
   elseif(set_x .and. set_y) then
-    n_cons = 6
-    xix = 5
-    yix = 6
+    n_cons = 7
+    xix = 6
+    yix = 7
   else
     write(*,*) "Neither set_x nor set_y true.  Aborting."
     stop
@@ -96,6 +96,7 @@ program make_a_matching_knob
   con(2) = ring%ele(match_point)%a%alpha
   con(3) = ring%ele(match_point)%b%beta
   con(4) = ring%ele(match_point)%b%alpha
+  con(5) = 0.0d0  !horizontal dispersion at element 0
 
   call get_mag_str(mags,ring,var0)
 
@@ -125,6 +126,7 @@ program make_a_matching_knob
       con0(2) = ring%ele(match_point)%a%alpha
       con0(3) = ring%ele(match_point)%b%beta
       con0(4) = ring%ele(match_point)%b%alpha
+      con0(5) = ring%ele(0)%a%eta
       if(set_x) con0(xix) = ring%ele(ring%n_ele_track)%a%phi/twopi
       if(set_y) con0(yix) = ring%ele(ring%n_ele_track)%b%phi/twopi
       do k=1,max_it
@@ -143,6 +145,7 @@ program make_a_matching_knob
           Jac(2,l) = (con0(2) - ring%ele(match_point)%a%alpha) / dk
           Jac(3,l) = (con0(3) - ring%ele(match_point)%b%beta) / dk
           Jac(4,l) = (con0(4) - ring%ele(match_point)%b%alpha) / dk
+          Jac(5,l) = (con0(5) - ring%ele(0)%a%eta) / dk
           if(set_x) Jac(xix,l) = (con0(xix) - ring%ele(ring%n_ele_track)%a%phi/twopi) / dk
           if(set_y) Jac(yix,l) = (con0(yix) - ring%ele(ring%n_ele_track)%b%phi/twopi) / dk
         enddo
@@ -162,6 +165,7 @@ program make_a_matching_knob
         con0(2) = ring%ele(match_point)%a%alpha
         con0(3) = ring%ele(match_point)%b%beta
         con0(4) = ring%ele(match_point)%b%alpha
+        con0(5) = ring%ele(0)%a%eta
         if(set_x) con0(xix) = ring%ele(ring%n_ele_track)%a%phi/twopi
         if(set_y) con0(yix) = ring%ele(ring%n_ele_track)%b%phi/twopi
 
@@ -174,7 +178,7 @@ program make_a_matching_knob
         write(11,'(2f13.5,10f13.6)') dQx, dQy, var-var0
       endif
 
-      write(*,'(2i3,a,l1,i5)') i, j, " converged? ", converged, k
+      write(*,'(2i3,a,l1,a,i5,a)') i, j, " converged? ", converged, " in ", k, " iterations."
     enddo
   enddo
   close(11)
