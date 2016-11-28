@@ -19,10 +19,11 @@ use output_mod, only: rp, out_io, s_fatal$, global_com
 
 implicit none
 
-integer i, j, nn
+integer i, j, nn, dims
 
 real(rp) mat(:,:)
 real(rp) :: mat_conj(size(mat, 1), size(mat, 1))
+real(rp), allocatable :: S(:,:)
 
 character(*), parameter :: r_name = 'mat_symp_conj'
 
@@ -35,15 +36,16 @@ if (mod(nn, 2) /= 0 .or. nn /= size(mat, 2)) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-! Compute conjugate
-
-do i = 1, nn, 2
-  do j = 1, nn, 2
-    mat_conj(i,   j)   =  mat(j+1, i+1)
-    mat_conj(i,   j+1) = -mat(j,   i+1)
-    mat_conj(i+1, j)   = -mat(j+1, i)
-    mat_conj(i+1, j+1) =  mat(j,   i)
-  enddo
+dims = nn/2
+allocate(S(nn,nn))
+S=0.0d0
+do i=1,nn,2
+  S(i,i+1) =  1.0d0
+  S(i+1,i) = -1.0d0
 enddo
+
+mat_conj = -1.0d0*matmul(S,matmul(transpose(mat),S))
+
+deallocate(S)
 
 end function
