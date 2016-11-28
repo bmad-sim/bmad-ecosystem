@@ -1,0 +1,11 @@
+&envelope_tracker
+  ! This test takes about 10 minutes to complete on a Xeon(R) CPU E3-1245 v3 @ 3.40GHz
+  lat_file = 'dc12c.bmad'
+
+  starting_a_emit = 200.0d-12
+  starting_b_emit = 10.0d-12
+  starting_c_emit = 1.0e-6   !sigma_e * sigma_z
+
+  nturns = 40000 !check emit_vs_turn.out for convergence.
+  nslices = 30000 !slice length should be about 1 cm or less for accuracy.
+/
