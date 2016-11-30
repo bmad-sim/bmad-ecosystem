@@ -143,11 +143,10 @@ if (present(err_flag)) err_flag = .true.
 !       affects the reference energy due to the presence of lcavity elements.
 
 do i = 1, 3
-  call control_bookkeeper (lat)
+  call control_bookkeeper (lat, err_flag = err);     if (err) return
   call lat_geometry (lat)
   call s_calc (lat)
-  call lat_compute_ref_energy_and_time (lat, err)
-  if (err) return
+  call lat_compute_ref_energy_and_time (lat, err);   if (err) return
 enddo
 
 call ptc_bookkeeper (lat)
@@ -217,7 +216,7 @@ end subroutine lattice_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ele, mark_eles_as_stale)
+! Subroutine control_bookkeeper (lat, ele, err_flag)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 !
@@ -232,17 +231,14 @@ end subroutine lattice_bookkeeper
 !   use bmad
 !
 ! Input:
-!   lat    -- lat_struct: lattice to be used
-!   ele    -- Ele_struct, optional: Element whose attribute values 
-!               have been changed. If not present bookkeeping will be done 
-!               for all elements.
-!   mark_eles_as_stale
-!          -- Logical, optional: If true then mark all elements for control bookkeeping
-!               if using auto_bookkeeper. Default is True. Do not set this argument
-!               unless you know what you are doing.
+!   lat      -- lat_struct: lattice to be used
+!   ele      -- ele_struct, optional: Element whose attribute values 
+!                 have been changed. If not present bookkeeping will be done 
+!                 for all elements.
+!   err_flag -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-recursive subroutine control_bookkeeper (lat, ele, mark_eles_as_stale)
+subroutine control_bookkeeper (lat, ele, dummy, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct), optional :: ele
@@ -250,8 +246,10 @@ type (ele_struct), pointer :: slave, lord, branch_ele, ele2
 type (branch_struct), pointer :: branch
 
 integer i, j, ie, ib, n1, n2
+integer, optional :: dummy    ! Will remove after test
 
-logical, optional :: mark_eles_as_stale
+logical, optional :: err_flag
+logical err
 
 character(*), parameter :: r_name = 'control_bookkeeper'
 
@@ -259,7 +257,8 @@ character(*), parameter :: r_name = 'control_bookkeeper'
 ! If ele is present we only do bookkeeping for this one element and its slaves
 
 if (present(ele)) then
-  call control_bookkeeper1 (lat, ele, .true.)
+  call control_bookkeeper1 (lat, ele, .true., err)
+  if (present(err_flag)) err_flag = err
   return
 endif
 
@@ -267,7 +266,9 @@ endif
 ! Else we need to make up all the lords...
 ! First mark all the elements needing bookkeeping
 
-if (bmad_com%auto_bookkeeper .and. logic_option(.true., mark_eles_as_stale)) then
+if (present(err_flag)) err_flag = .false.
+
+if (bmad_com%auto_bookkeeper) then
   lat%ele(:)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
 endif
 
@@ -282,7 +283,8 @@ ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
     cycle
   endif
   if (ele2%n_lord > 0) cycle
-  call control_bookkeeper1 (lat, ele2, .false.)
+  call control_bookkeeper1 (lat, ele2, .false., err)
+  if (err .and. present(err_flag)) err_flag = .true.
 enddo ie_loop
 
 ! And now bookkeeping for the elements in the tracking lattice
@@ -301,7 +303,6 @@ do ib = 0, ubound(lat%branch, 1)
 
   branch%param%bookkeeping_state%attributes = ok$
   branch%param%bookkeeping_state%control = ok$
-
 enddo
 
 lat%lord_state%control = ok$
@@ -313,23 +314,27 @@ end subroutine control_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper1 (lat, ele, force_bookkeeping)
+! Subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, err_flag)
 !
 ! This routine is for control bookkeeping for a single element.
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping)
+recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
 type (ele_struct), pointer :: slave
 
 integer i
+
 logical call_a_bookkeeper, force_bookkeeping
+logical err_flag
 
 ! Only do bookkeeping on this element if it is stale or bookkeeping is forced by the calling routine.
+
+err_flag = .false.
 
 if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attributes == stale$ .or. force_bookkeeping) then
 
@@ -344,15 +349,15 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
 
   if (ele%slave_status == super_slave$) then
     ! Attrubute bookkeeping is done in the makeup_super_slave
-    call makeup_super_slave (lat, ele)
+    call makeup_super_slave (lat, ele, err_flag)
 
   elseif (ele%slave_status == multipass_slave$) then
-    call makeup_multipass_slave (lat, ele)
-    if (ele%n_lord > 1) call makeup_control_slave (lat, ele)
+    call makeup_multipass_slave (lat, ele, err_flag)
+    if (ele%n_lord > 1) call makeup_control_slave (lat, ele, err_flag)
     call_a_bookkeeper = .true.
 
   elseif (ele%n_lord > 0 .and. ele%slave_status /= slice_slave$) then
-    call makeup_control_slave (lat, ele)
+    call makeup_control_slave (lat, ele, err_flag)
     call_a_bookkeeper = .true.
 
   endif
@@ -360,7 +365,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! Lord bookkeeping
 
   if (ele%key == group$) then
-    call makeup_group_lord (lat, ele)
+    call makeup_group_lord (lat, ele, err_flag)
     call_a_bookkeeper = .true.
   endif
 
@@ -380,8 +385,9 @@ endif
 ! Recursively call this routine on the slaves
 
 do i = 1, ele%n_slave
+  if (err_flag) return
   slave => pointer_to_slave (ele, i)
-  call control_bookkeeper1 (lat, slave, force_bookkeeping)
+  call control_bookkeeper1 (lat, slave, force_bookkeeping, err_flag)
 enddo
 
 end subroutine control_bookkeeper1
@@ -390,13 +396,13 @@ end subroutine control_bookkeeper1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_group_lord (lat, lord)
+! Subroutine makeup_group_lord (lat, lord, err_flag)
 !
 ! Subroutine to calculate the attributes of group slave elements.
 ! This routine is private to bookkeeper_mod.
 !-
 
-Subroutine makeup_group_lord (lat, lord)   
+Subroutine makeup_group_lord (lat, lord, err_flag)  
 
 type (lat_struct), target :: lat
 type (ele_struct) :: lord
@@ -413,6 +419,7 @@ character(20) :: r_name = 'makeup_group_lord'
 
 !
 
+err_flag = .false.
 moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
@@ -430,35 +437,35 @@ do i = 1, lord%n_slave
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
         slave2 => pointer_to_slave (slave, j)
-        call change_this_edge (slave2, control)
+        call change_this_edge (slave2, control);  if (err_flag) return
       enddo
     else
-      call change_this_edge (slave, control)
+      call change_this_edge (slave, control);  if (err_flag) return
     endif
 
   !---------
   ! x_limit, y_limit, aperture
 
   case (x_limit$)
-    call group_change_this (slave, x1_limit$, control, 1)
-    call group_change_this (slave, x2_limit$, control, 1)
+    call group_change_this (slave, x1_limit$, control, 1);  if (err_flag) return
+    call group_change_this (slave, x2_limit$, control, 1);  if (err_flag) return
 
   case (y_limit$)
-    call group_change_this (slave, y1_limit$, control, 1)
-    call group_change_this (slave, y2_limit$, control, 1)
+    call group_change_this (slave, y1_limit$, control, 1);  if (err_flag) return
+    call group_change_this (slave, y2_limit$, control, 1);  if (err_flag) return
 
   case (aperture$) 
-    call group_change_this (slave, x1_limit$, control, 1)
-    call group_change_this (slave, x2_limit$, control, 1)
-    call group_change_this (slave, y1_limit$, control, 1)
-    call group_change_this (slave, y2_limit$, control, 1)
+    call group_change_this (slave, x1_limit$, control, 1);  if (err_flag) return
+    call group_change_this (slave, x2_limit$, control, 1);  if (err_flag) return
+    call group_change_this (slave, y1_limit$, control, 1);  if (err_flag) return
+    call group_change_this (slave, y2_limit$, control, 1);  if (err_flag) return
 
   !---------
   ! All else
 
   case default
 
-    call group_change_this (slave, ix_attrib, control, 1)
+    call group_change_this (slave, ix_attrib, control, 1);  if (err_flag) return
 
   end select
 
@@ -506,6 +513,7 @@ else
                 'A GROUP IS NOT ALLOWED TO CONTROL', &
                 'A ' // control_name(slave%slave_status), &
                 'YOU TRIED TO CONTROL: ' // slave%name)
+  err_flag = .true.
   return
 endif
 
@@ -522,6 +530,7 @@ if (ix_attrib /= end_edge$ .and. ix_attrib /= l$) then
                     'START_EDGE OF CONTROLED', &
                     'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
                     'VARIED FOR GROUP: ' // lord%name)
+      err_flag = .true.
       return
     endif
   enddo
@@ -537,6 +546,7 @@ if (ix_attrib /= start_edge$ .and. ix_attrib /= l$) then
                     'END_EDGE OF CONTROLED', &
                     'ELEMENT IS AT END OF LAT AND CANNOT BE', &
                     'VARIED FOR GROUP: ' // lord%name)
+      err_flag = .true.
       return
     endif
   enddo
@@ -547,32 +557,31 @@ endif
 select case (ix_attrib)
 
 case (l$)
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
 
 case (start_edge$)
-  call group_change_this (branch%ele(ix_min), l$, ctl, -1)
-  call group_change_this (branch%ele(ix1), l$, ctl, 1)
+  call group_change_this (branch%ele(ix_min), l$, ctl, -1);  if (err_flag) return
+  call group_change_this (branch%ele(ix1), l$, ctl, 1);  if (err_flag) return
 
 case (end_edge$)
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
-  call group_change_this (branch%ele(ix2), l$, ctl, -1)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
 
 case (accordion_edge$)
-  call group_change_this (branch%ele(ix_min), l$, ctl, 1)
-  call group_change_this (branch%ele(ix1), l$, ctl, -1)
+  call group_change_this (branch%ele(ix_min), l$, ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix1), l$, ctl, -1);  if (err_flag) return
 
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
-  call group_change_this (branch%ele(ix2), l$, ctl, -1)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
 
 case (s_position$)
-  call group_change_this (branch%ele(ix1), l$, ctl, 1)
-  call group_change_this (branch%ele(ix2), l$, ctl, -1)
-
+  call group_change_this (branch%ele(ix1), l$, ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
 case (lord_pad1$)
-  call group_change_this (branch%ele(ix1), l$, ctl, 1, this_slave, lord_pad1$)
+  call group_change_this (branch%ele(ix1), l$, ctl, 1, this_slave, lord_pad1$);  if (err_flag) return
 
 case (lord_pad2$)
-  call group_change_this (branch%ele(ix2), l$, ctl, 1, this_slave, lord_pad1$)
+  call group_change_this (branch%ele(ix2), l$, ctl, 1, this_slave, lord_pad1$);  if (err_flag) return
 
 end select
 
@@ -604,7 +613,10 @@ character(100) err_str
 !
 
 call pointer_to_indexed_attribute (ele, ix_attrib, .false., a_ptr, err_flag)
-if (err_flag .and. global_com%exit_on_error) call err_exit
+if (err_flag) then
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
 call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control_var, .false.)
 call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control_var, .true.)
@@ -618,7 +630,8 @@ a_ptr%r = a_ptr%r + delta * dir
 call set_flags_for_changed_attribute (ele, a_ptr%r)
 ! super_slave length can be varied by a group so don't check this.
 if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
-  err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
+  err_flag = .not. attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
+  if (err_flag) return
 endif
 
 ! Pad check
@@ -628,10 +641,12 @@ if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
+    err_flag = .true.
   elseif (ix_attrib == lord_pad2$) then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
+    err_flag = .true.
   endif
 endif
 
@@ -642,18 +657,19 @@ if (ele%slave_status == super_slave$) then
     call out_io (s_error$, r_name, &
                   'CONFUSED GROUP IS TRYING TO VARY SUPER_SLAVE ATTRIBUTE: ' // attribute_name(ele, ix_attrib))
     if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
     return
   endif
 
   do il = 1, ele%n_lord
     my_lord => pointer_to_lord(ele, il)
     if (my_lord%lord_status /= super_lord$) cycle
-    call group_change_this (my_lord, ix_attrib, ctl, dir)
+    call group_change_this (my_lord, ix_attrib, ctl, dir);  if (err_flag) return
   enddo
 
   if (present(this_lord)) then
-    call group_change_this (my_lord, ix_attrib, ctl, -dir)  ! Take out length change.
-    call group_change_this (my_lord, this_pad, ctl, dir)    ! And change pad length instead.
+    call group_change_this (my_lord, ix_attrib, ctl, -dir);  if (err_flag) return  ! Take out length change.
+    call group_change_this (my_lord, this_pad, ctl, dir);  if (err_flag) return    ! And change pad length instead.
   endif
 
 endif
@@ -663,7 +679,7 @@ endif
 
 if (ele%slave_status == multipass_slave$) then
   my_lord => pointer_to_lord(ele, 1, ix_slave = ix_slave)
-  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, ctl, 1)
+  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, ctl, 1);  if (err_flag) return
 endif
 
 end subroutine group_change_this
@@ -674,13 +690,13 @@ end subroutine makeup_group_lord
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_multipass_slave (lat, slave)
+! Subroutine makeup_multipass_slave (lat, slave, err_flag)
 !
 ! Subroutine to calcualte the attributes of multipass slave elements.
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_multipass_slave (lat, slave)
+subroutine makeup_multipass_slave (lat, slave, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
@@ -698,9 +714,11 @@ real(rp) theta, phi, psi, w0_inv_mat(3,3)
 
 integer i, j, ix_slave, ic, ix_s0, n_pass
 character(40) :: r_name = 'makeup_multipass_slave'
+logical err_flag
 
 !
 
+err_flag = .false.
 branch => lat%branch(slave%ix_branch)
 call set_ele_status_stale (slave, attribute_group$)
 slave%bookkeeping_state%control = ok$
@@ -816,13 +834,13 @@ end subroutine makeup_multipass_slave
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave (lat, slave)
+! Subroutine makeup_super_slave (lat, slave, err_flag)
 !
 ! Subroutine to calcualte the attributes of superposition slave elements.
 ! This routine is not meant for general use.
 !-
        
-subroutine makeup_super_slave (lat, slave)
+subroutine makeup_super_slave (lat, slave, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
@@ -849,12 +867,14 @@ character(20) :: r_name = 'makeup_super_slave'
 
 branch => lat%branch(slave%ix_branch)
 ix_slave = slave%ix_ele
+err_flag = .false.
 
 call set_ele_status_stale (slave, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
   call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
   if (global_com%exit_on_error) call err_exit
+  err_flag = .true.
   return
 endif
 
@@ -1008,6 +1028,7 @@ do j = 1, slave%n_lord
               'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
               mat6_calc_method_name(slave%mat6_calc_method))
         if (global_com%exit_on_error) call err_exit
+        err_flag = .true.
       endif
       if (slave%tracking_method /= lord%tracking_method) then
         call out_io(s_abort$, r_name, &
@@ -1015,17 +1036,20 @@ do j = 1, slave%n_lord
              'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
              tracking_method_name(slave%tracking_method))
         if (global_com%exit_on_error) call err_exit
+        err_flag = .true.
       endif
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
         call out_io(s_abort$, r_name, &
             'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
         if (global_com%exit_on_error) call err_exit
+        err_flag = .true.
       endif
       if ((is_first .or. is_last) .and. ele_has(lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
          call out_io(s_abort$, r_name, &
             'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
          if (global_com%exit_on_error) call err_exit
+         err_flag = .true.
        endif
      endif
     endif
@@ -1130,6 +1154,7 @@ do j = 1, slave%n_lord
   case (bend_sol_quad$)
     call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
     if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
 
   ! Everything else
 
@@ -1888,12 +1913,12 @@ end subroutine compute_slave_coupler
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_control_slave (lat, slave)
+! Subroutine makeup_control_slave (lat, slave, err_flag)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_control_slave (lat, slave)
+subroutine makeup_control_slave (lat, slave, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: slave
@@ -1914,10 +1939,10 @@ logical err_flag, on_an_offset_girder
 
 character(40) a_name
 character(*), parameter :: r_name = 'makeup_control_slave'
-logical is_free
 
 !
 
+err_flag = .false.
 branch => slave%branch
 n_attrib = 0
 val_attrib = 0
@@ -1999,28 +2024,30 @@ do i = 1, slave%n_lord
   select case (iv)
 
   case (x_limit$)
-    call overlay_change_this(slave%value(x1_limit$), control)
-    call overlay_change_this(slave%value(x2_limit$), control)
+    call overlay_change_this(slave%value(x1_limit$), control);  if (err_flag) return
+    call overlay_change_this(slave%value(x2_limit$), control);  if (err_flag) return
   case (y_limit$)
-    call overlay_change_this(slave%value(y1_limit$), control)
-    call overlay_change_this(slave%value(y2_limit$), control)
+    call overlay_change_this(slave%value(y1_limit$), control);  if (err_flag) return
+    call overlay_change_this(slave%value(y2_limit$), control);  if (err_flag) return
   case (aperture$)
-    call overlay_change_this(slave%value(x1_limit$), control)
-    call overlay_change_this(slave%value(x2_limit$), control)
-    call overlay_change_this(slave%value(y1_limit$), control)
-    call overlay_change_this(slave%value(y2_limit$), control)
+    call overlay_change_this(slave%value(x1_limit$), control);  if (err_flag) return
+    call overlay_change_this(slave%value(x2_limit$), control);  if (err_flag) return
+    call overlay_change_this(slave%value(y1_limit$), control);  if (err_flag) return
+    call overlay_change_this(slave%value(y2_limit$), control);  if (err_flag) return
   case default
     a_name = attribute_name(slave, iv)
-    is_free = attribute_free (slave, a_name, .true., .true.)
-    if (.not. is_free) then
+    err_flag = .not. attribute_free (slave, a_name, .true., .true.)
+    if (err_flag) then
       call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
            'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
-      err_flag = .true.
       return
     endif
 
     call pointer_to_indexed_attribute (slave, iv, .true., a_ptr, err_flag)
-    if (err_flag) call err_exit
+    if (err_flag) then
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
     call overlay_change_this(a_ptr%r, control)
   end select
 
@@ -2116,6 +2143,7 @@ character(100) err_str
 call evaluate_expression_stack(c%stack, delta, err_flag, err_str, lord%control_var, .false.)
 if (err_flag) then
   call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+  err_flag = .true.
   return
 endif
 
