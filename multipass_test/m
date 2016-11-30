@@ -1,0 +1,3 @@
+cd ..
+mkd multipass_test-exe
+cd multipass_test
