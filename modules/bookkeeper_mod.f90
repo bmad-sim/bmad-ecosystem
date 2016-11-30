@@ -629,9 +629,12 @@ a_ptr%r = a_ptr%r + delta * dir
 
 call set_flags_for_changed_attribute (ele, a_ptr%r)
 ! super_slave length can be varied by a group so don't check this.
-if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
+if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) .or. ix_attrib /= l$) then
   err_flag = .not. attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
-  if (err_flag) return
+  if (err_flag) then
+    call out_io (s_blank$, r_name, 'GROUP_LORD TRYING TO CONTROL THIS ATTRIBUTE IS:' // lord%name)
+    return
+  endif
 endif
 
 ! Pad check
