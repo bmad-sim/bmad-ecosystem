@@ -297,7 +297,7 @@ write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, &
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, 0.0_rp, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
           ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
           ele%ic1_lord, ele%ix_pointer, ele%ixx, &

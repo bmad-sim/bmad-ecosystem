@@ -1538,6 +1538,7 @@ end subroutine init_attribute_name1
 ! Function has_orientation_attributes (ele) result (has_attribs)
 !
 ! Routine to determine whether an element has orientation attributes like x_offset, etc.
+! Also see: has_attribute function.
 !
 ! Module needed:
 !   use bmad
@@ -2097,15 +2098,16 @@ if (attribute_array_init_needed) call init_attribute_name_array
 if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key$, 1:num_ele_attrib_extended$)%name))
 max_len = max_length
 
-end function
+end function n_attrib_string_max_len
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Fuction ele_has (ele, attrib) result(has_it)
+! Fuction has_attribute (ele, attrib) result(has_it)
 !
 ! Routine to determine if a given type of lattice element has a particular attribute.
+! Also see: has_orientation_attributes function.
 !
 ! Input:
 !   ele     -- ele_struct: Lattice element of a certain type
@@ -2115,7 +2117,7 @@ end function
 !   has_it  -- logical: True if element has an attribute of that name.
 !-
 
-function ele_has (ele, attrib) result (has_it)
+function has_attribute (ele, attrib) result (has_it)
 
 type (ele_struct) ele
 character(*) attrib
@@ -2125,7 +2127,7 @@ logical has_it
 
 has_it = (attribute_index(ele, attrib) > 0)
 
-end function
+end function has_attribute
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

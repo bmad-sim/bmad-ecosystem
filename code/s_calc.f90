@@ -39,12 +39,16 @@ do i = 0, ubound(lat%branch, 1)
 
   ! Branches that branch from another branch start from zero
   ele => branch%ele(0)
-  if (branch%ix_from_branch > -1) ele%s = 0  
+  if (branch%ix_from_branch > -1) then
+    ele%s_start = 0
+    ele%s = 0  
+  endif
   if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
 
   ss = ele%s
   do n = 0, branch%n_ele_track
     ele => branch%ele(n)
+    ele%s_start = ss
     if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
     ! Patch element have a length that is a dependent variable
     if (ele%key == patch$ .and. ele%bookkeeping_state%attributes /= ok$) call attribute_bookkeeper(ele, branch%param)
@@ -75,14 +79,18 @@ do n = lat%n_ele_track+1, lat%n_ele_max
 
   select case (lord%lord_status)
   case (super_lord$, overlay_lord$, group_lord$, control_lord$)
+    slave => pointer_to_slave(lord, 1)
+    lord%s_start = slave%s_start + lord%value(lord_pad1$)
     slave => pointer_to_slave(lord, lord%n_slave)
     lord%s = slave%s - lord%value(lord_pad2$)
   case (girder_lord$)
     call find_element_ends (lord, slave0, slave)
+    lord%s_start = slave0%s
     lord%s = slave%s
     lord%value(l$) = slave%s - slave0%s
     if (lord%value(l$) < 0) lord%value(l$) = lord%value(l$) + slave0%branch%param%total_length
   case default ! multipass_lord elements do not have an s-position.
+    lord%s_start = 0
     lord%s = 0
   end select
 

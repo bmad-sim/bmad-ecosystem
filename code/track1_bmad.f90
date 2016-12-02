@@ -402,7 +402,7 @@ case (lcavity$)
 
   phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_autoscale$) + &
              ele%value(phi0$) + ele%value(phi0_multipass$) + &
-             (particle_ref_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+             (particle_rf_time (end_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
   gradient_max = e_accel_field(ele, gradient$)
 
@@ -661,7 +661,7 @@ case (rfcavity$)
   voltage = e_accel_field(ele, voltage$) * charge_dir
 
   phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-          (particle_ref_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+          (particle_rf_time (end_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
   call rf_coupler_kick (ele, param, first_track_edge$, phase, end_orb)
 

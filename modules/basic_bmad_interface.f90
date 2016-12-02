@@ -26,15 +26,14 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   character(*), optional :: use_line
 end subroutine
 
-subroutine apply_element_edge_kick (orb, fringe_info, t_rel, track_ele, param, track_spin, mat6, make_matrix)
+subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time)
   import
   implicit none
   type (coord_struct) orb
   type (fringe_edge_info_struct) fringe_info
   type (ele_struct) hard_ele, track_ele
   type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
-  real(rp) t_rel
+  real(rp), optional :: mat6(6,6), rf_time
   logical, optional :: make_matrix
   logical track_spin
 end subroutine
@@ -552,11 +551,13 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   integer ix_lord
 end subroutine
 
-function particle_ref_time (orbit, ele) result (time)
+function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (time)
   import
   type (coord_struct) orbit
   type (ele_struct) ele
+  real(rp), optional :: s_rel
   real(rp) time
+  logical apply_hard_edge_offset
 end function
 
 subroutine ptc_bookkeeper (lat)
@@ -705,6 +706,15 @@ subroutine s_calc (lat)
   import
   implicit none
   type (lat_struct) lat
+end subroutine
+
+subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  real(rp) rf_time
+  logical apply_hard_edge_offset
 end subroutine
 
 subroutine set_status_flags (bookkeeping_state, stat)
