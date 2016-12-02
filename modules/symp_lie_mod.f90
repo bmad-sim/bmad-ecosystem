@@ -93,7 +93,7 @@ rel_E3 = rel_E**3
 
 start2_orb = start_orb
 end_orb = start_orb
-end_orb%s = ele%s - ele%value(l$)
+end_orb%s = ele%s_start
 mat6 => ele%mat6
 
 err = .false.

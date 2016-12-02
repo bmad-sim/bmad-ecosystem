@@ -221,6 +221,7 @@ if (abs(l_super) < 10*bmad_com%significant_length .and. .not. logic_option(.fals
   branch%ele(ix1_split)%value(l$) = branch%ele(ix1_split)%value(l$) + ds_small - l_super ! Reset to original size - l_super
   branch%ele(ix1_split)%s = branch%ele(ix1_split)%s + ds_small - l_super
   branch%ele(ix2_split)%value(l$) = l_super                                                
+  branch%ele(ix2_split)%s_start = branch%ele(ix2_split)%s - branch%ele(ix2_split)%value(l$)
 endif
 
 ! The splits may not be done exactly at s1 and s2 since split_lat avoids
@@ -533,6 +534,7 @@ call order_super_lord_slaves (lat, ix_super)
 if (logic_option(.false., create_jumbo_slave)) then
 
   lat%ele(ix_super)%s = super_saved%s ! correct s-shift from call to s_calc 
+  lat%ele(ix_super)%s_start = lat%ele(ix_super)%s - lat%ele(ix_super)%value(l$)
 
   ! All slave elements that do not have a zero length element in between 
   ! them have to be combined into one. 
@@ -558,6 +560,7 @@ if (logic_option(.false., create_jumbo_slave)) then
     if (i == ix2_split .or. i == branch%n_ele_track .or. branch%ele(i+1)%value(l$) == 0) then
       ele0%value(l$) = branch%ele(i)%s - branch%ele(ele0%ix_ele-1)%s
       ele0%s = branch%ele(i)%s
+      ele0%s_start = ele0%s - ele0%value(l$)
 
       do j = ele0%ix_ele+1, i
         ele => branch%ele(j)
@@ -599,7 +602,7 @@ if (logic_option(.false., create_jumbo_slave)) then
       lord => pointer_to_lord(ele, k)
 
       slave => pointer_to_slave(lord, 1) 
-      lord%value(lord_pad1$) = (lord%s - lord%value(l$)) - (slave%s - slave%value(l$))
+      lord%value(lord_pad1$) = lord%s_start - slave%s_start
       if (abs(lord%value(lord_pad1$)) < bmad_com%significant_length) lord%value(lord_pad1$) = 0
 
       slave => pointer_to_slave(lord, lord%n_slave) 

@@ -195,7 +195,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
       call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore vec(5) to relative s 
-      call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$)))
+      call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s_start + ele%value(z_offset_tot$)))
     endif
   endif
 
@@ -679,7 +679,7 @@ ele =>  branch%ele(orb%ix_ele)
 particle = orb;
 if (.not. logic_option( .false., in_time_coordinates)) then
   ! Set vec(5) to be relative to entrance of ele 
-  call convert_particle_coordinates_s_to_t (particle, particle%s - (ele%s - ele%value(L$)))
+  call convert_particle_coordinates_s_to_t (particle, particle%s - ele%s_start)
 endif
 
 !Set for coords_local_curvilinear_to_floor
@@ -1123,13 +1123,13 @@ ele => lat%ele(ix_ele)
  
 track_loop: do iteration = 1, max_iteration
   
-  s_rel = start2_orb%s - (ele%s - ele%value(L$) )
+  s_rel = start2_orb%s - ele%s_start
   if ( (s_rel <  -bmad_com%significant_length .or. s_rel > ele%value(L$) + bmad_com%significant_length)) then
 	call out_io (s_fatal$, r_name, 'PARTICLE STARTED BEYOND ELEMENT BOUNDS FOR: ' // ele%name)
     print *, 's_rel: ', s_rel
     print *, 'start2_orb vec: ', start2_orb%vec
     print *, 'start2_orb%s: ', start2_orb%s
-    print *, 'ele%s - L ', ele%s -ele%value(L$) 
+    print *, 'ele%s_start', ele%s_start
     print *, 'ele%s', ele%s 
     if (global_com%exit_on_error) call err_exit
   endif
@@ -1190,7 +1190,7 @@ track_loop: do iteration = 1, max_iteration
   !Place end_orb%s correctly 
   if (end_orb%direction == +1) then
     ! particle arrives at the beginning of the element
-    end_orb%s = ele%s - ele%value(L$) 
+    end_orb%s = ele%s_start
   else
     ! particle arrives at the beginning of the element
     end_orb%s = ele%s 

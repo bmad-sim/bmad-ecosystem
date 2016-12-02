@@ -282,6 +282,7 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%s = ele_in%s
         ele_out%ref_time = ele_in%ref_time
         ele_out%value(l$) = ele_out%value(l$) + ele_in%value(l$)
+        ele_out%s_start = ele_out%s - ele_out%value(l$)
         if (ele_in%value(hkick$) /= 0 .or. ele_in%value(vkick$) /= 0) then
           c2%vec = 0
           call offset_particle (ele_in, b_in%param, set$, c2, set_multipoles = .false.)

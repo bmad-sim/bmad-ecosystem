@@ -120,7 +120,7 @@ case default
     do_tilt = .false.
     if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
     orb2 = orb
-    s_here = orb2%s - (ele%s - ele%value(l$))
+    s_here = orb2%s - ele%s_start
     if (orb2%species == photon$) then
       call offset_photon (ele, orb2, set$)
     else

@@ -1407,7 +1407,7 @@ ix_ele = element_at_s (branch%lat, xys(3), .true., branch%ix_branch, err_flag)
 if (err_flag) return
 ele => branch%ele(ix_ele)
 
-local%r = [xys(1), xys(2), xys(3) - (ele%s - ele%value(l$))]
+local%r = [xys(1), xys(2), xys(3) - ele%s_start]
 global = coords_local_curvilinear_to_floor (local, ele)
 
 end function coords_curvilinear_to_floor

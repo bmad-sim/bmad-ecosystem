@@ -770,7 +770,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (l_stat == super_lord$) then
       ds_small = 10 / 10.0_rp**precision(1.0_rp) ! Used to avoid roundoff problems
       slave => pointer_to_slave(ele, 1)
-      s1 = slave%s - slave%value(l$)
+      s1 = slave%s_start
       slave => pointer_to_slave(ele, ele%n_slave)
       s2 = slave%s
       if (s2 >= s1) then

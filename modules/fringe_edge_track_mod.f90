@@ -66,7 +66,7 @@ character(*), parameter :: r_name = 'calc_next_finge_edge'
 ! The routine apply_element_edge_kick will modify ele%ixx as appropriate when the particle is tracked through an edge.
 
 dir = track_direction
-s_orb = orbit%s - (track_ele%s - track_ele%value(l$)) - track_ele%value(z_offset_tot$)
+s_orb = orbit%s - (track_ele%s_start + track_ele%value(z_offset_tot$))
 
 if (logic_option(.false., init_needed)) then
   nullify(fringe_info%hard_ele)
@@ -128,7 +128,7 @@ integer ix_loc
 
 !
 
-s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
+s_off = this_ele%s_start - track_ele%s_start
 s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
 s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 
@@ -194,7 +194,7 @@ integer this_end, dir, ix_loc
 
 ! Remamber: element length can be less than zero.
 
-s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
+s_off = this_ele%s_start - track_ele%s_start
 s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
 s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 

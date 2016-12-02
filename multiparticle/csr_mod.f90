@@ -329,13 +329,13 @@ do i_step = 0, n_step
       write (iu_wake, '(a, i6, 2x, a)') '! ', ele%ix_ele, trim(ele%name)
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
-    write (iu_wake, '(a, i4, f12.6)') '! ', i_step, ele%s - ele%value(l$) + s0_step
+    write (iu_wake, '(a, i4, f12.6)') '! ', i_step, ele%s_start + s0_step
     write (iu_wake, '(a)') '!         Z   Charge/Meter     CSR_Kick         I_CSR      S_Source' 
     do j = 1, csr_param%n_bin
       ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
       write (iu_wake, '(f12.6, 4es14.6)') csr%slice(j)%z_center, &
                   csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr, &
-                  csr%kick1(j)%I_csr, ele0%s - ele0%value(l$) + csr%kick1(j)%s_chord_source
+                  csr%kick1(j)%I_csr, ele0%s_start + csr%kick1(j)%s_chord_source
     enddo
     close (iu_wake)
   endif

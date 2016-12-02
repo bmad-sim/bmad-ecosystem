@@ -103,7 +103,7 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 ! go to local coords
 
 orb_end = orb_start
-orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
+orb_end%s = s1 + ele%s_start + ele%value(z_offset_tot$)
 
 if (ele%key == patch$) then
   call track_a_patch (ele, orb_end, .false., s0, ds_ref)

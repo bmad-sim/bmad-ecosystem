@@ -66,7 +66,7 @@ else
 
   if (present(s_rel)) then
     beta0 = ele%value(p0c$) / ele%value(E_tot$)
-    time = time + (s_rel + (ele%s - ref_ele%s) - (ele%value(l$) - ref_ele%value(l$))) / (c_light * beta0)
+    time = time + (s_rel + ele%s_start - ref_ele%s_start) / (c_light * beta0)
   endif
 endif
 

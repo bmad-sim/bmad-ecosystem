@@ -187,12 +187,12 @@ character(*), parameter :: r_name = 'lord_edge_aligned'
 
 select case (stream_ele_end(slave_edge, slave%orientation))
 case (upstream_end$)
-  s_lord = lord%s - lord%value(l$)
+  s_lord = lord%s_start
   branch => slave%branch
   if (associated(branch)) then
     if (s_lord < branch%ele(0)%s) s_lord = s_lord + branch%param%total_length
   endif
-  is_aligned = (abs(slave%s - slave%value(l$) - s_lord) < bmad_com%significant_length)
+  is_aligned = (abs(slave%s_start - s_lord) < bmad_com%significant_length)
 
 case (downstream_end$)
   is_aligned = (abs(slave%s - lord%s) < bmad_com%significant_length)

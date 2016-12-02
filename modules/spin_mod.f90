@@ -882,8 +882,8 @@ integer j, k, n, n_pts
 
 ! Note: Integrate over start_orb%s to end_orb%s. This will be the whole element except for RF cavities.
 
-s0 = start_orb%s - (ele%s - ele%value(l$))
-s1 = end_orb%s - (ele%s - ele%value(l$))
+s0 = start_orb%s - ele%s_start
+s1 = end_orb%s - ele%s_start
 
 q_array(1)%h = 1
 z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
@@ -946,7 +946,7 @@ real(rp) x, y, ds
 field%b = [0.0_rp, ele%value(b_field$) + ele%value(b_field_err$), 0.0_rp]
 field%e = 0
 
-ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+ds = abs(s_eval - start_orb%s + ele%s_start)
 x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
 y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
@@ -983,7 +983,7 @@ real(rp) x, y, ds
 
 field%e = 0
 
-ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+ds = abs(s_eval - start_orb%s + ele%s_start)
 x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
 y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
@@ -1022,7 +1022,7 @@ real(rp) x, y, s_tot, ds
 
 !
 
-ds = abs(s_eval - start_orb%s + (ele%s - ele%value(l$)))
+ds = abs(s_eval - start_orb%s + ele%s_start)
 x = spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
 y = spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
 
