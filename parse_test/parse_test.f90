@@ -42,7 +42,7 @@ do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (ele%key == taylor$) cycle
   if (ele%key == marker$) cycle
-  call em_field_calc (ele, lat%param, 0.1_rp, 1.0_rp, orb, .false., field, .true.)
+  call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
   write (1, '(a, i0, a, 6es16.8)') '"Field:', i, '" REL 1e-7', field%E, field%B
   do j = 1, 3
     write (1, '(2(a, i0), a, 6es16.8)') '"dField:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
@@ -59,7 +59,7 @@ do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (ele%key == taylor$) cycle
   if (ele%key == marker$) cycle
-  call em_field_calc (ele, lat%param, 0.1_rp, 1.0_rp, orb, .false., field, .true.)
+  call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
   write (1, '(a, i0, a, 6es16.8)') '"Field2:', i, '" REL 1e-7', field%E, field%B
   do j = 1, 3
     write (1, '(2(a, i0), a, 6es16.8)') '"dField2:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)

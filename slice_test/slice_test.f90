@@ -45,6 +45,7 @@ call bmad_parser (lat_file, lat)
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
+  if (ele%value(l$) == 0) cycle
   call init_coord (start_orb, lat%beam_start, ele, upstream_end$, lat%param%particle)
   call track1 (start_orb, ele, lat%param, end_orb)
   call make_mat6 (ele, lat%param, start_orb)
@@ -59,10 +60,6 @@ do i = 1, lat%n_ele_track
     call twiss_and_track_from_s_to_s (lat%branch(0), end_orb2, s_end, end_orb2, ele2, ele2, err)
     xmat2 = matmul(ele2%mat6, xmat2)
     if (err) exit
-  enddo
-!!!!!  write (1, '(3a, 6es11.3)') '"', trim(ele%name), ':dvec" ABS 1e-10', end_orb2%vec - end_orb%vec
-  do j = 1, 6
-!!!!!    write (1, '(3a, i0, a, 6f11.6)') '"', trim(ele%name), ':dmat', j, '" ABS 1e-10', ele%mat6(j,:)-xmat2(j,:)
   enddo
 
   if (print_extra) then
@@ -350,7 +347,7 @@ ele => branch%ele(3)
 orb1%vec(1) = 0.8
 orb1%vec(2) = 0.2
 orb1%vec(3) = -0.2
-call em_field_calc (ele, branch%param, 0.1_rp, 0.0_rp, orb1, .true., field)
+call em_field_calc (ele, branch%param, 0.1_rp, orb1, .true., field)
 
 write (1, *)
 write (1, '(a, 3f14.8)') '"Field%E"  ABS  1e-12', field%e

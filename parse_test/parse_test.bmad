@@ -20,7 +20,7 @@ call, file = sub_dir/sub.bmad
 
 parameter[custom_attribute1] = quadrupole::my_custom
 
-gang0: group = {aa[tilt], bb[tilt]}, var = {t}
+gang0: group = {aa[tilt], bb[tilt]}, var = {t}, t = 3, old_t = 3
 gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
 
 g_cc: group = {cc}, accordion_edge
