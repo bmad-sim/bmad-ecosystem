@@ -21,7 +21,6 @@
 !   ele         -- Ele_struct: Custom element.
 !   param       -- lat_param_struct: Lattice parameters.
 !   s_rel       -- Real(rp): Longitudinal position relative to the start of the element.
-!   t_rel       -- Real(rp): Time relative to the reference particle.
 !   here        -- Coord_struct: Coords with respect to the reference particle.
 !   local_ref_frame 
 !               -- Logical, If True then take the 
@@ -35,7 +34,7 @@
 !   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
+subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
 
 use geometry_mod, except_dummy => em_field_custom
 use em_field_mod, except_dummy2 => em_field_custom
@@ -48,7 +47,7 @@ type (lat_param_struct) param
 type (coord_struct), intent(in) :: orb
 type (coord_struct) :: orb2
 
-real(rp), intent(in) :: s_rel, t_rel
+real(rp), intent(in) :: s_rel
 logical local_ref_frame
 type (em_field_struct) :: field
 logical, optional :: calc_dfield, err_flag
@@ -73,7 +72,7 @@ r_vec = matmul(w_mat, r_vec) +  r0vec     ! coords in entrance frame
 ele2 => ele%branch%ele(ele%ix_ele-1)
 orb2 = orb
 orb2%vec(1:3:2) = r_vec(1:2)
-call em_field_calc (ele2, param, r_vec(3), t_rel, orb2, .false., field, calc_dfield, err_flag)
+call em_field_calc (ele2, param, r_vec(3), orb2, .false., field, calc_dfield, err_flag)
 
 ! Convert field from entrance to exit frame
 field%E = matmul(w_mat_inv, field%E)

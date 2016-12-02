@@ -20,18 +20,18 @@ character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 
 integer :: i, j, k, ib, nargs, ns
-logical print_extra
+logical custom_test
 
 !
 
 global_com%exit_on_error = .false.
 
-print_extra = .false.
+custom_test = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
-  print_extra = .true.
+  custom_test = .true.
   fmt1 = '(a, 6es15.7)' ! Don't need as much precison for test purposes
   fmt2 = '(a, a, es18.9)'
 elseif (nargs > 1) then
@@ -43,7 +43,7 @@ endif
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
-if (print_extra) then
+if (custom_test) then
   if (lat%param%geometry == open$) then
     bmad_com%convert_to_kinetic_momentum = .false.
     print *, '*** Note: wiggler end kicks not cancelled (so like PTC tracking).'
@@ -61,7 +61,7 @@ allocate (eles(n_methods$))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  DO i = 1, branch%n_ele_max - 1
+  do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
     ns = len_trim(ele%name) + 28
 
@@ -72,19 +72,20 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, lat%beam_start, ele, upstream_end$, branch%param%particle)
       call make_mat6 (ele, branch%param, start_orb, end_orb)
       call transfer_ele(ele, eles(j), .true.)
-      if (print_extra .and. ele%mat6_calc_method == bmad_standard$) then
+      if (custom_test .and. ele%mat6_calc_method == bmad_standard$) then
         write (1, '(a, 6es16.8)'), 'Start track:', start_orb%vec
         write (1, '(a, 6es16.8)'), 'End track:  ', end_orb%vec 
         write (1, *)
       endif
     enddo
 
-    DO k = 1, 8
-      DO j = 1, n_methods$
+    do k = 1, 8
+      do j = 1, n_methods$
+        if (j == mad$ .and. custom_test) cycle
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
         ele2 => eles(j)
         if (k < 7) then
-          if (print_extra) then
+          if (custom_test) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
             write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
           else
@@ -92,7 +93,7 @@ do ib = 0, ubound(lat%branch, 1)
             write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
           endif
         else if (k == 7) then
-          if (print_extra) then
+          if (custom_test) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
             write (1, fmt1) final_str(1:ns), ele2%vec0
           else
@@ -103,8 +104,9 @@ do ib = 0, ubound(lat%branch, 1)
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
           write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
         end if
-      END DO
-      if (print_extra .and. k == 8) then
+      end do
+
+      if (custom_test .and. k == 8) then
         if (valid_mat6_calc_method(ele, branch%param%particle, bmad_standard$) .and. &
             valid_mat6_calc_method(ele, branch%param%particle, tracking$)) then
           err_mat = abs(eles(bmad_standard$)%mat6 - eles(tracking$)%mat6)
@@ -125,9 +127,10 @@ do ib = 0, ubound(lat%branch, 1)
 
       endif
       write (1,*)
-    END DO
-  END DO
-enddo
+    end do  ! k
+
+  end do  ! ele
+enddo   ! branch
 
 close(1)
 

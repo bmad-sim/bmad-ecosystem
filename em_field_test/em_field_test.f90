@@ -68,7 +68,7 @@ do ib = 0, ubound(lat%branch, 1)
     orb%vec(4) = 0
     orb%vec(6) = 0
 
-    call em_field_calc (ele, branch%param, orb%vec(5), 0.0_rp, orb, .false., field0, .true., err, p0)
+    call em_field_calc (ele, branch%param, orb%vec(5), orb, .false., field0, .true., err, p0)
 
     ff = em_field_struct()
 
@@ -76,9 +76,9 @@ do ib = 0, ubound(lat%branch, 1)
       j = 2*i - 1
       dorb = orb
       dorb%vec(j) = orb%vec(j) + del
-      call em_field_calc (ele, lat%param, dorb%vec(5), 1.0_rp, dorb, .false., fp, .false., err, pp)
+      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, pp, rf_time = 1.0_rp)
       dorb%vec(j) = orb%vec(j) - del
-      call em_field_calc (ele, lat%param, dorb%vec(5), 1.0_rp, dorb, .false., fm, .false., err, pm)
+      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, pm, rf_time = 1.0_rp)
       ff%dE(:,i) = (fp%e - fm%e) / (2 * del)
       ff%dB(:,i) = (fp%b - fm%b) / (2 * del)
       select case (i)
@@ -100,7 +100,7 @@ do ib = 0, ubound(lat%branch, 1)
     call twiss_and_track_intra_ele (ele, branch%param, orb%vec(5), orb%vec(5)+ds, .false., .false., orb, orb2)
     dr_ds_track(2) = (orb2%vec(2) - orb%vec(2)) / ds
     dr_ds_track(4) = (orb2%vec(4) - orb%vec(4)) / ds
-    call kick_vector_calc (ele, branch%param, orb%vec(5), 1.0_rp, orb, .false., dr_ds_kick, err)
+    call kick_vector_calc (ele, branch%param, orb%vec(5), orb, .false., dr_ds_kick, err)
 
     !
 

@@ -37,9 +37,9 @@ call init_coord (orbit, lat%beam_start, ele, inside$)
 s = orbit%vec(5)
 call offset_particle (ele, lat%param, unset$, orbit, ds_pos = s)
 
-call em_field_calc (ele, lat%param, s, 0.0_rp, orbit, .false., f1)
+call em_field_calc (ele, lat%param, s, orbit, .false., f1)
 
-call em_field_calc (ele, lat%param, s, 0.0_rp, orbit, .true., f2)
+call em_field_calc (ele, lat%param, s, orbit, .true., f2)
 
 pos_ele%r = [orbit%vec(1), orbit%vec(3), s]
 local = coords_element_frame_to_local(pos_ele, ele, w_mat)
