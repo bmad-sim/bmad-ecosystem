@@ -110,7 +110,7 @@ case (wiggler$, undulator$)
     ! for mapped wigglers, find the B field at the source point
     ! and extract the g_bend
     ! Note: assumes particles are relativistic!!
-    call em_field_calc (runt_ele, branch%param, l_offset, 0.0_rp, orb1, .false., field)
+    call em_field_calc (runt_ele, branch%param, l_offset, orb1, .false., field)
 
     ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(p0c$)
 

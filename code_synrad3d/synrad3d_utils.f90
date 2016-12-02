@@ -125,7 +125,7 @@ case (wiggler$)
     ! for mapped wigglers, find the B field at the source point
     ! Note: assumes particles are relativistic!!
 
-    call em_field_calc (ele_here, branch%param, ele_here%value(l$), 0.0_rp, orb_here, .false., field)
+    call em_field_calc (ele_here, branch%param, ele_here%value(l$), orb_here, .false., field)
     gx = field%b(2) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
     gy = field%b(1) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
 
@@ -136,7 +136,7 @@ case default
   ! for mapped wigglers, find the B field at the source point
   ! Note: assumes particles are relativistic!!
 
-  call em_field_calc (ele_here, branch%param, ele_here%value(l$), 0.0_rp, orb_here, .false., field)
+  call em_field_calc (ele_here, branch%param, ele_here%value(l$), orb_here, .false., field)
   gx = field%b(2) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
   gy = field%b(1) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
 
