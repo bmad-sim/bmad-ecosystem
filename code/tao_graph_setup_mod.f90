@@ -2010,7 +2010,7 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('b_curl.')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     select case (data_type)
     case ('b_curl.x')
       value = field%dB(2,3) - field%dB(3,2)
@@ -2023,11 +2023,11 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('b_div')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
 
   case ('b_field.')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     select case (data_type)
     case ('b_field.x')
       value = field%b(1)
@@ -2086,7 +2086,7 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('e_curl.')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     select case (data_type)
     case ('e_curl.x')
       value = field%dE(2,3) - field%dE(3,2)
@@ -2099,11 +2099,11 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('e_div')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
 
   case ('e_field.')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit%t, orbit, .false., field)
+    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
     select case (data_type)
     case ('e_field.x')
       value = field%e(1)

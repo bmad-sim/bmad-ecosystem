@@ -1510,7 +1510,7 @@ case ('field')
     read(stuff2, *) orb%t
   endif
 
-  call em_field_calc (ele, ele%branch%param, z, orb%t, orb, .false., field, err_flag = err)
+  call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
   if (err) return
 
   nl=nl+1; write (lines(nl), '(a, 3f12.6)') 'B: ', field%B
