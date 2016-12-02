@@ -38,7 +38,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1, ds_ref
+real(rp) rel_tol, abs_tol, beta_ref, s0, s1, ds_ref, dref_time
 
 logical err_flag, set_spin
 
@@ -60,7 +60,7 @@ endif
 ! negative and the s1 stopping position is 0.
 
 end_orb = start_orb
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
+beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
@@ -68,11 +68,11 @@ if (ele%key == patch$) then
   if (end_orb%direction == 1) then
     s0 = s0 * end_orb%direction * ele%orientation
     s1 = 0
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0) * end_orb%beta / beta0 
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0) * end_orb%beta / beta_ref 
   else
     s1 = s0 * end_orb%direction * ele%orientation
     s0 = 0
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1) * end_orb%beta / beta0 
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1) * end_orb%beta / beta_ref 
   endif
 else
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
@@ -103,11 +103,10 @@ endif
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case, make the needed correction.
-! dref_time is reference time for transversing the element under the assumption, used by 
-! odeint_bmad, that the reference velocity is constant and equal to the velocity at the final enegy.
+! odeint_bmad uses a reference time assuming that the reference velocity is constant and equal to the velocity at the final energy.
 
 if (ele%key /= patch$) then
-  dref_time = ele%value(l$) / (beta0 * c_light)
+  dref_time = ele%value(l$) / (beta_ref * c_light)
   end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 endif
 

@@ -42,8 +42,8 @@ type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
 real(rp) vec(6), d_radius
-real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
-real(rp) s_edge_track, s_edge_hard
+real(rp) s_rel, s1, s2, del_s, p0c_save, s_save
+real(rp) s_edge_track, s_edge_hard, rf_time
 
 integer :: i, hard_end
 
@@ -57,7 +57,7 @@ character(*), parameter :: r_name = 'track1_time_runge_kutta'
 err_flag = .true.
 
 end_orb = start_orb
-time = particle_ref_time(start_orb, ele)
+rf_time = particle_rf_time (end_orb, ele, .true., end_orb%s - ele%s_start)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$ .and. &
             (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$) .and. &
             is_true(ele%value(spin_fringe_on$)))
@@ -67,11 +67,11 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 if (ele%value(l$) == 0) then
   
   !If saving tracks, allocate track array and save one point
-  if ( present(track) ) then
+  if (present(track)) then
     !Convert to global-s to local-t coordinates
     !Tracks use vec(5) = s_rel
     call convert_particle_coordinates_s_to_t(end_orb, 0.0_rp)
-    call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
+    call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, .true., rf_time = rf_time)
   endif
 
   ! Reset particle to s-coordinates
@@ -86,10 +86,10 @@ if (ele%value(l$) == 0) then
 end if
 
 ! Relative s. Adjust to match element edges if close enough
-s_rel =  end_orb%s - (ele%s - ele%value(l$) )
-if ( abs(s_rel)  < bmad_com%significant_length ) then
+s_rel =  end_orb%s - ele%s_start
+if (abs(s_rel) < bmad_com%significant_length) then
   s_rel = 0
-else if ( abs(s_rel - ele%value(l$))  < bmad_com%significant_length ) then
+else if (abs(s_rel - ele%value(l$))  < bmad_com%significant_length) then
   s_rel = ele%value(l$)
 endif
 
@@ -137,8 +137,8 @@ call convert_particle_coordinates_s_to_t(end_orb, s_rel)
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
   ! This should be the same as done inside odeint_bmad_time 
-  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
-  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, .true., saved_field, .false., err_flag)
+  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, .true., rf_time = rf_time)
+  call em_field_calc (ele, param, end_orb%vec(5), end_orb, .true., saved_field, .false., err_flag, rf_time = rf_time)
   if (err_flag) return
   track%field(track%n_pt) = saved_field
 endif
@@ -151,7 +151,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, time, local_ref_frame, err, track)
+call odeint_bmad_time(end_orb, ele, param, rf_time, local_ref_frame, err, track)
 
 if (err) return
 
@@ -166,7 +166,6 @@ if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
 
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, ele%value(ref_time_start$))
-  ! call apply_element_edge_kick (end_orb, ele, param, upstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
 
@@ -185,7 +184,7 @@ elseif (end_orb%state /= alive$) then
   call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                          ds_pos = end_orb%s - (ele%s - ele%value(l$)), set_spin = set_spin)
+                                                              ds_pos = end_orb%s - ele%s_start, set_spin = set_spin)
 
 elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   !Particle left exit end going forward
@@ -193,7 +192,6 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   end_orb%direction = 1
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
-  !call apply_element_edge_kick (end_orb, ele, param, downstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., set_spin = set_spin)
 

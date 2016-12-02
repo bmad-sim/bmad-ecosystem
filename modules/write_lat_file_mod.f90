@@ -912,43 +912,43 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode methods, etc.
 
-    if (ele_has(ele, 'MAT6_CALC_METHOD') .and. (ele%mat6_calc_method /= ele_dflt%mat6_calc_method)) &
+    if (has_attribute (ele, 'MAT6_CALC_METHOD') .and. (ele%mat6_calc_method /= ele_dflt%mat6_calc_method)) &
                                       line = trim(line) // ', mat6_calc_method = ' // mat6_calc_method_name(ele%mat6_calc_method)
-    if (ele_has(ele, 'TRACKING_METHOD') .and. (ele%tracking_method /= ele_dflt%tracking_method)) &
+    if (has_attribute (ele, 'TRACKING_METHOD') .and. (ele%tracking_method /= ele_dflt%tracking_method)) &
                                       line = trim(line) // ', tracking_method = ' // tracking_method_name(ele%tracking_method)
-    if (ele_has(ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
+    if (has_attribute (ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
                                       line = trim(line) // ', spin_tracking_method = ' // spin_tracking_method_name(ele%spin_tracking_method)
-    if (ele_has(ele, 'PTC_INTEGRATION_TYPE') .and. (ele%ptc_integration_type /= ele_dflt%ptc_integration_type)) &
+    if (has_attribute (ele, 'PTC_INTEGRATION_TYPE') .and. (ele%ptc_integration_type /= ele_dflt%ptc_integration_type)) &
                                       line = trim(line) // ', ptc_integration_type = ' // ptc_integration_type_name(ele%ptc_integration_type)
-    if (ele_has(ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &
+    if (has_attribute (ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &
                                       line = trim(line) // ', field_calc = ' // field_calc_name(ele%field_calc)
 
-    if (ele_has(ele, 'APERTURE_AT') .and. (ele%aperture_at /= ele_dflt%aperture_at)) &
+    if (has_attribute (ele, 'APERTURE_AT') .and. (ele%aperture_at /= ele_dflt%aperture_at)) &
                                       line = trim(line) // ', aperture_at = ' // aperture_at_name(ele%aperture_at)
-    if (ele_has(ele, 'APERTURE_TYPE') .and. (ele%aperture_type /= ele_dflt%aperture_type)) &
+    if (has_attribute (ele, 'APERTURE_TYPE') .and. (ele%aperture_type /= ele_dflt%aperture_type)) &
                                       line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 
-    if (ele_has(ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify'
+    if (has_attribute (ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify'
 
-    if (ele_has(ele, 'FIELD_MASTER') .and. (ele%field_master .neqv. ele_dflt%field_master)) &
+    if (has_attribute (ele, 'FIELD_MASTER') .and. (ele%field_master .neqv. ele_dflt%field_master)) &
                                       write (line, '(2a, l1)') trim(line), ', field_master = ', ele%field_master
-    if (ele_has(ele, 'IS_ON') .and. (ele%is_on .neqv. ele_dflt%is_on)) &
+    if (has_attribute (ele, 'IS_ON') .and. (ele%is_on .neqv. ele_dflt%is_on)) &
                                       write (line, '(2a, l1)') trim(line), ', is_on = ', ele%is_on
-    if (ele_has(ele, 'SCALE_MULTIPOLES') .and. (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles)) &
+    if (has_attribute (ele, 'SCALE_MULTIPOLES') .and. (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles)) &
                                       write (line, '(2a, l1)') trim(line), ', scale_multipoles = ', ele%scale_multipoles
-    if (ele_has(ele, 'MULTIPOLES_ON') .and. (ele%multipoles_on .neqv. ele_dflt%multipoles_on)) &
+    if (has_attribute (ele, 'MULTIPOLES_ON') .and. (ele%multipoles_on .neqv. ele_dflt%multipoles_on)) &
                                       write (line, '(2a, l1)') trim(line), ', multipoles_on = ', ele%multipoles_on
-    if (ele_has(ele, 'TAYLOR_MAP_INCLUDES_OFFSETS') .and. (ele%taylor_map_includes_offsets .neqv. ele_dflt%taylor_map_includes_offsets)) &
+    if (has_attribute (ele, 'TAYLOR_MAP_INCLUDES_OFFSETS') .and. (ele%taylor_map_includes_offsets .neqv. ele_dflt%taylor_map_includes_offsets)) &
                                       write (line, '(2a, l1)') trim(line), ', taylor_map_includes_offsets = ', ele%taylor_map_includes_offsets
-    if (ele_has(ele, 'CSR_CALC_ON') .and. (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on)) &
+    if (has_attribute (ele, 'CSR_CALC_ON') .and. (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on)) &
                                       write (line, '(2a, l1)') trim(line), ', csr_calc_on = ', ele%csr_calc_on
-    if (ele_has(ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
+    if (has_attribute (ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
                                       write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
-    if (ele_has(ele, 'ORIGIN_ELE') .and. ele%component_name /= '')      line = trim(line) // ', origin_ele = ' // ele%component_name 
-    if (ele_has(ele, 'CRYSTAL_TYPE') .and. ele%component_name /= '')    line = trim(line) // ', crystal_type = ' // ele%component_name 
-    if (ele_has(ele, 'MATERIAL_TYPE') .and. ele%component_name /= '')   line = trim(line) // ', material_type = ' // ele%component_name 
-    if (ele_has(ele, 'PHYSICAL_SOURCE') .and. ele%component_name /= '') line = trim(line) // ', physical_source = ' // ele%component_name 
+    if (has_attribute (ele, 'ORIGIN_ELE') .and. ele%component_name /= '')      line = trim(line) // ', origin_ele = ' // ele%component_name 
+    if (has_attribute (ele, 'CRYSTAL_TYPE') .and. ele%component_name /= '')    line = trim(line) // ', crystal_type = ' // ele%component_name 
+    if (has_attribute (ele, 'MATERIAL_TYPE') .and. ele%component_name /= '')   line = trim(line) // ', material_type = ' // ele%component_name 
+    if (has_attribute (ele, 'PHYSICAL_SOURCE') .and. ele%component_name /= '') line = trim(line) // ', physical_source = ' // ele%component_name 
 
 
     call write_lat_line (line, iu, .false.)  
@@ -1847,7 +1847,7 @@ do
   if (out_type == 'SAD' .and. all(ele%key /= [marker$, beambeam$]) .or. ix_ele == branch_out%n_ele_max) then
 
     bs_field = 0
-    if (ele_has (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
+    if (has_attribute (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
 
     if (bs_field /= old_bs_field) then
 
@@ -2609,7 +2609,7 @@ do ix_ele = ie1, ie2
       end select
 
       if (line_out(1:4) == 'MULT') then
-        if (ele_has (ele, 'HKICK') .and. ele%key /= kicker$) then
+        if (has_attribute (ele, 'HKICK') .and. ele%key /= kicker$) then
           call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0, a, b)
           a_pole = a_pole + a;  b_pole = b_pole + b
           call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0, a, b)
