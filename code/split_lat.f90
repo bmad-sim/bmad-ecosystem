@@ -136,7 +136,9 @@ call deallocate_ele_pointers (ele2, nullify_branch = .false., dealloc_poles = .f
 
 ele1%value(l$) = len1
 ele1%s = s_split
+
 ele2%value(l$) = len2
+ele2%s_start = s_split
 
 !-------------------------------------------------------------
 ! Now to correct the slave/lord bookkeeping...
@@ -330,8 +332,8 @@ logical overlap
 overlap = .true.
 if (lord%lord_status /= super_lord$) return
 
-s0_lord = lord%s - lord%value(l$) + bmad_com%significant_length
-s0_slave = slave%s - slave%value(l$) - bmad_com%significant_length
+s0_lord = lord%s_start + bmad_com%significant_length
+s0_slave = slave%s_start - bmad_com%significant_length
 
 ! Case where the lord does not wrap around the lattice
 

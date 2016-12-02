@@ -591,7 +591,7 @@ if (this_ele%field_calc == refer_to_lords$) then
 
     if (field_ele%lord_status == multipass_lord$) cycle
 
-    thiz_offset2 = thiz_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
+    thiz_offset2 = thiz_offset + this_ele%s_start - field_ele%s_start
 
     call get_field_eles (field_ele, thiz_offset2)
 

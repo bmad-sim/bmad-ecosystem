@@ -361,7 +361,7 @@ if (present(ele)) then
     p0c = ele%value(p0c_start$)
     e_tot = ele%value(e_tot_start$)
     ref_time = ele%value(ref_time_start$)
-    orb%s = ele%s - ele%value(l$)
+    orb%s = ele%s_start
   endif
 endif
 

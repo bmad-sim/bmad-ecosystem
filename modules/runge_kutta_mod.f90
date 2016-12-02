@@ -109,7 +109,7 @@ track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad
 ! Should not need to shift orb%s but, for example, an x_offset in a bend can confuse
 ! calc_next_fringe_edge.
 
-orbit%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
+orbit%s = s1 + ele%s_start + ele%value(z_offset_tot$)
 
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.

@@ -74,7 +74,7 @@ if (orbit%direction == 1) then
   endif
 
   orbit%vec(5) = orbit%vec(5) + ele%value(l$)
-  orbit%s = (ele%s - ele%value(l$)) + orbit%vec(5)
+  orbit%s = ele%s_start + orbit%vec(5)
 
 else
   
@@ -99,7 +99,7 @@ else
     call track_a_drift_photon (orbit, -orbit%vec(5), .false.)
   endif
 
-  orbit%s = (ele%s - ele%value(l$)) + orbit%vec(5)
+  orbit%s = ele%s_start + orbit%vec(5)
 
 endif
 

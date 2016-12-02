@@ -1127,7 +1127,7 @@ do j = 1, slave%n_lord
     x_p = lord%value(x_pitch_tot$);  x_o = lord%value(x_offset_tot$)
     y_p = lord%value(y_pitch_tot$);  y_o = lord%value(y_offset_tot$)
 
-    s_del = s_slave - (lord%s + lord%value(z_offset_tot$) - lord%value(l$)/2)
+    s_del = s_slave - (lord%s_start + lord%value(z_offset_tot$) + lord%value(l$)/2)
     s_del = modulo2 (s_del, branch%param%total_length/2)
 
     ks = lord%value(ks$)
@@ -1434,7 +1434,8 @@ sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 sliced_ele%value(l$) = l_slice
-sliced_ele%s = ele_in%s - in_len + offset + sliced_ele%value(l$)
+sliced_ele%s_start = ele_in%s - in_len + offset
+sliced_ele%s = sliced_ele%s_start + sliced_ele%value(l$)
 
 ! A sad_mult with zero length is treated differently (edge fields ignored and
 ! multipoles are integrated multipoles instead of per unit length).

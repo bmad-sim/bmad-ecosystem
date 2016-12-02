@@ -95,7 +95,7 @@ end_orb%t = end_orb%t + length * rel_p / (pz * end_orb%beta * c_light)
 if (end_orb%direction == 1) then
   end_orb%s = ele%s
 else
-  end_orb%s = ele%s - ele%value(l$)
+  end_orb%s = ele%s_start
 endif
 
 ! Mat6

@@ -163,7 +163,7 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-nl=nl+1; write (li(nl), '(1x, 3(a, f15.6))')  '[S_start, S_end]: [', ele%s_start, ',', ele%s, ']'
+nl=nl+1; write (li(nl), '(1x, 3(a, f12.6))')  'S_start, S:',  ele%s_start, ',', ele%s
 nl=nl+1; write (li(nl), '(1x, a, es14.6)') 'Ref_time:', ele%ref_time
 
 nl=nl+1; li(nl) = ''

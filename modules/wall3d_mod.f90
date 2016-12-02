@@ -1113,7 +1113,7 @@ if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. &
                                 ele%key /= mask$ .and. associated (ele%branch)) then
   if (.not. associated(ele%branch%wall3d)) return
   wall3d => ele%branch%wall3d(iw)
-  if (present(ds_offset)) ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
+  if (present(ds_offset)) ds_offset = ele%s_start - ele%branch%ele(0)%s
   if (present(is_branch_wall)) is_branch_wall = .true.
   return
 endif
@@ -1290,8 +1290,8 @@ wall => wall_ele%wall3d(1)
 nw = size(wall%section)
 
 select case (wall%ele_anchor_pt)
-case (anchor_beginning$); s_ref = fiducial_ele%s - fiducial_ele%value(l$)
-case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
+case (anchor_beginning$); s_ref = fiducial_ele%s_start
+case (anchor_center$);    s_ref = fiducial_ele%s_start + fiducial_ele%value(l$) / 2
 case (anchor_end$);       s_ref = fiducial_ele%s 
 end select
 
@@ -1392,8 +1392,8 @@ wall => wall_ele%wall3d(1)
 nw = size(wall%section)
 
 select case (wall%ele_anchor_pt)
-case (anchor_beginning$); s_ref = fiducial_ele%s - fiducial_ele%value(l$)
-case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
+case (anchor_beginning$); s_ref = fiducial_ele%s_start
+case (anchor_center$);    s_ref = fiducial_ele%s_start + fiducial_ele%value(l$) / 2
 case (anchor_end$);       s_ref = fiducial_ele%s 
 end select
 

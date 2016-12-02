@@ -144,7 +144,7 @@ subroutine zero_ave (ave)
 
 type (ele_struct) ave
 
-ave%s          = 0
+ave%s          = 0;   ave%s_start    = 0
 ave%a%phi      = 0;   ave%b%phi      = 0
 ave%a%alpha    = 0;   ave%b%alpha    = 0
 ave%a%beta     = 0;   ave%b%beta     = 0
@@ -171,6 +171,7 @@ real(rp) r
 !
 
 ave%s          = ave%s          + r * e1%s          
+ave%s_start    = ave%s_start    + r * e1%s_start
 ave%c_mat      = ave%c_mat      + r * e1%c_mat      
 ave%gamma_c    = ave%gamma_c    + r * e1%gamma_c    
 ave%a%phi      = ave%a%phi      + r * e1%a%phi      

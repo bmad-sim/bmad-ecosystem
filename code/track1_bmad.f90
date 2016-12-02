@@ -904,7 +904,7 @@ subroutine set_end_orb_s
 if (end_orb%direction == 1) then
   end_orb%s = ele%s
 else
-  end_orb%s = ele%s - ele%value(l$)
+  end_orb%s = ele%s_start
 endif
 
 end subroutine set_end_orb_s

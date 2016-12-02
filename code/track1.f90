@@ -85,7 +85,7 @@ endif
 if (ele%tracking_method /= time_runge_kutta$ .or. start2_orb%location /= inside$) then
   if (start2_orb%direction == 1) then
     start2_orb%location = upstream_end$
-    start2_orb%s = ele%s - ele%value(l$)
+    start2_orb%s = ele%s_start
   else
     start2_orb%location = downstream_end$
     start2_orb%s = ele%s

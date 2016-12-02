@@ -4266,7 +4266,7 @@ if (n_loc == 1) then
   ref_branch => pointer_to_branch(ref_ele)
   if (ref_ele%iyy == 0 .and. ref_branch%ix_branch == branch%ix_branch) then
     call compute_super_lord_s (eles(1)%ele, super_ele, pele, ix_insert)
-    ele_at_s => pointer_to_element_at_s (branch, super_ele%s-super_ele%value(l$), .true., err_flag)
+    ele_at_s => pointer_to_element_at_s (branch, super_ele%s_start, .true., err_flag)
     if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
     if (.not. err_flag) then
       if (ele_at_s%iyy /= 0) then  ! If in multipass region...
@@ -4571,14 +4571,14 @@ case (overlay$, girder$)
   s_ref_end = 0
   do i = 1, ref_ele%n_slave
     slave => pointer_to_slave(ref_ele, i)
-    s_ref_begin = min(s_ref_begin, slave%s - slave%value(l$))
+    s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
   enddo
 case (group$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON GROUP' // pele%ref_name)
   return
 case default
-  s_ref_begin = ref_ele%s - ref_ele%value(l$)
+  s_ref_begin = ref_ele%s_start
   s_ref_end = ref_ele%s
 end select
 
@@ -4599,11 +4599,19 @@ endif
 ! the end of the lattice.
 
 branch => ref_ele%branch
+
 if (branch%param%geometry == closed$) then
   if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
     super_ele%s = super_ele%s - branch%param%total_length
   elseif (super_ele%s < 0) then
     super_ele%s = super_ele%s + branch%param%total_length
+  endif
+endif
+
+super_ele%s_start = super_ele%s - super_ele%value(l$)
+if (branch%param%geometry == closed$) then
+  if (super_ele%s_start < 0) then
+    super_ele%s_start = super_ele%s_start + branch%param%total_length
   endif
 endif
 
@@ -4657,7 +4665,7 @@ integer ix1, ix2
 
 eps = bmad_com%significant_length
 
-ele1 => pointer_to_element_at_s (branch, super_ele%s - super_ele%value(l$) + eps, .true., err_flag)
+ele1 => pointer_to_element_at_s (branch, super_ele%s_start + eps, .true., err_flag)
 if (err_flag) then
   call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'UPSTREAM ELEMENT EDGE OUT OF BOUNDS.')
   return

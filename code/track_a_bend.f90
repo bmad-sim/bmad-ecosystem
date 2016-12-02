@@ -379,7 +379,7 @@ orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%v
 if (orbit%direction == 1) then
   orbit%s = ele%s
 else
-  orbit%s = ele%s - ele%value(l$)
+  orbit%s = ele%s_start
 endif
 
 ! matrix

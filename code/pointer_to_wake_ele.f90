@@ -37,7 +37,7 @@ case (super_slave$, slice_slave$)
   do i = 1, ele%n_lord
     wake_ele => pointer_to_lord(ele, i)
     if (.not. associated(wake_ele%wake)) cycle
-    ds = (1.0_rp - 1e-10_rp) * wake_ele%value(l$) / 2 + (wake_ele%s - wake_ele%value(l$)) - (ele%s - ele%value(l$))
+    ds = (1.0_rp - 1e-10_rp) * wake_ele%value(l$) / 2 + wake_ele%s_start - ele%s_start
     if (ds < 0  .or. ele%value(l$) <= ds) cycle
     if (present(delta_s)) delta_s = ds
     return
