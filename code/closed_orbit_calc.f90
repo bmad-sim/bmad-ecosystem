@@ -180,7 +180,8 @@ case (4, 5)
   ! Check if rf is on and if so issue a warning message
 
   if (rf_is_on(branch)) then
-    call out_io (s_warn$, r_name, 'Inconsistant calculation: RF ON with i_dim = \i4\ ', i_dim)
+    call out_io (s_warn$, r_name, 'Inconsistant calculation: RF ON with i_dim = \i4\ ', &
+                  'Using branch: ' // branch_name(branch), i_array = [i_dim])
   endif
 
   !
@@ -209,7 +210,8 @@ case (6)
 
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
-                                   'CALCULATION WITH NO RF VOLTAGE!')
+                                   'CALCULATION WITH NO RF VOLTAGE!', &
+                                    'USING BRANCH: ' // branch_name(branch))
     bmad_com = bmad_com_saved  ! Restore
     return
   endif
@@ -265,7 +267,7 @@ do i_loop = 1, i_max
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    call out_io (s_error$, r_name, 'Singular matrix Encountered!')
+    call out_io (s_error$, r_name, 'Singular matrix Encountered!', 'Using branch: ' // branch_name(branch))
     call end_cleanup
     return
   endif
@@ -273,7 +275,8 @@ do i_loop = 1, i_max
   if (i_loop == 1 .and. .not. stable_orbit_found) then
     a(1:4) = 0  ! Desperation move.
   elseif (i_loop == 2 .and. .not. stable_orbit_found) then
-    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.')
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
+                                   'USING BRANCH: ' // branch_name(branch))
     call end_cleanup
     return
   else
@@ -358,6 +361,7 @@ do i_loop = 1, i_max
               'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
               'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
               'bmad_com%abs_tol_tracking (\es10.2\)', &
+              'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
     call end_cleanup
     return
@@ -523,7 +527,8 @@ else
     orb_start%vec(i) = start_saved%vec(i) + delta
     call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
     if (track_state /= moving_forward$) then 
-      call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]')
+      call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]', &
+                                     'USING BRANCH: ' // branch_name(branch))
       call end_cleanup
       err = .true.
       return

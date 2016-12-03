@@ -91,6 +91,13 @@ subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag)
   logical, optional :: make_mats6, err_flag
 end subroutine
 
+function branch_name(branch) result (name)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  character(40) name
+end function
+
 subroutine c_to_cbar (ele, cbar_mat)
   import
   implicit none

@@ -4178,6 +4178,11 @@ if (pele%ref_name == blank_name$) then
   if (bp_com%used_line_set_by_calling_routine) return
   call compute_super_lord_s (branch%ele(0), super_ele, pele, ix_insert)
   ele_at_s => pointer_to_element_at_s (branch, super_ele%s, .true., err_flag)
+  if (err_flag) then
+    call parser_error ('S-POSITION OUT OF BOUNDS FOR SUPERPOSITION OF: ' // super_ele%name)
+    return
+  endif
+
   if (ele_at_s%iyy == 0) then  ! If not in multipass region proceed as normal.
     call check_for_multipass_superimpose_problem (branch, super_ele, err_flag); if (err_flag) return
     call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
@@ -4185,6 +4190,7 @@ if (pele%ref_name == blank_name$) then
     if (err_flag) bp_com%error_flag = .true.
     return
   endif
+
   ! Must be in multipass region
   if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
   pele%ref_name = ele_at_s%name
