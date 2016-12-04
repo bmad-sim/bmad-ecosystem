@@ -1429,12 +1429,12 @@ if (allocated (graph%curve)) icol = graph%curve(1)%line%color
 if (associated(ele%wall3d)) then
   call calc_wall_radius (ele%wall3d(1)%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
   call calc_wall_radius (ele%wall3d(1)%section(1)%v, -1.0_rp, 0.0_rp,  y1_minus, dummy)
-  x1 = ele%s - ele%value(l$) + ele%wall3d(1)%section(1)%s
+  x1 = ele%s_start + ele%wall3d(1)%section(1)%s
 
   ! Skip points so close to the last point that the points have negligible spacing
 
   do section_id = 2, size(ele%wall3d(1)%section)
-    x2 = ele%s - ele%value(l$) + ele%wall3d(1)%section(section_id)%s
+    x2 = ele%s_start + ele%wall3d(1)%section(section_id)%s
     if (section_id /= size(ele%wall3d(1)%section) .and. &
             (x2 - x1) < (graph%x%max - graph%x%min) / s%plot_page%n_curve_pts) cycle
     call calc_wall_radius (ele%wall3d(1)%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)

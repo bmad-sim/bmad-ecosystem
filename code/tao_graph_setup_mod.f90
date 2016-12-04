@@ -1582,7 +1582,7 @@ case ('lat', 'beam')
       ele => branch%ele(i)
       if (.not. ele%logic) cycle
       if (graph%x%min == graph%x%max) cycle
-      s0 = ele%s - ele%value(l$)
+      s0 = ele%s_start
       s1 = ele%s
       in_graph = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
       l_tot = branch%param%total_length
@@ -1720,7 +1720,7 @@ case ('s')
     do i = 0, branch%n_ele_track
       ele => branch%ele(i)
       if (graph%x%min == graph%x%max) cycle
-      s0 = ele%s - ele%value(l$)
+      s0 = ele%s_start
       s1 = ele%s
       ele%logic = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
       if (branch%param%geometry == closed$) then
@@ -2010,7 +2010,7 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('b_curl.')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     select case (data_type)
     case ('b_curl.x')
       value = field%dB(2,3) - field%dB(3,2)
@@ -2023,11 +2023,11 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('b_div')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
 
   case ('b_field.')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     select case (data_type)
     case ('b_field.x')
       value = field%b(1)
@@ -2086,7 +2086,7 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('e_curl.')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     select case (data_type)
     case ('e_curl.x')
       value = field%dE(2,3) - field%dE(3,2)
@@ -2099,11 +2099,11 @@ do ii = 1, size(curve%x_line)
     end select
 
   case ('e_div')
-    call em_field_derivatives (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
 
   case ('e_field.')
-    call em_field_calc (ele, branch%param, orbit%s-(ele%s-ele%value(l$)), orbit, .false., field)
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
     select case (data_type)
     case ('e_field.x')
       value = field%e(1)
