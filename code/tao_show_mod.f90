@@ -975,6 +975,18 @@ case ('data')
                   ':', ubound(d2_ptr%d1(i)%d, 1), ']', trim(line)
     enddo
 
+    nl=nl+1; write(lines(nl), rmt)  '%scale             = ', d2_ptr%scale
+
+    if (d2_ptr%data_read_in) then
+      nl=nl+1; write(lines(nl), amt)  '%data_file_name    = ', d2_ptr%data_file_name
+      nl=nl+1; write(lines(nl), amt)  '%data_date         = ', d2_ptr%data_date
+    endif
+
+    if (d2_ptr%ref_read_in) then
+      nl=nl+1; write(lines(nl), amt)  '%ref_file_name    = ', d2_ptr%data_file_name
+      nl=nl+1; write(lines(nl), amt)  '%ref_date         = ', d2_ptr%data_date
+    endif
+
     if (any(d2_ptr%descrip /= ' ')) then
       call re_allocate (lines, nl+100+size(d2_ptr%descrip), .false.)
       nl=nl+1; lines(nl) = ''
@@ -2955,7 +2967,7 @@ case ('twiss_and_orbit')
 
   do 
 
-    call tao_next_switch (attrib0, [ &
+    call tao_next_switch (stuff2, [ &
         '-branch     ', '-universe   ', '-design     ', '-base       '], &
               .true., switch, err, ix_s2)
     if (err) return
@@ -2966,28 +2978,28 @@ case ('twiss_and_orbit')
       lat_type = base$
 
     case ('-branch')
-      branch => pointer_to_branch(attrib0(1:ix_s2), lat)
+      branch => pointer_to_branch(stuff2(1:ix_s2), lat)
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
-      call string_trim(attrib0(ix_s2+1:), attrib0, ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-design')
       lat_type = design$
 
     case ('-universe')
-      read (attrib0(1:ix_s2), *, iostat = ios) ix
+      read (stuff2(1:ix_s2), *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
       if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
         return
       endif
-      call string_trim(attrib0(ix_s2+1:), attrib0, ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case default
-      if (attrib0 /= '') then
-        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      if (stuff2 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // stuff2)
         return
       endif
       attrib0 = switch

@@ -399,18 +399,19 @@ end type
 !   sequentially numbered.
 
 type tao_d2_data_struct
-  character(40) name              ! Name to be used with commands.
-  character(200) data_file_name   ! Data file name .
-  character(200) ref_file_name    ! Reference file name.
-  character(20) data_date         ! Data measurement date.
-  character(20) ref_date          ! Reference data measurement date.
-  character(80) descrip(10)       ! Array for descriptive information.
+  character(40) :: name = ''             ! Name to be used with commands.
+  character(200) :: data_file_name = ''  ! Data file name .
+  character(200) :: ref_file_name = ''   ! Reference file name.
+  character(20) :: data_date = ''        ! Data measurement date.
+  character(20) :: ref_date = ''         ! Reference data measurement date.
+  character(80) :: descrip(10) = ''      ! Array for descriptive information.
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
-  integer ix_uni                  ! Index of universe this is in.
-  integer ix_data                 ! Index of the data set.
-  integer ix_ref                  ! Index of the reference data set. 
-  logical data_read_in            ! A data set has been read in?
-  logical ref_read_in             ! A reference data set has been read in?
+  real(rp) :: scale = 1                  ! Scale factor for ping amplitude data.
+  integer ix_uni                         ! Index of universe this is in.
+  integer ix_data                        ! Index of the data set.
+  integer ix_ref                         ! Index of the reference data set. 
+  logical :: data_read_in = .false.      ! A data set has been read in?
+  logical :: ref_read_in = .false.       ! A reference data set has been read in?
 end type
 
 ! A tao_data_array_struct is just a pointer to a tao_data_struct.

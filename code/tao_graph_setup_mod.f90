@@ -1772,6 +1772,15 @@ if ((curve%data_type(1:6) == 'phase.' .or. curve%data_type(1:10) == 'bpm_phase.'
   endif
 endif 
 
+! Renormalize 
+
+!!if ((curve%data_type == 'ping_x.amp_x'
+!!                                    .and. n_dat /= 0 .and. zero_average_phase) then
+
+
+
+!
+
 err_flag = .false.
 
 end subroutine tao_curve_data_setup

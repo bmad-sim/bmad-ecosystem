@@ -894,9 +894,10 @@ Besides a numeric value \vn{<value>} can be any of the above along with:
 
 Examples:
 \begin{example}
-  set data *|ref = *|meas       ! Set ref data = measured in current universe.
+  set data *|ref = *|meas            ! Set ref data = measured in current universe.
   set data 2@orbit.x|base = 2@orbit.x|model 
-                                ! Set the base orbit.x in universe 2 to model
+                                     ! Set the base orbit.x in universe 2 to model
+  set data beta.x[10]|weight = 1e-5  ! Set weight of datum.
 \end{example}
 
 %% set default --------------------------------------------------------------

@@ -863,9 +863,9 @@ character(*), optional :: dflt_index
 
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(9) = [ &
+character(16), parameter :: real_components(10) = [ &
              'model    ', 'base     ', 'design   ', 'meas     ', 'ref      ', &
-             'old      ', 'fit      ', 'weight   ', 'invalid  ']
+             'old      ', 'fit      ', 'weight   ', 'invalid  ', 'scratch  ']
 character(16), parameter :: logic_components(9) = [ &
              'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
@@ -948,7 +948,7 @@ endif
 ix = index(data_name, '|')
 if (ix == 0) then  ! not present
   component_here = .false.
-  component_name = ' '
+  component_name = ''
   dat_name = data_name
 else
   component_here = .true.
@@ -1067,9 +1067,13 @@ subroutine find_this_d1 (d2, name, found_d1, this_err)
 
 type (tao_d2_data_struct), target :: d2
 type (tao_d2_data_array_struct), allocatable :: d2_temp(:)
-integer i, ix, nd
+type (tao_real_pointer_struct), allocatable :: ra(:)
+
+integer i, j, ix, nd
+
 character(*) name
 character(80) d1_name, d_name
+
 logical found_d1, this_err
 
 ! d2_array
@@ -1086,6 +1090,30 @@ if (present(d2_array)) then
     allocate (d2_array(1))
     d2_array(1)%d2 => d2
   endif
+endif
+
+! Special case
+
+if (component_name == 'scale') then
+  if (name /= '*') then
+    call out_io (s_error$, r_name, 'Malformed datum: ' // data_name)
+    this_err = .true.
+    return
+  endif
+
+  if (.not. present(re_array)) return
+  if (allocated(re_array)) then
+    nd = size(re_array)
+    call move_alloc(re_array, ra)
+    allocate (re_array(nd+1))
+    j = nd
+    re_array(1:nd) = ra
+    deallocate(ra)
+  else
+    allocate (re_array(1))
+    j = 0
+  endif
+  re_array(nd+1)%r => d2%scale
 endif
 
 ! Everything before a '[' is the d1 name.
@@ -1189,9 +1217,7 @@ if (present(d_array)) then
 
   if (allocated(d_array)) then
     nd = size(d_array)
-    allocate (da(nd))
-    da = d_array
-    deallocate(d_array)
+    call move_alloc(d_array, da)
     allocate (d_array(nl+nd))
     j = nd
     d_array(1:nd) = da
@@ -1216,9 +1242,7 @@ if (present(int_array) .and.  any(component_name == integer_components)) then
 
   if (allocated(int_array)) then
     nd = size(int_array)
-    allocate (ia(nd))
-    ia = int_array
-    deallocate(int_array)
+    call move_alloc(int_array, ia)
     allocate (int_array(nl+nd))
     j = nd
     int_array(1:nd) = ia
@@ -1257,9 +1281,7 @@ if (present(re_array) .and.  any(component_name == real_components)) then
 
   if (allocated(re_array)) then
     nd = size(re_array)
-    allocate (ra(nd))
-    ra = re_array
-    deallocate(re_array)
+    call move_alloc(re_array, ra)
     allocate (re_array(nl+nd))
     j = nd
     re_array(1:nd) = ra

@@ -23,7 +23,8 @@
 !   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', 'BOTH', 'COMPLETE'
 !                   For where = 'BOTH', if something is found in a plot region,
 !                   then the templates will not be searched
-!                   where = 'COMPLETE' is used by the python command and should not otherwise be used.
+!                   where = 'COMPLETE' is used by the python command and does not allow abbreviations.
+!                   'COMPLETE' should not otherwise be used.
 !   print_flag -- Logical, optional: If present and False then surpress error
 !                   messages. Default is True.
 !   always_allocate 
@@ -185,6 +186,8 @@ else
       call point_to_plot(s%plot_page%template(i))
     enddo
   endif
+
+  ! Complete
 
   if (where == 'COMPLETE') then
     do i = 1, size(s%plot_page%region)

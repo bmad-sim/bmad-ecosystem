@@ -1666,45 +1666,6 @@ case ('pc')
 
 !-----------
 
-case ('photon.')
-
-  select case (datum%data_type)
-
-  case ('photon.intensity_x')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-    else
-      call tao_load_this_datum (orbit(:)%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-    endif
-
-  case ('photon.intensity_y')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-    else
-      call tao_load_this_datum (orbit(:)%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-    endif
-
-  case ('photon.intensity')
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2+bunch_params(:)%centroid%field(2)**2, &
-                                                                      ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-    else
-      call tao_load_this_datum (orbit(:)%field(1)**2 + orbit(:)%field(2)**2, ele_ref, ele_start, ele, &
-                                                                           datum_value, valid_value, datum, branch, why_invalid)
-    endif
-
-  case ('photon.phase_x')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-
-  case ('photon.phase_y')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-
-  end select
-
-!-----------
-
 case ('periodic.')
 
   ix = index(datum%data_type(10:), '.') + 9
@@ -1798,6 +1759,103 @@ case ('phase_frac_diff')
   endif
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
+
+!-----------
+
+case ('photon.')
+
+  select case (datum%data_type)
+
+  case ('photon.intensity_x')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('photon.intensity_y')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('photon.intensity')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2+bunch_params(:)%centroid%field(2)**2, &
+                                                                      ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%field(1)**2 + orbit(:)%field(2)**2, ele_ref, ele_start, ele, &
+                                                                           datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('photon.phase_x')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+  case ('photon.phase_y')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+  end select
+
+!-----------
+
+case ('ping_x.')
+
+  if (.not. associated(ele)) return  ! Bad
+
+  select case (datum%data_type)
+  case ('ping_x.amp_x')
+    datum_value = sqrt(ele%a%beta)
+    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%a%beta)
+    valid_value = .true.
+
+  case ('ping_x.amp_y')
+    datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    if (associated(ele_ref)) datum_value = datum_value - &
+                  sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+    valid_value = .true.
+
+  case ('ping_x.phase_x')
+    datum_value = ele%a%phi
+    if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi
+    valid_value = .true.
+
+  case ('ping_x.phase_y')
+    datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+    valid_value = .true.
+  end select
+
+!-----------
+
+case ('ping_y.')
+
+  if (.not. associated(ele)) return  ! Bad
+
+  select case (datum%data_type)
+  case ('ping_y.amp_x')
+    datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
+    if (associated(ele_ref)) datum_value = datum_value - &
+                  sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
+    valid_value = .true.
+
+  case ('ping_y.amp_y')
+    datum_value = sqrt(ele%b%beta)
+    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta)
+    valid_value = .true.
+
+  case ('ping_y.phase_x')
+    datum_value = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
+    if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
+    valid_value = .true.
+
+  case ('ping_y.phase_y')
+    datum_value = ele%b%phi
+    if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi
+    valid_value = .true.
+  end select
 
 !-----------
 
@@ -2572,6 +2630,7 @@ else
   vec_ptr = vec - ref_value
 endif
 
+!------------------------
 ! If there is a range
 
 if (ix_ele < ix_start) then   ! wrap around
@@ -2788,7 +2847,7 @@ if (ip == 0) return
 
 select case (datum%data_type(1:ip))
 
-case ('k.', 'cbar.')
+case ('k.', 'cbar.', 'ping_x.', 'ping_y.')
   if (cc_p%coupling_calc_done) return
   cc_p%coupling_calc_done = .true.
 

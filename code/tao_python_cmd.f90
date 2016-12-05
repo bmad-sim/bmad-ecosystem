@@ -71,19 +71,22 @@ character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
 character(20) cmd, command, who
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(24)= &
-          ['help           ', 'global         ', 'plot_list      ', 'plot1          ', 'plot_graph     ', &
-           'plot_curve     ', 'plot_line      ', 'plot_symbol    ', 'universe       ', 'var_general    ', &
-           'var_v1         ', 'var1           ', 'data_general   ', 'data_d2        ', 'data_d1        ', &
-           'data1          ', 'beam_init      ', 'bunch1         ', 'lat_general    ', 'branch1        ', &
-           'lat_ele_list   ', 'lat_ele1       ', 'twiss_at_s     ', 'orbit_at_s     ']
+character(20) :: cmd_names(28)= [ &
+  'beam_init      ', 'branch1        ', 'bunch1         ', &
+  'data_create    ', 'data_destroy   ', 'data_general   ', 'data_d2        ', 'data_d1        ', 'data1          ', &
+  'global         ', 'help           ', &
+  'lat_ele_list   ', 'lat_ele1       ', 'lat_general    ', &
+  'orbit_at_s     ', &
+  'plot_list      ', 'plot1          ', 'plot_graph     ', 'plot_curve     ', 'plot_line      ', 'plot_symbol    ', &
+  'twiss_at_s     ', 'universe       ', &
+  'car_create     ', 'var_destroy    ', 'var_general    ', 'var_v1         ', 'var1           ']
 
 
 real(rp) s_pos
 
 integer :: i, j, ie, iu, md, nl, ct, n1, nl2, n, ix, ix2, iu_write
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
-integer :: ios, n_loc
+integer :: ios, n_loc, ix_line, n_d1, n_data(20)
 logical :: err, print_flag, opened, doprint, free
 
 character(20) switch
@@ -121,7 +124,7 @@ enddo
 
 call string_trim(line, line, ix)
 cmd = line(1:ix)
-call string_trim(line(ix+1:), line, ix)
+call string_trim(line(ix+1:), line, ix_line)
 
 call match_word (cmd, cmd_names, ix, matched_name = command)
 if (ix == 0) then
@@ -150,26 +153,280 @@ call re_allocate_lines (200)
 select case (command)
 
 !----------------------------------------------------------------------
-! help
-! returns list of "help xxx" topics
+! Beam initialization parameters.
+! Input syntax:
+!   python beam_init ix_universe
 
-case ('help')
+case ('beam_init')
 
-  call tao_help ('help-list', '', ss%lines, n)
+  u => point_to_uni(.true., err); if (err) return
+  beam_init => u%beam%beam_init
 
-  nl2 = 0
-  do i = 1, n
-    if (li(i) == '') cycle
-    call string_trim(li(i), line, ix)
-    nl=nl+1; name1(nl) = line(1:ix)
-    call string_trim(line(ix+1:), line, ix)
-    if (ix == 0) cycle
-    nl2=nl2+1; name2(nl2) = line
+  nl=nl+1; write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
+  nl=nl+1; write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
+  nl=nl+1; write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
+  nl=nl+1; write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
+  nl=nl+1; write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
+  nl=nl+1; write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
+  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
+  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
+  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
+  nl=nl+1; write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
+  nl=nl+1; write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
+  nl=nl+1; write (li(nl), rmt) 'a_emit;REAL;T;',                           beam_init%a_emit
+  nl=nl+1; write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
+  nl=nl+1; write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
+  nl=nl+1; write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
+  nl=nl+1; write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
+  nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
+  nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
+  nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
+  nl=nl+1; write (li(nl), amt) 'species;STR;T;',                           species_name(beam_init%species)
+  nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
+  nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
+  nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
+  nl=nl+1; write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
+  nl=nl+1; write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Input syntax:
+!   python branch1 <ix_universe>@<ix_branch>
+
+case ('branch1')
+
+  u => point_to_uni(.false., err); if (err) return
+  ix_branch = parse_branch(.false., err); if (err) return
+  branch => u%design%lat%branch(ix_branch)
+
+  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                              branch%name
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
+  nl=nl+1; write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
+  nl=nl+1; write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
+
+  nl=nl+1; write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
+  nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
+  nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
+  nl=nl+1; write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
+  nl=nl+1; write (li(nl), imt) 'param.default_tracking_species;INT;F;',          branch%param%default_tracking_species
+  nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
+  nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
+  nl=nl+1; write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
+  nl=nl+1; write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
+
+!----------------------------------------------------------------------
+! Bunch parameters at the exit end of a given lattice element.
+! Input syntax:
+!   python bunch1 ix_universe@ix_branch>>ix_ele|which
+! where "which" is one of:
+!   model
+!   base
+!   design
+
+case ('bunch1')  
+
+  u => point_to_uni(.true., err); if (err) return
+  tao_lat => point_to_tao_lat(err); if (err) return
+  ele => point_to_ele(err); if (err) return
+
+  bunch_params => tao_lat%lat_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
+
+  call twiss_out(bunch_params%x, 'x', .true.)
+  call twiss_out(bunch_params%y, 'y', .true.)
+  call twiss_out(bunch_params%z, 'z', .true.)
+  call twiss_out(bunch_params%a, 'a', .true.)
+  call twiss_out(bunch_params%b, 'b', .true.)
+  call twiss_out(bunch_params%c, 'c', .true.)
+
+  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
+  nl=nl+1; write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
+  nl=nl+1; write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
+  nl=nl+1; write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
+  nl=nl+1; write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
+
+!----------------------------------------------------------------------
+! List of datums in a given data d1 array.
+! Input syntax:
+!   python data_d1 <ix_universe>@<d2_name>.<d1_datum>
+! Use the "python data_d2 <name>" command to get a list of d1 arrays. 
+! Use the "python data1" command to get detailed information on a particular datum.
+! Example:
+!   python data_d1 1@orbit.x
+
+case ('data_d1')
+
+  call tao_find_data (err, line, d1_array = d1_array)
+
+  if (err .or. .not. allocated(d1_array)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1 data name.')
+    call end_stuff()
+    return
+  endif
+
+  d1_ptr => d1_array(1)%d1
+  nl=nl+1; write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
+
+!----------------------------------------------------------------------
+! Create a d2 data structure with associated d1 data arrays.
+! Input syntax:
+!   python data_create <d2_name> <n_d1_data> <d_data_array>
+! <d2_name> should be of the form <ix_uni>@<d2_datum_name>
+! <n_d1_data> is the number of associated d1 data arrays
+! <d_data_array> is an array. Each element gives the size of a d1 data array.
+! The number of entries in <d_data_array> should be equal to <n_d1_data>
+! Example:
+!   python data_create 2@orbit 2 45 47
+! This example creates a d2 data structure called "orbit" with two d1 data arrays.
+! The first d1 data array has 45 datum and the second has 47.
+
+case ('data_create')
+
+  if (ix_line == 0) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No d2 name given')
+    call end_stuff()
+    return
+  endif
+
+  name = line(1:ix_line)
+
+  call string_trim (line(ix_line+1:), line, ix_line)
+  if (.not. is_integer(line)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Number of d1 arrays missing or invalid')
+    call end_stuff()
+    return
+  endif
+  read (line, *) n_d1
+  call string_trim (line(ix_line+1:), line, ix_line)
+
+  do i = 1, n_d1
+    if (.not. is_integer(line)) exit
+    read (line, *) n_data(i)
+    call string_trim (line(ix_line+1:), line, ix_line)
   enddo
 
-  li(1:nl) = name1(1:nl)
-  li(nl+1:nl+nl2) = name2(1:nl2)
-  nl = nl + nl2
+  if (ix_line /= 0) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array number of datums for each d1.')
+    call end_stuff()
+    return
+  endif
+
+
+
+!----------------------------------------------------------------------
+! List of d1 arrays in a given data d2.
+! Input syntax:
+!   python data_d2 <d2_datum>
+! <d2_datum> should be of the form 
+!   <ix_uni>@<d2_datum_name>
+
+case ('data_d2')
+
+
+  call tao_find_data (err, line, d2_array = d2_array)
+
+  if (err .or. .not. allocated(d2_array)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
+    call end_stuff()
+    return
+  endif
+
+  d2_ptr => d2_array(1)%d2
+
+
+  do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
+    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
+  enddo
+
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
+  nl=nl+1; write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
+  nl=nl+1; write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
+  nl=nl+1; write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
+  nl=nl+1; write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
+  nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
+  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
+  nl=nl+1; write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
+  nl=nl+1; write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
+  nl=nl+1; write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
+
+!----------------------------------------------------------------------
+! Data d2 info for a given universe.
+! Input syntax:
+!   python data_general <ix_universe>
+
+case ('data_general')
+
+  u => point_to_uni(.false., err); if (err) return
+
+  do i = 1, u%n_d2_data_used
+    d2_ptr => u%d2_data(i)
+    if (d2_ptr%name == '') cycle
+    nl=nl+1; write (li(nl), '(a)') d2_ptr%name
+  enddo
+
+!----------------------------------------------------------------------
+! Individual datum info.
+! Input syntax:
+!   python data1 <ix_universe>@<d2_name>.<d1_datum>[<dat_index>]
+! Use the "python data-d1" command to get detailed info on a specific d1 array.
+! Output syntax is variable list form. See documentation at beginning of this file.
+! Example:
+!   python data_d1 1@orbit.x[10]
+
+case ('data1')
+
+  call tao_find_data (err, line, d_array = d_array)
+
+  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
+    call end_stuff()
+    return
+  endif
+
+  d_ptr => d_array(1)%d
+
+  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
+  nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
+  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name  
+  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type     
+  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type    
+  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source   
+  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch      
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch     
+  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele        
+  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start  
+  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref    
+  nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit  
+  nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1         
+  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data       
+  nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel     
+  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value    
+  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value     
+  nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value   
+  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value  
+  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value     
+  nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value    
+  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit   
+  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight        
+  nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value 
+  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit         
+  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s             
+  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists        
+  nl=nl+1; write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
+  nl=nl+1; write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
+  nl=nl+1; write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
+  nl=nl+1; write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
+  nl=nl+1; write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
+  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
+  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
+  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
+  nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
+  nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
 
 !----------------------------------------------------------------------
 ! Global parameters
@@ -230,6 +487,205 @@ case ('global')
 
 
 !----------------------------------------------------------------------
+! help
+! returns list of "help xxx" topics
+
+case ('help')
+
+  call tao_help ('help-list', '', ss%lines, n)
+
+  nl2 = 0
+  do i = 1, n
+    if (li(i) == '') cycle
+    call string_trim(li(i), line, ix)
+    nl=nl+1; name1(nl) = line(1:ix)
+    call string_trim(line(ix+1:), line, ix)
+    if (ix == 0) cycle
+    nl2=nl2+1; name2(nl2) = line
+  enddo
+
+  li(1:nl) = name1(1:nl)
+  li(nl+1:nl+nl2) = name2(1:nl2)
+  nl = nl + nl2
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Input syntax:
+!   python lat_general <ix_universe>
+
+case ('lat_general')
+
+  u => point_to_uni(.false., err); if (err) return
+  
+  lat => u%design%lat
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
+  enddo
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Input syntax:
+!   python lat_ele <branch_name>
+! <branch_name> should have the form:
+!   <ix_uni>@<ix_branch>
+
+case ('lat_ele_list')
+
+  u => point_to_uni(.true., err); if (err) return
+  ix_branch = parse_branch(.false., err); if (err) return
+  branch => u%design%lat%branch(ix_branch)
+
+  do i = 0, branch%n_ele_max
+    nl=nl+1; write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
+  enddo
+
+!----------------------------------------------------------------------
+! parameters associated with given lattice element. 
+! Input syntax: 
+!   python lat_ele1 ix_universe@ix_branch>>ix_ele|which who
+! where "which" is one of:
+!   model
+!   base
+!   design
+! and "who" is one of:
+!   general         ! ele%xxx compnents where xxx is "simple" component (not a structure nor an array, nor allocatable, nor pointer).
+!   parameters      ! parameters in ele%value array
+!   multipole       ! nonzero multipole components.
+!   floor           ! floor coordinates.
+!   twiss           ! twiss parameters at exit end.
+!   orbit           ! orbit at exit end.
+! Example:
+!   python lat_ele1 1@0>>547|design twiss
+
+case ('lat_ele1')
+
+  ix = index(line, ' ')
+  call string_trim(line(ix:), who, ix2)
+  who = line(1:ix)
+
+  u => point_to_uni(.true., err); if (err) return
+  tao_lat => point_to_tao_lat(err); if (err) return
+  ele => point_to_ele(err); if (err) return
+
+  select case (who)
+  case ('general')
+    nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             ele%name
+    nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             ele%type
+    nl=nl+1; write (li(nl), amt) 'alias;STR;T;',                            ele%alias
+    nl=nl+1; write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
+    nl=nl+1; write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
+    nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               ele%s
+    nl=nl+1; write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
+    nl=nl+1; write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
+    nl=nl+1; write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
+    nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
+    nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
+    nl=nl+1; write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
+    nl=nl+1; write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
+    nl=nl+1; write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
+    nl=nl+1; write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
+    nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
+    nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
+    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;STR;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
+    nl=nl+1; write (li(nl), amt) 'tracking_method;STR;T;',                  tracking_method_name(ele%tracking_method)
+    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;STR;T;',             spin_tracking_method_name(ele%spin_tracking_method)
+    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;STR;T;',             ptc_integration_type_name(ele%ptc_integration_type)
+    nl=nl+1; write (li(nl), amt) 'field_calc;STR;T;',                       field_calc_name(ele%field_calc)
+    nl=nl+1; write (li(nl), amt) 'aperture_at;STR;T;',                      aperture_at_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), amt) 'aperture_type;STR;T;',                    aperture_type_name(ele%aperture_type)
+    nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
+    nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
+    nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
+    nl=nl+1; write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
+    nl=nl+1; write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
+    nl=nl+1; write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
+    nl=nl+1; write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+    nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
+    nl=nl+1; write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
+    nl=nl+1; write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
+
+  case ('parameters')
+    do i = 1, num_ele_attrib$
+      attrib = attribute_info(ele, i)
+      a_name = attrib%name
+      if (a_name == null_name$) cycle
+      if (attrib%type == private$) cycle
+      free = attribute_free (ele, a_name, .false.)
+
+      select case (attribute_type(a_name))
+      case (is_logical$)
+        nl=nl+1; write (li(nl), '(2a, l1, 2a)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+      case (is_integer$)
+        nl=nl+1; write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
+      case (is_real$)
+        nl=nl+1; write (li(nl), '(2a, l1, a, es21.13)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      case (is_switch$)
+        name = switch_attrib_value_name (a_name, ele%value(i), ele)
+        nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';STR;', free, ';', trim(name)
+      end select
+    enddo
+
+  case ('multipole')
+    if (associated(ele%a_pole)) then
+      do i = 0, ubound(ele%a_pole, 1)
+        if (ele%a_pole(i) /= 0) then
+          nl=nl+1; write (li(nl), vrmt) 'a_pole[', i, '];REAL;T;', ele%a_pole(i) 
+        endif
+        if (ele%b_pole(i) /= 0) then
+          nl=nl+1; write (li(nl), vrmt) 'b_pole[', i, '];REAL;T;', ele%b_pole(i) 
+        endif
+      enddo
+    endif
+
+    if (associated(ele%a_pole_elec)) then
+      do i = 0, ubound(ele%a_pole_elec, 1)
+        if (ele%a_pole_elec(i) /= 0) then
+          nl=nl+1; write (li(nl), vrmt) 'a_pole_elec[', i, '];REAL;T;', ele%a_pole_elec(i) 
+        endif
+        if (ele%b_pole_elec(i) /= 0) then
+          nl=nl+1; write (li(nl), vrmt) 'b_pole_elec[', i, '];REAL;T;', ele%b_pole_elec(i) 
+        endif
+      enddo
+    endif
+
+  case ('floor')
+    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
+
+  case ('twiss')
+    call twiss_out (ele%a, 'a')
+    call twiss_out (ele%b, 'b')
+
+  case ('orbit')
+    call orbit_out (tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele))
+
+  case default
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, 'python lat_ele1 <ele>|<which> <who>: Bad <who>: ' // who)
+    return
+  end select  
+
+!----------------------------------------------------------------------
+! Twiss at given s position
+! Input syntax:
+!   python orbit_at_s ix_uni@ix_branch>>s|which
+! where "which" is one of:
+!   model
+!   base
+!   design
+
+case ('orbit_at_s')
+
+  u => point_to_uni(.true., err); if (err) return
+  tao_lat => point_to_tao_lat(err); if (err) return
+  ix_branch = parse_branch(.true., err); if (err) return
+  s_pos = parse_real(err); if (err) return
+
+  call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%lat_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
+  call orbit_out (orb)
+
+!----------------------------------------------------------------------
 ! List of plot templates or plot regions.
 ! Input syntax:  
 !   python plot_list <r/g>
@@ -259,44 +715,6 @@ case ('plot_list')
     nl=nl+1; li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t"')
   endif
-
-!----------------------------------------------------------------------
-! Info on a given plot.
-! Input syntax:
-!   python plot1 <name>
-! <name> should be the region name if the plot is associated with a region.
-! Output syntax is variable list form. See documentation at beginning of this file.
-
-case ('plot1')
-
-  call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
-  if (err) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
-    call end_stuff()
-    return
-  endif
-
-  p => plot(1)%p
-
-  n = 0
-  if (allocated(p%graph)) n = size(p%graph)
-
-  nl=nl+1; write (li(nl), imt) 'num_graphs;INT;T;',                       n
-  do i = 1, n
-    nl=nl+1; write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
-  enddo
-
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             p%name
-  nl=nl+1; write (li(nl), amt) 'description;STR;T;',                      p%description
-  nl=nl+1; write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
-  nl=nl+1; write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
-  nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
-  nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
-
 
 !----------------------------------------------------------------------
 ! Graph
@@ -490,6 +908,63 @@ case ('plot_symbol')
   enddo
 
 !----------------------------------------------------------------------
+! Info on a given plot.
+! Input syntax:
+!   python plot1 <name>
+! <name> should be the region name if the plot is associated with a region.
+! Output syntax is variable list form. See documentation at beginning of this file.
+
+case ('plot1')
+
+  call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
+  if (err) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
+    call end_stuff()
+    return
+  endif
+
+  p => plot(1)%p
+
+  n = 0
+  if (allocated(p%graph)) n = size(p%graph)
+
+  nl=nl+1; write (li(nl), imt) 'num_graphs;INT;T;',                       n
+  do i = 1, n
+    nl=nl+1; write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
+  enddo
+
+  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             p%name
+  nl=nl+1; write (li(nl), amt) 'description;STR;T;',                      p%description
+  nl=nl+1; write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
+  nl=nl+1; write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
+  nl=nl+1; write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
+  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
+  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
+  nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
+  nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
+
+!----------------------------------------------------------------------
+! Twiss at given s position
+! Input syntax:
+!   python twiss_at_s ix_uni@ix_branch>>s|which
+! where "which" is one of:
+!   model
+!   base
+!   design
+
+case ('twiss_at_s')
+
+  u => point_to_uni(.true., err); if (err) return
+  tao_lat => point_to_tao_lat(err); if (err) return
+  ix_branch = parse_branch(.true., err); if (err) return
+  s_pos = parse_real(err); if (err) return
+
+  call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%lat_branch(ix_branch)%orbit, ix_branch = ix_branch)
+  call twiss_out (this_ele%a, 'a')
+  call twiss_out (this_ele%b, 'b')
+
+!----------------------------------------------------------------------
 ! Universe info
 ! Input syntax:
 !   python universe <ix_universe>
@@ -601,431 +1076,6 @@ case ('var1')
   nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
   nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
   nl=nl+1; write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
-
-!----------------------------------------------------------------------
-! Data d2 info for a given universe.
-! Input syntax:
-!   python data_general <ix_universe>
-
-case ('data_general')
-
-  u => point_to_uni(.false., err); if (err) return
-
-  do i = 1, u%n_d2_data_used
-    d2_ptr => u%d2_data(i)
-    if (d2_ptr%name == '') cycle
-    nl=nl+1; write (li(nl), '(a)') d2_ptr%name
-  enddo
-
-!----------------------------------------------------------------------
-! List of d1 arrays in a given data d2.
-! Input syntax:
-!   python data_d2 <d2_datum>
-! <d2_datum> should be of the form 
-!   <ix_uni>@<d2_datum_name>
-
-case ('data_d2')
-
-
-  call tao_find_data (err, line, d2_array = d2_array)
-
-  if (err .or. .not. allocated(d2_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff()
-    return
-  endif
-
-  d2_ptr => d2_array(1)%d2
-
-
-  do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
-  enddo
-
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
-  nl=nl+1; write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
-  nl=nl+1; write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
-  nl=nl+1; write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
-  nl=nl+1; write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
-  nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
-  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
-  nl=nl+1; write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
-  nl=nl+1; write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
-  nl=nl+1; write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
-
-!----------------------------------------------------------------------
-! List of datums in a given data d1 array.
-! Input syntax:
-!   python data_d1 <ix_universe>@<d2_name>.<d1_datum>
-! Use the "python data_d2 <name>" command to get a list of d1 arrays. 
-! Use the "python data1" command to get detailed information on a particular datum.
-! Example:
-!   python data_d1 1@orbit.x
-
-case ('data_d1')
-
-  call tao_find_data (err, line, d1_array = d1_array)
-
-  if (err .or. .not. allocated(d1_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1 data name.')
-    call end_stuff()
-    return
-  endif
-
-  d1_ptr => d1_array(1)%d1
-  nl=nl+1; write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
-
-!----------------------------------------------------------------------
-! Individual datum info.
-! Input syntax:
-!   python data1 <ix_universe>@<d2_name>.<d1_datum>[<dat_index>]
-! Use the "python data-d1" command to get detailed info on a specific d1 array.
-! Output syntax is variable list form. See documentation at beginning of this file.
-! Example:
-!   python data_d1 1@orbit.x[10]
-
-case ('data1')
-
-  call tao_find_data (err, line, d_array = d_array)
-
-  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
-    call end_stuff()
-    return
-  endif
-
-  d_ptr => d_array(1)%d
-
-  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
-  nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name  
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type     
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type    
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source   
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch      
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch     
-  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele        
-  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start  
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref    
-  nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit  
-  nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1         
-  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data       
-  nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel     
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value    
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value     
-  nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value   
-  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value  
-  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value     
-  nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value    
-  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit   
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight        
-  nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value 
-  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit         
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s             
-  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists        
-  nl=nl+1; write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
-  nl=nl+1; write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
-  nl=nl+1; write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
-  nl=nl+1; write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
-  nl=nl+1; write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
-  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
-  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
-  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
-  nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
-  nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
-
-!----------------------------------------------------------------------
-! Lattice element list.
-! Input syntax:
-!   python lat_general <ix_universe>
-
-case ('lat_general')
-
-  u => point_to_uni(.false., err); if (err) return
-  
-  lat => u%design%lat
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
-  enddo
-
-!----------------------------------------------------------------------
-! Lattice element list.
-! Input syntax:
-!   python branch1 <ix_universe>@<ix_branch>
-
-case ('branch1')
-
-  u => point_to_uni(.false., err); if (err) return
-  ix_branch = parse_branch(.false., err); if (err) return
-  branch => u%design%lat%branch(ix_branch)
-
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                              branch%name
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
-  nl=nl+1; write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
-
-  nl=nl+1; write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
-  nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
-  nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
-  nl=nl+1; write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
-  nl=nl+1; write (li(nl), imt) 'param.default_tracking_species;INT;F;',          branch%param%default_tracking_species
-  nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
-  nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
-  nl=nl+1; write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
-  nl=nl+1; write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
-
-
-!----------------------------------------------------------------------
-! Lattice element list.
-! Input syntax:
-!   python lat_ele <branch_name>
-! <branch_name> should have the form:
-!   <ix_uni>@<ix_branch>
-
-case ('lat_ele_list')
-
-  u => point_to_uni(.true., err); if (err) return
-  ix_branch = parse_branch(.false., err); if (err) return
-  branch => u%design%lat%branch(ix_branch)
-
-  do i = 0, branch%n_ele_max
-    nl=nl+1; write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
-  enddo
-
-!----------------------------------------------------------------------
-! parameters associated with given lattice element. 
-! Input syntax: 
-!   python lat_ele1 ix_universe@ix_branch>>ix_ele|which who
-! where "which" is one of:
-!   model
-!   base
-!   design
-! and "who" is one of:
-!   general         ! ele%xxx compnents where xxx is "simple" component (not a structure nor an array, nor allocatable, nor pointer).
-!   parameters      ! parameters in ele%value array
-!   multipole       ! nonzero multipole components.
-!   floor           ! floor coordinates.
-!   twiss           ! twiss parameters at exit end.
-!   orbit           ! orbit at exit end.
-! Example:
-!   python lat_ele1 1@0>>547|design twiss
-
-case ('lat_ele1')
-
-  ix = index(line, ' ')
-  call string_trim(line(ix:), who, ix2)
-  who = line(1:ix)
-
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ele => point_to_ele(err); if (err) return
-
-  select case (who)
-  case ('general')
-    nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             ele%name
-    nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             ele%type
-    nl=nl+1; write (li(nl), amt) 'alias;STR;T;',                            ele%alias
-    nl=nl+1; write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
-    nl=nl+1; write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
-    nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               ele%s
-    nl=nl+1; write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
-    nl=nl+1; write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
-    nl=nl+1; write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
-    nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
-    nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
-    nl=nl+1; write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
-    nl=nl+1; write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
-    nl=nl+1; write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
-    nl=nl+1; write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
-    nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
-    nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;STR;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
-    nl=nl+1; write (li(nl), amt) 'tracking_method;STR;T;',                  tracking_method_name(ele%tracking_method)
-    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;STR;T;',             spin_tracking_method_name(ele%spin_tracking_method)
-    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;STR;T;',             ptc_integration_type_name(ele%ptc_integration_type)
-    nl=nl+1; write (li(nl), amt) 'field_calc;STR;T;',                       field_calc_name(ele%field_calc)
-    nl=nl+1; write (li(nl), amt) 'aperture_at;STR;T;',                      aperture_at_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), amt) 'aperture_type;STR;T;',                    aperture_type_name(ele%aperture_type)
-    nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
-    nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
-    nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
-    nl=nl+1; write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
-    nl=nl+1; write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
-    nl=nl+1; write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
-    nl=nl+1; write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
-    nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
-    nl=nl+1; write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
-    nl=nl+1; write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
-
-  case ('parameters')
-    do i = 1, num_ele_attrib$
-      attrib = attribute_info(ele, i)
-      a_name = attrib%name
-      if (a_name == null_name$) cycle
-      if (attrib%type == private$) cycle
-      free = attribute_free (ele, a_name, .false.)
-
-      select case (attribute_type(a_name))
-      case (is_logical$)
-        nl=nl+1; write (li(nl), '(2a, l1, 2a)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
-      case (is_integer$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
-      case (is_real$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, es21.13)') trim(a_name), ';REAL;', free, ';', ele%value(i)
-      case (is_switch$)
-        name = switch_attrib_value_name (a_name, ele%value(i), ele)
-        nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';STR;', free, ';', trim(name)
-      end select
-    enddo
-
-  case ('multipole')
-    if (associated(ele%a_pole)) then
-      do i = 0, ubound(ele%a_pole, 1)
-        if (ele%a_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole[', i, '];REAL;T;', ele%a_pole(i) 
-        endif
-        if (ele%b_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole[', i, '];REAL;T;', ele%b_pole(i) 
-        endif
-      enddo
-    endif
-
-    if (associated(ele%a_pole_elec)) then
-      do i = 0, ubound(ele%a_pole_elec, 1)
-        if (ele%a_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole_elec[', i, '];REAL;T;', ele%a_pole_elec(i) 
-        endif
-        if (ele%b_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole_elec[', i, '];REAL;T;', ele%b_pole_elec(i) 
-        endif
-      enddo
-    endif
-
-  case ('floor')
-    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
-
-  case ('twiss')
-    call twiss_out (ele%a, 'a')
-    call twiss_out (ele%b, 'b')
-
-  case ('orbit')
-    call orbit_out (tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele))
-
-  case default
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python lat_ele1 <ele>|<which> <who>: Bad <who>: ' // who)
-    return
-  end select  
-
-!----------------------------------------------------------------------
-! Beam initialization parameters.
-! Input syntax:
-!   python beam_init ix_universe
-
-case ('beam_init')
-
-  u => point_to_uni(.true., err); if (err) return
-  beam_init => u%beam%beam_init
-
-  nl=nl+1; write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
-  nl=nl+1; write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
-  nl=nl+1; write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
-  nl=nl+1; write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
-  nl=nl+1; write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
-  nl=nl+1; write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
-  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
-  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
-  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
-  nl=nl+1; write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'a_emit;REAL;T;',                           beam_init%a_emit
-  nl=nl+1; write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
-  nl=nl+1; write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
-  nl=nl+1; write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
-  nl=nl+1; write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
-  nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
-  nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
-  nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=nl+1; write (li(nl), amt) 'species;STR;T;',                           species_name(beam_init%species)
-  nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
-  nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
-  nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
-  nl=nl+1; write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
-  nl=nl+1; write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
-
-!----------------------------------------------------------------------
-! Bunch parameters at the exit end of a given lattice element.
-! Input syntax:
-!   python bunch1 ix_universe@ix_branch>>ix_ele|which
-! where "which" is one of:
-!   model
-!   base
-!   design
-
-case ('bunch1')  
-
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ele => point_to_ele(err); if (err) return
-
-  bunch_params => tao_lat%lat_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
-
-  call twiss_out(bunch_params%x, 'x', .true.)
-  call twiss_out(bunch_params%y, 'y', .true.)
-  call twiss_out(bunch_params%z, 'z', .true.)
-  call twiss_out(bunch_params%a, 'a', .true.)
-  call twiss_out(bunch_params%b, 'b', .true.)
-  call twiss_out(bunch_params%c, 'c', .true.)
-
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
-  nl=nl+1; write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
-  nl=nl+1; write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
-  nl=nl+1; write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
-  nl=nl+1; write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
-
-!----------------------------------------------------------------------
-! Twiss at given s position
-! Input syntax:
-!   python twiss_at_s ix_uni@ix_branch>>s|which
-! where "which" is one of:
-!   model
-!   base
-!   design
-
-case ('twiss_at_s')
-
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ix_branch = parse_branch(.true., err); if (err) return
-  s_pos = parse_real(err); if (err) return
-
-  call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%lat_branch(ix_branch)%orbit, ix_branch = ix_branch)
-  call twiss_out (this_ele%a, 'a')
-  call twiss_out (this_ele%b, 'b')
-
-!----------------------------------------------------------------------
-! Twiss at given s position
-! Input syntax:
-!   python orbit_at_s ix_uni@ix_branch>>s|which
-! where "which" is one of:
-!   model
-!   base
-!   design
-
-case ('orbit_at_s')
-
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ix_branch = parse_branch(.true., err); if (err) return
-  s_pos = parse_real(err); if (err) return
-
-  call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%lat_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
-  call orbit_out (orb)
 
 !----------------------------------------------------------------------
 
