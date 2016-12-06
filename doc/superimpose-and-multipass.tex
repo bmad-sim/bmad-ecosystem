@@ -221,8 +221,48 @@ of its super_lords, some types of attributes may be ``missing''. For
 example, it is, in general, not possible to set appropriate aperture
 attributes (\sref{s:limit}) of a super_slave if the lords of the slave
 have differing aperture settings. When doing calculations, \bmad will
-use directly the corresponding attributes stored in the lord elements to
+use the corresponding attributes stored in the lord elements to
 correctly calculate things.
+
+%-----------------------------------------------------------------------------
+\subsection{Superposition and Sub-Lines}
+\label{s:super.sub.line}
+
+Sometimes it is convenient to do simulations with only part of a lattice. The rule for how
+superpositions are handled in this case is illustrated in the following example. Consider
+a lattice file which defines a \vn{line} called \vn{full} which is defined by two sublines called
+\vn{sub1} and \vn{sub2}:
+\begin{example}
+  sub1: line = {..., ele1, ...}
+  sub2: line = {...}
+  full: line = {sub1, sub2}
+  m1: marker, superimpose, ref = ele1, offset = 3.7
+  use, full
+\end{example}
+Now suppose you want to do a simulation using only the \vn{sub2} line. Rather than edit the
+original file, one way to do this would be to create a second file which
+overrides the used line:
+\begin{example}
+  call, file = 'full.bmad'
+  use, sub2
+\end{example}
+where \vn{full.bmad} is the name of the original file. What happens to the superposition
+of \vn{m1} in this case? Since \vn{m1} uses a reference element, \vn{ele1}, that is not in
+\vn{sub1}, \bmad will ignore the superposition. Even though \bmad will ignore the superposition
+of \vn{m1} here, \bmad will check that \vn{ele1} has been defined. If \vn{ele1} has not been
+defined, \bmad will assume that there is a typographic error and issue an error message. 
+
+Notice that in this case it is important for the superposition to have an explicit
+reference element since without an explicit reference element the superposition is
+referenced to the beginning of the lattice. Thus, in the above example, if the
+superposition were written like:
+\begin{example}
+  m1: marker, superimpose, offset = 11.3
+\end{example}
+then when the \vn{full} line is used, the superposition of \vn{m1} is referenced to the
+beginning of \vn{full} (which is the same as the beginning of \vn{sub1}) but when the
+\vn{sub2} line is used, the superposition of \vn{m1} is referenced to the beginning
+of \vn{sub2} which is not the same as the beginning of \vn{full}.
 
 %-----------------------------------------------------------------------------
 \subsection{Jumbo super_slaves}
