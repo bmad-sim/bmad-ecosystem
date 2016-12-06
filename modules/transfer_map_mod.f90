@@ -76,7 +76,7 @@ integer, optional :: ix_branch
 integer ix_br
 
 logical, optional :: integrate, one_turn, unit_start, err_flag
-logical integrate_this, one_turn_this, unit_start_this, error_flag
+logical integrate_this, unit_start_this, error_flag
 
 character(40) :: r_name = 'transfer_map_from_s_to_s'
 
@@ -86,7 +86,6 @@ ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
 
 integrate_this  = logic_option (.false., integrate)
-one_turn_this   = logic_option (.false., one_turn)
 unit_start_this = logic_option(.true., unit_start)
 if (present(err_flag)) err_flag = .true.
 
@@ -100,7 +99,7 @@ if (unit_start_this) call taylor_make_unit (t_map)
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%geometry == open$)) then
+if (ss1 == ss2 .and. (.not. logic_option (.false., one_turn) .or. branch%param%geometry == open$)) then
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -108,27 +107,27 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, lat, branch, ss1, ss2, integrate_this, error_flag)
+  call transfer_this_map (t_map, branch, ss1, ss2, integrate_this, error_flag)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_map (t_map, lat, branch, ss1, branch%param%total_length, integrate_this, error_flag)
+  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, integrate_this, error_flag)
   if (error_flag) return
-  call transfer_this_map (t_map, lat, branch, 0.0_rp, ss2, integrate_this, error_flag)
+  call transfer_this_map (t_map, branch, 0.0_rp, ss2, integrate_this, error_flag)
   if (error_flag) return
 
 ! For a linear (not closed) lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, lat, branch, ss2, ss1, integrate_this, error_flag)
+    call transfer_this_map (t_map, branch, ss2, ss1, integrate_this, error_flag)
     if (error_flag) return
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, lat, branch, ss2, ss1, integrate_this, error_flag)
+    call transfer_this_map (a_map, branch, ss2, ss1, integrate_this, error_flag)
     if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
@@ -145,19 +144,18 @@ end subroutine transfer_map_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_map (map, lat, branch, s_1, s_2, integrate_this, error_flag)
+! Subroutine transfer_this_map (map, branch, s_1, s_2, integrate_this, error_flag)
 !
 ! Private subroutine used by transfer_map_from_s_to_s
 !-
 
-subroutine transfer_this_map (map, lat, branch, s_1, s_2, integrate_this, error_flag)
+subroutine transfer_this_map (map, branch, s_1, s_2, integrate_this, error_flag)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
 use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
-type (lat_struct), target :: lat
 type (branch_struct), target :: branch
 type (taylor_struct) :: map(:)
 type (ele_struct), pointer :: ele
@@ -170,13 +168,18 @@ real(rp) s_1, s_2, s_now, s_end, ds
 integer i, ix_ele
 
 logical create_it, track_upstream_end, track_downstream_end, track_entire_ele
-logical runt_points_to_new, integrate_this, error_flag
+logical runt_points_to_new, integrate_this, error_flag, include_next_ele
 logical, save :: old_track_end = .false.
 
 ! Init
+! Want to get the whole lattice if [s_1, s_2] spans the entire lattice
 
-ix_ele = element_at_s (lat, s_1, .false., branch%ix_branch)
-if (ix_ele == 0) ix_ele = 1
+if (s_1 == branch%ele(0)%s) then
+  ix_ele = 1
+else
+  ix_ele = element_at_s (branch, s_1, .true.)
+endif
+
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -187,8 +190,8 @@ do
   s_end = min(s_2, ele%s)
 
   track_upstream_end   = (s_now == branch%ele(ix_ele-1)%s) 
-  track_downstream_end       = (s_end == ele%s)
-  track_entire_ele = (track_upstream_end .and. track_downstream_end)
+  track_downstream_end = (s_end == ele%s)
+  track_entire_ele     = (track_upstream_end .and. track_downstream_end)
 
   ds = s_end - s_now
 
@@ -249,8 +252,11 @@ do
   old_track_end = track_upstream_end .or. track_downstream_end
 
   ! Are we done?
+  ! Include any zero length elements at end of region.
 
-  if (abs(s_end - s_2) < bmad_com%significant_length) exit
+  include_next_ele = .false.
+  if (ix_ele + 1 <= branch%n_ele_track) include_next_ele = (branch%ele(ix_ele+1)%s <= s_end)
+  if (.not. include_next_ele .and. abs(s_end - s_2) < bmad_com%significant_length) exit
 
   ! We are not done so move to the next element.
 
@@ -340,14 +346,12 @@ real(rp) ss1, ss2
 integer, optional :: ix_branch
 
 logical, optional :: one_turn, unit_start, err_flag
-logical one_turn_this, error_flag
+logical error_flag
 
 !
 
 if (present(err_flag)) err_flag = .true.
 branch => lat%branch(integer_option(0, ix_branch))
-
-one_turn_this = logic_option (.false., one_turn)
 
 call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), error_flag, ss1)
 if (error_flag) return
@@ -362,7 +366,7 @@ endif
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%geometry == open$)) then
+if (ss1 == ss2 .and. (.not. logic_option (.false., one_turn) .or. branch%param%geometry == open$)) then
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -370,21 +374,21 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, ss1,  ss2, error_flag, orbit, ele_save)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag, orbit)
+  call transfer_this_mat (mat6, vec0, branch, ss1,  branch%param%total_length, error_flag, orbit)
   if (error_flag) return
-  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)
   if (error_flag) return
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, ss2, ss1, error_flag, orbit, ele_save)
   if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
@@ -399,18 +403,17 @@ end subroutine mat6_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit, ele_save)
+! Subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orbit, ele_save)
 !
 ! Private subroutine used by mat6_from_s_to_s
 !-
 
-subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit, ele_save)
+subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orbit, ele_save)
 
 use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
-type (lat_struct), target :: lat
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt
@@ -424,12 +427,16 @@ real(rp) s_1, s_2, s_end, s_now, ds
 integer ix_ele
 
 logical track_upstream_end, track_downstream_end, track_entire_ele
-logical use_saved, error_flag
+logical use_saved, error_flag, include_next_ele
 
 ! Init
 
-ix_ele = element_at_s (lat, s_1, .false., branch%ix_branch)
-if (ix_ele == 0) ix_ele = 1
+if (s_1 == branch%ele(0)%s) then
+  ix_ele = 1
+else
+  ix_ele = element_at_s (branch, s_1, .true.)
+endif
+
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -482,8 +489,11 @@ do
   vec0 = matmul (runt%mat6, vec0) + runt%vec0
 
   ! Are we done?
+  ! Include any zero length elements at end of region.
 
-  if (abs(s_end - s_2) < bmad_com%significant_length) exit
+  include_next_ele = .false.
+  if (ix_ele + 1 <= branch%n_ele_track) include_next_ele = (branch%ele(ix_ele+1)%s <= s_end)
+  if (.not. include_next_ele .and. abs(s_end - s_2) < bmad_com%significant_length) exit
 
   ! We are not done so move to the next element.
 
