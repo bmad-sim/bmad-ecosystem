@@ -55,7 +55,7 @@ type (ele_struct) ele_here
 type (ele_struct), pointer :: ele0, ele_track
 
 real(rp) s_start, s_end
-real(rp) s0
+real(rp) s0, ds
 
 integer ix_start, ix_end
 integer ix_ele
@@ -170,13 +170,15 @@ if (present(ele_end)) then
   ele_here%vec0 = ele_end%vec0
 endif
 
-call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, &
-          0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., .true., orbit_end, orbit_end, &
-          ele_end, ele_end, err, compute_floor_coords)
+ds = s_end-branch%ele(ix_end-1)%s
+if (ds /= 0) then
+  call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, ds, .true., .true., &
+                                  orbit_end, orbit_end, ele_end, ele_end, err, compute_floor_coords)
 
-if (present(ele_end)) then
-  ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_end%vec0
-  ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
+  if (present(ele_end)) then
+    ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_end%vec0
+    ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
+  endif
 endif
 
 end subroutine
