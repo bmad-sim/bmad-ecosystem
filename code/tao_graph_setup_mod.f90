@@ -2465,6 +2465,7 @@ call re_allocate (scratch%y_value, n_dat) ! allocate space for the data
 scratch%y_value = 0
 good = .true.
 
+datum%exists         = .true.
 datum%ix_ele_ref     = curve%ix_ele_ref_track
 datum%ix_ele_start   = -1
 datum%ele_start_name = ''

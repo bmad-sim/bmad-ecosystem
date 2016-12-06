@@ -62,6 +62,7 @@ logical, allocatable, save :: this_u(:)
 
 !
 
+datum%exists = .true.
 datum%ele_start_name = ''
 datum%ele_ref_name = ''
 datum%ix_ele_start = -1
@@ -413,6 +414,15 @@ character(80) index_str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part
 logical, allocatable, save :: good(:)
+
+! If does not exist
+
+if (.not. datum%exists) then
+  datum_value = real_garbage$
+  valid_value = .false.
+  if (present(why_invalid)) why_invalid = 'Datum does not exist.'
+  return
+endif
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
 ! Exception: When there are datums that use expressions, things are 
@@ -2997,7 +3007,7 @@ n_max   = lat%branch(datum%ix_branch)%n_ele_max
 
 if (ix_ele < 0 .or. ix_ele > n_max) then
   call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE! \i5\ ', ix_ele)
-  call tao_set_invalid (datum, 'ELEMENT INDEX OUT OF RANGE FOR' // tao_datum_name(datum), why_invalid)
+  call tao_set_invalid (datum, 'ELEMENT INDEX OUT OF RANGE FOR: ' // tao_datum_name(datum), why_invalid)
   valid = .false.
   return
 endif
@@ -4133,6 +4143,8 @@ if (present(why_invalid)) then
 else
   call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
 endif
+
+datum%exists = .false. ! So error message does not get generated again.
 
 end subroutine tao_set_invalid
 
