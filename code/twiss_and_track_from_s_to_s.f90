@@ -102,7 +102,7 @@ if (orbit%location == downstream_end$) then
   ix_start = ix_start + 1
 endif
 
-ix_end = element_at_s (branch%lat, s_end, .false., branch%ix_branch, err_flag)
+ix_end = element_at_s (branch, s_end, .true., err_flag = err_flag)
 if (present(err)) err = err_flag
 if (err_flag) return
 
