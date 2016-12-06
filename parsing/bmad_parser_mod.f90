@@ -5242,8 +5242,8 @@ type (ele_struct), target :: ele, slave
 type (ele_struct), pointer :: lord, slave1, slave2
 type (control_struct), allocatable :: cs_temp(:)
 integer n_slave, ixs, ix_ele_now
-integer ii, ls, n
-logical is_matched
+integer ii, ls, n, ie
+logical is_matched, add_slave
 
 ! Try to match
 
@@ -5255,15 +5255,25 @@ if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == not_
 
   if (ele%key == drift$) then
     if (is_matched) matched_to_drift = .true.
+
   else ! If not a drift then ele will be a girder_slave
-    n_slave = n_slave + 1
-    if (size(cs) < n_slave) then  ! Can happen if there is a range.
-      n = size(cs)
-      call move_alloc(cs, cs_temp)
-      allocate (cs(2*n))
-      cs(1:n) = cs_temp
+    ! First check for duplicates. For example, element with superimposed 
+    ! marker will be duplicated unless a check is made.
+    add_slave = .true.
+    do ie = 1, n_slave
+      if (ele%ix_ele == cs(ie)%slave%ix_ele .and. ele%ix_branch == cs(ie)%slave%ix_branch) add_slave = .false.
+    enddo
+
+    if (add_slave) then
+      n_slave = n_slave + 1
+      if (size(cs) < n_slave) then  ! Can happen if there is a range.
+        n = size(cs)
+        call move_alloc(cs, cs_temp)
+        allocate (cs(2*n))
+        cs(1:n) = cs_temp
+      endif
+      cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
     endif
-    cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
   endif
 
   is_matched = .true.
@@ -5284,7 +5294,7 @@ if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == not_
 
   ! If in a super_slave region then need to recheck the current slave against the next girder slave name.
 
-  if (ix_super_lord_end == -1) ix_ele_now = ix_ele_now + 1
+  if (ix_super_lord_end == -1 .or. pele%is_range) ix_ele_now = ix_ele_now + 1
 
   ! If match to a girder then move pointers to element after last girder slave
 
