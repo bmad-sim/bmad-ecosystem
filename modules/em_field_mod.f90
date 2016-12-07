@@ -341,6 +341,11 @@ case (bmad_standard$)
     if (ele%value(rf_frequency$) == 0) then
       field%e(3) = e_accel_field (ele, gradient$) / ref_charge
     else
+      if (present(rf_time)) then
+        time = rf_time
+      else
+        time = particle_rf_time(orbit, ele, .true., s_rel)
+      endif
       phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
       field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
     endif
