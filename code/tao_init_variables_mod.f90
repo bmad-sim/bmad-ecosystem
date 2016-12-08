@@ -591,7 +591,7 @@ allocate (s%v1_var(n_v1))
 
 do i = 1, n_v1
   s%v1_var(i)%name = ''  ! blank name means it doesn't (yet) exist
-  s%v1_var(i)%ix_array_v1 = i
+  s%v1_var(i)%ix_v1_var = i
 enddo
 
 s%n_v1_var_used = 0

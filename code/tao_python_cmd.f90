@@ -23,6 +23,8 @@ subroutine tao_python_cmd (input_str)
 
 use tao_mod
 use tao_command_mod
+use tao_init_data_mod
+use tao_init_variables_mod
 use location_encode_mod
 
 implicit none
@@ -31,10 +33,15 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
+type (tao_d2_data_struct), allocatable :: d2_temp(:)
+type (tao_d1_data_struct), allocatable :: d1_temp(:)
+type (tao_data_struct), allocatable :: d_temp(:)
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_var_array_struct), allocatable, save, target :: v_array(:)
+type (tao_v1_var_struct), allocatable :: v1_temp(:)
+type (tao_var_struct), allocatable :: v_temp(:)
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_graph_array_struct), allocatable, save :: graph(:)
 type (tao_curve_array_struct), allocatable, save :: curve(:)
@@ -79,15 +86,15 @@ character(20) :: cmd_names(28)= [ &
   'orbit_at_s     ', &
   'plot_list      ', 'plot1          ', 'plot_graph     ', 'plot_curve     ', 'plot_line      ', 'plot_symbol    ', &
   'twiss_at_s     ', 'universe       ', &
-  'car_create     ', 'var_destroy    ', 'var_general    ', 'var_v1         ', 'var1           ']
-
+  'var_create     ', 'var_destroy    ', 'var_general    ', 'var_v1         ', 'var1           ']
 
 real(rp) s_pos
 
-integer :: i, j, ie, iu, md, nl, ct, n1, nl2, n, ix, ix2, iu_write
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
-integer :: ios, n_loc, ix_line, n_d1, n_data(20)
-logical :: err, print_flag, opened, doprint, free
+integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe, ix_d2
+integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20)
+
+logical :: err, print_flag, opened, doprint, free, n_delta
 
 character(20) switch
 
@@ -154,7 +161,7 @@ select case (command)
 
 !----------------------------------------------------------------------
 ! Beam initialization parameters.
-! Input syntax:
+! Command syntax:
 !   python beam_init ix_universe
 
 case ('beam_init')
@@ -190,7 +197,7 @@ case ('beam_init')
 
 !----------------------------------------------------------------------
 ! Lattice element list.
-! Input syntax:
+! Command syntax:
 !   python branch1 <ix_universe>@<ix_branch>
 
 case ('branch1')
@@ -216,7 +223,7 @@ case ('branch1')
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
-! Input syntax:
+! Command syntax:
 !   python bunch1 ix_universe@ix_branch>>ix_ele|which
 ! where "which" is one of:
 !   model
@@ -246,7 +253,7 @@ case ('bunch1')
 
 !----------------------------------------------------------------------
 ! List of datums in a given data d1 array.
-! Input syntax:
+! Command syntax:
 !   python data_d1 <ix_universe>@<d2_name>.<d1_datum>
 ! Use the "python data_d2 <name>" command to get a list of d1 arrays. 
 ! Use the "python data1" command to get detailed information on a particular datum.
@@ -268,17 +275,25 @@ case ('data_d1')
   nl=nl+1; write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
 
 !----------------------------------------------------------------------
-! Create a d2 data structure with associated d1 data arrays.
-! Input syntax:
-!   python data_create <d2_name> <n_d1_data> <d_data_array>
+! Create a d2 data structure along with associated d1 and data arrays.
+!
+! Command syntax:
+!   python data_create <d2_name> <n_d1_data> <d_data_arrays_min_max>
 ! <d2_name> should be of the form <ix_uni>@<d2_datum_name>
-! <n_d1_data> is the number of associated d1 data arrays
-! <d_data_array> is an array. Each element gives the size of a d1 data array.
-! The number of entries in <d_data_array> should be equal to <n_d1_data>
+! <n_d1_data> is the number of associated d1 data structures.
+! <d_data_arrays_min_max> is an array of pairs of integers. The number of pairs is <n_d1_data>. 
+!   The first number in the n^th pair gives the lower bound of the n^th d1 structure and the 
+!   second number in the n^th pair gives the upper bound of the n^th d1 structure.
+!
+! The d1 structures created will be assigned initial names "1", "2", "3", etc.
+!
 ! Example:
-!   python data_create 2@orbit 2 45 47
-! This example creates a d2 data structure called "orbit" with two d1 data arrays.
-! The first d1 data array has 45 datum and the second has 47.
+!   python data_create 2@orbit 2 0 45 1 47
+! This example creates a d2 data structure called "orbit" with two d1 structures.
+! The first d1 structure, assigned the name "1", has an associated data array with indexes in the range [0, 45].
+! The second d1 structure, assigned the name "2", has an associated data arrray with indexes in the range [1, 47].
+!
+! Use the "set data" command to set a created variable parameters.
 
 case ('data_create')
 
@@ -301,30 +316,142 @@ case ('data_create')
   read (line, *) n_d1
   call string_trim (line(ix_line+1:), line, ix_line)
 
+  ix_min = 0; ix_max = 0 
   do i = 1, n_d1
     if (.not. is_integer(line)) exit
-    read (line, *) n_data(i)
+    read (line, *) ix_min(i)
+    call string_trim (line(ix_line+1:), line, ix_line)
+    if (.not. is_integer(line)) exit
+    read (line, *) ix_max(i)
     call string_trim (line(ix_line+1:), line, ix_line)
   enddo
 
-  if (ix_line /= 0) then
+  if (ix_line /= 0 .or. i /= n_d1+1) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array of datum min/max for each d1.')
+    call end_stuff()
+    return
+  endif
+
+  ! Now create the d2 structure
+
+  ix = index(name, '@')
+  if (ix == 0) then
     nl=nl+1; li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array number of datums for each d1.')
     call end_stuff()
     return
   endif
 
+  read (name(1:ix-1), *) iu
+  u => s%u(iu)
+  name = name(ix+1:)
 
+  n2 = size(u%d2_data)
+  if (u%n_d2_data_used + 1 > n2) then
+    call move_alloc(u%d2_data, d2_temp)
+    allocate (u%d2_data(n2+1))
+    u%d2_data(1:n2) = d2_temp
+  endif
+
+  n = size(u%data)
+  n_delta = sum(ix_max(1:n_d1)) - sum(ix_min(1:n_d1)) + n_d1
+  if (u%n_data_used + n_delta > n) then
+    call move_alloc(u%data, d_temp)
+    allocate (u%data(u%n_data_used + n_delta))
+    u%data(1:u%n_data_used) = d_temp(1:u%n_data_used)
+    do i = 1, size(u%data)
+      u%data(i)%ix_data = i
+    enddo
+  endif
+
+  do i = 1, u%n_d2_data_used
+    n1 = size(d2_temp(i)%d1)
+    do j = 1, n1
+      d1_ptr => u%d2_data(i)%d1(j)
+      d1_ptr%d2 => u%d2_data(i)
+      i1 = lbound(d1_ptr%d, 1)
+      i1 = d1_ptr%d(i1)%ix_data
+      i2 = ubound(d1_ptr%d, 1)
+      i2 = d1_ptr%d(i2)%ix_data
+      call tao_point_d1_to_data (d1_ptr, u%data(i1:i2), u%data(i1)%ix_d1)
+    enddo
+  enddo
+
+  nn = u%n_d2_data_used + 1
+  u%n_d2_data_used = nn
+  u%d2_data(nn)%ix_d2_data = nn
+  u%d2_data(nn)%name = name
+  allocate (u%d2_data(nn)%d1(n_d1))
+
+  do j = 1, n_d1
+    d1_ptr => u%d2_data(nn)%d1(j)
+    d1_ptr%d2 => u%d2_data(nn)
+    write (d1_ptr%name, '(i0)') j
+    i1 = i2 + 1
+    i2 = i2 + 1 + ix_max(j) - ix_min(j)
+    call tao_point_d1_to_data (d1_ptr, u%data(i1:i2), ix_min(j))
+  enddo
+
+!----------------------------------------------------------------------
+! Destroy a d2 data structure along with associated d1 and data arrays.
+! Command syntax:
+!   python data_destroy <d2_datum>
+! <d2_datum> should be of the form 
+!   <ix_uni>@<d2_datum_name>
+
+case ('data_destroy')
+
+  call tao_find_data (err, line, d2_array = d2_array)
+  if (err .or. .not. allocated(d2_array)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
+    call end_stuff()
+    return
+  endif
+
+  d2_ptr => d2_array(1)%d2
+  ix_d2 = d2_ptr%ix_d2_data
+
+  d1_ptr => d2_ptr%d1(1)
+  i1 = lbound(d1_ptr%d, 1)
+  i1 = d1_ptr%d(i1)%ix_data
+
+  n1 = size(d2_ptr%d1)
+  d1_ptr => d2_ptr%d1(n1)
+  i2 = ubound(d1_ptr%d, 1)
+  i2 = d1_ptr%d(i2)%ix_data
+
+  n_delta = i2 + 1 - i1
+
+  ! Squeeze u%d2_data and u%data arrays
+
+  do i = ix_d2, u%n_d2_data_used - 1
+    u%d2_data(i) = u%d2_data(i+1)
+    do j = 1, size(u%d2_data(i)%d1)
+      d1_ptr => u%d2_data(i)%d1(j)
+      d1_ptr%d2 => u%d2_data(i)
+      i1 = d1_ptr%d(lbound(d1_ptr%d,1))%ix_data
+      i2 = d1_ptr%d(ubound(d1_ptr%d,1))%ix_data
+      u%data(i1-n_delta:i2-n_delta) = u%data(i1:i2)
+      call tao_point_d1_to_data(d1_ptr, u%data(i1-n_delta:i2-n_delta), u%data(i1-n_delta)%ix_d1)
+      do k = i1, i2
+        u%data(i1-n_delta)%ix_data = i1 - n_delta
+      enddo
+    enddo
+  enddo
+
+  u%n_d2_data_used = u%n_d2_data_used - 1
+  u%n_data_used = u%n_data_used - n_delta
 
 !----------------------------------------------------------------------
 ! List of d1 arrays in a given data d2.
-! Input syntax:
+! Command syntax:
 !   python data_d2 <d2_datum>
 ! <d2_datum> should be of the form 
 !   <ix_uni>@<d2_datum_name>
 
 case ('data_d2')
-
 
   call tao_find_data (err, line, d2_array = d2_array)
 
@@ -337,11 +464,11 @@ case ('data_d2')
 
   d2_ptr => d2_array(1)%d2
 
-
   do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
     nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
   enddo
 
+  nl=nl+1; write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
   nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
   nl=nl+1; write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
   nl=nl+1; write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
@@ -355,7 +482,7 @@ case ('data_d2')
 
 !----------------------------------------------------------------------
 ! Data d2 info for a given universe.
-! Input syntax:
+! Command syntax:
 !   python data_general <ix_universe>
 
 case ('data_general')
@@ -370,7 +497,7 @@ case ('data_general')
 
 !----------------------------------------------------------------------
 ! Individual datum info.
-! Input syntax:
+! Command syntax:
 !   python data1 <ix_universe>@<d2_name>.<d1_datum>[<dat_index>]
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Output syntax is variable list form. See documentation at beginning of this file.
@@ -430,7 +557,7 @@ case ('data1')
 
 !----------------------------------------------------------------------
 ! Global parameters
-! Input syntax: 
+! Command syntax: 
 !   python global
 ! Output syntax is variable list form. See documentation at beginning of this file.
 
@@ -510,7 +637,7 @@ case ('help')
 
 !----------------------------------------------------------------------
 ! Lattice element list.
-! Input syntax:
+! Command syntax:
 !   python lat_general <ix_universe>
 
 case ('lat_general')
@@ -525,7 +652,7 @@ case ('lat_general')
 
 !----------------------------------------------------------------------
 ! Lattice element list.
-! Input syntax:
+! Command syntax:
 !   python lat_ele <branch_name>
 ! <branch_name> should have the form:
 !   <ix_uni>@<ix_branch>
@@ -542,7 +669,7 @@ case ('lat_ele_list')
 
 !----------------------------------------------------------------------
 ! parameters associated with given lattice element. 
-! Input syntax: 
+! Command syntax: 
 !   python lat_ele1 ix_universe@ix_branch>>ix_ele|which who
 ! where "which" is one of:
 !   model
@@ -668,7 +795,7 @@ case ('lat_ele1')
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
-! Input syntax:
+! Command syntax:
 !   python orbit_at_s ix_uni@ix_branch>>s|which
 ! where "which" is one of:
 !   model
@@ -687,7 +814,7 @@ case ('orbit_at_s')
 
 !----------------------------------------------------------------------
 ! List of plot templates or plot regions.
-! Input syntax:  
+! Command syntax:  
 !   python plot_list <r/g>
 ! where "<r/g>" is:
 !   "r"      ! list regions
@@ -794,7 +921,7 @@ case ('plot_graph')
 
 !----------------------------------------------------------------------
 ! Curve information for a plot
-! Input syntax:
+! Command syntax:
 !   pyton curve <curve_name>
 
 case ('plot_curve')
@@ -847,7 +974,7 @@ case ('plot_curve')
 
 !----------------------------------------------------------------------
 ! Points used to construct a smooth line for a plot curve.
-! Input syntax:
+! Command syntax:
 !   python plot_line <region_name>.<graph_name>.<curve_name>
 ! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
 
@@ -878,7 +1005,7 @@ case ('plot_line')
 
 !----------------------------------------------------------------------
 ! Locations to draw symbols for a plot curve.
-! Input syntax:
+! Command syntax:
 !   python plot_symbol <region_name>.<graph_name>.<curve_name>
 ! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
 
@@ -909,7 +1036,7 @@ case ('plot_symbol')
 
 !----------------------------------------------------------------------
 ! Info on a given plot.
-! Input syntax:
+! Command syntax:
 !   python plot1 <name>
 ! <name> should be the region name if the plot is associated with a region.
 ! Output syntax is variable list form. See documentation at beginning of this file.
@@ -946,7 +1073,7 @@ case ('plot1')
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
-! Input syntax:
+! Command syntax:
 !   python twiss_at_s ix_uni@ix_branch>>s|which
 ! where "which" is one of:
 !   model
@@ -966,7 +1093,7 @@ case ('twiss_at_s')
 
 !----------------------------------------------------------------------
 ! Universe info
-! Input syntax:
+! Command syntax:
 !   python universe <ix_universe>
 ! Use "python global" to get the number of universes.
 
@@ -981,8 +1108,109 @@ case ('universe')
   nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------
+! Create a v1 variable structure along with associated var array.
+! Command syntax:
+!   python var_create <v1_name> <n_var_min> <n_var_max>
+! <n_var_min> and <n_var_max> are the lower and upper bounds of the var
+! Example:
+!   python var_create quad_k1 0 45
+! This example creates a v1 var structure called "quad_k1" with an associated
+! variable array that has the range [0, 45].
+!
+! Use the "set variable" command to set a created variable parameters.
+
+case ('var_create')
+
+  call tao_cmd_split (line, 3, name1, .true., err)
+
+  if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Is Malformed')
+    call end_stuff()
+    return
+  endif
+
+  read (name1(2), *) ix_min(1)
+  read (name1(3), *) ix_max(1)
+
+  n1 = size(s%v1_var)
+  if (s%n_v1_var_used + 1 > n1) then
+    call move_alloc (s%v1_var, v1_temp)
+    allocate (s%v1_var(s%n_v1_var_used + 1))
+    s%v1_var(1:n1) = v1_temp
+  endif
+
+  n = size(s%var)
+  n_delta = ix_max(1) + 1 - ix_min(1)
+  if (s%n_var_used + n_delta  > n) then
+    call move_alloc (s%var, v_temp)
+    allocate (s%var(s%n_var_used+n_delta))
+    s%var(1:n) = v_temp
+    do k = s%n_var_used, size(s%var)
+      s%var(k)%ix_var = k
+    enddo
+  endif
+
+  do i = 1, s%n_v1_var_used
+    v1_ptr => s%v1_var(i)
+    i1 = lbound(v1_ptr%v, 1)
+    i1 = v1_ptr%v(i1)%ix_var
+    i2 = ubound(v1_ptr%v, 1)
+    i2 = v1_ptr%v(i2)%ix_var
+    call tao_point_v1_to_var (v1_ptr, s%var(i1:i2), s%var(i1)%ix_v1)
+  enddo
+
+  nn = s%n_v1_var_used + 1
+  s%n_v1_var_used = nn
+  s%v1_var(nn)%ix_v1_var = nn
+  s%v1_var(nn)%name = name1(1)
+  i1 = i2 + 1
+  i2 = i2 + n_delta
+  call tao_point_v1_to_var (s%v1_var(nn), s%var(i1:i2), ix_min(1))
+
+!----------------------------------------------------------------------
+! Destroy a v1 var structure along with associated var sub-array.
+! Command syntax:
+!   python var_destroy <v1_datum>
+
+case ('var_destroy')
+
+  call tao_find_var (err, line, v1_array = v1_array)
+  if (err .or. .not. allocated(v1_array)) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 var name')
+    call end_stuff()
+    return
+  endif
+
+  v1_ptr => v1_array(1)%v1
+  i1 = lbound(v1_ptr%v, 1)
+  i1 = v1_ptr%v(i1)%ix_var
+  i2 = ubound(v1_ptr%v, 1)
+  i2 = v1_ptr%v(i2)%ix_var
+
+  n_delta = i2 + 1 - i1
+
+  n = s%n_var_used
+
+  do j = v1_ptr%ix_v1_var, s%n_v1_var_used - 1
+    s%v1_var(j) = s%v1_var(j+1)
+    v1_ptr => s%v1_var(j)
+    i1 = v1_ptr%v(lbound(v1_ptr%v,1))%ix_var
+    i2 = v1_ptr%v(ubound(v1_ptr%v,1))%ix_var
+    s%var(i1-n_delta:i2-n_delta) = s%var(i1:i2)
+    call tao_point_v1_to_var(v1_ptr, s%var(i1-n_delta:i2-n_delta), s%var(i1-n_delta)%ix_v1)
+    do k = i1, i2
+      s%var(i1-n_delta)%ix_var = i1 - n_delta
+    enddo
+  enddo
+
+  s%n_v1_var_used = s%n_v1_var_used - 1
+  s%n_var_used = s%n_var_used - n_delta
+
+!----------------------------------------------------------------------
 ! List of all variable v1 arrays
-! Input syntax: 
+! Command syntax: 
 !   python var_general
 ! Output syntax:
 !   <v1_var name>;<v1_var%v lower bound>;<v1_var%v upper bound>
@@ -997,7 +1225,7 @@ case ('var_general')
 
 !----------------------------------------------------------------------
 ! List of variables in a given variable v1 array
-! Input syntax: 
+! Command syntax: 
 !   python var_v1 <v1_var>
 
 case ('var_v1')
@@ -1022,9 +1250,11 @@ case ('var_v1')
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
   enddo
 
+  nl=nl+1; write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
+
 !----------------------------------------------------------------------
 ! Info on an individual variable
-! Input syntax: 
+! Command syntax: 
 !   python var1 <var>
 ! Output syntax is variable list form. See documentation at beginning of this file.
 

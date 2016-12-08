@@ -55,6 +55,41 @@ subroutine tao_de_optimizer (abort)
   logical abort
 end subroutine
 
+subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
+                           log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
+  import
+  implicit none
+  type (tao_d2_data_array_struct), allocatable, optional :: d2_array(:)
+  type (tao_d1_data_array_struct), allocatable, optional :: d1_array(:)
+  type (tao_data_array_struct), allocatable, optional    :: d_array(:)
+  type (tao_real_pointer_struct), allocatable, optional    :: re_array(:)
+  type (tao_integer_array_struct), allocatable, optional :: int_array(:)
+  type (tao_logical_array_struct), allocatable, optional :: log_array(:)
+  type (tao_string_array_struct), allocatable, optional  :: str_array(:)
+  character(*) :: data_name
+  character(*), optional :: component
+  character(*), optional :: dflt_index
+  integer, optional :: ix_uni
+  logical err
+  logical, optional :: print_err
+end subroutine
+
+
+subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
+                                                    str_array, print_err, component, dflt_var_index)
+  import
+  implicit none
+  type (tao_v1_var_array_struct), allocatable, optional  :: v1_array(:)
+  type (tao_var_array_struct), allocatable, optional     :: v_array(:)
+  type (tao_real_pointer_struct), allocatable, optional  :: re_array(:)
+  type (tao_logical_array_struct), allocatable, optional :: log_array(:)
+  type (tao_string_array_struct), allocatable, optional  :: str_array(:)
+  character(*) :: var_name
+  character(*), optional :: component, dflt_var_index
+  logical, optional :: print_err
+  logical err, print_error
+end subroutine
+
 subroutine tao_find_plot_region (err, where, region, print_flag)
   import
   implicit none

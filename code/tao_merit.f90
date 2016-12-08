@@ -171,6 +171,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! for max or min merit_types the delta might be modified.
 
   do j = 1, size(data)
+    if (.not. data(j)%exists) cycle
     select case (data(j)%merit_type)
     case ('target', 'match', 'int_max', 'int_min')  ! Nothing to be done
     case ('max', 'abs_max')
