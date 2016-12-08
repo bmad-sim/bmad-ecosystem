@@ -714,7 +714,7 @@ enddo
 ! Set %ix_data. See the tao_data_struct for the defaults component values.
 
 do i = n0+1, size(u%data)
-  u%data(i)%ix_data        = i
+  u%data(i)%ix_data = i
 enddo
 
 end subroutine tao_allocate_data_array
@@ -783,6 +783,7 @@ if (allocated(u%d2_data)) deallocate (u%d2_data)
 allocate (u%d2_data(n_d2_data))
 
 do j = 1, n_d2_data
+  u%d2_data(j)%ix_d2_data = j
   u%d2_data(j)%descrip = ''
 enddo
 

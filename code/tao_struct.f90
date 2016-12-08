@@ -17,6 +17,7 @@ use tao_parameters
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
+integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
 
 character(8), parameter :: lat_type_name(3) = ['model ', 'base  ', 'design']
 
@@ -386,11 +387,10 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(40) name        ! Eg: 'x', etc.
-  integer ix_data           ! index of the 0th element in u%data.
+  character(40) name          ! Eg: 'x', etc.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()  
-                            ! Pointer to the appropriate section in u%data
+                              ! Pointer to the appropriate section in u%data
 end type
 
 ! A d2_data_struct represents all of a type of data. Eg: All orbit data.
@@ -408,6 +408,7 @@ type tao_d2_data_struct
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
   real(rp) :: scale = 1                  ! Scale factor for ping amplitude data.
   integer ix_uni                         ! Index of universe this is in.
+  integer ix_d2_data                     ! Index in u%d2_data(:) array.
   integer ix_data                        ! Index of the data set.
   integer ix_ref                         ! Index of the reference data set. 
   logical :: data_read_in = .false.      ! A data set has been read in?
@@ -504,8 +505,7 @@ end type tao_var_struct
 
 type tao_v1_var_struct
   character(40) :: name = ' '  ! Eg: 'quad_k1'
-  integer ix_var0              ! Index of the 0th element in s%var
-  integer ix_array_v1          ! Index to s%v1_var(:) array
+  integer ix_v1_var                ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in s%var.
 end type

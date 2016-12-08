@@ -1003,7 +1003,7 @@ case ('data')
   elseif (size(d2_array) > 1) then
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
+    nl=nl+1; write(lines(nl), '(a, t40, a)') '  Name', 'Using for Optimization'
 
     do i = 1, size(d2_array)
       d2_ptr => d2_array(i)%d2

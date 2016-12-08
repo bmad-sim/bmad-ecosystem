@@ -1482,6 +1482,9 @@ elseif (size(s_dat) /= 0) then
         d_dat(i)%d%ix_ele_ref = eles(1)%ele%ix_ele
       endif
     enddo
+  elseif (component == 'data_type') then
+  elseif (component == 'merit_type') then
+  elseif (component == 'data_source') then
   endif
 
   do i = 1, size(s_dat)
@@ -1512,8 +1515,9 @@ elseif (size(r_dat) /= 0) then
     if (component == 'ref')  d_dat(i)%d%good_ref = .true.
     if (component == 'base') d_dat(i)%d%good_base = .true.
   enddo
-
 endif
+
+!
 
 do i = 1, size(d_dat)
   if (.not. d_dat(i)%d%exists) cycle
