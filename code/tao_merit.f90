@@ -53,7 +53,7 @@ do j = 1, s%n_var_used
   ! The common universe does not have ref or base so turn these off for
   ! variables that control parameters in the common universe.
 
-  if (var%this(1)%ix_uni == ix_common_uni$) then
+  if (var%slave(1)%ix_uni == ix_common_uni$) then
     opt_with_ref = .false.
     opt_with_base = .false.
   else
@@ -67,7 +67,7 @@ do j = 1, s%n_var_used
   case ('target', 'match')
     if (opt_with_ref .and. opt_with_base) then
       if (s%com%common_lattice) then
-        var%delta_merit = (var%model_value - var%common%model_value) - &
+        var%delta_merit = (var%model_value - var%common_slave%model_value) - &
                                                 (var%meas_value - var%ref_value)
       else
         var%delta_merit = (var%model_value - var%base_value) - &
@@ -78,7 +78,7 @@ do j = 1, s%n_var_used
                                                 (var%meas_value - var%ref_value)
     elseif (opt_with_base) then
       if (s%com%common_lattice) then
-        var%delta_merit = (var%model_value - var%common%model_value) - var%meas_value
+        var%delta_merit = (var%model_value - var%common_slave%model_value) - var%meas_value
       else
         var%delta_merit = (var%model_value - var%base_value) - var%meas_value
       endif

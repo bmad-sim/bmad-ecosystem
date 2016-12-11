@@ -32,7 +32,6 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
-type (tao_data_input) data(n_data_minn:n_data_maxx)
 type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
 type (ele_pointer_struct), allocatable :: eles(:)
 
@@ -52,14 +51,14 @@ character(40) default_merit_type, default_data_source, def_merit_type, def_data_
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
-logical err, free, gang, old_style_warning 
+logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, universe, &
                 default_merit_type, default_weight, default_data_type, default_data_source
 
-namelist / tao_d1_data / d1_data, data, datum, ix_d1_data, &
+namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
                default_merit_type, default_weight, default_data_type, default_data_source, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
@@ -85,7 +84,6 @@ if (iu == 0) then
 endif
 
 n_d2_data = 0
-old_style_warning = .false.
 
 do 
   universe = '*'
@@ -174,7 +172,6 @@ do
     ix_max_data            = int_garbage$
 
     datum(:) = tao_datum_input()
-    data(:)  = tao_data_input()    ! data(:) is old style
 
     ! Read datum/data
 
@@ -184,50 +181,6 @@ do
       rewind (iu)
       do
         read (iu, nml = tao_d1_data)  ! force printing of error message
-      enddo
-    endif
-
-    ! Transfer data(:) to datum(:) if needed
-
-    if (any(data%data_type /= '') .or. any(data%ele_name /= '')) then
-      if (.not. old_style_warning) then  ! Only give warning once
-        call out_io (s_warn$, r_name, &
-                  'OLD STYPE "DATA(:) = ..." SYNTAX DETECTED.', &
-                  'THIS HAS BEEN DEPRECATED.', &
-                  'PLEASE SWITCH TO NEW STYLE DATUM(:) = ..." SYNTAX.', &
-                  'IN THE MEANTIME, TAO WILL RUN AS NORMAL...')
-        old_style_warning = .true.
-      endif
-      datum(:)%data_type      = data(:)%data_type
-      datum(:)%merit_type     = data(:)%merit_type
-      datum(:)%merit_type     = data(:)%merit_type
-      datum(:)%ele_name       = data(:)%ele_name
-      datum(:)%meas           = data(:)%meas
-      datum(:)%weight         = data(:)%weight
-      datum(:)%invalid_value  = data(:)%invalid_value
-      datum(:)%ix_bunch       = data(:)%ix_bunch
-      datum(:)%data_source    = data(:)%data_source
-      datum(:)%good_user      = data(:)%good_user
-      do i = lbound(datum, 1), ubound(datum, 1)
-        if (datum(i)%data_type == '') cycle
-        d_typ = datum(i)%data_type
-        if (d_typ(1:2) == 'i5') datum(i)%data_type = 'rad_int.' // trim(d_typ) ! Convert old style
-        if (d_typ(1:6) == 'floor.' .or. d_typ == 'momentum_compaction' .or. &
-            d_typ(1:12) == 'periodic.tt.' .or. d_typ(1:5) == 'phase' .or. &
-            d_typ(1:2) == 'r.' .or. d_typ(1:10) == 'rel_floor.' .or. &
-            d_typ == 's_position' .or. d_typ(1:2) == 't.' .or. &
-            d_typ(1:3) == 'tt.') then
-          datum(:)%ele_ref_name   = data(:)%ele0_name          
-          if (datum(i)%ele_ref_name == '' .and. datum(i)%ele_name /= '') &
-                                                       datum(i)%ele_ref_name = 'BEGINNING'
-        else
-          datum(i)%ele_start_name = data(i)%ele0_name
-        endif
-        ! convert old style to new
-        if (d_typ == 'lattice')       datum(i)%data_type = 'lat'
-        if (d_typ == 'beam_tracking') datum(i)%data_source = 'beam'
-        if (d_typ == 'chrom.a')       datum(i)%data_source = 'chrom.dtune.a'
-        if (d_typ == 'chrom.b')       datum(i)%data_source = 'chrom.dtune.b'
       enddo
     endif
 
@@ -355,6 +308,7 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%data_type      = datum(ix1)%data_type
   u%data(n1:n2)%merit_type     = datum(ix1)%merit_type
   u%data(n1:n2)%weight         = datum(ix1)%weight
+  u%data(n1:n2)%s_offset       = datum(ix1)%s_offset
   u%data(n1:n2)%data_source    = datum(ix1)%data_source
   u%data(n1:n2)%meas_value     = 0  
   ! use default_data_type if given, if not, auto-generate the data_type
@@ -444,11 +398,10 @@ else
   u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
   u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
-
-  u%data(n1:n2)%data_type     = datum(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type    = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%weight        = datum(ix1:ix2)%weight
-  u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%data_type      = datum(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type     = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%s_offset       = datum(ix1:ix2)%s_offset
 
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
   where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
@@ -525,9 +478,9 @@ do j = n1, n2
 
   ! Use defaults if a component has not been set.
 
-  if (dat%weight == 0) dat%weight = default_weight
-  if (dat%merit_type == '') dat%merit_type = default_merit_type
-  if (dat%merit_type == '') dat%merit_type = 'target'
+  if (dat%weight == 0)       dat%weight = default_weight
+  if (dat%merit_type == '')  dat%merit_type = default_merit_type
+  if (dat%merit_type == '')  dat%merit_type = 'target'
   if (dat%data_source == '') dat%data_source = default_data_source
   if (dat%data_source == '') dat%data_source = 'lat'
 

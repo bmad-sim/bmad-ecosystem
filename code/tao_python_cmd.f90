@@ -166,7 +166,7 @@ select case (command)
 
 case ('beam_init')
 
-  u => point_to_uni(.true., err); if (err) return
+  u => point_to_uni(.false., err); if (err) return
   beam_init => u%beam%beam_init
 
   nl=nl+1; write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
@@ -202,7 +202,7 @@ case ('beam_init')
 
 case ('branch1')
 
-  u => point_to_uni(.false., err); if (err) return
+  u => point_to_uni(.true., err); if (err) return
   ix_branch = parse_branch(.false., err); if (err) return
   branch => u%design%lat%branch(ix_branch)
 
@@ -293,7 +293,10 @@ case ('data_d1')
 ! The first d1 structure, assigned the name "1", has an associated data array with indexes in the range [0, 45].
 ! The second d1 structure, assigned the name "2", has an associated data arrray with indexes in the range [1, 47].
 !
-! Use the "set data" command to set a created variable parameters.
+! Use the "set data" command to set a created datum parameters.
+! Note: When setting multiple data parameters, temporarily toggle s%global%lattice_calc_on to False
+!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created datum and
+!   generating unwanted error messages.
 
 case ('data_create')
 
@@ -382,6 +385,7 @@ case ('data_create')
   u%n_d2_data_used = nn
   u%d2_data(nn)%ix_d2_data = nn
   u%d2_data(nn)%name = name
+  u%d2_data(nn)%ix_uni = iu
   allocate (u%d2_data(nn)%d1(n_d1))
 
   do j = 1, n_d1
@@ -519,31 +523,32 @@ case ('data1')
 
   nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
   nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name  
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type     
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type    
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source   
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch      
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch     
-  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele        
-  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start  
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref    
-  nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit  
-  nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1         
-  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data       
-  nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel     
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value    
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value     
-  nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value   
-  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value  
-  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value     
-  nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value    
-  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit   
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight        
-  nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value 
-  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit         
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s             
-  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists        
+  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name
+  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
+  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
+  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
+  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
+  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
+  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
+  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start
+  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref
+  nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
+  nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
+  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
+  nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel
+  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value
+  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value
+  nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value
+  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
+  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
+  nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
+  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
+  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
+  nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
+  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
+  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
+  nl=nl+1; write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
+  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
   nl=nl+1; write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
   nl=nl+1; write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
   nl=nl+1; write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
@@ -1118,6 +1123,15 @@ case ('universe')
 ! variable array that has the range [0, 45].
 !
 ! Use the "set variable" command to set a created variable parameters.
+! In particular, to slave a lattice parameter to a variable use the command:
+!   set <v1_name|ele_name = <lat_param>
+! where <lat_param> is of the form <ix_uni>@<ele_name_or_location>[<param_name>]
+! Examples:
+!   set quad_k1[2]|ele_name = 2@q01w[k1]
+!   set quad_k1[2]|ele_name = 2@0>>10[k1]
+! Note: When setting multiple variable parameters, temporarily toggle s%global%lattice_calc_on to False
+!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created variable
+!   and generating unwanted error messages.
 
 case ('var_create')
 

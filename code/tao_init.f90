@@ -23,7 +23,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (tao_var_struct), pointer :: var
-type (tao_this_var_struct), pointer :: this
+type (tao_var_slave_struct), pointer :: var_slave
 type (tao_plot_struct), pointer :: p
 type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
@@ -173,11 +173,11 @@ call tao_set_var_useit_opt
 do i = 1, s%n_var_used
   var => s%var(i)
   if (.not. var%exists) cycle
-  do j = 1, size(var%this)
-    this => var%this(j)
-    u => s%u(this%ix_uni)
-    if (this%ix_ele < 0) cycle  ! Do not check EG "beam_start".
-    if (.not. attribute_free (this%ix_ele, this%ix_branch, var%attrib_name, u%model%lat)) then
+  do j = 1, size(var%slave)
+    var_slave => var%slave(j)
+    u => s%u(var_slave%ix_uni)
+    if (var_slave%ix_ele < 0) cycle  ! Do not check EG "beam_start".
+    if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &
@@ -191,16 +191,16 @@ enddo
 ! make sure two variables do not vary the same attribute
 
 do i = 1, s%n_var_used
-  if (.not. allocated(s%var(i)%this)) cycle
-  do j = 1, size(s%var(i)%this)
+  if (.not. allocated(s%var(i)%slave)) cycle
+  do j = 1, size(s%var(i)%slave)
     do i2 = i, s%n_var_used
-      if (.not. allocated(s%var(i2)%this)) cycle
-      do j2 = 1, size(s%var(i2)%this)
+      if (.not. allocated(s%var(i2)%slave)) cycle
+      do j2 = 1, size(s%var(i2)%slave)
         if (i == i2 .and. j == j2) cycle
         if (s%com%common_lattice .and. &
-                          s%var(i)%this(j)%ix_uni /= s%var(i2)%this(j2)%ix_uni) cycle
-        if (associated (s%var(i)%this(j)%model_value, &
-                          s%var(i2)%this(j2)%model_value)) then
+                          s%var(i)%slave(j)%ix_uni /= s%var(i2)%slave(j2)%ix_uni) cycle
+        if (associated (s%var(i)%slave(j)%model_value, &
+                          s%var(i2)%slave(j2)%model_value)) then
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
           write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
           call out_io (s_error$, r_name, &
@@ -318,7 +318,7 @@ endif
   
 if (allocated (s%var)) then
   do i = lbound(s%var,1), ubound(s%var,1)
-    deallocate(s%var(i)%this, stat=istat)
+    deallocate(s%var(i)%slave, stat=istat)
   enddo
   deallocate(s%var, stat=istat)
 endif

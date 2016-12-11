@@ -3773,7 +3773,7 @@ if (size(re_array) /= 0) then
     case (var_num$)
       if (v_array(i)%v%exists) then
         stack%info(i)%s      = v_array(i)%v%s
-        stack%info(i)%ix_ele = v_array(i)%v%this(1)%ix_ele
+        stack%info(i)%ix_ele = v_array(i)%v%slave(1)%ix_ele
         stack%info(i)%good   = v_array(i)%v%exists
         stack%value_ptr(i)%good_user => v_array(i)%v%good_user
       endif

@@ -307,6 +307,8 @@ end subroutine tao_plot_key_table
 
 subroutine tao_draw_floor_plan (plot, graph)
 
+use multipass_mod
+
 implicit none
 
 type (tao_plot_struct) :: plot
@@ -1152,9 +1154,9 @@ if (s%global%label_keys) then
     if (ix_var < 1) cycle
     write (str, '(i1)') mod(kk, 10)
     var => s%var(ix_var)
-    do ixv = 1, size(var%this)
-      if (var%this(ixv)%ix_uni /= isu) cycle
-      ele => pointer_to_ele(lat, var%this(ixv)%ix_ele, var%this(ixv)%ix_branch)
+    do ixv = 1, size(var%slave)
+      if (var%slave(ixv)%ix_uni /= isu) cycle
+      ele => pointer_to_ele(lat, var%slave(ixv)%ix_ele, var%slave(ixv)%ix_branch)
       if (ele%n_slave /= 0 .and. ele%lord_status /= super_lord$) then
         do j = 1, ele%n_slave
           ele1 => pointer_to_slave(ele, j)

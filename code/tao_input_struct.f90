@@ -23,19 +23,6 @@ type tao_d1_data_input
   character(40) :: name = ''      ! type of data
 end type
 
-type tao_data_input
-  character(200) :: data_type = ''
-  character(40) :: ele0_name = ''
-  character(40) :: ele_name = ''
-  character(20) :: merit_type = ''
-  real(rp) :: meas = real_garbage$  ! used to tag when %meas_value is set in file
-  real(rp) :: weight = 0
-  logical :: good_user = .true.
-  character(20) :: data_source = ''
-  real(rp) :: invalid_value = 0
-  integer :: ix_bunch = 0
-end type
-
 type tao_datum_input
   character(200) :: data_type = ''
   character(40) :: ele_ref_name = ''
@@ -46,6 +33,7 @@ type tao_datum_input
   real(rp) :: weight = 0
   logical :: good_user = .true.
   character(20) :: data_source = ''
+  real(rp) :: s_offset = 0
   real(rp) :: invalid_value = 0
   integer :: ix_bunch = 0
 end type

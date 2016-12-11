@@ -32,7 +32,6 @@ type (tao_universe_struct), pointer :: u
 type (tao_v1_var_input) v1_var
 type (tao_var_struct), pointer :: var_ptr
 type (tao_v1_var_struct), pointer :: v1_var_ptr
-type (tao_this_var_struct), pointer :: this
 type (tao_var_input) var(n_var_minn:n_var_maxx)
 
 real(rp) default_weight        ! default merit function weight
@@ -608,7 +607,7 @@ subroutine tao_var_stuffit2 (good_unis, var)
 implicit none
 
 type (tao_var_struct), target :: var
-type (tao_this_var_struct), pointer :: this
+type (tao_var_slave_struct), pointer :: var_slave
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (all_pointer_struct), allocatable :: a_ptr(:)
@@ -655,7 +654,7 @@ if (.not. found) then
   return
 endif
 
-if (size(var%this) > 0) then
+if (size(var%slave) > 0) then
   var%exists = .true.
 endif
 
@@ -676,7 +675,7 @@ end subroutine
 !   ix_ele    -- Integer: Index of element.
 !
 ! Output:
-!   var%this(ix_this) -- Tao_this_var_struct: New component of %this(:) array is added. 
+!   var%slave(ix_slave) -- Tao_var_slave_struct: New component of %slave(:) array is added. 
 !     %model_ptr
 !     %base_ptr
 !     %ix_ele
@@ -692,11 +691,11 @@ type (tao_var_struct), target :: var
 type (ele_struct) ele
 type (ele_struct), pointer :: ele2
 type (tao_universe_struct), pointer :: u
-type (tao_this_var_struct), pointer :: this
-type (tao_this_var_struct) :: this_saved(size(var%this))
+type (tao_var_slave_struct), pointer :: var_slave
+type (tao_var_slave_struct) :: var_slave_saved(size(var%slave))
 type (all_pointer_struct) a_ptr
 
-integer ix, ix_uni, ix_this
+integer ix, ix_uni, ix_slave
 logical :: err
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
@@ -707,14 +706,14 @@ err = .true.
 u => s%u(ix_uni)
 if (s%com%common_lattice) u => s%com%u_working
 
-! allocate space for var%this.
+! allocate space for var%slave.
 
-ix_this = size(var%this) + 1
-this_saved = var%this
-deallocate (var%this)  
-allocate (var%this(ix_this))
-var%this(1:ix_this-1) = this_saved
-this => var%this(ix_this)
+ix_slave = size(var%slave) + 1
+var_slave_saved = var%slave
+deallocate (var%slave)  
+allocate (var%slave(ix_slave))
+var%slave(1:ix_slave-1) = var_slave_saved
+var_slave => var%slave(ix_slave)
 
 ! locate attribute
 
@@ -732,43 +731,43 @@ if (err .or. .not. associated(a_ptr%r)) then
   return
 endif
 
-this%model_value => a_ptr%r
+var_slave%model_value => a_ptr%r
 ele2 => pointer_to_ele (u%base%lat, ele%ix_ele, ele%ix_branch)
 
 call pointer_to_attribute (ele2,  var%attrib_name, .true., a_ptr,  err)
 
-this%base_value => a_ptr%r
-this%ix_ele    = ele%ix_ele
-this%ix_branch = ele%ix_branch
-this%ix_uni    = ix_uni
+var_slave%base_value => a_ptr%r
+var_slave%ix_ele    = ele%ix_ele
+var_slave%ix_branch = ele%ix_branch
+var_slave%ix_uni    = ix_uni
 
-var%model_value => var%this(1)%model_value
-var%base_value  => var%this(1)%base_value
-var%design_value = var%this(1)%model_value
+var%model_value => var%slave(1)%model_value
+var%base_value  => var%slave(1)%base_value
+var%design_value = var%slave(1)%model_value
 
 ! Common pointer
 
 if (associated(u%common)) then
   ele2 => pointer_to_ele (u%common%model%lat, ele%ix_ele, ele%ix_branch)
   call pointer_to_attribute (ele,  var%attrib_name, .true., a_ptr,  err)
-  var%common%model_value => a_ptr%r
+  var%common_slave%model_value => a_ptr%r
   ele2 => pointer_to_ele (u%common%base%lat, ele%ix_ele, ele%ix_branch)
   call pointer_to_attribute (ele, var%attrib_name, .true., a_ptr, err)
-  var%common%base_value => a_ptr%r
+  var%common_slave%base_value => a_ptr%r
 endif
 
 ! With unified lattices: model_value and base_value get their own storage
-! instead of pointing to var%this(1). 
+! instead of pointing to var%slave(1). 
 ! Exception: If variable controls a common parameter
 
 if (s%com%common_lattice) then
-  if (this%ix_uni == ix_common_uni$) then
-    var%model_value => var%common%model_value
-    var%base_value => var%common%base_value
+  if (var_slave%ix_uni == ix_common_uni$) then
+    var%model_value => var%common_slave%model_value
+    var%base_value => var%common_slave%base_value
   else
     allocate (var%model_value, var%base_value)
-    var%model_value = this%model_value
-    var%base_value = this%base_value
+    var%model_value = var_slave%model_value
+    var%base_value = var_slave%base_value
   endif
 endif
 
@@ -788,7 +787,7 @@ end subroutine tao_pointer_to_var_in_lattice
 !   ix_uni    -- Integer: the universe to use
 !
 ! Output:
-!   var%this(ix_this) -- Tao_this_var_struct: New component of %this(:) array is added. 
+!   var%slave(ix_slave) -- Tao_var_slave_struct: New component of %slave(:) array is added. 
 !     %model_ptr
 !     %base_ptr
 !     %ix_ele
@@ -803,8 +802,8 @@ implicit none
 type (tao_var_struct), target :: var
 type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_universe_struct), pointer :: u
-type (tao_this_var_struct), pointer :: this
-type (tao_this_var_struct) :: this_saved(size(var%this))
+type (tao_var_slave_struct), pointer :: var_slave
+type (tao_var_slave_struct) :: var_slave_saved(size(var%slave))
 type (all_pointer_struct), allocatable :: a_ptr(:), b_ptr(:), cm_ptr(:), cb_ptr(:)
 
 integer ii, ix, ix_uni, n_old
@@ -837,53 +836,53 @@ if (associated(u%common)) then
   call pointers_to_attribute (u%common%base%lat,  var%ele_name, var%attrib_name, .true., cb_ptr, err, .false., eles, var%ix_attrib)
 endif
 
-! allocate space for var%this.
+! allocate space for var%slave.
 
-n_old = size(var%this)
-this_saved = var%this
-deallocate (var%this)  
-allocate (var%this(n_old+size(a_ptr)))
-var%this(1:n_old) = this_saved
+n_old = size(var%slave)
+var_slave_saved = var%slave
+deallocate (var%slave)  
+allocate (var%slave(n_old+size(a_ptr)))
+var%slave(1:n_old) = var_slave_saved
 
 ! locate attribute
 
 
 do ii = 1, size(a_ptr)
-  this => var%this(n_old+ii)
-  this%model_value => a_ptr(ii)%r
-  this%base_value  => b_ptr(ii)%r
-  this%ix_uni = ix_uni
+  var_slave => var%slave(n_old+ii)
+  var_slave%model_value => a_ptr(ii)%r
+  var_slave%base_value  => b_ptr(ii)%r
+  var_slave%ix_uni = ix_uni
   if (size(eles) == 0) then
-    this%ix_ele    = -1
-    this%ix_branch = 0
+    var_slave%ix_ele    = -1
+    var_slave%ix_branch = 0
   else
-    this%ix_ele    = eles(ii)%ele%ix_ele
-    this%ix_branch = eles(ii)%ele%ix_branch
+    var_slave%ix_ele    = eles(ii)%ele%ix_ele
+    var_slave%ix_branch = eles(ii)%ele%ix_branch
   endif
 
-  var%model_value => var%this(1)%model_value
-  var%base_value  => var%this(1)%base_value
-  var%design_value = var%this(1)%model_value
+  var%model_value => var%slave(1)%model_value
+  var%base_value  => var%slave(1)%base_value
+  var%design_value = var%slave(1)%model_value
 
   ! Common pointer
 
   if (associated(u%common)) then
-    var%common%model_value => cm_ptr(ii)%r
-    var%common%base_value  => cb_ptr(ii)%r
+    var%common_slave%model_value => cm_ptr(ii)%r
+    var%common_slave%base_value  => cb_ptr(ii)%r
   endif
 
   ! With unified lattices: model_value and base_value get their own storage
-  ! instead of pointing to var%this(1). 
+  ! instead of pointing to var%slave(1). 
   ! Exception: If variable controls a common parameter
 
   if (s%com%common_lattice) then
-    if (this%ix_uni == ix_common_uni$) then
-      var%model_value => var%common%model_value
-      var%base_value => var%common%base_value
+    if (var_slave%ix_uni == ix_common_uni$) then
+      var%model_value => var%common_slave%model_value
+      var%base_value => var%common_slave%base_value
     else
       allocate (var%model_value, var%base_value)
-      var%model_value = this%model_value
-      var%base_value = this%base_value
+      var%model_value = var_slave%model_value
+      var%base_value = var_slave%base_value
     endif
   endif
 
@@ -916,13 +915,13 @@ integer i, j1, j2, n0, n_var
 if (allocated(s%var)) then
   n0 = s%n_var_used
   do i = 1, n0
-    allocate(var(i)%this(size(s%var(i)%this)))
+    allocate(var(i)%slave(size(s%var(i)%slave)))
   enddo
   var(1:n0) = s%var(1:n0)
   deallocate (s%var)
   allocate (s%var(n_var))
   do i = 1, n0
-    allocate(s%var(i)%this(size(var(i)%this)))
+    allocate(s%var(i)%slave(size(var(i)%slave)))
   enddo
   s%var(1:n0) = var(1:n0)
 else
@@ -958,7 +957,7 @@ do i = n0+1, size(s%var)
   s%var(i)%base_value  => s%com%dummy_target  ! Just to point to somewhere
   s%var(i)%low_lim = -1e30
   s%var(i)%high_lim = 1e30
-  allocate(s%var(i)%this(0))
+  allocate(s%var(i)%slave(0))
 enddo
   
 s%n_var_used = n_var
