@@ -2,6 +2,7 @@
 ! Function is_integer (string)
 !
 ! Function to tell if the first word in a string is a valid integer.
+! A blank string is considered to NOT be a valid integer.
 !
 ! Modules needed:
 !   use sim_utils
