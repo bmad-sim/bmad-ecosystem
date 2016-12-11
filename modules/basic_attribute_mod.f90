@@ -202,6 +202,7 @@ if (ilen > 3 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) the
   enddo
   read (name40(3:), *) attrib_index
   attrib_index = attrib_index + taylor_offset$
+  full_name = name
   return
 endif
 
