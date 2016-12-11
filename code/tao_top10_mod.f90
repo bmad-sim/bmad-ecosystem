@@ -360,19 +360,19 @@ do i = 1, s%n_var_used
   nc = nc + 1
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
-  u => s%u(var%this(1)%ix_uni)
+  u => s%u(var%slave(1)%ix_uni)
 
   con(nc)%loc_ref = ''
   con(nc)%loc_start = ''
   con(nc)%loc_ele = ''
 
-  if (var%this(1)%ix_ele < 0) then  ! EG beam_start
+  if (var%slave(1)%ix_ele < 0) then  ! EG beam_start
     con(nc)%loc_ele = '0'
   else
-    branch => u%model%lat%branch(var%this(1)%ix_branch)
-    ct = branch%ele(var%this(1)%ix_ele)%lord_status
+    branch => u%model%lat%branch(var%slave(1)%ix_branch)
+    ct = branch%ele(var%slave(1)%ix_ele)%lord_status
     if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
-      write (con(nc)%loc_ele, '(f8.2)') branch%ele(var%this(1)%ix_ele)%s
+      write (con(nc)%loc_ele, '(f8.2)') branch%ele(var%slave(1)%ix_ele)%s
       call string_trim (con(nc)%loc_ele, con(nc)%loc_ele, ix)
     endif
   endif
@@ -571,7 +571,7 @@ if (s%com%common_lattice) then
 
   do j = 1, s%n_var_used
     if (.not. s%var(j)%exists) cycle
-    if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
+    if (all (s%var(j)%slave(:)%ix_uni == 0)) cycle
     if (logic_option(.false., show_good_opt_only) .and. .not. s%var(j)%useit_opt) cycle
     write (str(1), '(3a, es22.14)')  "set var ", trim(tao_var1_name(s%var(j))), &
                                                     '|model =', s%var(j)%model_value
@@ -623,7 +623,7 @@ type (tao_var_struct) var
 !
 
 if (.not. var%exists) return
-if (iu /= 0 .and. .not. any (var%this(:)%ix_uni == ix_uni)) return
+if (iu /= 0 .and. .not. any (var%slave(:)%ix_uni == ix_uni)) return
 if (logic_option(.false., show_good_opt_only) .and. .not. var%useit_opt) return
 if (var%useit_opt) then
   useit_str = ''

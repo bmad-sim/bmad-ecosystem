@@ -6,11 +6,8 @@
 
 module tao_utils
 
-use tao_struct
-use tao_interface
+use tao_pointer_to_universe_mod
 use bmad
-use output_mod
-use lat_ele_loc_mod
 
 contains
 
@@ -288,89 +285,6 @@ do i = lbound(p, 1), ubound(p, 1)
 enddo
 
 end subroutine tao_pick_universe
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank) 
-!
-! Subroutine to find the lattice elements in the lattice corresponding to the ele_list argument. 
-!
-! See also tao_locate_elements for a routine that only searches one given universe.
-!
-! Input:
-!   ele_list     -- Character(*): String with element names using element list format.
-!   ignore_blank -- Logical, optional: If present and true then do nothing if
-!     ele_list is blank. otherwise treated as an error.
-!
-! Output:
-!   eles  -- ele_pointer_struct(:), allocatable: Array of elements in the model lat. 
-!     %id  -- Set to universe number.
-!   err   -- Logical: Set true on error.
-!-
-
-subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
-
-implicit none
-
-type (tao_universe_struct), pointer :: u
-type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_pointer_struct), allocatable :: this_eles(:)
-
-integer i, ix, ix_word, n_eles, n0
-
-character(*) ele_list
-character(100) ele_name, word
-character(20) :: r_name = 'tao_locate_all_elements'
-character(1) delim
-
-logical err, delim_found
-logical, optional :: ignore_blank
-logical, allocatable :: picked(:)
-
-!
-
-err = .true.
-
-call re_allocate_eles (eles, 0, exact = .true.)
-
-call str_upcase (ele_name, ele_list)
-call string_trim (ele_name, ele_name, ix)
-
-if (ix == 0 .and. logic_option(.false., ignore_blank)) return
-
-if (ix == 0) then
-  call out_io (s_error$, r_name, 'ELEMENT NAME IS BLANK')
-  return
-endif
-
-! Loop over all items in the element list
-
-do 
-  call word_read (ele_list, ', ', word, ix_word, delim, delim_found, ele_list)
-  if (ix_word == 0) exit
-  call tao_pick_universe (word, word, picked, err)
-  if (err) return
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. picked(i)) cycle
-    call lat_ele_locator (word, s%u(i)%model%lat, this_eles, n_eles, err)
-    if (err) return
-    if (n_eles == 0) cycle
-    n0 = size(eles)
-    call re_allocate_eles (eles, n0+n_eles, .true., .true.)
-    eles(n0+1:n0+n_eles) = this_eles(1:n_eles)
-    eles(n0+1:n0+n_eles)%id = i
-  enddo
-enddo
-
-if (size(eles) == 0) then
-  call out_io (s_error$, r_name, 'ELEMENT(S) NOT FOUND: ' // ele_list)
-  err = .true.
-  return
-endif
-
-end subroutine tao_locate_all_elements
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -830,7 +744,7 @@ implicit none
 type (tao_var_struct), target :: var
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
-type (tao_this_var_struct), pointer :: t
+type (tao_var_slave_struct), pointer :: var_slave
 type (ele_struct), pointer :: ele
 
 real(rp) value
@@ -855,12 +769,12 @@ if (s%global%var_limits_on .and. (.not. s%global%only_limit_opt_vars .or. var%us
 endif
 
 var%model_value = value
-do i = 1, size(var%this)
-  t => var%this(i)
-  t%model_value = value
-  u => s%u(t%ix_uni)
+do i = 1, size(var%slave)
+  var_slave => var%slave(i)
+  var_slave%model_value = value
+  u => s%u(var_slave%ix_uni)
 
-  if (s%com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
+  if (s%com%common_lattice .and.  var_slave%ix_uni == ix_common_uni$) then
     s%u(:)%calc%lattice = .true.
   else
     u%calc%lattice = .true.
@@ -872,8 +786,8 @@ do i = 1, size(var%this)
     u%model%lat_branch(0)%orb0%t   = lat%beam_start%t
     u%model%lat_branch(0)%orb0%p0c = lat%beam_start%p0c
   else
-    ele => lat%branch(t%ix_branch)%ele(t%ix_ele)
-    call set_flags_for_changed_attribute (ele, t%model_value)
+    ele => lat%branch(var_slave%ix_branch)%ele(var_slave%ix_ele)
+    call set_flags_for_changed_attribute (ele, var_slave%model_value)
   endif
 enddo
 
@@ -948,19 +862,19 @@ if (associated(u%common)) then
   ! First put in the common values
 
   do i = 1, s%n_var_used
-    do j = 1, size(s%var(i)%this)
-      s%var(i)%this(j)%model_value = s%var(i)%common%model_value
-      s%var(i)%this(j)%base_value  = s%var(i)%common%base_value
+    do j = 1, size(s%var(i)%slave)
+      s%var(i)%slave(j)%model_value = s%var(i)%common_slave%model_value
+      s%var(i)%slave(j)%base_value  = s%var(i)%common_slave%base_value
     enddo
   enddo
 
   ! Then put in the values for this universe
 
   do i = 1, s%n_var_used
-    do j = 1, size(s%var(i)%this)
-      if (s%var(i)%this(j)%ix_uni /= u%ix_uni) cycle
-      s%var(i)%this(j)%model_value = s%var(i)%model_value
-      s%var(i)%this(j)%base_value = s%var(i)%base_value
+    do j = 1, size(s%var(i)%slave)
+      if (s%var(i)%slave(j)%ix_uni /= u%ix_uni) cycle
+      s%var(i)%slave(j)%model_value = s%var(i)%model_value
+      s%var(i)%slave(j)%base_value = s%var(i)%base_value
     enddo
   enddo
 
@@ -1079,8 +993,8 @@ integer i
 
 !
 
-if (size(s%u) > 1 .and. size(var%this) > 0) then
-  call location_encode (var_attrib_name, var%this%ix_uni, ',')
+if (size(s%u) > 1 .and. size(var%slave) > 0) then
+  call location_encode (var_attrib_name, var%slave%ix_uni, ',')
   if (index(var_attrib_name, ',') /= 0 .or. index(var_attrib_name, ':') /= 0) then  
     var_attrib_name = '[' // trim(var_attrib_name) // ']' 
   endif
@@ -1265,34 +1179,6 @@ else
 endif
 
 end function
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function tao_universe_number (i_uni) result (i_this_uni)
-!
-! Fnction to return the universe number.
-! i_this_uni = i_uni except when i_uni is -1. 
-! In this case i_this_uni = s%com%default_universe.
-!
-! Input:
-!   i_uni -- Integer: Nominal universe number.
-!
-! Output:
-!   i_this_uni -- Integer: Universe number. 
-!-
-
-function tao_universe_number (i_uni) result (i_this_uni)
-
-implicit none
-
-integer i_uni, i_this_uni
-
-i_this_uni = i_uni
-if (i_uni == -1) i_this_uni = s%com%default_universe
-
-end function tao_universe_number
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1508,49 +1394,6 @@ call out_io (s_blank$, r_name, [ &
 
 
 end subroutine tao_print_command_line_info
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function tao_pointer_to_universe (ix_uni) result (u)
-!
-! Routine to set a pointer to a universe.
-! If ix_uni is -1 then u(s%com%default_universe) will be used.
-!
-! Also see:
-!   tao_pick_universe
-!
-! Input:
-!   ix_uni -- Integer: Index to the s%u(:) array
-!
-! Output:
-!   u      -- Tao_universe_struct, pointer: Universe pointer.
-!               u will be nullified if ix_uni is out of range.
-!               If not present then print a message and exit program.
-!-
-
-function tao_pointer_to_universe (ix_uni) result(u)
-
-implicit none
-
-type (tao_universe_struct), pointer :: u
-integer ix_uni, ix_u
-character(28) :: r_name = 'tao_pointer_to_universe'
-
-!
-
-ix_u = tao_universe_number(ix_uni)
-
-if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
-  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
-  nullify (u)
-  return
-endif
-
-u => s%u(ix_u)
-
-end function tao_pointer_to_universe
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2332,12 +2175,12 @@ do k = 1, size(ele_shape)
       if (size(logic_array) /= 0) then
         if (.not. logic_array(j)%l) cycle
       endif
-      do j2 = 1, size(var%this)
-        if (var%this(j2)%ix_uni /= ix_uni) cycle
+      do j2 = 1, size(var%slave)
+        if (var%slave(j2)%ix_uni /= ix_uni) cycle
         if (var%ele_name == 'BEAM_START') then
           if (ele%ix_branch /= 0 .or. ele%ix_ele /= 0) cycle
         else
-          if (ele%ix_branch /= var%this(j2)%ix_branch .or. ele%ix_ele /=  var%this(j2)%ix_ele) cycle
+          if (ele%ix_branch /= var%slave(j2)%ix_branch .or. ele%ix_ele /=  var%slave(j2)%ix_ele) cycle
         endif
         e_shape => es
         if (present(dat_var_name)) dat_var_name = tao_var1_name(var)
@@ -2345,7 +2188,7 @@ do k = 1, size(ele_shape)
           if (size(re_array) > 0) then
             dat_var_value = re_array(j)%r
           else
-            dat_var_value = var%this(j2)%model_value
+            dat_var_value = var%slave(j2)%model_value
           endif
         endif
         return

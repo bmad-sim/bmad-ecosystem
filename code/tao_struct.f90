@@ -46,7 +46,7 @@ type tao_integer_array_struct
 end type
 
 type tao_string_array_struct
-  character(40), pointer :: s => null()
+  character(:), pointer :: s => null()
 end type
 
 ! Note: Expressions may not have an associated lattice element or an associated longituinal position.
@@ -366,6 +366,7 @@ type tao_data_struct
   real(rp) :: invalid_value             ! Value used in merit calc if good_model = False.
   real(rp) :: merit                     ! Merit function term value: weight * delta^2
   real(rp) :: s                         ! longitudinal position of ele.
+  real(rp) :: s_offset = 0              ! Offset of evaluation point.
   logical :: exists = .false.           ! See above
   logical :: good_model = .false.       ! See above
   logical :: good_base = .false.        ! See above
@@ -431,13 +432,13 @@ type tao_d2_data_array_struct
 end type
 
 !-----------------------------------------------------------------------
-! tao_this_var_struct is for defining an array of pointers to variables
+! tao_var_slave_struct is for defining an array of pointers to variables
 ! in the tao_var_struct
 
-type tao_this_var_struct
-  integer ix_uni            ! universe index.
+type tao_var_slave_struct
+  integer :: ix_uni = 1            ! universe index.
   integer :: ix_branch = 0
-  integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
+  integer :: ix_ele = -1           ! Index of element in the u%lattice%ele(:) array.
   real(rp), pointer :: model_value => null() ! Pointer to the variable in the model lat.
   real(rp), pointer :: base_value => null()  ! Pointer to the variable in the base lat.
 end type  
@@ -458,13 +459,13 @@ end type
 ! %useit_plot -- Variable value to be plotted:
 !                  = %exists & %good_plot & %good_user
 !
-! With common_lattice = True => var%this(:)%model_value will point to the working universe.
+! With common_lattice = True => var%slave(:)%model_value will point to the working universe.
 
 type tao_var_struct
   character(40) ele_name    ! Associated lattice element name.
   character(40) attrib_name ! Name of the attribute to vary.
-  type (tao_this_var_struct), allocatable :: this(:)
-  type (tao_this_var_struct) :: common
+  type (tao_var_slave_struct), allocatable :: slave(:)
+  type (tao_var_slave_struct) :: common_slave
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.

@@ -65,7 +65,7 @@
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 
-use tao_mod
+use tao_mod, except_dummy => tao_find_data
 
 implicit none
 
@@ -84,17 +84,18 @@ character(*), optional :: dflt_index
 
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(11) = [ &
-             'model    ', 'base     ', 'design   ', 'meas     ', 'ref      ', &
-             'old      ', 'fit      ', 'weight   ', 'invalid  ', 'scratch  ', 'scale    ']
+character(16), parameter :: real_components(16) = [character(16) :: &
+             'model', 'base', 'design', 'meas', 'ref', 'old', &
+             'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
+             'weight', 'invalid', 'scratch', 'scale']
 character(16), parameter :: logic_components(9) = [ &
              'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
 character(16), parameter :: integer_components(5) = [ &
              'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
              'ix_d1       ', 'ix_uni      ']
-character(16), parameter :: string_components(5) = [character(16) :: &
-              'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'name']
+character(16), parameter :: string_components(7) = [character(16) :: &
+              'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'name', 'data_type', 'data_source']
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
@@ -542,31 +543,31 @@ if (present(re_array) .and.  any(component_name == real_components)) then
     if (list(i)) then
       j = j + 1
       select case (component_name)
-      case ('model')
+      case ('model', 'model_value')
         re_array(j)%r => d1%d(i)%model_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_model
-      case ('base')
+      case ('base', 'base_value')
         re_array(j)%r => d1%d(i)%base_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_base
-      case ('design')
+      case ('design', 'design_value')
         re_array(j)%r => d1%d(i)%design_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_model
-      case ('meas')
+      case ('meas', 'meas_value')
         re_array(j)%r => d1%d(i)%meas_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_meas
-      case ('ref')
+      case ('ref', 'ref_value')
         re_array(j)%r => d1%d(i)%ref_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_ref
-      case ('old')
+      case ('old', 'old_value')
         re_array(j)%r => d1%d(i)%old_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
-      case ('invalid')
+      case ('invalid', 'invalid_value')
         re_array(j)%r => d1%d(i)%invalid_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
@@ -662,6 +663,10 @@ if (present(str_array) .and. any(component_name == string_components)) then
         str_array(j)%s => d1%d(i)%ele_start_name
       case ('ele_ref_name')
         str_array(j)%s => d1%d(i)%ele_ref_name
+      case ('data_type')
+        str_array(j)%s => d1%d(i)%data_type
+      case ('data_source')
+        str_array(j)%s => d1%d(i)%data_source
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING DATA")
         call err_exit

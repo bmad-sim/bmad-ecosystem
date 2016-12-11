@@ -12,8 +12,9 @@
 ! Note: Any of the output allocatable arrays will have size = 0 if not used.
 ! For example, if var_name is "model", then str_array, if present, have size = 0.
 !
-! Example:
+! Examples:
 !   var_name = 'quad_k1[3]|design'
+!   var_name = 'quad_k1[3]|slave[2]'
 !
 ! Input:
 !   var_name     -- Character(*): Name of the variable.
@@ -21,25 +22,25 @@
 !                     not found? Default is True.
 !
 ! Output:
-!   err          -- Logical: err condition
-!   v1_array(:)  -- Tao_v1_var_array_struct, allocatable, optional: Array of pointers to 
-!                     all the v1_var structures.
-!   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Array of pointers to the 
-!                     variable data point.
-!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Array of pointers to 
-!                     the real component values.
-!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Array of pointers to
-!                     logical component values.
-!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Array of pointers to 
-!                     character component values.
-!   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
-!                   set to ' ' if no component present.
+!   err            -- Logical: err condition
+!   v1_array(:)    -- Tao_v1_var_array_struct, allocatable, optional: Array of pointers to 
+!                       all the v1_var structures.
+!   v_array(:)     -- Tao_var_array_struct, allocatable, optional: Array of pointers to the 
+!                       variable data point.
+!   re_array(:)    -- Tao_real_pointer_struct, allocatable, optional: Array of pointers to 
+!                       the real component values.
+!   log_array(:)   -- Tao_logical_array_struct, allocatable, optional: Array of pointers to
+!                       logical component values.
+!   str_array(:)   -- Tao_string_array_struct, allocatable, optional: Array of pointers to 
+!                       character component values.
+!   component      -- Character(*), optional: Name of the component. E.G: 'good_user'
+!                     set to ' ' if no component present.
 !-
 
 subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
-                                                    str_array, print_err, component, dflt_var_index)
+                           str_array, print_err, component, dflt_var_index)
 
-use tao_mod
+use tao_mod, except_dummy => tao_find_var
 
 implicit none
 
@@ -51,13 +52,14 @@ type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
 integer i, ix, n_var, ios
 
-character(16), parameter :: real_components(11) = [ &
-             'model    ', 'base     ', 'design   ', 'meas     ', 'ref      ', &
-             'old      ', 'step     ', 'weight   ', 'high_lim ', 'low_lim  ', 'key_delta']
+character(16), parameter :: real_components(17) = [character(16) :: &
+             'model', 'base', 'design', 'meas', 'ref', 'old', &
+             'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
+             'step', 'weight', 'high_lim', 'low_lim', 'key_delta']
 character(16), parameter :: logic_components(8) = [ &
              'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
              'useit_opt ', 'useit_plot', 'key_bound ']
-character(16), parameter :: string_components(1) = ['merit_type']
+character(16), parameter :: string_components(3) = [character(16):: 'merit_type', 'ele_name', 'attrib_name']
 
 character(*) :: var_name
 character(*), optional :: component, dflt_var_index
@@ -134,7 +136,7 @@ call string_trim (v1_name, v1_name, ix)
 call string_trim (component_name, component_name, ix)
 
 if (component_here) then
-  if (.not. any(component_name == real_components) .and. &
+  if (component_name(1:5) /= 'slave' .and. .not. any(component_name == real_components) .and. &
       .not. any(component_name == logic_components) .and. &
       .not. any(component_name == string_components)) then
     if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // var_name)
@@ -218,7 +220,7 @@ type (tao_real_pointer_struct), allocatable, save :: ra(:)
 type (tao_logical_array_struct), allocatable, save :: la(:)
 type (tao_string_array_struct), allocatable, save  :: sa(:)
 
-integer i, j, nd, nl, i1, i2, num
+integer i, j, nd, nl, i1, i2, num, ix
 
 character(*) name
 character(40), allocatable, save :: names(:)
@@ -253,7 +255,7 @@ endif
 err = .false.
 nl = count(list)
 
-! real array
+! Record variable pointed to
 
 if (present(v_array)) then
 
@@ -280,7 +282,7 @@ if (present(v_array)) then
 
 endif
 
-! real component array
+! real component
 
 if (present(re_array) .and.  any(component_name == real_components)) then
 
@@ -299,41 +301,41 @@ if (present(re_array) .and.  any(component_name == real_components)) then
   endif
 
   do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('model')
-        re_array(j)%r => v1%v(i)%model_value
-      case ('base')
-        re_array(j)%r => v1%v(i)%base_value
-      case ('design')
-        re_array(j)%r => v1%v(i)%design_value
-      case ('meas')
-        re_array(j)%r => v1%v(i)%meas_value
-      case ('ref')
-        re_array(j)%r => v1%v(i)%ref_value
-      case ('old')
-        re_array(j)%r => v1%v(i)%old_value
-      case ('step')
-        re_array(j)%r => v1%v(i)%step
-      case ('weight')
-        re_array(j)%r => v1%v(i)%weight
-      case ('high_lim')
-        re_array(j)%r => v1%v(i)%high_lim
-      case ('low_lim')
-        re_array(j)%r => v1%v(i)%low_lim
-      case ('key_delta')
-        re_array(j)%r => v1%v(i)%key_delta
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
-        call err_exit
-      end select
-    endif
+    if (.not. list(i)) cycle
+    j = j + 1
+    select case (component_name)
+    case ('model', 'model_value')
+      re_array(j)%r => v1%v(i)%model_value
+    case ('base', 'base_value')
+      re_array(j)%r => v1%v(i)%base_value
+    case ('design', 'design_value')
+      re_array(j)%r => v1%v(i)%design_value
+    case ('meas', 'meas_value')
+      re_array(j)%r => v1%v(i)%meas_value
+    case ('ref', 'ref_value')
+      re_array(j)%r => v1%v(i)%ref_value
+    case ('old', 'old_value')
+      re_array(j)%r => v1%v(i)%old_value
+    case ('step')
+      re_array(j)%r => v1%v(i)%step
+    case ('weight')
+      re_array(j)%r => v1%v(i)%weight
+    case ('high_lim')
+      re_array(j)%r => v1%v(i)%high_lim
+    case ('low_lim')
+      re_array(j)%r => v1%v(i)%low_lim
+    case ('key_delta')
+      re_array(j)%r => v1%v(i)%key_delta
+    case default
+      call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
+      this_err = .true.
+      call err_exit
+    end select
   enddo
 
 endif
 
-! logical component array
+! logical component
 
 if (present(log_array) .and. any(component_name == logic_components)) then
 
@@ -352,35 +354,35 @@ if (present(log_array) .and. any(component_name == logic_components)) then
   endif
 
   do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('exists')
-        log_array(j)%l => v1%v(i)%exists
-      case ('good_var')
-        log_array(j)%l => v1%v(i)%good_var
-      case ('good_user')
-        log_array(j)%l => v1%v(i)%good_user
-      case ('good_opt')
-        log_array(j)%l => v1%v(i)%good_opt
-      case ('good_plot')
-        log_array(j)%l => v1%v(i)%good_plot
-      case ('useit_opt')
-        log_array(j)%l => v1%v(i)%useit_opt
-      case ('useit_plot')
-        log_array(j)%l => v1%v(i)%useit_plot
-      case ('key_bound')
-        log_array(j)%l => v1%v(i)%key_bound
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
-        call err_exit
-      end select
-    endif
+    if (.not. list(i)) cycle
+    j = j + 1
+    select case (component_name)
+    case ('exists')
+      log_array(j)%l => v1%v(i)%exists
+    case ('good_var')
+      log_array(j)%l => v1%v(i)%good_var
+    case ('good_user')
+      log_array(j)%l => v1%v(i)%good_user
+    case ('good_opt')
+      log_array(j)%l => v1%v(i)%good_opt
+    case ('good_plot')
+      log_array(j)%l => v1%v(i)%good_plot
+    case ('useit_opt')
+      log_array(j)%l => v1%v(i)%useit_opt
+    case ('useit_plot')
+      log_array(j)%l => v1%v(i)%useit_plot
+    case ('key_bound')
+      log_array(j)%l => v1%v(i)%key_bound
+    case default
+      call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
+      this_err = .true.
+      call err_exit
+    end select
   enddo
 
 endif
 
-! string component array
+! string component
 
 if (present(str_array) .and. any(component_name == string_components)) then
 
@@ -399,16 +401,20 @@ if (present(str_array) .and. any(component_name == string_components)) then
   endif
 
   do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('merit_type')
-        str_array(j)%s => v1%v(i)%merit_type
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING VAR")
-        call err_exit
-      end select
-    endif
+    if (.not. list(i)) cycle
+    j = j + 1
+    select case (component_name)
+    case ('merit_type')
+      str_array(j)%s => v1%v(i)%merit_type
+    case ('ele_name')
+      str_array(j)%s => v1%v(i)%merit_type
+    case ('attrib_name')
+      str_array(j)%s => v1%v(i)%merit_type
+    case default
+      call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING VAR")
+      this_err = .true.
+      call err_exit
+    end select
   enddo
 
 endif

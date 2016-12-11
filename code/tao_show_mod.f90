@@ -861,6 +861,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
     nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
     nl=nl+1; write(lines(nl), rmt)  '%invalid           = ', d_ptr%invalid_value
+    nl=nl+1; write(lines(nl), rmt)  '%s_offset          = ', d_ptr%s_offset
     nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
     nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
     nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
@@ -3347,8 +3348,8 @@ case ('variable')
     do i = 1, s%n_var_used
       if (.not. s%var(i)%exists) cycle
       found = .false.
-      do j = 1, size(s%var(i)%this)
-        if (s%var(i)%this(j)%ix_uni == ix_u) found = .true.
+      do j = 1, size(s%var(i)%slave)
+        if (s%var(i)%slave(j)%ix_uni == ix_u) found = .true.
       enddo
       if (.not. found) cycle
       nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), tao_var_attrib_name(s%var(i))
@@ -3414,34 +3415,34 @@ case ('variable')
     nl=nl+1; write(lines(nl), rmt)  '%model            = ', v_ptr%model_value
     nl=nl+1; write(lines(nl), rmt)  '%base             = ', v_ptr%base_value
 
-    if (.not. allocated (v_ptr%this)) then
+    if (.not. allocated (v_ptr%slave)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
-      n = nl + 3*size(v_ptr%this) + 100
+      n = nl + 3*size(v_ptr%slave) + 100
       if (size(lines) < n) call re_allocate(lines, n)
-      do i = 1, size(v_ptr%this)
-        nl=nl+1; write(lines(nl), '(4(a, i0))')  '%this(', i, ')%uni@branch>>ele:        ', &
-                        v_ptr%this(i)%ix_uni, '@', v_ptr%this(i)%ix_branch, '>>', v_ptr%this(i)%ix_ele
-        if (associated (v_ptr%this(i)%model_value)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: ', &
-                                                            v_ptr%this(i)%model_value
+      do i = 1, size(v_ptr%slave)
+        nl=nl+1; write(lines(nl), '(4(a, i0))')  '%slave(', i, ')%uni@branch>>ele:        ', &
+                        v_ptr%slave(i)%ix_uni, '@', v_ptr%slave(i)%ix_branch, '>>', v_ptr%slave(i)%ix_ele
+        if (associated (v_ptr%slave(i)%model_value)) then
+          nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Model_value: ', &
+                                                            v_ptr%slave(i)%model_value
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Model_value: <not associated>'
         endif
-        if (associated (v_ptr%this(i)%base_value)) then
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_value:  ', &
-                                                            v_ptr%this(i)%base_value
+        if (associated (v_ptr%slave(i)%base_value)) then
+          nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Base_value:  ', &
+                                                            v_ptr%slave(i)%base_value
         else
-          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_value:  <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Base_value:  <not associated>'
         endif
       enddo
     endif
 
-    if (associated (v_ptr%common%model_value)) then
-      nl=nl+1; write(lines(nl), imt)  '%common%ix_uni:      ', v_ptr%common%ix_uni
-      nl=nl+1; write(lines(nl), imt)  '%common%ix_ele:      ', v_ptr%common%ix_ele
-      nl=nl+1; write(lines(nl), rmt)  '%common%Model_value: ', v_ptr%common%model_value
-      nl=nl+1; write(lines(nl), rmt)  '%common%Base_value:  ', v_ptr%common%base_value
+    if (associated (v_ptr%common_slave%model_value)) then
+      nl=nl+1; write(lines(nl), imt)  '%common_slave%ix_uni:      ', v_ptr%common_slave%ix_uni
+      nl=nl+1; write(lines(nl), imt)  '%common_slave%ix_ele:      ', v_ptr%common_slave%ix_ele
+      nl=nl+1; write(lines(nl), rmt)  '%common_slave%Model_value: ', v_ptr%common_slave%model_value
+      nl=nl+1; write(lines(nl), rmt)  '%common_slave%Base_value:  ', v_ptr%common_slave%base_value
     endif
 
     nl=nl+1; write(lines(nl), rmt)  '%design           = ', v_ptr%design_value

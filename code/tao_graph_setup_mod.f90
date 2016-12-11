@@ -1451,8 +1451,8 @@ case ('var')
   v_loop: do iv = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
     v_ptr => v1_ptr%v(iv)
     if (.not. v_ptr%exists) cycle
-    do jj = 1, size(v_ptr%this)
-      if (v_ptr%this(jj)%ix_uni .eq. s%com%default_universe) then
+    do jj = 1, size(v_ptr%slave)
+      if (v_ptr%slave(jj)%ix_uni .eq. s%com%default_universe) then
         ix_this = jj
         exit v_loop
       endif
@@ -1472,8 +1472,8 @@ case ('var')
       where (v1_ptr%v%ix_v1 > graph%x%max+eps) v1_ptr%v%good_plot = .false.
     elseif (plot%x_axis_type == 'ele_index') then
       do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
-        if (v1_ptr%v(jj)%this(ix_this)%ix_ele < graph%x%min-eps) v1_ptr%v%good_plot = .false.
-        if (v1_ptr%v(jj)%this(ix_this)%ix_ele > graph%x%max+eps) v1_ptr%v%good_plot = .false.
+        if (v1_ptr%v(jj)%slave(ix_this)%ix_ele < graph%x%min-eps) v1_ptr%v%good_plot = .false.
+        if (v1_ptr%v(jj)%slave(ix_this)%ix_ele > graph%x%max+eps) v1_ptr%v%good_plot = .false.
       enddo
     else
       where (v1_ptr%v%s < graph%x%min-eps) v1_ptr%v%good_plot = .false.
@@ -1496,11 +1496,11 @@ case ('var')
     curve%x_symb = curve%ix_symb
   elseif (plot%x_axis_type == 'ele_index') then
     do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-      curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele
+      curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%slave(ix_this)%ix_ele
     enddo
   elseif (plot%x_axis_type == 's') then
     do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-      ele => branch%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)
+      ele => branch%ele(v1_ptr%v(curve%ix_symb(jj))%slave(ix_this)%ix_ele)
       if (ele%lord_status == multipass_lord$) ele => pointer_to_slave(ele, 1)
       curve%x_symb(jj) = ele%s
     enddo

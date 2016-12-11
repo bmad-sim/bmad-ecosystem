@@ -156,14 +156,14 @@ enddo
 if (dest1_name == 'model') then
   do i = 1, s%n_var_used
 
-    do j = 1, size(s%var(i)%this)
-      if (.not. this_u(s%var(i)%this(j)%ix_uni)) cycle
+    do j = 1, size(s%var(i)%slave)
+      if (.not. this_u(s%var(i)%slave(j)%ix_uni)) cycle
 
       select case (source_lat)
       case ('model')
-        source_val = s%var(i)%this(j)%model_value
+        source_val = s%var(i)%slave(j)%model_value
       case ('base')
-        source_val = s%var(i)%this(j)%base_value
+        source_val = s%var(i)%slave(j)%base_value
       case ('design')
         source_val = s%var(i)%design_value
       end select
@@ -1224,25 +1224,33 @@ implicit none
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_real_pointer_struct), allocatable, save    :: r_var(:), r_set(:)
 type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
-type (tao_var_array_struct), allocatable, save     :: v_var(:)
+type (tao_var_array_struct), allocatable, save, target :: v_var(:)
 type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
 type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable :: eles(:)
+type (all_pointer_struct) a_ptr
+type (tao_var_struct), pointer :: v_ptr
 
 real(rp), allocatable, save :: r_value(:)
 real(rp) value
-integer i, j
+
+integer i, j, ix, np, n_loc
+integer, allocatable :: u_pick(:)
 
 character(*) var_str, value_str
-character(20) :: r_name = 'tao_set_var_cmd'
+character(*), parameter :: r_name = 'tao_set_var_cmd'
 character(20) set_is, component
+character(40) ele_name, attrib_name
 character(40) :: merit_type_names(2) = (/ 'target ', 'limit  ' /)
+character(len(value_str)) val
 
 logical err, l_value, err_flag
 
 ! Decode variable component to set.
 
-call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, &
-                   log_array=l_var, str_array = s_var, component = component)
+call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, log_array=l_var, &
+                                                 str_array = s_var, component = component)
 
 ! A logical value_str is either a logical or an array of datum values.
 
@@ -1264,28 +1272,75 @@ if (size(l_var) > 0) then
     enddo
   endif
 
-! Must be merit_type for a string.
-! If value_string has "|" then it must be a datum array
+! A string set
+! If value_str has "|" then it must be a datum array
 
 elseif (size(s_var) /= 0) then
-  if (index(value_str, '|') == 0) then
-    if (all (value_str /= merit_type_names)) then
-      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
-      return
-    endif
-    do i = 1, size(s_var)
-      s_var(i)%s = value_str
-    enddo
+  if (index(var_str, '|merit_type') /= 0) then
+    if (index(value_str, '|') == 0) then
+      if (all (value_str /= merit_type_names)) then
+        call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+        return
+      endif
+      do i = 1, size(s_var)
+        s_var(i)%s = value_str
+      enddo
 
-  else
-    call tao_find_var (err, value_str, str_array=s_set)
-    if (size(l_set) /= size(l_var)) then
-      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+    else
+      call tao_find_var (err, value_str, str_array=s_set)
+      if (size(l_set) /= size(l_var)) then
+        call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+        return
+      endif
+      do i = 1, size(s_var)
+        s_var(i)%s = s_set(i)%s
+      enddo
+    endif
+
+  !
+  elseif (index(var_str, '|ele_name') /= 0) then
+    val = value_str
+    u => tao_pointer_to_universe (val)
+    ix = index(val, '[')
+    ele_name = upcase(val(1:ix-1))
+    attrib_name = upcase(val(ix+1:len_trim(val)-1))
+    call lat_ele_locator(ele_name, u%model%lat, eles, n_loc, err)
+    if (size(eles) == 0) then
+      call out_io (s_error$, r_name, 'NO ELEMENT FOUND MATCHING NAME: ' // value_str)
       return
     endif
-    do i = 1, size(s_var)
-      s_var(i)%s = s_set(i)%s
-    enddo
+    if (size(eles) > 1) then
+      call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS FOUND MATCHING NAME: ' // value_str)
+      return
+    endif
+    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
+    if (err) return
+    if (.not. associated(a_ptr%r)) then
+      call out_io (s_error$, r_name, 'ELEMENT ATTRIBUTE MUST BE A REAL (NOT AN INTEGER, ETC.)')
+      return
+    endif
+    if (size(s_var) /= 1) then
+      call out_io (s_error$, r_name, 'USING MULTIPLE VARIABLES FOR THE SAME SLAVE ATTRIBUTE DOES NOT MAKE SENSE.')
+      return
+    endif
+    v_ptr => v_var(1)%v
+    v_ptr%exists = .true.
+    v_ptr%ele_name = ele_name
+    v_ptr%attrib_name = attrib_name
+
+    if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
+    allocate (v_ptr%slave(1))
+
+    v_ptr%model_value => a_ptr%r
+    v_ptr%slave(1)%ix_uni    = u%ix_uni
+    v_ptr%slave(1)%ix_branch = eles(1)%ele%ix_branch
+    v_ptr%slave(1)%ix_ele    = eles(1)%ele%ix_ele
+    v_ptr%slave(1)%model_value => a_ptr%r
+    
+    call lat_ele_locator(ele_name, u%base%lat, eles, n_loc, err)
+    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
+    v_ptr%base_value => a_ptr%r
+    v_ptr%slave(1)%base_value => a_ptr%r
   endif
 
 ! Only possibility left is real/ The value_str might be a number or it might 
@@ -1338,30 +1393,31 @@ subroutine tao_set_data_cmd (who_str, value_str)
 
 implicit none
 
-type (tao_real_pointer_struct), allocatable, save    :: r_dat(:), r_set(:)
-type (tao_data_array_struct), allocatable, save    :: d_dat(:)
-type (tao_integer_array_struct), allocatable, save :: int_dat(:), int_set(:)
-type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
-type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
+type (tao_data_array_struct), allocatable    :: d_dat(:)
+type (tao_real_pointer_struct), allocatable  :: r_dat(:)
+type (tao_integer_array_struct), allocatable :: int_dat(:), int_value(:)
+type (tao_logical_array_struct), allocatable :: l_dat(:), l_value(:)
+type (tao_string_array_struct), allocatable :: s_dat(:), s_value(:)
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
-type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_expression_info_struct), allocatable :: info(:)
 
-real(rp), allocatable, save :: r_value(:)
-integer i, ix, int_value, n_loc
+real(rp), allocatable :: r_value(:)
 
-integer, allocatable :: i_save(:)
+integer i, ix, i1, n_loc, ib, ie
+integer, allocatable :: int_save(:)
 
 character(*) who_str, value_str
 character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
 character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
-character(40), target :: dummy
-logical err, l_value, valid_value
+character(200) :: tmpstr
+character, allocatable :: s_save(:)
 
-character(40) :: tmpstr
+logical err, l1, valid_value
+
 
 ! Decode data component to set.
 
@@ -1369,48 +1425,50 @@ call tao_find_data (err, who_str, d_array = d_dat, re_array=r_dat, &
           log_array=l_dat, str_array = s_dat, int_array = int_dat, component = component)
 if (err) return
 
+!------------------------
 ! A logical value_str is either a logical or an array of datum values.
 
 if (size(l_dat) /= 0) then
   if (is_logical(value_str)) then
-    read (value_str, *) l_value
+    read (value_str, *)
     do i = 1, size(l_dat)
-      l_dat(i)%l = l_value
+      l_dat(i)%l = l1
     enddo
 
   else
-    call tao_find_data (err, value_str, log_array=l_set)
-    if (size(l_set) /= size(l_dat)) then
+    call tao_find_data (err, value_str, log_array=l_value)
+    if (size(l_value) /= size(l_dat)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
     do i = 1, size(l_dat)
-      l_dat(i)%l = l_set(i)%l
+      l_dat(i)%l = l_value(i)%l
     enddo
   endif
 
+!------------------------
 ! An integer value_str is either an integer or an array of datum values.
 
 elseif (size(int_dat) /= 0) then
 
-  allocate (i_save(size(int_dat)))
+  allocate (int_save(size(int_dat)))  ! Used to save old values in case of error
 
   if (is_integer(value_str)) then
-    read (value_str, *) int_value
+    read (value_str, *) i1
     do i = 1, size(int_dat)
-      i_save(i) = int_dat(i)%i
-      int_dat(i)%i = int_value
+      int_save(i) = int_dat(i)%i
+      int_dat(i)%i = i1
     enddo
 
   else
-    call tao_find_data (err, value_str, int_array=int_set)
-    if (size(int_set) /= size(int_dat)) then
+    call tao_find_data (err, value_str, int_array=int_value)
+    if (size(int_value) /= size(int_dat)) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
     do i = 1, size(int_dat)
-      i_save(i) = int_dat(i)%i
-      int_dat(i)%i = int_set(i)%i
+      int_save(i) = int_dat(i)%i
+      int_dat(i)%i = int_value(i)%i
     enddo
   endif
 
@@ -1418,87 +1476,130 @@ elseif (size(int_dat) /= 0) then
     do i = 1, size(int_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
       branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
-      if (int_dat(i)%i < 0 .or. int_dat(i)%i > branch%n_ele_max) then
-        int_dat(i)%i = i_save(i)
-      else
-        if (component == 'ix_ele') then
-          tmpstr = branch%ele(int_dat(i)%i)%name
-          d_dat(i)%d%ele_name = tmpstr
-          ! d_dat(i)%d%ele_name = branch%ele(int_dat(i)%i)%name
-        elseif (component == 'ix_ele_start') then
-          tmpstr = branch%ele(int_dat(i)%i)%name
-          d_dat(i)%d%ele_start_name = tmpstr
-          ! d_dat(i)%d%ele_start_name = branch%ele(int_dat(i)%i)%name
-        else
-          tmpstr = branch%ele(int_dat(i)%i)%name
-          d_dat(i)%d%ele_ref_name = tmpstr
-          ! d_dat(i)%d%ele_ref_name = branch%ele(int_dat(i)%i)%name
-        endif
+      ie = int_dat(i)%i
+
+      if (ie < 0 .or. ie > branch%n_ele_max) then
+        int_dat(i)%i = int_save(i)
+        call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
+        return
       endif
+
+      if (component == 'ix_ele') then
+        tmpstr = branch%ele(ie)%name
+        d_dat(i)%d%ele_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d_dat(i)%d%exists = .true.
+      elseif (component == 'ix_ele_start') then
+        tmpstr = branch%ele(ie)%name
+        d_dat(i)%d%ele_start_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+      else
+        tmpstr = branch%ele(ie)%name
+        d_dat(i)%d%ele_ref_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+      endif
+    enddo
+
+  elseif (component == 'ix_branch') then
+    do i = 1, size(int_dat)
+      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      ib = int_dat(i)%i
+      if (ib < 0 .or. ib > ubound(u%design%lat%branch, 1)) then
+        int_dat(i)%i = int_save(i)
+        call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
+        return
+      endif
+      d_dat(i)%d%exists = .false.
+      d_dat(i)%d%ele_name = ''
+      d_dat(i)%d%ix_ele = -1
+      d_dat(i)%d%ele_ref_name = ''
+      d_dat(i)%d%ix_ele_ref = -1
+      d_dat(i)%d%ele_start_name = ''
+      d_dat(i)%d%ix_ele_start = -1
     enddo
   endif
 
-  deallocate (i_save)
-
+!------------------------
 ! A string:
 
 elseif (size(s_dat) /= 0) then
 
+  allocate (s_save(size(s_dat)))  ! Used to save old values in case of error
+
   ! If value_string has "|" then it must be a datum array
 
-  if (index(value_str, '|') == 0) then
-    if (all (component == 'merit_type' .and. value_str /= merit_type_names)) then
-      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
-      return
-    endif
-    if (allocated(s_set)) deallocate(s_set)
-    allocate(s_set(1))
-    s_set(1)%s => dummy
-    s_set(1)%s = value_str
-
-  else
-    call tao_find_data (err, value_str, str_array=s_set)
-    if (size(s_set) /= size(s_dat) .and. size(s_set) /= 1) then
+  if (index(value_str, '|') /= 0) then
+    call tao_find_data (err, value_str, str_array=s_value)
+    if (size(s_value) /= size(s_dat) .and. size(s_value) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
+
+    do i = 1, size(s_dat)
+      tmpstr = s_value(i)%s
+      s_save(i) = tmpstr
+      s_dat(i)%s = tmpstr   ! Use temp due to bug on Windows
+    enddo
+
+  else
+    if (component == 'merit_type' .and. all(value_str /= merit_type_names)) then
+      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+      return
+    endif
+
+    do i = 1, size(s_dat)
+      tmpstr = value_str
+      s_save(i) = tmpstr
+      s_dat(i)%s = tmpstr   ! Use temp due to bug on Windows
+    enddo
   endif
+
+  !
 
   if (component == 'ele_name' .or. component == 'ele_start_name' .or. component == 'ele_ref_name') then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
-      if (size(s_set) > 1) dummy = s_set(i)%s
-      call lat_ele_locator (dummy, u%design%lat, eles, n_loc)
+      call upcase_string (s_dat(i)%s)
+      call lat_ele_locator (s_dat(i)%s, u%design%lat, eles, n_loc)
+
       if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // dummy)
+        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
+        s_dat(i)%s = s_save(i)
         return
       endif
+
+      if (n_loc > 1) then
+        call out_io (s_error$, r_name, 'MULTIPLE ELEMENT OF THE SAME NAME EXIST: ' // s_dat(i)%s)
+        s_dat(i)%s = s_save(i)
+        return
+      endif
+
       if (component == 'ele_name') then
         d_dat(i)%d%ix_ele    = eles(1)%ele%ix_ele
+        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+          d_dat(i)%d%ele_ref_name = ''
+          d_dat(i)%d%ix_ele_ref = -1
+          d_dat(i)%d%ele_start_name = ''
+          d_dat(i)%d%ix_ele_start = -1
+        endif
         d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
+        d_dat(i)%d%exists = .true.
       elseif (component == 'ele_start_name') then
+        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+          s_dat(i)%s = s_save(i)
+          call out_io (s_error$, r_name, 'START_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+          return
+        endif
         d_dat(i)%d%ix_ele_start = eles(1)%ele%ix_ele
       else
+        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+          s_dat(i)%s = s_save(i)
+          call out_io (s_error$, r_name, 'REF_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+          return
+        endif
         d_dat(i)%d%ix_ele_ref = eles(1)%ele%ix_ele
       endif
     enddo
-  elseif (component == 'data_type') then
-  elseif (component == 'merit_type') then
-  elseif (component == 'data_source') then
   endif
 
-  do i = 1, size(s_dat)
-    if (size(s_set) == 1) then
-      tmpstr = s_set(1)%s
-      s_dat(i)%s = tmpstr
-      ! s_dat(i)%s = s_set(1)%s
-    else
-      tmpstr = s_set(i)%s
-      s_dat(i)%s = tmpstr
-      ! s_dat(i)%s = s_set(i)%s
-    endif
-  enddo
-
+!------------------------
 ! Only possibility left is real. The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
@@ -1517,13 +1618,16 @@ elseif (size(r_dat) /= 0) then
   enddo
 endif
 
-!
+!----------------------
+! End stuff
 
-do i = 1, size(d_dat)
-  if (.not. d_dat(i)%d%exists) cycle
-  u => s%u(d_dat(i)%d%d1%d2%ix_uni)  
-  call tao_evaluate_a_datum (d_dat(i)%d, u, u%model, d_dat(i)%d%model_value, valid_value)
-enddo
+if (s%global%lattice_calc_on) then
+  do i = 1, size(d_dat)
+    if (.not. d_dat(i)%d%exists) cycle
+    u => s%u(d_dat(i)%d%d1%d2%ix_uni)  
+    call tao_evaluate_a_datum (d_dat(i)%d, u, u%model, d_dat(i)%d%model_value, valid_value)
+  enddo
+endif
 
 call tao_set_data_useit_opt()
 

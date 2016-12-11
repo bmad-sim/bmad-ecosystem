@@ -76,7 +76,7 @@ end subroutine
 
 
 subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
-                                                    str_array, print_err, component, dflt_var_index)
+                                               str_array, print_err, component, dflt_var_index)
   import
   implicit none
   type (tao_v1_var_array_struct), allocatable, optional  :: v1_array(:)
@@ -289,7 +289,16 @@ subroutine tao_lmdif_optimizer (abort)
   implicit none
   logical abort
 end subroutine
- 
+
+subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
+  import
+  implicit none
+  type (ele_pointer_struct), allocatable :: eles(:)
+  character(*) ele_list
+  logical err
+  logical, optional :: ignore_blank
+end subroutine
+
 function tao_merit (calc_ok) result (this_merit)
   import
   implicit none
@@ -358,6 +367,12 @@ subroutine tao_single_mode (char)
   implicit none
   character(1) :: char
 end subroutine
+
+function tao_universe_number (i_uni) result (i_this_uni)
+  import
+  implicit none
+  integer i_uni, i_this_uni
+end function
 
 subroutine tao_use_data (action, data_name)
   implicit none
