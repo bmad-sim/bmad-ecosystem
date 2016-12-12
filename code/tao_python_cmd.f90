@@ -1163,10 +1163,12 @@ case ('var_create')
     call move_alloc (s%var, v_temp)
     allocate (s%var(s%n_var_used+n_delta))
     s%var(1:n) = v_temp
-    do k = s%n_var_used, size(s%var)
+    do k = s%n_var_used+1, size(s%var)
       s%var(k)%ix_var = k
     enddo
   endif
+
+  i2 = 0   ! In case there are no v1 structures yet defined.
 
   do i = 1, s%n_v1_var_used
     v1_ptr => s%v1_var(i)
@@ -1181,6 +1183,7 @@ case ('var_create')
   s%n_v1_var_used = nn
   s%v1_var(nn)%ix_v1_var = nn
   s%v1_var(nn)%name = name1(1)
+  s%n_var_used = s%n_var_used + n_delta
   i1 = i2 + 1
   i2 = i2 + n_delta
   call tao_point_v1_to_var (s%v1_var(nn), s%var(i1:i2), ix_min(1))
