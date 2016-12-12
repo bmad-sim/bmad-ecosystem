@@ -92,9 +92,9 @@ real(rp) s_pos
 
 integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe, ix_d2
-integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20)
+integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta
 
-logical :: err, print_flag, opened, doprint, free, n_delta
+logical :: err, print_flag, opened, doprint, free
 
 character(20) switch
 

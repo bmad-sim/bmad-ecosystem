@@ -312,6 +312,15 @@ subroutine tao_open_file (file, iunit, file_name, error_severity)
   character(*) file_name
   integer iunit, error_severity
 end subroutine
+
+function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
+  import
+  implicit none
+  type (tao_d1_data_struct), target :: d1
+  type (tao_data_struct), pointer :: datum_ptr
+  character(*) ele_name
+end function
+
  
 subroutine tao_write_cmd (what)
   implicit none

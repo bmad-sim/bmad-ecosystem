@@ -1811,28 +1811,28 @@ case ('photon.')
 
 !-----------
 
-case ('ping_x.')
+case ('ping_a.')
 
   if (.not. associated(ele)) return  ! Bad
 
   select case (datum%data_type)
-  case ('ping_x.amp_x')
+  case ('ping_a.amp_x')
     datum_value = sqrt(ele%a%beta)
     if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%a%beta)
     valid_value = .true.
 
-  case ('ping_x.amp_y')
+  case ('ping_a.amp_y')
     datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
     if (associated(ele_ref)) datum_value = datum_value - &
                   sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
     valid_value = .true.
 
-  case ('ping_x.phase_x')
+  case ('ping_a.phase_x')
     datum_value = ele%a%phi
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi
     valid_value = .true.
 
-  case ('ping_x.phase_y')
+  case ('ping_a.phase_y')
     datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
     valid_value = .true.
@@ -1840,28 +1840,28 @@ case ('ping_x.')
 
 !-----------
 
-case ('ping_y.')
+case ('ping_b.')
 
   if (.not. associated(ele)) return  ! Bad
 
   select case (datum%data_type)
-  case ('ping_y.amp_x')
+  case ('ping_b.amp_x')
     datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     if (associated(ele_ref)) datum_value = datum_value - &
                   sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
     valid_value = .true.
 
-  case ('ping_y.amp_y')
+  case ('ping_b.amp_y')
     datum_value = sqrt(ele%b%beta)
     if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta)
     valid_value = .true.
 
-  case ('ping_y.phase_x')
+  case ('ping_b.phase_x')
     datum_value = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
     valid_value = .true.
 
-  case ('ping_y.phase_y')
+  case ('ping_b.phase_y')
     datum_value = ele%b%phi
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi
     valid_value = .true.
@@ -2857,7 +2857,7 @@ if (ip == 0) return
 
 select case (datum%data_type(1:ip))
 
-case ('k.', 'cbar.', 'ping_x.', 'ping_y.')
+case ('k.', 'cbar.', 'ping_a.', 'ping_b.')
   if (cc_p%coupling_calc_done) return
   cc_p%coupling_calc_done = .true.
 

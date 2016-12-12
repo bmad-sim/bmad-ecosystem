@@ -8,6 +8,8 @@
 !   model, base, design, meas, ref, old, fit, weight
 ! The l_array will be used if the component is one of:
 !   exists, good_meas, good_ref, good_user, good_opt, good_plot
+!
+! Also see: tao_find_datum_using_ele_name
 ! 
 ! Example:
 !   data_name = '*@orbit.x'

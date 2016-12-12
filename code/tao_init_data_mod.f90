@@ -26,6 +26,7 @@ use tao_data_and_eval_mod
 use tao_lattice_calc_mod
 use tao_input_struct
 use random_mod
+use nr, only: indexx
   
 implicit none
 
@@ -249,9 +250,10 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: dat
 
-integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
+real(rp), allocatable :: s(:)
 
-integer i_d1
+integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1
+integer, allocatable :: ind(:)
 
 character(20) fmt
 
@@ -285,16 +287,23 @@ if (search_for_lat_eles /= '') then
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
 
+  allocate (ind(size(eles)), s(size(eles)))
+  do i = 1, size(eles)
+    s(i) = eles(i)%ele%s
+  enddo
+  call indexx (s, ind)
+
   ! get element names
+
   jj = n1
   do k = lbound(eles, 1), ubound(eles, 1)
     if (jj .gt. n2) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    u%data(jj)%ele_name  = eles(k)%ele%name
-    u%data(jj)%ix_ele    = eles(k)%ele%ix_ele
-    u%data(jj)%ix_branch = eles(k)%ele%ix_branch
+    u%data(jj)%ele_name  = eles(ind(k))%ele%name
+    u%data(jj)%ix_ele    = eles(ind(k))%ele%ix_ele
+    u%data(jj)%ix_branch = eles(ind(k))%ele%ix_branch
     u%data(jj)%exists    = .true.
     jj = jj + 1
   enddo
@@ -315,6 +324,7 @@ if (search_for_lat_eles /= '') then
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 
+  deallocate (ind)
 
 !-----------------------------------------
 ! use_same_lat_eles_as

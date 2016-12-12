@@ -440,7 +440,7 @@ Description of the data types:
 
   \index{alpha.}
   \item[alpha.] \Newline
-Possible sub-data types of the Twiss function \vn{alpha} are \vn{alpha.a} and \vn{alpha.b}.
+Twiss function \vn{alpha}.
 
   \index{apparent_emit.}
   \item[apparent_emit.] \Newline
@@ -708,6 +708,40 @@ is taken in \tao to be zero. This can be helpful in optimizations
 since one does not have to worry about arbitrary offsets between the
 \vn{model} and \vn{measured} values. If the reference element is
 specified then there is no arbitrary constant in the evaluation.
+
+  \index{ping_a.}
+  \item[ping_a.] \Newline
+Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
+pinged. Ignoring damping, the beam response will be the sum of three components, one for
+each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
+frequency. 
+
+At each BPM, the response will have a component in the \vn{x} (horizontal} and \vn{y}
+(vertical) planes. If there is no coupling, vertical response for the \vn{a}-mode
+component is zero. The \vn{a}-mode response can be characterized by the equation
+\begin{align}
+  x_a(n) &= A_{ax} \, \sin{2 \, pi \, n \, f_a + \phi_{ax} + \phi_{a0}) \CRNO
+  y_a(n) &= A_{ay} \, \sin{2 \, pi \, n \, f_a + \phi_{ay} + \phi_{a0})
+\end{align}
+where $x_a(n)$ and $y_a(n)$ are the horizontal and vertical positions of the \vn{a}-mode
+component on the n\Th turn. $A_{ax}$ and $A_{ay}$ are the response amplitudes, $f_a$ is
+the \vn{a}-mode frequency $\phi_{ax}$ and $\phi_{ay}$ are the oscillation phases, and
+$\phi_{a0}$ is an overall phase dependent upon how turn $n = 0$ is defined. In terms of
+how \tao analyses ping data, only differences in phases are important so $\phi_{a0} is
+ignorable. The response can be related to the lattice Twiss parameters as given by Eqs.~(7)
+and (8) of reference \cite{b:beta.meas}.
+
+In terms of \tao's data parameters, the correspondence is
+\begin{example}
+  ping_a.amp_x   $\longrightarrow A_{ax}
+  ping_a.phase_x $\longrightarrow \phi_{ax}$
+  ping_a.amp_x   $\longrightarrow A_{ax}
+  ping_a.phase_x $\longrightarrow \phi_{ax}$
+\end{example}
+
+  \index{ping_b.}
+  \item[ping_b.] \Newline
+Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.
 
   \index{rad_int.}
   \item[rad_int, rad_int1] \Newline

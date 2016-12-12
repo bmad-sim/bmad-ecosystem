@@ -7,7 +7,8 @@
 !
 ! Input:
 !   file_name      -- Character(*): File name.
-!   error_severity -- Integer: Severity of the error. Use s_fatal$, etc.
+!   error_severity -- Integer: Severity level used in the error message. 
+!                       Possibilities are s_fatal$, etc. See out_io doc for more details.
 !                       Use -1 to not print a message if file cannot be opened.
 !
 ! Output:
