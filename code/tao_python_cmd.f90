@@ -417,6 +417,7 @@ case ('data_destroy')
   endif
 
   d2_ptr => d2_array(1)%d2
+  u => s%u(d2_ptr%ix_uni)
   ix_d2 = d2_ptr%ix_d2_data
 
   d1_ptr => d2_ptr%d1(1)
