@@ -39,14 +39,13 @@ changed.
   \item
 Copy the file \vn{tao/program/tao_program.f90} to \vn{ROOT/tao_custom}.
   \item
-Copy and modify as needed \vn{hook} files from 
-\vn{tao/hook} to \vn{ROOT/tao_custom}. See \sref{s:cust.example} for an
-example.
+Copy as needed \vn{hook} files from \vn{tao/hook} to \vn{ROOT/tao_custom}. The hook files
+you will need are the hook files you will want to modify to customize \tao. See below for
+details. See \sref{s:cust.example} for an example.
   \item
-Use the command \vn{mk} to create the executable 
-\vn{ROOT/production/bin/custom_tao}. Similarly,
-the command \vn{mkd} will create a debug executable
-\vn{ROOT/debug/bin/custom_tao}.
+Go to the \vn{ROOT/tao_custom} directory and use the command \vn{mk} to create the
+executable \vn{ROOT/production/bin/custom_tao}. Similarly, the command \vn{mkd} will
+create a debug executable \vn{ROOT/debug/bin/custom_tao}.
 	\end{enumerate}
 
 %----------------------------------------------------------------

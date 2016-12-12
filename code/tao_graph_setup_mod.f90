@@ -1774,7 +1774,7 @@ endif
 
 ! Renormalize 
 
-!!if ((curve%data_type == 'ping_x.amp_x'
+!!if ((curve%data_type == 'ping_a.phase_x'
 !!                                    .and. n_dat /= 0 .and. zero_average_phase) then
 
 

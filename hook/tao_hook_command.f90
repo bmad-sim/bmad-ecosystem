@@ -2,8 +2,8 @@
 ! Subroutine tao_hook_command (cmd_line, found)
 !
 ! Put custom Tao commands here. These commands are searched before the standard
-! tao commands are searched. This allows for the overwriting of any standard tao
-! command.
+! tao commands are searched. This allows for the defining of new commands and 
+! the overwriting of any standard tao command.
 !
 ! This file is already set up so that it is rather simple to add a command. Just
 ! follow the directions. Keep in mind that you don't have to use the included 
@@ -34,13 +34,15 @@ real(rp) value1, value2, this_merit
 
 character(*) :: command_line
 character(140) :: cmd_line
-character(20) :: r_name = 'tao_hook_command'
+character(*), parameter :: r_name = 'tao_hook_command'
 character(40) :: cmd_word(12)
  
 character(16) cmd_name
 
-!!!! put your list of hook commands in here. '
-character(16) :: cmd_names(1) = (/ 'echo            '/)
+!!!! put your list of hook commands in here. 
+! "echo" is an example of how to implement a command. See below.
+
+character(16) :: cmd_names(1) = [character(16):: 'echo']  
 
 logical quit_tao, err
 
@@ -74,28 +76,28 @@ call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
 
 !----------------------------------------------------------
 ! PUT YOUR CUSTOM COMMANDS IN THIS CASE CONSTRUCT
+! Look at the file tao/code/tao_command.f90 to see how the standard commands are parsed.
 
 select case (cmd_name)
 
+!--------------------------------
+! ECHO
 
-  !--------------------------------
-  ! ECHO
+case ('echo')
+  ! split the command line into its separate words
+  ! separate words placed in cmd_word(:)
+  call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
 
-  case ('echo')
-    ! split the command line into its separate words
-    ! separate words placed in cmd_word(:)
-    call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
-
-    ! send any output to out_io
-    call out_io (s_blank$, r_name, &
-                 "This is just a dummy command for illustration purposes")
-    call out_io (s_blank$, r_name, "I will just echo anything you tell me!")
-    call out_io (s_blank$, r_name, "***")
-    do i = 1, size(cmd_word)
-      if (cmd_word(i) .ne. ' ') &  
-        call out_io (s_blank$, r_name, cmd_word(i))
-    enddo
-    call out_io (s_blank$, r_name, "***")
+  ! send any output to out_io
+  call out_io (s_blank$, r_name, &
+               "This is just a dummy command for illustration purposes")
+  call out_io (s_blank$, r_name, "I will just echo anything you tell me!")
+  call out_io (s_blank$, r_name, "***")
+  do i = 1, size(cmd_word)
+    if (cmd_word(i) .ne. ' ') &  
+      call out_io (s_blank$, r_name, cmd_word(i))
+  enddo
+  call out_io (s_blank$, r_name, "***")
     
 end select
 
