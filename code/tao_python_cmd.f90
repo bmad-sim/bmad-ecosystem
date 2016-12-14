@@ -340,15 +340,12 @@ case ('data_create')
 
   ix = index(name, '@')
   if (ix == 0) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array number of datums for each d1.')
-    call end_stuff()
-    return
+    u => s%u(s%com%default_universe)
+  else
+    read (name(1:ix-1), *) iu
+    u => s%u(iu)
+    name = name(ix+1:)
   endif
-
-  read (name(1:ix-1), *) iu
-  u => s%u(iu)
-  name = name(ix+1:)
 
   n2 = size(u%d2_data)
   if (u%n_d2_data_used + 1 > n2) then
@@ -1167,6 +1164,8 @@ case ('var_create')
       s%var(k)%ix_var = k
     enddo
   endif
+
+  print *, 'here'
 
   i2 = 0   ! In case there are no v1 structures yet defined.
 
