@@ -14,7 +14,7 @@
 
 function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
 
-use tao_mod
+use tao_mod, except_dummy => tao_pointer_to_datum
 
 implicit none
 

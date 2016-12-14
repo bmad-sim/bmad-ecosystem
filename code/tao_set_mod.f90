@@ -1430,7 +1430,7 @@ if (err) return
 
 if (size(l_dat) /= 0) then
   if (is_logical(value_str)) then
-    read (value_str, *)
+    read (value_str, *) l1
     do i = 1, size(l_dat)
       l_dat(i)%l = l1
     enddo

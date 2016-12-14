@@ -1165,8 +1165,6 @@ case ('var_create')
     enddo
   endif
 
-  print *, 'here'
-
   i2 = 0   ! In case there are no v1 structures yet defined.
 
   do i = 1, s%n_v1_var_used
