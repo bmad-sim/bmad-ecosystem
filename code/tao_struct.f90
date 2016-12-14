@@ -844,8 +844,8 @@ type tao_super_universe_struct
   integer, allocatable :: key(:)
   type (tao_building_wall_struct) :: building_wall
   type (tao_wave_struct) :: wave 
-  integer n_var_used
-  integer n_v1_var_used
+  integer :: n_var_used = 0
+  integer :: n_v1_var_used = 0
 end type
 
 type (tao_super_universe_struct), save, target :: s

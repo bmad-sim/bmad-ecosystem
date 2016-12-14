@@ -65,8 +65,10 @@ namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delt
 !-----------------------------------------------------------------------
 ! Init
 
-allocate (s%var(1))
+allocate (s%var(0))
+allocate (s%v1_var(0))
 s%n_var_used = 0
+s%n_v1_var_used = 0
 
 ! Call the hook routine and then return if the standard init is not wanted.
 
