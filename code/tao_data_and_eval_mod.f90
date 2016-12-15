@@ -2787,7 +2787,7 @@ do i = ix_start, ix_ele
   if (i == ix_start) cycle
   dv0 = val0 - vec(i-1) 
   dv1 = val0 - vec(i)
-  ds = branch%ele(i)%s - branch%ele(i-1)%s
+  ds = branch%ele(i)%s - branch%ele(i)%s_start
   if (dv0 < 0 .and. dv1 < 0) cycle
   if (dv0 > 0 .and. dv1 > 0) then
     datum_value = datum_value + 0.5 * ds * (dv0 + dv1)
@@ -2824,7 +2824,7 @@ do i = ix_start, ix_ele
   if (i == ix_start) cycle
   dv0 = vec(i-1) - val0
   dv1 = vec(i) - val0
-  ds = branch%ele(i)%s - branch%ele(i-1)%s
+  ds = branch%ele(i)%s - branch%ele(i)%s_start
   if (dv0 < 0 .and. dv1 < 0) cycle
   if (dv0 > 0 .and. dv1 > 0) then
     datum_value = datum_value + 0.5 * ds * (dv0 + dv1)

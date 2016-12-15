@@ -2039,7 +2039,7 @@ case ('lattice')
       if (at_ends) then;
         s_ele = branch%ele(ie)%s
       else
-        s_ele = (branch%ele(ie-1)%s + branch%ele(ie)%s) / 2
+        s_ele = (branch%ele(ie)%s_start + branch%ele(ie)%s) / 2
       endif
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
