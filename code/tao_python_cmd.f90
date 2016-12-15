@@ -347,22 +347,31 @@ case ('data_create')
     name = name(ix+1:)
   endif
 
-  n2 = size(u%d2_data)
-  if (u%n_d2_data_used + 1 > n2) then
-    call move_alloc(u%d2_data, d2_temp)
-    allocate (u%d2_data(n2+1))
-    u%d2_data(1:n2) = d2_temp
+  if (allocated(u%d2_data)) then
+    n2 = size(u%d2_data)
+    if (u%n_d2_data_used + 1 > n2) then
+      call move_alloc(u%d2_data, d2_temp)
+      allocate (u%d2_data(n2+1))
+      u%d2_data(1:n2) = d2_temp
+    endif
+  else
+    allocate (u%d2_data(1))
   endif
 
-  n = size(u%data)
   n_delta = sum(ix_max(1:n_d1)) - sum(ix_min(1:n_d1)) + n_d1
-  if (u%n_data_used + n_delta > n) then
-    call move_alloc(u%data, d_temp)
-    allocate (u%data(u%n_data_used + n_delta))
-    u%data(1:u%n_data_used) = d_temp(1:u%n_data_used)
-    do i = 1, size(u%data)
-      u%data(i)%ix_data = i
-    enddo
+
+  if (allocated(u%d2_data)) then
+    n = size(u%data)
+    if (u%n_data_used + n_delta > n) then
+      call move_alloc(u%data, d_temp)
+      allocate (u%data(u%n_data_used + n_delta))
+      u%data(1:u%n_data_used) = d_temp(1:u%n_data_used)
+      do i = 1, size(u%data)
+        u%data(i)%ix_data = i
+      enddo
+    endif
+  else
+    allocate (u%data(n_delta))
   endif
 
   i2 = 0   ! In case no d2 structures have yet been defined.
