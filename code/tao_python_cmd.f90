@@ -377,7 +377,7 @@ case ('data_create')
   i2 = 0   ! In case no d2 structures have yet been defined.
 
   do i = 1, u%n_d2_data_used
-    n1 = size(d2_temp(i)%d1)
+    n1 = size(u%d2_data(i)%d1)
     do j = 1, n1
       d1_ptr => u%d2_data(i)%d1(j)
       d1_ptr%d2 => u%d2_data(i)

@@ -921,7 +921,7 @@ allocate (plt%graph(2)%curve(1))
 
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
-plt%x%major_div_nominal  = 8
+plt%x%major_div_nominal  = 7
 plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
@@ -939,7 +939,7 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
-grph%x                    = init_axis
+grph%x                    = plt%x
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -956,7 +956,6 @@ grph%type                 = 'data'
 grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 2, 1, 2]
-grph%x                    = init_axis
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
@@ -966,6 +965,7 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
+grph%x                    = plt%x
 
 crv => grph%curve(1)
 crv%name         = 'c'
@@ -987,8 +987,8 @@ allocate (plt%graph(1)%curve(3))
 
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
-plt%x%major_div_nominal  = 8
-plt%x%minor_div_max = 6
+plt%x%major_div_nominal  = 7
+plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1008,7 +1008,7 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = init_axis
+grph%x                    = plt%x
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -1047,8 +1047,8 @@ allocate (plt%graph(1)%curve(4))
 
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
-plt%x%major_div_nominal  = 8
-plt%x%minor_div_max = 6
+plt%x%major_div_nominal  = 7
+plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1068,7 +1068,7 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = init_axis
+grph%x                    = plt%x
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -1115,8 +1115,8 @@ allocate (plt%graph(1)%curve(2))
 
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
-plt%x%major_div_nominal  = 8
-plt%x%minor_div_max = 6
+plt%x%major_div_nominal  = 7
+plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1136,7 +1136,7 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = init_axis
+grph%x                    = plt%x
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -1167,6 +1167,8 @@ allocate (plt%graph(1)%curve(1))
 
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
+plt%x%major_div_nominal  = 7
+plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1183,7 +1185,7 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
-grph%x                    = init_axis
+grph%x                    = plt%x
 grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
@@ -2260,6 +2262,8 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
   plt%description    = 'Lattice elements drawn as a function of S'
   plt%x_axis_type    = 's'
   plt%x              = init_axis
+  plt%x%major_div_nominal  = 7
+  plt%x%minor_div_max      = 6
 
   grph => plt%graph(1)
   grph%p => plt
@@ -2267,7 +2271,7 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
   grph%box           = [1, 1, 1, 1]
   grph%type          = 'lat_layout'
   grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
-  grph%x             = init_axis
+  grph%x             = plt%x
   grph%y%min         = -1
   grph%y%max         =  1
 endif
