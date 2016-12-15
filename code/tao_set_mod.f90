@@ -1628,24 +1628,22 @@ endif
 ! See if a datum now exists. 
 ! Only print an error message if the datum used to exist but now does not.
 
-if (s%global%lattice_calc_on) then
-  do i = 1, size(d_dat)
-    d => d_dat(i)%d
-    if (d%merit_type == '' .or. d%data_type == '' .or. d%data_source == '') then ! Definately does not exist
-      d%exists = .false.
-      cycle
-    endif
+do i = 1, size(d_dat)
+  d => d_dat(i)%d
+  if (d%merit_type == '' .or. d%data_type == '' .or. d%data_source == '') then ! Definately does not exist
+    d%exists = .false.
+    cycle
+  endif
 
-    old_exists = d%exists
-    d%exists = .true.  ! Set True for the test
-    u => s%u(d%d1%d2%ix_uni)  
-    call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
-    if (old_exists .and. .not. d%good_model) then
-      call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)
-    endif
-    if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
-  enddo
-endif
+  old_exists = d%exists
+  d%exists = .true.  ! Set True for the test
+  u => s%u(d%d1%d2%ix_uni)  
+  call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
+  if (old_exists .and. .not. d%good_model) then
+    call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)
+  endif
+  if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
+enddo
 
 call tao_set_data_useit_opt()
 
