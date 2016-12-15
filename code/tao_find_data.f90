@@ -216,14 +216,14 @@ if (present(ix_uni) .and. .not. explicit_uni) then
   u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
   call find_this_d2 (u, dat_name, this_err)
-  if (allocated(u%d2_data)) data_exists = .true.
+  if (u%n_d2_data_used > 0) data_exists = .true.
 else
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. scratch%picked(i)) cycle
     u => tao_pointer_to_universe (i)
     call find_this_d2 (u, dat_name, this_err)
     if (this_err) return
-    if (allocated(u%d2_data)) data_exists = .true.
+    if (u%n_d2_data_used > 0) data_exists = .true.
   enddo
 endif
 

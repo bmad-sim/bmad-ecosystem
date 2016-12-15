@@ -879,10 +879,12 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)  '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), lmt)  '%useit_opt         = ', d_ptr%useit_opt
 
-    if (d_ptr%exists .and. .not. d_ptr%good_model) then
+    if (d_ptr%exists) then
       u => s%u(d_ptr%d1%d2%ix_uni)
       call tao_evaluate_a_datum (d_ptr, u, u%model, val, valid_value, why_invalid)
-      nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
+      if (.not. valid_value) then
+        nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
+      endif
     endif
 
   ! Else show the d1_data info.
