@@ -1325,8 +1325,15 @@ elseif (size(s_var) /= 0) then
     endif
     v_ptr => v_var(1)%v
     v_ptr%exists = .true.
+    v_ptr%merit_type = 'limit'
+    v_ptr%good_var = .true.
+    v_ptr%good_opt = .true.
+    v_ptr%good_user = .true.
     v_ptr%ele_name = ele_name
     v_ptr%attrib_name = attrib_name
+    v_ptr%merit_type = 'limit'
+    v_ptr%low_lim = -1d30
+    v_ptr%high_lim = 1e30
 
     if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
     allocate (v_ptr%slave(1))
@@ -1399,6 +1406,7 @@ type (tao_integer_array_struct), allocatable :: int_dat(:), int_value(:)
 type (tao_logical_array_struct), allocatable :: l_dat(:), l_value(:)
 type (tao_string_array_struct), allocatable :: s_dat(:), s_value(:)
 type (tao_universe_struct), pointer :: u
+type (tao_data_struct), pointer :: d
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -1413,10 +1421,10 @@ character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
 character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
-character(200) :: tmpstr
+character(200) :: tmpstr, why_invalid
 character, allocatable :: s_save(:)
 
-logical err, l1, valid_value
+logical err, l1, old_exists
 
 
 ! Decode data component to set.
@@ -1487,7 +1495,6 @@ elseif (size(int_dat) /= 0) then
       if (component == 'ix_ele') then
         tmpstr = branch%ele(ie)%name
         d_dat(i)%d%ele_name = upcase(tmpstr)   ! Use temp due to bug on Windows
-        d_dat(i)%d%exists = .true.
       elseif (component == 'ix_ele_start') then
         tmpstr = branch%ele(ie)%name
         d_dat(i)%d%ele_start_name = upcase(tmpstr)   ! Use temp due to bug on Windows
@@ -1506,7 +1513,6 @@ elseif (size(int_dat) /= 0) then
         call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
         return
       endif
-      d_dat(i)%d%exists = .false.
       d_dat(i)%d%ele_name = ''
       d_dat(i)%d%ix_ele = -1
       d_dat(i)%d%ele_ref_name = ''
@@ -1580,7 +1586,6 @@ elseif (size(s_dat) /= 0) then
           d_dat(i)%d%ix_ele_start = -1
         endif
         d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
-        d_dat(i)%d%exists = .true.
       elseif (component == 'ele_start_name') then
         if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
           s_dat(i)%s = s_save(i)
@@ -1620,12 +1625,25 @@ endif
 
 !----------------------
 ! End stuff
+! See if a datum now exists. 
+! Only print an error message if the datum used to exist but now does not.
 
 if (s%global%lattice_calc_on) then
   do i = 1, size(d_dat)
-    if (.not. d_dat(i)%d%exists) cycle
-    u => s%u(d_dat(i)%d%d1%d2%ix_uni)  
-    call tao_evaluate_a_datum (d_dat(i)%d, u, u%model, d_dat(i)%d%model_value, valid_value)
+    d => d_dat(i)%d
+    if (d%merit_type == '' .or. d%data_type == '' .or. d%data_source == '') then ! Definately does not exist
+      d%exists = .false.
+      cycle
+    endif
+
+    old_exists = d%exists
+    d%exists = .true.  ! Set True for the test
+    u => s%u(d%d1%d2%ix_uni)  
+    call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
+    if (old_exists .and. .not. d%good_model) then
+      call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)
+    endif
+    if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
   enddo
 endif
 

@@ -385,6 +385,7 @@ case ('data_create')
   u%d2_data(nn)%ix_d2_data = nn
   u%d2_data(nn)%name = name
   u%d2_data(nn)%ix_uni = iu
+  if (allocated(u%d2_data(nn)%d1)) deallocate(u%d2_data(nn)%d1) ! Can happen if data has been destroyed.
   allocate (u%d2_data(nn)%d1(n_d1))
 
   do j = 1, n_d1

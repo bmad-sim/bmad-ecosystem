@@ -190,11 +190,12 @@ subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, val
   character(*), optional :: why_invalid
 end subroutine
 
-subroutine tao_hook_merit_data (i_uni, j_data, data)
+subroutine tao_hook_merit_data (i_uni, j_data, data, valid_value_set)
   import
   implicit none
   type (tao_data_struct) data
   integer i_uni, j_data
+  logical valid_value_set
 end subroutine
 
 subroutine tao_hook_merit_var (i_uni, j_var, var)

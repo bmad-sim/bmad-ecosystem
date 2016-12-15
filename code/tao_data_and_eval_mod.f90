@@ -2592,6 +2592,7 @@ if (associated(ele_start)) ix_start = ele_start%ix_ele
 if (ix_ele < 0) then
   datum%exists = .false.
   valid_value = .false.
+  call tao_set_invalid (datum, 'ELEMENT INDEX FOR DATUM IS NEGATIVE!', why_invalid)
   return
 endif
 
@@ -2612,6 +2613,7 @@ if (ix_ref > -1) then
   ref_value = vec(ix_ref)
   if (present(good)) then
     if (.not. good(ix_ref)) then
+      call tao_set_invalid (datum, 'DATA AT REFERENCE ELEMENT NOT VALID', why_invalid)
       valid_value = .false.
       return
     endif
@@ -2628,6 +2630,8 @@ if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
+  if (.not. valid_value) call tao_set_invalid (datum, 'DATA AT START ELEMENT NOT VALID.', why_invalid)
+
   return
 endif
 
@@ -2696,11 +2700,12 @@ if (ix_ele < ix_start) then   ! wrap around
     if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
 
   case default
-    call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                   'FOR DATUM: ' // tao_datum_name(datum))
+    call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid)
     valid_value = .false.
     return
   end select
+
+  if (.not. valid_value) call tao_set_invalid (datum, 'INVALID DATA IN RANGE FROM ELE_START TO ELE_REF', why_invalid)
 
 ! no wrap case
 else
@@ -2742,13 +2747,12 @@ else
     if (present(good)) valid_value = all(good(ix_start:ix_ele))
 
   case default
-    call out_io (s_error$, r_name, &
-                  'SINCE THIS DATUM: ' // tao_datum_name(datum), &
-                  'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
-                  'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+    call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid)
     valid_value = .false.
     return
   end select
+
+  if (.not. valid_value) call tao_set_invalid (datum, 'INVALID DATA IN RANGE FROM ELE_START TO ELE_REF', why_invalid)
 
 endif
 

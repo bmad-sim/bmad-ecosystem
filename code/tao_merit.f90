@@ -179,7 +179,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     case ('min', 'abs_min')
       if (data(j)%delta_merit > 0) data(j)%delta_merit = 0  ! it's OK to be more
     case default
-      call tao_hook_merit_data (i, j, data(j))
+      call tao_hook_merit_data (i, j, data(j), ok)
+      if (.not. ok) then
+        call out_io (s_error$, r_name, 'MERIT_TYPE NOT RECOGNIZED FOR DATA: ' // tao_datum_name(data(j)), &
+                                       'MERIT_TYPE: ' // data(j)%merit_type, &
+                                       'WILL MARK DATUM AS DOES NOT EXIST.')
+        data%exists = .false.
+      endif
     end select
   enddo
 
