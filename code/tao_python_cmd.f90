@@ -338,6 +338,7 @@ case ('data_create')
 
   ! Now create the d2 structure
 
+  a_name = name
   ix = index(name, '@')
   if (ix == 0) then
     u => s%u(s%com%default_universe)
@@ -346,6 +347,19 @@ case ('data_create')
     u => s%u(iu)
     name = name(ix+1:)
   endif
+
+  call tao_find_data(err, name, d2_array)
+  if (size(d2_array) /= 0) then
+    call destroy_this_data (a_name)
+    call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
+                                   'This old data has been destroyed to make room for the new data.')
+!!    nl=nl+1; li(nl) = 'INVALID'
+!!    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
+!!                                   'Destroy with "python data_destroy" first.')
+!!    call end_stuff()
+!!    return
+  endif
+
 
   if (allocated(u%d2_data)) then
     n2 = size(u%d2_data)
@@ -389,6 +403,7 @@ case ('data_create')
     enddo
   enddo
 
+  u%n_data_used = u%n_data_used + n_delta
   nn = u%n_d2_data_used + 1
   u%n_d2_data_used = nn
   u%d2_data(nn)%ix_d2_data = nn
@@ -415,48 +430,7 @@ case ('data_create')
 
 case ('data_destroy')
 
-  call tao_find_data (err, line, d2_array = d2_array)
-  if (err .or. .not. allocated(d2_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff()
-    return
-  endif
-
-  d2_ptr => d2_array(1)%d2
-  u => s%u(d2_ptr%ix_uni)
-  ix_d2 = d2_ptr%ix_d2_data
-
-  d1_ptr => d2_ptr%d1(1)
-  i1 = lbound(d1_ptr%d, 1)
-  i1 = d1_ptr%d(i1)%ix_data
-
-  n1 = size(d2_ptr%d1)
-  d1_ptr => d2_ptr%d1(n1)
-  i2 = ubound(d1_ptr%d, 1)
-  i2 = d1_ptr%d(i2)%ix_data
-
-  n_delta = i2 + 1 - i1
-
-  ! Squeeze u%d2_data and u%data arrays
-
-  do i = ix_d2, u%n_d2_data_used - 1
-    u%d2_data(i) = u%d2_data(i+1)
-    do j = 1, size(u%d2_data(i)%d1)
-      d1_ptr => u%d2_data(i)%d1(j)
-      d1_ptr%d2 => u%d2_data(i)
-      i1 = d1_ptr%d(lbound(d1_ptr%d,1))%ix_data
-      i2 = d1_ptr%d(ubound(d1_ptr%d,1))%ix_data
-      u%data(i1-n_delta:i2-n_delta) = u%data(i1:i2)
-      call tao_point_d1_to_data(d1_ptr, u%data(i1-n_delta:i2-n_delta), u%data(i1-n_delta)%ix_d1)
-      do k = i1, i2
-        u%data(i1-n_delta)%ix_data = i1 - n_delta
-      enddo
-    enddo
-  enddo
-
-  u%n_d2_data_used = u%n_d2_data_used - 1
-  u%n_data_used = u%n_data_used - n_delta
+call destroy_this_data(line)
 
 !----------------------------------------------------------------------
 ! List of d1 arrays in a given data d2.
@@ -1608,5 +1582,57 @@ if (logic_option(.false., emit_out)) then
 endif
 
 end subroutine twiss_out
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine destroy_this_data(d_name)
+
+character(*) d_name
+
+call tao_find_data (err, d_name, d2_array = d2_array)
+if (err .or. .not. allocated(d2_array)) then
+  nl=nl+1; li(nl) = 'INVALID'
+  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
+  call end_stuff()
+  return
+endif
+
+d2_ptr => d2_array(1)%d2
+u => s%u(d2_ptr%ix_uni)
+ix_d2 = d2_ptr%ix_d2_data
+
+d1_ptr => d2_ptr%d1(1)
+i1 = lbound(d1_ptr%d, 1)
+i1 = d1_ptr%d(i1)%ix_data
+
+n1 = size(d2_ptr%d1)
+d1_ptr => d2_ptr%d1(n1)
+i2 = ubound(d1_ptr%d, 1)
+i2 = d1_ptr%d(i2)%ix_data
+
+n_delta = i2 + 1 - i1
+
+! Squeeze u%d2_data and u%data arrays
+
+do i = ix_d2, u%n_d2_data_used - 1
+  u%d2_data(i) = u%d2_data(i+1)
+  do j = 1, size(u%d2_data(i)%d1)
+    d1_ptr => u%d2_data(i)%d1(j)
+    d1_ptr%d2 => u%d2_data(i)
+    i1 = d1_ptr%d(lbound(d1_ptr%d,1))%ix_data
+    i2 = d1_ptr%d(ubound(d1_ptr%d,1))%ix_data
+    u%data(i1-n_delta:i2-n_delta) = u%data(i1:i2)
+    call tao_point_d1_to_data(d1_ptr, u%data(i1-n_delta:i2-n_delta), u%data(i1-n_delta)%ix_d1)
+    do k = i1, i2
+      u%data(i1-n_delta)%ix_data = i1 - n_delta
+    enddo
+  enddo
+enddo
+
+u%n_d2_data_used = u%n_d2_data_used - 1
+u%n_data_used = u%n_data_used - n_delta
+
+end subroutine destroy_this_data
 
 end subroutine tao_python_cmd

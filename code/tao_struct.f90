@@ -407,7 +407,6 @@ type tao_d2_data_struct
   character(20) :: ref_date = ''         ! Reference data measurement date.
   character(80) :: descrip(10) = ''      ! Array for descriptive information.
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
-  real(rp) :: scale = 1                  ! Scale factor for ping amplitude data.
   integer ix_uni                         ! Index of universe this is in.
   integer ix_d2_data                     ! Index in u%d2_data(:) array.
   integer ix_data                        ! Index of the data set.
@@ -594,6 +593,7 @@ type tao_global_struct
   logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
   logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
   logical :: debug_on = .false.                   ! For debugging.
+  logical :: single_step = .false.                ! For debugging. Single step through a command file?
 end type
 
 !
@@ -806,6 +806,15 @@ type tao_dynamic_aperture_struct
   real(rp), allocatable :: pz(:)
 end type
 
+!-----------------------------------------------------------------------
+! For scaling ping amplitude
+
+type tao_ping_scale_struct
+  real(rp) :: a_mode_meas = 1
+  real(rp) :: a_mode_ref = 1
+  real(rp) :: b_mode_meas = 1
+  real(rp) :: b_mode_ref = 1
+end type
 
 !-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
@@ -818,6 +827,7 @@ type tao_universe_struct
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
+  type (tao_ping_scale_struct) ping_scale
   type (lat_struct) scratch_lat                          ! Scratch area.
   type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
