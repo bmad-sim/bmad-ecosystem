@@ -86,10 +86,10 @@ character(*), optional :: dflt_index
 
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(16) = [character(16) :: &
+character(16), parameter :: real_components(15) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
              'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
-             'weight', 'invalid', 'scratch', 'scale']
+             'weight', 'invalid', 'scratch']
 character(16), parameter :: logic_components(9) = [ &
              'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
@@ -318,29 +318,29 @@ endif
 
 ! Special case: d2 level components
 
-if (component_name == 'scale') then
-  if (name /= '*') then
-    call out_io (s_error$, r_name, 'Malformed datum: ' // data_name)
-    this_err = .true.
-    return
-  endif
-
-  if (.not. present(re_array)) return
-  if (allocated(re_array)) then
-    nd = size(re_array)
-    call move_alloc(re_array, ra)
-    allocate (re_array(nd+1))
-    j = nd
-    re_array(1:nd) = ra
-    deallocate(ra)
-  else
-    allocate (re_array(1))
-    j = 0
-  endif
-  re_array(nd+1)%r => d2%scale
-  found_data = .true.
-  return
-endif
+!! if (component_name == 'scale') then
+!!   if (name /= '*') then
+!!     call out_io (s_error$, r_name, 'Malformed datum: ' // data_name)
+!!     this_err = .true.
+!!     return
+!!   endif
+!! 
+!!   if (.not. present(re_array)) return
+!!   if (allocated(re_array)) then
+!!     nd = size(re_array)
+!!     call move_alloc(re_array, ra)
+!!     allocate (re_array(nd+1))
+!!     j = nd
+!!     re_array(1:nd) = ra
+!!     deallocate(ra)
+!!   else
+!!     allocate (re_array(1))
+!!     j = 0
+!!   endif
+!!   re_array(nd+1)%r => d2%scale
+!!   found_data = .true.
+!!   return
+!! endif
 
 ! Everything before a '[' is the d1 name.
 

@@ -387,6 +387,8 @@ type tao_global_struct
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
   logical only_limit_opt_vars = F       ! Apply limits only if variable is used in optimization?
+  logical single_step = F               ! If set True, equivalent to putting a "pause -1" after 
+                                        ! each line in a command file. Good for debugging.
 end type
 \end{example}
 

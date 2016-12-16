@@ -1096,7 +1096,6 @@ type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: model_lat, base_lat
 type (tao_ele_shape_struct), pointer :: ele_shape
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
-type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
@@ -1344,9 +1343,9 @@ case ('data')
     return
   endif
 
-  d2_ptr => d2_array(1)%d2
-  if (d2_ptr%name == 'phase' .or. d2_ptr%name == 'bpm_phase') then
-    if (all(scratch%d1_array(1)%d1%d(:)%ele_ref_name == '')) then
+  d1_ptr => scratch%d1_array(1)%d1
+  if (index(curve%data_type, 'phase') /= 0) then
+    if (all(d1_ptr%d(:)%ele_ref_name == '')) then
       zero_average_phase = .true.
     else
       zero_average_phase = .false.
@@ -1760,8 +1759,7 @@ end select
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-if ((curve%data_type(1:6) == 'phase.' .or. curve%data_type(1:10) == 'bpm_phase.') &
-                                    .and. n_dat /= 0 .and. zero_average_phase) then
+if (index(curve%data_type, 'phase') /= 0 .and. n_dat /= 0 .and. zero_average_phase) then
   if (allocated(curve%y_symb)) then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f

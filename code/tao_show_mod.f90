@@ -834,7 +834,7 @@ case ('data')
 
   ! If d_ptr points to something then show the datum info.
 
-  if (size(d_array) == 1) then
+  if (size(d_array) == 1 .and. word1 /= '*@*') then
     d_ptr => d_array(1)%d
     nl=nl+1; lines(nl) = ''
     if (size(s%u) > 1) then
@@ -889,7 +889,7 @@ case ('data')
 
   ! Else show the d1_data info.
 
-  elseif (size(d1_array) == 1) then
+  elseif (size(d1_array) == 1 .and. word1 /= '*@*') then
 
     d1_ptr => d1_array(1)%d1
     if (size(s%u) > 1) then
@@ -960,11 +960,21 @@ case ('data')
     nl=nl+1; lines(nl) = line2
     nl=nl+1; lines(nl) = line1
 
+    if (d1_ptr%d2%name(1:4) == 'ping') then
+      u => tao_pointer_to_universe(d1_ptr%d2%ix_uni)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_meas = ', u%ping_scale%b_mode_meas
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_ref
+    endif
+
   ! else if a single d2 structure
 
-  elseif (size(d2_array) == 1) then
+  elseif (size(d2_array) == 1 .and. word1 /= '*@*') then
 
     d2_ptr => d2_array(1)%d2
+
     call re_allocate (lines, nl+100+size(d2_ptr%d1), .false.)
 
     nl=nl+1; write(lines(nl), '(t40, a)')     'Using' 
@@ -977,8 +987,6 @@ case ('data')
                   trim(tao_d2_d1_name(d2_ptr%d1(i))), '[', lbound(d2_ptr%d1(i)%d, 1), &
                   ':', ubound(d2_ptr%d1(i)%d, 1), ']', trim(line)
     enddo
-
-    nl=nl+1; write(lines(nl), rmt)  '%scale             = ', d2_ptr%scale
 
     if (d2_ptr%data_read_in) then
       nl=nl+1; write(lines(nl), amt)  '%data_file_name    = ', d2_ptr%data_file_name
@@ -1001,9 +1009,18 @@ case ('data')
       enddo
     endif
 
+    if (d2_ptr%name(1:4) == 'ping') then
+      u => tao_pointer_to_universe(d2_ptr%ix_uni)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_meas = ', u%ping_scale%b_mode_meas
+      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_ref
+    endif
+
   ! Else several d2 structures
 
-  elseif (size(d2_array) > 1) then
+  elseif (size(d2_array) > 0) then
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, t40, a)') '  Name', 'Using for Optimization'
