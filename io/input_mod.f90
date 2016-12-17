@@ -140,6 +140,7 @@ end subroutine get_a_char
 !
 ! Output:
 !   line_out   -- Character(*): Line typed by the user.
+!                   Note: If cntl-D is pressed, line_out = achar(24). 
 !-
 
 subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)

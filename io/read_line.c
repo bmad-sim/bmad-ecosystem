@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifndef CESR_VMS
 #include <readline/readline.h>
 #include <readline/history.h>
-#endif
+
 //+
 // Routine read_line_ (char* tag, char* str, int tag_len, int str_len)
 //
@@ -13,10 +11,18 @@
 // See read_line for more details.
 //-
 
-void read_line_ (char* tag, char* str, int tag_len, int str_len) {
-#ifndef CESR_VMS
+void read_line_(char* tag, char* str, int tag_len, int str_len) {
   /* printf ("\n"); */
   char* str2 = readline (tag);
+
+  if (!str2) {      // cntl-D pressed
+    int ii;
+    for (ii = 1; ii < str_len; ii++) 
+      str[ii] = ' ';
+    str[0] = 24;
+    return;
+  }
+
   strcpy (str, str2);
   int ii;
   for (ii = strlen(str2); ii < str_len; ii++) 
@@ -27,5 +33,4 @@ void read_line_ (char* tag, char* str, int tag_len, int str_len) {
   if (str2 && *str2) add_history (str2);
 
   free (str2);
-#endif
 }
