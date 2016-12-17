@@ -330,7 +330,7 @@ endif
 
 ! Normal case where we need to partially track through an element.
 
-s0 = branch%ele(ie_at_s-1)%s
+s0 = branch%ele(ie_at_s)%s_start
 use_l = logic_option(.false., use_last)
 if (use_l) then
   if (present(ele_at_s)) then

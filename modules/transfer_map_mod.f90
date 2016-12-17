@@ -189,7 +189,7 @@ do
   ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_upstream_end   = (s_now == branch%ele(ix_ele-1)%s) 
+  track_upstream_end   = (s_now == branch%ele(ix_ele)%s_start) 
   track_downstream_end = (s_end == ele%s)
   track_entire_ele     = (track_upstream_end .and. track_downstream_end)
 
@@ -228,7 +228,7 @@ do
     endif
 
     if (create_it) then
-      call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+      call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele)%s_start, &
                                      branch%param, track_upstream_end, track_downstream_end, error_flag)
       if (error_flag) exit
     endif
@@ -446,7 +446,7 @@ do
   ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_upstream_end   = (s_now == branch%ele(ix_ele-1)%s) 
+  track_upstream_end   = (s_now == branch%ele(ix_ele)%s_start) 
   track_downstream_end       = (s_end == ele%s)
   track_entire_ele = (track_upstream_end .and. track_downstream_end)
 
@@ -468,7 +468,7 @@ do
   elseif (use_saved) then
     runt => ele_save
     call transfer_ele (ele, runt, .true.)
-    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele)%s_start, &
                            branch%param, track_upstream_end, track_downstream_end, error_flag, runt)
     if (error_flag) exit
     call make_mat6 (runt, branch%param, orbit, orbit)
@@ -476,7 +476,7 @@ do
   else
     runt => runt_nosave
     call transfer_ele (ele, runt, .true.)
-    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele)%s_start, &
                                       branch%param, track_upstream_end, track_downstream_end, error_flag)
     if (error_flag) exit
     call make_mat6 (runt, branch%param, orbit, orbit)

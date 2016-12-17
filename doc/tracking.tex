@@ -452,17 +452,30 @@ robust way but with a large speed penalty.
 \label{s:tracking.partial}
 \index{tracking!partial}
 
-There are two routines for tracking partially through an element:
+There are several routines for tracking partially through an element:
 \begin{example}
-  \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s} (lat, s, ele, orb, orb_at_s, ix_branch, err, use_saved_data)
-  \Hyperref{r:twiss.and.track.intra.ele}{twiss_and_track_intra_ele}  (ele, param, l_start, l_end, track_entrance,
-                   track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
-
+  \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s}
+  \Hyperref{r:twiss.and.track.intra.ele}{twiss_and_track_intra_ele}
+  \Hyperref{r:track.from.s.to.s}{track_from_s_to_s}
+  \Hyperref{r:twiss.and.track.from.s.to.s}{twiss_and_track_from_s_to_s}
+  \Hyperref{r:mat6.from.s.to.s}{mat6_from_s_to_s}
 \end{example}
-Both routines make use of element ``slices'' (\sref{s:ele.lat}) which
-are elements that represent some sub-section of an element. The
-routine \Hyperref{r:create.element.slice}{create_element_slice}
-(\sref{s:ele.slice}) can be used to create such slices.
+These routines make use of element ``slices'' (\sref{s:ele.slice}) which
+are elements that represent some sub-section of an element. There are two
+routines for creating slices:
+\begin{example}
+  \Hyperref{r:create.element.slice}{create_element_slice}
+  \Hyperref{r:create.uniform.element.slice}{create_uniform_element_slice}
+\begin{example}
+
+It is important to note that to slice up a given element, the \vn{s_to_s} tracking
+routines will not always work. For example, consider the case where a given element is
+followed by a zero length multipole. If \vn{track_from_s_to_s} is called with a value for
+\vn{s2} (the value at the end of the track) which corresponds to the exit end of this
+element, the result will also include tracking through teh zero length multipole. Thus, in
+the case where a given element is to be sliced, one or the other of the two slice routines
+given above must be first used to create an element slice then this slice can be used for
+tracking.
 
 %----------------------------------------------------------------
 \section{Apertures}

@@ -116,7 +116,7 @@ enddo
 
 ! Track to s_end
 
-call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
+call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end)%s_start, &
                                                                       .true., .true., orbit_end, orbit_end)
 if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_end
 
