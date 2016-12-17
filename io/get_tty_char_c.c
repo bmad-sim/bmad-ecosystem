@@ -1,5 +1,3 @@
-#ifndef CESR_WINCVF
-#ifndef CESR_VMS
 #include <stdio.h> 
 #include <ctype.h> 
 #include <errno.h> 
@@ -38,14 +36,6 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
    } 
    tcsetattr(0, TCSANOW, &tnocanon); 
 
-   /* 
-#ifdef DEBUG 
-   printf("type any character\n"); 
-   fflush(stdin); 
-   sleep(1); 
-#endif 
-*/ 
-
 /* EWOULDBLOCK means no characters waiting to be read */ 
 
    ret = read(0, &ch, 1); 
@@ -68,29 +58,25 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
       fcntl(0, F_SETFL, oldf); 
    } 
 }
-#else
-void init_tty_char_() {
-} 
-#endif
 
-#else // CESR_WINCVF
-# include <conio.h>
-void init_tty_char_() {
-}
-void get_tty_char_c_(int* ii, int* block, int* flush)
-{
-     if (!*block && !kbhit()) {
-         *ii = 0;
-         return;
-     }
-     if (flush) {
-         *ii = getche();
-     }
-     else {
-         *ii = getch();
-     }
-}
-#endif
+// #else // CESR_WINCVF
+// #include <conio.h>
+// void init_tty_char_() {
+// }
+// void get_tty_char_c_(int* ii, int* block, int* flush)
+// {
+//      if (!*block && !kbhit()) {
+//          *ii = 0;
+//          return;
+//      }
+//      if (flush) {
+//          *ii = getche();
+//      }
+//      else {
+//          *ii = getch();
+//      }
+// }
+// #endif
 
 
 

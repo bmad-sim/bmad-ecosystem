@@ -3,10 +3,6 @@
  * by the user.
  */
 
-#if defined(CESR_UNIX) || defined(CESR_WINCVF)
-#include <regex.h>
-#include <stdlib.h>
-
 /*
  * Match string against the extended regular expression in
  * pattern, treating errors as no match.
@@ -14,6 +10,8 @@
  * Return 1 for match, 0 for no match.
  */
 
+#include <regex.h>
+#include <stdlib.h>
 
 int match_reg_c_(const char *string, char *pattern)
 {
@@ -30,12 +28,3 @@ int match_reg_c_(const char *string, char *pattern)
   }
   return(1);
 }
-#endif
-
-#if defined(CESR_VMS) 
-int match_reg_c(const char *string, char *pattern)
-{
-   printf("match_reg_c is not available under OpenVMS");
-   return(0);
-}
-#endif
