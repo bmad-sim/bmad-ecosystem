@@ -299,15 +299,14 @@ The default is \vn{True}.
 \label{s:tao.opti}
 \index{optimization!optimizer}
 
-The algorithm used to vary the \vn{model} variables to minimize \vn{M}
-is called an \vn{optimizer}. In \vn{command line mode} the \vn{run}
-command is used to invoke an \vn{optimizer}. In \vn{single mode} the
-\vn{g} key starts an optimizer. In both modes the period key
-(\vn{``.''}) stops the optimization.  Running an optimizer is also
-called ``fitting'' since one is trying to get the \vn{model} data to
-be equal to the \vn{measured} data. With orbits this is also called
-``flattening'' since one generally wants to end up with an orbit that
-is on--axis.
+The algorithm used to vary the \vn{model} variables to minimize \vn{M} is called an
+\vn{optimizer}. In \vn{command line mode} the \vn{run} command is used to invoke an
+\vn{optimizer}. In \vn{single mode} the \vn{g} key starts an optimizer. In both modes the
+period key (\vn{``.''}) stops the optimization (however, the
+\vn{global%optimizer_allow_user_abort} parameter (\sref{s:globals}) can be set to False to
+prevent this). Running an optimizer is also called ``fitting'' since one is trying to get
+the \vn{model} data to be equal to the \vn{measured} data. With orbits this is also called
+``flattening'' since one generally wants to end up with an orbit that is on--axis.
 
 The optimizer that is used can be defined when using the \vn{run} command but
 the default optimizer can be set in the \tao input file by setting the

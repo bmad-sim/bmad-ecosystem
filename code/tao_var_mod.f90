@@ -32,6 +32,7 @@ character(1) char
 !
 
 is_terminating = .false.
+if (.not. s%global%optimizer_allow_user_abort) return
 
 do
   call get_tty_char (char, .false., .false.) 

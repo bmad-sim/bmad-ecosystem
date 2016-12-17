@@ -3839,7 +3839,7 @@ use geodesic_lm
 
 implicit none
 
-nl=nl+1; lines(nl) = 'Global optimization parameters:'
+nl=nl+1; lines(nl) = 'Global optimization parameters (use "set global" to change):'
 nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
 nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
@@ -3854,6 +3854,7 @@ nl=nl+1; write(lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%s
 nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
+nl=nl+1; write(lines(nl), lmt) '  %optimizer_allow_user_abort    = ', s%global%optimizer_allow_user_abort
 nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
 nl=nl+1; lines(nl) = ''
 nl=nl+1; lines(nl) = 'opti_de_param Parameters:'

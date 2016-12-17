@@ -209,6 +209,7 @@ if (.not. present(cmd_in)) then
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
     call read_a_line (tag, cmd_out, prompt_color = s%global%prompt_color, prompt_bold = boldit)
+    if (cmd_out == achar(24)) cmd_out = 'exit'   ! Cntl-D pressed
   endif
 endif
 

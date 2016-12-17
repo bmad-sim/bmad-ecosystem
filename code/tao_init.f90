@@ -54,6 +54,8 @@ s%com%ix_key_bank = 0             ! For single mode.
 s%com%use_saved_beam_in_tracking = .false.
 if (.not. allocated(s%com%cmd_file)) allocate (s%com%cmd_file(0:0))
 
+s%global%optimizer_allow_user_abort = (isatty(0) == 1)  ! Allow abort if input from tty (instead of a file).
+
 call getenv ('ACC_PLOT_DISPLAY_TYPE', name1)
 if (name1 /= '') s%plot_page%plot_display_type = name1
 
