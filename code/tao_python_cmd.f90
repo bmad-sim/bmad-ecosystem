@@ -348,7 +348,7 @@ case ('data_create')
     name = name(ix+1:)
   endif
 
-  call tao_find_data(err, name, d2_array)
+  call tao_find_data(err, name, d2_array, print_err = .false.)
   if (size(d2_array) /= 0) then
     call destroy_this_data (a_name)
     call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
