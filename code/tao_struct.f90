@@ -594,6 +594,7 @@ type tao_global_struct
   logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
   logical :: debug_on = .false.                   ! For debugging.
   logical :: single_step = .false.                ! For debugging. Single step through a command file?
+  logical :: optimizer_allow_user_abort = .true.  ! See Tao manual for more details.
 end type
 
 !

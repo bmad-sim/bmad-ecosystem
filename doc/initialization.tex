@@ -387,8 +387,8 @@ type tao_global_struct
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
   logical only_limit_opt_vars = F       ! Apply limits only if variable is used in optimization?
-  logical single_step = F               ! If set True, equivalent to putting a "pause -1" after 
-                                        ! each line in a command file. Good for debugging.
+  logical single_step = F               ! Single step through a command file?
+  logical optimizer_allow_user_abort = T ! See below.
 end type
 \end{example}
 
@@ -424,6 +424,14 @@ The \vn{global%merit_stop_value} establishes a point such that, during optimizat
 the merit function falls below that value, the optimization stops. If the value is
 negative (the default), \vn{global%merit_stop_value} is ignored.
 
+  \item{\vn{global%optimizer_allow_user_abort}} \Newline
+Normally \vn{optimizer_allow_user_abort} defaults to True which allows the optimizer, when
+it is run, to look for user input from the terminal (\sref{s:tao.opti}). If the user types
+a period ``.'', the optimization is aborted cleanly. However, if \tao is started with
+standard input redirected from a file (using the ``<'' character) \tao will not be able to
+distinguish between input meant as a \tao command and input meant for aborting the
+optimization. In this case, \vn{optimizer_allow_user_abort} will default to False so that
+the optimizer will not do any checking.
 
   \item{\vn{Random Number Generation}} \Newline
 Random number generation in \tao is divided into two categories: Random numbers used for
@@ -459,6 +467,10 @@ The rf cavities in circular lattices can be be toggled on or off using the
 \vn{global%rf_on} switch. The default is False. Notice that with the RF off, the beam
 energy will be independent of the closed orbit which is not the case when the RF is on.
 
+  \item{\vn{global%single_step}} \Newline
+For use with command files. If set True, this is equivalent to putting a "pause -1" after
+each line in a command file. Useful for debugging.
+
   \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
 \begin{example}
@@ -481,7 +493,6 @@ The \vn{global%only_limit_opt_vars} switch controls whether only the variables b
 optimized are limited or whether all variables are limited. The
 \vn{global%optimizer_var_limit_warn} switch controls whether a warning is printed when a
 variable value goes past a limit.
-
 
 \end{description}
 
