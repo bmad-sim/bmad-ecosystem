@@ -120,7 +120,7 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
 ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt)
-use, ll, phot, tag_line
+use, ll, phot, tag_line, group_line
 
 phot: line = (ddd, cap, cry, ff)
 phot[E_tot] = 1e4
@@ -145,6 +145,20 @@ tag_line: line = (sub_l[t1], sub_l[t2])
 tag_line[geometry] = open
 tag_line[beta_a] = 10
 tag_line[beta_b] = 10
+
+! group_line
+
+qa: quad, l = 1
+qb: quad, l = 1
+
+m_in: marker, superimpose, ref = qa
+m_end1: marker
+m_end2: marker
+grd: girder = {m_end1:m_end2}
+
+group_line: line = (m_end1, qa, qb, m_end2)
+group_line[particle] = electron
+group_line[p0c] = 1e9
 
 ! Group using element not in constructed lattice is ok
 
