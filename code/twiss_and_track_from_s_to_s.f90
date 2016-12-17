@@ -107,7 +107,7 @@ if (present(err)) err = err_flag
 if (err_flag) return
 
 ele0 => branch%ele(ix_start)
-s0 = branch%ele(ix_start-1)%s
+s0 = branch%ele(ix_start)%s_start
 
 track_upstream_end = (orbit%location == upstream_end$)
 
@@ -170,7 +170,7 @@ if (present(ele_end)) then
   ele_here%vec0 = ele_end%vec0
 endif
 
-ds = s_end-branch%ele(ix_end-1)%s
+ds = s_end-branch%ele(ix_end)%s_start
 if (ds /= 0) then
   call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, ds, .true., .true., &
                                   orbit_end, orbit_end, ele_end, ele_end, err, compute_floor_coords)

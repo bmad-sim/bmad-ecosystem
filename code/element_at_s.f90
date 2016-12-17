@@ -19,10 +19,10 @@ use bmad_utils_mod
 ! ix_ele is choisen such that:
 ! If choose_max = True: 
 !     If s = branch%ele(ix_end_of_branch): ix_ele = ix_end_of_branch
-!     Else: branch%ele(ix_ele-1)%s <= s < branch%ele(ix_ele)%s
+!     Else: branch%ele(ix_ele)%s_start <= s < branch%ele(ix_ele)%s
 ! If choose_max = False:
 !     If s = branch%ele(0): ix_ele = 0
-!     Else: branch%ele(ix_ele-1)%s < s <= branch%ele(ix_ele)%s 
+!     Else: branch%ele(ix_ele)%s_start < s <= branch%ele(ix_ele)%s 
 ! That is, if s corresponds to an element boundary between elements with indexes ix1 and ix2 = ix1 + 1: 
 !     choose_max = True  => ix_ele = ix2
 !     choose_max = False => ix_ele = ix1
@@ -136,7 +136,7 @@ enddo
 ! Solution is n3 except in one case.
 
 ix_ele = n3
-if (.not. choose_max .and. ss == branch%ele(n3-1)%s) ix_ele = n3-1
+if (.not. choose_max .and. ss == branch%ele(n3)%s_start) ix_ele = n3-1
 
 if (present(s_eff)) s_eff = ss
 
@@ -152,7 +152,7 @@ if (present(position)) then
     endif
   elseif (ss == branch%ele(ix_ele)%s) then
     position%location = downstream_end$
-  elseif (ss == branch%ele(ix_ele-1)%s) then
+  elseif (ss == branch%ele(ix_ele)%s_start) then
     position%location = upstream_end$
   else
     position%location = inside$
@@ -204,10 +204,10 @@ end function element_at_s_lat
 ! That is, return ele => branch%ele(ix_ele) such that:
 ! If choose_max = True: 
 !     If s = branch%ele(ix_end_of_branch): ix_ele = ix_end_of_branch
-!     Else: branch%ele(ix_ele-1)%s <= s < branch%ele(ix_ele)%s
+!     Else: branch%ele(ix_ele)%s_strat <= s < branch%ele(ix_ele)%s
 ! If choose_max = False:
 !     If s = branch%ele(0): ix_ele = 0
-!     Else: branch%ele(ix_ele-1)%s < s <= branch%ele(ix_ele)%s 
+!     Else: branch%ele(ix_ele)%s_start < s <= branch%ele(ix_ele)%s 
 ! That is, if s corresponds to an element boundary between elements with indexes ix1 and ix2 = ix1 + 1: 
 !     choose_max = True  => ix_ele = ix2
 !     choose_max = False => ix_ele = ix1

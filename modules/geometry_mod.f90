@@ -1097,7 +1097,7 @@ n_try = 0
 do
   ele1 => branch%ele(ix_ele)
   local_coords = coords_floor_to_local_curvilinear (floor_coords, ele1, status) 
-  local_coords%r(3) = local_coords%r(3) + branch%ele(ix_ele-1)%s
+  local_coords%r(3) = local_coords%r(3) + ele1%s_start
   if (status == inside$) exit
   n_try = n_try + 1
 
