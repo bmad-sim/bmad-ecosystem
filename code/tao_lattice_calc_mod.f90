@@ -270,6 +270,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u%calc%lattice = .false.
 
+  call tao_scale_ping_data(u)
+
 enddo uni_loop
 
 ! do any post-processing

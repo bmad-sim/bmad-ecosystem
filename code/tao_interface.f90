@@ -363,7 +363,13 @@ subroutine tao_run_cmd (which, abort)
   character(*) which
   logical abort
 end subroutine
- 
+
+subroutine tao_scale_ping_data (u)
+  import
+  implicit none
+  type (tao_universe_struct) u
+end subroutine
+
 subroutine tao_set_data_useit_opt (data)
   import
   implicit none

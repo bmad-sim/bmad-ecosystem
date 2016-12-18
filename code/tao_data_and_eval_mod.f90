@@ -3588,17 +3588,18 @@ type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
 type (tao_var_array_struct), allocatable, save :: v_array(:)
 type (tao_data_struct) datum
+type (tao_data_struct), pointer :: d
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 integer, optional :: dflt_uni
-integer ios, i, m, n, ix, ix2, ix_word
+integer ios, i, m, n, ix, ix2, ix_word, ix_uni
 
 character(*) str, saved_prefix
 character(*), optional :: dflt_source, dflt_component
 character(*), optional :: dflt_dat_or_var_index
 
 character(1) delim
-character(16) s, source
+character(16) s_str, source
 character(60) name, word2
 character(200) str2
 character(*), parameter :: r_name = 'tao_param_value_routine'
@@ -3691,10 +3692,10 @@ if (.not. allocated(re_array)) allocate (re_array(0))
 source = dflt_source
 ix = index(name, '::')
 if (ix /= 0) then
-  s = name(max(1,ix-4):ix-1)
-  if (s(1:1) == '@') s = s(2:)
-  if (s == 'lat' .or. s == 'ele' .or. s == 'data' .or. s == 'var') then
-    source = s
+  s_str = name(max(1,ix-4):ix-1)
+  if (s_str(1:1) == '@') s_str = s_str(2:)
+  if (s_str == 'lat' .or. s_str == 'ele' .or. s_str == 'data' .or. s_str == 'var') then
+    source = s_str
   else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
     source = 'ele'
   elseif (name(max(1, ix-4):ix-1) == 'beam') then
@@ -3762,6 +3763,25 @@ if (size(re_array) /= 0) then
   call re_allocate (stack%value, n)
   call tao_re_allocate_expression_info (stack%info, n)
 
+  stack%scale =  1
+  if (index(name, 'ping_a.amp') /= 0) then
+    ix_uni = d_array(1)%d%d1%d2%ix_uni
+    if (index(name, '|meas') /= 0) then
+      stack%scale = s%u(ix_uni)%ping_scale%a_mode_meas
+    elseif (index(name, '|ref') /= 0) then
+      stack%scale = s%u(ix_uni)%ping_scale%a_mode_ref
+    endif
+  endif
+  if (index(name, 'ping_b.amp') /= 0) then
+    ix_uni = d_array(1)%d%d1%d2%ix_uni
+    if (index(name, '|meas') /= 0) then
+      stack%scale = s%u(ix_uni)%ping_scale%b_mode_meas
+    elseif (index(name, '|ref') /= 0) then
+      stack%scale = s%u(ix_uni)%ping_scale%b_mode_ref
+    endif
+  endif
+
+
   do i = 1, n
     stack%value(i) = re_array(i)%r
     stack%value_ptr(i)%r => re_array(i)%r
@@ -3782,11 +3802,12 @@ if (size(re_array) /= 0) then
         stack%value_ptr(i)%good_user => v_array(i)%v%good_user
       endif
     case (data_num$)
-      if (d_array(i)%d%exists) then
-        stack%info(i)%s      = d_array(i)%d%s
-        stack%info(i)%ix_ele = d_array(i)%d%ix_ele
-        stack%info(i)%good   = d_array(i)%d%exists
-        stack%value_ptr(i)%good_user => d_array(i)%d%good_user
+      d => d_array(i)%d
+      if (d%exists) then
+        stack%info(i)%s      = d%s
+        stack%info(i)%ix_ele = d%ix_ele
+        stack%info(i)%good   = d%exists
+        stack%value_ptr(i)%good_user => d%good_user
       endif
     end select
   enddo
@@ -3909,6 +3930,7 @@ do i = 1, size(stack)
     do j = 1, size(stack(i)%value)
       stack(i)%value(j) = stack(i)%value_ptr(j)%r
     enddo
+    stack(i)%value = stack(i)%value * stack(i)%scale
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
