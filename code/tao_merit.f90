@@ -19,10 +19,11 @@ implicit none
 
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
+type (tao_universe_struct), pointer :: u
 
-real(rp) this_merit, value, model_value
+real(rp) this_merit, value, model_value, meas_value, ref_value
 
-integer i, j, n, iu0
+integer i, j, k, n, iu0
 
 character(16) :: r_name = "tao_merit"
 
@@ -103,13 +104,21 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
+!----------------------------------------
+! Merit contribution from the data:
+
 if (s%com%common_lattice) iu0 = ix_common_uni$
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
-  data => s%u(i)%data
+  u => s%u(i)
+  data => u%data
   data%merit = 0
   data%delta_merit = 0
+
+  ! Scale ping data
+
+  call tao_scale_ping_data(u)
 
   ! The common universe does not have ref or base so turn these off for
   ! data in the common universe.
@@ -124,7 +133,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Check if universe is turned off
 
-  if (.not. s%u(i)%is_on) cycle
+  if (.not. u%is_on) cycle
 
   ! First compute the delta for the merit function
   
@@ -143,19 +152,23 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       model_value = data(j)%model_value
     endif
 
+    meas_value = data(j)%meas_value
+    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') meas_value = meas_value * u%ping_scale%a_mode_meas
+
+    ref_value = data(j)%ref_value
+    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') ref_value = ref_value * u%ping_scale%a_mode_ref
+
     if (opt_with_ref .and. opt_with_base) then
-      data(j)%delta_merit = (model_value - data(j)%base_value) - &
-                                  (data(j)%meas_value - data(j)%ref_value) 
+      data(j)%delta_merit = (model_value - data(j)%base_value) - (meas_value - ref_value) 
     elseif (opt_with_ref) then
-      data(j)%delta_merit = (model_value - data(j)%design_value) - &
-                                  (data(j)%meas_value - data(j)%ref_value)
+      data(j)%delta_merit = (model_value - data(j)%design_value) - (meas_value - ref_value)
     elseif (opt_with_base) then
-        data(j)%delta_merit = (model_value - data(j)%base_value) - data(j)%meas_value
+        data(j)%delta_merit = (model_value - data(j)%base_value) - meas_value
     else
       if (data(j)%merit_type(1:3) == 'int') then
         data(j)%delta_merit = data(j)%model_value
       else
-        data(j)%delta_merit = model_value - data(j)%meas_value 
+        data(j)%delta_merit = model_value - meas_value 
       endif
     endif
   enddo
