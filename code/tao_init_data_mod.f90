@@ -323,6 +323,13 @@ if (search_for_lat_eles /= '') then
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
+  ! eval_point
+  call match_word (datum(ix1)%eval_point, anchor_pt_name, ix, can_abbreviate = .false.)
+  if (ix == 0) then
+    call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(ix1)%eval_point)
+    stop
+  endif
+  u%data(n1:n2)%eval_point = ix
 
   deallocate (ind)
 
@@ -427,6 +434,13 @@ else
   ! Find elements associated with the data
 
   do j = n1, n2
+
+    call match_word (datum(j+ix1-n1)%eval_point, anchor_pt_name, ix, can_abbreviate = .false.)
+    if (ix == 0) then
+      call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(j+ix1-n1)%eval_point)
+      stop
+    endif
+    u%data(j)%eval_point = ix
 
     if (data_type_needs_associated_element_to_exist(u%data(j)%data_type) .and. &
                                                          u%data(j)%ele_name == '') cycle
