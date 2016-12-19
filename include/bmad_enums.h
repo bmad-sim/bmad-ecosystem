@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 185;
+  const int BMAD_INC_VERSION = 187;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -147,7 +147,7 @@ namespace Bmad {
   const int FRINGE_AT = 11, GANG = 11;
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
   const int SPIN_FRINGE_ON = 13;
-  const int FB1 = 14, SIG_X = 14;
+  const int FB1 = 14, SIG_X = 14, EXACT_MULTIPOLES = 14;
   const int FB2 = 15, SIG_Y = 15;
   const int FQ1 = 16, SIG_Z = 16;
   const int FQ2 = 17, SIG_VX = 17;
@@ -302,6 +302,7 @@ namespace Bmad {
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
+  const int TAYLOR_OFFSET = 1000000000;
   const int S_BLANK   = -1;
   const int S_INFO    = 0;
   const int S_DINFO   = 1;
@@ -336,7 +337,7 @@ namespace Bmad {
   const double N_AVOGADRO = 6.02214129E23;
   const double FINE_STRUCTURE_CONSTANT =  7.29735257E-3;
   const double ANOMALOUS_MAG_MOMENT_ELECTRON = 1.159652193E-3;
-  const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285E0;
+  const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79284735E0;
   const double ANOMALOUS_MAG_MOMENT_MUON     = 1.1659208E-3;
   const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298727047E0;
   const int INVALID = -666;

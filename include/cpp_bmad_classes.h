@@ -3046,6 +3046,7 @@ public:
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
   Real gamma_c;
+  Real s_start;
   Real s;
   Real ref_time;
   Real_TENSOR r;
@@ -3148,6 +3149,7 @@ public:
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
     gamma_c(1),
+    s_start(0.0),
     s(0.0),
     ref_time(0.0),
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
