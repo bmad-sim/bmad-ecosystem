@@ -861,6 +861,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
     nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
     nl=nl+1; write(lines(nl), rmt)  '%invalid           = ', d_ptr%invalid_value
+    nl=nl+1; write(lines(nl), amt)  '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)
     nl=nl+1; write(lines(nl), rmt)  '%s_offset          = ', d_ptr%s_offset
     nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
     nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
@@ -886,6 +887,8 @@ case ('data')
         nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
       endif
     endif
+
+    if (d_ptr%d1%d2%name(1:4) == 'ping') call show_ping(d_ptr%d1%d2%ix_uni)
 
   ! Else show the d1_data info.
 
@@ -960,14 +963,7 @@ case ('data')
     nl=nl+1; lines(nl) = line2
     nl=nl+1; lines(nl) = line1
 
-    if (d1_ptr%d2%name(1:4) == 'ping') then
-      u => tao_pointer_to_universe(d1_ptr%d2%ix_uni)
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_meas = ', u%ping_scale%b_mode_meas
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_ref
-    endif
+    if (d1_ptr%d2%name(1:4) == 'ping') call show_ping(d1_ptr%d2%ix_uni)
 
   ! else if a single d2 structure
 
@@ -1009,14 +1005,7 @@ case ('data')
       enddo
     endif
 
-    if (d2_ptr%name(1:4) == 'ping') then
-      u => tao_pointer_to_universe(d2_ptr%ix_uni)
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_meas = ', u%ping_scale%b_mode_meas
-      nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_ref
-    endif
+    if (d2_ptr%name(1:4) == 'ping') call show_ping(d2_ptr%ix_uni)
 
   ! Else several d2 structures
 
@@ -1025,11 +1014,15 @@ case ('data')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, t40, a)') '  Name', 'Using for Optimization'
 
+    found = .false.
     do i = 1, size(d2_array)
       d2_ptr => d2_array(i)%d2
       if (d2_ptr%name == ' ') cycle
+      if (d2_ptr%name(1:4) == 'ping') found = .true.
       call tao_data_show_use (d2_ptr, lines, nl)
     enddo
+
+    if (found) call show_ping (d2_ptr%ix_uni)
 
   ! error
 
@@ -3872,6 +3865,23 @@ lines(nl+1:nl+n) = alloc_lines(1:n)
 nl = nl + n
 
 end subroutine show_opt
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+! contains
+
+subroutine show_ping(ix_uni)
+
+integer ix_uni
+
+u => tao_pointer_to_universe(ix_uni)
+nl=nl+1; lines(nl) = ''
+nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
+nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref
+nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_meas = ', u%ping_scale%b_mode_meas
+nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_ref
+
+end subroutine show_ping
 
 end subroutine tao_show_this
 

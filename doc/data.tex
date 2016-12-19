@@ -131,6 +131,7 @@ Each datum has a number of quantities associated with it:
   merit_type       ! Character: Type of constraint: "target", "max", etc.
   data_source      ! Character: How the datum is calculated. "lat", "beam", etc.
   ix_ele           ! Integer: Index of "ele" in the lattice element list.
+  ix_branch        ! Integer: Lattice branch index.
   ix_ele_start     ! Integer: Index of "ele_start" in the lattice element list.
   ix_ele_ref       ! Integer: Index of "ele_ref" in the lattice element list.
   ix_ele_merit     ! Integer: Lattice index where merit is evaluated.
@@ -138,6 +139,7 @@ Each datum has a number of quantities associated with it:
   ix_data          ! Integer: Index in the global data array
   ix_dModel        ! Integer: Row number in the dModel_dVar derivative matrix.
   ix_bunch         ! Integer: Bunch number to get the data from.
+  eval_point       ! Character/integer: Evaluation point relative to the lattice element.
   meas             ! Real: Measured datum value. 
   ref              ! Real: Measured datum value from the reference data set.
   model            ! Real: Datum value as calculated from the model.
@@ -150,6 +152,7 @@ Each datum has a number of quantities associated with it:
   weight           ! Real: Weight for the merit function term
   merit            ! Real: Merit function term value: weight * delta^2
   s                ! Real: longitudinal position of ele.
+  s_offset         ! Real: Offset of the evaluation point.
   exists           ! Logical: Does the datum exist?
   good_model       ! Logical: Does the model  component contain a valid value?
   good_design      ! Logical: Does the design component contain a valid value?
@@ -165,6 +168,81 @@ Each datum has a number of quantities associated with it:
 When running \tao, the \vn{show data}
 (\sref{s:show}) command can be used to view the components of a datum. 
 The \vn{set} command (\sref{s:set}) can be used to set some of these components.
+
+%%  \begin{description}
+%%    \item[base] \Newline
+%%  The value of the datum as calculated from the base lattice (\sref{s:universe}).
+%%    \item[data_source] \Newline
+%%  The \vn{data_source} component specifies where the data is 
+%%  coming from (\sref{s:data.source}).
+%%    \item[data_type] \Newline
+%%  The type of data (\sref{s:data.types}). For example, \vn{beta.a}. At startup, if the
+%%  \vn{data_type} is not specified, it is set to \vn{<d2_name>.<d1_name>} where
+%%  \vn{<d2_name>} is the name of the associated \vn{d2} data structure and \vn{<d1_name>} is 
+%%  the name of the associated \vn{d1} data structure (\sref{s:init.data}).
+%%    \item[delta_merit] \Newline
+%%  Difference used to calculate the contribution of the datum to the merit function (\sref{s:lattice.correction}).
+%%    \item[design] \Newline
+%%  The value of the datum as calculated from the design lattice (\sref{s:universe}).
+%%    \item[ele_name] \Newline
+%%  Name of the associated lattice element where the datum is evaluated. Also see
+%%  \vn{eval_point} and \vn{s_offset} components.
+%%    \item[ele_start_name] \Newline
+%%  Starting element of a range of lattice elements (\sref{s:data.lat.ele}).
+%%    \item[ele_ref_name] \Newline
+%%  Reference lattice element (\sref{s:data.lat.ele}).
+%%    \item[eval_point] \Newline
+%%  Point on the lattice element to evaluate the datum at. Possibilities are:
+%%  \begin{example}
+%%    beginning   ! entrance end of lattice element.
+%%    center      ! Center of lattice element
+%%    end         ! Exit end of lattice element. Default.
+%%  \end{example}
+%%  Also see the \vn{s_offset} component.
+%%    \item[exists] \Newline
+%%  Set by \tao to True if the datum exists (\sref{s:datum.opt}). 
+%%    \item[fit] \Newline
+%%  Not used by \tao. Can be used with custom code.
+%%    \item[good_base] \Newline
+%%  Set by \tao. Is the \vn{base} value valid?
+%%    \item[good_design] \Newline
+%%  Set by \tao. Is the \vn{design} value valid?
+%%    \item[good_meas] \Newline
+%%  Set by \tao. Is the \vn{meas} value valid?
+%%    \item[good_model] \Newline
+%%  Set by the user. Is the \vn{meas} value valid?
+%%    \item[good_opt] \Newline
+%%  Set by the user. Is the datum valid for optimization?
+%%    \item[good_plot] \Newline
+%%  Set by the user. Is the datum to be used in plotting?
+%%    \item[good_ref] \Newline
+%%  Set by the user. Is the \vn{ref} value valid?
+%%    \item[good_user] \Newline
+%%  Set by the user. Is the datum valid for optimization or plotting?
+%%    \item[invalid] \Newline
+%%  The value used for \vn{delta_merit} if good_model = False. 
+%%    \item[ix_branch] \Newline
+%%    \item[ix_ele] \Newline
+%%    \item[ix_ele_start] \Newline
+%%    \item[ix_ele_ref] \Newline
+%%    \item[ix_ele_merit] \Newline
+%%    \item[ix_d1] \Newline
+%%    \item[ix_data] \Newline
+%%    \item[ix_dModel] \Newline
+%%    \item[ix_bunch] \Newline
+%%    \item[meas] \Newline
+%%    \item[merit] \Newline
+%%    \item[merit_type] \Newline
+%%    \item[model] \Newline
+%%    \item[old] \Newline
+%%    \item[ref] \Newline
+%%    \item[s] \Newline
+%%    \item[s_offset] \Newline
+%%    \item[useit_opt] \Newline
+%%    \item[useit_plot] \Newline
+%%    \item[weight] \Newline
+%%  
+%%  \end{description}
 
 %------------------------------------------------------------------------
 \section{Datum values}
@@ -716,32 +794,68 @@ pinged. Ignoring damping, the beam response will be the sum of three components,
 each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
 frequency. 
 
-At each BPM, the response will have a component in the \vn{x} (horizontal} and \vn{y}
+At each BPM, the response will have a component in the \vn{x} (horizontal) and \vn{y}
 (vertical) planes. If there is no coupling, vertical response for the \vn{a}-mode
 component is zero. The \vn{a}-mode response can be characterized by the equation
 \begin{align}
-  x_a(n) &= A_{ax} \, \sin{2 \, pi \, n \, f_a + \phi_{ax} + \phi_{a0}) \CRNO
-  y_a(n) &= A_{ay} \, \sin{2 \, pi \, n \, f_a + \phi_{ay} + \phi_{a0})
+  x_a(n) &= A_{ax} \, \sin(n \, \omega_a + \phi_{ax} + \phi_{a0}) \CRNO
+  y_a(n) &= A_{ay} \, \sin(n \, \omega_a + \phi_{ay} + \phi_{a0})
 \end{align}
-where $x_a(n)$ and $y_a(n)$ are the horizontal and vertical positions of the \vn{a}-mode
-component on the n\Th turn. $A_{ax}$ and $A_{ay}$ are the response amplitudes, $f_a$ is
-the \vn{a}-mode frequency $\phi_{ax}$ and $\phi_{ay}$ are the oscillation phases, and
-$\phi_{a0}$ is an overall phase dependent upon how turn $n = 0$ is defined. In terms of
-how \tao analyses ping data, only differences in phases are important so $\phi_{a0} is
-ignorable. The response can be related to the lattice Twiss parameters as given by Eqs.~(7)
-and (8) of reference \cite{b:beta.meas}.
-
+where $\omega_a$ is the $a$-mode tune, $x_a(n)$ and $y_a(n)$ are the horizontal and
+vertical positions of the \vn{a}-mode component on the n\Th turn. $A_{ax}$ and $A_{ay}$
+are the response amplitudes, $f_a$ is the \vn{a}-mode frequency $\phi_{ax}$ and
+$\phi_{ay}$ are the oscillation phases, and $\phi_{a0}$ is an overall phase dependent upon
+how turn $n = 0$ is defined. 
 In terms of \tao's data parameters, the correspondence is
 \begin{example}
-  ping_a.amp_x   $\longrightarrow A_{ax}
-  ping_a.phase_x $\longrightarrow \phi_{ax}$
-  ping_a.amp_x   $\longrightarrow A_{ax}
-  ping_a.phase_x $\longrightarrow \phi_{ax}$
+    ping_a.amp_x   \(\longrightarrow A_{ax}\)
+    ping_a.phase_x \(\longrightarrow \phi_{ax}\)
+    ping_a.amp_y   \(\longrightarrow A_{ay}\)
+    ping_a.phase_y \(\longrightarrow \phi_{ax}\)
 \end{example}
+In terms of how \tao analyses ping data, only differences in
+phases are important so $\phi_{a0}$ is ignorable.
+
+The response can be related to the
+lattice Twiss parameters as given by Eq.~(7) of reference \cite{b:beta.meas}
+\begin{align}
+  x_a(n) &=  A_a \, \sqrt{\beta_a} \, \cos(n \omega_a) , \CRNO
+  y_a(n) &= -A_a \, \sqrt{\beta_b} \Bigl( \cbar{22} \, \cos(n \omega_a) +
+     \cbar{12} \, \sin(n \omega_a) \Bigr)
+  \label{xabno}
+\end{align}
+
+For the \vn{design} and \vn{model} values of a datum, \Eq{xabno} is used with $A_a$ taken
+to be unity. To be able to compare the \vn{design} and/or \vn{model} values with the
+actual data stored in \vn{meas} and/or \vn{ref}, the \vn{meas} values will be multiplied by a
+constant $C_m$ computed so that the average \vn{meas} value is equal to the average
+\vn{model} value:
+\Begineq
+  C_m \, \sum \text{ping_a.amp_x}_\text{meas} = \sum \text{ping_a.amp_x}_\text{model}
+\Endeq
+where the sums are over all \vn{ping_a.amp_x} data points where the \vn{exists},
+\vn{good_model}, \vn{good_user}, and \vn{good_meas} components (\sref{s:data.anatomy}) are
+all true. The \vn{ping_a.amp_y} data points are not used for the computation of $C_m$
+since, with a decoupled lattice, the \vn{model} values are zero.
+
+There is a similar multiplyer defined for the reference data. The values of these two
+multiplyers are shown with the \vn{show data} command.
 
   \index{ping_b.}
   \item[ping_b.] \Newline
-Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.
+Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
+the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
+\cite{b:beta.meas}:
+\begin{align}
+  x_b(n) &= A_b \, \sqrt{\beta_a} \Bigl( \cbar{11} \, \cos(n \omega_b) -
+     \cbar{12} \, \sin(n \omega_b) \Bigr) , \CRNO
+  y_b(n) &= A_b \, \sqrt{\beta_b} \, \cos(n \omega_b) .
+  \label{yabno}
+\end{align}
+with \vn{A_b} taken to be unity for the evaluation.
+
+The corresponding multiplicative values are derived from \vn{ping_b.amp_y} in an analogous
+fashion to the multiplicative values for the $a$-mode ping data.
 
   \index{rad_int.}
   \item[rad_int, rad_int1] \Newline
@@ -980,16 +1094,6 @@ squared.
 
   gamma.a, gamma.b                    & Normal-mode gamma function                    & lat       \\ \hline 
 
-  rad\_int.i1                         & I1 radiation integral                         & lat       \\ \hline
-  rad\_int.i2                         & I2 radiation integral                         & lat       \\ \hline
-  rad\_int.i2\_e4                     & Energy normalized I2 radiation integral       & lat       \\ \hline
-  rad\_int.i3                         & I3 radiation integral                         & lat       \\ \hline
-  rad\_int.i3\_e7                     & Energy normalized I3 radiation integral       & lat       \\ \hline
-  rad\_int.i4a, rad\_int.i4b, rad\_int.i4z
-                                      & I4 radiation integrals                        & lat       \\ \hline
-  rad\_int.i5a, rad\_int.i5b          & I5 radiation integrals                        & lat       \\ \hline
-  rad\_int.i5a\_e6, rad\_int.i5b\_e6  & Energy normalized I5 radiation integral       & lat       \\ \hline
-
   k.11b, k.12a, k.12b, k.22a          & Coupling                                      & lat       \\ \hline 
   momentum                            & Momentum: P*C\_light (eV)                     & lat       \\ \hline
   momentum\_compaction                & Momentum compaction factor                    & lat       \\ \hline
@@ -1024,6 +1128,16 @@ squared.
   periodic.tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$   
                                       & Taylor term of the periodic map.              & lat       \\ \hline 
 
+  \begin{tabular}{@{}l}
+    ping_a.amp_x, ping_a.phase_x \\
+    ping_a.amp_y, ping_a.phase_y \\
+  \end{tabular}                       & Phase and amplitude of $a$-mode response      & lat      \\ \hline
+
+  \begin{tabular}{@{}l}
+    ping_b.amp_x, ping_b.phase_x \\
+    ping_b.amp_y, ping_b.phase_y \\
+  \end{tabular}                       & Phase and amplitude of $b$-mode response      & lat      \\ \hline
+
   phase.a, phase.b                    & Betatron phase                                & lat       \\ \hline 
 
   phase\_frac.a, phase\_frac.b        & \begin{tabular}{@{}l}
@@ -1043,6 +1157,16 @@ squared.
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
                                       & Term in linear transfer map                   & lat       \\ \hline 
+
+  rad\_int.i1                         & I1 radiation integral                         & lat       \\ \hline
+  rad\_int.i2                         & I2 radiation integral                         & lat       \\ \hline
+  rad\_int.i2\_e4                     & Energy normalized I2 radiation integral       & lat       \\ \hline
+  rad\_int.i3                         & I3 radiation integral                         & lat       \\ \hline
+  rad\_int.i3\_e7                     & Energy normalized I3 radiation integral       & lat       \\ \hline
+  rad\_int.i4a, rad\_int.i4b, rad\_int.i4z
+                                      & I4 radiation integrals                        & lat       \\ \hline
+  rad\_int.i5a, rad\_int.i5b          & I5 radiation integrals                        & lat       \\ \hline
+  rad\_int.i5a\_e6, rad\_int.i5b\_e6  & Energy normalized I5 radiation integral       & lat       \\ \hline
 
   ref\_time                           & Reference time                                & beam, lat \\ \hline
 

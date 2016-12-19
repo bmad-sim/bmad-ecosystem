@@ -356,6 +356,7 @@ type tao_data_struct
   integer :: ix_d1                      ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer :: ix_data = -1               ! Index of this datum in the u%data(:) array of data_structs.
   integer :: ix_dModel                  ! Row number in the dModel_dVar derivative matrix.
+  integer :: eval_point = anchor_end$   ! Where to evaluate the data relative to the lattice element.
   real(rp) :: meas_value                ! Measured datum value. 
   real(rp) :: ref_value                 ! Measured datum value from the reference data set.
   real(rp) :: model_value               ! Datum value as calculated from the model.
@@ -367,7 +368,7 @@ type tao_data_struct
   real(rp) :: invalid_value             ! Value used in merit calc if good_model = False.
   real(rp) :: merit                     ! Merit function term value: weight * delta^2
   real(rp) :: s                         ! longitudinal position of ele.
-  real(rp) :: s_offset = 0              ! Offset of evaluation point.
+  real(rp) :: s_offset = 0              ! Offset of the evaluation point.
   logical :: exists = .false.           ! See above
   logical :: good_model = .false.       ! See above
   logical :: good_base = .false.        ! See above
