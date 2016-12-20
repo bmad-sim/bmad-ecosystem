@@ -1468,6 +1468,17 @@ elseif (size(int_dat) /= 0) then
       int_dat(i)%i = i1
     enddo
 
+  elseif (component == 'eval_point' .and. index(value_str, '|') == 0) then
+    call match_word (value_str, anchor_pt_name(1:), i1, can_abbreviate = .false.)
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'eval_point setting is "beginning", "center", or "end".')
+      return
+    endif
+    do i = 1, size(int_dat)
+      int_save(i) = int_dat(i)%i
+      int_dat(i)%i = i1
+    enddo
+
   else
     call tao_find_data (err, value_str, int_array=int_value)
     if (size(int_value) /= size(int_dat)) then

@@ -1036,7 +1036,7 @@ integer ix
 datum_name = trim(datum%data_type) // ' <' // trim(datum%merit_type) // '>'
 if (datum_name(1:11) == 'expression:') call string_trim (datum_name(12:), datum_name, ix)
 
-end function
+end function tao_constraint_type_name
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1178,7 +1178,7 @@ else
     curve_name = trim(curve%g%p%name) // trim(curve_name)
 endif
 
-end function
+end function tao_curve_name 
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

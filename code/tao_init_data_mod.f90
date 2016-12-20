@@ -324,7 +324,7 @@ if (search_for_lat_eles /= '') then
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
   ! eval_point
-  call match_word (datum(ix1)%eval_point, anchor_pt_name, ix, can_abbreviate = .false.)
+  call match_word (datum(ix1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
   if (ix == 0) then
     call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(ix1)%eval_point)
     stop
@@ -358,7 +358,8 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%ele_start_name  = d1_array(1)%d1%d%ele_start_name
   u%data(n1:n2)%ix_ele_start    = d1_array(1)%d1%d%ix_ele_start
   u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
-  u%data(n1:n2)%invalid_value   = d1_array(1)%d1%d%invalid_value
+  u%data(n1:n2)%s_offset        = d1_array(1)%d1%d%s_offset
+  u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
 
   u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
   u%data(n1:n2)%meas_value    = 0  
@@ -435,7 +436,7 @@ else
 
   do j = n1, n2
 
-    call match_word (datum(j+ix1-n1)%eval_point, anchor_pt_name, ix, can_abbreviate = .false.)
+    call match_word (datum(j+ix1-n1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
     if (ix == 0) then
       call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(j+ix1-n1)%eval_point)
       stop

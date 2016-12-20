@@ -1008,25 +1008,25 @@ if (ele_shape%label /= 'none') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
     x_center = (end1%r(1) + end2%r(1)) / 2 
     y_center = (end1%r(2) + end2%r(2)) / 2 
-    dx = -2 * dt_y / sqrt(dt_x**2 + dt_y**2)
-    dy =  2 * dt_x / sqrt(dt_x**2 + dt_y**2)
+    dx = -1.5 * dt_y / sqrt(dt_x**2 + dt_y**2)
+    dy =  1.5 * dt_x / sqrt(dt_x**2 + dt_y**2)
   else
     n = n_bend / 2
     x_center = x_bend(n) 
     y_center = y_bend(n) 
-    dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-    dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+    dx = -1.5 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+    dy = -1.5 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
   endif
   ! The extra factors of 2 are to shift the branch cut away from +/- 90.
   ! This is done since many lattices have elements with theta at +/- 90.
   theta = modulo2 (2 + atan2(dy, dx) * 180 / pi, 90.0_rp) - 2
-  if (dx > 0) then
+  if (dx*cos(pi*theta/180)+dy*sin(pi*theta/180) > 0) then
     justify = 'LC'
   else
     justify = 'RC'
   endif
   height = s%plot_page%text_height * s%plot_page%legend_text_scale
-  call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = draw_units, &
+  call qp_draw_text (name, x_center+dx*abs(off2), y_center+dy*abs(off2), units = draw_units, &
                                height = height, justify = justify, ANGLE = theta)    
 endif
 
