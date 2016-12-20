@@ -394,7 +394,7 @@ real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
-real(rp) z_center, x_center, x_wall
+real(rp) z_center, x_center, x_wall, s_eval
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -539,6 +539,21 @@ if (lat_branch%track_state /= moving_forward$ .and. ix_ele >= lat_branch%track_s
     call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS.', why_invalid)
     return
   endif
+endif
+
+!---------------------------------------------------
+
+if (datum%s_offset /= 0 .or. datum%eval_point /= anchor_end$) then
+  select case (datum%eval_point)
+  case (anchor_beginning$)
+    s_eval = ele%s_start + datum%s_offset
+  case (anchor_center$)
+    s_eval = (ele%s_start + ele%s) / 2 + datum%s_offset
+  case (anchor_end$)
+    s_eval = ele%s + datum%s_offset
+  end select
+
+  return
 endif
 
 !---------------------------------------------------
