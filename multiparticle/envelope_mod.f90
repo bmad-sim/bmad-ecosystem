@@ -23,28 +23,50 @@ real(rp), parameter :: I6(6,6) = reshape( [l, o, o, o, o, o, o, l, o, o, o, o, &
 
 contains
 
+!+
+! This subroutine is used to generate apply artificial vertical
+! excitation to the beam envelope.
+!
+! Input:
+!  ele             -- ele_struct: element to track through.
+!     %mat6(6,6)   -- real(rp): element transter matrix
+!     %value(l$)   -- real(rp): element length
+! Output:
+!  Yone(6,6)       -- real(rp): Sensitivity to envelope matrix to vertical kicks.
+!-
+subroutine make_Ykick_mat(ele,Yone)
+  use bmad
+
+  implicit none
+
+  type(ele_struct) ele
+  real(rp) Yone(:,:)
+
+  real(rp) M(6,6), Y(6,6), l
+
+  M = ele%mat6
+  l = ele%value(l$)
+
+  Y = 0.0d0
+  Y(4,4) = 1.0d0
+  Yone = l*matmul(M,matmul(Y,transpose(M)))
+end subroutine
+
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine make_SR_mats(ele,co,etay,M,Bbar)
+! subroutine make_SR_mats(ele,co,M,Bone,Done)
 !
 ! Equation references are to "From the beam-envelope matrix to synchrotron-radiation
 ! integrals" by K. Ohmi, K. Hirata, and K. Oide.  Phys.Rev.E v49n1, January 1994.
 !
 ! This subroutine makes the synchrotron radiation damping and diffusion matrices.
-! The damping is contained in M, and the diffusion is contained in Bbar.
+! The damping is contained in M, and the diffusion is contained in Bone.
 !
 ! See transport_with_sr_ele in this module for how to track through an element 
 ! using these matrices.
 !
-! IBS simulation requires a realistic vertical emittance, but ideal lattices
-! do not simulate accurately the vertical emittance growth from synchrotron radiation.
-! If etay is greater than zero, then the transfer matrix is modified: Mt = M.W
-! W is a symplectic matrix that couples y and py to pz.
-! Here is how to use etay:  With IBS turned off, adjust etay such that the equilibrium
-! emittance is the desired value.  For example, for the SLS upgrade prototype dc12c,
-! setting etay to 0.0033 results in a vertical emittance of 10 pm.
 !
 ! Modules needed:
 !   use envelope_mod
@@ -57,24 +79,23 @@ contains
 !     %value(b1_gradient$) -- real(rp): quadrupole field
 !   co                     -- coord_struct:
 !     %vec(6)              -- real(rp): p_z
-!   etay                   -- real(rp): A vertical-dispersion like quantity that adds
-!                                       vertical vertical excitation to the diffusion matrix Bbar.
+!
 ! Output:
 !   M(6,6)                 -- real(rp): transfer matrix with damping.
-!   Bbar(6,6)              -- real(rp): diffusion matrix.
-! 
+!   Bone(6,6)              -- real(rp): diffusion matrix B for one element.
+!   Done(6,6)              -- real(rp): damping matrix D for one element.
 !-
-subroutine make_SR_mats(ele,co,etay,M,Bbar,Dbar)
+subroutine make_SR_mats(ele,co,M,Bone,Done)
   use bmad
+
+  implicit none
 
   type(ele_struct) ele
   type(coord_struct) co
-  real(rp) etay
-  real(rp) M(:,:), Bbar(:,:)
-  real(rp), optional :: Dbar(:,:)
+  real(rp) M(:,:), Bone(:,:)
+  real(rp), optional :: Done(:,:)
 
-  real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
-  real(rp) M0(6,6), W(6,6), Mt(6,6)
+  real(rp) M0(6,6)
   real(rp) B0, B1, delta
   real(rp) l, gamma, rho
 
@@ -91,22 +112,12 @@ subroutine make_SR_mats(ele,co,etay,M,Bbar,Dbar)
 
     M = M0 - l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta))  !Eqn. 80 & 81
 
-    if(etay .gt. 0) then
-      W = I6
-      W(3,6) = -etay
-      W(4,6) = -etay/5.0d0 !etay prime
-      W(5,3) =  etay/5.0d0 !etay prime
-      W(5,4) = -etay
-      Mt = matmul(M,W)
-      Bbar = l*matmul(Mt,matmul(diffusion_matrix_B(gamma,rho),transpose(Mt)))
-    else
-      Bbar = l*matmul(M,matmul(diffusion_matrix_B(gamma,rho),transpose(M)))  !Eqn. 88
-    endif
-    if(present(Dbar)) Dbar = l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta))
+    Bone = l*matmul(M,matmul(diffusion_matrix_B(gamma,rho),transpose(M)))  !Eqn. 88
+    if(present(Done)) Done = l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta))
   else
     M = M0
-    Bbar = 0.0d0
-    if(present(Dbar)) Dbar = 0.0d0
+    Bone = 0.0d0
+    if(present(Done)) Done = 0.0d0
   endif
 end subroutine
 
@@ -161,7 +172,7 @@ function energy_loss_rate(gamma,rho) result(P)
 end function
 
 !+
-! subroutine transport_with_sr(ele,M,Bbar,Sigma_ent,Sigma_exit)
+! subroutine transport_with_sr(ele,M,Bone,Sigma_ent,Sigma_exit)
 !
 ! Transport a 6x6 beam envelope matrix through an element including
 ! damping and diffusion.
@@ -171,114 +182,129 @@ end function
 ! Input:
 !   ele            -- integer: element key
 !   M(6,6)         -- real(rp): transfer matrix with damping, populated by make_SR_mats
-!   Bbar(6,6)      -- real(rp): diffusion matrix, populated by make_SR_mats
+!   Bone(6,6)      -- real(rp): diffusion matrix, populated by make_SR_mats
 !   Sigma_ent(6,6) -- real(rp): incoming beam envelope matrix
 ! Output:
 !   Sigma_exit(6,6) -- real(rp): outgoing beam envelope matrix
 !-
-subroutine transport_with_sr(ele,M,Bbar,Sigma_ent,Sigma_exit)
+subroutine transport_with_sr(ele,M,Bone,Yone,Sigma_ent,Sigma_exit)
   use bmad
+
+  implicit none
 
   type(ele_struct) ele
   real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
-  real(rp) M(:,:), Bbar(:,:)
+  real(rp) M(:,:), Bone(:,:), Yone(:,:)
 
   if(any(ele%key==(/sbend$,rbend$/))) then
-    Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bbar 
+    Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone
   else
-    Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6)))
+    Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone
   endif
 end subroutine
 
 !+
-! subroutine transport_with_sr_and_ibs(ele,M,Bbar,Sigma_ent,Sigma_exit)
+! subroutine transport_with_sr_and_ibs(ele,M,Bone,Yone,Sigma_ent,Sigma_exit,tail_cut,tau,n_part)
 !
 ! Transport a 6x6 beam envelope matrix through an element including
-! damping and diffusion.
+! SR damping, SR diffusion, and intrabeam scattering.
 !
-! Only bends include damping & diffusion.
+! Only bends contribute damping & diffusion.
+! IBS contributes in all elements.
 !
 ! Input:
 !   ele            -- integer: element key
 !   M(6,6)         -- real(rp): transfer matrix with damping, populated by make_SR_mats
-!   Bbar(6,6)      -- real(rp): diffusion matrix, populated by make_SR_mats
+!   Bone(6,6)      -- real(rp): diffusion matrix, populated by make_SR_mats
+!   Yone(6,6)      -- real(rp): Vertical excitation matrix.  Used to introduce a source
+!                               of vertical excitation.  Useful when simulating IBS
+!                               in ideal lattices.
 !   Sigma_ent(6,6) -- real(rp): incoming beam envelope matrix
+!   tail_cut       -- logical: Apply tail cut.
+!   tau            -- real(rp): Longest damping time of the three modes.  Used only
+!                               if tail_cut is true.
+!   n_part         -- real(rp): Number of particles in the bunch.
 ! Output:
 !   Sigma_exit(6,6) -- real(rp): outgoing beam envelope matrix
 !-
-subroutine transport_with_sr_and_ibs(ele,M,Bbar,Sigma_ent,Sigma_exit,tail_cut,tau_a,n_part)
+subroutine transport_with_sr_and_ibs(ele,M,Bone,Yone,Sigma_ent,Sigma_exit,tail_cut,tau,n_part)
   use bmad
 
   type(ele_struct) ele
   real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
   real(rp) ibs_mat(6,6)
-  real(rp) M(:,:), Bbar(:,:)
-  real(rp) n_part, tau_a
+  real(rp) M(:,:), Bone(:,:), Yone(:,:)
+  real(rp) n_part, tau
   logical tail_cut
 
-  call beam_envelope_ibs(Sigma_ent, ibs_mat, tail_cut, tau_a, ele%value(E_TOT$), n_part)
+  call beam_envelope_ibs(Sigma_ent, ibs_mat, tail_cut, tau, ele%value(E_TOT$), n_part)
 
   if(any(ele%key==(/sbend$,rbend$/))) then
-    Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bbar + ibs_mat*ele%value(l$) 
+    Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone + ibs_mat*ele%value(l$) 
   else
-    Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + ibs_mat*ele%value(l$)
+    Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone + ibs_mat*ele%value(l$)
   endif
 end subroutine
 
 !+
-! subroutine make_V(M,V)
+! subroutine make_V(M,V,abz_tunes)
 !
 ! For a one-turn transfer matrix M, this routine find the eigen matrix V.
-! V is ordered such that its column pairs dominate the H,V, and then Z planes.
+! V is ordered such that the per turn phase advance of its column pairs agree with abz_tunes.
 ! It is normalized to be symplectic.
 !
 ! Input:
 !   M(6,6)     - real(rp): One turn transfer matrix.
+!   abz_tunes(3) - real(rp): per turn phase advance of each mode.
 ! Output:
 !   V(6,6)     - complex(rp): Matrix that diagonalizes M. 
 !-
-subroutine make_V(M,V)
+subroutine make_V(M,V,abz_tunes)
 
-  use mode3_mod, only: normalize_evecs, order_evecs_by_plane_dominance
+  use mode3_mod, only: normalize_evecs, order_evecs_by_tune, make_N
   use f95_lapack
+  use sim_utils_interface
 
   implicit none
 
   real(rp) M(6,6)
   complex(rp) V(6,6)
+  real(rp) abz_tunes(3)
 
   complex(rp) Vinv(6,6)
 
-  real(rp) temp_mat(6,6), VR(6,6)
+  real(rp) temp_mat(6,6)
+  complex(rp) check_mat(6,6)
+  real(rp) VR(6,6)
   real(rp) eval_r(6), eval_i(6)
   real(rp) evec_r(6,6), evec_i(6,6)
   real(rp) v1_r(6), v1_i(6)
   real(rp) v2_r(6), v2_i(6)
   real(rp) v3_r(6), v3_i(6)
+  real(rp) mat_tunes(3)
 
   integer i
   integer i_error
+  logical err_flag
 
   character(*), parameter :: r_name = 'make_V'
 
   temp_mat = M  !LA_GEEV destroys the contents of its first argument.
-  CALL la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
+
+  call la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
   if ( i_error /= 0 ) THEN
     call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
     if (global_com%exit_on_error) call err_exit
-    eval_r = 0.0d0
-    eval_i = 0.0d0
-    evec_r = 0.0d0
-    evec_i = 0.0d0
+    V = 0.0d0
     return
   endif
 
-  v1_r = VR(:, 1)  !v1_r
-  v1_i = VR(:, 2)  !v1_i
-  v2_r = VR(:, 3)  !v2_r
-  v2_i = VR(:, 4)  !v2_i
-  v3_r = VR(:, 5)  !v3_r
-  v3_i = VR(:, 6)  !v3_i
+  v1_r = VR(:, 1) 
+  v1_i = VR(:, 2) 
+  v2_r = VR(:, 3) 
+  v2_i = VR(:, 4) 
+  v3_r = VR(:, 5) 
+  v3_i = VR(:, 6) 
 
   Vinv(:,1) = cmplx(v1_r,v1_i)
   Vinv(:,2) = (0.0d0,1.0d0)*conjg(Vinv(:,1))
@@ -286,19 +312,146 @@ subroutine make_V(M,V)
   Vinv(:,4) = (0.0d0,1.0d0)*conjg(Vinv(:,3))
   Vinv(:,5) = cmplx(v3_r,v3_i)
   Vinv(:,6) = (0.0d0,1.0d0)*conjg(Vinv(:,5))
+  check_mat = matmul(transpose(conjg(Vinv)),matmul(S6,Vinv))
+  if ( aimag(check_mat(1,1)) > 0.0 ) then
+    evec_i(:, 1) = -evec_i(:, 1)
+    evec_i(:, 2) = -evec_i(:, 2)
+    eval_i(1) = -eval_i(1)
+    eval_i(2) = -eval_i(2)
+  endif
+  if ( aimag(check_mat(3,3)) > 0.0 ) then
+    evec_i(:, 3) = -evec_i(:, 3)
+    evec_i(:, 4) = -evec_i(:, 4)
+    eval_i(3) = -eval_i(3)
+    eval_i(4) = -eval_i(4)
+  endif
+  if ( aimag(check_mat(5,5)) > 0.0 ) then
+    evec_i(:, 5) = -evec_i(:, 5)
+    evec_i(:, 6) = -evec_i(:, 6)
+    eval_i(5) = -eval_i(5)
+    eval_i(6) = -eval_i(6)
+  endif
+
+  mat_tunes(1) = MyTan(eval_i(1), eval_r(1))
+  mat_tunes(2) = MyTan(eval_i(3), eval_r(3))
+  mat_tunes(3) = MyTan(eval_i(5), eval_r(5))
   evec_r = real(Vinv)
   evec_i = aimag(Vinv)
-  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i)
-  call normalize_evecs(evec_r, evec_i)
+  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+  if(err_flag) then
+    call out_io (s_fatal$, r_name, "order_evecs_by_tune failed to identify eigen modes. printing abz_tunes and mat_tunes.")
+    write(*,'(a,3f14.5)') "Tunes supplied to subroutine (abz_tunes):        ", abz_tunes
+    write(*,'(a,3f14.5)') "Tunes obtained from one-turn matrix (mat_tunes): ", mat_tunes
+    if (global_com%exit_on_error) call err_exit
+    V = 0.0d0
+    return
+  endif
+  call normalize_evecs(evec_r,evec_i)
   Vinv = cmplx(evec_r,evec_i)
-  V = mat_symp_conj_i(Vinv)   
+  V = mat_symp_conj_i(Vinv)
+contains
+  function MyTan(y, x) result(arg)
+    !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
+    !between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
+    !This routine returns a number between 0 and 2pi.
+    real(rp) x, y, arg
+
+    arg = atan2(y,x)
+    if (arg .lt. 0) then
+      arg = arg + twopi
+    endif
+    arg = twopi - arg
+
+  end function MyTan
 end subroutine
 
 !+
-! subroutine envelope_radints(eles,co,alpha,emit)
+! subroutine integrated_mats(eles,coos,Lambda,Theta,Iota,mode)
+!
+! Input:
+!   eles(:)                      - ele_struct: array of element structures representing ring.
+!          %mat6(6,6)            - real(rp): element transfer matrix.
+!          %value(l$)            - real(rp): element (slice) length.
+!          %value(rho$)          - real(rp): bending radius.
+!          %value(b_field$)      - real(rp): bend field.
+!          %value(b1_gradient$)  - real(rp): quadrupole field.
+!   coos(:)                      - coord_struct:  closed orbit at each element.
+!        %vec(6)                 - real(rp): energy offset.
+!   mode                         - normal_modes_struct
+!       %a%tune                  - real(rp): a-mode tune
+!       %b%tune                  - real(rp): b-mode tune
+!       %z%tune                  - real(rp): z-mode tune (aka c-mode tune)
+! Output:
+!   Lambda(6,6)                  - real(rp): Integrated SR damping matrix.
+!   Theta(6,6)                   - real(rp): Integrated SR diffusion matrix.
+!   Iota(6,6)                    - real(rp): Integrated artificial vertical excitation matrix.  Used
+!                                            to generate vertical emittance in ideal lattices.
+!-
+subroutine integrated_mats(eles,coos,Lambda,Theta,Iota,mode)
+
+  implicit none
+
+  type(ele_struct) eles(:)
+  type(coord_struct) coos(:)
+  complex(rp) Lambda(6,6)  !integrated damping matrix
+  complex(rp) Theta(6,6)  !integrated diffusion matrix
+  complex(rp) Iota(6,6)  !integrated vertical excitation matrix
+  type(normal_modes_struct) mode
+ 
+  real(rp) one_turn_mat(6,6)
+  real(rp) delta
+  real(rp) gamma, l, rho, B0, B1
+  real(rp) Y(6,6)
+  real(rp) abz_tunes(3)
+
+  complex(rp) V(6,6), Vinv(6,6)
+
+  logical err_flag
+
+  integer i, j
+
+  one_turn_mat = I6
+  do i=1,size(eles)
+    one_turn_mat = matmul(eles(i)%mat6,one_turn_mat)
+  enddo
+
+  Y = 0.0d0
+  Y(4,4) = 1.0d0
+
+  abz_tunes(1) = mode%a%tune
+  abz_tunes(2) = mode%b%tune
+  abz_tunes(3) = mode%z%tune
+
+  Lambda = (0.0d0,0.0d0)
+  Theta = (0.0d0,0.0d0)
+  Iota = (0.0d0,0.0d0)
+  do i=1,size(eles)
+    l = eles(i)%value(l$)
+    one_turn_mat = matmul(eles(i)%mat6,matmul(one_turn_mat,mat_symp_conj(eles(i)%mat6)))
+    call make_V(one_turn_mat,V,abz_tunes)
+    Vinv = mat_symp_conj_i(V) 
+    if(any(eles(i)%key==(/sbend$,rbend$/))) then
+      call convert_total_energy_to(eles(i)%value(E_TOT$), -1, gamma)
+      delta = coos(i)%vec(6)
+      rho = eles(i)%value(rho$)
+      B0 = eles(i)%value(b_field$)
+      B1 = eles(i)%value(b1_gradient$)
+      Lambda = Lambda + l*matmul(V,matmul(damping_matrix_D(gamma,rho,B0,B1,delta),Vinv))
+      Theta = Theta + l*matmul(V,matmul(diffusion_matrix_B(gamma,rho),conjg(transpose((V)))))
+    endif
+    Iota = Iota + l*matmul(V,matmul(Y,conjg(transpose((V)))))
+  enddo
+end subroutine
+
+!+
+! subroutine envelope_radints_ibs(Lambda,Theta,Iota,eles,alpha,emit,mode,tail_cut,npart)
 !
 ! Calculates damping decrement and emittance of the three
-! normal modes by integrating the diffusion and damping matrices.
+! normal modes by integrating the IBS, SR diffusion, and SR damping matrices.
+!
+! The IBS depends on the envelope, and so this routine iterates to
+! locate the equilibrium beam envelope.  This iterative process can fail to converge.
+!
 ! The damping times can obtained from alpha using:
 !    tau = lattice_length/c_light/alpha
 !
@@ -310,67 +463,138 @@ end subroutine
 ! by concatenating the individual element transfer matrices.
 !
 ! Input:
+!   Lambda(6,6)                  - real(rp): Integrated damping matrix.
+!   Theta(6,6)                   - real(rp): Integrated diffusion matrix.
+!   Iota(6,6)                    - real(rp): Integrated vertical excitation matrix.
 !   eles(:)                      - ele_struct: array of element structures representing ring.
 !          %mat6(6,6)            - real(rp): element transfer matrix.
 !          %value(l$)            - real(rp): element (slice) length.
-!          %value(rho$)          - real(rp): bending radius.
-!          %value(b_field$)      - real(rp): bend field.
-!          %value(b1_gradient$)  - real(rp): quadrupole field.
-!   co(:)                        - coord_struct:  closed orbit at each element.
-!        %vec(6)                 - real(rp): energy offset.
+!          %value(E_TOT$)        - real(rp): Beam energy in element.
+!   mode                         - normal_modes_struct
+!       %a%tune                  - real(rp): tune of a-mode.
+!       %b%tune                  - real(rp): tune of b-mode.
+!       %z%tune                  - real(rp): tune of z-mode.
+!   tail_cut                     - logical: apply tail cut.
+!   npart                        - real(rp): number of particles in bunch.
 ! Output:
 !   alpha(3)                     - real(rp): Normal mode damping decrements.
 !   emit(3)                      - real(rp): Normal mode emittances.
 !-
-subroutine envelope_radints(eles,co,alpha,emit)
+subroutine envelope_radints_ibs(Lambda,Theta,Iota,eles,alpha,emit,mode,tail_cut,npart)
+
+  use mode3_mod
 
   implicit none
 
+  complex(rp) Lambda(6,6), Theta(6,6), Iota(6,6), Omega(6,6)
   type(ele_struct) eles(:)
-  type(coord_struct) co(:)
   real(rp) alpha(3), emit(3)
+  type(normal_modes_struct) mode
+  logical tail_cut
+  real(rp) npart
+  real(rp) abz_tunes(3)
 
-  real(rp) Dbar(6,6), Bbar(6,6)
-  real(rp) one_turn_mat(6,6), temp_mat(6,6)
-  real(rp) delta
-  real(rp) gamma, l, rho, B0, B1
+  real(rp) tau(3), tau_max
+  real(rp) emit_new(3)
+  real(rp) one_turn_mat(6,6), one_turn_mat0(6,6), sigma_mat(6,6), temp_mat(6,6)
+  real(rp) energy, res
+  real(rp) l
 
-  complex(rp) Lambda(6,6), Theta(6,6)
   complex(rp) V(6,6)
 
   integer i, j
 
-  one_turn_mat = I6
+  logical err_flag
+
+  abz_tunes(1) = mode%a%tune
+  abz_tunes(2) = mode%b%tune
+  abz_tunes(3) = mode%z%tune
+
+  one_turn_mat0 = I6
   do i=1,size(eles)
-    one_turn_mat = matmul(eles(i)%mat6,one_turn_mat)
+    one_turn_mat0 = matmul(eles(i)%mat6,one_turn_mat0)
   enddo
 
-  Lambda = (0.0d0,0.0d0)
-  Theta = (0.0d0,0.0d0)
-  do i=1,size(eles)
-    if(any(eles(i)%key==(/sbend$,rbend$/))) then
-      call convert_total_energy_to(eles(i)%value(E_TOT$), -1, gamma)
-      delta = co(i)%vec(6)
+  alpha(1) = real(Lambda(1,1))  !Eqn. 86
+  alpha(2) = real(Lambda(3,3))  
+  alpha(3) = real(Lambda(5,5))  
+  emit(1) = (real(Iota(1,1))+real(Theta(1,1)))/2.0d0/real(Lambda(1,1)) 
+  emit(2) = (real(Iota(3,3))+real(Theta(3,3)))/2.0d0/real(Lambda(3,3))  
+  emit(3) = (real(Iota(5,5))+real(Theta(5,5)))/2.0d0/real(Lambda(5,5))  
+
+  alpha = abs(alpha)
+  emit = abs(emit)
+
+  tau_max = maxval(eles(size(eles))%s / c_light / alpha)
+  mode%a%emittance = emit(1)
+  mode%b%emittance = emit(2)
+  mode%z%emittance = emit(3)
+  do while(.true.)
+    !build integrated IBS mat using new emittances
+    one_turn_mat = one_turn_mat0
+    Omega = (0.0d0,0.0d0)  !Integrated IBS matrix
+    do i=1,size(eles)
+      call make_smat_from_abc(one_turn_mat, mode, sigma_mat, err_flag)
       l = eles(i)%value(l$)
-      rho = eles(i)%value(rho$)
-      B0 = eles(i)%value(b_field$)
-      B1 = eles(i)%value(b1_gradient$)
-      call make_V(one_turn_mat,V)
-      Lambda = Lambda + l*matmul(V,matmul(damping_matrix_D(gamma,rho,B0,B1,delta),mat_symp_conj_i(V)))
-      Theta = Theta + l*matmul(V,matmul(diffusion_matrix_B(gamma,rho),conjg(transpose((V)))))
-    endif
-    one_turn_mat = matmul(eles(i)%mat6,matmul(one_turn_mat,mat_symp_conj(eles(i)%mat6)))
-  enddo
+      energy = eles(i)%value(E_TOT$)
+      call make_V(one_turn_mat,V,abz_tunes)
+      Omega = Omega + l*matmul(V,matmul(ibs_matrix_C(sigma_mat,tail_cut,tau_max,energy,npart),conjg(transpose((V)))))
+      one_turn_mat = matmul(eles(i)%mat6,matmul(one_turn_mat,mat_symp_conj(eles(i)%mat6)))
+    enddo
 
-  do i=1,3
-    alpha(i) = real(Lambda(2*i-1,2*i-1))  !Eqn. 86
-    emit(i) = real(Theta(2*i-1,2*i-1))/2.0d0/real(Lambda(2*i-1,2*i-1))  !Eqn. 91.  Theta should be real ... 
-                                                                        !its imaginary part is due to rounding errors.
+    !calculate new emittances
+    emit_new(1) = (real(Theta(1,1))+real(Iota(1,1))+real(Omega(1,1)))/2.0d0/real(Lambda(1,1))
+    emit_new(2) = (real(Theta(3,3))+real(Iota(3,3))+real(Omega(3,3)))/2.0d0/real(Lambda(3,3))
+    emit_new(3) = (real(Theta(5,5))+real(Iota(5,5))+real(Omega(5,5)))/2.0d0/real(Lambda(5,5))
+    res = sqrt( ((emit_new(1)-mode%a%emittance)/mode%a%emittance)**2 + ((emit_new(2)-mode%b%emittance)/mode%b%emittance)**2 + ((emit_new(3)-mode%z%emittance)/mode%z%emittance)**2 )
+    mode%a%emittance = emit_new(1)
+    mode%b%emittance = emit_new(2)
+    mode%z%emittance = emit_new(3)
+    if(res .lt. 0.00001) then
+      exit
+    endif
   enddo
 end subroutine
 
 !+
-! subroutine make_PBRH(M, P, Bp, R, H)
+! subroutine envelope_radints(eles,co,alpha,emit)
+!
+! Calculates damping decrement and emittance of the three
+! normal modes from the integrate diffusion, damping, and vertical
+! excitation matrices names Lambda, Theta, and Iota, respectively.
+! These three matrices are obtained from the subroutine integrated_mats.
+!
+! The damping times can obtained from alpha using:
+!    tau = lattice_length/c_light/alpha
+!
+! Input:
+!   Lambda(6,6)                  - complex(rp): integrated damping matrix.
+!   Theta(6,6)                   - complex(rp): integrated diffusion (sr excitation) matrix.
+!   Iota(6,6)                    - complex(rp): integrated vertical excitation matrix.
+!
+! Output:
+!   alpha(3)                     - real(rp): Normal mode damping decrements.
+!   emit(3)                      - real(rp): Normal mode emittances.
+!-
+subroutine envelope_radints(Lambda,Theta,Iota,alpha,emit)
+  implicit none
+
+  complex(rp) Lambda(6,6), Theta(6,6), Iota(6,6)
+  real(rp) alpha(3), emit(3)
+
+  alpha(1) = real(Lambda(1,1))  !Eqn. 86
+  alpha(2) = real(Lambda(3,3))
+  alpha(3) = real(Lambda(5,5))
+  emit(1) = (real(Iota(1,1))+real(Theta(1,1)))/2.0d0/real(Lambda(1,1))  !Eqn.
+  emit(2) = (real(Iota(3,3))+real(Theta(3,3)))/2.0d0/real(Lambda(3,3))
+  emit(3) = (real(Iota(5,5))+real(Theta(5,5)))/2.0d0/real(Lambda(5,5))
+
+  alpha = abs(alpha)
+  emit = abs(emit)
+end subroutine
+
+!+
+! subroutine make_PBRH(M, P, Bp, R, H, abz_tunes)
 !
 ! Decomposes the 1-turn transfer matrix into normal mode twiss-like parameters,
 ! according to Sec. IIIB of Ohmi, Hirata, and Oide paper.
@@ -380,13 +604,15 @@ end subroutine
 !
 ! Input:
 !   M(6,6)     -- real(rp): 1-turn transfer matrix
+!   abz_tunes(3) -- real(rp): tunes for a,b, and c modes.  Used to identify which eigenvector
+!                             is associated with which mode.
 ! Output:
 !   P(6,6)     -- complex(rp):  Eqn. 97.  Phase advances.
 !   Bp(6,6)    -- complex(rp):  Eqns. 89 & 101.  Beta functions.
 !   R(6,6)     -- complex(rp):  Eqn. 99.  Transverse coupling.
 !   H(6,6)     -- complex(rp):  Eqn. 100.  Longitudinal coupling.
 !-
-subroutine make_PBRH(M, P, Bp, R, H)
+subroutine make_PBRH(M, P, Bp, R, H, abz_tunes)
 
   use mode3_mod, only: normalize_evecs, order_evecs_by_plane_dominance
   use f95_lapack
@@ -396,6 +622,7 @@ subroutine make_PBRH(M, P, Bp, R, H)
   complex(rp) Bp(6,6)
   complex(rp) R(6,6)
   complex(rp) H(6,6)
+  real(rp) abz_tunes(3)
   
   complex(rp) V(6,6)
   complex(rp) Vinv(6,6)
@@ -409,7 +636,7 @@ subroutine make_PBRH(M, P, Bp, R, H)
 
   character(*), parameter :: r_name = 'make_PBRH'
 
-  call make_V(M,V)
+  call make_V(M,V,abz_tunes)
   Vinv = mat_symp_conj_i(V)   
   P = matmul(V,matmul(M,Vinv))  ! Ohmi Eqn. 110
   U = matmul(mat_symp_conj_i(P),V)  ! Ohmi Eqn. 104
@@ -450,6 +677,35 @@ end subroutine
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
+! This is a function wrapper for the beam_envelope_ibs subroutine.
+! See that subroutine for documentation.
+!
+! Input:
+!   sigma_mat(6,6)         - real(rp): beam sigma_matrix at element entrance
+!   tail_cut               - logical:  If true, then apply tail cut to coulomb logarithm.
+!   tau                    - real(rp): horizontal betatron damping rate.  Needed if tail_cut is true.
+!   energy                 - real(rp): beam energy in eV
+!   n_part                 - real(rp): number of particles in the bunch
+!
+! Output:
+!   ibs_mat(6,6)           - real(rp): changes in 2nd order moments due to IBS are ibs_mat*element_length
+!-
+function ibs_matrix_C(sigma_mat, tail_cut, tau, energy, n_part) result(ibs_mat)
+  use bmad
+  implicit none
+  real(rp) sigma_mat(6,6)
+  real(rp) ibs_mat(6,6)
+  logical tail_cut
+  real(rp) tau
+  real(rp) energy
+  real(rp) n_part
+  call beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau, energy, n_part)
+end function
+
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!+
 ! This is a sigma matrix based IBS calculation.
 ! It takes the beam sigma matrix and returns a matrix with changes to the 2nd order
 ! moments due to IBS.
@@ -461,7 +717,7 @@ end subroutine
 ! Input:
 !   sigma_mat(6,6)         - real(rp): beam sigma_matrix at element entrance
 !   tail_cut               - logical:  If true, then apply tail cut to coulomb logarithm.
-!   tau_a                  - real(rp): horizontal betatron damping rate.  Needed if tail_cut is true.
+!   tau                    - real(rp): horizontal betatron damping rate.  Needed if tail_cut is true.
 !   energy                 - real(rp): beam energy in eV
 !   n_part                 - real(rp): number of particles in the bunch
 !
@@ -469,7 +725,7 @@ end subroutine
 !   ibs_mat(6,6)           - real(rp): changes in 2nd order moments due to IBS are ibs_mat*element_length
 !-
 
-subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau_a, energy, n_part)
+subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau, energy, n_part)
   use eigen_mod
   use LA_PRECISION, only: WP => DP
   use f95_lapack
@@ -485,7 +741,7 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau_a, energy, n_part
   real(rp) sigma_mat(6,6)
   real(rp) ibs_mat(6,6)
   logical tail_cut
-  real(rp) tau_a
+  real(rp) tau
   real(rp) n_part
   real(rp) energy
 
@@ -564,6 +820,7 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau_a, energy, n_part
   call LA_SYEV(R,u,JOBZ='N')  !evals and evecs of symmetric real matrix
   vol1 = sqrt(u(1)*u(2)*u(3))
   vol = sqrt(4.0d0*pi)**3 * vol1
+
   bm = sqrt(min( u(1), u(2), u(3) ))  !minimum beam dimension
   call mat_inverse(sig_xx,sig_xx_inv,ok)
   if( .not. ok ) then
@@ -623,7 +880,7 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau_a, energy, n_part
   if( tail_cut ) then
     !kubo's tail cut formula
     bmin1 = r_e/(ptrans*gamma)**2
-    bmin2 = sqrt(abs(vol/n_part/pi/(ptrans*c_light)/tau_a))
+    bmin2 = sqrt(abs(vol/n_part/pi/(ptrans*c_light)/tau))
     bmin = max( bmin1, bmin2 )
   else
     !no tail cut
