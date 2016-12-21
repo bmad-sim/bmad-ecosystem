@@ -16,6 +16,15 @@ rfcav_per: rfcavity, voltage = -1.4093/12 * 1e6, harmon = 40.33333, l = 0.0001  
 
 !----- table of elements ----------------------------------------------------
 
+mobius: marker
+bx = 2.6731
+by = 2.7900
+! mobius: taylor, 
+! {1: sqrt(bx/by), 0 0 1 0 0 0},
+! {2: sqrt(by/bx), 0 0 0 1 0 0},
+! {3: sqrt(by/bx), 1 0 0 0 0 0},
+! {4: sqrt(bx/by), 0 1 0 0 0 0}
+
 dmon   : drift, l = 0.050000
 dnvb   : drift, l = 0.010000
 dsvb   : drift, l = 0.084000
@@ -37,10 +46,9 @@ dms    : drift, l = 2.692000
 dxd    : drift, l = 0.050000
 doc    : drift, l = 0.050000
 dbs    : drift, l = 0.074000
+dxm    : drift, l = 0.218000
 
-dxm_    : drift, l = 0.118000
-skquad : quadrupole, tilt, l=0.1, k1=0.0
-dxm : line=(skquad,dxm_)
+har_skquad : multipole, k1l=0.00, t1
 
 center : marker
 
@@ -48,7 +56,7 @@ qs1    : quadrupole, l = 0.150000, k1 = -6.442563
 qs2    : quadrupole, l = 0.200000, k1 = 8.781815
 qs3    : quadrupole, l = 0.100000, k1 = -4.907590
 qm1    : quadrupole, l = 0.150000, k1 = -6.584737
-qm2    : quadrupole, l = 0.250000, k1 = 6.266000
+qm2    : quadrupole, l = 0.250000, k1 = 6.266000, tilt = 0.01
 qm3    : quadrupole, l = 0.100000, k1 = -4.962000
 ql1    : quadrupole, l = 0.150000, k1 = -6.402326
 ql2    : quadrupole, l = 0.250000, k1 = 6.114719
@@ -252,7 +260,8 @@ arcn   : line=(center, xs, i_hm, hm)
 arcnrf   : line=(center, xs, i_hm, hm,rfcav_per)
 i_arcn : line=(i_hm, hm, xs, center)
 !ring   : line=(12*arcn,rfcav)
-ring   : line=(11*arcn,rfcav,arcn)
+ring   : line=(arcn,har_skquad,10*arcn,rfcav,arcn)
+!ring   : line=(arcn,mobius,har_skquad,10*arcn,rfcav,arcn)
 i_ring : line=(12*i_arcn)
 
 sbend[ds_step] = 0.001
@@ -277,6 +286,9 @@ qm3[k1]:-1.295e-06+b*-1.007e+01+a*1.752e+00+b^2*-7.185e+01+a*b*-1.343e+01+ &
  a^2*6.195e+01+a*b^2*-1.267e+02+b*a^2*-6.549e+01+b^3*-9.088e+01+a^3*-1.149e+02, &
 g_vbm_k1[k1]:-2.568e-05+b*2.596e+00+a*3.042e+00+b^2*2.731e+01+a*b*-4.437e+00+ &
  a^2*4.129e+01+a*b^2*-7.559e+01+b*a^2*6.982e+01+b^3*4.730e+01+a^3*-7.963e+01}, var = {a,b}
+
+g1[a] = 0.0/12.0
+g1[b] = 0.0/12.0
 
 use, ring
 
