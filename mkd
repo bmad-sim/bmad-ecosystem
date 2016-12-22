@@ -4,6 +4,6 @@
 # This script removes the need for symlinks, for Windows builds.
 
 export THIS_SCRIPT='mkd'
-mk-mkd ${@}
+mk-mkd $1
 
 #
