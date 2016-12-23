@@ -12,6 +12,8 @@ implicit none
 
 integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
 
+private tao_this_data_calc
+
 contains
 
 !----------------------------------------------------------------------------
@@ -372,12 +374,14 @@ type (tao_building_wall_point_struct), pointer :: pt
 type (tao_data_struct), pointer :: dp
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
+type (tao_expression_info_struct), allocatable :: info(:)
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
-type (coord_struct), pointer :: orb0
-type (coord_struct), pointer :: orbit(:), orb
+type (ele_struct) ele_at_s
+type (coord_struct), pointer :: orb0, orbit(:), orb
+type (coord_struct) :: orb_at_s
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
@@ -388,13 +392,12 @@ type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
 type (spin_polar_struct) polar_spin
-type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
-real(rp) z_center, x_center, x_wall, s_eval
+real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -412,7 +415,7 @@ character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part
+logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -446,17 +449,17 @@ data_source = datum%data_source
 head_data_type = datum%data_type
 lat => tao_lat%lat
 
-ele => tao_valid_datum_index (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
+ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ele = -1
 if (associated(ele)) ix_ele = ele%ix_ele
 
-ele_ref => tao_valid_datum_index (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
+ele_ref => tao_pointer_to_datum_ele (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ref = -1
 if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 
-ele_start => tao_valid_datum_index (lat, datum%ele_start_name, datum%ix_ele_start, datum, valid_value, why_invalid)
+ele_start => tao_pointer_to_datum_ele (lat, datum%ele_start_name, datum%ix_ele_start, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_start = ix_ele
 if (associated(ele_start)) ix_start = ele_start%ix_ele
@@ -543,16 +546,61 @@ endif
 
 !---------------------------------------------------
 
-if (datum%s_offset /= 0 .or. datum%eval_point /= anchor_end$) then
+if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$) then
+  if (data_source /= 'lat') then
+    call tao_set_invalid (datum, 'CANNOT USE A BEAM DATA_SOURCE WITH A FINITE S_OFFSET OR EVAL_POINT = CENTER.', why_invalid)
+    return
+  endif
+
+  if (.not. associated(ele)) then
+    call tao_set_invalid (datum, 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT = CENTER.', why_invalid)
+    return
+  endif
+
   select case (datum%eval_point)
   case (anchor_beginning$)
-    s_eval = ele%s_start + datum%s_offset
+    ! Here tao_pointer_to_datum_ele has pointed ele to the element before the element specified in the datum.
+    s_eval = ele%s + datum%s_offset
+    if (associated(ele_ref)) s_eval_ref = ele%s
   case (anchor_center$)
     s_eval = (ele%s_start + ele%s) / 2 + datum%s_offset
+    if (associated(ele_ref)) s_eval_ref = (ele%s_start + ele%s) / 2
   case (anchor_end$)
     s_eval = ele%s + datum%s_offset
+    if (associated(ele_ref)) s_eval_ref = ele%s
   end select
 
+  compute_floor = (head_data_type == 'floor.')
+
+  call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                      err, compute_floor_coords = compute_floor)
+  if (err) then
+    call tao_set_invalid (datum, 'CANNOT TRACK TO OFFSET POSITION.', why_invalid)
+    return
+  endif
+
+  datum_value = tao_bmad_parameter_value (datum%data_type, ele_at_s, orb_at_s, err)
+  if (err) then
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM AT OFFSET POSITION.', why_invalid)
+    return
+  endif
+
+  if (associated(ele_ref)) then
+    call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                      err, compute_floor_coords = compute_floor)
+    if (err) then
+      call tao_set_invalid (datum, 'CANNOT TRACK TO REFERENCE POSITION.', why_invalid)
+      return
+    endif
+
+    datum_value = datum_value - tao_bmad_parameter_value (datum%data_type, ele_at_s, orb_at_s, err)
+    if (err) then
+      call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.', why_invalid)
+      return
+    endif
+  endif
+  
+  valid_value = .true.
   return
 endif
 
@@ -752,7 +800,7 @@ case ('bpm_eta.')
   end select
 
   if (data_source == 'beam') return ! bad
-  vec2 = (/ ele%x%eta, ele%y%eta /)
+  vec2 = [ele%x%eta, ele%y%eta]
   call to_eta_reading (vec2, ele, which, datum_value, err)
   valid_value = .not. err
 
@@ -893,11 +941,11 @@ case ('chrom.')
 
   select case (datum%data_type)
 
-  case ('chrom.dtune.a')
+  case ('chrom.dtune.a', 'chrom.a')
     datum_value = tao_lat%a%chrom
     valid_value = .true.
 
-  case ('chrom.dtune.b')
+  case ('chrom.dtune.b', 'chrom.b')
     datum_value = tao_lat%b%chrom
     valid_value = .true.
 
@@ -1570,7 +1618,7 @@ case ('momentum_compaction')
 
   orb0 => orbit(ix_ref)
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
-  eta_vec = (/ ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap /)
+  eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
   eta_vec = matmul (v_mat, eta_vec)
   one_pz = 1 + orb0%vec(6)
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
@@ -2624,7 +2672,7 @@ endif
 ! Set up refrence value
 
 if (ix_ref > -1) then
-  if (present(orbit)) call data_calc (ix_ref, datum, branch, orbit)
+  if (present(orbit)) call tao_this_data_calc (ix_ref, datum, branch, orbit)
   ref_value = vec(ix_ref)
   if (present(good)) then
     if (.not. good(ix_ref)) then
@@ -2641,7 +2689,7 @@ endif
 ! If ele_start does not exist
 
 if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
-  if (present(orbit)) call data_calc (ix_ele, datum, branch, orbit)
+  if (present(orbit)) call tao_this_data_calc (ix_ele, datum, branch, orbit)
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
@@ -2666,10 +2714,10 @@ if (ix_ele < ix_start) then   ! wrap around
 
   if (present(orbit)) then
     do i = ix_start, n_track
-      call data_calc (i, datum, branch, orbit)
+      call tao_this_data_calc (i, datum, branch, orbit)
     enddo
     do i = 0, ix_ele
-      call data_calc (i, datum, branch, orbit)
+      call tao_this_data_calc (i, datum, branch, orbit)
     enddo
   endif
 
@@ -2726,7 +2774,7 @@ if (ix_ele < ix_start) then   ! wrap around
 else
   if (present(orbit)) then
     do i = ix_start, ix_ele
-      call data_calc (i, datum, branch, orbit)
+      call tao_this_data_calc (i, datum, branch, orbit)
     enddo
   endif
 
@@ -2856,7 +2904,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine data_calc (ix_ele, datum, branch, orbit)
+subroutine tao_this_data_calc (ix_ele, datum, branch, orbit)
 
 type (ele_struct), pointer :: ele
 type (this_array_struct), pointer :: cc_p
@@ -2898,12 +2946,11 @@ case ('orbit.')
   if (cc_p%amp_calc_done) return
   cc_p%amp_calc_done = .true.
 
-  call orbit_amplitude_calc (ele, orbit(ix_ele), cc_p%amp_a, cc_p%amp_b, &
-                           cc_p%amp_na, cc_p%amp_nb, branch%param%particle)
+  call orbit_amplitude_calc (ele, orbit(ix_ele), cc_p%amp_a, cc_p%amp_b, cc_p%amp_na, cc_p%amp_nb)
 
 end select
 
-end subroutine data_calc
+end subroutine tao_this_data_calc
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2973,7 +3020,7 @@ end function tao_do_wire_scan
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Function tao_valid_datum_index (lat, ix_ele, datum, valid) result (ele)
+! Function tao_pointer_to_datum_ele (lat, ix_ele, datum, valid) result (ele)
 ! 
 ! Routine to see if an element index corresponds to an element with a definite 
 ! location such as an overlay or multipass element.
@@ -2992,7 +3039,7 @@ end function tao_do_wire_scan
 !   ele   -- Ele_struct, pointer :: Pointer to the element. Set to NULL if not valid
 !-
 
-function tao_valid_datum_index (lat, ele_name, ix_ele, datum, valid, why_invalid) result (ele)
+function tao_pointer_to_datum_ele (lat, ele_name, ix_ele, datum, valid, why_invalid) result (ele)
 
 type (lat_struct) lat
 type (tao_data_struct) datum
@@ -3004,7 +3051,7 @@ logical valid
 
 character(*) ele_name
 character(*), optional :: why_invalid
-character(40) :: r_name = 'tao_valid_datum_index'
+character(*), parameter :: r_name = 'tao_pointer_to_datum_ele'
 
 ! If ele_name is blank but ix_ele is not -1 then this datum was constructed internally
 ! by Tao (as opposed being constructed from tao init file info).
@@ -3033,11 +3080,19 @@ endif
 
 ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
-if (ix_ele <= n_track) return
+if (ix_ele <= n_track) then
+  if (datum%eval_point == anchor_beginning$) ele => pointer_to_next_ele(ele, -1)
+  return
+endif
 
-if (ele%lord_status == super_lord$) then
+if (ele%lord_status == super_lord$ .or. ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
   if (datum%data_type(1:8) == 'rad_int1') return  ! Since rad_int1 is integraged radiation integral over the element.
-  ele => pointer_to_slave(ele, ele%n_slave)
+  if (datum%eval_point == anchor_beginning$) then
+    ele => pointer_to_slave(ele, 1)
+    ele => pointer_to_next_ele(ele, -1)
+  else
+    ele => pointer_to_slave(ele, ele%n_slave)
+  endif
   return
 endif
 

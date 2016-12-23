@@ -1,0 +1,158 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init'
+/
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "RRNOVAMU2E11172016.bmad"
+/
+
+
+!------------------------------------------------------------------------
+
+&tao_params
+  global%prompt_string = 'Ping_Tao'
+/
+
+!------------------------------------------------------------------------
+! Data
+
+&tao_d2_data
+  d2_data%name = "orbit"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "x"
+  default_weight = 1e6
+  search_for_lat_eles = "hp%%0 hp%%2 hp%%4 hp%%6 hp%%8" 
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1e6
+  search_for_lat_eles = "vp%%1 vp%%3 vp%%5 vp%%7 vp%%9" 
+/
+
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "ping_a"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "amp_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "phase_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "amp_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "phase_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "ping_b"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "amp_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "phase_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "amp_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "phase_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+!------------------------------------------------------------------------
+! Data
+
+&tao_d2_data
+  d2_data%name = "tune"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "a"
+  default_weight = 1e6
+  ix_min_data = 1
+  ix_max_data = 1
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "b"
+  default_weight = 1e6
+  ix_min_data = 1
+  ix_max_data = 1
+/
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+! variables
+
+!&tao_var
+  v1_var%name  = "quad_k1"
+  default_attribute = "k1"
+  default_weight = 1e5
+  default_step = 1e-4
+  var(1:45)%ele_name = 
+    "QT605C", "QT605D", "QT606A", "QT606B", "QT606C", "QT606D", "QT607A", "QT607B", "QT607C", "QT607D", 
+    "QT608A", "QT608B", "QT608C", "QT608D", "QT609A", "QT609B", "QT609C", "QT609D", "QT301A", "QT302A", 
+    "QT303A", "QT304A", "QT305A", "QT306A", "QT307A", "QT308A", "QT309A", "QT601A", "QT601B", "QT601C", 
+    "QT601D", "QT602A", "QT602B", "QT602C", "QT602D", "QT603A", "QT603B", "QT603C", "QT603D", "QT604A", 
+    "QT604B", "QT604C", "QT604D", "QT605A", "QT605B"
+/
+
