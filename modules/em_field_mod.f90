@@ -257,7 +257,6 @@ endif
 ! super_slave, and slice_slave, have their field info stored in the associated lord elements.
 ! Note: The lord of an em_field element has independent misalignments.
 ! Note: multipass_slave elements do store their own field info. This should be changed.
-! Note: Time 
 
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
