@@ -511,6 +511,7 @@ case ('data1')
   nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
   nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
   nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
+  nl=nl+1; write (li(nl), amt) 'eval_point;STR;T;',                       d_ptr%eval_point
   nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
   nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
   nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele

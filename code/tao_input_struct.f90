@@ -35,8 +35,8 @@ type tao_datum_input
   character(20) :: data_source = ''
   character(20) :: eval_point = 'end'
   real(rp) :: s_offset = 0
-  real(rp) :: invalid_value = 0
   integer :: ix_bunch = 0
+  real(rp) :: invalid_value = 0
 end type
 
 !-------------------------------------------------------------

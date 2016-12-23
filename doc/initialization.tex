@@ -1090,8 +1090,7 @@ structure. For each \vn{n_d1_data} structure there must be a
     search_for_lat_eles    = "<element_list>"    ! Find elements by name.
     d1_data%name           = "<d1_name>"         ! d1_data name.
     default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
-    default_weight         = <number>            ! Merit function weight. 
-                                                 !   Default = 0.0
+    default_weight         = <number>            ! Merit function weight. Dflt: 0.0
     default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
@@ -1104,8 +1103,9 @@ structure. For each \vn{n_d1_data} structure there must be a
     datum(j)%meas           = "<number>"         ! Datum "measured" value
     datum(j)%weight         = "<weight>"         ! Merit function weight.
     datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
-    datum(j)%ix_bunch       = <integer>          ! Bunch index. 
-                                                 !   0 (default) = all bunches.
+    datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
+    datum(j)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
+    datum(j)%s_offset       = <number>           ! Default: 0.
   /
 \end{example}
 For example:
@@ -1124,15 +1124,31 @@ Alternatively, one can specify a datum in a single line. For example,
   &tao_d1_data
     ix_d1_data        = 1 
     d1_data%name      = "t"  
-    !           data_      ele_ref   ele_start  ele     merit    meas   weight good
-    !           type       name      name       name    type     value         user
-    datum( 1) = "beta.a"   "S:12.3"   ""       "Q16_1"  "max"      30    0.1     T
-    datum( 2) = "phase.b"  "Q09_1"    "B22"    "Q16_1"  "max"      30    0.1     T
-    datum( 3) = "floor.x"  ""         ""       "end"    "target"    3    0.01    T       
-    datum( 4) = "floor.x"  "B1"       ""       "B2"     "target"    3    0.01    T       
+    !           data_      ele_ref  ele_start ele     merit    meas   weight good
+    !           type       name     name      name    type     value         user ..
+    datum( 1) = "beta.a"   "S:2.3"  ""       "Q16_1"  "max"     30    0.1     T  ...
+    datum( 2) = "phase.b"  "Q09_1"  "B22"    "Q16_1"  "max"     30    0.1     T  ...
+    datum( 3) = "floor.x"  ""        ""      "end"    "target"   3    0.01    T  ...     
+    datum( 4) = "floor.x"  "B1"      ""      "B2"     "target"   3    0.01    T  ...     
     ... etc. ...
   /
 \end{example}
+When specifying data one line at a time, the columns are
+\begin{example}
+  data_type
+  ele_ref_name
+  ele_start_name
+  ele_name
+  merit_type
+  meas_value
+  weight
+  good_user
+  data_source
+  eval_point
+  s_offset
+  ix_bunch
+\end{example}
+Default values will be used if an individual line does not include all columns.
 
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{datum(i)} structure array that is associated with the \vn{d1_data}
