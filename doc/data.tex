@@ -321,9 +321,16 @@ The \vn{eval_point} component can be set to one of:
 \end{example}
 The evaluation point is shifted by \vn{s_offset} from the \vn{eval_point}.
 
+If there is a reference point, the setting of \vn{eval_point} is used to determine where
+the reference point is but the setting of \vn{s_offset} is ignored.
+
 Due to internal logic considerations, Not all \vn{data_type}s are compatible with a finite
 \vn{s_offset} or a setting of \vn{eval_point} to \vn{center}. The table of \vn{data_type}s
 (\sref{t:data.types}) shows which \vn{data_type}s are compatible and which are not.
+
+Another restriction is that specifying a range of elements for evaluation (that is,
+specifying \vn{ele_start} \sref{s:dat.lat.ele}) is not compatible with a finite
+\vn{s_offset} or a setting of \vn{eval_point} to \vn{center}.
 
 %------------------------------------------------------------------------
 \section{Datums in Optimization}
