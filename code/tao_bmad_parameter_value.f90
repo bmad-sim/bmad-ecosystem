@@ -17,6 +17,7 @@
 function tao_bmad_parameter_value (dat_name, ele, orbit, err_flag) result (value)
 
 use tao_mod, except_dummy => tao_bmad_parameter_value
+use measurement_mod
 
 implicit none
 
@@ -76,8 +77,8 @@ case ('bpm_cbar.')
 
 case ('bpm_eta.')
   select case (dat_name)
-  case ('bpm_eta.x');        call to_eta_reading ([ele%x%eta, ele%y%eta], x_plane$, value, err_flag)
-  case ('bpm_eta.y');        call to_eta_reading ([ele%x%eta, ele%y%eta], y_plane$, value, err_flag)
+  case ('bpm_eta.x');        call to_eta_reading ([ele%x%eta, ele%y%eta], ele, x_plane$, value, err_flag)
+  case ('bpm_eta.y');        call to_eta_reading ([ele%x%eta, ele%y%eta], ele, y_plane$, value, err_flag)
   case default;              err_flag = .true.
   end select
 
