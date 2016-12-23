@@ -542,12 +542,11 @@ subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
   real(rp) mat4(4,4)
 end subroutine
 
-subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb, particle)
+subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   import
   implicit none
   type (ele_struct) ele
   type (coord_struct) orb
-  integer, optional :: particle
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
