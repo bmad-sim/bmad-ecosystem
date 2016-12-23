@@ -1,0 +1,5 @@
+pingread b data/VerKick_VerticalBPMs_refVP605.txt  
+place r12 ping_b_y
+place r22 ping_b_y
+set graph r12 component = meas-model
+scale ping_b_y

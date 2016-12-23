@@ -194,8 +194,8 @@ type (show_lat_column_struct) column(50)
 type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot
-real(rp), allocatable, save :: value(:)
+real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here
+real(rp), allocatable :: value(:)
 
 character(*) :: what, stuff
 character(*), parameter :: r_name = "tao_show_cmd"
@@ -231,7 +231,8 @@ integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_bran
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min
+integer, allocatable :: ix_c(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -239,8 +240,8 @@ logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
 logical valid_value, print_floor, show_section, is_complex, print_header
-logical, allocatable, save :: picked_uni(:)
-logical, allocatable, save :: picked_ele(:)
+logical, allocatable :: picked_uni(:), valid(:), picked2(:)
+logical, allocatable :: picked_ele(:)
 
 namelist / custom_show_list / column
 
@@ -683,62 +684,58 @@ case ('curve')
     
     if (show_sym) then
       nc = 0
-      ix0 = 0
-      aligned = .true.    ! True => can have one x column for all curves.
       do j = 1, size(curve)
         if (.not. allocated(curve(j)%c%x_symb)) cycle
         nc = max(nc, size(curve(j)%c%x_symb))
-        if (ix0 == 0) ix0 = j
-        if (size(curve(j)%c%x_symb) /= size(curve(ix0)%c%x_symb)) then
-          aligned = .false.
-        else
-          if (any(curve(j)%c%x_symb /= curve(ix0)%c%x_symb)) aligned = .false.
-        endif
       enddo
-
-      n = nl + nc + 10
-      if (n > size(lines)) call re_allocate(lines, n, .false.)
 
       if (print_header) then
         nl=nl+1; lines(nl)   = ''
         nl=nl+1; lines(nl)   = '# Symbol points:'
-        if (aligned) then
-          nl=nl+1; lines(nl)   = '#     i  index        x-axis'
-        else
-          nl=nl+1; lines(nl)   = '#     i'
-        endif
-        nl0 = nl
+        nl=nl+1; lines(nl)   = '#     i  ix_sym    x-axis '
+        do j = 1, size(curve)
+          str = curve(j)%c%name
+          lines(nl) = lines(nl)(1:28+(j-1)*14) // adjustr(str(1:14))
+        enddo
+
         if (nc == 0) then
           nl=nl+1; lines(nl) = '#     No Symbol Points'
         endif
       endif
 
-      do j = 1, size(curve)
-        str = curve(j)%c%name
-        if (aligned) then
-          lines(nl0) = lines(nl0)(1:28+(j-1)*14) // adjustr(str(1:14))
-        else
-          lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '          x-axis' // adjustr(str(1:12))
-        endif
-      enddo
+      n = size(curve)
+      allocate (ix_c(n), value(n), valid(n))
+      ix_c = 1
+      
+      id = 0
+      do
+        value_min = 1e30
+        valid = .false.
+        do i = 1, n
+          if (ix_c(i) > size(curve(i)%c%x_symb)) cycle
+          value(i) = curve(i)%c%x_symb(ix_c(i))
+          valid(i) = .true.
+          value_min = min(value_min, value(i))
+        enddo
 
-      do i = 1, nc
-        if (aligned) then
-          nl=nl+1; write(lines(nl), '(2i7, 10es14.6)') i, curve(ix0)%c%ix_symb(i), curve(ix0)%c%x_symb(i)
-        else
-          nl=nl+1; write(lines(nl), '(i7, 10es14.6)') i
-        endif
+        if (all(.not. valid)) exit
 
-        do j = 1, size(curve)
-          if (.not. allocated(curve(j)%c%x_symb)) cycle
-          if (size(curve(j)%c%x_symb) < j) cycle
-          if (aligned) then
-            write(lines(nl)(29+(j-1)*14:), '(10es14.6)') curve(j)%c%y_symb(i)
-          else
-            write(lines(nl)(10+(j-1)*28:), '(10es13.5)') curve(j)%c%x_symb(i), curve(j)%c%y_symb(i)
+        ix_min = 100000
+        do i = 1, n
+          if (.not. valid(i) .or. value(i) /= value_min) cycle
+          ix_min = min(ix_min, curve(i)%c%ix_symb(ix_c(i)))
+        enddo
+
+        id = id + 1
+        nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') id, ix_min, value_min
+        do i = 1, n
+          if (valid(i) .and. value(i) == value_min .and. curve(i)%c%ix_symb(ix_c(i)) == ix_min) then
+            write (lines(nl)(29+(i-1)*14:), '(es14.6)') curve(i)%c%y_symb(ix_c(i))
+            ix_c(i) = ix_c(i) + 1
           endif
         enddo
 
+        if (nl+10 > size(lines)) call re_allocate(lines, nl+100, .false.)
       enddo
     endif
 
@@ -762,8 +759,6 @@ case ('curve')
 
       n = nl + nc + 10
       if (n > size(lines)) call re_allocate(lines, n, .false.)
-
-
 
       if (print_header) then
         nl=nl+1; lines(nl)   = ''
@@ -2255,6 +2250,7 @@ case ('lattice')
         ! Note: a_type = real$ is handled later...
         select case (a_type)
 
+        ! If recognized as a Bmad name.
         case (is_logical$, is_integer$, is_switch$)
           call pointer_to_attribute(ele, sub_name, .true., a_ptr, err, .false.)
           if (err) then

@@ -1,0 +1,140 @@
+
+
+
+
+qt301_i = 0.0
+qt302_i = 0.0
+qt303_i = 0.0
+qt304_i = 0.0
+qt305_i = 0.0
+qt306_i = 0.0
+qt307_i = 0.0
+qt308_i = 0.0
+qt309_i = 0.0
+qt301a[k1]= dqtk1*qt301_i
+qt301b[k1]= dqtk1*qt301_i
+qt302a[k1]= dqtk1*qt302_i
+qt302b[k1]= dqtk1*qt302_i
+qt303a[k1]= dqtk1*qt303_i
+qt303b[k1]= dqtk1*qt303_i
+qt304a[k1]= dqtk1*qt304_i
+qt304b[k1]= dqtk1*qt304_i
+qt305a[k1]= dqtk1*qt305_i
+qt305b[k1]= dqtk1*qt305_i
+qt306a[k1]= dqtk1*qt306_i
+qt306b[k1]= dqtk1*qt306_i
+qt307a[k1]= dqtk1*qt307_i
+qt307b[k1]= dqtk1*qt307_i
+qt308a[k1]= dqtk1*qt308_i
+qt308b[k1]= dqtk1*qt308_i
+qt309a[k1]= dqtk1*qt309_i
+qt309b[k1]= dqtk1*qt309_i
+
+qt601_i = 0.0
+qt602_i = 0.0
+qt603_i = 0.0
+qt604_i = 0.0
+qt605_i = 0.0
+qt606_i = 0.0
+qt607_i = 0.0
+qt608_i = 0.0
+qt609_i = 0.0
+qt601a[k1]= dqtk1*qt601_i
+qt601b[k1]= dqtk1*qt601_i
+qt602a[k1]= dqtk1*qt602_i
+qt602b[k1]= dqtk1*qt602_i
+qt603a[k1]= dqtk1*qt603_i
+qt603b[k1]= dqtk1*qt603_i
+qt604a[k1]= dqtk1*qt604_i
+qt604b[k1]= dqtk1*qt604_i
+qt605a[k1]= dqtk1*qt605_i
+qt605b[k1]= dqtk1*qt605_i
+qt606a[k1]= dqtk1*qt606_i
+qt606b[k1]= dqtk1*qt606_i
+qt607a[k1]= dqtk1*qt607_i
+qt607b[k1]= dqtk1*qt607_i
+qt608a[k1]= dqtk1*qt608_i
+qt608b[k1]= dqtk1*qt608_i
+qt609a[k1]= dqtk1*qt609_i
+qt609b[k1]= dqtk1*qt609_i
+
+sf_i=0
+sd_f=0
+
+s112_i = sf_i
+s128_i = sf_i
+s330_i = sf_i
+s412_i = sf_i
+s428_i = sf_i
+s630_i = sf_i
+s111_i = sd_i
+s113_i = sd_i
+s119_i = sd_i
+s207_i = sd_i
+s411_i = sd_i
+s413_i = sd_i
+s419_i = sd_i
+s507_i = sd_i
+s633_i = sd_i
+s331_i = 0.0
+s112: sextupole, type = "XCHR", l = lsex, k2 = s112_i*k2peramp
+s114: sextupole, type = "XCHR", l = lsex, k2 = s112_i*k2peramp
+s116: sextupole, type = "XCHR", l = lsex, k2 = s112_i*k2peramp
+s118: sextupole, type = "XCHR", l = lsex, k2 = s112_i*k2peramp
+s128: sextupole, type = "XCHR", l = lsex, k2 = s128_i*k2peramp
+s130: sextupole, type = "XCHR", l = lsex, k2 = s128_i*k2peramp
+s202: sextupole, type = "XCHR", l = lsex, k2 = s128_i*k2peramp
+s204: sextupole, type = "XCHR", l = lsex, k2 = s128_i*k2peramp
+s330: sextupole, type = "XCHR", l = lsex, k2 = s330_i*k2peramp
+s332: sextupole, type = "XCHR", l = lsex, k2 = s330_i*k2peramp
+s334: sextupole, type = "XCHR", l = lsex, k2 = s330_i*k2peramp
+s336: sextupole, type = "XCHR", l = lsex, k2 = s330_i*k2peramp
+s412: sextupole, type = "XCHR", l = lsex, k2 = s412_i*k2peramp
+s414: sextupole, type = "XCHR", l = lsex, k2 = s412_i*k2peramp
+s416: sextupole, type = "XCHR", l = lsex, k2 = s412_i*k2peramp
+s418: sextupole, type = "XCHR", l = lsex, k2 = s412_i*k2peramp
+s428: sextupole, type = "XCHR", l = lsex, k2 = s428_i*k2peramp
+s430: sextupole, type = "XCHR", l = lsex, k2 = s428_i*k2peramp
+s502: sextupole, type = "XCHR", l = lsex, k2 = s428_i*k2peramp
+s504: sextupole, type = "XCHR", l = lsex, k2 = s428_i*k2peramp
+s630: sextupole, type = "XCHR", l = lsex, k2 = s630_i*k2peramp
+s632: sextupole, type = "XCHR", l = lsex, k2 = s630_i*k2peramp
+s634: sextupole, type = "XCHR", l = lsex, k2 = s630_i*k2peramp
+s636: sextupole, type = "XCHR", l = lsex, k2 = s630_i*k2peramp
+
+s111: sextupole, type = "YCHR", l = lsex, k2 = s111_i*k2peramp
+s113: sextupole, type = "YCHR", l = lsex, k2 = s113_i*k2peramp
+s115: sextupole, type = "YCHR", l = lsex, k2 = s113_i*k2peramp
+s117: sextupole, type = "YCHR", l = lsex, k2 = s113_i*k2peramp
+s119: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s121: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s123: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s125: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s127: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s129: sextupole, type = "YCHR", l = lsex, k2 = s119_i*k2peramp
+s203: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s205: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s207: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s209: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s211: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s213: sextupole, type = "YCHR", l = lsex, k2 = s207_i*k2peramp
+s331: sextupole, type = "YCHR", l = lsex, k2 = s331_i*k2peramp
+s333: sextupole, type = "YCHR", l = lsex, k2 = s331_i*k2peramp
+s411: sextupole, type = "YCHR", l = lsex, k2 = s411_i*k2peramp
+s413: sextupole, type = "YCHR", l = lsex, k2 = s413_i*k2peramp
+s415: sextupole, type = "YCHR", l = lsex, k2 = s413_i*k2peramp
+s417: sextupole, type = "YCHR", l = lsex, k2 = s413_i*k2peramp
+s419: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s421: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s423: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s425: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s427: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s429: sextupole, type = "YCHR", l = lsex, k2 = s419_i*k2peramp
+s501: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s503: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s507: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s509: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s511: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s513: sextupole, type = "YCHR", l = lsex, k2 = s507_i*k2peramp
+s633: sextupole, type = "YCHR", l = lsex, k2 = s633_i*k2peramp
+s635: sextupole, type = "YCHR", l = lsex, k2 = s633_i*k2peramp

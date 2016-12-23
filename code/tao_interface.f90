@@ -22,16 +22,20 @@ subroutine tao_alias_cmd (alias, string)
   character(*) :: string
 end subroutine
  
+function tao_bmad_parameter_value (dat_name, ele, orbit, err_flag) result (value)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  real(rp) value
+  character(*) dat_name
+  logical err_flag
+end function
+
 subroutine tao_call_cmd (file_name, cmd_arg)
   implicit none
   character(*) :: file_name
   character(*), optional :: cmd_arg(:)
-end subroutine
- 
-subroutine tao_top_level (command, errcode)
-  implicit none
-  character(*), optional :: command
-  integer, optional :: errcode
 end subroutine
  
 subroutine tao_clip_cmd (gang, where, value1, value2)
@@ -384,6 +388,12 @@ subroutine tao_single_mode (char)
   character(1) :: char
 end subroutine
 
+subroutine tao_top_level (command, errcode)
+  implicit none
+  character(*), optional :: command
+  integer, optional :: errcode
+end subroutine
+ 
 function tao_universe_number (i_uni) result (i_this_uni)
   import
   implicit none
