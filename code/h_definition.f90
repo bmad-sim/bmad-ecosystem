@@ -316,9 +316,11 @@ module definition
   end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE
-     TYPE(probe)  XS
+     TYPE(probe)  XS   ! probe at r=0
      TYPE(INTEGRATION_NODE), POINTER :: NODE
-     real(DP)  DS,POS(6),xb(6)
+     real(DP)  r, dt0   !  penetration ration, penetration time
+     real(DP)   POS(6)  ! (x,y,z,px,py,pz) at dt0
+     type(spinor) s(3) ! spin vectors at dt0
   END type TEMPORAL_PROBE
   !@3 ---------------------------------------------</br>
   type TEMPORAL_BEAM

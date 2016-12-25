@@ -264,13 +264,18 @@ CONTAINS
 
   SUBROUTINE  print6(S1,mf)
     implicit none
-    type (real_8),INTENT(INout)::S1(ndd)
+    type (real_8),INTENT(INout)::S1(:)
     integer        mf,i
-
-    do i=1,ndd
-       call print(s1(i),mf)
-    enddo
-
+    
+ !   if(size(s1)==6) then
+ !    do i=1,ndd
+ !       call print(s1(i),mf)
+ !    enddo
+ !   else
+     do i=1,size(s1)
+        call print(s1(i),mf)
+     enddo
+ !   endif
   END SUBROUTINE print6
 
 !!! end of "use to be in extend_poly"

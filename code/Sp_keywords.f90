@@ -2560,7 +2560,9 @@ endif
 
 
     call fib_fib0(s22,my_false)
-
+IF(ELE0%kind==KIND10) THEN
+ IF(MAGL0%METHOD_NST_NMUL_permfringe_highest(3)>SECTOR_NMUL_MAX) MAGL0%METHOD_NST_NMUL_permfringe_highest(3)=SECTOR_NMUL_MAX
+ENDIF
      S2 = MAGL0%METHOD_NST_NMUL_permfringe_highest(3)    
      
 

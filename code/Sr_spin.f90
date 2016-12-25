@@ -39,7 +39,7 @@ module ptc_spin
   private alloc_temporal_probe,GET_BZ_fringe,GET_BZ_fringer,GET_BZ_fringep
   private TRACK_rotate_spin_r,TRACK_rotate_spin_p,TRACK_rotate_spin
   private TRACK_FRINGE_multipole_r,TRACK_FRINGE_multipole_p,TRACK_FRINGE_multipole
-  private TRACK_wedge_spin_R,TRACK_wedge_spin_p,TRACK_wedge_spin
+  private TRACK_wedge_spin_R,TRACK_wedge_spin_p,TRACK_wedge_spin, find_as,find_frac_r,find_n0
   !REAL(DP) :: AG=A_ELECTRON
   REAL(DP) :: bran_init=pi
 
@@ -4448,111 +4448,17 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
 
   ! time tracking
-  SUBROUTINE TRACK_time(xT,DT,K)
+
+
+   SUBROUTINE TRACK_time(xT,DTt,K)
     ! Tracks a single particle   of the beam for a time DT
     implicit none
     TYPE(INTEGRATION_NODE), POINTER:: T
     TYPE(temporal_probe),INTENT(INOUT):: xT
-    REAL(DP), INTENT(IN) :: DT
-    REAL(DP) XTT(6),DT0,YL,DT_BEFORE   !X(6),
+    REAL(DP), INTENT(IN) :: DTt
+    REAL(DP) DT0,DT_BEFORE,X(6),fac,dt
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    LOGICAL(LP) END_OF_LINE
-    END_OF_LINE=.FALSE.
-
-    CALL RESET_APERTURE_FLAG
-
-    IF(K%TOTALPATH==0) then
-       write(6,*) " Must used totalpath in tracking state "
-       STOP 451
-    endif
-    IF(XT%xs%u) RETURN
-
-    !    X=xs%x
-
-    T=>XT%NODE
-    !    T%PARENT_FIBRE%MAG=K
-    !    T%PARENT_FIBRE%MAG%P%DIR=>T%PARENT_FIBRE%DIR
-    T%PARENT_FIBRE%MAG%P%CHARGE=>T%PARENT_FIBRE%CHARGE
-
-
-    DT0=XT%xs%X(6)
-    CALL DRIFT_BACK_TO_POSITION(T,XT%Ds,XT%xs%X,k)
-    XT%Ds=0.0_dp
-    DT0=XT%xs%X(6)-DT0
-
-    YL=0.0_dp
-
-    DO WHILE(DT0<=DT)
-       XTT=XT%xs%X
-       DT_BEFORE=DT0
-       !         WRITE(6,*) " POS ",T%s(1),t%pos_in_fibre
-       !         WRITE(6,*) " POS ",T%POS,T%CAS,T%PARENT_FIBRE%MAG%NAME
-       ! putting spin and radiation
-       CALL TRACK_NODE_PROBE(t,XT%XS,K) !,charge)
-       ! no spin and no radiation
-       !        CALL TRACK_NODE_SINGLE(t,XT%XS%X,K)  !,CHARGE
-
-       !
-       !
-       DT0=DT0+(XT%xs%X(6)-XTT(6))
-       T=>T%NEXT
-       IF(.NOT.ASSOCIATED(T%NEXT)) THEN
-          END_OF_LINE=.TRUE.
-          EXIT
-       ENDIF
-       if(.not.check_stable) exit
-
-    ENDDO
-
-    IF(.NOT.END_OF_LINE.and.check_stable) THEN
-       IF(DT0/=DT) THEN
-          XT%NODE=>T%PREVIOUS
-          XT%xs%X=XTT
-          DT0=DT-DT_BEFORE
-          !           WRITE(6,*) " DT0 ", DT0
-          CALL DRIFT_TO_TIME(T,YL,DT0,XT%xs%X,k)
-       ELSE
-          XT%NODE=>T
-       ENDIF
-    ELSE
-
-
-       IF(DT0<DT.and.check_stable) THEN
-          XT%NODE=>T%PREVIOUS
-          XT%xs%X=XTT
-          DT0=DT-DT_BEFORE
-          CALL DRIFT_TO_TIME(T,YL,DT0,XT%xs%X,k)
-       ELSE
-          XT%NODE=>T
-       ENDIF
-
-    ENDIF
-
-
-    XT%Ds=yl
-    !   xs%x=X
-    !    XT%NODE=>T
-    if(.not.CHECK_STABLE) then
-       !       write(6,*) "unstable "
-       lost_fibre=>t%parent_fibre
-       lost_node=>t
-       XT%xs%u=.true.
-    endif
-
-    call ptc_global_x_p(xt,k)
-
-  END SUBROUTINE TRACK_time
-
-
-  ! time tracking
-  SUBROUTINE TRACK_time_new(xT,DT,K)
-    ! Tracks a single particle   of the beam for a time DT
-    implicit none
-    TYPE(INTEGRATION_NODE), POINTER:: T
-    TYPE(temporal_probe),INTENT(INOUT):: xT
-    REAL(DP), INTENT(IN) :: DT
-    REAL(DP) XTT(6),DT0,YL,DT_BEFORE,X(6),fac
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(probe) b
     LOGICAL(LP) END_OF_LINE
     END_OF_LINE=.FALSE.
 
@@ -4573,16 +4479,17 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
 
   
-    XT%Ds=0.0_dp
-    DT0=XT%Xb(6)-XT%xs%X(6)
-    XT%Xb=XT%xs%X
+    XT%r=0.0_dp
+    DT0=0.d0
+    dt=dtt+xt%dt0
+!    XT%xs%X=XT%Xb
 
-    YL=0.0_dp
+    FAC=0.0_dp
 
     DO WHILE(DT0<=DT)
-       XTT=XT%xs%X
+
        DT_BEFORE=DT0
-       XT%Xb=XT%xs%X
+       b=XT%xs
        !         WRITE(6,*) " POS ",T%s(1),t%pos_in_fibre
        !         WRITE(6,*) " POS ",T%POS,T%CAS,T%PARENT_FIBRE%MAG%NAME
        ! putting spin and radiation
@@ -4592,7 +4499,8 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
        !
        !
-       DT0=DT0+(XT%xs%X(6)-XTT(6))
+       DT0=DT0+(XT%xs%X(6)-b%x(6))
+       XT%NODE=>T
        T=>T%NEXT
        IF(.NOT.ASSOCIATED(T%NEXT)) THEN
           END_OF_LINE=.TRUE.
@@ -4604,67 +4512,81 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     IF(.NOT.END_OF_LINE.and.check_stable) THEN
        IF(DT0/=DT) THEN
-          XT%NODE=>T%PREVIOUS
-  !        DT0=DT-DT_BEFORE
+  !        XT%NODE=>T%previous
+          XT%Dt0=dt-DT_BEFORE
           fac=(dt-DT_BEFORE)/(dt0-DT_BEFORE)
-          X=fac*(XT%xs%X-XT%Xb)+XT%Xb
-       yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
+    !      X=fac*(XT%xs%X-XT%Xb)+XT%Xb
+     !  yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
        ELSE
-          XT%NODE=>T
+           stop 122
        ENDIF
     ELSE
 
 
        IF(DT0<DT.and.check_stable) THEN
-          XT%NODE=>T%PREVIOUS
+  !        XT%NODE=>T%previous
+          XT%Dt0=dt-DT_BEFORE
           fac=(dt-DT_BEFORE)/(dt0-DT_BEFORE)
-          X=fac*(XT%xs%X-XT%Xb)+XT%Xb
-       yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
+  !        X=fac*(XT%xs%X-XT%Xb)+XT%Xb
+  !     yl=fac*XT%NODE%parent_fibre%mag%l/XT%NODE%parent_fibre%mag%p%nst
        ELSE
-          XT%NODE=>T
+           stop 123
        ENDIF
 
     ENDIF
 
 
-    XT%Ds=yl
-    XT%xs%X=x
-    !   xs%x=X
-    !    XT%NODE=>T
+    XT%r=FAC
+
     if(.not.CHECK_STABLE) then
        !       write(6,*) "unstable "
        lost_fibre=>t%parent_fibre
        lost_node=>t
        XT%xs%u=.true.
     endif
+ 
+    call ptc_global_x_p(xt,b,k)
 
-    call ptc_global_x_p(xt,k)
+!call make_spinor_basis(xt%s(1),xt%s(2),xt%s(3))
 
-  END SUBROUTINE TRACK_time_new
+!write(6,*) xt%s(1).dot.xt%s(1),xt%s(2).dot.xt%s(2),xt%s(3).dot.xt%s(3)
+!write(6,*) xt%s(1).dot.xt%s(2),xt%s(2).dot.xt%s(3),xt%s(1).dot.xt%s(3)
+ 
+    xt%xs=b
+  END SUBROUTINE TRACK_time 
 
-  Subroutine ptc_global_x_p(xt,k)
+  Subroutine ptc_global_x_p(xt,b,k)
     implicit none
     TYPE(temporal_probe),INTENT(INOUT):: xT
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer i
-    real(dp) p(3),pz,betinv
+    type(probe) b
+    real(dp) p(3),pz,betinv,pos(3),dab(3),sc(2)!,xb(6)
 
     if(associated(XT%NODE%ENT)) then
        ! computing global position
-
+       if(k%spin) call find_frac_r(xt,b)
+   
        XT%pos=0.0_dp
-       DO I=1,3
-          XT%POS(i)=XT%POS(i) + XT%XS%X(1)*XT%NODE%ENT(1,I)     !
-          XT%POS(i)=XT%POS(i) + XT%XS%X(3)*XT%NODE%ENT(2,I)     !
-          XT%POS(i)=XT%POS(i) + XT%Ds*XT%NODE%PARENT_FIBRE%DIR*XT%NODE%ENT(3,I)     !
+       pos=0.0_dp
+       DO I=1,2
+          XT%POS(i)=XT%POS(i) + XT%XS%X(1)*XT%NODE%EXI(1,I)     !
+          XT%POS(i)=XT%POS(i) + XT%XS%X(3)*XT%NODE%EXI(2,I)     !
+ 
+          pos(i)=POS(i) + b%x(1)*XT%NODE%ent(1,I)   
+          pos(i)=POS(i) + b%x(3)*XT%NODE%ent(2,I)   
        ENDDO
-       XT%pos(1:3) = XT%pos(1:3) + XT%NODE%A
+       XT%pos(1:3) = XT%pos(1:3) + XT%NODE%B
+       pos(1:3) = pos(1:3) + XT%NODE%A
+       dab(1:3)=XT%pos(1:3)-pos(1:3)
+       XT%pos(1:3)=pos(1:3)+XT%r*dab(1:3)
        ! computing global momentum
        if(k%time) then
           betinv=1.0_dp/XT%NODE%PARENT_FIBRE%beta0
        ELSE
           betinv=1.0_dp
        ENDIF
+
        P(1)=XT%XS%X(2)*XT%NODE%PARENT_FIBRE%mag%p%p0c
        P(2)=XT%XS%X(4)*XT%NODE%PARENT_FIBRE%mag%p%p0c
        !       pz=XT%NODE%PARENT_FIBRE%mag%p%p0c* &
@@ -4672,11 +4594,35 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        pz=(1.0_dp+2.0_dp*betinv*XT%XS%X(5)+XT%XS%X(5)**2)-XT%XS%X(2)**2-XT%XS%X(4)**2
        pz=XT%NODE%PARENT_FIBRE%mag%p%p0c*root(pz)*XT%NODE%PARENT_FIBRE%DIR
        P(3)=PZ
+
+       pos=0.0_dp
+       Pos(1)=b%x(2)*XT%NODE%PARENT_FIBRE%mag%p%p0c
+       Pos(2)=b%x(4)*XT%NODE%PARENT_FIBRE%mag%p%p0c
+       !       pz=XT%NODE%PARENT_FIBRE%mag%p%p0c* &
+       !            (one+two*betinv*XT%XS%X(5)+XT%XS%X(5)**2)-xt%pos(4)**2-xt%pos(5)**2
+       pz=(1.0_dp+2.0_dp*betinv*b%x(5)+b%x(5)**2)-b%x(2)**2-b%x(4)**2
+       pz=XT%NODE%PARENT_FIBRE%mag%p%p0c*root(pz)*XT%NODE%PARENT_FIBRE%DIR
+       Pos(3)=PZ
+
+       XT%POS(4:6)=0.0_dp
        DO I=1,3
-          XT%POS(i+3)=XT%POS(i+3) + P(1)*XT%NODE%ENT(1,I)     !
-          XT%POS(i+3)=XT%POS(i+3) + P(2)*XT%NODE%ENT(2,I)     !
-          XT%POS(i+3)=XT%POS(i+3) + P(3)*XT%NODE%ENT(3,I)     !
+          XT%POS(i+3)=XT%POS(i+3) + Pos(1)*XT%NODE%ENT(1,I)     !
+          XT%POS(i+3)=XT%POS(i+3) + Pos(2)*XT%NODE%ENT(2,I)     !
+          XT%POS(i+3)=XT%POS(i+3) + Pos(3)*XT%NODE%ENT(3,I)     !
        ENDDO
+       pos(1:3)=0.0_dp
+       DO I=1,3
+          POS(i)=POS(i) + P(1)*XT%NODE%EXI(1,I)     !
+          POS(i)=POS(i) + P(2)*XT%NODE%EXI(2,I)     !
+          POS(i)=POS(i) + P(3)*XT%NODE%EXI(3,I)     !
+       ENDDO
+
+       sc(1)=sqrt(XT%POS(4)**2+XT%POS(5)**2+XT%POS(6)**2)
+       sc(2)=sqrt(pos(1)**2+pos(2)**2+pos(3)**2)
+       dab(1:3)=pos(1:3)-XT%POS(4:6)
+       XT%POS(4:6)=XT%POS(4:6)+XT%r*dab(1:3)
+       XT%POS(4:6)=XT%POS(4:6)/sqrt(XT%POS(4)**2+XT%POS(5)**2+XT%POS(6)**2)
+       XT%POS(4:6)=XT%POS(4:6)*(XT%r*(SC(2)-SC(1))+SC(1))
     else
        write(6,*) " FILL_SURVEY_DATA_IN_NODE_LAYOUT "
        write(6,*) " was not called, so no survey data on the nodes "
@@ -4686,24 +4632,225 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     endif
 
   end Subroutine ptc_global_x_p
-  !  type probe
-  !   real(dp) x(6)
-  !   type(spinor) s
-  !   logical u
-  !    type(integration_node),pointer :: lost_node
-  !  end type probe
-  !type TEMPORAL_PROBE
-  !    TYPE(probe)  XS
-  !    TYPE(INTEGRATION_NODE), POINTER :: NODE
-  !    real(DP)  DS,POS(6)
-  !END type TEMPORAL_PROBE
 
-  !type TEMPORAL_BEAM
-  !    TYPE(TEMPORAL_PROBE), pointer :: TP(:)
-  !    real(DP) a(3),ent(3,3),p0c,total_time
-  !    integer n
-  !    type(integration_node),pointer :: c   ! pointer close to a(3)
-  !END type TEMPORAL_BEAM
+  Subroutine find_frac_r(xt,b)
+    implicit none
+    type(temporal_probe) xt
+    type(probe) b
+    type(spinor)n0
+    real(dp) m1t(3,3),m2(3,3),r(3,3),a(3,3),ai(3,3),m1(3,3),ang,rat,m2out(3,3)
+    integer i,j
+
+   do i=1,3
+   do j=1,3
+     m1t(i,j)=b%s(i)%x(j)
+     m1(i,j)=b%s(j)%x(i)
+     m2(i,j)=xt%xs%s(j)%x(i)
+   enddo
+   enddo
+     r=matmul(m1t,m2)
+ 
+
+
+call  find_n0(r,n0) 
+call find_as(n0,a,ai) 
+
+    r=matmul(matmul(ai,r),a)
+
+
+   ang=atan2(r(1,3),r(1,1))*xt%r
+
+
+   r=0.0_dp
+
+   r(1,1)=cos(ang);r(1,3)=sin(ang);
+   r(3,3)=cos(ang);r(3,1)=-sin(ang);
+   r(2,2)=1.0_dp
+
+
+   r=matmul(matmul(matmul(a,r),ai),m1)
+
+
+   
+   do i=1,3
+   do j=1,3
+     xt%s(j)%x(i)=r(i,j)
+   enddo
+   enddo
+ 
+
+   end Subroutine find_frac_r
+
+
+  subroutine find_as(n22,a,ai) 
+!#general : normal & manipulation
+!# Find the c_spinmatrix "a" such that
+!# e_y = (0,1,0)= a**(-1)*n0
+!# because a*exp(theta n0.L)*a**(-1)= exp(theta (a*n0).L). See Sec.6.5.2.
+
+    implicit none
+    type(spinor), intent(inout) ::  n22 
+    real(dp)   a(3,3) ,  ai(3,3) 
+    type(spinor)  n1 ,n3,n2 
+     real(dp)    s,n
+    real(dp) x
+    integer i,is,j
+
+
+
+    n2=n22
+
+    x=n2.dot.n2
+
+    x=sqrt(x)
+
+    do i=1,3
+     n2%x(i)=n2%x(i)/x
+    enddo
+
+    ! here we find smallest value of n2
+    is=2
+    if(abs(n2%x(1))< abs(n2%x(2))) is=1
+
+    if(is==1) then
+       if(abs(n2%x(3))<abs(n2%x(1))) is=3
+    else
+       if(abs(n2%x(3))<abs(n2%x(2))) is=3
+    endif
+
+    !  put n1 in along that value
+    do i=1,3
+       n1%x(i)=0.0_dp
+    enddo
+    n1%x(is)=1.0_dp
+
+    s=n2%x(is)*n1%x(is)
+
+    n=0.0_dp
+    do i=1,3
+       n1%x(i)=n1%x(i)-s*n2%x(i)
+       n=n1%x(i)**2+n
+    enddo
+    do i=1,3
+       n1%x(i)=n1%x(i)/sqrt(n)
+    enddo
+
+    n3%x(1)=n1%x(2)*n2%x(3)-n1%x(3)*n2%x(2)
+    n3%x(2)=n1%x(3)*n2%x(1)-n1%x(1)*n2%x(3)
+    n3%x(3)=n1%x(1)*n2%x(2)-n1%x(2)*n2%x(1)
+
+    n=0.0_dp
+    do i=1,3
+       n=n3%x(i)**2+n
+    enddo
+    do i=1,3
+       n3%x(i)=n3%x(i)/sqrt(n)
+    enddo
+
+ !   if(spin_normal_position==2) then
+ if(abs(n1%x(1))>abs(n3%x(1))) then
+       do i=1,3
+          a(i,1)=n1%x(i)
+          a(i,2)=n2%x(i)
+          a(i,3)=n3%x(i)
+       enddo
+else
+x=n3%x(1)    !.sub.'0'
+
+if(x<0) then
+       do i=1,3
+          a(i,1)=-n3%x(i)
+          a(i,2)=n2%x(i)
+          a(i,3)=n1%x(i)
+       enddo
+else
+       do i=1,3
+          a(i,1)=n3%x(i)
+          a(i,2)=n2%x(i)
+          a(i,3)=-n1%x(i)
+       enddo
+endif
+
+endif
+
+   do i=1,3
+   do j=1,3
+    ai(i,j)=a(j,i)
+   enddo
+   enddo
+  end subroutine find_as
+
+ subroutine find_n0(s0,n0) 
+
+    implicit none
+    real(dp) ,intent(inout) :: s0(3,3)
+    type(spinor), intent(inout) :: n0
+    real(dp)  norm0
+    real(dp) det,detm
+    real(dp) ss(3,3)
+ 
+    integer i,is,j
+
+   ss=0.0_dp
+    
+!    ss=s0
+
+    
+   do i=1,3
+       do j=1,3
+ 
+         ss(i,j)=s0(i,j)
+ 
+       enddo
+    enddo
+
+
+
+    do i=1,3
+       ss(i,i)=ss(i,i)-1.0_dp
+    enddo
+
+    det=(ss(2,2)*ss(3,3)-ss(2,3)*ss(3,2))
+ 
+    is=1
+    detm=(ss(1,1)*ss(3,3)-ss(1,3)*ss(3,1))
+ 
+    if(abs(detm)>=abs(det)) then
+       det=detm
+       is=2
+    endif
+ 
+    detm=ss(1,1)*ss(2,2)-ss(1,2)*ss(2,1)
+    if(abs(detm)>=abs(det)) then
+       det=detm
+       is=3
+    endif
+ 
+
+    n0%x(is)=1.0_dp
+    if(is==1) then
+       n0%x(2)=(-ss(3,3)*ss(2,1)+ss(2,3)*ss(3,1))/det
+       n0%x(3)=(-ss(2,2)*ss(3,1)+ss(2,1)*ss(3,2))/det
+    elseif(is==2) then
+       n0%x(1)=(-ss(3,3)*ss(1,2)+ss(3,2)*ss(1,3))/det
+       n0%x(3)=(-ss(1,1)*ss(3,2)+ss(1,2)*ss(3,1))/det
+    else
+       n0%x(1)=(-ss(2,2)*ss(1,3)+ss(2,3)*ss(1,2))/det
+       n0%x(2)=(-ss(1,1)*ss(2,3)+ss(1,3)*ss(2,1))/det
+    endif
+
+     norm0=sqrt(n0%x(1)**2+n0%x(2)**2+n0%x(3)**2)
+
+ 
+
+    do i=1,3
+       n0%x(i)=n0%x(i)/norm0
+    enddo
+
+
+
+  end subroutine find_n0
+
 
   SUBROUTINE  alloc_temporal_beam(b,n,p0c) ! fibre i1 to i2
     IMPLICIT NONE
@@ -4735,9 +4882,12 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     p%xs%s(1)=0
     p%xs%s(2)=0
     p%xs%s(3)=0
-    p%ds=0.0_dp
+    p%r=0.0_dp
     p%pos=0.0_dp
-    p%xb=0.0_dp
+    p%dt0=0.0_dp
+    p%s(1)%x=0.0_dp
+    p%s(2)%x=0.0_dp
+    p%s(3)%x=0.0_dp
     nullify(p%node)
     nullify(p%xs%lost_node)
 
@@ -4852,7 +5002,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     !######################################
 
     p=dal
-    b%tp(j)%ds=p(3)
+ !   b%tp(j)%r=p(3)
     b%tp(j)%node=>tw
 
     call original_p_to_ptc(b,j,p,tw)
