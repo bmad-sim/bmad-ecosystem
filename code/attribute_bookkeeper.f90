@@ -85,12 +85,12 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i, n, n_div, ixm
+integer i, n, n_div, ixm, ix_pole_max
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical, optional :: force_bookkeeping
-logical err_flag, has_nonzero, set_l
+logical err_flag, set_l
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), vv_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
@@ -302,14 +302,14 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         end select
 
         if (associated(ele%a_pole)) then
-          call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole)
+          call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
           quad_factor = quad_factor + abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))
         endif
 
         if (associated(ele%a_pole_elec)) then
           radius0 = ele%value(r0_elec$)
           if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
-          call multipole_ele_to_ab (ele, .false., has_nonzero, a_pole, b_pole, electric$)
+          call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole, electric$)
           bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / ele%value(p0c$)
           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
         endif
@@ -499,11 +499,11 @@ case (rfcavity$)
 case (sad_mult$)
 
   if (ele%value(eps_step_scale$) > 0) then
-    call multipole_ele_to_kt (ele, .true., has_nonzero, knl, tilt)
+    call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
     eps6 = 6 * ele%value(eps_step_scale$) * bmad_com%sad_eps_scale
     n_div = 1
     ! This is the same algorithm as in SAD to determine the step size.
-    do n = 2, n_pole_maxx
+    do n = 2, ix_pole_max
       if (knl(n) == 0) cycle  
       n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * bmad_com%sad_amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
     enddo

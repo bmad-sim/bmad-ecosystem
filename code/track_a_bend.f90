@@ -44,10 +44,10 @@ real(rp) step_len, g_tot, eps, pxy2, ff, fg, alpha, beta, one_ct
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer n, n_step
+integer n, n_step, ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
-logical has_nonzero_pole, has_nonzero_elec, drifting
+logical drifting
 
 !-----------------------------------------------------------------------
 
@@ -70,18 +70,18 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 n_step = 1
 
 if (is_true(ele%value(exact_multipoles$))) then
-  call init_exact_bend_multipole_coefs (ele, param, .true., has_nonzero_pole) 
+  call init_exact_bend_multipole_coefs (ele, param, .true., ix_pole_max) 
 else
-  call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an,      bn,      magnetic$, include_kicks = .true.)
-  call multipole_ele_to_ab(ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+  call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 endif
 
 if (ele%value(k2$) /= 0 .and. is_false(ele%value(exact_multipoles$))) then
   bn(2) = bn(2) + ele%value(k2$) * ele%value(l$) / 2
-  has_nonzero_pole = .true.
+  ix_pole_max = max(ix_pole_max, 2)
 endif
 
-if (has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
 ! Set some parameters
 
@@ -106,7 +106,7 @@ endif
 
 ! multipole kick at the beginning.
 
-if (has_nonzero_pole .or. has_nonzero_elec) call apply_multipole_kicks (0.5_rp)
+if (ix_pole_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp)
 
 ! And track with n_step steps
 
@@ -351,7 +351,7 @@ do n = 1, n_step
 
   ! multipole kick
 
-  if (has_nonzero_pole .or. has_nonzero_elec) then
+  if (ix_pole_max > -1 .or. ix_elec_max > -1) then
     if (n == n_step) then
       call apply_multipole_kicks (0.5_rp)
     else
@@ -553,8 +553,8 @@ if (is_true(ele%value(exact_multipoles$)) .and. ele%value(g$) /= 0) then
 !
 
 else
-  if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, coef * r_step,   mat6, make_matrix)
-  if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, coef * step_len, mat6, make_matrix)
+  if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, coef * r_step,   mat6, make_matrix)
+  if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, coef * step_len, mat6, make_matrix)
 endif
 
 end subroutine apply_multipole_kicks

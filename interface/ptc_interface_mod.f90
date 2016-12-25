@@ -3150,9 +3150,9 @@ real(rp) ld, hd, lc, hc, angc, xc, dc
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
-integer np, max_order
+integer np, max_order, ix_pole_max
 
-logical use_offsets, has_nonzero_pole, kill_spin_fringe, onemap
+logical use_offsets, kill_spin_fringe, onemap
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3675,7 +3675,7 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
-  call multipole_ele_to_ab(ele, .false., has_nonzero_pole, a_pole, b_pole, electric$)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
 
   if (ele%key == elseparator$) then
     a_pole(0) = a_pole(0) + val(vkick$) * ele%value(p0c$) / leng
@@ -4148,8 +4148,8 @@ real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
-integer n, n_max, key, n_relavent
-logical creating_fibre, kick_here, has_nonzero_pole, add_kick
+integer n, n_max, key, n_relavent, ix_pole_max
+logical creating_fibre, kick_here, add_kick
 
 character(16) :: r_name = 'ele_to_an_bn'
 
@@ -4228,8 +4228,8 @@ case (kicker$)
   add_kick = .false.
 
 case (elseparator$)
-  call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an0, bn0) 
-  if (has_nonzero_pole) then
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0) 
+  if (ix_pole_max > -1) then
     call out_io (s_fatal$, r_name, 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.')
     if (global_com%exit_on_error) call err_exit
     an0 = 0; bn0 = 0
@@ -4262,7 +4262,7 @@ endif
 ! Exception is multipole element.
 
 if (associated(ele%a_pole)) then
-  call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an0, bn0)
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0)
   if (leng /= 0) then
     an0 = an0 / leng
     bn0 = bn0 / leng

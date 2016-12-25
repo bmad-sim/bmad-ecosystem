@@ -86,13 +86,12 @@ real(rp) rot(3), dr(3), rel_tracking_charge, rtc, Ex, Ey, kx, ky
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx)
 
 integer particle, sign_z_vel
-integer n
+integer n, ix_pole_max
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_multipoles, set_spin
 logical, optional, intent(in) :: set_hvkicks, set_z_offset
 logical set_multi, set_hv, set_t, set_hv1, set_hv2, set_z_off, set_spn
-logical has_nonzero_pole
 
 !---------------------------------------------------------------         
 
@@ -278,14 +277,14 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_kt(ele, .false., ix_pole_max, knl, tilt)
+    if (ix_pole_max > -1) then
       call multipole_kicks (knl*charge_dir/2, tilt, param%particle, coord)
       if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
 
-    call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn, electric$)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, electric$)
+    if (ix_pole_max > -1) then
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
         call ab_multipole_kick (an(n), bn(n), n, param%particle, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
@@ -354,14 +353,14 @@ else
   ! Unset: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_kt(ele, .false., ix_pole_max, knl, tilt)
+    if (ix_pole_max > -1) then
       call multipole_kicks (knl*charge_dir/2, tilt, param%particle, coord)
       if (set_spn) call multipole_spin_precession (ele, param, coord)
     endif
 
-    call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn, electric$)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, electric$)
+    if (ix_pole_max > -1) then
       do n = 0, n_pole_maxx
         if (an(n) == 0 .and. bn(n) == 0) cycle
         call ab_multipole_kick (an(n), bn(n), n, param%particle, coord, kx, ky, pole_type = electric$, scale = ele%value(l$)/2)
@@ -560,14 +559,12 @@ complex(rp) kick, pos
 
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), knl
 
-integer n, sign_z_vel
-
-logical has_nonzero_pole
+integer n, sign_z_vel, ix_pole_max
 
 !
 
-call multipole_ele_to_ab(ele, .false., has_nonzero_pole, an, bn)
-if (.not. has_nonzero_pole) return
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn)
+if (ix_pole_max == -1) return
 
 ! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
 ! according to bmad manual, chapter "physics", section "Magnetic Fields"

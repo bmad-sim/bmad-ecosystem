@@ -271,9 +271,9 @@ real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, key, n_loc, ix_pass, n_links
+integer i, key, n_loc, ix_pass, n_links, ix_pole_max
 
-logical has_nonzero_pole, err, calc_done, doit, finished
+logical err, calc_done, doit, finished
 logical, optional :: set_ok
 
 character(*), parameter :: r_name = 'ele_geometry'
@@ -308,7 +308,7 @@ key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
 if (key == multipole$) then
-  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
 endif
 
 ! Fiducial, floor_shift and girder elements.

@@ -286,10 +286,8 @@ real(rp) dz, z1, tilt
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
 
 integer i0, i1, tm_saved, m6cm_saved
-integer i, ix, ip, j_loop, n_pt, n, n1, n2
+integer i, ix, ip, j_loop, n_pt, n, n1, n2, ix_pole_max
 integer, save :: ix_ele = -1
-
-logical has_nonzero_pole
 
 ! Init
 
@@ -468,15 +466,13 @@ info%g = sqrt(info%g2)
 ! Add in multipole gradient
 
 if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_type$) then 
-  call multipole_ele_to_ab (ele, .true., has_nonzero_pole, a_pole, b_pole)
-  if (has_nonzero_pole) then
-    do ip = 0, ubound(a_pole, 1)
-      if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
-      call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, param%particle, orb_end, kx, ky, dk)
-      info%dg2_x = info%dg2_x - 2 * (info%g_x * dk(1,1) + info%g_y * dk(2,1)) / ele%value(l$)
-      info%dg2_y = info%dg2_y - 2 * (info%g_x * dk(1,2) + info%g_y * dk(2,2)) / ele%value(l$)
-    enddo
-  endif
+  call multipole_ele_to_ab (ele, .true., ix_pole_max, a_pole, b_pole)
+  do ip = 0, ix_pole_max
+    if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
+    call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, param%particle, orb_end, kx, ky, dk)
+    info%dg2_x = info%dg2_x - 2 * (info%g_x * dk(1,1) + info%g_y * dk(2,1)) / ele%value(l$)
+    info%dg2_y = info%dg2_y - 2 * (info%g_x * dk(1,2) + info%g_y * dk(2,2)) / ele%value(l$)
+  enddo
 endif
 
 end subroutine propagate_part_way

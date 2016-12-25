@@ -91,7 +91,7 @@ end subroutine multipole1_ab_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)
+! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
@@ -99,8 +99,8 @@ end subroutine multipole1_ab_to_kt
 ! Note: tilt(:) does includes ele%value(tilt_tot$).
 !
 ! Note: To save time, if the element does not have ele%a/b_pole allocated, the knl array 
-!       will NOT be set to zero (has_nonzero_pole will be False). 
-!       That is, the has_nonzero_pole argument needs to be tested before any calculations!
+!       will NOT be set to zero (ix_pole_max will be set to -1). 
+!       That is, the ix_pole_max argument needs to be tested before any calculations!
 !
 ! Input:
 !   ele          -- Ele_struct: Lattice element.
@@ -109,12 +109,12 @@ end subroutine multipole1_ab_to_kt
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !
 ! Output:
-!   has_nonzero_pole    -- Logical: Set True if there is a nonzero pole. False otherwise.
+!   ix_pole_max         -- Integer: Index of largest nonzero pole.
 !   knl(0:n_pole_maxx)  -- Real(rp): Vector of strengths, MAD units.
 !   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -124,15 +124,15 @@ real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp) tilt1
 real(rp), pointer :: a_pole(:), b_pole(:)
 
+integer ix_pole_max
 integer, optional :: pole_type
-integer i
+integer i, ix_max
 
-logical use_ele_tilt, has_nonzero_pole
-logical has_nonzero
+logical use_ele_tilt
 
 ! Init
 
-has_nonzero_pole = .false.
+ix_pole_max = -1
 call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
 
 ! Note: For multipoles, use_ele_tilt arg is ignored.
@@ -143,16 +143,16 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, i)
     call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
     if (.not. associated(a_pole)) cycle
-    call multipole_ele_to_ab (lord, use_ele_tilt, has_nonzero, this_a, this_b, pole_type)
-    if (.not. has_nonzero) cycle
-    if (has_nonzero_pole) then
-      a = a + this_a * (ele%value(l$) / lord%value(l$))
-      b = b + this_b * (ele%value(l$) / lord%value(l$))
-    else
+    call multipole_ele_to_ab (lord, use_ele_tilt, ix_max, this_a, this_b, pole_type)
+    if (ix_max == -1) cycle
+    if (ix_pole_max == -1) then
       a = this_a * (ele%value(l$) / lord%value(l$))
       b = this_b * (ele%value(l$) / lord%value(l$))
+    else
+      a = a + this_a * (ele%value(l$) / lord%value(l$))
+      b = b + this_b * (ele%value(l$) / lord%value(l$))
     endif
-    has_nonzero_pole = .true.
+    ix_pole_max = max(ix_pole_max, ix_max)
   enddo
 
 ! Not a slave
@@ -162,16 +162,16 @@ else
   if (ele%key == multipole$) then
     knl  = a_pole
     tilt = b_pole + ele%value(tilt_tot$)
-    if (any(knl /= 0)) has_nonzero_pole = .true.
+    ix_pole_max = max_nonzero(0, knl)
     return
   else
-    call multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type)
+    call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type)
   endif
 endif
 
 !
 
-if (has_nonzero_pole) then
+if (ix_pole_max > -1) then
   call multipole_ab_to_kt (a, b, knl, tilt)
 endif
 
@@ -255,7 +255,7 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -270,12 +270,12 @@ end subroutine multipole1_kt_to_ab
 !                      Default is False.
 !
 ! Output:
-!   has_nonzero_pole -- logical: Set True if there is a nonzero pole. False otherwise.
+!   ix_pole_max      -- Integer: Index of largest nonzero pole.
 !   a(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !   b(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)
+subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -285,11 +285,12 @@ real(rp) an, bn, cos_t, sin_t, tilt, hk, vk
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:)
 
+integer ix_pole_max
 integer, optional :: pole_type
 integer i, ref_exp, n, tilt_dir
 
 logical, optional :: include_kicks
-logical use_ele_tilt, has_nonzero_pole
+logical use_ele_tilt
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
@@ -297,7 +298,7 @@ character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 a = 0
 b = 0
-has_nonzero_pole = .false.
+ix_pole_max = -1
 
 call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
 
@@ -314,8 +315,8 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
 
     if (lord%key == multipole$) then
-      if (all(a_pole == 0)) return
-      has_nonzero_pole = .true.
+      ix_pole_max = max_nonzero(0, a_pole)
+      if (ix_pole_max == -1) return
       call multipole_kt_to_ab (a_pole, b_pole, a, b)
       return
     endif
@@ -325,17 +326,18 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
 
+  ix_pole_max = max_nonzero(0, a, b)
+
 ! Not a slave
 else
   if (ele%key == multipole$) then
     if (integer_option(magnetic$, pole_type) == electric$) return
-    if (all(a_pole == 0)) return
-    has_nonzero_pole = .true.
+    ix_pole_max = max_nonzero(0, a_pole, b_pole)
+    if (ix_pole_max == -1) return
     call multipole_kt_to_ab (a_pole, b_pole, a, b)
   else
     call convert_this_ab (ele, a, b)
   endif
-
 endif
 
 ! Include h/v kicks?
@@ -369,8 +371,6 @@ if (logic_option(.false., include_kicks) .and. ele%is_on) then
   endif
 
   if (hk /= 0 .or. vk /= 0) then
-    has_nonzero_pole = .true.
-
     if (use_ele_tilt) tilt_dir = tilt_dir + 1
 
     if (ele%key == sbend$) then
@@ -392,6 +392,8 @@ if (logic_option(.false., include_kicks) .and. ele%is_on) then
 
 endif
 
+ix_pole_max = max_nonzero(0, a, b)
+
 !---------------------------------------------
 contains
 
@@ -400,6 +402,7 @@ subroutine convert_this_ab (this_ele, this_a, this_b)
 type (ele_struct) this_ele
 type (branch_struct), pointer :: branch
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx), tilt
+integer ix_max
 logical has_nonzero
 logical a, b ! protect symbols
 
@@ -414,9 +417,8 @@ this_b = b_pole
 ! All zero then we do not need to scale.
 ! Also if scaling is turned off
 
-if (all(this_a == 0) .and. all(this_b == 0)) return
-
-has_nonzero_pole = .true.
+ix_max = max_nonzero(0, this_a, this_b)
+if (ix_max == -1) return
 
 ! use tilt?
 

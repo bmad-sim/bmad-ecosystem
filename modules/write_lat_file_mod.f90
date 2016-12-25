@@ -1705,7 +1705,7 @@ real(rp), optional :: dr12_drift_max
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
-integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa
+integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -1719,7 +1719,7 @@ character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
-logical init_needed, has_nonzero_pole, mad_out
+logical init_needed, mad_out
 logical parsing, warn_printed, converted
 
 ! open file
@@ -1990,8 +1990,8 @@ do
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. &
                                   ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
-    call multipole_ele_to_ab (ele, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
+    if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
       if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
@@ -2392,7 +2392,7 @@ do ix_ele = ie1, ie2
     if (.not. converted) then
 
       a_pole = 0; b_pole = 0
-      if (ele%key /= null_ele$) call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
+      if (ele%key /= null_ele$) call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
 
       select case (ele%key)
 
@@ -2897,12 +2897,12 @@ do ix_ele = ie1, ie2
   case (multipole$, ab_multipole$)
 
     knl = 0; tilts = 0
-    call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilts)
+    call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilts)
     write (line_out, '(2a)') trim(ele%name) // ': multipole'  
 
     if (out_type == 'MAD-X') then
       knl_str = ''; ksl_str = ''
-      call multipole_ele_to_ab (ele, .true., has_nonzero_pole, a_pole, b_pole)
+      call multipole_ele_to_ab (ele, .true., ix_pole_max, a_pole, b_pole)
       do i = 0, 9
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value

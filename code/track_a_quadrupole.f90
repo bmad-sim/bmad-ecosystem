@@ -33,10 +33,10 @@ real(rp) kmat6(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
 real(rp) k1, rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer i, n_step, orientation
+integer i, n_step, orientation, ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
-logical has_nonzero_pole, has_nonzero_elec, drifting
+logical drifting
 
 !
 
@@ -48,11 +48,11 @@ rel_p = 1 + orbit%vec(6)
 
 k1 = charge_dir * ele%value(k1$) / rel_p
 
-call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an,      bn,      magnetic$, include_kicks = .true.)
-call multipole_ele_to_ab (ele, .false., has_nonzero_elec, an_elec, bn_elec, electric$)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
-if (has_nonzero_pole .or. has_nonzero_elec) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
 r_step = 1.0_rp / n_step
 step_len = ele%value(l$) * r_step
@@ -67,8 +67,8 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
-if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
 
 ! Body
 
@@ -112,11 +112,11 @@ do i = 1, n_step
   orbit%vec(3:4) = matmul(kmat6(3:4,3:4), orbit%vec(3:4))
 
   if (i == n_step) then
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
+    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
   else
-    if (has_nonzero_pole) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step,   mat6, make_matrix)
-    if (has_nonzero_elec) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len, mat6, make_matrix)
+    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step,   mat6, make_matrix)
+    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len, mat6, make_matrix)
   endif
 
 enddo

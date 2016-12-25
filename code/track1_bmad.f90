@@ -56,10 +56,10 @@ real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
 real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel, beta_a0, beta_b0, alpha_a0, alpha_b0
 real(rp) p_factor, sin_g, angle, rel_tracking_charge, rtc
 
-integer i, n, n_slice, key, orientation, ix_sec, n_step
+integer i, n, n_slice, key, orientation, ix_sec, n_step, ix_pole_max
 
 logical, optional :: err_flag
-logical err, has_nonzero_pole, has_nonzero_elec
+logical err
 
 character(*), parameter :: r_name = 'track1_bmad'
 
@@ -589,8 +589,8 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
-  call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
-  if (has_nonzero_pole) call multipole_kicks (knl*ele%orientation, tilt, param%particle, end_orb, ref_orb_offset = (ele%key == multipole$))
+  call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilt)
+  if (ix_pole_max > -1) call multipole_kicks (knl*ele%orientation, tilt, param%particle, end_orb, ref_orb_offset = (ele%key == multipole$))
 
   call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
