@@ -50,10 +50,10 @@ real(rp) f, l_drift, ks, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
-integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at
+integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_pole_max
 
 logical, optional :: make_matrix
-logical finished, track_spin, track_spn, has_nonzero_elec
+logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -109,7 +109,7 @@ else
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
-call multipole_ele_to_ab (hard_ele, .false., has_nonzero_elec, a_pole, b_pole, electric$)
+call multipole_ele_to_ab (hard_ele, .false., ix_pole_max, a_pole, b_pole, electric$)
 
 ! Static electric longitudinal field
 ! Note: magnetic fringe effects, which may shift the particle's (x, y) position, need to
@@ -203,10 +203,10 @@ contains
 
 subroutine electric_longitudinal_fringe()
 
-if (has_nonzero_elec) then
+if (ix_pole_max > -1) then
   xiy = 1
   c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
-  do i = 0, max_nonzero(0, a_pole, b_pole)
+  do i = 0, ix_pole_max
     xiy = xiy * c_vec
     if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
     phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)

@@ -65,12 +65,12 @@ real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
 real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k, rel_tracking_charge, rel_charge
 
-integer i, n_slice, key, dir
+integer i, n_slice, key, dir, ix_pole_max
 
 real(rp) charge_dir, hkick, vkick, kick
 
 logical, optional :: end_in, err
-logical err_flag, has_nonzero_pole, has_nonzero_elec, fringe_here, drifting, do_track
+logical err_flag, fringe_here, drifting, do_track
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -680,8 +680,8 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
-  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
-  if (has_nonzero_pole) then
+  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
+  if (ix_pole_max > -1) then
     call multipole_kick_mat (knl*charge_dir, tilt, param%particle, c00, 1.0_rp, ele%mat6)
 
     ! if knl(0) is non-zero then the reference orbit itself is bent
@@ -1095,13 +1095,14 @@ end subroutine set_orb_out
 subroutine add_multipoles_and_z_offset (add_pole)
 
 real(rp) mat6_m(6,6)
-logical has_nonzero_pole, add_pole
+integer ix_pole_max
+logical add_pole
 
 !
 
 if (add_pole) then
-  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
-  if (has_nonzero_pole) then
+  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
+  if (ix_pole_max > -1) then
     knl = knl * ele%orientation
     call multipole_kick_mat (knl, tilt, param%particle, orb_in, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)

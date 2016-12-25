@@ -84,7 +84,7 @@ type (all_pointer_struct) a_ptr
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
 integer i, i1, j, n, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle
+integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
 real(rp) coef, val
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -106,7 +106,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default, has_nonzero_pole
+logical type_zero, err_flag, print_it, is_default
 
 ! init
 
@@ -263,12 +263,12 @@ if (associated(ele%a_pole)) then
 
   a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
   if (ele%key == multipole$) then
-    call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a,  b)
-    call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   else
-    call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a,  b)
-    call multipole_ele_to_ab (ele, .true.,  has_nonzero_pole, a2, b2)
-    call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
 
   do i = 0, n_pole_maxx
@@ -302,7 +302,7 @@ endif
 if (associated(ele%a_pole_elec)) then
 
   do i = 0, n_pole_maxx
-    call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a, b, electric$)
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
     if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, '_elec =', ele%a_pole_elec(i), 'A', i, '_elec(Scaled) =', a(i)
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, '_elec =', ele%b_pole_elec(i), 'B', i, '_elec(Scaled) =', b(i)

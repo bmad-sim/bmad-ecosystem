@@ -41,9 +41,9 @@ real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll, k0
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) :: vec0(6), kmat(6,6)
 
-integer n, nd, orientation, n_div, np_max, physical_end, fringe_at
+integer n, nd, orientation, n_div, np_max, physical_end, fringe_at, ix_pole_max
 
-logical has_nonzero_pole, fringe_here
+logical fringe_here
 
 character(*), parameter :: r_name = 'sad_mult_track_and_mat'
 
@@ -69,7 +69,7 @@ charge_dir = relative_tracking_charge(end_orb, param) * orientation
 if (present(mat6)) call mat_make_unit(mat6)
 
 knl = 0; tilt = 0
-call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
+call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
 knl = knl * charge_dir
 
 ! Setup ele2 which is used in offset_particle
@@ -85,7 +85,7 @@ ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 if (length == 0) then
   call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
 
-  if (has_nonzero_pole) then
+  if (ix_pole_max > -1) then
     call multipole_kicks (knl, tilt, param%particle, end_orb)
     if (present(mat6)) then
       call multipole_kick_mat (knl, tilt, param%particle, end_orb, 1.0_rp, mat6)

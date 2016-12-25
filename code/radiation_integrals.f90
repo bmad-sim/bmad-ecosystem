@@ -127,11 +127,11 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, ip, ir, key, key2, n_step
+integer i, j, k, ip, ir, key, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
-logical do_alloc, use_cache, init_cache, cache_only_wig, err, has_nonzero_pole
+logical do_alloc, use_cache, init_cache, cache_only_wig, err
 logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
@@ -365,17 +365,15 @@ if (use_cache .or. init_cache) then
           c_pt%dgy_dy = -ele2%value(k1$)
         endif
 
-        call multipole_ele_to_ab (ele2, .false., has_nonzero_pole, a_pole, b_pole)
-        if (has_nonzero_pole) then
-          do ip = 0, ubound(a_pole, 1)
-            if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
-            call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, orb_end, kx, ky, dk)
-            c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
-            c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
-            c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)
-            c_pt%dgy_dy = c_pt%dgy_dy - dk(2,2) / ele2%value(l$)
-          enddo
-        endif
+        call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
+        do ip = 0, ix_pole_max
+          if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
+          call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, orb_end, kx, ky, dk)
+          c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
+          c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
+          c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)
+          c_pt%dgy_dy = c_pt%dgy_dy - dk(2,2) / ele2%value(l$)
+        enddo
 
       enddo
     endif

@@ -19,7 +19,7 @@ for n_ord in range(1, 23):
   # F(r) non-log coefs
   coefs = in_file.readline().strip().split(',')
   if coefs == ['']: coefs = []    # For n_ord = 1
-  out_file.write('    ' + str(len(coefs)) + ', [')
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
   coefs += ['0.0'] * (12 - len(coefs))
 
   for ic in range(len(coefs)-1):
@@ -31,7 +31,7 @@ for n_ord in range(1, 23):
   # F(r) log coefs
   coefs = in_file.readline().strip().split(',')
   if coefs == ['']: coefs = ['1.0']  # For n_ord = 1
-  out_file.write('    ' + str(len(coefs)) + ', [')
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
   coefs += ['0.0'] * (11 - len(coefs))
 
   for ic in range(len(coefs)-1):
@@ -42,7 +42,7 @@ for n_ord in range(1, 23):
 
   # Pade numerator coefs
   coefs = in_file.readline().strip().split(',')[n_ord:]
-  out_file.write('    ' + str(len(coefs)) + ', [')
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
   coefs += ['0.0'] * (8 - len(coefs))
 
   for ic in range(len(coefs)-1):
@@ -53,7 +53,7 @@ for n_ord in range(1, 23):
 
   # Pade denominator coefs
   coefs = in_file.readline().strip().split(',')
-  out_file.write('    ' + str(len(coefs)) + ', [')
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
   coefs += ['0.0'] * (9 - len(coefs))
 
   for ic in range(len(coefs)-1):

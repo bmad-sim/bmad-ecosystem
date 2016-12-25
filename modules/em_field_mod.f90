@@ -219,9 +219,9 @@ real(rp) phi0_autoscale, field_autoscale, ds, beta_ref
 complex(rp) exp_kz, exp_m, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
-integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc
+integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
 
-logical :: local_ref_frame, local_ref, has_nonzero_pole
+logical :: local_ref_frame, local_ref
 logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
 logical do_df_calc, err, dfield_computed
 
@@ -552,8 +552,8 @@ case (bmad_standard$)
   ! Add multipoles
 
   if (ele%key == sbend$ .and. is_true(ele%value(exact_multipoles$))) then
-    call init_exact_bend_multipole_coefs(ele, param, local_ref_frame, has_nonzero_pole)
-    if (has_nonzero_pole) then
+    call init_exact_bend_multipole_coefs(ele, param, local_ref_frame, ix_pole_max)
+    if (ix_pole_max > -1) then
       call exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field2, p2, do_df_calc)
       field%e = field%e + field2%e
       field%b = field%b + field2%b
@@ -567,15 +567,14 @@ case (bmad_standard$)
 
   else
 
-    call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+    call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole)
 
     if (ele%key == sbend$) then
       b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
       b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
-      has_nonzero_pole = (has_nonzero_pole .or. (b_pole(1) /= 0) .or. (b_pole(2) /= 0))
     endif
 
-    if (has_nonzero_pole) then
+    if (ix_pole_max > -1 .or. b_pole(1) /= 0 .or. b_pole(2) /= 0) then
 
       if (ele%value(l$) == 0) then
         call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
@@ -604,8 +603,8 @@ case (bmad_standard$)
 
     ! Add electric multipoles
 
-    call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole, electric$)
-    if (has_nonzero_pole) then
+    call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, electric$)
+    if (ix_pole_max > -1) then
       do i = 0, n_pole_maxx
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
