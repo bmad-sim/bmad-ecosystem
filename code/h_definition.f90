@@ -302,7 +302,7 @@ module definition
      type(rf_phasor) AC
      type(spinor) s(3)
      logical u
-     type(integration_node),pointer :: lost_node=>null()
+     type(integration_node),pointer :: last_node=>null()
   end type probe
   !@3 ---------------------------------------------</br>
   type probe_8
@@ -312,14 +312,15 @@ module definition
      type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
      !   stuff for exception
      logical u
-     type(integration_node),pointer :: lost_node=>null()
+     type(integration_node),pointer :: last_node=>null()
   end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE
      TYPE(probe)  XS   ! probe at r=0
      TYPE(INTEGRATION_NODE), POINTER :: NODE
      real(DP)  r, dt0   !  penetration ration, penetration time
-     real(DP)   POS(6)  ! (x,y,z,px,py,pz) at dt0
+     real(DP)   POS(6),T  ! (x,y,z,px,py,pz) at dt0 and total time
+     real(DP)   IC(3)  ! (x,y,z,px,py,pz) at dt0
      type(spinor) s(3) ! spin vectors at dt0
   END type TEMPORAL_PROBE
   !@3 ---------------------------------------------</br>

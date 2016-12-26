@@ -19,7 +19,7 @@ module tree_element_MODULE
   private EQUAL_IDENTITY_SPINOR_8_r3 ,EQUAL_SPINOR_SPINOR8
   private ALLOC_rf_phasor_8,KILL_rf_phasor_8,realdp_spinor
   private sub_spinor
-
+  private EQUAL_PROBE_PROBE
   private dot_spinor_8,dot_spinor
   private  read_spinor_8
   !  private smatp,smatmulp
@@ -69,7 +69,7 @@ module tree_element_MODULE
      MODULE PROCEDURE EQUAL_PROBE8_PROBE8
      MODULE PROCEDURE     EQUAL_SPINOR_SPINOR8
      MODULE PROCEDURE     EQUAL_PROBE_PROBE8
-
+     MODULE PROCEDURE     EQUAL_PROBE_PROBE
 
 
      MODULE PROCEDURE     EQUAL_RF8_RF8
@@ -996,6 +996,22 @@ CONTAINS
     P%u=P8%u
 
   END subroutine EQUAL_PROBE_PROBE8
+
+  subroutine EQUAL_PROBE_PROBE (P,P8)
+    implicit none
+    TYPE(PROBE), INTENT(INOUT) :: P
+    TYPE(PROBE), INTENT(IN) :: P8
+    INTEGER I
+    DO I=1,6
+       P%X(I)=P8%X(I)
+    ENDDO
+    !     P%S(0)=P8%S(0)
+    DO I=1,ISPIN1R
+       P%S(I)=P8%S(I)
+    ENDDO
+    P%u=P8%u
+
+  END subroutine EQUAL_PROBE_PROBE
 
   subroutine EQUAL_IDENTITY_probe(R,S)
     implicit none

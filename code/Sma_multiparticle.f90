@@ -11,7 +11,7 @@ module ptc_multiparticle
   PRIVATE fuzzy_eq,fuzzy_neq
   PRIVATE TRACK_FIBRE_FRONTR,TRACK_FIBRE_FRONTP
   PRIVATE TRACK_FIBRE_BACKR,TRACK_FIBRE_BACKP
-  PRIVATE TRACKR_NODE_SINGLE,TRACKP_NODE_SINGLE,TRACKV_NODE_SINGLE
+  PRIVATE TRACK_NODE_SINGLER,TRACK_NODE_SINGLEP,TRACK_NODE_SINGLEV
   private DRIFTr_BACK_TO_POSITION,DRIFTp_BACK_TO_POSITION  !,DRIFT_BACK_TO_POSITION
   private MAKE_NODE_LAYOUT_2 !,DRIFT_TO_TIME
   PRIVATE MODULATE_R,MODULATE_P
@@ -28,9 +28,9 @@ module ptc_multiparticle
     logical(lp) :: use_bmad_units=.false.
 
   INTERFACE TRACK_NODE_SINGLE
-     MODULE PROCEDURE TRACKR_NODE_SINGLE     !@1  t,x,state,charge
-     MODULE PROCEDURE TRACKP_NODE_SINGLE     !@1  t,y,state,charge
-     MODULE PROCEDURE TRACKV_NODE_SINGLE     !@1  t,v,state,charge
+     MODULE PROCEDURE TRACK_NODE_SINGLER     !@1  t,x,state,charge
+     MODULE PROCEDURE TRACK_NODE_SINGLEP     !@1  t,y,state,charge
+     MODULE PROCEDURE TRACK_NODE_SINGLEV     !@1  t,v,state,charge
   END INTERFACE
 
   INTERFACE convert_bmad_to_ptc
@@ -883,7 +883,7 @@ endif
 
   ! thin lens tracking
 
-  SUBROUTINE TRACKV_NODE_SINGLE(T,V,K) !!
+  SUBROUTINE TRACK_NODE_SINGLEV(T,V,K) !!
     implicit none
     TYPE(INTEGRATION_NODE),POINTER :: T
     TYPE(INTERNAL_STATE)  K
@@ -946,9 +946,9 @@ endif
     IF(MAG_OUT%NEXT%CAS/=CASE2) STOP 202
 
 
-  END SUBROUTINE TRACKV_NODE_SINGLE
+  END SUBROUTINE TRACK_NODE_SINGLEV
 
-  SUBROUTINE TRACKR_NODE_SINGLE(T,X,K) !!
+  SUBROUTINE TRACK_NODE_SINGLER(T,X,K) !!
     ! This routines tracks a single thin lens
     ! it is supposed to reproduce plain PTC
     implicit none
@@ -1138,10 +1138,10 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
     if(wherelost==2.and.(.not.check_stable)) then
        t%lost=t%lost+1
     endif
-  END SUBROUTINE TRACKR_NODE_SINGLE
+  END SUBROUTINE TRACK_NODE_SINGLER
 
 
-  SUBROUTINE TRACKP_NODE_SINGLE(T,X,K) !!
+  SUBROUTINE TRACK_NODE_SINGLEP(T,X,K) !!
     ! This routines tracks a single thin lens
     ! it is supposed to reproduce plain PTC
     implicit none
@@ -1355,7 +1355,7 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
     KNOB=.FALSE.
     ! END NEW STUFF WITH KIND=3
 
-  END SUBROUTINE TRACKP_NODE_SINGLE
+  END SUBROUTINE TRACK_NODE_SINGLEP
 
 
 

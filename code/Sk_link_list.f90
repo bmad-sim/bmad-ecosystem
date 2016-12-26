@@ -395,10 +395,10 @@ CONTAINS
     logical(lp),optional :: reset    
     TYPE (fibre), POINTER :: Current
     TYPE (layout), TARGET, intent(inout):: L
-    integer, intent(inout):: pos
+    integer, optional, intent(inout):: pos
     character(*), intent(in):: name
     CHARACTER(nlp) S1NAME
-    integer i
+    integer i,poss
 
     logical(lp) foundit
     TYPE (fibre), POINTER :: p
@@ -429,23 +429,24 @@ CONTAINS
 100 continue
     if(foundit) then
        current=>p
-       pos=mod_n(l%lastpos+i,l%n)
-       l%lastpos=pos
+       poss=mod_n(l%lastpos+i,l%n)
+       l%lastpos=poss
        l%last=>current
     else
-       pos=0
+       poss=0
        WRITE(6,*) " Fibre not found in move_to_name_old ",S1name
     endif
+    if(present(pos)) pos=poss
   END SUBROUTINE move_to_name_old
 
   SUBROUTINE move_to_partial( L,current,name,pos) ! moves to next one in list called name
     implicit none
     TYPE (fibre), POINTER :: Current
     TYPE (layout), TARGET, intent(inout):: L
-    integer, intent(inout):: pos
+    integer,optional, intent(inout):: pos
     character(*), intent(in):: name
     CHARACTER(nlp) S1NAME
-    integer i
+    integer i,poss
 
     logical(lp) foundit
     TYPE (fibre), POINTER :: p
@@ -469,12 +470,14 @@ CONTAINS
 100 continue
     if(foundit) then
        current=>p
-       pos=mod_n(l%lastpos+i,l%n)
+       poss=mod_n(l%lastpos+i,l%n)
        l%lastpos=pos
        l%last=>current
     else
-       pos=0
+       poss=0
     endif
+ if(present(pos)) pos=poss
+
   END SUBROUTINE move_to_partial
 
   SUBROUTINE move_to_name_FIRSTNAME( L,current,name,VORNAME,pos) ! moves to next one in list called name
