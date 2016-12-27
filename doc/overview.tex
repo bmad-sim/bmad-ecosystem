@@ -16,7 +16,7 @@ practice was inefficient, leading to much duplication of effort.
 Since the development of simulation programs was time consuming,
 needed calculations where not being done.  
 As a response, the \bmad subroutine library, using an
-object oriented approach and written in Fortran90, were developed.
+object oriented approach and written in Fortran 2008, were developed.
 The aim of the \bmad project was to:
 \begin{Itemize}
 \item Cut down on the time needed to develop programs.
@@ -28,9 +28,11 @@ from within control system programs.
 programs.
 \end{Itemize}
 
-\bmad has a wide range of routines to do many things.  \bmad can be
-used to study both single and multi--particle beam dynamics as well
-as X-rays. \bmad has various
+\bmad can be used to study both single and multi--particle beam dynamics as well as X-rays. 
+Over the years, \bmad modules have been developed for simulating a wide variety of phenomena 
+including intra beam scattering (IBS), coherent synchrotron radiation (CSR), Wakefields, 
+Touschek scattering, higher order mode (HOM) resonances, etc., etc.
+\bmad has various
 tracking algorithms including Runge--Kutta and symplectic (Lie
 algebraic) integration.  Wake fields, and radiation excitation and
 damping can be simulated. \bmad has routines for calculating transfer
@@ -63,7 +65,7 @@ The strength of \bmad is that, as a subroutine library, it provides a
 flexible framework from which sophisticated simulation programs may
 easily be developed.  The weakness of \bmad comes from its strength:
 \bmad cannot be used straight out of the box. Someone must put the
-pieces together into a program. To partially remidy this problem, the
+pieces together into a program. To partially remedy this problem, the
 \tao program\cite{b:tao} has been developed at Cornell. \tao, which uses
 \bmad as its simulation engine, is a general purpose program for
 simulating high energy particle beams in accelerators and storage rings.
