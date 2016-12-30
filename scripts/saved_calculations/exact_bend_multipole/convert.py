@@ -60,6 +60,29 @@ for n_ord in range(1, 23):
     if coefs[ic][-1] == '.': coefs[ic] = coefs[ic] + '0'
     if coefs[ic] == '0': coefs[ic] = '0.0'
     out_file.write(coefs[ic] + '_rp, ')
+  out_file.write(coefs[len(coefs)-1] + '_rp], &\n')
+
+  # Pade 2nd derivative numerator coefs
+  mx = max(n_ord-2, 0)
+  coefs = in_file.readline().strip().split(',')[mx:]
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
+  coefs += ['0.0'] * (8 - len(coefs))
+
+  for ic in range(len(coefs)-1):
+    if coefs[ic][-1] == '.': coefs[ic] = coefs[ic] + '0'
+    if coefs[ic] == '0': coefs[ic] = '0.0'
+    out_file.write(coefs[ic] + '_rp, ')
+  out_file.write(coefs[len(coefs)-1] + '_rp], &\n')
+
+  # Pade 2nd derivative denominator coefs
+  coefs = in_file.readline().strip().split(',')
+  out_file.write('    ' + str(len(coefs)-1) + ', [')
+  coefs += ['0.0'] * (9 - len(coefs))
+
+  for ic in range(len(coefs)-1):
+    if coefs[ic][-1] == '.': coefs[ic] = coefs[ic] + '0'
+    if coefs[ic] == '0': coefs[ic] = '0.0'
+    out_file.write(coefs[ic] + '_rp, ')
   out_file.write(coefs[len(coefs)-1] + '_rp]), &\n')
 
   #

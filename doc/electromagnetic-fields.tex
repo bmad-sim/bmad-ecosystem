@@ -60,6 +60,7 @@ horizontal focusing and vertical defocusing. The general form is
              \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
+where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$.
 
 \index{multipole!KnL, Tn|hyperbf}
 So far only the normal components of the field have been
@@ -212,58 +213,72 @@ field given by $-\Delta \phi$. The potential is a solution to Laplace's equation
   \left( r \, \frac{\partial \, \phi}{\partial \, r} \right) +
   \frac{\partial^2 \phi}{\partial \, y^2} = 0
 \Endeq
-where $r$ is the distance, in the plane of the bend, from the bend center to the observation point.
-In the equations that follow, $r$, and $y$ will be normalized by the bending radius $\rho$. With this
-convention, the normalized distance $x$ from the reference trajectory is related to $r$ by $r = 1 + x$.
+where $r$ is the distance, in the plane of the bend, from the bend center to the
+observation point.  In the equations that follow, $r$, and $y$ will be normalized by the
+bending radius $\rho$. With this convention, the normalized ``horizontal'' distance $x$
+from the reference trajectory is related to $r$ by $r = 1 + x$.
 
-Solutions to Laplace's equation can be found in form
+As McMillian shows, it is also possible to calculate the magnetic field by constructing the
+appropriate vector potential. However, from a practical point of view, it is simpler to use the
+scaler potential for both the magnetic and electric fields.
+
+The $n$\Th order solutions to Laplace's equation can be found in form
 \Begineq
-  \phi_{n1} = \sum_{m = 0}^{\lfloor (n+1)/2 \rfloor} 
-             \begin{pmatrix} n + 1 \cr 2m \end{pmatrix} \,
-             (-1)^{m+1} \, F_{n+1-2m}(r) \, y^{2m}
-  \label{psmn1}
+  \phi_{n}^r = \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
+             \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
+             (-1)^{p+1} \, F_{n+1-2p}(r) \, y^{2p}
+  \label{pspn1}
 \Endeq
 and in the form
 \Begineq
-  \phi_{n2} = \sum_{m = 0}^{\lfloor n/2 \rfloor} 
-             \begin{pmatrix} n + 1 \cr 2m +1 \end{pmatrix} \,
-             (-1)^{m} \, F_{n-2m}(r) \, y^{2m+1}
-  \label{psmn2}
+  \phi_{n}^i = \sum_{p = 0}^{\lfloor n/2 \rfloor} 
+             \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
+             (-1)^{p} \, F_{n-2p}(r) \, y^{2p+1}
+  \label{pspn2}
 \Endeq
-where the $F_m(r)$ are related by 
+[Notice that here $n$ is related to $m$ in McMillian's paper by $m = n + 1$.]
+where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$,
+and the $F_p(r)$ are related by 
 \Begineq
-  F_{m+2} = (m + 1) \, (m + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{m} \right]
+  F_{p+2} = (p + 1) \, (p + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{p} \right]
 \Endeq
-
-For magnetic fields, the $\phi_{n1}$ solutions will correspond to skew fields of order $n$ and the
-$\phi_{n2}$ solutions will correspond to normal fields of order $n$. For electric fields, the reverse
-is true with the $\phi_{n1}$ solutions corresponding to normal fields and and the $\phi_{n2}$ 
-solutions corresponding to skew fields both of order $n$.
-
-In order for the series to terminate at $F_0$ or $F_1$ in \Eq{psmn1} and \Eq{psmn2} the
-condition is imposed that
+with the ``boundary condition'':
 \begin{align}
   F_0(r) &= 1 \CRNO
-  F_1(r) &= \ln \, r = x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \ldots
+  F_1(r) &= \ln \, r
 \end{align}
-[Note that this is not a unique solution.] With this, the higher order $F_m$ can be calculated
+This condition ensures that the number of terms in the sums in \Eqs{pspn1} and \eq{pspn2}
+are finite. With this condition, all the $F_p$ can be constructed:
 \begin{align}
+  F_1 &= \ln \, r = x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \ldots \CRNO
   F_2 &= \frac{1}{2} (r^2 - 1) - \ln r = x^2 - \frac{1}{3}x^3 + \frac{1}{4} x^4 - \ldots \CRNO
   F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots \\
   F_4 &= 3 [ \frac{1}{8} (r^4 - 1) + \frac{1}{2} (r^2 - 1) - (r^2 + \frac{1}{2}) \ln r] = 
-         x^4 - \frac{2}{5} x^5 + \ldots \CRNO
+         x^4 - \frac{2}{5} x^5 + \frac{3}{10} x^6 \ldots \CRNO
   &\text{Etc...} \nonumber
 \end{align}
-Care must be taken in evaluating the $F_m(r)$ near $r = 1$ ($x = 0$), especially for large
-$m$, since there is considerable loss in accuracy due to the near cancellation of
-terms. \bmad uses a Pad\'e approximate to avoid undue accuracy loss.
+In terms of implementing these functions on a computer, the exact $r$-dependent functions
+are problematical due to round off error near $x = 0$. For example, Evaluating $F_4(r)$ at
+$x = 10^{-4}$ results in a complete loss of accuracy (no significant digits!) when using
+double precision numbers. In practice, \bmad uses the expansion in $x$ for $x$ small
+enough and then switches to the $r$-dependent formulas for $x$ away from zero.
 
-In the vertical plane, with $x = 0$, the solutions $\phi_{n1}$ and $\phi_{n2}$ have the
+For magnetic fields, the $\phi_n^r$ solutions will correspond to skew fields and the
+$\phi_n^i$ solutions will correspond to normal fields
+\Begineq
+  \bfB = \sum_{n = 0}^\infty \left[ \frac{b_n}{n+1} \nabla \phi_n^r + \frac{a_n}{n+1} \nabla \phi_n^i \right]
+\Endeq
+For electric fields, the reverse is true
+\Begineq
+  \bfE = \sum_{n = 0}^\infty \left[ \frac{b_{en}}{n+1} \nabla \phi_n^i + \frac{a_{en}}{n+1} \nabla \phi_n^r \right]
+\Endeq
+
+In the vertical plane, with $x = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the
 same variation in $y$ as the multipole fields with a straight geometry. For example, the
-field strength of a quadrupole multipole will be linear in $y$ for $x = 0$. In the
-horizontal plane, with $y = 0$, this is not the case. Thus, for example, a quadrupole
+field strength of a $n = 1$ (quadrupole) multipole will be linear in $y$ for $x = 0$. In the
+horizontal plane, with $y = 0$, this is not the case. Thus, for example, a $n = 1$
 multipole field in the horizontal plane will vary like $dF_2/dx$ which has terms of all orders in
-$x$. In light of this, the solutions $\phi_{n1}$ and $\phi_{n2}$ are called ``vertically
+$x$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are called ``vertically
 pure'' solutions.
 
 It is possible to construct ``horizontally pure'' solutions as well. That is, it is
@@ -272,25 +287,26 @@ as the corresponding multipole fields with a straight geometry. A straight forwa
 do this is, for some given multipole of order $n$, is to construct the horizontally pure
 solutions from the vertically pure solutions via
 \begin{align}
-  \Phi_{n1} &= \phi_{n1} + \sum_{k = n+1}^\infty C_{nk} \, \phi_{k1} \CRNO
-  \Phi_{n2} &= \phi_{n2} + \sum_{k = n+1}^\infty D_{nk} \, \phi_{k2}
+  \Phi_n^r &= \phi_n^r + \sum_{k = n+1}^\infty C_{nk} \, \phi_{k1} \CRNO
+  \Phi_n^i &= \phi_n^i + \sum_{k = n+1}^\infty D_{nk} \, \phi_{k2}
 \end{align}
-The $C_{nk}$ and $D_{nk}$ are chosen, order by order, so that $\Phi_{n1}$ and $\Phi_{n2}$
-are horizontally pure (see McMillan).
+The $C_{nk}$ and $D_{nk}$ are chosen, order by order, so that $\Phi_n^r$ and $\Phi_n^i$
+are horizontally pure (see McMillan). Unlike the vertically pure solutions, a horizontally
+pure $\Phi_n$ has an infinite number of terms. 
 
 The vertically pure solutions form a complete set. That is, any given field that satisfies
 Maxwell's equations and is independent of $z$ can be expressed as a linear combination of
-$\phi_{n1}$ and $\phi_{n2}$. Similarly, the horizontally pure solutions form a complete
-set. Additionally, it is possible to construct other complete sets in which the
-basis functions are neither horizontally pure nor vertically pure.
+$\phi_n^r$ and $\phi_n^i$. Similarly, the horizontally pure solutions form a complete
+set. Additionally, it is possible to construct other complete sets in which the basis
+functions are neither horizontally pure nor vertically pure.
 
 This brings up an important point. to properly simulate a machine, one must first of all
 understand whether the multipole values that have been handed to you are for horizontally
 pure multipoles, vertically, pure multipoles, or perhaps the values do not correspond to
 either horizontally pure nor vertically pure solutions! Furthermore, it is important to
-know how a program models multipoles. For example, a horizontally pure quadrupole field
-will lead to a different chromatisity than a vertically pure quadrupole field of the same
-strength.
+know how a program models multipoles. For example, the chromaticity induced by a
+horizontally pure quadrupole field will be different from the chromaticity of a vertically
+pure quadrupole field of the same strength.
 
 %-----------------------------------------------------------------
 \section{Map Decomposition of Magnetic and Electric Fields}
