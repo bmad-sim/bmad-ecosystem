@@ -415,7 +415,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   b1_gradient        = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient        = <Real>     ! Sextupole field strength (\sref{s:depend}).
   e1, e2             = <Real>     ! Face angles.
-  exact_multipoles   = <Logical>  ! Curved coordinate correction? Default False.
+  exact_multipoles   = <Switch>   ! Curved coordinate correction? \vn{off} is default.
   fint, fintx        = <Real>     ! Face field integrals.
   g                  = <Real>     ! Design bend strength (= 1/rho).
   g_err              = <Real>     ! Bend strength error (\sref{s:depend}).
@@ -468,15 +468,27 @@ corresponding SAD parameters is:
 \end{example}
   \index{exact_multipoles}
   \item[exact_multipoles] \Newline
-The \vn{exact_multipoles} logical (default \vn{False}) determines if the multipole fields,
-both magnetic and electric, and including \vn{k1} and\vn{k2}, are corrected for the finite
-curvature of the reference orbit in a bend. ``exact'' here means that the multipole fields
-are corrected using a multipole expansion up to 21\St order. That is, the difference
-between what is implemented here and a true exact calculation should be insignificant
-under realistic conditions.
+The \vn{exact_multipoles} switch can be set to one of:
+\begin{example}
+  off                 ! Default
+  vertically_pure    
+  horizontally_pure  
+\end{example}
+This switch determines if the multipole fields, both magnetic and electric, and including
+the \vn{k1} and \vn{k2} components, are corrected for the finite curvature of the
+reference orbit in a bend. See \sref{s:field.exact} for a discussion of what
+\vn{vertically} pure versus \vn{horizontally} pure means. Setting \vn{exact_multipoles} to
+\vn{vertically_pure} means that the individual $a_n$ and $b_n$ multipole components are
+used with the vertically pure solutions
+\begin{align}
+  \bfB &= \sum_{n = 0}^\infty \left[ \frac{b_n}{n+1} \nabla \phi_n^r + \frac{a_n}{n+1} \nabla \phi_n^i \right] \nonumber
+  \bfE &= \sum_{n = 0}^\infty \left[ \frac{b_{en}}{n+1} \nabla \phi_n^i + \frac{a_{en}}{n+1} \nabla \phi_n^r \right]
+\end{align}
+and if \vn{exact_multipoles} is set to \vn{horizontally_pure} the horizontally pure solutions $\Phi_n^r$ and $\Phi_n^i$ are
+used instead of the vertically pure solutions $\phi_n^r$ and $\phi_n^i$.
 
-The implementation of the multipole field is imported from PTC (\sref{c:ptc}) with the kind help
-of \'Etienne Forest. To turn on the calculation with PTC based tracking (\sref{c:methods}), set
+To use exact multipoles with PTC based tracking (\sref{c:methods}), the PTC exact model
+tracking must be turned on. That is, in the lattice file set:
 \begin{example}
   parameter[ptc_exact_model] = T
 \end{example}

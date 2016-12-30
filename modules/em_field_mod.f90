@@ -570,11 +570,17 @@ case (bmad_standard$)
     call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole)
 
     if (ele%key == sbend$) then
-      b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
-      b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
+      if (ele%value(k1$) /= 0) then
+        b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
+        ix_pole_max = max(1, ix_pole_max)
+      endif
+      if (ele%value(k2$) /= 0) then
+        b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
+        ix_pole_max = max(2, ix_pole_max)
+      endif
     endif
 
-    if (ix_pole_max > -1 .or. b_pole(1) /= 0 .or. b_pole(2) /= 0) then
+    if (ix_pole_max > -1) then
 
       if (ele%value(l$) == 0) then
         call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
@@ -583,7 +589,7 @@ case (bmad_standard$)
         return
       endif
 
-      do i = 0, n_pole_maxx
+      do i = 0, ix_pole_max
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
           call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, local_orb, kx, ky, dkm)
@@ -604,15 +610,13 @@ case (bmad_standard$)
     ! Add electric multipoles
 
     call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, electric$)
-    if (ix_pole_max > -1) then
-      do i = 0, n_pole_maxx
-        if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-        call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
-        field%E(1) = field%E(1) + Ex
-        field%E(2) = field%E(2) + Ey
-        if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
-      enddo
-    endif
+    do i = 0, ix_pole_max
+      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
+      field%E(1) = field%E(1) + Ex
+      field%E(2) = field%E(2) + Ey
+      if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
+    enddo
 
   endif
 
