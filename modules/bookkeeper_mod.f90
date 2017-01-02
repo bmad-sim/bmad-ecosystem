@@ -1951,8 +1951,6 @@ branch => slave%branch
 n_attrib = 0
 val_attrib = 0
 
-call set_ele_status_stale (slave, attribute_group$)
-
 l_stat = slave%lord_status
 ix_slave = slave%ix_ele
 
@@ -2062,8 +2060,10 @@ enddo
 do iv = 1, n_attrib
 
   a_ptr%r => ptr_attrib(iv)%r
-  if (a_ptr%r == val_attrib(iv)) cycle
+  ! If there is no significant change in the attribute then do not set bookkeeping flags stale.
+  if (abs(a_ptr%r - val_attrib(iv)) <= small_rel_change$ * (abs(a_ptr%r) + abs(val_attrib(iv)))) cycle
   a_ptr%r = val_attrib(iv)
+  call set_ele_status_stale (slave, attribute_group$)
   call set_flags_for_changed_attribute (slave, a_ptr%r)
 
   ! If varying length then must update any associated super_lords and super_slaves
@@ -2130,36 +2130,44 @@ slave%bookkeeping_state%control = ok$
 !-------------------------------------------------------------------------------
 contains
 
+! Add to slave attribute the contribution from a lord overlay.
+
 subroutine overlay_change_this (r_attrib, c)
 
 type (ele_struct), pointer :: my_lord, my_slave
 type (control_struct) c
 
 real(rp), target :: r_attrib
-real(rp) delta
+real(rp) this_contribution
 integer iv
 logical err_flag
 
 character(100) err_str
 
-!
+! First evaluate the contribution from the overlay lord
 
-call evaluate_expression_stack(c%stack, delta, err_flag, err_str, lord%control_var, .false.)
+call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control_var, .false.)
 if (err_flag) then
   call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
   err_flag = .true.
   return
 endif
 
+! If the contribution (this_contribution) contributes to a slave attribute that is on the val_attrib list then
+! just add this_contribution to the slave attribute
+
 do iv = 1, n_attrib
   if (.not. associated(ptr_attrib(iv)%r, r_attrib)) cycle
-  val_attrib(iv) = val_attrib(iv) + delta
+  val_attrib(iv) = val_attrib(iv) + this_contribution
   return
 enddo
 
+! Must be a slave attribute that is not in the val_attrib list
+! So add this slave attribute to the list and set the value to this_contribution
+
 n_attrib = n_attrib + 1
 ptr_attrib(n_attrib)%r => r_attrib
-val_attrib(n_attrib) = val_attrib(n_attrib) + delta
+val_attrib(n_attrib) = this_contribution
 
 end subroutine overlay_change_this
 
