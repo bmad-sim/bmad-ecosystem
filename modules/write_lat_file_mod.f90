@@ -1787,7 +1787,7 @@ call init_ele (ab_ele, ab_multipole$)
 call init_ele (kicker_ele, kicker$) 
 call init_ele (quad_ele, quadrupole$)
 call init_ele (bend_ele, sbend$)
-call multipole_init (ab_ele)
+call multipole_init (ab_ele, magnetic$)
 null_ele%key = null_ele$
 
 ie1 = integer_option(1, ix_start)

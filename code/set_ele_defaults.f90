@@ -182,7 +182,7 @@ case (multilayer_mirror$)
 
 case (multipole$, ab_multipole$)
   if (logic_option(.true., do_allocate)) then
-    call multipole_init (ele, .true.)
+    call multipole_init (ele, magnetic$, .true.)
   endif
   ele%scale_multipoles = .false.
 
@@ -231,7 +231,7 @@ case (sad_mult$)
   ele%value(eps_step_scale$) = 1
   ele%scale_multipoles = .false.
   if (logic_option(.true., do_allocate)) then
-    call multipole_init (ele, .true.)
+    call multipole_init (ele, magnetic$, .true.)
   endif
 
 case (sample$)

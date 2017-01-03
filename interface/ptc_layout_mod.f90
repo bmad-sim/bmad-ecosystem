@@ -1336,7 +1336,7 @@ call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 
 if (associated(fib%mag%tp10)) then
   if (associated(fib%mag%tp10%ae)) then
-    if (.not. associated(ele%a_pole_elec)) call elec_multipole_init(ele)
+    if (.not. associated(ele%a_pole_elec)) call multipole_init(ele, electric$)
     nmul = min(size(fib%mag%tp10%ae), n_pole_maxx+1)
     ele%a_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:nmul)
     ele%b_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%be(1:nmul)

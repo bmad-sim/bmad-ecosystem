@@ -1301,7 +1301,7 @@ if (delim /= '=')  then
   err_flag = .false.
 
   if (ele%key == multipole$ .and. ix_attrib >= t0$) then
-    if (.not. associated(ele%a_pole)) call multipole_init (ele)
+    if (.not. associated(ele%a_pole)) call multipole_init (ele, magnetic$)
     ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
     return
   endif
@@ -1688,7 +1688,7 @@ case default   ! normal attribute
       j = ix_attrib - a0_elec$ - 6 * (i - 1)
       ele%mat6(i,j) = value
     elseif (is_attribute(ix_attrib, multipole$) .and. attrib_word(1:4) /= 'CURV') then  
-        if (.not. associated(ele%a_pole)) call multipole_init (ele)
+        if (.not. associated(ele%a_pole)) call multipole_init (ele, magnetic$)
         if (ix_attrib >= b0$) then
           ele%b_pole(ix_attrib-b0$) = value
         else
@@ -1696,7 +1696,7 @@ case default   ! normal attribute
         endif
     ! Electric multipole attribute
     elseif (is_attribute(ix_attrib, elec_multipole$)) then
-        if (.not. associated(ele%a_pole_elec)) call elec_multipole_init (ele)
+        if (.not. associated(ele%a_pole_elec)) call multipole_init (ele, electric$)
         if (ix_attrib >= b0_elec$) then
           ele%b_pole_elec(ix_attrib-b0_elec$) = value
         else

@@ -204,7 +204,7 @@ do ie = npos1, npos2-1
       ele%value(fintx$)    = pdata(dat_indx+12)
 
       if (k2 /= 0) then
-        call multipole_init (ele)
+        call multipole_init (ele, magnetic$)
         ele%b_pole(2) = k2 / 2
       endif
 
@@ -242,7 +242,7 @@ do ie = npos1, npos2-1
 
     case (mad_multi, mad_dimu)
       call add_ele (multipole$)
-      call multipole_init (ele)
+      call multipole_init (ele, magnetic$)
       ele%value(l$)        = pdata(dat_indx)
       ele%a_pole(0:20)          = pdata(dat_indx+1:dat_indx+41:2)
       ele%b_pole(0:20)          = pdata(dat_indx+2:dat_indx+42:2)
@@ -366,7 +366,7 @@ do ie = npos1, npos2-1
       aperture = pdata(dat_indx+4)
 
       if (k2 /= 0) then
-        call multipole_init (ele)
+        call multipole_init (ele, magnetic$)
         ele%b_pole(2) = k2 / 2
       endif
 

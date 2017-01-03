@@ -252,7 +252,7 @@ call transfer_exact_bend_multipole (ele_in%exact_bend_multipole, ele_out%exact_b
 if (associated(ele_in%a_pole)) then
   ele_out%a_pole => ele_save%a_pole   ! reinstate
   ele_out%b_pole => ele_save%b_pole   ! reinstate
-  call multipole_init (ele_out)
+  call multipole_init (ele_out, magnetic$)
   ele_out%a_pole = ele_in%a_pole
   ele_out%b_pole = ele_in%b_pole
 else
@@ -264,7 +264,7 @@ endif
 if (associated(ele_in%a_pole_elec)) then
   ele_out%a_pole_elec => ele_save%a_pole_elec   ! reinstate
   ele_out%b_pole_elec => ele_save%b_pole_elec   ! reinstate
-  call elec_multipole_init (ele_out)
+  call multipole_init (ele_out, electric$)
   ele_out%a_pole_elec = ele_in%a_pole_elec
   ele_out%b_pole_elec = ele_in%b_pole_elec
 else

@@ -633,12 +633,12 @@ if (ix_d /= 0) then
 endif
 
 if (ix_m /= 0) then
-  call multipole_init (ele)
+  call multipole_init (ele, magnetic$)
   read (d_unit, err = 9600) ele%a_pole, ele%b_pole
 endif
   
 if (ix_e /= 0) then
-  call elec_multipole_init (ele)
+  call multipole_init (ele, electric$)
   read (d_unit, err = 9600) ele%a_pole_elec, ele%b_pole_elec
 endif
 

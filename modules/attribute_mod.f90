@@ -894,7 +894,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
   else
     if (.not. associated(ele%a_pole)) then
       if (do_allocation) then
-        call multipole_init (ele)
+        call multipole_init (ele, magnetic$)
       else
         if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
         return
@@ -915,7 +915,7 @@ if (ix_attrib >= a0_elec$ .and. ix_attrib <= b21_elec$) then
 
   if (.not. associated(ele%a_pole_elec)) then
     if (do_allocation) then
-      call multipole_init (ele, .true.)
+      call multipole_init (ele, electric$)
     else
       if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
       return
