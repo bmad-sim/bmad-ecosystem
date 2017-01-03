@@ -490,6 +490,14 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
   integer, intent(in) :: i_dim
 end subroutine
 
+subroutine multipole_init (ele, who, zero)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer who
+  logical, optional :: zero
+end subroutine
+
 subroutine multipole_spin_precession (ele, param, orbit)
   import
   implicit none

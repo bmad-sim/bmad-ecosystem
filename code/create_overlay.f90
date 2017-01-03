@@ -104,11 +104,11 @@ do j = 1, n_slave
   ! If the slave attribute is a multipole component, make sure it exists.
 
   if (is_attribute(ix_attrib, multipole$) .and. .not. associated (slave%a_pole)) then
-    call multipole_init(slave)
+    call multipole_init(slave, magnetic$)
   endif
 
   if (is_attribute(ix_attrib, elec_multipole$) .and. .not. associated (slave%a_pole_elec)) then
-    call elec_multipole_init(slave)
+    call multipole_init(slave, electric$)
   endif
 
   !
