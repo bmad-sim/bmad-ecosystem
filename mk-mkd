@@ -77,14 +77,34 @@ then
     exit 1
 fi
 
-# Just incase the gmake -j level is not set, we'll set it here, to "2".
-if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ]
+# Set the requested value for -j or just incase the gmake -j level is not set, we'll set it here, to "2".
+# And grab any exe directives.
+[[ ${1} = *exe* ]] && export ACC_EXE_NAME=${1}
+if [[ ${1} = *j* ]]
+then
+    REQUESTED_GMAKE_JOBS=$(echo ${1} | cut -dj -f2)
+    [ ${REQUESTED_GMAKE_JOBS} ] && export ACC_SET_GMAKE_JOBS=${REQUESTED_GMAKE_JOBS} || export ACC_SET_GMAKE_JOBS=${2}
+
+    if ! [ "${ACC_SET_GMAKE_JOBS}" -eq "${ACC_SET_GMAKE_JOBS}" ] 2> /dev/null
+    then
+	export ACC_SET_GMAKE_JOBS=2
+    fi
+
+    if [[ ${2} = *exe* ]] 
+    then
+	export ACC_EXE_NAME=${2} 
+    elif [[ ${3} = *exe* ]]
+    then
+	export ACC_EXE_NAME=${3}
+    fi
+
+elif [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ]
 then
     export ACC_SET_GMAKE_JOBS=2
 fi
 
 # Only invoke cmake if the user has not requested a 'clean'.
-case ${1} in
+case ${@} in
     clean)
 	if [ -d ${BUILD_TYPE} ]
 	then
@@ -112,10 +132,10 @@ case ${1} in
 	echo -e "   "`pwd`"\n"
 	;;
 
-    test)
+    *test)
 	if [ -e acc_build ] 
 	then 
-	    ./acc_build -"${BUILD_TYPE}" -"${1}"
+	    ./acc_build -"${BUILD_TYPE}" -test
 	    [ $? -eq 0 ] && func_display_build_time
 	else
 	    [ -d ${BUILD_TYPE} ] && cd ${BUILD_TYPE}
@@ -142,7 +162,7 @@ case ${1} in
 	    fi
 
 	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} "${ACC_CMAKE_ARGS[@]}" .. || exit 1
-	    gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
+	    gmake -j ${ACC_SET_GMAKE_JOBS} ${ACC_EXE_NAME}
 	    [ $? -eq 0 ] && func_display_build_time
 	fi
 	;;
