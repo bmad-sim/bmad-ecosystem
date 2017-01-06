@@ -190,7 +190,6 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
 type (em_potential_struct), optional :: potential
-type (em_potential_struct) :: p2
 type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
@@ -223,7 +222,7 @@ integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_po
 
 logical :: local_ref_frame, local_ref
 logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
-logical do_df_calc, err, dfield_computed
+logical do_df_calc, err, dfield_computed, add_kicks
 
 character(20) :: r_name = 'em_field_calc'
 
@@ -551,22 +550,19 @@ case (bmad_standard$)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  if (ele%key == sbend$ .and. is_true(ele%value(exact_multipoles$))) then
-    call init_exact_bend_multipole_coefs(ele, param, local_ref_frame, ix_pole_max)
-    if (ix_pole_max > -1) then
-      call exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field2, p2, do_df_calc)
-      field%e = field%e + field2%e
-      field%b = field%b + field2%b
-      if (do_df_calc) then
-        field%de = field2%de
-        field%db = field2%db
-      endif
+  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$) then
+    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc)
+    field%e = field%e + field2%e
+    field%b = field%b + field2%b
+    if (do_df_calc) then
+      field%de = field2%de
+      field%db = field2%db
     endif
+    add_kicks = .false.  ! h/vkicks are accounted for in bend_exact_multipole_field
 
   ! Everything but exact bend multipoles
-
   else
-
+    add_kicks = .true.
     call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole)
 
     if (ele%key == sbend$) then
@@ -623,7 +619,7 @@ case (bmad_standard$)
   !-------------------------------
   ! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
 
-  if (has_hkick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
+  if (add_kicks .and. has_hkick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
     select case (ele%key)
     ! Handled above
     case (kicker$, hkicker$, vkicker$, elseparator$)  

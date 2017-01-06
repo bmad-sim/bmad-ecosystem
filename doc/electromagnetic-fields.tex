@@ -204,41 +204,50 @@ Where $\beta$ is the normalized velocity.
 \label{s:field.exact}
 
 For static magnetic and electric multipole fields in a bend, the spacial dependence of the
-field is different from multipole fields in an element with straight geometry as given by
-\Eqs{qlpbb} and \eq{exiey}. The analysis here follows McMillan\cite{b:mcmillan}.  An
-electric or magnetic multipole can be characterized by a scaler potential $\phi$ with the
-field given by $-\Delta \phi$. The potential is a solution to Laplace's equation
+field is different from multipole fields in an element with a straight geometry as given
+by \Eqs{qlpbb} and \eq{exiey}. The analysis of the multipole fields in a bend here follows
+McMillan\cite{b:mcmillan}.  
+
+In the rest of this section, normalized coordinates $\what r = r / \rho$, $\what x / = x /
+\rho$, and $\what y = y / \rho$ will be used where $\rho$ is the bending radius of the
+reference coordinate system, $r$ is the distance, in the plane of the bend, from the bend
+center to the observation point, $x$ is the distance in the plane of the from the referece
+coordinates to the observation point and $y$ is the distance out-of-plane. With this
+convention $\what r = 1 + \what x$.
+
+In the rest of this section only normalized coordinates will be used. Thus, to simplify
+the displayed equations, the circumflex over the normalized coordinates will be dropped.
+
+An electric or magnetic multipole can be characterized by a scaler potential $\phi$ with
+the field given by $\nabla \phi$.  The potential is a solution to Laplace's equation
 \Begineq
   \frac{1}{r} \, \frac{\partial}{\partial \, r} 
   \left( r \, \frac{\partial \, \phi}{\partial \, r} \right) +
   \frac{\partial^2 \phi}{\partial \, y^2} = 0
 \Endeq
-where $r$ is the distance, in the plane of the bend, from the bend center to the
-observation point.  In the equations that follow, $r$, and $y$ will be normalized by the
-bending radius $\rho$. With this convention, the normalized ``horizontal'' distance $x$
-from the reference trajectory is related to $r$ by $r = 1 + x$.
-
 As McMillian shows, it is also possible to calculate the magnetic field by constructing the
 appropriate vector potential. However, from a practical point of view, it is simpler to use the
 scaler potential for both the magnetic and electric fields.
 
-The $n$\Th order solutions to Laplace's equation can be found in form
+Solutions to Laplace's equation can be found in form
 \Begineq
-  \phi_{n}^r = \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
+  \phi_{n}^r = \frac{1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
-             (-1)^{p+1} \, F_{n+1-2p}(r) \, y^{2p}
+             (-1)^{p} \, F_{n+1-2p}(r) \, y^{2p}
   \label{pspn1}
 \Endeq
 and in the form
 \Begineq
-  \phi_{n}^i = \sum_{p = 0}^{\lfloor n/2 \rfloor} 
+  \phi_{n}^i = \frac{1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
              (-1)^{p} \, F_{n-2p}(r) \, y^{2p+1}
   \label{pspn2}
 \Endeq
-[Notice that here $n$ is related to $m$ in McMillian's paper by $m = n + 1$.]
-where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$,
-and the $F_p(r)$ are related by 
+[Notice that here $n$ is related to $m$ in McMillian's paper by $m = n + 1$. Also note
+that the $\phi^r$ and $\phi^i$ here have a normalization factor that is different from
+McMillian.]  where $n$ is the order number which can range from 0 to infinity,
+$\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$, and
+the $F_p(r)$ are related by
 \Begineq
   F_{p+2} = (p + 1) \, (p + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{p} \right]
 \Endeq
@@ -252,7 +261,8 @@ are finite. With this condition, all the $F_p$ can be constructed:
 \begin{align}
   F_1 &= \ln \, r = x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \ldots \CRNO
   F_2 &= \frac{1}{2} (r^2 - 1) - \ln r = x^2 - \frac{1}{3}x^3 + \frac{1}{4} x^4 - \ldots \CRNO
-  F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots \\
+  F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots 
+         \label{ffff} \\
   F_4 &= 3 [ \frac{1}{8} (r^4 - 1) + \frac{1}{2} (r^2 - 1) - (r^2 + \frac{1}{2}) \ln r] = 
          x^4 - \frac{2}{5} x^5 + \frac{3}{10} x^6 \ldots \CRNO
   &\text{Etc...} \nonumber
@@ -263,14 +273,15 @@ $x = 10^{-4}$ results in a complete loss of accuracy (no significant digits!) wh
 double precision numbers. In practice, \bmad uses the expansion in $x$ for $x$ small
 enough and then switches to the $r$-dependent formulas for $x$ away from zero.
 
-For magnetic fields, the $\phi_n^r$ solutions will correspond to skew fields and the
-$\phi_n^i$ solutions will correspond to normal fields
+For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
+``imaginary'' $\phi_n^i$ solutions will correspond to normal fields
 \Begineq
-  \bfB = \sum_{n = 0}^\infty \left[ \frac{b_n}{n+1} \nabla \phi_n^r + \frac{a_n}{n+1} \nabla \phi_n^i \right]
+  \bfB = \frac{P_0}{q \, L} \, 
+    \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \nabla \phi_n^r + b_n \, \nabla \phi_n^i \right]
 \Endeq
-For electric fields, the reverse is true
+where the gradient $\nabla$ is with respect to the normalized coordinates. For electric fields, the reverse is true
 \Begineq
-  \bfE = \sum_{n = 0}^\infty \left[ \frac{b_{en}}{n+1} \nabla \phi_n^i + \frac{a_{en}}{n+1} \nabla \phi_n^r \right]
+  \bfE = \sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \nabla \phi_n^i + b_{en} \, \nabla \phi_n^r \right]
 \Endeq
 
 In the vertical plane, with $x = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the
@@ -287,12 +298,20 @@ as the corresponding multipole fields with a straight geometry. A straight forwa
 do this is, for some given multipole of order $n$, is to construct the horizontally pure
 solutions from the vertically pure solutions via
 \begin{align}
-  \Phi_n^r &= \phi_n^r + \sum_{k = n+1}^\infty C_{nk} \, \phi_{k1} \CRNO
-  \Phi_n^i &= \phi_n^i + \sum_{k = n+1}^\infty D_{nk} \, \phi_{k2}
+  \psi_n^r &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, C_{nk} \, \phi_{k1} \CRNO
+  \psi_n^i &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \phi_{k2}
 \end{align}
-The $C_{nk}$ and $D_{nk}$ are chosen, order by order, so that $\Phi_n^r$ and $\Phi_n^i$
-are horizontally pure (see McMillan). Unlike the vertically pure solutions, a horizontally
-pure $\Phi_n$ has an infinite number of terms. 
+with the normalizations $C_{nn} = D_{nn} = 1$. The $C_{nk}$ and $D_{nk}$ are chosen, order
+by order, so that $\psi_n^r$ and $\psi_n^i$ are horizontally pure. For the real
+potentials, the $C_{nk}$, are obtained from a matrix $\bfM$ where $M_{ij}$ is the
+coefficient of the $x^j$ term of $\rho^{i-j} (dF_i/dx)/i$ when $F_i$ is expressed as an expansion in
+$x$ (\Eq{ffff}). $C_{nk}$, $k = 0, \ldots \infty$ are the row vectors of the the inverse
+matrix $\bfM^{-1}$. For the imaginary potentials, the $D_{nk}$ are constructed similarly
+but in this case the rows of $\bfM$ are the coefficients in $x$ for the functions $\rho^{i-j} F_i$.
+
+When expressed as a funciton of $r$ and $y$, the vertically pure solutions $\phi_n$ have a
+finite number of terms (\Eqs{pspn1} and \eq{pspn2}). On the other hand, the horizontally
+pure solutions $\psi_n$ have an infinite number of terms.
 
 The vertically pure solutions form a complete set. That is, any given field that satisfies
 Maxwell's equations and is independent of $z$ can be expressed as a linear combination of

@@ -281,13 +281,13 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
-real(rp) an, bn, cos_t, sin_t, tilt, hk, vk
+real(rp) an, bn, sin_t, cos_t
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type
-integer i, ref_exp, n, tilt_dir
+integer i, ref_exp, n
 
 logical, optional :: include_kicks
 logical use_ele_tilt
@@ -342,55 +342,8 @@ endif
 
 ! Include h/v kicks?
 
-if (logic_option(.false., include_kicks) .and. ele%is_on) then
-  hk = 0; vk = 0
+if (logic_option(.false., include_kicks)) call multipole_include_kicks (ele, use_ele_tilt, a(0), b(0), pole_type)
 
-  if (integer_option(magnetic$, pole_type) == magnetic$) then
-    select case (ele%key)
-    case (hkicker$)
-      tilt_dir = 0
-      hk = -ele%value(kick$)
-    case (vkicker$)
-      tilt_dir = 0
-      vk = ele%value(kick$)
-    case (elseparator$)
-      ! Kicks are electric
-    case default
-      tilt_dir = -1
-      hk = -ele%value(hkick$)
-      vk =  ele%value(vkick$)
-    end select
-
-  else ! electric
-    select case (ele%key)
-    case (elseparator$)
-      tilt_dir = 0
-      hk = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
-      vk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
-    end select
-  endif
-
-  if (hk /= 0 .or. vk /= 0) then
-    if (use_ele_tilt) tilt_dir = tilt_dir + 1
-
-    if (ele%key == sbend$) then
-      tilt = tilt_dir * ele%value(ref_tilt_tot$)
-    else
-      tilt = tilt_dir * ele%value(tilt_tot$) 
-    endif
-
-    if (tilt /= 0) then
-      cos_t = cos(tilt)
-      sin_t = sin(tilt)
-      b(0) = b(0) + hk * cos_t + vk * sin_t
-      a(0) = a(0) - hk * sin_t + vk * cos_t
-    else
-      b(0) = b(0) + hk 
-      a(0) = a(0) + vk
-    endif
-  endif
-
-endif
 
 ix_pole_max = max_nonzero(0, a, b)
 
@@ -541,6 +494,89 @@ endif
 end subroutine convert_this_ab
 
 end subroutine multipole_ele_to_ab
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine multipole_include_kicks (ele, use_ele_tilt, a0, b0, pole_type)
+!
+! Routine to add in the hkick/vkick element components into the a0 and b0 multipole components.
+!
+! Input:
+!   ele           -- ele_struct: Lattice element.
+!   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
+!   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   a0, b0        -- real(rp): Existing skew and normal multipole components.    
+!
+! Output:
+!   a0, b0        -- real(rp): Skew and normal multipole components with kick values added in.
+
+subroutine multipole_include_kicks (ele, use_ele_tilt, a0, b0, pole_type)
+
+implicit none
+
+type (ele_struct) ele
+
+real(rp) a0, b0, hk, vk, tilt, cos_t, sin_t
+
+integer, optional :: pole_type
+integer tilt_dir
+
+logical use_ele_tilt
+
+!
+
+if (.not. ele%is_on) return
+
+hk = 0; vk = 0
+
+if (integer_option(magnetic$, pole_type) == magnetic$) then
+  select case (ele%key)
+  case (hkicker$)
+    tilt_dir = 0
+    hk = -ele%value(kick$)
+  case (vkicker$)
+    tilt_dir = 0
+    vk = ele%value(kick$)
+  case (elseparator$)
+    ! Kicks are electric
+  case default
+    tilt_dir = -1
+    hk = -ele%value(hkick$)
+    vk =  ele%value(vkick$)
+  end select
+
+else ! electric
+  select case (ele%key)
+  case (elseparator$)
+    tilt_dir = 0
+    hk = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
+    vk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
+  end select
+endif
+
+if (hk /= 0 .or. vk /= 0) then
+  if (use_ele_tilt) tilt_dir = tilt_dir + 1
+
+  if (ele%key == sbend$) then
+    tilt = tilt_dir * ele%value(ref_tilt_tot$)
+  else
+    tilt = tilt_dir * ele%value(tilt_tot$) 
+  endif
+
+  if (tilt /= 0) then
+    cos_t = cos(tilt)
+    sin_t = sin(tilt)
+    b0 = b0 + hk * cos_t + vk * sin_t
+    a0 = a0 - hk * sin_t + vk * cos_t
+  else
+    b0 = b0 + hk 
+    a0 = a0 + vk
+  endif
+endif
+
+end subroutine multipole_include_kicks
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

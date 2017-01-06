@@ -481,10 +481,10 @@ reference orbit in a bend. See \sref{s:field.exact} for a discussion of what
 \vn{vertically_pure} means that the individual $a_n$ and $b_n$ multipole components are
 used with the vertically pure solutions
 \begin{align}
-  \bfB &= \sum_{n = 0}^\infty \left[ \frac{b_n}{n+1} \nabla \phi_n^r + \frac{a_n}{n+1} \nabla \phi_n^i \right] \nonumber
-  \bfE &= \sum_{n = 0}^\infty \left[ \frac{b_{en}}{n+1} \nabla \phi_n^i + \frac{a_{en}}{n+1} \nabla \phi_n^r \right]
+  \bfB &= \sum_{n = 0}^\infty \left[ \frac{a_n}{n+1} \nabla \phi_n^r + \frac{b_n}{n+1} \nabla \phi_n^i \right] \nonumber
+  \bfE &= \sum_{n = 0}^\infty \left[ \frac{a_{en}}{n+1} \nabla \phi_n^i + \frac{b_{en}}{n+1} \nabla \phi_n^r \right]
 \end{align}
-and if \vn{exact_multipoles} is set to \vn{horizontally_pure} the horizontally pure solutions $\Phi_n^r$ and $\Phi_n^i$ are
+and if \vn{exact_multipoles} is set to \vn{horizontally_pure} the horizontally pure solutions $\psi_n^r$ and $\psi_n^i$ are
 used instead of the vertically pure solutions $\phi_n^r$ and $\phi_n^i$.
 
 To use exact multipoles with PTC based tracking (\sref{c:methods}), the PTC exact model

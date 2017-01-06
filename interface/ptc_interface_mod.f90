@@ -3121,7 +3121,7 @@ use madx_ptc_module
 
 implicit none
  
-type (ele_struct), target :: ele
+type (ele_struct), target :: ele, m_ele
 type (lat_param_struct) param
 type (coord_struct), optional :: track_particle
 type (ele_struct), pointer :: field_ele, ele2
@@ -3481,7 +3481,12 @@ endif
 
 ! Multipole components
 
-call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$) then
+  call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
+  call ele_to_an_bn (m_ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+else
+  call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+endif
 
 ! field map
 
@@ -3675,7 +3680,12 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$) then
+    call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
+    call multipole_ele_to_ab(m_ele, .false., ix_pole_max, a_pole, b_pole, electric$, .true.)
+  else
+    call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+  endif
 
   if (ele%key == elseparator$) then
     a_pole(0) = a_pole(0) + val(vkick$) * ele%value(p0c$) / leng
@@ -4148,7 +4158,7 @@ real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
-integer n, n_max, key, n_relavent, ix_pole_max
+integer n, n_max, key, ix_pole_max
 logical creating_fibre, kick_here, add_kick
 
 character(16) :: r_name = 'ele_to_an_bn'
@@ -4170,7 +4180,6 @@ endif
 k = 0
 ks = 0
 n_max = 0
-n_relavent = 0
 add_kick = .true.
 
 select case (key)
@@ -4184,11 +4193,9 @@ case (drift$, rfcavity$, lcavity$, &
 
 case (octupole$)
   k(4) = val(k3$) / 6
-  n_relavent = 4
 
 case (quadrupole$) 
   k(2) = val(k1$)
-  n_relavent = 2
 
 case (sad_mult$)
 
@@ -4199,13 +4206,15 @@ case (sbend$)
     k(1) = -ele%value(g$)
   endif
 
-  k(2) = val(k1$)
-  k(3) = val(k2$) / 2
-  n_relavent = 3
+  if (nint(ele%value(exact_multipoles$)) == vertically_pure$) then
+    add_kick = .false.
+  else
+    k(2) = val(k1$)
+    k(3) = val(k2$) / 2
+  endif
 
 case (sextupole$)
   k(3) = val(k2$) / 2
-  n_relavent = 3
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
@@ -4213,18 +4222,15 @@ case (solenoid$)
 
 case (sol_quad$)
   k(2) = val(k1$)
-  n_relavent = 2
 
 case (hkicker$, vkicker$)
   if (ele%key == hkicker$) k(1)  = val(kick$) 
   if (ele%key == vkicker$) ks(1) = val(kick$) 
-  n_relavent = 1
   add_kick = .false.
 
 case (kicker$)
   k(1)  = val(hkick$) 
   ks(1) = val(vkick$) 
-  n_relavent = 1
   add_kick = .false.
 
 case (elseparator$)
@@ -4255,7 +4261,6 @@ if (add_kick .and. has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. va
   sin_t = sin(tilt)
   k(1)  = k(1)  - hk * cos_t - vk * sin_t
   ks(1) = ks(1) - hk * sin_t + vk * cos_t
-  n_relavent = max(1, n_relavent)
 endif
 
 ! bmad an and bn are integrated fields. PTC uses just the field.
@@ -4278,7 +4283,6 @@ if (associated(ele%a_pole)) then
    
   ks(1:n) = ks(1:n) + an0(0:n-1)
   k(1:n) = k(1:n) + bn0(0:n-1)
-  n_relavent = n_pole_maxx
 endif
 
 

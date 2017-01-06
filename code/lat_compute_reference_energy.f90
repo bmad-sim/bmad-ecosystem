@@ -486,11 +486,13 @@ case (patch$)
   ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(l$) / velocity
 
 case default
-  ele%value(E_tot$) = E_tot_start
-  ele%value(p0c$) = p0c_start
-  ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
-  call attribute_bookkeeper(ele, param, .true.) 
-
+  if (ele%value(E_tot$) /= E_tot_start .or. ele%value(p0c$) /= p0c_start) then
+    ele%value(E_tot$) = E_tot_start
+    ele%value(p0c$) = p0c_start
+    ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
+    call attribute_bookkeeper(ele, param, .true.) 
+  endif
+  
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
