@@ -242,11 +242,6 @@ enddo
 ele_out%wall3d => ele_save%wall3d        ! reinstate
 call transfer_wall3d (ele_in%wall3d, ele_out%wall3d)
 
-! %exact_bend_multipole
-
-ele_out%exact_bend_multipole => ele_save%exact_bend_multipole        ! reinstate
-call transfer_exact_bend_multipole (ele_in%exact_bend_multipole, ele_out%exact_bend_multipole)
-
 ! %a_pole, and %b_pole
 
 if (associated(ele_in%a_pole)) then

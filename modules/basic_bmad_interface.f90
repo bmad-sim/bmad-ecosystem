@@ -174,6 +174,13 @@ subroutine combine_consecutive_elements (lat)
   type (lat_struct), target :: lat
 end subroutine
 
+subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
+  import
+  implicit none
+  type (ele_struct) bend_in, bend_out
+  integer out_type
+end subroutine
+
 subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   import
   implicit none
@@ -258,14 +265,13 @@ subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   logical err_flag
 end subroutine
 
-subroutine exact_bend_multipole_field (ele, param, orbit, local_ref_frame, field, potential, calc_dfield)
+subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield)
   import
   implicit none
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) orbit
   type (em_field_struct) field
-  type (em_potential_struct) potential
   logical local_ref_frame
   logical, optional :: calc_dfield
 end subroutine
@@ -303,15 +309,6 @@ subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   type (ele_struct) ele
   type (lat_param_struct) param
   type (coord_struct) orbit
-end subroutine
-
-subroutine init_exact_bend_multipole_coefs (ele, param, local_ref_frame, ix_pole_max)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  integer ix_pole_max
-  logical local_ref_frame
 end subroutine
 
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)

@@ -213,7 +213,7 @@ case (rbend$, sbend$)
   ele%value(higher_order_fringe_type$) = none$
   ele%value(ptc_field_geometry$) = sector$
   ele%value(ptc_fringe_geometry$) = x_invariant$
-  ele%value(exact_multipoles$) = false$
+  ele%value(exact_multipoles$) = off$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.

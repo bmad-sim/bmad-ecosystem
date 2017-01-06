@@ -1502,6 +1502,10 @@ case ('ENERGY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
   ele%value(energy_distribution$) = ix
 
+case ('EXACT_MULTIPOLES')
+  call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found)
+  ele%value(exact_multipoles$) = ix
+
 case ('PTC_EXACT_MODEL')
   call get_logical (attrib_word, logic, err_flag)
   if (.not. err_flag) call set_ptc (exact_modeling = logic)

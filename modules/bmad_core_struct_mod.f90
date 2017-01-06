@@ -378,46 +378,6 @@ end subroutine transfer_wall3d
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_exact_bend_multipole (exact_bend_multipole_in, exact_bend_multipole_out)
-!
-! Subroutine to point exact_bend_multipole_out => exact_bend_multipole_in
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   exact_bend_multipole_in  -- Exact_bend_multipole_struct, pointer: Input exact_bend_multipolegler field.
-!
-! Output:
-!   exact_bend_multipole_out -- Exact_bend_multipole_struct, pointer: Output exact_bend_multipolegler field.
-!-
-
-subroutine transfer_exact_bend_multipole (exact_bend_multipole_in, exact_bend_multipole_out)
-
-implicit none
-
-type (exact_bend_multipole_struct), pointer :: exact_bend_multipole_in, exact_bend_multipole_out
-
-!
-
-if (.not. associated(exact_bend_multipole_in) .and. .not. associated(exact_bend_multipole_out)) return
-if (associated(exact_bend_multipole_in, exact_bend_multipole_out)) return
-
-! If both associated must be pointing to different memory locations
-
-if (associated(exact_bend_multipole_out)) call unlink_exact_bend_multipole(exact_bend_multipole_out)
-
-if (associated(exact_bend_multipole_in)) then 
-  exact_bend_multipole_out => exact_bend_multipole_in
-  exact_bend_multipole_out%n_link = exact_bend_multipole_out%n_link + 1
-endif
-
-end subroutine transfer_exact_bend_multipole
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
 ! Subroutine transfer_fieldmap (ele_in, ele_out, who)
 !
 ! Subroutine to transfer the field info from one element to another.
@@ -649,7 +609,6 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%control_var)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
-  nullify (ele%exact_bend_multipole)
   nullify (ele%taylor_field)
   nullify (ele%grid_field)
   nullify (ele%ptc_fibre)
@@ -695,8 +654,6 @@ endif
 if (associated (ele%cylindrical_map)) then
   call unlink_fieldmap (cylindrical_map = ele%cylindrical_map)
 endif
-
-call unlink_exact_bend_multipole (ele%exact_bend_multipole)
 
 if (associated (ele%taylor_field)) then
   call unlink_fieldmap (taylor_field = ele%taylor_field)
@@ -888,41 +845,6 @@ if (associated (wall3d)) then
 endif
 
 end subroutine unlink_wall3d
-
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!+
-! Subroutine unlink_exact_bend_multipole (exact_bend_multipole)
-!
-! Routine to deallocate a exact_bend_multipole pointer.
-!
-! Input:
-!   exact_bend_multipole -- exact_bend_multipole_struct, pointer: Pointer to exact_bend_multipole structure.
-!
-! Output:
-!   exact_bend_multipole -- exact_bend_multipole_struct, pointer: deallocated
-!-
-
-subroutine unlink_exact_bend_multipole (exact_bend_multipole)
-
-implicit none
-
-type (exact_bend_multipole_struct), pointer :: exact_bend_multipole
-integer i
-
-!
-
-if (associated (exact_bend_multipole)) then
-  exact_bend_multipole%n_link = exact_bend_multipole%n_link - 1
-  if (exact_bend_multipole%n_link == 0) then
-    deallocate (exact_bend_multipole)
-  else
-    nullify(exact_bend_multipole)
-  endif
-endif
-
-end subroutine unlink_exact_bend_multipole
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

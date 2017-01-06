@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 187
+integer, parameter :: bmad_inc_version$ = 188
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -204,6 +204,9 @@ character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axi
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
+
+integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
+character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
@@ -635,18 +638,6 @@ type ptc_genfield_struct
   real(rp) :: vec0(6) = 0                               ! constant part of the genfield map.
 end type
 
-! Structure for calculating the exact multipole kick in a bend
-
-type exact_bend_multipole_struct
-  real(rp), allocatable :: bf_x(:), bf_y(:), vm(:)
-  real(rp), allocatable :: e_x(:), e_y(:), phi(:)
-  real(rp) :: an(0:n_pole_maxx) = 0, bn(0:n_pole_maxx) = 0
-  real(rp) :: ae(0:n_pole_maxx) = 0, be(0:n_pole_maxx) = 0
-  integer :: n_pole_max = -1
-  real(rp) :: b0 = 0
-  integer :: n_link = 1
-end type
-
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct
@@ -895,7 +886,6 @@ type ele_struct
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
-  type (exact_bend_multipole_struct), pointer :: exact_bend_multipole => null() ! Exact multipole kick in a bend coefs.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fibre => null()                               ! PTC tracking.

@@ -69,14 +69,10 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 
 n_step = 1
 
-if (is_true(ele%value(exact_multipoles$))) then
-  call init_exact_bend_multipole_coefs (ele, param, .true., ix_pole_max) 
-else
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
-  call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
-endif
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (ele%value(k2$) /= 0 .and. is_false(ele%value(exact_multipoles$))) then
+if (ele%value(k2$) /= 0 ) then
   bn(2) = bn(2) + ele%value(k2$) * ele%value(l$) / 2
   ix_pole_max = max(ix_pole_max, 2)
 endif
@@ -95,7 +91,10 @@ pz = orbit%vec(6)
 rel_p  = 1 + pz
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
-if (is_true(ele%value(exact_multipoles$))) k_1 = 0  ! Is folded in with multipoles.
+if (nint(ele%value(exact_multipoles$)) /= off$) then
+  k_1 = 0  ! Is folded in with multipoles.
+  ix_pole_max = max(1, ix_pole_max)
+endif
 drifting = .false.
 
 if (.not. ele%is_on) then
@@ -441,7 +440,6 @@ contains
 subroutine apply_multipole_kicks (coef)
 
 type (em_field_struct) field
-type (em_potential_struct) potential
 
 real(rp) coef, dmat6(6,6)
 real(rp) rel_p, beta0, dt_ds_ref, p0, e_tot, direction, charge
@@ -453,7 +451,7 @@ integer i
 
 !
 
-if (is_true(ele%value(exact_multipoles$)) .and. ele%value(g$) /= 0) then
+if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
   rel_p = 1 + orbit%vec(6)
   beta = orbit%beta
@@ -467,7 +465,7 @@ if (is_true(ele%value(exact_multipoles$)) .and. ele%value(g$) /= 0) then
   ! Calculate the field. 
   ! Important: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
 
-  call  exact_bend_multipole_field (ele, param, orbit, .true., field, potential, make_matrix)
+  call  bend_exact_multipole_field (ele, param, orbit, .true., field, make_matrix)
 
   ! Bend factor
 
