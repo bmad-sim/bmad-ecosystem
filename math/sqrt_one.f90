@@ -1,5 +1,5 @@
 !+
-! function sqrt1(eps) result (ds1)
+! function sqrt_one(eps) result (ds1)
 !
 ! Routine to calculate Sqrt[1+eps] - 1 with a precision of about 1e-14.
 !
@@ -10,7 +10,7 @@
 !   ds1 -- real(rp): Result.
 !-
 
-function sqrt1(eps) result (ds1)
+function sqrt_one(eps) result (ds1)
 
 use precision_def
 

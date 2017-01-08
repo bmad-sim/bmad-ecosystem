@@ -94,7 +94,7 @@ end interface
 ! Input:
 !   real_mat(:,:)   -- Real(rp): Input matrix
 !   int_mat(:,:)    -- Integer: Input matrix
-!   cmplx_mat(:,:) -- Çomplex(rp): Input matrix
+!   cmplx_mat(:,:)  -- Complex(rp): Input matrix
 !   bool_mat(:,:)   -- Logical: Input matrix
 !   n               -- Integer: Number of elements. Normally this is size(mat). 
 !                        Set to 0 if actual mat arg is not allocated.

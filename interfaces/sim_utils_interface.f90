@@ -450,7 +450,7 @@ subroutine skip_header (ix_unit, error_flag)
   logical error_flag
 end subroutine
 
-function sqrt1(eps) result (ds1)
+function sqrt_one(eps) result (ds1)
   import
   real(rp) eps, ds1
 end function
