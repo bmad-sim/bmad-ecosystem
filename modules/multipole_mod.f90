@@ -690,7 +690,7 @@ if (integer_option(magnetic$, pole_type) == electric$) then
     coord%state = lost_z_aperture$
     return
   endif
-  coord%vec(6) = coord%vec(6) + (1 + coord%vec(6)) * sqrt1(alpha)
+  coord%vec(6) = coord%vec(6) + (1 + coord%vec(6)) * sqrt_one(alpha)
   rel_p2 = pz2 + coord%vec(2)**2 + coord%vec(4)**2
   coord%beta = (1 + coord%vec(6)) / sqrt(rel_p2 + (mass_of(coord%species)/coord%p0c)**2)
 endif

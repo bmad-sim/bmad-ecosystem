@@ -50,7 +50,7 @@ real(rp) f, l_drift, ks, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
-integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_pole_max
+integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_elec_max
 
 logical, optional :: make_matrix
 logical finished, track_spin, track_spn
@@ -109,7 +109,7 @@ else
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
-call multipole_ele_to_ab (hard_ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole, b_pole, electric$)
 
 ! Static electric longitudinal field
 ! Note: magnetic fringe effects, which may shift the particle's (x, y) position, need to
@@ -203,19 +203,29 @@ contains
 
 subroutine electric_longitudinal_fringe()
 
-if (ix_pole_max > -1) then
-  xiy = 1
-  c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
-  do i = 0, ix_pole_max
-    xiy = xiy * c_vec
-    if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-    phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)
-    call apply_energy_kick (phi, orb)
+type (em_potential_struct) potential
+type (em_field_struct) field
 
-    if (track_spn) then
-      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
-    endif
-  enddo
+!
+
+if (ix_elec_max > -1) then
+  if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
+    call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., potential)
+    phi = at_sign * charge_of(orb%species) * potential%phi
+    call apply_energy_kick (phi, orb)
+    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+
+  else  
+    xiy = 1
+    c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
+    do i = 0, ix_elec_max
+      xiy = xiy * c_vec
+      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+      phi = at_sign * charge_of(orb%species) * real(cmplx(b_pole(i), -a_pole(i), rp) * xiy) / (i + 1)
+      call apply_energy_kick (phi, orb)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+    enddo
+  endif
 endif
 
 end subroutine electric_longitudinal_fringe
