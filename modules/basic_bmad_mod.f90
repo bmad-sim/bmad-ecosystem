@@ -131,7 +131,7 @@ if (present(gamma)) then
   endif
 endif
 
-if (present(dbeta)) dbeta = -sqrt1(-(mc2/E_tot)**2)
+if (present(dbeta)) dbeta = -sqrt_one(-(mc2/E_tot)**2)
 
 if (present(err_flag)) err_flag = .false.
 
@@ -185,7 +185,7 @@ if (present(beta))    beta    = pc / E_tot_this
 if (present(kinetic)) kinetic = E_tot_this - mc2
 if (present(brho))    brho    = pc / c_light
 if (present(gamma))   gamma   = E_tot_this / mc2
-if (present(dbeta))   dbeta   = -sqrt1(-(mc2/E_tot_this)**2)
+if (present(dbeta))   dbeta   = -sqrt_one(-(mc2/E_tot_this)**2)
 
 if (present(err_flag)) err_flag = .false.
 

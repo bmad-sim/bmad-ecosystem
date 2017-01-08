@@ -516,7 +516,7 @@ case (lcavity$)
     end_orb%t = start2_orb%t + length * (E_start / pc_start) / c_light
   else
     f = (2 * E_start * dE + dE**2) / pc_start**2
-    end_orb%t = start2_orb%t + pc_start * sqrt1(f) * length / (dE * c_light)
+    end_orb%t = start2_orb%t + pc_start * sqrt_one(f) * length / (dE * c_light)
   endif
 
   call set_end_orb_s()

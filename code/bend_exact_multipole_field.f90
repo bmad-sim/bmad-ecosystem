@@ -1,5 +1,5 @@
 !+
-! Subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield)
+! Subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
 !
 ! Routine to calculate the electric and magnetic field at a given point in a bend element due to any multipoles.
 ! The field due to a multipole in a bend is different from a straight element since Maxwell's equations
@@ -15,12 +15,13 @@
 !   local_ref_frame -- logical: Is the particle position in the local element ref 
 !                         frame (as opposed to the lab frame)?
 !   calc_dfield     -- logical, optional: If present and True then calculate the field derivatives.
+!   potential       -- em_potential_struct, optional: The electric and magnetic potentials.
 !
 ! Output:
 !   field           -- em_field_struct: Field
 !-
 
-subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield)
+subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
 
 use bmad_interface  ! , except_dummy => bend_exact_multipole_field
 
@@ -217,6 +218,7 @@ type (ele_struct), target :: ele, ele2, ele3
 type (lat_param_struct) param
 type (coord_struct) orbit
 type (em_field_struct) field
+type (em_potential_struct), optional :: potential
 
 real(rp) b0, f, x, y, g, rho, rho_n, yg, xg, fact_n
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
@@ -231,14 +233,15 @@ logical do_dfield_calc
 !
 
 g = ele%value(g$)
+rho = ele%value(rho$)
+
 x = orbit%vec(1)
 y = orbit%vec(3)
 yg = y * g
 xg = x * g
-rho = ele%value(rho$)
 
 field = em_field_struct()
-
+if (present(potential)) potential = em_potential_struct()
 do_dfield_calc = logic_option(.false., calc_dfield)
 
 !
@@ -298,13 +301,17 @@ enddo
 ! Combine y-dependent coefs with F factors to get the field.
 
 do j = 0, max(ix_mag_max, ix_elec_max)+1
-  call add_this_field (pole_coef(j), field%B, field%dB)
-  call add_this_field (pole_elec_coef(j), field%E, field%dE)
+  call add_this_field (pole_coef(j), field%B, field%dB, magnetic$)
+  call add_this_field (pole_elec_coef(j), field%E, field%dE, electric$)
 enddo
 
 f = ele%value(p0c$) / (c_light * charge_of(param%particle) * ele%value(l$))
 field%B = field%B * f
 if (do_dfield_calc) field%dB = field%dB * f
+if (present(potential)) then
+  potential%phi_B = potential%phi_B * f
+  potential%a = potential%a * f
+endif
 
 !------------------------------------------------------------------------
 contains
@@ -329,10 +336,11 @@ end subroutine add_to_this_coef
 !------------------------------------------------------------------------
 ! contains
 
-subroutine add_this_field (pole_coef, Z, dZ)
+subroutine add_this_field (pole_coef, Z, dZ, field_type)
 
 type (pole_coef_struct) pole_coef
 real(rp) Z(3), dZ(3,3), crs, value, derivative
+integer field_type
 
 !
 
@@ -354,6 +362,14 @@ if (do_dfield_calc) then
   endif
   if (pole_coef%derivative2 /= 0 .and. n-j > 0) then
      dZ(2,2) = dZ(2,2) + g * F_value(F_coef(j), xg) * pole_coef%derivative2
+  endif
+endif
+
+if (present(potential) .and. pole_coef%value /= 0 .and. n-j > -1) then
+  if (field_type == magnetic$) then
+    potential%phi_B = potential%phi_B + rho * F_value(F_coef(j), xg) * pole_coef%value
+  else
+    potential%phi = potential%phi + rho * F_value(F_coef(j), xg) * pole_coef%value
   endif
 endif
 
@@ -786,6 +802,8 @@ endif
 if (nint(bend_in%value(exact_multipoles$)) == off$ .or. nint(bend_in%value(exact_multipoles$)) == out_type) then
   bend_out%a_pole = a_pole
   bend_out%b_pole = b_pole
+  bend_out%a_pole_elec = a_pole_elec
+  bend_out%b_pole_elec = b_pole_elec
   bend_out%value(exact_multipoles$) = bend_in%value(exact_multipoles$)
   return
 endif
