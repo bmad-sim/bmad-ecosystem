@@ -23,7 +23,7 @@
 
 subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
 
-use bmad_interface  ! , except_dummy => bend_exact_multipole_field
+use bmad_interface, except_dummy => bend_exact_multipole_field
 
 implicit none
 
