@@ -716,13 +716,14 @@ end subroutine order_evecs_by_plane_dominance
 !   err_flag     - logical, optional:  Set to true if an error occured.
 !-
 
-subroutine order_evecs_by_tune (evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+subroutine order_evecs_by_tune (evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes_in, err_flag)
 
 real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) eval_r(6), eval_i(6)
 real(rp) mat_tunes(3)
 logical err_flag
 
+real(rp) abz_tunes_in(3)
 real(rp) abz_tunes(3)
 real(rp) val(6)
 integer pairindexes(6)
@@ -730,6 +731,9 @@ integer pairindexes(6)
 character(*), parameter :: r_name = 'order_evecs_by_tune'
 
 ! Order eigenvector pairs
+
+abz_tunes = abz_tunes_in
+where(abz_tunes < 0.0) abz_tunes = twopi + abz_tunes
 
 err_flag = .true.
 

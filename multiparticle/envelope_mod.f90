@@ -272,6 +272,7 @@ subroutine make_V(M,V,abz_tunes)
   real(rp) abz_tunes(3)
 
   complex(rp) Vinv(6,6)
+  complex(rp) temp_vec(6)
 
   real(rp) temp_mat(6,6)
   complex(rp) check_mat(6,6)
@@ -312,24 +313,21 @@ subroutine make_V(M,V,abz_tunes)
   Vinv(:,4) = (0.0d0,1.0d0)*conjg(Vinv(:,3))
   Vinv(:,5) = cmplx(v3_r,v3_i)
   Vinv(:,6) = (0.0d0,1.0d0)*conjg(Vinv(:,5))
-  check_mat = matmul(transpose(conjg(Vinv)),matmul(S6,Vinv))
+  check_mat = matmul(transpose(Vinv),matmul(S6,conjg(Vinv))) !eqn. 79
   if ( aimag(check_mat(1,1)) > 0.0 ) then
-    evec_i(:, 1) = -evec_i(:, 1)
-    evec_i(:, 2) = -evec_i(:, 2)
-    eval_i(1) = -eval_i(1)
-    eval_i(2) = -eval_i(2)
+    temp_vec = Vinv(:,1)
+    Vinv(:,1) = Vinv(:,2)
+    Vinv(:,2) = temp_vec
   endif
   if ( aimag(check_mat(3,3)) > 0.0 ) then
-    evec_i(:, 3) = -evec_i(:, 3)
-    evec_i(:, 4) = -evec_i(:, 4)
-    eval_i(3) = -eval_i(3)
-    eval_i(4) = -eval_i(4)
+    temp_vec = Vinv(:,3)
+    Vinv(:,3) = Vinv(:,4)
+    Vinv(:,4) = temp_vec
   endif
   if ( aimag(check_mat(5,5)) > 0.0 ) then
-    evec_i(:, 5) = -evec_i(:, 5)
-    evec_i(:, 6) = -evec_i(:, 6)
-    eval_i(5) = -eval_i(5)
-    eval_i(6) = -eval_i(6)
+    temp_vec = Vinv(:,5)
+    Vinv(:,5) = Vinv(:,6)
+    Vinv(:,6) = temp_vec
   endif
 
   mat_tunes(1) = MyTan(eval_i(1), eval_r(1))
