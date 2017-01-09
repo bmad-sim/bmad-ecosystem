@@ -561,17 +561,19 @@ ENDIF ()
 #    - AND - 
 # set (CREATE_SHARED true) needs to be present in the individual
 #  project's CMakeLists.txt file.
+# 
+# Now works correctly with gmake -j values greater than 1
 #----------------------------------------------------------------
 IF (DEFINED SHARED_LINK_LIBS)
-message("SHARED DEPS          : ${SHARED_DEPS}\n")
+MESSAGE ("SHARED DEPS          : ${SHARED_DEPS}\n")
 ENDIF ()
 IF (ENABLE_SHARED AND CREATE_SHARED)
-  add_library (${LIBNAME}-shared SHARED ${sources})
-  LIST(APPEND TARGETS ${LIBNAME}-shared)
+  ADD_LIBRARY (${LIBNAME}-shared SHARED ${sources})
+  ADD_DEPENDENCIES (${LIBNAME}-shared ${LIBNAME}) 
+  LIST (APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
   TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS})
 ENDIF ()
-
 
 
 #---------------------------------------------------------------
