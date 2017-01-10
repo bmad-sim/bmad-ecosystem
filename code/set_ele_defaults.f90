@@ -24,6 +24,10 @@ type (ele_struct) ele
 integer i, j
 logical, optional :: do_allocate
 
+!
+
+ele%component_name = ''
+
 ! Default fringe set for non bend elements
 
 if (attribute_index(ele, 'FRINGE_AT') /= 0)        ele%value(fringe_at$) = both_ends$

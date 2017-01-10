@@ -45,8 +45,7 @@ logical good_control(12,12), girder_here, finished, foundit
 ! check energy
 
 if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
-  call out_io (s_fatal$, r_name, &
-            'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
+  call out_io (s_fatal$, r_name, 'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
 endif
 
 ! good_control specifies what elements can control what other elements.
@@ -258,6 +257,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
         err_flag = .true.
       endif
+    endif
+
+    ! Zero length cavity is a verboten
+
+    if (ele%key == lcavity$ .and. ele%value(l$) == 0) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'WHICH IS AN LCAVITY HAS ZERO LENGTH WHICH GIVES AN INFINITE GRADIENT.')
+      err_flag = .true.
     endif
 
     ! Check that a true rbend has e1 + e2 = angle.
