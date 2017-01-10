@@ -1096,7 +1096,7 @@ case(fieldmap$)
 
       case (xyz$)
       
-        call grid_field_linear_interpolate(ele, g_field, g_pt, err, x, y, z, &
+        call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x, y, z, &
                                 allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
         if (err) then
           if (present(err_flag)) err_flag = .true.
@@ -1115,7 +1115,7 @@ case(fieldmap$)
 
         r = sqrt(x**2 + y**2)
 
-        call grid_field_linear_interpolate(ele, g_field, g_pt, err, r, z, &
+        call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, r, z, &
                                 allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
         if (err) then
           if (global_com%exit_on_error) call err_exit
@@ -1471,7 +1471,7 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine grid_field_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+! Subroutine grid_field_linear_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -1482,6 +1482,7 @@ end subroutine rotate_em_field
 !
 ! Input:
 !   ele      -- ele_struct: Element containing the grid
+!   orbit    -- coord_struct: Used for constructing an error message if the particle is out of bounds.
 !   grid     -- grid_field_struct: Grid to interpolate
 !   err_flag -- Logical: Set to true if there is an error. False otherwise.
 !   x1       -- real(rp) : dimension 1 interpolation point
@@ -1494,9 +1495,10 @@ end subroutine rotate_em_field
 !   field    -- grid_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine grid_field_linear_interpolate (ele, grid, g_field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+subroutine grid_field_linear_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 
 type (ele_struct) ele
+type (coord_struct) orbit
 type (grid_field_struct) :: grid
 type (grid_field_pt1_struct), intent(out) :: g_field
 real(rp) :: x1
@@ -1626,10 +1628,9 @@ logical err_flag
 ig0 = lbound(grid%ptr%pt, ix_x)
 ig1 = ubound(grid%ptr%pt, ix_x)
 
-!!! x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
-x_norm = x / grid%dr(ix_x)
-i0 = floor(x_norm)     ! index of lower 1 data point
-rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
+x_norm = x / grid%dr(ix_x)  ! Note that to_field_map_coords has already been called.
+i0 = floor(x_norm)          ! index of lower 1 data point
+rel_x0 = x_norm - i0        ! Relative distance from lower x1 grid point
 
 ! Out of bounds?
 
@@ -1654,7 +1655,9 @@ if (i0 < ig0 .or. i0 >= ig1) then
   err_flag = .true.
   call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
                                  'FOR ELEMENT: ' // ele%name, &
-                                 'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], r_array = [x])
+                                 'PARTICLE POSITION: /3F12.6/', &
+                                 'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], &
+                                 r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
 endif
 
 end subroutine get_this_index 
