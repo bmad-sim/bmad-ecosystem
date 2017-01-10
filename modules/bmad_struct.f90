@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 189
+integer, parameter :: bmad_inc_version$ = 188
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -873,7 +873,7 @@ type ele_struct
   character(40) :: name = '<Initialized>'           ! name of element.
   character(40) :: type = ''                        ! type name.
   character(40) :: alias = ''                       ! Another name.
-  character(:), allocatable :: component_name       ! Used by overlays, multipass patch, etc.
+  character(40) :: component_name = ''              ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip => null()      ! Description string.
   type (twiss_struct) :: a = twiss_struct()         ! Twiss parameters at end of element
   type (twiss_struct) :: b = twiss_struct()         ! Twiss parameters at end of element
