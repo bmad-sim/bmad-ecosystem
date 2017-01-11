@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (LIBNAME tao)
 
-set (CREATE_SHARED true)
+## set (CREATE_SHARED true)
 
 ## Profiler flags
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
