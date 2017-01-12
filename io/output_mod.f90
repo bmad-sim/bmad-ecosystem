@@ -37,16 +37,16 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 ! Subroutine out_io
 !
 ! Subroutine to print to the terminal for command line type programs.
-! The idea is that for programs with a gui this routine can be easily
-! replaced with another routine.
+! The idea is that for programs with a gui, the output of out_io
+! can be redirected from the terminal to whereever the gui wants it to go.
 !
 ! This routine is an overloaded name for:
-!   output_real (level, routine_name, line, r_num)
-!   output_int (level, routine_name, line, i_num)
-!   output_logical (level, routine_name, line, l_num)
-!   output_lines (level, routine_name, lines, r_array, i_array, l_array)
-!   output_line6 (level, routine_name, &
-!            line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
+!   output_real (level, routine_name, line, r_num, insert_tag_line)
+!   output_int (level, routine_name, line, i_num, insert_tag_line)
+!   output_logical (level, routine_name, line, l_num, insert_tag_line)
+!   output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
+!   output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+!                                          r_array, i_array, l_array, insert_tag_line)
 !
 ! Numbers are encoded in lines using the syntax "\<fmt>\" 
 ! where <fmt> is the desired format. For example:
@@ -62,16 +62,24 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 ! Output can be directed to the terminal and/or a file and/or a routine.
 ! The routine do this is: output_direct
 !
+! Normaly a "tag" line is inserted at the top of the message with the error level, the 
+! routine_name, and a time stamp. Several error levels will modify this behavior.
+! For example, with level = s_blank$, no tag line is inserted at all. Also the optional
+! argument insert_tag_line, which is true if not present, can be set to False to prevent 
+! a tag line from being inserted. This is useful when there is a possibility that the 
+! code will be used with a gui and it is desired that the level argument represent
+! the true level of serverity of any error.
+!
 ! Modules needed:
 !   use output_mod
 !
 ! Input:
 !   level -- Integer: Status level flags for messages.
-!       s_blank$   -   Information message. The routine name is not printed.
-!       s_info$    -   Informational message.
+!       s_blank$   -   Information message. No tag line is inserted.
+!       s_info$    -   Informational message. (no timestamp)
 !       s_dinfo$   -   Info message (w/timestamp).
-!       s_success$ -   Successful completion.
-!       s_warn$    -   Warning of a possible problem.
+!       s_success$ -   Successful completion. (no timestamp)
+!       s_warn$    -   Warning of a possible problem. (no timestamp)
 !       s_dwarn$   -   Warning of a possible problem (w/timestamp).
 !       s_error$   -   An error as occurred [EG: bad user input] (w/ timestamp).
 !       s_fatal$   -   A fatal error has occurred so that computations
@@ -218,13 +226,13 @@ end subroutine out_io_line_out
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_real (level, routine_name, line, r_num)
+! Subroutine output_real (level, routine_name, line, r_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_real (level, routine_name, line, r_num)
+subroutine output_real (level, routine_name, line, r_num, insert_tag_line)
 
 implicit none
 
@@ -236,11 +244,12 @@ real(rp) r_num
 integer level
 integer ix1, ix2, n_prefix
 logical found
+logical, optional :: insert_tag_line
 
 !
 
 if (global_rank /= 0) return  ! For running under MPI
-call header_io (level, routine_name)
+call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
@@ -259,13 +268,13 @@ end subroutine output_real
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_int (level, routine_name, line, i_num)
+! Subroutine output_int (level, routine_name, line, i_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_int (level, routine_name, line, i_num)
+subroutine output_int (level, routine_name, line, i_num, insert_tag_line)
 
 implicit none
 
@@ -277,11 +286,12 @@ integer i_num
 integer level
 integer ix1, ix2, n_prefix
 logical found
+logical, optional :: insert_tag_line
 
 !
 
 if (global_rank /= 0) return  ! For running under MPI
-call header_io (level, routine_name)
+call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
@@ -300,13 +310,13 @@ end subroutine output_int
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_logical (level, routine_name, line, l_num)
+! Subroutine output_logical (level, routine_name, line, l_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_logical (level, routine_name, line, l_num)
+subroutine output_logical (level, routine_name, line, l_num, insert_tag_line)
 
 implicit none
 
@@ -318,11 +328,12 @@ logical l_num
 integer level
 integer ix1, ix2, n_prefix
 logical found
+logical, optional :: insert_tag_line
 
 !
 
 if (global_rank /= 0) return  ! For running under MPI
-call header_io (level, routine_name)
+call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
@@ -341,15 +352,15 @@ end subroutine output_logical
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_line6 (level, routine_name, &
-!               line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
+! Subroutine output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+!                                                      r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_line6 (level, routine_name, &
-               line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
+subroutine output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+                                                       r_array, i_array, l_array, insert_tag_line)
 
 implicit none
 
@@ -360,13 +371,14 @@ character(40) fmt
 real(rp), optional :: r_array(:)
 integer, optional :: i_array(:)
 logical, optional :: l_array(:)
+logical, optional :: insert_tag_line
 
 integer level, nr, ni, nl
 
 !
 
 if (global_rank /= 0) return  ! For running under MPI
-call header_io (level, routine_name)
+call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
@@ -385,13 +397,13 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array)
+! Subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array)
+subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
 
 implicit none
 
@@ -401,13 +413,14 @@ character(40) fmt
 real(rp), optional :: r_array(:)
 integer, optional :: i_array(:)
 logical, optional :: l_array(:)
+logical, optional :: insert_tag_line
 
 integer level, i, nr, ni, nl
 
 !
 
 if (global_rank /= 0) return  ! For running under MPI
-call header_io (level, routine_name)
+call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
@@ -607,18 +620,19 @@ end subroutine find_format
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine header_io (level, routine_name)
+! Subroutine header_io (level, routine_name, insert_tag_line)
 !
 ! Internal routine for output_line4, etc.
 !-
 
-Subroutine header_io (level, routine_name)
+Subroutine header_io (level, routine_name, insert_tag_line)
 
 implicit none
 
 character(*) routine_name
 character(20) date_time
 integer level
+logical, optional :: insert_tag_line
 
 ! call out_io_called if wanted
 
@@ -629,6 +643,8 @@ elseif (output_com%to_routine(level) == -1) then
 endif
 
 ! Output header line
+
+if (.not. logic_option(.true., insert_tag_line)) return
 
 call date_and_time_stamp (date_time)
 
