@@ -793,11 +793,17 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         else
           coef_str = ' ------ '
         endif
+
         iv = ctl%ix_attrib
         a_name = attribute_name(slave, iv)
-        call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
-        val_str = ' ----'
-        if (associated(a_ptr%r)) write (val_str, '(es12.4)') a_ptr%r
+        if (iv > num_ele_attrib$) then  ! Special group construct: accordion_edge$, start_edge$, end_edge$, or s_position$
+          write (val_str, '(es12.4)') val
+        else
+          call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
+          val_str = ' ----'
+          if (associated(a_ptr%r)) write (val_str, '(es12.4)') a_ptr%r
+        endif
+
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, val_str, trim(coef_str)
       enddo
     end select

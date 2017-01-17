@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 188
+integer, parameter :: bmad_inc_version$ = 189
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1302,16 +1302,16 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
-integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, end_edge$  = 81, lr_wake_spline$ = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
+integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84
-integer, parameter :: accordion_edge$  = 85, etap_y$ = 85, lr_freq_spread$ = 85
+integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89
-integer, parameter :: s_position$ = 90, cmat_21_begin$ = 90
+integer, parameter :: cmat_21_begin$ = 90
 integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
@@ -1353,16 +1353,21 @@ integer, parameter :: cartesian_map$   = 123
 integer, parameter :: cylindrical_map$ = 124
 integer, parameter :: grid_field$      = 125
 integer, parameter :: taylor_field$    = 126
-integer, parameter :: create_jumbo_slave$ = 129
+integer, parameter :: create_jumbo_slave$ = 127
 
-integer, parameter :: a0$  = 130, a21$  = 151
-integer, parameter :: b0$  = 160, b21$ = 181
+integer, parameter :: accordion_edge$  = 128
+integer, parameter :: start_edge$  = 129
+integer, parameter :: end_edge$  = 130
+integer, parameter :: s_position$ = 131
 
-integer, parameter :: k0l$ = 130, k21l$ = 151
-integer, parameter :: t0$  = 160, t21$ = 181
+integer, parameter :: a0$  = 140, a21$  = 161
+integer, parameter :: b0$  = 162, b21$  = 183
 
-integer, parameter :: a0_elec$  = 190, a21_elec$  = 211
-integer, parameter :: b0_elec$  = 220, b21_elec$ = 241
+integer, parameter :: k0l$ = 140, k21l$ = 161
+integer, parameter :: t0$  = 162, t21$  = 183
+
+integer, parameter :: a0_elec$ = 190, a21_elec$ = 211
+integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
 
 integer, parameter :: num_ele_attrib_extended$ = b21_elec$
 

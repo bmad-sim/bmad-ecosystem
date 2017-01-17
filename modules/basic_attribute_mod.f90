@@ -1435,6 +1435,15 @@ call init_attribute_name1 (photon_init$, ds_slice$,                  'DS_SLICE')
 call init_attribute_name1 (photon_init$, physical_source$,           'PHYSICAL_SOURCE')
 call init_attribute_name1 (photon_init$, ref_wavelength$,            'REF_WAVELENGTH', dependent$)
 
+do i = 1, n_key$
+  if (attrib_array(i, l$)%name /= 'L') cycle
+  if (attrib_array(i, l$)%type /= is_free$) cycle
+  call init_attribute_name1 (i, accordion_edge$, 'Accordian_Edge')
+  call init_attribute_name1 (i, start_edge$,     'Start_Edge')
+  call init_attribute_name1 (i, end_edge$,       'End_Edge')
+  call init_attribute_name1 (i, s_position$,     'S_Position')
+enddo
+
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
 ! Note: A patch element has a z_offset, not an z_offset.
