@@ -41,52 +41,53 @@ implicit none
 type (lat_struct) lat
 type (ele_pointer_struct), allocatable :: ele_sex(:)
 
-integer i, j, n_x_sex, n_y_sex, ix, iy, n_sex
+integer i, j, ix, iy, n_sex
 integer, allocatable :: ix_x_sex(:), ix_y_sex(:)
-integer, allocatable :: sex_type(:)
 
-real(rp), allocatable :: sex_y_values(:), sex_x_values(:)
+real(rp), allocatable :: sex_y_value(:), sex_x_value(:)
 real(rp) target_x, target_y, chrom_x, chrom_y
 real(rp) delta_x, delta_y, d_chrom, chrom_x0
 real(rp) chrom_y0, chrom(2,1), matrix(2,2)
 real(rp) delta_e, err_tol
  
-logical err_flag, debug
+logical err_flag
+character(*), parameter :: r_name = 'chrom_tune'
 
 !                      
  
-debug = .false.
-
+err_flag = .true.
 call lat_ele_locator('sextupole::*', lat, ele_sex, n_sex, err_flag)
-allocate (sex_type(n_sex))
+
+allocate (ix_x_sex(n_sex), ix_y_sex(n_sex))
+allocate (sex_x_value(n_sex), sex_y_value(n_sex))
+
+ix = 0; iy = 0
 
 do i = 1, n_sex
-  if (ele_sex(i)%ele%value(tilt_tot$) /= 0) then
-    sex_type(i) = n_plane$  ! do not use tilted sextupoles 
-  elseif (ele_sex(i)%ele%a%beta > ele_sex(i)%ele%b%beta) then
-    sex_type(i) = x_plane$
+  if (ele_sex(i)%ele%value(tilt_tot$) /= 0) cycle    ! do not use tilted sextupoles 
+  if (ele_sex(i)%ele%a%beta > ele_sex(i)%ele%b%beta) then
+    ix = ix + 1
+    ix_x_sex(ix) = ele_sex(i)%ele%ix_ele
   else
-    sex_type(i) = y_plane$
+    iy = iy + 1
+    ix_y_sex(iy) = ele_sex(i)%ele%ix_ele
   end if
 end do
 
-n_sex = 0
-n_x_sex = count(sex_type == x_plane$)
-n_y_sex = count(sex_type == y_plane$)
+if (ix == 0) then
+  call out_io (s_error$, r_name, 'NUMBER OF SEXTUPOLES WHERE BETA_A > BETA_B IS ZERO.', &
+                                 'CHROMATICITY TUNING ALGORITHM WILL NOT WORK HERE.', 'NOTHING DONE')
+  return
+endif
 
-allocate (ix_x_sex(n_x_sex), ix_y_sex(n_y_sex))
-allocate (sex_x_values(n_x_sex), sex_y_values(n_y_sex))
+if (iy == 0) then
+  call out_io (s_error$, r_name, 'NUMBER OF SEXTUPOLES WHERE BETA_A < BETA_B IS ZERO.', &
+                                 'CHROMATICITY TUNING ALGORITHM WILL NOT WORK HERE.', 'NOTHING DONE')
+  return
+endif
 
-ix = 0; iy = 0
-do i = 1, n_sex
-  if (sex_type(i) == x_plane$) then
-    ix = ix + 1
-    ix_x_sex(ix) = ele_sex(i)%ele%ix_ele
-  elseif (sex_type(i) == x_plane$) then
-    iy = iy + 1
-    ix_y_sex(iy) = ele_sex(i)%ele%ix_ele
-  endif
-enddo
+call re_allocate (ix_x_sex, ix);  call re_allocate (sex_x_value, ix)
+call re_allocate (ix_y_sex, iy);  call re_allocate (sex_y_value, iy)
 
 delta_x = 0.1
 delta_y = 0.1
@@ -95,41 +96,27 @@ delta_y = 0.1
       
 do j = 1, 100
 
-  sex_x_values(:) = lat%ele(ix_x_sex(:))%value(k2$)
-  sex_y_values(:) = lat%ele(ix_y_sex(:))%value(k2$)
+  sex_x_value(:) = lat%ele(ix_x_sex(:))%value(k2$)
+  sex_y_value(:) = lat%ele(ix_y_sex(:))%value(k2$)
 
   call chrom_calc(lat, delta_e, chrom_x0, chrom_y0)
-
-  if (debug) then
-    print *
-    print '(1x, a, 2f10.4)', 'Target Chrom:    ', target_x, target_y
-    print '(1x, a, 2f10.4)', 'Chrom Now:       ', chrom_x0, chrom_y0
-    print '(1x, a, 2f10.4)', 'Chrom diff (N-T):', &
-                               chrom_x0-target_x, chrom_y0-target_y
-  end if
 
   d_chrom = abs(target_x - chrom_x0) + abs(target_y - chrom_y0)
 
   if (d_chrom < err_tol) then
-    if (debug) then
-      print *, 'Number of iterations:', j
-      print '(1x, a, 2f10.4)', 'Final Chromaticities:', chrom_x0, chrom_y0
-    end if
-    deallocate (ix_x_sex, ix_y_sex, ele_sex)
-    deallocate (sex_x_values, sex_y_values)
     err_flag = .false.
     return
   end if
 
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + delta_x)
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:)*(1 + delta_x)
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:)
   call chrom_calc(lat, delta_e, chrom_x, chrom_y)
    
   matrix(1,1) = (chrom_x - chrom_x0) / delta_x
   matrix(1,2) = (chrom_y - chrom_y0) / delta_x
    
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + delta_y)
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:)
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:)*(1 + delta_y)
   call chrom_calc(lat, delta_e, chrom_x, chrom_y)
    
   matrix(2,1) = (chrom_x - chrom_x0) / delta_y
@@ -140,16 +127,14 @@ do j = 1, 100
 
   call gaussj(matrix, chrom)
    
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_values(:)*(1 + chrom(1,1))
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_values(:)*(1 + chrom(2,1))
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:)*(1 + chrom(1,1))
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:)*(1 + chrom(2,1))
       
 end do
 
 !
 
-print *, 'ERROR IN CHROM_TUNE:  TUNING SEXTUPOLES FAILED!'
-deallocate (ix_x_sex, ix_y_sex, ele_sex)
-deallocate (sex_x_values, sex_y_values)
+call out_io (s_error$, r_name, 'CANNOT ADJUST SEXTUPOLES TO GET DESIRED CHROMATICITIES!')
 err_flag = .true.
 
 end subroutine
