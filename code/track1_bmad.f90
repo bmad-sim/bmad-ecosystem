@@ -775,12 +775,13 @@ case (sol_quad$)
   vec0 = 0
   vec0(6) = end_orb%vec(6)
   call sol_quad_mat6_calc (ks, k1, length, vec0, mat6, dz4_coef)
-  end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
+  end_orb%vec(5) = end_orb%vec(5) + low_energy_z_correction (end_orb, ele, length) + &
+                                      sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4))) 
+
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
   call offset_particle (ele, param, unset$, end_orb)
 
-  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -861,12 +862,12 @@ case (wiggler$, undulator$)
     return
   endif
 
-  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
-                   - 1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2))
+  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - & 
+                   1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2)) + &
+                   low_energy_z_correction (end_orb, ele, length)
   
   call offset_particle (ele, param, unset$, end_orb)
    
-  call track1_low_energy_z_correction (end_orb, ele, param)
 
   end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_p**2) / (end_orb%beta * c_light)
 

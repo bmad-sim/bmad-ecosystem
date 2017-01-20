@@ -16,6 +16,7 @@ set(SRC_DIRS
   multiparticle
   photon
   parsing
+  low_level
 )
 
 # For profiling...

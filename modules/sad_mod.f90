@@ -209,18 +209,12 @@ if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
   end_orb%vec(4) = end_orb%vec(4) + ele%value(x_offset_mult$) * ks / 2
 endif
 
-call track1_low_energy_z_correction (end_orb, ele2, param)
+end_orb%vec(5) = end_orb%vec(5) + low_energy_z_correction (end_orb, ele2, ele2%value(l$), mat6, present(mat6))
 
 if (present(mat6)) then
   if (ele2%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele2%value(tilt_tot$))
 
   call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
-
-  ! 1/gamma^2 m56 correction
-
-  mass = mass_of(end_orb%species)
-  e_tot = ele%value(p0c$) * (1 + end_orb%vec(6)) / end_orb%beta
-  mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
 
   ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
 endif

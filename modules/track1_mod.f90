@@ -1970,53 +1970,6 @@ end subroutine exact_bend_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track1_low_energy_z_correction (orbit, ele, param)
-! 
-! Routine to add a correction to z due to speed < c corrections when tracking through an element.
-! This routine assumes a constant velocity.
-!
-! Moudle needed:
-!   use track1_mod
-!
-! Input:
-!   orbit   -- coord_struct: Position before correction
-!   ele     -- ele_struct: Element being tracked through
-!   param   -- lat_param_struct: Species info.
-!
-! Output:
-!   orbit   -- coord_struct: Position after correction.
-!-
-
-subroutine track1_low_energy_z_correction (orbit, ele, param)
-
-implicit none
-
-type (coord_struct) orbit
-type (ele_struct) ele
-type (lat_param_struct) param
-
-real(rp) p0c, pc, beta0, mass, e_tot
-
-!
-
-mass = mass_of(orbit%species)
-e_tot = ele%value(e_tot$)
-p0c = ele%value(p0c$)
-
-if (abs(orbit%vec(6)) < 1d-6 * mass**2 * p0c / e_tot**3) then
-  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
-else
-  pc = (1 + orbit%vec(6)) * ele%value(p0c$)
-  beta0 = ele%value(p0c$) / ele%value(e_tot$)
-  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (orbit%beta - beta0) / beta0
-endif
-
-end subroutine track1_low_energy_z_correction
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!+
 ! Subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit)
 ! 
 ! Routine to add a RF cavity coupler kicks

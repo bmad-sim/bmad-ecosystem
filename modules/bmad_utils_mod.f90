@@ -938,62 +938,6 @@ ele%value(z_offset_tot$) = 0
 
 end subroutine zero_ele_offsets
 
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine apply_energy_kick (dE, orbit)
-! 
-! Routine to change the energy of a particle by an amount dE
-! Appropriate changes to z and beta will be made
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   dE        -- real(rp): Energy change
-!   orbit     -- coord_struct: Beginning coordinates
-!
-! Output:
-!   orbit     -- coord_struct: coordinates with added dE energy kick.
-!     %vec(6)   -- Set to -1 if particle energy becomes negative.
-!-
-
-subroutine apply_energy_kick (dE, orbit)
-
-type (coord_struct) orbit
-real(rp) dE, mc2, new_pc, new_beta, p0c, new_E, pc, beta, t3
-
-!
-
-mc2 = mass_of(orbit%species)
-p0c = orbit%p0c
-pc = (1 + orbit%vec(6)) * p0c
-beta = orbit%beta
-
-new_E = pc / orbit%beta + dE
-
-if (new_E < 0) then
-  orbit%vec(6) = -1
-  orbit%beta = 0
-  return
-endif
-
-t3 = mc2**2 * dE**3 / (2 * p0c * beta * pc**4) 
-if (t3 < 1d-12) then
-  orbit%vec(6) = orbit%vec(6) + dE / (beta * p0c) - (mc2 * dE / pc)**2 / (2 * p0c * pc) + t3
-  new_pc = p0c * (1 + orbit%vec(6))
-else
-  new_pc = sqrt(new_E**2 - mc2**2)
-  orbit%vec(6) = (new_pc - p0c) / p0c
-endif
-
-new_beta = new_pc / new_E
-orbit%vec(5) = orbit%vec(5) * new_beta / beta
-orbit%beta = new_beta
-
-end subroutine apply_energy_kick
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

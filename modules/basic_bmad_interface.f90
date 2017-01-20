@@ -38,6 +38,15 @@ subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_sp
   logical track_spin
 end subroutine
 
+subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  real(rp) dE
+  real(rp), optional :: ddE_dr(2), mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
   import
   implicit none
@@ -373,6 +382,16 @@ subroutine lat_sanity_check (lat, err_flag)
   type (lat_struct), target :: lat
   logical, intent(out) :: err_flag
 end subroutine
+
+function low_energy_z_correction (orbit, ele, ds, mat6, make_matrix) result (dz)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  real(rp) ds, dz
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end function
 
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
   import

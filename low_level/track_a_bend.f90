@@ -80,9 +80,6 @@ endif
 g = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
 g_err = g_tot - g
-pz = orbit%vec(6)
-rel_p  = 1 + pz
-rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
 if (nint(ele%value(exact_multipoles$)) /= off$) then
   k_1 = 0  ! Is folded in with multipoles.
@@ -110,11 +107,16 @@ if (ix_pole_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp)
 
 do n = 1, n_step
 
+  pz = orbit%vec(6)
+  rel_p  = 1 + pz
+  rel_p2 = rel_p**2
+
   ! with k1 /= 0 use small angle approximation
 
   if (k_1 /= 0) then
 
     call sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+    orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
   elseif (g == 0 .and. g_err == 0) then
     call track_a_drift (orbit, step_len, mat6, make_matrix)
@@ -345,6 +347,8 @@ do n = 1, n_step
       orbit%vec(5) = z + step_len * (g_err - g*pz) / g_tot - rel_p * factor
     endif
 
+    orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
+
   endif
 
   ! multipole kick
@@ -369,8 +373,6 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 
 c1_off = orbit
 call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
-
-if (.not. drifting) call track1_low_energy_z_correction (orbit, ele, param)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
@@ -421,14 +423,6 @@ if (logic_option(.false., make_matrix)) then
   endif
 
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
-
-  ! 1/gamma^2 m56 correction
-
-  if (.not. drifting) then
-    mass = mass_of(orbit%species)
-    e_tot = ele%value(p0c$) * (1 + orbit%vec(6)) / orbit%beta
-    mat6(5,6) = mat6(5,6) + ele%value(l$) * mass**2 * ele%value(e_tot$) / e_tot**3
-  endif
 
   ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
 endif
