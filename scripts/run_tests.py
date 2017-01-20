@@ -76,6 +76,7 @@ while i < len(sys.argv):
 
 if bin_dir[0] != '/' and bin_dir[0] != '$': bin_dir = '../' + bin_dir
 if bin_dir[-1] != '/': bin_dir = bin_dir + '/'
+if len(test_dir_list) == 1 and test_dir_list[0] == 'all': test_dir_list = []
 
 if len(test_dir_list) == 0:
   dir_file = open (test_list_file, 'r')
