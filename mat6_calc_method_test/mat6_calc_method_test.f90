@@ -18,9 +18,10 @@ character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(46) :: final_str
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
+character(100) line
 
 integer :: i, j, k, ib, nargs, ns
-logical custom_test
+logical custom_test, err
 
 !
 
@@ -70,7 +71,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
       ele%mat6_calc_method = j
       call init_coord (start_orb, lat%beam_start, ele, upstream_end$, branch%param%particle)
-      call make_mat6 (ele, branch%param, start_orb, end_orb)
+      call make_mat6 (ele, branch%param, start_orb, end_orb, err_flag = err)
       call transfer_ele(ele, eles(j), .true.)
       if (custom_test .and. ele%mat6_calc_method == bmad_standard$) then
         write (1, '(a, 6es16.8)'), 'Start track:', start_orb%vec
@@ -87,7 +88,11 @@ do ib = 0, ubound(lat%branch, 1)
         if (k < 7) then
           if (custom_test) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-            write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
+            if (err) then
+              write (1, '(2a)') final_str(1:ns), '  -------------------------------------- LOST -------------------------------'
+            else
+              write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
+            endif
           else
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)

@@ -20,7 +20,7 @@ q2[cartesian_map] = q1[cartesian_map]
 q3: q1
 q2[cartesian_map(1)%field_scale] = 3
 
-m1: lcavity, rf_frequency = 1e6, voltage = 2, cylindrical_map = {
+m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, cylindrical_map = {
   m = 2, 
   harmonic = 3,
   r0 = (0, 0, 0.001), 
