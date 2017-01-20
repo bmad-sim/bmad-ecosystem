@@ -111,13 +111,13 @@ end type
 for iz in range(4):
 
   if iz == 0:
-    out_file.write('type (pure_bend_multipole_struct) :: h_to_v_imag(0:n_pole_maxx) = [ &\n')
-  elif iz == 1:
     out_file.write('type (pure_bend_multipole_struct) :: v_to_h_imag(0:n_pole_maxx) = [ &\n')
+  elif iz == 1:
+    out_file.write('type (pure_bend_multipole_struct) :: h_to_v_imag(0:n_pole_maxx) = [ &\n')
   elif iz == 2:
-    out_file.write('type (pure_bend_multipole_struct) :: h_to_v_real(0:n_pole_maxx) = [ &\n')
-  elif iz == 3:
     out_file.write('type (pure_bend_multipole_struct) :: v_to_h_real(0:n_pole_maxx) = [ &\n')
+  elif iz == 3:
+    out_file.write('type (pure_bend_multipole_struct) :: h_to_v_real(0:n_pole_maxx) = [ &\n')
 
   in_file.readline()   # Ignore header string
 

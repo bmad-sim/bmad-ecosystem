@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    272486,       7185]
-NotebookOptionsPosition[    263006,       6907]
-NotebookOutlinePosition[    263344,       6922]
-CellTagsIndexPosition[    263301,       6919]
+NotebookDataLength[    272533,       7186]
+NotebookOptionsPosition[    263053,       6908]
+NotebookOutlinePosition[    263391,       6923]
+CellTagsIndexPosition[    263348,       6920]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -6483,7 +6483,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteString", "[", 
    RowBox[{
-   "outunit", ",", "\"\<Horizontal to Vertical Imaginary Potential\\n\>\""}], 
+   "outunit", ",", "\"\<Vertical to Horizontal Imaginary Potential\\n\>\""}], 
    "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Export", "[", 
@@ -6495,7 +6495,7 @@ Cell[BoxData[{
   RowBox[{"WriteString", "[", 
    RowBox[{
    "outunit", ",", 
-    "\"\<\\nVertical to Horizontal Imaginary Potential\\n\>\""}], "]"}], 
+    "\"\<\\nHorizontal to Vertical Imaginary Potential\\n\>\""}], "]"}], 
   ";"}], "\n", 
  RowBox[{
   RowBox[{"Export", "[", 
@@ -6507,7 +6507,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteString", "[", 
    RowBox[{
-   "outunit", ",", "\"\<\\nHorizontal to Vertical Real Potential\\n\>\""}], 
+   "outunit", ",", "\"\<\\nVertical to Horizontal Real Potential\\n\>\""}], 
    "]"}], ";"}], "\n", 
  RowBox[{
   RowBox[{"Export", "[", 
@@ -6518,7 +6518,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteString", "[", 
    RowBox[{
-   "outunit", ",", "\"\<\\nVertical to Horizontal Real Potential\\n\>\""}], 
+   "outunit", ",", "\"\<\\nHorizontal to VerticalReal Potential\\n\>\""}], 
    "]"}], ";"}], "\n", 
  RowBox[{
   RowBox[{"Export", "[", 
@@ -6532,7 +6532,8 @@ Cell[BoxData[{
   3.69213823751375*^9, 3.69213827262376*^9}, {3.6921385749264097`*^9, 
   3.692138580072648*^9}, {3.692138637823865*^9, 3.6921386592308702`*^9}, {
   3.692138820380557*^9, 3.6921389919234457`*^9}, {3.6921396078149567`*^9, 
-  3.692139665946419*^9}, {3.6921397785582848`*^9, 3.692139786112187*^9}}],
+  3.692139665946419*^9}, {3.6921397785582848`*^9, 3.692139786112187*^9}, {
+  3.69393057459438*^9, 3.693930620374432*^9}}],
 
 Cell[BoxData[
  InterpretationBox[
@@ -6906,7 +6907,7 @@ Cell[BoxData["\<\"pure_conversion\"\>"], "Output",
 }, Open  ]]
 },
 WindowSize->{1323, 1318},
-WindowMargins->{{647, Automatic}, {Automatic, 32}},
+WindowMargins->{{Automatic, 761}, {23, Automatic}},
 FrontEndVersion->"10.4 for Linux x86 (64-bit) (April 11, 2016)",
 StyleDefinitions->"Default.nb"
 ]
@@ -7181,9 +7182,9 @@ Cell[230581, 6091, 130, 2, 31, "Input"],
 Cell[230714, 6095, 12174, 378, 604, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[242925, 6478, 2016, 56, 212, "Input"],
-Cell[244944, 6536, 17805, 361, 65, "Output"],
-Cell[262752, 6899, 214, 3, 31, "Output"]
+Cell[242925, 6478, 2063, 57, 212, "Input"],
+Cell[244991, 6537, 17805, 361, 65, "Output"],
+Cell[262799, 6900, 214, 3, 31, "Output"]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]
