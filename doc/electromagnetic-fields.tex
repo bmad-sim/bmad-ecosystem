@@ -219,7 +219,7 @@ In the rest of this section only normalized coordinates will be used. Thus, to s
 the displayed equations, the circumflex over the normalized coordinates will be dropped.
 
 An electric or magnetic multipole can be characterized by a scaler potential $\phi$ with
-the field given by $\nabla \phi$.  The potential is a solution to Laplace's equation
+the field given by $-\nabla \phi$.  The potential is a solution to Laplace's equation
 \Begineq
   \frac{1}{r} \, \frac{\partial}{\partial \, r} 
   \left( r \, \frac{\partial \, \phi}{\partial \, r} \right) +
@@ -231,14 +231,14 @@ scaler potential for both the magnetic and electric fields.
 
 Solutions to Laplace's equation can be found in form
 \Begineq
-  \phi_{n}^r = \frac{1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
+  \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
              (-1)^{p} \, F_{n+1-2p}(r) \, y^{2p}
   \label{pspn1}
 \Endeq
 and in the form
 \Begineq
-  \phi_{n}^i = \frac{1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
+  \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
              (-1)^{p} \, F_{n-2p}(r) \, y^{2p+1}
   \label{pspn2}
@@ -264,7 +264,7 @@ are finite. With this condition, all the $F_p$ can be constructed:
   F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots 
          \label{ffff} \\
   F_4 &= 3 [ \frac{1}{8} (r^4 - 1) + \frac{1}{2} (r^2 - 1) - (r^2 + \frac{1}{2}) \ln r] = 
-         x^4 - \frac{2}{5} x^5 + \frac{3}{10} x^6 \ldots \CRNO
+         x^4 - \frac{2}{5} x^5 + \frac{3}{10} x^6 - \ldots \CRNO
   &\text{Etc...} \nonumber
 \end{align}
 In terms of implementing these functions on a computer, the exact $r$-dependent functions
@@ -276,38 +276,56 @@ enough and then switches to the $r$-dependent formulas for $x$ away from zero.
 For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
 ``imaginary'' $\phi_n^i$ solutions will correspond to normal fields
 \Begineq
-  \bfB = \frac{P_0}{q \, L} \, 
+  \bfB = -\frac{P_0}{q \, L} \, 
     \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \nabla \phi_n^r + b_n \, \nabla \phi_n^i \right]
+  \label{bpql}
 \Endeq
-where the gradient $\nabla$ is with respect to the normalized coordinates. For electric fields, the reverse is true
-\Begineq
-  \bfE = \sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \nabla \phi_n^i + b_{en} \, \nabla \phi_n^r \right]
-\Endeq
+where the derivatives of the gradient $\nabla$ are with respect to the normalized
+coordinates. In the limit of infinite bending radius $\rho$, the above equations converge
+to the straight line solution given in \Eq{qlpbb}.
 
-In the vertical plane, with $x = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the
-same variation in $y$ as the multipole fields with a straight geometry. For example, the
-field strength of a $n = 1$ (quadrupole) multipole will be linear in $y$ for $x = 0$. In the
-horizontal plane, with $y = 0$, this is not the case. Thus, for example, a $n = 1$
-multipole field in the horizontal plane will vary like $dF_2/dx$ which has terms of all orders in
-$x$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are called ``vertically
-pure'' solutions.
+For electric fields, the ``real'' solutions will correspond to normal fields and the
+``imaginary'' solutions are used for skew fields
+\Begineq
+  \bfE = -\sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \nabla \phi_n^i + b_{en} \, \nabla \phi_n^r \right]
+  \label{enrn}
+\Endeq
+And this will converge to \Eq{exiey} in the straight line limit.
+
+In the vertical plane, with $x = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the same
+variation in $y$ as the multipole fields with a straight geometry. For example, the field
+strength of an $n = 1$ (quadrupole) multipole will be linear in $y$ for $x = 0$ but, in the
+horizontal direction, with $y = 0$, the multipole field will vary like $dF_2/dx$ which has
+terms of all orders in $x$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are
+called ``vertically pure'' solutions.
 
 It is possible to construct ``horizontally pure'' solutions as well. That is, it is
 possible to construct solutions that in the horizontal plane with $y = 0$ behave the same
 as the corresponding multipole fields with a straight geometry. A straight forward way to
 do this is, for some given multipole of order $n$, is to construct the horizontally pure
 solutions from the vertically pure solutions via
-\begin{align}
-  \psi_n^r &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, C_{nk} \, \phi_{k1} \CRNO
-  \psi_n^i &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \phi_{k2}
-\end{align}
+\Begineq
+  \psi_n^r = \sum_{k = n}^\infty C_{nk} \, \phi_k^r, \qquad
+  \psi_n^i = \sum_{k = n}^\infty D_{nk} \, \phi_k^i
+  \label{p1rc}
+\Endeq
 with the normalizations $C_{nn} = D_{nn} = 1$. The $C_{nk}$ and $D_{nk}$ are chosen, order
 by order, so that $\psi_n^r$ and $\psi_n^i$ are horizontally pure. For the real
 potentials, the $C_{nk}$, are obtained from a matrix $\bfM$ where $M_{ij}$ is the
-coefficient of the $x^j$ term of $\rho^{i-j} (dF_i/dx)/i$ when $F_i$ is expressed as an expansion in
+coefficient of the $x^j$ term of $(dF_i/dx)/i$ when $F_i$ is expressed as an expansion in
 $x$ (\Eq{ffff}). $C_{nk}$, $k = 0, \ldots \infty$ are the row vectors of the the inverse
 matrix $\bfM^{-1}$. For the imaginary potentials, the $D_{nk}$ are constructed similarly
-but in this case the rows of $\bfM$ are the coefficients in $x$ for the functions $\rho^{i-j} F_i$.
+but in this case the rows of $\bfM$ are the coefficients in $x$ for the functions $F_i$.
+To convert between field strength coefficients, \Eqs{bpql} and \eq{enrn} and \Eqs{p1rc}
+are combined
+\begin{alignat}{3}
+  a_n &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, C_{nk} \, \alpha_k, \quad 
+  &a_{en} &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \alpha_{ek}, \CRNO
+  b_n &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \beta_k, \quad
+  &b_{en} &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \beta_{ek}
+\end{alignat}
+where $\alpha_k$, $\beta_k$, $\alpha_{ek}$, and $\beta_{ek}$ are the corresponding coefficients
+for the horizontally pure solutions.
 
 When expressed as a funciton of $r$ and $y$, the vertically pure solutions $\phi_n$ have a
 finite number of terms (\Eqs{pspn1} and \eq{pspn2}). On the other hand, the horizontally
@@ -316,8 +334,8 @@ pure solutions $\psi_n$ have an infinite number of terms.
 The vertically pure solutions form a complete set. That is, any given field that satisfies
 Maxwell's equations and is independent of $z$ can be expressed as a linear combination of
 $\phi_n^r$ and $\phi_n^i$. Similarly, the horizontally pure solutions form a complete
-set. Additionally, it is possible to construct other complete sets in which the basis
-functions are neither horizontally pure nor vertically pure.
+set. [It is, of course, possible to construct other complete sets in which the basis
+functions are neither horizontally pure nor vertically pure.]
 
 This brings up an important point. to properly simulate a machine, one must first of all
 understand whether the multipole values that have been handed to you are for horizontally
