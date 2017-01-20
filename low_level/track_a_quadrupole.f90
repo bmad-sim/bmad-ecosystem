@@ -44,9 +44,6 @@ start_orb = orbit
 orientation = ele%orientation * start_orb%direction
 rel_tracking_charge = relative_tracking_charge(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
-rel_p = 1 + orbit%vec(6)
-
-k1 = charge_dir * ele%value(k1$) / rel_p
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
@@ -64,6 +61,7 @@ call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvk
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+if (orbit%state /= alive$) return
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
@@ -75,6 +73,9 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 do i = 1, n_step
 
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat6)
+
+  rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
+  k1 = charge_dir * ele%value(k1$) / rel_p
 
   call quad_mat2_calc (-k1, step_len, rel_p, kmat6(1:2,1:2), dz_x, ddz_x)
   call quad_mat2_calc ( k1, step_len, rel_p, kmat6(3:4,3:4), dz_y, ddz_y)
@@ -111,6 +112,8 @@ do i = 1, n_step
   orbit%vec(1:2) = matmul(kmat6(1:2,1:2), orbit%vec(1:2))
   orbit%vec(3:4) = matmul(kmat6(3:4,3:4), orbit%vec(3:4))
 
+  orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
+
   if (i == n_step) then
     if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
     if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
@@ -125,10 +128,9 @@ enddo
 
 fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+if (orbit%state /= alive$) return
 
 call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)  
-
-call track1_low_energy_z_correction (orbit, ele, param)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
@@ -155,12 +157,6 @@ if (logic_option(.false., make_matrix)) then
   endif
 
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
-
-  ! 1/gamma^2 m56 correction
-
-  mass = mass_of(orbit%species)
-  e_tot = ele%value(p0c$) * (1 + orbit%vec(6)) / orbit%beta
-  mat6(5,6) = mat6(5,6) + ele%value(l$) * mass**2 * ele%value(e_tot$) / e_tot**3
 
   ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
 endif

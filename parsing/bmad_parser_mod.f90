@@ -3866,7 +3866,7 @@ if (bp_com%print_err) then
 
   nl=nl+1; lines(nl) = ''
 
-  call out_io (err_level, r_name, lines(1:nl), r_array = r_array, i_array = i_array)
+  call out_io (err_level, r_name, lines(1:nl), r_array = r_array, i_array = i_array, insert_tag_line = .false.)
 
 endif
 
@@ -7948,7 +7948,8 @@ character(*) name, name_list(:)
 character(1) delim
 character(60) word
 character(40) ele_name, attrib_name 
-integer this_switch, switch, ix_word, ixp, ixp2
+character(:), allocatable :: line
+integer i, this_switch, switch, ix_word, ixp, ixp2
 logical err, delim_found
 
 !
@@ -7974,7 +7975,12 @@ ixp = index(word, '[')
 if (ixp == 0) then
   call match_word (word, name_list, this_switch, can_abbreviate = .false.)
   if (this_switch < 1) then
-    call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+    line = trim(name_list(1))
+    do  i = 2, size(name_list)
+      line = line // ', ' // trim(name_list(i))
+    enddo
+    call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word, &
+                       'POSSIBILITIES ARE: ' // line)
     return
   else
     switch = this_switch

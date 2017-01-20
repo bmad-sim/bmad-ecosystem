@@ -624,7 +624,7 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, ref_species, coord, pole_type, scale, mat6, make_matrix)
+! Subroutine ab_multipole_kicks (an, bn, ref_species, orbit, pole_type, scale, mat6, make_matrix)
 !
 ! Routine to put in the kick due to ab_multipole components.
 !
@@ -632,7 +632,7 @@ end subroutine multipole_kicks
 !   an(0:)       -- real(rp): Skew multipole strengths.
 !   bn(0:)       -- real(rp): Normal multipole tilts.
 !   ref_species    -- integer: Reference species.
-!   coord        -- coord_struct: Particle position.
+!   orbit        -- coord_struct: Particle position.
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   scale        -- real(rp), optional: Factor to scale the kicks. Default is 1.
 !                     For pole_type = electric$, set scale to the longitudinal length of the field region
@@ -640,16 +640,16 @@ end subroutine multipole_kicks
 !   make_matrix  -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   coord      -- coord_struct: Kicked particle.
+!   orbit      -- coord_struct: Kicked particle.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including multipole.
 !-
 
-subroutine ab_multipole_kicks (an, bn, ref_species, coord, pole_type, scale, mat6, make_matrix)
+subroutine ab_multipole_kicks (an, bn, ref_species, orbit, pole_type, scale, mat6, make_matrix)
 
-type (coord_struct)  coord
+type (coord_struct)  orbit, orb0
 
 real(rp) an(0:), bn(0:)
-real(rp) kx, ky, pz2, rel_p2, dk(2,2), alpha, kx_tot, ky_tot, beta_old
+real(rp) f, g, dpz, kx, ky, rel_p2, dk(2,2), alpha, kx_tot, ky_tot, dk_tot(2,2), kmat(6,6), dk_dp
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
@@ -659,45 +659,75 @@ logical, optional :: make_matrix
 
 !
 
-if (integer_option(magnetic$, pole_type) == electric$) then
-  pz2 = (1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2
-endif
-
 kx_tot = 0
 ky_tot = 0
+dk_tot = 0
+orb0 = orbit
 
 do n = 0, n_pole_maxx
   if (an(n) == 0 .and. bn(n) == 0) cycle
 
   if (logic_option(.false., make_matrix)) then
-    call ab_multipole_kick (an(n), bn(n), n, ref_species, coord, kx, ky, dk, pole_type = pole_type, scale = scale)
-    mat6(2,:) = mat6(2,:) + dk(1,1) * mat6(1,:) + dk(1,2) * mat6(3,:)
-    mat6(4,:) = mat6(4,:) + dk(2,1) * mat6(1,:) + dk(2,2) * mat6(3,:)
+    call ab_multipole_kick (an(n), bn(n), n, ref_species, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
+    dk_tot = dk_tot + dk
   else
-    call ab_multipole_kick (an(n), bn(n), n, ref_species, coord, kx, ky, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (an(n), bn(n), n, ref_species, orbit, kx, ky, pole_type = pole_type, scale = scale)
   endif
 
   kx_tot = kx_tot + kx
   ky_tot = ky_tot + ky
 enddo
 
-if (integer_option(magnetic$, pole_type) == electric$) then
-  alpha = (kx_tot * (2*coord%vec(2) + kx_tot) + ky_tot * (2*coord%vec(4) + ky_tot)) / (1 + coord%vec(6))**2
+orbit%vec(2) = orbit%vec(2) + kx_tot
+orbit%vec(4) = orbit%vec(4) + ky_tot
+
+!
+
+if (integer_option(magnetic$, pole_type) == magnetic$) then
+  if (logic_option(.false., make_matrix)) then
+    mat6(2,:) = mat6(2,:) + dk_tot(1,1) * mat6(1,:) + dk_tot(1,2) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + dk_tot(2,1) * mat6(1,:) + dk_tot(2,2) * mat6(3,:)
+  endif
+
+else  ! Electric
+  alpha = (kx_tot * (2*orb0%vec(2) + kx_tot) + ky_tot * (2*orb0%vec(4) + ky_tot)) / (1 + orb0%vec(6))**2
   if (alpha < -1) then
-    coord%state = lost_z_aperture$
+    orbit%state = lost_z_aperture$
     return
   endif
-  coord%vec(6) = coord%vec(6) + (1 + coord%vec(6)) * sqrt_one(alpha)
-endif
+  dk_dp = (mass_of(orb0%species) * orb0%beta / ((1 + orb0%vec(6)) * orb0%p0c))**2 / (1 + orb0%vec(6))
+  dpz = (1 + orb0%vec(6)) * sqrt_one(alpha)
 
-coord%vec(2) = coord%vec(2) + kx_tot
-coord%vec(4) = coord%vec(4) + ky_tot
+  orbit%vec(6) = orb0%vec(6) + dpz
+  orbit%beta = (1 + orbit%vec(6)) / sqrt((1 + orbit%vec(6))**2 + (mass_of(orbit%species)/orbit%p0c)**2)
+  orbit%vec(5) = orb0%vec(5) * orbit%beta / orb0%beta
 
-if (integer_option(magnetic$, pole_type) == electric$) then
-  rel_p2 = pz2 + coord%vec(2)**2 + coord%vec(4)**2
-  beta_old = coord%beta
-  coord%beta = (1 + coord%vec(6)) / sqrt(rel_p2 + (mass_of(coord%species)/coord%p0c)**2)
-  coord%vec(5) = coord%vec(5) * coord%beta / beta_old
+  if (logic_option(.false., make_matrix)) then
+    call mat_make_unit (kmat)
+
+    f = 1 / (1 + orbit%vec(6))
+    g = orb0%vec(5) * orbit%beta * (1 - orbit%beta**2) / (orb0%beta * (1 + orbit%vec(6)))
+
+    kmat(2,1) = dk_tot(1,1)
+    kmat(2,3) = dk_tot(1,2)
+    kmat(2,6) = -dk_dp * kx_tot
+
+    kmat(4,1) = dk_tot(2,1)
+    kmat(4,3) = dk_tot(2,2)
+    kmat(4,6) = -dk_dp * ky_tot
+
+    kmat(6,1) = f * (orbit%vec(2) * dk_tot(1,1) + orbit%vec(4) * dk_tot(1,2))
+    kmat(6,2) = f * kx_tot
+    kmat(6,3) = f * (orbit%vec(2) * dk_tot(2,1) + orbit%vec(4) * dk_tot(2,2))
+    kmat(6,4) = f * ky_tot
+    kmat(6,6) = f * ((1 + orb0%vec(6)) - orbit%vec(2) * dk_dp * kx_tot - orbit%vec(4) * dk_dp * ky_tot)
+
+    kmat(5,1:4) = g * kmat(6,1:4)
+    kmat(5,5) = orbit%beta / orb0%beta
+    kmat(5,6) = 0
+
+    mat6 = matmul(kmat, mat6)
+  endif
 endif
 
 end subroutine ab_multipole_kicks
