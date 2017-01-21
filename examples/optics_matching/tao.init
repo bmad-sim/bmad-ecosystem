@@ -62,7 +62,7 @@ global%beam_timer_on = T
 !------------------------------------------------------------------------
 
 &tao_var
-	v1_var%name = quad
+	v1_var%name = 'quad'
 	default_step = 1e-4
 	default_universe = '1'
 	default_attribute = 'k1'
