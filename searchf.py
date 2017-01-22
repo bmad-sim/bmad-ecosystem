@@ -109,15 +109,17 @@ def print_help_message ():
   is used, getf/listf will only look at the subdirectories of <rdir> for the search directories.
 
   Standard Search directories:
-      bmad                genplt
-      bmadz               instr_utils
-      bsim                mpm_utils
-      bsim_cesr           mpmnet
-      cesr_programs       nonlin_bpm
-      cesr_utils          recipes_f-90_LEPP
-      cesrv               sim_utils
+      bmad                recipes_f-90_LEPP      
+      bsim                sim_utils         
       examples            tao
       forest              util_programs
+
+  Additionally, at Cornell, the following directories are searched:
+      bmadz               genplt
+      bsim_cesr           instr_utils
+      cesr_programs       mpm_utils
+      cesr_utils          mpmnet
+      cesrv               nonlin_bpm
 ''')
   sys.exit()
 
