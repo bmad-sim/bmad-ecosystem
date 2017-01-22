@@ -105,8 +105,8 @@ def print_help_message ():
   module that matches <search_string>. Wild cards "*" and "." may be used.
 
   Note: getf/listf look for search directories locally and then, if not found, look for the
-  search directories in a release or distribution. The exception is that if the "-r <rdir>" option
-  is used, getf/listf will only look at the subdirectories of <rdir> for the search directories.
+  search directories in a release or distribution. The exception is that if the "-r <r_dir>" option
+  is used, getf/listf will only look at the subdirectories of <r_dir> for the search directories.
 
   Standard Search directories:
       bmad                recipes_f-90_LEPP      
