@@ -102,7 +102,8 @@ def print_help_message ():
   for files of the type:
       *.f90    *.inc    *.cpp    *.h    *.c
   Within each of these files getf/listf will search for any routine, struct, parameter or 
-  module that matches <search_string>. Wild cards "*" and "." may be used.
+  module that matches <search_string>. Wild cards "*" and "." may be used. See the Bmad
+  manual for more details.
 
   Note: getf/listf look for search directories locally and then, if not found, look for the
   search directories in a release or distribution. The exception is that if the "-r <r_dir>" option
