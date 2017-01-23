@@ -60,7 +60,8 @@ horizontal focusing and vertical defocusing. The general form is
              \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
-where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$.
+where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$ and 
+$a \choose b$ (``a choose b'') denotes a binomial coefficient.
 
 \index{multipole!KnL, Tn|hyperbf}
 So far only the normal components of the field have been
@@ -211,7 +212,7 @@ McMillan\cite{b:mcmillan}.
 In the rest of this section, normalized coordinates $\what r = r / \rho$, $\what x / = x /
 \rho$, and $\what y = y / \rho$ will be used where $\rho$ is the bending radius of the
 reference coordinate system, $r$ is the distance, in the plane of the bend, from the bend
-center to the observation point, $x$ is the distance in the plane of the from the referece
+center to the observation point, $x$ is the distance in the plane of the from the reference
 coordinates to the observation point and $y$ is the distance out-of-plane. With this
 convention $\what r = 1 + \what x$.
 
@@ -243,11 +244,13 @@ and in the form
              (-1)^{p} \, F_{n-2p}(r) \, y^{2p+1}
   \label{pspn2}
 \Endeq
-[Notice that here $n$ is related to $m$ in McMillian's paper by $m = n + 1$. Also note
-that the $\phi^r$ and $\phi^i$ here have a normalization factor that is different from
-McMillian.]  where $n$ is the order number which can range from 0 to infinity,
-$\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$, and
-the $F_p(r)$ are related by
+where $a \choose b$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
+number which can range from 0 to infinity, $\lfloor\alpha\rfloor$ means round down to the
+integer equal to or less than $\alpha$. [Notice that here $n$ is related to $m$ in
+McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here have a
+normalization factor that is different from McMillian.]
+
+In \Eq{pspn2} the $F_p(r)$ are related by
 \Begineq
   F_{p+2} = (p + 1) \, (p + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{p} \right]
 \Endeq
@@ -327,7 +330,7 @@ are combined
 where $\alpha_k$, $\beta_k$, $\alpha_{ek}$, and $\beta_{ek}$ are the corresponding coefficients
 for the horizontally pure solutions.
 
-When expressed as a funciton of $r$ and $y$, the vertically pure solutions $\phi_n$ have a
+When expressed as a function of $r$ and $y$, the vertically pure solutions $\phi_n$ have a
 finite number of terms (\Eqs{pspn1} and \eq{pspn2}). On the other hand, the horizontally
 pure solutions $\psi_n$ have an infinite number of terms.
 
@@ -337,13 +340,18 @@ $\phi_n^r$ and $\phi_n^i$. Similarly, the horizontally pure solutions form a com
 set. [It is, of course, possible to construct other complete sets in which the basis
 functions are neither horizontally pure nor vertically pure.]
 
-This brings up an important point. to properly simulate a machine, one must first of all
+\index{exact_multipoles}
+This brings up an important point. To properly simulate a machine, one must first of all
 understand whether the multipole values that have been handed to you are for horizontally
 pure multipoles, vertically, pure multipoles, or perhaps the values do not correspond to
-either horizontally pure nor vertically pure solutions! Furthermore, it is important to
-know how a program models multipoles. For example, the chromaticity induced by a
-horizontally pure quadrupole field will be different from the chromaticity of a vertically
-pure quadrupole field of the same strength.
+either horizontally pure nor vertically pure solutions! Failure to understand this point
+can lead to differing results. For example, the chromaticity induced by a horizontally
+pure quadrupole field will be different from the chromaticity of a vertically pure
+quadrupole field of the same strength. With \bmad, the \vn{exact_multipoles}
+(\sref{s:bend}) attribute of a bend is used to set whether multipole values are for
+vertically or horizontally pure solutions. [Note to programmers: PTC always assumes
+coefficients correspond to horizontally pure solutions. The \bmad PTC interface will
+convert coefficients as needed.]
 
 %-----------------------------------------------------------------
 \section{Map Decomposition of Magnetic and Electric Fields}
