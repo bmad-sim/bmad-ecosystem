@@ -82,7 +82,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     do k = 1, 8
       do j = 1, n_methods$
-        if (j == mad$ .and. custom_test) cycle
+        ! if (j == mad$ .and. custom_test) cycle
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
         ele2 => eles(j)
         if (k < 7) then
@@ -203,10 +203,10 @@ case ('"SBEND4:Symp_Lie_PTC:Vector"')             ; tolerance = 'ABS 4e-08'
 case ('"SBEND4:Taylor:Vector"')                   ; tolerance = 'ABS 4e-08'
 case ('"SBEND4:Symp_Lie_PTC:Symp_Err"')           ; tolerance = 'ABS 4e-07'
 case ('"SBEND4:Taylor:Symp_Err"')                 ; tolerance = 'ABS 4e-07'
-case ('"SBEND4:Bmad_Standard:MatrixRow1"')         ; tolerance = 'ABS 1e-11'
-case ('"SBEND4:Bmad_Standard:MatrixRow3"')         ; tolerance = 'ABS 1e-10'
-case ('"SBEND4:Bmad_Standard:MatrixRow5"')         ; tolerance = 'ABS 3e-08'
-case ('"SBEND4:Bmad_Standard:Vector"')             ; tolerance = 'ABS 2e-10'
+case ('"SBEND4:Bmad_Standard:MatrixRow1"')         ; tolerance = 'ABS 2e-11'
+case ('"SBEND4:Bmad_Standard:MatrixRow3"')         ; tolerance = 'ABS 2e-10'
+case ('"SBEND4:Bmad_Standard:MatrixRow5"')         ; tolerance = 'ABS 1e-07'
+case ('"SBEND4:Bmad_Standard:Vector"')             ; tolerance = 'ABS 4e-10'
 case ('"SBEND4:Bmad_Standard:Symp_Err"')           ; tolerance = 'ABS 2e-11'
 case ('"SBEND4:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-12'
 case ('"SBEND5:Tracking:MatrixRow1"')              ; tolerance = 'ABS 8e-09'
