@@ -6,7 +6,7 @@
 !
 ! Note: Ele must be an element in a lattice.
 !
-! Warning: This routine just takes the average to be the average of both ends.
+! Warning: This routine just takes the average to be the average of both ends of the element.
 ! this does not do a good job of calculating the average for some elements.
 !
 ! Modules Needed:
@@ -181,8 +181,8 @@ ave%a%gamma    = ave%a%gamma    + r * e1%a%gamma
 ave%a%eta      = ave%a%eta      + r * e1%a%eta      
 ave%a%etap     = ave%a%etap     + r * e1%a%etap     
 ave%a%sigma    = ave%a%sigma    + r * e1%a%sigma    
-ave%x%eta  = ave%x%eta  + r * e1%x%eta  
-ave%x%etap = ave%x%etap + r * e1%x%etap 
+ave%x%eta      = ave%x%eta      + r * e1%x%eta  
+ave%x%etap     = ave%x%etap     + r * e1%x%etap 
 ave%b%phi      = ave%b%phi      + r * e1%b%phi      
 ave%b%alpha    = ave%b%alpha    + r * e1%b%alpha    
 ave%b%beta     = ave%b%beta     + r * e1%b%beta     
@@ -190,8 +190,9 @@ ave%b%gamma    = ave%b%gamma    + r * e1%b%gamma
 ave%b%eta      = ave%b%eta      + r * e1%b%eta      
 ave%b%etap     = ave%b%etap     + r * e1%b%etap     
 ave%b%sigma    = ave%b%sigma    + r * e1%b%sigma    
-ave%y%eta  = ave%y%eta  + r * e1%y%eta  
-ave%y%etap = ave%y%etap + r * e1%y%etap 
+ave%y%eta      = ave%y%eta      + r * e1%y%eta  
+ave%y%etap     = ave%y%etap     + r * e1%y%etap 
+ave%value(l$)  = ave%value(l$)  + r 
 
 end subroutine
 
