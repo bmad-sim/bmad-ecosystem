@@ -1,7 +1,3 @@
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
 ! Subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 !
@@ -547,7 +543,7 @@ case (wiggler$, undulator$)
 
   ! Calculate b_max for map_type wigglers. 
 
-  if (ele%sub_key == map_type$ .and. val(b_max$) == 0) then
+  if (ele%sub_key == map_type$ .and. val(b_max$) == 0 .and. val(p0c$) > 0) then
     is_on = ele%is_on  ! Save
     polarity = val(polarity$)
     ele%is_on = .true.
