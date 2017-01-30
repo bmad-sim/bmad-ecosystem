@@ -104,10 +104,12 @@ freqs = -1
 
 do i=1,n_comp
   if(i==1 .and. logic_option(.false., opt_zero_first)) then
-    throw_away = interpolated_fft(cdata, calc_ok, opt_dump_spectra, 0) !call to get spectrum dump
+    !throw_away = interpolated_fft(cdata, calc_ok, opt_dump_spectra, 0) !call to get spectrum dump
+    throw_away = interpolated_fft_gsl(cdata, calc_ok, opt_dump_spectra, 0) !call to get spectrum dump
     freqs(i) = 0.0d0
   else
-    freqs(i) = interpolated_fft(cdata, calc_ok, opt_dump_spectra, 0)  !estimate location of spectrum peak using FFT
+    !freqs(i) = interpolated_fft(cdata, calc_ok, opt_dump_spectra, 0)  !estimate location of spectrum peak using FFT
+    freqs(i) = interpolated_fft_gsl(cdata, calc_ok, opt_dump_spectra, 0)  !estimate location of spectrum peak using FFT
     if (.not. calc_ok) return
     freqs(i) = maximize_projection(freqs(i), cdata)  !refine location of frequency peak
   endif
@@ -185,8 +187,8 @@ small_step = 0.1d0/N
 hsamp = (N-1)/2.0d0
 do i=1, N
   window = 0.5d0*(1.0d0 + cos(twopi*(i-hsamp-1)/(N-1)))  !hanning
-  !!r = 8.0d0
-  !!window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1)/(N-1))**2)  !gaussian
+  ! r = 8.0d0
+  ! window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1)/(N-1))**2)  !gaussian
   wcdata(i)= cdata(i) * window
 enddo
 
@@ -214,6 +216,101 @@ function special_projection (f)
 end function special_projection
 
 end function maximize_projection
+
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!+
+!  function interpolated_fft_gsl
+!
+!  Windows the complex data and uses a mixed-radix GSL routine to find the peak in the spectrum.
+!  The result is interpolated to improve the accuracy.  Hanning and Gaussian windowing are
+!  available.
+!-
+
+function interpolated_fft_gsl (cdata, calc_ok, opt_dump_spectrum, opt_dump_index) result (this_fft)
+
+use fgsl
+use sim_utils
+
+complex(rp) cdata(:)
+integer, optional :: opt_dump_spectrum, opt_dump_index
+
+integer dump_spectrum, dump_index
+
+complex(rp) wcdata(size(cdata))
+real(rp) fft_amp(size(cdata))
+real(rp) this_fft
+real(rp) window, r, hsamp, denom
+real(rp) lk, lkm, lkp, A
+
+type(fgsl_fft_complex_wavetable) :: wavetable
+type(fgsl_fft_complex_workspace) :: work
+integer(fgsl_int) :: status
+
+integer n_samples
+integer i, max_ix
+
+logical calc_ok
+
+!
+
+calc_ok = .false.
+this_fft = -1
+
+dump_spectrum = integer_option (0, opt_dump_spectrum)
+dump_index = integer_option (0, opt_dump_index)
+
+n_samples = size(cdata)
+hsamp = (n_samples-1)/2.0d0
+
+!apply window
+do i=1, n_samples
+  !window = 0.5d0*(1.0d0 + cos(twopi*(i-hsamp-1)/(n_samples-1)))  !hanning, also adjust interpolation below
+  r = 8.0
+  window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1.0d0)/(n_samples-1.0d0))**2)  !gaussian, also adjust interpolation below
+  ! window = 1
+  wcdata(i)= cdata(i) * window
+enddo
+
+wavetable = fgsl_fft_complex_wavetable_alloc(int(n_samples,fgsl_size_t))
+work = fgsl_fft_complex_workspace_alloc(int(n_samples,fgsl_size_t))
+status = fgsl_fft_complex_backward(wcdata, 1_fgsl_size_t, int(n_samples,fgsl_size_t), wavetable, work)
+fft_amp(:)=sqrt(wcdata(:)*conjg(wcdata(:)))
+
+if( dump_spectrum > 10 ) then
+  do i=1,n_samples
+    write(dump_spectrum,*) dump_index, (i-1.0d0)/n_samples, fft_amp(i)
+  enddo
+  write(dump_spectrum,*)
+  write(dump_spectrum,*)
+endif
+
+max_ix = maxloc(fft_amp(2:n_samples-1), 1) + 1
+if (fft_amp(max_ix) == 0) return  ! Error
+
+!Gaussian Interpolation (use with gaussian window)
+lk = log(fft_amp(max_ix))
+lkm = log(fft_amp(max_ix-1))
+lkp = log(fft_amp(max_ix+1))
+denom = 2.0d0*lk - lkp - lkm
+if (denom == 0) return   ! Error
+
+A = (lkp-lkm) / 2.0d0 / denom
+this_fft = ( 1.0d0*(max_ix-1) + A ) / n_samples
+calc_ok = .true.
+
+! Parabolic Interpolation (use with hanning window)
+! lk = fft_amp(max_ix)
+! lkm = fft_amp(max_ix-1)
+! lkp = fft_amp(max_ix+1)
+! A = (lkp-lkm) / 2.0 / (2.0*lk - lkp - lkm)
+! this_fft = 1.0d0*max_ix/n_samples + A/n_samples
+
+call fgsl_fft_complex_workspace_free(work)
+call fgsl_fft_complex_wavetable_free(wavetable)
+
+end function interpolated_fft_gsl
 
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
@@ -260,9 +357,9 @@ hsamp = (n_samples-1)/2.0d0
 
 !apply window
 do i=1, n_samples
-  !window = 0.5d0*(1.0d0 + cos(twopi*(i-hsamp-1)/(n_samples-1)))  !hanning
+  !window = 0.5d0*(1.0d0 + cos(twopi*(i-hsamp-1)/(n_samples-1)))  !hanning, also adjust interpolation below
   r = 8.0
-  window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1.0d0)/(n_samples-1.0d0))**2)  !gaussian
+  window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1.0d0)/(n_samples-1.0d0))**2)  !gaussian, also adjust interpolation below
   ! window = 1
   wcdata(i)= cdata(i) * window
 enddo
