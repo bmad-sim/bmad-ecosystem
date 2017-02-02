@@ -1715,6 +1715,7 @@ integer i, j, k, n, nt
 ! Convert to Bmad phase space coords
 ! dMAD_dBmad = dE/dP = dct/dz
 
+taylor%ref = 0
 dMAD_dBmad = energy%beta
 d2MAD_dBmad2 = 1 / (energy%gamma**2 * energy%total)
 

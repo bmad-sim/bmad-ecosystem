@@ -80,6 +80,9 @@ end interface
 
 private complex_taylor_coef1, complex_taylor_coef2
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
 !+
 ! Subroutine add_complex_taylor_term (bmad_complex_taylor, coef, exp)
 ! Subroutine add_complex_taylor_term (bmad_complex_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9)
@@ -769,7 +772,7 @@ complex(rp), optional :: r_out(:)
 type (complex_taylor_term_struct), pointer :: term
 
 complex(rp), intent(out) :: mat6(6,6), vec0(6)
-complex(rp) prod, t(6), t_out, out(6)
+complex(rp) prod, t(6), t_out, out(6), r_ref
 
 integer i, j, k, l
 
@@ -780,6 +783,7 @@ vec0 = 0
 out = 0
 
 do i = 1, 6
+  r_ref = a_complex_taylor(i)%ref
 
   terms: do k = 1, size(a_complex_taylor(i)%term)
     term => a_complex_taylor(i)%term(k)
@@ -787,7 +791,7 @@ do i = 1, 6
     t_out = term%coef
     do l = 1, 6
       if (term%expn(l) == 0) cycle
-      t(l) = r_in(l) ** term%expn(l)
+      t(l) = (r_in(l) - r_ref)**term%expn(l)
       t_out = t_out * t(l)
     enddo
 
@@ -796,10 +800,10 @@ do i = 1, 6
     do j = 1, 6
  
       if (term%expn(j) == 0) cycle
-      if (term%expn(j) > 1 .and. r_in(j) == 0) cycle
+      if (term%expn(j) > 1 .and. r_in(j) == r_ref) cycle
 
       if (term%expn(j) > 1)then
-        prod = term%coef * term%expn(j) * r_in(j) ** (term%expn(j)-1)
+        prod = term%coef * term%expn(j) * (r_in(j) - r_ref)**(term%expn(j)-1)
       else  ! term%expn(j) == 1
         prod = term%coef
       endif
@@ -911,10 +915,14 @@ type (complex_taylor_struct), intent(in) :: bmad_complex_taylor(:)
 
 complex(rp), intent(in) :: start_orb(:)
 complex(rp), intent(out) :: end_orb(:)
-complex(rp) s0(6)
-complex(rp), allocatable :: expn(:, :)
+complex(rp) diff_orb(6)
+complex(rp), allocatable :: expn(:,:)
 
 integer i, j, k, ie, e_max, i_max
+
+!
+
+diff_orb = start_orb - end_orb
 
 ! size cache matrix
 
@@ -934,12 +942,11 @@ allocate (expn(0:e_max, i_max))
 expn(0,:) = 1.0d0  !for when ie=0
 expn(1,:) = start_orb(:)
 do j = 2, e_max
-  expn(j,:) = expn(j-1,:) * start_orb(:)
+  expn(j,:) = expn(j-1,:) * diff_orb(:)
 enddo
 
 ! compute complex_taylor map
 
-s0 = start_orb  ! in case start and end are the same in memory.
 end_orb = 0
 
 do i = 1, i_max

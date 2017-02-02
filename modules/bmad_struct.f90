@@ -1304,14 +1304,14 @@ integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83
-integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84
-integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
+integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
+integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84
+integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
-integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89
-integer, parameter :: cmat_21_begin$ = 90
+integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89, z_ref$ = 89
+integer, parameter :: cmat_21_begin$ = 90, pz_ref$ = 90
 integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93

@@ -447,6 +447,12 @@ select case (a_name)
 case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
 case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
+case ('X_REF');                          a_ptr%r => ele%taylor(1)%ref
+case ('PX_REF');                         a_ptr%r => ele%taylor(2)%ref
+case ('Y_REF');                          a_ptr%r => ele%taylor(3)%ref
+case ('PY_REF');                         a_ptr%r => ele%taylor(4)%ref
+case ('Z_REF');                          a_ptr%r => ele%taylor(5)%ref
+case ('PZ_REF');                         a_ptr%r => ele%taylor(6)%ref
 case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
 case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => ele%branch%lat%absolute_time_tracking
 case ('CSR_CALC_ON');                    a_ptr%l => ele%csr_calc_on
