@@ -41,7 +41,7 @@ character(*), optional :: prompt_str, cmd_in
 character(80) prompt_string
 character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
-character(40) tag, name
+character(40) name
 character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
@@ -132,7 +132,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
-      call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_out))
+      call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
       return
     endif
 
@@ -172,7 +172,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       
     enddo loop1
 
-    call out_io (s_blank$, r_name, trim(prompt_string) // ': ' // trim(cmd_out))
+    call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
     call do_loop(cmd_out)
@@ -205,10 +205,10 @@ endif
 if (.not. present(cmd_in)) then
   if (.not. s%com%multi_commands_here) then
     cmd_out = ''
-    tag = trim(prompt_string) // '> '
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
-    call read_a_line (tag, cmd_out, prompt_color = s%global%prompt_color, prompt_bold = boldit)
+    call out_io (s_blank$, r_name, '')
+    call read_a_line (trim(prompt_string) // '> ', cmd_out, prompt_color = s%global%prompt_color, prompt_bold = boldit)
     if (cmd_out == achar(24)) cmd_out = 'exit'   ! Cntl-D pressed
   endif
 endif
@@ -222,6 +222,10 @@ endif
 
 call alias_translate (cmd_out, err)
 call check_for_multi_commands
+
+if (s%com%multi_commands_here) then
+  call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
+endif
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -240,10 +244,10 @@ old_cmd_out = cmd_out ! Save old command line for the command history.
 translated = .false.    ! No translation done yet
 call alias_translate2 (cmd_out, err, translated, alias_cmd)
 
-if (translated) then
-  print '(2a)', 'Alias: ', trim (alias_cmd)
-  cmd_out = trim(cmd_out) // "  ! " // trim(old_cmd_out)  
-endif
+!if (translated) then
+!  print '(2a)', 'Alias: ', trim (alias_cmd)
+!  cmd_out = trim(cmd_out) // "  ! " // trim(old_cmd_out)  
+!endif
 
 end subroutine
 
@@ -277,10 +281,12 @@ do i = 1, s%com%n_alias
   alias_cmd = s%com%alias(i)%expanded_str
 
   do j = 1, 9
-    ix = index (alias_cmd, sub_str(j))
-    if (ix == 0) exit
     call string_trim (cmd_out(ic+1:), cmd_out, ic)
-    alias_cmd = alias_cmd(1:ix-1) // trim(cmd_out(1:ic)) // alias_cmd(ix+5:)
+    do
+      ix = index (alias_cmd, sub_str(j))
+      if (ix == 0) exit
+      alias_cmd = alias_cmd(1:ix-1) // trim(cmd_out(1:ic)) // alias_cmd(ix+5:)
+    enddo
   enddo
 
   ! Append rest of string
