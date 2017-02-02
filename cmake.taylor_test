@@ -1,0 +1,19 @@
+set (EXENAME taylor_test)
+
+FILE (GLOB SRC_FILES "taylor_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+  fgsl
+  gsl
+  gslcblas
+)

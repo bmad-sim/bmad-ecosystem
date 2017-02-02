@@ -212,7 +212,7 @@ call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c, branch%ix_branch)
 idum = element_at_s (lat, s1, .true., branch%ix_branch, position = orb1)
 call twiss_and_track_from_s_to_s (branch, orb1, s2, orb2b, ele1, ele2b)
 
-call transfer_map_from_s_to_s (lat, t_map, s1, s2, branch%ix_branch)
+call transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch = branch%ix_branch)
 call taylor_to_mat6 (t_map, orb1%vec, vec0_d, xmat_d, orb2d%vec)
 
 write (1, *)

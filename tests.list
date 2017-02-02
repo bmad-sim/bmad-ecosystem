@@ -22,6 +22,7 @@ slice_test
 spin_test
 superimpose_test
 synrad3d_test
+taylor_test
 time_runge_kutta_test
 tracking_method_test
 twiss_track_test
