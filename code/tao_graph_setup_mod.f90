@@ -1799,11 +1799,10 @@ type (tao_lattice_branch_struct), pointer :: lat_branch
 type (bunch_params_struct), pointer :: bunch_params0, bunch_params1
 type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
-type (coord_struct) orbit_end
+type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct) ele, ele_dum
 type (ele_struct), pointer :: ele_ref
-type (coord_struct) orbit, orbit_last
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
@@ -2326,16 +2325,22 @@ do ii = 1, size(curve%x_line)
     value = orbit%t
 
   case ('t.')
-    if (ii == 1) call taylor_make_unit (t_map)
+    if (ii == 1) then
+      call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
+      call taylor_make_unit (t_map, orbit%vec)
+    endif
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     k = tao_read_this_index (data_type, 5); if (k == 0) return
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), taylor_expn([j, k]))
 
   case ('tt.')
-    if (ii == 1) call taylor_make_unit (t_map)
+    if (ii == 1) then
+      call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
+      call taylor_make_unit (t_map, orbit%vec)
+    endif
     if (s_now < s_last) cycle
     expnt = 0
     i = tao_read_this_index (data_type, 4); if (i == 0) return
@@ -2344,7 +2349,7 @@ do ii = 1, size(curve%x_line)
       k = tao_read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   
   case default

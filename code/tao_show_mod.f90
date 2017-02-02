@@ -2842,10 +2842,10 @@ case ('taylor_map', 'matrix')
       endif
     endif
 
+    call twiss_and_track_at_s (lat, s1, ele0, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
     if (n_order > 1) then
-      call transfer_map_from_s_to_s (lat, taylor, s1, s2, ix_branch, one_turn = .true.)
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, one_turn = .true.)
     else
-      call twiss_and_track_at_s (lat, s1, ele0, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
       call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
     endif
 
@@ -2901,7 +2901,7 @@ case ('taylor_map', 'matrix')
     endif
 
     if (n_order > 1) then
-      call transfer_map_calc (lat, taylor, err, ix1, ix2, one_turn = .true.)
+      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%lat_branch(ix_branch)%orbit(ix1), one_turn = .true.)
       if (err) then
         nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
         return
