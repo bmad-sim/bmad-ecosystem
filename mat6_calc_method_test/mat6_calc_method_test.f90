@@ -11,6 +11,7 @@ type (coord_struct) start_orb, end_orb
 type (ele_struct), pointer :: ele, ele2
 type (lat_param_struct) param
 type (branch_struct), pointer :: branch
+type (taylor_struct) t_map(6)
 
 real(rp) err_mat(6,6)
 
@@ -138,6 +139,9 @@ do ib = 0, ubound(lat%branch, 1)
 enddo   ! branch
 
 close(1)
+
+call transfer_map_calc(lat, t_map, err, 0, 1, start_orb)
+call type_taylors(t_map, 3)
 
 !----------------------------------------------------------------------
 contains

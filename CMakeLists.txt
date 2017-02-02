@@ -24,6 +24,7 @@ set (EXE_SPECS
   cmake.spin_test
   cmake.superimpose_test
   cmake.synrad3d_test
+  cmake.taylor_test
   cmake.time_runge_kutta_test
   cmake.tracking_method_test
   cmake.twiss_track_test
