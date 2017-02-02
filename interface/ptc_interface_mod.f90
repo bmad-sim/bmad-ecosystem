@@ -1,4 +1,3 @@
-
 !+
 ! Module ptc_interface_mod
 !
@@ -355,6 +354,7 @@ nl=nl+1; write (li(nl), '(a, t16, l1)') '  %only_4d:      ', state_ptr%only_4d
 nl=nl+1; write (li(nl), '(a, t16, l1)') '  %delta:        ', state_ptr%delta
 nl=nl+1; write (li(nl), '(a, t16, l1)') '  %spin:         ', state_ptr%spin
 nl=nl+1; write (li(nl), '(a, t16, l1)') '  %modulation:   ', state_ptr%modulation
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %only_2d:      ', state_ptr%only_2d
 
 call type_end_stuff(li, nl, lines, n_lines)
 
@@ -1356,7 +1356,7 @@ end subroutine real_8_equal_taylor
 !
 ! Output:
 !   y8(6)           -- real_8: PTC Taylor map.
-!   remove_constant -- logical, optional: Remove the constant part of the map? Default is True.
+!   remove_constant -- logical, optional: Remove the constant part of the map? Default is False.
 !-
 
 subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8, remove_constant)
@@ -1394,15 +1394,16 @@ y8(5) = -bet*rr(6)
 
 si = y8        ! ptc to bmad map
 
-bm = bm .o. si
+bm = bm .o. si  ! Concat without constant bm terms
 
 rr = bm
+
 y8 = rr
 y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+rr(6)**2+2.d0*rr(6)) )
 bet = (1.d0+rr(6))/(1.d0/beta1+y8(5))
 y8(6) = -rr(5)/bet
 
-if (logic_option(.true., remove_constant)) then
+if (logic_option(.false., remove_constant)) then
   do i = 1, 6
     y8(i) = y8(i) - (y8(i) .sub. '0')
   enddo
@@ -1428,10 +1429,9 @@ end subroutine taylor_to_real_8
 !
 ! Input:
 !   y8(6)           -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
-!   v0(6)           -- real(rp): Initial vector (in Bmad coords) around which y8 was made.
 !   beta0           -- real(rp): Reference particle velocity at beginning of map
 !   beta1           -- real(rp): Reference particle velocity at end of map
-!   bmad_taylor(6)  -- Taylor_struct:
+!   bmad_taylor(6)  -- Taylor_struct: Only %ref is used at input.
 !     %ref            -- Reference orbit
 !
 ! Output:
@@ -1470,7 +1470,7 @@ y8(6) = -rr(5)/bet
 
 si=y8  ! bmad to ptc map
 
-bm = bm*si
+bm = bm * si
 bm = fix0
 
 rr = bm
@@ -2168,32 +2168,48 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine concat_real_8 (y1, y2, y3)
+! Subroutine concat_real_8 (y1, y2, y3, r2_ref, keep_y1_const_terms)
 !
 ! Subroutine to concatinate two real_8 taylor maps.
 !       y3 = y2(y1)
 ! This subroutine assumes that y1, y2, and y3 have been allocated.
 !
-! Modules needed:
-!   use ptc_interface_mod
+! For any map "M", Bmad treats the argument of the map as M(r-r_ref) where
+! r are the coordinates and r_ref are the reference coordinates at the beginning of M.
+! The reference coordinates at the end of M is thus M(0).
+!
+! If r2_ref is not present, it is assumed that the referece orbit at the end of 
+! y1 (which is equal to y1(0)), is equal to the referene orbit at the beginning of y2.
+! If r2_ref is present, the maps are "aligned" so that
+!   y3(r - r1_ref) = y2(y1(r - r1_ref) - r2_ref)
+! What this means in practice is that, if r2_ref is not present, it is assumed that 
+! r2_ref = y1(0) so that the constant terms y1(0) are thrown away. 
 !
 ! Input:
-!   y1(:) -- real_8: First Input map.
-!   y2(:) -- real_8: Second Input map.
+!   y1(:)     -- real_8: First Input map.
+!   y2(:)     -- real_8: Second Input map.
+!   r2_ref(:) -- real(dp), optional: Reference orbit at beginning of y2. See above.
+!                 Cannot be present if keep_y1_const_terms is present
+!   keep_y1_const_terms
+!             -- logical, optional: If present and True, just concatenate y1 and y2 retaining any constant terms in y1.
+!                 That is, ignore the reference orbit. Cannot be present if r2_ref is present.
 !
 ! Output
 !   y3(:) -- real_8: Concatinated map.
 !-
 
-subroutine concat_real_8 (y1, y2, y3)
+subroutine concat_real_8 (y1, y2, y3, r2_ref, keep_y1_const_terms)
 
-use s_fitting, only: alloc, assignment(=), kill, damap, operator(.o.), real_8
+use s_fitting, only: alloc, assignment(=), kill, damap, operator(*), real_8, operator(.o.), operator(.sub.), print
 
 implicit none
 
-type (real_8), intent(in) :: y1(:), y2(:)
-type (real_8), intent(inout) :: y3(:)
+type (real_8) :: y1(:), y2(:), y3(:)
 type (damap) da1, da2, da3
+real(dp), optional :: r2_ref(:)
+
+integer i
+logical, optional :: keep_y1_const_terms
 
 ! set the taylor order in PTC if not already done so
 
@@ -2210,7 +2226,18 @@ call alloc(da3)
 da1 = y1
 da2 = y2
 
-da3 = da2 .o. da1  ! concat with constant terms
+if (logic_option(.false., keep_y1_const_terms)) then
+  da3 = da2 .o. da1
+
+elseif (present(r2_ref)) then
+  y3 = -r2_ref ! Identity map - r2_ref
+  da3 = y3
+  da1 = da3 .o. da1
+  da3 = da2 .o. da1  ! Includes constant term of da1.
+
+else
+  da3 = da2 * da1
+endif
 
 y3 = da3
 
@@ -2368,18 +2395,15 @@ end subroutine remove_constant_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_inverse (taylor_in, taylor_inv, err, ref_pt)
+! Subroutine taylor_inverse (taylor_in, taylor_inv, err)
 !
-! Subroutine to invert a taylor map. Since the inverse map is truncated, it
-! is not exact and the reference point about which it is computed matters.
+! Subroutine to invert a taylor map. Since the inverse map is truncated, it is not exact.
 !
 ! Moudules needed:
 !   use ptc_interface_mod
 !
 ! Input:
 !   taylor_in(:)  -- Taylor_struct: Input taylor map.
-!   ref_pt(:)     -- Real(rp), optional: Reference point about which the 
-!                     inverse is taken. Default is zero.
 !
 ! Output:
 !   taylor_inv(:) -- Taylor_struct: Inverted taylor map.
@@ -2387,7 +2411,7 @@ end subroutine remove_constant_taylor
 !                     If not present then print an error message.
 !-
 
-subroutine taylor_inverse (taylor_in, taylor_inv, err, ref_pt)
+subroutine taylor_inverse (taylor_in, taylor_inv, err)
 
 use s_fitting, only: assignment(=), alloc, kill, operator(**), damap, real_8
 
@@ -2399,7 +2423,6 @@ type (taylor_struct) tlr(size(taylor_in)), tlr2(size(taylor_in))
 type (real_8) y(size(taylor_in)), yc(size(taylor_in))
 type (damap) da
 
-real(rp), optional :: ref_pt(:)
 real(rp) c0(size(taylor_in))
 
 integer i, n_taylor
@@ -2418,24 +2441,10 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 call alloc(da)
 call alloc(y)
 
-! If ref_pt is present then shift the map to the new reference point.
-! Also the inverse operation of PTC ignores constant terms so we have 
+! The inverse operation of PTC ignores constant terms so we have 
 ! to take them out and then put them back in.
 
-if (present(ref_pt)) then
-  y = taylor_in
-  call real_8_init(yc)
-  c_ref = ref_pt
-  yc = c_ref
-  call concat_real_8 (yc, y, y)
-  tlr2 = y
-  call kill (yc)
-  call kill (y)
-  call remove_constant_taylor (tlr2, tlr, c0, .true.)
-  call kill_taylor (tlr2)
-else
-  call remove_constant_taylor (taylor_in, tlr, c0, .true.)
-endif
+call remove_constant_taylor (taylor_in, tlr, c0, .true.)
 
 ! Each taylor_in(i) must have at least one term for an inverse to exist.
 
@@ -2460,15 +2469,16 @@ y = da
 
 ! Put constant terms back in.
 ! If the Map is written as:
-!   R_out = T * R_in + C
+!   R_out = T * (R_in - R_ref) + C
 ! Then inverting:
-!   R_in = T_inv * (R_out - C) = T_inv * (I - C) * R_out
+!   R_in = T_inv * (R_out - C) + R_ref = T_inv * (I - C) * R_out + R_ref
+! Therefore: R_ref_inv = C
 
 if (any(c0 /= 0)) then
   call real_8_init(yc)
   c8 = c0
   yc = -c8                       ! Convert this to taylor map: I - c8
-  call concat_real_8 (yc, y, y) 
+  call concat_real_8 (yc, y, y)
   call kill (yc)
   taylor_inv%ref = c0
 endif
@@ -2477,13 +2487,9 @@ endif
 
 taylor_inv = y
 
-! Take out the ref_pt offset if needed
-
-if (present(ref_pt)) then
-  do i = 1, n_taylor
-    call add_taylor_term (taylor_inv(i), ref_pt(i), expn0)
-  enddo
-endif
+do i = 1, size(taylor_in)
+  call add_taylor_term(taylor_inv(i), taylor_in(i)%ref, expn0)
+enddo
 
 ! Clean up
 
@@ -2544,7 +2550,7 @@ call real_8_init (y3)
 y1 = taylor1
 y2 = taylor2
 
-call concat_real_8 (y1, y2, y3)
+call concat_real_8 (y1, y2, y3, taylor2%ref)
 
 taylor3 = y3
 taylor3(:)%ref = taylor1(:)%ref
@@ -2568,12 +2574,14 @@ end subroutine concat_taylor
 ! If ele%taylor_map_includes_offsets = True:  ele_taylor == ele%taylor 
 ! If ele%taylor_map_includes_offsets = False: ele_taylor == ele%taylor + offset corrections. 
 !
+! Also see: concat_taylor
+!
 ! Modules needed:
 !   use ptc_interface_mod
 !
 ! Input:
 !   taylor1(6) -- Taylor_struct: Taylor map.
-!   ele        -- ele_struct: Element containing the taylor map.
+!   ele        -- ele_struct: Element containing a Taylor map.
 !
 ! Output
 !   taylor3(6) -- Taylor_struct: Concatinated map
@@ -2652,7 +2660,7 @@ call dtiltd (tilt, 2, x_ele)
 ! Concat with taylor1
 
 call taylor_to_real_8 (taylor1, beta0, beta0, x1)
-call concat_real_8 (x1, x_ele, x3)
+call concat_real_8 (x1, x_ele, x3, ele%taylor%ref)
 
 ! convert x3 to final result taylor3
 
@@ -2672,7 +2680,7 @@ end subroutine concat_ele_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_propagate1 (bmad_taylor, ele, param)
+! Subroutine taylor_propagate1 (bmad_taylor, ele, param, track_particle)
 !
 ! Subroutine to track (symplectic integration) a taylor map through an element.
 ! The alternative routine, if ele has a taylor map, is concat_taylor.
@@ -2684,18 +2692,23 @@ end subroutine concat_ele_taylor
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(6) -- Taylor_struct: Map to be tracked
-!   ele            -- Ele_struct: Element to track through
-!   param          -- lat_param_struct: 
+!   bmad_taylor(6)   -- Taylor_struct: Map to be tracked
+!   ele              -- Ele_struct: Element to track through
+!   param            -- lat_param_struct: 
+!   track_particle   -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
+!                         Must be present if the particle to be tracked is not the reference particle or
+!                         if the direction of propagation is backwards.
 !
 ! Output:
 !   bmad_taylor(6)  -- Taylor_struct: Map through element
 !-
 
-subroutine taylor_propagate1 (bmad_taylor, ele, param)
+subroutine taylor_propagate1 (bmad_taylor, ele, param, track_particle)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
+use ptc_spin, only: track_probe_x
+use madx_ptc_module, only: bmadl
 
 implicit none
 
@@ -2704,16 +2717,13 @@ type (real_8), save :: ptc_tlr(6)
 type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
 type (fibre), pointer :: ptc_fibre
+type (coord_struct), optional :: track_particle
 
 real(rp) beta0, beta1, m2_rel
 
 ! set the taylor order in PTC if not already done so
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
-! Init ptc "element" (fibre) 
-
-call ele_to_fibre (ele, ptc_fibre, param, .true.)
 
 ! Init ptc map with bmad map
 
@@ -2733,7 +2743,8 @@ endif
 
 ! track the map
 
-call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
+call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = track_particle)
+call track_probe_x (ptc_tlr, DEFAULT, fibre1 = bmadl%start)
 
 ! Track exit side drift if PTC is using a hard edge model
 
@@ -2905,12 +2916,12 @@ y0(5) = -bet*y8(6)
 
 ! take out the offset
 
-if (any(x /= 0)) then
-  call real_8_init(y2)
-  y2 = -x  ! y2 = IdentityMap - x
-  call concat_real_8 (y2, y0, y0)
-  call kill(y2)
-endif
+!if (any(x /= 0)) then
+!  call real_8_init(y2)
+!  y2 = -x  ! y2 = IdentityMap - x
+!  call concat_real_8 (y2, y0, y0)
+!  call kill(y2)
+!endif
 
 ! convert to bmad_taylor_struct
 

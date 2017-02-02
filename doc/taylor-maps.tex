@@ -11,21 +11,30 @@ an element or a section of a lattice is a function that maps the
 starting phase space coordinates $\Bf r(\In)$ to the ending
 coordinates $\Bf r(\Out)$
 \begin{equation}
-  \Bf r(\Out) = {\cal M} \, \Bf r(\In)
+  \Bf r(\Out) = {\cal M} \, (\delta \bfr)
 \end{equation}
-${\cal M}$ is made up of six functions ${\cal M}_i: {\cal R}^6
- \rightarrow {\cal R}$. Each of these functions maps to one of the $r(\Out)$
-coordinates. Each of these functions can be expanded in a Taylor
-series and truncated at some order. Each Taylor series is in the form
+where
 \Begineq
-  r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(\In)
+  \delta \bfr = \bfr(\In) - \bfr_\Ref
+\Endeq
+$\bfr_\Ref$ is the reference orbit at the start of the map around which the map is
+made. In many cases the reference orbit is the zero orbit. For a storage ring, the closed
+orbit is commanly used for the reference orbit.
+
+${\cal M}$ in the above equation is made up of six functions ${\cal M}_i: {\cal R}^6
+\rightarrow {\cal R}$. Each of these functions maps to one of the $r(\Out)$
+coordinates. Each of these functions can be expanded in a Taylor series and truncated at
+some order. Each Taylor series is in the form
+\Begineq
+  r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, (\delta r_k)^{e_{ijk}}
   \label{rcr}
 \Endeq
 Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
-The order of the map is
+The order of a given term associated with index $i,j$ is the sum over the exponents
 \Begineq
-  \text{order} = \max_{i,j} \left( \sum_{k = 1}^6 e_{ijk} \right)
+  \text{order}_{ij} = \sum_{k = 1}^6 e_{ijk} 
 \Endeq
+The order of the entire map is the order at which the map is truncated.
 
 The standard \bmad routine for printing a Taylor map might produce something 
 like this: 
@@ -64,7 +73,7 @@ p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
 \Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2),
 when expressed as a formula, would read:
 \Begineq
-  p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in) \, p_z(in)
+  p_x(out) = -0.185 + 1.3 \, \delta p_x + 3.8 \, \delta x^2 \, \delta p_z
 \Endeq
 
 \index{taylor map!reference coordinates}
@@ -75,24 +84,19 @@ coordinates where
   (x, p_x, y, p_y, z, p_z)_{ref} = (0.2, 0, 0.1, 0, 0, 0, 0)
 \Endeq
 The choice of the reference point will affect the values of the
-coefficients of the Taylor map. For example, suppose that the exact
-map through an element looks like
+coefficients of the Taylor map. As an example, consider the 1-dimension map
 \Begineq
-  x(out) = A \, \sin(k \, x(in))
+  x(out) = A \, \sin(k \, \delta x)
 \Endeq
 Then a Taylor map to 1\St order is
 \Begineq
-  x(out) = c_0 + c_1 \, x(in)
+  x(out) = c_0 + c_1 \, \delta x
 \Endeq
 where
 \begin{align}
   c_1 &= A \, k \, \cos(k \, x_{\text{ref}}) \\
-  c_0 &= A \, \sin(k \, x_{\text{ref}}) - c_1 \, x_{\text{ref}} \nonumber
+  c_0 &= A \, \sin(k \, x_{\text{ref}})
 \end{align}
-Notice that once the coefficient values are determined the reference
-point does not play any role when the Taylor map is evaluated to
-determine the output coordinates as a function of the input
-coordinates.
 
 %-----------------------------------------------------------------
 \section{Spin Taylor Map}
@@ -111,7 +115,7 @@ is only dependent on the six orbital variables. Furthermore,
 the three spin Taylor series are linear in the spin coordinates
 and can be cast into matrix form:
 \Begineq
-  S_i(\Out) = \sum_{j} \Bf\Lambda_{ij}(x, p_x, y, p_y, z, p_z) \, S_j(\In)
+  S_i(\Out) = \sum_{j} \Bf\Lambda_{ij}(\bfr(\In) - \bfr_\Ref) \, S_j(\In)
 \Endeq
 where $\Bf S = (s_x, s_y, s_z)$ is the spin and $\Bf\Lambda_{ij}$ are
 Taylor series that are only dependent upon the orbit coordinates. The
@@ -153,6 +157,7 @@ something like this:
   Sz:      0.00385332     -1.86555986      1.60475990   0  0  0  1  0  0        1
   Sz:      0.11944181      0.53003513     -0.46630288   0  0  0  0  0  1        1
 \end{example}
+The reference orbit is seen by printing the orbital part of the map.
 
 %-----------------------------------------------------------------
 \section{Symplectification}

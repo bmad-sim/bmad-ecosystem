@@ -633,9 +633,9 @@ if (.not. associated(ele%spin_taylor(1,1)%term)) then
   end_orb%spin = start_orb%spin
 endif
 
-call track_taylor (start_orb%vec, ele%spin_taylor(1,:), rot(1,:))
-call track_taylor (start_orb%vec, ele%spin_taylor(2,:), rot(2,:))
-call track_taylor (start_orb%vec, ele%spin_taylor(3,:), rot(3,:))
+call track_taylor (start_orb%vec, ele%spin_taylor(1,:), rot(1,:), ele%taylor%ref)
+call track_taylor (start_orb%vec, ele%spin_taylor(2,:), rot(2,:), ele%taylor%ref)
+call track_taylor (start_orb%vec, ele%spin_taylor(3,:), rot(3,:), ele%taylor%ref)
 
 end_orb%spin = matmul(rot, start_orb%spin)
 

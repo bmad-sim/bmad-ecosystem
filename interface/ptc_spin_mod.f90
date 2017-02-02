@@ -143,7 +143,7 @@ if (any(x /= 0)) then
   call real_8_init(y2)
   y2 = -x  ! y2 = IdentityMap - x
 
-  call concat_real_8 (y2, y0, y0)
+  call concat_real_8 (y2, y0, y0, keep_y1_const_terms = .true.)
 
 !  do i = 1, 3
 !    call concat_real_8 (y2, ptc_probe8%s(i)%x, ptc_probe8%s(i)%x)

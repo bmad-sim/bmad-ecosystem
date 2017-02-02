@@ -1393,6 +1393,12 @@ call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
 call init_attribute_name1 (taylor$, tt$,                            'TT*')
+call init_attribute_name1 (taylor$, x_ref$,                         'X_REF')
+call init_attribute_name1 (taylor$, px_ref$,                        'PX_REF')
+call init_attribute_name1 (taylor$, y_ref$,                         'Y_REF')
+call init_attribute_name1 (taylor$, py_ref$,                        'PY_REF')
+call init_attribute_name1 (taylor$, z_ref$,                         'Z_REF')
+call init_attribute_name1 (taylor$, pz_ref$,                        'PZ_REF')
 
 call init_attribute_name1 (wiggler$, k1$,                           'K1', dependent$)
 call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')

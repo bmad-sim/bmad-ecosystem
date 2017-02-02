@@ -994,6 +994,13 @@ do ib = 0, ubound(lat%branch, 1)
           write (line, '(7a, 6i2, a)') trim(line), ', {', xyz(j1), xyz(j2), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
         enddo
       enddo;  enddo
+
+      if (any(ele%taylor%ref /= 0)) then
+        write (line, '(16a)') trim(line), ', ref_orbit = (', &
+                trim(re_str(ele%taylor(1)%ref)), ', ', trim(re_str(ele%taylor(2)%ref)), ', ', &
+                trim(re_str(ele%taylor(3)%ref)), ', ', trim(re_str(ele%taylor(4)%ref)), ', ', &
+                trim(re_str(ele%taylor(5)%ref)), ', ', trim(re_str(ele%taylor(6)%ref)), ')'
+      endif
     endif
 
     ! Encode linear hybrid

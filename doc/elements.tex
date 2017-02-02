@@ -3891,6 +3891,12 @@ See \sref{s:list.taylor} for a full list of element attributes.
 Attributes specific to a \vn{taylor} element are:
 \begin{example}
   ref_orbit = (<x>, <px>, <y>, <py>, <z>, <pz>)     ! Reference orbit.
+  x_ref = <Real>                                    ! $x$ reference orbit component.
+  px_ref = <Real>                                   ! $p_x$ reference orbit component.
+  y_ref = <Real>                                    ! $y$ reference orbit component.
+  py_ref = <Real>                                   ! $p_y$ reference orbit component.
+  z_ref = <Real>                                    ! $z$ reference orbit component.
+  pz_ref = <Real>                                   ! $p_z$ reference orbit component.
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
   tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
@@ -3911,15 +3917,15 @@ one of ``\vn{x}'', ``\vn{y}'', or ``\vn{z}''.
 
 For orbital phase space variables a term in a Taylor map is of the form
 \Begineq
-  x_j(\Out) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}(\In)
+  r_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}
 \Endeq
-where $\Bf x = (x, p_x, y, p_y, z, p_z)$. A term in a Taylor map can
-be specified by one of two forms as shown above. The first form specifies
-the six exponents $e_i$ using the integers \vn{<e1>} corresponding to
-$e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in
-a Taylor map that was
+where $\bfr = (x, p_x, y, p_y, z, p_z)$ and $\delta \bfr = \bfr(\In) - \bfr_\Ref$ with
+$\bfr_\Ref$ begin the reference orbit. A term in a Taylor map can be specified by one of
+two forms as shown above. The first form specifies the six exponents $e_i$ using the
+integers \vn{<e1>} corresponding to $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For
+example, a term in a Taylor map that was
 \Begineq
-  p_y(\Out) = 2.73 \cdot y^2(\In) \, p_z(\In)
+  p_y(\Out) = 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In)
 \Endeq
 would be written as
 \begin{example}
@@ -3962,11 +3968,21 @@ Which is equivalent to
   \{6: 1.0 | 6\}
 \end{example}
 
+The \vn{ref_orbit} attribute specifies the phase space $(x, px, y, py, z, pz)$ reference
+orbit at the start of the element used to construct the Taylor map. Alternatively, the
+individual components of the reference orbit may be specified by using the attributes 
+\vn{x_ref}, \vn{px_ref}, \vn{y_ref}, \vn{py_ref}, \vn{z_ref}, or \vn{pz_ref}.
+
+Note: when converting the map from \bmad to PTC (\sref{c:ptc}), the \bmad/PTC interface
+code will convert from Bmad phase space coordinates to PTC phase space coordinates and
+will convert the map to using the reference orbit as the map zero orbit. This does not
+affect tracking but will affect map analysis.
+
 For spin, a Taylor map is associated with one of the components in the
 3x3 spin map matrix (\sref{s:spin.map}). An individual Taylor term is
 of the form
 \Begineq
-  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}(\In) \, S_k(\In)
+  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In) \, S_k(\In)
 \Endeq
 For example
 \begin{example}
@@ -3974,7 +3990,7 @@ For example
 \end{example}
 is equivalent to
 \Begineq
-  S_x(\Out) = 0.43 \cdot x(\In) \, y(\In) \, S_z(\In)
+  S_x(\Out) = 0.43 \cdot \delta x(\In) \, \delta y(\In) \, S_z(\In)
 \Endeq
 
 A term in a \vn{taylor} element will override any previous term
@@ -3988,15 +4004,6 @@ The \vn{l} length attribute does not affect phase space coordinates
 but will affect the longitudinal $s$ position of succeeding elements
 and will affect the time it takes a particle to track through the
 element.
-
-The \vn{ref_orbit} attribute specifies the phase space $(x, px, y, py, z, pz)$ reference
-orbit at the start of the element used to construct the Taylor map. The reference orbit
-only has an effect when used in conjunction with PTC (\sref{c:ptc}). In this case, PTC
-uses the reference orbit when doing such things as normal form analysis. Note: when
-converting the map from \bmad to PTC, the interface routine will convert from Bmad phase
-space coordinates to PTC phase space coordinates and will convert the map to using the
-reference orbit as the map zero orbit. This does not affect tracking but will affect map
-analysis.
 
 A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set to False), is
 considered to be like a \vn{marker} element. That is, the orbit and twiss parameters are

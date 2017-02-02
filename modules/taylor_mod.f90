@@ -80,6 +80,7 @@ taylor1%ref = taylor2%ref
 if (associated(taylor2%term)) then
   call init_taylor_series (taylor1, size(taylor2%term))
   taylor1%term = taylor2%term
+  taylor1%ref = taylor2%ref
 else
   if (associated (taylor1%term)) deallocate (taylor1%term)
 endif
@@ -131,7 +132,7 @@ end subroutine taylors_equal_taylors
 ! Function to return the coefficient for a particular taylor term from a Taylor Series.
 !
 ! For example: To get the 2nd order term corresponding to 
-!   y(out) = Coef * p_z(in)^2 
+!   y(out) = Coef * p_z^2 
 ! [This is somtimes refered to as the T_366 term]
 ! The call would be:
 !   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
@@ -147,8 +148,7 @@ end subroutine taylors_equal_taylors
 !   exp(6)      -- Integer: Array of exponent indices.
 !
 ! Output:
-!   taylor_coef -- Real(rp): Coefficient.
-!-
+!   taylor_coef -- Real(rp): Coefficient. Set to zero if not found.
 !-
 
 function taylor_coef (bmad_taylor, expn) result (coef)
@@ -509,23 +509,24 @@ end subroutine type_spin_taylors
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine taylor_make_unit (bmad_taylor)
+! Subroutine taylor_make_unit (bmad_taylor, ref_orbit)
 !
-! Subroutine to make the unit Taylor map:
-!       r(out) = Map * r(in) = r(in)
+! Subroutine to make the unit Taylor map around the reference orbit:
+!       r(out) = Map * r(in) = r(in) - ref_orbit
 !
-! Modules needed:
-!   use bmad
+! Input:
+!   ref_orbit(6)    -- real(rp), optional: Reference orbit. Taken to be zero if not present.
 !
 ! Output:
-!   bmad_taylor(6) -- Taylor_struct: Unit Taylor map .
+!   bmad_taylor(6)  -- taylor_struct: Unit Taylor map .
 !-
 
-subroutine taylor_make_unit (bmad_taylor)
+subroutine taylor_make_unit (bmad_taylor, ref_orbit)
 
 implicit none
 
 type (taylor_struct) bmad_taylor(:)
+real(rp), optional :: ref_orbit(:)
 integer i
 
 do i = 1, size(bmad_taylor)
@@ -533,8 +534,9 @@ do i = 1, size(bmad_taylor)
   bmad_taylor(i)%term(1)%coef = 1.0
   bmad_taylor(i)%term(1)%expn = 0
   bmad_taylor(i)%term(1)%expn(i) = 1
-  bmad_taylor(i)%ref = 0
 enddo
+
+if (present(ref_orbit)) bmad_taylor%ref = ref_orbit
 
 end subroutine taylor_make_unit
 
@@ -719,19 +721,16 @@ end subroutine remove_taylor_term
 !+
 ! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 !
-! Subroutine to initialize a Bmad Taylor series (6 of these series make
+! Subroutine to initialize or extend a Bmad Taylor series (6 of these series make
 ! a Taylor map). Note: This routine does not zero the structure. The calling
-! routine is responsible for setting all values.
-!
-! Modules needed:
-!   use bmad
+! routine is responsible for setting all values along with the reference position.
 !
 ! Input:
-!   bmad_taylor -- Taylor_struct: Old structure.
-!   n_term      -- Integer: Number of terms to allocate. 
-!                   n_term < 0 => bmad_taylor%term pointer will be disassociated.
-!   save_old    -- Logical, optional: If True then save any old terms when
-!                   bmad_taylor is resized. Default is False.
+!   bmad_taylor -- taylor_struct: Old structure.
+!   n_term      -- integer: Number of terms to allocate. 
+!                    n_term < 0 => bmad_taylor%term pointer will be disassociated.
+!   save_old    -- logical, optional: If True then save any old terms when
+!                    bmad_taylor is resized. Default is False.
 !
 ! Output:
 !   bmad_taylor -- Taylor_struct: Initalized structure.
@@ -786,9 +785,6 @@ end subroutine init_taylor_series
 ! Subroutine to deallocate a taylor map.
 ! It is OK if the taylor has already been deallocated.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   bmad_taylor(:)   -- Taylor_struct, optional: Taylor to be deallocated. 
 !   spin_taylor(3,3) -- Taylor_struct, optional: Taylor to be deallocated. 
@@ -826,7 +822,46 @@ end subroutine kill_taylor
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! subroutine sort_taylor_terms (taylor_in, taylor_sorted)
+! Subroutine taylor_extract_zeroth_order_part (bmad_taylor, zeroth_part)
+!
+! Routine to return the zeroth order ("constant") part of a taylor map.
+!
+! Input:
+!   bmad_taylor(:)    -- taylor_struct: Taylor map.
+!
+! Output:
+!   zeroth_part(:)    -- real(rp): vector of constant terms in the map.
+!-
+
+subroutine taylor_extract_zeroth_order_part (bmad_taylor, zeroth_part)
+
+implicit none
+
+type (taylor_struct) bmad_taylor(:)
+real(rp) zeroth_part(:)
+integer i, j
+
+!
+
+zeroth_part = 0
+
+do i = 1, size(bmad_taylor)
+  if (.not. associated(bmad_taylor(i)%term)) cycle
+
+  do j = 1, size(bmad_taylor(i)%term)
+    if (any(bmad_taylor(i)%term(j)%expn /= 0)) cycle
+    zeroth_part(i) = bmad_taylor(i)%term(j)%coef
+    exit
+  enddo
+enddo
+
+end subroutine taylor_extract_zeroth_order_part
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine sort_taylor_terms (taylor_in, taylor_sorted, min_val)
 !
 ! Subroutine to sort the taylor terms from "lowest" to "highest" of
 ! a taylor series.
@@ -834,21 +869,18 @@ end subroutine kill_taylor
 !
 ! Uses function taylor_exponent_index to sort.
 !
-! Note: taylor_sorted needs to have been initialized.
-! Note: taylor_sorted cannot be taylor_in. That is it is not legal to write:
+! Note: It is OK for taylor_sorted to be the same actual argument as taylor_in. That is, this is OK:
 !           call sort_taylor_terms (this_taylor, this_taylor)
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   taylor_in     -- Taylor_struct: Unsorted taylor series.
+!   min_val       -- real(rp), optional: If present then any terms lower than this value will be dropped.
 !
 ! Output:
 !   taylor_sorted -- Taylor_struct: Sorted taylor series.
 !-
 
-subroutine sort_taylor_terms (taylor_in, taylor_sorted)
+subroutine sort_taylor_terms (taylor_in, taylor_sorted, min_val)
 
 use nr
 
@@ -858,9 +890,11 @@ type (taylor_struct), intent(in)  :: taylor_in
 type (taylor_struct) :: taylor_sorted
 type (taylor_term_struct), allocatable :: tt(:)
 
+real(rp), optional :: min_val
+
 integer, allocatable :: ord(:), ix(:)
 
-integer i, n, expn(6)
+integer i, n, j
 
 ! init
 
@@ -873,17 +907,21 @@ allocate(taylor_sorted%term(n), ix(n), ord(n), tt(n))
 tt = taylor_in%term
 
 do i = 1, n
-  expn = tt(i)%expn
-  ord(i) = taylor_exponent_index(expn)
+  ord(i) = taylor_exponent_index(tt(i)%expn)
 enddo
 
 call indexx (ord, ix)
 
+j = 0
 do i = 1, n
-  taylor_sorted%term(i)= tt(ix(i))
+  if (present(min_val)) then
+    if (abs(tt(ix(i))%coef) <= min_val) cycle
+  endif
+  j = j + 1
+  taylor_sorted%term(j)= tt(ix(i))
 enddo
 
-deallocate(ord, ix, tt)
+if (j < n) call init_taylor_series (taylor_sorted, j, .true.)
 
 end subroutine sort_taylor_terms
 
@@ -932,7 +970,7 @@ end function taylor_exponent_index
 !
 ! Input:
 !   a_taylor(6) -- Taylor_struct: Taylor map.
-!   r_in(6)     -- Real(rp): Coordinates at the input. 
+!   r_in(6)     -- Real(rp): Coordinates at the input about which the Jacobian is evaluated. 
 !
 ! Output:
 !   vec0(6)   -- Real(rp): 0th order tranfsfer map
@@ -951,6 +989,7 @@ type (taylor_term_struct), pointer :: term
 
 real(rp), intent(out) :: mat6(6,6), vec0(6)
 real(rp) prod, t(6), t_out, out(6)
+real(rp), pointer :: r_ref(:)
 
 integer i, j, k, l
 
@@ -960,7 +999,10 @@ mat6 = 0
 vec0 = 0
 out = 0
 
+!
+
 do i = 1, 6
+  r_ref => a_taylor(:)%ref
 
   terms: do k = 1, size(a_taylor(i)%term)
     term => a_taylor(i)%term(k)
@@ -968,19 +1010,17 @@ do i = 1, 6
     t_out = term%coef
     do l = 1, 6
       if (term%expn(l) == 0) cycle
-      t(l) = r_in(l) ** term%expn(l)
+      t(l) = (r_in(l) - r_ref(l))**term%expn(l)
       t_out = t_out * t(l)
     enddo
-
     out(i) = out(i) + t_out
  
     do j = 1, 6
- 
       if (term%expn(j) == 0) cycle
-      if (term%expn(j) > 1 .and. r_in(j) == 0) cycle
+      if (term%expn(j) > 1 .and. r_in(j) == r_ref(j)) cycle
 
       if (term%expn(j) > 1)then
-        prod = term%coef * term%expn(j) * r_in(j) ** (term%expn(j)-1)
+        prod = term%coef * term%expn(j) * (r_in(j) - r_ref(j))**(term%expn(j)-1)
       else  ! term%expn(j) == 1
         prod = term%coef
       endif
@@ -1069,21 +1109,23 @@ end subroutine mat6_to_taylor
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track_taylor (start_orb, bmad_taylor, end_orb)
+! Subroutine track_taylor (start_orb, bmad_taylor, end_orb, ref_orb)
 !
 ! Subroutine to track using a Taylor map.
 ! This routine can be used for both orbital phase space and spin tracking
 !
 ! Input:
-!   start_orb(6)   -- Real(rp): Starting phase space coords.
-!   bmad_taylor(:) -- Taylor_struct: Taylor map. Array size is 6 for phase space 
+!   start_orb(6)   -- real(rp): Starting phase space coords.
+!   bmad_taylor(:) -- taylor_struct: Taylor map. Array size is 6 for phase space 
 !                       tracking and 3 for spin tracking.
+!   ref_orb(6)     -- real(rp), optional: Reference orbit. Needed if doing spin tracking since in 
+!                       this case the bmad_taylor argument will not contain the reference orbit.
 !
 ! Output:
-!   end_orb(:)     -- Real(rp): Ending coords. Must be same size as bmad_taylor(:)
+!   end_orb(:)     -- real(rp): Ending coords. Must be same size as bmad_taylor(:)
 !-
 
-subroutine track_taylor (start_orb, bmad_taylor, end_orb)
+subroutine track_taylor (start_orb, bmad_taylor, end_orb, ref_orb)
 
 implicit none
 
@@ -1092,8 +1134,18 @@ type (taylor_struct) :: bmad_taylor(:)
 real(rp) :: start_orb(:)
 real(rp) :: end_orb(:)
 real(rp), allocatable :: expn(:, :)
+real(rp), optional :: ref_orb(:)
+real(rp) diff_orb(size(start_orb))
 
 integer i, j, k, ie, e_max, n_size
+
+! 
+
+if (present(ref_orb)) then
+  diff_orb = start_orb - ref_orb
+else
+  diff_orb = start_orb - bmad_taylor%ref
+endif
 
 ! size cache matrix
 
@@ -1112,7 +1164,7 @@ allocate (expn(0:e_max, 6))
 
 expn(0,:) = 1.0d0
 do j = 1, e_max
-  expn(j,:) = expn(j-1,:) * start_orb(:)
+  expn(j,:) = expn(j-1,:) * diff_orb(:)
 enddo
 
 ! Compute taylor map
