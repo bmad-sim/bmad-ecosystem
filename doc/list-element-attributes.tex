@@ -1222,23 +1222,25 @@ integrator_order            & superimpose                 &                     
  \label{s:list.taylor}
  
  \begin{tabular}{lll} \toprule
-alias                       & offset_moves_aperture       & wall                        \\
-aperture                    & p0c                         & x1_limit                    \\
-aperture_at                 & ptc_integration_type        & x2_limit                    \\
-aperture_type               & reference                   & x_limit                     \\
-accordion_edge              & ref_orbit                   & x_offset                    \\
-create_jumbo_slave          & ref_origin                  & x_offset_tot                \\
-delta_ref_time              & spin_tracking_method        & x_pitch                     \\
-descrip                     & superimpose                 & x_pitch_tot                 \\
-ele_origin                  & symplectify                 & y1_limit                    \\
-e_tot                       & s_position                  & y2_limit                    \\
-end_edge                    & start_edge                  & y_limit                     \\
-is_on                       & taylor_map_includes_offsets & y_offset                    \\
-l                           & tilt                        & y_offset_tot                \\
-lord_pad1                   & tilt_tot                    & y_pitch                     \\
-lord_pad2                   & tracking_method             & y_pitch_tot                 \\
-mat6_calc_method            & tt*                         & z_offset                    \\
-offset                      & type                        & z_offset_tot                \\
+alias                       & ptc_integration_type        & x1_limit                    \\
+aperture                    & px_ref                      & x2_limit                    \\
+aperture_at                 & py_ref                      & x_limit                     \\
+aperture_type               & pz_ref                      & x_offset                    \\
+accordion_edge              & reference                   & x_offset_tot                \\
+create_jumbo_slave          & ref_orbit                   & x_pitch                     \\
+delta_ref_time              & ref_origin                  & x_pitch_tot                 \\
+descrip                     & spin_tracking_method        & x_ref                       \\
+ele_origin                  & superimpose                 & y1_limit                    \\
+e_tot                       & symplectify                 & y2_limit                    \\
+end_edge                    & s_position                  & y_limit                     \\
+is_on                       & start_edge                  & y_offset                    \\
+l                           & taylor_map_includes_offsets & y_offset_tot                \\
+lord_pad1                   & tilt                        & y_pitch                     \\
+lord_pad2                   & tilt_tot                    & y_pitch_tot                 \\
+mat6_calc_method            & tracking_method             & y_ref                       \\
+offset                      & tt*                         & z_offset                    \\
+offset_moves_aperture       & type                        & z_offset_tot                \\
+p0c                         & wall                        & z_ref                       \\
  \bottomrule
  \end{tabular}
  \vfill

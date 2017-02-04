@@ -492,6 +492,13 @@ tracking must be turned on. That is, in the lattice file set:
 \begin{example}
   parameter[ptc_exact_model] = T
 \end{example}
+With exact model tracking, PTC always assumes that multipole coefficients correspont to
+\vn{horizontally_pure}. In this case, \bmad will convert \vn{vertically_pure} to
+\vn{horizontally_pure} as needed when passing multipole coefficients to PTC. Note that in
+the case where PTC is doing exact model tracking but the \vn{exact_multipoles} switch is set to
+\vn{off}, PTC will still be treating the multipoles as \vn{horizontally_pure} even though
+\bmad tracking will be treating them as straight line multipoles.
+
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
@@ -722,8 +729,11 @@ the value of \vn{s} of the last wall cross-section
 \index{ecollimator|hyperbf}
 \index{rcollimator|hyperbf}
 
-An \vn{ecollimator} is a drift with elliptic collimation. An
-\vn{rcollimator} is a drift with rectangular collimation.
+An \vn{ecollimator} is a drift with elliptic collimation. An \vn{rcollimator} is a drift
+with rectangular collimation.
+
+Alternatively, for defining a collimator with an arbitrary shape, a \vn{mask} element
+(\sref{s:mask}) may be used.
 
 General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \begin{center}
@@ -2455,12 +2465,18 @@ See \sref{s:list.marker} for a full list of element attributes.
 Attributes specific to a \vn{marker} element are:
 \begin{example}
   x_ray_line_len = <Real>
+  geo            = <Logical>
 \end{example}
 
 \vn{x_ray_line_len} is the length of an associated x-ray synchrotron
 light line measured from the marker element. This is used for
 machine geometry calculations and is irrelevant for lattice
 computations.
+
+The \vn{geo} logical is used for translation between \bmad and SAD lattice files. It is
+ignored in all \bmad computations. \vn{geo} marks which edge of a solenoid where, in SAD,
+the orientation of the solenoid is determined by the orientation parameters in the SAD
+\vn{SOL} element at the edge.
 
 \index{x_offset}\index{y_offset}
 \index{tilt}\index{is_on}
@@ -3064,16 +3080,17 @@ See \sref{s:list.patch} for a full list of element attributes.
 \index{x_pitch}\index{y_pitch}\index{t_offset}
 Attributes specific to a \vn{patch} elements are:
 \begin{example}
-  x_offset        = <Real>  ! Exit face offset from Entrance.
-  y_offset        = <Real>  ! Exit face offset from Entrance.
-  z_offset        = <Real>  ! Exit face offset from Entrance.
-  t_offset        = <Real>  ! Reference time offset.
-  x_pitch         = <Real>  ! Exit face orientation from Entrance.
-  y_pitch         = <Real>  ! Exit face orientation from Entrance.
-  tilt            = <Real>  ! Exit face orientation from Entrance.
-  e_tot_offset    = <Real>  ! Reference energy offset (eV).
-  flexible        = <Logic> ! Default: False.
-  l               = <Real>  ! Reference length. Dependent attribute (\sref{s:depend}). 
+  x_offset        = <Real>    ! Exit face offset from Entrance.
+  y_offset        = <Real>    ! Exit face offset from Entrance.
+  z_offset        = <Real>    ! Exit face offset from Entrance.
+  t_offset        = <Real>    ! Reference time offset.
+  x_pitch         = <Real>    ! Exit face orientation from Entrance.
+  y_pitch         = <Real>    ! Exit face orientation from Entrance.
+  tilt            = <Real>    ! Exit face orientation from Entrance.
+  e_tot_offset    = <Real>    ! Reference energy offset (eV).
+  flexible        = <Logic>   ! Default: False.
+  l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
+  geo             = <Logical> ! Used for translation between \bmad and SAD.
 \end{example}
 \index{x_offset}
 
@@ -3194,6 +3211,11 @@ patch is defined.
 Since the geometry of a \vn{patch} element is complicated,
 interpolation of the chamber wall in the region of a patch follows
 special rules. See section~\sref{s:wall.vacuum} for more details.
+
+The \vn{geo} logical is used for translation between \bmad and SAD lattice files. It is
+ignored in all \bmad computations. \vn{geo} marks which edge of a solenoid where, in SAD,
+the orientation of the solenoid is determined by the orientation parameters in the SAD
+\vn{SOL} element at the edge.
 
 %-----------------------------------------------------------------
 \section{Photon_Init}
@@ -3897,8 +3919,8 @@ Attributes specific to a \vn{taylor} element are:
   py_ref = <Real>                                   ! $p_y$ reference orbit component.
   z_ref = <Real>                                    ! $z$ reference orbit component.
   pz_ref = <Real>                                   ! $p_z$ reference orbit component.
-  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
-  \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
+  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}    ! Taylor term. First form.
+  \{<out>: <coef> | <n1> <n2> ...\}                   ! Taylor term. Second form.
   tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
 \end{example}
 
@@ -3929,7 +3951,7 @@ example, a term in a Taylor map that was
 \Endeq
 would be written as
 \begin{example}
-  \{4: 2.73, 0 0 2 0 0 1\} or
+  \{4: 2.73, 0 0 2 0 0 1\}
 \end{example}
 
 The second form for specifying a Taylor term uses a set of integers \vn{<n1>},
@@ -3948,8 +3970,24 @@ would be written unsing the third form as:
   tt4336 = 2.73
 \end{example}
 
-By default a \vn{taylor} element starts out as the unit map. 
-That is, a \vn{taylor} element starts with the following 6 terms
+For spin, a Taylor map is associated with one of the components in the
+3x3 spin map matrix (\sref{s:spin.map}). An individual Taylor term is
+of the form
+\Begineq
+  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In) \, S_k(\In)
+\Endeq
+For example
+\begin{example}
+  \{xz: 0.43 | 13 \}
+\end{example}
+is equivalent to
+\Begineq
+  S_x(\Out) = 0.43 \cdot \delta x(\In) \, \delta y(\In) \, S_z(\In)
+\Endeq
+
+By default, a \vn{taylor} element starts out with the unit phase space map but no default
+is defined for the spin part of the map.  That is, a \vn{taylor} element starts with the
+following 6 terms
 \begin{example}
   \{1: 1.0, 1 0 0 0 0 0\}
   \{2: 1.0, 0 1 0 0 0 0\}
@@ -3978,21 +4016,6 @@ code will convert from Bmad phase space coordinates to PTC phase space coordinat
 will convert the map to using the reference orbit as the map zero orbit. This does not
 affect tracking but will affect map analysis.
 
-For spin, a Taylor map is associated with one of the components in the
-3x3 spin map matrix (\sref{s:spin.map}). An individual Taylor term is
-of the form
-\Begineq
-  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In) \, S_k(\In)
-\Endeq
-For example
-\begin{example}
-  \{xz: 0.43 | 13 \}
-\end{example}
-is equivalent to
-\Begineq
-  S_x(\Out) = 0.43 \cdot \delta x(\In) \, \delta y(\In) \, S_z(\In)
-\Endeq
-
 A term in a \vn{taylor} element will override any previous term
 with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term:
 \begin{example}
@@ -4000,10 +4023,9 @@ with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term
 \end{example}
 will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
 
-The \vn{l} length attribute does not affect phase space coordinates
-but will affect the longitudinal $s$ position of succeeding elements
-and will affect the time it takes a particle to track through the
-element.
+The \vn{l} length attribute of a \vn{taylor} element does not affect phase space
+coordinates but will affect the longitudinal $s$ position of succeeding elements and will
+affect the time it takes a particle to track through the element.
 
 A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set to False), is
 considered to be like a \vn{marker} element. That is, the orbit and twiss parameters are

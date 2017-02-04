@@ -1010,11 +1010,12 @@ call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start',
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
-call init_attribute_name1 (marker$, sr_wake_file$,        'SR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_wake_file$,        'LR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_freq_spread$,      'LR_FREQ_SPREAD')
-call init_attribute_name1 (marker$, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
-call init_attribute_name1 (marker$, lr_wake_spline$,      'LR_WAKE_SPLINE')
+call init_attribute_name1 (marker$, sr_wake_file$,                  'SR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_wake_file$,                  'LR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_freq_spread$,                'LR_FREQ_SPREAD')
+call init_attribute_name1 (marker$, lr_self_wake_on$,               'LR_SELF_WAKE_ON')
+call init_attribute_name1 (marker$, lr_wake_spline$,                'LR_WAKE_SPLINE')
+call init_attribute_name1 (marker$, geo$,                           'GEO')
 
 
 call init_attribute_name1 (match$, l$,                              'L')
@@ -1203,6 +1204,7 @@ call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC'
 call init_attribute_name1 (patch$, upstream_ele_dir$,               'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
+call init_attribute_name1 (patch$, geo$,                            'GEO')
 
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
@@ -1624,7 +1626,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT')
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &

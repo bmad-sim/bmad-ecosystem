@@ -1229,7 +1229,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 2
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
-integer, parameter :: phi0_autoscale$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
+integer, parameter :: phi0_autoscale$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27, geo$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28
