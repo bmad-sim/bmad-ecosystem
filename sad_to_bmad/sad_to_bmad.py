@@ -187,7 +187,7 @@ ele_param_translate = {
 # Stuff to ignore or stuff that must be handled specially.
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'sol:f1', 'sol:bz', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
@@ -549,6 +549,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     else:
       bmad_name = result
       value_suffix = ''
+
+    #
+
+    if sad_param_name == 'geo':
+      if value == '1':
+        value = 'T'
+      else:
+        value = 'F'
 
     #
 
