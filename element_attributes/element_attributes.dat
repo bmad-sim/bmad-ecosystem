@@ -1,4 +1,4 @@
- 2016-07-20 23:15:22 
+ 2017-02-02 16:09:33 
  
    1   DRIFT                 22   AB_MULTIPOLE
    2   SBEND                 11   BEAMBEAM
@@ -105,8 +105,12 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  11  BEAMBEAM            
@@ -174,7 +178,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  28  BEGINNING_ELE       
@@ -298,6 +302,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -334,8 +339,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  45  CAPILLARY           
@@ -390,7 +399,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  43  CRYSTAL             
@@ -465,8 +474,8 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
   7  CUSTOM              
@@ -519,6 +528,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -549,7 +559,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  39  DEF_BEAM_START      
@@ -675,8 +689,8 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
  52  DIFFRACTION_PLATE   
@@ -731,13 +745,14 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
   1  DRIFT               
          1  L                                       
          2  TILT                                    
+         5  drift_id                                  [private]
         10  fringe_type                               [private]
         11  fringe_at                                 [private]
         13  spin_fringe_on                            [private]
@@ -796,7 +811,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  36  ECOLLIMATOR         
@@ -841,6 +860,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -869,7 +889,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  10  ELSEPARATOR         
@@ -919,6 +943,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -955,8 +980,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  48  EM_FIELD            
@@ -1006,6 +1035,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1039,7 +1069,11 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  47  E_GUN               
@@ -1096,6 +1130,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1129,7 +1164,11 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  50  FIDUCIAL            
@@ -1211,7 +1250,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  41  FORK                
@@ -1255,7 +1298,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  37  GIRDER              
@@ -1302,14 +1345,14 @@
         74  CUSTOM_ATTRIBUTE4                         [private]
         75  CUSTOM_ATTRIBUTE5                         [private]
         80  check_sum                                 [private]
-        81  END_EDGE                                
         82  ALIAS                                   
-        83  START_EDGE                              
-        85  ACCORDION_EDGE                          
         89  VAR                                     
-        90  S_POSITION                              
        112  DESCRIP                                 
        117  TYPE                                    
+       128  ACCORDION_EDGE                          
+       129  START_EDGE                              
+       130  END_EDGE                                
+       131  S_POSITION                              
  
  !---------------------------------
  33  HKICKER             
@@ -1354,6 +1397,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1390,8 +1434,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  16  HYBRID              
@@ -1431,7 +1479,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  32  INSTRUMENT          
@@ -1491,6 +1543,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1520,7 +1573,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  15  KICKER              
@@ -1571,6 +1628,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1607,8 +1665,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  25  LCAVITY             
@@ -1674,6 +1736,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1708,7 +1771,11 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  29  LINE_ELE            
@@ -1807,7 +1874,11 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1817,6 +1888,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
        105  IS_ON                                   
        107  WALL                                    
        108  APERTURE_AT                             
@@ -1827,7 +1899,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  57  MASK                
@@ -1881,7 +1953,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  30  MATCH               
@@ -1920,6 +1992,11 @@
         35  PZ1                                     
         36  MATCH_END_ORBIT_INPUT                   
         37  MATCH_END_ORBIT                         
+        40  c_11                                      [private]
+        41  c_12                                      [private]
+        42  c_21                                      [private]
+        43  c_22                                      [private]
+        44  gamma_c                                   [private]
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -1955,7 +2032,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  42  MIRROR              
@@ -2012,8 +2093,8 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
  31  MONITOR             
@@ -2073,6 +2154,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2102,7 +2184,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  46  MULTILAYER_MIRROR   
@@ -2166,8 +2252,8 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
  19  MULTIPOLE           
@@ -2215,8 +2301,12 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  K0L                                     
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  K0L                                     
  
  !---------------------------------
  27  NULL_ELE            
@@ -2284,6 +2374,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2320,8 +2411,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
   6  OVERLAY             
@@ -2388,7 +2483,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  40  PHOTON_FORK         
@@ -2432,7 +2527,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  53  PHOTON_INIT         
@@ -2500,7 +2595,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
  44  PIPE                
@@ -2560,6 +2655,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2589,7 +2685,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
   3  QUADRUPOLE          
@@ -2642,6 +2742,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2678,8 +2779,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  18  RBEND               
@@ -2691,11 +2796,11 @@
          6  G                                       
          7  G_ERR                                   
          8  RHO                                     
-         9  L_CHORD                                 
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
+        14  EXACT_MULTIPOLES                        
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -2704,6 +2809,8 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        29  L_SAGITTA                               
+        30  L_CHORD                                 
         31  L_HARD_EDGE                             
         33  ANGLE                                   
         34  X_PITCH                                 
@@ -2752,6 +2859,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2788,8 +2896,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  35  RCOLLIMATOR         
@@ -2834,6 +2946,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2862,7 +2975,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
   9  RFCAVITY            
@@ -2929,6 +3046,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2963,7 +3081,11 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  56  SAD_MULT            
@@ -3038,8 +3160,12 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  54  SAMPLE              
@@ -3092,8 +3218,12 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
-       130  CURVATURE_X0_Y2                         
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  CURVATURE_X0_Y2                         
  
  !---------------------------------
   2  SBEND               
@@ -3105,11 +3235,11 @@
          6  G                                       
          7  G_ERR                                   
          8  RHO                                     
-         9  L_CHORD                                 
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
+        14  EXACT_MULTIPOLES                        
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -3118,6 +3248,8 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        29  L_SAGITTA                               
+        30  L_CHORD                                 
         31  L_HARD_EDGE                             
         33  ANGLE                                   
         34  X_PITCH                                 
@@ -3166,6 +3298,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3202,8 +3335,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
   5  SEXTUPOLE           
@@ -3254,6 +3391,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3290,8 +3428,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  23  SOLENOID            
@@ -3342,6 +3484,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3378,8 +3521,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  13  SOL_QUAD            
@@ -3432,6 +3579,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3468,8 +3616,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
   8  TAYLOR              
@@ -3506,8 +3658,14 @@
         80  check_sum                                 [private]
         81  TT*                                     
         82  ALIAS                                   
+        83  X_REF                                   
+        84  PX_REF                                  
+        85  Y_REF                                   
+        86  PY_REF                                  
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  Z_REF                                   
+        90  PZ_REF                                  
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3528,7 +3686,11 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
-       129  CREATE_JUMBO_SLAVE                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
  
  !---------------------------------
  51  UNDULATOR           
@@ -3584,6 +3746,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3621,8 +3784,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  34  VKICKER             
@@ -3667,6 +3834,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3703,8 +3871,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  12  WIGGLER             
@@ -3760,6 +3932,7 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3797,8 +3970,12 @@
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
        126  TAYLOR_FIELD                            
-       129  CREATE_JUMBO_SLAVE                      
-       130  A0                                      
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                          
+       129  Start_Edge                              
+       130  End_Edge                                
+       131  S_Position                              
+       140  A0                                      
  
  !---------------------------------
  Index usage:
@@ -3807,16 +3984,16 @@
      2    47
      3    22
      4    19
-     5    21
+     5    22
      6    20
      7    18
      8    21
-     9     8
+     9     6
     10    27
     11    30
     12     5
     13    28
-    14     5
+    14     7
     15     5
     16     7
     17     5
@@ -3831,8 +4008,8 @@
     26    22
     27    11
     28     7
-    29     8
-    30    11
+    29    10
+    30    13
     31    32
     32    10
     33    14
@@ -3842,11 +4019,11 @@
     37    44
     38    43
     39    23
-    40    23
-    41    22
-    42    20
-    43     6
-    44     8
+    40    24
+    41    23
+    42    21
+    43     7
+    44     9
     45     5
     46     8
     47     3
@@ -3883,15 +4060,15 @@
     78    46
     79    46
     80    53
-    81     5
+    81    29
     82    54
-    83    29
-    84    27
-    85    28
-    86    19
+    83    30
+    84    29
+    85    29
+    86    20
     87    49
     88    36
-    89    30
+    89    31
     90     4
     91    50
     92    49
@@ -3902,7 +4079,7 @@
     97    46
     98    46
     99     1
-   100    28
+   100    29
    101     2
    102     4
    103    31
@@ -3929,11 +4106,11 @@
    124    18
    125    18
    126    18
-   127     0
-   128     0
-   129    46
-   130    23
-   131     0
+   127    46
+   128    34
+   129    34
+   130    34
+   131    34
    132     0
    133     0
    134     0
@@ -3942,7 +4119,7 @@
    137     0
    138     0
    139     0
-   140     0
+   140    23
    141     0
    142     0
    143     0
@@ -4036,14 +4213,6 @@
    231     0
    232     0
    233     0
-   234     0
-   235     0
-   236     0
-   237     0
-   238     0
-   239     0
-   240     0
-   241     0
  
  !---------------------------------
 Index: 1
@@ -4198,6 +4367,7 @@ Index: 4
  
  !---------------------------------
 Index: 5
+    DRIFT               
     SBEND               
     SEXTUPOLE           
     WIGGLER             
@@ -4290,10 +4460,8 @@ Index: 8
  
  !---------------------------------
 Index: 9
-    SBEND               
     RFCAVITY            
     ELSEPARATOR         
-    RBEND               
     LCAVITY             
     MATCH               
     DEF_BEAM_START      
@@ -4403,8 +4571,10 @@ Index: 13
  
  !---------------------------------
 Index: 14
+    SBEND               
     CUSTOM              
     BEAMBEAM            
+    RBEND               
     MATCH               
     PHOTON_INIT         
     SAD_MULT            
@@ -4632,7 +4802,9 @@ Index: 28
  
  !---------------------------------
 Index: 29
+    SBEND               
     BEAMBEAM            
+    RBEND               
     PATCH               
     BEGINNING_ELE       
     LINE_ELE            
@@ -4643,7 +4815,9 @@ Index: 29
  
  !---------------------------------
 Index: 30
+    SBEND               
     BEAMBEAM            
+    RBEND               
     PATCH               
     BEGINNING_ELE       
     LINE_ELE            
@@ -4991,6 +5165,7 @@ Index: 40
     RBEND               
     SOLENOID            
     LCAVITY             
+    MATCH               
     MONITOR             
     INSTRUMENT          
     RCOLLIMATOR         
@@ -5016,6 +5191,7 @@ Index: 41
     RBEND               
     SOLENOID            
     LCAVITY             
+    MATCH               
     MONITOR             
     INSTRUMENT          
     RCOLLIMATOR         
@@ -5040,6 +5216,7 @@ Index: 42
     RBEND               
     SOLENOID            
     LCAVITY             
+    MATCH               
     MONITOR             
     INSTRUMENT          
     RCOLLIMATOR         
@@ -5054,6 +5231,7 @@ Index: 42
 Index: 43
     RFCAVITY            
     LCAVITY             
+    MATCH               
     HKICKER             
     VKICKER             
     CRYSTAL             
@@ -5066,6 +5244,7 @@ Index: 44
     ELSEPARATOR         
     RBEND               
     LCAVITY             
+    MATCH               
     BEND_SOL_QUAD       
     CRYSTAL             
     SAD_MULT            
@@ -6416,11 +6595,35 @@ Index: 80
  
  !---------------------------------
 Index: 81
-    GROUP               
+    SBEND               
+    QUADRUPOLE          
+    SEXTUPOLE           
+    CUSTOM              
     TAYLOR              
+    RFCAVITY            
+    ELSEPARATOR         
+    WIGGLER             
+    SOL_QUAD            
+    MARKER              
+    KICKER              
+    OCTUPOLE            
+    RBEND               
     BEND_SOL_           
+    SOLENOID            
+    LCAVITY             
     BEGINNING_ELE       
     LINE_ELE            
+    MONITOR             
+    INSTRUMENT          
+    HKICKER             
+    VKICKER             
+    RCOLLIMATOR         
+    ECOLLIMATOR         
+    BEND_SOL_QUAD       
+    PIPE                
+    E_GUN               
+    EM_FIELD            
+    UNDULATOR           
  
  !---------------------------------
 Index: 82
@@ -6483,13 +6686,14 @@ Index: 82
 Index: 83
     SBEND               
     QUADRUPOLE          
-    GROUP               
     SEXTUPOLE           
     CUSTOM              
+    TAYLOR              
     RFCAVITY            
     ELSEPARATOR         
     WIGGLER             
     SOL_QUAD            
+    MARKER              
     KICKER              
     OCTUPOLE            
     RBEND               
@@ -6517,10 +6721,12 @@ Index: 84
     QUADRUPOLE          
     SEXTUPOLE           
     CUSTOM              
+    TAYLOR              
     RFCAVITY            
     ELSEPARATOR         
     WIGGLER             
     SOL_QUAD            
+    MARKER              
     KICKER              
     OCTUPOLE            
     RBEND               
@@ -6545,13 +6751,14 @@ Index: 84
 Index: 85
     SBEND               
     QUADRUPOLE          
-    GROUP               
     SEXTUPOLE           
     CUSTOM              
+    TAYLOR              
     RFCAVITY            
     ELSEPARATOR         
     WIGGLER             
     SOL_QUAD            
+    MARKER              
     KICKER              
     OCTUPOLE            
     RBEND               
@@ -6577,6 +6784,7 @@ Index: 86
     SBEND               
     QUADRUPOLE          
     SEXTUPOLE           
+    TAYLOR              
     ELSEPARATOR         
     WIGGLER             
     SOL_QUAD            
@@ -6694,6 +6902,7 @@ Index: 89
     SEXTUPOLE           
     OVERLAY             
     CUSTOM              
+    TAYLOR              
     RFCAVITY            
     ELSEPARATOR         
     WIGGLER             
@@ -6720,7 +6929,7 @@ Index: 89
  
  !---------------------------------
 Index: 90
-    GROUP               
+    TAYLOR              
     BEND_SOL_           
     BEGINNING_ELE       
     LINE_ELE            
@@ -7143,6 +7352,7 @@ Index: 100
     ELSEPARATOR         
     WIGGLER             
     SOL_QUAD            
+    MARKER              
     KICKER              
     OCTUPOLE            
     RBEND               
@@ -7927,12 +8137,6 @@ Index: 126
  
  !---------------------------------
 Index: 127
- 
- !---------------------------------
-Index: 128
- 
- !---------------------------------
-Index: 129
     DRIFT               
     SBEND               
     QUADRUPOLE          
@@ -7981,7 +8185,179 @@ Index: 129
     MASK                
  
  !---------------------------------
+Index: 128
+    DRIFT               
+    SBEND               
+    QUADRUPOLE          
+    GROUP               
+    SEXTUPOLE           
+    CUSTOM              
+    TAYLOR              
+    RFCAVITY            
+    ELSEPARATOR         
+    WIGGLER             
+    SOL_QUAD            
+    KICKER              
+    HYBRID              
+    OCTUPOLE            
+    RBEND               
+    MULTIPOLE           
+    AB_MULTIPOLE        
+    SOLENOID            
+    LCAVITY             
+    MATCH               
+    MONITOR             
+    INSTRUMENT          
+    HKICKER             
+    VKICKER             
+    RCOLLIMATOR         
+    ECOLLIMATOR         
+    BEND_SOL_QUAD       
+    PIPE                
+    E_GUN               
+    EM_FIELD            
+    FLOOR_SHIFT         
+    UNDULATOR           
+    SAMPLE              
+    SAD_MULT            
+ 
+ !---------------------------------
+Index: 129
+    DRIFT               
+    SBEND               
+    QUADRUPOLE          
+    GROUP               
+    SEXTUPOLE           
+    CUSTOM              
+    TAYLOR              
+    RFCAVITY            
+    ELSEPARATOR         
+    WIGGLER             
+    SOL_QUAD            
+    KICKER              
+    HYBRID              
+    OCTUPOLE            
+    RBEND               
+    MULTIPOLE           
+    AB_MULTIPOLE        
+    SOLENOID            
+    LCAVITY             
+    MATCH               
+    MONITOR             
+    INSTRUMENT          
+    HKICKER             
+    VKICKER             
+    RCOLLIMATOR         
+    ECOLLIMATOR         
+    BEND_SOL_QUAD       
+    PIPE                
+    E_GUN               
+    EM_FIELD            
+    FLOOR_SHIFT         
+    UNDULATOR           
+    SAMPLE              
+    SAD_MULT            
+ 
+ !---------------------------------
 Index: 130
+    DRIFT               
+    SBEND               
+    QUADRUPOLE          
+    GROUP               
+    SEXTUPOLE           
+    CUSTOM              
+    TAYLOR              
+    RFCAVITY            
+    ELSEPARATOR         
+    WIGGLER             
+    SOL_QUAD            
+    KICKER              
+    HYBRID              
+    OCTUPOLE            
+    RBEND               
+    MULTIPOLE           
+    AB_MULTIPOLE        
+    SOLENOID            
+    LCAVITY             
+    MATCH               
+    MONITOR             
+    INSTRUMENT          
+    HKICKER             
+    VKICKER             
+    RCOLLIMATOR         
+    ECOLLIMATOR         
+    BEND_SOL_QUAD       
+    PIPE                
+    E_GUN               
+    EM_FIELD            
+    FLOOR_SHIFT         
+    UNDULATOR           
+    SAMPLE              
+    SAD_MULT            
+ 
+ !---------------------------------
+Index: 131
+    DRIFT               
+    SBEND               
+    QUADRUPOLE          
+    GROUP               
+    SEXTUPOLE           
+    CUSTOM              
+    TAYLOR              
+    RFCAVITY            
+    ELSEPARATOR         
+    WIGGLER             
+    SOL_QUAD            
+    KICKER              
+    HYBRID              
+    OCTUPOLE            
+    RBEND               
+    MULTIPOLE           
+    AB_MULTIPOLE        
+    SOLENOID            
+    LCAVITY             
+    MATCH               
+    MONITOR             
+    INSTRUMENT          
+    HKICKER             
+    VKICKER             
+    RCOLLIMATOR         
+    ECOLLIMATOR         
+    BEND_SOL_QUAD       
+    PIPE                
+    E_GUN               
+    EM_FIELD            
+    FLOOR_SHIFT         
+    UNDULATOR           
+    SAMPLE              
+    SAD_MULT            
+ 
+ !---------------------------------
+Index: 132
+ 
+ !---------------------------------
+Index: 133
+ 
+ !---------------------------------
+Index: 134
+ 
+ !---------------------------------
+Index: 135
+ 
+ !---------------------------------
+Index: 136
+ 
+ !---------------------------------
+Index: 137
+ 
+ !---------------------------------
+Index: 138
+ 
+ !---------------------------------
+Index: 139
+ 
+ !---------------------------------
+Index: 140
     SBEND               
     QUADRUPOLE          
     SEXTUPOLE           
