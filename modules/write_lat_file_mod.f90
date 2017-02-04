@@ -1692,7 +1692,7 @@ implicit none
 
 type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
-type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
+type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
 type (ele_struct), save :: bend_ele, quad_ele
 type (coord_struct) orb_start, orb_end, orb_center
@@ -1831,8 +1831,8 @@ i_unique = 1000
 
 ! Loop over all input elements
 
-branch_out%ele%ix_pointer = 0   ! SAD geo
 branch_out%ele%iyy = 0          ! SAD bound
+nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
@@ -1862,13 +1862,11 @@ do
         sol_ele => ele
       else
         sol_ele => pointer_to_next_ele(ele, -1)
+        sol_ele%value(geo$) = 0  
       endif
 
-      if (sol_ele%key == marker$) then
-        if (old_bs_field == 0) sol_ele%ix_pointer = 1  ! SAD geo
 
-      elseif (sol_ele%key == patch$) then
-        sol_ele%ix_pointer = 0  ! SAD geo
+      if (sol_ele%key == patch$) then
         ! A patch with a z_offset must be split into a drift + patch
         if (sol_ele%value(z_offset$) /= 0) then
           drift_ele%name = 'DRIFT_' // ele%name
@@ -1882,23 +1880,31 @@ do
           val => ele%value
         endif
 
-      else
+      elseif (sol_ele%key /= marker$) then
         s_count = s_count + 1
         write (null_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
-        if (old_bs_field == 0) sol_ele%ix_pointer = 1  ! SAD geo
-        sol_ele%ix_pointer = 1  ! SAD geo
+        sol_ele%value(geo$) = 1
         ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
         val => ele%value
       endif
 
+      if (old_bs_field == 0) then
+        sol_ele%iyy = 1         ! SAD bound
+        sol_ele%value(geo$) = 1  
+        first_sol_edge => sol_ele
+      elseif (bs_field == 0) then
+        sol_ele%iyy = 1         ! SAD bound
+        if (nint(ele%value(geo$)) == 1) first_sol_edge%value(geo$) = 0
+      else
+        sol_ele%iyy = 0         ! SAD bound
+      endif
+
       sol_ele%value(bs_field$) = bs_field
       sol_ele%key = null_ele$
-      sol_ele%iyy = 0         ! SAD bound
-      if (old_bs_field == 0) sol_ele%iyy = 1         ! SAD bound
 
       old_bs_field = bs_field
     endif
@@ -2501,7 +2507,7 @@ do ix_ele = ie1, ie2
       case (null_ele$)
         write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
-        call value_to_line (line_out, ele%ix_pointer * 1.0_rp, 'GEO', 'I', .true., .false.)
+        call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
         call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'I', .true., .false.)
 
       ! SAD
@@ -2513,6 +2519,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (patch$)
         write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
+        call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
 
       ! SAD
       case (quadrupole$)
