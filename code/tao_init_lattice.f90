@@ -242,9 +242,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Init model, base, and u%ele
 
   n = ubound(u%design%lat%branch, 1)
-  allocate (u%model%lat_branch(0:n))
-  allocate (u%design%lat_branch(0:n))
-  allocate (u%base%lat_branch(0:n))
+  allocate (u%model%tao_branch(0:n))
+  allocate (u%design%tao_branch(0:n))
+  allocate (u%base%tao_branch(0:n))
   allocate (u%uni_branch(0:n))
 
   do ib = 0, ubound(u%design%lat%branch, 1)
@@ -253,36 +253,36 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call calc_z_tune(u%design%lat, ib)
       call set_on_off (rfcavity$, u%design%lat, off$, ix_branch = ib)
     endif
-    u%design%lat_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
-    u%design%lat_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
+    u%design%tao_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
+    u%design%tao_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
     n = u%design%lat%branch(ib)%n_ele_max
-    allocate (u%model%lat_branch(ib)%orbit(0:n), u%model%lat_branch(ib)%bunch_params(0:n))
-    allocate (u%design%lat_branch(ib)%orbit(0:n), u%design%lat_branch(ib)%bunch_params(0:n))
-    allocate (u%base%lat_branch(ib)%orbit(0:n), u%base%lat_branch(ib)%bunch_params(0:n))
+    allocate (u%model%tao_branch(ib)%orbit(0:n), u%model%tao_branch(ib)%bunch_params(0:n))
+    allocate (u%design%tao_branch(ib)%orbit(0:n), u%design%tao_branch(ib)%bunch_params(0:n))
+    allocate (u%base%tao_branch(ib)%orbit(0:n), u%base%tao_branch(ib)%bunch_params(0:n))
     allocate (u%uni_branch(ib)%ele(-1:n))
   enddo
 
   u%model = u%design
   u%base  = u%design
 
-  u%model%lat_branch(0)%orb0  = u%model%lat%beam_start
-  u%design%lat_branch(0)%orb0 = u%design%lat%beam_start
-  u%base%lat_branch(0)%orb0   = u%base%lat%beam_start
+  u%model%tao_branch(0)%orb0  = u%model%lat%beam_start
+  u%design%tao_branch(0)%orb0 = u%design%lat%beam_start
+  u%base%tao_branch(0)%orb0   = u%base%lat%beam_start
 
   ! Check for match element with match_end = True
 
   do ib = 0, ubound(u%design%lat%branch, 1)
     branch => u%design%lat%branch(ib)
-    u%model%lat_branch(ib)%has_open_match_element = .false.
+    u%model%tao_branch(ib)%has_open_match_element = .false.
     do ie = 1, branch%n_ele_track
       if (branch%ele(ie)%key /= match$) cycle
       if (.not. is_true(branch%ele(ie)%value(match_end$)) .and. &
           .not. is_true(branch%ele(ie)%value(match_end_orbit$))) cycle
-      u%model%lat_branch(ib)%has_open_match_element = .true.
+      u%model%tao_branch(ib)%has_open_match_element = .true.
       exit
     enddo
-    u%design%lat_branch(ib)%has_open_match_element = u%model%lat_branch(ib)%has_open_match_element
-    u%base%lat_branch(ib)%has_open_match_element = u%model%lat_branch(ib)%has_open_match_element
+    u%design%tao_branch(ib)%has_open_match_element = u%model%tao_branch(ib)%has_open_match_element
+    u%base%tao_branch(ib)%has_open_match_element = u%model%tao_branch(ib)%has_open_match_element
   enddo
 
 enddo
@@ -299,16 +299,16 @@ if (s%com%common_lattice) then
   u_work%model%lat  = u_work%common%model%lat
 
   n = ubound(u_work%design%lat%branch, 1)
-  allocate (u_work%model%lat_branch(0:n))
-  allocate (u_work%design%lat_branch(0:n))
-  allocate (u_work%base%lat_branch(0:n))
+  allocate (u_work%model%tao_branch(0:n))
+  allocate (u_work%design%tao_branch(0:n))
+  allocate (u_work%base%tao_branch(0:n))
   allocate (u_work%uni_branch(0:n))
 
   do k = 0, ubound(u_work%design%lat%branch, 1)
     n = u_work%design%lat%branch(k)%n_ele_max
-    allocate (u_work%model%lat_branch(k)%orbit(0:n), u_work%model%lat_branch(k)%bunch_params(0:n))
-    allocate (u_work%design%lat_branch(k)%orbit(0:n), u_work%design%lat_branch(k)%bunch_params(0:n))
-    allocate (u_work%base%lat_branch(k)%orbit(0:n), u_work%base%lat_branch(k)%bunch_params(0:n))
+    allocate (u_work%model%tao_branch(k)%orbit(0:n), u_work%model%tao_branch(k)%bunch_params(0:n))
+    allocate (u_work%design%tao_branch(k)%orbit(0:n), u_work%design%tao_branch(k)%bunch_params(0:n))
+    allocate (u_work%base%tao_branch(k)%orbit(0:n), u_work%base%tao_branch(k)%bunch_params(0:n))
     allocate (u_work%uni_branch(k)%ele(-1:n))
   enddo
 

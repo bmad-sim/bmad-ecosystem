@@ -125,7 +125,7 @@ end type
 ! Plot structures.
 
 type tao_title_struct
-  character(100) :: string = ''       ! title character string.
+  character(100) :: string = ''      ! title character string.
   real(rp) :: x = 0.5, y = 0.97      ! x, y rwt lower left corner
   character(16) :: units = '%PAGE'   ! %BOX, POINTS, etc...
   character(2) :: justify = 'CC'     ! Left, Center, or Right justification.
@@ -740,7 +740,7 @@ end type
 
 type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
-  type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
+  type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.
@@ -877,7 +877,7 @@ integer ix2
 !
 
 lat1%lat          = lat2%lat
-lat1%lat_branch   = lat2%lat_branch
+lat1%tao_branch   = lat2%tao_branch
 
 end subroutine
 

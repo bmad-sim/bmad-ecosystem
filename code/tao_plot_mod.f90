@@ -316,7 +316,7 @@ type (tao_graph_struct) :: graph
 type (qp_axis_struct) x_ax, y_ax
 type (lat_struct), pointer :: lat
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (floor_position_struct) end1, end2, floor
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele, slave
@@ -560,7 +560,7 @@ isu = tao_universe_number(ix_uni)
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 
-orbit => s%u(isu)%model%lat_branch(ele1%ix_branch)%orbit
+orbit => s%u(isu)%model%tao_branch(ele1%ix_branch)%orbit
 
 orb_start = orbit(ele1%ix_ele)
 orb_end = orbit(ele2%ix_ele)
@@ -1051,7 +1051,7 @@ implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_ele_shape_struct), pointer :: ele_shape
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
@@ -1101,7 +1101,7 @@ end select
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
-lat_branch => s%u(isu)%model%lat_branch(graph%ix_branch)
+tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
 
 lat_len = branch%param%total_length
   
@@ -1373,7 +1373,7 @@ type (tao_plot_struct) plot
 type (ele_struct), pointer :: ele
 type (tao_graph_struct), target :: graph
 type (lat_struct), pointer :: lat
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (branch_struct), pointer :: branch, branch2
 
 real(rp) lat_len, dummy
@@ -1385,7 +1385,7 @@ integer i, isu
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
-lat_branch => s%u(isu)%model%lat_branch(graph%ix_branch)
+tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
 
 lat_len = branch%param%total_length
   

@@ -240,8 +240,8 @@ call tao_lattice_calc (calc_ok)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model
   s%u(i)%base = s%u(i)%design
-  s%u(i)%design%lat_branch = s%u(i)%model%lat_branch
-  s%u(i)%base%lat_branch   = s%u(i)%design%lat_branch
+  s%u(i)%design%tao_branch = s%u(i)%model%tao_branch
+  s%u(i)%base%tao_branch   = s%u(i)%design%tao_branch
   s%u(i)%data%design_value = s%u(i)%data%model_value
   s%u(i)%data%base_value   = s%u(i)%data%model_value
   s%u(i)%data%good_design  = s%u(i)%data%good_model
@@ -352,16 +352,16 @@ if (allocated (s%u)) then
     u => s%u(i)
     ! radiation integrals cache
     do ib = 0, ubound(u%model%lat%branch, 1)
-      if (u%model%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%lat_branch(ib)%ix_rad_int_cache)
-      if (u%design%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%lat_branch(ib)%ix_rad_int_cache)
-      if (u%base%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%lat_branch(ib)%ix_rad_int_cache)
+      if (u%model%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%tao_branch(ib)%ix_rad_int_cache)
+      if (u%design%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%tao_branch(ib)%ix_rad_int_cache)
+      if (u%base%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%tao_branch(ib)%ix_rad_int_cache)
     enddo
 
     ! Orbits
 
-    deallocate(u%model%lat_branch, stat=istat)
-    deallocate(u%design%lat_branch, stat=istat)
-    deallocate(u%base%lat_branch, stat=istat)
+    deallocate(u%model%tao_branch, stat=istat)
+    deallocate(u%design%tao_branch, stat=istat)
+    deallocate(u%base%tao_branch, stat=istat)
 
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 

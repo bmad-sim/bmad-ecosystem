@@ -136,7 +136,7 @@ use opti_de_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_lattice_branch_struct), pointer :: lat_branch, design_lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch, design_tao_branch
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -269,7 +269,7 @@ u => tao_pointer_to_universe(-1)
 lat => u%model%lat
 branch => lat%branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
-lat_branch => u%model%lat_branch(ix_branch)
+tao_branch => u%model%tao_branch(ix_branch)
 
 if (s%global%phase_units == radians$) f_phi = 1
 if (s%global%phase_units == degrees$) f_phi = 180 / pi
@@ -427,7 +427,7 @@ case ('beam')
     ix_branch = eles(1)%ele%ix_branch
     n = s%global%bunch_to_plot
 
-    bunch_p => lat_branch%bunch_params(ix_ele)
+    bunch_p => tao_branch%bunch_params(ix_ele)
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
 
@@ -1268,7 +1268,7 @@ case ('element')
   nl = nl + n
 
   stat = ele%lord_status
-  orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
+  orb = tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
   if (orb%state /= not_set$) then
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; write(lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
@@ -2015,11 +2015,11 @@ case ('lattice')
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
       ix = ix_branch
-      call radiation_integrals (u%model%lat, lat_branch%orbit, lat_branch%modes, lat_branch%ix_rad_int_cache, ix, lat_branch%rad_int)
-      call radiation_integrals (u%design%lat, design_lat_branch%orbit, design_lat_branch%modes, &
-                                                            design_lat_branch%ix_rad_int_cache, ix, design_lat_branch%rad_int)
-      call radiation_integrals (u%base%lat, u%base%lat_branch(ix)%orbit, u%base%lat_branch(ix)%modes, &
-                                                  u%base%lat_branch(ix)%ix_rad_int_cache, ix, u%base%lat_branch(ix)%rad_int)
+      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix, tao_branch%rad_int)
+      call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes, &
+                                                            design_tao_branch%ix_rad_int_cache, ix, design_tao_branch%rad_int)
+      call radiation_integrals (u%base%lat, u%base%tao_branch(ix)%orbit, u%base%tao_branch(ix)%modes, &
+                                                  u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%tao_branch(ix)%rad_int)
       exit
     endif
   enddo
@@ -2475,7 +2475,7 @@ case ('orbit')
   if (err) return
   do i = 1, 6
     nl=nl+1; write(lines(nl), rmt) '     ', &
-                u%model%lat_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
+                u%model%tao_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
   enddo
 
   result_id = show_what
@@ -2845,7 +2845,7 @@ case ('taylor_map', 'matrix')
       endif
     endif
 
-    call twiss_and_track_at_s (lat, s1, ele0, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
+    call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
     if (n_order > 1) then
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, one_turn = .true.)
     else
@@ -2904,7 +2904,7 @@ case ('taylor_map', 'matrix')
     endif
 
     if (n_order > 1) then
-      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%lat_branch(ix_branch)%orbit(ix1), one_turn = .true.)
+      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), one_turn = .true.)
       if (err) then
         nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
         return
@@ -3037,7 +3037,7 @@ case ('twiss_and_orbit')
     read (attrib0, *) s_pos
   endif
 
-  call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%lat_branch(ix_branch)%orbit, orb, ix_branch, err)
+  call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%tao_branch(ix_branch)%orbit, orb, ix_branch, err)
   if (err) return 
 
   nl=nl+1; write(lines(nl), '(a, f10.5)') 'At S =', s_pos
@@ -3078,11 +3078,11 @@ case ('universe')
   lat => u%model%lat
   branch => lat%branch(ix_branch)
   uni_branch => u%uni_branch(ix_branch)
-  lat_branch => u%model%lat_branch(ix_branch)
+  tao_branch => u%model%tao_branch(ix_branch)
 
   design_lat => u%design%lat
   design_branch => design_lat%branch(ix_branch)
-  design_lat_branch => u%design%lat_branch(ix_branch)
+  design_tao_branch => u%design%tao_branch(ix_branch)
 
   nl = 0
   nl=nl+1; write(lines(nl), imt) 'Universe: ', ix_u
@@ -3125,11 +3125,11 @@ case ('universe')
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
 
-  if (branch%param%geometry == open$ .and. lat_branch%track_state /= moving_forward$) then
+  if (branch%param%geometry == open$ .and. tao_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
-      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat_branch%track_state
+      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', tao_branch%track_state
     else
-      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat_branch%track_state
+      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', tao_branch%track_state
     endif
   endif
 
@@ -3142,11 +3142,11 @@ case ('universe')
     endif
   endif
  
-  call radiation_integrals (lat, lat_branch%orbit, lat_branch%modes, lat_branch%ix_rad_int_cache)
-  call radiation_integrals (design_lat, design_lat_branch%orbit, design_lat_branch%modes, design_lat_branch%ix_rad_int_cache)
+  call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache)
+  call radiation_integrals (design_lat, design_tao_branch%orbit, design_tao_branch%modes, design_tao_branch%ix_rad_int_cache)
   if (lat%param%geometry == closed$) then
-    call chrom_calc (lat, s%global%delta_e_chrom, lat_branch%a%chrom, lat_branch%b%chrom, ix_branch = ix_branch)
-    call chrom_calc (design_lat, s%global%delta_e_chrom, design_lat_branch%a%chrom, design_lat_branch%b%chrom, ix_branch = ix_branch)
+    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, ix_branch = ix_branch)
+    call chrom_calc (design_lat, s%global%delta_e_chrom, design_tao_branch%a%chrom, design_tao_branch%b%chrom, ix_branch = ix_branch)
   endif
 
   nl=nl+1; lines(nl) = ''
@@ -3162,25 +3162,25 @@ case ('universe')
   if (branch%param%geometry == closed$) then
     nl=nl+1; write(lines(nl), fmt2) 'Q', f_phi*branch%ele(n)%a%phi, &
           f_phi*design_lat%ele(n)%a%phi, f_phi*branch%ele(n)%b%phi, f_phi*design_branch%ele(n)%b%phi,  '! Tune'
-    nl=nl+1; write(lines(nl), fmt2) 'Chrom', lat_branch%a%chrom, design_lat_branch%a%chrom, lat_branch%b%chrom, design_lat_branch%b%chrom, '! dQ/(dE/E)'
-    nl=nl+1; write(lines(nl), fmt2) 'J_damp', lat_branch%modes%a%j_damp, design_lat_branch%modes%a%j_damp, lat_branch%modes%b%j_damp, &
-        design_lat_branch%modes%b%j_damp, '! Damping Partition #'
-    nl=nl+1; write(lines(nl), fmt) 'Emittance', lat_branch%modes%a%emittance, &
-        design_lat_branch%modes%a%emittance, lat_branch%modes%b%emittance, design_lat_branch%modes%b%emittance, '! Meters'
+    nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
+    nl=nl+1; write(lines(nl), fmt2) 'J_damp', tao_branch%modes%a%j_damp, design_tao_branch%modes%a%j_damp, tao_branch%modes%b%j_damp, &
+        design_tao_branch%modes%b%j_damp, '! Damping Partition #'
+    nl=nl+1; write(lines(nl), fmt) 'Emittance', tao_branch%modes%a%emittance, &
+        design_tao_branch%modes%a%emittance, tao_branch%modes%b%emittance, design_tao_branch%modes%b%emittance, '! Meters'
   endif
-  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', lat_branch%modes%a%alpha_damp, &
-        design_lat_branch%modes%a%alpha_damp, lat_branch%modes%b%alpha_damp, design_lat_branch%modes%b%alpha_damp, '! Damping per turn'
-  nl=nl+1; write(lines(nl), fmt) 'I4', lat_branch%modes%a%synch_int(4), &
-        design_lat_branch%modes%a%synch_int(4), lat_branch%modes%b%synch_int(4), design_lat_branch%modes%b%synch_int(4), '! Radiation Integral'
-  nl=nl+1; write(lines(nl), fmt) 'I5', lat_branch%modes%a%synch_int(5), &
-        design_lat_branch%modes%a%synch_int(5), lat_branch%modes%b%synch_int(5), design_lat_branch%modes%b%synch_int(5), '! Radiation Integral'
-  nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', lat_branch%modes%b%synch_int(6) / gamma2, &
-        design_lat_branch%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', tao_branch%modes%a%alpha_damp, &
+        design_tao_branch%modes%a%alpha_damp, tao_branch%modes%b%alpha_damp, design_tao_branch%modes%b%alpha_damp, '! Damping per turn'
+  nl=nl+1; write(lines(nl), fmt) 'I4', tao_branch%modes%a%synch_int(4), &
+        design_tao_branch%modes%a%synch_int(4), tao_branch%modes%b%synch_int(4), design_tao_branch%modes%b%synch_int(4), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'I5', tao_branch%modes%a%synch_int(5), &
+        design_tao_branch%modes%a%synch_int(5), tao_branch%modes%b%synch_int(5), design_tao_branch%modes%b%synch_int(5), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', tao_branch%modes%b%synch_int(6) / gamma2, &
+        design_tao_branch%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
   if (branch%param%geometry == open$) then
-    nl=nl+1; write(lines(nl), fmt) 'Final Emittance', lat_branch%modes%lin%a_emittance_end, &
-        design_lat_branch%modes%lin%a_emittance_end, lat_branch%modes%lin%b_emittance_end, design_lat_branch%modes%lin%b_emittance_end, '! Meters'
-    nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', lat_branch%modes%lin%i5a_e6, &
-        design_lat_branch%modes%lin%i5a_e6, lat_branch%modes%lin%i5b_e6, design_lat_branch%modes%lin%i5b_e6, '! Linac Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'Final Emittance', tao_branch%modes%lin%a_emittance_end, &
+        design_tao_branch%modes%lin%a_emittance_end, tao_branch%modes%lin%b_emittance_end, design_tao_branch%modes%lin%b_emittance_end, '! Meters'
+    nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', tao_branch%modes%lin%i5a_e6, &
+        design_tao_branch%modes%lin%i5a_e6, tao_branch%modes%lin%i5b_e6, design_tao_branch%modes%lin%i5b_e6, '! Linac Radiation Integral'
   endif
 
   nl=nl+1; lines(nl) = ''
@@ -3192,24 +3192,24 @@ case ('universe')
     nl=nl+1; write(lines(nl), fmt2) 'Z_tune:', &
          -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
   else
-    nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', lat_branch%modes%lin%i2_e4, &
-          design_lat_branch%modes%lin%i2_e4, '! Linac Radiation Integral'
-    nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', lat_branch%modes%lin%i3_e7, &
-          design_lat_branch%modes%lin%i3_e7, '! Linac Radiation Integral'
+    nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', tao_branch%modes%lin%i2_e4, &
+          design_tao_branch%modes%lin%i2_e4, '! Linac Radiation Integral'
+    nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', tao_branch%modes%lin%i3_e7, &
+          design_tao_branch%modes%lin%i3_e7, '! Linac Radiation Integral'
   endif
-  nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', lat_branch%modes%sigE_E, design_lat_branch%modes%sigE_E
-  nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', lat_branch%modes%e_loss, design_lat_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
-  nl=nl+1; write(lines(nl), fmt) 'J_damp:', lat_branch%modes%z%j_damp, design_lat_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
-  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', lat_branch%modes%z%alpha_damp, &
-        design_lat_branch%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-  nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', lat_branch%modes%synch_int(1)/l_lat, &
-               design_lat_branch%modes%synch_int(1)/l_lat, '! Momentum Compaction'
-  nl=nl+1; write(lines(nl), fmt) 'I0:', lat_branch%modes%synch_int(0), design_lat_branch%modes%synch_int(0), '! Radiation Integral'
-  nl=nl+1; write(lines(nl), fmt) 'I1:', lat_branch%modes%synch_int(1), design_lat_branch%modes%synch_int(1), '! Radiation Integral'
-  nl=nl+1; write(lines(nl), fmt) 'I2:', lat_branch%modes%synch_int(2), design_lat_branch%modes%synch_int(2), '! Radiation Integral'
-  nl=nl+1; write(lines(nl), fmt) 'I3:', lat_branch%modes%synch_int(3), design_lat_branch%modes%synch_int(3), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
+  nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
+  nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &
+        design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping per turn'
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', tao_branch%modes%synch_int(1)/l_lat, &
+               design_tao_branch%modes%synch_int(1)/l_lat, '! Momentum Compaction'
+  nl=nl+1; write(lines(nl), fmt) 'I0:', tao_branch%modes%synch_int(0), design_tao_branch%modes%synch_int(0), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'I1:', tao_branch%modes%synch_int(1), design_tao_branch%modes%synch_int(1), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'I2:', tao_branch%modes%synch_int(2), design_tao_branch%modes%synch_int(2), '! Radiation Integral'
+  nl=nl+1; write(lines(nl), fmt) 'I3:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
   if (bmad_com%spin_tracking_on) then
-    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', lat_branch%modes%synch_int(3), design_lat_branch%modes%synch_int(3), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
   endif
   result_id = show_what
 

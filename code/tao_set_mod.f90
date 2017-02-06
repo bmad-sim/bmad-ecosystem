@@ -236,11 +236,11 @@ end select
 ! number of elements and therefore no reallocation needs to be done.
 
 dest1_lat%lat          = source1_lat%lat
-dest1_lat%lat_branch   = source1_lat%lat_branch
+dest1_lat%tao_branch   = source1_lat%tao_branch
 
-do ib = 0, ubound(dest1_lat%lat_branch, 1)
-  do j = lbound(dest1_lat%lat_branch(ib)%bunch_params, 1), ubound(dest1_lat%lat_branch(ib)%bunch_params, 1)
-    dest1_lat%lat_branch(ib)%bunch_params(j) = source1_lat%lat_branch(ib)%bunch_params(j)
+do ib = 0, ubound(dest1_lat%tao_branch, 1)
+  do j = lbound(dest1_lat%tao_branch(ib)%bunch_params, 1), ubound(dest1_lat%tao_branch(ib)%bunch_params, 1)
+    dest1_lat%tao_branch(ib)%bunch_params(j) = source1_lat%tao_branch(ib)%bunch_params(j)
   enddo
 enddo
 
@@ -1924,7 +1924,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%calc%lattice) cycle
   call lattice_bookkeeper (u%model%lat)
   do j = 0, ubound(u%model%lat%branch, 1)
-    call lat_make_mat6 (u%model%lat, -1, u%model%lat_branch(j)%orbit, j)
+    call lat_make_mat6 (u%model%lat, -1, u%model%tao_branch(j)%orbit, j)
   enddo
 enddo
 
