@@ -351,9 +351,11 @@ if (allocated (s%u)) then
 
     u => s%u(i)
     ! radiation integrals cache
-    if (u%model%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%ix_rad_int_cache)
-    if (u%design%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%ix_rad_int_cache)
-    if (u%base%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%ix_rad_int_cache)
+    do ib = 0, ubound(u%model%lat%branch, 1)
+      if (u%model%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%lat_branch(ib)%ix_rad_int_cache)
+      if (u%design%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%lat_branch(ib)%ix_rad_int_cache)
+      if (u%base%lat_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%lat_branch(ib)%ix_rad_int_cache)
+    enddo
 
     ! Orbits
 

@@ -120,8 +120,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           call out_io (s_error$, r_name, &
               'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
         endif      
-        tao_lat%lat_branch(ib)%bunch_params(:)%n_particle_lost_in_ele = 0
-        tao_lat%lat_branch(ib)%bunch_params(:)%n_particle_live = 0
+        lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
+        lat_branch%bunch_params(:)%n_particle_live = 0
         exit
       endif
       call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
@@ -133,18 +133,14 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call err_exit
     end select
 
-    ! Radiation integrals. At some point should extend this to non-main branches.
-
-    if (ib == 0) then
-      if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
-        call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(ib)%orbit, &
-                              tao_lat%modes, tao_lat%ix_rad_int_cache, ib, tao_lat%rad_int)
-      endif
+    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
+      call radiation_integrals (tao_lat%lat, lat_branch%orbit, &
+                            lat_branch%modes, lat_branch%ix_rad_int_cache, ib, lat_branch%rad_int)
     endif
 
     if (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
-      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_lat%a%chrom, &
-                           tao_lat%b%chrom, err, low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat)
+      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, lat_branch%a%chrom, &
+                           lat_branch%b%chrom, err, low_E_lat=lat_branch%low_E_lat, high_E_lat=lat_branch%high_E_lat)
     endif
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
@@ -162,7 +158,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         do id = 1, size(d2_dat%d1)
           n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
         enddo
-        call reallocate_coord (orb, tao_lat%lat%n_ele_max)
+        call reallocate_coord (orb, branch%n_ele_max)
         orb(0) = tao_lat%lat%beam_start
         do it = 0, n_max
           do id = 1, size(d2_dat%d1)
@@ -182,8 +178,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
               end select
             endif
           enddo
-          call track_all (tao_lat%lat, orb)
-          orb(0) = orb(tao_lat%lat%n_ele_track)
+          call track_all (tao_lat%lat, orb, ib)
+          orb(0) = orb(branch%n_ele_track)
         enddo
       endif
     endif
@@ -191,7 +187,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     ! Dynamic aperture calc. Only for rings
 
     if (u%calc%dynamic_aperture) then  
-      if (.not. rf_is_on(tao_lat%lat%branch(0))) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
+      if (.not. rf_is_on(branch)) call reallocate_coord (orb, branch%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
         ! Check for open lattice. Only 1 turn is allowed
@@ -200,14 +196,14 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           call err_exit       
         endif
           
-        if (rf_is_on(tao_lat%lat%branch(0))) then
+        if (rf_is_on(branch)) then
           ! pz surrounds the closed orbit
           scan%ref_orb = lat_branch%orb0
           scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
         else
           ! If the RF is off, new fixed points will be calculated for various pz
           orb(0)%vec(6) = u%dynamic_aperture%pz(j)
-          call  closed_orbit_calc (tao_lat%lat, orb, 4)
+          call  closed_orbit_calc (tao_lat%lat, orb, 4, ix_branch = ib)
           scan%ref_orb = orb(0)
         endif
     

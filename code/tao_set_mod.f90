@@ -237,10 +237,6 @@ end select
 
 dest1_lat%lat          = source1_lat%lat
 dest1_lat%lat_branch   = source1_lat%lat_branch
-dest1_lat%modes        = source1_lat%modes
-dest1_lat%a            = source1_lat%a
-dest1_lat%b            = source1_lat%b
-dest1_lat%rad_int      = source1_lat%rad_int
 
 do ib = 0, ubound(dest1_lat%lat_branch, 1)
   do j = lbound(dest1_lat%lat_branch(ib)%bunch_params, 1), ubound(dest1_lat%lat_branch(ib)%bunch_params, 1)

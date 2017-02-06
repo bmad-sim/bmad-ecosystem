@@ -209,11 +209,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (s%global%stop_on_error) stop
   endif
 
-  u%design%modes%a%emittance = u%design%lat%a%emit
-  u%design%modes%b%emittance = u%design%lat%b%emit
-
-  if (s%com%combine_consecutive_elements_of_like_name) &
-                              call combine_consecutive_elements(u%design%lat)
+  if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
 
   if (s%com%unique_name_suffix /= '') then
     call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
@@ -225,15 +221,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (design_lat%file2 /= '') then
     call bmad_parser2 (design_lat%file2, u%design%lat)
-  endif
-
-  ! RF
-
-  if (u%design%lat%param%geometry == closed$ .and. .not. s%global%rf_on) then
-    call out_io (s_info$, r_name, &
-            "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
-    call calc_z_tune(u%design%lat)
-    call set_on_off (rfcavity$, u%design%lat, off$)
   endif
 
   !
@@ -260,12 +247,19 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%base%lat_branch(0:n))
   allocate (u%uni_branch(0:n))
 
-  do k = 0, ubound(u%design%lat%branch, 1)
-    n = u%design%lat%branch(k)%n_ele_max
-    allocate (u%model%lat_branch(k)%orbit(0:n), u%model%lat_branch(k)%bunch_params(0:n))
-    allocate (u%design%lat_branch(k)%orbit(0:n), u%design%lat_branch(k)%bunch_params(0:n))
-    allocate (u%base%lat_branch(k)%orbit(0:n), u%base%lat_branch(k)%bunch_params(0:n))
-    allocate (u%uni_branch(k)%ele(-1:n))
+  do ib = 0, ubound(u%design%lat%branch, 1)
+    if (u%design%lat%branch(ib)%param%geometry == closed$ .and. .not. s%global%rf_on) then
+      call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
+      call calc_z_tune(u%design%lat, ib)
+      call set_on_off (rfcavity$, u%design%lat, off$, ix_branch = ib)
+    endif
+    u%design%lat_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
+    u%design%lat_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
+    n = u%design%lat%branch(ib)%n_ele_max
+    allocate (u%model%lat_branch(ib)%orbit(0:n), u%model%lat_branch(ib)%bunch_params(0:n))
+    allocate (u%design%lat_branch(ib)%orbit(0:n), u%design%lat_branch(ib)%bunch_params(0:n))
+    allocate (u%base%lat_branch(ib)%orbit(0:n), u%base%lat_branch(ib)%bunch_params(0:n))
+    allocate (u%uni_branch(ib)%ele(-1:n))
   enddo
 
   u%model = u%design
