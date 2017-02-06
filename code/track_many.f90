@@ -133,6 +133,7 @@ integer i, n, ix1, ix2, track_end_state
 do n = ix1, ix2
 
   ele => branch%ele(n)
+  orbit(n)%direction = 1
   call track1 (orbit(n-1), ele, branch%param, orbit(n), err_flag = err)
 
   ! check for lost particles

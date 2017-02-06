@@ -22,7 +22,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end)
+! Subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)
 !
 ! Subroutine to track a bunch of particles through an element including wakefields.
 !
@@ -33,12 +33,13 @@ contains
 !   bunch_start -- bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
 !   param       -- lat_param_struct: General parameters.
+!   direction   -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !-
 
-subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end)
+subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)
 
 implicit none
 
@@ -49,14 +50,16 @@ type (ele_struct), pointer :: wake_ele
 type (lat_param_struct) param
 
 real(rp) charge, ds_wake
+
+integer, optional :: direction
 integer i, j, n, jj
 logical err_flag, finished
 
-character(20) :: r_name = 'track1_bunch_hom'
+character(*), parameter :: r_name = 'track1_bunch_hom'
 
 ! Charge and center
 
-bunch_end = bunch_start
+bunch_start%particle%direction = integer_option(1, direction)
 
 !------------------------------------------------
 ! Without wakefields just track through.
@@ -78,15 +81,21 @@ endif
 ! Put the wakefield kicks at the half way point.
 
 call transfer_ele (ele, half_ele, .true.)
-call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+
+if (integer_option(1, direction) == 1) then
+  call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+else
+  call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+endif
+
 if (err_flag) then
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
-do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%state /= alive$) cycle
-  call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
+do j = 1, size(bunch_start%particle)
+  if (bunch_start%particle(j)%state /= alive$) cycle
+  call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
 
 ! Wakefields
@@ -102,7 +111,11 @@ endif
 
 ! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
-call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+if (integer_option(1, direction) == 1) then
+  call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+else
+  call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+endif
 
 do j = 1, size(bunch_end%particle)
   if (bunch_end%particle(j)%state /= alive$) cycle
