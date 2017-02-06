@@ -45,7 +45,7 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: scan
 
@@ -90,12 +90,12 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
  
     branch => tao_lat%lat%branch(ib)
-    lat_branch => tao_lat%lat_branch(ib)
+    tao_branch => tao_lat%tao_branch(ib)
     
     call tao_data_coupling_init(branch)
 
     do j = 1, 6
-      tao_lat%lat_branch(ib)%orbit%vec(j) = 0.0
+      tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
     enddo
 
     track_type = s%global%track_type
@@ -120,8 +120,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           call out_io (s_error$, r_name, &
               'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
         endif      
-        lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
-        lat_branch%bunch_params(:)%n_particle_live = 0
+        tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
+        tao_branch%bunch_params(:)%n_particle_live = 0
         exit
       endif
       call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
@@ -134,13 +134,13 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     end select
 
     if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
-      call radiation_integrals (tao_lat%lat, lat_branch%orbit, &
-                            lat_branch%modes, lat_branch%ix_rad_int_cache, ib, lat_branch%rad_int)
+      call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                            tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
     endif
 
     if (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
-      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, lat_branch%a%chrom, &
-                           lat_branch%b%chrom, err, low_E_lat=lat_branch%low_E_lat, high_E_lat=lat_branch%high_E_lat)
+      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
+                           tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
     endif
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
@@ -198,7 +198,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           
         if (rf_is_on(branch)) then
           ! pz surrounds the closed orbit
-          scan%ref_orb = lat_branch%orb0
+          scan%ref_orb = tao_branch%orb0
           scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
         else
           ! If the RF is off, new fixed points will be calculated for various pz
@@ -294,7 +294,7 @@ type (lat_struct), pointer :: lat
 type (tao_universe_struct), target :: u
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
 type (beam_init_struct), pointer :: beam_init
 
@@ -311,11 +311,11 @@ logical calc_ok, err, radiation_fluctuations_on
 
 lat => tao_lat%lat
 branch => tao_lat%lat%branch(ix_branch)
-lat_branch => tao_lat%lat_branch(ix_branch)
-orbit => lat_branch%orbit
+tao_branch => tao_lat%tao_branch(ix_branch)
+orbit => tao_branch%orbit
 
 calc_ok = .true.
-lat_branch%track_state = moving_forward$
+tao_branch%track_state = moving_forward$
 
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
@@ -335,11 +335,11 @@ if (u%calc%track) then
       i_dim = 4
     endif
 
-    call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+    call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
     if (err) then
       ! In desperation try a different starting point
       call init_coord (orbit(0), lat%beam_start, branch%ele(0), downstream_end$, orbit(0)%species)
-      call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+      call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
     endif
     if (err) then
       ! In desperation try a different starting point
@@ -348,7 +348,7 @@ if (u%calc%track) then
       else
         orbit(0)%vec = 0
       endif
-      call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+      call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
     endif
 
     if (err) then
@@ -357,16 +357,16 @@ if (u%calc%track) then
         orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
       enddo
     else
-      lat_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
+      tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
     endif
 
   else
-    if (lat_branch%has_open_match_element) then
+    if (tao_branch%has_open_match_element) then
       do n = 1, branch%n_ele_track
         ele => branch%ele(n)
         call make_mat6(ele, branch%param, orbit(n-1), orbit(n), err_flag = err)
         if (err .or. .not. particle_is_moving_forward(orbit(n))) then
-          lat_branch%track_state = n
+          tao_branch%track_state = n
           exit
         endif
         call twiss_propagate1(branch%ele(n-1), ele)
@@ -374,13 +374,13 @@ if (u%calc%track) then
       enddo
 
     else
-      call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state, &
-                                                            orbit0 = tao_lat%lat_branch(0)%orbit)
+      call track_all (lat, tao_branch%orbit, ix_branch, tao_branch%track_state, &
+                                                            orbit0 = tao_lat%tao_branch(0)%orbit)
     endif
 
-    if (lat_branch%track_state /= moving_forward$) then
+    if (tao_branch%track_state /= moving_forward$) then
       calc_ok = .false.
-      ix_lost = lat_branch%track_state
+      ix_lost = tao_branch%track_state
       orbit(ix_lost+1:branch%n_ele_track) = coord_struct()
       call out_io (s_blank$, r_name, &
               "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
@@ -421,7 +421,7 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
   beam_init => u%beam%beam_init
   ele => branch%ele(0)
   if (.not. associated(ele%mode3)) allocate (ele%mode3)
-  if (.not. allocated(lat_branch%linear)) allocate(lat_branch%linear(0:branch%n_ele_max))
+  if (.not. allocated(tao_branch%linear)) allocate(tao_branch%linear(0:branch%n_ele_max))
 
   if (branch%param%geometry == closed$) then
     call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
@@ -434,7 +434,7 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
     D_mat(5,5) = beam_init%sig_z * beam_init%sig_E
     D_mat(6,6) = beam_init%sig_z * beam_init%sig_E
 
-    lat_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+    tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
 
   else
     covar = beam_init%dPz_dz * beam_init%sig_z**2
@@ -477,12 +477,12 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
     D_mat(5,5) = ele%z%emit
     D_mat(6,6) = ele%z%emit
 
-    lat_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+    tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
   endif
 
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
-    lat_branch%linear(i)%sigma = matmul(matmul(ele%mat6, lat_branch%linear(i-1)%sigma), transpose(ele%mat6))
+    tao_branch%linear(i)%sigma = matmul(matmul(ele%mat6, tao_branch%linear(i-1)%sigma), transpose(ele%mat6))
   enddo
 endif
 
@@ -512,7 +512,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (bunch_params_struct), pointer :: bunch_params
@@ -534,20 +534,20 @@ logical calc_ok, too_many_lost, print_err, err, lost
 call re_allocate (ix_ele, 1)
 
 branch => tao_lat%lat%branch(ix_branch)
-lat_branch => tao_lat%lat_branch(ix_branch)
+tao_branch => tao_lat%tao_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 uni_ele => uni_branch%ele
 
 lat => tao_lat%lat
 
-lat_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
+tao_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
 ix_track = moving_forward$
 lost = .false.
 calc_ok = .true.
 too_many_lost = .false.
 
-lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
-lat_branch%bunch_params(:)%n_particle_live = 0
+tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
+tao_branch%bunch_params(:)%n_particle_live = 0
 
 if (branch%param%geometry == closed$) then
   call out_io (s_fatal$, r_name, &
@@ -591,7 +591,7 @@ beam = u%beam%start
 n_lost_old = 0
 do j = ie1, ie2
 
-  bunch_params => lat_branch%bunch_params(j)
+  bunch_params => tao_branch%bunch_params(j)
   ele => branch%ele(j)
 
   ! track to the element and save for phase space plot
@@ -601,7 +601,7 @@ do j = ie1, ie2
 
   else
     if (j /= ie1) then 
-      call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost, centroid = lat_branch%orbit)
+      call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost, centroid = tao_branch%orbit)
     endif
 
     if (uni_ele(j)%save_beam .or. ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(j)%beam = beam
@@ -644,7 +644,7 @@ do j = ie1, ie2
   if (j == ie1) then
     bunch_params%n_particle_lost_in_ele = 0
   else
-    bunch_params%n_particle_lost_in_ele = lat_branch%bunch_params(j-1)%n_particle_live - &
+    bunch_params%n_particle_lost_in_ele = tao_branch%bunch_params(j-1)%n_particle_live - &
                                                      bunch_params%n_particle_live
   endif
 
@@ -672,7 +672,7 @@ if (n_lost /= 0) &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = (/u%ix_uni, n_lost /))
 
-lat_branch%track_state = ix_track
+tao_branch%track_state = ix_track
  
 end subroutine tao_beam_track
 
@@ -744,8 +744,8 @@ if (i_br_from > -1) then
   from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
   ele0 => branch%ele(0)
   call transfer_twiss (from_ele, ele0)
-  orb_out => model%lat_branch(ix_branch)%orbit(0)
-  call init_coord (orb_out, model%lat_branch(i_br_from)%orbit(i_ele_from), ele0, &
+  orb_out => model%tao_branch(ix_branch)%orbit(0)
+  call init_coord (orb_out, model%tao_branch(i_br_from)%orbit(i_ele_from), ele0, &
                   downstream_end$, default_tracking_species(branch%param), 1, ele0%value(E_tot$))
   if (nint(from_ele%value(direction$)) == -1) then
     if (orb_out%species == photon$) then
@@ -757,11 +757,11 @@ if (i_br_from > -1) then
   return
 endif
 
-! In model%lat_branch()%orb0 is saved the last computed orbit. 
-! This is important with common_lattice since tao_lat%lat_branch()%orbit(0) has been overwritten.
+! In model%tao_branch()%orb0 is saved the last computed orbit. 
+! This is important with common_lattice since tao_lat%tao_branch()%orbit(0) has been overwritten.
 
-orb_in => model%lat_branch(ix_branch)%orb0
-orb_out => model%lat_branch(ix_branch)%orbit(0)
+orb_in => model%tao_branch(ix_branch)%orb0
+orb_out => model%tao_branch(ix_branch)%orbit(0)
 
 call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
 

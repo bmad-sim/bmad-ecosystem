@@ -236,7 +236,7 @@ case ('bunch1')
   tao_lat => point_to_tao_lat(err); if (err) return
   ele => point_to_ele(err); if (err) return
 
-  bunch_params => tao_lat%lat_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
+  bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
 
   call twiss_out(bunch_params%x, 'x', .true.)
   call twiss_out(bunch_params%y, 'y', .true.)
@@ -775,7 +775,7 @@ case ('lat_ele1')
     call twiss_out (ele%b, 'b')
 
   case ('orbit')
-    call orbit_out (tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele))
+    call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
 
   case default
     nl=nl+1; li(nl) = 'INVALID'
@@ -799,7 +799,7 @@ case ('orbit_at_s')
   ix_branch = parse_branch(.true., err); if (err) return
   s_pos = parse_real(err); if (err) return
 
-  call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%lat_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
+  call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%tao_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
   call orbit_out (orb)
 
 !----------------------------------------------------------------------
@@ -1077,7 +1077,7 @@ case ('twiss_at_s')
   ix_branch = parse_branch(.true., err); if (err) return
   s_pos = parse_real(err); if (err) return
 
-  call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%lat_branch(ix_branch)%orbit, ix_branch = ix_branch)
+  call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
   call twiss_out (this_ele%a, 'a')
   call twiss_out (this_ele%b, 'b')
 

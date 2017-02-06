@@ -368,7 +368,7 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
-type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
 type (tao_data_struct), pointer :: dp
@@ -472,9 +472,9 @@ datum_value = 0           ! default
 datum%ix_ele_merit = -1   ! default
 
 branch => lat%branch(datum%ix_branch)
-lat_branch => tao_lat%lat_branch(datum%ix_branch)
-orbit => lat_branch%orbit
-bunch_params => lat_branch%bunch_params
+tao_branch => tao_lat%tao_branch(datum%ix_branch)
+orbit => tao_branch%orbit
+bunch_params => tao_branch%bunch_params
 
 n_track = branch%n_ele_track
 n_max   = branch%n_ele_max
@@ -492,8 +492,8 @@ endif
 
 if (head_data_type  == 'rad_int.' .or. head_data_type == 'rad_int1.') then
   if (index(head_data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
-    if (.not. allocated(lat_branch%rad_int%ele)) then
-      call out_io (s_error$, r_name, 'lat_branch%rad_int not allocated')
+    if (.not. allocated(tao_branch%rad_int%ele)) then
+      call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
       return
     endif
   endif
@@ -536,7 +536,7 @@ if (datum%data_type(1:11) == 'periodic.tt') then
   endif
 endif
 
-if (lat_branch%track_state /= moving_forward$ .and. ix_ele >= lat_branch%track_state) then
+if (tao_branch%track_state /= moving_forward$ .and. ix_ele >= tao_branch%track_state) then
   if ((data_source == 'beam' .and. head_data_type /= 'n_particle_loss') .or. &
                          head_data_type(1:4) == 'bpm_' .or. head_data_type == 'orbit.') then
     call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS.', why_invalid)
@@ -651,7 +651,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), lat_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_branch%modes)
       else
         value_vec(i) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -659,7 +659,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), lat_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -675,7 +675,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), lat_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_branch%modes)
       else
         value_vec(i) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -683,7 +683,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), lat_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -783,7 +783,7 @@ case ('bpm_orbit.')
 
   if (data_source == 'beam') return ! bad
   call to_orbit_reading (orbit(ix_ele), ele, which, datum_value, err)
-  valid_value = .not. (err .or. (lat_branch%track_state /= moving_forward$ .and. ix_ele > lat_branch%track_state))
+  valid_value = .not. (err .or. (tao_branch%track_state /= moving_forward$ .and. ix_ele > tao_branch%track_state))
 
 !-----------
 
@@ -928,7 +928,7 @@ case ('chrom.')
   
   if (data_source == 'beam') return
 
-  if (.not. associated(lat_branch%low_E_lat%ele)) then
+  if (.not. associated(tao_branch%low_E_lat%ele)) then
     if (branch%param%unstable_factor == 0) then
       why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
     else
@@ -942,18 +942,18 @@ case ('chrom.')
   select case (datum%data_type)
 
   case ('chrom.dtune.a', 'chrom.a')
-    datum_value = lat_branch%a%chrom
+    datum_value = tao_branch%a%chrom
     valid_value = .true.
 
   case ('chrom.dtune.b', 'chrom.b')
-    datum_value = lat_branch%b%chrom
+    datum_value = tao_branch%b%chrom
     valid_value = .true.
 
    
   case ('chrom.dbeta.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%a%beta - lat_branch%low_E_lat%ele(i)%a%beta) / &
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%a%beta - tao_branch%low_E_lat%ele(i)%a%beta) / &
                         (tao_lat%lat%ele(i)%a%beta * s%global%delta_e_chrom)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -962,7 +962,7 @@ case ('chrom.')
   case ('chrom.dbeta.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%b%beta - lat_branch%low_E_lat%ele(i)%b%beta) / &
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%b%beta - tao_branch%low_E_lat%ele(i)%b%beta) / &
                         (tao_lat%lat%ele(i)%b%beta * s%global%delta_e_chrom)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -971,7 +971,7 @@ case ('chrom.')
   case ('chrom.dphi.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%a%phi - lat_branch%low_E_lat%ele(i)%a%phi)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%a%phi - tao_branch%low_E_lat%ele(i)%a%phi)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -979,7 +979,7 @@ case ('chrom.')
   case ('chrom.dphi.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%b%phi - lat_branch%low_E_lat%ele(i)%b%phi)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%b%phi - tao_branch%low_E_lat%ele(i)%b%phi)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -987,7 +987,7 @@ case ('chrom.')
   case ('chrom.deta.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%x%eta - lat_branch%low_E_lat%ele(i)%x%eta)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%x%eta - tao_branch%low_E_lat%ele(i)%x%eta)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -995,7 +995,7 @@ case ('chrom.')
   case ('chrom.deta.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%y%eta - lat_branch%low_E_lat%ele(i)%y%eta)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%y%eta - tao_branch%low_E_lat%ele(i)%y%eta)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1003,7 +1003,7 @@ case ('chrom.')
   case ('chrom.detap.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%x%etap - lat_branch%low_E_lat%ele(i)%x%etap)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%x%etap - tao_branch%low_E_lat%ele(i)%x%etap)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1011,7 +1011,7 @@ case ('chrom.')
   case ('chrom.detap.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (lat_branch%high_E_lat%ele(i)%y%etap - lat_branch%low_E_lat%ele(i)%y%etap)/ s%global%delta_e_chrom
+        value_vec(i) = (tao_branch%high_E_lat%ele(i)%y%etap - tao_branch%low_E_lat%ele(i)%y%etap)/ s%global%delta_e_chrom
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1031,15 +1031,15 @@ case ('damp.')
   select case (datum%data_type)
 
   case ('damp.j_a')
-    datum_value = lat_branch%modes%a%j_damp
+    datum_value = tao_branch%modes%a%j_damp
     valid_value = .true.
 
   case ('damp.j_b')
-    datum_value = lat_branch%modes%b%j_damp
+    datum_value = tao_branch%modes%b%j_damp
     valid_value = .true.
 
   case ('damp.j_z')
-    datum_value = lat_branch%modes%z%j_damp
+    datum_value = tao_branch%modes%z%j_damp
     valid_value = .true.
 
   case default
@@ -1053,11 +1053,11 @@ case ('damp.')
 case ('dpx_dx') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) = lat_branch%linear(ix_ref)%sigma(1,2) / lat_branch%linear(ix_ref)%sigma(1,1)
-      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(1,2) / lat_branch%linear(ix_ele)%sigma(1,1)
+      if (ix_ref > -1) value_vec(ix_ref) = tao_branch%linear(ix_ref)%sigma(1,2) / tao_branch%linear(ix_ref)%sigma(1,1)
+      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(1,2) / tao_branch%linear(ix_ele)%sigma(1,1)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (lat_branch%linear%sigma(1,2) / lat_branch%linear%sigma(1,1), &
+      call tao_load_this_datum (tao_branch%linear%sigma(1,2) / tao_branch%linear%sigma(1,1), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   else
@@ -1074,11 +1074,11 @@ case ('dpx_dx')
 case ('dpy_dy') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) =  lat_branch%linear(ix_ref)%sigma(3,4) / lat_branch%linear(ix_ref)%sigma(3,3)
-      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(3,4) / lat_branch%linear(ix_ele)%sigma(3,3)
+      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%linear(ix_ref)%sigma(3,4) / tao_branch%linear(ix_ref)%sigma(3,3)
+      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(3,4) / tao_branch%linear(ix_ele)%sigma(3,3)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (lat_branch%linear%sigma(3,4) / lat_branch%linear%sigma(3,3), &
+      call tao_load_this_datum (tao_branch%linear%sigma(3,4) / tao_branch%linear%sigma(3,3), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   else
@@ -1095,11 +1095,11 @@ case ('dpy_dy')
 case ('dpz_dz') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) =  lat_branch%linear(ix_ref)%sigma(5,6) / lat_branch%linear(ix_ref)%sigma(5,5)
-      value_vec(ix_ele) = lat_branch%linear(ix_ele)%sigma(5,6) / lat_branch%linear(ix_ele)%sigma(5,5)
+      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%linear(ix_ref)%sigma(5,6) / tao_branch%linear(ix_ref)%sigma(5,5)
+      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(5,6) / tao_branch%linear(ix_ele)%sigma(5,5)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (lat_branch%linear%sigma(5,6) / lat_branch%linear%sigma(5,5), &
+      call tao_load_this_datum (tao_branch%linear%sigma(5,6) / tao_branch%linear%sigma(5,5), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   else
@@ -1176,10 +1176,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.x', 'norm_emit.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), lat_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_branch%modes)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), lat_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1191,10 +1191,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.y', 'norm_emit.y')  
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), lat_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), lat_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1215,15 +1215,15 @@ case ('emit.', 'norm_emit.')
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
       if (lat%param%geometry == open$) then
-        if (.not. allocated(lat_branch%rad_int%ele)) then
-          call out_io (s_error$, r_name, 'lat_branch%rad_int not allocated')
+        if (.not. allocated(tao_branch%rad_int%ele)) then
+          call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
           return
         endif
-        call tao_load_this_datum (lat_branch%rad_int%ele%lin_norm_emit_a, &
+        call tao_load_this_datum (tao_branch%rad_int%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = lat_branch%modes%a%emittance
+        datum_value = tao_branch%modes%a%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -1235,15 +1235,15 @@ case ('emit.', 'norm_emit.')
   case ('emit.b', 'norm_emit.b')  
     if (data_source == 'lat') then
       if (lat%param%geometry == open$) then
-        if (.not. allocated(lat_branch%rad_int%ele)) then
-          call out_io (s_error$, r_name, 'lat_branch%rad_int not allocated')
+        if (.not. allocated(tao_branch%rad_int%ele)) then
+          call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
           return
         endif
-        call tao_load_this_datum (lat_branch%rad_int%ele%lin_norm_emit_b, &
+        call tao_load_this_datum (tao_branch%rad_int%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = lat_branch%modes%b%emittance
+        datum_value = tao_branch%modes%b%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -1642,7 +1642,7 @@ case ('n_particle_loss')
 
 case ('orbit.')
 
-  if (lat_branch%track_state /= moving_forward$ .and. ix_ele > lat_branch%track_state) then
+  if (tao_branch%track_state /= moving_forward$ .and. ix_ele > tao_branch%track_state) then
     valid_value = .false.
     call tao_set_invalid (datum, 'Particle lost.', why_invalid)
     return
@@ -1961,98 +1961,98 @@ case ('rad_int.')
   endif
 
   if (data_source == 'beam') return
-  if (.not. allocated(lat_branch%rad_int%ele)) return
+  if (.not. allocated(tao_branch%rad_int%ele)) return
 
   select case (datum%data_type(9:))
   case ('i1')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i1)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i1)
     else
-      datum_value = lat_branch%modes%synch_int(1)
+      datum_value = tao_branch%modes%synch_int(1)
     endif
 
   case ('i2')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i2)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i2)
     else
-      datum_value = lat_branch%modes%synch_int(2)
+      datum_value = tao_branch%modes%synch_int(2)
     endif
 
   case ('i2_e4')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%lin_i2_e4)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%lin_i2_e4)
     else
-      datum_value = lat_branch%modes%lin%i2_e4
+      datum_value = tao_branch%modes%lin%i2_e4
     endif
 
   case ('i3')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i3)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i3)
     else
-      datum_value = lat_branch%modes%synch_int(3)
+      datum_value = tao_branch%modes%synch_int(3)
     endif
 
   case ('i3_e7')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%lin_i3_e7)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%lin_i3_e7)
     else
-      datum_value = lat_branch%modes%lin%i3_e7
+      datum_value = tao_branch%modes%lin%i3_e7
     endif
 
   case ('i4a')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i4a)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i4a)
     else
-      datum_value = lat_branch%modes%a%synch_int(4)
+      datum_value = tao_branch%modes%a%synch_int(4)
     endif
 
   case ('i4b')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i4b)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i4b)
     else
-      datum_value = lat_branch%modes%b%synch_int(4)
+      datum_value = tao_branch%modes%b%synch_int(4)
     endif
 
   case ('i4z')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i4z)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i4z)
     else
-      datum_value = lat_branch%modes%z%synch_int(4)
+      datum_value = tao_branch%modes%z%synch_int(4)
     endif
 
   case ('i5a')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i5a)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i5a)
     else
-      datum_value = lat_branch%modes%a%synch_int(5)
+      datum_value = tao_branch%modes%a%synch_int(5)
     endif
 
   case ('i5a_e6')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%lin_i5a_e6)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
-      datum_value = lat_branch%modes%lin%i5a_e6
+      datum_value = tao_branch%modes%lin%i5a_e6
     endif
 
   case ('i5b')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i5b)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i5b)
     else
-      datum_value = lat_branch%modes%b%synch_int(5)
+      datum_value = tao_branch%modes%b%synch_int(5)
     endif
 
   case ('i5b_e6')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%lin_i5b_e6)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%lin_i5b_e6)
     else
-      datum_value = lat_branch%modes%lin%i5b_e6
+      datum_value = tao_branch%modes%lin%i5b_e6
     endif
 
   case ('i6b')
     if (ix_ele > -1) then
-      datum_value = sum(lat_branch%rad_int%ele(ix_ref:ix_ele)%i6b)
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i6b)
     else
-      datum_value = lat_branch%modes%b%synch_int(6)
+      datum_value = tao_branch%modes%b%synch_int(6)
     endif
 
   case default
@@ -2069,56 +2069,56 @@ case ('rad_int1.')
 
   if (data_source == 'beam') return
   if (ix_ele < 0) return
-  if (.not. allocated(lat_branch%rad_int%ele)) return
+  if (.not. allocated(tao_branch%rad_int%ele)) return
 
   select case (datum%data_type(10:))
   case ('i1')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i1
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i1
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i1
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i1
 
   case ('i2')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i2
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i2
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i2
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i2
 
   case ('i2_e4')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%lin_i2_e4
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%lin_i2_e4
+    datum_value = tao_branch%rad_int%ele(ix_ele)%lin_i2_e4
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%lin_i2_e4
 
   case ('i3')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i3
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i3
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i3
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i3
 
   case ('i3_e7')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%lin_i3_e7
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%lin_i3_e7
+    datum_value = tao_branch%rad_int%ele(ix_ele)%lin_i3_e7
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%lin_i3_e7
 
   case ('i4a')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i4a
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i4a
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i4a
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i4a
 
   case ('i5a')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i5a
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i5a
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i5a
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i5a
 
   case ('i5a_e6')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%lin_i5a_e6
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%lin_i5a_e6
+    datum_value = tao_branch%rad_int%ele(ix_ele)%lin_i5a_e6
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%lin_i5a_e6
 
   case ('i4b')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i4b
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i4b
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i4b
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i4b
 
   case ('i5b')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i5b
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i5b
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i5b
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i5b
 
   case ('i5b_e6')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%lin_i5b_e6
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%lin_i5b_e6
+    datum_value = tao_branch%rad_int%ele(ix_ele)%lin_i5b_e6
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%lin_i5b_e6
 
   case ('i6b')
-    datum_value = lat_branch%rad_int%ele(ix_ele)%i6b
-    if (ix_ref > -1) datum_value = datum_value - lat_branch%rad_int%ele(ix_ref)%i6b
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i6b
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i6b
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
@@ -2208,7 +2208,7 @@ case ('sigma.')
   j = index('123456', datum%data_type(8:8))
   if (i > 0 .and. j > 0) then
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -2219,7 +2219,7 @@ case ('sigma.')
 
   case ('sigma.x')
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2228,7 +2228,7 @@ case ('sigma.')
 
   case ('sigma.px')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2237,7 +2237,7 @@ case ('sigma.')
 
   case ('sigma.y')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2246,7 +2246,7 @@ case ('sigma.')
     
   case ('sigma.py')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2255,7 +2255,7 @@ case ('sigma.')
     
   case ('sigma.z')
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2265,12 +2265,12 @@ case ('sigma.')
   case ('sigma.pz')  
     if (data_source == 'lat') then
       if (lat%param%geometry == closed$) then
-        call tao_load_this_datum (lat_branch%linear%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+        call tao_load_this_datum (tao_branch%linear%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
         datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
-                                 sum(lat_branch%rad_int%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
+                                 sum(tao_branch%rad_int%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
         valid_value = .true.
       endif
     else
@@ -2280,14 +2280,14 @@ case ('sigma.')
     
   case ('sigma.xy')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (tao_branch%linear%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('sigma.Lxy')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (lat_branch%linear%sigma(1,4) - lat_branch%linear%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (tao_branch%linear%sigma(1,4) - tao_branch%linear%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,4) - bunch_params(:)%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -2510,11 +2510,11 @@ case ('unstable.')
       do i = 1, ix_ele
         datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
       enddo
-      datum_value = datum_value / lat_branch%bunch_params(ix_ele)%n_particle_tot
+      datum_value = datum_value / tao_branch%bunch_params(ix_ele)%n_particle_tot
       datum%ix_ele_merit = -1
 
     else
-      iz = lat_branch%track_state
+      iz = tao_branch%track_state
       if (iz /= moving_forward$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz
         if (orbit(iz)%s < branch%ele(iz)%s) then

@@ -563,15 +563,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (component)
     case ('model')   
       lat => u%model%lat
-      this_orb => u%model%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      this_orb => u%model%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
       branch => u%model%lat%branch(scratch%eles(j)%ele%ix_branch)
     case ('base')  
       lat => u%base%lat
-      this_orb => u%base%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      this_orb => u%base%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
       branch => u%base%lat%branch(scratch%eles(j)%ele%ix_branch)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      this_orb => u%design%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
       branch => u%design%lat%branch(scratch%eles(j)%ele%ix_branch)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
@@ -788,9 +788,9 @@ do i = 1, size(var%slave)
 
   lat => u%model%lat
   if (var%ele_name == 'BEAM_START') then
-    u%model%lat_branch(0)%orb0%vec = lat%beam_start%vec
-    u%model%lat_branch(0)%orb0%t   = lat%beam_start%t
-    u%model%lat_branch(0)%orb0%p0c = lat%beam_start%p0c
+    u%model%tao_branch(0)%orb0%vec = lat%beam_start%vec
+    u%model%tao_branch(0)%orb0%t   = lat%beam_start%t
+    u%model%tao_branch(0)%orb0%p0c = lat%beam_start%p0c
   else
     ele => lat%branch(var_slave%ix_branch)%ele(var_slave%ix_ele)
     call set_flags_for_changed_attribute (ele, var_slave%model_value)

@@ -751,9 +751,9 @@ integer j, n_d2_data
 allocate (u%data(0))
 u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
 u%n_data_used = 0         ! size of s%u(i)%data(:) array
-u%model%lat_branch%ix_rad_int_cache = 0
-u%design%lat_branch%ix_rad_int_cache = 0
-u%base%lat_branch%ix_rad_int_cache = 0
+u%model%tao_branch%ix_rad_int_cache = 0
+u%design%tao_branch%ix_rad_int_cache = 0
+u%base%tao_branch%ix_rad_int_cache = 0
 
 if (n_d2_data == 0) return
 if (allocated(u%d2_data)) deallocate (u%d2_data)
