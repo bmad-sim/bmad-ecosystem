@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 189
+integer, parameter :: bmad_inc_version$ = 190
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -981,6 +981,7 @@ type lat_param_struct
                                                ! |orbit/limit| for open branches.
   real(rp) :: t1_with_RF(6,6) = 0              ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
+  real(rp) :: spin_tune = 0                    ! Closed orbit spin tune.
   integer :: particle = positron$              ! Reference particle: positron$, electron$, etc.
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$

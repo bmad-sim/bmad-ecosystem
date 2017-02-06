@@ -105,7 +105,7 @@ type (matrix_save), allocatable :: m(:)
 real(rp) t1(6,6), del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_del, this_del, max_eigen
-real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), angle
+real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3)
 real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
@@ -379,7 +379,7 @@ if (bmad_com_saved%spin_tracking_on) then
     call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
     mat3(:,i) = orb_end%spin
   enddo
-  call w_mat_to_axis_angle(mat3, orb_start%spin, angle)
+  call w_mat_to_axis_angle(mat3, orb_start%spin, branch%param%spin_tune)
   call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 endif
 

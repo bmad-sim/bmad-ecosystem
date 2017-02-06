@@ -251,15 +251,15 @@ logical, optional :: check_free, wild_and_key0
 ! [except for a "GROUP[COMMAND] = 0.343" redef construct]
 
 err_flag = .true.  ! assume the worst
-call get_next_word (word, ix_word, ':, =()', delim, delim_found, call_check = .true.)
+call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
 
 ! Taylor
 
 wild_key0 = logic_option(.false., wild_and_key0)
 
-if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
+if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word == '') then
 
-  word = word(2:)             ! strip off '{'
+  call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
   call match_word (word, ['XX', 'XY', 'XZ', 'YX', 'YY', 'YZ', 'ZX', 'ZY', 'ZZ'], i_out, .true., .false.)
   if (i_out > 0) then
     i_out = i_out + 100 ! Make i_out not in range [1:6]
