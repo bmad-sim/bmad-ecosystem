@@ -123,11 +123,11 @@ if (particle_at == second_track_edge$) call electric_longitudinal_fringe()
 select case (hard_ele%key)
 case (quadrupole$)
   if (particle_at == first_track_edge$) then
-    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb)
-    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb)
-    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb)
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
   endif
 
 case (sbend$)
