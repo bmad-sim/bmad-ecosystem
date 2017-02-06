@@ -726,8 +726,13 @@ type tao_lattice_branch_struct
   type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
   type (coord_struct), allocatable :: orbit(:)
   type (coord_struct) orb0                     ! For saving beginning orbit
+  type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   integer track_state
   logical has_open_match_element
+  type (normal_modes_struct) modes             ! Synchrotron integrals stuff
+  type (rad_int_all_ele_struct) rad_int
+  type (tao_lat_mode_struct) a, b
+  integer ix_rad_int_cache                     ! Radiation integrals cache index.
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in
@@ -735,12 +740,7 @@ end type
 
 type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
-  type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
-  type (normal_modes_struct) modes             ! Synchrotron integrals stuff
-  type (rad_int_all_ele_struct) rad_int
-  type (tao_lat_mode_struct) a, b
-  integer ix_rad_int_cache                     ! Radiation integrals cache index.
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.
@@ -878,10 +878,6 @@ integer ix2
 
 lat1%lat          = lat2%lat
 lat1%lat_branch   = lat2%lat_branch
-lat1%modes        = lat2%modes
-lat1%rad_int      = lat2%rad_int
-lat1%a            = lat2%a
-lat1%b            = lat2%b
 
 end subroutine
 
