@@ -178,7 +178,7 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
   default_step = (t1-t0)/100.d0
 
   ptr = c_loc(args)
-  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
+!  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
   ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, default_step, abs_err_goal, rel_err_goal)
 
   y(1) = p0
@@ -240,7 +240,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
   step_size = (t1-t0)/(n-1)
 
   ptr = c_loc(args)
-  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
+!  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
   ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, 1.0e-6_fgsl_double, 0.0_fgsl_double, 1.0E-7_fgsl_double)
 
   tcur = t0
