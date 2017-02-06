@@ -121,10 +121,11 @@ subroutine cbar_to_c (cbar_mat, a, b, c_mat)
   type (twiss_struct) a, b
 end subroutine
 
-subroutine calc_z_tune (lat)
+subroutine calc_z_tune (lat, ix_branch)
   import
   implicit none
   type (lat_struct) lat
+  integer, optional :: ix_branch
 end subroutine
 
 subroutine crystal_attribute_bookkeeper (ele)
