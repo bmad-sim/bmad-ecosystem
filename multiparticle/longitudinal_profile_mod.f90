@@ -41,18 +41,19 @@ CONTAINS
 ! Output:
 !   dpdt         -- REAL(c_double), DIMENSION(*): dpsi_dt
 !-
-FUNCTION psi_prime(t, p, dpdt, params) BIND(c)
-  IMPLICIT none
+function psi_prime(t, p_c, dpdt_c, params) bind(c)
+  implicit none
 
-  REAL(c_double), VALUE :: t
-  REAL(c_double), DIMENSION(*), INTENT(IN) :: p
-  REAL(c_double), DIMENSION(*) :: dpdt
-  TYPE(c_ptr), VALUE :: params
-  INTEGER(c_int) :: psi_prime
+  real(c_double), value :: t
+  type(c_ptr), value :: p_c, dpdt_c, params
+  real(c_double), dimension(:), pointer :: p, dpdt
+  integer(c_int) :: psi_prime
 
-  REAL(c_double), POINTER :: args(:)
+  real(c_double), pointer :: args(:)
   REAL(c_double) A, Vrf, Q, omega, phi, R, L, U0
 
+  CALL c_f_pointer(p_c,p,[1])
+  CALL c_f_pointer(dpdt_c,dpdt,[1])
   CALL c_f_pointer(params,args,[8])
   A = args(1)
   Vrf = args(2)
@@ -82,22 +83,25 @@ END FUNCTION psi_prime
 !   dpdt      -- REAL(rp): dpsi_dt
 !   
 !-
-SUBROUTINE psi_prime_sca(t, p, dpdt, args)
-  IMPLICIT NONE
+subroutine psi_prime_sca(t, p, dpdt, args)
+  implicit none
 
-  REAL(rp) t, p, dpdt
-  REAL(rp), TARGET :: args(1:8)
-  REAL(c_double) pa(1), dpdta(1)
-  TYPE(c_ptr) ptr
+  real(rp), value :: t
+  real(rp), target :: p, dpdt
+  real(rp), target :: args(1:8)
+  !real(c_double) pa(1), dpdta(1)
+  type(c_ptr) args_ptr, p_ptr, dpdt_ptr
 
-  INTEGER status
+  integer status
 
-  ptr = c_loc(args)
+  args_ptr = c_loc(args)
+  p_ptr = c_loc(p)
+  dpdt_ptr = c_loc(dpdt)
 
-  pa(1) = p
-  status = psi_prime(t, pa, dpdta, ptr)
-  dpdt = dpdta(1)
-END SUBROUTINE psi_prime_sca
+  !pa(1) = p
+  status = psi_prime(t, p_ptr, dpdt_ptr, args_ptr)
+  !dpdt = dpdta(1)
+end subroutine psi_prime_sca
 
 !+
 ! Function jac(t, p, dfdp, dfdt, params)
@@ -112,18 +116,22 @@ END SUBROUTINE psi_prime_sca
 !   dfdp    -- REAL(c_double), DIMENSION(*): d(dpsi/dt)/dp
 !   dfdt    -- REAL(c_double), DIMENSION(*): d(dpsi/dt)/dt
 !-
-FUNCTION jac(t, p, dfdp, dfdt, params) BIND(c)
-  IMPLICIT none
-  REAL(c_double), VALUE :: t
-  REAL(c_double), DIMENSION(*), INTENT(IN) :: p
-  REAL(c_double), DIMENSION(*) :: dfdp
-  REAL(c_double), DIMENSION(*) :: dfdt
-  TYPE(c_ptr), VALUE :: params
-  INTEGER(c_int) :: jac
+FUNCTION jac(t, p_c, dfdp_c, dfdt_c, params) BIND(c)
+  implicit none
+  type(c_ptr), value :: p_c, dfdp_c, dfdt_c
+  real(c_double), value :: t
+  real(c_double), dimension(:), pointer :: p
+  real(c_double), dimension(:), pointer :: dfdp
+  real(c_double), dimension(:), pointer :: dfdt
+  type(c_ptr), value :: params
+  integer(c_int) :: jac
 
-  REAL(c_double), POINTER :: args(:)
-  REAL(c_double) A, Vrf, Q, omega, phi, R, L, U0
+  real(c_double), pointer :: args(:)
+  real(c_double) A, Vrf, Q, omega, phi, R, L, U0
 
+  CALL c_f_pointer(p_c,p,[1])
+  CALL c_f_pointer(dfdp_c,dfdp,[1])
+  CALL c_f_pointer(dfdt_c,dfdt,[1])
   CALL c_f_pointer(params,args,[8])
   A = args(1)
   Vrf = args(2)
@@ -178,7 +186,7 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
   default_step = (t1-t0)/100.d0
 
   ptr = c_loc(args)
-!  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
+  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
   ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, default_step, abs_err_goal, rel_err_goal)
 
   y(1) = p0
@@ -240,7 +248,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
   step_size = (t1-t0)/(n-1)
 
   ptr = c_loc(args)
-!  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
+  ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
   ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, 1.0e-6_fgsl_double, 0.0_fgsl_double, 1.0E-7_fgsl_double)
 
   tcur = t0
