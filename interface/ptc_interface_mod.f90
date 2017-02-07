@@ -3492,7 +3492,7 @@ endif
 
 ! Multipole components
 
-if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. EXACT_MODEL == .true.) then
+if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. EXACT_MODEL) then
   call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
   call ele_to_an_bn (m_ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 else
