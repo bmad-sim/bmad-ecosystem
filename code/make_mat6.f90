@@ -87,12 +87,16 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
-!
+if (any(ele%map_ref_orb_in%vec /= a_start_orb%vec)) then
+  if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
+endif
+
+ele%map_ref_orb_in = a_start_orb
 
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
-!
+! Compute matrix
 
 err = .false.
 
@@ -153,11 +157,6 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/e
 
 ! Finish up
 
-if (any(ele%map_ref_orb_in%vec /= a_start_orb%vec)) then
-  if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
-endif
-
-ele%map_ref_orb_in = a_start_orb
 ele%map_ref_orb_out = a_end_orb
 if (present(end_orb) .and. .not. logic_option (.false., end_in)) end_orb = a_end_orb
 
