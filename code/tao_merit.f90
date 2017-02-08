@@ -154,9 +154,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     meas_value = data(j)%meas_value
     if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') meas_value = meas_value * u%ping_scale%a_mode_meas
+    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) == 'amp') meas_value = meas_value * u%ping_scale%b_mode_meas
 
     ref_value = data(j)%ref_value
     if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') ref_value = ref_value * u%ping_scale%a_mode_ref
+    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) == 'amp') ref_value = ref_value * u%ping_scale%b_mode_ref
 
     if (opt_with_ref .and. opt_with_base) then
       data(j)%delta_merit = (model_value - data(j)%base_value) - (meas_value - ref_value) 
@@ -180,6 +182,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   call zero_phase_merit ('phase.b', i)
   call zero_phase_merit ('bpm_phase.a', i)
   call zero_phase_merit ('bpm_phase.b', i)
+  call zero_phase_merit ('ping_a.phase_x', i)
+  call zero_phase_merit ('ping_a.phase_y', i)
+  call zero_phase_merit ('ping_b.phase_x', i)
+  call zero_phase_merit ('ping_b.phase_y', i)
 
   ! for max or min merit_types the delta might be modified.
 
