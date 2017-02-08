@@ -3209,7 +3209,8 @@ case ('universe')
   nl=nl+1; write(lines(nl), fmt) 'I2:', tao_branch%modes%synch_int(2), design_tao_branch%modes%synch_int(2), '! Radiation Integral'
   nl=nl+1; write(lines(nl), fmt) 'I3:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
   if (bmad_com%spin_tracking_on) then
-    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, &
+                                          design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
   endif
   result_id = show_what
 
