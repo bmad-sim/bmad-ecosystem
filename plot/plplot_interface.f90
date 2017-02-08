@@ -32,6 +32,12 @@ module plplot_interface
 use output_mod
 use quick_plot_struct
 
+! This #if def wraps the entire module
+
+#if defined (CESR_PLPLOT)
+  
+use plplot
+
 type viewport_size
   real(rp) :: x1 !in mm
   real(rp) :: x2
@@ -231,9 +237,9 @@ case (solid_fill$)
 end select
 
 if (fill_pattern == no_fill$) then
-  call plline (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! No fill
+  call plline (fx * [x1, x2, x2, x1], fy * [y1, y1, y2, y2]) ! No fill
 else
-  call plfill (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! color the box
+  call plfill (fx * [x1, x2, x2, x1], fy * [y1, y1, y2, y2]) ! color the box
 endif
 
 call qp_restore_state_basic                 ! Flush the buffer.
@@ -279,7 +285,7 @@ subroutine qp_set_line_width_basic (line_width)
 implicit none  
 integer line_width
  
-call plwid (line_width/4) ! set line width
+call plwidth (line_width/4.0) ! set line width
 
 !Save this state
 pl_com%line_width = line_width
@@ -548,7 +554,7 @@ integer symbol
 xm = x * pl_com%x_inch_to_mm
 ym = y * pl_com%y_inch_to_mm
 
-call plpoin (1, xm, ym, symbol)
+call plpoin ([xm], [ym], symbol)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -599,7 +605,7 @@ if(pl_com%fill_pattern /= 0) then
    call plpsty(pl_com%fill_pattern)
 endif
 
-call plwid(pl_com%line_width)
+call plwidth(pl_com%line_width/4.0)
 
 if(pl_com%line_pattern /= 0) then
    call pllsty(pl_com%line_pattern)
@@ -717,7 +723,7 @@ call plpsty(0)                        ! Set fill-area pattern to solid
 
 x_vec = [x1m, x2m, x2m, x1m, x1m]
 y_vec = [y1m, y1m, y2m, y2m, y1m]
-call plfill (5, x_vec, y_vec)         ! Fills a polygon with 4 vertices
+call plfill (x_vec, y_vec)         ! Fills a polygon with 4 vertices
 
 call qp_restore_state_basic           ! Flush the buffer.
 
@@ -756,7 +762,7 @@ xm = pl_com%x_inch_to_mm * x
 ym = pl_com%y_inch_to_mm * y
 
 if (size(x) < 2) return
-call plline (size(x), xm, ym)
+call plline (xm, ym)
 
 end subroutine
 
@@ -797,7 +803,7 @@ real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
 real(rp), optional :: page_scale
 
 integer, optional :: i_chan
-integer ix, xp, yp, ix_len, iy_len, i_ch
+integer ix, xp, yp, ix_len, iy_len, i_ch, stat
 
 character(*) page_type, plot_file
 character(40) geom
@@ -823,7 +829,7 @@ endif
 select case (page_type)
 case ('X')
   call plsdev ('xwin')
-  call plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
+  stat = plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
 
 case ('TK')
   call plsdev ('tk')
@@ -870,11 +876,11 @@ if (page_type /= 'X' .and. page_type /= 'TK' .and. page_type /= 'QT') then
 endif
 
 ! Set color map
-call plscmap0(red, green, blue, 16)
+call plscmap0(red, green, blue)
 
 ! Set continuous color map (cmap1)
 call plscmap1n(1048576)
-call plscmap1l(0, 2, [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0], [0, 0])
+call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0])
 
 
 ! Set size of x-window.
@@ -1004,5 +1010,7 @@ subroutine qp_end_basic ()
 call plend()
 
 end subroutine qp_end_basic
+
+#endif
 
 end module
