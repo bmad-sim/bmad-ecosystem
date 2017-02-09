@@ -248,7 +248,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%data%good_base    = s%u(i)%data%good_model
 enddo
 
-! tao_hook_init2 is for custom setup after the regular setup
+! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
+! to set model variable values different from design variable values.
 
 call tao_hook_init2 ()     
 
