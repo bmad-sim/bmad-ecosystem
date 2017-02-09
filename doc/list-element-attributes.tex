@@ -675,26 +675,27 @@ fringe_type                 & spin_tracking_method        &                     
  \label{s:list.marker}
  
  \begin{tabular}{lll} \toprule
-alias                       & n_sample                    & x_gain_err                  \\
-aperture                    & offset                      & x_limit                     \\
-aperture_at                 & offset_moves_aperture       & x_offset                    \\
-aperture_type               & osc_amplitude               & x_offset_calib              \\
-create_jumbo_slave          & p0c                         & x_offset_tot                \\
-crunch                      & ptc_integration_type        & x_pitch                     \\
-crunch_calib                & reference                   & x_pitch_tot                 \\
-delta_ref_time              & ref_origin                  & x_ray_line_len              \\
-descrip                     & spin_tracking_method        & y1_limit                    \\
-de_eta_meas                 & sr_wake_file                & y2_limit                    \\
-ele_origin                  & superimpose                 & y_gain_calib                \\
-e_tot                       & tilt                        & y_gain_err                  \\
-is_on                       & tilt_calib                  & y_limit                     \\
-l                           & tilt_tot                    & y_offset                    \\
-lr_freq_spread              & tracking_method             & y_offset_calib              \\
-lr_self_wake_on             & type                        & y_offset_tot                \\
-lr_wake_file                & wall                        & y_pitch                     \\
-lr_wake_spline              & x1_limit                    & y_pitch_tot                 \\
-mat6_calc_method            & x2_limit                    & z_offset                    \\
-noise                       & x_gain_calib                & z_offset_tot                \\
+alias                       & n_sample                    & x_limit                     \\
+aperture                    & offset                      & x_offset                    \\
+aperture_at                 & offset_moves_aperture       & x_offset_calib              \\
+aperture_type               & osc_amplitude               & x_offset_tot                \\
+create_jumbo_slave          & p0c                         & x_pitch                     \\
+crunch                      & ptc_integration_type        & x_pitch_tot                 \\
+crunch_calib                & reference                   & x_ray_line_len              \\
+delta_ref_time              & ref_origin                  & y1_limit                    \\
+descrip                     & spin_tracking_method        & y2_limit                    \\
+de_eta_meas                 & sr_wake_file                & y_gain_calib                \\
+ele_origin                  & superimpose                 & y_gain_err                  \\
+e_tot                       & tilt                        & y_limit                     \\
+geo                         & tilt_calib                  & y_offset                    \\
+is_on                       & tilt_tot                    & y_offset_calib              \\
+l                           & tracking_method             & y_offset_tot                \\
+lr_freq_spread              & type                        & y_pitch                     \\
+lr_self_wake_on             & wall                        & y_pitch_tot                 \\
+lr_wake_file                & x1_limit                    & z_offset                    \\
+lr_wake_spline              & x2_limit                    & z_offset_tot                \\
+mat6_calc_method            & x_gain_calib                &                             \\
+noise                       & x_gain_err                  &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -882,21 +883,21 @@ descrip                     & type                        &                     
  \label{s:list.patch}
  
  \begin{tabular}{lll} \toprule
-alias                       & mat6_calc_method            & upstream_ele_dir            \\
-aperture                    & offset                      & wall                        \\
-aperture_at                 & offset_moves_aperture       & x1_limit                    \\
-aperture_type               & p0c                         & x2_limit                    \\
-create_jumbo_slave          & p0c_start                   & x_limit                     \\
-delta_ref_time              & ptc_integration_type        & x_offset                    \\
-descrip                     & reference                   & x_pitch                     \\
-downstream_ele_dir          & ref_coordinates             & y1_limit                    \\
-ele_origin                  & ref_origin                  & y2_limit                    \\
-e_tot                       & spin_tracking_method        & y_limit                     \\
-e_tot_offset                & superimpose                 & y_offset                    \\
-e_tot_start                 & tilt                        & y_pitch                     \\
-field_calc                  & tracking_method             & z_offset                    \\
-flexible                    & type                        &                             \\
-l                           & t_offset                    &                             \\
+alias                       & l                           & t_offset                    \\
+aperture                    & mat6_calc_method            & upstream_ele_dir            \\
+aperture_at                 & offset                      & wall                        \\
+aperture_type               & offset_moves_aperture       & x1_limit                    \\
+create_jumbo_slave          & p0c                         & x2_limit                    \\
+delta_ref_time              & p0c_start                   & x_limit                     \\
+descrip                     & ptc_integration_type        & x_offset                    \\
+downstream_ele_dir          & reference                   & x_pitch                     \\
+ele_origin                  & ref_coordinates             & y1_limit                    \\
+e_tot                       & ref_origin                  & y2_limit                    \\
+e_tot_offset                & spin_tracking_method        & y_limit                     \\
+e_tot_start                 & superimpose                 & y_offset                    \\
+field_calc                  & tilt                        & y_pitch                     \\
+flexible                    & tracking_method             & z_offset                    \\
+geo                         & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
