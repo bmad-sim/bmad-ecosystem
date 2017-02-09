@@ -7,11 +7,11 @@
 # Check if the Distribution environment has been set
 [ -d "${DIST_BASE_DIR}" ] || echo -e '\nPlease first initalize the Distribution environment by typing: "source util/dist_source_me"\n'
 
-# List of Project Directories - Order here matters!
-DIRLIST=( hdf5 h5hut xsif lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
+# Set Plotting package directory 
+[ "${ACC_PLOT_PACKAGE}" == "pgplot" ] && export ACC_PLOT_PACKAGE_DIR="PGPLOT" || ACC_PLOT_PACKAGE_DIR="${ACC_PLOT_PACKAGE}"
 
-# Build PLplot, instead of PGPLOT, if requested
-[ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} ) || DIRLIST=( PGPLOT ${DIRLIST[*]} )
+# List of Project Directories - Order here matters!
+DIRLIST=( hdf5 h5hut ${ACC_PLOT_PACKAGE_DIR} xsif lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
 
 # Build OpenMPI, if requested
 [ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )

@@ -266,9 +266,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   #--------------------------------------------------------------
   #  Add the distribution's GNU Util bin area to user's PATH
   #--------------------------------------------------------------
-  if [ "$(type cmake &> /dev/null ; echo $?)" -ne 0 ] ; then
-    export PATH="${PATH}:${DIST_BASE_DIR}/production/gnu_utilities/bin:${DIST_BASE_DIR}/debug/gnu_utilities/bin"
-  fi
+  export PATH="${DIST_BASE_DIR}/production/gnu_utilities/bin:${PATH}"
 
 
 
