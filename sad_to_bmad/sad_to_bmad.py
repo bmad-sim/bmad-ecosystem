@@ -686,7 +686,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     elif fringe != '0' and disfrin == '0':
       bmad_ele.param['fringe_type'] = 'sad_full'
     elif fringe != '0' and disfrin != '0':
-      bmad_ele.param['fringe_type'] = 'sad_soft_edge_only'
+      bmad_ele.param['fringe_type'] = 'soft_edge_only'
 
   # Cavi fringe
 
