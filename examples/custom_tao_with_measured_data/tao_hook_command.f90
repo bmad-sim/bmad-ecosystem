@@ -117,7 +117,7 @@ case ('pingread')
   call tao_open_file (cmd_word(2), iu, file_name, s_fatal$)
   if (iu == 0) return
 
-  ! Read header
+  ! Read header from the data file
 
   do
     read (iu, '(a)', iostat = ios) line
