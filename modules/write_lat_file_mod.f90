@@ -2390,6 +2390,8 @@ do ix_ele = ie1, ie2
       case (quadrupole$)
         write (line_out, '(4a)') 'QUAD ', trim(ele%name), ' = (L = ', re_str(val(l$))
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
+        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
         converted = .true.
 
       ! SAD
@@ -2400,7 +2402,7 @@ do ix_ele = ie1, ie2
       end select
     endif
 
-    ! If not yet converted
+    ! If not yet converted due to the presence of multipoles or a kick
 
     if (.not. converted) then
 
@@ -2510,7 +2512,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
         call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'I', .true., .false.)
 
-      ! SAD
+      ! SAD with nonzero multipoles or kick
       case (octupole$)
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
@@ -2521,29 +2523,14 @@ do ix_ele = ie1, ie2
         write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
         call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
 
-      ! SAD
-      case (quadrupole$)
+      ! SAD with nonzero multipoles or kick
+      case (quadrupole$) 
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
-
-        select case (nint(val(fringe_type$)))
-        case (soft_edge_only$, full$)
-          select case (nint(val(fringe_at$)))
-          case (entrance_end$);         line_out = trim(line_out) // ', fringe = 1'
-          case (exit_end$);             line_out = trim(line_out) // ', fringe = 2'
-          case (both_ends$);            line_out = trim(line_out) // ', fringe = 3'
-          end select
-        end select
-
-        select case (nint(val(fringe_type$)))
-        case (none$)
-          line_out = trim(line_out) // ', disfrin = 1'
-        case (soft_edge_only$)
-          line_out = trim(line_out) // ', disfrin = 1'
-        case (hard_edge_only$, full$)
-          if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
-        end select
 
       ! SAD
       case (rfcavity$)
@@ -2552,32 +2539,19 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(voltage$), 'VOLT', 'R', .true., .false.)
         call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'R', .true., .false.)
 
+        select case (nint(val(fringe_at$)))
+        case (entrance_end$)
+          line_out = trim(line_out) // ' fringe = 1'
+        case (exit_end$)
+          line_out = trim(line_out) // ' fringe = 2'
+        end select
+
+
       ! SAD
       case (sad_mult$)
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(fint$)*val(hgap$)/12, 'FB1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fintx$)*val(hgapx$)/12, 'FB2', 'R', .true., .false.)
-        call value_to_line (line_out, sqrt(-24*val(fq1$)), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
         call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
-
-        select case (nint(val(fringe_type$)))
-        case (soft_edge_only$, full$)
-          select case (nint(val(fringe_at$)))
-          case (entrance_end$);         line_out = trim(line_out) // ', fringe = 1'
-          case (exit_end$);             line_out = trim(line_out) // ', fringe = 2'
-          case (both_ends$);            line_out = trim(line_out) // ', fringe = 3'
-          end select
-        end select
-
-        select case (nint(val(fringe_type$)))
-        case (none$)
-          line_out = trim(line_out) // ', disfrin = 1'
-        case (soft_edge_only$)
-          line_out = trim(line_out) // ', disfrin = 1'
-        case (hard_edge_only$, full$)
-          if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
-        end select
-
 
       ! SAD
       case (sbend$)
@@ -2585,21 +2559,30 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(angle$), 'ANGLE', 'R', .true., .false.)
         call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'R', .true., .false.)
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fint$)*val(hgap$)/12, 'FB1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fintx$)*val(hgapx$)/12, 'FB2', 'R', .true., .false.)
-        call value_to_line (line_out, val(e1$), 'AE1', 'R', .true., .false.)
-        call value_to_line (line_out, val(e2$), 'AE2', 'R', .true., .false.)
-        call value_to_line (line_out, sqrt(-24*val(fq1$)), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+        if (val(fintx$)*val(hgapx$) == val(fint$)*val(hgap$)) then
+          call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'F1', 'R', .true., .false.)
+        else
+          call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'FB1', 'R', .true., .false.)
+          call value_to_line (line_out, 12*val(fintx$)*val(hgapx$), 'FB2', 'R', .true., .false.)
+        endif
+        if (val(angle$) == 0) then
+          call value_to_line (line_out, val(e1$), 'AE1', 'R', .true., .false.)
+          call value_to_line (line_out, val(e2$), 'AE2', 'R', .true., .false.)
+        else
+          call value_to_line (line_out, val(e1$)/val(angle$), 'E1', 'R', .true., .false.)
+          call value_to_line (line_out, val(e2$)/val(angle$), 'E2', 'R', .true., .false.)
+        endif
 
-        select case (nint(val(fringe_at$)))
-        case (entrance_end$)
-          line_out = trim(line_out) // ', fringe = 1'
-        case (exit_end$)
-          line_out = trim(line_out) // ', fringe = 2'
+        select case (nint(val(fringe_type$)))
+        case (hard_edge_only$)
+          ! Nothing to be done
+        case (soft_edge_only$)
+          line_out = trim(line_out) // ' FRINGE = 1 DISFRIN = 1'
+        case (sad_full$)
+          line_out = trim(line_out) // ' FRINGE = 1'
         end select
 
-      ! SAD
+      ! SAD with nonzero multipoles or kick
       case (sextupole$)
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
@@ -2636,6 +2619,33 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, a_pole(i)*factorial(i), 'SK'//trim(str), 'R', .true., .false.)
         enddo
       endif
+    endif
+
+    ! fringe
+
+    if (ele%key == quadrupole$ .or. ele%key == sad_mult$) then
+      select case (nint(val(fringe_type$)))
+      case (soft_edge_only$, full$)
+        select case (nint(val(fringe_at$)))
+        case (entrance_end$);         line_out = trim(line_out) // ' FRINGE = 1'
+        case (exit_end$);             line_out = trim(line_out) // ' FRINGE = 2'
+        case (both_ends$);            line_out = trim(line_out) // ' FRINGE = 3'
+        end select
+      end select
+
+      select case (nint(val(fringe_type$)))
+      case (none$, soft_edge_only$)
+        line_out = trim(line_out) // ', DISFRIN = 1'
+      case (hard_edge_only$)
+        select case (nint(val(fringe_at$)))
+        case (no_end$)
+          line_out = trim(line_out) // ' DISFRIN = 1'
+        case (entrance_end$, exit_end$)
+          line_out = trim(line_out) // ' CANNOT TRANSLATE BMAD FRINGE_TYPE/FRINGE_AT!'
+        end select
+      case (full$)
+        if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
+      end select
     endif
 
     ! misalignments

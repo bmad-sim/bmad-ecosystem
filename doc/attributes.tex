@@ -2890,12 +2890,12 @@ For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
 settings are:
 \begin{example}
   none
-  soft_edge_only
-  hard_edge_only
+  soft_edge_only      !          SAD equivalent: fringe = 1, disfrin = 1
+  hard_edge_only      !          SAD equivalent: fringe = 0, disfrin = 0
   full
   linear_edge
-  basic_bend        ! Default 
-  sad_full
+  basic_bend          ! Default. SAD equivalent: fringe = 0, disfrin = 1
+  sad_full            !          SAD equivalent: fringe = 1, disfrin = 0
 \end{example}
 The \vn{basic_bend} setting, which is the default, is essentially the
 basic vertical focusing effect that is present when there is a finite
@@ -2959,6 +2959,37 @@ the fringe, and \vn{sad_full} uses the full fringe.  For an \vn{sbend}
 or \vn{rbend} element, these SAD fringe fields are in addition to the
 fringe fields that occurs with a finite \vn{e1} or \vn{e2} face
 angle. 
+
+For \vn{quadrupole} and \vn{sad_mult} elements, the translation between the \vn{fringe_at}
+and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of SAD is:
+\begin{center}
+\tt
+\begin{tabular}{ll|llll} 
+              &                      & \multicolumn{4}{c}{fringe_at:} \\
+              &                      & no_end     & entrance_end & exit_end   & both_ends$^*$ \\ \midrule
+\multirow{4}{*}{fringe_type:} 
+              & none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
+              & soft_edge_only       & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
+              & hard_edge_only$^*$   & [0, $\ne 0$] & No SAD Equiv   & No SAD Equiv & [0, $= 0$]   \\
+              & full                 & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\ 
+  \bottomrule
+\multicolumn{2}{l}{$^*$Default value.} & \multicolumn{4}{l}{\textbf{[fringe, disfrin]}} \\
+\end{tabular}
+\end{center}
+Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. The
+\vn{soft_edge_only} fringe kick is a kick that is linear in the transverse $(x, p_x, y,
+p_y)$ coordinates and comes from the finite width of the quadrupolar fringe field. The
+width of the quadrupolar fringe field is characterized by the \vn{f1} and \vn{f2}
+attributes. The \vn{sad_nonlinear_only} fringe kick comes from the nonlinear part of the
+quadrupolar field plus the fringes of the other multipoles.
+
+The soft fringe quadrupole parameters \vn{fq1} and \vn{fq2} (\sref{s:q.soft}) are related
+to the corresponding SAD parameters \vn{f1} and \vn{f2} via
+\begin{example}
+  f1 = -sign(fq1) * sqrt(24 * |fq1|)
+  f2 = fq2
+\end{example}
+In the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 \index{permfringe}\index{bendfringe}
 For programmers who deal with PTC directly: The translation between
