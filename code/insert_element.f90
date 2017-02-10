@@ -35,7 +35,7 @@ use bookkeeper_mod, except_dummy => insert_element
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct)  insert_ele
+type (ele_struct)  insert_ele, insert_ele_copy
 type (ele_struct), pointer :: inserted_ele, ele0, ele2
 type (branch_struct), pointer :: branch, branch2
 type (control_struct), pointer :: con
@@ -53,6 +53,7 @@ logical err_flag
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
+insert_ele_copy = insert_ele   ! In case insert_ele is an element in the lattice
 
 branch%n_ele_max = branch%n_ele_max + 1
 if (branch%n_ele_max > ubound(branch%ele, 1)) call allocate_lat_ele_array(lat, ix_branch = ix_br)
@@ -74,7 +75,7 @@ endif
 
 inserted_ele => branch%ele(insert_index)
 call deallocate_ele_pointers (inserted_ele, nullify_only = .true.)
-inserted_ele = insert_ele
+inserted_ele = insert_ele_copy
 inserted_ele%ix_ele    = insert_index
 inserted_ele%ix_branch = ix_br
 inserted_ele%branch => branch
@@ -93,7 +94,7 @@ if (insert_index <= branch%n_ele_track + 1) then
 else
   call out_io (s_warn$, r_name, &
                   'YOU ARE INSERTING AN ELEMENT *NOT* INTO THE TRACKING PART OF THE LATTICE!', &
-                  'ELEMENT: ' // insert_ele%name)
+                  'ELEMENT: ' // insert_ele_copy%name)
 endif
 
 do ix = 0, ubound(lat%branch, 1)
