@@ -73,7 +73,9 @@ func_display_build_time () {
 	DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
 	DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
 	DTIME_SEC=$(echo $(echo ${DTIME:(-3)})*60 | bc)
-	[ "${DTIME_MIN}" != 0 ] && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" || DTIME_MESS="${DTIME_SEC}sec"
+	[ "${DTIME_MIN}" != 0 ] \
+	    && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" \
+	    || DTIME_MESS="${DTIME_SEC}sec"
 	echo -e "Build time: ${DTIME_MESS}\n"
     fi
 }
@@ -343,7 +345,8 @@ func_install_utilities () {
     if [ ! -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] ; then
 	echo -e "\nChecking minimium version of GNU Utility Programs needed...\n"
 
-	UTIL_PROG=( "${CMAKE_UTIL}" "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.12.2" "makeinfo-4.8" )
+#	UTIL_PROG=( "${CMAKE_UTIL}" "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.12.2" "makeinfo-4.8" )
+	UTIL_PROG=( "${CMAKE_UTIL}" "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.12.2" )
 
 	for UTIL in "${UTIL_PROG[@]}"
 	do
