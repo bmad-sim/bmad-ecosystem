@@ -1838,7 +1838,7 @@ n_name_change_warn = 0
 n_elsep_warn = 0
 ix_ele = ie1 - 1
 
-do 
+do
 
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
@@ -2559,6 +2559,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(angle$), 'ANGLE', 'R', .true., .false.)
         call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'R', .true., .false.)
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
+        call value_to_line (line_out, -val(ref_tilt$), 'ROTATE', 'R', .true., .false.)
         if (val(fintx$)*val(hgapx$) == val(fint$)*val(hgap$)) then
           call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'F1', 'R', .true., .false.)
         else
