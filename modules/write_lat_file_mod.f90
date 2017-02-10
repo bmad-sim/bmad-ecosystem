@@ -1882,7 +1882,7 @@ do
 
       elseif (sol_ele%key /= marker$) then
         s_count = s_count + 1
-        write (null_ele%name, '(a, i0)') 'SOL_', s_count  
+        write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
         sol_ele%value(geo$) = 1
