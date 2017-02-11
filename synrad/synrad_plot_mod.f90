@@ -130,18 +130,20 @@ contains
 
 subroutine get_data_points (wall, s, x)
 
-type (wall_struct) wall
+type (wall_struct), target :: wall
+type (wall_pt_struct), pointer :: wp(:)
 real(rp), allocatable :: s(:), x(:)
-integer i, n
+integer i, n, nn
 
 !
 
-n = count (wall%pt%s >= s_min .and. wall%pt%s <= s_max) 
+wp => wall%pt(1:wall%n_pt_max)
+n = count (wp%s >= s_min .and. wp%s <= s_max) 
 if (allocated(x)) deallocate(x, s)
 allocate(s(n), x(n)) 
 
-s = pack (wall%pt%s, wall%pt%s >= s_min .and. wall%pt%s <= s_max)
-x = pack (wall%pt%x, wall%pt%s >= s_min .and. wall%pt%s <= s_max) * 1000
+s = pack (wp%s, wp%s >= s_min .and. wp%s <= s_max)
+x = pack (wp%x, wp%s >= s_min .and. wp%s <= s_max) * 1000
 
 end subroutine get_data_points
 
