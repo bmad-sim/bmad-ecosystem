@@ -42,7 +42,7 @@ real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
 real(rp) rr, dr2, dr1, theta, power_factor
 real(rp) dx_wall, ds_wall, track_len
 real(rp) frac_illum, gamma, len1, len2
-real(rp) theta_ray1, theta_ray2, theta_ray
+real(rp) theta_ray1, theta_ray2, theta_ray, dr_end_pt(4)
 
 integer i_ray, iw, i, ip, is, iss, wall_side, ix_seg1, ix_seg2
 integer type0, type1, i_pt, n_pos, n_neg, ix_seg_start, ix_seg_end
@@ -175,20 +175,18 @@ do i = 2, i_ray
     ! dr2 is the perpendicular distance between the ray2 ray and the segment mid-point.
     ! Notice that typically dr1 and dr2 have opposite signs.
 
-    dr1 = ray_to_seg_perp_distance (ray1, seg)
-    dr2 = ray_to_seg_perp_distance (ray2, seg)
+    dr1 = ray_to_seg_perp_distance (ray1, seg, dr_end_pt(1:2))
+    dr2 = ray_to_seg_perp_distance (ray2, seg, dr_end_pt(3:4))
+
+    ! If all the dr_end_pt values are positive or negative then the segment is outside the fan.
+
+    if (minval(dr_end_pt) >= 0 .or. maxval(dr_end_pt) <= 0) cycle
 
     if ((dr1 - dr2) == 0) then ! If both rays hit the same spot...
       rr = 1  ! then just use theta_ray2
     else
       rr = dr1 / (dr1 - dr2)
     endif
-
-    ! If both rays are on the same side of the segment midpoint then just 
-    !   use the closest ray.
-
-    if (rr > 1) rr = 1
-    if (rr < 0) rr = 0
 
     ! theta_ray is the ray angle averaged over theta_ray1 and theta_ray2.
 
@@ -335,16 +333,22 @@ contains
 ! Notice that distances can be negative.
 !-
 
-function ray_to_seg_perp_distance (ray, seg) result (dist)
+function ray_to_seg_perp_distance (ray, seg, dist_at_ends) result (dist)
 
 type (ray_struct) ray
 type (wall_seg_struct) seg
-real(rp) dist, t
+real(rp) dist, t, dist_at_ends(2), r_floor(3)
 
-!
+! Calc at segment center
 
 t = ray%now_floor%theta
 dist = cos(t) * (seg%r_floor_mid(1) - ray%now_floor%r(1)) - sin(t) * (seg%r_floor_mid(3) - ray%now_floor%r(3))
+
+! calc distance at segment ends
+
+dist_at_ends(2) = cos(t) * (seg%r_floor(1) - ray%now_floor%r(1)) - sin(t) * (seg%r_floor(3) - ray%now_floor%r(3))
+r_floor = 2*seg%r_floor_mid - seg%r_floor  ! r at beginning of segment
+dist_at_ends(1) = cos(t) * (r_floor(1) - ray%now_floor%r(1)) - sin(t) * (r_floor(3) - ray%now_floor%r(3))
 
 end function ray_to_seg_perp_distance
 
