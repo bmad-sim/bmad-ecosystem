@@ -13,6 +13,7 @@
 ! Also see:
 !   pointer_to_lord
 !   pointer_to_ele
+!   num_lords
 !
 ! Input:
 !   lord               -- Ele_struct: Lord element

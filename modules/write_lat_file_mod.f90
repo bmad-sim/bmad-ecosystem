@@ -1832,6 +1832,7 @@ i_unique = 1000
 ! Loop over all input elements
 
 branch_out%ele%iyy = 0          ! SAD bound
+branch_out%ele%value(custom_attribute1$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
@@ -1844,6 +1845,8 @@ do
   if (ix_ele > ie2) exit
   ele => branch_out%ele(ix_ele)
   val => ele%value
+
+  if (ele%sub_key == not_set$) cycle ! See below
 
   ! For SAD translation: Must create SAD sol elements as needed. 
   ! If there is a marker or patch element that can be used, convert it.
@@ -1907,6 +1910,21 @@ do
       sol_ele%key = null_ele$
 
       old_bs_field = bs_field
+    endif
+  endif
+
+  ! For SAD translation: With an element superimposed with a marker create a whole element
+  ! plus a marker with an offset
+
+  if (out_type == 'SAD' .and. ele%slave_status == super_slave$) then
+    lord => pointer_to_lord(ele, 1, ix_slave = ix)
+    ele1 => pointer_to_next_ele(ele)
+    ele2 => pointer_to_slave(lord, lord%n_slave)
+    if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
+          num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
+      ele1%value(custom_attribute1$) = -ele2%value(l$)/lord%value(l$) ! marker offset
+      ele = lord                              ! Super_slave piece becomes the entire element.
+      ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
     endif
   endif
 
@@ -2304,6 +2322,8 @@ do ix_ele = ie1, ie2
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
+  if (ele%sub_key == not_set$) cycle 
+
   if (out_type == 'XSIF') then
     if (ele%key == elseparator$) then 
       n_elsep_warn = n_elsep_warn + 1
@@ -2492,6 +2512,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (marker$)
         write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
+        call value_to_line (line_out, val(custom_attribute1$), 'OFFSET', 'R', .true., .false.)
         if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
           call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
           call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
@@ -2990,6 +3011,7 @@ line = ' '
 do n = ie1, ie2
 
   ele => branch_out%ele(n)
+  if (ele%sub_key == not_set$) cycle
 
   if (init_needed) then
     write (iu, '(a)')

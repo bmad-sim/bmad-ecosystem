@@ -538,6 +538,13 @@ subroutine new_control (lat, ix_ele)
   integer ix_ele
 end subroutine
 
+function num_lords (slave, lord_type) result (num)
+  import
+  implicit none
+  type (ele_struct) slave
+integer lord_type, num
+end function
+
 subroutine offset_particle (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos, set_spin)
   import
   implicit none
