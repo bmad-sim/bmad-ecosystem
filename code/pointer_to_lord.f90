@@ -13,6 +13,7 @@
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_ele
+!   num_lords
 !
 ! Modules Needed:
 !   use bmad_utils_mod
