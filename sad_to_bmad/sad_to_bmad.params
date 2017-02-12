@@ -11,7 +11,7 @@ lattice_geometry = ""               # Set to 'open' or 'closed' to set the latti
 #   Bmad patch elements can be inserted just before RF cavities to mimic this.
 
 patch_for_fshift = None    # None => Insert patches only if fshift is defined and nonzero in the sad file.
-													 # Set to True to always insert patches. False to always not insert.
+                           # Set to True to always insert patches. False to always not insert.
 
 # If there is an "fshift" defined in the sad lattice, the value of this needs to be modified
 # to take into account small variations in tracking between Bmad/PTC and SAD. In this case, the
