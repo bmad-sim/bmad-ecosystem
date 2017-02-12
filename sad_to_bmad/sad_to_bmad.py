@@ -327,10 +327,12 @@ def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
         sad_offset = float(sad_ele_def.param['offset'])
         int_off = int(math.floor(sad_offset))
         frac_off = sad_offset - int_off
-  
-        offset = 0
         direc = 1
-        if int_off < 0: direc = -1
+        if int_off < 0: 
+          direc = -1
+          frac_off = frac_off - 1
+
+        offset = 0
         for ix in range(0, int_off, direc):
           this_name = sad_line.list[ix_s_ele+ix].name
           if this_name in sad_info.ele_list:
