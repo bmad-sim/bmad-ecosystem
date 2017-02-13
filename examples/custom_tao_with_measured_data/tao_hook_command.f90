@@ -97,6 +97,8 @@ select case (cmd_name)
 
 case ('pingread')
  
+  ! First parse the pingread command to extract the <mode>, <filename> and <data_or_ref> arguments.
+
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
 
   call match_word(cmd_word(1), [character(16):: 'a_mode', 'b_mode'], ix, .true., .true., mode)
@@ -222,20 +224,20 @@ case ('pingread')
       return
     endif
 
-    ! Fix off-by-one problem in the data
-    if (mode == 'a_mode') then
-      if (line(3:3) == 'H') then
-        if (datum_phase%ix_d1 < 15 .or. any(datum_phase%ix_d1 == [100, 101, 102])) then
-          r1 = r1 - data_tune_a
-        endif
-      endif
-    else
-      if (line(3:3) == 'V') then
-        if (datum_phase%ix_d1 < 15 .or. any(datum_phase%ix_d1 == [100, 101, 102])) then
-          r1 = r1 - data_tune_b
-        endif
-      endif
-    endif
+! Fix off-by-one problem in the data
+!    if (mode == 'a_mode') then
+!      if (line(3:3) == 'H') then
+!        if (datum_phase%ix_d1 < 15 .or. any(datum_phase%ix_d1 == [100, 101, 102])) then
+!          r1 = r1 - data_tune_a
+!        endif
+!      endif
+!    else
+!      if (line(3:3) == 'V') then
+!        if (datum_phase%ix_d1 < 15 .or. any(datum_phase%ix_d1 == [100, 101, 102])) then
+!          r1 = r1 - data_tune_b
+!        endif
+!      endif
+!    endif
 
     if (data_or_ref == 'data') then
       datum_phase%good_meas = .true.
