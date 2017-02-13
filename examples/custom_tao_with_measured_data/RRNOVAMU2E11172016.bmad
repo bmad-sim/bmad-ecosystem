@@ -2,6 +2,8 @@
 ! FILE:             RRNOVAMU2E11172016.MAD
 ! BMAD input file for the Recycler Ring
 
+call, file = master_quads.bmad
+
  parameter[lattice] = RRNOVAMU2E11172016.bmad
  parameter[particle] = proton
  parameter[E_TOT] = 8.88459E9
