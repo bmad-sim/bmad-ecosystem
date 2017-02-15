@@ -1854,7 +1854,7 @@ do
   ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
   ! This works since there cannot be any actual null_eles in the lattice.
 
-  if (out_type == 'SAD' .and. all(ele%key /= [marker$, beambeam$]) .or. ix_ele == branch_out%n_ele_max) then
+  if (out_type == 'SAD' .and. (ele%key == patch$ .or. ele%value(l$) /= 0 .or. ix_ele == branch_out%n_ele_max)) then
 
     bs_field = 0
     if (has_attribute (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
@@ -2679,9 +2679,9 @@ do ix_ele = ie1, ie2
     if (ele%key /= marker$) then
       call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
       call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
-      if (ele%key == patch$) then
+      if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
         call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
-      else
+      elseif (ele%key /= sbend$) then
         call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
       endif
     endif
