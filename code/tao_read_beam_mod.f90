@@ -218,7 +218,6 @@ integer i, j, k, ix, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge
-complex(rp) spin(2)
 
 character(16) :: r_name = 'tao_read_beam'
 character(300) line, line_in
@@ -309,7 +308,7 @@ do i = 1, n_bunch
       if (index(upcase(line), 'END_BUNCH') /= 0) exit
       if (j > n_particle) cycle
 
-      p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = cmplx(0.0_rp, 0.0_rp)
+      p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = 0
 
       call string_trim(line, line, ix_word)
       do k = 1, 6
@@ -342,10 +341,10 @@ do i = 1, n_bunch
         call this_error_out ('ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
         return
       endif
-      if (.not. remove_first_number (line, ix_word, '(x', in_parens)) return
-      if (.not. remove_first_number (line, ix_word, 'x)(', in_parens)) return
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-      if (.not. remove_first_number (line, ix_word, 'x)', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%ix_ele
@@ -392,8 +391,7 @@ do i = 1, n_bunch
 
     do j = 1, n_particle_lines
       if (j > n_particle) exit
-      read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, &
-                                     ix_ele, p(j)%location
+      read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, ix_ele, p(j)%location
       if (ios /= 0) then
         call this_error_out ('ERROR READING PARTICLE COORDINATES')
         return
