@@ -528,11 +528,11 @@ case ('branch')
   enddo
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = '                                                                                        Defines'
-  nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                              Direction    To_Branch?'
+  nl=nl+1; lines(nl) = '                                                                                                      Defines'
+  nl=nl+1; lines(nl) = '  Fork_Element                              Forking_To                                   Direction    To_Branch?'
   nl0 = nl
 
-  fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t75, i2, l14)'
+  fmt = '((i3, a, i0, 4a), t45, (2(i0, a), 3a), t90, i2, l14)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     do j = 1, branch%n_ele_max

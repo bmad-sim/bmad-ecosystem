@@ -668,7 +668,7 @@ written in ASCII. The ASCII file format is:
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
-      <x> <px> <y> <py> <z> <pz> <charge> <state> <spinor1> <spinor2> 
+      <x> <px> <y> <py> <z> <pz> <charge> <state> <spin_x> <spin_y> <spin_z> 
     [end particle loop]
     END_BUNCH      ! Marker to mark the end of the bunch specification block
   [end bunch loop]
@@ -683,13 +683,13 @@ Example:
     3.2E-9   ! bunch_charge
     0.0      ! z_center
     0.0      ! t_center
-   -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
-    8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
-    1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.2E-13  1 (0.0, 0.0) (1.0, 0.0)
-   -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
-    6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
-    1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
-    1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.2E-13  1 (1.0, 0.0) (0.0, 0.0)
+   -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 1.0 0.0 0.0
+    8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.2E-13  1 1.0 0.0 0.0
+   -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.2E-13  1 1.0 0.0 0.0
+    6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.2E-13  1 1.0 0.0 0.0
+    1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.2E-13  1 1.0 0.0 0.0
        ... etc. ...
   END_BUNCH
 \end{example}
@@ -715,7 +715,8 @@ the \vn{species} name, \vn{bunch_charge}, \vn{z_center}, and
 \end{example}
 
 The lines following the \vn{t_center} line specify particle
-coordinates. One line for each particle. Only the phase space
+coordinates. One line for each particle.
+Only the first six number which are the phase space
 coordinates need to be specified for each particle. if
 \vn{<particle_charge>} is not present, or is zero, it defaults to
 \vn{bunch_charge/n_particle}. The \vn{<state>} parameter
@@ -725,17 +726,9 @@ indicates whether a particle is alive or dead. Values are
   2-7   ! Dead
 \end{example}
 
-The particle spin is specified by 2 complex numbers \vn{<spinor1>} and
-\vn{<spinor2>} using complex spinor notation (See the the section on
-\vn{spin dynamics} in the \bmad manual). The syntax for specifying a
-spinor is:
-\begin{example}
-  <spinor> = (<real_part>, <imaginary_part>)
-\end{example}
-The parentheses and comma are needed for some compilers but may be
-omitted for others.
+The particle spin is specified by $x$, $y$ and $z$ components.
 
-The number of particles specified may be more then
+The number rows specifying particle coordinates may be more then
 \vn{<n_particle>}. In this case, particles will be discarded so that
 the the beam has \vn{<n_particle>} particles. If
 \vn{beam_init%n_particle}, if set in the \tao input file, this will
