@@ -252,7 +252,7 @@ do i = 2, i_ray
 
     ! Calculate the power absorbed by the segment
 
-    call this_seg_power_calc (seg, ele_power)
+    call this_seg_power_calc (seg, ele_power, frac_illum)
 
     ! For custom calculations.
 
@@ -355,14 +355,13 @@ end function ray_to_seg_perp_distance
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine this_seg_power_calc (seg, ele_power)
+subroutine this_seg_power_calc (seg, ele_power, frac_illum)
 
 type (wall_seg_struct), target :: seg
 type (seg_power_struct), pointer :: ep
 type (ele_power_struct) ele_power
 
-
-real(rp) illum_factor, power_per_len
+real(rp) illum_factor, power_per_len, frac_illum
 
 ! Only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
