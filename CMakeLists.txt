@@ -11,6 +11,7 @@ set (SRC_DIRS
 )
 
 set (EXE_SPECS
+  cmake.frequency_map
   cmake.s3drefl
   cmake.bbu
   cmake.dynamic_aperture
@@ -21,6 +22,11 @@ set (EXE_SPECS
   cmake.synrad_aperture_to_wall
   cmake.tune_plane_res_plot
 )
+
+IF ("$ENV{ACC_PLOT_PACKAGE}" MATCHES "pgplot")
+  list (APPEND EXE_SPECS "cmake.plot_frequency_map")
+ENDIF ()
+
 
 #set (FFLAGS "-openmp")
 #set (LINK_FLAGS "-openmp")
