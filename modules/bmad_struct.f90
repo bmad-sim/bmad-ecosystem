@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 190
+integer, parameter :: bmad_inc_version$ = 191
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -211,7 +211,7 @@ character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', '
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
 type spin_polar_struct
-  real(rp) :: polarization = none$
+  real(rp) :: polarization = 1
   real(rp) :: theta = 0
   real(rp) :: phi   = 0
   real(rp) :: xi    = 0
@@ -832,7 +832,7 @@ type beam_init_struct
   real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
   real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
   integer :: n_bunch = 1                     ! Number of bunches.
-  integer :: species = not_set$              ! positron$, etc. not_set$ => use referece particle.
+  character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
   logical :: init_spin     = .false.         ! initialize beam spinors
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.

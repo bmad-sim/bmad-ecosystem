@@ -289,45 +289,61 @@ are used to initialize a beam. The The parameters of this structure
 are:
 \begin{example}
   type beam_init_struct
-    character(16) distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
+    character distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
     !!! The following are for Random distributions
-    character(16) random_engine          ! "pseudo" (default) or "quasi". 
-    character(16) random_gauss_converter ! "exact" (default) or "quick". 
-    real(rp) random_sigma_cutoff = -1    ! -1 => no cutoff used.
-    real(rp) center_jitter(6) = 0.0      ! Bunch center rms jitter
-    real(rp) emit_jitter(2)   = 0.0      ! %RMS a and b mode bunch emittance jitter
-    real(rp) sig_z_jitter     = 0.0      ! bunch length RMS jitter 
-    real(rp) sig_e_jitter     = 0.0      ! energy spread RMS jitter 
+    character random_engine          ! "pseudo" (default) or "quasi". 
+    character random_gauss_converter ! "exact" (default) or "quick". 
+    real random_sigma_cutoff = -1    ! -1 => no cutoff used.
+    real center_jitter(6) = 0.0      ! Bunch center rms jitter
+    real emit_jitter(2)   = 0.0      ! %RMS a and b mode bunch emittance jitter
+    real sig_z_jitter     = 0.0      ! bunch length RMS jitter 
+    real sig_e_jitter     = 0.0      ! energy spread RMS jitter 
     integer n_particle = 0               ! Number of simulated particles per bunch.
     logical renorm_center = T            ! Renormalize centroid?
     logical renorm_sigma = T             ! Renormalize sigma?
     !!! The following are used  by all distribution types
     type(beam_spin_struct) spin          ! Spin
-    real(rp) a_norm_emit                 ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real(rp) b_norm_emit                 ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real(rp) a_emit                      ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real(rp) b_emit                      ! b-mode emittance (= \(\gamma\,\epsilon\))
-    real(rp) dPz_dz = 0                  ! Correlation of Pz with long position.
-    real(rp) center(6) = 0               ! Bench center offset.
-    real(rp) dt_bunch                    ! Time between bunches.
-    real(rp) sig_z                       ! Z sigma in m.
-    real(rp) sig_e                       ! dE/E (pz) sigma.
-    real(rp) bunch_charge                ! Charge in a bunch.
+    real a_norm_emit                 ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real b_norm_emit                 ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real a_emit                      ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real b_emit                      ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real dPz_dz = 0                  ! Correlation of Pz with long position.
+    real center(6) = 0               ! Bench center offset.
+    real dt_bunch                    ! Time between bunches.
+    real sig_z                       ! Z sigma in m.
+    real sig_e                       ! dE/E (pz) sigma.
+    real bunch_charge                ! Charge in a bunch.
     integer n_bunch = 1                  ! Number of bunches.
-    integer species = not_set\$           ! Species. Default is branch reference species.
-    logical init_spin = F                ! initialize beam spinors
+    character species                    ! Species. Default is reference particle.
+    logical init_spin = F                ! initialize beam spinors?
     logical full_6D_coupling_calc = F    ! Use 6x6 1-turn matrix to match distribution?  
-    logical use_t_coords = .false.  ! If true, the distributions will be 
+    logical use_t_coords = F        ! If true, the distributions will be 
                                     !   calculated using time coordinates  
-    logical use_z_as_t   = .false.  ! Only used if  use_t_coords = .true.
-                                    !   If true,  particles will be distributed in t
-                                    !   If false, particles will be distributed in s
+    logical use_z_as_t   = F        ! Only used if  use_t_coords = T
+                                    !   If True,  particles will be distributed in t
+                                    !   If False, particles will be distributed in s
   end type
 \end{example}
-The number of bunches in the beam is set by \vn{n_bunch}. 
+Note: The \vn{z} coordinate value given to particles of a bunch is with respect to the
+nominal center of the bunch. Therefore, if there are multiple bunches, and there is an RF
+cavity whose frequency is not commensurate with the spacing between bunches, absolute time
+tracking (\sref{s:rf.time}) must be used.
+
+
+  \begin{description}
+  \item[\%a_emit, \%b_emit, \%a_norm_emit, \%b_norm_emit] \Newline
+Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit}
+may be set but not both. similarly, either \vn{b_norm_emit} or
+\vn{b_emit} may be set but not both.
+  \item[\%bunch_charge] \Newline
+  \item[\%center(6)] \Newline
+  \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_e_jitter] \Newline
+These components can be used to provide a bunch-to-bunch 
+random variation in the emittance and bunch center.
+  \item[\%distribution_type(3)] \Newline
 The \vn{%distributeion_type(:)} array determines what algorithms are used to generate
 the particle distribution for a bunch. \vn{%distributeion_type(1)} sets the distribution 
 type for the $(x, p_x)$ 2D phase space, etc. 
@@ -350,78 +366,7 @@ lattices with a closed geometry, if \vn{full_6D_coupling_calc} is set to \vn{Tru
 full 6-dimensional coupling matrix is used. If \vn{False}, which is the default, The
 4-dimensional $\bfV$ matrix of \Eq{vgicc1} is used.
 
-The parameters common to all the distribution types are marked in the
-\vn{beam_init_struct} above. Either \vn{a_norm_emit} or \vn{a_emit}
-may be set but not both. similarly, either \vn{b_norm_emit} or
-\vn{b_emit} may be set but not both.
-
-The parameters for the random distribution are:
-  \begin{description}
-  \item[\%random_engine] \Newline
-This component sets the algorithm to use in generating a uniform distribution
-of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
-number generator and "quasi" is a quasi random generator. "quasi random" is
-a misnomer in that the distribution generated is fairly uniform.
-  \item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
-To generate Gaussian random numbers, a conversion algorithm from the
-flat distribution generated according to \vn{%random_engine} is
-needed.  \vn{%random_gauss_converter} selects the algorithm. The
-\vn{"exact"} conversion uses an exact conversion. The \vn{"quick"}
-method is somewhat faster than the \vn{"exact"} method but not as accurate.
-With either conversion method, if \vn{%random_sigma_cutoff} is set to a positive number,
-this limits the maximum sigma generated. 
-  \item[\%n_particle] \Newline
-Number of random particles generated per bunch.
-  \item[\%renorm_center, \%renorm_sigma] \Newline 
-If set to True, these components will ensure that the actual beam center 
-and sigmas will correspond to the input values. 
-Otherwise, there will be fluctuations due to the finite number of 
-particles generated. 
-  \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_e_jitter] \Newline
-These components can be used to provide a bunch-to-bunch 
-random variation in the emittance and bunch center.
-\end{description}
-
-Note: The \vn{z} coordinate value given to particles of a bunch is with respect to the
-nominal center of the bunch. Therefore, if there are multiple bunches, and there is an RF
-cavity whose frequency is not commensurate with the spacing between bunches, absolute time
-tracking (\sref{s:rf.time}) must be used.
-
-The \vn{%ellipse(:)} array sets the parameters for the 
-\vn{ellipse} distribution (\sref{s:ellipse.init}). 
-Each component of this array looks like
-\begin{example}
-  type ellipse_beam_init_struct
-    integer part_per_ellipse  ! number of particles per ellipse.
-    integer n_ellipse         ! number of ellipses.
-    real(rp) sigma_cutoff     ! sigma cutoff of the representation.
-  end type
-\end{example}
-
-The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
-Kapchinsky-Vladimirsky distribution (\sref{s:kv.init})
-\begin{example}
-  type kv_beam_init_struct
-    integer part_per_phi(2)    ! number of particles per angle variable.
-    integer n_I2               ! number of I2
-    real(rp) A                 ! A = I1/e
-  end type
-\end{example}
-
-The \vn{%grid} component of the \vn{beam_init_struct} sets the parameters 
-for a uniformly spaced grid of particles.
-\begin{example}
-  type grid_beam_init_struct
-    integer n_x        ! number of columns.
-    integer n_px       ! number of rows.
-    real(rp) x_min     ! Lower x limit.
-    real(rp) x_max     ! Upper x limit.
-    real(rp) px_min    ! Lower px limit.
-    real(rp) px_max    ! Upper px limit.
-  end type
-\end{example}
-
-The total number particles generated is the product of the individual
+Note: The total number particles generated is the product of the individual
 distributions. For example:
 \begin{example}
   type (beam_init_struct) bi
@@ -435,7 +380,7 @@ distributions. For example:
 \end{example}
 The total number of particles per bunch will be $32 \times 300 \times
 600$. The exception is that when \vn{RAN_GAUSS} is mixed with other
-distributions, the random distribution is overlay ed with the other distributions
+distributions, the random distribution is overlayed with the other distributions
 instead of multiplying. For example:
 \begin{example}
   type (beam_init_struct) bi
@@ -448,8 +393,96 @@ instead of multiplying. For example:
 Here the number of particle is $300 \times 600$. Notice that when
 \vn{RAN_GAUSS} is mixed with other distributions, the value of
 \vn{beam_init%n_particle} is ignored.
-
-%\item[\%use_t_coords] \Newline If \vn{use_t_coords} is true, then the
+  \item[\%full_6D_coupling_calc] \Newline
+If set \vn{True}, coupling between the transverse and longitudinal modes is taken into
+account when calculating the beam distribution. 
+The default \vn{False} decouples the transverse and longitudinal caculations.
+  \item[\%dPz_dz] \Newline
+Correlation between $p_z$ and $z$ phase space coordinates. 
+  \item[\%dt_bunch] \Newline
+Time between bunches
+  \item[\%ellipse(3)] \Newline
+The \vn{%ellipse(:)} array sets the parameters for the 
+\vn{ellipse} distribution (\sref{s:ellipse.init}). 
+Each component of this array looks like
+\begin{example}
+  type ellipse_beam_init_struct
+    integer part_per_ellipse  ! number of particles per ellipse.
+    integer n_ellipse         ! number of ellipses.
+    real(rp) sigma_cutoff     ! sigma cutoff of the representation.
+  end type
+\end{example}
+  \item[\%grid(3)] \Newline
+The \vn{%grid} component of the \vn{beam_init_struct} sets the parameters 
+for a uniformly spaced grid of particles. The components of \vn{%grid}
+are:
+\begin{example}
+  type grid_beam_init_struct
+    integer n_x        ! number of columns.
+    integer n_px       ! number of rows.
+    real(rp) x_min     ! Lower x limit.
+    real(rp) x_max     ! Upper x limit.
+    real(rp) px_min    ! Lower px limit.
+    real(rp) px_max    ! Upper px limit.
+  end type
+\end{example}
+  \item[\%init_spin] \Newline
+  \item[\%KV] \Newline
+The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
+Kapchinsky-Vladimirsky distribution (\sref{s:kv.init}). The components of \vn{%KV}
+are:
+\begin{example}
+  type kv_beam_init_struct
+    integer part_per_phi(2)    ! number of particles per angle variable.
+    integer n_I2               ! number of I2
+    real(rp) A                 ! A = I1/e
+  end type
+\end{example}
+  \item[\%n_bunch] \Newline
+The number of bunches in the beam is set by \vn{n_bunch}. Default is one.
+  \item[\%n_particle] \Newline
+Number of particles generated when the \vn{%distribution_type} is \vn{"RAN_GAUSS"}.
+Ignored for other distribution types.
+  \item[\%random_engine] \Newline
+This component sets the algorithm to use in generating a uniform distribution
+of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
+number generator and "quasi" is a quasi random generator. "quasi random" is
+a misnomer in that the distribution generated is fairly uniform.
+  \item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
+To generate Gaussian random numbers, a conversion algorithm from the
+flat distribution generated according to \vn{%random_engine} is
+needed.  \vn{%random_gauss_converter} selects the algorithm. The
+\vn{"exact"} conversion uses an exact conversion. The \vn{"quick"}
+method is somewhat faster than the \vn{"exact"} method but not as accurate.
+With either conversion method, if \vn{%random_sigma_cutoff} is set to a positive number,
+this limits the maximum sigma generated.
+  \item[\%renorm_center, \%renorm_sigma] \Newline 
+If set to True, these components will ensure that the actual beam center 
+and sigmas will correspond to the input values. 
+Otherwise, there will be fluctuations due to the finite number of 
+particles generated.
+  \item[\%sig_e, \%sig_z] \Newline
+Longitudinal sigmas. \vn{%sig_e} is the fractional energy spread dE/E. 
+This, along with \vn{%dPz_dz} determine the longitudinal profile.
+  \item[\%species] \Newline
+Name of the species tracked. If not set then the default tracking particle type is used.
+  \item[\%spin] \Newline
+Particle spin in polar coordinates. The components of this structure are:
+\begin{example}
+type spin_polar_struct
+  real polarization = 1
+  real theta = 0
+  real phi   = 0
+  real xi    = 0
+end type
+\end{example}
+  \item[\%use_lattice_center] \Newline
+If \vn{%use_lattice_center} is set to \vn{True} (default is \vn{False}), 
+the center of the bunch is determined by the 
+\vn{beam_start} (\sref{s:beam.start}) setting in the lattice file rather than the 
+setting of \vn{%center} in the \vn{beam_init_struct}.
+  \item[\%use_t_coords, \%use_z_as_t] \Newline 
+If \vn{use_t_coords} is true, then the
 distributions are taken as describing particles in $t$-coordinates
 (\sref{s:time.phase.space}).  Furthermore, if \vn{use_z_as_t} is true,
 then the $z$ coordinates from the distribution will be taken as
@@ -461,6 +494,7 @@ time but different $s$ positions, and each particle gets
 tracked with a tracking method that can handle inside particles, such
 as \vn{time_runge_kutta}.  All particles are finally converted to
 proper $s$-coordinate distributions for Bmad to use.
+\end{description}
 
 %-----------------------------------------------------------------
 \section{CSR_Parameter_Struct}
@@ -491,7 +525,7 @@ This structure has components
                                       ! Include longitudinal SC transverse dependence?
     logical tsc_component_on = T      ! Transverse space charge component
     logical small_angle_approx = T    ! Use lcsr small angle approximation?
-    logical print_taylor_warning = .true. ! Print Taylor element warning?
+    logical print_taylor_warning = T  ! Print Taylor element warning?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 

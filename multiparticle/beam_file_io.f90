@@ -234,7 +234,7 @@ do i = 1, n_bunch
       return
     endif
     bunch%particle%species = ix
-    beam_init%species = bunch%particle(1)%species
+    beam_init%species = species_name(bunch%particle(1)%species)
 
     read (iu, *, iostat = ios) bunch%charge_tot
     if (ios /= 0) then

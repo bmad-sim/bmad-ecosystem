@@ -1832,7 +1832,7 @@ i_unique = 1000
 ! Loop over all input elements
 
 branch_out%ele%iyy = 0          ! SAD bound
-branch_out%ele%value(custom_attribute1$) = 0  ! SAD mark offset
+branch_out%ele%value(custom_attribute4$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
@@ -1865,25 +1865,18 @@ do
         sol_ele => ele
       else
         sol_ele => pointer_to_next_ele(ele, -1)
-        sol_ele%value(geo$) = 0  
+        ! Look to see if there is a marker or patch element that can be converted to a SAD SOL.
+        do
+          if (sol_ele%ix_ele == 1) exit
+          if (sol_ele%key == marker$ .or. sol_ele%key == patch$) exit
+          if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
+          sol_ele => pointer_to_next_ele(sol_ele, -1)
+        enddo
       endif
 
+      sol_ele%value(geo$) = 0  
 
-      if (sol_ele%key == patch$) then
-        ! A patch with a z_offset must be split into a drift + patch
-        if (sol_ele%value(z_offset$) /= 0) then
-          drift_ele%name = 'DRIFT_' // ele%name
-          drift_ele%value(l$) = val(z_offset$)
-          ix = sol_ele%ix_ele
-          call insert_element (lat_out, drift_ele, ix, branch_out%ix_branch, orbit_out)
-          sol_ele => branch_out%ele(ix+1)
-          sol_ele%value(z_offset$) = 0
-          ix_ele = ix_ele + 1
-          ele => branch_out%ele(ix_ele)
-          val => ele%value
-        endif
-
-      elseif (sol_ele%key /= marker$) then
+      if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
         s_count = s_count + 1
         write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
@@ -1922,7 +1915,7 @@ do
     ele2 => pointer_to_slave(lord, lord%n_slave)
     if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
           num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
-      ele1%value(custom_attribute1$) = -ele2%value(l$)/lord%value(l$) ! marker offset
+      ele1%value(custom_attribute4$) = -ele2%value(l$)/lord%value(l$) ! marker offset
       ele = lord                              ! Super_slave piece becomes the entire element.
       ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
     endif
@@ -2287,6 +2280,27 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
   ele%iyy = 1  ! SAD bound
 endif
 
+! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
+
+ix_ele = ie1 - 1
+
+do
+  ix_ele = ix_ele + 1
+  if (ix_ele > ie2) exit
+  ele => branch_out%ele(ix_ele)
+  val => ele%value
+
+  if (ele%key == patch$ .and. ele%value(z_offset$) /= 0) then
+    drift_ele%name = 'DRIFT_' // ele%name
+    drift_ele%value(l$) = val(z_offset$)
+    call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
+    ix_ele = ix_ele + 1
+    ele => branch_out%ele(ix_ele)
+    val => ele%value
+    val(z_offset$) = 0
+  endif
+enddo
+
 !-------------------------------------------------------------------------------------------------
 ! Now write info to the output file...
 ! lat lattice name
@@ -2432,8 +2446,16 @@ do ix_ele = ie1, ie2
       select case (ele%key)
 
       ! SAD
-      case (drift$, instrument$, pipe$, detector$, monitor$)
+      case (drift$, pipe$)
         write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+
+      ! SAD
+      case (instrument$, detector$, monitor$)
+        if (ele%value(l$) == 0) then
+          write (line_out, '(4a)') 'MONI ', trim(ele%name), ' = ()'
+        else
+          write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+        endif
 
       ! SAD
       case (ab_multipole$, multipole$)
@@ -2512,7 +2534,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (marker$)
         write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(custom_attribute1$), 'OFFSET', 'R', .true., .false.)
+        call value_to_line (line_out, val(custom_attribute4$), 'OFFSET', 'R', .true., .false.)
         if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
           call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
           call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
@@ -2530,6 +2552,7 @@ do ix_ele = ie1, ie2
       case (null_ele$)
         write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
+        call value_to_line (line_out, ele%value(custom_attribute1$), 'F1', 'R', .true., .false.)
         call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
         call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'I', .true., .false.)
 
@@ -2573,6 +2596,20 @@ do ix_ele = ie1, ie2
         write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
         call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
         call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+        call value_to_line (line_out, val(eps_step_scale$), 'EPS', 'R', .true., .false.)
+        call value_to_line (line_out, val(x_offset_mult$), 'DX', 'R', .true., .false.)
+        call value_to_line (line_out, val(y_offset_mult$), 'DY', 'R', .true., .false.)
+        call value_to_line (line_out, val(x_pitch_mult$), 'CHI1', 'R', .true., .false.)
+        call value_to_line (line_out, val(y_pitch_mult$), 'CHI2', 'R', .true., .false.)
+        if (val(x1_limit$) == val(y1_limit$)) then
+          call value_to_line (line_out, val(x1_limit$), 'RADIUS', 'R', .true., .false.)
+        else
+          call out_io (s_warn$, r_name, 'Asymmetric x_limit vs y_limit cannot be converted for: ' // ele%name, &
+                                    'Will use largest limit here.')
+          if (val(x1_limit$) /= 0 .and. val(y1_limit$) /= 0) then
+            call value_to_line (line_out, max(val(x1_limit$), val(y1_limit$)), 'RADIUS', 'R', .true., .false.)
+          endif
+        endif
 
       ! SAD
       case (sbend$)
