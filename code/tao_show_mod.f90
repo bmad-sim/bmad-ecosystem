@@ -270,6 +270,7 @@ lat => u%model%lat
 branch => lat%branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 tao_branch => u%model%tao_branch(ix_branch)
+design_tao_branch => u%design%tao_branch(ix_branch)
 
 if (s%global%phase_units == radians$) f_phi = 1
 if (s%global%phase_units == degrees$) f_phi = 180 / pi
