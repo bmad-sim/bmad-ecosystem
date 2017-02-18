@@ -420,6 +420,7 @@ end function species_of
 !
 ! Output:
 !   species -- Integer: Species ID. Will return invalid$ if name is not valid.
+!                       Will return not_set$ if name is blank
 !-
 
 function species_id (name) result(species)
@@ -431,6 +432,11 @@ character(20) :: nam
 character(40), parameter :: r_name = 'species_id'
 
 ! Init
+
+if (name == '') then
+  species = not_set$
+  return
+endif
 
 species = invalid$
 iso = 0
