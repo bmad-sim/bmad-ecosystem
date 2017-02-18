@@ -2324,7 +2324,7 @@ extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char*, const
     CPP_spin_polar&, const CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const
     CPP_grid_beam_init**, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&,
     c_Char, c_Char, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
   // c_side.to_f_setup[character, 1, NOT]
@@ -2343,7 +2343,7 @@ extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* 
       C.n_particle, C.renorm_center, C.renorm_sigma, C.random_engine.c_str(),
       C.random_gauss_converter.c_str(), C.random_sigma_cutoff, C.a_norm_emit, C.b_norm_emit,
       C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch, C.sig_z, C.sig_e, C.bunch_charge,
-      C.n_bunch, C.species, C.init_spin, C.full_6d_coupling_calc, C.use_lattice_center,
+      C.n_bunch, C.species.c_str(), C.init_spin, C.full_6d_coupling_calc, C.use_lattice_center,
       C.use_t_coords, C.use_z_as_t);
 
 }
@@ -2358,7 +2358,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_file_name, c_Char*
     z_random_gauss_converter, c_Real& z_random_sigma_cutoff, c_Real& z_a_norm_emit, c_Real&
     z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real& z_dpz_dz, c_RealArr z_center,
     c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_e, c_Real& z_bunch_charge, c_Int&
-    z_n_bunch, c_Int& z_species, c_Bool& z_init_spin, c_Bool& z_full_6d_coupling_calc, c_Bool&
+    z_n_bunch, c_Char z_species, c_Bool& z_init_spin, c_Bool& z_full_6d_coupling_calc, c_Bool&
     z_use_lattice_center, c_Bool& z_use_t_coords, c_Bool& z_use_z_as_t) {
 
   // c_side.to_c2_set[character, 0, NOT]
@@ -2415,7 +2415,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_file_name, c_Char*
   C.bunch_charge = z_bunch_charge;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_bunch = z_n_bunch;
-  // c_side.to_c2_set[integer, 0, NOT]
+  // c_side.to_c2_set[character, 0, NOT]
   C.species = z_species;
   // c_side.to_c2_set[logical, 0, NOT]
   C.init_spin = z_init_spin;
@@ -2437,8 +2437,8 @@ extern "C" void lat_param_to_c (const Opaque_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Opaque_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const CPP_bookkeeping_state&,
-    const CPP_beam_init&);
+    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const
+    CPP_bookkeeping_state&, const CPP_beam_init&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Opaque_lat_param_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -2448,17 +2448,18 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Opaque_lat_param_class* 
 
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
-      C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable,
+      C.spin_tune, C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable,
       C.backwards_time_tracking, C.bookkeeping_state, C.beam_init);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
-    c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Int& z_particle,
-    c_Int& z_default_tracking_species, c_Int& z_geometry, c_Int& z_ixx, c_Bool& z_stable,
-    c_Bool& z_backwards_time_tracking, const Opaque_bookkeeping_state_class*
-    z_bookkeeping_state, const Opaque_beam_init_class* z_beam_init) {
+    c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
+    z_spin_tune, c_Int& z_particle, c_Int& z_default_tracking_species, c_Int& z_geometry,
+    c_Int& z_ixx, c_Bool& z_stable, c_Bool& z_backwards_time_tracking, const
+    Opaque_bookkeeping_state_class* z_bookkeeping_state, const Opaque_beam_init_class*
+    z_beam_init) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -2470,6 +2471,8 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.t1_with_rf << z_t1_with_rf;
   // c_side.to_c2_set[real, 2, NOT]
   C.t1_no_rf << z_t1_no_rf;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.spin_tune = z_spin_tune;
   // c_side.to_c2_set[integer, 0, NOT]
   C.particle = z_particle;
   // c_side.to_c2_set[integer, 0, NOT]

@@ -3928,9 +3928,10 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 27 + offset; C.n_bunch = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.species = rhs;
-
+  // c_side.test_pat[character, 0, NOT]
+  C.species.resize(16);
+  for (unsigned int i = 0; i < C.species.size(); i++)
+    {int rhs = 101 + i + 28 + offset; C.species[i] = 'a' + rhs % 26;}
   // c_side.test_pat[logical, 0, NOT]
   rhs = 29 + offset; C.init_spin = (rhs % 2 == 0);
 
@@ -4009,23 +4010,26 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.t1_no_rf.size(); i++)  for (unsigned int j = 0; j < C.t1_no_rf[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.t1_no_rf[i][j] = rhs;}
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.particle = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.spin_tune = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.default_tracking_species = rhs;
+  rhs = 7 + offset; C.particle = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.geometry = rhs;
+  rhs = 8 + offset; C.default_tracking_species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.ixx = rhs;
+  rhs = 9 + offset; C.geometry = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 10 + offset; C.ixx = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.stable = (rhs % 2 == 0);
+  rhs = 11 + offset; C.stable = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
+  rhs = 12 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);

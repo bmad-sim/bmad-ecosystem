@@ -479,7 +479,7 @@ public:
   Real xi;
 
   CPP_spin_polar() :
-    polarization(Bmad::NONE),
+    polarization(1),
     theta(0.0),
     phi(0.0),
     xi(0.0)
@@ -2349,7 +2349,7 @@ public:
   Real sig_e;
   Real bunch_charge;
   Int n_bunch;
-  Int species;
+  string species;
   Bool init_spin;
   Bool full_6d_coupling_calc;
   Bool use_lattice_center;
@@ -2384,7 +2384,7 @@ public:
     sig_e(0.0),
     bunch_charge(1),
     n_bunch(1),
-    species(Bmad::NOT_SET),
+    species(),
     init_spin(false),
     full_6d_coupling_calc(false),
     use_lattice_center(false),
@@ -2415,6 +2415,7 @@ public:
   Real unstable_factor;
   Real_MATRIX t1_with_rf;
   Real_MATRIX t1_no_rf;
+  Real spin_tune;
   Int particle;
   Int default_tracking_species;
   Int geometry;
@@ -2430,6 +2431,7 @@ public:
     unstable_factor(0.0),
     t1_with_rf(Real_ARRAY(0.0, 6), 6),
     t1_no_rf(Real_ARRAY(0.0, 6), 6),
+    spin_tune(0.0),
     particle(Bmad::POSITRON),
     default_tracking_species(Bmad::REF_PARTICLE),
     geometry(0),

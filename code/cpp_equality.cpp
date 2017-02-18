@@ -1013,6 +1013,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.unstable_factor == y.unstable_factor);
   is_eq = is_eq && is_all_equal(x.t1_with_rf, y.t1_with_rf);
   is_eq = is_eq && is_all_equal(x.t1_no_rf, y.t1_no_rf);
+  is_eq = is_eq && (x.spin_tune == y.spin_tune);
   is_eq = is_eq && (x.particle == y.particle);
   is_eq = is_eq && (x.default_tracking_species == y.default_tracking_species);
   is_eq = is_eq && (x.geometry == y.geometry);

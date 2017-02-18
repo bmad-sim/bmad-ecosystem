@@ -5884,8 +5884,10 @@ rhs = 25 + offset; F%sig_e = rhs
 rhs = 26 + offset; F%bunch_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 27 + offset; F%n_bunch = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%species = rhs
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%species)
+  F%species(jd1:jd1) = char(ichar("a") + modulo(100+28+offset+jd1, 26))
+enddo
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 29 + offset; F%init_spin = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -5998,18 +6000,20 @@ do jd2 = 1, size(F%t1_no_rf,2); lb2 = lbound(F%t1_no_rf,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 5 + offset
   F%t1_no_rf(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%spin_tune = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%particle = rhs
+rhs = 7 + offset; F%particle = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%default_tracking_species = rhs
+rhs = 8 + offset; F%default_tracking_species = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%geometry = rhs
+rhs = 9 + offset; F%geometry = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%ixx = rhs
+rhs = 10 + offset; F%ixx = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]

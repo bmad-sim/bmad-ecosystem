@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 187;
+  const int BMAD_INC_VERSION = 191;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -55,6 +55,7 @@ namespace Bmad {
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
+  const int HORIZONTALLY_PURE = 2, VERTICALLY_PURE = 3;
   const int MAGNETIC = 1, ELECTRIC = 2, MIXED = 3;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int REFLECTION = 1, TRANSMISSION = 2;
@@ -166,7 +167,7 @@ namespace Bmad {
   const int QUAD_TILT = 25, DE_ETA_MEAS = 25, ALPHA_A = 25, E_FIELD_X = 25;
   const int GEOMETRY = 26, BEND_TILT = 26, MODE = 26, ALPHA_B = 26, E_FIELD_Y = 26;
   const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26;
-  const int PHI0_AUTOSCALE = 27, DX_ORIGIN =  27, CMAT_11 = 27, SCALE_FIELD_TO_ONE = 27;
+  const int PHI0_AUTOSCALE = 27, DX_ORIGIN =  27, CMAT_11 = 27, SCALE_FIELD_TO_ONE = 27, GEO = 27;
   const int LATTICE_TYPE = 27, X_QUAD = 27, DS_PHOTON_SLICE = 27;
   const int PHI0_MAX = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
   const int CMAT_12 = 28;
@@ -235,16 +236,16 @@ namespace Bmad {
   const int MIN_DS_ADAPTIVE_TRACKING = 89;
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
-  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, END_EDGE  = 81, LR_WAKE_SPLINE = 81;
+  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, LR_WAKE_SPLINE = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
-  const int START_EDGE  = 83, ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83;
-  const int ETAP_X = 84, LR_WAKE_FILE = 84;
-  const int ACCORDION_EDGE  = 85, ETAP_Y = 85, LR_FREQ_SPREAD = 85;
-  const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86;
+  const int ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83;
+  const int ETAP_X = 84, LR_WAKE_FILE = 84, PX_REF = 84;
+  const int ETAP_Y = 85, LR_FREQ_SPREAD = 85, Y_REF = 85;
+  const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86, PY_REF = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87;
   const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, CMAT_11_BEGIN = 88, SURFACE_ATTRIB = 88;
-  const int CSR_CALC_ON = 89, CMAT_12_BEGIN = 89, VAR = 89;
-  const int S_POSITION = 90, CMAT_21_BEGIN = 90;
+  const int CSR_CALC_ON = 89, CMAT_12_BEGIN = 89, VAR = 89, Z_REF = 89;
+  const int CMAT_21_BEGIN = 90, PZ_REF = 90;
   const int MAT6_CALC_METHOD = 91, CMAT_22_BEGIN = 91;
   const int TRACKING_METHOD  = 92, S_LONG = 92;
   const int REF_TIME = 93, PTC_INTEGRATION_TYPE = 93;
@@ -281,13 +282,17 @@ namespace Bmad {
   const int CYLINDRICAL_MAP = 124;
   const int GRID_FIELD      = 125;
   const int TAYLOR_FIELD    = 126;
-  const int CREATE_JUMBO_SLAVE = 129;
-  const int A0  = 130, A21  = 151;
-  const int B0  = 160, B21 = 181;
-  const int K0L = 130, K21L = 151;
-  const int T0  = 160, T21 = 181;
-  const int A0_ELEC  = 190, A21_ELEC  = 211;
-  const int B0_ELEC  = 220, B21_ELEC = 241;
+  const int CREATE_JUMBO_SLAVE = 127;
+  const int ACCORDION_EDGE  = 128;
+  const int START_EDGE  = 129;
+  const int END_EDGE  = 130;
+  const int S_POSITION = 131;
+  const int A0  = 140, A21  = 161;
+  const int B0  = 162, B21  = 183;
+  const int K0L = 140, K21L = 161;
+  const int T0  = 162, T21  = 183;
+  const int A0_ELEC = 190, A21_ELEC = 211;
+  const int B0_ELEC = 212, B21_ELEC = 233;
   const int NUM_ELE_ATTRIB_EXTENDED = B21_ELEC;
   const int OPEN = 1, CLOSED = 2;
   const int BENDS = 201;
