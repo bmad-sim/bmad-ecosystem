@@ -1466,7 +1466,7 @@ elseif (size(int_dat) /= 0) then
 
   elseif (component == 'eval_point' .and. index(value_str, '|') == 0) then
     call match_word (value_str, anchor_pt_name(1:), i1, can_abbreviate = .false.)
-    if (ix == 0) then
+    if (i1 == 0) then
       call out_io (s_error$, r_name, 'eval_point setting is "beginning", "center", or "end".')
       return
     endif

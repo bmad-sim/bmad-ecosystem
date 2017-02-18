@@ -606,6 +606,10 @@ The syntax is as follows:
     beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
     track_start             = "<ele_name>"     ! Element start tracking name or index.
     track_end               = "<ele_name>"     ! Element end tracking name or index.
+    beam_init%distribution_type(3) = "<type>"  ! "ELLIPSE", "KV", "GRID", "" (default)
+    beam_init%ellipse(3)%... = ...             ! Parameters for an ellipse type distribution.
+    beam_init%KV%...        = ...              ! Parameters for a KV distribution
+    beam_init%grid(i)%...   = ...              ! Parameters for a grid distribution.
     beam_init%a_norm_emit   = <number>         ! A-mode energy normalized emittance
     beam_init%b_norm_emit   = <number>         ! B-mode energy normalized emittance
     beam_init%a_emit        = <number>         ! A-mode emittance
@@ -633,9 +637,12 @@ The syntax is as follows:
     beam_init%random_engine = "pseudo"         ! random number engine to use
     beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
+    beam_init%use_t_coords = <logical>         ! Use time coords (for e_guns)?
+    beam_init%use_z_as_t   = <logical>         ! Use time instead of z (for e_guns)?
   /
 \end{example}
-\vn{ix_universe} refers to the universe index. See \bmad documentation on what
+\vn{ix_universe} refers to the universe index.
+See the \bmad documentation on the \vn{beam_init_struct} for what
 the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
