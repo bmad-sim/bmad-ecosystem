@@ -1717,6 +1717,11 @@ integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylo
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
 
+integer, parameter :: sad_f1$  = custom_attribute1$
+integer, parameter :: sad_geo$ = custom_attribute2$
+integer, parameter :: sad_bz$  = custom_attribute3$
+integer, parameter :: sad_mark_offset$  = custom_attribute4$
+
 character(*) out_type, out_file_name
 character(300) line, knl_str, ksl_str
 character(40) orig_name, str
@@ -1832,7 +1837,7 @@ i_unique = 1000
 ! Loop over all input elements
 
 branch_out%ele%iyy = 0          ! SAD bound
-branch_out%ele%value(custom_attribute4$) = 0  ! SAD mark offset
+branch_out%ele%value(sad_mark_offset$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
@@ -1872,16 +1877,15 @@ do
           if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
           sol_ele => pointer_to_next_ele(sol_ele, -1)
         enddo
+        sol_ele%value(sad_geo$) = 0
       endif
-
-      sol_ele%value(geo$) = 0  
 
       if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
         s_count = s_count + 1
         write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
-        sol_ele%value(geo$) = 1
+        sol_ele%value(sad_geo$) = 1
         ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
@@ -1890,16 +1894,17 @@ do
 
       if (old_bs_field == 0) then
         sol_ele%iyy = 1         ! SAD bound
-        sol_ele%value(geo$) = 1  
+        sol_ele%value(sad_geo$) = 1  
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
         sol_ele%iyy = 1         ! SAD bound
-        if (nint(ele%value(geo$)) == 1) first_sol_edge%value(geo$) = 0
+        if (nint(ele%value(sad_geo$)) == 1) first_sol_edge%value(sad_geo$) = 0
       else
         sol_ele%iyy = 0         ! SAD bound
       endif
 
       sol_ele%value(bs_field$) = bs_field
+      if (bs_field == 0) sol_ele%value(bs_field$) = sol_ele%value(sad_bz$)
       sol_ele%key = null_ele$
 
       old_bs_field = bs_field
@@ -1915,7 +1920,7 @@ do
     ele2 => pointer_to_slave(lord, lord%n_slave)
     if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
           num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
-      ele1%value(custom_attribute4$) = -ele2%value(l$)/lord%value(l$) ! marker offset
+      ele1%value(sad_mark_offset$) = -ele2%value(l$)/lord%value(l$) ! marker offset
       ele = lord                              ! Super_slave piece becomes the entire element.
       ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
     endif
@@ -2534,7 +2539,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (marker$)
         write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(custom_attribute4$), 'OFFSET', 'R', .true., .false.)
+        call value_to_line (line_out, val(sad_mark_offset$), 'OFFSET', 'R', .true., .false.)
         if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
           call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
           call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
@@ -2552,8 +2557,8 @@ do ix_ele = ie1, ie2
       case (null_ele$)
         write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
-        call value_to_line (line_out, ele%value(custom_attribute1$), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
+        call value_to_line (line_out, ele%value(sad_f1$), 'F1', 'R', .true., .false.)
+        call value_to_line (line_out, ele%value(sad_geo$), 'GEO', 'I', .true., .false.)
         call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'I', .true., .false.)
 
       ! SAD with nonzero multipoles or kick
@@ -2565,7 +2570,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (patch$)
         write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
-        call value_to_line (line_out, ele%value(geo$), 'GEO', 'I', .true., .false.)
+        call value_to_line (line_out, ele%value(sad_geo$), 'GEO', 'I', .true., .false.)
 
       ! SAD with nonzero multipoles or kick
       case (quadrupole$) 

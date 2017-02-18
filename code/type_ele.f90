@@ -186,7 +186,11 @@ do i = 1, num_ele_attrib$
   if (a_name == null_name$) cycle
   if (attrib%type == private$) cycle
   ix_tot = corresponding_tot_attribute_index (ele, i)
-  if (ix_tot > 0) then
+  if (i >= custom_attribute1$ .and. i <= custom_attribute5$) then
+    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 3x, a)') &
+                      i, a_name(1:n_att), '=', ele%value(i), '! Custom attribute'
+
+  elseif (ix_tot > 0) then
     if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
     nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, i7, 3x, a16, a, es15.7)') &
                       i, a_name(1:n_att), '=', ele%value(i), ',', &
