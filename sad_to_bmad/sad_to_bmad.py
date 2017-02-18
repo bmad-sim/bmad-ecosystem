@@ -6,7 +6,6 @@ import time
 import subprocess
 
 start_time = time.time()
-ix_null = 0
 
 class ele_struct:
   def __init__(self):
@@ -34,7 +33,8 @@ class sad_info_struct:
     self.ele_list = OrderedDict()
     self.param_list = OrderedDict()
     self.var_list = OrderedDict()
-    self.ds_lat = 0.0
+    self.has_sol_f1 = False    # SOL element with F1 attribute present in lattice file?
+    self.ix_null = 0           # Index used for generating unique null_ele names
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -142,8 +142,9 @@ ele_param_translate = {
     'ae2': 'ae2',
     'e1': ['e1', ' * @angle@'],
     'e2': ['e2', ' * @angle@'],
+    'sol:bz': 'sad_bz',
     'bz': 'bs_field',
-    'sol:f1': 'f1',
+    'sol:f1': 'sad_f1',
     'f1': 'fq1',       # For mult and quad elements
     'f2': 'fq2',
     'eps': 'eps_step_scale',
@@ -153,7 +154,7 @@ ele_param_translate = {
     'volt': 'voltage',
     'bound': 'bound',
     'harm': 'harmon',
-    'geo': 'geo',
+    'geo': 'sad_geo',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
     'dx': 'x_offset',
@@ -187,7 +188,7 @@ ele_param_translate = {
 # Stuff to ignore or stuff that must be handled specially.
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'sol:f1', 'sol:bz', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
@@ -206,8 +207,6 @@ sad_reverse_sign_flip_param = ['offset', 'bz', 'dz']
 #------------------------------------------------------------------
 
 def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
-
-  global ix_null
 
   f_out.write ('\n')
 
@@ -318,8 +317,8 @@ def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
       if ignore_marker_offsets:
         del sad_ele_def.param['offset']
       else:
-        ix_null += 1
-        null_ele_name = 'null_' + sad_ele_def.name + '#' + str(ix_null)   # Guaranteed unique
+        sad_info.ix_null += 1
+        null_ele_name = 'null_' + sad_ele_def.name + '#' + str(sad_info.ix_null)   # Guaranteed unique
         bmad_line.append (line_item_struct(null_ele_name))          # Put null_ele in the line
         WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
   
@@ -551,14 +550,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     else:
       bmad_name = result
       value_suffix = ''
-
-    #
-
-    if sad_param_name == 'geo':
-      if value == '1':
-        value = 'T'
-      else:
-        value = 'F'
 
     #
 
@@ -885,6 +876,7 @@ def parse_ele (head, rest_of_line, sad_info):
             ## print ('Found ): "' + line[ix0:ix] + '"')
             ele.param[param_name] = add_units(line[ix0:ix].strip())
             line = line[ix+1:]
+            if ele.type == 'sol' and param_name == 'f1': sad_info.has_sol_f1 = True
             break
 
           n_parens -= 1
@@ -899,6 +891,7 @@ def parse_ele (head, rest_of_line, sad_info):
           param_name = sub_str[j+1:].strip()
           delim = line[ix]
           ix0 = ix + 1
+          if ele.type == 'sol' and param_name == 'f1': sad_info.has_sol_f1 = True
 
     # Put element in list
 
@@ -1012,15 +1005,17 @@ def parse_directive(directive, sad_info):
 #------------------------------------------------------------------
 # Main program.
 
+# Read the parameter file specifying the SAD lattice file, etc.
+
 param_file = "sad_to_bmad.params"
 if len(sys.argv) == 2:
   param_file = sys.argv[1]
 elif len(sys.argv) > 2:
   print_help()
 
-#
-
 execfile (param_file)
+
+# Construct the bmad lattice file name
 
 if bmad_lattice_file == '':
   if sad_lattice_file.find('sad') != -1:
@@ -1034,6 +1029,8 @@ if bmad_lattice_file == '':
 
 print ('Input lattice file is:  ' + sad_lattice_file)
 print ('Output lattice file is: ' + bmad_lattice_file)
+
+# Open files for reading and writing
 
 f_in = open(sad_lattice_file, 'r')
 f_out = open(bmad_lattice_file, 'w')
@@ -1132,8 +1129,19 @@ for name in sad_info.param_list:
 f_out.write ('parameter[ptc_exact_model] = true\n')
 f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
 
-# If the first element is a marker with Twiss parameters...
+# If there is a SOL element with an F1 attribute. See the DOC file for more info.
 
+if sad_info.has_sol_f1: f_out.write('''
+! Save SAD SOL F1 info in a custom attribute in case lattice is back translated to to SAD
+parameter[custom_attribute1] = "marker::sad_f1"
+parameter[custom_attribute1] = "patch::sad_f1"
+parameter[custom_attribute2] = "marker::sad_geo"
+parameter[custom_attribute2] = "patch::sad_geo"
+parameter[custom_attribute3] = "marker::sad_bz"
+parameter[custom_attribute3] = "patch::sad_bz"
+''')
+
+# If the first element is a marker with Twiss parameters...
 
 
 #------------------------------------------------------------------

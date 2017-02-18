@@ -1,5 +1,7 @@
 SAD to Bmad Translation
 
+[Note: For Bmad to SAD translation, use the bmad_to_mad_sad_and_xsif program.]
+
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 
@@ -10,6 +12,16 @@ The translation script is:
 
 There is an example parameter input file at:
   util_programs/sad_to_bmad/sad_to_bmad.params
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+Notes:
+
+*) Bmad has no equivalent attribute for a SOL F1 attribute. This is not a problem since
+the SOL F1 attribute is only used by SAD for emittance calculations and does not effect
+particle tracking. However, it is convenient to preserve this information in the Bmad
+lattice so that if the Bmad lattice is back translated to SAD then the SOL F1 information
+can be restored. To do this, a custom F1 attribute is defined in the Bmad lattice file.
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
