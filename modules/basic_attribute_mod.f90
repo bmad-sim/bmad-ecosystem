@@ -1015,7 +1015,6 @@ call init_attribute_name1 (marker$, lr_wake_file$,                  'LR_WAKE_FIL
 call init_attribute_name1 (marker$, lr_freq_spread$,                'LR_FREQ_SPREAD')
 call init_attribute_name1 (marker$, lr_self_wake_on$,               'LR_SELF_WAKE_ON')
 call init_attribute_name1 (marker$, lr_wake_spline$,                'LR_WAKE_SPLINE')
-call init_attribute_name1 (marker$, geo$,                           'GEO')
 
 
 call init_attribute_name1 (match$, l$,                              'L')
@@ -1204,7 +1203,6 @@ call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC'
 call init_attribute_name1 (patch$, upstream_ele_dir$,               'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
-call init_attribute_name1 (patch$, geo$,                            'GEO')
 
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')

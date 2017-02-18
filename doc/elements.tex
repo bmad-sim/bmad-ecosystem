@@ -2465,18 +2465,12 @@ See \sref{s:list.marker} for a full list of element attributes.
 Attributes specific to a \vn{marker} element are:
 \begin{example}
   x_ray_line_len = <Real>
-  geo            = <Logical>
 \end{example}
 
 \vn{x_ray_line_len} is the length of an associated x-ray synchrotron
 light line measured from the marker element. This is used for
 machine geometry calculations and is irrelevant for lattice
 computations.
-
-The \vn{geo} logical is used for translation between \bmad and SAD lattice files. It is
-ignored in all \bmad computations. \vn{geo} marks which edge of a solenoid where, in SAD,
-the orientation of the solenoid is determined by the orientation parameters in the SAD
-\vn{SOL} element at the edge.
 
 \index{x_offset}\index{y_offset}
 \index{tilt}\index{is_on}
@@ -3090,7 +3084,6 @@ Attributes specific to a \vn{patch} elements are:
   e_tot_offset    = <Real>    ! Reference energy offset (eV).
   flexible        = <Logic>   ! Default: False.
   l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
-  geo             = <Logical> ! Used for translation between \bmad and SAD.
 \end{example}
 \index{x_offset}
 
@@ -3211,11 +3204,6 @@ patch is defined.
 Since the geometry of a \vn{patch} element is complicated,
 interpolation of the chamber wall in the region of a patch follows
 special rules. See section~\sref{s:wall.vacuum} for more details.
-
-The \vn{geo} logical is used for translation between \bmad and SAD lattice files. It is
-ignored in all \bmad computations. \vn{geo} marks which edge of a solenoid where, in SAD,
-the orientation of the solenoid is determined by the orientation parameters in the SAD
-\vn{SOL} element at the edge.
 
 %-----------------------------------------------------------------
 \section{Photon_Init}
