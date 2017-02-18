@@ -272,7 +272,7 @@ if (upcase(beam_init%distribution_type(1)) == 'FILE') then
       p%s = ele%s
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = beta_vel)
       p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-      call init_coord (p, p, ele, downstream_end$, beam_init%species)
+      call init_coord (p, p, ele, downstream_end$, species_id(beam_init%species))
     enddo
   enddo
   if (present(err_flag)) err_flag = .false.
@@ -402,7 +402,7 @@ else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
 
-species = beam_init%species
+species = species_id(beam_init%species)
 if (species == not_set$) species = default_tracking_species(param)
 
 call calc_this_emit (beam_init, twiss_ele, species)

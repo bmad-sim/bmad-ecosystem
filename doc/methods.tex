@@ -134,7 +134,12 @@ improvement in speed over \vn{Symp_Lie_PTC}.
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses \'Etienne Forest's PTC (\sref{s:ptc.intro}) software for the
-calculation. This method is symplectic but can be slow.
+calculation. This method is symplectic but can be slow. Exception: Tracking through 
+\vn{taylor} elements is the same as tracking with the \vn{taylor} tracking method.
+That is, the Taylor map is simply evaluated and so effort at symplectification
+is done. Furthermore, evaluating the Taylor map of a \vn{taylor} element using the \vn{taylor} method
+is faster than evaluation using \vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always
+be used with \vn{taylor} elements.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
