@@ -2457,7 +2457,7 @@ do ix_ele = ie1, ie2
       ! SAD
       case (instrument$, detector$, monitor$)
         if (ele%value(l$) == 0) then
-          write (line_out, '(4a)') 'MONI ', trim(ele%name), ' = ()'
+          write (line_out, '(4a)') 'MONI ', trim(ele%name), ' = ('
         else
           write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
         endif
