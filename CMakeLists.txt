@@ -23,11 +23,6 @@ set (EXE_SPECS
   cmake.tune_plane_res_plot
 )
 
-IF ("$ENV{ACC_PLOT_PACKAGE}" MATCHES "pgplot")
-  list (APPEND EXE_SPECS "cmake.plot_frequency_map")
-ENDIF ()
-
-
 #set (FFLAGS "-openmp")
 #set (LINK_FLAGS "-openmp")
 
