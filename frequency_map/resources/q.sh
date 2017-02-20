@@ -4,13 +4,13 @@
 #$ -l arch=linux-x64
 #$ -l mem_free=6G
 
-# Specify here where the log files go
-#$ -o /home/shanksj/chess/freq_map_jobs/qlog
-#$ -e /home/shanksj/chess/freq_map_jobs/qlog
+## Specify here where the log files go - MANDATORY!
+## If not specified, will dump in your home dir!
+#$ -o path_for_log_files
+#$ -e path_for_log_files 
 
-#. /nfs/acc/libs/util/acc_vars.sh
 
-. /home/shanksj/.bashrc
+. ~/.bashrc
 
 echo "---Job Information---"
 echo "Directory:  " $workingdir
@@ -24,4 +24,4 @@ echo ""
 cd $workingdir
 
 # Change this to point to your local executable.
-/home/shanksj/bmad_dist/production/bin/freq_map $inputfile 
+$ACC_EXE/frequency_map $inputfile 
