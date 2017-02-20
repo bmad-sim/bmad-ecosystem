@@ -22,7 +22,7 @@ integer i_x, i_y, i_z, iq
 integer n_x, n_y, n_z
 integer ix_pn, ix_dot
 integer version
-integer fft_turns/0/
+integer :: fft_turns = 0
 integer arg_num, iargc, ind
 
 real(rp) phy_x_set, phy_y_set
