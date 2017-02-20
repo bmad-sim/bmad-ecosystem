@@ -8,10 +8,10 @@ import getopt, subprocess
 
 if __name__ == '__main__':
 
+	qsh = 'q.sh' # path to q.sh
+
 	subList = []
 
-#	opts, params = getopt.getopt(sys.argv[1:],'') 
-	
 	path = os.getcwd()
 	for file in os.listdir(path):
 		if re.match('.*\.in$',file):
@@ -20,5 +20,5 @@ if __name__ == '__main__':
 	#endfor
 	for input in subList:
 		#print input
-		os.system('qsub -N ' + input + ' -P ilcsim -v inputfile=' + input + ' -v workingdir=' + path + ' /home/shanksj/chess/freq_map_jobs/resources/q.sh')
+		os.system('qsub -N ' + input + ' -v inputfile=' + input + ' -v workingdir=' + path + ' ' + qsh)
 
