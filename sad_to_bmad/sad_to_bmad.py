@@ -154,7 +154,6 @@ ele_param_translate = {
     'volt': 'voltage',
     'bound': 'bound',
     'harm': 'harmon',
-    'geo': 'sad_geo',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
     'dx': 'x_offset',
@@ -188,7 +187,7 @@ ele_param_translate = {
 # Stuff to ignore or stuff that must be handled specially.
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'bound', 'geo', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2',
@@ -476,6 +475,19 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     if sad_ele.type == 'bend' and sad_param_name == 'f1': continue
     if sad_ele.type == 'bend' and sad_param_name == 'fb1': continue
     if sad_ele.type == 'bend' and sad_param_name == 'fb2': continue
+
+    # geo and bound get combined into sad_geo_bound
+
+    if sad_param_name == 'geo' or sad_param_name == 'bound':
+      if value != '0':
+        if 'sad_geo_bound' in bmad_ele.param:
+          bmad_ele.param['sad_geo_bound'] = '2'
+        else:
+          bmad_ele.param['sad_geo_bound'] = '1'
+
+      continue
+
+    #
 
     full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
@@ -1136,8 +1148,8 @@ if sad_info.has_sol_f1: f_out.write('''
 ! Save SAD SOL F1 info in a custom attribute in case lattice is back translated to to SAD
 parameter[custom_attribute1] = "marker::sad_f1"
 parameter[custom_attribute1] = "patch::sad_f1"
-parameter[custom_attribute2] = "marker::sad_geo"
-parameter[custom_attribute2] = "patch::sad_geo"
+parameter[custom_attribute2] = "marker::sad_geo_bound"     ! 1 -> bound, 2 -> bound+geo 
+parameter[custom_attribute2] = "patch::sad_geo_bound"
 parameter[custom_attribute3] = "marker::sad_bz"
 parameter[custom_attribute3] = "patch::sad_bz"
 ''')
