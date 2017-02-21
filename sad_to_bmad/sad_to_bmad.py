@@ -54,8 +54,10 @@ def add_units (line):
 def print_help():
   print (''' \
 Syntax: 
-  sad_to_bmad.py <parameter_file>
-Default: <parameter_file> = "sad_to_bmad.params"
+  sad_to_bmad.py <parameter_file> <sad_lattice_file>
+Defaults: 
+  <parameter_file>   = "sad_to_bmad.params"
+  <sad_lattice_file> = As specified in the parameter file.
 ''')
   sys.exit()
 
@@ -1023,10 +1025,15 @@ def parse_directive(directive, sad_info):
 param_file = "sad_to_bmad.params"
 if len(sys.argv) == 2:
   param_file = sys.argv[1]
-elif len(sys.argv) > 2:
-  print_help()
+  execfile (param_file)
 
-execfile (param_file)
+elif len(sys.argv) == 3:
+  param_file = sys.argv[1]
+  execfile (param_file)
+  sad_lattice_file = sys.argv[2]
+
+elif len(sys.argv) > 3:
+  print_help()
 
 # Construct the bmad lattice file name
 
