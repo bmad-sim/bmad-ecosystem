@@ -1718,7 +1718,7 @@ integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
 
 integer, parameter :: sad_f1$  = custom_attribute1$
-integer, parameter :: sad_geo$ = custom_attribute2$
+integer, parameter :: sad_geo_bound$ = custom_attribute2$
 integer, parameter :: sad_bz$  = custom_attribute3$
 integer, parameter :: sad_mark_offset$  = custom_attribute4$
 
@@ -1836,7 +1836,6 @@ i_unique = 1000
 
 ! Loop over all input elements
 
-branch_out%ele%iyy = 0          ! SAD bound
 branch_out%ele%value(sad_mark_offset$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
 old_bs_field = 0
@@ -1877,7 +1876,7 @@ do
           if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
           sol_ele => pointer_to_next_ele(sol_ele, -1)
         enddo
-        sol_ele%value(sad_geo$) = 0
+        sol_ele%value(sad_geo_bound$) = 0
       endif
 
       if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
@@ -1885,7 +1884,6 @@ do
         write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
-        sol_ele%value(sad_geo$) = 1
         ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
@@ -1893,14 +1891,17 @@ do
       endif
 
       if (old_bs_field == 0) then
-        sol_ele%iyy = 1         ! SAD bound
-        sol_ele%value(sad_geo$) = 1  
+        sol_ele%value(sad_geo_bound$) = 2  
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
-        sol_ele%iyy = 1         ! SAD bound
-        if (nint(ele%value(sad_geo$)) == 1) first_sol_edge%value(sad_geo$) = 0
+        if (nint(ele%value(sad_geo_bound$)) == 2) then
+          sol_ele%value(sad_geo_bound$) = 2
+          first_sol_edge%value(sad_geo_bound$) = 1
+        else
+          sol_ele%value(sad_geo_bound$) = 1
+        endif
       else
-        sol_ele%iyy = 0         ! SAD bound
+        sol_ele%value(sad_geo_bound$) = 0
       endif
 
       sol_ele%value(bs_field$) = bs_field
@@ -2282,7 +2283,7 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
     ele => branch_out%ele(ie2)
   endif
 
-  ele%iyy = 1  ! SAD bound
+  ele%value(sad_geo_bound$) = 1
 endif
 
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
@@ -2558,8 +2559,13 @@ do ix_ele = ie1, ie2
         write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
         call value_to_line (line_out, ele%value(sad_f1$), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, ele%value(sad_geo$), 'GEO', 'I', .true., .false.)
-        call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'I', .true., .false.)
+        select case (nint(ele%value(sad_geo_bound$)))
+        case (1)
+          line_out = trim(line_out) // ' BOUND = 1'
+        case (2)
+          line_out = trim(line_out) // ' BOUND = 1'
+          line_out = trim(line_out) // ' GEO = 1'
+        end select
 
       ! SAD with nonzero multipoles or kick
       case (octupole$)
@@ -2570,7 +2576,6 @@ do ix_ele = ie1, ie2
       ! SAD
       case (patch$)
         write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
-        call value_to_line (line_out, ele%value(sad_geo$), 'GEO', 'I', .true., .false.)
 
       ! SAD with nonzero multipoles or kick
       case (quadrupole$) 
