@@ -1,0 +1,19 @@
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 7.6099890E+05
+
+parameter[geometry] = open
+
+
+d1: drift, L = 0.5
+d2: drift, L = 0.5
+d3: drift, L = 0.5
+
+q1: quad, L = 0.1, k1 = -.1
+q2: quad, L = 0.1, k1 =  .1
+
+lat: line = (d1, q1, d2, q2, d3)
+
+use, lat
+

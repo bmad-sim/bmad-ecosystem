@@ -18,6 +18,7 @@ set (EXE_SPECS
   cmake.wake_fit
   cmake.bmad_to_autocad
   cmake.bmad_to_csrtrack
+  cmake.bmad_to_gpt
   cmake.bmad_to_mad_sad_and_xsif
   cmake.compare_tracking_methods_plot
   cmake.compare_tracking_methods_text
@@ -32,8 +33,3 @@ if($ENV{ACC_ENABLE_MPI})
 endif()
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-
-
-
-
-
