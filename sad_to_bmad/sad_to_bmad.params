@@ -1,6 +1,6 @@
 # Please see the DOC file for known limitations of this translation script.
 
-sad_lattice_file = "xxxxx"          # Put here the name of the SAD lattice file.
+sad_lattice_file = "xxxxx"          # SAD lattice file. [Or specify argument on the command line.]
 bmad_lattice_file = ""              # If blank then add .bmad suffix to the sad lattice file name.
 lattice_geometry = ""               # Set to 'open' or 'closed' to set the lattice geometry.
 
