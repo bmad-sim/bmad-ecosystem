@@ -191,13 +191,14 @@ ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4
                   'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
-                  'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
+                  'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2',
+                  'zpx', 'zx', 'az', 'mark:bz']
 
 #
 
 sad_reversed_param = {
       'ae1': 'ae2',
-      'e1': 'e2',
+      'e1':  'e2',
       'fb1': 'fb2',
 }
 
