@@ -672,11 +672,13 @@ else
     if (s_filter_min > 0 .and. now%orb%s < s_filter_min) filter_this = .true.
     if (s_filter_max > 0 .and. now%orb%s > s_filter_max) filter_this = .true.
   endif
+
+  branch => lat%branch(now%ix_branch)
+  surface => branch%wall3d(now%ix_wall3d)%section(now%ix_wall_section+1)%surface
+  if (surface%name == 'PHANTOM') filter_this = .true.
 endif
 
-branch => lat%branch(now%ix_branch)
-surface => branch%wall3d(now%ix_wall3d)%section(now%ix_wall_section+1)%surface
-if (surface%name == 'PHANTOM') filter_this = .true.
+!
 
 if (filter_this) then
   n_photon_array = n_photon_array - 1  ! Delete photon from the array.
