@@ -1,6 +1,7 @@
 &bmad_to_gpt_params
   bmad_lat_filename = 'lat.bmad'
   gpt_lat_param%field_map_dimension = 2
+  gpt_lat_param%header_file_name = 'gpt_header.in'
   gpt_lat_param%tracking_end_element = ''   ! Blank means all elements translated.
 
   write_gpt_particles = .true.
