@@ -89,7 +89,7 @@ do iw = 1, size(branch%wall3d)
       ix_pt = ix_pt+1
     endif
 
-    call add_this_point (wall, ix_pt, sec%s, x, sec%name, iw)
+    call add_this_point (wall, ix_pt, sec%s, x, sec%name, iw, sec%surface%name == 'PHANTOM')
 
     ! If this section is at the end of a sub-chamber then add another point.
 
@@ -98,7 +98,7 @@ do iw = 1, size(branch%wall3d)
     select case (sec%type)
     case (wall_start$); idel = -1
     case (wall_end$);   idel = +1; ix_pt = ix_pt + 1
-    case default;         cycle
+    case default;       cycle
     end select
 
     s = sec%s + idel * ds_small
@@ -111,7 +111,7 @@ do iw = 1, size(branch%wall3d)
       iw_max = iw2
     enddo
 
-    call add_this_point (wall, ix_pt, s, x, '', iw_max)
+    call add_this_point (wall, ix_pt, s, x, '', iw_max, sec%surface%name == 'PHANTOM')
 
   enddo sec_loop
 enddo
@@ -145,7 +145,7 @@ do
     enddo
 
     if (iw_max /= iw0 .and. iw_max /= -1) then
-      call add_this_point (wall, ip+1, s, x, '', iw_max)
+      call add_this_point (wall, ip+1, s, x, '', iw_max, wall%pt(ip+1)%phantom)
       exit
     endif
   enddo
@@ -175,7 +175,7 @@ do
 
     x2 = wall%pt(ip)%x + (s - wall%pt(ip)%s) * (wall%pt(ip+1)%x - wall%pt(ip)%x) / (wall%pt(ip+1)%s - wall%pt(ip)%s)
     if (abs(x - x2) > dx_max) then
-      call add_this_point (wall, ip+1, s, x, '', iw_max)
+      call add_this_point (wall, ip+1, s, x, '', iw_max, wall%pt(ip+1)%phantom)
       exit
     endif
   enddo
@@ -191,13 +191,14 @@ end subroutine calc_this_side
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 
-subroutine add_this_point (wall, ix_pt, s, x, name, ix_wall)
+subroutine add_this_point (wall, ix_pt, s, x, name, ix_wall, phantom)
 
 type (wall_struct) wall
 type (wall_pt_struct), allocatable :: pt(:)
 
 real(rp) s, x
 integer ix_pt, ix_wall, n
+logical phanotm
 character(*) name
 
 !
@@ -216,6 +217,7 @@ wall%pt(ix_pt)%s = s
 wall%pt(ix_pt)%x = x
 wall%pt(ix_pt)%name = name
 wall%pt(ix_pt)%ix_seg = ix_wall  ! Temp storage of sub-chamber index
+wall%pt(ix_pt)%phantom = phantom
 
 end subroutine add_this_point
 

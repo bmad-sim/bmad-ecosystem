@@ -83,7 +83,7 @@ do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
     endif
   endif
 
-  ! Check next pos_x wall ptment
+  ! Check next pos_x wall point
 
   if (pos_go .and. (.not. neg_go .or. dir * (s_last_pos - s_last_neg) <=  0)) then
     call check_pt (ray, ix_pos, pos_x_wall, dir, len_min_pos, ix_min_seg_pos, r_pos)

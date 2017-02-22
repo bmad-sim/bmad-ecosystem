@@ -162,7 +162,7 @@ do
 enddo
 
 if (associated(lat%surface)) deallocate(lat%surface)
-allocate (lat%surface(n_surface+2))
+allocate (lat%surface(n_surface+3))
 
 call photon_reflection_std_surface_init (lat%surface(1))
 
@@ -170,8 +170,12 @@ lat%surface(2)%reflectivity_file = '<none>'
 lat%surface(2)%name = 'ABSORBER'
 lat%surface(2)%description = 'Perfect Absorber'
 
+lat%surface(3)%reflectivity_file = '<none>'
+lat%surface(3)%name = 'PHANTOM'
+lat%surface(3)%description = 'Virtual Wall'
+
 rewind(iu)
-do i = 3, n_surface+2
+do i = 4, n_surface+3
   read (iu, nml = surface_def, iostat = ios)
   call read_surface_reflection_file (reflectivity_file, lat%surface(i))
 enddo

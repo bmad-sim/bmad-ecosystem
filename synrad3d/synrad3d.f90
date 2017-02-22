@@ -50,7 +50,7 @@ character(40) plotting, test, who
 character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
-logical ok, filter_on, s_wrap_on, filter_this, err
+logical ok, s_wrap_on, filter_this, err
 logical is_inside, turn_off_kickers_in_lattice
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
@@ -187,8 +187,6 @@ call ran_seed_put (random_seed)
 
 ! When a filter parameter is set, only photons that satisfy the filter criteria are kept
 
-filter_on = (e_init_filter_min > 0) .or. (e_init_filter_max > 0) .or. &
-            (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
 s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
 ! Get lattice
@@ -455,17 +453,13 @@ else
   ! Allocate photons array
 
   n = max(num_photons, n_photons_per_pass)
-  if (filter_on) then
-    allocate (photons(nint(2.1*n)))   
-  else
-    allocate (photons(nint(1.1*n)))   ! Allow for some slop
-  endif
+  allocate (photons(nint(2.1*n)))   
 
   ix_ele = ix_ele_track_start
   do 
 
     if (ix_ele == ix_ele_track_end) then
-      if (.not. filter_on .or. n_photon_array > 0.9 * num_photons) exit
+      if (n_photon_array > 0.9 * num_photons) exit
       ix_ele = ix_ele_track_start
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
@@ -652,33 +646,38 @@ end subroutine write_photon_data
 
 subroutine check_filter_restrictions (ok, init_filter)
 
+type (branch_struct), pointer :: branch
+type (sr3d_coord_struct), pointer :: now
+type (photon_reflect_surface_struct), pointer :: surface
 logical ok, init_filter
 
 ! Check filter restrictions
 
 ok = .true.
+now => photon%now
 
-if (filter_on) then
-  filter_this = .false.
-  if (init_filter) then
-    if (e_init_filter_min > 0 .and. photon%now%orb%p0c < e_init_filter_min) filter_this = .true.
-    if (e_init_filter_max > 0 .and. photon%now%orb%p0c > e_init_filter_max) filter_this = .true.
+filter_this = .false.
+if (init_filter) then
+  if (e_init_filter_min > 0 .and. now%orb%p0c < e_init_filter_min) filter_this = .true.
+  if (e_init_filter_max > 0 .and. now%orb%p0c > e_init_filter_max) filter_this = .true.
+else
+  if (e_filter_min > 0 .and. now%orb%p0c < e_filter_min) filter_this = .true.
+  if (e_filter_max > 0 .and. now%orb%p0c > e_filter_max) filter_this = .true.
+  if (s_wrap_on) then
+    if (now%orb%s > s_filter_max .and. now%orb%s < s_filter_min) filter_this = .true.
   else
-    if (e_filter_min > 0 .and. photon%now%orb%p0c < e_filter_min) filter_this = .true.
-    if (e_filter_max > 0 .and. photon%now%orb%p0c > e_filter_max) filter_this = .true.
-    if (s_wrap_on) then
-      if (photon%now%orb%s > s_filter_max .and. photon%now%orb%s < s_filter_min) filter_this = .true.
-    else
-      if (s_filter_min > 0 .and. photon%now%orb%s < s_filter_min) filter_this = .true.
-      if (s_filter_max > 0 .and. photon%now%orb%s > s_filter_max) filter_this = .true.
-    endif
+    if (s_filter_min > 0 .and. now%orb%s < s_filter_min) filter_this = .true.
+    if (s_filter_max > 0 .and. now%orb%s > s_filter_max) filter_this = .true.
   endif
+endif
 
-  if (filter_this) then
-    n_photon_array = n_photon_array - 1  ! Delete photon from the array.
-    ok = .false.
-  endif
+branch => lat%branch(now%ix_branch)
+surface => branch%wall3d(now%ix_wall3d)%section(now%ix_wall_section+1)%surface
+if (surface%name == 'PHANTOM') filter_this = .true.
 
+if (filter_this) then
+  n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+  ok = .false.
 endif
 
 end subroutine

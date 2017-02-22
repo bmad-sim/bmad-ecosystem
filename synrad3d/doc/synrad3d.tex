@@ -94,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{October 17, 2016}
+\date{February 22, 2017}
 
 %---------------------------------------------------------------------------------
 
@@ -1401,13 +1401,20 @@ chamber wall, the optional \vn{surface} variable is set for the
     surface  = "<name>", <is_local>
   /
 \end{example}
-The \vn{<name>} here must match the \vn{name} in the surface reflectivity file
-The one exception is if \vn{<name>}
-is set to
+The \vn{<name>} here must match the \vn{name} in the surface reflectivity file The two
+exceptions are if \vn{<name>} is set to
 \begin{example}
   ABSORBER              ! Case sensitive
+  PHANTOM               ! Case sensitive
 \end{example}
-In this case the surface is a perfect absorber.
+The \vn{ABSORBER} setting makes the surface a perfect absorber. The \vn{PHANTOM} setting
+is for surfaces where, if a photon hits the surface, it is not counted in the final
+statistics. This is useful for situations like simulating an X-ray beam pipe where, for
+the purposes of the simulation, the pipe is terminated at some point and photons
+intersecting the end of the pipe are not to be considered to have hit a wall but rather to
+have safely gone through to the experimental end station. Effectively, photons
+intersecting a phantom wall is treated as any other photon that fails a filter test
+(\sref{s:master.example}).
 
 If \vn{<is_local>} is \vn{True}, then the surface material only spans the region from the
 previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the

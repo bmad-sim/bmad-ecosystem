@@ -13,16 +13,16 @@ use bmad_utils_mod
 ! wall%pt(i)%r_floor, wall%pt(i)%r_floor_tri and wall%pt(i-1)%r_floor.
 
 type wall_pt_struct           ! struct for input points
-  character(40) name          ! name of element (sliding_joint, etc.)
-  real(rp) x, s               ! position of wall point
-  real(rp) r_floor(3)         ! Floor position.
-  real(rp) r_floor_tri(3)     ! Triangle point.
-  integer ix_pt               ! Self index int wall%pt array
-  integer n_seg               ! how many segments it will be broken up into
-  integer ix_seg              ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
-  logical phantom             ! is the face an opening?
-  logical next_to_alley       ! point is near an alley way? 
-  logical linear_wall         ! Is associated wall section a linear line segment?
+  character(40) :: name = ''          ! name of element (sliding_joint, etc.)
+  real(rp) :: x = 0, s = 0            ! position of wall point
+  real(rp) :: r_floor(3) = 0          ! Floor position.
+  real(rp) :: r_floor_tri(3) = 0      ! Triangle point.
+  integer :: ix_pt = 0                ! Self index int wall%pt array
+  integer :: n_seg = 0                ! how many segments it will be broken up into
+  integer :: ix_seg = 0               ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
+  logical :: phantom = .false.        ! is the face an opening?
+  logical :: next_to_alley = .false.  ! point is near an alley way? 
+  logical :: linear_wall = .false.    ! Is associated wall section a linear line segment?
 end type wall_pt_struct
 
 ! For the synch light power computation each face is broken up into segments.
