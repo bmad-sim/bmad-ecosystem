@@ -632,35 +632,38 @@ end subroutine write_photon_data
 !------------------------------------------------------------------------------------------
 ! contains
 !+
-! Subroutine check_filter_restrictions (ok, init_filter)
+! Subroutine check_filter_restrictions (ok, check_init_filters)
 !
 ! Routine to check if a photon has passed the filter requirements.
 !
 ! Input:
-!   init_filter -- logical: If true then photon coordinates represent the photon
-!                    at generation time. This involves different filter cuts.
+!   check_init_filters -- logical: If true then photon coordinates represent the photon
+!                           at generation time. This involves different filter cuts.
 !   
 ! Output:
 !   ok -- logical: Set True if passed. False otherwise.
 !-
 
-subroutine check_filter_restrictions (ok, init_filter)
+subroutine check_filter_restrictions (ok, check_init_filters)
 
 type (branch_struct), pointer :: branch
 type (sr3d_coord_struct), pointer :: now
 type (photon_reflect_surface_struct), pointer :: surface
-logical ok, init_filter
+logical ok, check_init_filters
 
 ! Check filter restrictions
 
 ok = .true.
-now => photon%now
 
 filter_this = .false.
-if (init_filter) then
+
+if (check_init_filters) then
+  now => photon%start   ! Photon is just starting so use %start and not %now
   if (e_init_filter_min > 0 .and. now%orb%p0c < e_init_filter_min) filter_this = .true.
   if (e_init_filter_max > 0 .and. now%orb%p0c > e_init_filter_max) filter_this = .true.
+
 else
+  now => photon%now
   if (e_filter_min > 0 .and. now%orb%p0c < e_filter_min) filter_this = .true.
   if (e_filter_max > 0 .and. now%orb%p0c > e_filter_max) filter_this = .true.
   if (s_wrap_on) then
