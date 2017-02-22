@@ -978,7 +978,7 @@ surface => branch%wall3d(photon%now%ix_wall3d)%section(photon%now%ix_wall_sectio
 
 ! Get reflectivity coef.
 
-if (surface%name == 'ABSORBER' .or. surface%name /= 'PHANTOM') then
+if (surface%name == 'ABSORBER' .or. surface%name == 'PHANTOM') then
   reflectivity = 0
 else
   call photon_reflectivity (graze_angle, photon%now%orb%p0c, surface, reflectivity, rel_reflect_specular)
