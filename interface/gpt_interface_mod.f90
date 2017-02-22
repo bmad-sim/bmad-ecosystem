@@ -205,7 +205,7 @@ if (param%header_file_name /= '') then
   do 
     read (iu, '(a)', iostat = ios) line
     if (ios /= 0) exit
-    write (gpt_lat_param%gpt_filename, '(a)') trim(line)
+    write (gpt_file_unit, '(a)') trim(line)
   enddo
 endif
 

@@ -1705,17 +1705,18 @@ type (mad_map_struct) mad_map
 type (ptc_parameter_struct) ptc_param
 type (taylor_struct) taylor_a(6), taylor_b(6)
 
+real(rp), optional :: dr12_drift_max
 real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f, e2
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-real(rp), optional :: dr12_drift_max
+real(rp) xp, yp, xo, yo, zo
 
 integer, optional :: ix_start, ix_end, ix_branch
+integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
 integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
-integer, allocatable :: n_repeat(:), an_indexx(:)
 
 integer, parameter :: sad_f1$  = custom_attribute1$
 integer, parameter :: sad_geo_bound$ = custom_attribute2$
@@ -2718,6 +2719,23 @@ do ix_ele = ie1, ie2
     endif
 
     ! misalignments
+    ! Note: SAD applies pitches and offsets in reverse order to Bmad.
+
+    xp = val(x_pitch$);  yp = val(y_pitch$)
+
+    if (yp /= 0) then
+      zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
+      xo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
+      val(z_offset$) = zo
+      val(y_offset$) = yo
+    endif
+
+    if (xp /= 0) then
+      zo =  val(z_offset$) * cos(yp) + val(x_offset$) * sin(yp)
+      xo = -val(z_offset$) * sin(yp) + val(x_offset$) * cos(yp)
+      val(z_offset$) = zo
+      val(x_offset$) = xo
+    endif
 
     call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
     call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
