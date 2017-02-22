@@ -198,7 +198,7 @@ type (wall_pt_struct), allocatable :: pt(:)
 
 real(rp) s, x
 integer ix_pt, ix_wall, n
-logical phanotm
+logical phantom
 character(*) name
 
 !
