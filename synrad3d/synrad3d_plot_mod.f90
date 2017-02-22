@@ -308,7 +308,7 @@ real(rp) dummy, r1(3), r2(3)
 real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
-integer i, n, ix, iw, i_chan, ios, i0, i1
+integer i, n, ix, iw, i_chan, ios, i0, i1, ix_branch
 integer n_phot1, n_phot2, n_hit1, n_hit2
 
 character(*) plane
@@ -455,9 +455,12 @@ do
     read (10, *, iostat = ios) n_phot2, dummy, r2
     do 
       n_phot1 = n_phot2; r1 = r2
-      read (10, *, iostat = ios) n_phot2, dummy, r2
+      read (10, *, iostat = ios) n_phot2, dummy, r2, ix_branch
       if (ios /= 0) exit
       if (n_phot2 /= n_phot1) cycle
+      ! If photon has traveled more than half the lattice length assume photon has "wrapped around" and do not plot
+      if (2 * norm2(r2 - r1) > lat%branch(ix_branch)%param%total_length) cycle
+      ! Plot
       if (plane == 'xs') then
         call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
       else
@@ -471,9 +474,12 @@ do
     read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
     do 
       n_phot1 = n_phot2; n_hit1 = n_hit2; r1 = r2
-      read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2
+      read (10, *, iostat = ios) n_phot2, n_hit2, dummy, r2, ix_branch
       if (ios /= 0) exit
       if (n_phot2 /= n_phot1) cycle
+      ! If photon has traveled more than half the lattice length assume photon has "wrapped around" and do not plot
+      if (2 * norm2(r2 - r1) > lat%branch(ix_branch)%param%total_length) cycle
+      ! Plot
       if (plane == 'xs') then
         call qp_draw_line(r1(3), r2(3), 100*r1(1), 100*r2(1))
       else
