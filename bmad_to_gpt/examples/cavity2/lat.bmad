@@ -17,7 +17,6 @@ CALL, FILE = in.cavity2_reverse.bmad
 cav1:in.cavity2
 cav2:in.cavity2_reverse
 
-
 d1: drift, L = 0.2
 d2: drift, L = 0.2
 d3: drift, L = 0.2
@@ -28,3 +27,6 @@ lat: line = (d1, cav1, d2, cav2, d3)
 *[ds_step] = 1e-3
 
 USE, lat
+
+cav2_voltage = 20e6 ! Can't set voltage directly in lat2. Must do:
+cav2[gradient] = cav2_voltage / cav2[L]

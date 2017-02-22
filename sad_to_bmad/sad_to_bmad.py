@@ -158,12 +158,12 @@ ele_param_translate = {
     'harm': 'harmon',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
-    'dx': 'x_offset',
-    'dy': 'y_offset',
-    'dz': 'z_offset',
     'sol:chi1': ['x_pitch', ' * -1'],
     'sol:chi2': ['y_pitch', ' * -1'],
     'sol:dz': ['t_offset', ' / c_light'],
+    'dx': 'x_offset',
+    'dy': 'y_offset',
+    'dz': 'z_offset',
     'mult:chi1': 'x_pitch_mult',
     'mult:chi2': 'y_pitch_mult',
     'chi1': 'x_pitch',
@@ -619,16 +619,16 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
       del bmad_ele.param['phi0_err']
 
   # Correct patch signs. 
-  # And SAD applies pitches and offsets in reverse order to bmad which is why the trig is needed.
+  # And SAD applies pitches and offsets in reverse order to Bmad which is why the trig is needed.
 
   if bmad_ele.type == 'patch':
 
     # If exiting solenoid
-    if sol_status == 0:
+####    if sol_status == 0:
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
     # If entering solenoid 
-    else:
+####    else:
       if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = str(eval(bmad_ele.param['x_offset'] + ' * -1'))
       if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = str(eval(bmad_ele.param['y_offset'] + ' * -1'))
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
@@ -640,12 +640,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
       yp = eval(bmad_ele.param.get('y_pitch', '0'))
 
       if xp != 0 and xo != 0:
-        bmad_ele.param['z_offset'] = str(zo - xo * math.sin(xp))
-        bmad_ele.param['x_offset'] = str(xo * math.cos(xp))
+        bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
+        bmad_ele.param['x_offset'] = str(zo * math.sin(xp) + xo * math.cos(xp))
         zo = eval(bmad_ele.param.get('z_offset', '0'))
       if yp != 0 and yo != 0:
-        bmad_ele.param['z_offset'] = str(zo - yo * math.sin(yp))
-        bmad_ele.param['y_offset'] = str(yo * math.cos(yp))
+        bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - yo * math.sin(yp))
+        bmad_ele.param['y_offset'] = str(zo * math.sin(xp) + yo * math.cos(yp))
 
   # Fringe 
 
@@ -1023,6 +1023,10 @@ def parse_directive(directive, sad_info):
 # Read the parameter file specifying the SAD lattice file, etc.
 
 param_file = "sad_to_bmad.params"
+
+if len(sys.argv) == 1:
+  execfile (param_file)
+
 if len(sys.argv) == 2:
   param_file = sys.argv[1]
   execfile (param_file)
