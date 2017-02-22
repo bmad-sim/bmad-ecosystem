@@ -39,7 +39,7 @@ subroutine tao_open_file (file_name, iunit, full_file_name, error_severity)
   ! open file
 
   iunit = lunget()
-  full_file_name = file_name
+  call fullfilename(file_name, full_file_name)
   open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios)
 
   if (ios /= 0) then
