@@ -45,11 +45,12 @@ enddo
 
 if (branch%param%geometry == closed$) then
   dr = wall%pt(0)%r_floor - wall%pt(wall%n_pt_max)%r_floor
-  if (abs(dr(1)) > 1e-6 .or. abs(dr(3)) > 1e-6) then
-    call out_io (s_warn$, r_name, 'Machine not exactly closed in Global coordinate system.', &
+  if (norm2(dr(1:3:2)) > 0.01) then
+    call out_io (s_warn$, r_name, trim(wall_name(wall%side)) // ' wall not exactly closed in Global coordinate system.', &
                       'Adjusting position of last wall point on: ' // wall_name(wall%side), &
                       'Wall point is adjusted by dx, ds = \2f11.6\ ', r_array = [dr(1), dr(3)])
   endif
+  wall%pt(wall%n_pt_max)%r_floor = wall%pt(0)%r_floor
 endif
 
 ! If the distance between two wall points is too large then break the interval

@@ -137,7 +137,7 @@ integer i, n, nn
 
 !
 
-wp => wall%pt(1:wall%n_pt_max)
+wp => wall%pt(0:wall%n_pt_max)
 n = count (wp%s >= s_min .and. wp%s <= s_max) 
 if (allocated(x)) deallocate(x, s)
 allocate(s(n), x(n)) 
