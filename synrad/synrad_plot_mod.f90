@@ -34,9 +34,9 @@ use input_mod
 
 type (walls_struct), target :: walls
 type (wall_struct), pointer :: minus_side, plus_side
+type (wall_pt_struct), pointer :: wpt_p(:), wpt_m(:)
 
 real(rp) s_min, s_max, x_min, x_max
-real(rp), allocatable :: s_minus(:), x_minus(:), s_plus(:), x_plus(:)
 integer ix, ios, i_chan
 logical s_user_good, x_user_good
 
@@ -66,25 +66,30 @@ do
     s_max = walls%s_max
   endif
 
-  call qp_calc_and_set_axis ('X', s_min, s_max, 10, 16, 'GENERAL')
-
-  ! Get data points
-
-  call get_data_points (minus_side, s_minus, x_minus)
-  call get_data_points (plus_side, s_plus, x_plus)
-
-  ! Now plot
+  ! Draw axes
 
   call qp_clear_page
+
   if (.not. x_user_good) then
-    x_min = 0.99 * min(minval(x_minus), minval(x_plus))
-    x_max = 1.01 * max(maxval(x_minus), maxval(x_plus))
+    wpt_p => plus_side%pt(0:plus_side%n_pt_max)
+    wpt_m => minus_side%pt(0:minus_side%n_pt_max)
+
+    x_min = 1010 * min(minval(pack (wpt_m%x, wpt_m%s >= s_min .and. wpt_m%s <= s_max)), & 
+                       minval(pack (wpt_p%x, wpt_p%s >= s_min .and. wpt_p%s <= s_max)))
+
+    x_max = 1010 * max(maxval(pack (wpt_m%x, wpt_m%s >= s_min .and. wpt_m%s <= s_max)), & 
+                       maxval(pack (wpt_p%x, wpt_p%s >= s_min .and. wpt_p%s <= s_max)))
   endif
 
-  call qp_calc_and_set_axis ('Y', x_min, x_max, 6, 10, 'GENERAL')
+  call qp_calc_and_set_axis ('X', s_min, s_max, 10, 16, 'GENERAL')
+  call qp_calc_and_set_axis ('Y', x_min, 1.01*x_max, 6, 10, 'GENERAL')
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-  call qp_draw_graph (s_minus, x_minus, 'S (m)', 'X (mm)', '', .true., 0)
-  call qp_draw_polyline (s_plus, x_plus)
+  call qp_draw_axes ('S (m)', 'X (mm)')
+
+  ! Draw walls
+
+  call draw_a_wall (minus_side)
+  call draw_a_wall (plus_side)
 
   ! Query
 
@@ -128,24 +133,28 @@ enddo
 !--------------------------------------------------------------------------------------------------
 contains
 
-subroutine get_data_points (wall, s, x)
+subroutine draw_a_wall (wall)
 
 type (wall_struct), target :: wall
-type (wall_pt_struct), pointer :: wp(:)
-real(rp), allocatable :: s(:), x(:)
+type (wall_pt_struct), pointer :: pt0, pt1
 integer i, n, nn
 
 !
 
-wp => wall%pt(0:wall%n_pt_max)
-n = count (wp%s >= s_min .and. wp%s <= s_max) 
-if (allocated(x)) deallocate(x, s)
-allocate(s(n), x(n)) 
+do i = 1, wall%n_pt_max
+  pt0 => wall%pt(i-1)
+  pt1 => wall%pt(i)
+  if (pt1%s < s_min .or. pt0%s > s_max) cycle
+  if (pt1%phantom) then
+    call qp_draw_line(pt0%s, pt1%s, 1000*pt0%x, 1000*pt1%x, color = red$, line_pattern = dashed$)
+    print '(a, 5(f10.3, a))', 'Phantom on ' // trim(wall_name(wall%side)) // ' between (s, x) points: (', &
+            pt0%s, ',', pt0%x, '),  (', pt1%s, ',', pt1%x, ')'
+  else
+    call qp_draw_line(pt0%s, pt1%s, 1000*pt0%x, 1000*pt1%x)
+  endif
+enddo
 
-s = pack (wp%s, wp%s >= s_min .and. wp%s <= s_max)
-x = pack (wp%x, wp%s >= s_min .and. wp%s <= s_max) * 1000
-
-end subroutine get_data_points
+end subroutine draw_a_wall
 
 end subroutine synrad_plot_sx
 
