@@ -44,6 +44,7 @@ subroutine write_power_results (wall, branch, gen_params, ix_ele1, ix_ele2, synr
   type (wall_struct), target :: wall
   type (wall_seg_struct), pointer :: seg
   type (seg_power_struct), pointer :: ep
+  type (seg_power_struct), target :: zero_power
   type (synrad_param_struct) gen_params
   type (synrad_mode_struct) :: synrad_mode
   type (branch_struct) branch
@@ -102,7 +103,11 @@ subroutine write_power_results (wall, branch, gen_params, ix_ele1, ix_ele2, synr
 !      call type_ele(branch%ele(seg%ix_ele))
     end if
 
-    ep => seg%power
+    if (gen_params%filter_phantom_photons .and. wall%pt(seg%ix_pt)%phantom) then
+      ep => zero_power
+    else
+      ep => seg%power
+    endif
 
     if (ep%main_source%ix_ele == 0) then
       ep_source_name = '--------'
@@ -155,7 +160,7 @@ subroutine write_header (iu, file, gen_params, synrad_mode)
   write (iu, *) 'Lattice: ', gen_params%lat_file
   write (iu, *) 'I_beam    =', gen_params%i_beam,    ' ! Amps/beam'
   write (iu, *) 'Input eps_y =', 1.e6*gen_params%epsilon_y, ' ! mm-mrad'
-
+  write (iu, *) 'filter_phantom_photons =', gen_params%filter_phantom_photons
   write (iu, *) 'Positron eps_x =', 1.e6*synrad_mode%pos_mode%a%emittance, ' ! mm-mrad'
   write (iu, *) 'Positron eps_y =', 1.e6*synrad_mode%pos_mode%b%emittance, ' ! mm-mrad'
   write (iu, *) 'Positron sig_z =', synrad_mode%pos_mode%sig_z, ' ! m'
@@ -190,6 +195,7 @@ subroutine write_results (wall, branch, gen_params, ix_ele1, ix_ele2, synrad_mod
   type (synrad_param_struct) gen_params
   type (synrad_mode_struct) :: synrad_mode
   type (branch_struct) branch
+  type (seg_power_struct), target :: zero_power
 
   integer ix_ele1, ix_ele2, i
   character*16 seg_name, ep_source_name, ep_source_key_name
@@ -243,7 +249,11 @@ subroutine write_results (wall, branch, gen_params, ix_ele1, ix_ele2, synrad_mod
 !      call type_ele(branch%ele(seg%ix_ele))
     end if
 
-    ep => seg%power
+    if (gen_params%filter_phantom_photons .and. wall%pt(seg%ix_pt)%phantom) then
+      ep => zero_power
+    else
+      ep => seg%power
+    endif
 
     if (ep%main_source%ix_ele == 0) then
       ep_source_name = '------------------'

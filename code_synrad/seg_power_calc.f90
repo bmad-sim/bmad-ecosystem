@@ -8,19 +8,19 @@
 !   use synrad_mod
 !
 ! Input:
-!   fan(:) -- ray_struct: array of rays from one lattice element
-!   i_ray  -- integer: index of highest ray used
+!   fan(:)    -- ray_struct: array of rays from one lattice element
+!   i_ray     -- integer: index of highest ray used
 !   branch    -- branch_struct: with twiss propagated and mat6s made
-!   walls  -- walls_struct: Both walls and ends
+!   walls     -- walls_struct: Both walls and ends
 !   wall_side -- Integer: +x or -x side where rays are hitting.
-!   gen    -- synrad_param_struct: Contains lattice name, vert emittance, and beam current.
+!   sr_param  -- synrad_param_struct: Contains lattice name, vert emittance, and beam current.
 !
 ! Output:
 !   power(*)  -- ele_power_struct: power radiated from a lattice ele
-!   walls   -- wall_struct: both walls and ends with power information
+!   walls     -- wall_struct: both walls and ends with power information
 !-
 
-subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, ele_power)
+subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, sr_param, ele_power)
 
 use synrad_struct
 use synrad_interface, except => seg_power_calc
@@ -33,7 +33,7 @@ type (wall_struct), pointer :: wall
 type (wall_seg_struct), pointer :: seg
 type (ray_struct) :: ray
 type (ray_struct), pointer :: ray1, ray2
-type (synrad_param_struct) gen
+type (synrad_param_struct) sr_param
 type (branch_struct) branch
 type (ele_power_struct) ele_power
 
@@ -54,7 +54,7 @@ energy = branch%ele(fan(1)%start%ix_ele)%value(e_tot$)
 ! 14.1e3 [m (eV)^-3] (used below) is  Cgamma * 1e9 / (2 pi) 
 !    Cgamma is from Sands (p98) which is 8.85e-5 m (GeV)^-3 for electrons.  
 
-power_factor = 14.1e3 * gen%i_beam * (energy/1e9)**4 * (mass_of(electron$) / mass_of(branch%param%particle))**3
+power_factor = 14.1e3 * sr_param%i_beam * (energy/1e9)**4 * (mass_of(electron$) / mass_of(branch%param%particle))**3
 
 do i = 2, i_ray
 
@@ -93,12 +93,12 @@ do i = 1, i_ray
 
   ! should update to include energy and dispersion component!!!
   ! sig_y is the sqrt of the vert emitt * vert beta
-  sig_y = sqrt(gen%epsilon_y * ray2%y_twiss%beta)
+  sig_y = sqrt(sr_param%epsilon_y * ray2%y_twiss%beta)
 
   ! sig_yprime is the vertical opening angle
 
   call convert_total_energy_to (energy, branch%param%particle, gamma)
-  sig_yp = sqrt(gen%epsilon_y * ray2%y_twiss%gamma + 1 / gamma**2)
+  sig_yp = sqrt(sr_param%epsilon_y * ray2%y_twiss%gamma + 1 / gamma**2)
 
   ! the effective sig_y includes the increase from sig_yp
   sig_y_eff = sqrt(sig_y**2 + (ray2%track_len * sig_yp)**2)
@@ -363,11 +363,14 @@ type (ele_power_struct) ele_power
 
 real(rp) illum_factor, power_per_len, frac_illum
 
+if (sr_param%filter_phantom_photons .and. wall%pt(seg%ix_pt)%phantom) return
+
 ! Only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
 
 illum_factor = abs(sin(theta_rel)) * frac_illum / track_len
 power_per_len = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * illum_factor
+
 ele_power%at_wall = ele_power%at_wall + power_per_len * seg%len
 
 ep => seg%power

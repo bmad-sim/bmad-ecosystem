@@ -30,7 +30,7 @@ real(rp) wall_offset, s, x_in, x_out, x_plus, x_minus, seg_len
 logical err_flag, phantom, ok
 
 namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
-                           forward_beam, backward_beam, use_ele_ix, use_ele_ix2
+                    forward_beam, backward_beam, use_ele_ix, use_ele_ix2
 
 namelist / wall_pt / s, x_in, x_out, x_plus, x_minus, name, phantom
 
@@ -46,6 +46,7 @@ neg_x_wall => walls%negative_x_wall
 
 plotting = ''
 in_file = 'synrad.in'
+sr_param%filter_phantom_photons = .true.
 ok = .true.
 
 i = 0
