@@ -111,6 +111,7 @@ type synrad_param_struct
   real(rp) i_beam        ! beam current
   integer n_slice        ! # of slice per element or wiggler pole
   logical :: debug = .false.
+  logical filter_phantom_photons
 end type synrad_param_struct
 
 type synrad_mode_struct

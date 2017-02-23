@@ -92,12 +92,6 @@
 
 %---------------------------------------------------------------------------------
 
-\title{ \srthree Photon Tracking Program}
-\author{G. Dugan, D. Sagan}
-\date{February 22, 2017}
-
-%---------------------------------------------------------------------------------
-
 \begin{document}
 %%\maketitle
 
@@ -118,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries August 9, 2016}
+{\large\bfseries February 23, 2017}
 
 \end{center}
 \end{titlepage}
@@ -539,6 +533,7 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     e_filter_max = -1                ! Max final energy filter param.
     s_filter_min = -1                ! Min S position filter param.
     s_filter_max = -1                ! Max S position filter param.
+    filter_phantom_photons = T       ! Filter photons striking a phantom wall?
     num_ignore_generated_outside_wall = 0    !
     turn_off_kickers_in_lattice = F          ! Zero the closed orbit?
     surface_roughness_rms       = -1         ! Surface roughness for diffuse scattering.
@@ -670,6 +665,11 @@ indicates that the particular filter is not used. See below.
 Minimum and maximum longitudinal position filter values of the final
 photon position. A negative filter value indicates that the particular
 filter is not used. See below.
+  \item[\vn{filter_phantom_photons] \Newline
+Phantom photons are photons that have hit a ``phantom'' wall (\sref{s:surface}).  That is,
+a wall whose surface name is set to ``PHANTOM''. If \vn{filter_phantom_photons} is set the
+\vn{True} (the default) a filter test is used to exclude phantom photons from the output.
+If set to \vn{False}, the filter will not be applied.
   \item[\vn{photon_start_output_file}] \Newline
 This string, if not blank, will cause \srthree to create an output
 file, with a name given by the value of \vn{photon_start_output_file},
@@ -1412,13 +1412,15 @@ exceptions are if \vn{<name>} is set to
   PHANTOM               ! Case sensitive
 \end{example}
 The \vn{ABSORBER} setting makes the surface a perfect absorber. The \vn{PHANTOM} setting
-is for surfaces where, if a photon hits the surface, it is not counted in the final
-statistics. This is useful for situations like simulating an X-ray beam pipe where, for
-the purposes of the simulation, the pipe is terminated at some point and photons
-intersecting the end of the pipe are not to be considered to have hit a wall but rather to
-have safely gone through to the experimental end station. Effectively, photons
-intersecting a phantom wall is treated as any other photon that fails a filter test
-(\sref{s:master.example}).
+is for surfaces where, if \vn{filter_phantom_photons} (\sref{s:master.example}) is True,
+if a photon hits the phantom surface, it is not counted in the final statistics. This is
+useful for situations like simulating an X-ray beam pipe where, for the purposes of the
+simulation, the pipe is terminated at some point and photons intersecting the end of the
+pipe are not to be considered to have hit a wall but rather to have safely gone through to
+the experimental end station. Effectively, photons intersecting a phantom wall is treated
+as any other photon that fails a filter test (\sref{s:master.example}). Note that,
+independent of the setting of \vn{filter_phantom_photons}, a phantom surface acts like a
+perfect absorber. That is, there are never any reflections from a phantom surface.
 
 If \vn{<is_local>} is \vn{True}, then the surface material only spans the region from the
 previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the
@@ -1742,6 +1744,8 @@ divided into two parts. the top part essentially echos the information provided 
 the main input file. It looks like:
 \begin{example}
   # photon_number_factor    =  8.155E-01
+  # num_photons_generated   = 123    ! ! Total including filtered photons.
+  # I0_tot                  = 0.34   ! I0 radiation integral for the entire ring
   # ix_ele_track_start      = 103
   # ix_ele_track_end        = 104
   # photon_direction        = 1

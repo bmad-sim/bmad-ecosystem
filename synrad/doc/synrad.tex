@@ -61,7 +61,7 @@
 
 \title{\syn: Program for Calculating Synchrotron Radiation Power}
 \author{}
-\date{July 21, 2014}
+\date{February 23, 2017}
 
 \begin{document}
 \maketitle
@@ -140,6 +140,7 @@ striking such a section is not to be counted.
 
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall}
+\label{s:wall}
 
 \syn uses the Bmad local reference coordinates for specifying the
 vacuum chamber wall (see the \vn{Coordinates} chapter in the Bmad
@@ -321,17 +322,18 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example main
 input file:
 \begin{example}
   &synrad_params
-    sr_param%lat_file = "lat.bmad"   ! Input lattice.
-    sr_param%i_beam = 0.1            ! Single-beam current.
-    sr_param%epsilon_y = 10e-12      ! Vertical emittance.
-    sr_param%n_slice = 20            ! # of slices per element or wiggler period
-    seg_len = 0.1                    ! Segment length for calculation.
-    beam_direction = 0               ! -1 = track backwards only,
-                                     !  0 = track both directions, 1 = forward.
-    wall_file = "wall.dat"           ! Name of file specifying the wall.
-    forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
-    backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
-    use_ele_ix = 0           ! If non-zero only emit photons from one element.
+    sr_param%lat_file = "lat.bmad"      ! Input lattice.
+    sr_param%i_beam = 0.1               ! Single-beam current.
+    sr_param%epsilon_y = 10e-12         ! Vertical emittance.
+    sr_param%n_slice = 20               ! # of slices per element or wiggler period
+    sr_param%filter_phantom_photons = T ! Filter photons striking phantom wall?
+    seg_len = 0.1                       ! Segment length for calculation.
+    beam_direction = 0                  ! -1 = track backwards only,
+                                        !  0 = track both directions, 1 = forward.
+    wall_file = "wall.dat"              ! Name of file specifying the wall.
+    forward_beam  = "POSITRON"          ! "POSITRON" or "ELECTRON"
+    backward_beam = "ELECTRON"          !  This is important if there are elsep elements.
+    use_ele_ix = 0                  ! If non-zero only emit photons from one element.
   /
 \end{example}
   \begin{description}
@@ -355,6 +357,10 @@ taken to be equal to the value of the \vn{num_steps} parameter.
 The \vn{seg_len} parameter sets the maximum size of a wall segment. 
 A smaller size can give better power deposition resolution but 
 increases the computation time. and the output file size.
+  \item[\vn{sr_param\%filter_phantom_photons}] \Newline
+If \vn{%filter_phantom_photons} is set to \vn{True} (the default), photons hitting a part
+of the chamber wall that has been designated as \vn{phantom} (\sref{s:wall}) are ignored
+and do not contribute to the output.
   \item[\vn{beam_direction}] \Newline
 The \vn{beam_direction} parameter specifies the direction of the
 tracking to use: -1 = track backwards only (This corresponds to e$^-$
@@ -388,6 +394,7 @@ generate power from all bends, quads and wigglers.
 
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall Definition} 
+\label{s:wall.syntax}
 
 Wall files define a series of wall vertices.  The definition includes
 the s-position (meters), and the corresponding $x$ values for the $-x$
