@@ -299,6 +299,7 @@ end subroutine sr3d_photon_d_radius
 !     %now%vec(3)     -- y-position
 !     %now%s          -- s-position
 !     %now%ix_wall3d  -- sub-chamber wall index.
+!     %now%ix_wall_section -- Section of wall index.
 !
 ! Output:
 !   x_wall        -- real(rp): x wall point. Return zero if no wall here..
