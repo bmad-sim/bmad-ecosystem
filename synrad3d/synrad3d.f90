@@ -36,7 +36,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele, status, ix_branch
+integer i, n, iu, iu2, ix, random_seed, iu_start, j_photon, ix_ele, status, ix_branch
 integer n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
@@ -44,7 +44,7 @@ integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file, photon_track_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
-
+character(300) line3
 character(100) dat_file, dat2_file, wall_file, param_file, arg, line
 character(40) plotting, test, who
 character(16) chamber_end_geometry
@@ -590,19 +590,37 @@ else
 endif
 
 ! Write photon_number_factor = (Num actual photons emitted per beam particle) / (Num macro photons generated in simulation)
-! Using direct access to be able to modify the first line in the file without touching the rest of the file.
-! NOTE: recl = 40 must match first line length in write_this_header!
 
 iu = sr3d_params%iu_dat_file
+iu2 = lunget()
+open (iu2, status = 'scratch')
+
+rewind(iu)
+
+do
+  read (iu, '(a)', iostat = ios) line3
+  write (iu2, '(a)') trim(line3)
+  if (ios /= 0) exit
+enddo
+
+rewind(iu)
+rewind(iu2)
+
 photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / (6 * h_bar_planck * c_light * n_photon_generated)
-write (line, '(a, es11.3, a)') '# photon_number_factor    =', photon_number_factor
-write (line, '(a, i11, a)')    '# num_photons_generated   =', n_photon_generated, '   ! Total including filtered photons.'
-write (line, '(a, es11.3, a)') '# I0_tot                  =', i0_tot, '   ! I0 radiation integral for the entire ring'
+
+write (iu, '(a, es11.3, a)') '# photon_number_factor       =', photon_number_factor
+write (iu, '(a, i11, a)')    '# num_photons_generated      =', n_photon_generated, '   ! Total including filtered photons.'
+write (iu, '(a, i11, a)')    '# num_photons_passed_test    =', n_photon_array,     '   ! Num that passed filter tests'
+write (iu, '(a, es11.3, a)') '# I0_tot                     =', i0_tot, '   ! I0 radiation integral for the entire ring'
+
+do
+  read (iu2, '(a)', iostat = ios) line3
+  write (iu, '(a)') trim(line3)
+  if (ios /= 0) exit
+enddo
 
 close (iu)
-open (iu, file = dat_file, access = 'direct', recl = 40, form = 'formatted')
-write (iu, '(a40)', rec = 1) line(1:40)
-close (iu)
+close (iu2)
 
 !--------------------------------------------------------------------------------------------
 contains
@@ -755,12 +773,11 @@ character(20) date_and_time
 
 call date_and_time_stamp (date_and_time)
 line = ''
-write (iu, '(a40)') line           ! Temporary. Will be replaced by phton_number_factor at end of run.
 write (iu, '(2a)')           '# date                       = ', date_and_time
 write (iu, '(a, i0, a)')     '# ix_ele_track_start         = ', ix_ele_track_start
 write (iu, '(a, i0, a)')     '# ix_ele_track_end           = ', ix_ele_track_end
 write (iu, '(a, i0, a)')     '# photon_direction           = ', photon_direction
-write (iu, '(a, i0, a)')     '# num_photons                = ', num_photons, '   ! Number of photons passing filter tests.'
+write (iu, '(a, i0, a)')     '# num_photons                = ', num_photons, '   ! Input target number to generate'
 write (iu, '(a, i0, a)')     '# num_photons_per_pass       = ', num_photons_per_pass
 write (iu, '(a, i0, a)')     '# random_seed                = ', random_seed
 write (iu, '(a, 3a)')        '# lattice_file               = ', '"', trim(lattice_file), '"'

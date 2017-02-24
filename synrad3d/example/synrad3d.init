@@ -7,7 +7,7 @@
   ix_ele_track_start   = 103   ! Radiation is produced from the *exit* end of this element...
   ix_ele_track_end     = 104   !  ... to the exit end of this element. -1 -> Go to the end of the lattice
   photon_direction     = 1     ! 1 = Forward generation, -1 = Backward generation.
-  num_photons          = 1000  ! Nominal number of unfiltered photons generated. 
+  num_photons          = 100  ! Nominal number of unfiltered photons generated. 
   num_photons_per_pass = -1    ! Number of photons generated per pass. -1 => Use num_photons value.
   ds_step_min          = 0.01  ! Photons are generated at discrete points. 
                                !   Multipole photons can be generated at each point.
