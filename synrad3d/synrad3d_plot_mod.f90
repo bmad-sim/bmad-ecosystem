@@ -308,15 +308,15 @@ real(rp) dummy, r1(3), r2(3)
 real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
-integer i, n, ix, iw, i_chan, ios, i0, i1, ix_branch
-integer n_phot1, n_phot2, n_hit1, n_hit2
+integer i, n, ix, iw, i_chan, ios, ix_branch
+integer n_phot1, n_phot2, n_hit1, n_hit2, color, line_pattern
 
 character(*) plane
 character(16) plane_str
 character(40) :: ans
 
-logical xy_user_good, s_user_good, no_wall_here, found, good_wall_hit, good_photon_track
-logical, allocatable :: no_wall(:)
+logical xy_user_good, s_user_good, no_wall_here, found_wall, good_wall_hit, good_photon_track
+logical, allocatable :: no_wall(:), phantom(:)
 
 ! Open plotting window
 
@@ -329,7 +329,10 @@ call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 xy_user_good = .false.
 s_user_good = .false.
 r_max = 100
-allocate(s(plot_param%n_pt), xy_in(plot_param%n_pt), xy_out(plot_param%n_pt), no_wall(plot_param%n_pt))
+n = plot_param%n_pt
+allocate(s(n), xy_in(n), xy_out(n), no_wall(n), phantom(n))
+
+phantom = .false.
 
 if (plane == 'xs') then
   plane_str = 'X (cm)'
@@ -413,31 +416,51 @@ do
       xy_out(i) = 100 * wall_xy
 
       no_wall(i) = no_wall_here
+
+      if (.not. no_wall_here) then
+        phantom(i) = (branch%wall3d(iw)%section(photon%now%ix_wall_section)%surface%name == 'PHANTOM')
+      endif
     enddo
 
     ! Now plot
 
-    i0 = 1
-    found = .false.
+    found_wall = .false.
     do i = 1, size(s)
+
       if (no_wall(i)) then
-        if (found) then
-          call qp_draw_polyline (s(i0:i-1), xy_in(i0:i-1))
-          call qp_draw_polyline (s(i0:i-1), xy_out(i0:i-1))
-          call qp_draw_line(s(i-1), s(i-1), xy_in(i-1), xy_out(i-1))
+        if (found_wall) then
+          if (phantom(i-1)) then
+            color = red$
+            line_pattern = dashed$
+          else
+            color = black$
+            line_pattern = solid$
+          endif
+          if (i > 2) then
+            call qp_draw_polyline (s(i-2:i-1), xy_in(i-2:i-1), color = color, line_pattern = line_pattern)
+            call qp_draw_polyline (s(i-2:i-1), xy_out(i-2:i-1), color = color, line_pattern = line_pattern)
+          endif
+          call qp_draw_line(s(i-1), s(i-1), xy_in(i-1), xy_out(i-1), color = color, line_pattern = line_pattern)
         endif
-        found = .false.
+        found_wall = .false.
 
       else  ! have a wall
-        if (.not. found) then
-          i0 = i
-          call qp_draw_line(s(i), s(i), xy_in(i), xy_out(i))
-        elseif (i == size(s)) then
-          call qp_draw_polyline (s(i0:i), xy_in(i0:i))
-          call qp_draw_polyline (s(i0:i), xy_out(i0:i))
-          call qp_draw_line(s(i), s(i), xy_in(i), xy_out(i))
+        if (phantom(i)) then
+          color = red$
+          line_pattern = dashed$
+        else
+          color = black$
+          line_pattern = solid$
         endif
-        found = .true.
+
+        if (.not. found_wall .or. i == size(s)) then
+          call qp_draw_line(s(i), s(i), xy_in(i), xy_out(i), color = color, line_pattern = line_pattern)
+        endif
+        if (found_wall) then
+          call qp_draw_polyline (s(i-1:i), xy_in(i-1:i), color = color, line_pattern = line_pattern)
+          call qp_draw_polyline (s(i-1:i), xy_out(i-1:i), color = color, line_pattern = line_pattern)
+        endif
+        found_wall = .true.
       endif
     enddo
   enddo
