@@ -124,154 +124,241 @@ same list as the \bmad parser): \hfil\break
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 Setting the seed is described in Section~\sref{s:globals}.
 
-See \sref{s:param.syntax} for the syntax for using data, variable, and
-lattice parameter values in an expression.
+See the following sections for the syntax for using data, variable, and
+lattice parameters in an expression.
 
 %------------------------------------------------------------------------
-\section{Syntax for Specifying Data, Variable, and Lattice parameter Values}
-\label{s:param.syntax}
+\section{Specifying Data Parameters in Expressions}
+\label{s:data.token}
 
-Data (\sref{s:data.org}) and variable values
-(\sref{c:var}), along with lattice parameters can be
-referenced in expressions. The general form of a term for
-data and variables is
+A data (\sref{s:data.org}) parameter ``\vn{token}'' is a string that specifies a scaler or an array
+of data parameters.  The general form for data tokens in expressions
+(\sref{s:arithmetic.exp}) is:
 \begin{example}
-  \{[<universe(s)>]@\}<source>::<var_or_data_name>[<index_list>]\{|<component>\}
+  \{[<universe(s)>]@\}data::<d2.d1_name>[<index_list>]|<component>
 \end{example}
-For lattice and beam parameters the format is
+where:
 \begin{example}
-  \{[<universe(s)>]@\}<source>::<param_name>[\{<ref_element>&\}<element_list>]\{|<component>\}
-\end{example}
-And for element parameters the format is
-\begin{example}
-  \{<universe_range>@\}ele::<element_list>[<param_name>]\{|<component>\}
-  \{<universe_range>@\}ele_mid::<element_list>[<param_name>]\{|<component>\}
-\end{example}
-\vn{lat::} will evaluate the parameter at the exit end of the element and 
-\vn{lat_mid::} will evaluate the parameter at the middle of the element.
-The components of this syntax are:
-\begin{example}
-  <universe_range>    Optional universe specification (\sref{s:universe})
-  <var_or_data_name>  Variable or data name.
-  <source>            Source of the data.
-  <param_name>        Name of the parameter, datum, or variable.
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <d2.d1_name>        D2.D1 data name
   <index_list>        List of indexes.
-  <ref_point>         Optional reference element (with lat or beam source only).
-  <eval_points>       Evaluation point or points.
-  <component>         Optional component. 
+  <component>         Component. 
+\end{example}
+examples:
+\begin{example}
+  [2:4,7]@data::orbit.x      ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  [2]@data::orbit.x          ! The \vn{orbit.x} data in universe 2. 
+  2@data::orbit.x[4]         ! Fourth \vn{orbit.x} datum in universe 2.
+  data::orbit.x[4,7:9]|meas  ! Default uni measured values of datums 4, 7, 8, and 9.
+  -1@data::orbit.x           ! Same as "orbit.x".
+  *@data::orbit.x            ! orbit.x data in all the universes.
+  *@data::*                  ! All the data in all the universes.
+\end{example}
+
+It is important to keep in mind that data must be defined at startup in the appropriate
+initialization file as discussed in \Sref{s:init.data} before reference is made to data in
+an expression. The \vn{<d2.d1_name>} data names that have been defined at initialization
+time may be viewed using the \vn{show data} command. Note that these names are user
+defined and do not have to correspond to the data types given in \Sref{s:data.types}. See
+\Sref{s:lat.token} for how to use ``lattice parameters'' that correspond to the data types
+given in \Sref{s:data.types} and that do not need to be defined at initialization.
+
+See \Sref{s:data.anatomy} for a list of datum \vn{<component>}s (when
+running \tao, view a particular datum with the \vn{show data} command to see the list).
+
+\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine
+how many elements are in the array. For example, \vn{orbit.x[10:21,44]} 
+represents an array of 13 elements. 
+
+Depending upon the context, some parts of a token may be omitted. For example,
+with the \vn{set data} command the ``\vn{data::}'' part of the token may be omitted.
+Example:
+\begin{example}
+  set data 2@orbit.x|meas = var::quad_k1[5]|model - orbit.y[3]|ref
+\end{example}
+Here \tao will default to evaluating a token as data. In general, what may be omitted
+should be clear in context.
+
+Data components that are computed by \tao may be used on the right hand side of an equal
+sign but may not be set. For example, the \vn{model} value of a datum is computed by \tao
+but the \vn{ref} value is not.
+
+If multiple tokens are used in an expression, all tokens must evaluate to arrays of the
+same size.
+
+%------------------------------------------------------------------------
+\section{Specifying Variable Parameters in Expressions}
+\label{s:var.token}
+
+A variable (\sref{c:var}) parameter ``\vn{token}'' is a string that specifies a scaler or an array
+of variable parameters. The general form for variable tokens in expressions
+(\sref{s:arithmetic.exp}) is:
+\begin{example}
+  var::<v1_name>[<index_list>]<component>
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <v1_name>           V1 variable name.
+  <index_list>        List of indexes.
+  <component>         component. 
 \end{example}
 Examples:
 \begin{example}
+  var::*                     ! All the variables
+  var::quad_k1[*]|design     ! All design values of quad_k1.
+  var::quad_k1[]|model       ! No values. That is, the empty set.
+  var::quad_k1|model         ! Same as quad_k1[*]|model
+\end{example}
+
+It is important to keep in mind that variables must be defined at startup in the
+appropriate initialization file as discussed in \Sref{s:init.var} before reference is made
+to them in an expression.  The defined \vn{<v1_name>} variable names can be viewed using
+the \vn{show variable} command. Since these names are user defined they will change if different
+initialization files are used.
+
+See \Sref{c:var} for a list of \vn{<components>} of a variable.
+
+\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine
+how many elements are in the array. For example, \vn{k_quad[10:21,44]} 
+represents an array of 13 elements. 
+
+Depending upon the context, some parts of a token may be omitted. For example,
+with the \vn{set varible} command the ``\vn{var::}'' part of the token may be omitted.
+Example:
+\begin{example}
+  set var quad_k1[5]|meas = data::2@orbit.x|meas
+\end{example}
+Here \tao will default to evaluating a token as a variable component. In general, what may
+be omitted should be clear in context.
+
+Variable components that are computed by \tao may be used on the right hand side of an equal
+sign but may not be set. For example, the \vn{design} value of a variable is computed by \tao
+but the \vn{meas} value is not.
+
+If multiple tokens are used in an expression, all tokens must evaluate to arrays of the
+same size.
+
+%------------------------------------------------------------------------
+\section{Specifying Lattice Parameters in Expressions}
+\label{s:lat.token}
+
+``Lattice parameters'' are like \vn{data} parameters (\sref{s:data.token}) except lattice
+parameters are calculated from the lattice and do not have to be defined at initialization
+time.  A lattice parameter ``\vn{token}'' is a string that specifies a scaler or an array of lattice
+parameters. The general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
+\begin{example}
+  \{[<universe(s)>]@\}lat::<parameter>[\{<ref_ele>&\}<element_list>]\{|<component>\}
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <parameter>         Name of the parameter.
+  <ref_ele>           Optional reference element.
+  <eval_points>       Evaluation point or points.
+  <component>         Optional component. 
+\end{example}
+correspond to the data types as listed in \Sref{s:data.types}. 
+\begin{example}
   3@lat::orbit.x[34:37]          Array of orbits at element 34 through 37 in universe 3.
   3@lat::orbit.x[34]|model       Orbit.x model value at element 34
-  3@ele::34[orbit_x]             Same as above. 
-  beam::sigma.x[q10w]            Beam sigma at element q10w.
-  beam::n_particle_loss[2&56]    Particle loss between elements 2 and 56.
-  3@lat::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
-                                   with names beginning with "q".
-  lat::3[l]|design               Length of the design lattice element #3 
-                                   in the default universe.
-  data::orbit.x[2:7,8]|model
+  lat::sigma.12[q10w]            Beam sigma matrix component at element q10w computed 
+                                  from lattice parameters.
 \end{example}
 
-The \vn{<source>} field may be one of:
-\begin{example}
-  beam        ! Value is from multiparticle beam tracking.
-  data        ! Value is from a \tao datum in a data array (\sref{s:data.org}).
-  ele         ! Value at exit end of element.
-  ele_mid     ! Value at middle of element.
-  lat         ! Value is from the lattice.
-  var         ! Value is from a \tao variable (\sref{c:var}).
-\end{example}
+The list of possible lattice \vn{<parameter>} names is given in \Sref{s:data.types}. The
+table \ref{t:data.types} shows which data names are associated with the lattice. Lattice
+parameters are independent of \vn{data} parameters. For example, \vn{lat::orbit.x} refers
+to the horizontal orbit while \vn{data::orbit.x} refers to user defined data whose name
+corresponds to \vn{orbit.x} and in fact there is nothing to prevenet a user from assigning
+the name \vn{orbit.x} to data that is derived from, say, the Twiss beta function.
 
-When a term has a \vn{data} source, The value of the term comes from a 
-data structure. With a \vn{data} source, \vn{<var_or_dat_name>} is the name
-of a \vn{d2_name.d1_name} data array (\sref{s:data.org}) and 
-\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine
-how many elements are in the array. For example, \vn{orbit.x[10:21,44]} 
-represents an array of 13 elements. Finally, the optional \vn {<component>}
-indicates what component of the datum is to be used. Possible components are
-listed in Section~\sref{s:datum.values}. The default is \vn{model}.
+Also notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
+``\vn{data::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element index, in this
+case \vn{10}, refers to the 10th lattice element. With the ``\vn{data::}'' source,
+``\vn{10}'' refers to the 10\Th element in the \vn{orbit.x} data array which may or may
+not correspond to the 10\Th lattice element.
 
-When a term has a \vn{var} source, the value of the term comes from a
-\tao variable (\sref{c:var}). With a \vn{var} source,
-\vn{<var_or_data_name>} is the name of a \vn{v1_var} variable array. Like
-terms with a \vn{data} source, \vn{<index_list>} is a list of indexes.
-The optional \vn{<component>} indicates what component of the variable
-is to be used. Possible components are listed in Section~\sref{c:var}.
-The default is \vn{model}.
-
-% Note: when combining components from the same \vn{data} or \vn{var} source
-% in an expression, the common prefix can be eliminated. 
-% For example
-% \begin{example}
-%   orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
-% \end{example}
-% is equivalent to
-% \begin{example}
-%   orbit.x[2:7,8]|model - 2*meas
-% \end{example}
-
-When a term has a \vn{lat} or \vn{beam} source, the value of the term
-comes from evaluation of the lattice or beam tracking. The
-\vn{<param_name>} will be a datum type from Table~\ref{t:data.types}
-table. Element list format (\sref{s:ele.list.format}) is used for the
-\vn{element_list}. In this case, a universe specification is not
-allowed as part of the element list. For example, the following is not
-allowed
-\begin{example}
-  lat::orbit.x[3@q10w]    ! Bad syntax
-\end{example}
-The correct syntax is
-\begin{example}
-  3@lat::orbit.x[q10w]    ! Good syntax
-\end{example}
-
-The optional \vn{<ref_element>} specifies a reference
+The optional \vn{<ref_ele>} specifies a reference
 element for the evaluation. For example
 \begin{example}
   lat::r.56[q0\&qa:qb]
 \end{example}  
 is an array of the $r(5,6)$ matrix element of the transport map
 between element \vn{q0} and each element in the range from element
-\vn{qa} and \vn{qb}. The optional \vn{<component>} indicates what
-lattice is to be used. Possible components are
+\vn{qa} and \vn{qb}. 
+
+%------------------------------------------------------------------------
+\section{Specifying Beam Parameters in Expressions}
+\label{s:beam.token}
+
+Beam parameters are like lattice parameters (\sref{s:lat.token}) except beam parameters
+are derived from tracking a beam of particles and may only be used in an expression if beam
+tracking is turned on.  A beam parameter ``\vn{token}'' is a string that specifies a scaler or an
+array of beam parameters. The general form for data tokens in expressions
+(\sref{s:arithmetic.exp}) is:
 \begin{example}
-  model (default)
-  base
-  design
+  \{[<universe(s)>]@\}beam::<parameter>[\{<ref_ele>&\}<element_list>]\{|<component>\}
 \end{example}
-The default is \vn{model}.
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <parameter>         Name of the parameter
+  <ref_ele>           Optional reference element.
+  <eval_points>       Evaluation point or points.
+  <component>         Component. 
+\end{example}
+Examples:
+\begin{example}
+  2@beam::sigma.x[q10w]           Beam sigma at element q10w.
+  beam::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
+\end{example}
 
-Notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
-``\vn{data::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element 
-index, in this case \vn{10}, refers to the 10th lattice element. With the
-``\vn{data::}'' source, ``\vn{10}'' refers to the 10\Th element in
-the \vn{orbit.x} data array which may or may not correspond to the
-10\Th lattice element and which may not even refer to orbit data.
+The list of possible beam \vn{<parameter>} names is given in \Sref{s:data.types}. The table
+\ref{t:data.types} shows which data names are associated with beam tracking.
 
-Due to historical circumstances, the notation is a bit different for
-terms with an \vn{ele} or \vn{ele_mid} source as opposed to terms with
-a \vn{lat} or \vn{beam} source. With \vn{ele} or \vn{ele_mid}, the
-\vn{<element_list>} comes before the \vn{<param_name>}. Additionally,
-With \vn{ele} or \vn{ele_mid}, the \vn{<param_name>} uses the \bmad
-naming convention as opposed to the \tao convention. For example, the
-\tao name for the horizontal orbit is \vn{orbit.x} while the \bmad
-name is \vn{orbit_x}.
+%------------------------------------------------------------------------
+\section{Specifying Element Parameters in Expressions}
+\label{s:ele.token}
 
-Logical attributes of an element can be referred to. For example,
-``\vn{ele::Q01W[is_on]}'' gives the on/off status of element
-\vn{Q01W}. If used in an expression, True values are converted to a
-value of \vn{1} and False value are converted to \vn{0}.
+``Element parameters'' are parameters associated with lattice elements like the quadrupole
+strength associated with an element. Element parameters also include derived quantities
+like the computed Twiss parameters and the beam orbit. An element parameter ``\vn{token}''
+is a string that specifies a scaler or an array of element parameters. The general form
+for element tokens in expressions is:
+\begin{example}
+  \{<universe(s)>@\}ele::<element_list>[<parameter>]\{|<component>\}
+  \{<universe(s)>@\}ele_mid::<element_list>[<parameter>]\{|<component>\}
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <element_list>      List of element names or indexes.
+  <parameter>         Name of the element parameter
+  <component>         Component. 
+\end{example}
+Examples:
+\begin{example}
+  3@ele_mid::34[orbit_x]     Orbit at middle of element with index 34 in universe 3.
+  ele::sex01w[k2]            Sextupole component of element \vn{sex01w}
+  ele::Q01W[is_on]|model     The on/off status of element \vn{Q01W}.
+\end{example}
 
-the value of the term comes from an element parameter such as the
-element strength.  Element list format (\sref{s:ele.list.format}) is
-used for the \vn{<element_list>} so an array of elements can be
-defined.  The optional \vn{<component>} indicates what lattice is to
-be used and is the same as for terms with a \vn{lat} or \vn{beam}
-source (see above).
+There is some overlap between element parameters and lattice parameters
+(\sref{s:lat.token}).  For historical reasons, the \vn{element} parameter syntax roughly
+follows a convention developed for \bmad lattice files which is somewhat different from
+the convention developed for \tao data. For example, the $a$-mode beta is named
+\vn{beta.a} in \tao while \bmad uses the name \vn{beta_a}. See the \bmad manual for more
+information on the \bmad lattice file syntax.
 
-Generally, if the \vn{<source>} field is not present, for example, 
-``\vn{orbit.x[10]}'', \tao will search 
-for a match assuming that the source is either \vn{data} or \vn{var}. 
-Exceptions will be noted in the manual.
+For parameters that are vaying throughout the element, like the Twiss parameters,
+\vn{ele::} will evaluate the parameter at the exit end of the element and \vn{ele_mid::}
+will evaluate the parameter at the middle of the element. For parameters that do not vary,
+like the quadrupole strength, use the \vn{ele::} syntax.
+
+Element list format (\sref{s:ele.list.format}) is used for the \vn{<element_list>} so an
+array of elements can be defined.
+
+For element parameter that evaluate to a logical, if they are used on the right hand side
+of an expression where the result is a real number, a \vn{True} value will be converted to
+a value of \vn{1} and a \vn{False} value is converted to a value of \vn{0}.

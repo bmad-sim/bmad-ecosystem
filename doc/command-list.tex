@@ -1347,7 +1347,7 @@ Format:
   show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
         \{-xfer_mat\} <ele_name>                                        ! \sref{s:show.element}
-  show field <ele> <x> <y> <z> \{t\}                                    ! \sref{s:show.field}
+  show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}   ! \sref{s:show.global}
   show graph <graph_name>                                             ! \sref{s:show.graph}
   show hom                                                            ! \sref{s:show.hom}
@@ -1666,13 +1666,14 @@ Example:
 
 Syntax:
 \begin{example}
-  show field <ele> <x> <y> <z> \{t\}
+  show field <ele> <x> <y> <z> \{<t>\}
 \end{example}
 
 The \vn{show field} command shows the electric and magnetic field at a point in
 space-time. The \vn{<z>} coordinate is with respect to the beginning of the element
 specified by \vn{<ele>}. The syntax for \vn{<ele>} is explained in section
 \sref{s:ele.list.format}. In this case, \vn{<ele>} must specify a single element.
+The \vn{<t>} argument is optional and will be set to zero if not specified.
 
 %% show global --------------------------------------------------------------
 

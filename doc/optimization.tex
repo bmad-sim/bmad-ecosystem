@@ -3,21 +3,17 @@
 
 \index{optimization|hyperbf}
 \index{merit function}
-This chapter covers the process of \vn{optimization} which involves
-minimization of a
-\vn{Merit Function} to correct and to design lattices. Examples
-of \vn{lattice corrections} include flattening the orbit and adjusting
-quadrupoles to correct the measured betatron phase. \vn{Lattice
-design} involves creating a lattice that conforms to a set of
-desirable properties. For example, requiring that the beta function
-in a certain region never exceeds a given value.
-Section~\sref{c:optimizer} gives a tutorial on how to setup the merit
-function and run the \vn{optimizer} in \tao.  In this chapter,
-Section~\sref{s:lattice.correction} presents the merit function in the
-context of lattice corrections while Section~\sref{s:lattice.design}
-discuses the merit function in the context of lattice design. Since
-the concepts used in \vn{lattice corrections} and \vn{lattice design} are
-similar, \tao combines the two into one generalized process as 
+This chapter covers the process of \vn{optimization} which involves minimization of a
+\vn{Merit Function}. Optimization can be used to correct or to design lattices. Examples of \vn{lattice
+corrections} include flattening the orbit and adjusting quadrupoles to correct the
+measured betatron phase. \vn{Lattice design} involves creating a lattice that conforms to
+a set of desirable properties. For example, requiring that the beta function in a certain
+region never exceeds a given value.  Section~\sref{c:optimizer} gives a tutorial on how to
+setup the merit function and run the \vn{optimizer} in \tao.  In this chapter,
+Section~\sref{s:lattice.correction} presents the merit function in the context of lattice
+corrections while Section~\sref{s:lattice.design} discuses the merit function in the
+context of lattice design. Since the concepts used in \vn{lattice corrections} and
+\vn{lattice design} are similar, \tao combines the two into one generalized process as
 discussed in Section~\sref{s:generalized.design}.
 
 %------------------------------------------------------------------------
@@ -27,48 +23,53 @@ discussed in Section~\sref{s:generalized.design}.
 \index{lattice corrections}
 
 \index{optimization!merit function}
-Consider the problem of problem of modifying the orbit of a beam
-through a lattice to conform to some desired orbit (typically a ``flat'' orbit
-running through the centers of the quadrupoles). The process
-generally goes through three stages: First the orbit is measured, then
-corrections to the steering elements are calculated and finally the
-corrections are applied to the machine. Since these are necessarily
-machine specific, \tao has no specific routines to measure orbits or
-to load steering corrections but they could be implemented as
-discussed in Chapter~\sref{c:custom.tao}. \tao does, however,
-implement a generalized algorithm procedure for minimizing a
-\vn{merit function} which can be used to calculate the corrections.
-The idea is to vary a set of variables (steerings in the case of an
-orbit correction) within the \vn{model} lattice
-(\sref{s:universe}) with the aim to make the measured \vn{data}
-(position data for an orbit correction) correspond to the
-values as calculated from the \vn{model} lattice.
+Consider the problem of problem of modifying the orbit of a beam through a lattice to
+conform to some desired orbit (typically a ``flat'' orbit running through the centers of
+the quadrupoles). The process generally goes through three stages: First the orbit is
+measured, then corrections to the steering elements are calculated and finally the
+corrections are applied to the machine. Since these are necessarily machine specific, \tao
+has no specific routines to measure orbits or to load steering corrections but they could
+be implemented with some custom coding as discussed in Chapter~\sref{c:custom.tao}. What
+\tao does, however, is to implement a generalized algorithm procedure for minimizing a
+\vn{merit function} which can be used to calculate the corrections.  The idea is to vary a
+set of variables (steerings in the case of an orbit correction) within the \vn{model}
+lattice (\sref{s:universe}) with the aim to make the \vn{measured} \vn{data} (position
+data for an orbit correction) correspond to the values as calculated from the \vn{model}
+lattice.  Once the model lattice the \vn{model} and \vn{measured} data agree, the
+difference between the \vn{model}, which represents the state of the machine when the
+measurement is made, and the \vn{design}, which represents the desired state of the
+machine, is used to calculate corrections. In the case of flattening an orbit, the
+difference between the \vn{model} steering strengths and the \vn{design} steering
+strengths (typically the \vn{design} steering strengths are zero) is what the real
+steerings need to be changed by to flatten the orbit.
 
-The merit function \vn{M} that is a measure of how
-well \vn{data_model}, the data as calculated from the \vn{model}, fits
-\vn{data_meas}, the measured data, is
+The merit function \vn{M} that is a measure of how well the data as calculated from the
+\vn{model}, fits the measured data. \tao uses a merit function of the form
 \Begineq
-  {\cal M} \equiv \sum_{i} w_i \,
-    \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
-  \sum_{j} w_j \,
-    \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
+  {\cal M} \equiv 
+    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
+    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
   \label{m1}
 \Endeq
-\vn{var_model} is the value of a variable in the \vn{model} and
-\vn{var_meas} is the value as measured at the time the data was taken
-(for example, by measuring the current through a steering and using a
-calibration factor to calculate the kick) and the sum \vn{j} runs over
-all variables that are allowed to be varied to minimize \vn{M}.  The
-second term in the merit function prevents degeneracies (or near
-degeneracies) in the problem which would allow \tao to find solutions
-where \vn{data_model} matches \vn{data_measured} with the
-\vn{var_model} having ``unphysical'' values (values far from
-\vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending
-upon how accurate the measured data is relative to how accurate the
-calibrations for measuring the \vn{var_meas} values are. With the
-second term in the merit function, the number of constraints (number of
-terms in the merit function) is always larger than the number of
-variables and degeneracies can never occur.
+where
+\begin{align}
+  \delta D &= \data\_\model - \data\_\meas \CRNO
+  \delta V &= \var\_\model  - \var\_\meas
+  \label{dd1}
+\end{align}
+\vn{data_model} is the data as calculated from the \vn{model} and \vn{data_meas} is the
+measured data. \vn{var_model} is the value of a variable in the \vn{model} and
+\vn{var_meas} is the value as measured at the time the data was taken (for example, by
+measuring the current through a steering and using a calibration factor to calculate the
+kick) and the sum \vn{j} runs over all variables that are allowed to be varied to minimize
+\vn{M}. The second term in the merit function prevents degeneracies (or near
+degeneracies) in the problem which would allow \tao to find solutions where
+\vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical''
+values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set
+depending upon how accurate the measured data is relative to how accurate the calibrations
+for measuring the \vn{var_meas} values are. With the second term in the merit function,
+the number of constraints (number of terms in the merit function) is always larger than
+the number of variables and degeneracies can never occur.
 
 In a correction one wants to change the machine variables so that the
 measured data corresponds to the design values \vn{data_design}. Thus
@@ -93,37 +94,26 @@ Notice that the fitting process is independent of the \vn{design}
 lattice. It is only when calculating the corrections to the
 variables that the \vn{design} lattice plays a role. 
 
-Sometimes it is desired to fit to changes in data as opposed to the
-absolute value of the data. For example, when closing an orbit bump
-knob what is important is the difference in orbits before and after
-the bump knob is varied. Designating one of these orbit the
-\vn{reference}, the appropriate merit function is
-\begin{alignat}{1}
-  {\cal M} = &\sum_{i} w_i \,
-    \Bigl[ \bigl( \data\_\model(i) - \data\_\design(i) \bigr) - 
-      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \Bigr]^2 + \CRNO
-  &\sum_{j} w_j \,
-    \Bigl[ \bigl( \var\_\model(j) - \var\_\design(j) \bigr) -
-     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \Bigr]^2 
-  \label{m2}
-\end{alignat}
-where \vn{data_ref} and \vn{var_ref} refer to the reference
-measurement.  This merit function is acceptable if the reference data
-is taken with the machine reasonably near the design setup so that
-nonlinearities can be ignored. If this is not the case then the
-fitting becomes a two step process: The first step is to fit the
-\vn{model} to the \vn{reference} data using the merit function of
-\Eq{m1}. The \vn{base} lattice is then set equal to the \vn{model}
-lattice. The second step is to fit the model using the merit function
-\begin{alignat}{1}
-  {\cal M} = &\sum_{i} w_i 
-    \Bigl[ \bigl( \data\_\model(i) - \data\_\base(i) \bigr) - 
-      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \Bigr]^2 + \CRNO
-  &\sum_{j} w_j 
-    \Bigl[ \bigl( \var\_\model(j) - \var\_\base(j) \bigr) -
-     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \Bigr]^2 
-  \label{m3}
-\end{alignat}
+Sometimes it is desired to fit to changes in data as opposed to the absolute value of the
+data. For example, when closing an orbit bump knob what is important is the difference in
+orbits before and after the bump knob is varied. Designating one of these orbit the
+\vn{reference}, the appropriate deltas to be used in \Eq{m1} are
+\begin{align}
+  \delta D &= (\data\_\model - \data\_\design) - (\data\_\meas - \data\_\reference) \CRNO
+  \delta V &= (\var\_\model - \var\_\design)   - (\var\_\meas - \var\_\reference)
+  \label{dd2}
+\end{align}
+where \vn{data_ref} and \vn{var_ref} refer to the reference measurement.  These deltas
+are acceptable if the reference data is taken with the machine reasonably near the
+design setup so that nonlinearities can be ignored. If this is not the case then the
+fitting becomes a two step process: The first step is to fit the \vn{model} to the
+\vn{reference} data using the deltas of \Eq{dd1}. The \vn{base} lattice is then set
+equal to the \vn{model} lattice. The second step is to fit the model using the deltas
+\begin{align}
+  \delta D &= (\data\_\model - \data\_\base) - (\data\_\meas - \data\_\reference) \CRNO
+  \delta V &= (\var\_\model - \var\_\base)   - (\var\_\meas - \var\_\reference)
+  \label{dd3}
+\end{align}
 
 Control of what data and what variables are to be used in the fitting
 process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
@@ -139,14 +129,11 @@ Lattice design is the process of calculating \vn{variable} strengths
 to meet a number of criteria called constraints. For example, one
 constraint could be that the beta function in some part of the lattice
 not exceed a certain value. In this case we can proceed as was done
-for lattice corrections and define a merit function to be minimized:
+for lattice corrections and use \Eq{m1}. In this case, the deltas
+are computed to limit values to some range so a typical delta
+would be of the form
 \Begineq
-  {\cal M} = \sum_{i} w_i \, C_i^2
-\Endeq
-Typically constraints are either to limit values to some range so the
-constraint would be of the form
-\Begineq
-  C = 
+  \delta D \; \text{or} \; \delta V = 
     \begin{cases}
     \mbox{model} - \mbox{limit}  & \mbox{model $>$ Limit} \\
     0                            & \mbox{otherwise}
@@ -155,7 +142,7 @@ constraint would be of the form
 or a constraint is used to keep the \vn{model} at a certain value so
 the form of the constraint would be
 \Begineq
-  C = \mbox{model} - \mbox{target}  
+    \delta D \; \text{or} \; \delta V = \mbox{model} - \mbox{target}  
 \Endeq
 Here \vn{model} is the value as calculated from the \vn{model}
 lattice. \vn{target} and \vn{limit} are given numbers. Part of the
@@ -167,25 +154,9 @@ optimization process is in deciding what the values should be for any
 \label{s:generalized.design}
 \index{optimization!generalized merit function}
 
-Since lattice correction and design are similar, \tao
-combines the two into one generalized process. In this
-generalized process, the merit function becomes
-\Begineq
-  {\cal M} = \sum_i w_i \, D_i^2 + \sum_j w_j \, V_j^2
-  \label{miwdjw}
-\Endeq
-where $D_i$ are the data terms and $V_j$ are the variable terms.
-The general form of the data merit terms $D_i$ is 
-\Begineq
-  D = 
-    \begin{cases}
-    \mbox{delta}  & \mbox{Non-Zero-Condition} \\
-    0             & \mbox{Otherwise}
-    \end{cases}
-\Endeq
-The equation used to calculate \vn{delta} is determined by two global logicals called
-\vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in
-Table~\ref{t:delta}. 
+The form of the deltas used in the merit function is determined by two global logicals
+called \vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in
+Table~\ref{t:delta}.
 \begin{table}[ht] 
 \centering 
 {\tt

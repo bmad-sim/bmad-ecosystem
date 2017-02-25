@@ -1628,6 +1628,10 @@ elseif (size(r_dat) /= 0) then
     if (component == 'ref')  d_dat(i)%d%good_ref = .true.
     if (component == 'base') d_dat(i)%d%good_base = .true.
   enddo
+
+else
+  call out_io (s_error$, r_name, 'LEFT HAND SIDE MUST POINT TO A SCALER OR ARRAY OF DATA COMPONENTS.')
+  return
 endif
 
 !----------------------

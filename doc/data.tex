@@ -122,7 +122,7 @@ encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 \section{Anatomy of a Datum}
 \label{s:data.anatomy}
 
-Each datum has a number of quantities associated with it:
+Each datum has a number of components associated with it:
 \begin{example}
   data_type        ! Character: Type of data: "orbit.x", etc.
   ele_name         ! Character: Name of lattice element where datum is evaluated.
@@ -890,7 +890,7 @@ Orbit position and momenta
 Betatron phase.  If a \vn{d1_data} array has a set of
 \vn{phase} datums, and if the reference element is {\em not}
 specified, the average phase used for optimizations ($D$ in
-\Eq{miwdjw}) and plotting for all the datums within a \vn{d1_data}
+\Eq{m1}) and plotting for all the datums within a \vn{d1_data}
 array are set to zero by adding a fixed constant to all the datums.
 This is done since, without a reference point that defines a zero
 phase, the overall average phase is arbitrary and so the average phase

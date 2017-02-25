@@ -16,40 +16,40 @@
 !------------------------------------------------------------------------
 &tao_params
   !global%plot_on = .true.
- global%track_type = 'single'
-!global%track_type = 'beam'
-global%beam_timer_on = T
+  global%track_type = 'single'
+  !global%track_type = 'beam'
+  global%beam_timer_on = T
   global%random_engine = 'pseudo'
   !global%random_engine = 'quasi'
- ! global%floor_plan_rotation = 0.5
+  ! global%floor_plan_rotation = 0.5
   global%de_lm_step_ratio = 1500
   global%optimizer = 'lmdif'
   global%n_opti_cycles = 100
   !---Bmad---
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = T
-  /
+/
 
 !----MODE X ----
 &tao_beam_init
-    beam_init%use_lattice_center = T
-      beam_init%n_particle = 1000
-        beam_init%random_engine = 'quasi'
-        !beam_init%random_engine = 'pseudo'
-		ix_universe = 1
-        !beam0_file = 'beam.in'
-        !ix_track_start = 123 !corresponts to la.mar.beg\1
-		beam_saved_at =  "MARKER::*"
-		!track_start = 'LA.MAR.BEG\1'
-        beam_init%a_norm_emit = 1.0e-6
-        beam_init%b_norm_emit = 1.0e-6
-        beam_init%dPz_dz = 0.0
-        beam_init%n_bunch = 1     
-        beam_init%bunch_charge = 77.0e-12
-        beam_init%sig_e = 0e-9
-        !beam_init%sig_z = 0.00059958  ! 2 ps * cLight
-        beam_init%sig_z = 0.000899377 ! 3 ps * cLight
-        !beam_init%sig_z =  1e-9 ! for testing
+  beam_init%use_lattice_center = T
+  beam_init%n_particle = 1000
+  beam_init%random_engine = 'quasi'
+  !beam_init%random_engine = 'pseudo'
+  ix_universe = 1
+  !beam0_file = 'beam.in'
+  !ix_track_start = 123 !corresponts to la.mar.beg\1
+  beam_saved_at =  "MARKER::*"
+  !track_start = 'LA.MAR.BEG\1'
+  beam_init%a_norm_emit = 1.0e-6
+  beam_init%b_norm_emit = 1.0e-6
+  beam_init%dPz_dz = 0.0
+  beam_init%n_bunch = 1     
+  beam_init%bunch_charge = 77.0e-12
+  beam_init%sig_e = 0e-9
+  !beam_init%sig_z = 0.00059958  ! 2 ps * cLight
+  beam_init%sig_z = 0.000899377 ! 3 ps * cLight
+  !beam_init%sig_z =  1e-9 ! for testing
 /
 
 !------------------------Data--------------------------------------------
@@ -59,16 +59,16 @@ global%beam_timer_on = T
 ! FFAG orbit matching
 
 !&tao_d2_data
-        d2_data%name = "o1" 
-        universe = 1
-        n_d1_data = 1
+      d2_data%name = "o1" 
+      universe = 1
+      n_d1_data = 1
 /
 
 !&tao_d1_data
-        ix_d1_data = 1
-        default_weight = 1
-        d1_data%name = "end"
-        datum( 1) =  "orbit.x"     ''  '' 'FFAG.CELLMATCH\1'   'target'     -0.0169816520 40
-        datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\1'   'target'   -0.0931239496  1
+      ix_d1_data = 1
+      default_weight = 1
+      d1_data%name = "end"
+      datum( 1) =  "orbit.x"     ''  '' 'FFAG.CELLMATCH\1'   'target'     -0.0169816520 40
+      datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\1'   'target'   -0.0931239496  1
 /
 

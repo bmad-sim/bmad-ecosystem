@@ -200,9 +200,9 @@ if (this_err) return
 
 ! Trim 'data::' suffix if present
 
-if (index(dat_name, 'dat::') /= 0) then
+if (dat_name(1:5) == 'dat::') then
   call out_io (s_error$, r_name, 'NAME USES OLD "dat::" SYNTAX. PLEASE CHANGE TO "data::": ' // dat_name)
-  call err_exit
+  dat_name = data_name(6:)
 endif
 
 if (dat_name(1:6) == 'data::') dat_name = dat_name(7:)
