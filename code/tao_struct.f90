@@ -456,9 +456,9 @@ end type
 ! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
 ! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
 ! %useit_opt  -- Variable is to be used for optimizing:
-!                  = %exists & %good_user & %good_opt & %good_var
-! %useit_plot -- Variable value to be plotted:
-!                  = %exists & %good_plot & %good_user
+!                  %useit_opt = %exists & %good_user & %good_opt & %good_var
+! %useit_plot -- If True variable is used in plotting variable values.
+!                  %useit_plot = %exists & %good_plot & %good_user
 !
 ! With common_lattice = True => var%slave(:)%model_value will point to the working universe.
 
@@ -597,6 +597,7 @@ type tao_global_struct
   logical :: debug_on = .false.                   ! For debugging.
   logical :: single_step = .false.                ! For debugging. Single step through a command file?
   logical :: optimizer_allow_user_abort = .true.  ! See Tao manual for more details.
+  logical :: quiet = .false.                      ! Print commands on terminal when running a command file?
 end type
 
 !

@@ -4,18 +4,14 @@
 
 \index{change command}
 \index{optimizer!variables}
-For the \vn{model} lattice (or lattices if there are multiple
-\vn{universes}) the \vn{change} command (\sref{s:change}) can be used
-to vary lattice parameters such as element strengths, the initial
-Twiss parameters, etc.  Additionally, \vn{variables} can be defined
-in the \tao initialization files (\sref{s:init.var})
-that can also be used to vary these \vn{model} lattice parameters.  
-A given \tao variable may control a single attribute of one element 
-in one or more universes.  
-There are a few reasons why one would want to setup such variables.
-For example, the optimizer (\sref{c:optimizer}) will only work with
-\tao variables and blocks of these variables can be plotted for visual
-inspection.
+For the \vn{model} lattice (or lattices if there are multiple \vn{universes}) the
+\vn{change} command (\sref{s:change}) can be used to vary lattice parameters such as
+element strengths, the initial Twiss parameters, etc.  Additionally, \vn{variables} can be
+defined in the \tao initialization files (\sref{s:init.var}) that can also be used to vary
+these \vn{model} lattice parameters.  A given \tao variable may control a single attribute
+of one element in one or more universes.  There are a few reasons why one would want to
+setup such variables.  For example, the optimizer (\sref{c:optimizer}) will only work with
+\tao variables and blocks of these variables can be plotted for visual inspection.
 
 \index{variables!v1_var}
 Blocks of variables are associated with what is called a \vn{v1_var}
@@ -47,10 +43,10 @@ an element's \vn{x_offset} and another variable controls the same element's
 In referring to variables, a ``\vn{*}'' can be used as a wild card to 
 denote ``all''. Thus:
 \begin{example}
-  *                ! All the variables
-  quad_k1[*]|model ! All model values of quad_k1.
-  quad_k1[]|model  ! No values. That is, the empty set.
-  quad_k1|model    ! Same as quad_k1[*]|model
+  *                 ! All the variables
+  quad_k1[*]|design ! All design values of quad_k1.
+  quad_k1[]|model   ! No values. That is, the empty set.
+  quad_k1|model     ! Same as quad_k1[*]|model
 \end{example}
 
 A given variable may control a single attribute of one element in a
@@ -61,51 +57,148 @@ one element. However, a variable may control an overlay or group
 element which, in turn, can control numerous elements.
 
 Each individual variable has a number of values associated with it:
-  \vspace*{-3ex}
+The list of components that can be set or refereed to are:
+\begin{example}
+  ele_name     ! Associated lattice element name.
+  attrib_name  ! Name of the attribute to vary.
+  ix_attrib    ! Index in ele%value(:) array if appropriate.
+  s            ! longitudinal position of ele.
+
+  meas         ! Value of variable at time of a data measurement.
+  ref          ! Value at time of the reference data measurement.
+  model        ! Value in the model lattice.
+  base         ! Value in the base lattice.
+  design       ! Value in  the design lattice.
+  correction   ! Value determined by a fit to correct the lattice.
+  old          ! Scratch value.
+
+  weight       ! Weight used in the merit function.
+  delta_merit  ! Diff used to calculate the merit function term.
+  merit        ! merit_term = weight * delta^2.
+  merit_type   ! 'target' or 'limit'
+  dMerit_dVar  ! Merit derivative.
+
+  high_lim     ! High limit for the model_value.
+  low_lim      ! Low limit for the model_value.
+  step         ! For fitting/optimization: What is considered a small change.
+
+  key_bound    ! Variable bound to keyboard key?
+  ix_key_table ! Has a key binding?
+
+  ix_v1        ! Index of this var in the s%v1_var(i)%v(:) array.
+  ix_var       ! Index number of this var in the s%var(:) array.
+  ix_dvar      ! Column in the dData_dVar derivative matrix.
+
+  exists       ! Does the variable exist?
+  good_var     ! The variable can be varied (set by \tao).
+  good_user    ! The variable can be varied (set by the user).
+  good_opt     ! For use by extension code.
+  good_plot    ! For use by extension code
+  useit_opt    ! Variable is to be used for optimizing.
+  useit_plot   ! Variable is to be used for plotting.
+\end{example}
+
   \index{variable!measured}\index{variable!reference}
   \index{variable!model}\index{variable!design}\index{variable!base}
   \begin{description}
-  \item[Measured Value] \Newline
-The Value as obtained at the time of the \vn{data} measurement.
-  \item[Reference Value] \Newline
-The Value as obtained at the time of the \vn{reference} data  measurement.
-  \item[Model Value] \Newline
-The value as given in the \vn{model} lattice.
-  \item[Design Value] \Newline
-The value as given in the \vn{design} lattice.
-  \item[Base Value] \Newline
-The value as given in the \vn{base} lattice.
+  \item[attrib_name] \Newline
+Name of the element attribute to vary. To see a list of attributes for a given element
+consult the \bmad manual or use the \vn{show element -attributes} command.
+  \item[base] \Newline
+The value of the variable as derived from the \vn{base} lattice (\sref{s:universe}).
+  \item[delta_merit] \Newline
+Difference value used to calculate the contribution of the variable to the merit function (\Eq{m1}).
+  \item[design] \Newline
+The value of the variable as given in the \vn{design} lattice.
+  \item[dMerit_dVar] \Newline
+Derivative of the merit function with respect to the variable.
+  \item[ele_name] \Newline
+Associated lattice element name.
+  \item[exists] \Newline
+The variable exists. Non-existent variables can serve as place holders in a variable
+array.
+  \item[good_opt] \Newline
+Logical not modified by Tao proper and reserved for use by extension code. See below.
+  \item[good_plot] \Newline
+Logical not modified by Tao proper and reserved for use by extension code. See below.
+  \item[good_var] \Newline
+Logical controlled by \tao and used to veto variables that should not be varied during
+optimization. For example, variables that do not affect the merit function. See below.
+  \item[good_user] \Newline
+Logical set by the user using \vn{veto}, \vn{use}, and \vn{restore} commands to indicate
+whether the variable should be used when optimizing. See below.
+  \item[high_lim] \Newline
+High limit for the model value during optimization (\sref{s:generalized.design}) beyond which
+the contribution of the variable to the merit function is nonzero.
+  \item[ix_attrib] \Newline
+Index assigned by \bmad to the attribute being controlled. Used for diagnosis and not
+of general interest.
+  \item[ix_dvar] \Newline
+Column index of the variable in the dData_dVar derivative matrix constructed by \tao.
+Used for diagnostics and not of general interest.
+  \item[ix_key_table] \Newline
+Index of the variable in the key table (\sref{s:key.bind}).
+  \item[ix_v1] \Newline
+Index of this variable in the variable array of the associated \vn{v1_var} variable.
+For example, a variable named \vn{q1_quad[10]} would have \vn{ix_v1} equal to 10.
+  \item[ix_var] \Newline
+For ease of computation, \tao establishes an array that holds all the variables.
+\vn{ix_var} is the index number for this variable in this array. 
+Used for diagnostics and not of general interest.
+  \item[key_bound] \Newline
+Variable bound to keyboard key (\sref{s:key.bind})?
+  \item[measured] \Newline
+The value of the variable as obtained at the time of a \vn{data} measurement.
+  \item[merit] \Newline
+The contribution to the merit function \Eq{m1} from the variable. Use the \vn{show top10}
+command to set the variables and data which contribute most to the merit function.
+  \item[merit_type] \Newline
+T'target' or 'limit'
+  \item[low_lim] \Newline
+Lower limit for the model value during optimization (\sref{s:generalized.design}) beyond which
+the contribution of the variable to the merit function is nonzero.
+  \item[model] \Newline
+The value of the variable as given in the \vn{model} lattice.
+  \item[reference] \Newline
+The Value of the variable as obtained at the time of a \vn{reference} data measurement
+(\sref{s:lattice.correction}.
+  \item[s] \Newline
+longitudinal position of element whose attribute the variable is controlling.  Since a
+variable may control multipole attributes in multiple elements at different s-positions,
+The value of \vn{s} may not be relevant.
+  \item[step] \Newline
+What is considered a small change in the variable but large enough to be able to compute
+derivatives by changing the variable by \vn{step}. Used for fitting/optimization.  
+  \item[useit_opt] \Newline
+Variable is to be used for optimization. See below.
+  \item[useit_plot] \Newline
+If True, variable is used when plotting variable values. See below.
+  \item[weight] \Newline
+Weight used in the merit function. $w_j$ in \Eq{m1}
   \end{description}
-These components and others can be refereed to using the notation
-\vn{|name} where \vn{name} is the appropriate name for the
-component. The list of components that can be set or refereed to are:
-\begin{example}
-  quad_k1[1]|meas       ! Value at time of data measurement
-  quad_k1[1]|ref        ! Value at time of the reference data measurement
-  quad_k1[1]|model      ! Value in the model lattice
-  quad_k1[1]|base       ! Value in the base lattice
-  quad_k1[1]|design     ! Value in  the design lattice
-  quad_k1[1]|weight     ! Weight used in the merit function.
-  quad_k1[1]|old        ! Scratch value.
-  quad_k1[1]|step       ! For fitting/optimization: What is considered a small change.
-  quad_k1[1]|exists     ! Logical
-  quad_k1[1]|good_var   ! Logical
-  quad_k1[1]|good_user  ! Logical
-  quad_k1[1]|good_opt   ! Logical
-  quad_k1[1]|good_plot  ! Logical
-  quad_k1[1]|useit_opt  ! Logical
-  quad_k1[1]|useit_plot ! Logical
 
-\end{example}
+
+These components and others can be refereed to in expressions using the notation documented
+in \Sref{s:var.token}.
 
 Use the \vn{show var} (\sref{s:show}) command to see variable information
 
 When using optimization for lattice correction or lattice design
-(\sref{c:opti}), Individual datums can be excluded from the process
+(\sref{c:opti}), Individual variables can be excluded from the process
 using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
 and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
-component of a datum. This, combined with the setting \vn{exists},
+component of a variable. This, combined with the setting \vn{exists},
 \vn{good_var}, and \vn{good_opt} determine the setting of
 \vn{useit_opt} which is the component that determines if the datum is
-used in the computation of the merit function. The settings of
-everything but \vn{good_user} is determined by \tao
+used in the computation of the merit function. 
+\begin{example}
+  useit_plot = exists \& good_user \& good_opt \& good_var
+\end{example}
+The settings of everything but \vn{good_user} and \vn{good_opt} is determined by \tao
+
+If the \vn{useit_plot} component is True, the variable is used when when plotting
+variables and is not used when \vn{useit_plot} is False. \vn{useit_plot} is set
+by \tao using the state of three other components:
+\begin{example}
+  useit_plot = exists \& good_plot \& good_user
+\end{example}
