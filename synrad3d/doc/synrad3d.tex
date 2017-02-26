@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries February 23, 2017}
+{\large\bfseries February 25, 2017}
 
 \end{center}
 \end{titlepage}
@@ -508,8 +508,8 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     ix_ele_track_start   = 1      ! Radiation region start lattice element.
     ix_ele_track_end     = 912    ! Radiation region end lattice element.
     photon_direction     = 1      ! 1 = Forward generation, -1 = Backward generation.
-    num_photons          = 50000  ! Nominal number of unfiltered photons generated. 
-    num_photons_per_pass = -1     ! Number of photons generated per pass. -1 = Use num_photons.
+    num_photons          = 50000  ! Target number of unfiltered photons.
+    num_photons_per_pass = -1     ! Number of photons generated per pass. -1 = Use num_photons/5.
     ds_step_min          = 0.01   ! Photons are generated at discrete points. 
                               ! Multiple photons can be generated at each point.
                               ! This is minimum distance between points.
@@ -572,15 +572,18 @@ that the photons are created in the $-s$ direction.
   \item[\vn{num_photons}] \Newline
 \vn{num_photons} establishes the minimum number of ``unfiltered''
 photons that need to be generated before \srthree will stop the
-simulation. The minimum number is actually 0.9 * \vn{num_photons}. See
-below for more details. An unfiltered photon is a photon that passes
-all filter requirements.  
+simulation. The actual number of unfiltered photons will be between
+\vn{num_photons} and \vn{num_photons+num_photons_per_pass} See
+below for more details. [An unfiltered photon is a photon that passes
+all filter requirements and is recorded in the output statistics.]
   \item[\vn{num_photons_per_pass}] \Newline
 \vn{num_photons_per_pass} sets the number of photons generated per
 ``pass''.  A ``pass'' is the act of generating photons throughout the
 radiation production region. If \vn{num_photon_per_pass} is negative
-(the default), the number of photons generated per pass is taken from
-the value of \vn{num_photons}.
+(the default), the number of photons generated per pass is taken
+to be \vn{num_photons}/5. The actual number of unfiltered photons will be between
+\vn{num_photons} and \vn{num_photons+num_photons_per_pass} See
+below for more details.
   \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
 These parameters set the particle beam size and so will affect the starting coordinates of
 the photons. A negative set of any of these parameters will result in \srthree 
@@ -665,7 +668,7 @@ indicates that the particular filter is not used. See below.
 Minimum and maximum longitudinal position filter values of the final
 photon position. A negative filter value indicates that the particular
 filter is not used. See below.
-  \item[\vn{filter_phantom_photons] \Newline
+  \item[\vn{filter_phantom_photons}] \Newline
 Phantom photons are photons that have hit a ``phantom'' wall (\sref{s:surface}).  That is,
 a wall whose surface name is set to ``PHANTOM''. If \vn{filter_phantom_photons} is set the
 \vn{True} (the default) a filter test is used to exclude phantom photons from the output.
@@ -724,6 +727,14 @@ the lattice. If The lattice has other branches, the chamber end geometry for cha
 these branches is always determined by the \vn{geometry} setting for the branch.
 \end{description}
 
+\srthree will generate a set of approximately \vn{num_photons_per_pass} photons in the
+radiation production region.  This is called a ``pass''.  After any filtering, \srthree
+will check to see if the number of unfiltered photons is at least \vn{num_photons}.  If
+so, photon generation will stop. If not enough photons have been generated, \srthree will
+generate another \vn{num_photons_per_pass}, and so on, until at least \vn{num_photons}
+unfiltered photons have been generated. Thus the actual number of unfiltered photons
+will be between \vn{num_photons} and \vn{num_photons_per_pass}.
+
 The six "filter" parameters are:
 \begin{example}
   e_init_filter_min   ! min initial energy filter.
@@ -754,15 +765,6 @@ being the case, \vn{e_init_filter_min} and \vn{e_init_filter_max} are equivalent
 \vn{e_filter_min} and \vn{e_filter_max} respectively. Furthermore, the execution time of a
 simulation will be speeded up if \vn{e_init_filter_min} and \vn{e_init_filter_max} are
 used instead of \vn{e_filter_min} and \vn{e_filter_max} since less tracking will be done.
-
-\srthree will generate a set of approximately
-\vn{num_photons_per_pass} photons in the radiation production region.
-This is called a ``pass''.  After any filtering, \srthree will check
-to see if the number of unfiltered photons is at least 0.9 *
-\vn{num_photons}. If so, photon generation will stop. If not enough
-photons have been generated, \srthree will generate another
-\vn{num_photons_per_pass}, and so on, until at least 0.9 *
-\vn{num_photons} unfiltered photons have been generated.
 
 %------------------------------------------------------------------
 \chapter{Vacuum Chamber} 

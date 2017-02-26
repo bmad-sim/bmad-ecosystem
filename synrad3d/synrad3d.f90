@@ -289,7 +289,7 @@ print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
 ! d_i0 determines the number of photons to generatie per unit i0 integral.
 
 n_photons_per_pass = num_photons_per_pass
-if (n_photons_per_pass < 1) n_photons_per_pass = num_photons
+if (n_photons_per_pass < 1) n_photons_per_pass = ceiling(0.2 * num_photons)
 d_i0 = i0_tot / n_photons_per_pass
 
 ! Determine the emittance
@@ -451,16 +451,15 @@ else
     print *, 'Creating photon start output file: ', trim(photon_start_output_file)
   endif
 
-  ! Allocate photons array
+  ! Track loop
 
-  n = max(num_photons, n_photons_per_pass)
-  allocate (photons(nint(2.1*n)))   
+  allocate (photons(num_photons + n_photons_per_pass + 1))
 
   ix_ele = ix_ele_track_start
   do 
 
     if (ix_ele == ix_ele_track_end) then
-      if (n_photon_array > 0.9 * num_photons) exit
+      if (n_photon_array >= num_photons) exit
       ix_ele = ix_ele_track_start
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
