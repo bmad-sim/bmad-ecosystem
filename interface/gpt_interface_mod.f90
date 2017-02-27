@@ -268,7 +268,7 @@ if (has_bend) then
   call out_io (s_error$, r_name, 'SCREEN COMMAND MUST BE MODIFIED DUE TO BEND IN LATTICE!.')
 endif
 
-write (gpt_file_unit, '(a, f14.8, a)') 'screen(“wcs”, “I”, ', ele%s, ');'
+write (gpt_file_unit, '(a, f14.8, a)') 'screen("wcs", "I", ', ele%s, ');'
 
 write(gpt_file_unit, '(a)') '# END GPT lattice'
 
