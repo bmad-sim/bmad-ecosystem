@@ -1,0 +1,46 @@
+
+setfile("beam", "beam0.gdf");
+
+#GBacc = 4.5;
+#xacc  = 6.5;
+GBacc = 6;
+xacc  = 8;
+accuracy(GBacc, xacc);
+
+# tout( 0/c, 1/c, 0.1/c);
+
+
+# GPT lattice
+# 
+#  Element: IN_MAR_BEG
+#  Bmad name: IN.MAR.BEG
+#  Bmad key: MARKER              
+#  ix_ele: 1
+#  theta:    0.00000
+
+#  Element: IN_GUN
+#  Bmad name: IN.GUN
+#  Bmad key: E_GUN               
+#  ix_ele: 7
+#  theta:    0.00000
+IN_GUN_frequency = 0;
+IN_GUN_field_scale = 5801854; # Maximum on-axis Ez in V/m
+IN_GUN_phase = 0;
+Map25D_TM("wcs", 0, 0,   7.5000000E-02, 1, 0, 0, 0, 1, 0, "2D_fieldmap_1.gdf",  "r", "z", "Er", "Ez", "Bphi", IN_GUN_field_scale, 0, IN_GUN_phase, IN_GUN_frequency*2*pi);
+
+#  Element: IN_SOLENOID
+#  Bmad name: IN.SOLENOID
+#  Bmad key: SOLENOID            
+#  ix_ele: 8
+#  theta:   -0.00100
+IN_SOLENOID_field_scale =   2.5331000E-02; # signed abs max on-axis Bz in T
+Map2D_B("wcs",   1.2340000E-03,   4.3210000E-03,   3.1100000E-01,   9.9999950E-01, 0,   9.9999983E-04,   9.9999967E-07,   9.9999950E-01,  -9.9999933E-04, "2D_fieldmap_2.gdf",  "r", "z", "Br", "Bz", IN_SOLENOID_field_scale);
+
+#  Element: END
+#  Bmad name: END
+#  Bmad key: MARKER              
+#  ix_ele: 6
+#  theta:    0.00000
+
+screen("wcs", "I",     1.15000000);
+# END GPT lattice
