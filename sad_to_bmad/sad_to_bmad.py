@@ -281,13 +281,13 @@ def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
 
     if sad_ele_def.type == 'sol':
       if sad_ele_def.param.get('bound') == '1': 
-        if sol_status == 0:
+        if sol_status == 0:            # If was outside solenoid..
           if sad_line_ele.sign == '':
-            sol_status = 1
+            sol_status = 1             # Now inside
           else:
-            sol_status = -1
-        else:
-          sol_status = 0
+            sol_status = -1            # Now inside a reversed solenoid
+        else:                          # If was inside solenoid...
+          sol_status = 0               # Now outside solenoid
 
     if sad_ele_def.type == 'sol':
       if sol_status == 1:
@@ -478,6 +478,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     if sad_ele.type == 'bend' and sad_param_name == 'fb1': continue
     if sad_ele.type == 'bend' and sad_param_name == 'fb2': continue
 
+    value = sad_ele.param[sad_param_name]
+
     # geo and bound get combined into sad_geo_bound
 
     if sad_param_name == 'geo' or sad_param_name == 'bound':
@@ -494,8 +496,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
     if full_param_name in ignore_sad_param: continue
-
-    value = sad_ele.param[sad_param_name]
 
     # Use more specific translation first
 
@@ -624,28 +624,29 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   if bmad_ele.type == 'patch':
 
     # If exiting solenoid
-####    if sol_status == 0:
+    if sol_status == 0:
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
     # If entering solenoid 
-####    else:
+    else:
       if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = str(eval(bmad_ele.param['x_offset'] + ' * -1'))
       if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = str(eval(bmad_ele.param['y_offset'] + ' * -1'))
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
-      zo = eval(bmad_ele.param.get('z_offset', '0'))
-      xo = eval(bmad_ele.param.get('x_offset', '0'))
-      xp = eval(bmad_ele.param.get('x_pitch', '0'))
-      yo = eval(bmad_ele.param.get('y_offset', '0'))
-      yp = eval(bmad_ele.param.get('y_pitch', '0'))
 
-      if xp != 0 and xo != 0:
-        bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
-        bmad_ele.param['x_offset'] = str(zo * math.sin(xp) + xo * math.cos(xp))
-        zo = eval(bmad_ele.param.get('z_offset', '0'))
-      if yp != 0 and yo != 0:
-        bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - yo * math.sin(yp))
-        bmad_ele.param['y_offset'] = str(zo * math.sin(xp) + yo * math.cos(yp))
+    zo = eval(bmad_ele.param.get('z_offset', '0'))
+    xo = eval(bmad_ele.param.get('x_offset', '0'))
+    xp = eval(bmad_ele.param.get('x_pitch', '0'))
+    yo = eval(bmad_ele.param.get('y_offset', '0'))
+    yp = eval(bmad_ele.param.get('y_pitch', '0'))
+
+    if xp != 0 and xo != 0:
+      bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
+      bmad_ele.param['x_offset'] = str(zo * math.sin(xp) + xo * math.cos(xp))
+      zo = eval(bmad_ele.param.get('z_offset', '0'))
+    if yp != 0 and yo != 0:
+      bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - yo * math.sin(yp))
+      bmad_ele.param['y_offset'] = str(zo * math.sin(xp) + yo * math.cos(yp))
 
   # Fringe 
 
@@ -1025,15 +1026,15 @@ def parse_directive(directive, sad_info):
 param_file = "sad_to_bmad.params"
 
 if len(sys.argv) == 1:
-  execfile (param_file)
+  exec (open(param_file).read())
 
 if len(sys.argv) == 2:
   param_file = sys.argv[1]
-  execfile (param_file)
+  exec (open(param_file).read())
 
 elif len(sys.argv) == 3:
   param_file = sys.argv[1]
-  execfile (param_file)
+  exec (open(param_file).read())
   sad_lattice_file = sys.argv[2]
 
 elif len(sys.argv) > 3:
