@@ -1892,7 +1892,8 @@ do
       endif
 
       if (old_bs_field == 0) then
-        sol_ele%value(sad_geo_bound$) = 2  
+        sol_ele%value(sad_geo_bound$) = 2
+        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
         if (nint(ele%value(sad_geo_bound$)) == 2) then
@@ -1901,6 +1902,9 @@ do
         else
           sol_ele%value(sad_geo_bound$) = 1
         endif
+        sol_ele%value(x_offset$) = -sol_ele%value(x_offset$)
+        sol_ele%value(y_offset$) = -sol_ele%value(y_offset$)
+        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
       else
         sol_ele%value(sad_geo_bound$) = 0
       endif
@@ -1954,10 +1958,12 @@ do
     n_name_change_warn = n_name_change_warn + 1
   endif
 
-  ! If there is an aperture...
+  ! If there is an aperture with an element that is not an ecoll or rcoll then need to make a separate
+  ! element with the aperture info. Exception: MAD-X can handle apertures on non collimator elements.
 
-  if ((val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. &
-      val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) .and. logic_option(.true., include_apertures)) then
+  if ((val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) .and. &
+      ele%key /= ecollimator$ .and. ele%key /= rcollimator$ .and. logic_option(.true., include_apertures) .and. &
+      (ele%key == drift$ .or. out_type /= 'MAD-X')) then
 
     if (val(x1_limit$) /= val(x2_limit$)) then
       call out_io (s_warn$, r_name, 'Asymmetric x_limits cannot be converted for: ' // ele%name, &
@@ -1973,33 +1979,40 @@ do
 
     ! create ecoll and rcoll elements.
 
-    if (ele%key /= ecollimator$ .and. ele%key /= rcollimator$ .or. (out_type == 'SAD' .and. ele%value(l$) /= 0)) then
-      if (out_type == 'MAD-8' .or. out_type == 'XSIF' .or. ele%key == drift$) then
-        if (ele%aperture_type == rectangular$) then
-          col_ele%key = rcollimator$
-        else
-          col_ele%key = ecollimator$
-        endif
-        a_count = a_count + 1
-        write (col_ele%name, '(a, i0)')  'COLLIMATOR_N', a_count
-        col_ele%value = val
-        col_ele%value(l$) = 0
-        val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
-        aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
-        if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-          ie2 = ie2 + 1
-        endif
-        if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch, orbit_out)
-          ie2 = ie2 + 1
-        endif
-        ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
-      endif
-
-      cycle ! cycle since ele pointer is invalid
+    if (ele%aperture_type == rectangular$) then
+      col_ele%key = rcollimator$
+    else
+      col_ele%key = ecollimator$
     endif
+    a_count = a_count + 1
+    write (col_ele%name, '(a, i0)')  'COLLIMATOR_N', a_count
+    col_ele%value = val
+    col_ele%value(l$) = 0
+    val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
+    aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
+    if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
+      call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+      ie2 = ie2 + 1
+    endif
+    if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
+      call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch, orbit_out)
+      ie2 = ie2 + 1
+    endif
+    ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
 
+    cycle ! cycle since ele pointer is invalid
+
+  endif
+
+  ! For SAD translation: collimators have zero length.
+
+  if (out_type == 'SAD' .and. ele%value(l$) /= 0) then
+    drift_ele%name = trim(ele%name) // '_DRIFT'
+    drift_ele%value(l$) = ele%value(l$)
+    call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
+    ix_ele = ix_ele + 1
+    ie2 = ie2 + 1
+    cycle
   endif
 
   ! If the bend has a roll then put kicker elements just before and just after
@@ -2723,18 +2736,18 @@ do ix_ele = ie1, ie2
 
     xp = val(x_pitch$);  yp = val(y_pitch$)
 
-    if (yp /= 0) then
-      zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
-      xo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
-      val(z_offset$) = zo
-      val(y_offset$) = yo
-    endif
-
     if (xp /= 0) then
-      zo =  val(z_offset$) * cos(yp) + val(x_offset$) * sin(yp)
-      xo = -val(z_offset$) * sin(yp) + val(x_offset$) * cos(yp)
+      zo =  val(z_offset$) * cos(xp) + val(x_offset$) * sin(xp)
+      xo = -val(z_offset$) * sin(xp) + val(x_offset$) * cos(xp)
       val(z_offset$) = zo
       val(x_offset$) = xo
+    endif
+
+    if (yp /= 0) then
+      zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
+      yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
+      val(z_offset$) = zo
+      val(y_offset$) = yo
     endif
 
     call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
@@ -2785,9 +2798,13 @@ do ix_ele = ie1, ie2
 
   case (ecollimator$, rcollimator$)
 
-    write (line_out, '(2a)') trim(ele%name) // ': ' // trim(key_name(ele%key)) // ', l = ', re_str(val(l$))
-    call value_to_line (line_out, val(x1_limit$), 'xsize', 'R')
-    call value_to_line (line_out, val(y1_limit$), 'ysize', 'R')
+    if (out_type == 'MAD-X') then
+      write (line_out, '(2a)') trim(ele%name) // ': collimator, l = ', re_str(val(l$))
+    else
+      write (line_out, '(2a)') trim(ele%name) // ': ' // trim(key_name(ele%key)) // ', l = ', re_str(val(l$))
+      call value_to_line (line_out, val(x1_limit$), 'xsize', 'R')
+      call value_to_line (line_out, val(y1_limit$), 'ysize', 'R')
+    endif
 
   ! elseparator MAD
 

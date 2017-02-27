@@ -179,7 +179,7 @@ character(4000) :: line
 character(40) :: name
 character(*), parameter :: r_name = 'write_gpt_lat_file'
 
-logical :: err
+logical :: err, has_bend
 
 ! Open file
 
@@ -255,10 +255,20 @@ fieldgrid_names%n_max = 0
 write(gpt_file_unit, '(a)')  '# GPT lattice'
 write(gpt_file_unit, '(2a)') '# ', trim(lat%lattice)
 
+has_bend = .false.
 do ie = ix_start, end_ele%ix_ele
   ele => lat%ele(ie)
   call write_to_file(ele)
+  if (ele%key == sbend$) has_bend = .true.
 enddo
+
+!
+
+if (has_bend) then
+  call out_io (s_error$, r_name, 'SCREEN COMMAND MUST BE MODIFIED DUE TO BEND IN LATTICE!.')
+endif
+
+write (gpt_file_unit, '(a, f14.8, a)') 'screen(“wcs”, “I”, ', ele%s, ');'
 
 write(gpt_file_unit, '(a)') '# END GPT lattice'
 
@@ -345,7 +355,7 @@ integer :: i, iu, n_slice, i_slice, q_sign, dimensions
 character(40)   :: fieldgrid_output_name, name
 character(1) :: component
 character(8), parameter :: rfmt = '(es15.7)'
-character(40)  :: r_name = 'write_gpt_ele'
+character(*), parameter  :: r_name = 'write_gpt_ele'
 
 logical, optional :: only_phasing
 
@@ -524,22 +534,22 @@ case (solenoid$)
 !--------------------------------
 
 case (sbend$) 
-!!! TODO
-if (.not. present(fieldgrid_names)) call out_io (s_error$, r_name, 'fieldgrid_names required')
-   !!!call get_gpt_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, &
-   !!!                            max_field, ref_time, dimensions = dimensions)
-  write(*, *) '#TEMP: NO FIELD MAP, GEOMETRY: '
-  write(iu, '(a)', advance = 'NO') '#GEOMETRY: '
-  call write_geometry()
-  !call write_property('field_scale', max_field, 'signed abs max on-axis By in T')
-  !select case (dimensions)
-  !case(3)
-  !  write (iu, '(a)', advance='NO'), 'Map3D_B('
-  !  call write_geometry()
-  !  write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'_B.gdf', '", '
-  !  write (iu, '(1a)', advance='NO') ' "x", "y", "z", "Bx", "By", "Bz", '
-  !  call write_property('field_scale')
-  !  write (iu, '(a)') ');'    
+  if (.not. present(fieldgrid_names)) call out_io (s_error$, r_name, 'fieldgrid_names required')
+     !!!call get_gpt_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, &
+     !!!                            max_field, ref_time, dimensions = dimensions)
+    call out_io (s_error$, r_name, 'TRANSLATION TO GPT FOR BEND NOT YET IMPLEMENTED!', 'SIMULATION WILL BE INVALID')
+    write(*, *) '#TEMP: NO FIELD MAP, GEOMETRY: '
+    write(iu, '(a)', advance = 'NO') '#GEOMETRY: '
+    call write_geometry()
+    !call write_property('field_scale', max_field, 'signed abs max on-axis By in T')
+    !select case (dimensions)
+    !case(3)
+    !  write (iu, '(a)', advance='NO'), 'Map3D_B('
+    !  call write_geometry()
+    !  write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'_B.gdf', '", '
+    !  write (iu, '(1a)', advance='NO') ' "x", "y", "z", "Bx", "By", "Bz", '
+    !  call write_property('field_scale')
+    !  write (iu, '(a)') ');'    
   
 
 !--------------------------------
@@ -554,12 +564,13 @@ case (quadrupole$)
    call write_property('gradient')
    write (iu, '(a)') ' );'  
 
-end select
+case (drift$, monitor$, instrument$, pipe$, girder$, overlay$, group$, marker$)
+  ! Nothing to do
 
-  
-!case default
-!  print *, 'ele not coded: ', ele%name
-!end select
+case default
+  call out_io (s_error$, r_name, 'No translation to GPT for:' // ele%name, 'Of type: ' // key_name(ele%key))
+
+end select
 
 ! Footer
 write (iu, '(a)') '' 
@@ -791,7 +802,7 @@ type (grid_field_pt1_struct) :: ref_field
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-real(rp)        :: maxfield
+real(rp) :: maxfield
 real(rp) :: z_step, z_min, z_max, z0
 real(rp) :: freq,  z, phase_ref
 real(rp) :: gap, edge_range
@@ -840,7 +851,8 @@ Bz_factor = 1
 
 ! Reference time, will be adjusted by oscillating elements below  
 ref_time = 0  
-  
+phase_ref = 0
+
 select case (ele%key)
 
 !-----------
@@ -853,7 +865,6 @@ case (lcavity$, rfcavity$, e_gun$)
     ! No grid present
     freq = ele%value(rf_frequency$) 
   endif
-  ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Allocate temporary pt array
   allocate (pt(0:nz))
@@ -882,8 +893,10 @@ case (lcavity$, rfcavity$, e_gun$)
   end do
   
   ! Reference time
-  phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-  if (freq /= 0 ) ref_time = -phase_ref /(twopi*freq)
+  if (freq /= 0) then
+    ref_time = -phase_ref /(twopi*freq)
+    phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
+  endif
   
   ! Write to file
   if (gpt_file_unit > 0 )  then
@@ -989,8 +1002,7 @@ end subroutine write_gpt_field_grid_file_1D
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_gpt_field_grid_file_2D (gpt_file_unit, ele, maxfield, ref_time, &
-                                         dr, dz, r_max,  err)
+subroutine write_gpt_field_grid_file_2D (gpt_file_unit, ele, maxfield, ref_time, dr, dz, r_max,  err)
 
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
@@ -999,15 +1011,15 @@ type (grid_field_pt1_struct) :: ref_field
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-real(rp)      :: maxfield, ref_time
+real(rp) :: maxfield, ref_time
 real(rp), optional :: dr, dz, r_max
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max, z0
 real(rp) :: freq, x, z, phase_ref
 real(rp) :: gap, edge_range
 complex ::  phasor_rotation
 
-integer      :: gpt_file_unit
-integer         :: dimensions
+integer :: gpt_file_unit
+integer :: dimensions
 integer :: nx, nz, iz, ix
 
 logical, optional :: err
@@ -1050,7 +1062,8 @@ nz = ceiling(z_max/z_step)
 
 ! Reference time, will be adjusted by oscillating elements below  
 ref_time = 0  
-  
+phase_ref = 0
+
 select case (ele%key)
 
 !-----------
@@ -1059,14 +1072,13 @@ select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$) 
 
   freq = ele%value(rf_frequency$) * ele%grid_field(1)%harmonic
-  ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Example:
   ! r  z  Er  Ez  Bphi
   ! ...
 
   ! Allocate temporary pt array
-  allocate ( pt(0:nx, 0:nz, 1:1) )
+  allocate (pt(0:nx, 0:nz, 1:1))
   ! Write data points
   
   ! initialize maximum found field
@@ -1101,11 +1113,13 @@ case (lcavity$, rfcavity$, e_gun$)
   end do
   
   ! Reference time
-  phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-  if (freq /= 0 ) ref_time = -phase_ref /(twopi*freq)
+  if (freq /= 0) then
+    ref_time = -phase_ref /(twopi*freq)
+    phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
+  endif
   
   ! Write to file
-  if (gpt_file_unit > 0 )  then
+  if (gpt_file_unit > 0)  then
     write (gpt_file_unit, '(5a13)') 'r', 'z', 'Er', 'Ez', 'Bphi'
     ! Scaling
     Ex_factor =  (1/maxfield)
@@ -1205,8 +1219,7 @@ end select
 !-----------------------------------------------------------
 
 if (maxfield == 0) then
-  call out_io (s_error$, r_name, 'ZERO MAXIMUM FIELD IN ELEMENT: ' // key_name(ele%key), &
-             '----')
+  call out_io (s_error$, r_name, 'ZERO MAXIMUM FIELD IN ELEMENT: ' // key_name(ele%key), '----')
   if (global_com%exit_on_error) call err_exit
 end if
 
