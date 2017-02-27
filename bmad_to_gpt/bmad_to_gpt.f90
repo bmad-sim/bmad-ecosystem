@@ -20,17 +20,17 @@ character(100) :: gpt_particle_filename, time_particle_filename
 character(*), parameter :: r_name = 'bmad_to_gpt'
 
 logical :: err
-logical :: write_time_particles, write_gpt_particles
+logical :: write_bmad_time_particles, write_gpt_particles
 
 namelist / bmad_to_gpt_params / &
-    bmad_lat_filename, write_time_particles, write_gpt_particles, &
+    bmad_lat_filename, write_bmad_time_particles, write_gpt_particles, &
     gpt_lat_param, beam_init
 
 !------------------------------------------
 ! Defaults for namelist
 
 bmad_lat_filename = 'lat.bmad'
-write_time_particles = .false.
+write_bmad_time_particles = .false.
 write_gpt_particles = .false.
 beam_init%n_particle = 1
 beam_init%n_bunch = 1
@@ -55,6 +55,8 @@ call bmad_parser (bmad_lat_filename, lat)
 if (gpt_lat_param%gpt_filename == '') then
   n_char= SplitFileName(bmad_lat_filename, lat_path, base_name) 
   call file_suffixer (base_name, gpt_lat_param%gpt_filename, 'gpt', .true.)
+else
+  n_char= SplitFileName(gpt_lat_param%gpt_filename, lat_path, base_name) 
 endif
 
 ! Write file and stop if no particles are to be written.
@@ -65,7 +67,7 @@ if (err) stop
 print *, 'Field map dimension: ', gpt_lat_param%field_map_dimension
 print *, 'Written: ', gpt_lat_param%gpt_filename
 
-if (.not. write_time_particles .and. .not. write_gpt_particles) stop
+if (.not. write_bmad_time_particles .and. .not. write_gpt_particles) stop
 
 !-------------------------------------------
 ! Write particle file if more than one particle is defined
@@ -95,7 +97,7 @@ if (beam_init%n_particle > 1) then
     close(iu)
   endif
   
-  if (write_time_particles) then
+  if (write_bmad_time_particles) then
     iu = lunget()
     call file_suffixer (base_name, time_particle_filename, 'time_particles', .true.)
     open (iu, file = time_particle_filename, iostat = ios)
