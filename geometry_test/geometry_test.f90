@@ -34,7 +34,7 @@ write (1, '(a, 2i6, 3f12.6)') '"G1" ABS 0 ', ele%ix_ele, status, local%r
 ele => lat%ele(4)
 
 call init_coord (orbit, lat%beam_start, ele, inside$)
-s = orbit%vec(5)
+s = orbit%vec(5) / 2
 call offset_particle (ele, lat%param, unset$, orbit, ds_pos = s)
 
 call em_field_calc (ele, lat%param, s, orbit, .false., f1)
