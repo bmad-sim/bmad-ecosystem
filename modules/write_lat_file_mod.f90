@@ -2050,7 +2050,7 @@ do
   ! Also add a matrix element to get the change in z correct.
   ! A sad_mult gets translated to a matrix element which has kick components so no extra kickers needed here.
 
-  if (has_hkick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key) .and. out_type /= 'SAD') then
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
