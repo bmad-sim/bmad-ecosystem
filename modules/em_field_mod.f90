@@ -157,7 +157,7 @@ end subroutine save_a_step
 ! Input:
 !   ele             -- Ele_struct: Lattice element.
 !   param           -- lat_param_struct: Lattice parameters.
-!   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   s_pos           -- Real(rp): Longitudinal position relative to the actual upstream edge of the element.
 !   orbit           -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3) -- Transverse coords.
 !     %t               -- Used with absolute time tracking.
@@ -324,6 +324,8 @@ select case (field_calc)
 ! Bmad_standard field calc 
 
 case (bmad_standard$)
+
+  if (s_pos < 0 .or. s_pos > ele%value(l$)) return
 
   select case (ele%key)
 

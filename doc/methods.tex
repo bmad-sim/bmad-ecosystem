@@ -721,9 +721,11 @@ calculation. These are:
 The default for \vn{ptc_exact_model} is \vn{False} and the default for
 \vn{ptc_exact_misalignment} is \vn{True}. 
 
-The \vn{ptc_exact_model} parameter sets whether PTC uses an ``exact''
-model for tracking. This can be important, for example, for bend
-tracking when the bend radius is small.
+The \vn{ptc_exact_model} parameter sets whether PTC uses an ``exact'' model for
+tracking. Essentially this means that the paraxial approximation
+(\sref{s:mag.hamiltonian}) is made for \vn{ptc_exact_model} set to \vn{False} and is not
+made if set to \vn{True}. This can be important, for example, for bend tracking when the
+bend radius is small.
 
 The \vn{ptc_exact_misalignment} parameter determines whether
 misalignments are handled exactly or whether approximations are made
