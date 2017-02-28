@@ -72,7 +72,8 @@ r_vec = matmul(w_mat, r_vec) +  r0vec     ! coords in entrance frame
 ele2 => ele%branch%ele(ele%ix_ele-1)
 orb2 = orb
 orb2%vec(1:3:2) = r_vec(1:2)
-call em_field_calc (ele2, param, r_vec(3), orb2, .false., field, calc_dfield, err_flag)
+!call em_field_calc (ele2, param, r_vec(3), orb2, .false., field, calc_dfield, err_flag)
+call em_field_calc (ele2, param, ele2%value(l$)/2, orb2, .false., field, calc_dfield, err_flag)
 
 ! Convert field from entrance to exit frame
 field%E = matmul(w_mat_inv, field%E)
