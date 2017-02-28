@@ -1893,7 +1893,7 @@ do
 
       if (old_bs_field == 0) then
         sol_ele%value(sad_geo_bound$) = 2
-        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
+        sol_ele%iyy = entrance_end$  ! Entering solenoid
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
         if (nint(ele%value(sad_geo_bound$)) == 2) then
@@ -1902,9 +1902,7 @@ do
         else
           sol_ele%value(sad_geo_bound$) = 1
         endif
-        sol_ele%value(x_offset$) = -sol_ele%value(x_offset$)
-        sol_ele%value(y_offset$) = -sol_ele%value(y_offset$)
-        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
+        sol_ele%iyy = exit_end$  ! Entering solenoid
       else
         sol_ele%value(sad_geo_bound$) = 0
       endif
@@ -2032,8 +2030,7 @@ do
   ! If there is a multipole component then put multipole elements at half strength 
   ! just before and just after the element.
 
-  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. &
-                                  ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
+  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
     call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
     if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
@@ -2748,6 +2745,17 @@ do ix_ele = ie1, ie2
       yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
       val(z_offset$) = zo
       val(y_offset$) = yo
+    endif
+
+    if (ele%key == null_ele$) then ! patch -> SOL
+      if (ele%iyy == entrance_end$) then
+        sol_ele%value(x_offset$) = -sol_ele%value(x_offset$)
+        sol_ele%value(y_offset$) = -sol_ele%value(y_offset$)
+        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
+      else
+        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
+      endif
+      val(z_offset$) = val(z_offset$) + ele%value(t_offset$) * c_light
     endif
 
     call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
