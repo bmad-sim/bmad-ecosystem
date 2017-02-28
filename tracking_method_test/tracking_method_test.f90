@@ -70,6 +70,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
       if (j == mad$ .and. print_extra) cycle   ! Ignore MAD
+      if (j == taylor$ .and. lat%beam_start%direction == -1) cycle
       ele%tracking_method = j
 
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
