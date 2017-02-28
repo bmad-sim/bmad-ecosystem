@@ -105,18 +105,19 @@ def add_parens (str, slash_here):
 #------------------------------------------------------------------
 
 ele_type_to_bmad = {
-  'drift': 'drift',
-  'bend': 'sbend',
-  'quad': 'quadrupole',
-  'sext': 'sextupole',
-  'oct': 'octupole',
-  'mult': 'sad_mult',
-  'sol': 'marker',
-  'cavi': 'rfcavity',
-  'moni': 'monitor',
-  'mark': 'marker',
-  'beambeam': 'marker',
-  'apert': 'rcollimator',
+  'drift':     'drift',
+  'bend':      'sbend',
+  'quad':      'quadrupole',
+  'sext':      'sextupole',
+  'oct':       'octupole',
+  'mult':      'sad_mult',
+  'sol':       'marker',
+  'cavi':      'rfcavity',
+  'moni':      'monitor',
+  'mark':      'marker',
+  'beambeam':  'marker',
+  'apert':     'rcollimator',
+  'coord':     'patch',
 }
 
 # Translation rule: Specific translations (of the form 'element:parameter') take
@@ -620,10 +621,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   # Correct patch signs. 
   # And SAD applies pitches and offsets in reverse order to Bmad which is why the trig is needed.
+  # Note: When a SOL at the solenoid boundary is translated into a patch, the dz will be translated to a t_offset and
+  #  the z_offset, before rotation by a finite x_pitch or y_pitch, will be 0.
 
   if bmad_ele.type == 'patch':
 
-    # If exiting solenoid
+    # If exiting solenoid or not in a solenoid.
     if sol_status == 0:
       if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = str(eval(bmad_ele.param['z_offset'] + ' * -1'))
 
@@ -639,6 +642,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     xp = eval(bmad_ele.param.get('x_pitch', '0'))
     yo = eval(bmad_ele.param.get('y_offset', '0'))
     yp = eval(bmad_ele.param.get('y_pitch', '0'))
+
+    print ('Converting: ' + bmad_ele.name)
+    print ('  dxyz: ' + sad_ele.param.get('dx', '0') + ', ' + sad_ele.param.get('dy', '0') + ', ' + sad_ele.param.get('dz', '0'))
+    print ('  dxyz: ' + bmad_ele.param.get('x_offset', '0') + ', ' + bmad_ele.param.get('y_offset', '0') + ', ' + bmad_ele.param.get('z_offset', '0'))
+    print ('  offset: ' + str(xo) + ', ' + str(yo) + ', ' + str(zo))
+    print ('  pitch: ' + str(xp) + ', ' + str(yp))
 
     if xp != 0 and xo != 0:
       bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
@@ -1061,7 +1070,7 @@ f_in = open(sad_lattice_file, 'r')
 f_out = open(bmad_lattice_file, 'w')
 f_out.write ('! Translated from SAD file: ' + sad_lattice_file + "\n\n")
 
-sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
+sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark", "coord")
 
 #------------------------------------------------------------------
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
