@@ -21,19 +21,20 @@ contains
 !----------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err,
-!                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
+!                    default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
 !
 ! Routine to evaluate data with a lat or beam source of the form:
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
 !
 ! Input:
-!   data_name      -- Character(*): data name.
-!   print_err      -- Logical: Print error message?
-!   dflt_source    -- Character(*): If not blank: Default source: 'lat' or 'beam'.
+!   data_name      -- character(*): data name.
+!   print_err      -- logical: Print error message?
+!   dflt_source    -- character(*): If not blank: Default source: 'lat' or 'beam'.
 !   dflt_ele_ref   -- ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- ele_struct, pointer, optional: Default start element.
 !   dflt_ele       -- ele_struct, pointer, optional: Default element to evaluate at.
-!   dflt_component -- Character(*), optional: Default component: 'model', 'base', or 'design'.
+!   dflt_component -- character(*), optional: Default component: 'model', 'base', or 'design'.
+!   dflt_uni       -- integer, optional: Default universe to use
 !
 ! Output:
 !   err       -- Logical: True if there is an error. False otherwise
@@ -41,7 +42,7 @@ contains
 !-
 
 subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, &
-                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
+                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
@@ -56,6 +57,7 @@ character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
 
+integer, optional :: dflt_uni
 integer i, j, num, ix, ix1, ios, n_tot, n_loc
 
 logical err, valid, err_flag
@@ -70,7 +72,7 @@ datum%ele_ref_name = ''
 datum%ix_ele_start = -1
 datum%ix_ele_ref = -1
 
-call tao_pick_universe (data_name, name, this_u, err)
+call tao_pick_universe (data_name, name, this_u, err, dflt_uni = dflt_uni)
 if (err) return
 
 err = .true.
@@ -3779,7 +3781,7 @@ endif
 
 if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, &
-                                dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
+                                dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = .not. err_flag
   stack%type = lat_num$

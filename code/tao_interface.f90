@@ -59,6 +59,19 @@ subroutine tao_de_optimizer (abort)
   logical abort
 end subroutine
 
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
+  import
+  implicit none
+  character(*) param_name
+  character(*) dflt_source
+  character(*), optional :: dflt_component
+  real(rp), allocatable :: values(:)
+  integer, optional :: dflt_uni
+  logical err
+  logical :: print_err
+end subroutine
+
+
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
   import
@@ -336,6 +349,16 @@ subroutine tao_pause_cmd (time)
   import
   implicit none
   real(rp) time
+end subroutine
+
+subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_uni, dflt_uni)
+  import
+  implicit none
+  character(*) name_in, name_out
+  integer, optional :: ix_uni, dflt_uni
+  logical, allocatable :: picked(:)
+  logical err
+  logical, optional :: explicit_uni
 end subroutine
  
 subroutine tao_place_cmd (where, who)
