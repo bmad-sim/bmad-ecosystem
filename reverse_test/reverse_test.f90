@@ -136,7 +136,7 @@ if (verbosity) then
   print '(a, 3f12.6, 4x, 3f12.6)', 'Spin:', orb_0f%spin, orb_1f%spin
 end if
 
-! Reverse orientation
+! Tracking in the forward direction with the orientation of the element reversed.
 
 orb_0r_orient         = orb_1f
 orb_0r_orient%vec(2)  = -orb_1f%vec(2)
@@ -174,7 +174,7 @@ dorb_r_orient%vec(6) = (orb_1r_orient%vec(6) - orb_0r_orient%vec(6)) - (orb_1f%v
 dorb_r_orient%t      = (orb_1r_orient%t - orb_0r_orient%t) - (orb_1f%t - orb_0f%t)
 dspin_r_orient       = orb_1r_orient%spin - orb_0f%spin
 
-! Backwards tracking
+! Tracking backwards through the unreversed element.
 
 orb_0b_track = orb_0r_orient
 orb_0b_track%direction = -1

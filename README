@@ -6,7 +6,7 @@ Overview:
 The regression testing works by running programs and comparing the program output to a
 file which has the "correct" output.
 
-The main "regression_tests" directory contains a file called "tests.list".  In this file
+The main "regression_tests" directory contains a file called "TESTS.LIST".  In this file
 is a list of subdirectories of "regression_tests". These subdirectories are called the
 "regression" subdirectories.
 
@@ -55,9 +55,9 @@ Constructing a new test:
 1) Create a new subdirectory of regression_tests. For this documentation call this
 subdirectory "zzz".
 
-2) Add a line to the "regression_tests/tests.list" file. Each line in this file is of the
-format:
-  <subdir_name>
+2) Add a line to the "regression_tests/TESTS.LIST" file. Each line in this file is a subdirectory name
+indicating the subdirectory containing the test code. Note: Lines starting with an exclamation mark "!"
+are printed to the terminal but are otherwise ignored.
 
 3) If needed: In this subdirectory put your testing program code and any input files
 needed for running the program. Additionally, a file "output.correct" needs to be present
@@ -94,12 +94,7 @@ In this example the "Orbit at s = 34.5" data has values 0.023, -0.0079, and 0.00
 tolerance is relative so to pass testing the corresponding values in "output.correct" must
 not differ by more than 0.01%
 
-5) This step should be skipped if the regression subdirectory does not contain any testing
-program code that needs to be compiled.  In that case, the regression subdirectory should
-contain a file called 'exe_file' which contains just one word: the name of the program to
-be run. The user should make sure that this program is available in <exe_dir>.
-
-CMake setup for compiling/linking the program:
+5) CMake setup for compiling/linking the program:
   A) Add a "cmake.zzz" script in the regression_tests directory. 
 Use, say, the existing "cmake.twiss_track_test" file as a template.  In the cmake.zzz
 makefile substitute "zzz" for "twiss_track_test".
@@ -110,11 +105,11 @@ and add "cmake.zzz" to the EXE_SPECS list.
   A) first run the program to generate the "output.now" file.  
   B) Copy "output.now" to "output.correct".
 
-7) You are now done. The scripts/run_tests.py script will parse the tests.list file in
+7) You are now done. The scripts/run_tests.py script will parse the TESTS.LIST file in
 order to determine the list of programs to be run.
 
 Guideline:
-  Make the running time for programs short (few minutes max).
+  Make the running time for programs short. Typical running times are less than a minute
 
 ------------------------------------------------- 
 Using Regression Programs for Custom Exploration:
@@ -126,4 +121,4 @@ mode has been built into a number of tests. For example, the mat6_calc_method_te
 different tracking methods. In all programs that have been configured for custom
 exploration, the custom exploration is triggered if an input file is specified on the
 command line. If custom exploration is triggered, a flag called print_extra is set to True
-to signal extra output.
+to signal custom output.

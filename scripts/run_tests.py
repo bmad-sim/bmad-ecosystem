@@ -53,7 +53,7 @@ results = open('regression.results', 'w')
 
 bin_dir = '../production/bin/'
 test_dir_list = []
-test_list_file = 'tests.list'
+test_list_file = 'TESTS.LIST'
 time0 = time.time()
 
 i = 1
@@ -94,7 +94,7 @@ for test_dir in test_dir_list:
   # Is this a note:
 
   if test_dir[:5] == 'NOTE:':
-    print_all ('Note in tests.list file: ' + test_dir, False, True)
+    print_all ('Note in TESTS.LIST file: ' + test_dir, False, True)
     continue
 
   #-----------------------------------------------------------
@@ -106,11 +106,11 @@ for test_dir in test_dir_list:
   num_local_failures = 0
 
   if len(dir_split) > 1:
-    print_all ('\nExtra stuff on line in "tests.list": ' + dir_split, True, True)
+    print_all ('\nExtra stuff on line in "TESTS.LIST": ' + dir_split, True, True)
     continue
 
   if not os.path.exists(dir_split[0]):
-    print_all ('\nNon-existant subdirectory given in "tests.list": ' + dir_split[0], True, True)
+    print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + dir_split[0], True, True)
     continue
 
   os.chdir(dir_split[0])
@@ -123,9 +123,13 @@ for test_dir in test_dir_list:
 
   program = dir_split[0]
   if program[-1] == '/': program = program[:-1]
-  if os.path.exists('exe_file'):
-    exe_file = open ('exe_file', 'r')
-    program = exe_file.readline().strip().split()[0]
+
+  ## exe_file construct disabled since this is not a good solution for custom needs.
+  ## A substitute will be coded when needed...
+  ## if os.path.exists('exe_file'):
+  ##  exe_file = open ('exe_file', 'r')
+  ##  program = exe_file.readline().strip().split()[0]
+
   program = bin_dir + program
 
   print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')

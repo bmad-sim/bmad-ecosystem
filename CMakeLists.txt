@@ -19,6 +19,7 @@ set (EXE_SPECS
   cmake.photon_test
 ##  cmake.ptc_test
   cmake.reverse_test
+  cmake.sad_test
   cmake.sim_utils_test
   cmake.slice_test
   cmake.spin_test
