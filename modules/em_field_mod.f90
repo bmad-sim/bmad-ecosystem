@@ -1565,12 +1565,16 @@ select case(grid_dim)
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
+  lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
+
   call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_s); if (err_flag) return
+  ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
+  if (i2 < lbnd - 1 .or. i2 > ubnd) return 
+
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
   if (i2 == lbnd - 1) then  ! Just outside entrance end
     g_field%E(:) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(:) &
                  + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(:) 
@@ -1599,13 +1603,17 @@ case (2)
 
 case (3)
 
+  lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
+
+  call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_s); if (err_flag) return
+  ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
+  if (i3 < lbnd - 1 .or. i3 > ubnd) return 
+
   call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
   call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_none$); if (err_flag) return
-  call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_s); if (err_flag) return
     
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
   if (i3 == lbnd - 1) then  ! Just outside entrance end
     g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%E(:) &
                  + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%E(:) &
