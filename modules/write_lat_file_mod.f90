@@ -1819,6 +1819,7 @@ call out_io (s_info$, r_name, &
 !   2) Use lat_out to create the lattice file.
 
 lat_out = lat
+call allocate_lat_ele_array(lat_out, 2*branch%n_ele_max, branch%ix_branch)
 branch_out => lat_out%branch(branch%ix_branch)
 
 if (present(ref_orbit)) then
