@@ -303,11 +303,11 @@ if (ele%field_calc == refer_to_lords$) then
         if (.not. associated(used_eles(j)%ele)) exit
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
-      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, &
-                                                        rf_time = rf_time, used_eles = used_eles)
+      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, potential, &
+                                               use_overlap, grid_allow_s_out_of_bounds, used_eles = used_eles)
     else
-      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, &
-                                                        rf_time = rf_time, used_eles = use_list)
+      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, potential, &
+                                               use_overlap, grid_allow_s_out_of_bounds, used_eles = use_list)
     endif
 
     if (err) then
