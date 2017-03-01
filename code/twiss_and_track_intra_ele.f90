@@ -38,8 +38,8 @@
 !                  the particle gets lost in tracking
 !-   
 
-subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &
-                                          orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
+recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
+                       track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
 
 use bookkeeper_mod, dummy => twiss_and_track_intra_ele
 
@@ -51,11 +51,13 @@ type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (ele_struct), target :: runt
-type (ele_struct), pointer :: ele_p
+type (ele_struct), pointer :: ele_p, slave
 
-real(rp) l_start, l_end, mat6(6,6), vec0(6)
+real(rp) l_start, l_end, mat6(6,6), vec0(6), l0, l1, s_start, s_end
+integer ie
 
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
+logical track_up, track_down
 logical, optional :: err, compute_floor_coords
 
 character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
@@ -63,6 +65,28 @@ character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 !
 
 if (present(err)) err = .true.
+
+! If a super_lord then must track through the slaves.
+
+if (ele%lord_status == super_lord$) then
+  if (present(orbit_end)) orbit_end = orbit_start
+  if (present(ele_end)) ele_end = ele_start
+  s_start = ele%s_start + l_start
+  s_end   = ele%s_start + l_end
+  do ie = 1, ele%n_slave
+    slave => pointer_to_slave (ele, ie)
+    if (slave%s < s_start) cycle
+
+    l0 = max(0.0_rp, s_start - slave%s_start)
+    l1 = min(slave%value(l$), s_end - slave%s_start)
+    track_up = (track_upstream_end .or. s_start < slave%s_start)
+    track_down = (track_downstream_end .or. s_end > slave%s)
+    call twiss_and_track_intra_ele (slave, param, l0, l1, track_up, &
+                       track_down, orbit_end, orbit_end, ele_end, ele_end, err, compute_floor_coords)
+    if (s_end <= slave%s + bmad_com%significant_length) exit
+  enddo
+  return
+endif
 
 ! zero length element:
 ! Must ignore track_upstream_end and track_downstream_end since they do not make sense in this case.

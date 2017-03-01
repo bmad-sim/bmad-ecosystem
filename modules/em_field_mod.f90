@@ -139,7 +139,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-!                                  err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time)
+!                             err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
 !
@@ -171,7 +171,9 @@ end subroutine save_a_step
 !                          and return zero instead of an error? Default: False. Used internally for overlapping fields.
 !   rf_time          -- real(rp), optional: Set the time relative to the RF clock. Normally this time is calculated using
 !                          orbit%t or orbit%vec(5) but sometimes it is convenient to be able to override this.
-!                          For example, time_runge_kutta uses this. 
+!                          For example, time_runge_kutta uses this.
+!   used_eles(:)     -- ele_pointer_struct, allocatable, optional: For internal use only when this routine is
+!                          called recursively. Used to prevent double counting when there is field overlap.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -181,11 +183,13 @@ end subroutine save_a_step
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-                                          err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time)
+                           err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
 use geometry_mod
 
 type (ele_struct), target :: ele
+type (ele_pointer_struct), allocatable, optional :: used_eles(:)
+type (ele_pointer_struct), allocatable :: use_list(:)
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
@@ -244,6 +248,26 @@ else
   s_rel = ele%value(l$) - s_pos
 endif
 
+! Hs this element been used before?
+
+if (present(used_eles)) then
+  do j = 1, size(used_eles)
+    if (.not. associated (used_eles(j)%ele)) then
+      used_eles(j)%ele => ele
+      exit
+    endif
+
+    if (associated(used_eles(j)%ele, ele)) return
+  enddo
+
+  if (j == size(used_eles) + 1) then
+    call move_alloc(used_eles, use_list)
+    allocate(used_eles(2*j))
+    used_eles(1:j-1) = use_list
+    used_eles(j)%ele => ele
+  endif
+endif
+
 !----------------------------------------------------------------------------
 ! convert to local coords
 
@@ -258,8 +282,11 @@ endif
 ! Note: multipass_slave elements do store their own field info. This should be changed.
 
 if (ele%field_calc == refer_to_lords$) then
-  do i = 1, ele%n_lord
+  if (.not. present(used_eles)) allocate (use_list(5))
+
+  lord_loop: do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
+
     if (lord%field_calc == no_field$) cycle   ! Group, overlay and girder elements do not have fields.
 
     local_ref = .true.
@@ -271,7 +298,18 @@ if (ele%field_calc == refer_to_lords$) then
     local_orb%vec(5) = local_orb%vec(5) - c_light * local_orb%beta * &
         ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
 
-    call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, rf_time = rf_time)
+    if (present(used_eles)) then
+      do j = 1, size(used_eles)
+        if (.not. associated(used_eles(j)%ele)) exit
+        if (associated(used_eles(j)%ele, lord)) cycle lord_loop
+      enddo
+      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, &
+                                                        rf_time = rf_time, used_eles = used_eles)
+    else
+      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, &
+                                                        rf_time = rf_time, used_eles = use_list)
+    endif
+
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
@@ -284,7 +322,8 @@ if (ele%field_calc == refer_to_lords$) then
       field%dB = field%dB + field2%dB
     endif
 
-  enddo
+  enddo lord_loop
+
   if (.not. local_ref_frame) call convert_field_ele_to_lab(ele, s_rel, .true., field)
   return
 endif
@@ -1269,7 +1308,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
     call em_field_calc (lord, param, lord_position%r(3), lord_orb, .false., l1_field, calc_dfield, err, &
-                        use_overlap = .false., grid_allow_s_out_of_bounds = .true.)
+                        use_overlap = .false., grid_allow_s_out_of_bounds = .true., used_eles = used_eles)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return

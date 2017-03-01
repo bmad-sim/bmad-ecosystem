@@ -1072,8 +1072,8 @@ subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
   logical, optional :: compute_floor_coords
 end subroutine
 
-subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &
-                                         orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
+recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
+                 track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
   import
   implicit none
   type (coord_struct), optional :: orbit_start, orbit_end
