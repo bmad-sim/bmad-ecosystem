@@ -80,11 +80,13 @@ endif
 
 call file_suffixer (file_name, file_name, 'bmad', .false.)
 call bmad_parser (file_name, lat)
-call twiss_and_track (lat, orbit, status, use_beam_start = .true.)
-if (status /= ok$ .and. .not. force) then
-  call out_io (s_error$, r_name, 'PROBLEM TRACKING. NO OUTPUT GENERATED!', &
-                                 'USE THE "-force" OPTION TO FORCE TRANSLATION.')
-  stop
+if (out_type /= '-sad') then
+  call twiss_and_track (lat, orbit, status, use_beam_start = .true.)
+  if (status /= ok$ .and. .not. force) then
+    call out_io (s_error$, r_name, 'PROBLEM TRACKING. NO OUTPUT GENERATED!', &
+                                   'USE THE "-force" OPTION TO FORCE TRANSLATION.')
+    stop
+  endif
 endif
 
 ix = splitfilename (file_name, dir, file_name, is_rel)
