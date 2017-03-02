@@ -510,7 +510,7 @@ case ('branch')
   lat => u%model%lat
 
   if (size(s%u) > 1) then
-    nl=nl+1; write(lines(nl), '()') 'For the lattice of universe: ', ix_u
+    nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
   nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default'
