@@ -216,6 +216,10 @@ def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
   bmad_line = []
   sad_line.printed = True
 
+  # If last element is end_marker then ignore this since Bmad will naturally put in an end marker.
+
+  if sad_line.list[-1].name == 'end_marker': del sad_line.list[-1]
+
   # Loop over all SAD elements
 
   for ix_s_ele, sad_line_ele in enumerate(sad_line.list):
@@ -404,6 +408,15 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   bmad_ele.type = ele_type_to_bmad[sad_ele.type]
 
+  if 'l' in sad_ele.param:
+    try:
+      zero_length = (float(sad_ele.param['l']) == 0)
+      if zero_length: sad_ele.param['l'] = '0'
+    except ValueError:
+      zero_length = False
+  else:
+    zero_length = True
+
   # SAD sol with misalignments becomes a Bmad patch
 
   if sad_ele.type == 'sol' and sad_ele.param.get('bound') == '1':
@@ -420,7 +433,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   # Handle case when inside solenoid
 
   if sol_status != 0 and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
-                    bmad_ele.type != 'patch' and bz != '0' and 'l' in sad_ele.param: 
+                    bmad_ele.type != 'patch' and bz != '0' and not zero_length:
     bmad_ele.param['bs_field'] = bz
     if bmad_ele.type == 'drift':
       bmad_ele.type = 'solenoid'
@@ -481,6 +494,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
     value = sad_ele.param[sad_param_name]
 
+    try:
+      zero_value = (float(value) == 0)
+      if zero_value: value = '0'
+    except ValueError:
+      zero_value = False
+
     # geo and bound get combined into sad_geo_bound
 
     if sad_param_name == 'geo' or sad_param_name == 'bound':
@@ -510,28 +529,23 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
     # 
 
-    if 'l' in sad_ele.param:
-      try:
-        zero_length =  (float(sad_ele.param['l']) == 0)
-      except ValueError:
-        zero_length = False
-    else:
-      zero_length = True
+    value_suffix = ''
+    bmad_name = sad_param_name
 
     if sad_param_name == 'k1' and sad_ele.type == 'quad' and zero_length:
-      bmad_ele.type = 'multipole'
-      bmad_name = 'k1l'
-      value_suffix = ''
+      if not zero_value:
+        bmad_ele.type = 'multipole'
+        bmad_name = 'k1l'
 
     elif sad_param_name == 'k2' and sad_ele.type == 'sext' and zero_length:
-      bmad_ele.type = 'multipole'
-      bmad_name = 'k2l'
-      value_suffix = ''
+      if not zero_value:
+        bmad_ele.type = 'multipole'
+        bmad_name = 'k2l'
 
     elif sad_param_name == 'k3' and sad_ele.type == 'oct' and zero_length:
-      bmad_ele.type = 'multipole'
-      bmad_name = 'k3l'
-      value_suffix = ''
+      if not zero_value:
+        bmad_ele.type = 'multipole'
+        bmad_name = 'k3l'
 
     elif sad_param_name == 'rotate' and sad_ele.type == 'quad' and zero_length:
       bmad_ele.type = 'multipole'
@@ -642,12 +656,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     xp = eval(bmad_ele.param.get('x_pitch', '0'))
     yo = eval(bmad_ele.param.get('y_offset', '0'))
     yp = eval(bmad_ele.param.get('y_pitch', '0'))
-
-    print ('Converting: ' + bmad_ele.name)
-    print ('  dxyz: ' + sad_ele.param.get('dx', '0') + ', ' + sad_ele.param.get('dy', '0') + ', ' + sad_ele.param.get('dz', '0'))
-    print ('  dxyz: ' + bmad_ele.param.get('x_offset', '0') + ', ' + bmad_ele.param.get('y_offset', '0') + ', ' + bmad_ele.param.get('z_offset', '0'))
-    print ('  offset: ' + str(xo) + ', ' + str(yo) + ', ' + str(zo))
-    print ('  pitch: ' + str(xp) + ', ' + str(yp))
 
     if xp != 0 and xo != 0:
       bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
@@ -804,7 +812,7 @@ def parse_line(rest_of_line, sad_info):
 
     else:
       line_item = line_item_struct(token, sign, multiplyer)
-      if line_item.name == 'end': line_item.name = 'end_ele'  # 'end' is a reserved name
+      if line_item.name == 'end': line_item.name = 'end_marker'  # 'end' is a reserved name
       sad_line.list.append(line_item)
       sign = ''
       multiplyer = '1'
@@ -1173,6 +1181,7 @@ parameter[custom_attribute2] = "marker::sad_geo_bound"     ! 1 -> bound, 2 -> bo
 parameter[custom_attribute2] = "patch::sad_geo_bound"
 parameter[custom_attribute3] = "marker::sad_bz"
 parameter[custom_attribute3] = "patch::sad_bz"
+parameter[custom_attribute4] = "patch::sad_fshift"
 ''')
 
 # If the first element is a marker with Twiss parameters...
@@ -1220,6 +1229,8 @@ if patch_for_fshift:
   f_out.write ('\n' + 'expand_lattice\n')
   f_out.write ('t_scale = 1\n')
 
+  fshift = sad_info.var_list.get('fshift', '1e-30') # Default is just some small non-zero number 
+
   rf_dict = {}
   for rf_name in rf_list:
     if rf_name in rf_dict:
@@ -1232,12 +1243,12 @@ if patch_for_fshift:
     patch_name = rf_name + '_patch' + ns
     f_out.write ('t_' + patch_name + ' = 0  ! Will be replaced by sad_to_bmad_postprocess\n')
     f_out.write (patch_name + ': patch, superimpose, ref_origin = beginning, ref = ' + full_rf_name +
-                 ', t_offset = t_scale * t_' + patch_name + '\n')
+                 ',\n    sad_fshift = ' + fshift + ', t_offset = t_scale * t_' + patch_name + '\n')
 
   patch_name = 'last_rf_time_patch'
   f_out.write ('t_' + patch_name + ' = 0  ! Will be replaced by sad_to_bmad_postprocess\n')
   f_out.write (patch_name + ': patch, superimpose, ref_origin = end, ref = ' + full_rf_name +
-                 ', t_offset = t_scale * t_' + patch_name + '\n')
+                 ',\n    sad_fshift = ' + fshift + ', t_offset = t_scale * t_' + patch_name + '\n')
 
 #-------------------------------------------------------------------
 
