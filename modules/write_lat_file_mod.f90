@@ -5,6 +5,7 @@ use multipass_mod
 use element_modeling_mod
 
 private re_str, rchomp, cmplx_re_str, write_line_element, array_re_str
+private write_lat_in_sad_format
 
 contains
 
@@ -1693,8 +1694,7 @@ implicit none
 type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
-type (ele_struct), save :: bend_ele, quad_ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
 type (coord_struct) orb_start, orb_end, orb_center
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 type (coord_struct), allocatable :: orbit_out(:)
@@ -1706,10 +1706,9 @@ type (ptc_parameter_struct) ptc_param
 type (taylor_struct) taylor_a(6), taylor_b(6)
 
 real(rp), optional :: dr12_drift_max
-real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f, e2
+real(rp) field, hk, vk, tilt, limit(2), length, a, b, f, e2
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-real(rp) xp, yp, xo, yo, zo
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -1718,22 +1717,24 @@ integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 
-integer, parameter :: sad_f1$  = custom_attribute1$
-integer, parameter :: sad_geo_bound$ = custom_attribute2$
-integer, parameter :: sad_bz$  = custom_attribute3$
-integer, parameter :: sad_mark_offset$  = custom_attribute4$
-
+character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(*) out_type, out_file_name
 character(300) line, knl_str, ksl_str
 character(40) orig_name, str
 character(40), allocatable :: names(:)
 character(4000) line_out   ! Can be this large for taylor maps.
-character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, mad_out
 logical parsing, warn_printed, converted
+
+! SAD translation
+
+if (out_type == 'SAD') then
+  call write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+  return
+endif
 
 ! open file
 
@@ -1776,12 +1777,6 @@ elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
   eol_char = ''
   separator_char = ','
   ix_line_max = 80
-elseif (out_type == 'SAD') then
-  comment_char = '!'
-  continue_char = ''
-  eol_char = ';'
-  separator_char = ''
-  ix_line_max = 100
 
 else
   call out_io (s_error$, r_name, 'BAD OUT_TYPE: ' // out_type)
@@ -1833,14 +1828,11 @@ f_count = 0    ! fringe around bends and quads. Also drift nonlinearities.
 j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
 t_count = 0    ! taylor element count.
 a_count = 0    ! Aperture count
-s_count = 0    ! SAD solenoid count
 i_unique = 1000
 
 ! Loop over all input elements
 
-branch_out%ele%value(sad_mark_offset$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
-old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
 ix_ele = ie1 - 1
@@ -1852,91 +1844,11 @@ do
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
-  if (ele%sub_key == not_set$) cycle ! See below
-
-  ! For SAD translation: Must create SAD sol elements as needed. 
-  ! If there is a marker or patch element that can be used, convert it.
-  ! Otherwise, insert a new element. 
-  ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
-  ! This works since there cannot be any actual null_eles in the lattice.
-
-  if (out_type == 'SAD' .and. (ele%key == patch$ .or. ele%value(l$) /= 0 .or. ix_ele == branch_out%n_ele_max)) then
-
-    bs_field = 0
-    if (has_attribute (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
-
-    if (bs_field /= old_bs_field) then
-
-      if (ele%key == marker$ .or. ele%key == patch$) then
-        sol_ele => ele
-      else
-        sol_ele => pointer_to_next_ele(ele, -1)
-        ! Look to see if there is a marker or patch element that can be converted to a SAD SOL.
-        do
-          if (sol_ele%ix_ele == 1) exit
-          if (sol_ele%key == marker$ .or. sol_ele%key == patch$) exit
-          if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
-          sol_ele => pointer_to_next_ele(sol_ele, -1)
-        enddo
-        sol_ele%value(sad_geo_bound$) = 0
-      endif
-
-      if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
-        s_count = s_count + 1
-        write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
-        call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch, orbit_out)
-        sol_ele => branch_out%ele(ix_ele)
-        ie2 = ie2 + 1
-        ix_ele = ix_ele + 1
-        ele => branch_out%ele(ix_ele)
-        val => ele%value
-      endif
-
-      if (old_bs_field == 0) then
-        sol_ele%value(sad_geo_bound$) = 2
-        sol_ele%iyy = entrance_end$  ! Entering solenoid
-        first_sol_edge => sol_ele
-      elseif (bs_field == 0) then
-        if (nint(ele%value(sad_geo_bound$)) == 2) then
-          sol_ele%value(sad_geo_bound$) = 2
-          first_sol_edge%value(sad_geo_bound$) = 1
-        else
-          sol_ele%value(sad_geo_bound$) = 1
-        endif
-        sol_ele%iyy = exit_end$  ! Entering solenoid
-      else
-        sol_ele%value(sad_geo_bound$) = 0
-      endif
-
-      sol_ele%value(bs_field$) = bs_field
-      if (bs_field == 0) sol_ele%value(bs_field$) = sol_ele%value(sad_bz$)
-      sol_ele%key = null_ele$
-
-      old_bs_field = bs_field
-    endif
-  endif
-
-  ! For SAD translation: With an element superimposed with a marker create a whole element
-  ! plus a marker with an offset
-
-  if (out_type == 'SAD' .and. ele%slave_status == super_slave$) then
-    lord => pointer_to_lord(ele, 1, ix_slave = ix)
-    ele1 => pointer_to_next_ele(ele)
-    ele2 => pointer_to_slave(lord, lord%n_slave)
-    if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
-          num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
-      ele1%value(sad_mark_offset$) = -ele2%value(l$)/lord%value(l$) ! marker offset
-      ele = lord                              ! Super_slave piece becomes the entire element.
-      ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
-    endif
-  endif
-
   ! If the name has more than 16 characters then replace the name by something shorter and unique.
-  ! Exception: SAD can handle longer names.
 
   orig_name = ele%name
 
-  if (len_trim(ele%name) > 16 .and. out_type /= 'SAD') then
+  if (len_trim(ele%name) > 16) then
     i_unique = i_unique + 1
     write (ele%name, '(a, i0)') ele%name(1:11), i_unique
   endif
@@ -2003,17 +1915,6 @@ do
 
   endif
 
-  ! For SAD translation: collimators have zero length.
-
-  if (out_type == 'SAD' .and. ele%value(l$) /= 0) then
-    drift_ele%name = trim(ele%name) // '_DRIFT'
-    drift_ele%value(l$) = ele%value(l$)
-    call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
-    ix_ele = ix_ele + 1
-    ie2 = ie2 + 1
-    cycle
-  endif
-
   ! If the bend has a roll then put kicker elements just before and just after
 
   if (ele%key == sbend$ .and. val(roll$) /= 0) then
@@ -2051,7 +1952,7 @@ do
   ! Also add a matrix element to get the change in z correct.
   ! A sad_mult gets translated to a matrix element which has kick components so no extra kickers needed here.
 
-  if (has_hkick_attributes(ele%key) .and. out_type /= 'SAD') then
+  if (has_hkick_attributes(ele%key)) then
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
@@ -2210,10 +2111,9 @@ do
   endif
 
   ! Convert sol_quad_and wiggler elements to an "equivalent" set of elements.
-  ! Exception: SAD can handle a sol_quad so no conversion needed in this case.
   ! NOTE: FOR NOW, SOL_QUAD USES DRIFT-MATRIX-DRIFT MODEL!
 
-  if ((ele%key == wiggler$ .or. ele%key == undulator$  .and. out_type /= 'SAD') .or. ele%key == sol_quad$) then
+  if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == sol_quad$) then
     if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
       call out_io (s_warn$, r_name, 'Converting element to drift-matrix-drift model: ' // ele%name)
       drift_ele%value(l$) = -val(l$) / 2
@@ -2279,25 +2179,6 @@ do
 
 enddo
 
-! If converting to SAD: if there is a finite bs_field then create a final null_ele element
-
-if (out_type == 'SAD' .and. bs_field /= 0) then
-  ele => branch_out%ele(ie2)
-  if (ele%key == marker$) then
-    ele%key = null_ele$
-    ele%value(bs_field$) = bs_field
-  else
-    s_count = s_count + 1
-    write (null_ele%name, '(a, i0)') 'SOL_', s_count  
-    null_ele%value(bs_field$) = bs_field
-    ie2 = ie2 + 1
-    call insert_element (lat_out, null_ele, ie2, branch_out%ix_branch, orbit_out)
-    ele => branch_out%ele(ie2)
-  endif
-
-  ele%value(sad_geo_bound$) = 1
-endif
-
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
 
 ix_ele = ie1 - 1
@@ -2339,22 +2220,16 @@ case ('MAD-8', 'MAD-X', 'XSIF')
   call write_line (line_out)
   write (iu, '(a)')
 
-case ('SAD')
-  write (iu, '(3a)') 'MOMENTUM = ',  trim(re_str(ele%value(p0c$))), trim(eol_char)
-
 end select
 
 ! write element parameters
 
 n_names = 0                          ! number of names stored in the list
-old_bs_field = 0
 
 do ix_ele = ie1, ie2
 
   ele => branch_out%ele(ix_ele)
   val => ele%value
-
-  if (ele%sub_key == not_set$) cycle 
 
   if (out_type == 'XSIF') then
     if (ele%key == elseparator$) then 
@@ -2390,6 +2265,7 @@ do ix_ele = ie1, ie2
       write (line_out, '(a)') trim(ele%name) // ': marker'
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'R', .false.)
 
+
     ! OPAL-T
     case (drift$, instrument$, pipe$, detector$, monitor$)
       write (line_out, '(2a)') trim(ele%name) // ': drift, l = ', re_str(val(l$))
@@ -2423,365 +2299,8 @@ do ix_ele = ie1, ie2
     cycle
   endif
 
-  !-------------
-  ! SAD case
-
-  if (out_type == 'SAD') then
-
-    converted = .false.
-    if (.not. associated (ele%a_pole) .and. ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
-      select case (ele%key)
-
-      ! SAD
-      case (octupole$)
-        write (line_out, '(4a)') 'OCT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(k3$)*val(l$), 'K3', 'R', .true., .false.)
-        converted = .true.
-
-      ! SAD
-      case (quadrupole$)
-        write (line_out, '(4a)') 'QUAD ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
-        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
-        converted = .true.
-
-      ! SAD
-      case (sextupole$)
-        write (line_out, '(4a)') 'SEXT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(k2$)*val(l$), 'K2', 'R', .true., .false.)
-        converted = .true.
-      end select
-    endif
-
-    ! If not yet converted due to the presence of multipoles or a kick
-
-    if (.not. converted) then
-
-      a_pole = 0; b_pole = 0
-      if (ele%key /= null_ele$) call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
-
-      select case (ele%key)
-
-      ! SAD
-      case (drift$, pipe$)
-        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-
-      ! SAD
-      case (instrument$, detector$, monitor$)
-        if (ele%value(l$) == 0) then
-          write (line_out, '(4a)') 'MONI ', trim(ele%name), ' = ('
-        else
-          write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        endif
-
-      ! SAD
-      case (ab_multipole$, multipole$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = ('
-        do i = 0, ubound(a_pole, 1)
-          write (str, '(a, i0)') 'K', i
-          call value_to_line (line_out, a_pole(i) * factorial(i), 'S' // str, 'R', .true., .false.)
-          call value_to_line (line_out, b_pole(i) * factorial(i), str, 'R', .true., .false.)
-        enddo
-
-      ! SAD
-      case (bend_sol_quad$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-        call multipole1_kt_to_ab (val(k1$)*val(l$), val(quad_tilt$), 1, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-        if (val(dks_ds$) /= 0) call out_io (s_error$, r_name, &
-                          'DKS_DS OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
-        if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
-                          'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
-
-      ! SAD
-      case (ecollimator$)
-        write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
-        call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
-        call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
-        call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
-        
-      ! SAD
-      case (rcollimator$)
-        write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
-        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
-        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
-        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
-
-      ! SAD
-      case (elseparator$)
-        call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-        call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (hkicker$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (vkicker$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (kicker$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-        call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (lcavity$)
-        write (line_out, '(4a)') 'CAVI ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'R', .true., .false.)
-        call value_to_line (line_out, val(voltage$), 'VOLT', 'R', .true., .false.)
-        call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'R', .true., .false.)
-        call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'R', .true., .false.)
-
-      ! SAD
-      case (marker$)
-        write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(sad_mark_offset$), 'OFFSET', 'R', .true., .false.)
-        if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
-          call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
-          call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
-          call value_to_line (line_out, ele%a%alpha, 'AX', 'R', .true., .false.)
-          call value_to_line (line_out, ele%b%alpha, 'AY', 'R', .true., .false.)
-          call value_to_line (line_out, ele%x%eta, 'PEX', 'R', .true., .false.)
-          call value_to_line (line_out, ele%y%eta, 'PEY', 'R', .true., .false.)
-          call value_to_line (line_out, ele%x%etap, 'PEPX', 'R', .true., .false.)
-          call value_to_line (line_out, ele%y%etap, 'PEPY', 'R', .true., .false.)
-          call value_to_line (line_out, lat%a%emit, 'EMITX', 'R', .true., .false.)
-          call value_to_line (line_out, lat%b%emit, 'EMITy', 'R', .true., .false.)
-        endif
-
-      ! SAD
-      case (null_ele$)
-        write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
-        call value_to_line (line_out, ele%value(sad_f1$), 'F1', 'R', .true., .false.)
-        select case (nint(ele%value(sad_geo_bound$)))
-        case (1)
-          line_out = trim(line_out) // ' BOUND = 1'
-        case (2)
-          line_out = trim(line_out) // ' BOUND = 1'
-          line_out = trim(line_out) // ' GEO = 1'
-        end select
-
-      ! SAD with nonzero multipoles or kick
-      case (octupole$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (patch$)
-        write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
-
-      ! SAD with nonzero multipoles or kick
-      case (quadrupole$) 
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
-
-        call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (rfcavity$)
-        write (line_out, '(4a)') 'CAVI ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'R', .true., .false.)
-        call value_to_line (line_out, val(voltage$), 'VOLT', 'R', .true., .false.)
-        call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'R', .true., .false.)
-
-        select case (nint(val(fringe_at$)))
-        case (entrance_end$)
-          line_out = trim(line_out) // ' fringe = 1'
-        case (exit_end$)
-          line_out = trim(line_out) // ' fringe = 2'
-        end select
-
-
-      ! SAD
-      case (sad_mult$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
-        call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
-        call value_to_line (line_out, val(eps_step_scale$), 'EPS', 'R', .true., .false.)
-        call value_to_line (line_out, val(x_offset_mult$), 'DX', 'R', .true., .false.)
-        call value_to_line (line_out, val(y_offset_mult$), 'DY', 'R', .true., .false.)
-        call value_to_line (line_out, val(x_pitch_mult$), 'CHI1', 'R', .true., .false.)
-        call value_to_line (line_out, val(y_pitch_mult$), 'CHI2', 'R', .true., .false.)
-        if (val(x1_limit$) == val(y1_limit$)) then
-          call value_to_line (line_out, val(x1_limit$), 'RADIUS', 'R', .true., .false.)
-        else
-          call out_io (s_warn$, r_name, 'Asymmetric x_limit vs y_limit cannot be converted for: ' // ele%name, &
-                                    'Will use largest limit here.')
-          if (val(x1_limit$) /= 0 .and. val(y1_limit$) /= 0) then
-            call value_to_line (line_out, max(val(x1_limit$), val(y1_limit$)), 'RADIUS', 'R', .true., .false.)
-          endif
-        endif
-
-      ! SAD
-      case (sbend$)
-        write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call value_to_line (line_out, val(angle$), 'ANGLE', 'R', .true., .false.)
-        call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'R', .true., .false.)
-        call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
-        call value_to_line (line_out, -val(ref_tilt$), 'ROTATE', 'R', .true., .false.)
-        if (val(fintx$)*val(hgapx$) == val(fint$)*val(hgap$)) then
-          call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'F1', 'R', .true., .false.)
-        else
-          call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'FB1', 'R', .true., .false.)
-          call value_to_line (line_out, 12*val(fintx$)*val(hgapx$), 'FB2', 'R', .true., .false.)
-        endif
-        if (val(angle$) == 0) then
-          call value_to_line (line_out, val(e1$), 'AE1', 'R', .true., .false.)
-          call value_to_line (line_out, val(e2$), 'AE2', 'R', .true., .false.)
-        else
-          call value_to_line (line_out, val(e1$)/val(angle$), 'E1', 'R', .true., .false.)
-          call value_to_line (line_out, val(e2$)/val(angle$), 'E2', 'R', .true., .false.)
-        endif
-
-        select case (nint(val(fringe_type$)))
-        case (hard_edge_only$)
-          ! Nothing to be done
-        case (soft_edge_only$)
-          line_out = trim(line_out) // ' FRINGE = 1 DISFRIN = 1'
-        case (sad_full$)
-          line_out = trim(line_out) // ' FRINGE = 1'
-        end select
-
-      ! SAD with nonzero multipoles or kick
-      case (sextupole$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case (solenoid$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-
-      ! SAD
-      case (sol_quad$)
-        write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-        call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
-        a_pole = a_pole + a;  b_pole = b_pole + b
-
-      ! SAD
-      case default
-        call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
-               'CONVERTING TO DRIFT')
-        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      end select
-
-      if (line_out(1:4) == 'MULT') then
-        if (has_attribute (ele, 'HKICK') .and. ele%key /= kicker$) then
-          call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0, a, b)
-          a_pole = a_pole + a;  b_pole = b_pole + b
-          call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0, a, b)
-          a_pole = a_pole + a;  b_pole = b_pole + b
-        endif
-
-        do i = 0, 21
-          write (str, '(i0)') i
-          call value_to_line (line_out, b_pole(i)*factorial(i), 'K'//trim(str), 'R', .true., .false.)
-          call value_to_line (line_out, a_pole(i)*factorial(i), 'SK'//trim(str), 'R', .true., .false.)
-        enddo
-      endif
-    endif
-
-    ! fringe
-
-    if (ele%key == quadrupole$ .or. ele%key == sad_mult$) then
-      select case (nint(val(fringe_type$)))
-      case (soft_edge_only$, full$)
-        select case (nint(val(fringe_at$)))
-        case (entrance_end$);         line_out = trim(line_out) // ' FRINGE = 1'
-        case (exit_end$);             line_out = trim(line_out) // ' FRINGE = 2'
-        case (both_ends$);            line_out = trim(line_out) // ' FRINGE = 3'
-        end select
-      end select
-
-      select case (nint(val(fringe_type$)))
-      case (none$, soft_edge_only$)
-        line_out = trim(line_out) // ', DISFRIN = 1'
-      case (hard_edge_only$)
-        select case (nint(val(fringe_at$)))
-        case (no_end$)
-          line_out = trim(line_out) // ' DISFRIN = 1'
-        case (entrance_end$, exit_end$)
-          line_out = trim(line_out) // ' CANNOT TRANSLATE BMAD FRINGE_TYPE/FRINGE_AT!'
-        end select
-      case (full$)
-        if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
-      end select
-    endif
-
-    ! misalignments
-    ! Note: SAD applies pitches and offsets in reverse order to Bmad.
-
-    xp = val(x_pitch$);  yp = val(y_pitch$)
-
-    if (xp /= 0) then
-      zo =  val(z_offset$) * cos(xp) + val(x_offset$) * sin(xp)
-      xo = -val(z_offset$) * sin(xp) + val(x_offset$) * cos(xp)
-      val(z_offset$) = zo
-      val(x_offset$) = xo
-    endif
-
-    if (yp /= 0) then
-      zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
-      yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
-      val(z_offset$) = zo
-      val(y_offset$) = yo
-    endif
-
-    if (ele%key == null_ele$) then ! patch -> SOL
-      if (ele%iyy == entrance_end$) then
-        sol_ele%value(x_offset$) = -sol_ele%value(x_offset$)
-        sol_ele%value(y_offset$) = -sol_ele%value(y_offset$)
-        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
-      else
-        sol_ele%value(z_offset$) = -sol_ele%value(z_offset$)
-      endif
-      val(z_offset$) = val(z_offset$) + ele%value(t_offset$) * c_light
-    endif
-
-    call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
-    call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
-    call value_to_line (line_out, val(z_offset$), 'DZ', 'R', .true., .false.)
-
-    if (ele%key /= marker$) then
-      call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
-      call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
-      if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
-        call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
-      elseif (ele%key /= sbend$) then
-        call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
-      endif
-    endif
-
-    !
-
-    line_out = trim(line_out) // ')'
-    call write_line(line_out)
-    cycle
-  endif
-
   !-----------------------------------
-  ! For anything else but OPAL & SAD
+  ! For anything else but OPAL
 
   select case (ele%key)
 
@@ -3102,18 +2621,13 @@ line = ' '
 do n = ie1, ie2
 
   ele => branch_out%ele(n)
-  if (ele%sub_key == not_set$) cycle
 
   if (init_needed) then
     write (iu, '(a)')
     write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
     write (iu, '(a)')
     i_line = i_line + 1
-    if (out_type == 'SAD') then
-      write (line_out, '(a, i0, 2a)') 'LINE line_', i_line, ' = (', ele%name
-    else
-      write (line_out, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
-    endif
+    write (line_out, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
     iout = 0
     init_needed = .false.
 
@@ -3162,11 +2676,7 @@ write (iu, '(a)')
 write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
 write (iu, '(a)')
 
-if (out_type == 'SAD') then
-  line_out = 'LINE LAT = (line_1'
-else
-  line_out = 'lat: line = (line_1'
-endif
+line_out = 'lat: line = (line_1'
 
 do i = 2, i_line
   write (line_out, '(3a, i0)') trim(line_out), trim(separator_char), ' line_', i
@@ -3177,8 +2687,6 @@ call write_line (line_out)
 
 if (out_type == 'MAD-X') then
   write (iu, '(a)') 'use, period = lat;'
-elseif (out_type == 'SAD') then
-  write (iu, '(a)') 'FFS USE LAT;'
 elseif (out_type /= 'OPAL-T') then
   write (iu, '(a)') 'use, lat'
 endif
@@ -3235,8 +2743,7 @@ endif
 
 ! End stuff
 
-call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
-                                ' lattice file: ' // trim(out_file_name))
+call out_io (s_info$, r_name, 'Written ' // trim(out_type) // ' lattice file: ' // trim(out_file_name))
 
 deallocate (names)
 if (present(err)) err = .false.
@@ -3360,6 +2867,910 @@ call string_trim(val_str, val_str, ix)
 line = trim(line) // ' ' // trim(val_str)
 
 end subroutine value_to_line
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+ 
+! Subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+!
+! Private routine used by write_lat_in_foreign_format and not for general use. 
+! See write_lat_in_foreign_format for details about the argument list.
+!-
+
+subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+
+implicit none
+
+type (lat_struct), target :: lat, lat_model, lat_out
+type (lat_struct), optional, target :: converted_lat
+type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
+type (branch_struct), pointer :: branch, branch_out
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
+type (ptc_parameter_struct) ptc_param
+
+real(rp), pointer :: val(:)
+real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) bs_field, old_bs_field, a, b
+real(rp) xp, yp, xo, yo, zo, sad_fshift
+
+
+integer, parameter :: sad_f1$  = custom_attribute1$
+integer, parameter :: sad_geo_bound$ = custom_attribute2$
+integer, parameter :: sad_bz$  = custom_attribute3$
+integer, parameter :: sad_fshift$ = custom_attribute4$
+integer, parameter :: sad_mark_offset$  = custom_attribute5$
+
+integer, optional :: ix_start, ix_end, ix_branch
+integer, allocatable :: n_repeat(:), an_indexx(:)
+integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie1, ie2, n_taylor_order_saved, ix_ele, n_elsep_warn, n_name_change_warn
+integer s_count, a_count, t_count, j_count, f_count
+integer ix_manch, n_names, aperture_at, ix_pole_max, ix_match
+integer :: ix_line_min, ix_line_max, n_warn_max = 10
+
+character(*), parameter :: r_name = "write_lat_in_sad_format"
+character(*) out_file_name
+character(40), allocatable :: names(:)
+character(40) str, orig_name
+character(300) line, knl_str, ksl_str
+character(2000) line_out
+
+logical, optional :: include_apertures, err
+logical converted, init_needed
+
+! open file
+
+if (present(err)) err = .true.
+n_taylor_order_saved = ptc_com%taylor_order_ptc
+
+iu = lunget()
+call fullfilename (out_file_name, line)
+open (iu, file = line, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
+  return
+endif
+
+! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
+
+call get_ptc_params(ptc_param)
+call set_ptc (exact_modeling = .true.)
+
+! Init
+
+ix = integer_option(0, ix_branch)
+if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
+  call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: /i0/ ', i_array = [ix])
+  return
+endif
+
+branch => lat%branch(ix)
+
+ix_line_max = 120
+ix_line_min = ix_line_max - 20
+
+call init_ele (col_ele)
+call init_ele (drift_ele, drift$)
+call init_ele (ab_ele, ab_multipole$)
+call init_ele (kicker_ele, kicker$) 
+call init_ele (quad_ele, quadrupole$)
+call init_ele (bend_ele, sbend$)
+call multipole_init (ab_ele, magnetic$)
+null_ele%key = null_ele$
+
+ie1 = integer_option(1, ix_start)
+ie2 = integer_option(branch%n_ele_track, ix_end)
+
+allocate (names(branch%n_ele_max), an_indexx(branch%n_ele_max)) ! list of element names
+
+call out_io (s_info$, r_name, &
+      'Note: Bmad lattice elements have attributes that cannot be translated. ', &
+      '      For example, higher order terms in a Taylor element.', &
+      '      Please use caution when using a translated lattice.')
+
+!-----------------------------------------------------------------------------
+! Translation is a two step process:
+!   1) Create a new lattice called lat_out making substitutions for sol_quad and wiggler elements, etc..
+!   2) Use lat_out to create the lattice file.
+
+lat_out = lat
+call allocate_lat_ele_array(lat_out, 2*branch%n_ele_max, branch%ix_branch)
+branch_out => lat_out%branch(branch%ix_branch)
+
+f_count = 0    ! fringe around bends and quads. Also drift nonlinearities.
+j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
+t_count = 0    ! taylor element count.
+a_count = 0    ! Aperture count
+s_count = 0    ! SAD solenoid count
+sad_fshift = 0
+
+! Loop over all input elements
+
+branch_out%ele%value(sad_mark_offset$) = 0  ! SAD mark offset
+nullify(first_sol_edge)
+old_bs_field = 0
+n_name_change_warn = 0
+n_elsep_warn = 0
+ix_ele = ie1 - 1
+
+do
+
+  ix_ele = ix_ele + 1
+  if (ix_ele > ie2) exit
+  ele => branch_out%ele(ix_ele)
+  val => ele%value
+
+  if (ele%sub_key == not_set$) cycle ! See below
+
+  ! Patch element that was inserted in SAD to Bmad translation for fshift is to be removed 
+  ! when translating back.
+
+  if (ele%key == patch$ .and. ele%value(sad_fshift$) /= 0) then
+    sad_fshift = ele%value(sad_fshift$)
+    ele%sub_key = not_set$
+    cycle
+  endif
+
+  ! Must create SAD sol elements as needed. 
+  ! If there is a marker or patch element that can be used, convert it.
+  ! Otherwise, insert a new element. 
+  ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
+  ! This works since there cannot be any actual null_eles in the lattice.
+
+  if (ele%key == patch$ .or. ele%value(l$) /= 0 .or. ix_ele == branch_out%n_ele_max) then
+
+    bs_field = 0
+    if (has_attribute (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
+
+    if (bs_field /= old_bs_field) then
+
+      if (ele%key == marker$ .or. ele%key == patch$) then
+        sol_ele => ele
+      else
+        sol_ele => pointer_to_next_ele(ele, -1)
+        ! Look to see if there is a marker or patch element that can be converted to a SAD SOL.
+        do
+          if (sol_ele%ix_ele == 1) exit
+          if (sol_ele%key == marker$ .or. sol_ele%key == patch$) exit
+          if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
+          sol_ele => pointer_to_next_ele(sol_ele, -1)
+        enddo
+        sol_ele%value(sad_geo_bound$) = 0
+      endif
+
+      if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
+        s_count = s_count + 1
+        write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
+        call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch)
+        sol_ele => branch_out%ele(ix_ele)
+        ie2 = ie2 + 1
+        ix_ele = ix_ele + 1
+        ele => branch_out%ele(ix_ele)
+        val => ele%value
+      endif
+
+      if (old_bs_field == 0) then
+        sol_ele%value(sad_geo_bound$) = 2
+        sol_ele%iyy = entrance_end$  ! Entering solenoid
+        first_sol_edge => sol_ele
+      elseif (bs_field == 0) then
+        if (nint(ele%value(sad_geo_bound$)) == 2) then
+          sol_ele%value(sad_geo_bound$) = 2
+          first_sol_edge%value(sad_geo_bound$) = 1
+        else
+          sol_ele%value(sad_geo_bound$) = 1
+        endif
+        sol_ele%iyy = exit_end$  ! Entering solenoid
+      else
+        sol_ele%value(sad_geo_bound$) = 0
+      endif
+
+      sol_ele%value(bs_field$) = bs_field
+      if (bs_field == 0) sol_ele%value(bs_field$) = sol_ele%value(sad_bz$)
+      sol_ele%key = null_ele$
+
+      old_bs_field = bs_field
+    endif
+  endif
+
+  ! With an element superimposed with a marker create a whole element
+  ! plus a marker with an offset
+
+  if (ele%slave_status == super_slave$) then
+    lord => pointer_to_lord(ele, 1, ix_slave = ix)
+    ele1 => pointer_to_next_ele(ele)
+    ele2 => pointer_to_slave(lord, lord%n_slave)
+    if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
+          num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
+      ele1%value(sad_mark_offset$) = -ele2%value(l$)/lord%value(l$) ! marker offset
+      ele = lord                              ! Super_slave piece becomes the entire element.
+      ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
+    endif
+  endif
+
+  ! Replace element name containing "/" or "#" with "_"
+
+  do
+    j = index (ele%name, '\')         ! '
+    j = index (ele%name, '#')   
+    if (j == 0) exit
+    ele%name(j:j) = '_'
+  enddo
+
+  if (ele%name /= orig_name .and. n_name_change_warn <= n_warn_max) then
+    call out_io (s_info$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
+    if (n_name_change_warn == n_warn_max) call out_io (s_info$, r_name, &
+                           'Enough name change warnings. Will stop issuing them now.')
+    n_name_change_warn = n_name_change_warn + 1
+  endif
+
+  ! SAD: If there is an aperture with an element that is not an ecoll or rcoll then need to make a separate
+  ! element with the aperture info. 
+
+  if ((val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) .and. &
+      .not. (((ele%key == ecollimator$ .or. ele%key == rcollimator$) .and. ele%value(l$) == 0) .or. ele%key == sad_mult$) .and. &
+      logic_option(.true., include_apertures)) then
+
+    if (val(x1_limit$) /= val(x2_limit$)) then
+      call out_io (s_warn$, r_name, 'Asymmetric x_limits cannot be converted for: ' // ele%name, &
+                                    'Will use largest limit here.')
+      val(x1_limit$) = max(val(x1_limit$), val(x2_limit$))
+    endif
+
+    if (val(y1_limit$) /= val(y2_limit$)) then
+      call out_io (s_warn$, r_name, 'Asymmetric y_limits cannot be converted for: ' // ele%name, &
+                                    'Will use largest limit here.')
+      val(y1_limit$) = max(val(y1_limit$), val(y2_limit$))
+    endif
+
+    ! create ecoll and rcoll elements.
+
+    if (ele%aperture_type == rectangular$) then
+      col_ele%key = rcollimator$
+    else
+      col_ele%key = ecollimator$
+    endif
+    a_count = a_count + 1
+    write (col_ele%name, '(2a)')  'COLLIMATOR_', trim(ele%name)
+    col_ele%value = val
+    col_ele%value(l$) = 0
+    val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
+    aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
+    if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
+      call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch)
+      ie2 = ie2 + 1
+    endif
+    if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
+      call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch)
+      ie2 = ie2 + 1
+    endif
+    ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
+
+    cycle ! cycle since ele pointer is invalid
+  endif
+
+  ! If the bend has a roll then put kicker elements just before and just after
+
+  if (ele%key == sbend$ .and. val(roll$) /= 0) then
+    j_count = j_count + 1
+    write (kicker_ele%name,   '(a, i0)') 'ROLL_Z', j_count
+    kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
+    kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
+    val(roll$) = 0   ! So on next iteration will not create extra kickers.
+    call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch)
+    call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch)
+    ie2 = ie2 + 2
+    cycle
+  endif
+
+  ! If there is a multipole component then put multipole elements at half strength 
+  ! just before and just after the element.
+
+  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
+    call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
+    if (ix_pole_max > -1) then
+      ab_ele%a_pole = ab_ele%a_pole / 2
+      ab_ele%b_pole = ab_ele%b_pole / 2
+      if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
+      j_count = j_count + 1
+      write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
+      call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch)
+      call insert_element (lat_out, ab_ele, ix_ele+2, branch_out%ix_branch)
+      ie2 = ie2 + 2
+      cycle
+    endif
+  endif
+
+  ! Convert wiggler elements to an "equivalent" set of elements.
+  ! If the wiggler has been sliced due to superposition, throw 
+  ! out the markers that caused the slicing.
+
+
+  if (ele%key == wiggler$ .or. ele%key == undulator$) then
+
+    call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
+    if (ele%slave_status == super_slave$) then
+      ! Create the wiggler model using the super_lord
+      lord => pointer_to_lord(ele, 1)
+      call create_wiggler_model (lord, lat_model)
+      ! Remove all the slave elements and markers in between.
+      call out_io (s_warn$, r_name, 'Note: Not translating the markers within wiggler: ' // lord%name)
+      lord%key = -1 ! mark for deletion
+      call find_element_ends (lord, ele1, ele2)
+      ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
+      ! If the wiggler wraps around the origin we are in trouble.
+      if (ix2 < ix1) then 
+        call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
+        if (global_com%exit_on_error) call err_exit
+      endif
+      do i = ix1+1, ix2
+        branch_out%ele(i)%key = -1  ! mark for deletion
+      enddo
+      ie2 = ie2 - (ix2 - ix1 - 1)
+    else
+      call create_wiggler_model (ele, lat_model)
+    endif
+
+    ele%key = -1 ! Mark for deletion
+    call remove_eles_from_lat (lat_out)
+    do j = 1, lat_model%n_ele_track
+      call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch)
+    enddo
+    ie2 = ie2 + lat_model%n_ele_track - 1
+    cycle
+  endif
+
+enddo
+
+! If there is a finite bs_field then create a final null_ele element
+
+if (bs_field /= 0) then
+  ele => branch_out%ele(ie2)
+  if (ele%key == marker$) then
+    ele%key = null_ele$
+    ele%value(bs_field$) = bs_field
+  else
+    s_count = s_count + 1
+    write (null_ele%name, '(a, i0)') 'SOL_', s_count  
+    null_ele%value(bs_field$) = bs_field
+    ie2 = ie2 + 1
+    call insert_element (lat_out, null_ele, ie2, branch_out%ix_branch)
+    ele => branch_out%ele(ie2)
+  endif
+
+  ele%value(sad_geo_bound$) = 1
+endif
+
+! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
+
+ix_ele = ie1 - 1
+
+do
+  ix_ele = ix_ele + 1
+  if (ix_ele > ie2) exit
+  ele => branch_out%ele(ix_ele)
+  val => ele%value
+
+  if (ele%key == patch$ .and. ele%value(z_offset$) /= 0) then
+    drift_ele%name = 'DRIFT_' // ele%name
+    drift_ele%value(l$) = val(z_offset$)
+    call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch)
+    ix_ele = ix_ele + 1
+    ele => branch_out%ele(ix_ele)
+    val => ele%value
+    val(z_offset$) = 0
+  endif
+enddo
+
+!-------------------------------------------------------------------------------------------------
+! SAD: Now write info to the output file...
+! lat lattice name
+
+write (iu, '(3a)') '! File generated by: write_lattice_in_foreign_format;'
+write (iu, '(4a)') '! Bmad Lattice File: ', trim(lat%input_file_name), ';'
+if (lat%lattice /= '') write (iu, '(4a)') '! Bmad Lattice: ', trim(lat%lattice), ';'
+write (iu, '(a)')
+
+write (iu, '(3a)') 'MOMENTUM = ',  trim(re_str(ele%value(p0c$))), ';'
+if (sad_fshift /= 0) write (iu, '(3a)') 'FSHIFT = ', trim(re_str(sad_fshift)), ';'
+
+! write element parameters
+
+n_names = 0                          ! number of names stored in the list
+old_bs_field = 0
+
+do ix_ele = ie1, ie2
+
+  ele => branch_out%ele(ix_ele)
+  val => ele%value
+
+  if (ele%sub_key == not_set$) cycle 
+
+  ! do not make duplicate specs
+
+  call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+  if (ix_match > 0) cycle
+
+  ! Add to the list of elements
+
+  if (size(names) < n_names + 1) then
+    call re_allocate(names, 2*size(names))
+    call re_allocate(an_indexx, 2*size(names))
+  endif
+
+  call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+
+  converted = .false.
+  if (.not. associated (ele%a_pole) .and. ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+    select case (ele%key)
+
+    ! SAD
+    case (octupole$)
+      write (line_out, '(4a)') 'OCT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(k3$)*val(l$), 'K3', 'R', .true., .false.)
+      converted = .true.
+
+    ! SAD
+    case (quadrupole$)
+      write (line_out, '(4a)') 'QUAD ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
+      call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
+      call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+      converted = .true.
+
+    ! SAD
+    case (sextupole$)
+      write (line_out, '(4a)') 'SEXT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(k2$)*val(l$), 'K2', 'R', .true., .false.)
+      converted = .true.
+    end select
+  endif
+
+  ! If not yet converted due to the presence of multipoles or a kick
+
+  if (.not. converted) then
+
+    a_pole = 0; b_pole = 0
+    if (ele%key /= null_ele$) call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
+
+    select case (ele%key)
+
+    ! SAD
+    case (drift$, pipe$)
+      write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+
+    ! SAD
+    case (instrument$, detector$, monitor$)
+      if (ele%value(l$) == 0) then
+        write (line_out, '(4a)') 'MONI ', trim(ele%name), ' = ('
+      else
+        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      endif
+
+    ! SAD
+    case (ab_multipole$, multipole$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = ('
+      do i = 0, ubound(a_pole, 1)
+        write (str, '(a, i0)') 'K', i
+        call value_to_line (line_out, a_pole(i) * factorial(i), 'S' // str, 'R', .true., .false.)
+        call value_to_line (line_out, b_pole(i) * factorial(i), str, 'R', .true., .false.)
+      enddo
+
+    ! SAD
+    case (bend_sol_quad$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+      call multipole1_kt_to_ab (val(k1$)*val(l$), val(quad_tilt$), 1, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+      if (val(dks_ds$) /= 0) call out_io (s_error$, r_name, &
+                        'DKS_DS OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
+      if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
+                        'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
+
+    ! SAD
+    case (ecollimator$)
+      write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
+      call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
+      call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
+      
+    ! SAD
+    case (rcollimator$)
+      write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
+      call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
+
+    ! SAD
+    case (elseparator$)
+      call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (hkicker$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (vkicker$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (kicker$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (lcavity$)
+      write (line_out, '(4a)') 'CAVI ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'R', .true., .false.)
+      call value_to_line (line_out, val(voltage$), 'VOLT', 'R', .true., .false.)
+      call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'R', .true., .false.)
+      call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'R', .true., .false.)
+
+    ! SAD
+    case (marker$)
+      write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
+      call value_to_line (line_out, val(sad_mark_offset$), 'OFFSET', 'R', .true., .false.)
+      call value_to_line (line_out, val(sad_geo_bound$), 'GEO', 'R', .true., .false.)
+      if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
+        call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
+        call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
+        call value_to_line (line_out, ele%a%alpha, 'AX', 'R', .true., .false.)
+        call value_to_line (line_out, ele%b%alpha, 'AY', 'R', .true., .false.)
+        call value_to_line (line_out, ele%x%eta, 'PEX', 'R', .true., .false.)
+        call value_to_line (line_out, ele%y%eta, 'PEY', 'R', .true., .false.)
+        call value_to_line (line_out, ele%x%etap, 'PEPX', 'R', .true., .false.)
+        call value_to_line (line_out, ele%y%etap, 'PEPY', 'R', .true., .false.)
+        call value_to_line (line_out, lat%a%emit, 'EMITX', 'R', .true., .false.)
+        call value_to_line (line_out, lat%b%emit, 'EMITy', 'R', .true., .false.)
+      endif
+
+    ! SAD
+    case (null_ele$)
+      write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
+      call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
+      call value_to_line (line_out, ele%value(sad_f1$), 'F1', 'R', .true., .false.)
+      select case (nint(ele%value(sad_geo_bound$)))
+      case (1)
+        line_out = trim(line_out) // ' BOUND = 1'
+      case (2)
+        line_out = trim(line_out) // ' BOUND = 1'
+        line_out = trim(line_out) // ' GEO = 1'
+      end select
+
+    ! SAD with nonzero multipoles or kick
+    case (octupole$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (patch$)
+      write (line_out, '(4a)') 'COORD ', trim(ele%name), ' = ('
+
+    ! SAD with nonzero multipoles or kick
+    case (quadrupole$) 
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
+      call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+
+      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (rfcavity$)
+      write (line_out, '(4a)') 'CAVI ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'R', .true., .false.)
+      call value_to_line (line_out, val(voltage$), 'VOLT', 'R', .true., .false.)
+      call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'R', .true., .false.)
+
+      select case (nint(val(fringe_at$)))
+      case (entrance_end$)
+        line_out = trim(line_out) // ' fringe = 1'
+      case (exit_end$)
+        line_out = trim(line_out) // ' fringe = 2'
+      end select
+
+    ! SAD
+    case (sad_mult$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
+      call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
+      call value_to_line (line_out, val(eps_step_scale$), 'EPS', 'R', .true., .false.)
+      call value_to_line (line_out, val(x_offset_mult$), 'DX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y_offset_mult$), 'DY', 'R', .true., .false.)
+      call value_to_line (line_out, val(x_pitch_mult$), 'CHI1', 'R', .true., .false.)
+      call value_to_line (line_out, val(y_pitch_mult$), 'CHI2', 'R', .true., .false.)
+      if (val(x1_limit$) == val(y1_limit$)) then
+        call value_to_line (line_out, val(x1_limit$), 'RADIUS', 'R', .true., .false.)
+      else
+        call out_io (s_warn$, r_name, 'Asymmetric x_limit vs y_limit cannot be converted for: ' // ele%name, &
+                                  'Will use largest limit here.')
+        if (val(x1_limit$) /= 0 .and. val(y1_limit$) /= 0) then
+          call value_to_line (line_out, max(val(x1_limit$), val(y1_limit$)), 'RADIUS', 'R', .true., .false.)
+        endif
+      endif
+
+    ! SAD
+    case (sbend$)
+      write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, val(angle$), 'ANGLE', 'R', .true., .false.)
+      call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'R', .true., .false.)
+      call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(ref_tilt$), 'ROTATE', 'R', .true., .false.)
+      if (val(fintx$)*val(hgapx$) == val(fint$)*val(hgap$)) then
+        call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'F1', 'R', .true., .false.)
+      else
+        call value_to_line (line_out, 12*val(fint$)*val(hgap$), 'FB1', 'R', .true., .false.)
+        call value_to_line (line_out, 12*val(fintx$)*val(hgapx$), 'FB2', 'R', .true., .false.)
+      endif
+      if (val(angle$) == 0) then
+        call value_to_line (line_out, val(e1$), 'AE1', 'R', .true., .false.)
+        call value_to_line (line_out, val(e2$), 'AE2', 'R', .true., .false.)
+      else
+        call value_to_line (line_out, val(e1$)/val(angle$), 'E1', 'R', .true., .false.)
+        call value_to_line (line_out, val(e2$)/val(angle$), 'E2', 'R', .true., .false.)
+      endif
+
+      select case (nint(val(fringe_type$)))
+      case (hard_edge_only$)
+        ! Nothing to be done
+      case (soft_edge_only$)
+        line_out = trim(line_out) // ' FRINGE = 1 DISFRIN = 1'
+      case (sad_full$)
+        line_out = trim(line_out) // ' FRINGE = 1'
+      end select
+
+    ! SAD with nonzero multipoles or kick
+    case (sextupole$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case (solenoid$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+
+    ! SAD
+    case (sol_quad$)
+      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+      a_pole = a_pole + a;  b_pole = b_pole + b
+
+    ! SAD
+    case default
+      call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+             'CONVERTING TO DRIFT')
+      write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+    end select
+
+    if (line_out(1:4) == 'MULT') then
+      if (has_attribute (ele, 'HKICK') .and. ele%key /= kicker$) then
+        call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+        call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+      endif
+
+      do i = 0, 21
+        write (str, '(i0)') i
+        call value_to_line (line_out, b_pole(i)*factorial(i), 'K'//trim(str), 'R', .true., .false.)
+        call value_to_line (line_out, a_pole(i)*factorial(i), 'SK'//trim(str), 'R', .true., .false.)
+      enddo
+    endif
+  endif     ! Not converted
+
+  ! fringe
+
+  if (ele%key == quadrupole$ .or. ele%key == sad_mult$) then
+    select case (nint(val(fringe_type$)))
+    case (soft_edge_only$, full$)
+      select case (nint(val(fringe_at$)))
+      case (entrance_end$);         line_out = trim(line_out) // ' FRINGE = 1'
+      case (exit_end$);             line_out = trim(line_out) // ' FRINGE = 2'
+      case (both_ends$);            line_out = trim(line_out) // ' FRINGE = 3'
+      end select
+    end select
+
+    select case (nint(val(fringe_type$)))
+    case (none$, soft_edge_only$)
+      line_out = trim(line_out) // ', DISFRIN = 1'
+    case (hard_edge_only$)
+      select case (nint(val(fringe_at$)))
+      case (no_end$)
+        line_out = trim(line_out) // ' DISFRIN = 1'
+      case (entrance_end$, exit_end$)
+        line_out = trim(line_out) // ' CANNOT TRANSLATE BMAD FRINGE_TYPE/FRINGE_AT!'
+      end select
+    case (full$)
+      if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
+    end select
+  endif
+
+  ! misalignments
+  ! Note: SAD applies pitches and offsets in reverse order to Bmad.
+
+  xp = val(x_pitch$);  yp = val(y_pitch$)
+
+  if (xp /= 0) then
+    zo =  val(z_offset$) * cos(xp) + val(x_offset$) * sin(xp)
+    xo = -val(z_offset$) * sin(xp) + val(x_offset$) * cos(xp)
+    val(z_offset$) = zo
+    val(x_offset$) = xo
+  endif
+
+  if (yp /= 0) then
+    zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
+    yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
+    val(z_offset$) = zo
+    val(y_offset$) = yo
+  endif
+
+  if (ele%key == null_ele$) then ! patch -> SOL
+    if (ele%iyy == entrance_end$) then
+      val(x_offset$) = -val(x_offset$)
+      val(y_offset$) = -val(y_offset$)
+      val(z_offset$) = -val(z_offset$)
+    else
+      val(z_offset$) = -val(z_offset$)
+    endif
+    val(z_offset$) = val(z_offset$) + ele%value(t_offset$) * c_light
+  endif
+
+  call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
+  call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
+  call value_to_line (line_out, val(z_offset$), 'DZ', 'R', .true., .false.)
+
+  if (ele%key /= marker$) then
+    call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
+    call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
+    if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
+      call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
+    elseif (ele%key /= sbend$) then
+      call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
+    endif
+  endif
+
+  !
+
+  line_out = trim(line_out) // ')'
+  call write_line(line_out)
+  cycle
+
+  ! write element spec to file
+
+  call write_line(line_out)
+
+enddo
+
+!---------------------------------------------------------------------------------------
+! Write the lattice line
+
+write (iu, '(a)')
+write (iu, '(3a)') '!---------------------------------;'
+write (iu, '(a)')
+write (line_out, '(2a)') 'LINE ASC = ('
+
+do n = ie1, ie2
+
+  ele => branch_out%ele(n)
+  if (ele%sub_key == not_set$) cycle
+
+  ix = len_trim(line_out) + len_trim(ele%name)
+
+  if (ix > 75) then
+    write (iu, '(3a)') trim(line_out)
+    line_out = '   ' // ele%name
+  else
+    line_out = trim(line_out) // ' ' // ele%name
+  endif
+
+  ! Output line if long enough or at end
+
+  if (n == ie2) then
+    line_out = trim(line_out) // ')'
+    write (iu, '(2a)') trim(line_out), ';'
+    line_out = ' '
+    init_needed = .true.
+  endif
+
+enddo
+
+!------------------------------------------
+! Use statement
+
+write (iu, '(a)')
+write (iu, '(3a)') '!---------------------------------;'
+write (iu, '(a)')
+
+write (iu, '(a)') 'FFS USE ASC;'
+
+! End stuff
+
+call out_io (s_info$, r_name, 'Written SAD lattice file: ' // trim(out_file_name))
+
+deallocate (names)
+if (present(err)) err = .false.
+
+if (present(converted_lat)) then
+  converted_lat = lat
+  converted_lat%branch(branch%ix_branch) = branch_out
+  converted_lat%n_ele_max = converted_lat%n_ele_track
+  do ib = 0, ubound(converted_lat%branch, 1)
+    branch => converted_lat%branch(ib)
+    do i = 1, branch%n_ele_track
+      branch%ele(i)%slave_status = not_a_child$
+      branch%ele(i)%n_lord = 0
+    enddo
+  enddo
+  converted_lat%n_control_max = 0
+  converted_lat%n_ic_max = 0
+endif
+
+call deallocate_lat_pointers (lat_out)
+call deallocate_lat_pointers (lat_model)
+
+! Restore ptc settings
+
+if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
+call set_ptc (exact_modeling = ptc_param%exact_model)
+
+!------------------------------------------------------------------------
+contains
+
+subroutine write_line (line_out)
+
+implicit none
+
+character(*) line_out
+integer ix, ix1, ix2, ix3
+
+! Prefer to breakup a line after a comma
+
+do
+  if (len_trim(line_out) < ix_line_max) exit
+  ix1 = index(line_out(ix_line_min+1:), ',')
+  ix2 = index(line_out(ix_line_min+1:), '=')
+  ix3 = index(line_out(ix_line_min+1:), ' ')
+
+  if (ix1 /= 0 .and. ix1+ix_line_min < ix_line_max) then
+    ix = ix1 + ix_line_min
+  elseif (ix2 /= 0 .and. ix2+ix_line_min < ix_line_max) then
+    ix = ix2 + ix_line_min
+  elseif (ix3 /= 0 .and. ix3+ix_line_min < ix_line_max) then
+    ix = ix3 + ix_line_min
+  elseif (ix1 /= 0) then
+    ix = ix1 + ix_line_min
+  elseif (ix2 /= 0) then
+    ix = ix2 + ix_line_min
+  else
+    ix = ix3 + ix_line_min
+  endif
+
+  write (iu, '(2a)') line_out(:ix)
+  line_out = '    ' // line_out(ix+1:)
+enddo
+
+write (iu, '(2a)') trim(line_out), ';'
+
+end subroutine write_line
+
+end subroutine write_lat_in_sad_format
+
 
 end module
 
