@@ -201,7 +201,7 @@ special characters may make the lattice files less portable to non-Bmad programs
 \index{beginning statement}
 The following example constructs a linear lattice with two elements: 
 \begin{example}
-  parameter[geometry] = LINEAR_LATTICE
+  parameter[geometry] = open
   parameter[e_tot] =2.7389062E9
   parameter[particle] = POSITRON
   beginning[beta_a] = 14.5011548
@@ -213,7 +213,7 @@ The following example constructs a linear lattice with two elements:
   t: line = (q, d)
   use, t 
 \end{example}
-here \vn{parameter[geometry]} (\sref{s:param}) is set to \vn{LINEAR_LATTICE}
+here \vn{parameter[geometry]} (\sref{s:param}) is set to \vn{open}
 which specifies that the lattice is not circular. In this case, the beginning 
 Twiss parameters need to be specified and this is done by the \vn{beginning}
 statements (\sref{s:beginning}). A quadrupole named \vn{q}

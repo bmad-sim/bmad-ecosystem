@@ -478,6 +478,7 @@ case ('DEFAULT_TRACKING_SPECIES');       a_ptr%i => ele%branch%param%default_tra
 case ('FIELD_CALC');                     a_ptr%i => ele%field_calc
 case ('FRINGE_TYPE');                    a_ptr%r => ele%value(fringe_type$)
 case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
+case ('LIVE_BRANCH');                    a_ptr%r => ele%value(live_branch$)
 case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
 case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fringe_type$)
 case ('LORD_STATUS');                    a_ptr%i => ele%lord_status

@@ -836,11 +836,18 @@ branch_loop: do i_loop = 1, n_branch_max
       deallocate (param_ele%descrip)
     endif
 
+    ! Set live_branch.
+
+    val = param_ele%value(live_branch$)
+    if (val /= real_garbage$) then  ! live_branch has been set.
+      lat%param%live_branch = is_true(val)
+    endif
+
     ! Set geometry.
 
-    ix = nint(param_ele%value(geometry$))
-    if (ix > 0) then  ! geometry has been set.
-      lat%param%geometry = ix
+    val = param_ele%value(geometry$)
+    if (val /= real_garbage$) then  ! geometry has been set.
+      lat%param%geometry = nint(val)
     elseif (lat%param%particle == photon$) then
       lat%param%geometry = open$
     endif
@@ -861,6 +868,8 @@ branch_loop: do i_loop = 1, n_branch_max
   else
     branch%param%particle = ele%value(particle$)
   endif
+
+  if (ele%value(live_branch$) /= real_garbage$) branch%param%live_branch = is_true(ele%value(live_branch$))
 
   if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
   if (branch%param%geometry == 0) then   ! Not set

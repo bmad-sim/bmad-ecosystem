@@ -10,7 +10,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{parameter statement|hyperbf}
 
 
-\index{lattice}\index{geometry}\index{photon_type}
+\index{lattice}\index{geometry}\index{photon_type}\index{live_branch}
 \index{taylor_order}\index{e_tot}
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
@@ -26,6 +26,7 @@ to the \vn{root} branch. The variables that can be set by \vn{parameter} are
   parameter[e_tot]                    = <Real>     ! Reference total Energy. 
                                                    !      Default: 1000 * rest_energy.
   parameter[electric_dipole_moment]   = <Real>     ! Electric dipole moment of tracked particles.
+  parameter[live_branch]              = <Logical>  ! Is branch fit for tracking? See below.
   parameter[geometry]                 = <Switch>   ! Open or closed
   parameter[lattice]                  = <String>   ! Lattice name 
   parameter[n_part]                   = <Real>     ! Number of particles in a bunch.
@@ -63,6 +64,16 @@ problems with a zero reference momentum at the beginning of the element.
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
 For more information on defining custom attributes, see \sref{s:cust.att}.
+  \index{live_branch}
+  \item[{parameter[live_branch}] \Newline
+Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that
+no tracking or other analysis of the root branch should be done. This can be useful if the
+lattice has multiple branches and analysis of the root branch is not necessary. Other
+branches can also be marked as alive/dead using line parameter statements
+(\sref{s:beginning}). Note that the \bmad library itself ignores the setting of
+\vn{live_branch} and it is up to the program being run to decide if this parameter is
+ignored or not. In particular, the \tao program (\sref{s:tao.intro}) {\em will} respect the
+setting of \vn{live_branch}.
   \index{default_tracking_species}
   \item[{parameter[default_tracking_species]}] \Newline
 The \vn{parameter[default_tracking_species]} switch establishes the
@@ -169,8 +180,8 @@ atomic symbol, \vn{\#nnn} is the number of nucleons, and \vn{ccc} is the charge.
   parameter[particle] = He--          ! Doubly charged He.
 \end{example}
 If the number of nucleons is given, the appropriate weight for that isotope is used. If
-the number of nuceons is not present, the mass is an average weighted by the isotopic
-abondances of the element. The charge may be given by using the appropriate number of plus
+the number of nucleons is not present, the mass is an average weighted by the isotopic
+abundances of the element. The charge may be given by using the appropriate number of plus
 (+) or minus (-) signs or by using a plus or minus sign followed by a number. Thus
 ``\vn{-{-}-}'' is equivalent to ``-3''. Names here are case sensitive. ``@M'' must be used
 and not ``@m'' for specifying the mass.
@@ -180,7 +191,7 @@ Another group of particles are the ``known'' molecules. The syntax for these are
   BBB\{@Mmmmm\}\{ccc\}
 \end{example}
 \vn{@Mmmmm} is the mass in AMU, \vn{ccc} is the charge, and \vn{BBB} is the molecular
-formula. The mass may to specified to hundridths of an AMU. The known molecules are:
+formula. The mass may to specified to hundredths of an AMU. The known molecules are:
 \begin{example}
 CO       CO2      
 D2       D2O      
@@ -304,7 +315,7 @@ initial velocity is zero. (This can happen if there is an \vn{e_gun}
 (\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
 zero and $t$ is an independent parameter that can be set.
 
-The logitudinal direction of travel is set by \vn{beam_start[direction]}.  This can be set
+The longitudinal direction of travel is set by \vn{beam_start[direction]}.  This can be set
 to +1 (travel in the +s direction) or -1 for the reverse.  +1 is the default. Generally
 \vn{beam_start[direction]} should not be set to -1 since most programs will not be
 constructed to handle this situation.
@@ -330,7 +341,7 @@ used in lattice. The default is
 
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
 (Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set
-so that \Eq{bbb1} is obayed.
+so that \Eq{bbb1} is obeyed.
 
 
 Example
@@ -430,9 +441,10 @@ parameters that can be set with the \vn{beginning} statement with the additional
 parameters from the \vn{parameter} statement:
 \index{geometry}\index{particle}\index{default_tracking_species}
 \begin{example}
-  geometry
-  particle
   default_tracking_species
+  geometry
+  live_branch
+  particle
 \end{example}
 Example:
 \begin{example}

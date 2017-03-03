@@ -765,6 +765,7 @@ call init_attribute_name1 (beginning_ele$, spinor_polarization$,     'spinor_pol
 
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
+call init_attribute_name1 (line_ele$, live_branch$,                 'LIVE_BRANCH')
 call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
 call init_attribute_name1 (line_ele$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
 
@@ -853,6 +854,7 @@ call init_attribute_name1 (def_parameter$, custom_attribute4$,        'CUSTOM_AT
 call init_attribute_name1 (def_parameter$, custom_attribute5$,        'CUSTOM_ATTRIBUTE5')
 call init_attribute_name1 (def_parameter$, e_tot$,                    'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                      'P0C')
+call init_attribute_name1 (def_parameter$, live_branch$,              'LIVE_BRANCH')
 call init_attribute_name1 (def_parameter$, geometry$,                 'GEOMETRY')
 call init_attribute_name1 (def_parameter$, lattice_type$,             'LATTICE_TYPE') ! For backwards compatibility
 call init_attribute_name1 (def_parameter$, lattice$,                  'LATTICE')
@@ -1618,7 +1620,7 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
+case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
