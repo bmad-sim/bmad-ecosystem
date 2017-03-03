@@ -124,9 +124,10 @@ ele%ixx = 1                    ! Pointer to plat%ele() array
 ele => lat%ele(n_max+2)
 call init_ele (ele, def_parameter$, 0, n_max+2, lat%branch(0))
 ele%name = 'PARAMETER'
-ele%value(geometry$) = lat%param%geometry
-ele%value(n_part$)   = lat%param%n_part
-ele%value(particle$) = lat%param%particle
+ele%value(geometry$)     = lat%param%geometry
+ele%value(live_branch$)  = logic_to_int(lat%param%live_branch)
+ele%value(n_part$)       = lat%param%n_part
+ele%value(particle$)     = lat%param%particle
 ele%ixx = 2                    ! Pointer to plat%ele() array
 
 ele => lat%ele(n_max+3)
@@ -542,6 +543,7 @@ if (n_loc /= 1 .or. err) call err_exit
 param_ele => eles(1)%ele
 
 lat%param%geometry = nint(param_ele%value(geometry$))
+lat%param%live_branch = is_true(param_ele%value(live_branch$))
 lat%input_taylor_order = bmad_com%taylor_order
 
 if (associated(param_ele%descrip)) then

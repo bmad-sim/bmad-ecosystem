@@ -55,7 +55,6 @@ case (bend_sol_quad$)
 case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
-  ele%value(geometry$) = open$
 
 case (capillary$)
   ele%offset_moves_aperture = .true.
@@ -83,7 +82,8 @@ case (def_mad_beam$)
   ele%value(particle$) = positron$
 
 case (def_parameter$)
-  ele%value(geometry$) = -1
+  ele%value(geometry$) = real_garbage$
+  ele%value(live_branch$) = real_garbage$
   ele%value(particle$) = positron$
   ele%value(default_tracking_species$) = real_garbage$
 
@@ -99,7 +99,7 @@ case (diffraction_plate$)
   ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
   ele%offset_moves_aperture = .true.
-  ele%value(geometry$) = transmission$
+  ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
     !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
@@ -151,6 +151,7 @@ case (lcavity$)
 case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
+  ele%value(live_branch$) = real_garbage$
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
@@ -159,7 +160,7 @@ case (mask$)
   ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
   ele%offset_moves_aperture = .true.
-  ele%value(geometry$) = transmission$
+  ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
     !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
@@ -240,7 +241,7 @@ case (sad_mult$)
 
 case (sample$)
   ele%aperture_at = surface$
-  ele%value(geometry$) = reflection$
+  ele%value(mode$) = reflection$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
     !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()

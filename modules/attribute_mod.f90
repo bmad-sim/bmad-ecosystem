@@ -135,14 +135,14 @@ case (beambeam$)
     is_valid = .true.
   end select
 
-case (fork$, photon_fork$)
-  if (present(num_valid)) num_valid = 3
+case (bend_sol_quad$)
+  if (present(num_valid)) num_valid = 2
   select case (tracking_method)
-  case (bmad_standard$, linear$, custom$)
+  case (symp_lie_bmad$, custom$)
     is_valid = .true.
   end select
-  
-case (crystal$, mirror$, multilayer_mirror$, capillary$)
+
+case (crystal$, mirror$, multilayer_mirror$, capillary$, fiducial$)
   if (species == not_set$) then
     if (present(num_valid)) num_valid = 2
     select case (tracking_method)
@@ -150,6 +150,13 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
       is_valid = .true.
     end select
   endif
+
+case (custom$)
+  if (present(num_valid)) num_valid = 1
+  select case (tracking_method)
+  case (custom$)
+    is_valid = .true.
+  end select
 
 case (diffraction_plate$, mask$)
   if (present(num_valid)) num_valid = 2
@@ -180,8 +187,6 @@ case (ecollimator$)
     is_valid = .true.
   end select
 
-! There is no bmad_standard field calculation.
-
 case (elseparator$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
@@ -203,6 +208,13 @@ case (floor_shift$)
     is_valid = .true.
   end select
 
+case (fork$, photon_fork$)
+  if (present(num_valid)) num_valid = 3
+  select case (tracking_method)
+  case (bmad_standard$, linear$, custom$)
+    is_valid = .true.
+  end select
+  
 case (hkicker$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
@@ -481,7 +493,7 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
     end select
   endif
 
-case (diffraction_plate$, mask$)
+case (diffraction_plate$, mask$, fiducial$, floor_shift$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
@@ -520,13 +532,6 @@ case (em_field$)
   if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
   case (static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-case (floor_shift$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 

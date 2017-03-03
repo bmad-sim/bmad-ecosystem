@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 191
+integer, parameter :: bmad_inc_version$ = 192
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -967,7 +967,7 @@ end type
 
 integer, parameter :: overlap$ = 60, multipass$ = 62
 
-! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
+! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
 ! Note that backwards_time_tracking is put in the lat_param_struct rather than begin a global
 ! for multithreaded applications.
 
@@ -987,6 +987,7 @@ type lat_param_struct
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
+  logical :: live_branch = .true.              ! Should tracking be done on the branch?
   logical :: backwards_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
@@ -1225,7 +1226,7 @@ integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, 
 integer, parameter :: spin_y$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23
 integer, parameter :: cavity_type$ = 23, beta_a$ = 23, velocity_distribution$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24, live_branch$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26

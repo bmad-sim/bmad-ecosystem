@@ -1604,6 +1604,12 @@ case ('GEOMETRY')
   if (associated(branch)) branch%param%geometry = ix
   ele%value(geometry$) = ix
 
+case ('LIVE_BRANCH')
+  call get_logical_real (attrib_word, ele%value(live_branch$), err_flag)
+  if (err_flag) return
+  branch => pointer_to_branch(ele%name, lat, .true.)
+  if (associated(branch)) branch%param%live_branch = is_true(ele%value(live_branch$))
+
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found)
   lat%photon_type = ix   ! photon_type has been set.
