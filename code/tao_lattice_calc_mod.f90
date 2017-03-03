@@ -91,6 +91,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
  
     branch => tao_lat%lat%branch(ib)
     tao_branch => tao_lat%tao_branch(ib)
+
+    if (.not. branch%param%live_branch) cycle
     
     call tao_data_coupling_init(branch)
 

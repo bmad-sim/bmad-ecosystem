@@ -513,11 +513,11 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default'
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry  From_Fork'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default                       Live'  
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry  Branch  From_Fork'
 
 
-  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, a)'
+  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     ele_name = ''
@@ -525,7 +525,7 @@ case ('branch')
 
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
               trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
-              trim(geometry_name(branch%param%geometry)), ele_name
+              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name
   enddo
 
   nl=nl+1; lines(nl) = ''
