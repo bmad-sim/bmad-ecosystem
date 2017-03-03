@@ -3090,6 +3090,8 @@ do
 
   ! Replace element name containing "/" or "#" with "_"
 
+  orig_name = ele%name
+
   do
     j = index (ele%name, '\')         ! '
     j = index (ele%name, '#')   
