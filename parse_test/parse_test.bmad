@@ -145,6 +145,8 @@ tag_line: line = (sub_l[t1], sub_l[t2])
 tag_line[geometry] = open
 tag_line[beta_a] = 10
 tag_line[beta_b] = 10
+tag_line[live_branch] = F
+
 
 ! group_line
 
