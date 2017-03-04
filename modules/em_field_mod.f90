@@ -53,7 +53,7 @@ end function g_bend_from_em_field
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, save_field, rf_time)
+! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, rf_time)
 !
 ! Routine used by Runge-Kutta and Boris tracking routines to save
 ! the trajectory through an element.
@@ -65,8 +65,8 @@ end function g_bend_from_em_field
 !   ele        -- ele_struct: Element being tracked through.
 !   param      -- lat_param_struct: Lattice parameters.
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
-!   s          -- Real(rp): S-position with respect to start of element
 !   orb        -- Coord_struct: trajectory at s with respect to element coordinates.
+!   s_rel      -- Real(rp), optional: Position with respect to start of element. Only used for calculating the field.
 !   save_field -- logical, optional: Save electric and magnetic field values? Default is False.
 !   rf_time    -- real(rp), optional: RF clock time used for calculating the field.. 
 !                   If not present then the time will be calculated using the standard algorithm.
@@ -77,15 +77,14 @@ end function g_bend_from_em_field
 !   s_sav    -- Real(rp): Set equal to s.
 !-
 
-subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, save_field, rf_time)
+subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, rf_time)
 
 type (track_struct) track, track2
 type (ele_struct), target :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb, orb2
 integer n_pt, n, n_old
-real(rp) s, s_sav
-real(rp), optional :: rf_time
+real(rp), optional :: rf_time, s_rel
 logical local_ref_frame
 logical, optional :: save_field
 
@@ -120,16 +119,14 @@ end if
 
 orb2 = orb
 if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, &
-          set_z_offset = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = s)
+          set_z_offset = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
 
 track%orb(n_pt) = orb2
 track%orb(n_pt)%ix_ele = ele%ix_ele
 track%map(n_pt)%mat6 = 0
 
-s_sav = s
-
 if (logic_option(.false., save_field)) then
-  call em_field_calc (ele, param, s, orb, local_ref_frame, track%field(n_pt), .false., rf_time = rf_time)
+  call em_field_calc (ele, param, s_rel, orb, local_ref_frame, track%field(n_pt), .false., rf_time = rf_time)
 endif
 
 end subroutine save_a_step

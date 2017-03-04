@@ -168,7 +168,7 @@ Case (wiggler$, undulator$)
   call update_wig_s_terms
 
   if (present(track)) then
-    call save_this_track_pt (s)
+    call save_this_track_pt ()
   endif
 
   ! Symplectic integration gives a kick to the physical momentum (but not the canonical momentum) at the ends of an 
@@ -245,7 +245,7 @@ Case (wiggler$, undulator$)
     s = s + ds2
     call update_wig_s_terms
 
-    if (present(track)) call save_this_track_pt (s)
+    if (present(track)) call save_this_track_pt ()
 
   enddo
 
@@ -277,7 +277,7 @@ case (lcavity$, rfcavity$)
 
     s = s + ds2
 
-    if (present(track)) call save_this_track_pt (s)
+    if (present(track)) call save_this_track_pt ()
 
   enddo
 
@@ -336,7 +336,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
-    if (present(track)) call save_this_track_pt (s)
+    if (present(track)) call save_this_track_pt ()
 
   enddo
 
@@ -427,14 +427,13 @@ end subroutine err_set
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine save_this_track_pt (s)
+subroutine save_this_track_pt ()
 
-real(rp) s, s_sav
 integer ix
 
 !
 
-call save_a_step (track, ele, param, .true., s, end_orb, s_sav)
+call save_a_step (track, ele, param, .true., end_orb)
 
 if (calculate_mat6) then
   ix = track%n_pt
