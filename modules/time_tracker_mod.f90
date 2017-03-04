@@ -206,7 +206,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     !Check if we are past a save time, or if exited
     if (rf_time >= t_save .or. exit_flag) then
       ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
-      call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
+      call save_a_step (track, ele, param, .false., orb)
       ! Query the local field to save
       call em_field_calc (ele, param, orb%vec(5), orb, local_ref_frame, saved_field, .false., err_flag, rf_time = rf_time)
       if (err_flag) return

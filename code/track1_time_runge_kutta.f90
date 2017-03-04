@@ -42,7 +42,7 @@ type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
 real(rp) vec(6), d_radius
-real(rp) s_rel, s1, s2, del_s, p0c_save, s_save
+real(rp) s_rel, s1, s2, del_s, p0c_save
 real(rp) s_edge_track, s_edge_hard, rf_time
 
 integer :: i, hard_end
@@ -71,7 +71,7 @@ if (ele%value(l$) == 0) then
     !Convert to global-s to local-t coordinates
     !Tracks use vec(5) = s_rel
     call convert_particle_coordinates_s_to_t(end_orb, 0.0_rp)
-    call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, .true., rf_time = rf_time)
+    call save_a_step (track, ele, param, .false., end_orb, end_orb%vec(5), .true., rf_time = rf_time)
   endif
 
   ! Reset particle to s-coordinates
@@ -137,7 +137,7 @@ call convert_particle_coordinates_s_to_t(end_orb, s_rel)
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
   ! This should be the same as done inside odeint_bmad_time 
-  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, .true., rf_time = rf_time)
+  call save_a_step (track, ele, param, .false., end_orb, end_orb%vec(5), .true., rf_time = rf_time)
   call em_field_calc (ele, param, end_orb%vec(5), end_orb, .true., saved_field, .false., err_flag, rf_time = rf_time)
   if (err_flag) return
   track%field(track%n_pt) = saved_field

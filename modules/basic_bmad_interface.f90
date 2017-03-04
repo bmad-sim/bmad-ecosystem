@@ -1013,13 +1013,14 @@ subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
+subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
   import
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
+  type (track_struct), optional :: track
 end subroutine
 
 subroutine track1_symp_map (start_orb, ele, param, end_orb)

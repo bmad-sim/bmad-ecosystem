@@ -198,7 +198,7 @@ case (symp_lie_bmad$)
   call symp_lie_bmad (ele, param, start2_orb, end_orb, .false., track)
 
 case (symp_lie_ptc$)
-  call track1_symp_lie_ptc (start2_orb, ele, param, end_orb)
+  call track1_symp_lie_ptc (start2_orb, ele, param, end_orb, track)
   stm = ele%spin_tracking_method
   if (stm == tracking$ .or. stm == symp_lie_ptc$) do_spin_tracking = .false.
 

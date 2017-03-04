@@ -49,7 +49,7 @@ character(*), parameter :: r_name = 'track1_runge_kutta'
 
 if (ele%key /= patch$ .and. ele%value(l$) == 0) then
   call track1_bmad (start_orb, ele, param, end_orb, err_flag)
-  if (present(track)) call save_a_step (track, ele, param, .false., 0.0_rp, start_orb, s1)
+  if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp, .true.)
   return
 endif
 

@@ -3482,6 +3482,7 @@ endif
 
 if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   ptc_key%magnet = 'sbend'
+  ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
   SOLVE_ELECTRIC = .true.
   if (leng == 0) then
     call out_io (s_fatal$, r_name, 'ZERO LENGTH ELEMENT WITH AN ELECTRIC FIELD NOT ALLOWED IN PTC: ' // ele%name)

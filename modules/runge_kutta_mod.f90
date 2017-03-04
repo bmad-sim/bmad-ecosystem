@@ -87,7 +87,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1, s2
-real(rp) :: ds, ds_did, ds_next, s, s_sav, ds_save
+real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save
 real(rp) :: s_edge_track, position(6)
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, ds_intersect, ds_tiny
 
@@ -126,8 +126,11 @@ if (ele%key == patch$) s_edge_track = s2
 ! Save initial point
 
 if (present(track)) then
-  s_sav = s - 2.0_rp * track%ds_save
-  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, .true.)
+  s_last = s - 2.0_rp * track%ds_save
+  if ((abs(s-s_last) > track%ds_save)) then
+    call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
+    s_last = s
+  endif
 endif
 
 ! now track
@@ -154,7 +157,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Check if we are done.
 
   if ((s-s2)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, .true.)
+    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
     call reference_energy_correction (ele, orbit, second_track_edge$)
     err_flag = .false.
     return
@@ -220,7 +223,11 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Save track
 
   if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orbit, s_sav, .true.)
+    if ((abs(s-s_last) > track%ds_save)) then
+      call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
+      s_last = s
+    endif
+
     if (ds_did == ds) then
       track%n_ok = track%n_ok + 1
     else

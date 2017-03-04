@@ -68,7 +68,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s, beta, s_edge_track, s_target
+real(rp) s1, s2, ds, s, beta, s_edge_track, s_target
 real(rp) dref_time, s0, ds_ref, beta0
 
 integer i, n_step
@@ -118,8 +118,7 @@ call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_mult
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
-  s_sav = s1 - 2.0_rp * track%ds_save
-  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav, .true.)
+  call save_a_step (track, ele, param, .true., orb_end, s1, .true.)
 endif
 
 ! track through the body
@@ -143,7 +142,7 @@ do
   call track1_boris_partial (orb_end, ele, param, s, ds, orb_end)
   s = s + ds
 
-  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav, .true.)
+  if (present(track)) call save_a_step (track, ele, param, .true., orb_end, s, .true.)
   
 enddo
 
