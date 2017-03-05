@@ -2904,7 +2904,7 @@ integer, parameter :: sad_mark_offset$  = custom_attribute5$
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie1, ie2, n_taylor_order_saved, ix_ele, n_elsep_warn, n_name_change_warn
-integer s_count, a_count, t_count, j_count, f_count
+integer s_count, t_count, j_count
 integer ix_manch, n_names, aperture_at, ix_pole_max, ix_match
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 
@@ -2977,10 +2977,8 @@ lat_out = lat
 call allocate_lat_ele_array(lat_out, 2*branch%n_ele_max, branch%ix_branch)
 branch_out => lat_out%branch(branch%ix_branch)
 
-f_count = 0    ! fringe around bends and quads. Also drift nonlinearities.
 j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
 t_count = 0    ! taylor element count.
-a_count = 0    ! Aperture count
 s_count = 0    ! SAD solenoid count
 sad_fshift = 0
 
@@ -3125,15 +3123,23 @@ do
       val(y1_limit$) = max(val(y1_limit$), val(y2_limit$))
     endif
 
-    ! create ecoll and rcoll elements.
+    ! Create ecoll and rcoll elements.
+    ! If original element is itself a collimator, turn it into a drift.
 
     if (ele%aperture_type == rectangular$) then
       col_ele%key = rcollimator$
     else
       col_ele%key = ecollimator$
     endif
-    a_count = a_count + 1
-    write (col_ele%name, '(2a)')  'COLLIMATOR_', trim(ele%name)
+
+    if (ele%key == ecollimator$ .or. ele%key == rcollimator$) then
+      col_ele%name = ele%name
+      ele%key = drift$
+      ele%name = 'DRIFT_' // trim(ele%name)
+    else
+      col_ele%name = 'COLLIMATOR_' // trim(ele%name)
+    endif
+
     col_ele%value = val
     col_ele%value(l$) = 0
     val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
