@@ -816,6 +816,7 @@ contains
     TYPE (real_8), intent(inout) :: k
     real(dp), optional :: s
     integer, intent(in) :: i
+    if(i==0) return
     k%s=1.0_dp
     if(present(s)) k%s=s
     k%i=i

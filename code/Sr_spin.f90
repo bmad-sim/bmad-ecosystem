@@ -30,6 +30,7 @@ module ptc_spin
   private radiate_2p,radiate_2r,radiate_2
   private TRACK_NODE_FLAG_probe_R,TRACK_NODE_FLAG_probe_p,TRACK_NODE_LAYOUT_FLAG_spinr_x
   private FIND_ORBIT_LAYOUT_noda,FIND_ORBIT_LAYOUT_noda_object
+  private FIND_ORBIT_LAYOUT_da,FIND_ORBIT_LAYOUT_da_object
   PRIVATE get_Bfield_fringeR,get_Bfield_fringeP,get_Bfield_fringe,TRACK_NODE_LAYOUT_FLAG_spinp_x
   private TRACK_LAYOUT_FLAG_spin12r_x,TRACK_LAYOUT_FLAG_spin12p_x
   PRIVATE TRACK_LAYOUT_FLAG_probe_spin12R,TRACK_LAYOUT_FLAG_probe_spin12P
@@ -43,6 +44,7 @@ module ptc_spin
   !REAL(DP) :: AG=A_ELECTRON
   REAL(DP) :: bran_init=pi 
   logical :: locate_with_no_cavity = .false.
+  integer  :: item_min=3
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
 
 
@@ -104,6 +106,16 @@ module ptc_spin
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_PROBE_spin12P  ! (r,xS,k,fibre1,fibre2,node1,node2) ! integer fibre i1 to i2
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_pr_t12_R  !#6 USING NODE1 TO NODE2 AS OBJECT
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_pr_t12_P  ! (xs,k,fibre1,fibre2,node1,node2)
+  END INTERFACE
+
+  INTERFACE FIND_ORBIT_TPSA_x
+     MODULE PROCEDURE FIND_ORBIT_LAYOUT_da
+     MODULE PROCEDURE FIND_ORBIT_LAYOUT_da_object
+  END INTERFACE
+
+  INTERFACE FIND_ORBIT_probe_tpsa_x
+     MODULE PROCEDURE FIND_ORBIT_LAYOUT_da
+     MODULE PROCEDURE FIND_ORBIT_LAYOUT_da_object
   END INTERFACE
 
   INTERFACE FIND_ORBIT_x
@@ -1711,7 +1723,11 @@ call kill(e)
     B=0.0_dp
     IF(k%NOCAVITY) RETURN
 
-    O=twopi*EL%freq/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
     VL=EL%volt*volt_c/EL%P%P0C
     do ko=1,el%nf
 
@@ -1803,7 +1819,11 @@ call kill(e)
     CALL ALLOC(DF,R2,F,DR2,O,VL)
     CALL ALLOC(BBYTWT,BBXTW,BBYTW,x1,x3)
 
-    O=twopi*EL%freq/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
     VL=EL%volt*volt_c/EL%P%P0C
     do ko=1,el%nf
 
@@ -2466,8 +2486,7 @@ call kill(e)
 
 
     CALL TRACK_PROBE2(r,xs,K,i11,i22)
-
-
+      
   END SUBROUTINE TRACK_LAYOUT_FLAG_probe_spin12r
 
   SUBROUTINE TRACK_LAYOUT_FLAG_probe_spin12P(r,xS,k,fibre1,fibre2,node1,node2) ! fibre i1 to i2
@@ -2929,6 +2948,7 @@ call kill(e)
        xlost=xs%x
     endif
        xs%last_node=>c
+       xs%e=global_e
   END SUBROUTINE TRACK_NODE_FLAG_probe_R
 
   SUBROUTINE TRACK_NODE_FLAG_probe_P(C,XS,K)
@@ -3062,6 +3082,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        xlost=xs%x
     endif
        xs%last_node=>c
+       xs%e=global_e
   END SUBROUTINE TRACK_NODE_FLAG_probe_P
 
 
@@ -3776,22 +3797,24 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
   END SUBROUTINE DTILT_SPINP
 
-  SUBROUTINE FIND_ORBIT_LAYOUT_noda(RING,FIX,STATE,eps,TURNS,fibre1,node1) ! Finds orbit without TPSA in State or compatible state
+  SUBROUTINE FIND_ORBIT_LAYOUT_da(RING,FIX,STATE,TURNS,fibre1,node1,total_time) ! Finds orbit without TPSA in State or compatible state
     IMPLICIT NONE
     TYPE(layout),target,INTENT(INOUT):: RING
     real(dp) , intent(inOUT) :: FIX(6)
     INTEGER , optional,intent(in) :: TURNS,node1,fibre1
-    real(dp)  eps
+    real(dp) , optional :: total_time
+    real(dp)  eps,TOT,freq
     TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
     TYPE(INTERNAL_STATE) stat
-
-    real(dp)  DIX(6),xdix,xdix0,tiny,freq,beta1
+    real(dp)  DIX(6),xdix,xdix0,tiny,beta1
     real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
     integer NO1,ND2,I,IU,ITE,ier,j,ITEM
     TYPE (fibre), POINTER :: C
     TYPE (integration_node), POINTER :: t
     logical(lp) APERTURE,use_bmad_units_temp
     INTEGER TURNS0,trackflag
+    type(damap) id
+    type(real_8) yy(6)
 
     !    fixed_found=my_true
     !!    type(probe) xs
@@ -3812,11 +3835,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     endif
 
     use_bmad_units=.false.
-
     TURNS0=1
     trackflag=0
+    tot=0
     IF(PRESENT(TURNS)) TURNS0=TURNS
-    freq=0.0_dp
+ 
     APERTURE=c_%APERTURE_FLAG
     c_%APERTURE_FLAG=.false.
 
@@ -3883,76 +3906,53 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 101 continue
 
 
+
     if((stat%totalpath==1).and.(.not.stat%nocavity)) then
        C=>RING%START
        freq=0.0_dp
        i=1
        xdix=0.0_dp
        do while(i<=RING%n)
-          if(associated(c%magp%freq)) then
+          if(associated(c%mag%freq)) then
              IF(FREQ==0.0_dp) THEN
-                freq=c%magp%freq
-             ELSEIF(c%magp%freq/=0.0_dp.AND.c%magp%freq<FREQ) THEN
-                freq=c%magp%freq
+                freq=c%mag%freq
+             ELSEIF(c%mag%freq/=0.0_dp.AND.c%mag%freq<FREQ) THEN
+                freq=c%mag%freq
              ENDIF
           endif
-          IF(stat%TIME) THEN
-             XDIX=XDIX+c%mag%P%LD/c%BETA0
-          ELSE
-             XDIX=XDIX+c%mag%P%LD
-          ENDIF
-
-
           c=>c%next
           i=i+1
        enddo
-       if(freq==0.0_dp) then
-          messagelost= " No Cavity in the Line or Frequency = 0 (totalpath==1)"
-         check_stable=.false.
-         return
+     
+           if(freq_redefine) then
+             tot=RING%HARMONIC_NUMBER*twopi/FREQ
+           else
+             tot=RING%HARMONIC_NUMBER*CLIGHT/FREQ
+           endif
+           if(present(total_time)) total_time=tot
        endif
-       IF(RING%HARMONIC_NUMBER>0) THEN
-          FREQ=RING%HARMONIC_NUMBER*CLIGHT/FREQ
-          STOP 476
-       ELSE
-          !   fancy way
-          stat=stat+nocavity0
-          x=fix
-          if(present(fibre1)) then
-             call FIND_ORBIT(RING,x,fibre1,stat,1.e-6_dp)
-             x(6)=0.d0
-             call track(RING,x,fibre1,stat)
-             xdix=x(6)
-          else
-             CALL move_to_INTEGRATION_NODE( Ring%T,t,node1 )
-             call FIND_ORBIT(RING,x,t%parent_fibre%pos,stat,1.e-6_dp)
-             x(6)=0.d0
-             call track(RING,x,t%parent_fibre%pos,stat)
-             xdix=x(6)
-          endif
-          stat=stat-nocavity0
-          !   end of fancy way
-          XDIX=XDIX*FREQ/CLIGHT
-          write(6,*) NINT(xdix)
-          FREQ=NINT(XDIX)*CLIGHT/FREQ
-          WRITE(6,*) " FREQ ",FREQ
-       ENDIF
-    endif
+    
+
+
+
+call init(stat,1,0)
+call alloc(yy); call alloc(id);
 
 
 
     ITEM=0
 3   continue
     ITEM=ITEM+1
-    X=FIX
-
+!    X=FIX
+    id=1
+    yy=fix+id
     DO I=1,TURNS0
        !       CALL TRACK(RING,X,LOC,STAT)
        !       trackflag=TRACK_flag(RING,X,LOC,STAT)
        !!       xs%x=x
 
-       call TRACK_probe_X(Ring,x,stat,fibre1=fibre1,node1=node1)
-
+       call TRACK_probe_X(Ring,yy,stat,fibre1=fibre1,node1=node1)
+ 
        if(.not.check_stable) then
           messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
           c_%APERTURE_FLAG=APERTURE
@@ -3967,42 +3967,14 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     ENDDO
     !    write(6,*) x
-    x(6)=x(6)-freq*turns0
-
+  !  x(6)=x(6)-freq*turns0
+    id=yy
     mx=0.0_dp
-    DO J=1,ND2
-       Y=FIX
-       Y(J)=FIX(J)+EPS
-       DO I=1,TURNS0
-          !          CALL TRACK(RING,Y,LOC,STAT)
-          !!       xs%x=y
-
-          call TRACK_probe_X(Ring,Y,stat,fibre1=fibre1,node1=node1)
-          if(.not.check_stable) then
-             messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
-             !   fixed_found=my_false
-             c_%APERTURE_FLAG=APERTURE
-             return
-          endif
-          !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
-          !!       y=xs%x
-          !          if(.not.check_stable) then
-          !             !w_p=0
-          !             !w_p%nc=1
-          !             !w_p%fc='((1X,a72))'
-          !             write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",3
-          !             ! call ! WRITE_I
-
-          !             return
-          !          endif
-       ENDDO
-       y(6)=y(6)-freq*turns0
-
-       do i=1,ND2
-          MX(I,J)=(Y(i)-X(i))/eps
-       enddo
-
-    ENDDO
+    mx=id
+    do i=1,nd2
+     x(i)=yy(i)
+    enddo
+ 
 
     SX=MX;
     DO I=1,nd2   !  6 before
@@ -4011,8 +3983,9 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     DO I=1,ND2
        DIX(I)=FIX(I)-X(I)
+      if(i==6) dix(6)=dix(6)+tot
     enddo
-
+    
     CALL matinv(SX,SXI,ND2,6,ier)
     IF(IER==132)  then
        messagelost= " Inversion failed in FIND_ORBIT_LAYOUT_noda"
@@ -4061,7 +4034,549 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     endif
     !   write(6,*) item,xdix,xdix0,tiny
 
-    if(ite.eq.1)  then
+    if(ite.eq.1.or.item<item_min)  then
+
+       GOTO 3
+
+    endif
+call kill(yy); call kill(id);
+    if(use_bmad_units_temp) then 
+ 
+      call convert_ptc_to_bmad(fix,beta1,STATE%TIME)
+    endif
+   use_bmad_units=use_bmad_units_temp
+    !    FIX(6)=FIX(6)+freq*turns0
+    c_%APERTURE_FLAG=APERTURE
+
+  END SUBROUTINE FIND_ORBIT_LAYOUT_da
+
+    SUBROUTINE FIND_ORBIT_LAYOUT_da_object(FIX,STATE,TURNS,fibre1,node1,total_time) ! Finds orbit without TPSA in State or compatible state
+    IMPLICIT NONE
+    real(dp) , intent(inOUT) :: FIX(6)
+    INTEGER , optional,intent(in) :: TURNS 
+    type(fibre), optional, pointer :: fibre1
+    type(integration_node), optional, pointer :: node1
+    real(dp) , optional :: total_time
+    real(dp)  eps,TOT,freq
+    TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
+    TYPE(INTERNAL_STATE) stat
+    real(dp)  DIX(6),xdix,xdix0,tiny,beta1
+    real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
+    integer NO1,ND2,I,IU,ITE,ier,j,ITEM
+    TYPE (fibre), POINTER :: C
+    TYPE (integration_node), POINTER :: t
+    logical(lp) APERTURE,use_bmad_units_temp
+    INTEGER TURNS0,trackflag
+    type(damap) id
+    type(real_8) yy(6)
+    type(layout), pointer :: ring
+ 
+    if(present(fibre1)) then
+     ring=>fibre1%parent_layout
+    else
+     ring=>node1%parent_fibre%parent_layout
+    endif
+
+    if(.not.associated(RING%t)) call MAKE_NODE_LAYOUT(ring)
+    !!    xs%x=zero
+    !!    xs%s%x=zero
+    use_bmad_units_temp=use_bmad_units
+ 
+    if(use_bmad_units_temp) then 
+          if(present(fibre1)) then
+           beta1=fibre1%mag%p%beta0
+          else
+           beta1=node1%parent_fibre%mag%p%beta0
+          endif
+      call convert_bmad_to_ptc(fix,beta1,STATE%TIME)
+    endif
+
+    use_bmad_units=.false.
+    TURNS0=1
+    trackflag=0
+    tot=0
+    IF(PRESENT(TURNS)) TURNS0=TURNS
+ 
+    APERTURE=c_%APERTURE_FLAG
+    c_%APERTURE_FLAG=.false.
+
+    !!    call move_to(ring,c,loc)
+    !!    loct=c%t1%pos
+
+
+    Nullify(C);
+
+    if(.not.ring%closed) then
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='((1X,a72))'
+       !w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
+       ! call !write_e(100)
+    endif
+    dix(:)=0.0_dp
+    tiny=1e-40_dp
+    xdix0=1e4_dp*DEPS_tracking
+    NO1=1
+
+    if(.not.present(STATE)) then
+       IF(default%NOCAVITY) THEN
+          !    ND1=2
+          stat=default+    only_4d
+       ELSE
+          !   ND1=3
+          STAT=default
+          C=>RING%START
+          do i=1,RING%n
+             if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
+             C=>C%NEXT
+          enddo
+          
+          messagelost= " No Cavity in the Line "
+          check_stable=.false.
+          return
+ 
+       ENDIF
+    else   ! (.not.present(STATE)) t
+       IF(STATE%NOCAVITY) THEN
+          ND2=4
+          STAT=STATE+only_4d0
+          if(state%radiation) then
+             check_stable=.false.
+
+             messagelost= " Cavity needed when radiation present "
+             return
+          endif
+       ELSE
+          ND2=6
+          STAT=STATE
+          C=>RING%START
+          do i=1,RING%n
+             if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
+             C=>C%NEXT
+          enddo
+          check_stable=.false.
+          messagelost= " State present; no cavity: FIND_ORBIT_LAYOUT will crash => exiting"
+         return
+
+       ENDIF
+    endif
+101 continue
+
+
+
+    if((stat%totalpath==1).and.(.not.stat%nocavity)) then
+       C=>RING%START
+       freq=0.0_dp
+       i=1
+       xdix=0.0_dp
+       do while(i<=RING%n)
+          if(associated(c%mag%freq)) then
+             IF(FREQ==0.0_dp) THEN
+                freq=c%mag%freq
+             ELSEIF(c%mag%freq/=0.0_dp.AND.c%mag%freq<FREQ) THEN
+                freq=c%mag%freq
+             ENDIF
+          endif
+          c=>c%next
+          i=i+1
+       enddo
+     
+           if(freq_redefine) then
+             tot=RING%HARMONIC_NUMBER*twopi/FREQ
+           else
+             tot=RING%HARMONIC_NUMBER*CLIGHT/FREQ
+           endif
+           if(present(total_time)) total_time=tot
+       endif
+    
+
+
+
+call init(stat,1,0)
+call alloc(yy); call alloc(id);
+
+
+
+    ITEM=0
+3   continue
+    ITEM=ITEM+1
+!    X=FIX
+    id=1
+    yy=fix+id
+    DO I=1,TURNS0
+       !       CALL TRACK(RING,X,LOC,STAT)
+       !       trackflag=TRACK_flag(RING,X,LOC,STAT)
+       !!       xs%x=x
+
+       call TRACK_probe_X(yy,stat,fibre1=fibre1,node1=node1)
+ 
+       if(.not.check_stable) then
+          messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
+          c_%APERTURE_FLAG=APERTURE
+          return
+       endif
+       !     write(6,*) item,check_stable
+       !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
+       !!       x=xs%x
+       !       if(trackflag/=0) then
+       !         ITEM=MAX_FIND_ITER+100
+       !       endif
+
+    ENDDO
+    !    write(6,*) x
+  !  x(6)=x(6)-freq*turns0
+    id=yy
+    mx=0.0_dp
+    mx=id
+    do i=1,nd2
+     x(i)=yy(i)
+    enddo
+ 
+
+    SX=MX;
+    DO I=1,nd2   !  6 before
+       SX(I,I)=MX(I,I)-1.0_dp
+    ENDDO
+
+    DO I=1,ND2
+       DIX(I)=FIX(I)-X(I)
+      if(i==6) dix(6)=dix(6)+tot
+    enddo
+    
+    CALL matinv(SX,SXI,ND2,6,ier)
+    IF(IER==132)  then
+       messagelost= " Inversion failed in FIND_ORBIT_LAYOUT_noda"
+        check_stable=.false.
+       return
+    endif
+
+    x=0.0_dp
+    do i=1,nd2
+       do j=1,nd2
+          x(i)=sxi(i,j)*dix(j)+x(i)
+       enddo
+    enddo
+    dix=x
+    DO  I=1,ND2
+       FIX(I)=FIX(I)+DIX(I)
+    ENDDO
+
+    xdix=0.0_dp
+    do iu=1,ND2
+       xdix=abs(dix(iu))+xdix
+    enddo
+    !    write(6,*) " Convergence Factor = ",nd2,xdix,deps_tracking
+    !    pause 123321
+  !  if(verbose) write(6,*) " Convergence Factor = ",xdix
+    if(xdix.gt.deps_tracking) then
+       ite=1
+    else
+       if(xdix.ge.xdix0.or.xdix<=tiny) then
+          ite=0
+       else
+          ite=1
+          xdix0=xdix
+       endif
+    endif
+
+    if(iteM>=MAX_FIND_ITER)  then
+       !   C_%stable_da=.FALSE.
+       !      IF(iteM==MAX_FIND_ITER+100) THEN
+       !        write(6,*) " Unstable in find_orbit without TPSA"
+       messagelost= "Maximum number of iterations in find_orbit without TPSA"
+       xlost=fix
+       check_stable=my_false
+       !     ENDIF
+       ITE=0
+    endif
+    !   write(6,*) item,xdix,xdix0,tiny
+
+    if(ite.eq.1.or.item<item_min)  then
+
+       GOTO 3
+
+    endif
+call kill(yy); call kill(id);
+    if(use_bmad_units_temp) then 
+ 
+      call convert_ptc_to_bmad(fix,beta1,STATE%TIME)
+    endif
+   use_bmad_units=use_bmad_units_temp
+    !    FIX(6)=FIX(6)+freq*turns0
+    c_%APERTURE_FLAG=APERTURE
+
+  END SUBROUTINE FIND_ORBIT_LAYOUT_da_object
+
+
+  SUBROUTINE FIND_ORBIT_LAYOUT_noda(RING,FIX,STATE,eps,TURNS,fibre1,node1,total_time) ! Finds orbit without TPSA in State or compatible state
+    IMPLICIT NONE
+    TYPE(layout),target,INTENT(INOUT):: RING
+    real(dp) , intent(inOUT) :: FIX(6)
+    INTEGER , optional,intent(in) :: TURNS,node1,fibre1
+    real(dp) , optional :: total_time
+    real(dp)  eps,TOT,freq
+    TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
+    TYPE(INTERNAL_STATE) stat
+    real(dp)  DIX(6),xdix,xdix0,tiny,beta1
+    real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
+    integer NO1,ND2,I,IU,ITE,ier,j,ITEM
+    TYPE (fibre), POINTER :: C
+    TYPE (integration_node), POINTER :: t
+    logical(lp) APERTURE,use_bmad_units_temp
+    INTEGER TURNS0,trackflag
+
+    !    fixed_found=my_true
+    !!    type(probe) xs
+    if(.not.associated(RING%t)) call MAKE_NODE_LAYOUT(ring)
+    !!    xs%x=zero
+    !!    xs%s%x=zero
+    use_bmad_units_temp=use_bmad_units
+ 
+    if(use_bmad_units_temp) then 
+          if(present(fibre1)) then
+           call move_to_p_safe( Ring,c,fibre1)
+           beta1=c%mag%p%beta0
+          else
+           CALL move_to_INTEGRATION_NODE( Ring%T,t,node1 )
+           beta1=t%parent_fibre%mag%p%beta0
+          endif
+      call convert_bmad_to_ptc(fix,beta1,STATE%TIME)
+    endif
+
+    use_bmad_units=.false.
+    TURNS0=1
+    trackflag=0
+    tot=0
+    IF(PRESENT(TURNS)) TURNS0=TURNS
+ 
+    APERTURE=c_%APERTURE_FLAG
+    c_%APERTURE_FLAG=.false.
+
+    !!    call move_to(ring,c,loc)
+    !!    loct=c%t1%pos
+
+
+    Nullify(C);
+
+    if(.not.ring%closed) then
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='((1X,a72))'
+       !w_p%c(1)=" This line is not ring : FIND_ORBIT_LAYOUT_noda "
+       ! call !write_e(100)
+    endif
+    dix(:)=0.0_dp
+    tiny=1e-40_dp
+    xdix0=1e4_dp*DEPS_tracking
+    NO1=1
+
+    if(.not.present(STATE)) then
+       IF(default%NOCAVITY) THEN
+          !    ND1=2
+          stat=default+    only_4d
+       ELSE
+          !   ND1=3
+          STAT=default
+          C=>RING%START
+          do i=1,RING%n
+             if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
+             C=>C%NEXT
+          enddo
+          
+          messagelost= " No Cavity in the Line "
+          check_stable=.false.
+          return
+ 
+       ENDIF
+    else   ! (.not.present(STATE)) t
+       IF(STATE%NOCAVITY) THEN
+          ND2=4
+          STAT=STATE+only_4d0
+          if(state%radiation) then
+             check_stable=.false.
+
+             messagelost= " Cavity needed when radiation present "
+             return
+          endif
+       ELSE
+          ND2=6
+          STAT=STATE
+          C=>RING%START
+          do i=1,RING%n
+             if(C%magp%kind==kind4.OR.C%magp%kind==kind21) goto 101
+             C=>C%NEXT
+          enddo
+          check_stable=.false.
+          messagelost= " State present; no cavity: FIND_ORBIT_LAYOUT will crash => exiting"
+         return
+
+       ENDIF
+    endif
+101 continue
+
+
+
+    if((stat%totalpath==1).and.(.not.stat%nocavity)) then
+       C=>RING%START
+       freq=0.0_dp
+       i=1
+       xdix=0.0_dp
+       do while(i<=RING%n)
+          if(associated(c%magp%freq)) then
+             IF(FREQ==0.0_dp) THEN
+                freq=c%magp%freq
+             ELSEIF(c%magp%freq/=0.0_dp.AND.c%magp%freq<FREQ) THEN
+                freq=c%magp%freq
+             ENDIF
+          endif
+          c=>c%next
+          i=i+1
+       enddo
+     
+           if(freq_redefine) then
+             tot=RING%HARMONIC_NUMBER*twopi/FREQ
+           else
+             tot=RING%HARMONIC_NUMBER*CLIGHT/FREQ
+           endif
+           if(present(total_time)) total_time=tot
+       endif
+    
+
+
+
+
+
+
+
+
+    ITEM=0
+3   continue
+    ITEM=ITEM+1
+    X=FIX
+
+    DO I=1,TURNS0
+       !       CALL TRACK(RING,X,LOC,STAT)
+       !       trackflag=TRACK_flag(RING,X,LOC,STAT)
+       !!       xs%x=x
+
+       call TRACK_probe_X(Ring,x,stat,fibre1=fibre1,node1=node1)
+ 
+       if(.not.check_stable) then
+          messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
+          c_%APERTURE_FLAG=APERTURE
+          return
+       endif
+       !     write(6,*) item,check_stable
+       !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
+       !!       x=xs%x
+       !       if(trackflag/=0) then
+       !         ITEM=MAX_FIND_ITER+100
+       !       endif
+
+    ENDDO
+    !    write(6,*) x
+  !  x(6)=x(6)-freq*turns0
+
+    mx=0.0_dp
+    DO J=1,ND2
+       Y=FIX
+       Y(J)=FIX(J)+EPS
+       DO I=1,TURNS0
+          !          CALL TRACK(RING,Y,LOC,STAT)
+          !!       xs%x=y
+
+          call TRACK_probe_X(Ring,Y,stat,fibre1=fibre1,node1=node1)
+
+          if(.not.check_stable) then
+             messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
+             !   fixed_found=my_false
+             c_%APERTURE_FLAG=APERTURE
+             return
+          endif
+          !!       call TRACK_PROBE(Ring,xs,loct,loct+ring%t%n,stat)
+          !!       y=xs%x
+          !          if(.not.check_stable) then
+          !             !w_p=0
+          !             !w_p%nc=1
+          !             !w_p%fc='((1X,a72))'
+          !             write(6,'(a30,i4)') " Lost in Fixed Point Searcher ",3
+          !             ! call ! WRITE_I
+
+          !             return
+          !          endif
+       ENDDO
+!       y(6)=y(6)-freq*turns0
+     
+       do i=1,ND2
+         if(i==6) then
+           MX(I,J)=(Y(i)-tot-X(i))/eps
+         else
+           MX(I,J)=(Y(i)-X(i))/eps
+         endif
+       enddo
+
+    ENDDO
+
+    SX=MX;
+    DO I=1,nd2   !  6 before
+       SX(I,I)=MX(I,I)-1.0_dp
+    ENDDO
+
+    DO I=1,ND2
+       DIX(I)=FIX(I)-X(I)
+      if(i==6) dix(6)=dix(6)+tot
+    enddo
+    
+    CALL matinv(SX,SXI,ND2,6,ier)
+    IF(IER==132)  then
+       messagelost= " Inversion failed in FIND_ORBIT_LAYOUT_noda"
+        check_stable=.false.
+       return
+    endif
+
+    x=0.0_dp
+    do i=1,nd2
+       do j=1,nd2
+          x(i)=sxi(i,j)*dix(j)+x(i)
+       enddo
+    enddo
+    dix=x
+    DO  I=1,ND2
+       FIX(I)=FIX(I)+DIX(I)
+    ENDDO
+
+    xdix=0.0_dp
+    do iu=1,ND2
+       xdix=abs(dix(iu))+xdix
+    enddo
+    !    write(6,*) " Convergence Factor = ",nd2,xdix,deps_tracking
+    !    pause 123321
+  !  if(verbose) write(6,*) " Convergence Factor = ",xdix
+    if(xdix.gt.deps_tracking) then
+       ite=1
+    else
+       if(xdix.ge.xdix0.or.xdix<=tiny) then
+          ite=0
+       else
+          ite=1
+          xdix0=xdix
+       endif
+    endif
+
+    if(iteM>=MAX_FIND_ITER)  then
+       !   C_%stable_da=.FALSE.
+       !      IF(iteM==MAX_FIND_ITER+100) THEN
+       !        write(6,*) " Unstable in find_orbit without TPSA"
+       messagelost= "Maximum number of iterations in find_orbit without TPSA"
+       xlost=fix
+       check_stable=my_false
+       !     ENDIF
+       ITE=0
+    endif
+    !   write(6,*) item,xdix,xdix0,tiny
+
+    if(ite.eq.1.or.item<item_min)  then
+
        GOTO 3
 
     endif
@@ -4076,22 +4591,20 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
   END SUBROUTINE FIND_ORBIT_LAYOUT_noda
 
-  
 
-
-
-  SUBROUTINE FIND_ORBIT_LAYOUT_noda_object(FIX,STATE,eps,TURNS,fibre1,node1) ! Finds orbit without TPSA in State or compatible state
+  SUBROUTINE FIND_ORBIT_LAYOUT_noda_object(FIX,STATE,eps,TURNS,fibre1,node1,total_time) ! Finds orbit without TPSA in State or compatible state
     IMPLICIT NONE
     TYPE(layout),pointer :: RING
     real(dp) , intent(inOUT) :: FIX(6)
     INTEGER , optional,intent(in) :: TURNS
     type(fibre), optional, pointer :: fibre1
     type(integration_node), optional, pointer :: node1
-    real(dp)  eps
+    real(dp)  eps,freq,tot
+    real(dp), optional ::  total_time
     TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
     TYPE(INTERNAL_STATE) stat
 
-    real(dp)  DIX(6),xdix,xdix0,tiny,freq,beta1
+    real(dp)  DIX(6),xdix,xdix0,tiny,beta1
     real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
     integer NO1,ND2,I,IU,ITE,ier,j,ITEM
     TYPE (fibre), POINTER :: C
@@ -4124,7 +4637,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     TURNS0=1
     trackflag=0
     IF(PRESENT(TURNS)) TURNS0=TURNS
-    freq=0.0_dp
+ 
     APERTURE=c_%APERTURE_FLAG
     c_%APERTURE_FLAG=.false.
 
@@ -4204,48 +4717,18 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
                 freq=c%magp%freq
              ENDIF
           endif
-          IF(stat%TIME) THEN
-             XDIX=XDIX+c%mag%P%LD/c%BETA0
-          ELSE
-             XDIX=XDIX+c%mag%P%LD
-          ENDIF
-
-
           c=>c%next
           i=i+1
        enddo
-       if(freq==0.0_dp) then
-          messagelost= " No Cavity in the Line or Frequency = 0 (totalpath==1)"
-         check_stable=.false.
-         return
+     
+           if(freq_redefine) then
+             tot=RING%HARMONIC_NUMBER*twopi/FREQ
+           else
+             tot=RING%HARMONIC_NUMBER*CLIGHT/FREQ
+           endif
+           if(present(total_time)) total_time=tot
        endif
-       IF(RING%HARMONIC_NUMBER>0) THEN
-          FREQ=RING%HARMONIC_NUMBER*CLIGHT/FREQ
-          STOP 476
-       ELSE
-          !   fancy way
-          stat=stat+nocavity0
-          x=fix
-          if(present(fibre1)) then
-             call FIND_ORBIT(RING,x,fibre1%pos,stat,1.e-6_dp)
-             x(6)=0.d0
-             call track(RING,x,fibre1%pos,stat)
-             xdix=x(6)
-          else
-             CALL move_to_INTEGRATION_NODE( Ring%T,t,t%pos )
-             call FIND_ORBIT(RING,x,t%parent_fibre%pos,stat,1.e-6_dp)
-             x(6)=0.d0
-             call track(RING,x,t%parent_fibre%pos,stat)
-             xdix=x(6)
-          endif
-          stat=stat-nocavity0
-          !   end of fancy way
-          XDIX=XDIX*FREQ/CLIGHT
-          write(6,*) NINT(xdix)
-          FREQ=NINT(XDIX)*CLIGHT/FREQ
-          WRITE(6,*) " FREQ ",FREQ
-       ENDIF
-    endif
+    
 
 
 
@@ -4259,6 +4742,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        !       trackflag=TRACK_flag(RING,X,LOC,STAT)
        !!       xs%x=x
        call TRACK_probe_X(x,stat,fibre1=fibre1,node1=node1)
+
        if(.not.check_stable) then
           messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
           c_%APERTURE_FLAG=APERTURE
@@ -4273,7 +4757,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     ENDDO
     !    write(6,*) x
-    x(6)=x(6)-freq*turns0
+ 
 
     mx=0.0_dp
     DO J=1,ND2
@@ -4283,6 +4767,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           !          CALL TRACK(RING,Y,LOC,STAT)
           !!       xs%x=y
           call TRACK_probe_X(Y,stat,fibre1=fibre1,node1=node1)
+
           if(.not.check_stable) then
              messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
              !   fixed_found=my_false
@@ -4301,10 +4786,14 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           !             return
           !          endif
        ENDDO
-       y(6)=y(6)-freq*turns0
+ 
 
        do i=1,ND2
-          MX(I,J)=(Y(i)-X(i))/eps
+         if(i==6) then
+           MX(I,J)=(Y(i)-tot-X(i))/eps
+         else
+           MX(I,J)=(Y(i)-X(i))/eps
+         endif
        enddo
 
     ENDDO
@@ -4316,8 +4805,9 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     DO I=1,ND2
        DIX(I)=FIX(I)-X(I)
+      if(i==6) dix(6)=dix(6)+tot
     enddo
-
+    
     CALL matinv(SX,SXI,ND2,6,ier)
     IF(IER==132)  then
        messagelost= " Inversion failed in FIND_ORBIT_LAYOUT_noda"
@@ -4366,7 +4856,8 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     endif
     !   write(6,*) item,xdix,xdix0,tiny
 
-    if(ite.eq.1)  then
+    if(ite.eq.1.or.item<item_min)  then
+
        GOTO 3
 
     endif

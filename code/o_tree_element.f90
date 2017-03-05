@@ -910,6 +910,8 @@ CONTAINS
 
     P8%u=P%u
 
+    P8%e=P%e
+
   END subroutine EQUAL_PROBE8_PROBE8
 
 
@@ -977,6 +979,7 @@ CONTAINS
     enddo
 
 
+    P8%e=P%e
     P8%u=P%u
     P8%e_ij=0.0_dp
   END subroutine EQUAL_PROBE8_PROBE
@@ -994,6 +997,7 @@ CONTAINS
        P%S(I)=P8%S(I)
     ENDDO
     P%u=P8%u
+    P%e=P8%e
 
   END subroutine EQUAL_PROBE_PROBE8
 
@@ -1010,6 +1014,8 @@ CONTAINS
        P%S(I)=P8%S(I)
     ENDDO
     P%u=P8%u
+    P%e=P8%e
+
 
   END subroutine EQUAL_PROBE_PROBE
 
@@ -1037,7 +1043,8 @@ CONTAINS
     else
        STOP 100
     ENDIF
-
+    r%u=.false.
+    r%e=0
   END    subroutine EQUAL_IDENTITY_probe
 
   subroutine EQUAL_IDENTITY_probe_8(R,S)
@@ -1071,6 +1078,8 @@ CONTAINS
        STOP 100
     ENDIF
     R%e_ij=0.0_dp
+    r%u=.false.
+    r%e=0
   END    subroutine EQUAL_IDENTITY_probe_8
 
 
@@ -1346,7 +1355,8 @@ CONTAINS
     ENDDO
     CALL ALLOC(R%ac)
     r%e_ij=0.0_dp
-
+    r%u=.false.
+    r%e=0
   END    subroutine ALLOC_probe_8
 
   subroutine ALLOC_rf_phasor_8(R)
@@ -1386,6 +1396,8 @@ CONTAINS
 
     CALL KILL(R%ac)
     r%e_ij=0.0_dp
+    r%u=.false.
+    r%e=0
   END    subroutine KILL_probe_8
 
   subroutine kill_rf_phasor_8(R)

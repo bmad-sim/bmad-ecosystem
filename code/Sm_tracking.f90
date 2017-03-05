@@ -211,7 +211,11 @@ contains
     DO  WHILE(.not.ASSOCIATED(C,c2))
 
        CALL TRACK(C,X,K)
-       if(.not.check_stable) exit
+
+       if(.not.check_stable) then
+         write(messagelost,*) "Error in tracking ",c%mag%name," ", messagelost(:len_trim(messagelost))
+         exit
+       endif  
 
        C=>C%NEXT
     ENDDO
@@ -257,9 +261,14 @@ contains
     DO  WHILE(.not.ASSOCIATED(C,c2))
 
        CALL TRACK(C,X,K)
-       if(.not.check_stable) exit
+
+       if(.not.check_stable) then
+         write(messagelost,*) "Error in tracking ",c%mag%name," ", messagelost(:len_trim(messagelost))
+         exit
+       endif  
 
        C=>C%NEXT
+
     ENDDO
 
     if(associated(last).and.check_stable) then
@@ -305,7 +314,10 @@ contains
        CALL TRACK(C,X,K,X_IN=X_IN)  !,C%CHARGE
        !       CALL TRACK(C,X,K,R%CHARGE,X_IN)
 
-       if(.not.check_stable) exit
+       if(.not.check_stable) then
+         write(messagelost,*) "Error in tracking ",c%mag%name," ", messagelost(:len_trim(messagelost))
+         exit
+       endif  
 
        C=>C%NEXT
        J=J+1
@@ -363,7 +375,10 @@ contains
     DO  WHILE(J<I22.AND.ASSOCIATED(C))
        CALL TRACK(C,X,K)  !,C%CHARGE
        !       CALL TRACK(C,X,K,R%CHARGE)
-       if(.not.check_stable) exit
+       if(.not.check_stable) then
+         write(messagelost,*) "Error in tracking ",c%mag%name," ", messagelost(:len_trim(messagelost))
+         exit
+       endif  
 
        C=>C%NEXT
        J=J+1

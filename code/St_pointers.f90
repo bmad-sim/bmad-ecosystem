@@ -5,8 +5,8 @@ module pointer_lattice
   implicit none
   public
   ! stuff for main program
-  type(layout),pointer :: my_ering,my_fring
-  type(internal_state),pointer :: my_estate
+  type(layout),pointer :: my_ering => null(), my_fring => null()
+  type(internal_state),pointer :: my_estate => null()
 !  type(internal_state),pointer :: my_old_state
   integer ,pointer :: my_start, MY_ORDER, MY_NP,MY_END,my_start_t
   real(dp), pointer :: my_fix(:),MY_DELTA
@@ -39,7 +39,7 @@ module pointer_lattice
   !  PRIVATE POWER_CAVITY,RADIA
   ! stuff from my fortran
   type(internal_state), target:: etat
-  integer,target:: START ,FIN,ORDER,np,start_t
+  integer,private,target:: START ,FIN,ORDER,np,start_t
   real(dp),target:: xfix(6) ,DELT0
   integer :: logs_exp=30, num_iter = 20
   !logical :: absolute = .false.

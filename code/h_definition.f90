@@ -51,6 +51,7 @@ module definition
   integer, target :: nb_ =0   ! global group index
   integer, parameter :: ndim2t=10   ! maximum complex size
   integer, parameter :: wiggler_suntao=24
+  real(dp) :: global_e =0
   integer :: bmadparser = 0
   logical :: tangent = .false.,force_rescale=.false.   ! force_rescale for vorname=HELICAL see fibre_work routine
   TYPE sub_taylor
@@ -303,6 +304,7 @@ module definition
      type(spinor) s(3)
      logical u
      type(integration_node),pointer :: last_node=>null()
+      real(dp) e
   end type probe
   !@3 ---------------------------------------------</br>
   type probe_8
@@ -313,6 +315,7 @@ module definition
      !   stuff for exception
      logical u
      type(integration_node),pointer :: last_node=>null()
+      real(dp) e
   end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE

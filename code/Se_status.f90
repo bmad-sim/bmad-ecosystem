@@ -74,7 +74,7 @@ module S_status
 
   LOGICAL(lp) :: firsttime_coef=.true.,read_sector_info=my_true
 
-  PRIVATE EQUALt,ADD,PARA_REMA,EQUALtilt
+  PRIVATE EQUALt,ADD,PARA_REMA,EQUALtilt,EQUALi
   !PRIVATE DTILTR,DTILTP,DTILTS
   PRIVATE DTILTR_EXTERNAL,DTILTP_EXTERNAL,orthonormaliser,orthonormalisep
   PRIVATE CHECK_APERTURE_R,CHECK_APERTURE_P !,CHECK_APERTURE_S
@@ -160,6 +160,7 @@ module S_status
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUALt
+     MODULE PROCEDURE EQUALi
      MODULE PROCEDURE EQUALtilt
      MODULE PROCEDURE equal_p
      MODULE PROCEDURE equal_A
@@ -562,7 +563,9 @@ CONTAINS
              STABLE_DA=.false.
              xlost=0.0_dp
              xlost=x
-             messagelost="Lost in real kind=1 elliptic Aperture"
+             !messagelost="Lost in real kind=1 elliptic Aperture"
+             write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=1 elliptic aperture. ", &
+                                   "Orbit: X=",X(1)," Y=",X(3)," Ap.: DX=",E%DX," DY=",E%DY," R1=",E%R(1)," R2=",E%R(2)
           ENDIF
        CASE(2)  ! rectangle
           IF(ABS(X(1)-E%DX)>E%X.OR.ABS(X(3)-E%DY)>E%Y) THEN
@@ -570,7 +573,9 @@ CONTAINS
              STABLE_DA=.false.
              xlost=0.0_dp
              xlost=x
-             messagelost="Lost in real kind=2 rectangular Aperture"
+             !messagelost="Lost in real kind=2 rectangular Aperture"
+             write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=2 rectangular aperture. ", &
+                                  "Orbit: X=",X(1)," Y=",X(3)," Ap.: DX=",E%DX," DY=",E%DY," X=",E%X," Y=",E%Y
           ENDIF
        CASE(3)  ! RECTANGLE + ELLIPSE (CIRCLE)
           IF((ABS(X(1)-E%DX)>E%X).OR.(ABS(X(3)-E%DY)>E%Y).OR.  &
@@ -579,7 +584,9 @@ CONTAINS
              STABLE_DA=.false.
              xlost=0.0_dp
              xlost=x
-             messagelost="Lost in real kind=3 rect-ellipse Aperture"
+             !messagelost="Lost in real kind=3 rect-ellipse Aperture"
+             write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=3 rect-ellipse aperture. ", &
+                                  "Orbit: X=",X(1)," Y=",X(3)," Ap.: DX=",E%DX," DY=",E%DY," X=",E%X," Y=",E%Y," R=",E%R
           ENDIF
        CASE(4) ! MARGUERITE
           IF(((X(1)-E%DX)**2/E%R(2)**2+(X(3)-E%DY)**2/E%R(1)**2>1.0_dp).OR.  &
@@ -588,7 +595,9 @@ CONTAINS
              STABLE_DA=.false.
              xlost=0.0_dp
              xlost=x
-             messagelost="Lost in real kind=4 marguerite Aperture"
+             !messagelost="Lost in real kind=4 marguerite Aperture"
+             write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=4 marguerite Aperture. ", &
+                                  "Orbit: X=",X(1)," Y=",X(3)," Ap.: DX=",E%DX," DY=",E%DY," X=",E%X," Y=",E%Y," R=",E%R
           ENDIF
        CASE(5) ! RACETRACK
           IF( (abs(x(1)-e%dx)) > (e%r(1)+e%x)                  &
@@ -601,7 +610,9 @@ CONTAINS
              STABLE_DA=.false.
              xlost=0.0_dp
              xlost=x
-             messagelost="Lost in real kind=5 racetrack Aperture"
+             !messagelost="Lost in real kind=5 racetrack Aperture"
+             write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=5 racetrack Aperture. ", &
+                                  "Orbit: X=",X(1)," Y=",X(3)," Ap.: DX=",E%DX," DY=",E%DY," X=",E%X," Y=",E%Y," R=",E%R
           ENDIF
 
        CASE(6) ! PILES OF POINTS
@@ -1063,9 +1074,14 @@ CONTAINS
        if(muon==1.0_dp)  then
           write(mf,*)"This is an electron (positron actually if charge=1) "
        else
+         if(abs(1836.1526740143d0-muon)<1.d-8)then
+          write(mf,*) "This is a proton"
+         else
           write(mf,'((1X,a21,1x,G21.14,1x,A24))' ) "This a particle with ",muon, "times the electron mass "
+         endif
        endif
     else
+
        write(mf,*) "This is a proton "
     endif
     write(mf, '((1X,a20,1x,a5))' )  "      EXACT_MODEL = ", CONV(EXACT_MODEL    )
@@ -1182,12 +1198,62 @@ CONTAINS
 
 
 
+
+
+  SUBROUTINE  EQUALi(S2,i)
+    implicit none
+    type (INTERNAL_STATE),INTENT(OUT)::S2
+    integer, intent(in) :: i
+    
+    S2=default0
+    select case(i) 
+     case(0)
+      S2=default0
+    case(1)
+         S2=TOTALPATH0
+    case(2)
+         S2=TIME0
+    case(3)
+         S2=RADIATION0
+    case(4)
+         S2=NOCAVITY0
+    case(5)
+         S2=FRINGE0
+    case(6)
+         S2=STOCHASTIC0
+    case(7)
+         S2=ENVELOPE0
+    case(9)
+         S2=ONLY_4d0
+    case(10)
+         S2=DELTA0
+    case(11)
+         S2=SPIN0
+    case(12)
+         S2=MODULATION0
+    case(13)
+         S2=only_2d0
+    case default
+      S2%TOTALPATH = -1
+    end select
+ 
+  END SUBROUTINE EQUALi
+
+
+
   FUNCTION add( S1, S2 )
     implicit none
     TYPE (INTERNAL_STATE) add
     TYPE (INTERNAL_STATE), INTENT (IN) :: S1, S2
 
-
+    if(s2%totalpath/=0.and.s2%totalpath/=1) then 
+      add=s1
+      return
+    endif
+    if(s1%totalpath/=0.and.s1%totalpath/=1) then 
+      add=s1
+      return
+    endif
     add%TOTALPATH=0
     if((S1%TOTALPATH==1).OR.(S2%TOTALPATH==1)) add%TOTALPATH=1
 
@@ -1241,6 +1307,15 @@ CONTAINS
     TYPE (INTERNAL_STATE) sub
     TYPE (INTERNAL_STATE), INTENT (IN) :: S1, S2
     logical(lp) dum1,dum2,tt1,tt2
+
+    if(s2%totalpath/=0.and.s2%totalpath/=1) then 
+      sub=s1
+      return
+    endif
+    if(s1%totalpath/=0.and.s1%totalpath/=1) then 
+      sub=s1
+      return
+    endif
 
     tt1=s1%only_2d
     tt2=s2%only_2d

@@ -152,7 +152,7 @@ MODULE S_DEF_KIND
   private track_slice4r,track_slice4p 
   private  ZEROr_sol5,ZEROp_sol5,fringe_helr,fringe_help
   logical(lp) :: tpsa_quad_sad=my_false
- logical :: piotr_freq=.false.,syphers=.true.
+ logical :: piotr_freq=.false.,syphers=.true.,freq_redefine = .false.
  real(dp) :: orlov=0.0_dp
 
 !logical :: SYMP_X=.TRUE.
@@ -1840,14 +1840,17 @@ CALL FRINGECAV(EL,X,k,2)
     !    EL%DELTA_E=x(5)
     IF(.NOT.PRESENT(MID)) then
        dir=EL%P%DIR*EL%P%CHARGE
-
-       O=twopi*EL%freq/CLIGHT
-
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
     endif
 
        do ko=1,el%nf
+
 
           x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO) &
                +EL%phase0)/EL%P%P0C
@@ -1919,7 +1922,11 @@ CALL FRINGECAV(EL,X,k,2)
     !    EL%DELTA_E=x(5)
     call alloc(BBYTWT,BBXTW,BBYTW,x1,x3,O)
     dir=EL%P%DIR*EL%P%CHARGE
-    O=twopi*EL%freq/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -1995,7 +2002,11 @@ CALL FRINGECAV(EL,X,k,2)
     IF(EL%THIN) RETURN
 
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -2050,7 +2061,11 @@ CALL FRINGECAV(EL,X,k,2)
     
     CALL ALLOC(C1,S1,V,O)
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
     endif
@@ -2781,7 +2796,11 @@ CALL FRINGECAV(EL,X,k,2)
 
        
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -2837,7 +2856,11 @@ CALL FRINGECAV(EL,X,k,2)
      KBMAD=0 
     ENDIF
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
     endif
@@ -2880,7 +2903,11 @@ CALL FRINGECAV(EL,X,k,2)
 
     DIR=EL%P%DIR*EL%P%CHARGE
 
-    O=twopi*EL%freq/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -2980,7 +3007,11 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
     DIR=EL%P%DIR*EL%P%CHARGE
 
-    O=twopi*EL%freq/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -9651,131 +9682,7 @@ integer :: kkk=0
 
   ! cav_trav
 
-  subroutine feval_teapotrorlov(X,k,f,EL)   !electric teapot s
-    IMPLICIT NONE
-    real(dp), INTENT(INout) :: X(6)
-    real(dp), INTENT(INOUT) :: F(6)
-    REAL(DP) PZ,DEL,H,B(3),E(3),dir,VM
-    TYPE(teapot),  INTENT(IN) :: EL
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
  
-     call GETELECTRIC(EL,E,DEL,B,VM,X,kick=my_true)
-     e(3)=del
-     DIR=EL%P%DIR*EL%P%CHARGE
-
-     IF(EL%P%EXACT) THEN
-        if(k%TIME) then
-           H=1.0_dp+EL%P%B0*X(1)
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2-x(2)**2-x(4)**2)
-           F(1)=X(2)*H/PZ-orlov*x(1)*x(2)*EL%P%B0
-           F(3)=X(4)*H/PZ-orlov*x(1)*x(4)*EL%P%B0
-           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp/EL%P%BETA0+del)/pz*E(1)*EL%P%CHARGE+orlov*EL%P%B0*(x(2)**2+x(4)**2)/2.0_dp
-           F(4)=dir*B(2)+H*(1.0_dp/EL%P%BETA0+del)/pz*E(2)*EL%P%CHARGE 
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp/EL%P%BETA0+del)/PZ+(k%TOTALPATH-1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           H=1.0_dp+EL%P%B0*X(1)
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del+del**2-x(2)**2-x(4)**2)
-           F(1)=X(2)*H/PZ-orlov*x(1)*x(2)*EL%P%B0
-           F(3)=X(4)*H/PZ-orlov*x(1)*x(4)*EL%P%B0
-           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp+del)/pz*E(1)*EL%P%CHARGE+orlov*EL%P%B0*(x(2)**2+x(4)**2)/2.0_dp
-           F(4)=dir*B(2)+H*(1.0_dp+del)/pz*E(2)*EL%P%CHARGE 
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp+del)/PZ+(k%TOTALPATH-1) 
-        endif
-     ELSE
-        if(k%TIME) then
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=ROOT(1.0_dp+2*del/EL%P%BETA0+del**2)
-           F(1)=X(2)/PZ
-           F(3)=X(4)/PZ
-           F(2)=EL%P%B0*(1.0_dp+x(5)/EL%P%BETA0)+dir*B(1)+(1.0_dp/EL%P%BETA0+del)/pz*E(1)*EL%P%CHARGE* &
-            (1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(4)=dir*B(2)+(1.0_dp/EL%P%BETA0+del)/pz*E(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp/EL%P%BETA0+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)/EL%P%BETA0 &
-           +EL%P%B0*x(1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=1.0_dp+del
-           F(1)=X(2)/PZ
-           F(3)=X(4)/PZ
-           F(2)=EL%P%B0*(1.0_dp+x(5))+dir*B(1)+(1.0_dp+del)/pz*E(1)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(4)=dir*B(2)+(1.0_dp+del)/pz*E(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
-        endif
-     ENDIF
-     
-   END subroutine feval_teapotrorlov
- 
-  subroutine feval_teapotporlov(X,k,f,EL)   ! MODELLED BASED ON DRIFT
-    IMPLICIT NONE
-    type(real_8), INTENT(INout) :: X(6)
-    type(real_8),  INTENT(INOUT) :: F(6)
-    type(real_8) PZ,DEL,H,B(3),E(3),VM
-    TYPE(teapotp),  INTENT(IN) :: EL
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    real(dp) dir 
-
-     call alloc(PZ,DEL,H,B(1),B(2),B(3),VM)
-      call alloc(E,3)
-
-     DIR=EL%P%DIR*EL%P%CHARGE
-     call GETELECTRIC(EL,E,del,B,VM,X,kick=my_true)
-     E(3)=del
-
-     IF(EL%P%EXACT) THEN
-        if(k%TIME) then
-           H=1.0_dp+EL%P%B0*X(1)
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2-x(2)**2-x(4)**2)
-           F(1)=X(2)*H/PZ-orlov*x(1)*x(2)*EL%P%B0
-           F(3)=X(4)*H/PZ-orlov*x(1)*x(4)*EL%P%B0
-           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp/EL%P%BETA0+del)/pz*E(1)*EL%P%CHARGE+orlov*EL%P%B0*(x(2)**2+x(4)**2)/2.0_dp
-           F(4)=dir*B(2)+H*(1.0_dp/EL%P%BETA0+del)/pz*E(2)*EL%P%CHARGE 
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp/EL%P%BETA0+del)/PZ+(k%TOTALPATH-1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           H=1.0_dp+EL%P%B0*X(1)
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del+del**2-x(2)**2-x(4)**2)
-           F(1)=X(2)*H/PZ-orlov*x(1)*x(2)*EL%P%B0
-           F(3)=X(4)*H/PZ-orlov*x(1)*x(4)*EL%P%B0
-           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp+del)/pz*E(1)*EL%P%CHARGE+orlov*EL%P%B0*(x(2)**2+x(4)**2)/2.0_dp
-           F(4)=dir*B(2)+H*(1.0_dp+del)/pz*E(2)*EL%P%CHARGE 
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp+del)/PZ+(k%TOTALPATH-1) 
-        endif
-     ELSE
-        if(k%TIME) then
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2)
-           F(1)=X(2)/PZ
-           F(3)=X(4)/PZ
-           F(2)=EL%P%B0*(1.0_dp+x(5)/EL%P%BETA0)+dir*B(1)+(1.0_dp/EL%P%BETA0+del)/pz*E(1)*EL%P%CHARGE*  &
-            (1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(4)=dir*B(2)+(1.0_dp/EL%P%BETA0+del)/pz*E(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp/EL%P%BETA0+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+ &
-            (k%TOTALPATH-1)/EL%P%BETA0+EL%P%B0*x(1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=1.0_dp+del
-           F(1)=X(2)/PZ
-           F(3)=X(4)/PZ
-           F(2)=EL%P%B0*(1.0_dp+x(5))+dir*B(1)+(1.0_dp+del)/pz*E(1)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(4)=dir*B(2)+(1.0_dp+del)/pz*E(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
-        endif
-     ENDIF
-     call KILL(PZ,DEL,H,B(1),B(2),B(3),VM)
-     call KILL(E,3)
-
-   END subroutine feval_teapotporlov
  
  subroutine feval_teapotr(X,k,f,EL)   !electric teapot s
     IMPLICIT NONE
@@ -9834,7 +9741,7 @@ integer :: kkk=0
            F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
         endif
      ENDIF
-     
+     global_e= DEL*el%p%p0c
    END subroutine feval_teapotr
  
   subroutine feval_teapotp(X,k,f,EL)   ! MODELLED BASED ON DRIFT
@@ -9898,9 +9805,9 @@ integer :: kkk=0
            F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
         endif
      ENDIF
+     global_e= DEL*el%p%p0c
      call KILL(PZ,DEL,H,B(1),B(2),B(3),VM)
      call KILL(E,3)
-
    END subroutine feval_teapotp
    subroutine rk2_teapotr(h,GR,y,k)
     IMPLICIT none
@@ -11869,6 +11776,7 @@ integer :: kkk=0
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,MY_TRUE, k%TIME,X)     
         ENDIF
 
+          global_e=EL%P%p0c*(XO(5)+K1*XO(3))
 
   END SUBROUTINE SEPR
 
@@ -11988,11 +11896,13 @@ integer :: kkk=0
        XO(2)=C1*X(2)-S1*X(4)
        XO(5)=X(5)
        XO(6)=X(6)
-
+          global_e=EL%P%p0c*(XO(5)+K1*XO(3))
        CALL KILL(K1,SH_X,SH,CH,CHM)
        CALL KILL(PZ,E1,ARG,DH,C1,S1)
        CALL KILL( X,6)
        CALL KILL( XT,2)
+
+
   END SUBROUTINE SEPP
 
   SUBROUTINE SYMPSEPR(EL,X,k,MID)
@@ -13202,7 +13112,11 @@ integer :: kkk=0
     CPSI=COS(EL%PSI)
     SPSI=SIN(EL%PSI)
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -13253,7 +13167,11 @@ integer :: kkk=0
     CPSI=COS(EL%PSI)
     SPSI=SIN(EL%PSI)
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -16314,7 +16232,11 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 !    IF(k%NOCAVITY) RETURN
 
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
@@ -16361,7 +16283,11 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 !    IF(k%NOCAVITY) RETURN
 
     CALL ALLOC(C1,S1,C2,S2,V,O)
-    O=EL%freq*twopi/CLIGHT
+       if(freq_redefine) then
+        O=EL%freq
+         else 
+        O=twopi*EL%freq/CLIGHT
+       endif
 
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0

@@ -191,23 +191,23 @@ CONTAINS
     ENDIF
     IF(ASSOCIATED(L%DNA)) THEN
        DEALLOCATE(L%DNA)
-       WRITE(6,*) " DNA CONTENT HAS BEEN DEALLOCATED "
+       if(lielib_print(12)==1) WRITE(6,*) " DNA CONTENT HAS BEEN DEALLOCATED "
     ENDIF
     !    IF(ASSOCIATED(L%con)) THEN
     !       DEALLOCATE(L%con)
-    !       WRITE(6,*) " CONNECTOR CONTENT HAS BEEN KILLED "
+    !       if(lielib_print(12)==1) WRITE(6,*) " CONNECTOR CONTENT HAS BEEN KILLED "
     !    ENDIF
     !    IF(ASSOCIATED(L%con1)) THEN
     !       DEALLOCATE(L%con1)
-    !       WRITE(6,*) " CONNECTOR CONTENT HAS BEEN DEALLOCATED "
+    !       if(lielib_print(12)==1) WRITE(6,*) " CONNECTOR CONTENT HAS BEEN DEALLOCATED "
     !    ENDIF
     !    IF(ASSOCIATED(L%con2)) THEN
     !       DEALLOCATE(L%con2)
-    !       WRITE(6,*) " CONNECTOR CONTENT HAS BEEN DEALLOCATED "
+    !       if(lielib_print(12)==1) WRITE(6,*) " CONNECTOR CONTENT HAS BEEN DEALLOCATED "
     !    ENDIF
     !    IF(ASSOCIATED(L%girder)) THEN
     !       DEALLOCATE(L%girder)
-    !       WRITE(6,*) " GIRDER CONTENT HAS BEEN DEALLOCATED "
+    !       if(lielib_print(12)==1) WRITE(6,*) " GIRDER CONTENT HAS BEEN DEALLOCATED "
     !    ENDIF
 
     LC=> L  ! USED TO AVOID DNA MEMBERS
@@ -338,6 +338,7 @@ CONTAINS
 
     !    CALL LINE_L(L,doneit)  !TGV
     I=mod_n(POS,L%N)
+ 
     IF(L%LASTPOS==0) THEN
        !w_p=0
        !w_p%nc=2
@@ -364,6 +365,8 @@ CONTAINS
           Current => Current % PREVIOUS
        END DO
     ENDIF
+ 
+
     L%LASTPOS=I; L%LAST => Current;
     !    CALL RING_L(L,doneit) ! TGV
   END SUBROUTINE move_to_p
@@ -454,7 +457,7 @@ CONTAINS
     foundit=.false.
     S1NAME=name
     CALL CONTEXT(S1name)
-
+ 
     nullify(p)
     p=>l%last%next
 
@@ -462,6 +465,7 @@ CONTAINS
     do i=1,l%n
        if(index(p%mag%name,s1name(1:len_trim(s1name)))/=0) then
           foundit=.true.
+ 
           goto 100
        endif
        p=>p%next
@@ -471,11 +475,12 @@ CONTAINS
     if(foundit) then
        current=>p
        poss=mod_n(l%lastpos+i,l%n)
-       l%lastpos=pos
+       l%lastpos=poss
        l%last=>current
     else
        poss=0
     endif
+ 
  if(present(pos)) pos=poss
 
   END SUBROUTINE move_to_partial
@@ -2388,7 +2393,7 @@ CONTAINS
     IF(ASSOCIATED(L%ORBIT_LATTICE)) THEN
        CALL de_Set_Up_ORBIT_LATTICE(L%ORBIT_LATTICE)  !  KILLING ORBIT LATTICE
        !(NO LINKED LIST DE_SET_UP_... = KILL_... )
-       WRITE(6,*) " ORBIT LATTICE HAS BEEN KILLED "
+       if(lielib_print(12)==1) WRITE(6,*) " ORBIT LATTICE HAS BEEN KILLED "
     ENDIF
 
 

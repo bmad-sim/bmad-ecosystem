@@ -17,11 +17,11 @@ MODULE c_TPSA
   integer,private::ndel ,nd2par,nd2part,nd2partt
   integer,private,dimension(lnv)::jfil,jfilt
 
-  private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon  !,AABSEQUAL 2002.10.17
+  private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon,derive  !,AABSEQUAL 2002.10.17
   private pow, GETORDER,CUTORDER,getchar,GETint,GETORDERMAP,c_exp_vectorfield_on_spinmatrix  !, c_bra_v_spinmatrix
   private getdiff,getdATRA  ,mul,dmulsc,dscmul,c_spinor_spinmatrix
   private mulsc,scmul,imulsc,iscmul,map_mul_vec
-  private div,ddivsc,dscdiv,divsc,scdiv,idivsc,iscdiv
+  private div,ddivsc,dscdiv,divsc,scdiv,idivsc,iscdiv,equalc_ray_r6r
   private unaryADD,add,daddsca,dscadd,addsc,scadd,iaddsc,iscadd 
   private unarySUB,subs,dsubsc,dscsub,subsc,scsub,isubsc,iscsub
   private c_allocda,c_killda,c_a_opt,K_opt,c_,c_allocdas,filter_part
@@ -140,6 +140,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
       MODULE PROCEDURE c_EQUALVEC   !# c_vector_field=c_vector_field
       MODULE PROCEDURE equalc_cspinor_cspinor
       MODULE PROCEDURE equalc_ray_r6
+      MODULE PROCEDURE equalc_ray_r6r
       MODULE PROCEDURE equalc_r6_ray
       MODULE PROCEDURE equalc_ray_ray
       MODULE PROCEDURE equal_c_vector_field_fourier
@@ -355,6 +356,16 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
   END INTERFACE
 
   ! intrisic functions overloaded
+
+  INTERFACE c_phasor
+     MODULE PROCEDURE from_phasor
+  end INTERFACE c_phasor
+
+  INTERFACE ci_phasor
+     MODULE PROCEDURE to_phasor
+  end INTERFACE ci_phasor
+
+  ! Exponential of Lie Operators
 
   INTERFACE clean
 !     MODULE PROCEDURE c_clean
@@ -1700,6 +1711,22 @@ end subroutine c_get_indices
 
   END SUBROUTINE equalc_ray_r6
 
+ SUBROUTINE  equalc_ray_r6r(S2,S1)
+!*
+    implicit none
+    type (c_ray),INTENT(inOUT)::S2
+    real(dp),INTENT(IN)::S1(:)
+    integer i
+
+
+    IF(.NOT.C_STABLE_DA) RETURN
+    
+     s2%x=0.0_dp
+     do i=1,size(s1)
+       s2%x(i)=s1(i)
+     enddo
+
+  END SUBROUTINE equalc_ray_r6r
 
  SUBROUTINE  equalc_r6_ray(S1,S2)
 !*
@@ -3131,6 +3158,10 @@ FUNCTION cpbbra( S1, S2 )
      if(xn>1.5_dp) then
       n=1.e0_dp
       else
+      if(aimag(n_cai)/=-1) then
+       Write(6,*) "n_cai can only be -2i or -i "
+       stop
+      endif
       n=sqrt(2.e0_dp)
      endif
           do i=1,ndt
@@ -3357,6 +3388,7 @@ io=0
           if(j(i)>0) then
              dputchar=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif
        endif
@@ -3365,6 +3397,7 @@ io=0
           if(io>no) then
              dputchar=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif    
 
@@ -3412,6 +3445,7 @@ io=0
           if(j(i)>0) then
              dputcharr=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif
        endif
@@ -3421,6 +3455,7 @@ io=0
           if(io>no) then
              dputcharr=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif    
     dputcharr=0.0_dp
@@ -3465,6 +3500,7 @@ io=0
           if(j(i)>0) then
              !             call var(dputint,zero,0)
              dputint=0.0_dp
+    c_master=localmaster
              return
           endif
        endif
@@ -3474,6 +3510,7 @@ io=0
           if(io>no) then
              dputint=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif    
 
@@ -3521,6 +3558,7 @@ io=0
           if(j(i)>0) then
              !             call var(dputint,zero,0)
              dputintr=0.0_dp
+    c_master=localmaster
              return
           endif
        endif
@@ -3529,6 +3567,7 @@ io=0
           if(io>no) then
              dputintr=0.0_dp
              !             call var(dputchar,zero,0)
+    c_master=localmaster
              return
           endif    
 
@@ -3557,10 +3596,12 @@ io=0
     j=0
     if(s2>nv) then
        c_dputint0=0.d0
+        c_master=localmaster
        return
     endif
     if(s2==0) then
        c_dputint0=s1
+       c_master=localmaster
        return
     endif
 
@@ -3594,10 +3635,12 @@ io=0
     j=0
     if(s2>nv) then
        c_dputint0r=0.0_dp
+    c_master=localmaster
        return
     endif
     if(s2==0) then
        c_dputint0r=ss
+    c_master=localmaster
        return
     endif
 
@@ -3732,7 +3775,8 @@ cm=0
        cm=j(i)+cm
     enddo
 
-if(c>0.or.cm>nv) then
+!if(c>0.or.cm>nv) then  ! 2017.1.16
+if(c>0.or.cm>no) then
 r1=0.0_dp
 else
     CALL c_dapek(S1%I,j,r1)
@@ -3780,7 +3824,9 @@ cm=0
     enddo
 
 
-if(c>0.or.cm>nv) then
+!if(c>0.or.cm>nv) then  ! 2017.1.16
+if(c>0.or.cm>no) then
+
 r1=0.0_dp
 else
     CALL c_dapek(S1%I,j,r1)
@@ -3915,7 +3961,7 @@ endif
          fac=jc(l)+fac
         enddo
         fac=fac+1
-       if(ss>0) then
+       if(ss<0) then  !  fixed bug 2017 jan 9
         if(mod(j,2)==0) then  
           x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j-1))+x
         else
@@ -3936,21 +3982,122 @@ endif
 
   END FUNCTION getpb
 
-    FUNCTION cgetpb( S1, S2 )  
+    FUNCTION cgetpb( S1, s1p,S2 )  
     implicit none
     TYPE (c_taylor) cgetpb
-    TYPE (c_vector_field), INTENT (IN) :: S1
+    TYPE (c_vector_field),optional, INTENT (IN) :: S1
     INTEGER, optional,INTENT (IN) ::  S2
+    TYPE (c_damap),optional, INTENT (IN) :: S1p
     integer localmaster 
     localmaster=master
 
  
  
     call ass(cgetpb)
-     cgetpb=getpb( s1=S1, s2=S2 )/n_cai
+     cgetpb=getpb( s1=S1, s1p=s1p,s2=S2 )/n_cai
     c_master=localmaster
     END FUNCTION cgetpb
+
+  FUNCTION getpb_from_transverse( S1,f,S1p, S2 )  
+    implicit none
+    TYPE (c_taylor) getpb_from_transverse
+    TYPE (c_vector_field),optional, INTENT (IN) :: S1
+    TYPE (c_damap),optional, INTENT (IN) :: S1p
+    INTEGER,optional, INTENT (IN) ::  S2
+    integer localmaster,n,i,j,l,fac,nd2here,ss,k
+    type(c_taylor) t,x
+    complex(dp) value
+    real(dp) c
+    integer, allocatable :: jc(:)
+    type(c_vector_field), INTENT (INout) :: f
+    IF(.NOT.C_STABLE_DA) then
+     getpb_from_transverse%i=0
+     RETURN
+    endif
+
+    localmaster=c_master
+
+    nd2here=4 !nd2-2*rf
+    ss=-1
+    if(present(s2)) ss=s2
+    allocate(jc(c_%nv))
+    jc=0
+    !    call check(s1)
+    call ass(getpb_from_transverse)
+    getpb_from_transverse=0.0_dp
+    call alloc(t,x)
+    f=0
+
+    do j=1,nd2here
+    if(present(s1)) then
+     t=s1%v(j)
+    elseif(present(s1p)) then
+     t=s1p%v(j)
+     if(.not.present(s2))ss=1
+     else
+     write(6,*) " error in getpb "
+     stop
+    endif
+    x=0 
+    call c_taylor_cycle(t,size=n)
+
+    do i=1,n
+       call c_taylor_cycle(t,ii=i,value=value,j=jc)
+        fac=0
+        do l=1,nd2here
+         fac=jc(l)+fac
+        enddo
+        fac=fac+1
+       if(ss<0) then  !  fixed bug 2017 jan 9
+        if(mod(j,2)==0) then  
+          x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j-1))+x
+          jc(j-1)=jc(j-1)+1
+          value=value/fac
+        else
+          x=ss*((value/fac).cmono.jc)*(1.0_dp.cmono.(j+1))+x  
+          jc(j+1)=jc(j+1)+1  
+          value=ss*value/fac    
+        endif
+        do k=1,nd
+         l=2*k
+          call derive(jc,l,c)
+          f%v(2*k-1)=f%v(2*k-1)-((value*c).cmono.jc)
+          jc(2*k)=jc(2*k)+1
+         l=2*k-1
+          call derive(jc,l,c)
+          f%v(2*k)=f%v(2*k)+((value*c).cmono.jc)
+          jc(2*k-1)=jc(2*k-1)+1
+        enddo
+       else
+          x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j))+x
+       endif
+    enddo
+    getpb_from_transverse=x+getpb_from_transverse
     
+
+    enddo ! j
+
+    call kill(t,x)
+    deallocate(jc)
+    c_master=localmaster
+
+  END FUNCTION getpb_from_transverse
+
+  subroutine derive(j,k,c)
+  implicit none
+   integer, intent(inout):: J(:)
+   integer, intent(in):: k
+   real(dp), intent(out) :: c
+
+   if(j(k)==0) then 
+     c=0.d0
+    j(k)=j(k)-1
+   else
+    c=j(k)
+    j(k)=j(k)-1
+   endif
+  end subroutine derive
+
       FUNCTION getvectorfield( S1,s2 )  
     implicit none
     TYPE (c_vector_field) getvectorfield
@@ -3999,6 +4146,7 @@ cgetvectorfield=0
      if(complex_extra_order==1.and.special_extra_order_1) cgetvectorfield=cgetvectorfield.cut.no
     END FUNCTION cgetvectorfield 
     
+
   FUNCTION GETdatra( S1, S2 )
     implicit none
     TYPE (c_taylor) GETdatra
@@ -6580,8 +6728,14 @@ endif
 
   end subroutine c_init
 
-
- 
+  subroutine c_init_all(NO1,NV1,np1,ndpt1,AC_rf,ptc)  !,spin
+    implicit none
+    integer, intent(in) :: NO1,NV1
+    integer, optional :: np1,ndpt1,AC_RF
+    logical(lp), optional :: ptc  
+    call c_init(NO1,NV1,np1,ndpt1,AC_rf,ptc)
+     call init(NO,nd,np,ndpt) 
+ end   subroutine c_init_all
 
     subroutine c_etcct(x,n1,y,n2,z)
 !*
@@ -7983,14 +8137,12 @@ SUBROUTINE  c_EQUALcray(S2,S1)
     complex(dp),INTENT(inOUT)::S2(:,:)            !(ndim2,ndim2)
     type (c_damap),INTENT(IN)::S1
     integer i,j,JL(lnv)
- 
     IF(.NOT.C_STABLE_DA) RETURN
     call c_check_snake
 
     do i=1,lnv
        JL(i)=0
     enddo
-
     ! if(old) then
     do i=1,S1%n
        do j=1,S1%n
@@ -7999,8 +8151,7 @@ SUBROUTINE  c_EQUALcray(S2,S1)
           JL(j)=0
        enddo
     enddo
- 
- 
+
   END SUBROUTINE matrixMAPr
 
   SUBROUTINE  r_matrixMAPr(S2,S1)
@@ -8038,7 +8189,6 @@ SUBROUTINE  c_EQUALcray(S2,S1)
     type (c_damap),INTENT(inout)::S1
     integer i,j,JL(lnv)
     IF(.NOT.C_STABLE_DA) RETURN
-
     do i=1,lnv
        JL(i)=0
     enddo
@@ -8048,10 +8198,10 @@ SUBROUTINE  c_EQUALcray(S2,S1)
     enddo
 
     ! if(old) then
-    do i=1,size(s2,1)
-       do j=1,size(s2,2)
+    do i=1,s1%n  !size(s2,1)
+       do j=1,s1%n  !,size(s2,2)
           JL(j)=1
-          call c_dapok(S1%v(i)%i,JL,s2(i,j))
+          call c_dapok(S1%v(i)%i,JL,s2(i,j))  
           JL(j)=0
        enddo
     enddo
@@ -8076,8 +8226,8 @@ SUBROUTINE  c_EQUALcray(S2,S1)
     enddo
 
     ! if(old) then
-    do i=1,size(s2,1)
-       do j=1,size(s2,2)
+    do i=1,s1%n  !size(s2,1)
+       do j=1,s1%n   !,size(s2,2)
           JL(j)=1
           x=s2(i,j)
           call c_dapok(S1%v(i)%i,JL,x)
@@ -9835,7 +9985,7 @@ endif
     implicit none
     TYPE (c_vector_field) map_mul_vec
     type(c_damap),intent(in):: r
-    type(c_damap) ri
+    type(c_damap) ri,r0
     TYPE (c_vector_field), INTENT (IN) :: S1
     integer localmaster,i,k
 
@@ -9844,8 +9994,9 @@ endif
      RETURN
      endif
     localmaster=c_master
-    call alloc(ri)
-     ri=r**(-1)
+    call alloc(ri,r0)
+     r0=r
+     ri=r0**(-1)
  
     !    call check(s1)
     map_mul_vec%n=s1%n
@@ -9859,7 +10010,7 @@ endif
     enddo
     enddo
     do k=1,s1%n
-     map_mul_vec%v(k)=map_mul_vec%v(k)*r
+     map_mul_vec%v(k)=map_mul_vec%v(k)*r0
     enddo
 
     map_mul_vec%nrmax=s1%nrmax
@@ -9867,7 +10018,7 @@ endif
 
 
     c_master=localmaster
-    call kill(ri)
+    call kill(ri,r0)
   END FUNCTION map_mul_vec
 
     function exp_ad(h,x)  !  exp(Lie bracket)
