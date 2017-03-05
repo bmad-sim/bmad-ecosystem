@@ -96,7 +96,7 @@ endif
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
 
-call calc_next_fringe_edge (ele, orb_start%direction, s_edge_track, fringe_info, orb_start, .true.)
+call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_start, .true.)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
@@ -131,7 +131,7 @@ do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(fringe_info%hard_ele)) exit
     track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
     call apply_element_edge_kick (orb_end, fringe_info, ele, param, track_spin)
-    call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, fringe_info, orb_end)
+    call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_end)
   enddo
 
   if (abs(s - s2) < bmad_com%significant_length) exit

@@ -120,7 +120,7 @@ call reference_energy_correction (ele, orbit, first_track_edge$)
 ! to apply the appropriate hard edge kick.
 ! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
-call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orbit, .true.)
+call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orbit, .true.)
 if (ele%key == patch$) s_edge_track = s2
 
 ! Save initial point
@@ -148,7 +148,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     if (.not. associated(fringe_info%hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
     call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin)
-    call calc_next_fringe_edge (ele, s_dir, s_edge_track, fringe_info, orbit)
+    call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orbit)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_tiny * s_dir

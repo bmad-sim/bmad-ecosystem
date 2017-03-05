@@ -7,7 +7,6 @@ module bmad_struct
 use taylor_mod
 use complex_taylor_mod
 use random_mod
-use basic_bmad_mod
 use spline_mod
 
 use definition, only: genfield, fibre, layout
@@ -37,6 +36,26 @@ type fringe_edge_info_struct
   integer, pointer :: hard_location    ! Particle location wrt hard_ele.
   integer, allocatable :: location(:)  ! Particle location in an element.
                                        ! elements in list are the tracking element or its lords.
+end type
+
+!
+
+integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
+
+integer, parameter :: old_control_var_offset$ = 1000  ! For indexing into ele%control_var(:) array
+integer, parameter :: var_offset$ = 2000              ! Important: var_offset$ > old_control_var_offset$
+integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
+
+type expression_atom_struct
+  character(40) :: name = ''
+  integer :: type = 0
+  real(rp) :: value = 0
+end type
+
+type controller_var_struct
+  character(40) :: name = ''
+  real(rp) :: value = 0
+  real(rp) :: old_value = 0
 end type
 
 !-------------------------------------------------------------------------

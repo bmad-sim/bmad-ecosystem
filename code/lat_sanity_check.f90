@@ -130,7 +130,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (ele%key /= drift$ .and. ele%key /= pipe$ .and. ele%key /= patch$ .and. ele%value(l$) < 0) then
       call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS NOT A DRIFT, PIPE, OR PATCH, THAS NEGATIVE LENGTH.')
+                      'WHICH IS NOT A DRIFT, PIPE, OR PATCH, HAS A NEGATIVE LENGTH.')
         err_flag = .true.
       endif
 

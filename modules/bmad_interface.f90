@@ -1,6 +1,5 @@
 module bmad_interface
 
-use basic_bmad_mod
 use equal_mod
 use nrutil, only: reallocate
 use custom_bmad_interface

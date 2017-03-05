@@ -78,7 +78,7 @@ ds_safe = bmad_com%significant_length / 10
 dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
-call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb, .true.)
+call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
 old_direction = orb%direction
 
 if (present(track)) then
@@ -147,7 +147,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
       call convert_particle_coordinates_s_to_t(orb, s_save)
-      call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb)
+      call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
@@ -253,7 +253,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   endif
 
   if (orb%direction /= old_direction) then
-    call calc_next_fringe_edge (ele, orb%direction, s_fringe_edge, fringe_info, orb)
+    call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
     old_direction = orb%direction
   endif
 
@@ -642,10 +642,6 @@ end subroutine em_field_kick_vector_time
 !
 ! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
 !   
-!
-! Module needed:
-!   time_tracker_mod
-!
 ! Input:
 !   orb                 -- Coord_struct: particle in s-coordinates
 !   branch              -- branch_struct: branch that contains branch%ele(orb%ix_ele)
