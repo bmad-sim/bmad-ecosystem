@@ -702,13 +702,13 @@ sign_z_vel = start_orb%direction * ele%orientation
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
-call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, temp_start, .true.)
+call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
 call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
 if (fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
   call apply_element_edge_kick (temp_start, fringe_info, ele, param, .true.)
-  call calc_next_fringe_edge (ele, start_orb%direction, s_edge_track, fringe_info, end_orb, .false.)
+  call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
 temp_end   = end_orb

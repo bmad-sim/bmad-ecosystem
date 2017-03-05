@@ -128,6 +128,40 @@ subroutine calc_z_tune (lat, ix_branch)
   integer, optional :: ix_branch
 end subroutine
 
+function c_multi (n, m, no_n_fact, c_full) result (c_out)
+  import
+  implicit none
+  integer, intent(in) :: n, m
+  real(rp) c_out
+  real(rp), optional :: c_full(0:n_pole_maxx, 0:n_pole_maxx)
+  logical, optional :: no_n_fact
+end function
+
+subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
+  import
+  implicit none
+  real(rp) ds_in, length, ds_default, ds_out
+  integer n_step
+end subroutine
+
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
+  import
+  implicit none
+  real(rp), intent(in) :: E_tot
+  real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, dbeta
+  integer, intent(in) :: particle
+  logical, optional :: err_flag
+end subroutine
+
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
+  import
+  implicit none
+  real(rp), intent(in) :: pc
+  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
+  integer, intent(in) :: particle
+  logical, optional :: err_flag
+end subroutine
+
 subroutine crystal_attribute_bookkeeper (ele)
   import
   type (ele_struct) ele
@@ -314,6 +348,13 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   character(*) file_name
 end subroutine
 
+function hard_edge_model_length (ele) result (l_hard)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) l_hard
+end function
+
 subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   import
   implicit none
@@ -486,6 +527,13 @@ subroutine mat6_add_offsets (ele, param)
   type (ele_struct) ele
   type (lat_param_struct) param
 end subroutine
+
+function mexp (x, m) result (this_exp)
+  import
+  implicit none
+  real(rp) x, this_exp
+  integer m
+end function
 
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi, err_flag)
   import
@@ -695,6 +743,14 @@ subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_
   type (coord_struct), target :: orb(0:)
   type (normal_modes_struct) mode
   integer, optional :: ix_cache, ix_branch
+end subroutine
+
+subroutine reallocate_expression_stack (stack, n, exact)
+  import
+  implicit none
+  type (expression_atom_struct), allocatable :: stack(:)
+  integer n
+  logical, optional :: exact
 end subroutine
 
 subroutine reference_energy_correction (ele, orbit, particle_at)
