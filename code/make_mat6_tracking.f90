@@ -54,8 +54,7 @@ endif
 
 dorb6 = max(0.0_rp, 1.01 * (abs_p - (1 + c0%vec(6))))   ! Shift in start%vec(6) to apply.
 
-c00 = c0
-call init_coord(c00, c00%vec, ele, upstream_end$, c0%species, shift_vec6 = .false.)
+call init_coord(c00, c0, ele, upstream_end$, c0%species, shift_vec6 = .false.)
 call track1 (c00, ele, param, c1)
 
 ! Symmetric tracking uses more tracks but is more accurate
@@ -65,13 +64,13 @@ if (bmad_com%mat6_track_symmetric) then
     start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start%vec, ele, upstream_end$, c0%species, shift_vec6 = .false.)
+    call init_coord(start, start, ele, upstream_end$, c0%species, shift_vec6 = .false.)
     call track1 (start, ele, param, end2)
 
     start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) - del_orb(i)
-    call init_coord(start, start%vec, ele, upstream_end$, c0%species, shift_vec6 = .false.)
+    call init_coord(start, start, ele, upstream_end$, c0%species, shift_vec6 = .false.)
     call track1 (start, ele, param, end1)
 
     ele%mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
@@ -85,7 +84,7 @@ else
     start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start%vec, ele, upstream_end$, c0%species, shift_vec6 = .false.)
+    call init_coord(start, start, ele, upstream_end$, c0%species, shift_vec6 = .false.)
     call track1 (start, ele, param, end1)
     ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
   enddo
