@@ -575,7 +575,11 @@ character(28), parameter :: r_name = 'em_field_kick_vector_time'
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
 !	and they coincide in both coordinate systems, so we can use the 'normal' routine:
 
-call em_field_calc (ele, param, orbit%vec(5), orbit, local_ref_frame, field, .false., err_flag, rf_time = rf_time)
+if (ele%orientation == 1) then
+  call em_field_calc (ele, param, orbit%vec(5), orbit, local_ref_frame, field, .false., err_flag, rf_time = rf_time)
+else
+  call em_field_calc (ele, param, ele%value(l$)-orbit%vec(5), orbit, local_ref_frame, field, .false., err_flag, rf_time = rf_time)
+endif
 if (err_flag) return
 
 ! Get e_tot from momentum
@@ -605,8 +609,12 @@ vel(1:3) = c_light * [orbit%vec(2),  orbit%vec(4),  orbit%vec(6)] / e_tot
 ! dcp_s/dt = -(1/h) * cp_s * ( v_x * \kappa_x + v_y * \kappa_y ) + c*charge * ( Es + v_x By - v_y Bx )
 
 ! Straight coordinate systems have a simple Lorentz force
+! If ele%orientation = -1 then +s global direction = -s element frame direction
 
+vel(3) = vel(3) * ele%orientation  ! To element frame
 force = charge * (field%E + cross_product(vel, field%B))
+vel(3) = vel(3) * ele%orientation  ! Reset to global frame
+
 dvec_dt(1) = vel(1)
 dvec_dt(2) = c_light*force(1)
 dvec_dt(3) = vel(2)

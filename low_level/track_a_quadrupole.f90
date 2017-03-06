@@ -42,11 +42,16 @@ logical drifting
 
 start_orb = orbit
 orientation = ele%orientation * start_orb%direction
-rel_tracking_charge = relative_tracking_charge(start_orb, param)
+rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+if (ix_pole_max > -1) then
+  an = charge_dir * an
+  bn = charge_dir * bn
+endif
 
 n_step = 1
 if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)

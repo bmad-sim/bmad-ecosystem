@@ -105,7 +105,7 @@ set_z_off  = logic_option (.true., set_z_offset) .and. has_orientation_attribute
 sign_z_vel = ele%orientation * coord%direction
 set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
 
-rel_tracking_charge = relative_tracking_charge (coord, param)
+rel_tracking_charge = rel_tracking_charge_to_mass (coord, param)
 charge_dir = rel_tracking_charge * sign_z_vel 
 
 if (set_hv) then

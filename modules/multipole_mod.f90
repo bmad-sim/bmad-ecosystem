@@ -270,7 +270,7 @@ end subroutine multipole1_kt_to_ab
 !                      Default is False.
 !
 ! Output:
-!   ix_pole_max      -- Integer: Index of largest nonzero pole.
+!   ix_pole_max      -- Integer: Index of largest nonzero pole. Set to -1 if all multipoles are zero.
 !   a(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !   b(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
 !-

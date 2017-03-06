@@ -752,7 +752,7 @@ case (sbend$)
 case (solenoid$)
 
   vec0 = temp_start%vec
-  ks = ele%value(ks$) / (1+vec0(6)) * relative_tracking_charge(temp_start, param)
+  ks = ele%value(ks$) / (1+vec0(6)) * rel_tracking_charge_to_mass(temp_start, param)
   kss = ks / 2
   length = ele%value(l$)
 
