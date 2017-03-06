@@ -938,16 +938,16 @@ ks_yo_sum = 0
 !
 
 value = 0
-value(l$) = slave%value(l$)
-value(E_tot_start$)    = slave%value(E_tot_start$)
-value(p0c_start$)      = slave%value(p0c_start$)
-value(E_tot$)          = slave%value(E_tot$)
-value(p0c$)            = slave%value(p0c$)
-value(delta_ref_time$) = slave%value(delta_ref_time$)
-value(ref_time_start$) = slave%value(ref_time_start$)
-value(fringe_at$)      = no_end$
-value(fringe_type$)    = none$
-
+value(l$)                = slave%value(l$)
+value(E_tot_start$)      = slave%value(E_tot_start$)
+value(p0c_start$)        = slave%value(p0c_start$)
+value(E_tot$)            = slave%value(E_tot$)
+value(p0c$)              = slave%value(p0c$)
+value(delta_ref_time$)   = slave%value(delta_ref_time$)
+value(ref_time_start$)   = slave%value(ref_time_start$)
+value(fringe_at$)        = no_end$
+value(fringe_type$)      = none$
+value(integrator_order$) = 0
 slave%value(x1_limit$:y2_limit$) = 0
 
 slave%aperture_at = no_end$
@@ -995,6 +995,10 @@ do j = 1, slave%n_lord
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
+
+  ! Choose the largest integrator order
+
+  value(integrator_order$) = max(value(integrator_order$), lord%value(integrator_order$))
 
   ! Choose the smallest ds_step of all the lords.
 
