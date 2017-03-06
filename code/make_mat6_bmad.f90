@@ -90,7 +90,7 @@ key = ele%key
 rel_tracking_charge = rel_tracking_charge_to_mass(orb_in, param)
 charge_dir = rel_tracking_charge * ele%orientation
 c00 = orb_in
-c00%direction = +1
+!! c00%direction = +1  ! Quad calc, for example, will not be correct if this is set.
 
 ! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
@@ -304,8 +304,6 @@ case (elseparator$)
 case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
   call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
-
-  charge_dir = rel_tracking_charge * ele%orientation
 
   hkick = charge_dir * v(hkick$) 
   vkick = charge_dir * v(vkick$) 
