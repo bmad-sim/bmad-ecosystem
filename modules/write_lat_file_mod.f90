@@ -2916,7 +2916,7 @@ character(300) line, knl_str, ksl_str
 character(2000) line_out
 
 logical, optional :: include_apertures, err
-logical converted, init_needed
+logical converted, init_needed, in_solenoid
 
 ! open file
 
@@ -2981,6 +2981,7 @@ j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
 t_count = 0    ! taylor element count.
 s_count = 0    ! SAD solenoid count
 sad_fshift = 0
+in_solenoid = .false.
 
 ! Loop over all input elements
 
@@ -3015,13 +3016,22 @@ do
   ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
   ! This works since there cannot be any actual null_eles in the lattice.
 
-  if (ele%key == patch$ .or. ele%value(l$) /= 0 .or. ix_ele == branch_out%n_ele_max) then
+  if ((ele%key == patch$ .or. ele%key == marker$) .and. ele%value(sad_geo_bound$) /= 0) then 
+    ele%key = null_ele$  ! Convert to SOL
+    if (ele%value(sad_geo_bound$) > 0) then
+      if (in_solenoid) then
+        ele%iyy = exit_end$
+      else
+        ele%iyy = entrance_end$
+      endif
+      in_solenoid = .not. in_solenoid
+    endif
 
+  elseif (ele%key == patch$ .or. ele%value(l$) /= 0 .or. ix_ele == branch_out%n_ele_max) then
     bs_field = 0
     if (has_attribute (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
 
     if (bs_field /= old_bs_field) then
-
       if (ele%key == marker$ .or. ele%key == patch$) then
         sol_ele => ele
       else
@@ -3050,6 +3060,7 @@ do
       if (old_bs_field == 0) then
         sol_ele%value(sad_geo_bound$) = 2
         sol_ele%iyy = entrance_end$  ! Entering solenoid
+        in_solenoid = .true.
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
         if (nint(ele%value(sad_geo_bound$)) == 2) then
@@ -3059,6 +3070,7 @@ do
           sol_ele%value(sad_geo_bound$) = 1
         endif
         sol_ele%iyy = exit_end$  ! Entering solenoid
+        in_solenoid = .false.
       else
         sol_ele%value(sad_geo_bound$) = 0
       endif
@@ -3498,7 +3510,7 @@ do ix_ele = ie1, ie2
       write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
       call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
       call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
-      call value_to_line (line_out, val(eps_step_scale$), 'EPS', 'R', .true., .false.)
+      if (val(eps_step_scale$) /= 1) call value_to_line (line_out, val(eps_step_scale$), 'EPS', 'R', .true., .false.)
       call value_to_line (line_out, val(x_offset_mult$), 'DX', 'R', .true., .false.)
       call value_to_line (line_out, val(y_offset_mult$), 'DY', 'R', .true., .false.)
       call value_to_line (line_out, val(x_pitch_mult$), 'CHI1', 'R', .true., .false.)

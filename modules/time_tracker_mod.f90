@@ -70,7 +70,17 @@ logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
 logical :: edge_kick_applied, track_spin, stop_time_limited
 
-character(30), parameter :: r_name = 'odeint_bmad_time'
+character(*), parameter :: r_name = 'odeint_bmad_time'
+
+! If element length < 0 must track backwards in time.
+! This has not yet been implemented.
+
+if (ele%value(l$) < 0) then
+  call out_io (s_error$, r_name, &
+          'Time Runge-Kutta tracking through element with negative length not yet implemented!', &
+          'Element: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+endif
 
 ! init
 
