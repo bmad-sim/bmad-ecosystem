@@ -64,7 +64,7 @@ n_div = nint(ele%value(num_steps$))
 
 rel_pc = 1 + end_orb%vec(6)
 orientation = ele%orientation * end_orb%direction
-charge_dir = relative_tracking_charge(end_orb, param) * orientation
+charge_dir = rel_tracking_charge_to_mass(end_orb, param) * orientation
 
 if (present(mat6)) call mat_make_unit(mat6)
 
@@ -106,7 +106,7 @@ endif
 
 ! Go to frame of reference of the multipole quad component
 
-ks = relative_tracking_charge(end_orb, param) * ele%value(ks$)
+ks = rel_tracking_charge_to_mass(end_orb, param) * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
 if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then

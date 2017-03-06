@@ -577,7 +577,11 @@ direction = ele%orientation * orbit%direction
 ! Calculate the field. 
 ! Important: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
 
-call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, .false., err)
+if (ele%orientation == 1) then
+  call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, .false., err)
+else
+  call em_field_calc (ele, param, ele%value(l$)-s_rel, orbit, local_ref_frame, field, .false., err)
+endif
 if (err) return
 
 ! Bend factor

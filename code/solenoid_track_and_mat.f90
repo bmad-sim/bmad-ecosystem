@@ -35,7 +35,7 @@ vec0 = start_orb%vec
 end_orb = start_orb
 length = ele%value(l$)
 rel_p = 1 + start_orb%vec(6)
-rel_tracking_charge = relative_tracking_charge(start_orb, param)
+rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 
 ks0 = rel_tracking_charge * ele%value(ks$)
 kss0 = ks0 / 2

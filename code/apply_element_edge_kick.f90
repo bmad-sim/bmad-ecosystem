@@ -137,7 +137,7 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = at_sign * relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
+  ks = at_sign * rel_tracking_charge_to_mass(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
   orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
   orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   if (track_spn) then

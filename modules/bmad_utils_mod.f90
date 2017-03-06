@@ -92,7 +92,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function relative_tracking_charge (orbit, param) result (rel_charge)
+! Function rel_tracking_charge_to_mass (orbit, param) result (rel_charge)
 !
 ! Routine to determine the relative charge/mass of the particle being 
 ! tracked relative to the charge of the reference particle.
@@ -105,7 +105,7 @@ contains
 !   rel_charge -- real(rp): Relative charge/mass
 !-
 
-function relative_tracking_charge (orbit, param) result (rel_charge)
+function rel_tracking_charge_to_mass (orbit, param) result (rel_charge)
 
 type (coord_struct) orbit
 type (lat_param_struct) param
@@ -120,7 +120,7 @@ else
                  (charge_of(param%particle) / mass_of(param%particle))
 endif
 
-end function relative_tracking_charge
+end function rel_tracking_charge_to_mass
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

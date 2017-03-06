@@ -58,7 +58,7 @@ c0_off = orbit
 
 ! Entrance edge kick
 
-c_dir = ele%orientation * orbit%direction * relative_tracking_charge(orbit, param)
+c_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
 if (logic_option(.false., make_matrix)) call mat_make_unit (mat6)
 
 nullify(fringe_info%hard_ele)
@@ -445,7 +445,7 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
   call  bend_exact_multipole_field (ele, param, orbit, .true., field, make_matrix)
   f_elec = f_coef * step_len * charge_of(orbit%species) / (orbit%beta * orbit%p0c)
-  f_mag  = f_coef * step_len * charge_to_mass_of(orbit%species) / charge_to_mass_of(param%particle)
+  f_mag  = f_coef * step_len * c_dir
   pz2 = (1 + orbit%vec(6))**2 - orbit%vec(2)**2 - orbit%vec(4)**2
 
   if (logic_option(.false., make_matrix)) then
@@ -543,7 +543,7 @@ logical, optional :: make_matrix
 
 ! Degenerate case
 
-charge_dir = relative_tracking_charge(orbit, param) * ele%orientation * orbit%direction
+charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
 
 k_1 = ele%value(k1$) * charge_dir
 g = ele%value(g$)
