@@ -3658,12 +3658,23 @@ do ix_ele = ie1, ie2
   if (ele%key /= marker$) then
     call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
     call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
-    if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
-      call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
-    elseif (ele%key /= sbend$) then
-      call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
-    endif
   endif
+
+  if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
+    call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
+  elseif (ele%key /= sbend$) then
+    call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
+  endif
+
+  if (ele%key == null_ele$ .and. nint(ele%value(sad_geo_bound$)) == 2) then ! At geo = 1 end
+    if (ele%iyy == entrance_end$) then
+      call value_to_line (line_out, val(x_pitch$), 'DPX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y_pitch$), 'DPY', 'R', .true., .false.)
+    else
+      call value_to_line (line_out, -val(x_pitch$), 'DPX', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y_pitch$), 'DPY', 'R', .true., .false.)
+    endif
+  endif      
 
   !
 
