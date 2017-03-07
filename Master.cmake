@@ -232,17 +232,16 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (ACC_PLOT_LIB_DIRS /opt/local/lib)
   ENDIF ()
-  SET (PLOT_LINK_FLAGS "-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
+  SET (PLOT_LINK_FLAGS "-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime")
 ELSE ()
   SET (PLOT_LIBRARY_F_FLAG "")
   SET (PLOT_LINK_LIBS "pgplot")
+
+  IF ("$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "X")
+    SET (PLOT_LINK_FLAGS "-lX11")
+  ENDIF ()
+
 ENDIF ()
-
-IF ("$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "X")
-  SET (PLOT_LINK_FLAGS "-lX11 ${PLOT_LINK_FLAGS}")
-ENDIF ()
-
-
 
 
 #--------------------------------------
@@ -261,7 +260,7 @@ IF ($ENV{ACC_ENABLE_FPIC})
 ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
-    SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
 ELSE ()
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
 ENDIF ()
