@@ -9,7 +9,6 @@ set (LINK_LIBS
   xrlf03
   xrl
   sim_utils
-  readline
   recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
   forest 
