@@ -147,6 +147,10 @@ The \vn{change} command changes element attribute values or variable values in t
 \end{example}
 
 \vskip 0.2in 
+
+The \vn{change} is used for changing real (as opposed to integer or logical)
+parameters. Also see the \vn{set} command (\sref{s:set}) which is more general.
+
 If \vn{<prefix>} is not present, \vn{<number>} is added to the existing value
 of the attribute or variable. That is:
 \begin{example}
@@ -189,10 +193,6 @@ Twiss parameters where \vn{<twiss>} is one of:
 
 The \vn{-silent} switch, if present, suppresses the printing of what variables are
 changed.
-
-Note: \vn{change element} is used for changing real (as opposed to integer or logical)
-attributes of an element. To change integer or logical values, use the \vn{set element}
-command instead. The \vn{set} command can also be used to, say, set datum values, etc.
 
 Examples:
 \begin{example}
@@ -738,11 +738,11 @@ variables, etc. Format:
 
 \vskip 0.2in 
 
-The \vn{show} command (\sref{s:show}) is able to display the settings of many variables
-that can be set by the \vn{set} command.
+Also see the \vn{change} command (\sref{s:change}). The \vn{change} command is specialized
+for varying real parameters while the \vn{set} command is more general.
 
-Note: For setting element attributes in the \vn{model} lattice use the \vn{change}
-command.
+Note: The \vn{show} command (\sref{s:show}) is able to display the settings of many variables
+that can be set by the \vn{set} command.
 
 To apply a set to all data or variable classes use ``*'' in place of \vn{<data_name>} or
 \vn{var_name}.
@@ -1373,7 +1373,7 @@ Format:
   show use                                                          ! \sref{s:show.use}
   show value <expression>                                           ! \sref{s:show.value}
   show variable \{-no_label_lines\} \{<var_name>\}                      ! \sref{s:show.variable}
-  show variable \{-no_label_lines\} <universe_number>@                ! \sref{s:show.variable}
+  show variable \{-no_label_lines\} -universe <universes>             ! \sref{s:show.variable}
   show variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format     ! \sref{s:show.variable}
   show wakes                                                        ! \sref{s:show.wakes}
   show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
