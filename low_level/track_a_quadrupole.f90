@@ -48,11 +48,6 @@ charge_dir = rel_tracking_charge * orientation
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (ix_pole_max > -1) then
-  an = charge_dir * an
-  bn = charge_dir * bn
-endif
-
 n_step = 1
 if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
@@ -70,8 +65,8 @@ if (orbit%state /= alive$) return
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
 
 ! Body
 
@@ -120,11 +115,11 @@ do i = 1, n_step
   orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
 
   if (i == n_step) then
-    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len/2, mat6, make_matrix)
+    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
   else
-    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, r_step,   mat6, make_matrix)
-    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, step_len, mat6, make_matrix)
+    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step,   mat6, make_matrix)
+    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len, mat6, make_matrix)
   endif
 
 enddo
