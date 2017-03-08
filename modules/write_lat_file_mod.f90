@@ -2893,6 +2893,7 @@ real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) bs_field, old_bs_field, a, b
 real(rp) xp, yp, xo, yo, zo, sad_fshift
+real(rp) hk, vk, tilt
 
 
 integer, parameter :: sad_f1$  = custom_attribute1$
@@ -3415,23 +3416,36 @@ do ix_ele = ie1, ie2
 
     ! SAD
     case (hkicker$)
-      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
+      write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
+!      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+!      call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
+!      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
     case (vkicker$)
-      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
+      write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
+      call value_to_line (line_out, pi/2, 'ROTATE', 'R', .true., .false.)
+!      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+!      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
+!      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
     case (kicker$)
-      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
-      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
+      write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      hk = -val(hkick$)
+      vk = -val(vkick$)
+      tilt = atan2(hk, vk)
+      if (hk /= 0 .or. vk /= 0) then
+        call value_to_line (line_out, -sqrt(hk**2 + vk**2), 'K0', 'R', .true., .false.)
+        call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
+      endif
+!      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+!      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+!      a_pole = a_pole + a;  b_pole = b_pole + b
+!      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+!      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
     case (lcavity$)
@@ -3608,7 +3622,7 @@ do ix_ele = ie1, ie2
 
     select case (nint(val(fringe_type$)))
     case (none$, soft_edge_only$)
-      line_out = trim(line_out) // ', DISFRIN = 1'
+      line_out = trim(line_out) // ' DISFRIN = 1'
     case (hard_edge_only$)
       select case (nint(val(fringe_at$)))
       case (no_end$)
@@ -3617,7 +3631,7 @@ do ix_ele = ie1, ie2
         line_out = trim(line_out) // ' CANNOT TRANSLATE BMAD FRINGE_TYPE/FRINGE_AT!'
       end select
     case (full$)
-      if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ', disfrin = 1'
+      if (nint(val(fringe_at$)) == no_end$) line_out = trim(line_out) // ' DISFRIN = 1'
     end select
   endif
 
