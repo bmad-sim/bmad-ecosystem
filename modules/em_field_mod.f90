@@ -626,9 +626,9 @@ case (bmad_standard$)
       do i = 0, ix_pole_max
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, local_orb, kx, ky, dkm)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky, dkm)
         else
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, local_orb, kx, ky)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky)
         endif
         field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
         field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)

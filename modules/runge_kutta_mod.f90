@@ -559,7 +559,7 @@ real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
-integer direction, sign_z_vel
+integer rel_dir, sign_z_vel
 
 logical :: local_ref_frame, err
 
@@ -572,7 +572,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dt_ds_ref = orbit%direction / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
-direction = ele%orientation * orbit%direction
+rel_dir = ele%orientation * orbit%direction
 
 ! Calculate the field. 
 ! Important: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
@@ -589,7 +589,7 @@ if (err) return
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 0.99999999_rp) return
-vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * direction]
+vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * rel_dir]
 E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 

@@ -70,7 +70,6 @@ if (present(mat6)) call mat_make_unit(mat6)
 
 knl = 0; tilt = 0
 call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
-knl = knl * charge_dir
 
 ! Setup ele2 which is used in offset_particle
 
@@ -86,9 +85,9 @@ if (length == 0) then
   call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
 
   if (ix_pole_max > -1) then
-    call multipole_kicks (knl, tilt, param%particle, end_orb)
+    call multipole_kicks (knl, tilt, param%particle, ele, end_orb)
     if (present(mat6)) then
-      call multipole_kick_mat (knl, tilt, param%particle, end_orb, 1.0_rp, mat6)
+      call multipole_kick_mat (knl, tilt, param%particle, ele, end_orb, 1.0_rp, mat6)
     endif
   endif
 
@@ -174,10 +173,10 @@ do nd = 0, n_div
 
   if (nd == n_div) exit
 
-  call multipole_kicks (knl, tilt, param%particle, end_orb)
+  call multipole_kicks (knl, tilt, param%particle, ele, end_orb)
 
   if (present(mat6)) then
-    call multipole_kick_mat (knl, tilt, param%particle, end_orb, 1.0_rp, mat1)
+    call multipole_kick_mat (knl, tilt, param%particle, ele, end_orb, 1.0_rp, mat1)
     mat6(2,:) = mat6(2,:) + mat1(2,1) * mat6(1,:) + mat1(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat1(4,1) * mat6(1,:) + mat1(4,3) * mat6(3,:)
   endif

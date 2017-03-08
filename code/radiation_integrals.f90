@@ -368,7 +368,7 @@ if (use_cache .or. init_cache) then
         call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
         do ip = 0, ix_pole_max
           if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
-          call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, orb_end, kx, ky, dk)
+          call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, ele2%orientation, orb_end, kx, ky, dk)
           c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
           c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
           c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)

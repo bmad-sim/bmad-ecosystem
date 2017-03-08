@@ -472,8 +472,8 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 !
 
 else
-  if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, orbit, magnetic$, f_coef * r_step,   mat6, make_matrix)
-  if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, orbit, electric$, f_coef * step_len, mat6, make_matrix)
+  if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, f_coef * r_step,   mat6, make_matrix)
+  if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, f_coef * step_len, mat6, make_matrix)
 endif
 
 end subroutine apply_multipole_kicks
