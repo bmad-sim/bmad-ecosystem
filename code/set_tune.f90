@@ -42,7 +42,7 @@ real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
 
 integer i, j, status
 
-logical ok, err, rf_on
+logical ok, err, rf_on, master_saved
 
 character(20) :: r_name = 'set_tune'
 real(rp), dimension(2) :: phi_array
@@ -56,8 +56,11 @@ rf_on = rf_is_on(lat%branch(0))
 do j = 1, lat%n_ele_max
   if (dk1(j) == 0) cycle
   ele => lat%ele(j)
+  master_saved = ele%field_master
+  ele%field_master = .false.
   if (attribute_free(ele, 'K1', .false.)) cycle
   call out_io (s_warn$, r_name, 'K1 ATTRIBUTE NOT FREE TO VARY OF ELEMENT: ' // ele%name, 'WILL NOT USE THIS!')
+  ele%field_master = master_saved
 enddo
 
 ! Q tune
@@ -120,6 +123,8 @@ do i = 1, 10
   do j = 1, lat%n_ele_max
     if (dk1(j) == 0) cycle
     ele => lat%ele(j)
+    master_saved = ele%field_master
+    ele%field_master = .false.
     if (.not. attribute_free(ele, 'K1', .false.)) cycle
     if (dk1(j) > 0) then
       ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_x
@@ -127,6 +132,8 @@ do i = 1, 10
       ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_y
     endif
     call set_flags_for_changed_attribute (ele, ele%value(k1$))
+    call attribute_bookkeeper (ele, lat%param, .true.)
+    ele%field_master = master_saved
   enddo
 
 enddo
