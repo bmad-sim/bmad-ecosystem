@@ -12,8 +12,9 @@ use bookkeeper_mod
 use complex_taylor_mod
 
 interface assignment (=)
-  module procedure real_8_equal_taylor
-  module procedure taylor_equal_real_8
+  module procedure real_8_equal_bmad_taylor
+  module procedure ptc_taylor_equal_bmad_taylor
+  module procedure bmad_taylor_equal_real_8
   module procedure universal_equal_universal
   module procedure bmad_taylor_equal_ptc_taylor
   module procedure bmad_taylors_equal_ptc_taylors
@@ -1223,7 +1224,7 @@ end subroutine get_ptc_params
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_equal_real_8 (bmad_taylor, y8)
+! Subroutine bmad_taylor_equal_real_8 (bmad_taylor, y8)
 !
 ! Subroutine to convert from a real_8 taylor map in Etienne's PTC 
 ! to a taylor map in Bmad. This does not do any
@@ -1245,7 +1246,7 @@ end subroutine get_ptc_params
 !   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !-
 
-subroutine taylor_equal_real_8 (bmad_taylor, y8)
+subroutine bmad_taylor_equal_real_8 (bmad_taylor, y8)
 
 use polymorphic_taylor, only: assignment (=), universal_taylor, real_8
 use definition, only: real_8
@@ -1267,13 +1268,13 @@ do i = 1, size(y8)
   u_t(i) = -1  ! deallocate
 enddo
 
-end subroutine taylor_equal_real_8
+end subroutine bmad_taylor_equal_real_8
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine real_8_equal_taylor (y8, bmad_taylor)
+! Subroutine real_8_equal_bmad_taylor (y8, bmad_taylor)
 !
 ! Subroutine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 !
@@ -1293,7 +1294,7 @@ end subroutine taylor_equal_real_8
 !   y8(:) -- real_8: PTC Taylor map.
 !-
 
-subroutine real_8_equal_taylor (y8, bmad_taylor)
+subroutine real_8_equal_bmad_taylor (y8, bmad_taylor)
 
 use polymorphic_taylor, only: kill, assignment(=), real_8, universal_taylor
 
@@ -1305,8 +1306,6 @@ type (universal_taylor) :: u_t
 
 integer i, j, n, n_taylor
 
-logical switch
-
 ! init
 
 call kill (y8)
@@ -1314,10 +1313,8 @@ call real_8_init (y8, .true.)
 
 !
 
-n_taylor = size(bmad_taylor)
+n_taylor = size(bmad_taylor)  ! Generally n_taylor = 6
 do i = 1, n_taylor
-
-  switch = .true.
 
   n = size(bmad_taylor(i)%term)
   allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n,n_taylor))
@@ -1331,10 +1328,56 @@ do i = 1, n_taylor
 
   y8(i) = u_t
   u_t = -1   ! deallocate
-
 enddo
 
-end subroutine real_8_equal_taylor
+end subroutine real_8_equal_bmad_taylor
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ptc_taylor_equal_bmad_taylor (ptc_taylor, bmad_taylor)
+!
+! Subroutine to convert from a taylor map in Bmad to a taylor map in Etienne's PTC. 
+!
+! Subroutine overloads "=" in expressions
+!       ptc_taylor = bmad_taylor
+!
+! Input:
+!   bmad_taylor(:) -- taylor_struct: Input taylor map.
+!
+! Output:
+!   ptc_taylor(:)   -- taylor: PTC Taylor map.
+!-
+
+subroutine ptc_taylor_equal_bmad_taylor (ptc_taylor, bmad_taylor)
+
+use polymorphic_taylor, only: kill, assignment(=), taylor, universal_taylor
+
+implicit none
+
+type (taylor), intent(inout) :: ptc_taylor
+type (taylor_struct), intent(in) :: bmad_taylor
+type (universal_taylor) :: u_t
+
+integer j, n
+
+!
+
+n = size(bmad_taylor%term)
+allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n, 6))
+u_t%n = n
+u_t%nv = 6
+
+do j = 1, n
+  u_t%j(j,:) = bmad_taylor%term(j)%expn(:)
+  u_t%c(j) = bmad_taylor%term(j)%coef
+enddo
+
+ptc_taylor = u_t
+u_t = -1   ! deallocate
+
+end subroutine ptc_taylor_equal_bmad_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -3149,6 +3192,7 @@ type (taylor_field_struct), pointer :: tf
 type (taylor_field_plane1_struct), pointer :: plane
 type (em_taylor_term_struct), pointer :: tm
 type(taylor), allocatable :: pancake_field(:,:)
+type (taylor) ptc_taylor
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
@@ -3868,6 +3912,17 @@ if (ele%key == taylor$ .or. ele%key == match$) then
   call taylor_to_real_8 (ele%taylor, beta0, beta1,  ptc_re8, .false.)
   ptc_c_damap = ptc_re8
 
+  call alloc (ptc_taylor)
+
+  do i = 1, 3
+    do j = 1, 3
+      ptc_taylor = ele%spin_taylor(i,j)
+      ptc_c_damap%s%s(i,j) = ptc_taylor
+    enddo
+  enddo
+
+  call kill (ptc_taylor)
+
   ! The map must map zero to zero so take out any constant piece.
 
   do i=1,6
@@ -3951,7 +4006,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
 
   ! File names in case a flat file is to be created.
   write (ptc_fibre%mag%filef, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txf'
-  write (ptc_fibre%mag%fileb, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txb'
+  !!write (ptc_fibre%mag%fileb, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txb'
 
   !
 
