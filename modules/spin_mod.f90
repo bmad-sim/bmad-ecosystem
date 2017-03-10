@@ -869,7 +869,7 @@ end type
 
 integer, parameter ::  j_max = 10
 
-type (q_array_struct) q_array(j_max), z(0:256)
+type (q_array_struct) q_array(j_max), z(0:512)
 type (ele_struct) ele
 type (coord_struct) start_orb, end_orb, orb
 type (lat_param_struct) param

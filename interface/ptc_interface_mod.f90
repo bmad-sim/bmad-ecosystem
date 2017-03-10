@@ -3949,6 +3949,12 @@ if (ele%key == taylor$ .or. ele%key == match$) then
     arbre => ptc_fibre%magp%backward
   endif
 
+  ! File names in case a flat file is to be created.
+  write (ptc_fibre%mag%filef, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txf'
+  write (ptc_fibre%mag%fileb, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txb'
+
+  !
+
   call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
   arbre(1)%fix0(1:6) = ref0
   arbre(1)%fixr(1:6) = ref1
