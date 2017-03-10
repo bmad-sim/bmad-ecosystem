@@ -46,7 +46,7 @@ namelist / MAGLname / MAGL0
 	logical(lp) slowac_recut_even_electric_MIS(5)  
      logical(lp) usebf_skipptcbf_do1bf(6)
      character(120) filef
-      character(120) fileb
+     character(120) fileb
   END TYPE ele_list
 type(ele_list) ELE0
 namelist / ELEname / ELE0

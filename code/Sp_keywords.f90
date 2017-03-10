@@ -958,7 +958,7 @@ nmark=0
 
 
     call kanalnummer(mf)
-    open(unit=mf,file=filename)
+    open(unit=mf,file=filename,recl=200)
 
     nst=2*el%p%nst+1
 
@@ -2060,7 +2060,7 @@ if(present(last)) fin=last
 !goto 1
 if(present(com)) comt=com
 call kanalnummer(mf)
-open(unit=mf,file=filename,position=comt) !comt could be append for a complex universe 
+open(unit=mf,file=filename,position=comt,recl=200) !comt could be append for a complex universe 
 
    write(mf,'(a120)') ring%name                        ! Sagan depedent line
    write(mf,*) highest_fringe  , " highest fringe "    !  Sagan depedent line DO NOT CHANGE
@@ -2312,7 +2312,7 @@ endif
 enddo
 
 call kanalnummer(mf)
-open(unit=mf,file=filename,position='APPEND')
+open(unit=mf,file=filename,position='APPEND',recl=200)
 write(MF,*) k, " siamese in the universe "
 
 
@@ -2939,8 +2939,8 @@ ele0%slowac_recut_even_electric_MIS(5) = f%MIS
  ele0%usebf_skipptcbf_do1bf(4)=f%skip_ptc_f 
  ele0%usebf_skipptcbf_do1bf(5)=f%do1mapb 
  ele0%usebf_skipptcbf_do1bf(6)=f%do1mapf
- ele0%filef=f%filef
- ele0%fileb=f%fileb
+ ele0%filef=trim(f%filef)
+ ele0%fileb=TRIM(f%fileb)
 if(associated(f%forward)) then
 
   if(present(mf)) then
@@ -2950,7 +2950,6 @@ if(associated(f%forward)) then
  endif
 endif
 if(associated(f%backward)) then
- ele0%fileb=f%fileb
  if(present(mf)) then
    call kanalnummer(inf,f%fileb)
     call print_tree_elements(f%backward,inf)
@@ -3550,7 +3549,7 @@ comt='REWIND'
 if(present(com)) comt=com
 
 call kanalnummer(mf)
-open(unit=mf,file=filename,position=comt)
+open(unit=mf,file=filename,position=comt,recl=200)
 
 
 call TIE_MAD_UNIVERSE(ud)

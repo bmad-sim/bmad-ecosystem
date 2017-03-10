@@ -1447,9 +1447,9 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
     TYPE (LAYOUT), TARGET :: R
     TYPE (NODE_LAYOUT), pointer :: L
     TYPE(FIBRE), POINTER :: P
-    INTEGER I,J,k,TEAPOT_LIKE
-    REAL(DP) S,DLD,DL,LI,SL
-    LOGICAL(LP) CIRCULAR
+    INTEGER I,J,k,TEAPOT_LIKE,j0,dir
+    REAL(DP) S,DLD,DL,LI,SL,u0(2),ub(2),uj(2),n0,nj,r0
+    LOGICAL(LP) CIRCULAR,doit
     TYPE(INTEGRATION_NODE), POINTER :: T1,T2,TM
 
     CASE_NAME(CASEP1)="THE ENTRANCE PATCH"
@@ -1508,7 +1508,31 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
        L%END%PARENT_NODE_LAYOUT=>L
        L%END%PARENT_FIBRE=>P
 
+doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
+   if(doit) then
+    j0=0
+    dir=1
+    if(p%dir==-1) dir=2
+     r0=1.0_dp/p%mag%p%b0
+    u0(1)=-sin(p%mag%p%edge(dir))*r0
+    u0(2)=cos(p%mag%p%edge(dir))*r0
+    ub=u0
+   endif
+
        DO J=1,P%MAG%P%NST
+  if(doit) then
+        j0=j0+1
+        LI=(j0*p%mag%L)/(p%mag%p%nst)
+        uj=[li,0.0_dp]
+        uj=uj+u0
+         
+        uj(2)=uj(2)+sqrt(r0**2-uj(1)**2)-u0(2)
+        n0=sqrt(ub(1)**2+ub(2)**2)
+        nj=sqrt(uj(1)**2+uj(2)**2)
+        DLD=acos( ((ub(1)*uj(1)+ub(2)*uj(2)) /n0/nj)   )*r0
+         ub=uj
+ endif
+
           CALL APPEND_EMPTY_THIN( L )
           L%END%TEAPOT_LIKE=TEAPOT_LIKE
           L%END%S(1)=S;L%END%S(2)=LI;L%END%S(3)=SL;L%END%S(4)=DL;L%END%S(5)=DLD;L%END%ds_ac=DLD;
@@ -1517,6 +1541,9 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
           L%END%pos=k;k=k+1;
           L%END%PARENT_NODE_LAYOUT=>L
           L%END%PARENT_FIBRE=>P
+
+
+!!!!!!!!!
           S=S+DLD
           LI=LI+DL
           SL=SL+P%DIR*DL
@@ -1562,6 +1589,8 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
     ENDIF
 
    if(lielib_print(12)==1)  call stat_NODE_LAYOUT(l)
+
+
 
   END SUBROUTINE MAKE_NODE_LAYOUT_2
 

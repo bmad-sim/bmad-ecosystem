@@ -69,10 +69,10 @@ logical(lp) :: c_normal_auto=my_true,c_verbose=my_true
 integer :: spin_def_tune=1   !, private 
 integer :: order_gofix=1
 logical(lp) :: time_lie_choice=my_false,courant_snyder_teng_edwards=my_true,dosymp=my_false
-  private copy_damap_matrix,copy_matrix_matrix,invert_22,ALLOC_33t,kill_33t,matmul_33
-  private A_OPT_C_damap,K_OPT_c_damap,equalc_t,equalt_c,daddsco,scdaddo,daddsc,scdadd
+  private copy_damap_matrix,copy_matrix_matrix,invert_22,ALLOC_33t,kill_33t,matmul_33,print_33t
+  private A_OPT_C_damap,K_OPT_c_damap,equalc_t,equalt_c,daddsco,scdaddo,daddsc,scdadd,matmulr_33
 private equal_real8_cmap,equal_cmap_real8,EQUAL_c_map_RAY8,EQUAL_RAY8_c_map,c_add_vf,real_mul_vec
-private c_sub_vf,c_spinor_sub_spinor
+private c_sub_vf,c_spinor_sub_spinor,matmult_33
 private c_IdentityEQUALfactored,c_log_spinmatrix,c_concat_c_ray,equalc_ray_r6,equalc_r6_ray
 private dotc_spinor,c_spinor_spinor,c_read_spinmatrix,c_read_map,c_concat_spinmatrix_ray
 private GETORDER_par,GETORDERMAP_par,GETORDERSPINMATRIX_par,liebraspinor
@@ -535,6 +535,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        MODULE PROCEDURE c_pri_vec
        MODULE PROCEDURE c_pri_factored_lie
        MODULE PROCEDURE c_pri_spinor
+       MODULE PROCEDURE print_33t
     END INTERFACE
 
     INTERFACE print
@@ -544,6 +545,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        MODULE PROCEDURE c_pri_vec
        MODULE PROCEDURE c_pri_factored_lie
        MODULE PROCEDURE c_pri_spinor
+       MODULE PROCEDURE print_33t
     END INTERFACE
 
 
@@ -574,6 +576,11 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
 
   INTERFACE matmul_nn
      MODULE PROCEDURE matmul_33
+  END INTERFACE
+
+  INTERFACE matmulr_nn
+     MODULE PROCEDURE matmulr_33
+     MODULE PROCEDURE matmult_33
   END INTERFACE
 
   INTERFACE KILL
@@ -4061,11 +4068,11 @@ endif
         do k=1,nd
          l=2*k
           call derive(jc,l,c)
-          f%v(2*k-1)=f%v(2*k-1)-((value*c).cmono.jc)
+          if(jc(l)>=0) f%v(2*k-1)=f%v(2*k-1)-((value*c).cmono.jc)
           jc(2*k)=jc(2*k)+1
          l=2*k-1
           call derive(jc,l,c)
-          f%v(2*k)=f%v(2*k)+((value*c).cmono.jc)
+          if(jc(l)>=0) f%v(2*k)=f%v(2*k)+((value*c).cmono.jc)
           jc(2*k-1)=jc(2*k-1)+1
         enddo
        else
@@ -10237,7 +10244,7 @@ prec=1.d-8
     if(present(n)) n1=n
     
     if(.not.c_stable_da) return
-
+    jj=0
     jj(1)=1
     !
     xy%n=xy0%n
@@ -11998,7 +12005,713 @@ endif
     return
   end subroutine etdiv
 
+
+subroutine ohmi_factor(a_t,z,r,ok,mf)
+implicit none
+type(c_damap), intent(inout) :: a_t, z,r
+type(c_damap) at,h
+type(damap) ma
+integer,optional :: mf
+integer mf0,i
+logical ok
+real(dp) norm
+
+mf0=0
+if(present(mf)) mf0=mf
+
+call alloc(ma)
+call alloc(at,h)
+
+at=a_t
+z=1
+r=1
+
+ ma=at
+call checksymp(ma,norm)
+
+write(6,*) " norm 1",norm
+
+call get_6d_disp(at,h)
+call get_6d_ohmi(at,h,z,mf,ok)
+
+at=z**(-1)*a_t
+ ma=at
+call checksymp(ma,norm)
+
+write(6,*) " norm 2",norm
+
+write(6,*) " teng also",norm
+read(5,*) i
+if(ok) call get_4d_disp0(at,r,ok)
+
+
+call kill(at,h)
+call kill(ma)
+end subroutine ohmi_factor
+
+subroutine get_4d_disp0(a_t,r,ok)  !,h1,sig)
+implicit none 
+type(c_damap), intent(inout) ::a_t,r
+type(c_taylor) h1(2,2),sig(2,2),mu,tc
+type(c_taylor) a12(2,2),a22(2,2),a22d(2,2)
+integer i,j,nd2n
+integer, allocatable :: je(:)
+type(damap) m 
+real(dp) norm
+logical ok
+
+call alloc_nn(h1)
+call alloc_nn(sig)
+call alloc_nn(a12)
+call alloc_nn(a22)
+call alloc_nn(a22d)
+call alloc(mu,tc)
+call alloc(m)
+
+nd2n=6
+allocate(je(nd2n))
+
+je=0
+do i=1,2
+do j=1,2
+ je(2+j)=1
+ a12(i,j)=a_t%v(i).par.je
+ je(2+j)=0
+enddo
+enddo
+do i=1,2
+do j=1,2
+ je(2+j)=1
+ a22(i,j)=a_t%v(i+2).par.je
+ je(2+j)=0
+enddo
+enddo
+
+call   dagger_22(a22,a22d)
+call matmul_nn(a12,a22d,h1)
+call matmul_nn(a22,a22d,sig)
+call print(a_t%v(1),6)
+call print(a_t%v(2),6)
+call print(a12,6)
+ pause 756
+call print(a_t%v(3),6)
+call print(a_t%v(4),6)
+call print(a22,6)
+pause 980
+call print(h1,6)
+pause 981
+call print(sig,6)
+if(real(sig(1,1).sub.'0')<=0.0_dp) then
+ ok=.false.
+ deallocate(je)
+ call kill_nn(h1)
+ call kill_nn(sig)
+ call kill_nn(a12)
+ call kill_nn(a22)
+ call kill_nn(a22d)
+ call kill(mu,tc)
+ call kill(m)
+endif
+
+mu=sqrt(sig(1,1))
+tc=1.0_dp/mu
+call  matmulr_nn(h1,h1,tc)   !mu D1
+call   dagger_22(h1,sig)
+tc=-1.0_dp
+call  matmulr_nn(sig,sig,tc) 
+!
+r=0
+! 1 1 block
+do i=1,4
+ r%v(i)=mu*(1.0_dp.cmono.i)
+enddo
+! 3 3
+r%v(5)=1.0_dp.cmono.5
+r%v(6)=1.0_dp.cmono.6
+
+! 1 2
+do i=1,2
+do j=1,2
+ r%v(i)=r%v(i) + h1(i,j)*(1.0_dp.cmono.(j+2))
+enddo
+enddo
+! 2 1
+
+do i=1,2
+do j=1,2
+ r%v(i+2)=r%v(i+2) + sig(i,j)*(1.0_dp.cmono.(j))
+enddo
+enddo
+
+m=r
+
+call checksymp(m,norm)
+write(6,*) " norm ", norm
+deallocate(je)
+call kill_nn(h1)
+call kill_nn(sig)
+call kill_nn(a12)
+call kill_nn(a22)
+call kill_nn(a22d)
+call kill(mu,tc)
+call kill(m)
+ end subroutine get_4d_disp0 
+
+
+subroutine get_4d_disp(a_t,h)
+implicit none 
+type(c_damap), intent(inout) :: a_t, h
+type(c_taylor) disp(6),disp_ave0(6)
+integer kp,i,n,j,k,k0
+integer, allocatable :: je(:)
+type(c_damap) r0
+complex(dp) w
+
+h=0
+call alloc(r0)
+call alloc(disp)
+call alloc(disp_ave0)
+
+allocate(je(nv))
+je=0
+do i=1,6
+ disp(i)=a_t%v(i)*c_phasor()
+enddo
+
+
+do kp=1,4 !6
+       j=1
+
+        do while(.true.) 
+          call  c_cycle(disp(kp),j,w ,je); if(j==0) exit;
+          k0=0;
+ !         do n=1,1  ! only 4d teng
+
+!!!   keep only the terms in the third plane
+         n=1
+         k0=k0+abs(je(2*n))+abs(je(2*n-1))
+         n=3
+         k0=k0+abs(je(2*n))+abs(je(2*n-1))
+ !         enddo
+         if(k0==0) disp_ave0(kp)=disp_ave0(kp)+ (w.cmono.je)
+
+       enddo
+
+enddo
+
+
+!!!! These are all the dispersion function a la Ripken in my Nishikawa paper
+do i=1,4  !6
+ h%v(i)=disp_ave0(i)
+enddo
+
+
+!!!!  Here I set the initial transverse conditions to be zero
+h=h*ci_phasor()*a_t**(-1)
+ ! " Dispersion and zeta in terms of initial delta "
+deallocate(je)
+
+
+
+
+
+call kill(r0)
+call kill(disp)
+call kill(disp_ave0)
+
+ end subroutine get_4d_disp 
+
+
+subroutine get_4d_ohmi(a_t,h,z,mf,ok)
+implicit none 
+type(c_damap), intent(inout) :: h,z,a_t
+type(c_taylor) h1(2,2),sig(2,2),sigma,rho,sigmai,det1,lam,tc
+type(c_taylor) h1d(2,2),t(2,2)
+type(c_vector_field) vf,vfs
+integer, allocatable :: je(:)
+integer i,j,mf,kll
+logical ok
+type(c_damap) a_cs,q,at
+real(dp) norm
+
+ok=.true.
  
+vf%n=0;vfs%n=0;
+call alloc(vf);call alloc(vfs);
+call  alloc_nn(h1)
+call  alloc_nn(h1d)
+call  alloc_nn(sig)
+call  alloc_nn(t)
+ call  alloc(lam,tc)
+ call  alloc(det1)
+call alloc(sigma,rho,sigmai)   
+call alloc(a_cs,at,q); 
+ 
+allocate(je(6))
+je=0
+do i=1,2
+do j=1,2
+ je(2+j)=1
+ h1(i,j)=h%v(i).par.je
+ je(2+j)=0
+enddo
+enddo
+do i=1,2
+do j=1,2
+ je(2+j)=1
+ sig(i,j)=h%v(i+2).par.je
+ je(2+j)=0
+enddo
+enddo
+ 
+ 
+
+
+
+sigma=sig(1,1)
+if(real(sigma.sub.'0')<=0.0_dp) then
+ ok=.false.
+call kill(vf);call kill(vfs);
+call  kill_nn(h1)
+call  kill_nn(h1d)
+call  kill_nn(sig)
+call  kill_nn(t)
+ call  kill(lam,tc)
+ call  kill(det1)
+call kill(sigma,rho,sigmai)   
+call kill(a_cs,at,q); 
+ 
+
+ return
+endif
+rho=sqrt(sigma)
+sigmai=1.0_dp/rho
+
+call  matmulr_nn(h1,h1,sigmai)
+ 
+call  dagger_22(h1,h1d)
+ 
+
+lam=rho**2/(1.0_dp+rho)
+
+z=0
+! 1 1 block
+do i=1,4
+ z%v(i)=rho*(1.0_dp.cmono.i)
+enddo
+! 3 3
+z%v(5)=1.0_dp.cmono.5
+z%v(6)=1.0_dp.cmono.6
+
+
+! 1 2
+tc=1.0_dp/rho
+call  matmulr_nn(h1,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i)=z%v(i) + t(i,j)*(1.0_dp.cmono.(j+2))
+enddo
+enddo
+! 2 1
+tc=-tc
+call  matmulr_nn(h1d,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i+2)=z%v(i+2) + t(i,j)*(1.0_dp.cmono.(j))
+enddo
+enddo
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+a_cs=z
+q=z
+at=a_t
+  
+ goto 111
+ 
+do kll=1,no+2
+
+! kll=1+kll
+
+at=a_cs**(-1)*at
+
+h=0
+ call get_4d_disp(at,h)
+h%v(3)=0
+h%v(4)=0
+h%v(5)=0
+h%v(6)=0
+
+
+vf=0
+do i=1,4
+vf%v(i)=h%v(i)
+enddo
+
+tc=getpb_from_transverse(vf,vfs)
+
+
+call c_full_norm_damap(h,norm)
+
+if(mf/=0) write(mf,*) "norm in Ohmi ",norm
+
+ 
+
+
+
+a_cs=exp(vfs)
+ 
+q=q*a_cs
+ 
+  if(mf/=0) then
+  write(mf,*) " Dispersion and zeta in terms of initial delta ",kll
+ 
+
+  call print(h,mf)
+
+endif
+!write(6,*) " more "
+!!read(5,*) kkk
+
+ 
+
+enddo
+ 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+111 continue
+
+ 
+z=q
+
+deallocate(je)
+call kill(vf);call kill(vfs);
+call  kill_nn(h1)
+call  kill_nn(h1d)
+call  kill_nn(sig)
+call  kill_nn(t)
+ call  kill(lam,tc)
+ call  kill(det1)
+call kill(sigma,rho,sigmai)   
+call kill(a_cs,at,q); 
+ 
+end subroutine get_4d_ohmi
+
+
+subroutine get_6d_disp(a_t,h)
+implicit none 
+type(c_damap), intent(inout) :: a_t, h
+type(c_taylor) disp(6),disp_ave0(6)
+integer kp,i,n,j,k,k0
+integer, allocatable :: je(:)
+type(c_damap) r0
+complex(dp) w
+
+h=0
+call alloc(r0)
+call alloc(disp)
+call alloc(disp_ave0)
+
+allocate(je(nv))
+je=0
+do i=1,6
+ disp(i)=a_t%v(i)*c_phasor()
+enddo
+
+
+do kp=1,6
+       j=1
+
+        do while(.true.) 
+          call  c_cycle(disp(kp),j,w ,je); if(j==0) exit;
+          k0=0;
+          do n=1,2
+
+!!!   keep only the terms in the third plane
+
+         k0=k0+abs(je(2*n))+abs(je(2*n-1))
+
+          enddo
+         if(k0==0) disp_ave0(kp)=disp_ave0(kp)+ (w.cmono.je)
+
+       enddo
+
+enddo
+
+
+!!!! These are all the dispersion function a la Ripken in my Nishikawa paper
+do i=1,6
+ h%v(i)=disp_ave0(i)
+enddo
+
+
+!!!!  Here I set the initial transverse conditions to be zero
+h=h*ci_phasor()*a_t**(-1)
+ ! " Dispersion and zeta in terms of initial delta "
+deallocate(je)
+
+
+
+
+
+call kill(r0)
+call kill(disp)
+call kill(disp_ave0)
+
+ end subroutine get_6d_disp 
+
+
+subroutine get_6d_ohmi(a_t,h,z,mf,ok)
+implicit none 
+type(c_damap), intent(inout) :: h,z,a_t
+type(c_taylor) h1(2,2),h2(2,2),sig(2,2),sigma,rho,sigmai,det1,det2,lam,tc
+type(c_taylor) h1d(2,2),h2d(2,2),t(2,2)
+type(c_vector_field) vf,vfs
+integer, allocatable :: je(:)
+integer i,j,mf,kll
+logical ok
+type(c_damap) a_cs,q,at
+real(dp) norm
+
+ok=.true.
+ 
+vf%n=0;vfs%n=0;
+
+call  alloc_nn(h1)
+call  alloc_nn(h2)
+call  alloc_nn(h1d)
+call  alloc_nn(h2d)
+call  alloc_nn(sig)
+call  alloc_nn(t)
+ call  alloc(det2,lam,tc)
+ call  alloc(det1)
+call alloc(vf);call alloc(vfs);
+call alloc(sigma,rho,sigmai)   
+call alloc(a_cs,at,q); 
+ 
+allocate(je(6))
+je=0
+do i=1,2
+do j=1,2
+ je(4+j)=1
+ h1(i,j)=h%v(i).par.je
+ je(4+j)=0
+enddo
+enddo
+do i=1,2
+do j=1,2
+ je(4+j)=1
+ h2(i,j)=h%v(i+2).par.je
+ je(4+j)=0
+enddo
+enddo
+do i=1,2
+do j=1,2
+ je(4+j)=1
+ sig(i,j)=h%v(i+4).par.je
+ je(4+j)=0
+enddo
+enddo
+ 
+
+
+
+sigma=sig(1,1)
+if(real(sigma.sub.'0')<=0.0_dp) then
+ ok=.false.
+call  kill_nn(h1)
+call  kill_nn(h2)
+call  kill_nn(h1d)
+call  kill_nn(h2d)
+call  kill_nn(sig)
+call  kill_nn(t)
+ call  kill(det2,lam,tc)
+ call  kill(det1)
+call kill(vf);call kill(vfs);
+call kill(a_cs,at,q); 
+call kill(sigma,rho,sigmai)  
+
+
+ return
+endif
+rho=sqrt(sigma)
+sigmai=1.0_dp/sigma
+
+call  matmulr_nn(h1,h1,sigmai)
+call  matmulr_nn(h2,h2,sigmai)
+call  dagger_22(h1,h1d)
+call  dagger_22(h2,h2d)
+
+det1=h1(1,1)*h1(2,2)-h1(1,2)*h1(2,1)
+det2=h2(1,1)*h2(2,2)-h2(1,2)*h2(2,1)
+lam=rho**2/(1.0_dp+rho)
+
+z=0
+! 1 1 block
+t(1,1)=1.0_dp;t(2,2)=1.0_dp;t(1,2)=0.0_dp;t(2,1)=0.0_dp
+tc=1.0_dp-lam*det1
+call  matmulr_nn(t,t,tc)
+do i=1,2
+do j=1,2
+ z%v(i)=z%v(i) + t(i,j)*(1.0_dp.cmono.j)
+enddo
+enddo
+! 2 2
+t(1,1)=1.0_dp;t(2,2)=1.0_dp;t(1,2)=0.0_dp;t(2,1)=0.0_dp
+tc=1.0_dp-lam*det2
+call  matmulr_nn(t,t,tc)
+do i=1,2
+do j=1,2
+ z%v(i+2)=z%v(i+2) + t(i,j)*(1.0_dp.cmono.(j+2))
+enddo
+enddo
+! 3 3
+t(1,1)=1.0_dp;t(2,2)=1.0_dp;t(1,2)=0.0_dp;t(2,1)=0.0_dp
+tc=rho
+call  matmulr_nn(t,t,tc)
+do i=1,2
+do j=1,2
+ z%v(i+4)=z%v(i+4) + t(i,j)*(1.0_dp.cmono.(j+4))
+enddo
+enddo
+! 1 2
+call matmul_nn(h1,h2d,t)
+tc=-lam
+call  matmulr_nn(t,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i)=z%v(i) + t(i,j)*(1.0_dp.cmono.(j+2))
+enddo
+enddo
+! 2 1
+call matmul_nn(h2,h1d,t)
+tc=-lam
+call  matmulr_nn(t,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i+2)=z%v(i+2) + t(i,j)*(1.0_dp.cmono.(j))
+enddo
+enddo
+
+! 1 3
+ 
+tc=rho
+call  matmulr_nn(h1,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i)=z%v(i) + t(i,j)*(1.0_dp.cmono.(j+4))
+enddo
+enddo
+
+! 2 3
+ 
+tc=rho
+call  matmulr_nn(h2,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i+2)=z%v(i+2) + t(i,j)*(1.0_dp.cmono.(j+4))
+enddo
+enddo
+
+! 3 1
+ 
+tc=-rho
+call  matmulr_nn(h1d,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i+4)=z%v(i+4) + t(i,j)*(1.0_dp.cmono.(j))
+enddo
+enddo
+
+! 3 2
+ 
+tc=-rho
+call  matmulr_nn(h2d,t,tc)
+
+do i=1,2
+do j=1,2
+ z%v(i+4)=z%v(i+4) + t(i,j)*(1.0_dp.cmono.(j+2))
+enddo
+enddo
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+a_cs=z
+q=z
+
+at=a_t
+ 
+do kll=1,no+2
+
+! kll=1+kll
+
+at=a_cs**(-1)*at
+
+h=0
+ call get_6d_disp(at,h)
+h%v(5)=0
+h%v(6)=0
+
+
+vf=0
+do i=1,4
+vf%v(i)=h%v(i)
+enddo
+
+tc=getpb_from_transverse(vf,vfs)
+
+
+call c_full_norm_damap(h,norm)
+
+if(mf/=0) write(mf,*) "norm in Ohmi ",norm
+
+ 
+
+
+
+a_cs=exp(vfs)
+ 
+q=q*a_cs
+ 
+  if(mf/=0) then
+  write(mf,*) " Dispersion and zeta in terms of initial delta ",kll
+ 
+
+  call print(h,mf)
+
+endif
+!write(6,*) " more "
+!!read(5,*) kkk
+
+ 
+
+enddo
+ 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+z=q
+
+deallocate(je)
+call  kill_nn(h1)
+call  kill_nn(h2)
+call  kill_nn(h1d)
+call  kill_nn(h2d)
+call  kill_nn(sig)
+call  kill_nn(t)
+ call  kill(det2,lam,tc)
+ call  kill(det1)
+call kill(vf);call kill(vfs);
+call kill(a_cs,at,q); 
+call kill(sigma,rho,sigmai) 
+end subroutine get_6d_ohmi
+
 
 subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
 !#general: normal
@@ -12283,11 +12996,6 @@ end subroutine teng_edwards_a1
     t(1,2)=-a(1,2)/det
     t(2,1)=-a(2,1)/det
 
-    ai(1,1)=t(1,1)
-    ai(1,1)=t(1,1)
-    ai(1,1)=t(1,1)
-    ai(1,1)=t(1,1)
-
     call copy_matrix_matrix(t,ai)
 
     call kill_nn(t)
@@ -12295,9 +13003,65 @@ end subroutine teng_edwards_a1
 
   end subroutine invert_22
 
+ subroutine dagger_22(a,ai)
+!*
+    implicit none
+    type(c_taylor) a(2,2),ai(2,2),t(2,2),at(2,2)
+
+    call alloc_nn(t)
+    call alloc_nn(at)
+
+    t(1,2)=1.0_dp
+    t(2,1)=-1.0_dp
+
+    at(1,1)=a(1,1)
+    at(2,2)=a(2,2)
+    at(1,2)=a(2,1)
+    at(2,1)=a(1,2)
+
+    call matmul_nn(t,at,at)
+    call matmul_nn(at,t,at,-1.0_dp)
+
+    call copy_matrix_matrix(at,ai)
+
+    call kill_nn(t)
+    call kill_nn(at)
+
+  end subroutine dagger_22
+
+  subroutine matmulr_33(m,mo,sc0)
+!*
+!  mo=sc m.n
+    implicit none
+    type(c_taylor) m(:,:),mo(:,:)
+    real(dp) sc0
+    integer i,j,k
+
+    do i=1,size(m,dim=1)
+       do j=1,size(m,dim=2)
+             mo(i,j)=m(i,j)*sc0
+       enddo
+    enddo
+  end subroutine matmulr_33
+
+  subroutine matmult_33(m,mo,sc0)
+!*
+!  mo=sc m.n
+    implicit none
+    type(c_taylor) m(:,:),mo(:,:)
+    type(c_taylor) sc0
+    integer i,j,k
+
+    do i=1,size(m,dim=1)
+       do j=1,size(m,dim=2)
+             mo(i,j)=m(i,j)*sc0
+       enddo
+    enddo
+  end subroutine matmult_33
 
   subroutine matmul_33(m,n,mo,sc)
 !*
+!  mo=sc m.n
     implicit none
     type(c_taylor) m(:,:),n(:,:),mo(:,:)
     type(c_taylor), allocatable :: a(:,:)
@@ -12340,6 +13104,23 @@ end subroutine teng_edwards_a1
     enddo
 
   end subroutine alloc_33t
+
+  subroutine print_33t(a,mf,prec)
+!*
+    implicit none
+    type(c_taylor) a(:,:)
+    integer i,j,mf
+    real(dp), optional :: prec
+
+    do i=1,size(a,dim=1)
+       do j=1,size(a,dim=2)
+          write(mf,*) i,j
+          call print(a(i,j),mf,prec)
+       enddo
+    enddo
+
+  end subroutine print_33t
+
 
   subroutine kill_33t(a)
 !*

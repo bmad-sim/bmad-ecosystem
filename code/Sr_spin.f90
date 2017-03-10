@@ -3319,6 +3319,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        ELSE
           CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%B0*C%PARENT_FIBRE%MAG%P%LD/2.0_dp)
        ENDIF
+    case(KINDPA)
        if(el%pa%hc==0.0_dp) then
 
             IF(C%CAS==CASE1) THEN
