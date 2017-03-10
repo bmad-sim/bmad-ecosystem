@@ -709,7 +709,8 @@ end function tao_var1_name
 !-----------------------------------------------------------------------
 ! Function tao_var_attrib_name(var) result (var_attrib_name)
 !
-! Function to return the variable name in the form:
+! Function to return a string encoding the attributes controlled by a 
+! variable in the form:
 !   {universe@}element[attribute]
 ! For example:
 !   Q03W[k1]
@@ -719,7 +720,7 @@ end function tao_var1_name
 !   var -- Tao_var_struct: Variable
 !
 ! Output:
-!   var_attrib_name -- Character(60): Appropriate name.
+!   var_attrib_name -- Character(60): Attribute list.
 !-
 
 function tao_var_attrib_name(var) result (var_attrib_name)

@@ -50,7 +50,7 @@ type (tao_real_pointer_struct), allocatable, optional  :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
 type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
-integer i, ix, n_var, ios
+integer i, ix, n_var, ios, n_v1
 
 character(16), parameter :: real_components(17) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
@@ -177,30 +177,30 @@ endif
 
 ! Point to the correct v1 var type 
 
-if (v1_name == '*') then
-  if (present(v1_array)) then
-    deallocate (v1_array)
-    allocate (v1_array(s%n_v1_var_used))
-  endif
-  do i = 1, s%n_v1_var_used
-    if (present(v1_array)) v1_array(i)%v1 => s%v1_var(i)
-    call find_this_var (s%v1_var(i), v_name, this_err)
-    if (this_err) return
-  enddo
+n_v1 = 0
+do i = 1, s%n_v1_var_used
+  if (.not. match_wild (s%v1_var(i)%name, v1_name)) cycle
+  n_v1 = n_v1 + 1
+enddo
 
-else
-  do i = 1, s%n_v1_var_used
-    if (v1_name == s%v1_var(i)%name) then
-      if (present(v1_array)) then
-        deallocate (v1_array)
-        allocate (v1_array(1))
-        v1_array(1)%v1 => s%v1_var(i)
-      endif
-      call find_this_var (s%v1_var(i), v_name, this_err)
-      exit
-    endif
-  enddo
+if (n_v1 == 0) then
+  if (print_error) call out_io (s_error$, r_name, "COULDN'T FIND V1 VARIABLES MATCHING: " // v1_name)
+  return
 endif
+
+if (present(v1_array)) then
+  deallocate (v1_array)
+  allocate (v1_array(n_v1))
+endif
+
+n_v1 = 0
+do i = 1, s%n_v1_var_used
+  if (.not. match_wild (s%v1_var(i)%name, v1_name)) cycle
+  n_v1 = n_v1 + 1
+  if (present(v1_array)) v1_array(n_v1)%v1 => s%v1_var(i)
+  call find_this_var (s%v1_var(i), v_name, this_err)
+  if (this_err) return
+enddo
 
 ! error check
 

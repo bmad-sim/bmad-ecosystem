@@ -490,9 +490,9 @@ The \vn{ptc init} command must be run before running any other \vn{ptc} command 
 
 Also see:
 \begin{example}
-  call -ptc <file>                    ! Run a PTC script
-  read ptc \{-old\} <filename>          ! Read a PTC lattice
-  write ptc \{-old\} \{<filename>\}       ! Write a PTC lattice
+  call -ptc <file>         ! Run a PTC script
+  read ptc                 ! Read a PTC lattice
+  write ptc                ! Write a PTC lattice
 \end{example}
 
 Examples:
@@ -1372,9 +1372,8 @@ Format:
   show universe \{universe_number\}                                   ! \sref{s:show.universe}
   show use                                                          ! \sref{s:show.use}
   show value <expression>                                           ! \sref{s:show.value}
-  show variable \{-no_label_lines\} \{<var_name>\}                      ! \sref{s:show.variable}
-  show variable \{-no_label_lines\} -universe <universes>             ! \sref{s:show.variable}
-  show variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format     ! \sref{s:show.variable}
+  show variable \{-no_label_lines\} \{-universe <universes>\}            
+         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}                ! \sref{s:show.variable}
   show wakes                                                        ! \sref{s:show.wakes}
   show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
         \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                  ! \sref{s:show.wall}
@@ -2178,15 +2177,16 @@ Shows the value of an expression. Examples:
 
 Syntax:
 \begin{example}
-  show variable \{-no_label_lines\} \{<var_name> <locations>\}
-  show variable \{-no_label_lines\} <universe_number>@ 
-  show variable \{-good_opt_only\} \{-no_label_lines\} -bmad_format
+  show variable \{-no_label_lines\} \{-universe <universes>\}            
+         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}
 \end{example}
 
 
-Shows variable information. If \vn{<var_name>} is not present, a list of all \vn{v1_var}
-classes is printed. To show variables associated with the \vn{n}th universe use the syntax
-\vn{show var n@}.
+Shows variable information. If \vn{<var_name>} is not present, a list of all appropriate
+\vn{v1_var} classes is printed.
+
+The \vn{-universe} switch is used to select only variables what control components in a
+given universe or universes. Use \vn{-universe @} to select the current viewed universe.
 
 If the \vn{-bmad_format} switch is used then the Bmad lattice parameters that the \tao
 variables control will be printed in Bmad lattice format. This is the same syntax used in
@@ -2195,14 +2195,14 @@ conjunction with \vn{-bmad_format} then the list of variables will be restricted
 that are currently being used in the optimization.
 
 If present, the \vn{-no_label_lines} switch will prevent the printing of the header
-(containing the column labels) lines.
+(containing the column labels) lines. This switch is ignored if \vn{-bmad_format} is present.
 
 Examples:
 \begin{example}
-  show var             ! List all variables.
+  show var             ! List all v1 variables.
   show var quad_k1     ! List variables in the quad_k1[*] array.
   show var quad_k1[10] ! List detailed information on the variable quad_k1[10].
-  show var 2@          ! List all variables that control attributes in universe 2.
+  show var -uni 2      ! List all variables that control attributes in universe 2.
   show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
 
@@ -2436,7 +2436,7 @@ Format:
                                    ! Create a PS file of the plot window.
   write ps-l \{-scale <scale>\} \{<file_name>\}    
                                    ! Create a PS file with landscape orientation.
-  write ptc \{-all\} \{-new\} \{-branch <name_or_index\} \{<file_name>\}
+  write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}
   write variable \{-good_var_only\} \{<file_name>\} 
                                    ! Create a Bmad file of variable values.
 \end{example}
@@ -2515,16 +2515,26 @@ Beam files can be used to initialize \tao (\sref{s:command.line}). Example
   write beam -at *   ! Output beam at every element.
 \end{example}
 
-The \vn{write ptc} command writes a PTC flat file of the associated PTC layout of the
-\bmad lattice branch given by the \vn{-branch} switch. The default, if \vn{-branch} is not
-present, is to use lattice branch \# 0. The \vn{-new} switch will generate an ``new
-style'' version.  If \vn{-new} is not present, The default is to write an ``old style''
-format version.
+The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).
+There can be multiple files produced. 
+\etcetcetc
 
-If the \vn{-all} switch is present, \vn{write ptc} does something different.  In this
-case, flat files for both \vn{M_u} and \vn{M_t} mad_universe structures will be
-generated. The two files generated will have the suffixes \vn{.m_u} and \vn{.m_t} appended
-to the file names. In this case, the setting of \vn{-branch} is ignored.
+ of the
+PTC layout associated with the \bmad \vn{model} lattice. If the \vn{-all} switch is
+present, there will be two flat files generated. The \vn{-all} switch needs to be used
+when there are multiple lattice branches that need to be translated to PTC. For example,
+in a dual colliding ring machine with two storage rings.  Both \vn{M_u} and \vn{M_t}
+mad_universe structures will be generated. The two files generated will have the suffixes
+\vn{.m_u} and \vn{.m_t} appended to the file names. In this case, the setting of
+\vn{-branch} is ignored.
+
+If \vn{-all} is not present, only one flat file is generated. In this case, if \vn{-old}
+is present, the flat file generated will be of the ``old'' syntax. Generally there is no
+reason to generate old style flat files. When generating a single flat file (no \vn{-all}
+switch present), the flat file will contain the information for a single lattice
+branch. The lattice branch used can be specified by the \vn{-branch} switch. The default,
+if \vn{-branch} is not present, is to use lattice branch \# 0. The \vn{-old} switch will
+generate an ``old style'' version.
 
 In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command
 has been used to setup PTC.

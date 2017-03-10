@@ -239,7 +239,7 @@ logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limi
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
-logical valid_value, print_floor, show_section, is_complex, print_header
+logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -1731,6 +1731,7 @@ case ('lattice')
       n_attrib = n_attrib + 1
       attrib_list(n_attrib) = stuff2(1:ix_s2)
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+      if (print_lords == maybe$) print_lords = no$
 
     case ('-base')
       lat_type = base$
@@ -3154,7 +3155,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), '(23x, a)') '       X          |            Y'
   nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design  |     Model     Design'
   fmt  = '(1x, a16, 2es11.3, 2x, 2es11.3, 2x, a)'
-  fmt2 = '(1x, a16, 2f11.3, 2x, 2f11.3, 2x, a)'
+  fmt2 = '(1x, a16, 2f11.4, 2x, 2f11.4, 2x, a)'
   fmt3 = '(1x, a16,        24x, 2es11.3, 2x, a)'
   f_phi = 1 / twopi
   l_lat = branch%param%total_length
@@ -3292,11 +3293,12 @@ case ('variable')
   good_opt_only = .false.
   bmad_format = .false.
   print_header_lines = .true.
+  print_by_uni = .false.
   attrib0 = ''
 
   do
-    call tao_next_switch (stuff2, [ '-bmad_format     ', '-good_opt_only   ', & 
-                                    '-no_label_lines  '], .true., switch, err, ix_word)
+    call tao_next_switch (stuff2, [character(16):: '-bmad_format', '-good_opt_only', & 
+                                                   '-no_label_lines', '-universe'], .true., switch, err, ix_word)
     if (err) return
 
     select case (switch)  
@@ -3308,6 +3310,11 @@ case ('variable')
       good_opt_only = .true.
     case ('-no_label_lines')
       print_header_lines = .false.
+    case ('-universe')
+      call tao_pick_universe (trim(stuff2(:ix_word)) // '@',  str, picked_uni, err)
+      if (err) return
+      call string_trim (stuff2(ix_word+1:), stuff2, ix_word)
+      print_by_uni = .true.
     case default
       if (attrib0 /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
@@ -3325,38 +3332,28 @@ case ('variable')
 
   ! If 'n@' is present then write out stuff for universe n
 
-  ix = index(attrib0, '@')
-  if (ix /= 0) then
-    if (ix == 1) then
-      ix_u = s%com%default_universe
-    else
-      read (attrib0(:ix-1), *, iostat = ios) ix_u
-      if (ios /= 0) then
-        nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
-        return
-      endif
-      if (ix_u == 0) ix_u = s%com%default_universe
-      if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
-        nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
-        return
-      endif
-    endif
+  if (print_by_uni) then
+    do ix_u = 1, size(s%u)
+      if (.not. picked_uni(ix_u)) cycle
 
-    if (print_header_lines) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Variables controlling universe:', ix_u
-      nl=nl+1; write(lines(nl), '(5x, a)') '                    '
-      nl=nl+1; write(lines(nl), '(5x, a)') 'Name                '
-    endif
+      if (print_header_lines) then
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; write(lines(nl), '(a, i4)') 'Variables controlling universe:', ix_u
+        nl=nl+1; write(lines(nl), '(5x, a)') 'Name:'
+      endif
 
-    do i = 1, s%n_var_used
-      if (.not. s%var(i)%exists) cycle
-      found = .false.
-      do j = 1, size(s%var(i)%slave)
-        if (s%var(i)%slave(j)%ix_uni == ix_u) found = .true.
+      do i = 1, s%n_var_used
+        if (.not. s%var(i)%exists) cycle
+        found = .false.
+        do j = 1, size(s%var(i)%slave)
+          if (s%var(i)%slave(j)%ix_uni == ix_u) found = .true.
+        enddo
+        if (.not. found) cycle
+        if (nl+10 > size(lines)) call re_allocate(lines, nl+100, .false.)
+        nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), tao_var_attrib_name(s%var(i))
       enddo
-      if (.not. found) cycle
-      nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), tao_var_attrib_name(s%var(i))
     enddo
+
     result_id = 'variable:@'
     return
   endif
@@ -3482,7 +3479,7 @@ case ('variable')
 
   elseif (size(v1_array) == 1) then
 
-    nc = 0
+    nc = 20
     do i = 1, size(v_array)
       v_ptr => v_array(i)%v
       if (.not. v_ptr%exists) cycle
@@ -3490,7 +3487,7 @@ case ('variable')
     enddo
 
     if (print_header_lines) then
-      line1 = '       Name'
+      line1 = ' Index  Controlled Attributes(s)'
       line1(nc+17:) = 'Meas         Model        Design  Useit_opt'
       nl=nl+1; write(lines(nl), '(2a)') 'Variable name:  ', v1_array(1)%v1%name
       nl=nl+1; lines(nl) = ' '
