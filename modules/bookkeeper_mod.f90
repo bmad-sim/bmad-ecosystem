@@ -884,11 +884,21 @@ endif
 slave%field_calc = refer_to_lords$
 
 !-----------------------------------------------------------------------
-! 1 super_lord for this super_slave: just transfer attributes except length
+! A "major" super_lord is something other than a pipe.
+! If only one "major" super_lord for this super_slave: just transfer attributes except length
 
-if (slave%n_lord == 1) then
+ix_lord = 1  ! Index of major lord or first lord 
+n_major_lords = 0
+do j = 1, slave%n_lord
+  lord => pointer_to_lord (slave, j)
+  if (lord%key == pipe$) cycle
+  n_major_lords = n_major_lords + 1
+  ix_lord = j
+enddo
 
-  lord => pointer_to_lord (slave, 1, ix_slave = ix_order)
+if (n_major_lords < 2) then
+
+  lord => pointer_to_lord (slave, ix_lord, ix_slave = ix_order)
 
   is_first = (ix_order == 1)
   is_last  = (ix_order == lord%n_slave)
@@ -912,6 +922,18 @@ if (slave%n_lord == 1) then
   enddo
 
   call makeup_super_slave1 (slave, lord, offset, branch%param, is_first, is_last, err_flag)
+
+  ! A pipe may have a kick so add that in.
+  ! Note: check_aperture_limits knows to look at the lords for apertures so we do not need to fiddle with apertures.
+
+  do j = 1, slave%n_lord
+    if (j == ix_lord) cycle  ! Do not double count
+    lord => pointer_to_lord (slave, j, ix_slave = ix_order)
+    slave%value(hkick$) = slave%value(hkick$) + lord%value(hkick$)
+    slave%value(vkick$) = slave%value(vkick$) + lord%value(vkick$)
+    slave%value(bl_hkick$) = slave%value(bl_hkick$) + lord%value(bl_hkick$)
+    slave%value(bl_vkick$) = slave%value(bl_vkick$) + lord%value(bl_vkick$)
+  enddo
 
   return
 
@@ -948,7 +970,7 @@ value(ref_time_start$)   = slave%value(ref_time_start$)
 value(fringe_at$)        = no_end$
 value(fringe_type$)      = none$
 value(integrator_order$) = 0
-slave%value(x1_limit$:y2_limit$) = 0
+slave%value(x1_limit$:y2_limit$) = 0  ! check_aperture_limits knows to look at the lords for apertures.
 
 slave%aperture_at = no_end$
 slave%is_on = .false.
