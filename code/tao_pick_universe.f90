@@ -74,7 +74,9 @@ name_out = name_in(ix+1:)
 
 ! Strip off '[' and ']'
 
-if (uni(1:1) == '[' .and. uni(ix-1:ix-1) == ']') uni = uni(2:ix-2)
+if (ix > 2) then
+  if (uni(1:1) == '[' .and. uni(ix-1:ix-1) == ']') uni = uni(2:ix-2)
+endif
 
 if (uni == '*') then
   picked = .true.
@@ -82,6 +84,14 @@ if (uni == '*') then
   return
 endif
 
+! "show var" uses a blank universe to correspond to the default universe.
+
+if (uni == '') then
+  iu_dflt = integer_option(s%com%default_universe, dflt_uni)
+  picked (iu_dflt) = .true.
+  if (present(ix_uni)) ix_uni = iu_dflt
+  return
+endif
 
 call location_decode (uni, p, lbound(p, 1), num)
 if (num == -1) then

@@ -3445,6 +3445,7 @@ parsing_loop: do
 
   ! for a unary "+"
 
+  elseif (delim == '+' .and. ix_word == 0) then
     call pushit (op, i_op, unary_plus$)
     cycle parsing_loop
 

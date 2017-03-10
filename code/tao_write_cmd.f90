@@ -583,18 +583,18 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 
 case ('ptc')
 
-  which = '-old'
+  which = '-new'
   u => tao_pointer_to_universe(-1)
   branch => u%model%lat%branch(0)
   file_name = ''
 
   do 
-    call tao_next_switch (what2, ['-old   ', '-new   ', '-branch', '-all   '], .true., switch, err, ix_w2)
+    call tao_next_switch (what2, [character(16):: '-old', '-branch', '-all'], .true., switch, err, ix_w2)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
-    case ('-old', '-new', '-all')
+    case ('-old', '-all')
       which = switch
     case ('-branch')
       branch => pointer_to_branch (what2(1:ix_w2), u%model%lat)
