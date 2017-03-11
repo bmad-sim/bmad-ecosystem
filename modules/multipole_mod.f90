@@ -322,8 +322,14 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     endif
 
     call convert_this_ab (lord, this_a, this_b)
-    a = a + this_a * (ele%value(l$) / lord%value(l$))
-    b = b + this_b * (ele%value(l$) / lord%value(l$))
+
+    if (integer_option(magnetic$, pole_type) == magnetic$) then
+      a = a + this_a * (ele%value(l$) / lord%value(l$))
+      b = b + this_b * (ele%value(l$) / lord%value(l$))
+    else
+      a = a + this_a
+      b = b + this_b
+    endif
   enddo
 
   ix_pole_max = max_nonzero(0, a, b)
