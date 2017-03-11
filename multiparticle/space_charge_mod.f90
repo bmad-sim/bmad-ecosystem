@@ -22,7 +22,7 @@ contains
 ! Input:
 !   calc_on    -- Logical: True turns on the space charge calculation.
 !   lattice    -- lat_struct: Lattice for tracking.
-!   n_part     -- Real(rp): Number of particles in a bunch
+!   n_part     -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
 !   mode       -- normal_modes_struct: Structure holding the beam info.
 !     %a%emittance  -- a-mode emitance.
 !     %b%emittance  -- b-mode emittance.
