@@ -81,13 +81,7 @@ conserved quantities more accurately than \vn{Runge_Kutta}.
 \index{bmad_standard!tracking_method}
 \item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The formulas generally use the paraxial
-approximation.  The emphasis here is on speed. Note: If an element has
-non-zero multipole values, \vn{Bmad_Standard} tracking will generally
-put half the multipole kick at the beginning of the element and half
-at the end. This is generally a good approximation but in it can
-result in differences between this and tracking methods like
-\vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
-throughout an element.
+approximation.  The emphasis here is on speed.
 
 \index{custom!tracking_method}
 \item[\vn{Custom}]
@@ -134,12 +128,9 @@ improvement in speed over \vn{Symp_Lie_PTC}.
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses \'Etienne Forest's PTC (\sref{s:ptc.intro}) software for the
-calculation. This method is symplectic but can be slow. Exception: Tracking through 
-\vn{taylor} elements is the same as tracking with the \vn{taylor} tracking method.
-That is, the Taylor map is simply evaluated and so effort at symplectification
-is done. Furthermore, evaluating the Taylor map of a \vn{taylor} element using the \vn{taylor} method
-is faster than evaluation using \vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always
-be used with \vn{taylor} elements.
+calculation. This method is symplectic but can be slow. Exceptions: The tracking is
+not symplectic when tracking through and element with an associated electric field
+and when tracking through a \vn{taylor} element. 
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
@@ -339,7 +330,9 @@ of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
 \item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses the PTC (\sref{s:ptc.intro}) software for the calculation.
-This method is symplectic but can be slow.
+This method is symplectic but can be slow. Exceptions: The tracking is
+not symplectic when tracking through and element with an associated electric field
+and when tracking through a \vn{taylor} element.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
@@ -725,7 +718,13 @@ The \vn{ptc_exact_model} parameter sets whether PTC uses an ``exact'' model for
 tracking. Essentially this means that the paraxial approximation
 (\sref{s:mag.hamiltonian}) is made for \vn{ptc_exact_model} set to \vn{False} and is not
 made if set to \vn{True}. This can be important, for example, for bend tracking when the
-bend radius is small.
+bend radius is small. 
+
+In PTC, exact modeling can be set on an element-by-element basis. Currently \bmad does
+not support specifying element-by-element setting of exact modeling. However, PTC does
+not have a non-exact tracking option for elements that have an electric field. In this
+case, PTC tracking will always be exact independent of the setting of \vn{ptc_exact_model}.
+Additionally, for elements with an electric field, tracking will not be symplectic.
 
 The \vn{ptc_exact_misalignment} parameter determines whether
 misalignments are handled exactly or whether approximations are made
@@ -745,10 +744,21 @@ Example:
   q2: quad, l = 0.6, k1 = 0.34, ptc_integration_type = drift_kick
 \end{example}
 A discussion of the different types of integration schemes is given by
-Forest\cite{b:geo.int}. The equation that shows the appropriate
-splitting of the Hamiltonian for each integration type is referenced
-in the above list. The \vn{ripken_kick} type is for benchmarking with
-the \vn{SixTrack} program and is not otherwise generally useful.
+Forest\cite{b:geo.int}. The equation that shows the appropriate splitting of the
+Hamiltonian for each integration type is referenced in the above list. The
+\vn{ripken_kick} type is for benchmarking with the \vn{SixTrack} program and is not
+otherwise generally useful. The difference between \vn{drift_kick} and \vn{matrix_kick} is
+that with \vn{drift_kick} the quadrupolar part of the magnetic multipole is is included in
+the applied kick between drifts while in the \vn{matrix_kick} method the quadrupolar
+component is used for the ``matrix'' tracking between kicks. With the
+\vn{matrix_kick} method the tune of a machine tends to be insensitive to how many
+integration steps (set by \vn{ds_step} or \vn{n_steps}) are used. 
+
+PTC does not implement \vn{matrix_kick} tracking for elements with an electric field.  In
+this case, the setting of \vn{ptc_integration_type} is ignored and tracking will be
+\vn{drift_kick}. Thus, if an electric field is introduced into an element, more
+integration steps may be required to get the correct tune.
+
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}

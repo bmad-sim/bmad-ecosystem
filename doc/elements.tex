@@ -495,9 +495,11 @@ tracking must be turned on. That is, in the lattice file set:
 With exact model tracking, PTC always assumes that multipole coefficients correspont to
 \vn{horizontally_pure}. In this case, \bmad will convert \vn{vertically_pure} to
 \vn{horizontally_pure} as needed when passing multipole coefficients to PTC. Note that in
-the case where PTC is doing exact model tracking but the \vn{exact_multipoles} switch is set to
-\vn{off}, PTC will still be treating the multipoles as \vn{horizontally_pure} even though
-\bmad tracking will be treating them as straight line multipoles.
+the case where PTC is doing exact model tracking (\sref{s:integ}) but the
+\vn{exact_multipoles} switch is set to \vn{off}, PTC will still be treating the multipoles
+as \vn{horizontally_pure} even though \bmad tracking will be treating them as straight
+line multipoles. Note: If the bend has an associated electric field, PTC will always be
+doing exact modeling.
 
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
@@ -4002,6 +4004,14 @@ Example \vn{taylor} element definition:
               \{xz: 0.43 | 2 \}, ..., 
               ref_orbit = (0.01, 0.003, 0.002, 0.001, 0.0, 0.2)
 \end{example}
+
+Note: Tracking through a \vn{taylor} elements using \vn{symp_lie_ptc} is the same as
+tracking with the \vn{taylor} tracking method.  That is, the Taylor map is simply
+evaluated and no effort at symplectification is done. Furthermore, evaluating the Taylor
+map of a \vn{taylor} element using the \vn{taylor} method is faster than evaluation using
+\vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always be used with
+\vn{taylor} elements.
+
 
 %-----------------------------------------------------------------
 \section{Wiggler and Undulator} 

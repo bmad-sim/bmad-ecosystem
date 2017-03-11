@@ -3205,7 +3205,7 @@ real(rp) ld, hd, lc, hc, angc, xc, dc
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
-integer np, max_order, ix_pole_max
+integer np, max_order, ix_pole_max, exact_model_saved
 
 logical use_offsets, kill_spin_fringe, onemap
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
@@ -3534,6 +3534,7 @@ endif
 if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   ptc_key%magnet = 'sbend'
   ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
+  ptc_key%exact = .true.  ! PTC does not implement a non-exact model when there are electric fields.
   SOLVE_ELECTRIC = .true.
   if (leng == 0) then
     call out_io (s_fatal$, r_name, 'ZERO LENGTH ELEMENT WITH AN ELECTRIC FIELD NOT ALLOWED IN PTC: ' // ele%name)
@@ -3544,7 +3545,7 @@ endif
 
 ! Multipole components
 
-if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. EXACT_MODEL) then
+if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ptc_key%exact) then
   call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
   call ele_to_an_bn (m_ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 else
