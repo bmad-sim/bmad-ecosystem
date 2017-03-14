@@ -1203,8 +1203,7 @@ end function coords_floor_to_curvilinear
 !---------------------------------------------------------------------------
 !+
 ! Function coords_local_curvilinear_to_floor (local_position, ele, 
-!                                             in_ele_frame, w_mat, calculate_angles) 
-! Result (global_position)
+!                              in_ele_frame, w_mat, calculate_angles) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 !
@@ -1212,7 +1211,7 @@ end function coords_floor_to_curvilinear
 !   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates,
 !                                             where %r = [x, y, s_local], 
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
-!   in_ele_frame    -- logical, optional :: local_position is in ele_frame and includes offsets
+!   in_ele_frame    -- logical, optional :: local_position is in ele body frame and includes misalignments.
 !                               Default: .false.
 !
 ! Result:
@@ -1227,8 +1226,8 @@ end function coords_floor_to_curvilinear
 !                          False returns local_position angles (%theta, %phi, %psi) = 0.
 !-  
 
-function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat, calculate_angles) result (global_position)
-
+function coords_local_curvilinear_to_floor (local_position, ele, &
+                              in_ele_frame, w_mat, calculate_angles) result (global_position)
 
 type (floor_position_struct) :: local_position, global_position, p
 type (ele_struct)  ele
@@ -1372,7 +1371,7 @@ else
   local_position%psi = 0
 endif 
 
-end function
+end function coords_element_frame_to_local
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1534,7 +1533,9 @@ endif
 
 end function w_mat_for_tilt
 
-!---------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
 ! 
@@ -1551,11 +1552,15 @@ end function w_mat_for_tilt
 !   L_mis(3)  -- real(rp): Misalignment vector relative to center of element
 !   S_mis(3)  -- real(rp): Misalignment matrix relative to center of element
 !
-!-  
+!-
+
 subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
+
 type(ele_struct) :: ele 
 real(rp) :: Lc(3), Sb(3,3), s0
 real(rp) :: L_mis(3), S_mis(3,3)
+
+!
 
 select case(ele%key)
 case(sbend$)

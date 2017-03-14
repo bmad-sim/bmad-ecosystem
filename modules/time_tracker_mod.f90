@@ -1,7 +1,6 @@
 module time_tracker_mod
 
 use em_field_mod
-use wall3d_mod
 use geometry_mod
 use runge_kutta_mod
 use multipass_mod
@@ -50,8 +49,7 @@ use nr, only: zbrent
 implicit none
 
 type (coord_struct), intent(inout), target :: orb
-type (coord_struct), target :: orb_old
-type (coord_struct) :: orb_save
+type (coord_struct), target :: old_orb
 type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
@@ -61,7 +59,6 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), target :: t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
-real(rp) :: wall_d_radius, old_wall_d_radius = 0
 real(rp) :: s_fringe_edge, ref_time, stop_time
 
 integer :: n_step, n_pt, old_direction
@@ -143,10 +140,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       if (.not. associated(fringe_info%hard_ele)) exit
       if ((orb%vec(5)-s_fringe_edge)*orb%direction < -ds_safe) exit
       ! Get radius before first edge kick
-      if (.not. edge_kick_applied) then 
-        old_wall_d_radius = ref_frame_wall3d_d_radius (orb)
-        edge_kick_applied = .true. 
-      endif  
+      if (.not. edge_kick_applied) edge_kick_applied = .true. 
       if (orb%direction == +1) then 
         ref_time = fringe_info%hard_ele%value(ref_time_start$)
       else 
@@ -168,35 +162,19 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     
   endif
 
-  ! Wall check
-  ! Adapted from runge_kutta_mod's odeint_bmad:
   ! Check if hit wall.
-  ! If so, interpolate position particle at the hit point
+  ! If so, interpolate position particle at the hit point.
+  ! Adapted from runge_kutta_mod's odeint_bmad.
 
-  if (runge_kutta_com%check_wall_aperture) then
-  
-    wall_d_radius = ref_frame_wall3d_d_radius (orb)      
-    select case (runge_kutta_com%hit_when)
-    case (outside_wall$)
-      has_hit = (wall_d_radius > 0)
-    case (wall_transition$)
-      has_hit = (wall_d_radius * old_wall_d_radius < 0 .and. n_step > 1)
-      old_wall_d_radius = wall_d_radius
-    case default
-      call out_io (s_fatal$, r_name, 'BAD RUNGE_KUTTA_COM%HIT_WHEN SWITCH SETTING!')
-      if (global_com%exit_on_error) call err_exit
-    end select
-
-    ! Cannot do anything if already hit
-    if (has_hit .and. n_step == 1) then
-      orb%state = lost$
-      exit_flag = .true. 
-    endif
-
-    if (has_hit) then
-      dt_tol = ds_safe / (orb%beta * c_light)
+  select case (ele%aperture_at)
+  case (continuous$, wall_transition$)
+    call check_aperture_limit (orb, ele, in_between$, param, old_orb)
+    if (orb%state == lost$) then
+      ! Cannot do anything if this is the first step
+      if (n_step == 1) return
       ! Skip zbrent if the edge kick moved the particle outside the wall
-      if (n_step /= 1  .and. .not. (edge_kick_applied .and. old_wall_d_radius < 0)) then
+      dt_tol = ds_safe / (orb%beta * c_light)
+      if (n_step /= 1  .and. .not. edge_kick_applied) then
         dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
         dummy = wall_intersection_func(dt) ! Final call to set orb
       endif
@@ -206,10 +184,9 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore vec(5) to relative s 
       call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s_start + ele%value(z_offset_tot$)))
+      if (orb%state /= alive$) exit_flag = .true.
     endif
-  endif
-
-  if (orb%state /= alive$) exit_flag = .true.
+  end select
 
   !Save track
   if ( present(track) ) then
@@ -249,7 +226,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     endif
   endif
 
-  orb_old = orb
+  old_orb = orb
   t_old = rf_time
 
   call rk_adaptive_time_step (ele, param, orb, rf_time, dt, dt_did, dt_next, local_ref_frame, err)
@@ -288,7 +265,7 @@ real(rp), intent(in)  :: this_dt
 real(rp) :: delta_s_target
 logical err_flag
 !
-call rk_time_step1 (ele, param, t_old, orb_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
+call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
 delta_s_target = orb%vec(5) - s_fringe_edge
 rf_time = t_old + this_dt
 	
@@ -299,27 +276,33 @@ end function delta_s_target
 
 function wall_intersection_func (this_dt) result (d_radius)
 
+type (coord_struct) test_orb
 real(rp), intent(in) :: this_dt
 real(rp) d_radius
 logical err_flag
 !
-call rk_time_step1 (ele, param, t_old, orb_old, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
-				  	 				  
-d_radius = ref_frame_wall3d_d_radius (orb)
+call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
+
+test_orb = orb
+call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false., set_multipoles = .false.)
+call check_aperture_limit (test_orb, ele, in_between$, param, old_orb)
+d_radius = param%unstable_factor
+
 rf_time = rf_time + this_dt
 
 end function wall_intersection_func
 
+!------------------------------------------------------------------------------------------------
+! contains
+
 ! Wall sections are in the reference frame, not the local frame, so offset before check
 function ref_frame_wall3d_d_radius (orb) result(ref_frame_d_radius)
+
 type(coord_struct) :: orb, test_orb
 real(rp) :: ref_frame_d_radius
 ! Make a copy
-test_orb = orb
-call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false., set_multipoles = .false.)
-ref_frame_d_radius = wall3d_d_radius (test_orb%vec, ele)
-end function ref_frame_wall3d_d_radius
 
+end function ref_frame_wall3d_d_radius
 
 end subroutine odeint_bmad_time
 

@@ -138,10 +138,10 @@ logical, parameter :: set$ = .true., unset$ = .false.
 !
 
 integer, parameter :: grided$ = 123
-integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, custom_aperture$ = 7
+integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
                                     ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
-                                     'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
+                                     'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ']
 
 ! fringe_type
 ! non-bend fringe type names are in the range fringe_type(1:n_non_bend_fringe_type$)
@@ -262,12 +262,12 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4
-integer, parameter :: continuous$ = 5, surface$ = 6
+integer, parameter :: continuous$ = 5, surface$ = 6, wall_transition$ = 7
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13
 
-character(16), parameter :: aperture_at_name(0:6) = [ &
-      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_Aperture  ', 'Continuous   ', 'Surface      ']
+character(16), parameter :: aperture_at_name(0:7) = [ &
+      'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
+      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition']
 
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &

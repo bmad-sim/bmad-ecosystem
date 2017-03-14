@@ -4064,7 +4064,7 @@ type (fibre) dummy_fibre
 real(rp) dr(3), ang(3), exi(3,3)
 real(dp) mis_rot(6), beta_start, beta_end
 real(dp) omega(3), basis(3,3), angle(3), tiltd
-real(rp) x_off, y_off, x_pitch, y_pitch, roll
+real(rp) x_off, y_off, x_pitch, y_pitch, roll, z_off
 
 logical use_offsets, good_patch
 
@@ -4140,14 +4140,17 @@ elseif (use_offsets) then
 
   x_off = ele%value(x_offset_tot$)
   y_off = ele%value(y_offset_tot$)
+  z_off = ele%value(z_offset_tot$)
   x_pitch = ele%value(x_pitch_tot$)
   y_pitch = ele%value(y_pitch_tot$)
   tiltd = ptc_fibre%mag%p%tiltd
   roll = 0
   if (ele%key == sbend$) roll = ele%value(roll_tot$)
+  
 
-  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0 .or. tiltd /= 0) then
-    mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
+  if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. x_pitch /= 0 .or. &
+                              y_pitch /= 0 .or. roll /= 0 .or. tiltd /= 0) then
+    mis_rot = [x_off, y_off, z_off, -y_pitch, -x_pitch, roll]
     angle = 0
     angle(3) = -tiltd
     omega = ptc_fibre%chart%f%o

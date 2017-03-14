@@ -96,11 +96,9 @@ endif
 !------
 !Check wall
 
-vec = [end_orb%vec(1), 0.0_rp, end_orb%vec(3), 0.0_rp, s_rel, real(end_orb%direction, rp)]
-d_radius = wall3d_d_radius(vec, ele)
-if ( d_radius > 0 ) then
-  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name), &
-    "at d_radius =  \F10.5\ , SETTING TO LOST", r_array = [d_radius])
+call check_aperture_limit (end_orb, ele, in_between$, param)
+if (end_orb%state /= alive$) then
+  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name))
   !Particle won't be tracked, so set end = start with the saved state
   end_orb = start_orb
   end_orb%state = lost$
