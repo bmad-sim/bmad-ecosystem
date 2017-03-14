@@ -148,7 +148,7 @@ if (ele%aperture_at == wall_transition$) then
     r_old = (x_old / x_lim)**2 + (y_old / y_lim)**2
     r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
     param%unstable_factor = r - 1
-    if (r_old > 1 .xor. r > 1) orb%state = lost$
+    if (r_old > 1 .neqv. r > 1) orb%state = lost$
 
   case (rectangular$, auto_aperture$)
     if (abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) then
@@ -157,7 +157,7 @@ if (ele%aperture_at == wall_transition$) then
       param%unstable_factor = min(abs(x_particle)/x_lim, abs(y_particle)/y_lim) - 1
     endif
 
-    if ((abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) .xor. &
+    if ((abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) .neqv. &
         (abs(x_old) < x_lim .and. abs(y_old) < y_lim)) then
       orb%state = lost$
     endif
@@ -168,7 +168,7 @@ if (ele%aperture_at == wall_transition$) then
     position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
     d_radius = wall3d_d_radius (position, ele)
     param%unstable_factor = d_radius - 1
-    if (d_radius > 1 .xor. d_old > 1) orb%state = lost$
+    if (d_radius > 1 .neqv. d_old > 1) orb%state = lost$
 
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
