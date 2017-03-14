@@ -9,6 +9,7 @@
 \subsection{Local Reference Orbit}
 \label{s:ref}
 \index{reference orbit|hyperbf}
+\index{laboratory coordinates|hyperbf}
 
 \begin{figure}[!b]
   \centering
@@ -545,19 +546,86 @@ of the Bragg angles for a crystal is given in
 Section~\sref{s:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Straight Element Misalignment}
+\subsection{Patch and Floor_Shift Elements Entrance to Exit Transformation}
+\label{s:patch.coords}
+
+\index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
+For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele}) elements, the
+shift in the reference coordinates from the entrance end to the exit end of the element is
+given by \Eqs{vwlv} and \eq{wws} with 
+\begin{align}
+  \bfL &= 
+    \begin{pmatrix} 
+      \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
+    \end{pmatrix}
+    \CRNO
+  \bfS &= \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
+  \label{swww}
+\end{align}
+
+%-----------------------------------------------------------------------------
+\subsection{Fiducial and Girder Elments Origin Shift Transformation}
+\label{s:girder.coords}
+
+\index{girder}\index{fiducial}
+For \vn{fiducial} and \vn{girder} elements, the alignment of the
+reference coordinates with respect to ``\vn{origin}'' coordinates is
+analogous to \Eqs{swww}. Explicitly:
+\begin{align}
+  \bfL &= 
+    \begin{pmatrix} 
+      \text{dx_origin} \\ \text{dy_origin} \\ \text{dz_origin}
+    \end{pmatrix}
+    \CRNO
+  \bfS &= \bfR_{y} (\text{dtheta_origin}) \; \bfR_{-x} (\text{dphi_origin}) \; \bfR_{z} (\text{dpsi_origin})
+\end{align}
+
+%-----------------------------------------------------------------------------
+\subsection{Reflection Patch}
+\label{s:reflect.patch}
+\index{patch!reflection}
+
+A \vn{Patch} (or a series of patches) that reflects the direction of the \vn{z}-axis is
+called a \vn{reflection} \vn{patch}. By ``reflected direction'' it is meant that the dot
+product $\Bf z_1 \cdot \Bf z_2$ is negative where $\Bf z_1$ is the $z$-axis vector at the
+\vn{entrance} face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
+condition is equivalent to the condition that the associated $\bfS$ matrix (see \Eq{swww})
+satisfy:
+\Begineq
+  S(3,3) < 0
+  \label{s330}
+\Endeq
+Using \Eq{swww} gives, after some simple algebra, this condition is equivalent to
+\Begineq
+  \cos(\text{x_pitch}) \, \cos(\text{y_pitch}) < 0
+\Endeq
+When there are a series of patches, The transformations of all the
+patches are concatenated together to form an effective $\bfS$ which
+can then be used with \Eq{s330}.
+
+%-----------------------------------------------------------------------------
+\section{Transformation Between Laboratory and Element Body Coordinates}
+\label{s:lab.body.transform}
+\index{laboratory coordinates}
+\index{element body coordinates|hyperbf}
+
+
+The \vn{element body} coordinates are the coordinate system attached to an
+element. Without any misalignments, where \vn{``misalignments''} are here defined to be
+any offset, pitch or tilt (\sref{s:offset}), the \vn{laboratory} coordinates (\sref{s:ref}) and
+\vn{element body} coordinates are the same. With misalignments, the transformation between
+\vn{laboratory} and \vn{element body} coordinates depends upon whether the local coordinate
+system is straight (\sref{s:straight.mis}) or bent (\sref{s:bend.mis}).
+
+%-----------------------------------------------------------------------------
+\subsection{Straight Element Misalignment Transformation}
 \label{s:straight.mis}
 
-The \vn{Element Body} coordinates are the coordinate system attached
-to an element. Without any misalignments, where \vn{``misalignments''}
-are here defined to be any offset, pitch or tilt (\sref{s:offset}),
-the laboratory and element body coordinates are the same. For straight
-line elements, given a laboratory coordinate frame $\Lambda_s$ with
-origin a distance $s$ from the beginning of the element, misalignments
-will shift the coordinates to a new reference frame denoted
-$E_s$. Since misalignments are defined with respect to the middle of
-the element, the transformation between $\Lambda_s$ and $E_s$ is a
-three step process:
+For straight line elements, given a laboratory coordinate frame $\Lambda_s$ with origin a
+distance $s$ from the beginning of the element, misalignments will shift the coordinates
+to a new reference frame denoted $E_s$. Since misalignments are defined with respect to
+the middle of the element, the transformation between $\Lambda_s$ and $E_s$ is a three
+step process:
 \Begineq
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow E_\text{mid} \longrightarrow E_s
@@ -579,47 +647,42 @@ offset, pitch and tilt parameters is
     \end{pmatrix}
     \CRNO
   \bfS &= \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
-  \label{swww}
+  \label{swww2}
 \end{align}
 
 Notice that with this definition of how elements are misaligned, the position of a
 misaligned element depends only on the offsets, and is independent of the pitches and tilt.
 
 %-----------------------------------------------------------------------------
-\subsection{Bend Element Misalignment}
+\subsection{Bend Element Misalignment Transformation}
 \label{s:bend.mis}
 
 \index{rbend!coordinate transformation}\index{sbend!coordinate transformation}
 \index{roll!coordinate transformation}\index{tilt!coordinate transformation}
-For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt}
-attribute.  Rather, there is the \vn{roll} attribute and a
-\vn{ref_tilt} attribute. The latter affects both the reference orbit
-and the bend position (\sref{s:bend.orient}). Furthermore,
-\vn{ref_tilt} is calculated with respect to the coordinates at the
-beginning of the bend while, like straight elements, \vn{roll},
-offsets, and pitches are calculated with respect to the center of the
-bend. The different reference frame used for \vn{ref_tilt} versus
-everything else means that five transformations are needed to get from
-the laboratory frame to the element frame (see
-\Eq{llee}). Symbolically:
+For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt} attribute.  Rather, there is
+the \vn{roll} attribute and a \vn{ref_tilt} attribute. The latter affects both the
+reference orbit and the bend position (\sref{s:bend.orient}). Furthermore, \vn{ref_tilt}
+is calculated with respect to the coordinates at the beginning of the bend while, like
+straight elements, \vn{roll}, offsets, and pitches are calculated with respect to the
+center of the bend. The different reference frame used for \vn{ref_tilt} versus everything
+else means that five transformations are needed to get from the laboratory frame to the
+element body frame (see \Eq{llee}). Symbolically:
 \Begineq
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow \Omega_\text{mid} \longrightarrow \Omega_0
   \longrightarrow E_0 \longrightarrow E_s
 \Endeq
 
-The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from
-laboratory coordinates at $s$ to coordinates at the center is a
-rotation around the center of curvative of the bend and is given by
-\Eqs{vwlv} and \eq{wws} with \Eqs{ltl} and \eq{lra1} with the
-substitution $\alpha_b (\rightarrow L/2 - s)/\rho$.
+The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates
+at a distance $s$ from the beginning of the element to coordinates at the center the the
+bend is a rotation around the center of curvative of the bend and is given by \Eqs{vwlv}
+and \eq{wws} with \Eqs{ltl} and \eq{lra1} with the substitution $\alpha_b \rightarrow (L/2
+- s)/\rho$.
 
-The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$
-at the center of the element adds in the misalignments (Note that the
-coordinate frame $\Omega_\text{mid}$ is neither a laboratory frame or
-an element frame so hence the use of a different symbol $\Omega$). The
-appropriate transformation is
-
+The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$ at the center of the
+element adds in the misalignments (Note that the coordinate frame $\Omega_\text{mid}$ is
+neither a laboratory frame or an element frame so hence the use of a different symbol
+$\Omega$). Explicitly, the $\Lambda_\text{mid} \longrightarrow \Omega_\text{mid}$ transformation is
 \begin{align}
   \bfL &= \bfL_\text{off} + 
     \left[ \bfR_z(\text{roll}) - \Bf1 \right] \; \bfR_z(\theta_t) \; \bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
@@ -664,56 +727,6 @@ $\theta_t \rightarrow 0$ and $\alpha_b \rightarrow L/\rho$.
 
 Notice that with this definition of how elements are misaligned, the position of a
 misaligned element depends only on the offsets, and is independent of the pitches and tilt.
-
-%-----------------------------------------------------------------------------
-\subsection{Patch and Floor_Shift Elements Entrance to Exit Transformation}
-\label{s:patch.coords}
-
-\index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
-For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele})
-elements, \Eqs{swww} are used to calculate the the shift
-in the reference coordinates from the entrance end to the exit end of
-the element.
-
-%-----------------------------------------------------------------------------
-\subsection{Fiducial and Girder Elments Origin Shift Transformation}
-\label{s:girder.coords}
-
-\index{girder}\index{fiducial}
-For \vn{fiducial} and \vn{girder} elements, the alignment of the
-reference coordinates with respect to ``\vn{origin}'' coordinates is
-analogous to \Eqs{swww}. Explicitly:
-\begin{align}
-  \bfL &= 
-    \begin{pmatrix} 
-      \text{dx_origin} \\ \text{dy_origin} \\ \text{dz_origin}
-    \end{pmatrix}
-    \CRNO
-  \bfS &= \bfR_{y} (\text{dtheta_origin}) \; \bfR_{-x} (\text{dphi_origin}) \; \bfR_{z} (\text{dpsi_origin})
-\end{align}
-
-%-----------------------------------------------------------------------------
-\subsection{Reflection Patch}
-\label{s:reflect.patch}
-\index{patch!reflection}
-
-A \vn{Patch} (or a series of patches) that reflects the direction of
-the \vn{z}-axis is called a \vn{reflection} \vn{patch}. By ``reflected
-direction'' it is meant that the dot product $\Bf z_1 \cdot \Bf z_2$ is
-negative where $\Bf z_1$ is the $z$-axis vector at the \vn{entrance}
-face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
-condition is equivalent to the condition on $\bfS$ in \Eq{swww} of
-\Begineq
-  S(3,3) < 0
-  \label{s330}
-\Endeq
-Using \Eq{swww} gives after some simple algebra
-\Begineq
-  \cos(\text{x_pitch}) \, \cos(\text{y_pitch}) < 0
-\Endeq
-When there are a series of patches, The transformations of all the
-patches are concatenated together to form an effective $\bfS$ which
-can then be used with \Eq{s330}.
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinates}

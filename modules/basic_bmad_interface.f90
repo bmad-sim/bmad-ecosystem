@@ -107,18 +107,20 @@ function branch_name(branch) result (name)
   character(40) name
 end function
 
+function c_multi (n, m, no_n_fact, c_full) result (c_out)
+  import
+  implicit none
+  integer, intent(in) :: n, m
+  real(rp) c_out
+  real(rp), optional :: c_full(0:n_pole_maxx, 0:n_pole_maxx)
+  logical, optional :: no_n_fact
+end function
+
 subroutine c_to_cbar (ele, cbar_mat)
   import
   implicit none
   type (ele_struct) ele
   real(rp) cbar_mat(2,2)
-end subroutine
-
-subroutine cbar_to_c (cbar_mat, a, b, c_mat)
-  import
-  implicit none
-  real(rp) cbar_mat(2,2), c_mat(2,2)
-  type (twiss_struct) a, b
 end subroutine
 
 subroutine calc_z_tune (lat, ix_branch)
@@ -128,14 +130,23 @@ subroutine calc_z_tune (lat, ix_branch)
   integer, optional :: ix_branch
 end subroutine
 
-function c_multi (n, m, no_n_fact, c_full) result (c_out)
+subroutine cbar_to_c (cbar_mat, a, b, c_mat)
   import
   implicit none
-  integer, intent(in) :: n, m
-  real(rp) c_out
-  real(rp), optional :: c_full(0:n_pole_maxx, 0:n_pole_maxx)
-  logical, optional :: no_n_fact
-end function
+  real(rp) cbar_mat(2,2), c_mat(2,2)
+  type (twiss_struct) a, b
+end subroutine
+
+recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb, check_momentum)
+  import
+  implicit none
+  type (coord_struct) :: orb
+  type (ele_struct) :: ele
+  type (lat_param_struct), intent(inout) :: param
+  integer particle_at
+  type (coord_struct), optional :: old_orb
+  logical, optional :: check_momentum
+end subroutine
 
 subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
   import
@@ -630,6 +641,15 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   type (coord_struct) orb
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
+
+function orbit_too_large (orbit, param) result (is_too_large)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (lat_param_struct), optional :: param
+  logical is_too_large
+  real(rp) rel_p
+end function
 
 subroutine order_super_lord_slaves (lat, ix_lord)
   import

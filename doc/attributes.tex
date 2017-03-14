@@ -807,8 +807,9 @@ attribute are:
 \begin{example}
   auto         ! Default for detector, mask and diffraction_plate elements
   custom
-  elliptical   ! Default for \vn{ecollimator} elements
+  elliptical   ! Default for \vn{ecollimator} elements.
   rectangular  ! Default for most elements.
+  wall3d       ! Vacuum chamber wall (\sref{s:wall}).
 \end{example}
 The \vn{custom} setting is used in the case where programs have been
 compiled with custom, non-Bmad, code to handle the aperture
@@ -819,7 +820,11 @@ set to just cover the clear area of element
 (\sref{s:masking.wall}). For all other elements, the \vn{auto}
 setting is only to be used when there is an associated surface grid
 (\sref{s:surf.grid}) for the element and, in this case, \bmad to set
-the four limits to just cover the surface grid
+the four limits to just cover the surface grid.
+
+The \vn{wall3d} setting uses the vacuum chamber wall as specified by a \vn{wall} attribute
+(\sref{s:wall}). Using the \vn{wall} construct allows for complex apertures to be
+constructed.
 
 For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit},
 \vn{y1_limit}, or \vn{y2_limit} may be negative. For example:
@@ -892,18 +897,19 @@ Example:
 \label{s:ap.place}
 
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
-\index{entrance_end|hyperbf}\index{exit_end|hyperbf}
+\index{entrance_end|hyperbf}\index{exit_end|hyperbf}\index{wall_transition|hyperbf}
 \index{surface|hyperbf}\index{aperture_at}\index{no_aperture}
 By default, for most elements, the aperture is evaluated at the exit face of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
 Possible settings for \vn{aperture_at} are:
 \begin{example}
-  entrance_end
-  exit_end       ! Default for most elements
   both_ends
   continuous
-  surface  
+  entrance_end
+  exit_end       ! Default for most elements
   no_aperture
+  surface  
+  wall_transition
 \end{example}
 The \vn{exit_end} setting is the default for most elements except for
 the following elements who have a default of \vn{surface}:
@@ -944,6 +950,10 @@ used to transform the particle coordinates at the entrance of an
 element to the coordinates at the exit end, the aperture is only
 checked at the end points so, in this situation, a \vn{continuous}
 aperture is equivalent to the \vn{both_ends} setting.
+
+The \vn{wall_transition} setting is used for things like septum magnets where a particle
+may be safely outside or inside the wall and it is only when the particle moves through
+the wall is there an interaction.
 
 Examples:
 \begin{example}
@@ -2465,7 +2475,7 @@ integer.
 Only magnetic fields may be used.
   \item
 The plane locations must be symmetric with respect to the center of the element. That is,
-the first plane and the last plane must be equadistant from the element center.
+the first plane and the last plane must be equidistant from the element center.
   \item
 The element may not be superimposed upon (\sref{s:super}). [PTC tracks from plane to plane
 so there is no good way to cut an element at an arbitrary position.]
@@ -2479,7 +2489,7 @@ different than the edges of the element, \bmad and PTC will do tracking differen
 end. That is, \bmad will ignore the field outside of the element (but this can be modified
 using field overlap (\sref{s:overlap})). PTC, on the other hand, will start at an element
 end and then track from the element end backwards to the first plane like in a drift. It
-will then track to the ending plane and finally track backards from the ending plane to
+will then track to the ending plane and finally track backwards from the ending plane to
 the ending element edge line in a drift. That is, PTC does not ignore the field outside of
 the element.
 
@@ -2573,7 +2583,7 @@ overlaps elements \vn{q1} and \vn{s2}. There is no limit to the number of elemen
 are overlapped by any given element and overlapped elements do not have to be next to the
 overlapping element in the line. If there are multiple elements whose name matches the
 name of a overlapped element, the element closest to the overlapping element is
-choisen. Thus in the above example, if there are multiple elements named \vn{q1}, the
+chosen. Thus in the above example, if there are multiple elements named \vn{q1}, the
 closest \vn{q1} to \vn{b1} is designated as the overlapped element.
 
 There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
@@ -2583,7 +2593,7 @@ Thus the following is equivalent to the above example:
 \end{example}
 
 The field when \vn{field_calc} is set to \vn{bmad_standard} never extends beyond the
-element boundrary and so a \vn{bmad_standard} field will never overlap another element.
+element boundary and so a \vn{bmad_standard} field will never overlap another element.
 
 %-----------------------------------------------------------------
 \section{Automatic Scaling of Accelerating Fields}
@@ -2708,7 +2718,7 @@ will check the distance between particles does not exceed \vn{z_max}.
 If it does, \bmad will report an error.
 
 \index{none}\index{x_axis}\index{y_axis}
-The \vn{polarizaiton} parmeter is used to specify the wake
+The \vn{polarization} parameter is used to specify the wake
 polarization. Possible settings for this parameter are:
 \begin{example}
   none    ! Default
@@ -2717,7 +2727,7 @@ polarization. Possible settings for this parameter are:
 \end{example}
 The \vn{polarization} name may be abbreviated.  For example, if the
 \vn{polarization} is set to \vn{x_axis}, there is no vertical kick
-from the psudo mode.
+from the pseudo mode.
 
 \index{none}\index{linear_leading}\index{linear_trailing}
 The \vn{transverse_dependence} parameter sets whether the wake kick
@@ -2840,7 +2850,7 @@ elements. If there is no fringe at a particular boundary, the setting of attribu
 like \vn{fringe_type} (see below) are ignored.
 
 \index{spin_fringe_on}
-When a particles's spin is being tracked through the fringe field at an element's edge,
+When a particle's spin is being tracked through the fringe field at an element's edge,
 the \vn{spin_fringe_on} logical attribute of the element determines how the tracking is handled.
 Example:
 \begin{example}
@@ -2922,7 +2932,7 @@ multipole is assumed to have the same rotational symmetry as the
 multipole. With this assumption, the fringe field has $n+1$\St order
 terms.  With \vn{x_invariant}, the fringe field is calculated assuming
 that there is translational invariance along the horizontal $x$
-axis. This differes from \vn{multipole_symmetry} by adding terms of
+axis. This differs from \vn{multipole_symmetry} by adding terms of
 increasing order consistent with the translational invariance. See
 \'Etienne Forest's book\cite{b:forest} for more details. Which setting
 of \vn{ptc_fringe_geometry} is appropriate depends upon how the dipole
