@@ -245,6 +245,9 @@ def search_f90 (file_name, search_com):
                   print ('\nFile: ' + file_name)
                   have_printed_file_name = True
                 print ('    ' + line.rstrip())
+                while line.rstrip()[-1] == '&':
+                  line = f90_file.readline()
+                  print ('    ' + line.rstrip())                
                 break
 
     # Add to comment block if a comment
