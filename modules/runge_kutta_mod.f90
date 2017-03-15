@@ -85,7 +85,7 @@ real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save
 real(rp) :: s_edge_track, position(6)
 real(rp) :: old_s, ds_intersect, ds_tiny
 
-integer :: n_step, s_dir, nr_max
+integer :: n_step, s_dir, nr_max, this_state
 
 logical local_ref_frame, err_flag, err, at_hard_edge, track_spin
 
@@ -178,10 +178,11 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   select case (ele%aperture_at)
   case (continuous$, wall_transition$)
     call check_aperture_limit (orbit, ele, in_between$, param, old_orbit)
-    if (orbit%state == lost$) then
-      ! Cannot do anything if this is the first step
-      if (n_step == 1) return
+    if (orbit%state /= alive$) then
+      if (n_step == 1) return  ! Cannot do anything if this is the first step
+      this_state = orbit%state ! zbrent will overwrite this so save.
       ds_intersect = zbrent (wall_intersection_func, 0.0_rp, ds_did, 1d-10)
+      orbit%state = this_state
       call wall_hit_handler_custom (orbit, ele, s)
       if (orbit%state /= alive$) return
     endif

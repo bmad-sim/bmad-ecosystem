@@ -47,6 +47,13 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+function at_this_ele_end (now_at, where_at) result (is_at_this_end)
+  import
+  implicit none
+  integer now_at, where_at
+  logical is_at_this_end
+end function
+
 subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
   import
   implicit none

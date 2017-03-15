@@ -45,7 +45,7 @@ real(rp) x1_lim, x2_lim, y1_lim, y2_lim, dx1, dx2, dy1, dy2, d_max
 real(rp) d_radius, d_old, position(6), x_old, y_old, r_old
 
 integer i, particle_at, physical_end
-logical do_tilt, err
+logical do_tilt, err, no_wall
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
@@ -164,11 +164,11 @@ if (ele%aperture_at == wall_transition$) then
 
   case (wall3d$)
     position = [old_orb%vec(1:4), old_orb%s-ele%s_start, 1.0_rp]
-    d_old = wall3d_d_radius (position, ele)
+    d_old = wall3d_d_radius (position, ele, no_wall_here = no_wall)
     position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
     d_radius = wall3d_d_radius (position, ele)
-    param%unstable_factor = d_radius - 1
-    if (d_radius > 1 .neqv. d_old > 1) orb%state = lost$
+    param%unstable_factor = d_radius
+    if (.not. no_wall .and. (d_radius > 0 .neqv. d_old > 0)) orb%state = lost$
 
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
@@ -223,9 +223,9 @@ case (rectangular$, auto_aperture$)
 
 case (wall3d$)
   position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
-  d_radius = wall3d_d_radius (position, ele)
-  param%unstable_factor = d_radius - 1
-  if (d_radius > 1) then
+  d_radius = wall3d_d_radius (position, ele, no_wall_here = no_wall)
+  param%unstable_factor = d_radius
+  if (.not. no_wall .and. d_radius > 0) then
     orb%state = lost$
   endif
 
