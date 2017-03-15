@@ -169,7 +169,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   select case (ele%aperture_at)
   case (continuous$, wall_transition$)
     call check_aperture_limit (orb, ele, in_between$, param, old_orb)
-    if (orb%state == lost$) then
+    if (orb%state /= alive$) then
       ! Cannot do anything if this is the first step
       if (n_step == 1) return
       ! Skip zbrent if the edge kick moved the particle outside the wall
@@ -230,6 +230,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   t_old = rf_time
 
   call rk_adaptive_time_step (ele, param, orb, rf_time, dt, dt_did, dt_next, local_ref_frame, err)
+  edge_kick_applied = .false.
 
   if (stop_time_limited) then
     dt_next = dt_next_save
