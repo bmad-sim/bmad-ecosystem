@@ -255,7 +255,7 @@ real(rp) t_new, r_err(11), dr_ds(10)
 call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, local_ref_frame, err_flag)
 
 s = old_s + ds
-orbit%s = s
+orbit%s = s + ele%s_start
 call check_aperture_limit (orbit, ele, in_between$, param, old_orbit)
 
 d_radius = param%unstable_factor
