@@ -419,7 +419,7 @@ if (angle == 0) return
 
 axis = rot_vec / angle
 
-call rotate_vec_given_axis_angle (spin, axis, angle)
+spin = rotate_vec_given_axis_angle (spin, axis, angle)
 
 end subroutine rotate_spin
 

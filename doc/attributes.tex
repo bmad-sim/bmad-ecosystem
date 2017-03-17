@@ -938,22 +938,25 @@ be left in its default state of True. Additionally, For
 \vn{entrance_end} or \vn{exit_end} apertures,
 \vn{offset_moves_aperture} must be set to False.
 
-Note: The entrance and exit ends of an element are independent of
-which direction particles are tracked through an element. Thus if a
-particle is tracked backwards it enters an element at the ``exit end''
-and exits at the ``entrance end''. The \vn{continuous} setting
-indicates that the aperture is continuous along the length of the
-element. This only matters when particle tracking involves stepping
-through an element a little bit at a time. For example, as in
-Runge-Kutta tracking (\sref{s:tkm}). For tracking where a formula is
-used to transform the particle coordinates at the entrance of an
-element to the coordinates at the exit end, the aperture is only
-checked at the end points so, in this situation, a \vn{continuous}
-aperture is equivalent to the \vn{both_ends} setting.
+Note: The entrance and exit ends of an element are independent of which direction
+particles are tracked through an element. Thus if a particle is tracked backwards it
+enters an element at the ``exit end'' and exits at the ``entrance end''. The
+\vn{continuous} setting indicates that the aperture is continuous along the length of the
+element. This only matters when particle tracking involves stepping through an element a
+little bit at a time. For example, as in Runge-Kutta tracking (\sref{s:tkm}). For tracking
+where a formula is used to transform the particle coordinates at the entrance of an
+element to the coordinates at the exit end, the aperture is only checked at the end points
+so, in this situation, a \vn{continuous} aperture is equivalent to the \vn{both_ends}
+setting.
 
+The \vn{wall_transition} setting is like the \vn{continuous} setting in that the aperture
+boundary is considered to be continuous along the element's length. However, unlike the
+\vn{continuous} setting, with the \vn{wall_transition} setting a particle outside the wall
+is considered alive and it is only when a particle moves through the wall that it is lost.
 The \vn{wall_transition} setting is used for things like septum magnets where a particle
-may be safely outside or inside the wall and it is only when the particle moves through
-the wall is there an interaction.
+may be safely outside or inside the wall. Note to programmers: By supplying a custom
+\vn{wall_hit_handler_custom} routine, scattering of particles through a wall may be
+simulated.
 
 Examples:
 \begin{example}

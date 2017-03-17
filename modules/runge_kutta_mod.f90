@@ -185,6 +185,13 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       orbit%state = this_state
       call wall_hit_handler_custom (orbit, ele, s)
       if (orbit%state /= alive$) return
+      if (ele%aperture_at /= wall_transition$) then
+        call out_io (s_error$, r_name, 'CUSTOM CODE IS KEEPING A PARTICLE ALIVE ACCROSS A BOUNDARY!', &
+                                       'IN THIS CASE, THE APERTURE_AT COMPONENT OF ELEMENT: ' // ele%name, &
+                                       'NEEDS TO BE SET TO "WALL_TRANSITION".')
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
     endif
   end select
 
@@ -420,8 +427,7 @@ if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat = quat_mul(omega_to_quat(ds*c3*dr_ds3(8:10)), quat)
   quat = quat_mul(omega_to_quat(ds*c4*dr_ds4(8:10)), quat)
   quat = quat_mul(omega_to_quat(ds*c6*dr_ds6(8:10)), quat)
-  orb_new%spin = orb%spin
-  call rotate_vec_given_quat(orb_new%spin, quat)
+  orb_new%spin = rotate_vec_given_quat(orb%spin, quat)
 endif
 
 r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
