@@ -221,7 +221,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
 integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
 
-logical :: local_ref_frame, local_ref
+logical :: local_ref_frame
 logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
 logical do_df_calc, err, dfield_computed, add_kicks
 
@@ -266,33 +266,32 @@ if (present(used_eles)) then
 endif
 
 !----------------------------------------------------------------------------
-! convert to local coords
-
-local_orb = orbit
-if (.not. local_ref_frame) then
-  call offset_particle (ele, param, set$, local_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
-endif
-
-!----------------------------------------------------------------------------
 ! super_slave, and slice_slave, have their field info stored in the associated lord elements.
-! Note: The lord of an em_field element has independent misalignments.
 ! Note: multipass_slave elements do store their own field info. This should be changed.
 
 if (ele%field_calc == refer_to_lords$) then
-  if (.not. present(used_eles)) allocate (use_list(5))
+  if (.not. present(used_eles)) allocate (use_list(ele%n_lord+5))
+
+  ! The lord of an element may have independent misalignments.
+  ! So use an orbit that is not in the slave's reference frame.
+
+  lab_orb = orbit
+  if (local_ref_frame) then
+    call offset_particle (ele, param, unset$, lab_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+  endif
+  z = lab_orb%vec(5)
+
+  !
 
   lord_loop: do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
 
     if (lord%field_calc == no_field$) cycle   ! Group, overlay and girder elements do not have fields.
 
-    local_ref = .true.
-    if (ele%key == em_field$) local_ref = .false.
-
     ds = ele%s_start - lord%s_start
     s = s_pos + ds
     beta_ref = lord%value(p0c$) / lord%value(e_tot$)
-    local_orb%vec(5) = local_orb%vec(5) - c_light * local_orb%beta * &
+    lab_orb%vec(5) = z - c_light * orbit%beta * &
         ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
 
     if (present(used_eles)) then
@@ -300,10 +299,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (.not. associated(used_eles(j)%ele)) exit
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
-      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s, lab_orb, .false., field2, calc_dfield, err, potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, used_eles = used_eles)
     else
-      call em_field_calc (lord, param, s, local_orb, local_ref, field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s, lab_orb, .false., field2, calc_dfield, err, potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, used_eles = use_list)
     endif
 
@@ -323,6 +322,14 @@ if (ele%field_calc == refer_to_lords$) then
 
   if (.not. local_ref_frame) call convert_field_ele_to_lab(ele, s_rel, .true., field)
   return
+endif
+
+!----------------------------------------------------------------------------
+! convert to local coords
+
+local_orb = orbit
+if (.not. local_ref_frame) then
+  call offset_particle (ele, param, set$, local_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
 endif
 
 !----------------------------------------------------------------------------
