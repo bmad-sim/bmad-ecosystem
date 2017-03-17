@@ -44,14 +44,12 @@ call quat_to_axis_angle(quat, axis2, angle2)
 write (1, '(a, 4es11.3)') '"axis-angle  " ABS 1E-14  ', axis2, angle2
 write (1, '(a, 4es11.3)') '"daxis-dangle" ABS 1E-14  ', axis2-axis, angle2-angle
 
-vec3a = vec3
-call rotate_vec_given_axis_angle (vec3a, axis, angle)
+vec3a = rotate_vec_given_axis_angle (vec3, axis, angle)
 
 call axis_angle_to_w_mat (axis, angle, w_mat)
 vec3b = matmul(w_mat, vec3)
 
-vec3c = vec3
-call rotate_vec_given_quat(vec3c, quat)
+vec3c = rotate_vec_given_quat(vec3, quat)
 
 write (1, '(a, 3f11.6)') '"rot vecA" ABS 1E-14  ', vec3a
 write (1, '(a, 3es10.2)') '"drot vecB" ABS 1E-14  ', vec3b - vec3a

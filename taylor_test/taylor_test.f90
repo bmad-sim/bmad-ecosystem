@@ -47,7 +47,7 @@ call transfer_map_from_s_to_s (lat, t_map, 0.1_rp, lat%param%total_length-2.0_rp
 do i = 1, 6
   call sort_taylor_terms (t_map(i), t, 1e-20_rp)
   do j = 1, size(t%term)
-    write (1, '(a, i1, a, 6i1, a, es18.10)') '"TMSS', i, '-', t%term(j)%expn, '"  REL 1E-7', t%term(j)%coef
+    write (1, '(a, i1, a, 6i1, a, es18.10)') '"TMSS', i, '-', t%term(j)%expn, '"  REL 4E-7', t%term(j)%coef
   enddo
   write (1, *)
 enddo

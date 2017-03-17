@@ -7,8 +7,9 @@ use taylor_mod
 
 implicit none
 
-type (lat_struct) lat
-type (ele_struct) ele
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+type (ele_struct) t_ele
 type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
@@ -49,12 +50,12 @@ open (1, file = 'output.now')
 !
 
 call init_coord (orb0, lat%beam_start, lat%ele(0), downstream_end$)
-call transfer_map_calc_with_spin (lat, ele%taylor, ele%spin_taylor, orb0, err_flag, 0, 1)
+call transfer_map_calc_with_spin (lat, t_ele%taylor, t_ele%spin_taylor, orb0, err_flag, 0, 1)
 
 orb_start = orb0
 orb_start%vec = orb_start%vec + dr
 
-spin_a = matmul (spin_taylor_to_mat(orb_start%vec, ele%taylor%ref, ele%spin_taylor), orb0%spin)
+spin_a = matmul (spin_taylor_to_mat(orb_start%vec, t_ele%taylor%ref, t_ele%spin_taylor), orb0%spin)
 
 bmad_com%spin_tracking_on = .true.
 call track1 (orb_start, lat%ele(1), lat%param, orb_end)
@@ -62,18 +63,18 @@ spin_b = orb_end%spin
 
 !
 
-write (1, '(a, 3f14.9)') '"dPTC"   ABS 0   ', spin_a - orb0%spin
-write (1, '(a, 3f14.9)') '"dBmad"  ABS 0   ', spin_b - orb0%spin
+write (1, '(a, 3f14.9)') '"dPTC-Quad"   ABS 0   ', spin_a - orb0%spin
+write (1, '(a, 3f14.9)') '"dBmad-Quad"  ABS 0   ', spin_b - orb0%spin
 
 
 if (print_extra) then
-  call type_taylors (ele%taylor)
+  call type_taylors (t_ele%taylor)
   print *, '--------------------------------'
-  call type_spin_taylors (ele%spin_taylor)
+  call type_spin_taylors (t_ele%spin_taylor)
 
-  print '(a, 3f12.6)', 'Init:   ', orb0%spin
-  print '(a, 3f12.6)', 'dPTC:   ', spin_a - orb0%spin
-  print '(a, 3f12.6)', 'dBmad:  ', spin_b - orb0%spin
+  print '(a, 3f12.6)', 'Init:      ', orb0%spin
+  print '(a, 3f12.6)', 'dPTC_Quad: ', spin_a - orb0%spin
+  print '(a, 3f12.6)', 'dBmad-Quad:', spin_b - orb0%spin
 endif
 
 !
@@ -87,10 +88,20 @@ if (print_extra) then
   write (*, '(a, 4es10.2)') '"dRot" ABS 1e-10   ', orb2%spin
 endif
 
-orb_start = orb0
-call track1_spin_taylor (orb_start, lat%ele(2), lat%param, orb_end)
+!
 
-write (1, '(a, 3f12.8)') '"spin_taylor" ABS 1e-10  ', orb_end%spin
+ele => lat%ele(2)
+bmad_com%spin_tracking_on = .true.
+
+orb_start = orb0
+ele%spin_tracking_method = taylor$
+call track1 (orb_start, lat%ele(2), lat%param, orb_end)
+write (1, '(a, 3f12.8)') '"Taylor-Taylor" ABS 1e-10  ', orb_end%spin
+
+orb_start = orb0
+ele%spin_tracking_method = symp_lie_ptc$
+call track1 (orb_start, lat%ele(2), lat%param, orb_end)
+write (1, '(a, 3f12.8)') '"PTC-Taylor" ABS 1e-10  ', orb_end%spin
 
 close (1)
 

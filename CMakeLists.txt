@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
   cmake.abs_time_test
+  cmake.aperture_test
   cmake.autoscale_test
   cmake.bbu_test
   cmake.closed_orbit_test
@@ -17,7 +18,7 @@ set (EXE_SPECS
   cmake.particle_species_test
   cmake.patch_test
   cmake.photon_test
-##  cmake.ptc_test
+  cmake.ptc_test
   cmake.reverse_test
   cmake.sad_test
   cmake.sim_utils_test

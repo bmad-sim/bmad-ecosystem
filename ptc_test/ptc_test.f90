@@ -20,6 +20,7 @@ type (normal_modes_struct) mode
 type (taylor_struct) bmad_taylor(6)
 type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
+type (track_struct) track
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
@@ -28,15 +29,27 @@ real(rp) a_pole, b_pole, a_pole2, b_pole2
 
 integer i, j
 character(80) str
+logical err_flag
 
 namelist / params / start_orb
 
 !
 
-bmad_com%use_hard_edge_drifts = .false.
-
-call bmad_parser ('ptc_test.bmad', lat)
 open (1, file = 'output.now')
+
+!-------------------------------------------------------
+
+call bmad_parser ('track.bmad', lat)
+
+call track1 (lat%beam_start, lat%ele(1), lat%param, end_orb1, track, err_flag)
+
+print *
+
+do i = 0, track%n_pt
+  print '(i4, f10.6, 4x, 6f10.6)', i, track%orb(i)%s, track%orb(i)%vec
+enddo
+
+stop
 
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
@@ -47,6 +60,10 @@ open (1, file = 'output.now')
 !   2) Point branch%ele to same fibre as branch%ele
 !   3) Transfer attribute values from branch%ele -> ptc fibre -> branch2%ele
 !   4) Check that branch%ele and branch2%ele have same attribute values.
+
+bmad_com%use_hard_edge_drifts = .false.
+
+call bmad_parser ('ptc_test.bmad', lat)
 
 branch => lat%branch(1)
 branch2 => lat%branch(2)
@@ -78,10 +95,10 @@ enddo
 call kill_ptc_layouts(lat)
 call branch_to_ptc_m_u(branch, .false.)
 call write_ptc_flat_file_lattice ('ptc_test.flat', branch)
-call ptc_read_flat_file, 'ptc_test.flat', err_flag, lat2)
-do i = 1, branch%n_ele_track
-  call check_if_diffrent
-
+call ptc_read_flat_file (['ptc_test.flat'], err_flag, lat2)
+!!do i = 1, branch%n_ele_track
+!!  call check_if_diffrent
+!!
 
 !------------------------------------------------------------------------
 ! Tracking tests
@@ -219,33 +236,37 @@ enddo
 !-----------------------------------------------------------------
 contains
 
-  do j = 1, num_ele_attrib$
-    if (j == ds_step$) cycle
-    if (j == num_steps$) cycle
-    if (j == integrator_order$) cycle
-    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
-  enddo
-  do j = 0, n_pole_maxx
-    if (associated(ele%a_pole)) then
-      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
-    else
-      a_pole = 0; b_pole = 0
-    endif
+subroutine check_if_ele_different(ele, ele2)
 
-    if (associated(ele2%a_pole)) then
-      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
-    else
-      a_pole2 = 0; b_pole2 = 0
-    endif
+type (ele_struct) ele, ele2
 
-    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
-    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
-  enddo
+!!!  do j = 1, num_ele_attrib$
+!!!    if (j == ds_step$) cycle
+!!!    if (j == num_steps$) cycle
+!!!    if (j == integrator_order$) cycle
+!!!    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
+!!!  enddo
+!!!  do j = 0, n_pole_maxx
+!!!    if (associated(ele%a_pole)) then
+!!!      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
+!!!    else
+!!!      a_pole = 0; b_pole = 0
+!!!    endif
+!!!
+!!!    if (associated(ele2%a_pole)) then
+!!!      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
+!!!    else
+!!!      a_pole2 = 0; b_pole2 = 0
+!!!    endif
+!!!
+!!!    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
+!!!    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
+!!!  enddo
 
+end subroutine check_if_ele_different
 
 !-----------------------------------------------------------------
 ! contains
-
 
 subroutine check_if_different (str, ele, ix_attrib, val, val2)
 

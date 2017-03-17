@@ -140,9 +140,6 @@ enddo   ! branch
 
 close(1)
 
-call transfer_map_calc(lat, t_map, err, 0, 1, start_orb)
-call type_taylors(t_map, 3)
-
 !----------------------------------------------------------------------
 contains
 

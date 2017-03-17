@@ -11,7 +11,7 @@ type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 
-character(200) :: line(4)
+character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str, fmt
 integer :: i, j, ib, nargs, isn
@@ -105,7 +105,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
       if (j == symp_lie_ptc$)  end_ptc = end_orb
 
-      if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$) then
+      if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
         isn = isn + 1
         final_str = trim(final_str) // ' dSpin'
         write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
