@@ -308,80 +308,84 @@ end function quat_mul
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_vec_given_quat (vec, quat)
+! Function rotate_vec_given_quat (vec_in, quat) result (vec_out)
 !
 ! Routine to rotate a vector using a quaternion..
 !
 ! Input:
-!   vec(3)      -- real(rp): Initial vector.
+!   vec_in(3)   -- real(rp): Initial vector.
 !   q_out(0:3)  -- real(rp): Quaternion to rotate with.
 !
 ! Output:
-!   vec(3)    -- real(rp): Final vector.
+!   vec_out(3)  -- real(rp): Final vector.
 !-
 
-subroutine rotate_vec_given_quat (vec, quat)
+function rotate_vec_given_quat (vec_in, quat) result (vec_out)
 
-real(rp) :: vec(3), quat(0:3)
+real(rp) :: vec_in(3), vec_out(3), quat(0:3)
 real(rp) :: q0_inv
 
 ! Use quaternion rotation formula: vec -> q * vec * q^-1
 
-q0_inv = -(quat(1)*vec(1) + quat(2)*vec(2) + quat(3)*vec(3))
+q0_inv = -(quat(1)*vec_in(1) + quat(2)*vec_in(2) + quat(3)*vec_in(3))
 
-vec = [quat(0)*vec(1) + quat(2)*vec(3) - quat(3)*vec(2), &
-       quat(0)*vec(2) + quat(3)*vec(1) - quat(1)*vec(3), &
-       quat(0)*vec(3) + quat(1)*vec(2) - quat(2)*vec(1)]
+vec_out = [quat(0)*vec_in(1) + quat(2)*vec_in(3) - quat(3)*vec_in(2), &
+           quat(0)*vec_in(2) + quat(3)*vec_in(1) - quat(1)*vec_in(3), &
+           quat(0)*vec_in(3) + quat(1)*vec_in(2) - quat(2)*vec_in(1)]
 
+vec_out = [quat(0)*vec_out(1) + quat(2)*vec_out(3) - quat(3)*vec_out(2) - q0_inv*quat(1), &
+           quat(0)*vec_out(2) + quat(3)*vec_out(1) - quat(1)*vec_out(3) - q0_inv*quat(2), &
+           quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)]
 
-vec = [quat(0)*vec(1) + quat(2)*vec(3) - quat(3)*vec(2) - q0_inv*quat(1), &
-       quat(0)*vec(2) + quat(3)*vec(1) - quat(1)*vec(3) - q0_inv*quat(2), &
-       quat(0)*vec(3) + quat(1)*vec(2) - quat(2)*vec(1) - q0_inv*quat(3)]
-
-end subroutine rotate_vec_given_quat
+end function rotate_vec_given_quat
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_vec_given_axis_angle (vec, axis, angle)
+! Function rotate_vec_given_axis_angle (vec_in, axis, angle) result (vec_out)
 !
 ! Routine to rotate a vector.
 !
 ! Input:
-!   vec(3)    -- real(rp): Initial vector.
-!   axis(3)   -- real(rp): Axis of rotation. Must be normalized to 1.
-!   angle     -- real(rp): Angle to rotate by
+!   vec_in(3)   -- real(rp): Initial vector.
+!   axis(3)     -- real(rp): Axis of rotation. Must be normalized to 1.
+!   angle       -- real(rp): Angle to rotate by
 !
 ! Output:
-!   vec(3)    -- real(rp): Final vector.
+!   vec_out(3)  -- real(rp): Final vector.
 !-
 
-subroutine rotate_vec_given_axis_angle (vec, axis, angle)
+function rotate_vec_given_axis_angle (vec_in, axis, angle) result (vec_out)
 
-real(rp) :: vec(:), angle, ca, sa, q0_inv
+real(rp) :: vec_in(3), vec_out(3), angle, ca, sa, q0_inv
 real(rp) :: axis(:)
 
-! Use quaternion rotation formula: vec -> q * vec * q^-1
+! Use quaternion rotation formula: vec_out = q * vec_in * q^-1
 ! q = cos(angle/2) + sin(angle/2) * (axis(1), axis(2), axis(3))
 
-if (angle == 0) return ! Simple case 
+if (angle == 0) then  ! Simple case 
+  vec_out = vec_in
+  return 
+endif
+
+!
 
 ca = cos(angle/2)
 sa = sin(angle/2)
 
-q0_inv = -sa * (axis(1)*vec(1) + axis(2)*vec(2) + axis(3)*vec(3))
+q0_inv = -sa * (axis(1)*vec_in(1) + axis(2)*vec_in(2) + axis(3)*vec_in(3))
 
-vec = [ca*vec(1) + sa * (axis(2)*vec(3) - axis(3)*vec(2)), &
-       ca*vec(2) + sa * (axis(3)*vec(1) - axis(1)*vec(3)), &
-       ca*vec(3) + sa * (axis(1)*vec(2) - axis(2)*vec(1))]
+vec_out = [ca*vec_in(1) + sa * (axis(2)*vec_in(3) - axis(3)*vec_in(2)), &
+           ca*vec_in(2) + sa * (axis(3)*vec_in(1) - axis(1)*vec_in(3)), &
+           ca*vec_in(3) + sa * (axis(1)*vec_in(2) - axis(2)*vec_in(1))]
 
 
-vec = [ca*vec(1) + sa * (axis(2)*vec(3) - axis(3)*vec(2) - q0_inv*axis(1)), &
-       ca*vec(2) + sa * (axis(3)*vec(1) - axis(1)*vec(3) - q0_inv*axis(2)), &
-       ca*vec(3) + sa * (axis(1)*vec(2) - axis(2)*vec(1) - q0_inv*axis(3))]
+vec_out = [ca*vec_out(1) + sa * (axis(2)*vec_out(3) - axis(3)*vec_out(2) - q0_inv*axis(1)), &
+           ca*vec_out(2) + sa * (axis(3)*vec_out(1) - axis(1)*vec_out(3) - q0_inv*axis(2)), &
+           ca*vec_out(3) + sa * (axis(1)*vec_out(2) - axis(2)*vec_out(1) - q0_inv*axis(3))]
 
-end subroutine rotate_vec_given_axis_angle
+end function rotate_vec_given_axis_angle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
