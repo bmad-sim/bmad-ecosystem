@@ -3391,27 +3391,19 @@ do ix_ele = ie1, ie2
 
     ! SAD
     case (ecollimator$)
-      if(val(l$)>0) then
-        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      else
-        write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-        call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
-        call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
-        call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
-        call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
-      endif
+      write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
+      call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
+      call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
+      call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
       
     ! SAD
     case (rcollimator$)
-      if(val(l$)>0) then
-        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      else
       write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
-        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
-        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
-        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
-      endif
+      call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
 
     ! SAD
     case (elseparator$)
