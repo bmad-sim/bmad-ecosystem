@@ -3391,19 +3391,27 @@ do ix_ele = ie1, ie2
 
     ! SAD
     case (ecollimator$)
-      write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-      call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
-      call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
-      call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
-      call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
+      if(val(l$)>0) then
+        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      else
+        write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
+        call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
+        call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
+        call value_to_line (line_out, val(x1_limit$), 'AX', 'R', .true., .false.)
+        call value_to_line (line_out, val(y1_limit$), 'AY', 'R', .true., .false.)
+      endif
       
     ! SAD
     case (rcollimator$)
+      if(val(l$)>0) then
+        write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
+      else
       write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
-      call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
-      call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
-      call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
-      call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
+        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
+        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
+        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
+        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
+      endif
 
     ! SAD
     case (elseparator$)
@@ -3426,7 +3434,7 @@ do ix_ele = ie1, ie2
     case (vkicker$)
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
-      call value_to_line (line_out, pi/2, 'ROTATE', 'R', .true., .false.)
+      call value_to_line (line_out, -pi/2, 'ROTATE', 'R', .true., .false.)
 !      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
 !      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
@@ -3436,7 +3444,7 @@ do ix_ele = ie1, ie2
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       hk = -val(hkick$)
       vk = -val(vkick$)
-      tilt = atan2(hk, vk)
+      tilt = atan2(hk, vk) + pi/2
       if (hk /= 0 .or. vk /= 0) then
         call value_to_line (line_out, -sqrt(hk**2 + vk**2), 'K0', 'R', .true., .false.)
         call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
