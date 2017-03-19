@@ -3402,8 +3402,8 @@ do ix_ele = ie1, ie2
       write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
       call value_to_line (line_out, -val(x1_limit$), 'DX1', 'R', .true., .false.)
       call value_to_line (line_out, -val(y1_limit$), 'DY1', 'R', .true., .false.)
-      call value_to_line (line_out, -val(x2_limit$), 'DX2', 'R', .true., .false.)
-      call value_to_line (line_out, -val(y2_limit$), 'DY2', 'R', .true., .false.)
+      call value_to_line (line_out,  val(x2_limit$), 'DX2', 'R', .true., .false.)
+      call value_to_line (line_out,  val(y2_limit$), 'DY2', 'R', .true., .false.)
 
     ! SAD
     case (elseparator$)
@@ -3424,9 +3424,10 @@ do ix_ele = ie1, ie2
 
     ! SAD
     case (vkicker$)
+      tilt = -val(tilt$) - pi/2
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
-      call value_to_line (line_out, -pi/2, 'ROTATE', 'R', .true., .false.)
+      call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
 !      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
 !      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
@@ -3436,7 +3437,7 @@ do ix_ele = ie1, ie2
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       hk = -val(hkick$)
       vk = -val(vkick$)
-      tilt = atan2(hk, vk) + pi/2
+      tilt = atan2(hk, vk) + pi/2 - val(tilt$)
       if (hk /= 0 .or. vk /= 0) then
         call value_to_line (line_out, -sqrt(hk**2 + vk**2), 'K0', 'R', .true., .false.)
         call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
@@ -3676,7 +3677,7 @@ do ix_ele = ie1, ie2
 
   if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
     call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
-  elseif (ele%key /= sbend$) then
+  elseif (ele%key /= sbend$ .and. ele%key /= kicker$ .and. ele%key /= vkicker$) then
     call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
   endif
 
