@@ -201,6 +201,11 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
   SET (BASE_CXX_FLAGS)
 ENDIF ()
 
+#-----------------------------------
+# Legacy Library Definitions 
+#-----------------------------------
+SET (LEGACY_LINK_LIBS $ENV{SET_LEGACY_LINK_LIBS} readline)
+SET (LEGACY_LINK_FLAGS "$ENV{SET_LEGACY_LINK_FLAGS} -lreadline")
 
 #-----------------------------------
 # Plotting library compiler flag
@@ -216,9 +221,9 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
      ENDIF ()
 
      IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
-       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread -lreadline")
+       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
      ELSE ()
-       SET (PLOT_LINK_FLAGS "-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread -lreadline")
+       SET (PLOT_LINK_FLAGS "-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
      ENDIF ()
 
   ELSE ()
@@ -226,7 +231,7 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
        SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
      ELSE ()
        SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
-       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread -lreadline")
+       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
      ENDIF ()
   ENDIF ()
 
@@ -243,7 +248,7 @@ ELSE ()
   IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
     SET (PLOT_LIBRARY_F_FLAG "")
     SET (PLOT_LINK_LIBS "pgplot")
-    SET (PLOT_LINK_FLAGS "-lX11 -lreadline")
+    SET (PLOT_LINK_FLAGS "-lX11")
   ENDIF ()
 ENDIF ()
 
