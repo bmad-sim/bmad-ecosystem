@@ -15,6 +15,7 @@ set (LINK_LIBS
   recipes_f-90_LEPP
   forest
   ${PLOT_LINK_LIBS}
+  ${LEGACY_LINK_LIBS}
   xsif
   fgsl
   gsl
