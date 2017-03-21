@@ -408,7 +408,7 @@ not rotate the output laboratory coordinates.  There is the further
 complication in that \vn{tilt} is a rotation about the {\em
 entrance} laboratory coordinates. The first step is to express
 \vn{tilt} with respect to the exit coordinates. This is done with
-the help of the $\bfS$ matrix of \Eq{ltl} with $\alpha$ given by
+the help of the $\bfS$ matrix of \Eq{ustt} with $\alpha_t$ given by
 \Eq{agg}. The effect of the \vn{tilt} can be modeled as a rotation
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
 along the $z$-axis
@@ -733,9 +733,9 @@ bent out of the $x$-$z$ plane even though it has been assumed that the
 \vn{ref_tilt} $\theta_t$ is zero. But $\bfkbar_H$ points in the same
 direction as the $z$ axis of the outgoing reference
 trajectory. Furthermore, by {\em definition}, the reference trajectory
-has the form given by \Eq{ltl} with the $\bfR_{z}(\theta_t)$ matrix
+has the form given by \Eq{ustt} with the $\bfR_{z}(\theta_t)$ matrix
 depending only upon the \vn{ref_tilt} parameter (which is here taken
-to be zero). To satisfy \Eq{ltl}, the crystal must be reorientated to
+to be zero). To satisfy \Eq{ustt}, the crystal must be reorientated to
 keep the $\bfk_H$ vector in the $x$-$z$ plane of the laboratory
 entrance coordinates.  The reorientation is done by rotating the
 crystal about the laboratory entrance $\Bf z$ axis by an amount
@@ -757,7 +757,7 @@ coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
 is unmodified. The $\bfk_H$ vector, expressed in laboratory entrance
 coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
 components of $\bfk_H$ are given by \Eq{k1dapl}. To
-satisfy \Eq{ltl}, this vector must have zero $y$ component
+satisfy \Eq{ustt}, this vector must have zero $y$ component
 \Begineq
   \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \dotproduct
   \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}
@@ -771,7 +771,7 @@ Solving gives
 The transformation $\Bf\Sigma_3$ from element surface coordinates to
 element exit coordinates is now obtained by requiring that the total
 transformation from laboratory entrance to laboratory exit coordinates
-be the $\bfR_{y}(-\alpha_b)$ matrix given in \Eq{ltl}
+be the $\bfR_{y}(-\alpha_b)$ matrix given in \Eq{ustt}
 \Begineq
   \Bf\Sigma_3 \, \Bf\Sigma_2 \, \Bf\Sigma_1 = 
   \begin{pmatrix}
