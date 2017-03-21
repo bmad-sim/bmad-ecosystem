@@ -1,8 +1,8 @@
-set (EXENAME tao)
+SET (EXENAME tao)
 
 FILE (GLOB SRC_FILES "program/*.f90")
 
-set (LINK_LIBS
+SET (LINK_LIBS
   tao 
   bmad 
   xsif
@@ -11,6 +11,7 @@ set (LINK_LIBS
   sim_utils
   recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
+  ${LEGACY_LINK_LIBS}
   forest 
   fgsl
   gsl
@@ -20,18 +21,18 @@ set (LINK_LIBS
   blas
 )
 
-
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   link_directories(/opt/local/lib)
 ENDIF ()
 
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   IF (NOT ${MSYS})
-  set (SHARED_LINK_LIBS
+  SET (SHARED_LINK_LIBS
     pangocairo-1.0
     cairo
     pango-1.0
     gobject-2.0
+    ${LEGACY_LINK_LIBS}
   )
   ENDIF ()
 ENDIF ()
