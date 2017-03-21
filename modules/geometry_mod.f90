@@ -1562,24 +1562,26 @@ real(rp) :: L_mis(3), S_mis(3,3)
 
 !
 
+L_mis = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+
 select case(ele%key)
 case(sbend$)
   ! L_mis at ele center:
-  ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho*[cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
-  Lc = ele%value(rho$)*[cos(ele%value(angle$)/2) - 1, 0.0_rp, sin(ele%value(angle$)/2)]
-  call rotate_vec(Lc, y_axis$, ele%value(angle$)/2)  ! rotate to entrance about y axis by half angle 
-  call rotate_vec(Lc, z_axis$, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
-  L_mis = -Lc
-  call rotate_vec(Lc, z_axis$, ele%value(roll$)) ! rotate about z axis for roll
-  L_mis = L_mis + Lc + [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+  ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho . [cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
+  if (ele%value(roll$) /= 0) then
+    Lc = ele%value(rho$) * [cos(ele%value(angle$)/2) - 1, 0.0_rp, sin(ele%value(angle$)/2)]
+    call rotate_vec(Lc, y_axis$, ele%value(angle$)/2)  ! rotate to entrance about y axis by half angle 
+    call rotate_vec(Lc, z_axis$, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
+    L_mis = L_mis - Lc
+    call rotate_vec(Lc, z_axis$, ele%value(roll$))        ! rotate about z axis for roll
+    L_mis = L_mis + Lc
+  endif
 
   ! S_mis at ele center
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), s_mis)
   
 case default
     call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), S_mis)
-    L_mis = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
-
 end select
 
 end subroutine ele_misalignment_L_S_calc

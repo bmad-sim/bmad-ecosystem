@@ -311,10 +311,10 @@ a vector $\bfV$
     X \\ Y \\ Z 
   \end{pmatrix}
 \Endeq
-The orientation of an element is described by a unitary matrix $\bfW$.
-The column vectors of $\bfW$ are the unit vectors spanning the local
-coordinate axes in the order $(x, y, z)$. $\bfW$ can be expressed in
-terms of the angles $\theta$, $\phi$, and $\psi$ via the formula
+The orientation of an element is described by a unitary rotation matrix $\bfW$. The column
+vectors of $\bfW$ are the unit vectors spanning the local coordinate axes in the order
+$(x, y, z)$. $\bfW$ can be expressed in terms of the orientation angles $\theta$, $\phi$,
+and $\psi$ via the formula
 \Begineq
   \bfW = \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi)
   \label{wwww}
@@ -343,6 +343,23 @@ where
 \Endeq
 Notice that $\bfR_{-x}(\phi)$, for positive $\phi$, represents a
 rotation around the negative $x$-axis.
+
+An alternative representation of the $\bfW$ matrix (or any other rotation matrix) is to
+specify the axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
+\Begineq
+  \bfW = \begin{pmatrix}
+    \cos \beta + u_x^2 \left(1 - \cos \beta \right) & 
+    u_x \, u_y \left(1 - \cos \beta \right) - u_z \sin \beta & 
+    u_x \, u_z \left(1 - \cos \beta \right) + u_y \sin \beta \\ 
+    u_y \, u_x \left(1 - \cos \beta \right) + u_z \sin \beta & 
+    \cos \beta + u_y^2\left(1 - \cos \beta \right) & 
+    u_y \, u_z \left(1 - \cos \beta \right) - u_x \sin \beta \\ 
+    u_z \, u_x \left(1 - \cos \beta \right) - u_y \sin \beta & 
+    u_z \, u_y \left(1 - \cos \beta \right) + u_x \sin \beta & 
+    \cos \beta + u_z^2\left(1 - \cos \beta \right)
+  \end{pmatrix}
+  \label{wctux2}
+\Endeq
 
 %-----------------------------------------------------------------------------
 \subsection{Lattice Element Positioning}
@@ -402,39 +419,42 @@ $\pi/2$.
 
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
-For a \vn{bend}, the axis of rotation is dependent upon the bend's
-\vn{ref_tilt} attribute as shown in \fig{f:tilt.bend}A. The axis of
-rotation points in the negative $y_0$ direction for \vn{ref_tilt} = 0
-and is offset by the bend radius \vn{rho}. Here $(x_0, y_0, z_0)$ are
-the local coordinates at the entrance end of the bend with the $z_0$
-axis being directed into the page in the figure.  For a non-zero
-\vn{ref_tilt}, the rotation axis is itself rotated about the $z_0$
-axis by the value of \vn{ref_tilt}. \fig{f:tilt.bend}B shows the
-exit coordinates for four different values of \vn{ref_tilt} and for a
-bend angle \vn{angle} of $\pi/2$.
+For a \vn{bend}, the axis of rotation is dependent upon the bend's \vn{ref_tilt} angle
+(\sref{s:offset}) as shown in \fig{f:tilt.bend}A. The axis of rotation points in the
+negative $y_0$ direction for \vn{ref_tilt} = 0 and is offset by the bend radius
+\vn{rho}. Here $(x_0, y_0, z_0)$ are the local coordinates at the entrance end of the bend
+with the $z_0$ axis being directed into the page in the figure.  For a non-zero
+\vn{ref_tilt}, the rotation axis is itself rotated about the $z_0$ axis by the value of
+\vn{ref_tilt}. \fig{f:tilt.bend}B shows the exit coordinates for four different values of
+\vn{ref_tilt} and for a bend angle \vn{angle} of $\pi/2$.
+Notice that for a bend in the horizontal $X-Z$ plane, a positive
+bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
 
-For a bend, $\bfL$ and $\bfS$ are given by
+For a bend, $\bfS$ is given using \Eq{wctux2} with 
+\begin{align}
+  \Bf u &= (-\sin\theta_t, -\cos\theta_t, 0) \CRNO
+  \beta &= \alpha_b
+  \label{ustt}
+\end{align}
+where $\theta_t$ is the \vn{ref_tilt} angle. The $\bfL$ vector for a \vn{bend} is given by 
 \Begineq
   \bfL = \bfR_{z}(\theta_t) \; \bftilde L, \quad
-  \bfS = \bfR_{z}(\theta_t) \; \bfR_{y}(-\alpha_b) \; \bfR_{z}(-\theta_t)
-  \label{ltl}
-\Endeq
-where $\alpha_b$ is the bend \vn{angle} (\sref{s:bend}),
-$\theta_t$ is the \vn{ref_tilt} angle (\sref{s:offset}), and
-\Begineq
   \bftilde L = 
   \begin{pmatrix}
     \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
   \end{pmatrix}
-  \label{lra1}
+  \label{lrztt}
 \Endeq
-with $\rho$ being the bend radius (\vn{rho}). 
-Without a \vn{ref_tilt}, $\bfT$ is the unit matrix
-resulting in $\bfL = \bftilde L$ and $\bfS = \bftilde
-S$. Notice that for a bend in the horizontal $X-Z$ plane, a positive
-bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
+where $\alpha_b$ is the bend \vn{angle} (\sref{s:bend}) and
+$\rho$ being the bend radius (\vn{rho}). 
 
-The bend transformation (\Eq{ltl}) is so constructed that the
+Note: An alternative equation for \vn{\bfS} for a bend is
+ \Begineq
+  \bfS = \bfR_{z}(\theta_t) \; \bfR_{y}(-\alpha_b) \; \bfR_{z}(-\theta_t)
+  \label{srrr}
+\Endeq
+
+The bend transformation above is so constructed that the
 transformation is equivalent to rotating the local coordinate system
 around an axis that is perpendicular to the plane of the bend. This
 rotation axis is invariant under the bend transformation. For example,
@@ -676,7 +696,7 @@ element body frame (see \Eq{llee}). Symbolically:
 The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates
 at a distance $s$ from the beginning of the element to coordinates at the center the the
 bend is a rotation around the center of curvative of the bend and is given by \Eqs{vwlv}
-and \eq{wws} with \Eqs{ltl} and \eq{lra1} with the substitution $\alpha_b \rightarrow (L/2
+and \eq{wws} with \Eqs{ustt} and \eq{lrztt} with the substitution $\alpha_b \rightarrow (L/2
 - s)/\rho$.
 
 The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$ at the center of the
@@ -708,7 +728,7 @@ the bend (see \fig{f:roll}).
 
 The third transformation from $\Omega_\text{mid}$ to $\Omega_0$ is
 like the first transformation and rotates from the center of the bend
-to the beginning. Again \Eqs{ltl} and \eq{lra1} are used with the 
+to the beginning. Again \Eqs{ustt} and \eq{lrztt} are used with the 
 substitution $\alpha_b \rightarrow -L/2\rho$.
 
 The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame
@@ -722,7 +742,7 @@ by an amount \vn{ref_tilt}:
 The fifth and final transformation, $E_0$ to $E_s$, like the first and
 third, rotates around the center of the bend but in this case, since
 we are dealing with element coordinates, the \vn{ref_tilt} is ignored.
-That is, \Eqs{ltl} and \eq{lra1} are used with the substitutions
+That is, \Eqs{ustt} and \eq{lrztt} are used with the substitutions
 $\theta_t \rightarrow 0$ and $\alpha_b \rightarrow L/\rho$.
 
 Notice that with this definition of how elements are misaligned, the position of a
