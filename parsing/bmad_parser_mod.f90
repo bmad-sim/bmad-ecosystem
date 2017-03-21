@@ -1462,7 +1462,7 @@ case ('SUPERIMPOSE')  ! ele[superimpose] = False case
   if (logic) then
     ele%lord_status = super_lord$
   else
-    ele%lord_status = not_a_child$
+    ele%lord_status = not_a_lord$
   endif
 
 case ('APERTURE_AT')
