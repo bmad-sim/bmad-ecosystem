@@ -339,8 +339,9 @@ CONTAINS
     !IF(N==0) RETURN
 
 
-    ALLOCATE(T%CC(N),T%fix0(np),T%fix(np),T%fixr(np),T%JL(N),T%JV(N),T%N,T%ds,T%beta0,T%np,T%no, & 
-    t%e_ij(c_%nd2,c_%nd2),T%rad(c_%nd2,c_%nd2),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
+    ALLOCATE(T%CC(N),T%fix0(6),T%fix(6),T%fixr(6),T%JL(N),T%JV(N),T%N,T%ds,T%beta0,T%np,T%no, & 
+  !  t%e_ij(c_%nd2,c_%nd2),T%rad(c_%nd2,c_%nd2),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
+     t%e_ij(6,6),T%rad(6,6),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
     t%cc=0
     t%jl=0
     t%jv=0
@@ -355,7 +356,7 @@ CONTAINS
     T%beta0=0.0_dp
     T%rad=0.0_dp
 !    T%file=' '
-    do i=1,c_%nd2
+    do i=1,6
      T%rad(i,i)=1.0_dp
     enddo
     t%eps=1.d-7

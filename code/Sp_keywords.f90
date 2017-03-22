@@ -12,7 +12,7 @@ module madx_keywords
   type(tree_element), private, allocatable :: t_e(:),t_ax(:),t_ay(:)
   real(dp), private :: a_(3),ent_(3,3), b_(3),exi_(3,3)
   logical :: old_name_vorname = .false.
-
+  logical :: readingmaps = .true.
   type keywords
      character*20 magnet
      character*20 model
@@ -2941,6 +2941,7 @@ ele0%slowac_recut_even_electric_MIS(5) = f%MIS
  ele0%usebf_skipptcbf_do1bf(6)=f%do1mapf
  ele0%filef=trim(f%filef)
  ele0%fileb=TRIM(f%fileb)
+ 
 if(associated(f%forward)) then
 
   if(present(mf)) then
@@ -3037,8 +3038,9 @@ endif
  f%skip_ptc_f=ele0%usebf_skipptcbf_do1bf(4)
  f%do1mapb=ele0%usebf_skipptcbf_do1bf(5) 
  f%do1mapf=ele0%usebf_skipptcbf_do1bf(6)
-
-if(ele0%filef/=' ') then
+ f%fileb= ele0%fileb
+ f%filef= ele0%filef
+if(ele0%filef/=' '.and.readingmaps) then
  if(.not.associated(f%forward)) then 
   allocate(f%forward(3))
  endif
@@ -3055,7 +3057,7 @@ if(ele0%filef/=' ') then
 close(inf)
 endif
 
-if(ele0%fileb/=' ') then
+if(ele0%fileb/=' '.and.readingmaps) then
  if(.not.associated(f%backward)) then 
   allocate(f%backward(3))
  endif

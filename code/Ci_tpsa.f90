@@ -5905,9 +5905,10 @@ endif
 
     if(DEPS==0.0_dp) k=0
     if(DEPS==3.0_dp) then
-     DEPS=0.0_dp
+    DEPS=0.0_dp
       do i=1,3
-        DEPS=DEPS+full_abs(s1%s(i,i))
+!        DEPS=DEPS+full_abs(s1%s(i,i))
+        DEPS=DEPS+(s1%s(i,i))   ! in case of minus 1 
        enddo
      if(DEPS==3.0_dp)  k=1
     endif
@@ -12042,7 +12043,7 @@ write(6,*) " norm 2",norm
 
 write(6,*) " teng also",norm
 read(5,*) i
-if(ok) call get_4d_disp0(at,r,ok)
+if(i==1.and.ok) call get_4d_disp0(at,r,ok)
 
 
 call kill(at,h)
@@ -12056,8 +12057,6 @@ type(c_taylor) h1(2,2),sig(2,2),mu,tc
 type(c_taylor) a12(2,2),a22(2,2),a22d(2,2)
 integer i,j,nd2n
 integer, allocatable :: je(:)
-type(damap) m 
-real(dp) norm
 logical ok
 
 call alloc_nn(h1)
@@ -12066,7 +12065,7 @@ call alloc_nn(a12)
 call alloc_nn(a22)
 call alloc_nn(a22d)
 call alloc(mu,tc)
-call alloc(m)
+
 
 nd2n=6
 allocate(je(nd2n))
@@ -12090,17 +12089,17 @@ enddo
 call   dagger_22(a22,a22d)
 call matmul_nn(a12,a22d,h1)
 call matmul_nn(a22,a22d,sig)
-call print(a_t%v(1),6)
-call print(a_t%v(2),6)
-call print(a12,6)
- pause 756
-call print(a_t%v(3),6)
-call print(a_t%v(4),6)
-call print(a22,6)
-pause 980
-call print(h1,6)
-pause 981
-call print(sig,6)
+!call print(a_t%v(1),6)
+!call print(a_t%v(2),6)
+!call print(a12,6)
+! pause 756
+!call print(a_t%v(3),6)
+!call print(a_t%v(4),6)
+!call print(a22,6)
+!pause 980
+!call print(h1,6)
+!pause 981
+!call print(sig,6)
 if(real(sig(1,1).sub.'0')<=0.0_dp) then
  ok=.false.
  deallocate(je)
@@ -12110,7 +12109,6 @@ if(real(sig(1,1).sub.'0')<=0.0_dp) then
  call kill_nn(a22)
  call kill_nn(a22d)
  call kill(mu,tc)
- call kill(m)
 endif
 
 mu=sqrt(sig(1,1))
@@ -12143,10 +12141,9 @@ do j=1,2
 enddo
 enddo
 
-m=r
 
-call checksymp(m,norm)
-write(6,*) " norm ", norm
+
+
 deallocate(je)
 call kill_nn(h1)
 call kill_nn(sig)
@@ -12154,250 +12151,8 @@ call kill_nn(a12)
 call kill_nn(a22)
 call kill_nn(a22d)
 call kill(mu,tc)
-call kill(m)
+
  end subroutine get_4d_disp0 
-
-
-subroutine get_4d_disp(a_t,h)
-implicit none 
-type(c_damap), intent(inout) :: a_t, h
-type(c_taylor) disp(6),disp_ave0(6)
-integer kp,i,n,j,k,k0
-integer, allocatable :: je(:)
-type(c_damap) r0
-complex(dp) w
-
-h=0
-call alloc(r0)
-call alloc(disp)
-call alloc(disp_ave0)
-
-allocate(je(nv))
-je=0
-do i=1,6
- disp(i)=a_t%v(i)*c_phasor()
-enddo
-
-
-do kp=1,4 !6
-       j=1
-
-        do while(.true.) 
-          call  c_cycle(disp(kp),j,w ,je); if(j==0) exit;
-          k0=0;
- !         do n=1,1  ! only 4d teng
-
-!!!   keep only the terms in the third plane
-         n=1
-         k0=k0+abs(je(2*n))+abs(je(2*n-1))
-         n=3
-         k0=k0+abs(je(2*n))+abs(je(2*n-1))
- !         enddo
-         if(k0==0) disp_ave0(kp)=disp_ave0(kp)+ (w.cmono.je)
-
-       enddo
-
-enddo
-
-
-!!!! These are all the dispersion function a la Ripken in my Nishikawa paper
-do i=1,4  !6
- h%v(i)=disp_ave0(i)
-enddo
-
-
-!!!!  Here I set the initial transverse conditions to be zero
-h=h*ci_phasor()*a_t**(-1)
- ! " Dispersion and zeta in terms of initial delta "
-deallocate(je)
-
-
-
-
-
-call kill(r0)
-call kill(disp)
-call kill(disp_ave0)
-
- end subroutine get_4d_disp 
-
-
-subroutine get_4d_ohmi(a_t,h,z,mf,ok)
-implicit none 
-type(c_damap), intent(inout) :: h,z,a_t
-type(c_taylor) h1(2,2),sig(2,2),sigma,rho,sigmai,det1,lam,tc
-type(c_taylor) h1d(2,2),t(2,2)
-type(c_vector_field) vf,vfs
-integer, allocatable :: je(:)
-integer i,j,mf,kll
-logical ok
-type(c_damap) a_cs,q,at
-real(dp) norm
-
-ok=.true.
- 
-vf%n=0;vfs%n=0;
-call alloc(vf);call alloc(vfs);
-call  alloc_nn(h1)
-call  alloc_nn(h1d)
-call  alloc_nn(sig)
-call  alloc_nn(t)
- call  alloc(lam,tc)
- call  alloc(det1)
-call alloc(sigma,rho,sigmai)   
-call alloc(a_cs,at,q); 
- 
-allocate(je(6))
-je=0
-do i=1,2
-do j=1,2
- je(2+j)=1
- h1(i,j)=h%v(i).par.je
- je(2+j)=0
-enddo
-enddo
-do i=1,2
-do j=1,2
- je(2+j)=1
- sig(i,j)=h%v(i+2).par.je
- je(2+j)=0
-enddo
-enddo
- 
- 
-
-
-
-sigma=sig(1,1)
-if(real(sigma.sub.'0')<=0.0_dp) then
- ok=.false.
-call kill(vf);call kill(vfs);
-call  kill_nn(h1)
-call  kill_nn(h1d)
-call  kill_nn(sig)
-call  kill_nn(t)
- call  kill(lam,tc)
- call  kill(det1)
-call kill(sigma,rho,sigmai)   
-call kill(a_cs,at,q); 
- 
-
- return
-endif
-rho=sqrt(sigma)
-sigmai=1.0_dp/rho
-
-call  matmulr_nn(h1,h1,sigmai)
- 
-call  dagger_22(h1,h1d)
- 
-
-lam=rho**2/(1.0_dp+rho)
-
-z=0
-! 1 1 block
-do i=1,4
- z%v(i)=rho*(1.0_dp.cmono.i)
-enddo
-! 3 3
-z%v(5)=1.0_dp.cmono.5
-z%v(6)=1.0_dp.cmono.6
-
-
-! 1 2
-tc=1.0_dp/rho
-call  matmulr_nn(h1,t,tc)
-
-do i=1,2
-do j=1,2
- z%v(i)=z%v(i) + t(i,j)*(1.0_dp.cmono.(j+2))
-enddo
-enddo
-! 2 1
-tc=-tc
-call  matmulr_nn(h1d,t,tc)
-
-do i=1,2
-do j=1,2
- z%v(i+2)=z%v(i+2) + t(i,j)*(1.0_dp.cmono.(j))
-enddo
-enddo
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-a_cs=z
-q=z
-at=a_t
-  
- goto 111
- 
-do kll=1,no+2
-
-! kll=1+kll
-
-at=a_cs**(-1)*at
-
-h=0
- call get_4d_disp(at,h)
-h%v(3)=0
-h%v(4)=0
-h%v(5)=0
-h%v(6)=0
-
-
-vf=0
-do i=1,4
-vf%v(i)=h%v(i)
-enddo
-
-tc=getpb_from_transverse(vf,vfs)
-
-
-call c_full_norm_damap(h,norm)
-
-if(mf/=0) write(mf,*) "norm in Ohmi ",norm
-
- 
-
-
-
-a_cs=exp(vfs)
- 
-q=q*a_cs
- 
-  if(mf/=0) then
-  write(mf,*) " Dispersion and zeta in terms of initial delta ",kll
- 
-
-  call print(h,mf)
-
-endif
-!write(6,*) " more "
-!!read(5,*) kkk
-
- 
-
-enddo
- 
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-111 continue
-
- 
-z=q
-
-deallocate(je)
-call kill(vf);call kill(vfs);
-call  kill_nn(h1)
-call  kill_nn(h1d)
-call  kill_nn(sig)
-call  kill_nn(t)
- call  kill(lam,tc)
- call  kill(det1)
-call kill(sigma,rho,sigmai)   
-call kill(a_cs,at,q); 
- 
-end subroutine get_4d_ohmi
 
 
 subroutine get_6d_disp(a_t,h)

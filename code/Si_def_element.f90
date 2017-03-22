@@ -1017,7 +1017,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,A72,/,1X,A72))'
           !w_p%c(1)=" ERROR IN SETFAMILYR "
-          write(*,'(A37,1x,I4)') " EXACT OPTION NOT SUPPORTED FOR KIND ", EL%KIND
+          write(*,'(A43,1x,I4)') " 'NOT EXACT' OPTION NOT SUPPORTED FOR KIND ", EL%KIND
           ! call !write_e(222)
        ENDIF
        if(.not.ASSOCIATED(EL%K2)) THEN
@@ -1282,7 +1282,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,A72,/,1X,A72))'
           !w_p%c(1)=" ERROR IN SETFAMILYR "
-          write(*,'(A37,1x,I4)') " EXACT OPTION NOT SUPPORTED FOR KIND ", EL%KIND
+          write(*,'(A43,1x,I4)') " 'NOT EXACT' OPTION NOT SUPPORTED FOR KIND ", EL%KIND
           ! call !write_e(777)
        ENDIF
        if(.not.ASSOCIATED(EL%TP10)) THEN
@@ -1479,7 +1479,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,A72,/,1X,A72))'
           !w_p%c(1)=" ERROR IN SETFAMILYP "
-          write(*,'(A37,1x,I4)') " EXACT OPTION NOT SUPPORTED FOR KIND ", EL%KIND
+          write(*,'(A43,1x,I4)') " 'NOT EXACT' OPTION NOT SUPPORTED FOR KIND ", EL%KIND
           ! call !write_e(222)
        ENDIF
        if(.not.ASSOCIATED(EL%K2)) THEN
@@ -1744,7 +1744,7 @@ CONTAINS
           !w_p%nc=2
           !w_p%fc='((1X,A72,/,1X,A72))'
           !w_p%c(1)=" ERROR IN SETFAMILYP "
-          write(*,'(A37,1x,I4)') " EXACT OPTION NOT SUPPORTED FOR KIND ", EL%KIND
+          write(*,'(A43,1x,I4)') " 'NOT EXACT' OPTION NOT SUPPORTED FOR KIND ", EL%KIND
           ! call !write_e(777)
        ENDIF
        if(.not.ASSOCIATED(EL%TP10)) THEN

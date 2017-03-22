@@ -10080,19 +10080,21 @@ endif
      stop
     endif
     np=size_tree
-    ind_spin(1,1)=1+ma%n;ind_spin(1,2)=2+ma%n;ind_spin(1,3)=3+ma%n;
-    ind_spin(2,1)=4+ma%n;ind_spin(2,2)=5+ma%n;ind_spin(2,3)=6+ma%n;
-    ind_spin(3,1)=7+ma%n;ind_spin(3,2)=8+ma%n;ind_spin(3,3)=9+ma%n;    
-    k1_spin(1)=1;k2_spin(1)=1;
-    k1_spin(2)=1;k2_spin(2)=2;
-    k1_spin(3)=1;k2_spin(3)=3;
-    k1_spin(4)=2;k2_spin(4)=1;
-    k1_spin(5)=2;k2_spin(5)=2;
-    k1_spin(6)=2;k2_spin(6)=3;
-    k1_spin(7)=3;k2_spin(7)=1;
-    k1_spin(8)=3;k2_spin(8)=2;
-    k1_spin(9)=3;k2_spin(9)=3;
+! initialized in ptc ini
+ !   ind_spin(1,1)=1+ma%n;ind_spin(1,2)=2+ma%n;ind_spin(1,3)=3+ma%n;
+ !   ind_spin(2,1)=4+ma%n;ind_spin(2,2)=5+ma%n;ind_spin(2,3)=6+ma%n;
+ !   ind_spin(3,1)=7+ma%n;ind_spin(3,2)=8+ma%n;ind_spin(3,3)=9+ma%n;    
+ !   k1_spin(1)=1;k2_spin(1)=1;
+ !   k1_spin(2)=1;k2_spin(2)=2;
+ !   k1_spin(3)=1;k2_spin(3)=3;
+ !   k1_spin(4)=2;k2_spin(4)=1;
+ !   k1_spin(5)=2;k2_spin(5)=2;
+ !   k1_spin(6)=2;k2_spin(6)=3;
+ !   k1_spin(7)=3;k2_spin(7)=1;
+ !   k1_spin(8)=3;k2_spin(8)=2;
+ !   k1_spin(9)=3;k2_spin(9)=3;
 
+   
     ALLOCATE(M(NP))
     CALL ALLOC(M,NP)
     ALLOCATE(Mg(NP))
@@ -10102,7 +10104,7 @@ endif
      mg(i)=0.e0_dp
     enddo
      do i=1,ma%n
-      m(i)=ma%v(i)
+      m(i)=ma%v(i)   ! orbital part
      enddo
 
     call c_full_norm_spin(Ma%s,k,norm)
