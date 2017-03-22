@@ -1056,8 +1056,8 @@ call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
 ! Error check that if a superposition attribute was set that "superposition" was set.
 
 do i = 1, n_max
-  if (in_lat%ele(i)%lord_status == super_lord$) cycle
   pele => plat%ele(i)
+  if (in_lat%ele(i)%lord_status == super_lord$ .or. pele%superposition_has_been_set) cycle
   if (pele%ref_name /= blank_name$ .or. pele%offset /= 0 .or. &
       pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
     call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)

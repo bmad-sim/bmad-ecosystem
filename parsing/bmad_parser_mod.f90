@@ -107,6 +107,7 @@ type parser_ele_struct
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
+  logical :: superposition_has_been_set = .false.
   logical :: create_jumbo_slave = .false.
   logical :: is_range = .false.               ! For girders
   character(40) :: default_attrib = ''        ! For group/overlay elements: slave attribute 
@@ -1340,6 +1341,7 @@ if (delim /= '=')  then
 
   case ('SUPERIMPOSE')
     ele%lord_status = super_lord$
+    pele%superposition_has_been_set = .true.
 
   case default
     call parser_error ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
@@ -1464,6 +1466,7 @@ case ('SUPERIMPOSE')  ! ele[superimpose] = False case
   else
     ele%lord_status = not_a_lord$
   endif
+  pele%superposition_has_been_set = .true.
 
 case ('APERTURE_AT')
   call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele, delim, delim_found)
