@@ -202,10 +202,10 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
 ENDIF ()
 
 #-----------------------------------
-# Legacy Library Definitions 
+# Readline Library Definitions 
 #-----------------------------------
-SET (LEGACY_LINK_LIBS $ENV{SET_LEGACY_LINK_LIBS} readline)
-SET (LEGACY_LINK_FLAGS "$ENV{SET_LEGACY_LINK_FLAGS} -lreadline")
+SET (READLINE_LINK_LIBS readline)
+SET (READLINE_LINK_FLAGS "-lreadline")
 
 #-----------------------------------
 # Plotting library compiler flag
