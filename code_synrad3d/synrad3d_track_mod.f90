@@ -487,7 +487,6 @@ propagation_loop: do
 
       now%location = upstream_end$
       ele => branch%ele(now%ix_ele)
-      now%vec(5) = 0
 
       ! Entering a patch: Transform coordinates to be with respect to the downstream end.
 
@@ -531,7 +530,6 @@ propagation_loop: do
     ! Move to next element if at upstream end.
 
     if (now%location == upstream_end$) then
-
       if (now%ix_ele == 1) then
         if (end_geometry == open$) return
         now%s = now%s + branch%param%total_length
@@ -542,8 +540,6 @@ propagation_loop: do
       endif
 
       ele => branch%ele(now%ix_ele)
-      now%vec(5) = ele%value(l$)
-
     endif
 
     ! Set stop position for this step
@@ -637,7 +633,6 @@ propagation_loop: do
     now%vec(2) = v_s * sin_t + v_x * cos_t
     now%vec(3) = now%vec(3) + dl * now%vec(4)
     now%s = s_stop
-    now%vec(5) = now%s - (ele%s - ele%value(l$))
     now%vec(6) = v_s * cos_t - v_x * sin_t
 
     if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now%vec)
@@ -670,7 +665,6 @@ propagation_loop: do
 
     now%vec(1) = now%vec(1) + dl * now%vec(2)
     now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%vec(5) = now%vec(5) + dl * now%vec(6)
     now%s = s_stop
 
   endif

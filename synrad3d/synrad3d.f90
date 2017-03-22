@@ -387,9 +387,8 @@ if (photon_start_input_file /= '') then
           read (1, nml = start) ! will generate error message
         enddo
       endif
-      ix_ele = element_at_s(lat, orbit%vec(5), .true., branch%ix_branch)
+      ix_ele = element_at_s(lat, orbit%s, .true., branch%ix_branch)
       call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
-      photon%start%orb%s = orbit%vec(5)
       photon%start%ix_branch = ix_branch
 
       call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)

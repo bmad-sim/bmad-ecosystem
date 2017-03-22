@@ -401,7 +401,7 @@ if (p_orb%orb%s < wall3d%section(ix_sec)%s .or. p_orb%orb%s > wall3d%section(ix_
   if (ix_sec == n_max) ix_sec = n_max - 1
 endif
 
-! vec(5) at boundary cases
+! %s at boundary cases
 
 if (p_orb%orb%s == wall3d%section(ix_sec)%s   .and. p_orb%orb%vec(6) > 0 .and. ix_sec /= 1)     ix_sec = ix_sec - 1
 if (p_orb%orb%s == wall3d%section(ix_sec+1)%s .and. p_orb%orb%vec(6) < 0 .and. ix_sec /= n_max) ix_sec = ix_sec + 1
