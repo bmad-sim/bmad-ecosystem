@@ -272,18 +272,18 @@ if (associated(ele%wall3d)) then
   wall3d_branch_loop: do ib = 0, ele%ix_branch
     ie_max = lat%branch(ib)%n_ele_max
     if (ib == ele%ix_branch) ie_max = ele%ix_ele - 1
-    do ie = 1, ie_max
+    wall_ele_loop: do ie = 1, ie_max
       ele2 => lat%branch(ib)%ele(ie)
       if (.not. associated(ele2%wall3d)) cycle
       if (size(ele2%wall3d) /= size(ele%wall3d)) cycle
       do j = 1, size(ele%wall3d)
-        if (size(ele2%wall3d(j)%section) /= size(ele%wall3d(j)%section)) cycle
-        if (.not. all(ele2%wall3d(j)%section == ele%wall3d(j)%section)) cycle
+        if (size(ele2%wall3d(j)%section) /= size(ele%wall3d(j)%section)) cycle wall_ele_loop
+        if (.not. all(ele2%wall3d(j)%section == ele%wall3d(j)%section)) cycle wall_ele_loop
       enddo
       ix_wall3d = -ie
       ix_wall3d_branch = ib
       exit wall3d_branch_loop
-    enddo
+    enddo wall_ele_loop
   enddo wall3d_branch_loop
 endif
 
