@@ -277,7 +277,7 @@ ENDIF ()
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
 ELSE ()
-    SET (ACC_LINK_FLAGS "-lactivemq-cpp" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
 ENDIF ()
 
 IF (${MSYS})
