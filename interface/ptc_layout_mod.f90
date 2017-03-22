@@ -1504,7 +1504,7 @@ end subroutine update_bmad_ele_from_ptc
 !                      Useful if need to evaluate at the center of fibres.
 !   r_typical     -- real(rp), optional: Typical transverse offset. Used for computing the
 !                      effective contribution of K1*L due to sextupoles.
-!   dx_tol_bend   -- real(rp): Tollerable residual orbit in a bend.
+!   dx_tol_bend   -- real(rp): Tolerable residual orbit in a bend.
 !   use_2nd_order -- logical, optional: If present and True then force the use of 2nd order
 !                       integrator.
 !   crossover(2)  -- integer, optional: crossover points between orders for all

@@ -121,6 +121,15 @@ If an element has zero length (for example, a
 element will remain in the tracking part of the lattice and there will be
 no corresponding lord element. See \fig{f:super.ex}.
  
+Superimpose syntax:
+\begin{example}
+  Q: quad, superimpose, ...       ! Superimpose element Q/
+  Q: quad, superimpose = T, ...   ! Same as above.
+  Q: quad, ...                    ! First define element Q ...
+  Q[superimpose] = T              !   ... and then superimpose.
+  Q[superimpose] = F              ! Turn off superposition.
+\end{example}
+
 The placement of a superimposed element is illustrated in
 \fig{f:superimpose}. The placement of a superimposed element is
 determined by three factors: An origin point on the superimposed
