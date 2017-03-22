@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries February 25, 2017}
+{\large\bfseries March 22, 2017}
 
 \end{center}
 \end{titlepage}
@@ -674,25 +674,23 @@ a wall whose surface name is set to ``PHANTOM''. If \vn{filter_phantom_photons} 
 \vn{True} (the default) a filter test is used to exclude phantom photons from the output.
 If set to \vn{False}, the filter will not be applied.
   \item[\vn{photon_start_output_file}] \Newline
-This string, if not blank, will cause \srthree to create an output
-file, with a name given by the value of \vn{photon_start_output_file},
-of the photon starting positions along with the state of the random
-number generator. Note: If \vn{photon_start_input_file} is set,
-\vn{photon_start_output_file} will be ignored (no output file is
-generated). Also note that the file will have the starting coordinates
-of all photons generated, not just the photons that pass any filtering
-tests. Thus, if any of the filter parameters are set, the size of the
-file may be very large. See below for the syntax of this file.
+This string, if not blank, will cause \srthree to create an output file, with a name given
+by the value of \vn{photon_start_output_file}, of the photon starting positions along with
+the state of the random number generator. The format for this file is compatible with the
+format of the \vn{photon_start_input_file}. This file is generally used for debugging
+purposes and is not of general interest. Note: If \vn{photon_start_input_file} is set,
+\vn{photon_start_output_file} will be ignored (no output file is generated). Also note
+that the file will have the starting coordinates of all photons generated, not just the
+photons that pass any filtering tests. Thus, if any of the filter parameters are set, the
+size of the file may be very large. See below for the syntax of this file.
   \item[\vn{photon_start_input_file}] \Newline
-If not blank, the file named by \vn{photon_start_input_file}
-will be read by \srthree and used to initialize photon
-starting positions. See \sref{s:photon.start} for the syntax of this file.
-The state of the random number generator at the time of a photon's
-initialization can also be specified in the file. In this case, the
-random number generator state will also be set along with the state of
-the photon. This is useful for diagnostic purposes when one wishes to
-compare the results of different versions of the \srthree program. The
-syntax for this file is the same as the syntax used to generate the
+If not blank, the file named by \vn{photon_start_input_file} will be read by \srthree and
+used to initialize photon starting positions. See \sref{s:photon.start} for the syntax of
+this file.  The state of the random number generator at the time of a photon's
+initialization can also be specified in the file. In this case, the random number
+generator state will also be set along with the state of the photon. This is useful for
+diagnostic purposes when one wishes to compare the results of different versions of the
+\srthree program. The syntax for this file is the same as the syntax used to generate the
 \vn{photon_start_output_file}. See below for the syntax of this file.
   \item[\vn{num_ignore_generated_outside_wall}] \Newline
 Photons may be generated outside of the beam chamber for various
@@ -1596,13 +1594,15 @@ The \vn{photon_start_input_file} file contains a number of
 format for a \vn{\&start} namelist is:
 \begin{example}
   &start
-    orbit%vec = <x>, <vx/c>, <y>, <vy/c>, <s>, <vz/c>  ! Photon position
-    orbit%p0c = <ev>                                ! Photon energy
+    orbit%vec = <x>, <vx/c>, <y>, <vy/c>, 0.0, <vz/c>  ! Photon position
+    orbit%s   = <s>   ! Longitudinal distance from start of lattice.   
+    orbit%p0c = <ev>  ! Photon energy
     ran_state = <random_state_struct>
     random_seed = <num>
   /
 \end{example}
-The \vn{<s>} component of \vn{orbit%vec} is the longitudinal distance
+The fifth component of \vn{orbit%vec} is not used and should be set to zero.
+The \vn{orbit%s} component is the longitudinal distance
 from the start of the lattice.  If needed, The \vn{ran_state} and
 \vn{random_seed} parameters can be used to initialize the random number
 generator.
