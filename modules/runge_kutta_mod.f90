@@ -83,7 +83,7 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), intent(in) :: s1, s2
 real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save
 real(rp) :: s_edge_track, position(6)
-real(rp) :: old_s, ds_intersect, ds_tiny
+real(rp) :: old_s, dist_to_wall, ds_tiny
 
 integer :: n_step, s_dir, nr_max, this_state
 
@@ -181,7 +181,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     if (orbit%state /= alive$) then
       if (n_step == 1) return  ! Cannot do anything if this is the first step
       this_state = orbit%state ! zbrent will overwrite this so save.
-      ds_intersect = zbrent (wall_intersection_func, 0.0_rp, ds_did, 1d-10)
+      dist_to_wall = zbrent (wall_intersection_func, 0.0_rp, ds_did, ds_tiny)
       orbit%state = this_state
       call wall_hit_handler_custom (orbit, ele, s)
       if (orbit%state /= alive$) return
@@ -192,6 +192,9 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         if (global_com%exit_on_error) call err_exit
         return
       endif
+      ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
+      ! So step a small amount to make sure that the particle is past the wall.
+      dist_to_wall = wall_intersection_func(ds_did+ds_tiny)
     endif
   end select
 
