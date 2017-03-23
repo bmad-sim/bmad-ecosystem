@@ -824,7 +824,8 @@ the four limits to just cover the surface grid.
 
 The \vn{wall3d} setting uses the vacuum chamber wall as specified by a \vn{wall} attribute
 (\sref{s:wall}). Using the \vn{wall} construct allows for complex apertures to be
-constructed.
+constructed. Note: The wall thickness and material type are not used when calculating
+if a particle has hit the wall. That is, the wall is considered to be infinitely thin.
 
 For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit},
 \vn{y1_limit}, or \vn{y2_limit} may be negative. For example:
