@@ -411,7 +411,7 @@ else
   call err_exit
 endif
 
-! find string widths
+! Find string widths
 ! Expressions generally have very long strings so we let this spill over to
 ! the where_start, where_ref and where fields
 
@@ -435,10 +435,10 @@ n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 4
 
 !
 
-l1 = 'Constraint'
+l1 = 'Constraints'
 n=3+n_d2_d1_name+2+n_name;    l1(n:) = 'Ref_Ele'
 n=len_trim(l1)+n_loc_ref-3;   l1(n:) = 'Start_Ele'
-n=len_trim(l1)+n_loc_start-3; l1(n:) = 'Ele'
+n=len_trim(l1)+n_loc_start-5; l1(n:) = 'Ele/S'
 n=len_trim(l1)+n_loc_ele-2;   l1(n:) = 'Target      Value      Merit     Max'
 
 nl=nl+1; line(nl) = ' '

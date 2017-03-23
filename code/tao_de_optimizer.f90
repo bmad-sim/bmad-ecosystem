@@ -156,8 +156,7 @@ merit_min = min(merit_min, this_merit)
 if (iter_count == 1000) then
   call date_and_time (values = t1)
   t_del = t1 - t0
-  t_delta = t_del(7) + 60*(t_del(6) + &
-                  60*(t_del(5) + 24*(t_del(3) + 30*t_del(2)))) 
+  t_delta = t_del(7) + 60*(t_del(6) + 60*(t_del(5) + 24*(t_del(3) + 30*t_del(2)))) 
 endif
 
 

@@ -932,6 +932,7 @@ case ('plot_curve')
   nl=nl+1; write (li(nl), amt) 'data_type_x;STR;T;',                      cur%data_type_x
   nl=nl+1; write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
   nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        cur%data_type
+  nl=nl+1; write (li(nl), amt) 'component;STR;T;',                        cur%component
   nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
   nl=nl+1; write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
   nl=nl+1; write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text

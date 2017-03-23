@@ -1676,6 +1676,7 @@ do i = 1, n
   curve => graph%curve(i)
   text(i) = curve%legend_text
   if (text(i) == '') text(i) = curve%data_type
+  text(i) = trim(text(i)) // ' ' // trim(curve%component)
   symbol(i) = curve%symbol
   if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
   if (.not. curve%draw_symbols) symbol(i)%type = -1

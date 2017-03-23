@@ -45,6 +45,14 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
   character(*) :: where
   real(rp) value1, value2
 end subroutine
+
+function tao_curve_component (curve, graph) result (component)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  type (tao_graph_struct) graph
+  character(60) component
+end function
  
 subroutine tao_data_show_use (d2_data, lines, nl)
   import

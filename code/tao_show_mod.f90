@@ -646,6 +646,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
+      nl=nl+1; write(lines(nl), amt)  'component            = ', c1%component
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track

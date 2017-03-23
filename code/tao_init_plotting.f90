@@ -50,7 +50,7 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 real(rp) y1, y2
 
 integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
-integer graph_index, color, i_graph
+integer graph_index, color, i_graph, ic
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
@@ -59,7 +59,7 @@ character(80) label
 character(40) str
 character(*), parameter :: r_name = 'tao_init_plotting'
 
-logical err, include_default_plots
+logical err, include_default_plots, all_set
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, &
                 include_default_plots
@@ -585,6 +585,7 @@ do  ! Loop over plot files
 
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source
+        crv%component            = curve(j)%component
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
         crv%data_type_z          = curve(j)%data_type_z
@@ -743,6 +744,16 @@ do  ! Loop over plot files
         grph%y2%label = label
         grph%y2%label_color = color
       endif
+
+      ! Set graph%component = 'model' if not set
+
+      all_set = .true.
+      if (allocated(grph%curve)) then
+        do ic = 1, size(grph%curve)
+          if (grph%curve(ic)%component == '') all_set = .false.
+        enddo
+      endif
+      if (.not. all_set .and. grph%component == '') grph%component = 'model'
 
     enddo  ! graph
   enddo  ! plot
