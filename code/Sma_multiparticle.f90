@@ -2318,28 +2318,42 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   New Survey Routines !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-subroutine survey_integration_layout(p,a0,ent0)
+subroutine survey_integration_layout(p,f,a,ent)
 implicit none
-type(fibre), pointer :: p
-type(fibre),pointer :: p1 
-real(dp), intent(in):: a0(3),ent0(3,3)
+type(fibre), target :: p
+type(fibre),target, optional:: f
+type(fibre),pointer :: p1,p2
+real(dp), optional, intent(in):: a(3),ent(3,3)
+real(dp)  a0(3),ent0(3,3)
+
+if(present(a)) then
+ a0=a
+else
+ a0=global_origin
+endif
+if(present(ent)) then
+ ent0=ent
+else
+ ent0=global_FRAME
+endif
 
 call survey_integration_fibre(p,a0,ent0)
 
 p1=>p%next
+if(present(f)) then
+ p2=>f
+else
+ p2=>p
+endif
 
-do while(.not.associated(p,p1))
-write(6,*) p1%previous%mag%name
-write(6,*) p1%previous%chart%f%a
-write(6,*) p1%previous%chart%f%b
+do while(.not.associated(p2,p1))
 call survey_integration_fibre(p1,p1%previous%chart%f%b,p1%previous%chart%f%exi)
-write(6,*) p1%mag%name
-write(6,*) p1%chart%f%a
-write(6,*) p1%chart%f%b
 !pause
 p1=>p1%next
 enddo
-
+write(6,*) p1%previous%mag%name
+write(6,*) p1%previous%chart%f%a
+write(6,*) p1%previous%chart%f%b
 end subroutine survey_integration_layout
 
 
@@ -2357,10 +2371,19 @@ r=>p%parent_layout
 if(.not.associated(r%t)) then
  call make_node_layout(r)
  call survey(r)
- call FILL_SURVEY_DATA_IN_NODE_LAYOUT(r)
+    CALL  allocate_node_frame( R)
+! call FILL_SURVEY_DATA_IN_NODE_LAYOUT(r)
 endif
-if(.not.associated(p%t1%a)) call FILL_SURVEY_DATA_IN_NODE_LAYOUT(r)
+if(.not.associated(p%t1%a))     CALL  allocate_node_frame( R)   !call FILL_SURVEY_DATA_IN_NODE_LAYOUT(r)
  
+
+p%chart%f%ent=ent0
+p%chart%f%a=a0
+
+  p%mag%p%f%ent=ent0
+  p%mag%p%f%a=a0
+  p%magp%p%f%ent=ent0
+  p%magp%p%f%a=a0
 
 t=>p%t1
 call survey_integration_node_p1(t,a0,ent0)
@@ -2383,8 +2406,12 @@ t=>t%next
 call survey_integration_fringe(t,a0,ent0)
 t=>t%next
 call survey_integration_node_p2(t,a0,ent0)
-
-
+p%chart%f%exi=ent0
+p%chart%f%b=a0
+  p%mag%p%f%exi=ent0
+  p%mag%p%f%b=a0
+  p%magp%p%f%exi=ent0
+  p%magp%p%f%b=a0
 
 end subroutine survey_integration_fibre
 

@@ -177,6 +177,8 @@ contains
     SELECT CASE(magnet(1:IL))
     CASE("DRIFT          ")
        BLANK=DRIFT(KEY%LIST%NAME,LIST=KEY%LIST)
+    CASE("SUPERDRIFT     ")
+       BLANK=SUPERDRIFT(KEY%LIST%NAME,LIST=KEY%LIST)
     CASE("SOLENOID       ")
        if(sixtrack_compatible) stop 1
        if(KEY%LIST%L/=0.0_dp) then

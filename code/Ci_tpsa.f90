@@ -20,12 +20,12 @@ MODULE c_TPSA
   private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon,derive  !,AABSEQUAL 2002.10.17
   private pow, GETORDER,CUTORDER,getchar,GETint,GETORDERMAP,c_exp_vectorfield_on_spinmatrix  !, c_bra_v_spinmatrix
   private getdiff,getdATRA  ,mul,dmulsc,dscmul,c_spinor_spinmatrix
-  private mulsc,scmul,imulsc,iscmul,map_mul_vec
+  private mulsc,scmul,imulsc,iscmul,map_mul_vec,DAREADTAYLORS
   private div,ddivsc,dscdiv,divsc,scdiv,idivsc,iscdiv,equalc_ray_r6r
   private unaryADD,add,daddsca,dscadd,addsc,scadd,iaddsc,iscadd 
   private unarySUB,subs,dsubsc,dscsub,subsc,scsub,isubsc,iscsub
   private c_allocda,c_killda,c_a_opt,K_opt,c_,c_allocdas,filter_part
-  private dexpt,dcost,dsint,dtant
+  private dexpt,dcost,dsint,dtant,DAPRINTTAYLORS
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,c_dputint0,c_dputint0r
   private GETintnd2t,equalc_cspinor_cspinor,c_AIMAG,c_real,equalc_ray_ray
   PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor  !,CHARINT
@@ -519,6 +519,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        module procedure c_read_spinmatrix
        module procedure c_read_map
        MODULE PROCEDURE c_read_spinor
+       MODULE PROCEDURE DAREADTAYLORS
     END INTERFACE
 
     INTERFACE read
@@ -526,6 +527,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        module procedure c_read_spinmatrix
        module procedure c_read_map
        MODULE PROCEDURE c_read_spinor
+       MODULE PROCEDURE DAREADTAYLORS
     END INTERFACE
 
     INTERFACE daprint
@@ -536,6 +538,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        MODULE PROCEDURE c_pri_factored_lie
        MODULE PROCEDURE c_pri_spinor
        MODULE PROCEDURE print_33t
+      MODULE PROCEDURE DAPRINTTAYLORS
     END INTERFACE
 
     INTERFACE print
@@ -546,6 +549,7 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
        MODULE PROCEDURE c_pri_factored_lie
        MODULE PROCEDURE c_pri_spinor
        MODULE PROCEDURE print_33t
+      MODULE PROCEDURE DAPRINTTAYLORS
     END INTERFACE
 
 
@@ -6009,6 +6013,21 @@ endif
 
   END SUBROUTINE c_pri
 
+  SUBROUTINE  DAPRINTTAYLORS(S1,MFILE,PREC)
+    implicit none
+    INTEGER,INTENT(IN)::MFILE
+    type (C_TAYLOR),INTENT(IN)::S1(:)
+    REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
+    INTEGER I
+
+    DO I=1,size(S1)
+       if(s1(i)%i>0) then
+          if(size(S1)>1) write(MFILE,*) "Taylor #",i
+          CALL C_PRI(s1(i),MFILE,PREC)
+       endif
+    ENDDO
+  END SUBROUTINE DAPRINTTAYLORS
+
   SUBROUTINE  c_REA(S1,MFILE)
     implicit none
     INTEGER,INTENT(in)::MFILE
@@ -6025,6 +6044,17 @@ endif
 
   END SUBROUTINE c_REA
 
+  SUBROUTINE  DAREADTAYLORS(S1,MFILE)
+    implicit none
+    INTEGER,INTENT(in)::MFILE
+    type (C_TAYLOR),INTENT(INOUT)::S1(NDIM2)
+    INTEGER I
+
+    DO I=1,ND2
+       CALL C_REA(s1(I),MFILE)
+    ENDDO
+
+  END SUBROUTINE DAREADTAYLORS
 
   ! Universal Taylor Routines   (Sagan's Stuff)
 
@@ -9017,6 +9047,7 @@ end subroutine c_full_canonise
     type(c_normal_form), intent(inout) ::  n
     type(c_damap), optional :: rot
     type(c_taylor), optional :: phase(:),nu_spin
+    type(taylor) c1,s1
     integer,optional :: no_used
     integer i,j,k,l,kr,not
     integer, allocatable :: je(:)
@@ -9331,7 +9362,15 @@ endif
             else
               m1=n%Atot**(-1)*xy*n%Atot
             endif
-         call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin) 
+         call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin)
+         if(present(nu_spin)) then
+          call alloc(c1,s1)
+          c1=m1%s%s(1,1)
+          s1=m1%s%s(1,3)
+           nu_spin=spin_def_tune*atan2(s1,c1)/twopi
+           nu_spin=nu_spin*from_phasor()
+          call kill(c1,s1)
+         endif
         endif
 
      call c_check_rad(m1%e_ij,rad_in)
