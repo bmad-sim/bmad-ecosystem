@@ -43,7 +43,7 @@ endif
 ! Region index?
 
 if (this_region(1:2) == '@R') then
-  call tao_integer_set_value (ix, '', this_region(3:), err, 1, size(s%plot_page%region))
+  call tao_set_integer_value (ix, '', this_region(3:), err, 1, size(s%plot_page%region))
   if (err) then
     if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BAD PLOT REGION INDEX: ' // where)
     return

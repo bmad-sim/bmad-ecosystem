@@ -82,6 +82,7 @@ type tao_curve_input
   character(100) :: data_index = ''
   character(40) :: legend_text = ''
   character(40) :: units = ''
+  character(60) :: component = ''
   real(rp) :: y_axis_scale_factor = 1
   real(rp) :: z_color0 = 0, z_color1 = 0
   integer :: symbol_every = 1
@@ -106,7 +107,7 @@ type tao_graph_input
   character(40) :: name = ''
   character(40) :: type = 'data' 
   character(80) :: title = ''
-  character(60) :: component = 'model'
+  character(60) :: component = ''
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
   integer :: box(4) = [1, 1, 1, 1]

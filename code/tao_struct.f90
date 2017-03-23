@@ -159,6 +159,7 @@ type tao_curve_struct
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
   character(40) :: units = ''            ! Data units.
+  character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
   type (tao_histogram_struct) hist
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
@@ -229,6 +230,7 @@ type tao_graph_struct
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
   logical :: draw_curve_legend = .true.       ! Legend for displaying curve info.
   logical :: draw_grid = .true.               ! Draw a grid?
+  logical :: allow_wrap_around = .true.       ! "Wrap" curves to extend past lattice boundaries?
   logical :: draw_only_good_user_data_or_vars = .true.
 end type
 

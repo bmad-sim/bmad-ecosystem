@@ -1704,54 +1704,56 @@ namelists should be placed directly after their respective
 \index{curve!ix_bunch}\index{curve!ix_ele_ref}\index{curve!data_type_x}
 \begin{example}
   &tao_template_graph
-    graph_index            = <number>
-    graph%name             = "<string>"       ! Default is  "g<n>" <n> = graph_index. 
-    graph%type             = "<string>"       ! "data", "floor_plan", etc.
-    graph%box              = <ix>, <iy>, <ix_tot>, <iy_tot>
-    graph%title            = "<string>"       ! Title above the graph.
-    graph%margin           =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%scale_margin     =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%x                = <qp_axis_struct> ! Horizontal axis.
-    graph%y                = <qp_axis_struct> ! Left axis.
-    graph%y2               = <qp_axis_struct> ! Right axis.
-    graph%clip             = <logical>        ! Clip curves at boundary? Default = T
-    graph%draw_axes        = <logical>        ! Default = T
-    graph%draw_grid        = <logical>        ! Default = T
-    graph%component        = "<string>"       ! Eg: "model - design"
-    graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
-    graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
-    graph%floor_plan_rotation    = <num>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
-    graph%floor_plan_view        = <string>   ! View plane for floor plan plot. default = 'zx'
-    graph%floor_plan_orbit_scale = <real>     ! Scale for drawing orbits. Default: 0 -> Do not draw.
-    graph%floor_plan_orbit_color = <string>   ! Color of orbit. Default = 'RED'
+    graph_index             = <number>
+    graph%name              = "<string>"       ! Default is  "g<n>" <n> = graph_index. 
+    graph%type              = "<string>"       ! "data", "floor_plan", etc.
+    graph%box               = <ix>, <iy>, <ix_tot>, <iy_tot>
+    graph%title             = "<string>"       ! Title above the graph.
+    graph%margin            =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%scale_margin      =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%x                 = <qp_axis_struct> ! Horizontal axis.
+    graph%y                 = <qp_axis_struct> ! Left axis.
+    graph%y2                = <qp_axis_struct> ! Right axis.
+    graph%clip              = <logical>        ! Clip curves at boundary? Default = T
+    graph%draw_axes         = <logical>        ! Default = T
+    graph%draw_grid         = <logical>        ! Default = T
+    graph%allow_wrap_around = <logical>        ! Wrap curves around lattice ends?
+    graph%component         = "<string>"       ! Eg: "model - design"
+    graph%symbol_size_scale      = <real>      ! Phase_space plots symbol scale factor
+    graph%correct_xy_distortion  = <logical>   ! For Floor Plan plots: Default = F
+    graph%floor_plan_rotation    = <num>       ! Rotation of floor plan plot: 1.0 -> 360 deg. 
+    graph%floor_plan_view        = <string>    ! View plane for floor plan plot. default = 'zx'
+    graph%floor_plan_orbit_scale = <real>      ! Scale for drawing orbits. Default: 0 -> Do not draw.
+    graph%floor_plan_orbit_color = <string>    ! Color of orbit. Default = 'RED'
     graph%floor_plan_size_is_absolute = <logical>     ! Shape sizes scaled to absolute dimensions?
     graph%floor_plan_draw_only_first_pass = <logical> ! Draw only first pass with multipass elements?
-    graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
-                                 = <logical>  !   Default = T.
-    graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
-    graph%n_curve                = <number>   ! number of curves
-    curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
-    curve(i)%data_source         = "<string>" ! Source for the data curve points
-    curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data" or "var".
-    curve(i)%data_type           = "<string>" ! Default = plot%name.graph%name
-    curve(i)%data_index          = "<string>" ! Index number for data points.
-    curve(i)%legend_text         = "<string>" ! Text for curve legend. 
-                                              !   Default is the data_type.
-    curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
-    curve(i)%use_y2              = <logical>  ! Use left-axis scale?
-    curve(i)%draw_line           = <logical>  ! Connect data with lines?
-    curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
-    curve(i)%draw_symbol_index   = <logical>  ! Print index number next to the data symbol?
-    curve(i)%ix_universe         = <number>   ! Default = -1 => Use default universe
-    curve(i)%ix_branch           = <number>   ! Default = 0  => Use main lattice.  
-    curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
-    curve(i)%line        = <qp_line_struct>   ! Line spec (color, width, etc.)
-    curve(i)%symbol      = <qp_symbol_struct> ! Symbol spec (color size, etc.)
-    curve(i)%symbol_every     = <integer>     ! Plot symbol every # datums
-    curve(i)%ele_ref_name     = "<string>"    ! Name of reference element.
-    curve(i)%ix_ele_ref       = <num>         ! Index number of reference element.
-    curve(i)%smooth_line_calc = <Logical>     ! Calc data between symbol points? 
-    curve(i)%units            = "<string>"    ! Data units
+    graph%draw_only_good_user_data_or_vars     ! Veto data or variables with good_user = F?
+                                 = <logical>   !   Default = T.
+    graph%x_axis_scale_factor    = <factor>    ! Scale the x-axis by this.
+    graph%n_curve                = <number>    ! number of curves
+    curve(i)%name                = "<string>"  ! Default is "c<i>", <i> = curve num.
+    curve(i)%data_source         = "<string>"  ! Source for the data curve points
+    curve(i)%data_type_x         = "<string>"  ! Used with plot%x_axis_type = "data" or "var".
+    curve(i)%data_type           = "<string>"  ! Default = plot%name.graph%name
+    curve(i)%component           = "<string>"  ! Eg: "model - design". Overrides graph%component.
+    curve(i)%data_index          = "<string>"  ! Index number for data points.
+    curve(i)%legend_text         = "<string>"  ! Text for curve legend. 
+                                               !   Default is the data_type.
+    curve(i)%y_axis_scale_factor = <factor>    ! Scale the y-axis by this.
+    curve(i)%use_y2              = <logical>   ! Use left-axis scale?
+    curve(i)%draw_line           = <logical>   ! Connect data with lines?
+    curve(i)%draw_symbols        = <logical>   ! Draw data symbols?
+    curve(i)%draw_symbol_index   = <logical>   ! Print index number next to the data symbol?
+    curve(i)%ix_universe         = <number>    ! Default = -1 => Use default universe
+    curve(i)%ix_branch           = <number>    ! Default = 0  => Use main lattice.  
+    curve(i)%ix_bunch            = <integer>   ! Bunch index. Default = 0 (all bunches).
+    curve(i)%line        = <qp_line_struct>    ! Line spec (color, width, etc.)
+    curve(i)%symbol      = <qp_symbol_struct>  ! Symbol spec (color size, etc.)
+    curve(i)%symbol_every     = <integer>      ! Plot symbol every # datums
+    curve(i)%ele_ref_name     = "<string>"     ! Name of reference element.
+    curve(i)%ix_ele_ref       = <num>          ! Index number of reference element.
+    curve(i)%smooth_line_calc = <Logical>      ! Calc data between symbol points? 
+    curve(i)%units            = "<string>"     ! Data units
   /
 \end{example}
 For example:
@@ -1776,37 +1778,35 @@ For example:
   /
 \end{example}
 
-\vn{graph%title} is the string just above the graph. The full string
-will also include information about what is being plotted and the
-horizontal axis type. To fully suppress the title leave it blank.
+\vn{graph%title} is the string just above the graph. The full string will also include information
+about what is being plotted and the horizontal axis type. To fully suppress the title leave it
+blank.
 
-If there are multiple curves drawn with a graph then a curve legend
-showing what lines are associated with what data will be drawn. The
-default is to draw this legend in the upper left hand corner of the
-graph. By default, the \vn{data_type} of each curve will be used as
-the text for that curve's line in the legend.  This default can be
-changed by setting a curve's \vn{curve%legend_tex}.
+If there are multiple curves drawn with a graph then a curve legend showing what lines are
+associated with what data will be drawn. The default is to draw this legend in the upper left hand
+corner of the graph. By default, the \vn{data_type} of each curve will be used as the text for that
+curve's line in the legend.  This default can be changed by setting a curve's \vn{curve%legend_tex}.
 
-\vn{graph%name} and \vn{curve%name} define names to be used with
-commands. The default names are just the letter \vn{g} or \vn{c} with
-the index of the graph or curve. Thus, in the example above, the name
-of the curve defaults to \vn{c1} and it would be referred to as
-\vn{orbit.x.c1}.  It is important that these names do not contain any
-blank spaces since \tao uses this fact in parsing the command line.
+\vn{graph%name} and \vn{curve%name} define names to be used with commands. The default names are
+just the letter \vn{g} or \vn{c} with the index of the graph or curve. Thus, in the example above,
+the name of the curve defaults to \vn{c1} and it would be referred to as \vn{orbit.x.c1}.  It is
+important that these names do not contain any blank spaces since \tao uses this fact in parsing the
+command line.
 
-\vn{graph%box} sets the layout of the box which the \vn{graph} is
-placed in. For a definition of what a box is see the Quick Plot
-documentation in the \bmad reference manual. In the above example the
-graph divides the region into two vertically stacked boxes and places
-itself into the bottom one. 
+\vn{graph%box} sets the layout of the box which the \vn{graph} is placed in. For a definition of
+what a box is see the Quick Plot documentation in the \bmad reference manual. In the above example
+the graph divides the region into two vertically stacked boxes and places itself into the bottom
+one.
+
+\vn{graph%allow_wrap_around} sets if, for a lattice with closed geometry, the curves contained in
+the graph are ``wrapped'' around the ends of the lattice. The default is \vn{True}.
 
 \vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
 it is drawn in.
 
-\vn{graph%scale_margin} is used to set the minimum space between what
-is being drawn and the edges of the \vn{graph} when a \vn{scale},
-\vn{x_scale}, or a \vn{xy_scale} command is issued. Normally this
-is zero but is useful for \vn{floor plan} drawings.
+\vn{graph%scale_margin} is used to set the minimum space between what is being drawn and the edges
+of the \vn{graph} when a \vn{scale}, \vn{x_scale}, or a \vn{xy_scale} command is issued. Normally
+this is zero but is useful for \vn{floor plan} drawings.
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
@@ -1821,49 +1821,42 @@ following types:
   "phase_space"        ! Phase space plots (\sref{s:phase.space}).
 \end{example}
 
-With \vn{graph%type} set to \vn{"beam_chamber_wall"}
-(\sref{s:beam.wall.draw}), the beam chamber wall is drawn if it has
-been defined in the \bmad lattice file.
+With \vn{graph%type} set to \vn{"beam_chamber_wall"} (\sref{s:beam.wall.draw}), the beam chamber
+wall is drawn if it has been defined in the \bmad lattice file.
 
-With \vn{graph%type} set to \vn{"data"} (\sref{s:plot.data}), data such
-as orbits and/or variable values such as quadrupole strengths are
-plotted. Here ``data'' can be data from a defined data structure
-(\sref{c:data}) or computed directly from the lattice, beam tracking,
-etc. A \vn{"data"} graph type will contain a number of \vn{curves} and
-multiple data and variable curves can be drawn in one graph.
+With \vn{graph%type} set to \vn{"data"} (\sref{s:plot.data}), data such as orbits and/or variable
+values such as quadrupole strengths are plotted. Here ``data'' can be data from a defined data
+structure (\sref{c:data}) or computed directly from the lattice, beam tracking, etc. A \vn{"data"}
+graph type will contain a number of \vn{curves} and multiple data and variable curves can be drawn
+in one graph.
 
-With \vn{graph%type} set to \vn{floor_plan} (\sref{s:floor.plan}), the
-two dimensional layout of the machine is drawn.
+With \vn{graph%type} set to \vn{floor_plan} (\sref{s:floor.plan}), the two dimensional layout of the
+machine is drawn.
 
-With \vn{graph%type} set to \vn{histogram} (\sref{s:histogram}), such
-things such as beam densities can be histogrammed.
+With \vn{graph%type} set to \vn{histogram} (\sref{s:histogram}), such things such as beam densities
+can be histogrammed.
 
-With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the
-key bindings for use in single mode (\sref{s:key.bind}) are displayed.
-Note: The \vn{"key_table"} graph type does not have any associated
-\vn{curve}s.
+With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the key bindings for use in
+single mode (\sref{s:key.bind}) are displayed.  Note: The \vn{"key_table"} graph type does not have
+any associated \vn{curve}s.
 
-With \vn{graph%type} set to \vn{lat_layout} (\sref{s:lat.layout}), the
-elements of the lattice are symbolical drawn in a one dimensional
-line as a function of the longitudinal distance along the machine
-centerline.
+With \vn{graph%type} set to \vn{lat_layout} (\sref{s:lat.layout}), the elements of the lattice are
+symbolical drawn in a one dimensional line as a function of the longitudinal distance along the
+machine centerline.
 
-With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}),
-phase space plots are produced.
+With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
 
 %-----------------------------------------------------------------
 \subsection{Data and Variable plotting}
 \label{s:plot.data}
 
-A \vn{graph} (\sref{s:template}), with \vn{graph%type} equal to
-\vn{"data"}, is used to draw ``data'' such as orbits and/or variable
-values such as quadrupole strengths. A data \vn{graph} will have a
-number of associated \vn{curve}s with each curve defining a particular
-data type to plot. 
+A \vn{graph} (\sref{s:template}), with \vn{graph%type} equal to \vn{"data"}, is used to draw
+``data'' such as orbits and/or variable values such as quadrupole strengths. A data \vn{graph} will
+have a number of associated \vn{curve}s with each curve defining a particular data type to plot.
 
-The data values will depend upon where the data
-comes from. This is determined, in part, by the setting of
-\vn{graph%component}. \vn{graph%component} may be one of:
+The data values will depend upon where the data comes from. This is determined, in part, by the
+setting of \vn{graph%component} and \vn{curve%component}. \vn{graph%component} and
+\vn{curve%component} may be one of:
 \index{model}\index{design}\index{base}\index{meas}\index{ref}
 \begin{example}
   "model"             ! model values. Default.
@@ -1873,20 +1866,22 @@ comes from. This is determined, in part, by the setting of
   "ref"               ! reference data values.
   "beam_chamber_wall" ! Beam chamber wall
 \end{example}
-The default, if \vn{graph%component} is not specified, is to use
-\vn{"model"}. Additionally, \vn{graph%component} may be set to plot a
-linear combination of the above. For example:
+Additionally, \vn{graph%component} may be set to plot a linear combination of the above. For
+example:
 \begin{example}
   graph%component = "model - design"
 \end{example}
-This will plot the difference between the \vn{model} and \vn{design}
-values.
+This will plot the difference between the \vn{model} and \vn{design} values.
+
+If \vn{curve%component} is set, it will override \vn{graph%component}. If \vn{graph%component} is
+not set in the initialization file, and if there are curves of the graph that have not been set,
+\vn{graph%component} will be given a default setting of \vn{model}.
 
 \index{data}\index{var}\index{calculation}
 \index{curve!data_source}
-The \vn{curve} structure is used to define the data that is plotted
-in each graph. \vn{curve%data_source} is the type of information for
-the source of the data points. \vn{curve%data_source} must be one of:
+The \vn{curve} structure is used to define the data that is plotted in each graph.
+\vn{curve%data_source} is the type of information for the source of the data points.
+\vn{curve%data_source} must be one of:
 \begin{example}
   "data"              ! A d1_data array is the source of the curve points.
   "var"               ! A v1_var array is the source of the curve points.
@@ -1894,82 +1889,63 @@ the source of the data points. \vn{curve%data_source} must be one of:
   "beam"              ! The curve points are computed tracking a beam of particles.
   "multi_turn_orbit"  ! Computation is from multi-turn tracking. 
 \end{example}
-The default for \vn{curve%data_source} is \vn{"lat"}. With
-\vn{curve%data_source} set to \vn{data}, the values of the curve
-points come from the \vn{d1_data} array structure named by
-\vn{curve%data_type}. Thus in the above example the curve point values
-are obtained from \vn{orbit.x} data. To be valid the data structure
-named by \vn{curve%data_type} must be set up in an initialization
-file. If not given, the default \vn{curve%data_type} is
+The default for \vn{curve%data_source} is \vn{"lat"}. With \vn{curve%data_source} set to \vn{data},
+the values of the curve points come from the \vn{d1_data} array structure named by
+\vn{curve%data_type}. Thus in the above example the curve point values are obtained from
+\vn{orbit.x} data. To be valid the data structure named by \vn{curve%data_type} must be set up in an
+initialization file. If not given, the default \vn{curve%data_type} is
 \begin{example}
   <plot%name>.<graph%name>
 \end{example}
-If \vn{curve%data_source} is set to \vn{var}, the values of the
-curve points come from a \vn{v1_var} array structure. If it is set to
-\vn{lat} the curve data points are calculated from the lattice
-without regard to any data structures. \vn{curve%data_source} can be
-set to \vn{beam} when tracking beams of particles. In this case, the
-curve points are calculated from the tracking. With \vn{beam}, the
-particular bunch that the data is extracted from can be specified via
-\vn{curve%ix_bunch}. The default is \vn{0} which combines all the
-bunches of the beam for the calculation.
+If \vn{curve%data_source} is set to \vn{var}, the values of the curve points come from a \vn{v1_var}
+array structure. If it is set to \vn{lat} the curve data points are calculated from the lattice
+without regard to any data structures. \vn{curve%data_source} can be set to \vn{beam} when tracking
+beams of particles. In this case, the curve points are calculated from the tracking. With \vn{beam},
+the particular bunch that the data is extracted from can be specified via \vn{curve%ix_bunch}. The
+default is \vn{0} which combines all the bunches of the beam for the calculation.
 
-Example: With \vn{curve%data_type} set to \vn{beta.x}, the setting of
-\vn{curve%data_source} to \vn{lat} gives the beta as calculated
-from the lattice and \vn{beam} gives the beta as calculated from the
-shape of the beam.
+Example: With \vn{curve%data_type} set to \vn{beta.x}, the setting of \vn{curve%data_source} to
+\vn{lat} gives the beta as calculated from the lattice and \vn{beam} gives the beta as calculated
+from the shape of the beam.
 
-\vn{curve%draw_symbols} determines whether a symbol is drawn at the
-data points. The size, shape and color of the symbols is determined by
-\vn{curve%symbol}. A given symbol point that is drawn has three
-numbers attached to it: The $(x, y)$ position on the graph and an
-index number to help identify it. The index number of a particular
-symbol is the index of the datum or variable corresponding the symbol
-in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
-printed using the \vn{show curve -symbol} command (\sref{s:show}).
-\vn{curve%draw_symbol_index} determines whether the index number is
-printed besides the symbol. Use the \vn{set curve} command
-(\sref{s:set}) to toggle the drawing of symbols. The default value for
-\vn{curve%draw_symbol} is False if \vn{plot%x_axis_type} is \vn{"s"}
-and True otherwise. The default\vn{curve%draw_symbol_index} is always
-False.
+\vn{curve%draw_symbols} determines whether a symbol is drawn at the data points. The size, shape and
+color of the symbols is determined by \vn{curve%symbol}. A given symbol point that is drawn has
+three numbers attached to it: The $(x, y)$ position on the graph and an index number to help
+identify it. The index number of a particular symbol is the index of the datum or variable
+corresponding the symbol in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
+printed using the \vn{show curve -symbol} command (\sref{s:show}).  \vn{curve%draw_symbol_index}
+determines whether the index number is printed besides the symbol. Use the \vn{set curve} command
+(\sref{s:set}) to toggle the drawing of symbols. The default value for \vn{curve%draw_symbol} is
+False if \vn{plot%x_axis_type} is \vn{"s"} and True otherwise. The
+default\vn{curve%draw_symbol_index} is always False.
 
-\vn{curve%draw_line} determines whether a curve is drawn through the
-data point symbols. The thickness, style (solid, dashed, etc.), and
-color of the line can be controlled by setting \vn{curve%line}. If
-\vn{plot%x_axis_type} is \vn{"s"}, and \vn{graph%component} does not
-contain \vn{"meas"} or \vn{"ref"}, \tao will attempt to calculate
-intermediate values in order to draw a smooth, accurate curve is
-drawn. Occasionally, this process is too slow or not desired for other
-reasons so setting \vn{curve%smooth_line_calc} to False will prevent
-this calculation and the curve will be drawn as a series of lines
-connecting the symbols. The default of \vn{curve%smooth_line_calc} is
-True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
-drawing of lines. Alternatively, the \vn{-disable_smooth_line_calc}
-switch can be used on the command line (\sref{s:command.line}) or the
-global variable \vn{global%disable_smooth_line_calc} can be set in
-the \tao initialization file (\sref{s:globals}).
+\vn{curve%draw_line} determines whether a curve is drawn through the data point symbols. The
+thickness, style (solid, dashed, etc.), and color of the line can be controlled by setting
+\vn{curve%line}. If \vn{plot%x_axis_type} is \vn{"s"}, and \vn{graph%component} does not contain
+\vn{"meas"} or \vn{"ref"}, \tao will attempt to calculate intermediate values in order to draw a
+smooth, accurate curve is drawn. Occasionally, this process is too slow or not desired for other
+reasons so setting \vn{curve%smooth_line_calc} to False will prevent this calculation and the curve
+will be drawn as a series of lines connecting the symbols. The default of
+\vn{curve%smooth_line_calc} is True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
+drawing of lines. Alternatively, the \vn{-disable_smooth_line_calc} switch can be used on the
+command line (\sref{s:command.line}) or the global variable \vn{global%disable_smooth_line_calc} can
+be set in the \tao initialization file (\sref{s:globals}).
 
-The \vn{graph%draw_only_good_user_data_or_vars} switch determines
-whether datums (\sref{s:init.data}) or variables (\sref{s:init.var})
-with a \vn{good_user} component set to \vn{False} are drawn. The
-default is to not draw them which means that data or variables not
-used in an optimization are not drawn. 
+The \vn{graph%draw_only_good_user_data_or_vars} switch determines whether datums
+(\sref{s:init.data}) or variables (\sref{s:init.var}) with a \vn{good_user} component set to
+\vn{False} are drawn. The default is to not draw them which means that data or variables not used in
+an optimization are not drawn.
 
-A graph has two vertical axes. The one on the left is called \vn{"y"}
-and the one on the right is called \vn{"y2"}. For example,
-\vn{graph%y%label} sets the axis label for the \vn{y} axis and
-\vn{graph%y2%label} sets the axis label for the \vn{y2} axis. Normally
-there is only one vertical scale for a graph and this is associated
-with the \vn{y} axis. However, if any curve of a given graph has
-\vn{curve%use_y2} set to \vn{True} then the \vn{y2} axis will have an
-independent second scale. In this case, the \vn{y2} axis numbers will
-be drawn. Notice that simply giving the \vn{y2} axis a label does {\em
-not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
+A graph has two vertical axes. The one on the left is called \vn{"y"} and the one on the right is
+called \vn{"y2"}. For example, \vn{graph%y%label} sets the axis label for the \vn{y} axis and
+\vn{graph%y2%label} sets the axis label for the \vn{y2} axis. Normally there is only one vertical
+scale for a graph and this is associated with the \vn{y} axis. However, if any curve of a given
+graph has \vn{curve%use_y2} set to \vn{True} then the \vn{y2} axis will have an independent second
+scale. In this case, the \vn{y2} axis numbers will be drawn. Notice that simply giving the \vn{y2}
+axis a label does {\em not} make the \vn{y2} axis scale independent of the \vn{y} axis scale.
 
-Typically, a graph's horizontal scale is set by the \vn{plot%x}
-component. If it is desired to have differing scales for different
-graphs, the \vn{graph%x} component can be used.
+Typically, a graph's horizontal scale is set by the \vn{plot%x} component. If it is desired to have
+differing scales for different graphs, the \vn{graph%x} component can be used.
 
 %-----------------------------------------------------------------
 \subsection{Graphing a Data Slice}\index{plot!data slice}

@@ -885,14 +885,14 @@ case ('ele_ref_name')
   call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   
 case ('ix_ele_ref')
-  call tao_integer_set_value (this_curve%ix_ele_ref, component, &
+  call tao_set_integer_value (this_curve%ix_ele_ref, component, &
                     set_value, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
   call tao_ele_to_ele_track (this_curve%ix_universe, i_branch, &
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
-  call tao_integer_set_value (this_curve%ix_universe, component, &
+  call tao_set_integer_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, eles, error, ignore_blank = .true.)
@@ -903,34 +903,37 @@ case ('ix_universe')
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
-  call tao_integer_set_value (this_curve%ix_branch, component, set_value, error)
+  call tao_set_integer_value (this_curve%ix_branch, component, set_value, error)
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)
   if (.not. associated(u)) return
-  call tao_integer_set_value (this_curve%ix_bunch, component, &
+  call tao_set_integer_value (this_curve%ix_bunch, component, &
                         set_value, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
-  call tao_integer_set_value (this_curve%symbol_every, component, set_value, error, 0, 1000000)
+  call tao_set_integer_value (this_curve%symbol_every, component, set_value, error, 0, 1000000)
+
+case ('component')
+  this_curve%component = remove_quotes(set_value)
 
 case ('draw_line')
-  call tao_logical_set_value (this_curve%draw_line, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_line, component, set_value, error)
 
 case ('draw_symbols')
-  call tao_logical_set_value (this_curve%draw_symbols, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_symbols, component, set_value, error)
 
 case ('draw_symbol_index')
-  call tao_logical_set_value (this_curve%draw_symbol_index, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_symbol_index, component, set_value, error)
 
 case ('smooth_line_calc')
-  call tao_logical_set_value (this_curve%smooth_line_calc, component, set_value, error)
+  call tao_set_logical_value (this_curve%smooth_line_calc, component, set_value, error)
 
 case ('use_y2')
-  call tao_logical_set_value (this_curve%use_y2, component, set_value, error)
+  call tao_set_logical_value (this_curve%use_y2, component, set_value, error)
 
 case ('use_z_color')
-  call tao_logical_set_value (this_curve%use_z_color, component, set_value, error)
+  call tao_set_logical_value (this_curve%use_z_color, component, set_value, error)
 
 case ('data_source')
   this_curve%data_source = set_value
@@ -948,30 +951,30 @@ case ('data_type_z')
   this_curve%data_type_z = set_value
 
 case ('z_color0')
-  call tao_real_set_value (this_curve%z_color0, component, set_value, error)  
+  call tao_set_real_value (this_curve%z_color0, component, set_value, error)  
 
 case ('z_color1')
-  call tao_real_set_value (this_curve%z_color1, component, set_value, error)  
+  call tao_set_real_value (this_curve%z_color1, component, set_value, error)  
 
 case ('hist%number')
   this_curve%hist%width = 0
-  call tao_integer_set_value (this_curve%hist%number, component, set_value, error, min_val = 0)
+  call tao_set_integer_value (this_curve%hist%number, component, set_value, error, min_val = 0)
 
 case ('hist%density_normalized')
-  call tao_logical_set_value (this_curve%hist%density_normalized, component, set_value, error)
+  call tao_set_logical_value (this_curve%hist%density_normalized, component, set_value, error)
   
 case ('hist%weight_by_charge')
-  call tao_logical_set_value (this_curve%hist%weight_by_charge, component, set_value, error)
+  call tao_set_logical_value (this_curve%hist%weight_by_charge, component, set_value, error)
   
 case ('hist%center')  
-  call tao_real_set_value (this_curve%hist%center, component, set_value, error)
+  call tao_set_real_value (this_curve%hist%center, component, set_value, error)
   
 case ('hist%width')  
   this_curve%hist%number = 0
-  call tao_real_set_value (this_curve%hist%width, component, set_value, error)  
+  call tao_set_real_value (this_curve%hist%width, component, set_value, error)  
   
 case ('y_axis_scale_factor')
-  call tao_real_set_value (this_curve%y_axis_scale_factor, component, set_value, error)
+  call tao_set_real_value (this_curve%y_axis_scale_factor, component, set_value, error)
 
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
@@ -1048,14 +1051,19 @@ do i = 1, size(plot)
   select case (component)
 
     case ('autoscale_x')
-      call tao_logical_set_value (plot(i)%p%autoscale_x, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_x, component, set_value, error)
 
     case ('autoscale_y')
-      call tao_logical_set_value (plot(i)%p%autoscale_y, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_y, component, set_value, error)
 
     case ('visible')
-      call tao_logical_set_value (plot(i)%p%r%visible, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%r%visible, component, set_value, error)
       call tao_turn_on_special_calcs_if_needed_for_plotting()
+
+    case ('component')
+      do j = 1, size(plot(i)%p%graph)
+        plot(i)%p%graph(j)%component = remove_quotes(set_value)
+      enddo
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
@@ -1084,6 +1092,8 @@ end subroutine
 !-
 
 subroutine tao_set_graph_cmd (graph_name, component, set_value)
+
+use quick_plot, only: qp_translate_to_color_index
 
 implicit none
 
@@ -1123,80 +1133,198 @@ subroutine set_this_graph (this_graph)
 
 type (tao_graph_struct) this_graph
 type (tao_universe_struct), pointer :: u
-character(40) comp
+character(40) comp, sub_comp
 character(200) value
 integer iset, iw, ix
 logical logic, error
 
 !
 
-comp = component
 value = remove_quotes(set_value)
+
+comp = component
+ix = index(comp, '%')
+if (ix /= 0) then
+  sub_comp = comp(ix+1:)
+  comp = comp(:ix-1)
+endif
+  
 
 select case (comp)
 
-  case ('component')
-    this_graph%component = set_value
-  case ('clip')
-    call tao_logical_set_value (this_graph%clip, comp, value, error)
-  case ('draw_axes')
-    call tao_logical_set_value (this_graph%draw_axes, comp, value, error)
-  case ('draw_grid')
-    call tao_logical_set_value (this_graph%draw_grid, comp, value, error)
-  case ('draw_only_good_user_data_or_vars')
-    call tao_logical_set_value (this_graph%draw_only_good_user_data_or_vars, comp, value, error)
-  case ('ix_universe')
-    call tao_integer_set_value (this_graph%ix_universe, comp, value, error, 1, ubound(s%u, 1))
-  case ('margin%x1')
-    call tao_real_set_value(this_graph%margin%x1, comp, value, error)
-  case ('margin%x2')
-    call tao_real_set_value(this_graph%margin%x2, comp, value, error)
-  case ('margin%y1')
-    call tao_real_set_value(this_graph%margin%y1, comp, value, error)
-  case ('margin%y2')
-    call tao_real_set_value(this_graph%margin%y2, comp, value, error)
-  case ('floor_plan_size_is_absolute')
-    call tao_logical_set_value(this_graph%floor_plan_size_is_absolute, comp, value, error)
-  case ('floor_plan_draw_only_first_pass')
-    call tao_logical_set_value(this_graph%floor_plan_draw_only_first_pass, comp, value, error)
-  case ('floor_plan_rotation')
-    call tao_real_set_value(this_graph%floor_plan_rotation, comp, value, error)
-  case ('floor_plan_orbit_scale')
-    call tao_real_set_value(this_graph%floor_plan_orbit_scale, comp, value, error)
-  case ('floor_plan_orbit_color')
-    this_graph%floor_plan_orbit_color = value
-  case ('scale_margin%x1')
-    call tao_real_set_value(this_graph%scale_margin%x1, comp, value, error)
-  case ('scale_margin%x2')
-    call tao_real_set_value(this_graph%scale_margin%x2, comp, value, error)
-  case ('scale_margin%y1')
-    call tao_real_set_value(this_graph%scale_margin%y1, comp, value, error)
-  case ('scale_margin%y2')
-    call tao_real_set_value(this_graph%scale_margin%y2, comp, value, error)
-  case ('title')
-    this_graph%title = value
-  case ('y2_mirrors_y')
-    call tao_logical_set_value (this_graph%y2_mirrors_y, comp, value, error)
-  case ('floor_plan_view')
-    select case (value)
-    case ('xy', 'xz', 'yx', 'yz', 'zx', 'zy')
-    case default
-      call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
-      return
-    end select
-    this_graph%floor_plan_view = upcase(value)
-
+case ('component')
+  this_graph%component = set_value
+case ('clip')
+  call tao_set_logical_value (this_graph%clip, component, value, error)
+case ('draw_axes')
+  call tao_set_logical_value (this_graph%draw_axes, component, value, error)
+case ('draw_grid')
+  call tao_set_logical_value (this_graph%draw_grid, component, value, error)
+case ('draw_only_good_user_data_or_vars')
+  call tao_set_logical_value (this_graph%draw_only_good_user_data_or_vars, component, value, error)
+case ('ix_universe')
+  call tao_set_integer_value (this_graph%ix_universe, component, value, error, 1, ubound(s%u, 1))
+case ('margin')
+  call set_this_qp_rect_struct (this_graph%margin, sub_comp, value, error)
+case ('scale_margin')
+  call set_this_qp_rect_struct (this_graph%margin, sub_comp, value, error)
+case ('x')
+  call set_this_qp_axis_struct (this_graph%x, sub_comp, value, error)
+case ('y')
+  call set_this_qp_axis_struct (this_graph%y, sub_comp, value, error)
+case ('y2')
+  call set_this_qp_axis_struct (this_graph%y2, sub_comp, value, error)
+case ('text_legend_origin')
+  call set_this_qp_point_struct (this_graph%text_legend_origin, sub_comp, value, error)
+case ('curve_legend_origin')
+  call set_this_qp_point_struct (this_graph%curve_legend_origin, sub_comp, value, error)
+case ('floor_plan_size_is_absolute')
+  call tao_set_logical_value(this_graph%floor_plan_size_is_absolute, component, value, error)
+case ('floor_plan_draw_only_first_pass')
+  call tao_set_logical_value(this_graph%floor_plan_draw_only_first_pass, component, value, error)
+case ('floor_plan_rotation')
+  call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error)
+case ('floor_plan_orbit_scale')
+  call tao_set_real_value(this_graph%floor_plan_orbit_scale, component, value, error)
+case ('floor_plan_orbit_color')
+  this_graph%floor_plan_orbit_color = value
+case ('title')
+  this_graph%title = value
+case ('y2_mirrors_y')
+  call tao_set_logical_value (this_graph%y2_mirrors_y, component, value, error)
+case ('floor_plan_view')
+  select case (value)
+  case ('xy', 'xz', 'yx', 'yz', 'zx', 'zy')
   case default
-    call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+    call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
     return
-    
+  end select
+  this_graph%floor_plan_view = upcase(value)
+
+case default
+  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+  return
 end select
 
 u => tao_pointer_to_universe(this_graph%ix_universe)
 u%calc%lattice = .true.
 
-end subroutine
-end subroutine
+end subroutine set_this_graph
+
+!---------------------------------------------
+! contains
+
+subroutine set_this_qp_rect_struct (qp_rect, sub_comp, value, error)
+
+type (qp_rect_struct) qp_rect
+character(*) sub_comp, value
+logical error
+
+select case (sub_comp)
+case ('x1')
+  call tao_set_real_value(qp_rect%x1, sub_comp, value, error)
+case ('x2')
+  call tao_set_real_value(qp_rect%x2, sub_comp, value, error)
+case ('y1')
+  call tao_set_real_value(qp_rect%y1, sub_comp, value, error)
+case ('y2')
+  call tao_set_real_value(qp_rect%y2, sub_comp, value, error)
+case default
+  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+  return
+end select
+
+end subroutine set_this_qp_rect_struct
+
+!---------------------------------------------
+! contains
+
+subroutine set_this_qp_axis_struct (qp_axis, sub_comp, value, error)
+
+type (qp_axis_struct) qp_axis
+character(*) sub_comp, value
+integer indx
+logical error
+
+select case (sub_comp)
+case ('min')
+  call tao_set_real_value (qp_axis%min, component, value, error)
+case ('max')
+  call tao_set_real_value (qp_axis%max, component, value, error)
+case ('number_offset')
+  call tao_set_real_value (qp_axis%number_offset, component, value, error)
+case ('label_offset')
+  call tao_set_real_value (qp_axis%label_offset, component, value, error)
+case ('major_tick_len')
+  call tao_set_real_value (qp_axis%major_tick_len, component, value, error)
+case ('minor_tick_len')
+  call tao_set_real_value (qp_axis%minor_tick_len, component, value, error)
+
+case ('label_color')
+  indx = qp_translate_to_color_index(value)
+  if (indx < 1) then
+    call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
+  else
+    qp_axis%label_color = indx
+  endif
+case ('major_div')
+  call tao_set_integer_value (qp_axis%major_div, component, value, error, 1)
+case ('major_div_nominal')
+  call tao_set_integer_value (qp_axis%major_div_nominal, component, value, error, 1)
+case ('minor_div')
+  call tao_set_integer_value (qp_axis%minor_div, component, value, error, 0)
+case ('minor_div_max')
+  call tao_set_integer_value (qp_axis%minor_div_max, component, value, error, 1)
+case ('places')
+  call tao_set_integer_value (qp_axis%places, component, value, error)
+case ('tick_side')
+  call tao_set_integer_value (qp_axis%tick_side, component, value, error, -1, 1)
+case ('number_side')
+  call tao_set_integer_value (qp_axis%number_side, component, value, error, -1, 1)
+
+case ('label')
+  qp_axis%label = sub_comp
+case ('type')
+  qp_axis%type = sub_comp
+case ('bounds')
+  qp_axis%bounds = sub_comp
+
+case ('draw_label')
+  call tao_set_logical_value (qp_axis%draw_label, component, value, error)
+case ('draw_numbers')
+  call tao_set_logical_value (qp_axis%draw_numbers, component, value, error)
+
+case default
+  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+  return
+end select
+
+end subroutine set_this_qp_axis_struct
+
+!---------------------------------------------
+! contains
+
+subroutine set_this_qp_point_struct (qp_point, sub_comp, value, error)
+
+type (qp_point_struct) qp_point
+character(*) sub_comp, value
+logical error
+
+select case (sub_comp)
+case ('x')
+  call tao_set_real_value(qp_point%x, component, value, error)
+case ('y')
+  call tao_set_real_value(qp_point%y, component, value, error)
+case ('units')
+  qp_point%units = sub_comp
+case default
+  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
+  return
+end select
+
+end subroutine set_this_qp_point_struct
+
+end subroutine tao_set_graph_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1696,14 +1824,14 @@ endif
 
 select case (switch)
 case ('universe')
-  call tao_integer_set_value (s%com%default_universe, 'UNIVERSE', value_str, &
+  call tao_set_integer_value (s%com%default_universe, 'UNIVERSE', value_str, &
                                                                      err, lbound(s%u, 1), ubound(s%u, 1))
   if (err) return
   call tao_turn_on_special_calcs_if_needed_for_plotting()
 
 case ('branch')
   u => tao_pointer_to_universe(-1)
-  call tao_integer_set_value (s%com%default_branch, 'BRANCH', value_str, err, 0, ubound(u%model%lat%branch, 1))
+  call tao_set_integer_value (s%com%default_branch, 'BRANCH', value_str, err, 0, ubound(u%model%lat%branch, 1))
   if (err) return
 
 end select
@@ -1938,7 +2066,7 @@ end subroutine tao_set_elements_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_logical_set_value (var, var_str, value_str, error)
+! Subroutine tao_set_logical_value (var, var_str, value_str, error)
 !
 ! Subroutine to read and set the value of an logical varialbe.
 !
@@ -1954,7 +2082,7 @@ end subroutine tao_set_elements_cmd
 !   error -- Logical: Set True on an error. False otherwise.
 !-
 
-subroutine tao_logical_set_value (var, var_str, value_str, error)
+subroutine tao_set_logical_value (var, var_str, value_str, error)
 
 implicit none
 
@@ -1962,7 +2090,7 @@ logical var, ix
 integer ios
 
 character(*) var_str, value_str
-character(*), parameter :: r_name = 'tao_logical_set_value'
+character(*), parameter :: r_name = 'tao_set_logical_value'
 logical error
 
 !
@@ -1978,13 +2106,13 @@ endif
 var = ix      
 error = .false.
 
-end subroutine
+end subroutine tao_set_logical_value 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val, print_err)
+! Subroutine tao_set_integer_value (var, var_str, value_str, error, min_val, max_val, print_err)
 !
 ! Subroutine to read and set the value of an integer varialbe.
 !
@@ -2003,7 +2131,7 @@ end subroutine
 !   error -- Logical: Set True on an error. False otherwise.
 !-
 
-subroutine tao_integer_set_value (var, var_str, value_str, error, min_val, max_val, print_err)
+subroutine tao_set_integer_value (var, var_str, value_str, error, min_val, max_val, print_err)
 
 implicit none
 
@@ -2012,7 +2140,7 @@ integer, optional :: min_val, max_val
 integer ios, ix
 
 character(*) var_str, value_str
-character(*), parameter :: r_name = 'tao_integer_set_value'
+character(*), parameter :: r_name = 'tao_set_integer_value'
 logical error
 logical, optional :: print_err
 
@@ -2043,13 +2171,13 @@ endif
 var = ix
 error = .false.
 
-end subroutine tao_integer_set_value
+end subroutine tao_set_integer_value
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_real_set_value (var, var_str, value_str, error, min_val, max_val)
+! Subroutine tao_set_real_value (var, var_str, value_str, error, min_val, max_val)
 !
 ! Subroutine to read and set the value of a real varialbe.
 !
@@ -2067,7 +2195,7 @@ end subroutine tao_integer_set_value
 !   error -- Logical: Set True on an error. False otherwise.
 !-
 
-subroutine tao_real_set_value (var, var_str, value_str, error, min_val, max_val)
+subroutine tao_set_real_value (var, var_str, value_str, error, min_val, max_val)
 
 implicit none
 
@@ -2076,7 +2204,7 @@ real(rp), optional :: min_val, max_val
 integer ios
 
 character(*) var_str, value_str
-character(20) :: r_name = 'tao_real_set_value'
+character(20) :: r_name = 'tao_set_real_value'
 logical error
 
 !
@@ -2106,7 +2234,7 @@ endif
 var = var_value
 error = .false.
 
-end subroutine
+end subroutine tao_set_real_value
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

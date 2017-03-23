@@ -119,7 +119,7 @@ if (plot_name(1:1) == '@') then
     call point_to_plot (region%plot)
 
   case ('@T')
-    call tao_integer_set_value (ix, '', plot_name(3:), err, 1, size(s%plot_page%template))
+    call tao_set_integer_value (ix, '', plot_name(3:), err, 1, size(s%plot_page%template))
     if (err) then
       if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BAD PLOT TEMPLATE INDEX: ' // plot_name)
       return

@@ -107,6 +107,7 @@ real(rp) value
 integer i, j, k, m, n_symb, ix
 
 character(160) name
+character(60) component
 character(40) :: r_name = 'tao_graph_data_slice_setup'
 
 logical err
@@ -124,29 +125,27 @@ do k = 1, size(graph%curve)
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
 
-if (graph%component /= '') graph%title_suffix = &
-              trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
 
 ! loop over all curves
 
 curve_loop: do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
+  component = tao_curve_component(curve, graph)
 
   ! Find data points
 
   do i = 1, 2  ! x-axis, y-axis
-
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
-    call tao_data_type_substitute (name, name, curve%ele_ref_name, graph%component)
-    if (i == 1) call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_x, err, dflt_component = graph%component)
-    if (i == 2) call tao_evaluate_expression (name, 0, .true., scratch%y, scratch%info_y, err, dflt_component = graph%component)
+    call tao_data_type_substitute (name, name, curve, graph)
+    if (i == 1) call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_x, err, dflt_component = component)
+    if (i == 2) call tao_evaluate_expression (name, 0, .true., scratch%y, scratch%info_y, err, dflt_component = component)
     if (err) then
       call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
       return
     endif
-
   enddo
 
   ! How many good points?
@@ -174,8 +173,8 @@ curve_loop: do k = 1, size(graph%curve)
   if (curve%data_index == '') then
     curve%ix_symb = [(i, i = 1, n_symb)]
   else
-    call tao_data_type_substitute (curve%data_index, name, curve%ele_ref_name, graph%component)
-    call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_ix, err, dflt_component = graph%component)
+    call tao_data_type_substitute (curve%data_index, name, curve, graph)
+    call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_ix, err, dflt_component = component)
     if (size(scratch%info_x) == size(scratch%info_y)) then
       curve%ix_symb = pack (nint(scratch%x), mask = scratch%info_x%good .and. scratch%info_y%good)
     else
@@ -202,7 +201,7 @@ end subroutine tao_graph_data_slice_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_data_type_substitute (template, str_out, ref_name, component)
+! Subroutine tao_data_type_substitute (template, str_out, curve, graph)
 !
 ! Routine substitute the appropriate data type string for instances of "#ref" and 
 ! "#comp" in template. 
@@ -212,28 +211,32 @@ end subroutine tao_graph_data_slice_setup
 !
 ! Input:
 !   templace    -- character(*): String template.
-!   ref_name    -- character(*): String to substitute for all instances of "#ref".
-!   component   -- character(*): String to substitute for all instances of "#comp".
+!   curve       -- tao_curve_struct: curve%ele_ref_name is substituted for all instances of "#ref".
+!   graph       -- tao_graph_struct: 
 !
 ! Output:
 !   str_out     -- character(*): String with substitutions.
 !-
 
-subroutine tao_data_type_substitute (template, str_out, ref_name, component)
+subroutine tao_data_type_substitute (template, str_out, curve, graph)
 
 implicit none
 
-character(*) template, str_out, ref_name, component
+type (tao_curve_struct) curve
+type (tao_graph_struct) graph
+character(*) template, str_out
+character(60) component
 integer ix
 
 !
 
 str_out = template
+component = tao_curve_component(curve, graph)
 
 do
   ix = index(str_out, '#ref')
   if (ix == 0) exit
-  str_out = trim(str_out(:ix-1)) // trim(ref_name) // trim(str_out(ix+4:))
+  str_out = trim(str_out(:ix-1)) // trim(curve%ele_ref_name) // trim(str_out(ix+4:))
 enddo
 
 do
@@ -244,7 +247,7 @@ enddo
 
 if (index(str_out, '|') == 0) str_out = trim(str_out) // '|' // component
 
-end subroutine
+end subroutine tao_data_type_substitute
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1026,7 +1029,8 @@ logical err
 
 !
 
-graph%title_suffix = '[' // trim(graph%component) // ']'
+graph%title_suffix = ''
+if (graph%component /= '') graph%title_suffix = '[' // trim(graph%component) // ']'
 
 ! Attach x-axis type to title suffix if needed.
 ! Needed %label is blank and %draw_label = F.
@@ -1114,6 +1118,7 @@ logical straight_line_between_syms, valid, in_graph
 logical, allocatable :: good(:)
 
 character(200) data_type, name
+character(60) component
 character(16) data_source, dflt_index
 character(20), parameter :: r_name = 'tao_curve_data_setup'
 
@@ -1152,6 +1157,8 @@ else
                                       scratch%eles(1)%ele%ix_ele, curve%ix_ele_ref_track)
 endif
 
+component = tao_curve_component(curve, graph)
+
 !----------------------------------------------------------------------------
 ! Calculate where the symbols are to be drawn on the graph.
 
@@ -1178,7 +1185,7 @@ case ('expression')
     do i = nint(graph%x%min), nint(graph%x%max)
       write (dflt_index, '(i0)') i
       call tao_evaluate_expression  (curve%data_type(12:), 0, .true., value_arr, scratch%info, err, .false., &
-                              scratch%stack, graph%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
+                              scratch%stack, component, curve%data_source, dflt_dat_or_var_index = dflt_index)
       if (err .or. .not. scratch%info(1)%good) cycle
       n_dat = n_dat + 1
 
@@ -1189,7 +1196,7 @@ case ('expression')
 
   else
     call tao_evaluate_expression  (curve%data_type(12:), 0, .true., value_arr, scratch%info, err, .false., &
-                                                              scratch%stack, graph%component, curve%data_source)
+                                                              scratch%stack, component, curve%data_source)
     n_dat = count(scratch%info%good)
     call re_allocate (curve%ix_symb, n_dat)
     call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
@@ -1288,7 +1295,7 @@ case ('plot_x_axis_var')
     call tao_lattice_calc (valid)
 
     call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, scratch%info, err, &
-                          dflt_component = graph%component, dflt_source = curve%data_source)
+                          dflt_component = component, dflt_source = curve%data_source)
     if (.not. valid .or. err .or. size(value_arr) /= 1) then
       graph%why_invalid = 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // trim(curve%data_type)
       return
@@ -1319,9 +1326,9 @@ case ('data')
 
   ! Calculate values
 
-  call tao_data_type_substitute (curve%data_type, data_type, curve%ele_ref_name, graph%component)
+  call tao_data_type_substitute (curve%data_type, data_type, curve, graph)
   call tao_evaluate_expression  (data_type, 0, .true., value_arr, scratch%info, err, &
-                          stack = scratch%stack, dflt_component = graph%component, dflt_source = 'data')
+                          stack = scratch%stack, dflt_component = component, dflt_source = 'data')
   if (err) then
     graph%why_invalid = 'CANNOT FIND DATA CORRESPONDING: ' // data_type
     return
@@ -1369,7 +1376,7 @@ case ('data')
     else ! s
       where (d1_ptr%d%s > graph%x%min-eps .and. &
              d1_ptr%d%s < graph%x%max+eps) d1_ptr%d%good_plot = .true.
-      if (branch%param%geometry == closed$) then 
+      if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then 
         l_tot = branch%param%total_length
         where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
                d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
@@ -1382,7 +1389,7 @@ case ('data')
 
   ! make sure %useit_plot up-to-date & count the number of data points
 
-  call tao_data_useit_plot_calc (graph, d1_ptr%d) 
+  call tao_data_useit_plot_calc (curve, graph, d1_ptr%d) 
   if (plot%x_axis_type == 's') then
     ! veto non-regular elements when plotting s
     do m = lbound(d1_ptr%d,1), ubound(d1_ptr%d,1)
@@ -1411,7 +1418,7 @@ case ('data')
   elseif (plot%x_axis_type == 's') then
     curve%x_symb = branch%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
     ! If there is a wrap-around then reorder data
-    if (branch%param%geometry == closed$) then
+    if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
       do i = 1, n_dat
         if (curve%x_symb(i) > graph%x%max+eps) curve%x_symb(i) = curve%x_symb(i)-l_tot
         if (curve%x_symb(i) < graph%x%min-eps) curve%x_symb(i) = curve%x_symb(i)+l_tot
@@ -1507,7 +1514,7 @@ case ('var')
 
   ! calculate the y-axis data point values.
 
-  data_type = trim(curve%data_type) // '|' // graph%component
+  data_type = trim(curve%data_type) // '|' // trim(component)
   call tao_evaluate_expression (data_type, 0, .true., value_arr, scratch%info, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
@@ -1585,7 +1592,7 @@ case ('lat', 'beam')
       s1 = ele%s
       in_graph = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
       l_tot = branch%param%total_length
-      if (branch%param%geometry == closed$) in_graph = in_graph .or. &
+      if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) in_graph = in_graph .or. &
                       (s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps)
       ele%logic = ele%logic .and. in_graph                                 
     enddo
@@ -1644,7 +1651,7 @@ case ('s')
   smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
   if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
-  if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0 .or. &
+  if (index(component, 'meas') /= 0 .or. index(component, 'ref') /= 0 .or. &
       curve%data_source == 'data' .or. curve%data_source == 'var') then
     straight_line_between_syms = .true.
     smooth_curve = .false.
@@ -1662,15 +1669,15 @@ case ('s')
     curve%y_line = 0
     good = .true.
 
-    call tao_split_component(graph%component, scratch%comp, err)
+    call tao_split_component(component, scratch%comp, err)
     if (err) then
       graph%valid = .false.
-      graph%why_invalid = 'Bad Graph Component Expression'
+      graph%why_invalid = 'Bad Graph or Curve Component Expression'
       return
     endif
-    if (graph%component == '') then
+    if (component == '') then
       graph%valid = .false.
-      graph%why_invalid = 'No Graph Component.'
+      graph%why_invalid = 'No Graph or Curve Component.'
       return
     endif
 
@@ -1722,7 +1729,7 @@ case ('s')
       s0 = ele%s_start
       s1 = ele%s
       ele%logic = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
-      if (branch%param%geometry == closed$) then
+      if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
         ele%logic = ele%logic .or. ((s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
       endif
     enddo
@@ -2377,11 +2384,13 @@ end subroutine tao_calc_data_at_s
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_data_useit_plot_calc (graph, data)
+! Subroutine tao_data_useit_plot_calc (curve, graph, data)
 !
 ! Subroutine to set the data for plotting.
 !
 ! Input:
+!   graph   -- tao_graph_struct
+!   curve   -- tao_curve_struct
 !
 ! Output:
 !   data     -- Tao_data_struct:
@@ -2393,26 +2402,26 @@ end subroutine tao_calc_data_at_s
 !                                                        (w/ measured & reference data)
 !-
 
-subroutine tao_data_useit_plot_calc (graph, data)
+subroutine tao_data_useit_plot_calc (curve, graph, data)
 
 implicit none
 
+type (tao_curve_struct) curve
 type (tao_graph_struct) graph
 type (tao_data_struct) data(:)
+character(60) component
 
 !
 
+component = tao_curve_component(curve, graph)
 data%useit_plot = data%exists .and. data%good_plot .and. &
                   (data%good_user .or. .not. graph%draw_only_good_user_data_or_vars)
 
-if (index(graph%component, 'meas') /= 0) &
-         data%useit_plot = data%useit_plot .and. data%good_meas
-if (index(graph%component, 'ref') /= 0)  &
-         data%useit_plot = data%useit_plot .and. data%good_ref
-if (index(graph%component, 'model') /= 0)  &
-         data%useit_plot = data%useit_plot .and. data%good_model
+if (index(component, 'meas') /= 0)   data%useit_plot = data%useit_plot .and. data%good_meas
+if (index(component, 'ref') /= 0)    data%useit_plot = data%useit_plot .and. data%good_ref
+if (index(component, 'model') /= 0)  data%useit_plot = data%useit_plot .and. data%good_model
 
-end subroutine
+end subroutine tao_data_useit_plot_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2478,15 +2487,15 @@ datum%ele_ref_name   = curve%ele_ref_name
 datum%data_source    = curve%data_source
 datum%ix_branch      = curve%ix_branch
 
-call tao_split_component (curve%g%component, scratch%comp, err)
+call tao_split_component (tao_curve_component(curve, curve%g), scratch%comp, err)
 if (err) then
   valid = .false.
-  curve%g%why_invalid = 'Bad Graph Component Expression.'
+  curve%g%why_invalid = 'Bad Graph / Curve Component Expression.'
   return
 endif
-if (curve%g%component == '') then
+if (tao_curve_component(curve, curve%g) == '') then
   valid = .false.
-  curve%g%why_invalid = 'No Graph Components.'
+  curve%g%why_invalid = 'No Graph / Curve Components.'
   return
 endif
 

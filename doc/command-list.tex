@@ -458,20 +458,30 @@ Examples:
 \section{plot}\index{commands!plot}
 \label{s:plot}
 
-The \vn{plot} command is used to determine what components are plotted
-in the graphs of a given region. Format:
+The \vn{plot} command is used to determine what ``components'' (\sref{s:plot.data}) are
+plotted in the specified graphs or plots. Format:
 \begin{example}
-  plot <region> <component>
+  plot <plot_or_graph> <component>
 \end{example}
 
 \vskip 0.2in 
+
+components are a property of a graph (or curve) so when <plot_or_graph> specifies a plot,
+all the graphs associated with the plot are assigned the \vn{<component>}.
+
+Note: The plot command is a shortcut for the commands:
+\begin{example}
+  set plot <plot_name> component = <component>     ! and
+  set graph <graph_name> component = <component>
+\end{example}
+Also see the \vn{set curve} command.
 
 Use a ``-'' for baselines. 
 
 Examples:
 \begin{example}
-  plot bottom model - design       ! Plot model - design in the bottom region
-  plot top meas - model + design - ref 
+  plot bottom.g1 model - design        ! Plot model - design in the g1 graph of the bottom region
+  plot top meas - model + design - ref ! Set the components for the graphs in the top region.
 \end{example}
 
 %% ptc -----------------------------------------------------------
@@ -843,6 +853,7 @@ Format:
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
   ele_ref_name        = <string>  ! Name of reference element
+  component           = <string>  ! \sref{s:plot.data}
   ix_branch           = <number>  ! Branch index.
   ix_bunch            = <number>  ! Bunch index.
   ix_ele_ref          = <number>  ! Index of reference element
@@ -853,8 +864,8 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
   draw_symbols        = <logical> 
   draw_symbol_index   = <logical> 
 \end{example}
-See Section~\sref{s:template} for a description of these components.  Use the \vn{show
-curve} (\sref{s:show}) to see the settings of the components.
+See Section~\sref{s:template} for a description of these attributes.  Use the \vn{show
+curve} (\sref{s:show}) to see the settings of the attributes.
 
 Examples:
 \begin{example}
@@ -1027,13 +1038,20 @@ Format:
 
 For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
-  component   = <string>
+  component   = <string>     ! \sref{s:plot.data}
   clip        = <logical>
   ix_universe = <number>
-  margin%x1   = <number>
-  margin%x2   = <number>
-  margin%y1   = <number>
-  margin%y2   = <number>
+  margin      = <qp_rect_struct>
+  x           = <qp_axis_struct>
+  y           = <qp_axis_struct>
+  y2          = <qp_axis_struct>
+\end{example}
+
+For setting the \vn{component} attribute see also the commands:
+\begin{example}
+  plot                    ! \sref{s:plot}
+  set plot component      ! \sref{s:set.plot}
+  set curve component     ! \sref{s:set.curve}
 \end{example}
 
 Example:
@@ -1157,16 +1175,27 @@ Format:
   set plot <plot> <component> = <value>
 \end{example}
 
-For \vn{set plot}, the \vn{component}s that can be set are:
+For \vn{set plot}, \vn{<component>}s that can be set are:
 \begin{example}
   autoscale_x = <logical>
   autoscale_y = <logical>
   visible     = <logical>
+  component   = <string>    ! \sref{s:plot.data}
+\end{example}
+
+If \vn{component} is set, the \vn{<value>} is stored in the graphs of the plot since the
+\vn{component} attribute is associated with individual graphs and not the plot as a
+whole. Also see the commands:
+\begin{example}
+  plot                    ! \sref{s:plot}
+  set graph component     ! \sref{s:set.graph}
+  set curve component     ! \sref{s:set.curve}
 \end{example}
 
 Example:
 \begin{example}
-  set plot orbit visible = F   ! Hide orbit plot
+  set plot orbit visible = F        ! Hide orbit plot
+  set plot beta component = design  ! 
 \end{example}
 
 %% set plot_page --------------------------------------------------------------
@@ -2515,26 +2544,21 @@ Beam files can be used to initialize \tao (\sref{s:command.line}). Example
   write beam -at *   ! Output beam at every element.
 \end{example}
 
-The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).
-There can be multiple files produced. 
-\etcetcetc
+The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).  If the
+\vn{-all} switch is present, there will be two main flat files generated. The \vn{-all}
+switch needs to be used when there are multiple lattice branches that need to be
+translated to PTC. For example, in a dual colliding ring machine with two storage rings.
+Both \vn{M_u} and \vn{M_t} mad_universe structures will be generated. The two main files
+generated will have the suffixes \vn{.m_u} and \vn{.m_t} appended to the file names. In
+this case, the setting of \vn{-branch} is ignored.
 
- of the
-PTC layout associated with the \bmad \vn{model} lattice. If the \vn{-all} switch is
-present, there will be two flat files generated. The \vn{-all} switch needs to be used
-when there are multiple lattice branches that need to be translated to PTC. For example,
-in a dual colliding ring machine with two storage rings.  Both \vn{M_u} and \vn{M_t}
-mad_universe structures will be generated. The two files generated will have the suffixes
-\vn{.m_u} and \vn{.m_t} appended to the file names. In this case, the setting of
-\vn{-branch} is ignored.
-
-If \vn{-all} is not present, only one flat file is generated. In this case, if \vn{-old}
-is present, the flat file generated will be of the ``old'' syntax. Generally there is no
-reason to generate old style flat files. When generating a single flat file (no \vn{-all}
-switch present), the flat file will contain the information for a single lattice
-branch. The lattice branch used can be specified by the \vn{-branch} switch. The default,
-if \vn{-branch} is not present, is to use lattice branch \# 0. The \vn{-old} switch will
-generate an ``old style'' version.
+If \vn{-all} is not present, only one main flat file is generated. In this case, if
+\vn{-old} is present, the flat file generated will be of the ``old'' syntax. Generally
+there is no reason to generate old style flat files. When generating a single flat file
+(no \vn{-all} switch present), the flat file will contain the information for a single
+lattice branch. The lattice branch used can be specified by the \vn{-branch} switch. The
+default, if \vn{-branch} is not present, is to use lattice branch \# 0. The \vn{-old}
+switch will generate an ``old style'' version.
 
 In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command
 has been used to setup PTC.
