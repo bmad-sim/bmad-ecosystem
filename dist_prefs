@@ -38,7 +38,7 @@ export DIST_F90_REQUEST="gfortran"
 #   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
 #-----------------------------------------------------------
-export ACC_PLOT_PACKAGE="plplot"
+export ACC_PLOT_PACKAGE="pgplot"
 
 
 #-----------------------------------------------------------
@@ -99,7 +99,7 @@ export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
 # for now the making of shared object libraries is disabled. 
 # That is, static libraries will be used.
 #-----------------------------------------------------------
-export ACC_ENABLE_SHARED="Y"
+export ACC_ENABLE_SHARED="N"
 
 
 #-----------------------------------------------------------
@@ -109,4 +109,4 @@ export ACC_ENABLE_SHARED="Y"
 # compilations using that number of CPU cores.  The default 
 # value is "2" and cannot be set lower than "1"
 #-----------------------------------------------------------
-export ACC_SET_GMAKE_JOBS="8"
+export ACC_SET_GMAKE_JOBS="2"
