@@ -145,15 +145,11 @@ func_set_openmp_flags () {
 
 func_set_fpic_flags () {
 
-    case "${ACC_ENABLE_FPIC}" in
-	"Y" | "y" | "1" )
-	    export FCFLAGS="-fPIC ${FCFLAGS}"
-            ;;
-	*)
-	    ;;
-    esac
-}
+    # Enable -fPIC as default for all "packages" Fortran compilations - 24-Mar-2017.
+    export ACC_ENABLE_FPIC=Y
+    export FCFLAGS="-fPIC ${FCFLAGS}"
 
+}
 
 # Function to check for required MacPorts install on Mac OS X
 
