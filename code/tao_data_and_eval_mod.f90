@@ -2393,8 +2393,11 @@ case ('s_position')
 !-----------
 
 case ('time')
-  if (data_source == 'beam') return
-  call tao_load_this_datum (orbit(0:n_track)%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  if (data_source == 'beam') then
+    call tao_load_this_datum (bunch_params%centroid%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  else
+    call tao_load_this_datum (orbit(:)%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  endif
 
 !-----------
 

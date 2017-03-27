@@ -2,6 +2,8 @@ set (EXENAME ping_tao)
 
 FILE (GLOB SRC_FILES "*.f90")
 
+SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
+
 set (LINK_LIBS
   tao 
   bmad 
