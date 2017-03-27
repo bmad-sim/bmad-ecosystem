@@ -14,6 +14,15 @@ set (LINK_LIBS
   forest
 )
 
+SET (SHARED_LINK_LIBS
+  fgsl
+  gsl
+  gslcblas
+  lapack95
+  lapack
+  blas
+)
+
 # This is so CMake will not be confused and know that the main program is in Fortran.
 
 set (LINKER_LANGUAGE_PROP Fortran)
