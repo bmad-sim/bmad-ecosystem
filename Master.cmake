@@ -18,6 +18,9 @@ cmake_policy (SET CMP0015 NEW)
 #-----------------------------------------------------------
 SET (CMAKE_SKIP_RPATH TRUE)
 
+#-----------------------------------------------------------
+# Set CESR_FLAGS depening on OS type
+#-----------------------------------------------------------
 IF (${WIN32})
     SET (CESR_FLAGS "-DCESR_WINCVF")
 ELSE ()
@@ -67,6 +70,9 @@ ENDIF ()
 set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
 IF (${DISTRIBUTION_BUILD})
+  IF ("$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
+    SET (CMAKE_SKIP_RPATH FALSE)
+  ENDIF ()
   set (FORTRAN_COMPILER $ENV{DIST_F90})
   set (RELEASE_DIR $ENV{DIST_BASE_DIR})
   set (PACKAGES_DIR ${RELEASE_DIR})
