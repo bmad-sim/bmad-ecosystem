@@ -1048,8 +1048,11 @@ generating the points that define this curve will be decreased if the s-distance
 points is smaller than the \vn{ds_step}.  In this case, discrepancies between the plot and
 datum values may be observed.
 
+  \item[time] \Newline
+Time (in seconds) a particle or the bunch centroid is at the evaluation element.
+
   \item[tune.a, .b] \Newline
-Tune
+Tune in radians.
 
   \item[unstable.orbit] \Newline
 The \vn{unstable.orbit} datum is used for linear lattices in an
@@ -1285,7 +1288,7 @@ squared.
     spin.amp, .theta, .phi          \\
     spin.x, .y, .z          
   \end{tabular}                       & Particle spin                                 & beam, lat   & No  \\ \hline 
-  time                                & Particle time (sec)                           & lat         & Yes \\ \hline
+  time                                & Particle time (sec)                           & beam, lat   & Yes \\ \hline
   t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
                                       & Term in 2\Nd order transfer map               & lat         & No  \\ \hline 
   tt.$ijklm\ldots$ \hspace{10pt} 
