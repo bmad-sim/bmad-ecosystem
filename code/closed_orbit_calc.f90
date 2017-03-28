@@ -380,6 +380,7 @@ if (bmad_com_saved%spin_tracking_on) then
     mat3(:,i) = orb_end%spin
   enddo
   call w_mat_to_axis_angle(mat3, orb_start%spin, branch%param%spin_tune)
+  if (branch%param%spin_tune < 0) branch%param%spin_tune = branch%param%spin_tune + twopi
   call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 endif
 

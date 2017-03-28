@@ -1598,16 +1598,18 @@ end subroutine ele_misalignment_L_S_calc
 !   use geometry_mod
 !
 ! Input:
-!   position1    -- real(rp): frame 1 coordinates (Caretesian)
+!   position1    -- floor_position_struct: Position of particle in frame 1 coordinates (Caretesian).
 !   g            -- real(rp): curvature (1/rho)
 !   delta_s      -- real(rp): relative s-position of frame 2 to frame 1
 !   tilt         -- real(rp), optional: tilt. Default: 0
 !
 ! Result:
-!   position2    -- real(rp): Coordinates relative to frame 2
+!   position2    -- floor_position_struct: Coordinates relative to frame 2
 !   w_mat(3,3)   -- real(rp), optional: W matrix used in the transformation   
-!
+!-
+
 function bend_shift(position1, g, delta_s, w_mat, tilt) result(position2)
+
 type (floor_position_struct) :: position1, position2
 real(rp) :: g, delta_s, S_mat(3,3), L_vec(3), tlt, angle
 real(rp), optional :: w_mat(3,3), tilt
