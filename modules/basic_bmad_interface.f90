@@ -922,46 +922,19 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
 end subroutine
 
+subroutine tilt_coords (tilt_val, coord)
+  import
+  implicit none
+  real(rp) tilt_val
+  real(rp) coord(:)
+end subroutine
+
 subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
   import
   implicit none
   type (coord_struct) orb
   real(rp) length
   logical phase_relative_to_ref
-end subroutine
-
-subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
-  import
-  implicit none
-  type (lat_struct) lat
-  real(rp) :: xfer_mat(:,:)
-  real(rp), optional :: xfer_vec(:)
-  integer, optional :: ix1, ix2, ix_branch
-  logical, optional :: one_turn
-end subroutine
-
-subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
-  import
-  implicit none
-  type (lat_struct) lat
-  type (taylor_struct) :: t_map(:)
-  type (coord_struct), optional :: ref_orb
-  integer, intent(in), optional :: ix1, ix2, ix_branch
-  logical err_flag
-  logical, optional :: one_turn, unit_start
-end subroutine
-
-subroutine transfer_wake (wake_in, wake_out)
-  import
-  implicit none
-  type (wake_struct), pointer :: wake_in, wake_out
-end subroutine
-
-subroutine tilt_coords (tilt_val, coord)
-  import
-  implicit none
-  real(rp) tilt_val
-  real(rp) coord(:)
 end subroutine
 
 subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
@@ -1023,6 +996,15 @@ subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) orbit
+  real(rp), optional :: mat6(6,6), s_ent, ds_ref
+  logical, optional :: drift_to_exit, track_spin, make_matrix
 end subroutine
 
 subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
@@ -1136,12 +1118,39 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   type (track_struct), optional :: track
 end subroutine
 
+subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
+  import
+  implicit none
+  type (lat_struct) lat
+  type (taylor_struct) :: t_map(:)
+  type (coord_struct), optional :: ref_orb
+  integer, intent(in), optional :: ix1, ix2, ix_branch
+  logical err_flag
+  logical, optional :: one_turn, unit_start
+end subroutine
+
 subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
   import
   implicit none
   type (ele_struct) ele1, ele2
   real(rp) orb1(6), orb2(6)
   real(rp) m(6,6)
+end subroutine
+
+subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
+  import
+  implicit none
+  type (lat_struct) lat
+  real(rp) :: xfer_mat(:,:)
+  real(rp), optional :: xfer_vec(:)
+  integer, optional :: ix1, ix2, ix_branch
+  logical, optional :: one_turn
+end subroutine
+
+subroutine transfer_wake (wake_in, wake_out)
+  import
+  implicit none
+  type (wake_struct), pointer :: wake_in, wake_out
 end subroutine
 
 subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &

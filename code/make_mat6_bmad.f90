@@ -730,71 +730,8 @@ case (octupole$)
 
 case (patch$) 
 
-  if (ele%field_calc == custom$) then
-    call out_io (s_fatal$, r_name, 'MAT6_CALC_METHOD=BMAD_STANDARD CANNOT HANDLE FIELD_CALC=CUSTOM', &
-                                   'FOR PATCH ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  mc2 = mass_of(orb_in%species)
   c00%vec(5) = 0
-  call track_a_patch (ele, c00, .false., s_ent, ds_ref, ww, p_s, track_spin = .false.)
-
-  ! Coordinate transform before drift
-
-  rel_p = 1 + orb_in%vec(6)
-  if (ele%orientation*orb_in%direction == 1) then
-    dir = ele%value(upstream_ele_dir$) * orb_in%direction
-  else
-    dir = ele%value(downstream_ele_dir$) * orb_in%direction
-  endif
-  pz = sqrt(rel_p**2 - orb_in%vec(2)**2 - orb_in%vec(4)**2) * dir
-  beta_ref = v(p0c$) / v(e_tot$)
-
-  dps_dpx = ww(3,1) - ww(3,3) * orb_in%vec(2) / pz
-  dps_dpy = ww(3,2) - ww(3,3) * orb_in%vec(4) / pz
-  dps_dpz = ww(3,3) * rel_p / pz
-
-  mat6(1,1) = ww(1,1) - ww(3,1) * c00%vec(2) / p_s
-  mat6(1,2) = -s_ent * ((ww(1,1) - ww(1,3) * orb_in%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
-  mat6(1,3) = ww(1,2) - ww(3,2) * c00%vec(2) / p_s
-  mat6(1,4) = -s_ent * ((ww(1,2) - ww(1,3) * orb_in%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
-  mat6(1,6) = -s_ent * (ww(1,3) * rel_p / (p_s * pz) - c00%vec(2) * dps_dpz / p_s**2)
-
-  mat6(2,2) = ww(1,1) - ww(1,3) * orb_in%vec(2) / pz
-  mat6(2,4) = ww(1,2) - ww(1,3) * orb_in%vec(4) / pz
-  mat6(2,6) = ww(1,3) * rel_p / pz
-
-  mat6(3,1) = ww(2,1) - ww(3,1) * c00%vec(4) / p_s
-  mat6(3,2) = -s_ent * ((ww(2,1) - ww(2,3) * orb_in%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
-  mat6(3,3) = ww(2,2) - ww(3,2) * c00%vec(4) / p_s
-  mat6(3,4) = -s_ent * ((ww(2,2) - ww(2,3) * orb_in%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
-  mat6(3,6) = -s_ent * (ww(2,3) * rel_p / (p_s * pz) - c00%vec(4) * dps_dpz / p_s**2)
-
-  mat6(4,2) = ww(2,1) - ww(2,3) * orb_in%vec(2) / pz
-  mat6(4,4) = ww(2,2) - ww(2,3) * orb_in%vec(4) / pz
-  mat6(4,6) = ww(2,3) * rel_p / pz
-
-  mat6(5,1) = ww(3,1) * rel_p / p_s
-  mat6(5,2) = -s_ent * rel_p * dps_dpx / p_s**2
-  mat6(5,3) = ww(3,2) * rel_p / p_s
-  mat6(5,4) = -s_ent * rel_p * dps_dpy / p_s**2
-  mat6(5,6) = v(t_offset$) * c_light * mc2**2 * orb_in%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
-              s_ent / p_s - s_ent * rel_p * dps_dpz / p_s**2 + &
-              ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
-
-  ! Energy offset
-
-  if (v(p0c_start$) /= v(p0c$)) then
-    dp_ratio = v(p0c_start$) / v(p0c$)
-    mat6(2,:) = mat6(2,:) * dp_ratio
-    mat6(4,:) = mat6(4,:) * dp_ratio
-    mat6(6,:) = mat6(6,:) * dp_ratio
-  endif
-
-  ! veorb_in calc
-
+  call track_a_patch (ele, c00, .false., track_spin = .false., mat6 = mat6, make_matrix = .true.)
   ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
