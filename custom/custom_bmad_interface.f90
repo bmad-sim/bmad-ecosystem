@@ -26,6 +26,16 @@ subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
   logical err_flag
 end subroutine
 
+function distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here) result (dist)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  real(rp) dist
+  integer particle_at
+  logical no_aperture_here
+end function
+
 subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
   import
   implicit none

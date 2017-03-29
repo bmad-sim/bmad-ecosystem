@@ -312,6 +312,16 @@ function default_tracking_species (param) result (species)
   integer species
 end function
 
+function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  real(rp) dist
+  integer particle_at
+  logical no_aperture_here
+end function
+
 subroutine do_mode_flip (ele, err_flag)
   import
   implicit none

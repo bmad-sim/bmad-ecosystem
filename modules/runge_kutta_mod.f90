@@ -83,9 +83,9 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), intent(in) :: s1, s2
 real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save
 real(rp) :: s_edge_track, position(6)
-real(rp) :: old_s, dist_to_wall, ds_tiny
+real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
-integer :: n_step, s_dir, nr_max, this_state
+integer :: n_step, s_dir, nr_max
 
 logical local_ref_frame, err_flag, err, at_hard_edge, track_spin
 
@@ -180,9 +180,11 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     call check_aperture_limit (orbit, ele, in_between$, param, old_orbit)
     if (orbit%state /= alive$) then
       if (n_step == 1) return  ! Cannot do anything if this is the first step
-      this_state = orbit%state ! zbrent will overwrite this so save.
-      dist_to_wall = zbrent (wall_intersection_func, 0.0_rp, ds_did, ds_tiny)
-      orbit%state = this_state
+      ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
+      ! So step a small amount to make sure that the particle is past the wall.
+      ds_zbrent = zbrent (wall_intersection_func, 0.0_rp, ds_did, ds_tiny)
+      dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny)
+
       call wall_hit_handler_custom (orbit, ele, s)
       if (orbit%state /= alive$) return
       if (ele%aperture_at /= wall_transition$) then
@@ -192,9 +194,6 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         if (global_com%exit_on_error) call err_exit
         return
       endif
-      ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
-      ! So step a small amount to make sure that the particle is past the wall.
-      dist_to_wall = wall_intersection_func(ds_did+ds_tiny)
     endif
   end select
 
@@ -260,15 +259,20 @@ real(rp), intent(in) :: ds
 real(rp) d_radius
 real(rp) t_new, r_err(11), dr_ds(10)
 
+logical no_aperture_here
+
 !
 
 call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, local_ref_frame, err_flag)
 
 s = old_s + ds
 orbit%s = s + ele%s_start
-call check_aperture_limit (orbit, ele, in_between$, param, old_orbit)
+d_radius = distance_to_aperture (orbit, in_between$, ele, no_aperture_here)
 
-d_radius = param%unstable_factor
+if (no_aperture_here) then
+  call out_io (s_fatal$, r_name, 'CONFUSED APERTURE CALCULATION. PLEASE CONTACT HELP.')
+  if (global_com%exit_on_error) call err_exit
+endif
 
 end function wall_intersection_func
 
@@ -403,27 +407,27 @@ if (err) return
 
 !
 
-call transfer_this_orbit (orb, b21*ds*dr_ds1, orb_temp(1))
+call transfer_this_orbit (orb, b21*ds*dr_ds1, orb_temp(1), .true.)
 call kick_vector_calc(ele, param, s + a2*ds, orb_temp(1), local_ref_frame, dr_ds2, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2))
+call transfer_this_orbit (orb, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2), .true.)
 call kick_vector_calc(ele, param, s + a3*ds, orb_temp(2), local_ref_frame, dr_ds3, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3))
+call transfer_this_orbit (orb, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3), .true.)
 call kick_vector_calc(ele, param, s + a4*ds, orb_temp(3), local_ref_frame, dr_ds4, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4))
+call transfer_this_orbit (orb, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4), .true.)
 call kick_vector_calc(ele, param, s + a5*ds, orb_temp(4), local_ref_frame, dr_ds5, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5))
+call transfer_this_orbit (orb, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5), .true.)
 call kick_vector_calc(ele, param, s + a6*ds, orb_temp(5), local_ref_frame, dr_ds6, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new)
+call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, .false.)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat =          omega_to_quat(ds*c1*dr_ds1(8:10))
@@ -438,14 +442,15 @@ r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
 !----------------------------------------------------------
 contains
 
-subroutine transfer_this_orbit (orb_in, dvec, orb_out)
+subroutine transfer_this_orbit (orb_in, dvec, orb_out, all_transfer)
 
 type (coord_struct) orb_in, orb_out
 real(rp) dvec(10), t_temp, a_quat(4), omega(3), angle
+logical all_transfer
 
 !
 
-orb_out = orb_in
+if (all_transfer) orb_out = orb_in
 orb_out%vec = orb_in%vec + dvec(1:6)
 orb_out%t = orb_in%t + dvec(7)
 
