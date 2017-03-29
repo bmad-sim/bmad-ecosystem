@@ -2,7 +2,7 @@
 ! This file defines the interfaces for the BMAD subroutines
 !-
 
-module basic_bmad_interface
+module bmad_routine_interface
 
 use bmad_struct
 

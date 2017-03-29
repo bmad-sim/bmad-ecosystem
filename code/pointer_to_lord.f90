@@ -36,7 +36,7 @@
 
 function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)
 
-use basic_bmad_interface, except_dummy => pointer_to_lord
+use bmad_routine_interface, except_dummy => pointer_to_lord
 
 implicit none
 

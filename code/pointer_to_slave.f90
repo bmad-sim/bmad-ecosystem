@@ -30,7 +30,7 @@
 
 function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
 
-use basic_bmad_interface, except_dummy => pointer_to_slave
+use bmad_routine_interface, except_dummy => pointer_to_slave
 
 implicit none
 
