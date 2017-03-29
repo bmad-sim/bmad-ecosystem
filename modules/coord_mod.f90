@@ -368,7 +368,6 @@ endif
 ! Photon
 
 if (orb%species == photon$) then
-
   if (present(ele)) then
     if (present(ele)) orb%p0c = p0c
     if (ele%key == photon_init$) then
@@ -395,10 +394,6 @@ if (orb%species == photon$) then
   else
     orb%vec(5) = 0
   endif
-
-else
-  orb%spin = orb%spin
-
 endif
 
 ! If ele is present...
