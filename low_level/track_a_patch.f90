@@ -30,7 +30,7 @@
 
 subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
 
-use geometry_mod
+use geometry_mod, dummy => track_a_patch
 
 implicit none
 
