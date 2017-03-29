@@ -2983,6 +2983,19 @@ Taylor Series.
 Routine to transfer the values from one taylor map to another:
 Taylor1 $\le$ Taylor2
 
+\index[routine]{transfer_map_calc}
+\label{r:transfer.map.calc}
+\item[transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
+Routine to calculate the transfer map between two elements.
+
+\index[routine]{transfer_map_from_s_to_s}
+\label{r:transfer.map.from.s.to.s}
+\item[\protect\parbox{6in}{
+    transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, \\
+    \hspace*{1in} one_turn, unit_start, err_flag) }] \Newline 
+Subroutine to calculate the transfer map between longitudinal positions
+s1 to s2.
+
 \index[routine]{taylor_minus_taylor}
 \label{r:taylor.minus.taylor}
 \item[taylor_minus_taylor (taylor1, taylor2) result (taylor3)] \Newline 
@@ -3518,19 +3531,6 @@ Routine to Q_tune a lat. This routine will set the tunes to within 0.001 radian 
 \label{r:set.z.tune}
 \item[set_z_tune (lat, z_tune, ok)] \Newline
 Routine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
-
-\index[routine]{transfer_map_calc}
-\label{r:transfer.map.calc}
-\item[transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
-Routine to calculate the transfer map between two elements.
-
-\index[routine]{transfer_map_from_s_to_s}
-\label{r:transfer.map.from.s.to.s}
-\item[\protect\parbox{6in}{
-    transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, \\
-    \hspace*{1in} one_turn, unit_start, err_flag) }] \Newline 
-Subroutine to calculate the transfer map between longitudinal positions
-s1 to s2.
 
 \index[routine]{transfer_twiss}
 \label{r:transfer.twiss}

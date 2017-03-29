@@ -15,7 +15,7 @@
 
 subroutine transfer_wake (wake_in, wake_out)
 
-use basic_bmad_interface, except_dummy => transfer_wake
+use bmad_routine_interface, except_dummy => transfer_wake
 
 implicit none
 

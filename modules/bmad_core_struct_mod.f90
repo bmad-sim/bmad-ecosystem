@@ -11,7 +11,7 @@
 
 module bmad_core_struct_mod
 
-use basic_bmad_interface
+use bmad_routine_interface
 
 contains
 

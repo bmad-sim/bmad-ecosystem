@@ -23,7 +23,7 @@
 
 subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
 
-use basic_bmad_interface, except_dummy => apply_energy_kick
+use bmad_routine_interface, except_dummy => apply_energy_kick
 
 implicit none
 
