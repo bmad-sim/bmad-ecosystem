@@ -623,10 +623,13 @@ end subroutine calc_wall_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function wall3d_d_radius (position, ele, ix_wall, perp, ix_section, no_wall_here, origin, err_flag) result (d_radius)
+! Function wall3d_d_radius (position, ele, ix_wall, perp, ix_section, 
+!                                      no_wall_here, origin, radius_wall, err_flag) result (d_radius)
 !
-! Routine to calculate the normalized radius = particle_radius - wall_radius.
-! The radius is measured from the line connecting the centers of the bounding sections.
+! Routine to calculate the difference radius = particle_radius - wall_radius.
+! Radiuses are measured along a line from the wall origin with the line passing through
+! the particle position.
+! The wall origin itself lies on a line connecting the centers of the bounding sections.
 !
 ! Module needed:
 !   use wall3d_mod
@@ -648,10 +651,12 @@ end subroutine calc_wall_radius
 !                       longitudinal location of the particle.
 !   origin(3)      -- real(rp), optional: (x, y, s) origin with respect to the radius is measured.
 !                       Uses the same coords as position.
+!   radius_wall    -- real(rp), optional: Radius of the wall. 
 !   err_flag       -- Logical, optional: Set True if error. (EG noassociated %wall3d), false otherwise.
 !-
 
-function wall3d_d_radius (position, ele, ix_wall, perp, ix_section, no_wall_here, origin, err_flag) result (d_radius)
+function wall3d_d_radius (position, ele, ix_wall, perp, ix_section, &
+                                      no_wall_here, origin, radius_wall, err_flag) result (d_radius)
 
 type (ele_struct), target :: ele
 type (wall3d_section_struct), pointer :: sec1, sec2
@@ -663,7 +668,7 @@ type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p,
 type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
 
 real(rp), intent(in) :: position(:)
-real(rp), optional :: perp(3), origin(3)
+real(rp), optional :: perp(3), origin(3), radius_wall
 
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
@@ -685,6 +690,7 @@ character(*), parameter :: r_name = 'wall3d_d_radius'
 
 if (present(err_flag)) err_flag = .true.
 if (present(no_wall_here)) no_wall_here = .false.
+if (present(radius_wall)) radius_wall = -1
 d_radius = -1
 
 wall3d => pointer_to_wall3d (ele, ix_wall, ds_offset, is_branch_wall)
@@ -933,10 +939,12 @@ if (sec2%patch_in_region) then
   f = norm2(cross_product(r_p - r0, floor2_w%r - floor1_w%r))
   if (f == 0) then  ! At origin so give something approximate
     d_radius = -norm2(p1 * floor1_w%r + p2 * floor2_w%r - r0)
+    if (present(radius_wall)) radius_wall = -d_radius
   else
     alpha = norm2(cross_product(floor1_w%r - r0, floor2_w%r - floor1_w%r)) / f
     rw = r0 + alpha * (r_p - r0)
     d_radius = norm2(r_p - r0) - norm2(rw - r0)
+    if (present(radius_wall)) radius_wall = norm2(rw - r0)
   endif
 
   if (present(origin)) then
@@ -954,8 +962,7 @@ if (sec2%patch_in_region) then
     drw = p1 * floor1_dw%r + p2 * floor2_dw%r
     floor%r = cross_product(drw, floor2_w%r - floor1_w%r)
     floor = coords_floor_to_relative (ele%floor, floor, .false., .true.)  ! To patch coords
-    perp = floor%r / norm2(floor%r)  ! Normalize vector length to 1.
-    
+    perp = floor%r / norm2(floor%r)  ! Normalize vector length to 1.    
   endif
 
 !----------------------------
@@ -995,6 +1002,7 @@ else
 
   r_wall = p1 * r1_wall + p2 * r2_wall
   d_radius = r_particle - r_wall
+  if (present(radius_wall)) radius_wall = r_wall
 
   ! Calculate the surface normal vector
 
@@ -1041,7 +1049,7 @@ contains
 subroutine d_radius_at_section (this_sec)
 
 type (wall3d_section_struct) this_sec
-
+real(rp) r_wall, dr_dtheta
 integer ixv
 
 !
@@ -1056,12 +1064,13 @@ else
   sin_theta = y / r_particle
 endif
 
-call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ixv)
-d_radius = r_particle - r1_wall
+call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r_wall, dr_dtheta, ixv)
+d_radius = r_particle - r_wall
 if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                          [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r1_wall
+                          [-sin_theta, cos_theta, 0.0_rp] * dr_dtheta / r_wall
 if (present(origin)) origin = [this_sec%r0, position(5)]
 if (present(err_flag)) err_flag = .false.
+if (present(radius_wall)) radius_wall = r_wall
 
 end subroutine d_radius_at_section
 

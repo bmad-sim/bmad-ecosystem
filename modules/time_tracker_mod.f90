@@ -176,7 +176,9 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       dt_tol = ds_safe / (orb%beta * c_light)
       if (n_step /= 1  .and. .not. edge_kick_applied) then
         dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
-        dummy = wall_intersection_func(dt) ! Final call to set orb
+        ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
+        ! So step a small amount to make sure that the particle is past the wall.
+        dummy = wall_intersection_func(dt+ds_safe/c_light) ! Final call to set orb
       endif
       orb%state = lost$
       ! Convert for wall handler
@@ -280,16 +282,20 @@ function wall_intersection_func (this_dt) result (d_radius)
 type (coord_struct) test_orb
 real(rp), intent(in) :: this_dt
 real(rp) d_radius
-logical err_flag
+logical err_flag, no_aperture_here
+
 !
 call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
 
 test_orb = orb
 call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false., set_multipoles = .false.)
-call check_aperture_limit (test_orb, ele, in_between$, param, old_orb)
-d_radius = param%unstable_factor
-
+d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
 rf_time = rf_time + this_dt
+
+if (no_aperture_here) then
+  call out_io (s_fatal$, r_name, 'CONFUSED APERTURE CALCULATION. PLEASE CONTACT HELP.')
+  if (global_com%exit_on_error) call err_exit
+endif
 
 end function wall_intersection_func
 

@@ -42,21 +42,21 @@ is_too_large = .true.
 
 if (orbit%vec(1) > bmad_com%max_aperture_limit) then
   orbit%state = lost_pos_x_aperture$
-  if (present(param)) param%unstable_factor = abs(orbit%vec(1)) - bmad_com%max_aperture_limit
+  if (present(param)) param%unstable_factor = (abs(orbit%vec(1)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 elseif (-orbit%vec(1) > bmad_com%max_aperture_limit) then
   orbit%state = lost_neg_x_aperture$
-  if (present(param)) param%unstable_factor = abs(orbit%vec(1)) - bmad_com%max_aperture_limit
+  if (present(param)) param%unstable_factor = (abs(orbit%vec(1)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 endif
 
 if (orbit%vec(3) > bmad_com%max_aperture_limit) then
   orbit%state = lost_pos_y_aperture$
-  if (present(param)) param%unstable_factor = abs(orbit%vec(3)) - bmad_com%max_aperture_limit
+  if (present(param)) param%unstable_factor = (abs(orbit%vec(3)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 elseif (-orbit%vec(3) > bmad_com%max_aperture_limit) then
   orbit%state = lost_neg_y_aperture$
-  if (present(param)) param%unstable_factor = abs(orbit%vec(3)) - bmad_com%max_aperture_limit
+  if (present(param)) param%unstable_factor = (abs(orbit%vec(3)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 endif
 

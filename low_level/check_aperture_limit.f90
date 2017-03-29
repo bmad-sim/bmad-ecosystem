@@ -41,17 +41,17 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r, rel_p, x0, y0
-real(rp) x1_lim, x2_lim, y1_lim, y2_lim, dx1, dx2, dy1, dy2, d_max
+real(rp) x1_lim, x2_lim, y1_lim, y2_lim, dx1, dx2, dy1, dy2, d_max, r_wall
 real(rp) d_radius, d_old, position(6), x_old, y_old, r_old
 
 integer i, particle_at, physical_end
-logical do_tilt, err, no_wall
+logical do_tilt, err, no_wall, x_aperture, y_aperture
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
 ! Super_slave elements have the aperture info stored in the lord
 
-param%unstable_factor = -1
+param%unstable_factor = 0
 
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
 
@@ -147,28 +147,34 @@ if (ele%aperture_at == wall_transition$) then
   case (elliptical$)
     r_old = (x_old / x_lim)**2 + (y_old / y_lim)**2
     r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
-    param%unstable_factor = r - 1
-    if (r_old > 1 .neqv. r > 1) orb%state = lost$
-
-  case (rectangular$, auto_aperture$)
-    if (abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) then
-      param%unstable_factor = 1 - max(abs(x_particle)/x_lim, abs(y_particle)/y_lim)
-    else
-      param%unstable_factor = min(abs(x_particle)/x_lim, abs(y_particle)/y_lim) - 1
+    if (r_old > 1 .neqv. r > 1) then
+      orb%state = lost$
+      param%unstable_factor = abs(sqrt(r) - 1)
     endif
 
-    if ((abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) .neqv. &
-        (abs(x_old) < x_lim .and. abs(y_old) < y_lim)) then
+  case (rectangular$, auto_aperture$)
+    x_aperture = (abs(x_particle) < x_lim .neqv. abs(x_old) < x_lim)
+    y_aperture = (abs(y_particle) < y_lim .neqv. abs(y_old) < y_lim)
+    if (x_aperture .or. y_aperture) then
       orb%state = lost$
+      if (x_aperture .and. y_aperture) then
+        param%unstable_factor = max(abs(abs(x_particle)/x_lim - 1), abs(abs(y_particle)/y_lim - 1))
+      elseif (x_aperture) then
+        param%unstable_factor = abs(abs(x_particle)/x_lim - 1)
+      else
+        param%unstable_factor = abs(abs(y_particle)/y_lim - 1)
+      endif
     endif
 
   case (wall3d$)
     position = [old_orb%vec(1:4), old_orb%s-ele%s_start, 1.0_rp]
-    d_old = wall3d_d_radius (position, ele, no_wall_here = no_wall)
+    d_old = wall3d_d_radius (position, ele, no_wall_here = no_wall, radius_wall = r_wall)
     position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
     d_radius = wall3d_d_radius (position, ele)
-    param%unstable_factor = d_radius
-    if (.not. no_wall .and. (d_radius > 0 .neqv. d_old > 0)) orb%state = lost$
+    if (.not. no_wall .and. (d_radius > 0 .neqv. d_old > 0)) then
+      orb%state = lost$
+      param%unstable_factor = abs(d_radius) / r_wall
+    endif
 
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
@@ -184,7 +190,6 @@ select case (ele%aperture_type)
 
 case (elliptical$)
   r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
-  param%unstable_factor = sqrt(r) - 1
   if (r < 1) return
 
   if (abs(x_particle / x_lim) > abs(y_particle / y_lim)) then
@@ -197,13 +202,9 @@ case (elliptical$)
     endif
   endif
 
-case (rectangular$, auto_aperture$)
-  if (abs(x_particle/x_lim) > abs(y_particle/y_lim)) then
-    param%unstable_factor = abs(x_particle/x_lim) - 1
-  else
-    param%unstable_factor = abs(y_particle/y_lim) - 1
-  endif
+  param%unstable_factor = sqrt(r) - 1
 
+case (rectangular$, auto_aperture$)
   if (abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) return
 
   if (abs(x_particle/x_lim) > abs(y_particle/y_lim)) then
@@ -221,12 +222,18 @@ case (rectangular$, auto_aperture$)
     endif
   endif
 
+  if (abs(x_particle/x_lim) > abs(y_particle/y_lim)) then
+    param%unstable_factor = abs(x_particle/x_lim) - 1
+  else
+    param%unstable_factor = abs(y_particle/y_lim) - 1
+  endif
+
 case (wall3d$)
   position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
-  d_radius = wall3d_d_radius (position, ele, no_wall_here = no_wall)
-  param%unstable_factor = d_radius
+  d_radius = wall3d_d_radius (position, ele, no_wall_here = no_wall, radius_wall = r_wall)
   if (.not. no_wall .and. d_radius > 0) then
     orb%state = lost$
+    param%unstable_factor = d_radius / r_wall
   endif
 
 case default
