@@ -24,6 +24,10 @@ set(SRC_DIRS
 # set (FFLAGS "-pg") 
 # set (CFLAGS "-pg")
 
+# For SHARED support
+SET (FFLAGS "-fPIC")
+SET (LINK_FLAGS "-fPIC")
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 
 
