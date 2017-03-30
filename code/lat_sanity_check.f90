@@ -363,15 +363,25 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! wall3d check
 
-    if (associated(ele%wall3d)) then
-      do k = 1, size(ele%wall3d(1)%section)
-        if (k > 1) then
-          if (ele%wall3d(1)%section(k-1)%s > ele%wall3d(1)%section(k)%s) then
+    if (associated(ele%wall3d) .and. ele%key /= diffraction_plate$ .and. ele%key /= mask$) then
+      do iw = 1, size(ele%wall3d)
+
+        do k = 2, size(ele%wall3d(iw)%section)
+          if (ele%wall3d(iw)%section(k-1)%s > ele%wall3d(iw)%section(k)%s) then
             call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'S VALUES FOR WALL3D SECTIONS NOT INCREASING.')
+            err_flag = .true.
           endif
+        enddo
+
+        ! Only a warning...
+        n = size(ele%wall3d(iw)%section)
+        if (ele%wall3d(iw)%section(n)%s == ele%wall3d(iw)%section(1)%s) then
+          call out_io (s_warn$, r_name, &
+                  'DISTANCE BETWEEN FIRST AND LAST WALL SECTIONS IS ZERO FOR ELEMENT: '// ele%name)
         endif
+
       enddo
     endif
 
