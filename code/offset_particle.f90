@@ -61,7 +61,7 @@
 !     orbit -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_particle (ele, param, set, orbit, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos, set_spin)
+subroutine offset_particle (ele, param, set, orbit, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
 
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
@@ -76,12 +76,14 @@ type (lat_param_struct) param
 type (coord_struct), intent(inout) :: orbit
 type (em_field_struct) field
 
-real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor
 real(rp) angle, z_rel_center, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
 real(rp) rot(3), dr(3), rel_tracking_charge, rtc, Ex, Ey, kx, ky
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx)
+
+real(rp), optional :: ds_pos, mat6(6,6)      ! mat6: For future use
+logical, optional :: make_matrix             ! For future use
 
 integer particle, sign_z_vel
 integer n, ix_pole_max

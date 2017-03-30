@@ -1432,6 +1432,14 @@ s = wall%section(nw)%s + s_ref
 if (size(wall%section) /= 1) s = s - bmad_com%significant_length/10
 call bracket_index (sp%s, 1, n_sec, s, ixw2)
 
+! If ixw2 < ixw1 then basically s(1) = s(nw) and there is a wall section (or sections) from a previous element at this s. 
+
+if (ixw2 < ixw1) then
+  ii = ixw1
+  ixw1 = ixw2
+  ixw2 = ii
+endif
+
 !
 
 n_del = nw - (ixw2 - ixw1)  ! net number of sections added.

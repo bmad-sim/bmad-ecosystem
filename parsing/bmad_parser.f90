@@ -1157,6 +1157,8 @@ if (detected_expand_lattice_cmd) then
   global_com%exit_on_error = exit_on_error
 endif
 
+!
+
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
   do i = 1, branch%n_ele_max
@@ -1176,6 +1178,8 @@ call parser_init_custom_elements ()
 ! here since the Twiss parameters have not been set. But this is expected. 
 
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
+
+!
 
 call create_concatenated_wall3d (lat, err)
 if (err) then
