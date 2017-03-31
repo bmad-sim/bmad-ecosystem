@@ -635,6 +635,20 @@ subroutine offset_particle (ele, param, set, coord, set_tilt, set_multipoles, se
   logical, optional :: make_matrix
 end subroutine
 
+subroutine offset_particle2 (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, &
+                                                                           ds_pos, set_spin, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) :: ele
+  type (lat_param_struct) param
+  type (coord_struct), intent(inout) :: coord
+  integer particle
+  logical, intent(in) :: set
+  logical, optional, intent(in) :: set_multipoles, set_tilt, set_hvkicks, set_z_offset, set_spin
+  real(rp), optional :: ds_pos, mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
   import
   implicit none
