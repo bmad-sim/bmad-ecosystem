@@ -102,7 +102,7 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-real(rp) t1(6,6), del_orb(6)
+real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_del, this_del, max_eigen
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3)
@@ -198,6 +198,16 @@ case (4, 5)
 
   orb_start%vec(5) = 0
 
+  if (n_dim == 5) then  ! crude I1 integral calculation
+    i1_int = 0
+    do ie = 1, branch%n_ele_track
+      ele => branch%ele(ie)
+      if (ele%key == sbend$) then
+        i1_int = i1_int + ele%value(l$) * ele%value(g$) * (branch%ele(ie-1)%x%eta + ele%x%eta) / 2
+      endif
+    enddo
+  endif
+
 ! Variable energy case: i_dim = 6
 
 case (6)
@@ -259,8 +269,7 @@ i_max = 100
 
 do i_loop = 1, i_max
 
-  weight(1:n_dim) = 1 / (orb_start%vec(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
-  if (n_dim == 5) weight(5) = 1 / (orb_start%vec(6) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  weight(1:n_dim) = 1 / (abs(a) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
 
   call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
 
@@ -298,27 +307,53 @@ do i_loop = 1, i_max
   ! This is computationally intensive so only do this if the orbit has shifted significantly.
   ! Status == 1 means that the change in "a" was too large but t1 does not need to be remade.
 
-  if (chisq > old_chisq/2 .and. status /= 1 .and. &
-                maxval(abs(old_start(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
-    if (.not. allocate_m_done) then
-      allocate (m(branch%n_ele_max))
-      allocate_m_done = .true.
+  if (chisq > old_chisq/2 .and. status /= 1) then
+    if (maxval(abs(old_start(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
+      if (.not. allocate_m_done) then
+        allocate (m(branch%n_ele_max))
+        allocate_m_done = .true.
+      endif
+
+      do n = 1, branch%n_ele_max
+        m(n)%mat6 = branch%ele(n)%mat6
+        m(n)%vec0 = branch%ele(n)%vec0
+      enddo
+
+      call this_t1_calc (branch, dir, .true., t1, err); if (err) return
+      t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
+
+      do n = 1, branch%n_ele_max
+        branch%ele(n)%mat6 = m(n)%mat6
+        branch%ele(n)%vec0 = m(n)%vec0
+      enddo
+
+      old_start = co_saved(0)%vec
+
+    else
+      call make_t11_inv (err)
+      if (err) then
+        call end_cleanup
+        return
+      endif
+
+      del_co(1:n_dim) = matmul(t11_inv(1:n_dim,1:n_dim), dorb(1:n_dim)) 
+
+      ! For n_dim = 6, if at peak of RF then del_co(5) may be singularly large. 
+      ! To avoid this, limit z step to be no more than lambda_rf/10
+
+      if (n_dim == 5) then
+        del_co(5) = dorb(5) / i1_int      
+
+      elseif (n_dim == 6) then
+        dz_norm = abs(del_co(5)) / (orb_start%beta * c_light / (10 * rf_freq))
+        if (dz_norm > 1) then
+          del_co = del_co / dz_norm
+        endif
+      endif
+
+      a = a + del_co(1:n_dim)
+
     endif
-
-    do n = 1, branch%n_ele_max
-      m(n)%mat6 = branch%ele(n)%mat6
-      m(n)%vec0 = branch%ele(n)%vec0
-    enddo
-
-    call this_t1_calc (branch, dir, .true., t1, err); if (err) return
-    t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
-
-    do n = 1, branch%n_ele_max
-      branch%ele(n)%mat6 = m(n)%mat6
-      branch%ele(n)%vec0 = m(n)%vec0
-    enddo
-
-    old_start = co_saved(0)%vec
   endif
 
   ! The super_mrqmin routine  will converge to the nearest fixed point even if that fixed point is an unstable one.
@@ -394,7 +429,7 @@ if (present(err_flag)) err_flag = .false.
 
 contains
 
-subroutine end_cleanup
+subroutine end_cleanup()
 
 bmad_com = bmad_com_saved  ! Restore
 
@@ -540,5 +575,31 @@ else
 endif
 
 end subroutine this_t1_calc
+
+!------------------------------------------------------------------------------
+! contains
+
+subroutine make_t11_inv (err)
+
+real(rp) mat(6,6)
+logical ok1, ok2, err
+
+!
+
+err = .true.
+
+ok1 = .true.
+call mat_make_unit (mat(1:n_dim,1:n_dim))
+mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
+
+if (.not. ok1 .or. .not. ok2) then 
+  call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+  return
+endif
+
+err = .false.
+
+end subroutine
 
 end subroutine closed_orbit_calc
