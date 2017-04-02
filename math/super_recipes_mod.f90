@@ -19,7 +19,7 @@ type super_mrqmin_storage_struct
   logical, allocatable :: mask(:)
   ! Used by super_mrqcof
   real(rp), allocatable :: dyda(:, :)
-  real(rp), allocatable :: dy(:), wt(:), ymod(:)
+  real(rp), allocatable :: old_dy(:), dy(:), wt(:), ymod(:)
 end type
 
 contains
@@ -261,7 +261,8 @@ if (alamda < 0.0) then
   call re_allocate2d(storage%covar, ma, ma)
   call re_allocate2d(storage%alpha, ma, ma)
   call re_allocate2d(storage%dyda, ndata, ma)
-  call re_allocate(storage%dy, ndata)
+  call re_allocate(storage%old_dy, ndata)
+  call re_allocate(storage%dy, ndata, init_val = 0.0_rp)
   call re_allocate(storage%wt, ndata)
   call re_allocate(storage%ymod, ndata)
   alamda = 0.001_rp
@@ -272,7 +273,12 @@ if (alamda < 0.0) then
     return
   endif
   storage%ochisq = chisq
+  storage%old_dy = storage%dy
   storage%atry = a
+else
+  ! If the calling program is changing weights then this will potentially confuse things.
+  ! To prevent this, recalculate the original chisq.
+  storage%ochisq = dot_product(storage%dy**2, weight)
 end if
 
 storage%covar(1:mfit, 1:mfit) = storage%alpha(1:mfit, 1:mfit)
@@ -305,6 +311,7 @@ if (chisq < storage%ochisq .and. status == 0) then
 else
   alamda = 2.0_rp * alamda
   chisq = storage%ochisq
+  storage%dy = storage%old_dy
 end if
 
 end subroutine super_mrqmin
@@ -352,6 +359,7 @@ nv = size(a)
 call funcs(a, storage%ymod, storage%dyda, status)
 if (status /= 0) return
 
+storage%old_dy = storage%dy
 storage%dy = y - storage%ymod
 j = 0
 
