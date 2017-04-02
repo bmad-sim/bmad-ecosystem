@@ -417,6 +417,15 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   else:
     zero_length = True
 
+  if 'bz' in sad_ele.param:
+    try:
+      zero_field = (float(sad_ele.param['bz']) == 0)
+      if zero_field: sad_ele.param['bz'] = '0'
+    except ValueError:
+      zero_field = False
+  else:
+    zero_field = True
+
   # SAD sol with misalignments becomes a Bmad patch
 
   if sad_ele.type == 'sol' and sad_ele.param.get('bound') == '1':
@@ -429,6 +438,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 ##        for param in sad_ele.param:
 ##          if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
 ##            print ('  ' + param + ' = ' + sad_ele.param[param])
+
+  # SAD sol with zero field
+
+  if sad_ele.type == 'sol' and zero_field and 'geo' not in sad_ele.param and 'bound' not in sad_ele.param:
+    bmad_ele.param['sad_geo_bound'] = '-1'
 
   # Handle case when inside solenoid
 
@@ -1177,8 +1191,8 @@ if sad_info.has_sol_f1: f_out.write('''
 ! Save SAD SOL F1 info in a custom attribute in case lattice is back translated to to SAD
 parameter[custom_attribute1] = "marker::sad_f1"
 parameter[custom_attribute1] = "patch::sad_f1"
-parameter[custom_attribute2] = "marker::sad_geo_bound"     ! 1 -> bound, 2 -> bound+geo 
-parameter[custom_attribute2] = "patch::sad_geo_bound"
+parameter[custom_attribute2] = "marker::sad_geo_bound"     !  1 -> bound, 2 -> bound + geo, 
+parameter[custom_attribute2] = "patch::sad_geo_bound"      ! -1 -> zero field sol 
 parameter[custom_attribute3] = "marker::sad_bz"
 parameter[custom_attribute3] = "patch::sad_bz"
 parameter[custom_attribute4] = "patch::sad_fshift"
