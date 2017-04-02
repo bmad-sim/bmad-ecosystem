@@ -99,6 +99,8 @@ type (super_mrqmin_storage_struct) storage
 type matrix_save
   real(rp) mat6(6,6)
   real(rp) vec0(6)
+  type (coord_struct) map_ref_orb_in
+  type (coord_struct) map_ref_orb_out
 end type
 type (matrix_save), allocatable :: m(:)
 
@@ -317,6 +319,8 @@ do i_loop = 1, i_max
       do n = 1, branch%n_ele_max
         m(n)%mat6 = branch%ele(n)%mat6
         m(n)%vec0 = branch%ele(n)%vec0
+        m(n)%map_ref_orb_in  = branch%ele(n)%map_ref_orb_in
+        m(n)%map_ref_orb_out = branch%ele(n)%map_ref_orb_out
       enddo
 
       call this_t1_calc (branch, dir, .true., t1, err); if (err) return
@@ -325,6 +329,8 @@ do i_loop = 1, i_max
       do n = 1, branch%n_ele_max
         branch%ele(n)%mat6 = m(n)%mat6
         branch%ele(n)%vec0 = m(n)%vec0
+        branch%ele(n)%map_ref_orb_in  = m(n)%map_ref_orb_in
+        branch%ele(n)%map_ref_orb_out = m(n)%map_ref_orb_out
       enddo
 
       old_start = co_saved(0)%vec
