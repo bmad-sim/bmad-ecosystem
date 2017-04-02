@@ -161,7 +161,8 @@ if (set) then
         position = bend_shift(position, ele%value(g$), ds_center, tilt = ele%value(ref_tilt_tot$))
 
         call ele_misalignment_L_S_calc(ele, L_mis, ws)
-        position%r = matmul(ws, position%r) + L_mis
+        ws = transpose(ws)
+        position%r = matmul(ws, position%r - L_mis)
         position%w = matmul(ws, position%w)
 
         if (ele%value(ref_tilt_tot$) == 0) then
