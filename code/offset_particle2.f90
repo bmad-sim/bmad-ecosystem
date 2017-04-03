@@ -79,10 +79,10 @@ type (em_field_struct) field
 type (floor_position_struct) position
 
 real(rp) rel_p, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor, ds_center
-real(rp) angle, z_rel_center, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
-real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
+real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
+real(rp) beta, charge_dir, dz, pvec(3), cos_r, sin_r
 real(rp) rot(3), dr(3), rel_tracking_charge, rtc, Ex, Ey, kx, ky, length
-real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), ws(3,3), L_mis(3), p_vec(3), roll
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), ws(3,3), L_mis(3), p_vec(3), ref_tilt
 real(rp), optional :: ds_pos, mat6(6,6)
 
 integer particle, sign_z_vel
@@ -147,35 +147,33 @@ if (set) then
     z_off = ele%value(z_offset_tot$)
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
-    roll  = 0
-    if (ele%key == sbend$) roll = ele%value(roll$)
+    ref_tilt = ele%value(ref_tilt_tot$)
 
-    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
+    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
+                          (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0))) then
             
       position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
       call mat_make_unit (position%w)
 
       if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-        
-        call mat_make_unit(position%w)
-        position = bend_shift(position, ele%value(g$), ds_center, tilt = ele%value(ref_tilt_tot$))
+        position = bend_shift(position, ele%value(g$), ds_center, tilt = ref_tilt)
 
         call ele_misalignment_L_S_calc(ele, L_mis, ws)
         ws = transpose(ws)
         position%r = matmul(ws, position%r - L_mis)
         position%w = matmul(ws, position%w)
 
-        if (ele%value(ref_tilt_tot$) == 0) then
+        if (ref_tilt == 0) then
           position = bend_shift(position, ele%value(g$), -ds_center)
         else
-          position = bend_shift(position, ele%value(g$), ele%value(L$)/2, tilt = ele%value(ref_tilt_tot$))
-          ws = w_mat_for_tilt(ele%value(ref_tilt_tot$))
+          position = bend_shift(position, ele%value(g$), -ele%value(L$)/2, tilt = ref_tilt)
+          ws = w_mat_for_tilt(-ref_tilt)
           position%r = matmul(ws, position%r)
           position%w = matmul(ws, position%w)
-          position = bend_shift(position, ele%value(g$), -ds_center, tilt = ele%value(ref_tilt_tot$))
+          position = bend_shift(position, ele%value(g$), ele%value(L$)/2-ds_center)
         endif        
 
-      ! Else not a bend
+      ! Else not a bend or a bend with zero bending angle
 
       else
         call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat_inv = ws)
@@ -185,19 +183,19 @@ if (set) then
         position%r(3) = position%r(3) + ds_center ! Angle offsets are relative to the center of the element
       endif
 
+      p_vec = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
+      p_vec = matmul(position%w, p_vec)
+      orbit%vec(2:4:2) = p_vec(1:2)
+      orbit%vec(1:3:2) = position%r(1:2)
+
+      if (set_z_off .and. position%r(3) /= 0) then
+        call track_a_drift (orbit, -sign_z_vel*position%r(3))
+        orbit%vec(5) = orbit%vec(5) + sign_z_vel*position%r(3)  ! Correction due to reference particle is also offset.
+      endif
+    
+      if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
+
     endif    ! has nonzero offset or pitch
-
-    p_vec = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-    p_vec = matmul(position%w, p_vec)
-    orbit%vec(2:4:2) = p_vec(1:2)
-    orbit%vec(1:3:2) = position%r(1:2)
-
-    if (set_z_off .and. position%r(3) /= 0) then
-      call track_a_drift (orbit, -sign_z_vel*position%r(3))
-      orbit%vec(5) = orbit%vec(5) + sign_z_vel*position%r(3)  ! Correction due to reference particle is also offset.
-    endif
-  
-    if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
 
   endif   ! has orientation attributes
 
@@ -274,14 +272,6 @@ if (set) then
 
 else
 
-  if (present(ds_pos)) then
-    z_rel_center = ele%orientation * (ds_pos - length/2)  ! position relative to center.
-  elseif (orbit%direction == 1) then   ! Exiting at downstream end
-    z_rel_center = ele%orientation * length / 2
-  else                   ! orbit%direction == -1 -> Exiting at upstream end
-    z_rel_center = -ele%orientation * length / 2
-  endif
-
   ! Unset: HV kicks for kickers and separators only.
 
   if (set_hv2) then
@@ -332,52 +322,9 @@ else
 
   ! Unset: Tilt & Roll
 
-  if (set_t) then
-
-    if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
-      angle = ele%value(g$) * z_rel_center * orbit%direction
-      off = [orbit%vec(1), orbit%vec(3), 0.0_rp]
-
-      sin_r = sin(ele%value(roll$)); cos_r = cos(ele%value(roll$))
-      sin_a = sin(angle);            cos_a = cos(angle)
-
-      m_trans(1,:) = [cos_r * cos_a**2 + sin_a**2, -cos_a * sin_r, (1 - cos_r) * cos_a * sin_a]
-      m_trans(2,:) = [cos_a * sin_r,               cos_r,          -sin_r * sin_a]
-      m_trans(3,:) = [(1 - cos_r) * cos_a * sin_a, sin_r * sin_a,  cos_r * sin_a**2 + cos_a**2]
-
-      off =  matmul(m_trans, [orbit%vec(1), orbit%vec(3), 0.0_rp])
-      pvec = matmul(m_trans, [orbit%vec(2), orbit%vec(4), sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)])
-      orbit%vec(1) = off(1); orbit%vec(3) = off(2)
-      orbit%vec(2) = pvec(1); orbit%vec(4) = pvec(2)
-
-      if (set_spn) orbit%spin = matmul(m_trans, orbit%spin)
-
-      ! If ds_pos is present then the transformation is not at the end of the bend.
-      ! In this case there is an offset from the coordinate system and the roll axis of rotation
-
-      if (present(ds_pos)) then
-        dx = cos_a - cos(ele%value(angle$)/2)
-        off = off + dx * [-cos_a * sin_r, cos_r - 1, sin_a * sin_r]
-      endif
-
-      ! Drift - off(3) but remember the ref particle is not moving.
-      orbit%vec(1) = off(1) - off(3) * pvec(1) / pvec(3)
-      orbit%vec(2) = pvec(1)
-      orbit%vec(3) = off(2) - off(3) * pvec(2) / pvec(3)
-      orbit%vec(4) = pvec(2)
-      orbit%vec(5) = orbit%vec(5) + off(3) * rel_p / pvec(3) 
-      orbit%t = orbit%t - off(3) * rel_p / (pvec(3) * c_light * orbit%beta)
-
-    endif
-
-    if (ele%key == sbend$) then
-      call tilt_coords (-ele%value(ref_tilt_tot$), orbit%vec)
-      if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(ref_tilt_tot$)], orbit%spin)
-    else
-      call tilt_coords (-ele%value(tilt_tot$), orbit%vec)
-      if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin)
-    endif
-
+  if (set_t .and. ele%key /= sbend$) then
+    call tilt_coords (-ele%value(tilt_tot$), orbit%vec)
+    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin)
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -396,72 +343,50 @@ else
 
   if (has_orientation_attributes(ele)) then
 
-    ! If a bend then must rotate the offsets from the coordinates at the center of the bend
-    ! to the exit coordinates. This rotation is just the coordinate transformation for the
-    ! whole bend except with half the bending angle.
+    ! ds_center is distance to the center of the element from the particle position
+    if (present(ds_pos)) then
+      ds_center = ele%orientation * (length/2 - ds_pos)   
+    else
+      ds_center = -sign_z_vel * length / 2
+    endif
 
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     z_off = ele%value(z_offset_tot$)
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
+    ref_tilt = ele%value(ref_tilt_tot$)
 
-    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0) then
+    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
+                          (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0))) then
+
+      position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
+      call mat_make_unit (position%w)
 
       if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-        angle = ele%value(g$) * z_rel_center
-        cos_a = cos(angle); sin_a = sin(angle)
-        dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
-
-        if (ele%value(ref_tilt_tot$) == 0) then
-          off = [cos_a * x_off + sin_a * z_off, y_off, -sin_a * x_off + cos_a * z_off]
-          rot = [-cos_a * yp, xp, sin_a * yp]
+          position = bend_shift(position, ele%value(g$), -ds_center)
+        if (ref_tilt == 0) then
         else
-          cos_t = cos(ele%value(ref_tilt_tot$));    sin_t = sin(ele%value(ref_tilt_tot$))
-          m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-          m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-          m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-          off = matmul(m_trans, [x_off, y_off, z_off])
-          rot = matmul(m_trans, [-yp, xp, 0.0_rp])
-          dr = [cos_t * dr(1) - sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
         endif
 
-        if (any(rot /= 0)) then
-          call axis_angle_to_w_mat (rot, norm2(rot), m_trans)
-          off = off + matmul(m_trans, dr) - dr
-        endif
-
-        orbit%vec(5) = orbit%vec(5) - sign_z_vel * (rot(2) * orbit%vec(1) - rot(1) * orbit%vec(3))
-        orbit%vec(1) = orbit%vec(1) + off(1)
-        orbit%vec(2) = orbit%vec(2) + sign_z_vel * rot(2) * rel_p
-        orbit%vec(3) = orbit%vec(3) + off(2)
-        orbit%vec(4) = orbit%vec(4) - sign_z_vel * rot(1) * rel_p
-
-        if (set_spn) call rotate_spin (rot, orbit%spin)
-
-        z_off = off(3)
-
-      ! Else not a bend
+      ! Else not a bend or a bend with zero bending angle
 
       else
-        ! Note: dz needs to be zero if orbit%beta = 0
-        dz = -sign_z_vel * (xp * orbit%vec(1) + yp * orbit%vec(3) + (xp**2 + yp**2) * z_rel_center / 2)
-        if (dz /= 0) then
-          orbit%t = orbit%t - dz / (orbit%beta * c_light) 
-          orbit%vec(5) = orbit%vec(5) + dz
-        endif
-        orbit%vec(1) = orbit%vec(1) + x_off + xp * z_rel_center
-        orbit%vec(2) = orbit%vec(2) + sign_z_vel * xp * rel_p
-        orbit%vec(3) = orbit%vec(3) + y_off + yp * z_rel_center
-        orbit%vec(4) = orbit%vec(4) + sign_z_vel * yp * rel_p
-        if (set_spn) call rotate_spin ([-yp, xp, 0.0_rp], orbit%spin)
       endif
 
-      if (z_off /= 0 .and. set_z_off) then
-        call track_a_drift (orbit, -sign_z_vel*z_off)
-        orbit%vec(5) = orbit%vec(5) + sign_z_vel*z_off  ! Correction due to reference particle is also offset.
+      p_vec = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
+      p_vec = matmul(position%w, p_vec)
+      orbit%vec(2:4:2) = p_vec(1:2)
+      orbit%vec(1:3:2) = position%r(1:2)
+
+      if (set_z_off .and. position%r(3) /= 0) then
+        call track_a_drift (orbit, -sign_z_vel*position%r(3))
+        orbit%vec(5) = orbit%vec(5) + sign_z_vel*position%r(3)  ! Correction due to reference particle is also offset.
       endif
-    endif
+    
+      if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
+
+    endif    ! has nonzero offset or pitch
 
   endif   ! Has orientation attributes
 
