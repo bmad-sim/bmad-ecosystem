@@ -453,7 +453,7 @@ endif
 ! Note: 
 
 if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
-         ele%value(ref_tilt$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
+         ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
          key == crystal$ .or. (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   !
@@ -619,8 +619,6 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
       w_mat = matmul(w_mat, s_mat)
     endif
-     
-
 
   ! everything else. Just a translation
 
@@ -629,8 +627,6 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     floor%r = floor%r + w_mat(:,3) * leng
 
   end select 
-
-
 
 ! Simple case where the local reference frame stays in the horizontal plane.
 
@@ -660,15 +656,10 @@ else
 
 endif
 
-
 ! Update floor angles
+
 floor%w = w_mat 
 call update_floor_angles(floor, floor0)
-
-!floor%theta = theta
-!floor%phi   = phi
-!floor%psi   = psi
-!floor%w = w_mat
 
 end subroutine ele_geometry
 
@@ -1282,7 +1273,7 @@ end function coords_local_curvilinear_to_floor
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_element_frame_to_local(body_position, ele, w_mat) result (local_position)
+! Function coords_element_frame_to_local(body_position, ele, w_mat, calculate_angles) result (local_position)
 !
 ! Returns Cartesian coordinates relative to ele%floor (end of element).
 !
@@ -1290,6 +1281,9 @@ end function coords_local_curvilinear_to_floor
 !   body_position   -- floor_position_struct: element body frame coordinates.
 !     %r                [x, y, s] position with s = Position from beginning of element .
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
+!   calculate_angles  -- logical, optional: calculate angles for local_position 
+!                          Default: True.
+!                          False returns local_position angles (%theta, %phi, %psi) = 0.
 !  
 ! Output         
 !   local_position  -- floor_position_struct: Cartesian coordinates relative to end of the element (ele%floor).
@@ -1567,17 +1561,17 @@ select case(ele%key)
 case(sbend$)
   ! L_mis at ele center:
   ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho . [cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
-  if (ele%value(roll$) /= 0) then
+  if (ele%value(roll_tot$) /= 0) then
     Lc = ele%value(rho$) * [cos(ele%value(angle$)/2) - 1, 0.0_rp, sin(ele%value(angle$)/2)]
     call rotate_vec(Lc, y_axis$, ele%value(angle$)/2)  ! rotate to entrance about y axis by half angle 
     call rotate_vec(Lc, z_axis$, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
     L_mis = L_mis - Lc
-    call rotate_vec(Lc, z_axis$, ele%value(roll$))        ! rotate about z axis for roll
+    call rotate_vec(Lc, z_axis$, ele%value(roll_tot$))        ! rotate about z axis for roll
     L_mis = L_mis + Lc
   endif
 
   ! S_mis at ele center
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), s_mis)
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll_tot$), s_mis)
   
 case default
     call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), S_mis)
@@ -1591,7 +1585,8 @@ end subroutine ele_misalignment_L_S_calc
 !+
 ! Function bend_shift(position1, g, delta_s, w_mat, tilt) result(position2)
 !
-! Function to shift frame of reference within a bend with curvature g and tilt
+! Function to shift frame of reference within a bend with curvature g and tilt.
+! Note: position2%theta, %phi, and %psi are not calculated. 
 ! 
 ! Module needed:
 !   use geometry_mod
@@ -1618,7 +1613,8 @@ real(rp), optional :: w_mat(3,3), tilt
 angle = delta_s * g
 
 if (angle == 0) then
-  position2%r(3) = position1%r(3) - delta_s
+  position2 = position1
+  position2%r(3) = position2%r(3) - delta_s
   if (present(w_mat)) call mat_make_unit(w_mat)
   return
 endif
