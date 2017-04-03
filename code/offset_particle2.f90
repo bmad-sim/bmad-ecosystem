@@ -180,7 +180,7 @@ if (set) then
         position%r  = position%r - [x_off, y_off, z_off+ds_center]
         position%r = matmul(ws, position%r)
         position%w = matmul(ws, position%w)
-        position%r(3) = position%r(3) + ds_center ! Angle offsets are relative to the center of the element
+        position%r(3) = position%r(3) + ds_center
       endif
 
       p_vec = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
@@ -364,14 +364,31 @@ else
       call mat_make_unit (position%w)
 
       if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-          position = bend_shift(position, ele%value(g$), -ds_center)
+
         if (ref_tilt == 0) then
+          position = bend_shift(position, ele%value(g$), ds_center)
         else
+          position = bend_shift(position, ele%value(g$), ds_center-ele%value(L$)/2)
+          ws = w_mat_for_tilt(ref_tilt)
+          position%r = matmul(ws, position%r)
+          position%w = matmul(ws, position%w)
+          position = bend_shift(position, ele%value(g$), ele%value(L$)/2, tilt = ref_tilt)
         endif
+
+        call ele_misalignment_L_S_calc(ele, L_mis, ws)
+        position%r = matmul(ws, position%r + L_mis)
+        position%w = matmul(ws, position%w)
+
+        position = bend_shift(position, ele%value(g$), -ds_center, tilt = ref_tilt)
 
       ! Else not a bend or a bend with zero bending angle
 
       else
+        call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat = ws)
+        position%r  = position%r + [x_off, y_off, z_off+ds_center]
+        position%r = matmul(ws, position%r)
+        position%w = matmul(ws, position%w)
+        position%r(3) = position%r(3) - ds_center
       endif
 
       p_vec = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
