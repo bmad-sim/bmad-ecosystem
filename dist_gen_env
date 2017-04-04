@@ -240,7 +240,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
   #--------------------------------------------------------------
   # For Mac OS X "Darwin", force MacPorts gcc/g++ as compiler
   #--------------------------------------------------------------
-  if ( [ -e /opt/local/bin/gcc ] && [ -z "$(system_profiler SPInstallHistoryDataType | grep MacPorts)" ] && [ "${DIST_PLATFORM_VERSION}" -gt 12 ] ) ; then
+  if ( [ -e /opt/local/bin/gcc ] && [ "$(system_profiler SPInstallHistoryDataType | grep MacPorts)" ] && [ "${DIST_PLATFORM_VERSION}" -gt 12 ] ) ; then
     export CC=gcc
     export CXX=g++
   fi
