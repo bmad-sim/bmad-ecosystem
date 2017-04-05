@@ -2,6 +2,10 @@
 ! This file originally was pgsubs.f from the demo section of the PGPLOT library.
 !-
 
+! This #if def wraps the entire source
+
+#if defined (CESR_PGPLOT)
+
 SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
 !-----------------------------------------------------------------------
 ! Set a "palette" of colors in the range of color indices used by
@@ -197,8 +201,7 @@ DO 10 K=1,5
 CALL PGLINE(5,XW,YW)
 END
 
-
-
+#endif
 
 
 

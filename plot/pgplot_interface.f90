@@ -30,6 +30,10 @@ module pgplot_interface
 use output_mod
 use quick_plot_struct
 
+! This #if def wraps the entire module
+
+#if defined (CESR_PGPLOT)
+
 type pg_interface_struct
 character(16) page_type
 character(100) plot_file
@@ -741,5 +745,7 @@ subroutine qp_end_basic ()
 call pgend()
 
 end subroutine qp_end_basic
+
+#endif
 
 end module
