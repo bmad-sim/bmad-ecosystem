@@ -25,4 +25,28 @@ set(SHARED_DEPS
   blas
   )
 
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
+    SET (PLOT_LINK_LIBS "pgplot")
+  ELSE ()
+    SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
+  ENDIF ()
+
+  SET (SHARED_DEPS
+    xsif
+    xrlf03
+    xrl
+    sim_utils
+    recipes_f-90_LEPP 
+    ${PLOT_LINK_LIBS}
+    forest 
+    fgsl
+    gsl
+    gslcblas
+    ${SHARED_DEPS}
+    X11
+    readline
+  )
+ENDIF ()
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
