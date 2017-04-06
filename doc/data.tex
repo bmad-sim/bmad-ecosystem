@@ -626,6 +626,9 @@ Measured beam coupling components. The computed \vn{model} values include detect
 errors, etc. This type of datum is useful for simulating how well actual coupling corrections
 are. See the \bmad manual for more details.
 
+  \item[bunch_max, bunch_min.x, .px, .y, .py, .z, .pz] \Newline
+Maximum or minimum phase space coordinate in a bunch, relative to its centroid.
+
   \item[c_mat.11, .12, .21, .22] \Newline
 Coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 See the \bmad manual for more details.
@@ -1187,6 +1190,9 @@ squared.
   bpm_orbit.x, .y                     & Measured orbit                                & lat         & Yes \\ \hline
   bpm_phase.a, .b                     & Measured betatron phase                       & lat         & Yes \\ \hline
   bpm_k.22a, .12a, .11b, .12b         & Measured coupling                             & lat         & Yes \\ \hline
+  bunch_max.x, .px, .y, .py, .z, .pz  & Max coordinate relative to bunch centroid     & beam        & No \\ \hline
+  bunch_min.x, .px, .y, .py, .z, .pz  & Min coordinate relative to bunch centroid     & beam        & No \\ \hline
+
 
   c_mat.11, .12, .21, .22             & Coupling                                      & lat         & Yes \\ \hline 
   cbar.11, .12, .21, .22              & Coupling                                      & lat         & Yes \\ \hline 
