@@ -16,7 +16,7 @@
 !     %ele(:)%value(E_tot$) -- Reference energy at the exit end.
 !     %ele(:)%value(p0c$)   -- Reference momentum at the exit end.
 !     %ele(:)%ref_time      -- Reference time from the beginning at the exit end.
-!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
