@@ -20,11 +20,12 @@ integer, parameter :: s_fatal$   = 8  ! A fatal error has occurred so that compu
 integer, parameter :: s_abort$   = 9  ! A severe error has occurred and
                                       ! the program is being aborted (w/timestamp).
 
+! Where to direct output as a function of message status flag index.
 
 type output_mod_com_struct
   logical :: do_print(-1:9) = .true.
-  integer :: file_unit(-1:9) = 0
-  integer :: to_routine(-1:9) = 0
+  integer :: file_unit(-1:9) = -1
+  integer :: post_process(-1:9) = 0
   integer :: indent_num(-1:9) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
 end type
 
@@ -38,7 +39,7 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! The idea is that for programs with a gui, the output of out_io
-! can be redirected from the terminal to whereever the gui wants it to go.
+! can be redirected from the terminal to where ever the gui wants it to go.
 !
 ! This routine is an overloaded name for:
 !   output_real (level, routine_name, line, r_num, insert_tag_line)
@@ -115,7 +116,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_direct (file_unit, do_print, to_routine, min_level, max_level)
+! Subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
 !
 ! Subroutine to set where the output goes when out_io is called.
 ! Output may be sent to the terminal screen, written to a file, or both.
@@ -126,8 +127,8 @@ contains
 ! Once set for a given status level, the settings remain until the next call to 
 ! output_direct that cover the same status level.
 ! 
-! The output can be sent to a routine for processing. This is useful, for example,
-! when there is a GUI so that the output can be displayed in a window.
+! The output can be sent to a routine for additional processing. 
+! This is useful, for example, when there is a GUI so that the output can be displayed in a window.
 ! There are actually three routines involved here:
 !   out_io_called(level, routine_name)  ! Called at the start of a message.
 !   out_io_line(line)                   ! Called for each line of a message.
@@ -137,39 +138,39 @@ contains
 !   use output_mod
 !
 ! Input:
-!   file_unit   -- Integer, optional: Unit number for writing to a file. 
-!                    0 => No writing (initial default setting).
-!   do_print    -- Logical, optional: If True (initial default setting) then 
+!   file_unit     -- Integer, optional: Unit number for writing to a file. 
+!                      -1 => No writing (initial default setting).
+!   do_print      -- Logical, optional: If True (initial default setting) then 
 !                    print output at the TTY.
-!   to_routine -- Integer, optional: Send info to out_io_called/line/end.
-!                     0 => Do not send. [Initial default setting.]
-!                     1 => Do send.
-!                    -1 => Send with char(0) string ending (For sending to C routines.)
-!   min_level   -- Integer, optional: Minimum message status level to apply to. 
-!                    Default is s_blank$
-!   max_level   -- Integer, optional: Maximum message status level to apply to. 
-!                    Default is s_abort$
+!   post_process  -- Integer, optional: Send info to out_io_called/line/end.
+!                      0 => Do not send. [Initial default setting.]
+!                      1 => Do send.
+!                     -1 => Send with char(0) string ending (For sending to C routines.)
+!   min_level     -- Integer, optional: Minimum message status level to apply to. 
+!                      Default is s_blank$
+!   max_level     -- Integer, optional: Maximum message status level to apply to. 
+!                      Default is s_abort$
 !-
 
-subroutine output_direct (file_unit, do_print, to_routine, min_level, max_level)
+subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
 
 implicit none
 
 logical, optional :: do_print
-integer, optional :: file_unit, to_routine, min_level, max_level
+integer, optional :: file_unit, post_process, min_level, max_level
 integer i
 
 !
 
-if (present(to_routine)) then
-  if (to_routine > 1 .or. to_routine < -1) then
+if (present(post_process)) then
+  if (post_process > 1 .or. post_process < -1) then
     print *, 'OUTPUT_DIRECT: SHOULD NOT BE HERE!'
     if (global_com%exit_on_error) call err_exit
   endif
 endif
 
 do i = integer_option(s_blank$, min_level), integer_option(s_abort$, max_level)
-  if (present(to_routine)) output_com%to_routine(i) = to_routine
+  if (present(post_process)) output_com%post_process(i) = post_process
   if (present(do_print))   output_com%do_print(i)   = do_print
   if (present(file_unit))  output_com%file_unit(i)  = file_unit
 enddo
@@ -210,11 +211,11 @@ if (logic_option(.true., indent)) line_out = blank(1:output_com%indent_num(level
 
 ! output
 
-if (output_com%file_unit(level) /= 0) write (output_com%file_unit(level), '(a)') trim(line_out)
+if (output_com%file_unit(level) > -1) write (output_com%file_unit(level), '(a)') trim(line_out)
 
-if (output_com%to_routine(level) == 1) then
+if (output_com%post_process(level) == 1) then
   call out_io_line(trim(line_out))
-elseif (output_com%to_routine(level) == -1) then
+elseif (output_com%post_process(level) == -1) then
   call out_io_line(trim(line_out) // char(0))
 endif
 
@@ -260,7 +261,7 @@ else
   call out_io_line_out (line, level)
 endif
 
-if (output_com%to_routine(level) /= 0) call out_io_end()
+if (output_com%post_process(level) /= 0) call out_io_end()
 
 end subroutine output_real
 
@@ -302,7 +303,7 @@ else
   call out_io_line_out(line, level)
 endif
 
-if (output_com%to_routine(level) /= 0) call out_io_end()
+if (output_com%post_process(level) /= 0) call out_io_end()
 
 end subroutine output_int
 
@@ -344,7 +345,7 @@ else
   call out_io_line_out(line, level)
 endif
 
-if (output_com%to_routine(level) /= 0) call out_io_end()
+if (output_com%post_process(level) /= 0) call out_io_end()
 
 end subroutine output_logical
 
@@ -389,7 +390,7 @@ if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array,
 if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array)
 if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array)
 
-if (output_com%to_routine(level) /= 0) call out_io_end()
+if (output_com%post_process(level) /= 0) call out_io_end()
 
 end subroutine
 
@@ -428,7 +429,7 @@ do i = 1, size(lines)
   call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array)
 enddo
 
-if (output_com%to_routine(level) /= 0) call out_io_end()
+if (output_com%post_process(level) /= 0) call out_io_end()
 
 end subroutine output_lines
 
@@ -636,9 +637,9 @@ logical, optional :: insert_tag_line
 
 ! call out_io_called if wanted
 
-if (output_com%to_routine(level) == 1) then
+if (output_com%post_process(level) == 1) then
   call out_io_called(level, trim(routine_name))
-elseif (output_com%to_routine(level) == -1) then
+elseif (output_com%post_process(level) == -1) then
   call out_io_called(level, trim(routine_name) // char(0))
 endif
 
