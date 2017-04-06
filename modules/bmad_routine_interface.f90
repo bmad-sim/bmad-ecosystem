@@ -955,12 +955,50 @@ subroutine tilt_coords (tilt_val, coord)
   real(rp) coord(:)
 end subroutine
 
+subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_drift (orb, length, mat6, make_matrix, include_ref_motion)
+  import
+  implicit none
+  type (coord_struct) orb
+  real(rp) length
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix, include_ref_motion
+end subroutine
+
 subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
   import
   implicit none
   type (coord_struct) orb
   real(rp) length
   logical phase_relative_to_ref
+end subroutine
+
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) orbit
+  real(rp), optional :: mat6(6,6), s_ent, ds_ref
+  logical, optional :: drift_to_exit, track_spin, make_matrix
+end subroutine
+
+subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
@@ -1003,44 +1041,6 @@ subroutine track_backwards_time (lat, orbit, ix_start, ix_end, direction, ix_bra
   integer ix_end
   integer direction
   integer, optional :: ix_branch, track_state
-end subroutine
-
-subroutine track_a_drift (orb, length, mat6, make_matrix)
-  import
-  implicit none
-  type (coord_struct) orb
-  real(rp) length
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
-end subroutine
-
-subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
-  import
-  implicit none
-  type (coord_struct) orbit
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
-end subroutine
-
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (coord_struct) orbit
-  real(rp), optional :: mat6(6,6), s_ent, ds_ref
-  logical, optional :: drift_to_exit, track_spin, make_matrix
-end subroutine
-
-subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
-  import
-  implicit none
-  type (coord_struct) orbit
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
