@@ -113,7 +113,7 @@ endif
 
 ! Finish
 
-call output_direct (0, do_print=s%com%print_to_terminal)  ! reset to not write to a file
+call output_direct (-1, do_print=s%com%print_to_terminal)  ! reset to not write to a file
 
 if (opened) then
   close (iu)
