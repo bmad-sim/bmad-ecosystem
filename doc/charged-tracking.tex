@@ -137,9 +137,7 @@ reference frame to the \vn{laboratory} reference frame.
 \end{enumerate}
 
 The transformation between \vn{laboratory} and \vn{element} reference
-frames will depend upon whether the element is straight or not. In
-any case, it is assumed that pitches are small so that second order
-terms can be ignored.
+frames is given in \sref{s:straight.mis} and \sref{s:bend.mis}.
 
 %-------------------------------------------------------------------------
 
@@ -154,164 +152,6 @@ fixed at the nominal position of the element (red dashed outline).
   }
   \label{f:ele.coord}.
 \end{figure}
-
-%-------------------------------------------------------------------------
-\subsection{Transform from Laboratory Entrance to Element Coordinates for Straight Elements}
-
-The transformation from the laboratory coordinates to element
-coordinates for an element that has a straight reference trajectory
-through it is a two step process.
-\begin{enumerate}
-\setlength{\itemsep}{0pt}
-\item
-Track as in a drift a distance \vn{z_offset_tot}.
-\item
-Apply offsets and pitches
-\vspace{-1ex}
-\begin{align}
-  x_1    &= x_0 - x_{\text{off}} + \frac{L}{2} \, x'_{pitch} \CRNO
-  p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
-  y_1    &= y_0 - y_{\text{off}} + \frac{L}{2} \, y'_{pitch} \\
-  p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
-  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
-    \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch}) \nonumber
-\end{align}
-where $x'_{pitch}$ and $y'_{pitch}$ are the \vn{x_pitch_tot} and
-\vn{y_pitch_tot} attributes of the element (\sref{s:offset}), and
-$x_{\text{off}}$, and $y_{\text{off}}$ are the \vn{x_offset_tot} and
-\vn{y_offset_tot} attributes.
-Notice that $z_1$ is written in terms of $x_1$ and $y_1$
-\item
-Apply the tilt $\theta_t$ (\vn{tilt_tot})
-\vspace{-1ex}
-\begin{align}
-  x_2    &=  x_1    \, \cos\theta_t + y_1    \, \sin\theta_t \CRNO
-  p_{x2} &=  p_{x1} \, \cos\theta_t + p_{y1} \, \sin\theta_t \CRNO
-  y_2    &= -x_1    \, \sin\theta_t + y_1    \, \cos\theta_t \\
-  p_{y2} &= -p_{x1} \, \sin\theta_t + p_{y1} \, \cos\theta_t \nonumber
-\end{align}
-\end{enumerate}
-
-%-------------------------------------------------------------------------
-\subsection{Transform from Laboratory Entrance to Element Coordinates for Bend Elements}
-
-Let $\bfr_c$ be the displacement of the bend at the bend center (where
-offsets are specified \sref{s:offset}).
-
-The rotation matrix $\bfS_c$ transforming
-from the center of the bend (where the misalignments are defined) to the
-entrance face of the bend is
-\begin{align}
-  \bfS_c &= \bfR_{z}^{-1} (\theta_t) \, \bfR_{y} (\alpha_b/2) \, \bfR_{z} (\theta_t) \\
-\end{align}
-where $\bfR_{z}$ and $\bfR_{y}$ are given by \Eqs{wtt0t},
-$\theta_t$ is the \vn{ref_tilt} attribute of the bend and $\alpha_b$
-is the bend \vn{angle}.
-
-In the laboratory entrance coordinates, the pitches and offset are
-\begin{align}
-  \bfW &= \bfS \, 
-    \begin{pmatrix}
-      -y'_{pitch} \\ x'_{pitch} \\ 0
-    \end{pmatrix} \\
-  \bfV &= \bfS \, 
-    \begin{pmatrix}
-      x_{\text{off}} \\ y_{\text{off}} \\ z_{\text{off}} + 
-    \end{pmatrix} +
-    \bfS \, \bfL_c - \bfL_c
-\end{align}
-where the offset vector $\bfL_c$ is
-\Begineq
-  \bfL_c = \bfR_{z}(\theta_t) \,
-      \begin{pmatrix}
-        2 \, \rho \, \sin^2 (\alpha_b / 2) \\ 0 \\ -\rho \, \sin(\alpha_b / 2)
-      \end{pmatrix}
-\Endeq
-
-The transformation to element coordinates is then
-\begin{enumerate}
-\setlength{\itemsep}{0pt}
-\item
-\begin{align}
-  x_1    &= x_0 - \bfV(1) \CRNO
-  p_{x1} &= p_{x0} - \bfW(1) \, (1 + p_{z0}) \CRNO
-  y_1    &= y_0 - \bfV(2) \\
-  p_{y1} &= p_{x0} + \bfW(2) \, (1 + p_{z0}) \CRNO
-  z_1    &= z_0 + \bfW(2) \, x_0 - \bfW(1) \, y_0 \nonumber
-\end{align}
-\item
-Track as in a drift a distance $\bfV(3)$.
-\item
-Apply the non-reference shifting tilt $\theta_t$ (\vn{tilt_tot})
-\vspace{-1ex}
-\begin{align}
-  x_2    &=  x_1    \, \cos\theta_t + y_1    \, \sin\theta_t \CRNO
-  p_{x2} &=  p_{x1} \, \cos\theta_t + p_{y1} \, \sin\theta_t \CRNO
-  y_2    &= -x_1    \, \sin\theta_t + y_1    \, \cos\theta_t \\
-  p_{y2} &= -p_{x1} \, \sin\theta_t + p_{y1} \, \cos\theta_t \nonumber
-\end{align}
-\end{enumerate}
-
-%-------------------------------------------------------------------------
-\subsection{Transform from Element Exit to Laboratory Coordinate for Straight Elements}
-
-The back transformation from element to laboratory coordinates is
-accomplished by the transformation
-\begin{enumerate}
-\setlength{\itemsep}{0pt}
-\item
-Apply tilt $\theta_t$
-\vspace{-1ex}
-\begin{align}
-  x_1    &=  x_0    \, \cos\theta_t - y_0    \, \sin\theta_t \CRNO
-  p_{x1} &=  p_{x0} \, \cos\theta_t - p_{y0} \, \sin\theta_t \CRNO
-  y_1    &=  x_0    \, \sin\theta_t + y_0    \, \cos\theta_t \\
-  p_{y1} &=  p_{x0} \, \sin\theta_t + p_{y0} \, \cos\theta_t \nonumber
-\end{align}
-\item
-Apply offsets and pitches
-\vspace{-1ex}
-\begin{align}
-  x_2    &= x_1 + x_{\text{off}} + \frac{L}{2} x'_{pitch}     \CRNO
-  p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}        \CRNO
-  y_2    &= y_1 + y_{\text{off}} + \frac{L}{2} y'_{pitch}     \\
-  p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}        \CRNO
-  z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
-    \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber
-\end{align}
-\item
-Track as in a drift a distance \vn{-z_offset_tot}.
-\end{enumerate}
-
-%-------------------------------------------------------------------------
-\subsection{Transform from Element Exit to Laboratory Coordinate for Bend Elements}
-
-The back transformation from element to laboratory coordinates is
-accomplished by the transformation
-\begin{enumerate}
-\setlength{\itemsep}{0pt}
-\item
-Apply non-reference shifting tilt $\theta_t$
-\vspace{-1ex}
-\begin{align}
-  x_1    &=  x_0    \, \cos\theta_t - y_0    \, \sin\theta_t \CRNO
-  p_{x1} &=  p_{x0} \, \cos\theta_t - p_{y0} \, \sin\theta_t \CRNO
-  y_1    &=  x_0    \, \sin\theta_t + y_0    \, \cos\theta_t \\
-  p_{y1} &=  p_{x0} \, \sin\theta_t + p_{y0} \, \cos\theta_t \nonumber
-\end{align}
-\item
-Apply offsets and pitches
-\vspace{-1ex}
-\begin{align}
-  x_1    &= x_0 + \bfV(1) \CRNO
-  p_{x1} &= p_{x0} + \bfW(1) \, (1 + p_{z0}) \CRNO
-  y_1    &= y_0 + \bfV(2) \\
-  p_{y1} &= p_{x0} - \bfW(2) \, (1 + p_{z0}) \CRNO
-  z_1    &= z_0 - \bfW(2) \, x_0 + \bfW(1) \, y_0 \nonumber
-\end{align}
-\item
-Track as in a drift a distance \vn{-z_offset_tot}.
-\end{enumerate}
 
 %-------------------------------------------------------------------------
 \section{Hamiltonian}
@@ -622,8 +462,7 @@ fring field.
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Fringe Fields}
-\label{s:multi.fringe.std}
-\index{fringe!multipole}
+\label{s:fringe.std}
 
 The fringe field kick is divided into two pieces. 
 The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit
@@ -639,7 +478,7 @@ field. In many cases, this is a good enough approximation.
 
 %---------------------------------------------------------------------------------
 \subsection{Bend Soft Edge Fringe Map}
-
+\label{s:fringe.bend.soft}
 
 \bmad defines the bend soft edge map in terms of the field integral
 $F_{H1}$ for the entrance end and $F_{H2}$ for the exit end given by
@@ -701,8 +540,79 @@ to the bend parameters by
 
 %---------------------------------------------------------------------------------
 \subsection{Bend Hard Edge Fringe Map}
+\label{s:fringe.bend.hard}
 
-In development...
+The bend fringe kick is a combination of the equations developed by Hwang and Lee\cite{b:hwang}
+modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}.
+The Lie map generator $\Omega_M$ given by Hwang and Lee Eqs.~(35) and (36) is used under
+the conditions that
+\Begineq
+  K_0 = K_1 = K_3 = K_4 = K_5 = K_6 = 0
+\Endeq
+The generator used by \bmad for the entrance fringe is:
+\begin{align}
+  \Omega_{M1} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2} 
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_1) \, [1 + \sin^2 (e_1)] \, f_{int} \,  h_{gap}}{2 \, (1 + p_z)} \CRNO
+  & \qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_1) - g_\tot^2 \, \tan^3 (e_1)]}{12 \, (1 + p_z)}
+  + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_1) + g_\tot^2 \, \tan (e_1) \, \sec^2 (e_1)]}{4 \, (1 + p_z)} \\
+  &\qquad + \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \, \tan^2 (e_1)}{2 \, (1 + p_z)}
+  - \frac{y^2 \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{2 \, (1 + p_z)} \nonumber
+\end{align}
+where $g_\tot$ is the total bending strength (design + error).
+The generator for the exit fringe is
+\begin{align}
+  \Omega_{M2} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2} 
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \,  h_{gap}}{2 \, (1 + p_z)} \CRNO
+  &\qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_2) - g_\tot^2 \, \tan^3 (e_2)]}{12 \, (1 + p_z)}
+  + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_2) + g_\tot^2 \, \tan (e_2) \, \sec^2 (e_2)]}{4 \, (1+p_z)} \\
+  &\qquad + \frac{(-x^2 \, p_x + 2 \, x \, y \, p_y) \, g_\tot \tan^2 (e_2)}{2 \, (1 + p_z)}
+  + \frac{y^2 \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{2 \, (1 + p_z)} \nonumber
+\end{align}
+
+The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To second order in the
+transverse coordinates the map can be obtained by expanding the exponantial to second order
+\Begineq
+  \Cal M \simeq 1 + \colon\Omega_M\colon + \frac{1}{2} \, \colon\Omega_M\colon \, \colon\Omega_M\colon
+\Endeq
+The transport for the entrance fringe is then
+\begin{align}
+  \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ -x^2 \, \tan^2 (e_1) + y^2 \sec^2 (e_1) \right] \CRNO
+  \Delta p_x &= x \, g_\tot \, \tan (e_1)
+    + \frac{y^2 \, g_\tot^2 \, [ \tan (e_1) + 2 \, \tan^3 (e_1) ]}{2 \, (1 + p_z)} \CRNO
+    &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_1)}{1 + p_z}
+    + \frac{(x \, p_x - y \, p_y) \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \CRNO
+  \Delta y &= \frac{x \, y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \\
+  \Delta p_y &= y \left[ -g_\tot \, \tan (e_1)
+    + \frac{g^2_\tot \, [1 + \sin^2 (e_1)] \, \sec^3 (e_1)}{1 + p_z} \, f_{int} \,  h_{gap} \right] \CRNO
+    &\qquad\qquad - \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
+    - \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
+    - \frac{2 \, x \, y \, K_1 \tan (e_1)}{(1 + p_z)} \CRNO
+  \Delta z &= \frac{\what \Omega_{M1}}{1 + p_z} \nonumber
+\end{align}
+where $\what \Omega_{M1} = \Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2$.
+%\Begineq
+%  \what \Omega_{M1} = \Omega_{M1} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2}
+%\Endeq
+The transport for the exit fringe is
+\begin{align}
+  \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ x^2 \, \tan^2 (e_2) - y^2 \sec^2 (e_2) \right] \CRNO
+  \Delta p_x &= x \, g_\tot \, \tan (e_2)
+    - \frac{(x^2 + y^2) \, g_\tot^2 \, \tan^3 (e_2)}{2 \, (1 + p_z)} \CRNO
+    &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_2)}{1 + p_z}
+    + \frac{(-x \, p_x + y \, p_y) \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \CRNO
+  \Delta y &= -\frac{x \, y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \\
+  \Delta p_y &= y \left[ -g_\tot \, \tan (e_2)
+    + \frac{g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
+    + \frac{x \, y \, g^2_\tot \, \sec^2 (e_2) \, \tan (e_2)}{1 + p_z} \CRNO
+    &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
+    + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
+    - \frac{2 \, x \, y \, K_1 \tan (e_2)}{(1 + p_z)} \CRNO
+  \Delta z &= \frac{\what \Omega_{M2}}{1 + p_z} \nonumber
+\end{align}
+where $\what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}$
+%\Begineq
+%  \what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}
+%\Endeq
 
 %---------------------------------------------------------------------------------
 \subsection{Quadrupole Soft Edge Fringe Map}
@@ -722,17 +632,17 @@ from SAD\cite{b:sad}. The fringe map is:
     \, e^{g_1} \, p_{y1}^2 \right] \nonumber
 \end{align}
 where
-\begin{align}
-  g_1 &= K_1 \, \text{fq1} \CRNO
-  g_2 &= K_1 \, \text{fq2}
-\end{align}
+\Begineq
+  g_1 = \frac{K_1 \, \text{fq1}}{1 + p_z} , \qquad
+  g_2 = \frac{K_1 \, \text{fq2}}{1 + p_z}
+\Endeq
 $K_1$ is the quadrupole strength, and \vn{fq1} and \vn{fq2} are the fringe
 quadrupole parameters. These parameters are related to the field integral $I_n$
 via
-\begin{align}
-  \text{fq1} &= I_1 - \frac{1}{2} \, I_0^2 \CRNO
-  \text{fq2} &= I_2 - \frac{1}{3} \, I_0^3
-\end{align}
+\Begineq
+  \text{fq1} = I_1 - \frac{1}{2} \, I_0^2 , \qquad
+  \text{fq2} = I_2 - \frac{1}{3} \, I_0^3
+\Endeq
 where $I_n$ is defined by
 \Begineq
   I_n = \frac{1}{K_1} \, \int_{-\infty}^{\infty} \; 
@@ -909,32 +819,11 @@ follows:
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Bend Element: Fringe Tracking}
-\label{s:.bend.fringe.std}
-\index{sbend}
-
-The transformation for the entrance face of an \vn{sbend} is
-\begin{align}
-  p_{x2} &= p_{x1} + k_x \, x_1 \CRNO
-  p_{y2} &= p_{y1} + k_y \, y_1
-\end{align}
-where
-\begin{align}
-  k_x &= g_\tot \, \tan(e_1) \CRNO
-  k_y &= -g_\tot \, \tan \left[ e_1 - 2 \, |g_\tot| \, f_{int} \,  h_{gap} \, 
-    \frac{1 + \sin(e1)^2}{\cos(e_1)} \right]
-\end{align}
-where $g_\tot$ is the total bending strength (design +
-error). Similar equations are used for tracking the exit edge of the
-bend.
-
-%---------------------------------------------------------------------------------
-%---------------------------------------------------------------------------------
 \section{Bend Element: Body Tracking}
 \label{s:bend.body.std}
 \index{sbend}
 
-For a bend without a \vn{k1} component the tracking uses the exact formulas  from
+For a bend without a \vn{k1} component the tracking uses the exact formulas from
 Forest\cite{b:forest} Eq.~12.18:
 \begin{align}
   x_2    &= \frac{1}{g_\tot} \, \sqrt{ (1 + p_{z1})^2 - p_{x2}^2 - p_{y1}^2} -
@@ -952,7 +841,7 @@ Forest\cite{b:forest} Eq.~12.18:
     \sin^{-1} \left( \frac{p_{x2}}{\sqrt{(1 + p_{z1})^2 - p_{y1}}} \right) \right] \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-
+where $g_\tot$ is the total bending strength (design + error).
 
 For a bend with a finite \vn{k1}, the Hamiltonian for the body of an \vn{sbend} is
 \Begineq

@@ -2898,7 +2898,7 @@ The advantage of separating the fringe kick in this way is that the hard fringe 
 used without having to know anything about the longitudinal extent of the fringe.  In many
 cases, this is a good enough approximation. Note that using the soft fringe without the
 hard fringe is not physical but can be useful in understanding how the soft edge component
-affects tracking.  See~\sref{s:multi.fringe.std} for details.
+affects tracking. See~\sref{s:fringe.std} for details.
 
 For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
 settings are:
@@ -2911,14 +2911,12 @@ settings are:
   basic_bend          ! Default. SAD equivalent: fringe = 0, disfrin = 1
   sad_full            !          SAD equivalent: fringe = 1, disfrin = 0
 \end{example}
-The \vn{basic_bend} setting, which is the default, is essentially the
-basic vertical focusing effect that is present when there is a finite
-\vn{e1} or \vn{e2} face angle. With \vn{bmad_standard} tracking,
-\vn{basic_bend} also includes second order terms.  The
-\vn{linear_edge} setting ignores these second order terms.  In some
-cases, for instance in a chicane, \vn{basic_bend} is not good
-enough. With \vn{fringe_type} set to \vn{full}, higher order effects
-are taken into account.
+The \vn{basic_bend} setting, which is the default, is essentially the basic vertical focusing effect
+that is present when there is a finite \vn{e1} or \vn{e2} face angle. With \vn{bmad_standard}
+tracking, \vn{basic_bend} also includes second order terms (\sref{s:fringe.bend.hard}). The
+\vn{linear_edge} setting ignores these second order terms.  In some cases, for instance in a
+chicane, \vn{basic_bend} is not good enough. With \vn{fringe_type} set to \vn{full}, higher order
+effects are taken into account.
 
 PTC does not have a \vn{linear_edge} fringe model.
 With PTC tracking, \vn{basic_bend} tracking is used if \vn{linear_edge} is chosen.

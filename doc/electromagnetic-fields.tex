@@ -209,22 +209,19 @@ field is different from multipole fields in an element with a straight geometry 
 by \Eqs{qlpbb} and \eq{exiey}. The analysis of the multipole fields in a bend here follows
 McMillan\cite{b:mcmillan}.  
 
-In the rest of this section, normalized coordinates $\what r = r / \rho$, $\what x / = x /
-\rho$, and $\what y = y / \rho$ will be used where $\rho$ is the bending radius of the
+In the rest of this section, normalized coordinates $\rw = r / \rho$, $\xw / = x /
+\rho$, and $\yw = y / \rho$ will be used where $\rho$ is the bending radius of the
 reference coordinate system, $r$ is the distance, in the plane of the bend, from the bend
 center to the observation point, $x$ is the distance in the plane of the from the reference
 coordinates to the observation point and $y$ is the distance out-of-plane. With this
-convention $\what r = 1 + \what x$.
-
-In the rest of this section only normalized coordinates will be used. \textbf{To simplify
-the displayed equations, the circumflex over the normalized coordinates will be dropped.}
+convention $\rw = 1 + \xw$.
 
 An electric or magnetic multipole can be characterized by a scaler potential $\phi$ with
 the field given by $-\nabla \phi$.  The potential is a solution to Laplace's equation
 \Begineq
-  \frac{1}{r} \, \frac{\partial}{\partial \, r} 
-  \left( r \, \frac{\partial \, \phi}{\partial \, r} \right) +
-  \frac{\partial^2 \phi}{\partial \, y^2} = 0
+  \frac{1}{\rw} \, \frac{\partial}{\partial \, \rw} 
+  \left( \rw \, \frac{\partial \, \phi}{\partial \, \rw} \right) +
+  \frac{\partial^2 \phi}{\partial \, \yw^2} = 0
 \Endeq
 As McMillian shows, it is also possible to calculate the magnetic field by constructing the
 appropriate vector potential. However, from a practical point of view, it is simpler to use the
@@ -234,14 +231,14 @@ Solutions to Laplace's equation can be found in form
 \Begineq
   \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
-             (-1)^{p} \, F_{n+1-2p}(r) \, y^{2p}
+             (-1)^{p} \, F_{n+1-2p}(\rw) \, \yw^{2p}
   \label{pspn1}
 \Endeq
 and in the form
 \Begineq
   \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
-             (-1)^{p} \, F_{n-2p}(r) \, y^{2p+1}
+             (-1)^{p} \, F_{n-2p}(\rw) \, \yw^{2p+1}
   \label{pspn2}
 \Endeq
 where $a \choose b$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
@@ -250,60 +247,62 @@ integer equal to or less than $\alpha$. [Notice that here $n$ is related to $m$ 
 McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here have a
 normalization factor that is different from McMillian.]
 
-In \Eq{pspn2} the $F_p(r)$ are related by
+In \Eq{pspn2} the $F_p(\rw)$ are related by
 \Begineq
-  F_{p+2} = (p + 1) \, (p + 2) \, \int_1^r \frac{dr}{r} \left[ \int_1^r dr \, r \, F_{p} \right]
+  F_{p+2} = (p + 1) \, (p + 2) \, \int_1^{\rw} \frac{d\rw}{\rw} 
+  \left[ \int_1^{\rw} d\rw \, \rw \, F_{p} \right]
 \Endeq
 with the ``boundary condition'':
 \begin{align}
-  F_0(r) &= 1 \CRNO
-  F_1(r) &= \ln \, r
+  F_0(\rw) &= 1 \CRNO
+  F_1(\rw) &= \ln \, \rw
 \end{align}
 This condition ensures that the number of terms in the sums in \Eqs{pspn1} and \eq{pspn2}
 are finite. With this condition, all the $F_p$ can be constructed:
 \begin{align}
-  F_1 &= \ln \, r = x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \ldots \CRNO
-  F_2 &= \frac{1}{2} (r^2 - 1) - \ln r = x^2 - \frac{1}{3}x^3 + \frac{1}{4} x^4 - \ldots \CRNO
-  F_3 &= \frac{3}{2} [-(r^2 - 1) + (r^2 + 1) \ln r] = x^3 - \frac{1}{2} x^4 + \frac{7}{20} x^5 - \ldots 
+  F_1 &= \ln \, \rw = \xw - \frac{1}{2}\xw^2 + \frac{1}{3}\xw^3 - \ldots \CRNO
+  F_2 &= \frac{1}{2} (\rw^2 - 1) - \ln \rw = \xw^2 - \frac{1}{3}\xw^3 + \frac{1}{4} \xw^4 - \ldots \CRNO
+  F_3 &= \frac{3}{2} [-(\rw^2 - 1) + (\rw^2 + 1) \ln \rw] = \xw^3 - \frac{1}{2} \xw^4 + \frac{7}{20} \xw^5 - \ldots 
          \label{ffff} \\
-  F_4 &= 3 [ \frac{1}{8} (r^4 - 1) + \frac{1}{2} (r^2 - 1) - (r^2 + \frac{1}{2}) \ln r] = 
-         x^4 - \frac{2}{5} x^5 + \frac{3}{10} x^6 - \ldots \CRNO
+  F_4 &= 3 [ \frac{1}{8} (\rw^4 - 1) + \frac{1}{2} (\rw^2 - 1) - (\rw^2 + \frac{1}{2}) \ln \rw] = 
+         \xw^4 - \frac{2}{5} \xw^5 + \frac{3}{10} \xw^6 - \ldots \CRNO
   &\text{Etc...} \nonumber
 \end{align}
-In terms of implementing these functions on a computer, the exact $r$-dependent functions
-are problematical due to round off error near $x = 0$. For example, Evaluating $F_4(r)$ at
-$x = 10^{-4}$ results in a complete loss of accuracy (no significant digits!) when using
-double precision numbers. In practice, \bmad uses the expansion in $x$ for $x$ small
-enough and then switches to the $r$-dependent formulas for $x$ away from zero.
+In terms of implementing these functions on a computer, the exact $\rw$-dependent functions
+are problematical due to round off error near $\xw = 0$. For example, Evaluating $F_4(\rw)$ at
+$\xw = 10^{-4}$ results in a complete loss of accuracy (no significant digits!) when using
+double precision numbers. In practice, \bmad uses the expansion in $\xw$ for $\xw$ small
+enough and then switches to the $\rw$-dependent formulas for $\xw$ away from zero.
 
 For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
 ``imaginary'' $\phi_n^i$ solutions will correspond to normal fields
 \Begineq
   \bfB = -\frac{P_0}{q \, L} \, 
-    \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \nabla \phi_n^r + b_n \, \nabla \phi_n^i \right]
+    \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \widetilde \nabla \phi_n^r + b_n \, \widetilde \nabla \phi_n^i \right]
   \label{bpql}
 \Endeq
-where the derivatives of the gradient $\nabla$ are with respect to the normalized
+where the gradient derivatives of $\widetilde \nabla$ are with respect to the normalized
 coordinates. In the limit of infinite bending radius $\rho$, the above equations converge
 to the straight line solution given in \Eq{qlpbb}.
 
 For electric fields, the ``real'' solutions will correspond to normal fields and the
 ``imaginary'' solutions are used for skew fields
 \Begineq
-  \bfE = -\sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \nabla \phi_n^i + b_{en} \, \nabla \phi_n^r \right]
+  \bfE = -\sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \widetilde \nabla \phi_n^i + 
+  b_{en} \, \widetilde \nabla \phi_n^r \right]
   \label{enrn}
 \Endeq
 And this will converge to \Eq{exiey} in the straight line limit.
 
-In the vertical plane, with $x = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the same
-variation in $y$ as the multipole fields with a straight geometry. For example, the field
-strength of an $n = 1$ (quadrupole) multipole will be linear in $y$ for $x = 0$ but, in the
-horizontal direction, with $y = 0$, the multipole field will vary like $dF_2/dx$ which has
-terms of all orders in $x$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are
+In the vertical plane, with $\xw = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the same
+variation in $\yw$ as the multipole fields with a straight geometry. For example, the field
+strength of an $n = 1$ (quadrupole) multipole will be linear in $\yw$ for $\xw = 0$ but, in the
+horizontal direction, with $\yw = 0$, the multipole field will vary like $dF_2/d\xw$ which has
+terms of all orders in $\xw$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are
 called ``vertically pure'' solutions.
 
 It is possible to construct ``horizontally pure'' solutions as well. That is, it is
-possible to construct solutions that in the horizontal plane with $y = 0$ behave the same
+possible to construct solutions that in the horizontal plane with $\yw = 0$ behave the same
 as the corresponding multipole fields with a straight geometry. A straight forward way to
 do this is, for some given multipole of order $n$, is to construct the horizontally pure
 solutions from the vertically pure solutions via
@@ -315,10 +314,10 @@ solutions from the vertically pure solutions via
 with the normalizations $C_{nn} = D_{nn} = 1$. The $C_{nk}$ and $D_{nk}$ are chosen, order
 by order, so that $\psi_n^r$ and $\psi_n^i$ are horizontally pure. For the real
 potentials, the $C_{nk}$, are obtained from a matrix $\bfM$ where $M_{ij}$ is the
-coefficient of the $x^j$ term of $(dF_i/dx)/i$ when $F_i$ is expressed as an expansion in
-$x$ (\Eq{ffff}). $C_{nk}$, $k = 0, \ldots \infty$ are the row vectors of the the inverse
+coefficient of the $\xw^j$ term of $(dF_i/d\xw)/i$ when $F_i$ is expressed as an expansion in
+$\xw$ (\Eq{ffff}). $C_{nk}$, $k = 0, \ldots \infty$ are the row vectors of the the inverse
 matrix $\bfM^{-1}$. For the imaginary potentials, the $D_{nk}$ are constructed similarly
-but in this case the rows of $\bfM$ are the coefficients in $x$ for the functions $F_i$.
+but in this case the rows of $\bfM$ are the coefficients in $\xw$ for the functions $F_i$.
 To convert between field strength coefficients, \Eqs{bpql} and \eq{enrn} and \Eqs{p1rc}
 are combined
 \begin{alignat}{3}
@@ -330,7 +329,7 @@ are combined
 where $\alpha_k$, $\beta_k$, $\alpha_{ek}$, and $\beta_{ek}$ are the corresponding coefficients
 for the horizontally pure solutions.
 
-When expressed as a function of $r$ and $y$, the vertically pure solutions $\phi_n$ have a
+When expressed as a function of $\rw$ and $\yw$, the vertically pure solutions $\phi_n$ have a
 finite number of terms (\Eqs{pspn1} and \eq{pspn2}). On the other hand, the horizontally
 pure solutions $\psi_n$ have an infinite number of terms.
 

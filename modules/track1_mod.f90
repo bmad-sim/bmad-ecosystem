@@ -120,9 +120,10 @@ end subroutine linear_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+! Subroutine second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
-! Subroutine to track through the edge field of an sbend.
+! Subroutine to track through the edge field of an sbend using a 2nd order map.
+! See the Bmad manual for details on how the map was constructed.
 !
 ! Module needed:
 !   use track1_mod
@@ -140,7 +141,7 @@ end subroutine linear_bend_edge_kick
 !   mat6       -- Real(rp), optional: Transfer matrix including the edge.
 !-
 
-subroutine mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 implicit none
 
@@ -149,12 +150,13 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) e, g_tot, fint_gap, ht_x, ht_y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
-real(rp) ht2, hs2, c_dir, k1, kmat(6,6)
+real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k1_eff
+real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor
+real(rp) dx, dpx, dy, dpy
 integer particle_at, element_end, fringe_type
 
 logical, optional :: make_matrix
-character(24), parameter :: r_name = 'mad_bend_edge_kick'
+character(24), parameter :: r_name = 'second_order_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
@@ -162,6 +164,7 @@ character(24), parameter :: r_name = 'mad_bend_edge_kick'
 c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
+e_factor = 1 / (1 + orb%vec(6))
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(g_err$)) * c_dir
@@ -180,74 +183,87 @@ endif
 if (fringe_type == hard_edge_only$ .or. fringe_type == sad_full$) fint_gap = 0
 
 cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
-ht_x = g_tot * tan_e
-ht2 = g_tot * tan_e**2
-hs2 = g_tot * sec_e**2
-k1_eff = k1 * c_dir
+gt = g_tot * tan_e
+gt2 = g_tot * tan_e**2
+gs2 = g_tot * sec_e**2
+k1_eff = k1 * tan_e * c_dir
+fint_gap = fint_gap * gs2 * (1 + sin_e**2) * g_tot * sec_e
 
-if (fint_gap == 0) then
-  ht_y = -ht_x
-else
-  ht_y = -g_tot * tan(e - 2 * fint_gap * g_tot * (1 + sin_e**2) / cos_e)
-endif
-
-v0 = orb%vec
+v = orb%vec
 
 if (particle_at == first_track_edge$) then
-  orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
-  orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
-                       k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-                       ht_x * (ht2 + hs2) * v0(3)**2 / 2
-  orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
-  orb%vec(4) = v0(4) + ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
-                       2 * k1_eff * tan_e * v0(1) * v0(3)
+  dx  = (-gt2 * v(1)**2 + gs2 * v(3)**2) * e_factor / 2
+  dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k1_eff * (v(1)**2 - v(3)**2)) * e_factor
+  dy  = gt2 * v(1) * v(3) * e_factor
+  dpy = (fint_gap * v(3) - gt2 * v(1) * v(4) - (g_tot + gt2) * v(2) * v(3) - 2 * k1_eff * v(1) * v(3)) * e_factor
+  orb%vec(1) = v(1) + dx
+  orb%vec(2) = v(2) + dpx + gt * v(1)
+  orb%vec(3) = v(3) + dy
+  orb%vec(4) = v(4) + dpy - gt * v(3)
+
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit (kmat)
-    kmat(1,1) = 1 - ht2 * v0(1)
-    kmat(1,3) = hs2 * v0(3)
-    kmat(2,1) = ht_x + ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1)
-    kmat(2,2) = 1 + ht2 * v0(1)
-    kmat(2,3) = - ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) + ht_x * (ht2 + hs2) * v0(3)
-    kmat(2,4) = - ht2 * v0(3)
-    kmat(3,1) = ht2 * v0(3)
-    kmat(3,3) = 1 +  ht2 * v0(1)
-    kmat(4,1) = - ht2 * v0(4) - 2 * tan_e * k1_eff * v0(3)
-    kmat(4,2) = - hs2 * v0(3)
-    kmat(4,3) = ht_y - hs2 * v0(2) - 2 * tan_e * k1_eff * v0(1)
-    kmat(4,4) = 1 - ht2 * v0(1)
-    mat6 = matmul (kmat, mat6)
+    kmat(1,1) = 1 - gt2 * v(1) * e_factor
+    kmat(1,3) = gs2 * v(3) * e_factor
+    kmat(2,1) = gt + (gt2 * v(2) + 2 * k1_eff * v(1)) * e_factor
+    kmat(2,2) = 1 + (gt2 * v(1)) * e_factor
+    kmat(2,3) = (-gt2 * v(4) - 2 * k1_eff * v(3) + gt * g_tot * (1 + 2 * tan_e**2) * v(3)) * e_factor
+    kmat(2,4) = (-gt2 * v(3)) * e_factor
+    kmat(3,1) = gt2 * v(3) * e_factor
+    kmat(3,3) = 1 +  gt2 * v(1) * e_factor
+    kmat(4,1) = (-gt2 * v(4) - 2 * k1_eff * v(3)) * e_factor
+    kmat(4,2) = -(g_tot + gt2) * v(3) * e_factor
+    kmat(4,3) = -gt + (fint_gap - (g_tot + gt2) * v(2) - 2 * k1_eff * v(1)) * e_factor
+    kmat(4,4) = 1 - gt2 * v(1) * e_factor
+    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k1_eff - gt*gt2) * v(1)**3 / 12 + (-4*k1_eff + gt*gs2) * v(1) * v(3)**2 /4 + &
+                  gt2 * (v(1)**2 * v(2) - 2 * v(1) * v(3) * v(4)) / 2 - (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
   end if
+
 else
-  orb%vec(1) = v0(1)
-  orb%vec(2) = v0(2) + ht_x * v0(1)
-  orb%vec(3) = v0(3)
-  orb%vec(4) = v0(4) + ht_y * v0(3)
-  orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
-  orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
-                       k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-                       ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
-  orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-  orb%vec(4) = v0(4) + ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
-                       (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1) * v0(3)
+  dx  = (gt2 * v(1)**2 - gs2 * v(3)**2) * e_factor / 2
+  dpx = (gt2 * (v(3) * v(4) - v(1) * v(2)) + k1_eff * (v(1)**2 - v(3)**2) - gt * gt2 * (v(1)**2 + v(3)**2) / 2) * e_factor
+  dy  = -gt2 * v(1) * v(3) * e_factor
+  dpy = (fint_gap * v(3) + gt2 * v(1) * v(4) + (g_tot + gt2) * v(2) * v(3) + (gt * gs2 - 2 * k1_eff) * v(1) * v(3)) * e_factor
+  orb%vec(1) = v(1) + dx
+  orb%vec(2) = v(2) + dpx + gt * v(1)
+  orb%vec(3) = v(3) + dy
+  orb%vec(4) = v(4) + dpy - gt * v(3)
+
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit (kmat)
-    kmat(1,1) = 1 + ht2 * v0(1)
-    kmat(1,3) = - hs2 * v0(3)
-    kmat(2,1) = ht_x - ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1) - ht_x * ht2 * v0(1)
-    kmat(2,2) = 1 - ht2 * v0(1)
-    kmat(2,3) = ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) - ht_x * ht2 * v0(3)
-    kmat(2,4) = ht2 * v0(3)
-    kmat(3,1) = - ht2 * v0(3)
-    kmat(3,3) = 1 -  ht2 * v0(1)
-    kmat(4,1) = ht2 * v0(4) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(3)
-    kmat(4,2) = hs2 * v0(3)
-    kmat(4,3) = ht_y + hs2 * v0(2) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1)
-    kmat(4,4) = 1 + ht2 * v0(1)
-    mat6 = matmul (kmat, mat6)
+    kmat(1,1) = 1 + gt2 * v(1) * e_factor
+    kmat(1,3) = -gs2 * v(3) * e_factor
+    kmat(2,1) = gt + (-gt2 * v(2) + 2 * k1_eff * v(1) - gt * gt2 * v(1)) * e_factor
+    kmat(2,2) = 1 - gt2 * v(1) * e_factor
+    kmat(2,3) = (gt2 * v(4) - 2 * k1_eff * v(3) - gt * gt2 * v(3)) * e_factor
+    kmat(2,4) = gt2 * v(3) * e_factor
+    kmat(3,1) = -gt2 * v(3) * e_factor
+    kmat(3,3) = 1 -  gt2 * v(1) * e_factor
+    kmat(4,1) = (gt2 * v(4) + (gt * gs2 - 2 * k1_eff) * v(3)) * e_factor
+    kmat(4,2) = (g_tot + gt2) * v(3) * e_factor
+    kmat(4,3) = -gt + (fint_gap + (g_tot + gt2) * v(2) + (gt * gs2 - 2 * k1_eff) * v(1)) * e_factor
+    kmat(4,4) = 1 + gt2 * v(1) * e_factor
+    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k1_eff - gt*gt2) * v(1)**3 / 12 + (-4*k1_eff + gt*gs2) * v(1) * v(3)**2 /4 + &
+                  gt2 * (-v(1)**2 * v(2) + 2 * v(1) * v(3) * v(4)) / 2 + (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
   end if
 endif
 
-end subroutine mad_bend_edge_kick
+!
+
+if (logic_option(.false., make_matrix)) then
+  kmat(1,6) = -dx  * e_factor
+  kmat(2,6) = -dpx * e_factor
+  kmat(3,6) = -dy  * e_factor
+  kmat(4,6) = -dpy * e_factor
+  ! The m(5,x) terms follow from the symplectic condition.
+  kmat(5,1) = -kmat(2,6)*kmat(1,1) + kmat(1,6)*kmat(2,1) - kmat(4,6)*kmat(3,1) + kmat(3,6)*kmat(4,1)
+  kmat(5,2) = -kmat(2,6)*kmat(1,2) + kmat(1,6)*kmat(2,2) - kmat(4,6)*kmat(3,2) + kmat(3,6)*kmat(4,2)
+  kmat(5,3) = -kmat(2,6)*kmat(1,3) + kmat(1,6)*kmat(2,3) - kmat(4,6)*kmat(3,3) + kmat(3,6)*kmat(4,3)
+  kmat(5,4) = -kmat(2,6)*kmat(1,4) + kmat(1,6)*kmat(2,4) - kmat(4,6)*kmat(3,4) + kmat(3,6)*kmat(4,4)
+  mat6 = matmul (kmat, mat6)
+endif
+
+end subroutine second_order_bend_edge_kick
 
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
@@ -889,14 +905,14 @@ case (full$)
   call exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (basic_bend$, hard_edge_only$)
-  call mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+  call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (sad_full$)
   if (particle_at == first_track_edge$) then
     call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-    call mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   endif
 
