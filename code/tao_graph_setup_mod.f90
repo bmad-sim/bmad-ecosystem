@@ -1742,12 +1742,15 @@ case ('s')
       scratch%eles(i)%ele => branch%ele(j)
     enddo
     ! If there is a wrap-around then reorder the data
-    do i = 1, n_dat
-      if (branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) then
-        scratch%eles = [scratch%eles(i:), scratch%eles(:i-1)]
-        exit
-      endif
-    enddo
+    if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
+      ix1 = 0
+      do i = 1, n_dat
+        if (ix1 == 0 .and. branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) ix1 = i
+        if (branch%ele(scratch%eles(i)%ele%ix_ele)%s < graph%x%max+eps) ix2 = i
+      enddo
+      call re_allocate_eles(scratch%eles, n_dat + ix2 + 1 - ix1, .true., .true.)
+      scratch%eles = [scratch%eles(ix1:n_dat), scratch%eles(1:ix2)]
+    endif
 
     if (curve%draw_line) then
       call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', graph%valid)
@@ -1756,6 +1759,7 @@ case ('s')
 
     do i = 1, size(curve%x_line)
       curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
+      if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(i) = curve%x_line(i) - l_tot
     enddo
 
   endif

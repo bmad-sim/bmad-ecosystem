@@ -3126,7 +3126,11 @@ case ('universe')
     nl=nl+1; write(lines(nl), '(a)') 'There are NO Lord elements'
   endif
 
-  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
+  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
+  if (branch%ele(0)%s /= 0) then
+    nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
+                                                branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
+  endif
 
   if (branch%param%geometry == open$ .and. tao_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then

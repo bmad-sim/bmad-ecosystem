@@ -1104,7 +1104,7 @@ branch => lat%branch(graph%ix_branch)
 tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
 
 lat_len = branch%param%total_length
-  
+
 ! Setup the placement of the graph on the plot page.
 
 call qp_set_layout (x_axis = graph%x, y_axis = graph%y, x2_mirrors_x = .false., &
