@@ -39,7 +39,7 @@ type (coord_struct) orbit, orb_in
 
 real(rp), pointer :: v(:)
 real(rp) p_vec(3), r_vec(3), rel_p, ww(3,3), beta0, ds0, s_vec(3), r_s
-real(rp) p_s, mc2, pz, beta_ref, dps_dpx, dps_dpy, dps_dpz, dp_ratio
+real(rp) pz_out, mc2, pz_in, beta_ref, dps_dpx, dps_dpy, dps_dpz, dp_ratio
 real(rp), optional :: mat6(6,6), s_ent, ds_ref
 
 integer dir
@@ -138,7 +138,7 @@ if (logic_option(.false., make_matrix)) then
     return
   endif
 
-  p_s = p_vec(3)
+  pz_out = p_vec(3)
   r_s = r_vec(3)
   mc2 = mass_of(orb_in%species)
 
@@ -150,39 +150,39 @@ if (logic_option(.false., make_matrix)) then
   else
     dir = ele%value(downstream_ele_dir$) * orb_in%direction
   endif
-  pz = sqrt(rel_p**2 - orb_in%vec(2)**2 - orb_in%vec(4)**2) * dir
+  pz_in = sqrt(rel_p**2 - orb_in%vec(2)**2 - orb_in%vec(4)**2) * dir
   beta_ref = v(p0c$) / v(e_tot$)
 
-  dps_dpx = ww(3,1) - ww(3,3) * orb_in%vec(2) / pz
-  dps_dpy = ww(3,2) - ww(3,3) * orb_in%vec(4) / pz
-  dps_dpz = ww(3,3) * rel_p / pz
+  dps_dpx = ww(3,1) - ww(3,3) * orb_in%vec(2) / pz_in
+  dps_dpy = ww(3,2) - ww(3,3) * orb_in%vec(4) / pz_in
+  dps_dpz = ww(3,3) * rel_p / pz_in
 
-  mat6(1,1) = ww(1,1) - ww(3,1) * orbit%vec(2) / p_s
-  mat6(1,2) = -r_s * ((ww(1,1) - ww(1,3) * orb_in%vec(2) / pz) / p_s - orbit%vec(2) * dps_dpx / p_s**2) 
-  mat6(1,3) = ww(1,2) - ww(3,2) * orbit%vec(2) / p_s
-  mat6(1,4) = -r_s * ((ww(1,2) - ww(1,3) * orb_in%vec(4) / pz) / p_s - orbit%vec(2) * dps_dpy / p_s**2)
-  mat6(1,6) = -r_s * (ww(1,3) * rel_p / (p_s * pz) - orbit%vec(2) * dps_dpz / p_s**2)
+  mat6(1,1) = ww(1,1) - ww(3,1) * orbit%vec(2) / pz_out
+  mat6(1,2) = -r_s * ((ww(1,1) - ww(1,3) * orb_in%vec(2) / pz_in) / pz_out - orbit%vec(2) * dps_dpx / pz_out**2) 
+  mat6(1,3) = ww(1,2) - ww(3,2) * orbit%vec(2) / pz_out
+  mat6(1,4) = -r_s * ((ww(1,2) - ww(1,3) * orb_in%vec(4) / pz_in) / pz_out - orbit%vec(2) * dps_dpy / pz_out**2)
+  mat6(1,6) = -r_s * (ww(1,3) * rel_p / (pz_out * pz_in) - orbit%vec(2) * dps_dpz / pz_out**2)
 
-  mat6(2,2) = ww(1,1) - ww(1,3) * orb_in%vec(2) / pz
-  mat6(2,4) = ww(1,2) - ww(1,3) * orb_in%vec(4) / pz
-  mat6(2,6) = ww(1,3) * rel_p / pz
+  mat6(2,2) = ww(1,1) - ww(1,3) * orb_in%vec(2) / pz_in
+  mat6(2,4) = ww(1,2) - ww(1,3) * orb_in%vec(4) / pz_in
+  mat6(2,6) = ww(1,3) * rel_p / pz_in
 
-  mat6(3,1) = ww(2,1) - ww(3,1) * orbit%vec(4) / p_s
-  mat6(3,2) = -r_s * ((ww(2,1) - ww(2,3) * orb_in%vec(2) / pz) / p_s - orbit%vec(4) * dps_dpx / p_s**2)
-  mat6(3,3) = ww(2,2) - ww(3,2) * orbit%vec(4) / p_s
-  mat6(3,4) = -r_s * ((ww(2,2) - ww(2,3) * orb_in%vec(4) / pz) / p_s - orbit%vec(4) * dps_dpy / p_s**2) 
-  mat6(3,6) = -r_s * (ww(2,3) * rel_p / (p_s * pz) - orbit%vec(4) * dps_dpz / p_s**2)
+  mat6(3,1) = ww(2,1) - ww(3,1) * orbit%vec(4) / pz_out
+  mat6(3,2) = -r_s * ((ww(2,1) - ww(2,3) * orb_in%vec(2) / pz_in) / pz_out - orbit%vec(4) * dps_dpx / pz_out**2)
+  mat6(3,3) = ww(2,2) - ww(3,2) * orbit%vec(4) / pz_out
+  mat6(3,4) = -r_s * ((ww(2,2) - ww(2,3) * orb_in%vec(4) / pz_in) / pz_out - orbit%vec(4) * dps_dpy / pz_out**2) 
+  mat6(3,6) = -r_s * (ww(2,3) * rel_p / (pz_out * pz_in) - orbit%vec(4) * dps_dpz / pz_out**2)
 
-  mat6(4,2) = ww(2,1) - ww(2,3) * orb_in%vec(2) / pz
-  mat6(4,4) = ww(2,2) - ww(2,3) * orb_in%vec(4) / pz
-  mat6(4,6) = ww(2,3) * rel_p / pz
+  mat6(4,2) = ww(2,1) - ww(2,3) * orb_in%vec(2) / pz_in
+  mat6(4,4) = ww(2,2) - ww(2,3) * orb_in%vec(4) / pz_in
+  mat6(4,6) = ww(2,3) * rel_p / pz_in
 
-  mat6(5,1) = ww(3,1) * rel_p / p_s
-  mat6(5,2) = -r_s * rel_p * dps_dpx / p_s**2
-  mat6(5,3) = ww(3,2) * rel_p / p_s
-  mat6(5,4) = -r_s * rel_p * dps_dpy / p_s**2
+  mat6(5,1) = ww(3,1) * rel_p / pz_out
+  mat6(5,2) = -r_s * rel_p * dps_dpx / pz_out**2
+  mat6(5,3) = ww(3,2) * rel_p / pz_out
+  mat6(5,4) = -r_s * rel_p * dps_dpy / pz_out**2
   mat6(5,6) = v(t_offset$) * c_light * mc2**2 * orb_in%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
-              r_s / p_s - r_s * rel_p * dps_dpz / p_s**2 + &
+              r_s / pz_out - r_s * rel_p * dps_dpz / pz_out**2 + &
               ds0 * mc2**2 * orbit%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
 
   ! Energy offset
