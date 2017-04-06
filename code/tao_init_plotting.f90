@@ -1889,7 +1889,7 @@ if (all(s%plot_page%template%name /= 'e_field')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Electric Field Along Orbit'
-  grph%y%label             = 'E-Field (T)'
+  grph%y%label             = 'E-Field (V/m)'
   grph%y%label_offset= .15
 
   crv => grph%curve(1)

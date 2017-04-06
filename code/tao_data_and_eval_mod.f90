@@ -869,6 +869,28 @@ case ('bpm_cbar.')
   end select
 
 !-----------
+case ('bunch_max.', 'bunch_min.')
+  if (data_source /= 'beam') return ! bad
+  select case (datum%data_type(11:))
+  case ('x'); i=1
+  case ('px');i=2
+  case ('y'); i=3
+  case ('py');i=4
+  case ('z'); i=5
+  case ('pz');i=6
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
+    return
+  end select
+  
+  select case (datum%data_type(1:10))
+  case ('bunch_max.')
+    call tao_load_this_datum (bunch_params(:)%rel_max(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('bunch_min.')
+    call tao_load_this_datum (bunch_params(:)%rel_min(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  end select
+
+!-----------
 
 case ('c_mat.')
 
@@ -2525,6 +2547,10 @@ case ('unstable.')
         if (orbit(iz)%s < branch%ele(iz)%s) then
           orb => orbit(iz-1)
           datum%ix_ele_merit = iz - 1
+          if (branch%ele(iz)%value(L$) /= 0) then
+            ! Add s_rel/L 
+            datum_value = datum_value + (branch%ele(iz)%s - orbit(iz)%s)/branch%ele(iz)%value(L$)
+          endif
         else
           datum_value = datum_value - 0.5
           orb => orbit(iz)
