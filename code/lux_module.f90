@@ -155,7 +155,7 @@ if (lux_param%debug) then
   call out_io (s_info$, r_name, 'Note: lux_param%debug = True')
 endif
 
-if (.not. lux_com%verbose) call output_direct (0, .false., max_level = s_success$) ! Suppress bmad_parser info output.
+if (.not. lux_com%verbose) call output_direct (-1, .false., max_level = s_success$) ! Suppress bmad_parser info output.
 
 ! Negative radom_seed is used for testing and turns off the dithering with MPI
 
