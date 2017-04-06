@@ -948,11 +948,13 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
 end subroutine
 
-subroutine tilt_coords (tilt_val, coord)
+subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   import
   implicit none
   real(rp) tilt_val
   real(rp) coord(:)
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
