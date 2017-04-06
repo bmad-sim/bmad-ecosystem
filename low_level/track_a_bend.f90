@@ -23,7 +23,7 @@ use track1_mod, except_dummy => track_a_bend
 
 implicit none
 
-type (coord_struct) :: orbit, c0_off, c1_off, start_orb
+type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
@@ -52,14 +52,13 @@ logical drifting
 !-----------------------------------------------------------------------
 
 start_orb = orbit
+if (logic_option(.false., make_matrix)) call mat_make_unit (mat6)
 
-call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
-c0_off = orbit
-
+call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., &
+                                                                  mat6 = mat6, make_matrix = make_matrix)
 ! Entrance edge kick
 
 c_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
-if (logic_option(.false., make_matrix)) call mat_make_unit (mat6)
 
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
@@ -324,13 +323,8 @@ do n = 1, n_step
                    g_tot**2 * Dy**2 * ((1 + g * x) * st)**3 * (px * ct + p_long * st) / (2 * alpha**5 * g**3)
     else
       eps = px_t**2 + py**2
-!      if (eps < 1d-5 * rel_p2) then  ! use small angle approximation
-!        eps = eps / (2 * rel_p)
-!        orbit%vec(1) = (pz + px * st - ct * p_long + g_tot * x * ct + ct - g_err * one_ct + &
-!                                                                 eps * (eps / (2 * rel_p) - 1)) / g_tot
-!      else
-        orbit%vec(1) = (sqrt(rel_p2 - eps) + px*st + g_tot*x*ct - p_long*ct) / g_tot - one_ct
-!      endif
+      ! orbit%vec(1) = (sqrt(rel_p2 - eps) + px*st + g_tot*x*ct - p_long*ct) / g_tot - one_ct
+      orbit%vec(1) = (rel_p * (sqrt_one(-eps/rel_p2) - ct * sqrt_one(-pxy2/rel_p2) + g * one_ct) + px*st + g_tot*x*ct) / g_tot - one_ct
     endif
 
     orbit%vec(2) = px_t
@@ -371,8 +365,8 @@ if (orbit_too_large(orbit, param)) return
 fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
-c1_off = orbit
-call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., &
+                                                                       mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
@@ -385,45 +379,6 @@ endif
 ! matrix
 
 if (logic_option(.false., make_matrix)) then
-
-  ! Roll
-  ! c0_off is the coordinates *after* the roll at the entrance end
-  ! So get the reverse roll matrix and take the inverse.
-
-  if (ele%value(roll$) /= 0) then
-    dr = 0
-    if (ele%value(angle$) < 1d-20) then
-      axis = [ele%value(angle$)/2, 0.0_rp, 1.0_rp]
-    else
-      axis = [cos(ele%value(angle$)) - 1, 0.0_rp, sin(ele%value(angle$))]
-    endif
-    call axis_angle_to_w_mat (axis, -ele%value(roll$), w_mat)
-    call mat6_coord_transformation (mat6_i, ele, param, c0_off, dr, w_mat)
-    mat6_i = mat_symp_conj(mat6_i)   ! Inverse
-    mat6 = matmul(mat6, mat6_i)
-
-    ! c1_off is the coordinates before the roll so this is what is needed
-    axis(1) = -axis(1)  ! Axis in exit coordinates
-    call axis_angle_to_w_mat (axis, -ele%value(roll$), w_mat)
-    call mat6_coord_transformation (mat6_i, ele, param, c1_off, dr, w_mat)
-    mat6 = matmul(mat6_i, mat6)
-
-  endif
-
-  !
-
-  if (ele%value(ref_tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(ref_tilt_tot$))
-
-  if (ele%value(z_offset_tot$) /= 0) then
-    s_off = ele%value(z_offset_tot$) * ele%orientation
-    mat6(1,:) = mat6(1,:) - s_off * mat6(2,:)
-    mat6(3,:) = mat6(3,:) - s_off * mat6(4,:)
-    mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off
-    mat6(:,4) = mat6(:,4) + mat6(:,3) * s_off
-  endif
-
-  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
-
   ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
 endif
 
