@@ -224,8 +224,8 @@ if (set) then
 
   ! Set: Tilt
 
-  if (set_t .and. ele%key /= sbend$) then
-    call tilt_coords (ele%value(tilt_tot$), orbit%vec)
+  if (set_t .and. ele%key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
+    call tilt_coords (ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin)
   endif
 
@@ -334,7 +334,7 @@ else
   ! Unset: Tilt & Roll
 
   if (set_t .and. ele%key /= sbend$) then
-    call tilt_coords (-ele%value(tilt_tot$), orbit%vec)
+    call tilt_coords (-ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin)
   endif
 

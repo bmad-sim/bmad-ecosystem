@@ -995,7 +995,7 @@ character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 
 type lat_param_struct
   real(rp) :: n_part = 0                       ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0                 ! total_length of branch
+  real(rp) :: total_length = 0                 ! total_length of branch. Warning: branch may not start at s = 0.
   real(rp) :: unstable_factor = 0              ! If positive: Growth rate/turn if unstable in closed branches or
                                                !   |orbit-aperture|/aperture if particle hits wall. Zero otherwise.
   real(rp) :: t1_with_RF(6,6) = 0              ! Full 1-turn matrix with RF on.
