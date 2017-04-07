@@ -214,7 +214,7 @@ end type pole_coef_struct
 
 type (pole_coef_struct) pole_coef(0:n_pole_maxx+1), pole_elec_coef(0:n_pole_maxx+1)
 
-type (ele_struct), target :: ele, ele2, ele3
+type (ele_struct), target :: ele, ele2
 type (lat_param_struct) param
 type (coord_struct) orbit
 type (em_field_struct) field
@@ -249,6 +249,7 @@ do_dfield_calc = logic_option(.false., calc_dfield)
 call convert_bend_exact_multipole(ele, ele2, vertically_pure$)
 call multipole_ele_to_ab (ele2, .not. local_ref_frame, ix_mag_max, a_pole, b_pole, magnetic$)
 call multipole_ele_to_ab (ele2, .not. local_ref_frame, ix_elec_max, a_pole_elec, b_pole_elec, electric$)
+call deallocate_ele_pointers(ele2)
 
 ! Calculate y-dependent coefs
 
