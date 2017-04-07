@@ -525,41 +525,14 @@ do j = n1, n2
     endif
   endif
 
-  if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) then
-    if (u%model%lat%branch(dat%ix_branch)%param%geometry == open$) then
-      call out_io (s_warn$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
-      dat%exists = .false.
-    else
-      u%calc%chrom_for_data = .true.
-    endif  
-  endif
-
   if (tao_beam_sigma_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%beam_sigma_for_data = .true. 
   endif
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
-  if (dat%data_type == 'unstable.orbit') then
-    dat%exists = .true.
-    if (dat%ele_name /= '') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // dat%data_type, &
-                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // dat%ele_name)
-      call err_exit
-    endif
-  endif
-
-  if (u%design%lat%param%geometry == closed$ .and. &
-              (dat%data_type(1:12)  == 'chrom.dtune.' .or. dat%data_type(1:5)  == 'damp.' .or. &
-               dat%data_type(1:17) == 'multi_turn_orbit.' .or. dat%data_type(1:5) == 'tune.' .or. &
-               dat%data_type(1:13) == 'unstable.ring' .or. index(dat%data_type, 'emit.') /= 0)) then
-    dat%exists = .true.
-    if (dat%ele_name /= '') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // dat%data_type, &
-                        'CANNOT HAVE AN ASSOCIATED ELEMENT IN A CIRCULAR LATTICE: ' // dat%ele_name)
-      call err_exit
-    endif
-  endif
+  dat%exists = tao_data_sanity_check (dat, .true.)
+  if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) u%calc%chrom_for_data = .true.
 
 enddo
 
