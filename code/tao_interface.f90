@@ -54,6 +54,12 @@ function tao_curve_component (curve, graph) result (component)
   character(60) component
 end function
  
+function tao_data_sanity_check (datum, print_err) result (is_valid)
+  import
+  type (tao_data_struct) datum
+  logical print_err, is_valid
+end function
+
 subroutine tao_data_show_use (d2_data, lines, nl)
   import
   implicit none
