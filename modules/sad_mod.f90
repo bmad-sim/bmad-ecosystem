@@ -82,7 +82,8 @@ ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
+  call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false., &
+                                                                                       mat6 = mat6, make_matrix = present(mat6))
 
   if (ix_pole_max > -1) then
     call multipole_kicks (knl, tilt, param%particle, ele, end_orb)
@@ -91,10 +92,10 @@ if (length == 0) then
     endif
   endif
 
-  call offset_particle (ele2, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
+  call offset_particle (ele2, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false., &
+                                                                                       mat6 = mat6, make_matrix = present(mat6))
 
   if (present(mat6)) then
-    call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
     ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
   endif
 
@@ -126,7 +127,8 @@ tilt = tilt - tilt(1)
 call multipole_kt_to_ab (knl, tilt, a_pole, b_pole)
 knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
-call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele2, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false., &
+                                                                                       mat6 = mat6, make_matrix = present(mat6))
 
 ! Entrance edge kicks
 ! The multipole hard edge routine takes care of the quadrupole hard edge.
@@ -199,7 +201,8 @@ if (orbit_too_large (end_orb, param)) return
 
 ! End stuff
 
-call offset_particle (ele2, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele2, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false., &
+                                                                                       mat6 = mat6, make_matrix = present(mat6))
 
 if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
   ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
@@ -211,10 +214,6 @@ endif
 end_orb%vec(5) = end_orb%vec(5) + low_energy_z_correction (end_orb, ele2, ele2%value(l$), mat6, present(mat6))
 
 if (present(mat6)) then
-  if (ele2%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele2%value(tilt_tot$))
-
-  call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
-
   ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
 endif
 
