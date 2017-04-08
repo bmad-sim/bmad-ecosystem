@@ -158,7 +158,18 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/e
 ! Finish up
 
 ele%map_ref_orb_out = a_end_orb
-if (present(end_orb) .and. .not. logic_option (.false., end_in)) end_orb = a_end_orb
+
+if (present(end_orb) .and. .not. logic_option (.false., end_in)) then
+  end_orb = a_end_orb
+
+  if (end_orb%state /= alive$) then
+    end_orb%location = inside$
+  elseif (end_orb%direction == 1) then
+    end_orb%location = downstream_end$
+  else
+    end_orb%location = upstream_end$
+  endif
+endif
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
 

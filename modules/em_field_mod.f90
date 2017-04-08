@@ -1816,58 +1816,6 @@ end function field_interpolate_3d
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function e_accel_field (ele, voltage_or_gradient) result (field)
-!
-! Routine to return the gradient or voltage through an e_gun, lcavity or rfcavity element.
-!
-! Moudle needed:
-!   use track1_mod
-!
-! Input:
-!   ele                 -- ele_struct: Lcavity or rfcavity element.
-!   voltage_or_gradient -- integer: voltage$ or gradient$
-!
-! Output:
-!   gradient -- real(rp): cavity gradient
-!-
-
-function e_accel_field (ele, voltage_or_gradient) result (field)
-
-type (ele_struct) ele
-real(rp) field
-integer voltage_or_gradient 
-
-!
-
-if (.not. ele%is_on) then
-  field = 0
-  return
-endif
-
-select case (ele%key)
-case (lcavity$)
-  select case (voltage_or_gradient)
-  case (voltage$)
-    field = (ele%value(voltage$) + ele%value(voltage_err$)) * ele%value(field_autoscale$)
-  case (gradient$)
-    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_autoscale$)
-  end select
-
-case (rfcavity$, e_gun$, em_field$)
-  select case (voltage_or_gradient)
-  case (voltage$)
-    field = ele%value(voltage$) * ele%value(field_autoscale$)
-  case (gradient$)
-    field = ele%value(gradient$) * ele%value(field_autoscale$)
-  end select
-end select
-
-end function e_accel_field
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield, rf_time)
 !
 ! Routine to calculate field derivatives.

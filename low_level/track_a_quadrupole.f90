@@ -134,12 +134,6 @@ call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_h
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
-if (orbit%direction == 1) then
-  orbit%s = ele%s
-else
-  orbit%s = ele%s_start
-endif
-
 !
 
 end subroutine

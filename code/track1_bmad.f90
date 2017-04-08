@@ -22,7 +22,6 @@
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
-use sad_mod, dummy1 => track1_bmad
 use track1_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
 use geometry_mod, dummy4 => track1_bmad
@@ -106,6 +105,7 @@ select case (key)
 case (beambeam$)
 
   call track_a_beambeam(end_orb, ele, param)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! collimator
@@ -122,6 +122,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
   elseif (kick == 0) then
     call track_a_drift (end_orb, length)
+    call set_end_orb_s()
 
   else
     angle = atan2(ele%value(vkick$), ele%value(hkick$))
@@ -580,6 +581,7 @@ case (octupole$)
 case (patch$)
 
   call track_a_patch (ele, end_orb)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! quadrupole
@@ -587,6 +589,7 @@ case (patch$)
 case (quadrupole$)
 
   call track_a_quadrupole (end_orb, ele, param)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! rfcavity
@@ -656,6 +659,7 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (end_orb, ele, param)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! sextupole

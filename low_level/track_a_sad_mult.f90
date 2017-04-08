@@ -3,9 +3,6 @@
 !
 ! Routine to track a particle through a sad_mult element.
 !
-! Module needed:
-!   use sad_mod
-!
 ! Input:
 !   ele          -- Ele_struct: Sad_mult element.
 !   param        -- lat_param_struct: Lattice parameters.
