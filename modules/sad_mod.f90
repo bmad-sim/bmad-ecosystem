@@ -213,10 +213,6 @@ endif
 
 end_orb%vec(5) = end_orb%vec(5) + low_energy_z_correction (end_orb, ele2, ele2%value(l$), mat6, present(mat6))
 
-if (present(mat6)) then
-  ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
-endif
-
 !
 
 end_orb%t = start_orb%t + (length + start_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)

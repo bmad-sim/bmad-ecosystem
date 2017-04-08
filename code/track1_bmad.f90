@@ -39,11 +39,10 @@ type (taylor_struct) taylor1(6), taylor2(6)
 
 real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
-real(rp) sig_x, sig_y, kx, ky, coef, bbi_const, voltage
+real(rp) coef, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) ks, kss, ksr, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
-real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
+real(rp) ks, kss, ksr, beta, mat6(6,6), mat2(2,2), mat4(4,4), vec0(6)
 real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref, p_bend, p2_bend, p2xy
@@ -53,7 +52,7 @@ real(rp) dcos_phi, dgradient, dpz, step_len, r_step
 real(rp) mc2, dE_start, dE_end, dE, dp_dg, g, e_tot, pc, ps, charge_dir
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
-real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel, beta_a0, beta_b0, alpha_a0, alpha_b0
+real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel
 real(rp) p_factor, sin_g, angle, rel_tracking_charge, rtc
 
 integer i, n, n_slice, key, orientation, ix_sec, n_step, ix_pole_max
@@ -106,61 +105,7 @@ select case (key)
                         
 case (beambeam$)
 
-  if (ele%value(charge$) == 0 .or. param%n_part == 0) return
-
-  sig_x0 = ele%value(sig_x$)
-  sig_y0 = ele%value(sig_y$)
-  if (sig_x0 == 0 .or. sig_y0 == 0) return
-
-  if (ele%value(beta_a$) == 0) then
-    beta_a0 = ele%a%beta
-    alpha_a0 = ele%a%alpha
-  else
-    beta_a0 = ele%value(beta_a$)
-    alpha_a0 = ele%value(alpha_a$)
-  endif
-
-  if (ele%value(beta_b$) == 0) then
-    beta_b0 = ele%b%beta
-    alpha_b0 = ele%b%alpha
-  else
-    beta_b0 = ele%value(beta_b$)
-    alpha_b0 = ele%value(alpha_b$)
-  endif
-
-  call offset_particle (ele, param, set$, end_orb)
-  call canonical_to_angle_coords (end_orb)
-
-  n_slice = max(1, nint(ele%value(n_slice$)))
-  call bbi_slice_calc (ele, n_slice, z_slice)
-  s_pos = 0    ! end at the ip
-  do i = 1, n_slice
-    s_pos_old = s_pos
-    s_pos = (end_orb%vec(5) + z_slice(i)) / 2
-    end_orb%vec(1) = end_orb%vec(1) + end_orb%vec(2) * (s_pos - s_pos_old)
-    end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * (s_pos - s_pos_old)
-    if (beta_a0 == 0) then
-      sig_x = sig_x0
-      sig_y = sig_y0
-    else
-      beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
-      sig_x = sig_x0 * sqrt(beta / beta_a0)
-      beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
-      sig_y = sig_y0 * sqrt(beta / beta_b0)
-    endif
-
-    call bbi_kick (end_orb%vec(1)/sig_x, end_orb%vec(3)/sig_y, sig_y/sig_x,  kx, ky)
-    bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
-                                          (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
-    coef = ele%value(bbi_const$) / (n_slice * rel_p)
-    end_orb%vec(2) = end_orb%vec(2) + kx * coef
-    end_orb%vec(4) = end_orb%vec(4) + ky * coef
-  enddo
-  end_orb%vec(1) = end_orb%vec(1) - end_orb%vec(2) * s_pos
-  end_orb%vec(3) = end_orb%vec(3) - end_orb%vec(4) * s_pos
-
-  call angle_to_canonical_coords (end_orb)
-  call offset_particle (ele, param, unset$, end_orb)  
+  call track_a_beambeam(end_orb, ele, param)
 
 !-----------------------------------------------
 ! collimator

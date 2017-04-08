@@ -68,16 +68,6 @@ subroutine bbi_kick (x, y, r, kx, ky)
   real(rp) x, y, r, kx, ky
 end subroutine
 
-subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  type (coord_struct) orb
-  real(rp) s_pos
-  real(rp) mat6(6,6)
-end subroutine
-
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none
@@ -953,6 +943,16 @@ subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   implicit none
   real(rp) tilt_val
   real(rp) coord(:)
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
