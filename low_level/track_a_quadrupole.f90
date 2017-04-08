@@ -142,8 +142,4 @@ endif
 
 !
 
-if (logic_option(.false., make_matrix)) then
-  ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
-endif
-
 end subroutine

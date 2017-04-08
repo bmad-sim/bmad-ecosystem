@@ -40,10 +40,10 @@ real(rp), pointer :: mat6(:,:), v(:)
 real(rp) mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
 real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
-real(rp) k2l, k3l, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
+real(rp) k2l, k3l, beta_ref, c_min, c_plu, dc_min, dc_plu
 real(rp) t5_22, t5_33, t5_34, t5_44
 real(rp) factor, kmat6(6,6), drift(6,6), ww(3,3)
-real(rp) s_pos, s_pos_old, z_slice(100), dr(3), axis(3), w_mat(3,3)
+real(rp) s_pos, s_pos_old, dr(3), axis(3), w_mat(3,3)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
@@ -95,7 +95,10 @@ c00 = orb_in
 ! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
 do_track = (.not. logic_option (.false., end_in))
-if (ele%key == sad_mult$ .or. ele%key == match$) do_track = .false.
+select case (ele%key)
+case (sad_mult$, match$, beambeam$, sbend$, patch$)
+  do_track = .false.
+end select
 
 if (do_track) then
   if (ele%tracking_method == linear$) then
@@ -142,57 +145,10 @@ select case (key)
 
 case (beambeam$)
 
-  call offset_particle (ele, param, set$, c00)
-  call canonical_to_angle_coords (c00)
-
-  call offset_particle (ele, param, set$, orb_out1, ds_pos = length)
-  call canonical_to_angle_coords (orb_out1)
-
-  n_slice = nint(v(n_slice$))
-  if (n_slice < 1) then
-    if (present(err)) err = .true.
-    call out_io (s_fatal$, r_name,  'N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE')
-    call type_ele (ele, .true., 0, .false., 0, .false.)
-    return
-  endif
-
-  if (v(charge$) == 0 .or. param%n_part == 0) return
-
-  ! factor of 2 in orb%vec(5) since relative motion of the two beams is 2*c_light
-
-  if (n_slice == 1) then
-    call bbi_kick_matrix (ele, param, c00, 0.0_rp, mat6)
-  else
-    call bbi_slice_calc (ele, n_slice, z_slice)
-
-    s_pos = 0          ! start at IP
-    orb = c00
-    orb%vec(2) = c00%vec(2) - v(x_pitch_tot$)
-    orb%vec(4) = c00%vec(4) - v(y_pitch_tot$)
-    call mat_make_unit (mat4)
-
-    do i = 1, n_slice + 1
-      s_pos_old = s_pos  ! current position
-      s_pos = (z_slice(i) + c00%vec(5)) / 2 ! position of slice relative to IP
-      del_l = s_pos - s_pos_old
-      mat4(1,1:4) = mat4(1,1:4) + del_l * mat4(2,1:4)
-      mat4(3,1:4) = mat4(3,1:4) + del_l * mat4(4,1:4)
-      if (i == n_slice + 1) exit
-      orb%vec(1) = c00%vec(1) + s_pos * orb%vec(2)
-      orb%vec(3) = c00%vec(3) + s_pos * orb%vec(4)
-      call bbi_kick_matrix (ele, param, orb, s_pos, kmat6)
-      mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
-                                  kmat6(2,3) * mat4(3,1:4)
-      mat4(4,1:4) = mat4(4,1:4) + kmat6(4,1) * mat4(1,1:4) + &
-                                  kmat6(4,3) * mat4(3,1:4)
-    enddo
-
-    mat6(1:4,1:4) = mat4
-
-  endif
-
-  call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  call track_a_beambeam (c00, ele, param, mat6, .true.)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  return
 
 !--------------------------------------------------------
 ! Custom
@@ -730,9 +686,10 @@ case (octupole$)
 
 case (patch$) 
 
-  c00%vec(5) = 0
-  call track_a_patch (ele, c00, .false., track_spin = .false., mat6 = mat6, make_matrix = .true.)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  call track_a_patch (ele, c00, .true., track_spin = .false., mat6 = mat6, make_matrix = .true.)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  return
 
 !--------------------------------------------------------
 ! quadrupole
@@ -740,6 +697,8 @@ case (patch$)
 case (quadrupole$)
 
   call track_a_quadrupole (c00, ele, param, mat6, .true.)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  return
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -835,7 +794,10 @@ case (rfcavity$)
 case (sad_mult$)
 
   call sad_mult_track_and_mat (ele, param, c00, orb_out1, ele%mat6)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, orb_out1)
+  ele%vec0 = orb_out1%vec - matmul(mat6, orb_in%vec)
+  return
+
 
 !--------------------------------------------------------
 ! sbend
@@ -843,6 +805,8 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (c00, ele, param, mat6, .true.)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -1187,72 +1151,3 @@ orb%vec(4) = orb%vec(4) + k1 * orb%vec(3)
 
 end subroutine lcavity_edge_kick_matrix
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-
-subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
-
-use bmad_interface, except_dummy => bbi_kick_matrix
-
-implicit none
-
-type (ele_struct)  ele
-type (coord_struct)  orb
-type (lat_param_struct) param
-
-real(rp) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
-real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta, bbi_const
-real(rp) beta_a0, alpha_a0, beta_b0, alpha_b0
-
-!
-
-call mat_make_unit (mat6)
-
-sig_x = ele%value(sig_x$)
-sig_y = ele%value(sig_y$)
-
-if (sig_x == 0 .or. sig_y == 0) return
-
-if (ele%value(beta_a$) == 0) then
-  beta_a0 = ele%a%beta
-  alpha_a0 = ele%a%alpha
-else
-  beta_a0 = ele%value(beta_a$)
-  alpha_a0 = ele%value(alpha_a$)
-endif
-
-if (ele%value(beta_b$) == 0) then
-  beta_b0 = ele%b%beta
-  alpha_b0 = ele%b%alpha
-else
-  beta_b0 = ele%value(beta_b$)
-  alpha_b0 = ele%value(alpha_b$)
-endif
-
-if (s_pos /= 0 .and. ele%a%beta /= 0) then
-  beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
-  sig_x = sig_x * sqrt(beta / beta_a0)
-  beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
-  sig_y = sig_y * sqrt(beta / beta_b0)
-endif
-
-x_pos = orb%vec(1) / sig_x  ! this has offset in it
-y_pos = orb%vec(3) / sig_y
-
-del = 0.001
-
-ratio = sig_y / sig_x
-call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
-call bbi_kick (x_pos+del, y_pos, ratio, k1_x, garbage)
-call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
-
-bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
-                    (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
-
-coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))
-
-mat6(2,1) = coef * (k1_x - k0_x) / sig_x
-mat6(4,3) = coef * (k1_y - k0_y) / sig_y
-
-end subroutine bbi_kick_matrix
