@@ -942,14 +942,14 @@ type ele_struct
   integer :: sub_key = 0                          ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer :: slave_status = not_a_child$          ! or multipass_slave$, super_slave$, slice_slave$
-  integer :: n_slave = 0                          ! Number of slaves (except field slaves).
+  integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
+  integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element
-  integer :: ix1_slave = 0                        ! Start index for slave elements
-  integer :: lord_status = not_a_lord$            ! overlay_lord$, etc.
+  integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
+  integer :: slave_status = not_a_child$          ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
   integer :: n_lord = 0                           ! Number of lords (except field lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element
-  integer :: ic1_lord = 0                         ! Start index for lord elements
+  integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0                     ! Index for Bmad internal use
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.

@@ -981,8 +981,13 @@ end subroutine
 subroutine set_orb_out (orb_out, c00)
 
 type (coord_struct) orb_out, c00
+
 orb_out = c00
-orb_out%location = downstream_end$
+if (orb_out%direction == 1) then
+  orb_out%s = ele%s
+else
+  orb_out%s = ele%s_start
+endif
 
 end subroutine set_orb_out
 

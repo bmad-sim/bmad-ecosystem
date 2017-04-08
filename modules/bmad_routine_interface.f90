@@ -68,6 +68,18 @@ subroutine bbi_kick (x, y, r, kx, ky)
   real(rp) x, y, r, kx, ky
 end subroutine
 
+subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+  type (em_field_struct) field
+  logical local_ref_frame
+  logical, optional :: calc_dfield
+  type (em_potential_struct), optional :: potential
+end subroutine
+
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none
@@ -319,24 +331,20 @@ subroutine do_mode_flip (ele, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+function e_accel_field (ele, voltage_or_gradient) result (field)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) field
+  integer voltage_or_gradient 
+end function
+
 subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   import
   type (ele_struct) ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
   logical err_flag
-end subroutine
-
-subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (lat_param_struct) param
-  type (coord_struct) orbit
-  type (em_field_struct) field
-  logical local_ref_frame
-  logical, optional :: calc_dfield
-  type (em_potential_struct), optional :: potential
 end subroutine
 
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
