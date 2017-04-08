@@ -96,7 +96,7 @@ c00 = orb_in
 
 do_track = (.not. logic_option (.false., end_in))
 select case (ele%key)
-case (sad_mult$, match$, beambeam$, sbend$, patch$)
+case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$)
   do_track = .false.
 end select
 
@@ -687,8 +687,8 @@ case (octupole$)
 case (patch$) 
 
   call track_a_patch (ele, c00, .true., track_spin = .false., mat6 = mat6, make_matrix = .true.)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   return
 
 !--------------------------------------------------------
@@ -698,6 +698,7 @@ case (quadrupole$)
 
   call track_a_quadrupole (c00, ele, param, mat6, .true.)
   ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   return
 
 !--------------------------------------------------------
@@ -793,11 +794,10 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, c00, orb_out1, ele%mat6)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, orb_out1)
-  ele%vec0 = orb_out1%vec - matmul(mat6, orb_in%vec)
+  call track_a_sad_mult (c00, ele, param, ele%mat6)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   return
-
 
 !--------------------------------------------------------
 ! sbend
@@ -805,8 +805,8 @@ case (sad_mult$)
 case (sbend$)
 
   call track_a_bend (c00, ele, param, mat6, .true.)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! Sextupole.

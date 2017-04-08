@@ -10,6 +10,7 @@
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- Ele_struct: Bend element.
 !   param       -- lat_param_struct: Lattice parameters.
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix up to the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
@@ -52,7 +53,6 @@ logical drifting
 !-----------------------------------------------------------------------
 
 start_orb = orbit
-if (logic_option(.false., make_matrix)) call mat_make_unit (mat6)
 
 call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., &
                                                                   mat6 = mat6, make_matrix = make_matrix)

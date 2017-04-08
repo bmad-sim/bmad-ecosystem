@@ -647,7 +647,7 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, start_orb, end_orb)
+  call track_a_sad_mult (end_orb, ele, param)
   call set_end_orb_s()
 
 !-----------------------------------------------
