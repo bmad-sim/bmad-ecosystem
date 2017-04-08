@@ -331,7 +331,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 's%com%beam_file           = ', s%com%beam_file
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
     nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
-    beam => uni_branch%ele(0)%beam
+    beam => uni_branch%ele(uni_branch%ix_track_start)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
@@ -446,6 +446,8 @@ case ('beam')
     if (branch%param%particle == photon$) then
       nl=nl+1; write(lines(nl), rmt)  '  Intensity:                  ', &
                         bunch_p%centroid%field(1)**2 + bunch_p%centroid%field(2)**2
+    else
+      nl=nl+1; write(lines(nl), rmt) '  Charge live (C):            ', bunch_p%charge_live
     endif
     nl=nl+1; write(lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
