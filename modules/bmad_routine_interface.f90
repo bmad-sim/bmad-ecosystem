@@ -1003,6 +1003,16 @@ subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   import
   implicit none

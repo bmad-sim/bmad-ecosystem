@@ -38,7 +38,7 @@ type (ele_struct) ele
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: p
 
-real(rp) time, gamma, beta, vec(6)
+real(rp) time, gamma, vec(6)
 real(rp) :: zero_vec(6) = 0
 integer i, ic, iu, ix, ios, i_col_max, col_id(20)
 logical err_flag
@@ -63,7 +63,7 @@ do
   read (iu, *, iostat = ios) line 
   if (ios /= 0) goto 9000  ! And exit
   if (line(1:4) == 'time') then
-    read (line(5:), *, iostat = ios) 
+    read (line(5:), *, iostat = ios) time
     if (ios /= 0) goto 9000  ! And exit
     exit
   endif
@@ -120,10 +120,10 @@ do i = 1, 100000
 
   p%beta = sqrt(vec(2)**2 + vec(4)**2 + vec(6)**2)
   p%vec(1) = vec(1) - vec(5) * vec(2) / vec(6)
-  p%vec(2) = vec(2) / beta
+  p%vec(2) = vec(2) / p%beta
   p%vec(3) = vec(3) - vec(5) * vec(4) / vec(6)
-  p%vec(4) = vec(4) / beta
-  p%vec(5) = beta * c_light * (ele%ref_time - (time - vec(5) / (c_light * vec(6))))
+  p%vec(4) = vec(4) / p%beta
+  p%vec(5) = p%beta * c_light * (ele%ref_time - (time - vec(5) / (c_light * vec(6))))
   p%vec(6) = (p%beta * gamma * mass_of(electron$) - ele%value(p0c$)) / ele%value(p0c$)
   p%t = time
 
@@ -1601,7 +1601,7 @@ end subroutine rotate_field_zx
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 
-subroutine convert_local_curvilinear_to_local_cartesian(x, s, xout, zout)
+subroutine convert_local_curvilinear_to_local_cartesian(x, s, g, xout, zout)
 real(rp) :: x, s, g, rho, xout, zout, theta
 if (g == 0) then
   xout = x
