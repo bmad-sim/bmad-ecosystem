@@ -328,32 +328,40 @@ case ('PSI_POSITION')
   a_ptr%r => ele%floor%psi
 case ('BETA_A')
   a_ptr%r => ele%a%beta
-case ('ALPHA_A')
-  a_ptr%r => ele%a%alpha
-case ('PHI_A')
-  a_ptr%r => ele%a%phi
-case ('ETA_A')
-  a_ptr%r => ele%a%eta
-case ('ETAP_A')
-  a_ptr%r => ele%a%etap
-case ('ETA_X')
-  a_ptr%r => ele%x%eta
-case ('ETAP_X')
-  a_ptr%r => ele%x%etap
 case ('BETA_B')
   a_ptr%r => ele%b%beta
+case ('ALPHA_A')
+  a_ptr%r => ele%a%alpha
 case ('ALPHA_B')
   a_ptr%r => ele%b%alpha
+case ('GAMMA_A')
+  a_ptr%r => ele%a%gamma
+case ('GAMMA_B')
+  a_ptr%r => ele%b%gamma
+case ('PHI_A')
+  a_ptr%r => ele%a%phi
 case ('PHI_B')
   a_ptr%r => ele%b%phi
+case ('ETA_A')
+  a_ptr%r => ele%a%eta
 case ('ETA_B')
   a_ptr%r => ele%b%eta
-case ('ETAP_B')
-  a_ptr%r => ele%b%etap
+case ('ETA_X')
+  a_ptr%r => ele%x%eta
 case ('ETA_Y')
   a_ptr%r => ele%y%eta
+case ('ETA_Z')
+  a_ptr%r => ele%z%eta
+case ('ETAP_A')
+  a_ptr%r => ele%a%etap
+case ('ETAP_B')
+  a_ptr%r => ele%b%etap
+case ('ETAP_X')
+  a_ptr%r => ele%x%etap
 case ('ETAP_Y')
   a_ptr%r => ele%y%etap
+case ('ETAP_Z')
+  a_ptr%r => ele%z%etap
 case ('CMAT_11')
   a_ptr%r => ele%c_mat(1,1)
 case ('CMAT_12')
