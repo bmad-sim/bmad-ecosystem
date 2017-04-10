@@ -452,7 +452,8 @@ else
       call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
       call lat_ele_locator (u%data(j)%ele_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // u%data(j)%ele_name)
+        call out_io (s_error$, r_name, 'LATTICE ELEMENT NOT LOCATED: ' // u%data(j)%ele_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
         u%data(j)%exists = .false.
         cycle
       endif
@@ -464,7 +465,8 @@ else
       call str_upcase (u%data(j)%ele_ref_name, u%data(j)%ele_ref_name)
       call lat_ele_locator (u%data(j)%ele_ref_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name)
+        call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
         u%data(j)%exists = .false.
         cycle
       endif
@@ -475,7 +477,8 @@ else
       call str_upcase (u%data(j)%ele_start_name, u%data(j)%ele_start_name)
       call lat_ele_locator (u%data(j)%ele_start_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name)
+        call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
         u%data(j)%exists = .false.
         cycle
       endif
@@ -531,7 +534,7 @@ do j = n1, n2
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
-  dat%exists = tao_data_sanity_check (dat, .true.)
+  dat%exists = tao_data_sanity_check (dat, dat%exists)
   if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) u%calc%chrom_for_data = .true.
 
 enddo
