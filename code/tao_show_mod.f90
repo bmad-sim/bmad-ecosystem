@@ -190,11 +190,11 @@ type show_lat_column_struct
   logical remove_line_if_zero
 end type
 
-type (show_lat_column_struct) column(50)
+type (show_lat_column_struct) column(60)
 type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here
+real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
 real(rp), allocatable :: value(:)
 
 character(*) :: what, stuff
@@ -3205,7 +3205,7 @@ case ('universe')
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design'
-  fmt  = '(1x, a16, 1p2e11.3, 3x, a)'
+  fmt  = '(1x, a16, 2es11.3, 3x, a)'
   fmt2 = '(1x, a16, 2f11.4, 3x, a)'
   if (branch%param%geometry == closed$) then
     call calc_z_tune(lat, ix_branch)
@@ -3228,10 +3228,22 @@ case ('universe')
   nl=nl+1; write(lines(nl), fmt) 'I1:', tao_branch%modes%synch_int(1), design_tao_branch%modes%synch_int(1), '! Radiation Integral'
   nl=nl+1; write(lines(nl), fmt) 'I2:', tao_branch%modes%synch_int(2), design_tao_branch%modes%synch_int(2), '! Radiation Integral'
   nl=nl+1; write(lines(nl), fmt) 'I3:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
+
   if (bmad_com%spin_tracking_on) then
     nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, &
                                           design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
   endif
+
+  if (branch%param%geometry == closed$) then
+    pz1 = 0;  pz2 = 0
+    do i = 1, branch%n_ele_track
+      pz1 = pz1 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / branch%param%total_length
+      pz2 = pz2 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / branch%param%total_length
+    enddo
+    nl=nl+1; write(lines(nl), fmt) '<pz>:', branch%param%spin_tune/twopi, &
+                                          design_branch%param%spin_tune/twopi, '! Average closed orbit pz (momentum deviation)'
+  endif
+
   result_id = show_what
 
 !----------------------------------------------------------------------
