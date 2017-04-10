@@ -9,11 +9,12 @@
 !
 ! Input:
 !   tilt_val       -- Real(rp): Tilt value (could be the roll value for a bend)
+!   coord(:)       -- Real(rp): Coordinates of particle before rotation.
 !   mat6(6,6)      -- Real(rp), optional: Transfer matrix before tilt.
 !   make_matrix    -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   coord      -- Real(:): Coordinates of particles.
+!   coord(:)   -- Real(rp): Coordinates of particle after rotation.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix after tilt applied.
 !-
 

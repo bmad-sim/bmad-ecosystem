@@ -46,8 +46,8 @@ if (E_tot < mc2 .or. E_tot == 0) then
   return
 endif
 
-pc_new = E_tot * sqrt(1.0 - (mc2/E_tot)**2)
-if (present(pc))     pc     = pc_new
+pc_new = sqrt(E_tot**2 - mc2**2)
+if (present(pc))     pc       = pc_new
 if (present(beta))    beta    = pc_new / E_tot  
 if (present(kinetic)) kinetic = E_tot - mc2
 if (present(brho))    brho    = pc_new / c_light

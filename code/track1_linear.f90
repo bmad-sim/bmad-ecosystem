@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_linear (start%orb, ele, param, end_orb)
+! Subroutine track1_linear (start_orb, ele, param, end_orb)
 !
 ! Particle tracking through a single element assuming linearity.
 ! That is, just using ele%mat6.
@@ -8,7 +8,7 @@
 !   use bmad
 !
 ! Input:
-!   start%orb  -- Coord_struct: Starting position
+!   start_orb  -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element
 !   param      -- lat_param_struct:
 !

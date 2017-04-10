@@ -992,6 +992,16 @@ subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
   logical phase_relative_to_ref
 end subroutine
 
+subroutine track_a_elseparator (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
   import
   implicit none
