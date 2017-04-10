@@ -314,64 +314,37 @@ endif
 ! Special cases
 
 select case (a_name)
-case ('X_POSITION')
-  a_ptr%r => ele%floor%r(1)
-case ('Y_POSITION')
-  a_ptr%r => ele%floor%r(2)
-case ('Z_POSITION')
-  a_ptr%r => ele%floor%r(3)
-case ('THETA_POSITION')
-  a_ptr%r => ele%floor%theta
-case ('PHI_POSITION')
-  a_ptr%r => ele%floor%phi
-case ('PSI_POSITION')
-  a_ptr%r => ele%floor%psi
-case ('BETA_A')
-  a_ptr%r => ele%a%beta
-case ('BETA_B')
-  a_ptr%r => ele%b%beta
-case ('ALPHA_A')
-  a_ptr%r => ele%a%alpha
-case ('ALPHA_B')
-  a_ptr%r => ele%b%alpha
-case ('GAMMA_A')
-  a_ptr%r => ele%a%gamma
-case ('GAMMA_B')
-  a_ptr%r => ele%b%gamma
-case ('PHI_A')
-  a_ptr%r => ele%a%phi
-case ('PHI_B')
-  a_ptr%r => ele%b%phi
-case ('ETA_A')
-  a_ptr%r => ele%a%eta
-case ('ETA_B')
-  a_ptr%r => ele%b%eta
-case ('ETA_X')
-  a_ptr%r => ele%x%eta
-case ('ETA_Y')
-  a_ptr%r => ele%y%eta
-case ('ETA_Z')
-  a_ptr%r => ele%z%eta
-case ('ETAP_A')
-  a_ptr%r => ele%a%etap
-case ('ETAP_B')
-  a_ptr%r => ele%b%etap
-case ('ETAP_X')
-  a_ptr%r => ele%x%etap
-case ('ETAP_Y')
-  a_ptr%r => ele%y%etap
-case ('ETAP_Z')
-  a_ptr%r => ele%z%etap
-case ('CMAT_11')
-  a_ptr%r => ele%c_mat(1,1)
-case ('CMAT_12')
-  a_ptr%r => ele%c_mat(1,2)
-case ('CMAT_21')
-  a_ptr%r => ele%c_mat(2,1)
-case ('CMAT_22')
-  a_ptr%r => ele%c_mat(2,2)
-case ('S')
-  a_ptr%r => ele%s
+case ('X_POSITION');      a_ptr%r => ele%floor%r(1)
+case ('Y_POSITION');      a_ptr%r => ele%floor%r(2)
+case ('Z_POSITION');      a_ptr%r => ele%floor%r(3)
+case ('THETA_POSITION');  a_ptr%r => ele%floor%theta
+case ('PHI_POSITION');    a_ptr%r => ele%floor%phi
+case ('PSI_POSITION');    a_ptr%r => ele%floor%psi
+case ('BETA_A');          a_ptr%r => ele%a%beta
+case ('BETA_B');          a_ptr%r => ele%b%beta
+case ('ALPHA_A');         a_ptr%r => ele%a%alpha
+case ('ALPHA_B');         a_ptr%r => ele%b%alpha
+case ('GAMMA_A');         a_ptr%r => ele%a%gamma
+case ('GAMMA_B');         a_ptr%r => ele%b%gamma
+case ('PHI_A');           a_ptr%r => ele%a%phi
+case ('PHI_B');           a_ptr%r => ele%b%phi
+case ('ETA_A');           a_ptr%r => ele%a%eta
+case ('ETA_B');           a_ptr%r => ele%b%eta
+case ('ETA_X');           a_ptr%r => ele%x%eta
+case ('ETA_Y');           a_ptr%r => ele%y%eta
+case ('ETA_Z');           a_ptr%r => ele%z%eta
+case ('ETAP_A');          a_ptr%r => ele%a%etap
+case ('ETAP_B');          a_ptr%r => ele%b%etap
+case ('ETAP_X');          a_ptr%r => ele%x%etap
+case ('ETAP_Y');          a_ptr%r => ele%y%etap
+case ('ETAP_Z');          a_ptr%r => ele%z%etap
+case ('CMAT_11');         a_ptr%r => ele%c_mat(1,1)
+case ('CMAT_12');         a_ptr%r => ele%c_mat(1,2)
+case ('CMAT_21');         a_ptr%r => ele%c_mat(2,1)
+case ('CMAT_22');         a_ptr%r => ele%c_mat(2,2)
+case ('S');               a_ptr%r => ele%s
+case ('LORD_STATUS');                    a_ptr%i => ele%lord_status
+case ('SLAVE_STATUS');                   a_ptr%i => ele%slave_status
 case ('REF_TIME')
   a_ptr%r => ele%ref_time
 case ('LR_FREQ_SPREAD')
@@ -489,7 +462,6 @@ case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
 case ('LIVE_BRANCH');                    a_ptr%r => ele%value(live_branch$)
 case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
 case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fringe_type$)
-case ('LORD_STATUS');                    a_ptr%i => ele%lord_status
 case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
@@ -499,7 +471,6 @@ case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
 case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
 case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
-case ('SLAVE_STATUS');                   a_ptr%i => ele%slave_status
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
 case ('KEY');                            a_ptr%i => ele%key
