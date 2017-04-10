@@ -41,7 +41,7 @@ if (datum%ele_ref_name /= '') then
   if (.not. check_ele_ok (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE ')) return
 endif
 
-if (datum%ele_name /= '') then
+if (datum%ele_start_name /= '') then
   if (.not. check_ele_ok (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START')) return
 endif
 
