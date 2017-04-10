@@ -95,7 +95,7 @@ c00 = orb_in
 
 do_track = (.not. logic_option (.false., end_in))
 select case (ele%key)
-case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$)
+case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$)
   do_track = .false.
 end select
 
@@ -163,8 +163,9 @@ case (custom$)
 ! Drift
 
 case (drift$) 
-  call drift_mat6_calc (mat6, length, ele, param, c00)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  call track_a_drift (c00, length, mat6, .true.)
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   return
 
 !-----------------------------------------------

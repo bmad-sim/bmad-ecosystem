@@ -38,8 +38,7 @@ type (taylor_struct) taylor1(6), taylor2(6)
 
 real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
-real(rp) coef, voltage
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp) coef, voltage, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) ks, kss, ksr, beta, mat6(6,6), mat2(2,2), mat4(4,4), vec0(6)
 real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
@@ -51,8 +50,7 @@ real(rp) dcos_phi, dgradient, dpz, step_len, r_step
 real(rp) mc2, dE_start, dE_end, dE, dp_dg, g, e_tot, pc, ps, charge_dir
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
-real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel
-real(rp) p_factor, sin_g, angle, rel_tracking_charge, rtc
+real(rp) cosh1_k, sinh_k, dt, e_rel, p_factor, sin_g, angle, rel_tracking_charge
 
 integer i, n, n_slice, key, orientation, ix_sec, n_step, ix_pole_max
 
@@ -184,9 +182,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
  
 case (drift$) 
 
-  call offset_particle (ele, param, set$, end_orb)
   call track_a_drift (end_orb, length)
-  call offset_particle (ele, param, unset$, end_orb)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -194,70 +190,7 @@ case (drift$)
 
 case (elseparator$)
 
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.) 
-
-  ! Compute kick
-  rtc = abs(rel_tracking_charge) * sign(1, charge_of(end_orb%species))
-  hk = ele%value(hkick$) * rtc
-  vk = ele%value(vkick$) * rtc
-
-  ! Rotate (x, y) so that kick is in +x direction.
-
-  angle = atan2(vk, hk)
-  call tilt_coords (angle, end_orb%vec)
-
-  ! Check if particle can make it though the separator.
-
-  pc = ele%value(p0c$) * (1 + end_orb%vec(6))
-  call convert_pc_to (pc, end_orb%species, E_tot = E_tot)
-  E_rel = E_tot / ele%value(p0c$)
-  mc2 = mass_of(end_orb%species)
-
-  x = end_orb%vec(1)
-  px = end_orb%vec(2)
-  p_factor = (mc2 / ele%value(p0c$))**2 + end_orb%vec(2)**2 + end_orb%vec(4)**2
-  if (length == 0) length = 1d-50  ! To avoid divide by zero
-  k_E = sqrt(hk**2 + vk**2) / length
-
-  if (x * k_E < sqrt(p_factor) - E_rel) then
-    end_orb = start_orb
-    end_orb%state = lost_z_aperture$
-    return
-  endif
-
-  ! Track
-
-  ps = sqrt((E_rel + k_E * x)**2 - p_factor)
-  alpha = length / ps
-  coef = k_E * length / ps
-
-  if (abs(coef) > 10) then ! lost
-    end_orb%state = lost$
-    return
-  endif
-
-  if (abs(coef) < 1d-3) then
-    sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
-    cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
-  else
-    sinh_k = sinh(coef) / k_E
-    cosh1_k = (cosh(coef) - 1) / k_E
-  endif
-
-  end_orb%vec(1) = x * cosh(coef) + E_rel * cosh1_k + px * sinh_k
-  end_orb%vec(2) = (k_E * x  + E_rel) * sinh(coef) + px * cosh(coef)
-  end_orb%vec(3) = end_orb%vec(3) + length * end_orb%vec(4) / ps
-
-  dt = (x * sinh(coef) + E_rel * sinh_k + px * cosh1_k) / c_light
-  end_orb%t = end_orb%t + dt
-  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-  end_orb%vec(5) = end_orb%vec(5) + end_orb%beta * (length / beta_ref - c_light * dt)
-
-  ! Rotate back to lab coords
-  
-  call tilt_coords (-angle, end_orb%vec)
-
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.) 
+  call track_a_elseparator (end_orb, ele, param)
   call set_end_orb_s()
 
 !-----------------------------------------------
