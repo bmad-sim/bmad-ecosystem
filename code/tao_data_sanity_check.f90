@@ -34,27 +34,15 @@ branch => u%design%lat%branch(datum%ix_branch)
 is_valid = .false.
 
 if (datum%ele_name /= '') then
-  if (branch%ele(datum%ix_ele)%name /= datum%ele_name) then
-    if (print_err) call out_io (s_error$, r_name, 'DATUM ELEMENT NOT LOCATED: ' // datum%ele_name, &
-                                                  'FOR DATUM: ' // tao_datum_name(datum))
-    return
-  endif
+  if (.not. check_ele_ok (datum%ele_name, datum%ix_ele, 'DATUM ELEMENT')) return
 endif
 
 if (datum%ele_ref_name /= '') then
-  if (branch%ele(datum%ix_ele_ref)%name /= datum%ele_ref_name) then
-    if (print_err) call out_io (s_error$, r_name, 'DATUM ELEMENT REFERENCE NOT LOCATED: ' // datum%ele_ref_name, & 
-                                                  'FOR DATUM: ' // tao_datum_name(datum))
-    return
-  endif
+  if (.not. check_ele_ok (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE ')) return
 endif
 
-if (datum%ele_start_name /= '') then
-  if (branch%ele(datum%ix_ele_start)%name /= datum%ele_start_name) then
-    if (print_err) call out_io (s_error$, r_name, 'DATUM ELEMENT START NOT LOCATED: ' // datum%ele_start_name, &
-                                                  'FOR DATUM: ' // tao_datum_name(datum))
-    return
-  endif
+if (datum%ele_name /= '') then
+  if (.not. check_ele_ok (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START')) return
 endif
 
 !
@@ -117,5 +105,34 @@ endif
 
 is_valid = .true.
 
-end function
+!-----------------------------------------------------------------------------------------------------
+contains
+
+function check_ele_ok(ele_name, ix_ele, err_str) result (is_ok)
+
+character(*) ele_name, err_str
+integer ix_ele
+logical is_ok
+
+!
+
+is_ok = .false.
+
+if (ix_ele < 0) then
+  if (print_err) call out_io (s_error$, r_name, err_str // ' NOT LOCATED: ' // datum%ele_name, &
+                                                'FOR DATUM: ' // tao_datum_name(datum))
+  return
+endif
+
+if (branch%ele(datum%ix_ele)%name /= datum%ele_name) then
+  if (print_err) call out_io (s_error$, r_name, err_str // ' LOCATION CONFUSION: ' // datum%ele_name, &
+                                                'FOR DATUM: ' // tao_datum_name(datum))
+  return
+endif
+
+is_ok = .true.
+
+end function check_ele_ok
+
+end function tao_data_sanity_check
 

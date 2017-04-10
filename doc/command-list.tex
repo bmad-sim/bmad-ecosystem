@@ -1877,14 +1877,14 @@ to be used. The default format is \vn{es12.4}.  Example:
 \begin{example}
   show lat -attrib is_on@l4 -attrib voltage rfcavity::*
 \end{example}
-In the above example, \vn{-attribute} appears twice and the total number of columns of
-output will thus be 7 (= 5 + 2). The sixth column will have the \vn{is_on} element
-attribute and will be printed using the \vn{l4} format (logical with a field width of 4
-characters). The seventh column will show the voltage attribute.
+In the above example, \vn{-attribute} appears twice and the total number of columns of output will
+thus be 7 (= 5 + 2). The sixth column will have the \vn{is_on} element attribute and will be printed
+using the \vn{l4} format (logical with a field width of 4 characters). The seventh column will show
+the voltage attribute.
 
-To encode the element index, use a \vn{\#}.  Any element attribute is permitted ("show
-ele" will show element attributes or see the Bmad manual). Additionally, the following are
-recognized:
+To encode the element index, use a \vn{\#} or \vn{\#index}. To encode the branch index, use
+\vn{\#branch}. Any element attribute is permitted ("show ele" will show element attributes or see
+the Bmad manual). Additionally, the following are recognized:
 \begin{example}
   x                          ! Add spaces
   #                          ! Index number of element.

@@ -2156,8 +2156,16 @@ case ('lattice')
         name = name(ix+5:)
         i2 = index(name, '[')
         name = name(1:i2-1)
-      elseif  (name == '#') then
+      elseif  (name == '#' .or. name == '#index') then
         line2(ix2-5:) = 'Index'
+        ix1 = ix2
+        cycle    
+      elseif  (name == '#branch') then
+        line2(ix2-5:) = 'Branch'
+        ix1 = ix2
+        cycle    
+      elseif  (name == '#branch>>index') then
+        line2(ix2-5:) = 'Brnch>>Indx'
         ix1 = ix2
         cycle    
       elseif (name == 'x') then
@@ -2303,8 +2311,11 @@ case ('lattice')
       if (name == '') cycle
       ios = 0
 
-      if (name == '#') then
-        write (line(nc:), column(i)%format, iostat = ios) ie
+      if (name == '#' .or. name == '#index') then
+        write (line(nc:), column(i)%format, iostat = ios) ele%ix_ele
+
+      elseif (name == '#branch') then
+        write (line(nc:), column(i)%format, iostat = ios) ele%ix_branch
 
       elseif (name == 'ele::#[type]') then
         if (ele%type == '') then
