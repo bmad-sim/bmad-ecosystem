@@ -1,0 +1,28 @@
+set (EXENAME bmad_to_blender)
+set (SRC_FILES
+  bmad_to_blender/bmad_to_blender.f90
+#  bmad_to_blender/blender_interface_mod.f90
+)
+
+
+set (INC_DIRS
+  include
+)
+
+set (LINK_LIBS
+  bmad
+  xsif
+  xrlf03
+  xrl
+  lapack95
+  lapack
+  blas
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  ${PLOT_LINK_LIBS}
+  xsif
+  fgsl
+  gsl
+  gslcblas
+)
