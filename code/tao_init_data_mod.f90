@@ -443,9 +443,6 @@ else
     endif
     u%data(j)%eval_point = ix
 
-    if (data_type_needs_associated_element_to_exist(u%data(j)%data_type) .and. &
-                                                         u%data(j)%ele_name == '') cycle
-
     u%data(j)%exists = .true.
 
     if (u%data(j)%ele_name /= '') then
@@ -574,36 +571,6 @@ enddo
 
 call tao_data_check (err)
 if (err) stop
-
-!----------------------------------------------------------------------
-contains
-
-function choose_ix_ele() result (ix_ele)
-integer ix_ele
-
-if (.not. data%exists) then
-  ix_ele = int_garbage$
-elseif (data%data_type(1:17) == 'multi_turn_orbit.') then
-  ix_ele = int_garbage$ ! Does not get evaluated by tao_lattice_calc_mod
-elseif (data%data_source /= 'beam') then
-  ix_ele = -1
-elseif (data%data_type(1:7) == 'rad_int') then
-  ix_ele = -1
-elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
-  ix_ele = -1
-elseif (data%ix_ele == -1) then
-  ix_ele = -1
-elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
-  ix_ele = -1
-elseif (data%data_type(1:6) == 'chrom.') then
-  ix_ele = -1
-elseif (data%ix_ele_ref > data%ix_ele) then
-  ix_ele = u%model%lat%n_ele_track
-else
-  ix_ele = data%ix_ele
-endif
-
-end function choose_ix_ele
 
 end subroutine tao_init_data_end_stuff
 
@@ -780,92 +747,5 @@ do n = lbound(data, 1), ubound(data, 1)
 enddo
 
 end subroutine tao_point_d1_to_data
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function data_type_needs_associated_element_to_exist (data_type) result (needs_element)
-!
-! Routne to determine whether a given data type needs to have an associated element to exist.
-! For example, "phase.X" type data needs an associated element to exist.
-!
-! Input:
-!   data_type -- Character(*): Type of data
-!
-! Output:
-!   needs_element -- Logical: Set true if data type needs an associated element.
-!-
-
-function data_type_needs_associated_element_to_exist (data_type) result (needs_element)
-
-character(*) data_type
-character(40) head
-
-logical needs_element
-integer ix
-
-!
-
-head = data_type
-ix = index(head, '.')
-if (ix /= 0) head = head(1:ix)
-
-needs_element = .true.
-
-select case (head)
-case ('alpha.')
-case ('apparent_emit.', 'norm_apparent_emit.')
-case ('beta.')
-case ('bpm_cbar.')
-case ('bpm_eta.')
-case ('bpm_k.')
-case ('bpm_orbit.')
-case ('bpm_phase.')
-case ('cbar.')
-case ('chrom.')
-case ('damp.')
-case ('dpx_dx') 
-case ('dpy_dy') 
-case ('dpz_dz') 
-case ('e_tot')
-case ('element_attrib.')
-case ('emit.', 'norm_emit.')
-case ('eta.')
-case ('etap.')
-case ('expression:', 'expression.')
-case ('floor.')
-case ('gamma.')
-case ('k.')
-case ('momentum')
-case ('momentum_compaction')
-case ('n_particle_loss')
-case ('normal.')
-case ('orbit.')
-case ('periodic.')
-case ('phase.', 'phase_frac.')
-case ('phase_frac_diff')
-case ('photon.')
-case ('r.')
-case ('rad_int.')
-case ('rad_int1.')
-case ('ref_time')
-case ('rel_floor.')
-case ('s_position') 
-case ('sigma.')
-case ('spin.')
-case ('t.', 'tt.')
-case ('time')
-case ('tune.')
-case ('unstable.')
-case ('wall.')
-case ('wire.')  
-case ('')
-  needs_element = .false.
-case default
-  needs_element = .false.
-end select
-
-end function data_type_needs_associated_element_to_exist
 
 end module
