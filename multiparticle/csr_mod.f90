@@ -128,7 +128,7 @@ type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
 real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
-real(rp) e_tot, f1, x, z
+real(rp) e_tot, f1, x, z, ds_step
 
 integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 integer :: iu_wake
@@ -330,12 +330,13 @@ do i_step = 0, n_step
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
     write (iu_wake, '(a, i4, f12.6)') '! ', i_step, ele%s_start + s0_step
-    write (iu_wake, '(a)') '!         Z   Charge/Meter     CSR_Kick         I_CSR      S_Source' 
+    write (iu_wake, '(a)') '!         Z   Charge/Meter    CSR_Kick/m       I_CSR/m      S_Source' 
+    ds_step = csr%kick_factor * csr%actual_track_step
     do j = 1, csr_param%n_bin
       ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
       write (iu_wake, '(f12.6, 4es14.6)') csr%slice(j)%z_center, &
-                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr, &
-                  csr%kick1(j)%I_csr, ele0%s_start + csr%kick1(j)%s_chord_source
+                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
+                  csr%kick1(j)%I_csr/ds_step, ele0%s_start + csr%kick1(j)%s_chord_source
     enddo
     close (iu_wake)
   endif
@@ -646,7 +647,7 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
 enddo
 
-! Approximate the actual step length by ds_track_step * L_chord / L_ele.
+!
 
 coef = csr%actual_track_step * r_e / (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 n_bin = csr_param%n_bin
