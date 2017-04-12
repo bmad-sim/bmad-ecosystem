@@ -641,17 +641,16 @@ do i = 1, nc
   curve%y_symb = curve%y_line
 enddo
 
-
 graph%valid = .true.
 
-
+!------------------------------------------------------------
 contains
 
 function is_physical_aperture(curve)
 logical :: is_physical_aperture
 type (tao_curve_struct) :: curve
 is_physical_aperture = (curve%data_type == 'physical_aperture')
-end function
+end function is_physical_aperture
 
 end subroutine tao_graph_dynamic_aperture_setup
 
@@ -728,6 +727,7 @@ end select
 curve%x_symb = curve%x_line
 curve%y_symb = curve%y_line
 
+!-------------------------------------------------
 contains
 subroutine alloc_curves(n)
 integer :: n
@@ -735,9 +735,9 @@ call re_allocate (curve%x_line, n)
 call re_allocate (curve%y_line, n)
 call re_allocate (curve%x_symb, n)
 call re_allocate (curve%y_symb, n)
-end subroutine
+end subroutine alloc_curves
 
-end subroutine
+end subroutine tao_curve_physical_aperture_setup
 
 
 !----------------------------------------------------------------------------
@@ -1126,6 +1126,14 @@ character(20), parameter :: r_name = 'tao_curve_data_setup'
 
 call re_allocate_eles (scratch%eles, 1, exact = .true.)
 err_flag = .true.
+
+if (allocated(curve%x_line)) deallocate (curve%x_line, curve%y_line)
+if (allocated(curve%y2_line)) deallocate (curve%y2_line)
+if (allocated(curve%ix_line)) deallocate (curve%ix_line)
+if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
+if (allocated(curve%z_symb)) deallocate (curve%z_symb)
+if (allocated(curve%ix_symb)) deallocate (curve%ix_symb)
+if (allocated(curve%symb_size)) deallocate (curve%symb_size)
 
 u => tao_pointer_to_universe (curve%ix_universe)
 if (.not. associated(u)) then
@@ -1709,7 +1717,8 @@ case ('s')
   ! the data uses "ref" or "meas" values. Else evaluate at the element ends.
 
   else if (straight_line_between_syms) then
-    if (curve%draw_symbols) then
+    if (allocated (curve%x_symb)) then
+      n_dat = size(curve%x_symb)
       call re_allocate (curve%y_line, n_dat) 
       call re_allocate (curve%x_line, n_dat) 
       curve%x_line = curve%x_symb 
