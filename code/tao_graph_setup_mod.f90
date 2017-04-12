@@ -1709,12 +1709,14 @@ case ('s')
   ! the data uses "ref" or "meas" values. Else evaluate at the element ends.
 
   else if (straight_line_between_syms) then
-
-    ! allocate space for the data
-    call re_allocate (curve%y_line, n_dat) 
-    call re_allocate (curve%x_line, n_dat) 
-    curve%x_line = curve%x_symb 
-    curve%y_line = curve%y_symb 
+    if (curve%draw_symbols) then
+      call re_allocate (curve%y_line, n_dat) 
+      call re_allocate (curve%x_line, n_dat) 
+      curve%x_line = curve%x_symb 
+      curve%y_line = curve%y_symb 
+    else
+      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', valid)
+    endif
 
   ! Evaluate at element ends
 
@@ -1748,8 +1750,10 @@ case ('s')
         if (ix1 == 0 .and. branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) ix1 = i
         if (branch%ele(scratch%eles(i)%ele%ix_ele)%s < graph%x%max+eps) ix2 = i
       enddo
-      call re_allocate_eles(scratch%eles, n_dat + ix2 + 1 - ix1, .true., .true.)
-      scratch%eles = [scratch%eles(ix1:n_dat), scratch%eles(1:ix2)]
+      if (ix1 /= 0) then
+        call re_allocate_eles(scratch%eles, n_dat + ix2 + 1 - ix1, .true., .true.)
+        scratch%eles = [scratch%eles(ix1:n_dat), scratch%eles(1:ix2)]
+      endif
     endif
 
     if (curve%draw_line) then
@@ -1780,15 +1784,6 @@ if (index(curve%data_type, 'phase') /= 0 .and. n_dat /= 0 .and. zero_average_pha
     curve%y_line = curve%y_line - f
   endif
 endif 
-
-! Renormalize 
-
-!!if ((curve%data_type == 'ping_a.phase_x'
-!!                                    .and. n_dat /= 0 .and. zero_average_phase) then
-
-
-
-!
 
 err_flag = .false.
 
