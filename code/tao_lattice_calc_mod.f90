@@ -19,7 +19,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok)
+! Subroutine tao_lattice_calc (calc_ok, init_special)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -27,12 +27,15 @@ contains
 ! through the model lattices. tao_init then transfers this into the
 ! design lattices.
 !
+! Input:
+!   init_special  -- integer, optional: Used by tao_init for initalizing radiation integrals.
+!
 ! Output:
-!   calc_ok -- Logical: Set False if there was an error in the 
-!                calculation like a particle was lost or a lat is unstable.
+!   calc_ok       -- logical: Set False if there was an error in the 
+!                     calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok)
+subroutine tao_lattice_calc (calc_ok, init_special)
 
 use ptc_layout_mod
 
@@ -55,6 +58,7 @@ integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
 
+integer, optional :: init_special
 logical calc_ok, this_calc_ok, err, rf_on
 
 !
@@ -102,6 +106,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     track_type = s%global%track_type
     if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
+    if (integer_option(0, init_special) == 1) track_type = 'single'
 
     select case (track_type)
     case ('single') 
@@ -109,6 +114,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
+      if (integer_option(0, init_special) == 1) cycle
+
 
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, ib)
@@ -135,7 +142,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call err_exit
     end select
 
-    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
+    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .and. integer_option(0, init_special) /= 2) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                             tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
     endif
@@ -307,7 +314,7 @@ integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
 character(20) :: r_name = "tao_single_track"
 
-logical calc_ok, err, radiation_fluctuations_on
+logical calc_ok, err, radiation_fluctuations_on, err0
 
 !
 
@@ -338,11 +345,14 @@ if (u%calc%track) then
     endif
 
     call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+    err0 = err
+
     if (err) then
       ! In desperation try a different starting point
       call init_coord (orbit(0), lat%beam_start, branch%ele(0), downstream_end$, orbit(0)%species)
       call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
     endif
+
     if (err) then
       ! In desperation try a different starting point
       if (i_dim == 4) then
@@ -360,6 +370,9 @@ if (u%calc%track) then
       enddo
     else
       tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
+      if (err0) then
+        call out_io (s_info$, r_name, 'Closed orbit finally found!')
+      endif
     endif
 
   else

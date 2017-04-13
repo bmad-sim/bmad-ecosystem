@@ -230,22 +230,48 @@ call output_direct (-1, do_print=s%com%print_to_terminal)
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
 if (bmad_com%radiation_fluctuations_on .and. s%global%track_type == 'single') then
-  call out_io (s_info$, r_name, &
-          'Note: Radiation fluctuations are always turned off for single particle tracking...')
+  call out_io (s_info$, r_name, 'Note: Radiation fluctuations are always turned off for single particle tracking...')
 endif
 
+! Calculate radiation integrals.
+
 s%u%calc%lattice = .true.
-call tao_lattice_calc (calc_ok) 
+call tao_lattice_calc (calc_ok, init_special = 1)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%design = s%u(i)%model
-  s%u(i)%base = s%u(i)%design
-  s%u(i)%design%tao_branch = s%u(i)%model%tao_branch
-  s%u(i)%base%tao_branch   = s%u(i)%design%tao_branch
-  s%u(i)%data%design_value = s%u(i)%data%model_value
-  s%u(i)%data%base_value   = s%u(i)%data%model_value
-  s%u(i)%data%good_design  = s%u(i)%data%good_model
-  s%u(i)%data%good_base    = s%u(i)%data%good_model
+  u => s%u(i)
+  do ib = 0, ubound(u%model%lat%branch, 1)
+    call radiation_integrals (u%model%lat, u%model%tao_branch(ib)%orbit, u%model%tao_branch(ib)%modes, u%model%tao_branch(ib)%ix_rad_int_cache)
+  enddo
+enddo
+
+!
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(i)
+  do ib = 0, ubound(u%design%lat%branch, 1)
+    if (u%design%lat%branch(ib)%param%geometry == closed$) then
+      call calc_z_tune(u%design%lat, ib)
+      if (.not. s%global%rf_on) then
+        call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
+        call set_on_off (rfcavity$, u%design%lat, off$, ix_branch = ib)
+      endif
+    endif
+  enddo
+enddo
+
+call tao_lattice_calc (calc_ok, init_special = 2) 
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(i)
+  u%design = u%model
+  u%base = u%design
+  u%design%tao_branch = u%model%tao_branch
+  u%base%tao_branch   = u%design%tao_branch
+  u%data%design_value = u%data%model_value
+  u%data%base_value   = u%data%model_value
+  u%data%good_design  = u%data%good_model
+  u%data%good_base    = u%data%good_model
 enddo
 
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 

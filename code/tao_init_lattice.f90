@@ -248,11 +248,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%uni_branch(0:n))
 
   do ib = 0, ubound(u%design%lat%branch, 1)
-    if (u%design%lat%branch(ib)%param%geometry == closed$ .and. .not. s%global%rf_on) then
-      call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
-      call calc_z_tune(u%design%lat, ib)
-      call set_on_off (rfcavity$, u%design%lat, off$, ix_branch = ib)
-    endif
     u%design%tao_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
     u%design%tao_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
     n = u%design%lat%branch(ib)%n_ele_max
