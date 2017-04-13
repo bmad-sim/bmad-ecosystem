@@ -378,6 +378,7 @@ if (photon_start_input_file /= '') then
     do
       ran_state%iy = -1  ! To see if ran_state is set by the read.
       random_seed = -1
+      ix_branch = 0   ! Default
       read (1, nml = start, iostat = ios)
       if (ios < 0) exit photon_loop
       if (ios > 0) then
@@ -540,6 +541,7 @@ else
           write (iu_start, '(a, 6es20.12)') '  p%vec     =', photon%start%orb%vec
           write (iu_start, '(a, es20.12)')  '  p%s       =', photon%start%orb%s
           write (iu_start, '(a, es20.12)')  '  p%p0c     =', photon%start%orb%p0c
+          write (iu_start, '(a, i4)')       '  ix_branch =', ix_branch
           write (iu_start, *)               '  ran_state = ', ran_state
           write (iu_start, '(a)')           '/'
         endif

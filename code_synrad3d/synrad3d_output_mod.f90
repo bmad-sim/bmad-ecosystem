@@ -73,6 +73,7 @@ if (iu_hit_file == -1) then
   write (iu, *) '  p%vec  =', photon%start%orb%vec
   write (iu, *) '  p%p0c  =', photon%start%orb%p0c
   write (iu, *) '  p%direction =', photon%start%orb%direction
+  write (iu, *) '  ix_branch   =', photon%start%ix_branch
   write (iu, *) '/'
   close (iu)
   print *, 'Written file: error_photon_start'
