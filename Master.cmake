@@ -208,10 +208,13 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
 ENDIF ()
 
 #-----------------------------------
-# Readline Library Definitions 
+# Link Library Definitions 
 #-----------------------------------
 SET (READLINE_LINK_LIBS readline)
 SET (READLINE_LINK_FLAGS "-lreadline")
+
+SET (STDCXX_LINK_LIBS stdc++)
+SET (STDCXX_LINK_FLAGS "-lstdc++")
 
 #-----------------------------------
 # Plotting library compiler flag
