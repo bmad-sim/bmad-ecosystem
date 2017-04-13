@@ -1896,7 +1896,7 @@ case ('lattice')
     column( 8)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false.)
     column( 9)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false.)
     column(10)  = show_lat_column_struct('ele::#[e_tot]',          'es14.6',   14, '', .false.)
-    column(11)  = show_lat_column_struct('ele::#[pc]',       'es14.6',   14, '', .false.)
+    column(11)  = show_lat_column_struct('ele::#[pc]',             'es14.6',   14, '', .false.)
 
   case ('floor_coords')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
@@ -3163,10 +3163,8 @@ case ('universe')
   endif
  
   call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache)
-  call radiation_integrals (design_lat, design_tao_branch%orbit, design_tao_branch%modes, design_tao_branch%ix_rad_int_cache)
   if (lat%param%geometry == closed$) then
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, ix_branch = ix_branch)
-    call chrom_calc (design_lat, s%global%delta_e_chrom, design_tao_branch%a%chrom, design_tao_branch%b%chrom, ix_branch = ix_branch)
   endif
 
   nl=nl+1; lines(nl) = ''
@@ -3209,8 +3207,7 @@ case ('universe')
   fmt2 = '(1x, a16, 2f11.4, 3x, a)'
   if (branch%param%geometry == closed$) then
     call calc_z_tune(lat, ix_branch)
-    nl=nl+1; write(lines(nl), fmt2) 'Z_tune:', &
-         -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
+    nl=nl+1; write(lines(nl), fmt2) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
   else
     nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', tao_branch%modes%lin%i2_e4, &
           design_tao_branch%modes%lin%i2_e4, '! Linac Radiation Integral'
@@ -3218,6 +3215,7 @@ case ('universe')
           design_tao_branch%modes%lin%i3_e7, '! Linac Radiation Integral'
   endif
   nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
+  nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', tao_branch%modes%sig_z, design_tao_branch%modes%sig_z, '! Only calculated when RF is on'
   nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
   nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
   nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &

@@ -140,8 +140,8 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
     call tao_data_type_substitute (name, name, curve, graph)
-    if (i == 1) call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_x, err, dflt_component = component)
-    if (i == 2) call tao_evaluate_expression (name, 0, .true., scratch%y, scratch%info_y, err, dflt_component = component)
+    if (i == 1) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, scratch%x, scratch%info_x, err, dflt_component = component)
+    if (i == 2) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, scratch%y, scratch%info_y, err, dflt_component = component)
     if (err) then
       call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
       return
@@ -174,7 +174,7 @@ curve_loop: do k = 1, size(graph%curve)
     curve%ix_symb = [(i, i = 1, n_symb)]
   else
     call tao_data_type_substitute (curve%data_index, name, curve, graph)
-    call tao_evaluate_expression (name, 0, .true., scratch%x, scratch%info_ix, err, dflt_component = component)
+    call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, scratch%x, scratch%info_ix, err, dflt_component = component)
     if (size(scratch%info_x) == size(scratch%info_y)) then
       curve%ix_symb = pack (nint(scratch%x), mask = scratch%info_x%good .and. scratch%info_y%good)
     else
@@ -1192,8 +1192,8 @@ case ('expression')
     n_dat = 0
     do i = nint(graph%x%min), nint(graph%x%max)
       write (dflt_index, '(i0)') i
-      call tao_evaluate_expression  (curve%data_type(12:), 0, .true., value_arr, scratch%info, err, .false., &
-                              scratch%stack, component, curve%data_source, dflt_dat_or_var_index = dflt_index)
+      call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
+                   scratch%info, err, .false., scratch%stack, component, curve%data_source, dflt_dat_or_var_index = dflt_index)
       if (err .or. .not. scratch%info(1)%good) cycle
       n_dat = n_dat + 1
 
@@ -1203,8 +1203,8 @@ case ('expression')
     enddo
 
   else
-    call tao_evaluate_expression  (curve%data_type(12:), 0, .true., value_arr, scratch%info, err, .false., &
-                                                              scratch%stack, component, curve%data_source)
+    call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
+                                                 scratch%info, err, .false., scratch%stack, component, curve%data_source)
     n_dat = count(scratch%info%good)
     call re_allocate (curve%ix_symb, n_dat)
     call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
@@ -1335,7 +1335,7 @@ case ('data')
   ! Calculate values
 
   call tao_data_type_substitute (curve%data_type, data_type, curve, graph)
-  call tao_evaluate_expression  (data_type, 0, .true., value_arr, scratch%info, err, &
+  call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err, &
                           stack = scratch%stack, dflt_component = component, dflt_source = 'data')
   if (err) then
     graph%why_invalid = 'CANNOT FIND DATA CORRESPONDING: ' // data_type
@@ -1523,7 +1523,7 @@ case ('var')
   ! calculate the y-axis data point values.
 
   data_type = trim(curve%data_type) // '|' // trim(component)
-  call tao_evaluate_expression (data_type, 0, .true., value_arr, scratch%info, err)
+  call tao_evaluate_expression (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
     return
