@@ -1913,8 +1913,9 @@ A photon track file records the photon position after each propagation step.  A 
 track file is generated if the \vn{photon_track_file} parameter is set to something that
 is not blank in the master input file (\sref{s:master}). 
 
-This file is useful for plotting photon trajectories since it records intermediate points
-between points where the photon hits a wall.
+This file is useful for plotting photon trajectories since it records intermediate points between
+points where the photon hits a wall. However, if a large number of photons are generated, this
+file can be very large.
 
 Example track file output:
 \begin{example}
