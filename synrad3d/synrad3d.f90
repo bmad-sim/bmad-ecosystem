@@ -380,7 +380,11 @@ if (photon_start_input_file /= '') then
       random_seed = -1
       ix_branch = 0   ! Default
       read (1, nml = start, iostat = ios)
-      if (ios < 0) exit photon_loop
+      if (ios < 0) then
+        n_photon_array = n_photon_array - 1
+        exit photon_loop
+      endif
+
       if (ios > 0) then
         print *, 'Error reading photon starting position at photon index:', n_photon_generated
         rewind (1)
@@ -388,6 +392,7 @@ if (photon_start_input_file /= '') then
           read (1, nml = start) ! will generate error message
         enddo
       endif
+
       ix_ele = element_at_s(lat, orbit%s, .true., branch%ix_branch)
       call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
       photon%start%ix_branch = ix_branch
@@ -600,8 +605,8 @@ rewind(iu)
 
 do
   read (iu, '(a)', iostat = ios) line3
-  write (iu2, '(a)') trim(line3)
   if (ios /= 0) exit
+  write (iu2, '(a)') trim(line3)
 enddo
 
 rewind(iu)
@@ -616,8 +621,8 @@ write (iu, '(a, es11.3, a)') '# I0_tot                     =', i0_tot, '   ! I0 
 
 do
   read (iu2, '(a)', iostat = ios) line3
-  write (iu, '(a)') trim(line3)
   if (ios /= 0) exit
+  write (iu, '(a)') trim(line3)
 enddo
 
 close (iu)
