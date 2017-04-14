@@ -404,6 +404,7 @@ if (photon_start_input_file /= '') then
 
     n_photon_generated = n_photon_generated + 1
     photon%ix_photon_generated = n_photon_generated
+    photon%ix_photon = n_photon_array
     photon%n_wall_hit = 0
 
     if (ran_state%iy > 0) call ran_default_state (set_state = ran_state)
