@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries March 22, 2017}
+{\large\bfseries April 14, 2017}
 
 \end{center}
 \end{titlepage}
@@ -1599,6 +1599,7 @@ format for a \vn{\&start} namelist is:
     orbit%p0c = <ev>  ! Photon energy
     ran_state = <random_state_struct>
     random_seed = <num>
+    ix_branch = <num>  ! Lattice branch index to start photon in. Default is 0.
   /
 \end{example}
 The fifth component of \vn{orbit%vec} is not used and should be set to zero.
