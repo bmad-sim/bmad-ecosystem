@@ -25,6 +25,7 @@ type (normal_modes_struct) modes
 type (branch_struct), pointer :: branch
 type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_track_struct), allocatable, target :: photons(:)
+type (sr3d_photon_track_struct) :: init_photon
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_plot_param_struct) plot_param
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
@@ -51,11 +52,11 @@ character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
 logical ok, s_wrap_on, filter_this, err, filter_phantom_photons
-logical is_inside, turn_off_kickers_in_lattice
+logical is_inside, turn_off_kickers_in_lattice, finished
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
-            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
+            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, ix_branch, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
@@ -167,6 +168,7 @@ num_ignore_generated_outside_wall = 0
 turn_off_kickers_in_lattice = .false.
 surface_roughness_rms = -1; roughness_correlation_len = -1
 chamber_end_geometry = ''
+ix_branch = 0
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
@@ -193,7 +195,7 @@ s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > 
 ! Get lattice
 
 call bmad_and_xsif_parser(lattice_file, lat)
-branch => lat%branch(0)
+branch => lat%branch(ix_branch)
 
 select case (chamber_end_geometry)
 case ('open')
@@ -201,7 +203,7 @@ case ('open')
 case ('closed')
   sr3d_params%chamber_end_geometry = closed$
 case ('')
-  sr3d_params%chamber_end_geometry = lat%branch(0)%param%geometry
+  sr3d_params%chamber_end_geometry = lat%branch(ix_branch)%param%geometry
 case default
   print *, 'Bad "chamber_end_geometry" setting: ', chamber_end_geometry
   stop
@@ -361,8 +363,10 @@ if (photon_start_input_file /= '') then
 
   ! Open photon start input file and count the number of photons
 
-  print *, 'Opening photon starting position input file: ', trim(photon_start_input_file)
-  open (1, file = photon_start_input_file, status = 'old')
+  if (photon_start_input_file /= 'CUSTOM') then
+    print *, 'Opening photon starting position input file: ', trim(photon_start_input_file)
+    open (1, file = photon_start_input_file, status = 'old')
+  endif
 
   allocate (photons(1000))
 
@@ -371,41 +375,52 @@ if (photon_start_input_file /= '') then
 
   photon_loop: do
 
+    ! Get next photon position
+
+    do
+      if (photon_start_input_file == 'CUSTOM') then
+        call synrad3d_photon_init_custom (orbit, ix_branch, lat, photons, n_photon_generated, n_photon_array, finished)
+        
+      else
+        ran_state%iy = -1  ! To see if ran_state is set by the read.
+        random_seed = -1
+        ix_branch = 0   ! Default
+        read (1, nml = start, iostat = ios)
+        if (ios < 0) then
+          close (1)
+          exit photon_loop
+        endif
+
+        if (ios > 0) then
+          print *, 'Error reading photon starting position at photon index:', n_photon_generated
+          rewind (1)
+          do
+            read (1, nml = start) ! will generate error message
+          enddo
+        endif
+      endif
+
+      ix_ele = element_at_s(lat, orbit%s, .true., ix_branch)
+      call init_coord (init_photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
+      init_photon%start%ix_branch = ix_branch
+      init_photon%start%orb%s = orbit%s
+
+      call sr3d_check_if_photon_init_coords_outside_wall (init_photon%start, lat, is_inside, num_ignore_generated_outside_wall)
+      if (is_inside) exit
+    enddo
+
+    ! And track
+
     n_photon_array = n_photon_array + 1
     if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
     photon => photons(n_photon_array)
-
-    do
-      ran_state%iy = -1  ! To see if ran_state is set by the read.
-      random_seed = -1
-      ix_branch = 0   ! Default
-      read (1, nml = start, iostat = ios)
-      if (ios < 0) then
-        n_photon_array = n_photon_array - 1
-        exit photon_loop
-      endif
-
-      if (ios > 0) then
-        print *, 'Error reading photon starting position at photon index:', n_photon_generated
-        rewind (1)
-        do
-          read (1, nml = start) ! will generate error message
-        enddo
-      endif
-
-      ix_ele = element_at_s(lat, orbit%s, .true., branch%ix_branch)
-      call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
-      photon%start%ix_branch = ix_branch
-      photon%start%orb%s = orbit%s
-
-      call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
-      if (is_inside) exit
-    enddo
+    photon = init_photon
 
     n_photon_generated = n_photon_generated + 1
     photon%ix_photon_generated = n_photon_generated
     photon%ix_photon = n_photon_array
     photon%n_wall_hit = 0
+
 
     if (ran_state%iy > 0) call ran_default_state (set_state = ran_state)
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
@@ -442,8 +457,6 @@ if (photon_start_input_file /= '') then
     call write_photon_data (n_photon_array, photon)
 
   enddo photon_loop
-
-  close (1)
 
 !--------------------------------------------------------------------------
 ! Regular photon generation

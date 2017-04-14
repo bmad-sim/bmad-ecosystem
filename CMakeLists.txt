@@ -8,6 +8,7 @@ set (SRC_DIRS
   code
   code_synrad
   code_synrad3d
+  synrad3d/custom
 )
 
 set (EXE_SPECS
