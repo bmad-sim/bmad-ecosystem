@@ -391,6 +391,7 @@ if (photon_start_input_file /= '') then
       ix_ele = element_at_s(lat, orbit%s, .true., branch%ix_branch)
       call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
       photon%start%ix_branch = ix_branch
+      photon%start%orb%s = orbit%s
 
       call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
       if (is_inside) exit
