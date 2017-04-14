@@ -100,4 +100,18 @@ type sr3d_plot_param_struct
   integer :: n_pt = 1000
 end type
 
+!
+
+interface
+  subroutine synrad3d_photon_init_custom (orbit, ix_branch, lat, photons, n_photon_generated, n_photon_passed, finished)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (lat_struct) lat
+  type (sr3d_photon_track_struct) photons(:)
+  integer ix_branch, n_photon_generated, n_photon_passed
+  logical finished
+  end subroutine synrad3d_photon_init_custom 
+end interface
+
 end module
