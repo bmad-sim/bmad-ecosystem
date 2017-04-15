@@ -724,6 +724,7 @@ the Bmad manual\cite{b:bmad} for more details). For a \vn{"closed"} geometry, th
 ends at the ends of the lattice are connected together so a photon hitting one end will
 reappear at the other end.  For an \vn{"open"} geometry, the camber ends at the ends of
 the lattice are not connected so a photon hitting an end will be reflected or absorbed.
+
 Note: the setting of \vn{chamber_end_geometry} only affects branch 0 (the root branch) of
 the lattice. If The lattice has other branches, the chamber end geometry for chambers in
 these branches is always determined by the \vn{geometry} setting for the branch.
@@ -1053,7 +1054,7 @@ explained in \sref{s:surface}.
 cross-sections, \vn{<section_name>} is not used but must be present to
 keep the format the same as other \vn{place}s. The cross-sections in the
 \vn{multi_place} namelist will be repeated \vn{<repeat_count>}
-times when the subchamber wall is constructed. Example:
+times when the subchamber is constructed. Example:
 \begin{example}
   &place section = 10.0, "", "zig_zag", 1000 /
 \end{example}
@@ -1190,23 +1191,20 @@ the root branch -- \vn{ring}. The other subchamber, named \vn{x_wall}, is associ
 the \vn{b1} branch.
 
 %------------------------------------------------------------------
-\section{Subchamber Wall Interpolation} 
+\section{Subchamber Surface Interpolation} 
 \label{s:wall}
 
 Once a set of subchamber cross-sections have been defined, the
 cross-section of the subchamber at a given longitudinal position is
 computed using linear interpolation. 
 
-For a given subchamber, and 
-at a given $s$ position, the $r, \theta$ coordinate system in the
-transverse $x, y$ plane is defined with respect to an origin
-$\bfr_O(s)$ given by a linear interpolation of the origins of the
-cross-sections to either side of the given $s$ position. Let $s_1$
-denote the position of the cross-section just before $s$ and $s_2$
-denote the position of the cross-section just after $s$. Let
-$\bfr_{01}$ be the $(x_0, y_0)$ origin defined for the cross section
-at $s_1$ and $\bfr_{02}$ be the $(x_0, y_0)$ origin defined for the
-cross section at $s_2$. Then
+For a given subchamber, and at a given $s$ position, the $r, \theta$ coordinate system in the
+transverse $x, y$ plane is defined with respect to an origin $\bfr_O(s)$ given by a linear
+interpolation of the origins of the cross-sections to either side of the given $s$ position. Let
+$s_1$ denote the position of the cross-section just before $s$ and $s_2$ denote the position of the
+cross-section just after $s$. Let $\bfr_{01}$ be the $(x_0, y_0)$ origin defined for the cross
+section at $s_1$ and $\bfr_{02}$ be the $(x_0, y_0)$ origin defined for the cross section at
+$s_2$. Then
 \Begineq
   \bfr_O(s) = (1 - \stilde) \, \bfr_{01} + \stilde \, \bfr_{02}
 \Endeq
@@ -1230,18 +1228,18 @@ A photon at $(r,\theta, s)$ is inside the subchamber if
 \Endeq
 
 %------------------------------------------------------------------
-\section{Subchamber Wall and Patch Elements}
+\section{Subchamber Surface and Patch Elements}
 \label{s:patch}
 
 A \vn{patch} element, which shifts the reference coordinate system
 complicates the calculation of where a photon hits the wall. The Bmad
 manual has a full explanation but the essential factor is that, since
 the reference orbit is discontinuous in a patch, to avoid a
-discontinuity in the subchamber wall, wall interpolation is done using
+discontinuity in the subchamber surface, wall interpolation is done using
 the global reference system. This can lead to non-intuitive behavior
 when the region between two wall sections contains both a bend and a
 patch since, without the patch, the center of the subchamber follows the
-curved reference orbit but with the patch the subchamber wall center
+curved reference orbit but with the patch the subchamber surface center
 follows a straight line between the wall sections.
 
 To avoid this non-intuitive behavior, if a region between wall sections
@@ -1252,6 +1250,115 @@ To simplify matters, \srthree does not allow wall cross-sections to be
 defined whose longitudinal position overlaps any \vn{patch} element.
 
 %------------------------------------------------------------------
+\section{Chamber Surface Reflectivity}
+\label{s:surface}
+
+By default, the photon reflectivity of the vacuum chamber wall is based on the
+reflectivity of a 10 nm C film on an Al substrate. This default can be changed by setting
+the following parameters in the master input file (\sref{s:master}):
+\begin{example}
+    surface_reflection_file
+    surface_roughness_rms
+    roughness_correlation_len 
+\end{example}
+
+If the chamber wall is made up of sections of differing material,
+additional surface types can be defined using \vn{surface_def}
+namelists in the chamber wall file. The syntax for this namelist is
+\begin{example}
+  &surface_def
+    reflectivity_file = "<file_name>"
+  / 
+\end{example}
+\vn{reflectivity_file} is a file that specifies the surface reflectivity as 
+explained in (\sref{s:reflect.file}).
+
+To associate a particular material with a particular region of the
+chamber wall, the optional \vn{surface} variable is set for the
+\vn{place} namelist (\sref{s:sub.chambers}), at the downstream
+(maximal $s$) end of the region of interest. The syntax is:
+\begin{example}
+  &place
+    section = ...
+    surface  = "<name>", <is_local>
+  /
+\end{example}
+The \vn{<name>} here must match the \vn{name} in the surface reflectivity file The two
+exceptions are if \vn{<name>} is set to
+\begin{example}
+  ABSORBER              ! Case sensitive
+  PHANTOM               ! Case sensitive
+\end{example}
+The \vn{ABSORBER} setting makes the surface a perfect absorber. The \vn{PHANTOM} setting
+is for surfaces where, if \vn{filter_phantom_photons} (\sref{s:master.example}) is True,
+if a photon hits the phantom surface, it is not counted in the final statistics. This is
+useful for situations like simulating an X-ray beam pipe where, for the purposes of the
+simulation, the pipe is terminated at some point and photons intersecting the end of the
+pipe are not to be considered to have hit a wall but rather to have safely gone through to
+the experimental end station. Effectively, photons intersecting a phantom wall is treated
+as any other photon that fails a filter test (\sref{s:master.example}). Note that,
+independent of the setting of \vn{filter_phantom_photons}, a phantom surface acts like a
+perfect absorber. That is, there are never any reflections from a phantom surface.
+
+If \vn{<is_local>} is \vn{True}, then the surface material only spans the region from the
+previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the
+surface material spans from the closest previous cross-section where there is a
+\vn{surface} variable set to this cross-section.  If a \vn{place} instance refers to a \vn{multi_section}
+(\sref{s:multi.sec}), and \vn{<is_local>} is \vn{True} then the material
+only spans the multi_section region.
+
+{\em \vn{Note:}} For any given region with finite area of the vacuum chamber wall, if there are
+multiple subchambers whose surfaces overlap the region, it is important to make sure that the surface
+types of these subchambers are all the same since, for a photon striking this region, which
+subchamber is used to compute the surface properties is ill-defined. As an example, consider Figure
+\vn{f:vac-chamber}. The overlap between the two subchamber surfaces are the two lines where the
+subchamber surfaces intersect. Since the overlap has zero area, it is OK to have the two subchambers
+have different surface types.
+
+If a region of the vacuum chamber wall is defined by multiple
+subchambers (that is, multipole subchamber surfaces coincide in this region), which
+subchamber is used to select the surface type can vary from photon to photon. Therefore,
+it is important to make sure that for any given point on the vacuum chamber wall, that the
+local surface type is the same for all subchambers that have walls that coincide with the
+point in question.
+
+Example:
+\begin{example}
+  &place section = 0.0, "elliptical", ... /
+  &place section = 1.0, "elliptical", ... /
+  &place 
+    section = 3.0, "elliptical", ... /
+    surface = "ss", True
+  /
+  &place
+    section = 5.0, "multi_section:ms", ...
+    section = "ni", True
+  /
+  &place
+    section = 7.0 "elliptical", ...
+    surface = "cu"
+  /
+  &place 10.0 section = ... /
+
+  &surface_def
+    name = "ss"
+    reflectivity_file = "ss_burnished.reflect"
+  /
+\end{example}
+Assuming the multi_section spans the region from 5~meters to 6~meters,
+the materials associated with different regions of the chamber are:
+\begin{example}
+ S_begin    Surface    S_end
+ -------    -------    -----
+   0.0         cu       1.0
+   1.0         ss       3.0
+   3.0         cu       5.0
+   5.0         ni       6.0
+   6.0         cu       7.0
+   7.0       default   10.0
+\end{example}
+
+%------------------------------------------------------------------
 \section{Old Wall Format}
 \label{s:old.wall}
 
@@ -1260,7 +1367,7 @@ there was only one chamber and that chamber was allowed to be concave.
 This was problematical, as discussed above, and motivated the
 development of the subchamber concept. This section discusses the old
 format to facillitate conversion from the old format to the new.
-
+Example of the old format:
 \begin{example}
   &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
   &section_def section =  74.3, "Near_IR"  "gen_shape:dipole_shape",  /
@@ -1268,7 +1375,6 @@ format to facillitate conversion from the old format to the new.
   &section_def section =  91.1, "IR1",     "rectangular", 0.045, 0.025, 
                                                        -1, -1, 0.08, 0.01 /
 \end{example}
-
 
 The \vn{<section_id>} can have one of five values:
 \begin{example}
@@ -1376,108 +1482,6 @@ Prescription for converting:
 \end{enumerate}
 
 %------------------------------------------------------------------
-\section{Chamber Surface Reflectivity}
-\label{s:surface}
-
-By default, the photon reflectivity of the vacuum chamber wall is based on the
-reflectivity of a 10 nm C film on an Al substrate. This default can be changed by setting
-the following parameters in the master input file (\sref{s:master}):
-\begin{example}
-    surface_reflection_file
-    surface_roughness_rms
-    roughness_correlation_len 
-\end{example}
-
-If the chamber wall is made up of sections of differing material,
-additional surface types can be defined using \vn{surface_def}
-namelists in the chamber wall file. The syntax for this namelist is
-\begin{example}
-  &surface_def
-    reflectivity_file = "<file_name>"
-  / 
-\end{example}
-\vn{reflectivity_file} is a file that specifies the surface reflectivity as 
-explained in (\sref{s:reflect.file}).
-
-To associate a particular material with a particular region of the
-chamber wall, the optional \vn{surface} variable is set for the
-\vn{place} namelist (\sref{s:sub.chambers}), at the downstream
-(maximal $s$) end of the region of interest. The syntax is:
-\begin{example}
-  &place
-    section = ...
-    surface  = "<name>", <is_local>
-  /
-\end{example}
-The \vn{<name>} here must match the \vn{name} in the surface reflectivity file The two
-exceptions are if \vn{<name>} is set to
-\begin{example}
-  ABSORBER              ! Case sensitive
-  PHANTOM               ! Case sensitive
-\end{example}
-The \vn{ABSORBER} setting makes the surface a perfect absorber. The \vn{PHANTOM} setting
-is for surfaces where, if \vn{filter_phantom_photons} (\sref{s:master.example}) is True,
-if a photon hits the phantom surface, it is not counted in the final statistics. This is
-useful for situations like simulating an X-ray beam pipe where, for the purposes of the
-simulation, the pipe is terminated at some point and photons intersecting the end of the
-pipe are not to be considered to have hit a wall but rather to have safely gone through to
-the experimental end station. Effectively, photons intersecting a phantom wall is treated
-as any other photon that fails a filter test (\sref{s:master.example}). Note that,
-independent of the setting of \vn{filter_phantom_photons}, a phantom surface acts like a
-perfect absorber. That is, there are never any reflections from a phantom surface.
-
-If \vn{<is_local>} is \vn{True}, then the surface material only spans the region from the
-previous cross-section to this one. If \vn{<is_local>} is \vn{False} or not present, the
-surface material spans from the closest previous cross-section where there is a
-\vn{surface} variable set to this cross-section.  If a \vn{place} is a \vn{multi_section}
-cross-section (\sref{s:multi.sec}), and \vn{<is_local>} is \vn{True} then the material
-only spans the multi_section region.
-
-  
-{\em \vn{Note:}} If a region of the vacuum chamber wall is defined by multiple
-subchambers (that is, multipole subchamber walls coincide in this region), which
-subchamber is used to select the surface type can vary from photon to photon. Therefore,
-it is important to make sure that for any given point on the vacuum chamber wall, that the
-local surface type is the same for all subchambers that have walls that coincide with the
-point in question.
-
-Example:
-\begin{example}
-  &place section = 0.0, "elliptical", ... /
-  &place section = 1.0, "elliptical", ... /
-  &place 
-    section = 3.0, "elliptical", ... /
-    surface = "ss", True
-  /
-  &place
-    section = 5.0, "multi_section:ms", ...
-    section = "ni", True
-  /
-  &place
-    section = 7.0 "elliptical", ...
-    surface = "cu"
-  /
-  &place 10.0 section = ... /
-
-  &surface_def
-    name = "ss"
-    reflectivity_file = "ss_burnished.reflect"
-  /
-\end{example}
-Assuming the multi_section spans the region from 5~meters to 6~meters,
-the materials associated with different regions of the chamber are:
-\begin{example}
- S_begin    Surface    S_end
- -------    -------    -----
-   0.0         cu       1.0
-   1.0         ss       3.0
-   3.0         cu       5.0
-   5.0         ni       6.0
-   6.0         cu       7.0
-   7.0       default   10.0
-\end{example}
-
-%------------------------------------------------------------------
 \chapter{Photon Tracking \& Reflections}
 
 %------------------------------------------------------------------
@@ -1542,7 +1546,7 @@ trajectory is closest to the center of the bending radius.
 
 After a step, the new photon position is checked to see if it is still
 inside the associated subchamber. If it is not, the point where it has crossed
-the subchamber wall is calculated via a root finding algorithm.
+the subchamber surface is calculated via a root finding algorithm.
 
 If the new photon position is inside the associated subchamber, there is still the
 question as to whether the photon trajectory between the beginning step point and the end
@@ -3616,7 +3620,8 @@ creating custom code called
 \begin{example}
   photon_init_custom.f90
 \end{example}
-There is documentation in this file on how to customize it.
+There is documentation in this file on how to customize it. To have this custom routine called, the
+\vn{photon_start_input_file} (\sref{s:master.example}) must be set to ``\vn{CUSTOM}''.
 
 The other two files are CMake\footnote{CMake is a program used for
 compiling code} script files which do not have to be modified. These files are
