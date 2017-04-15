@@ -224,6 +224,7 @@ subroutine wall3d_section_initializer (section, err)
 type (wall3d_section_struct), target :: section
 type (wall3d_vertex_struct), pointer :: v(:)
 
+real(rp) angle, r_wall, dr_dtheta
 integer i, n, nn
 
 logical err
@@ -286,6 +287,7 @@ do i = 1, n
   if (v(i)%radius_x * v(i)%radius_y < 0) then
     call out_io (s_error$, r_name, trim(sec_name) // ' VERTEX HAS RADIUS_X OF DIFFERENT SIGN FROM RADIUS_Y (\2F10.5\)', &
                  r_array = [v(i)%radius_x, v(i)%radius_y])
+    return
   endif
 
 enddo
@@ -394,6 +396,19 @@ do i = 1, n-1
   if (err) return
 enddo
 call calc_vertex_center (n, 1, err)
+if (err) return
+
+! Quick sanity check
+
+do i = 1, 32
+  angle = i * twopi / 32
+  call calc_wall_radius (v, cos(angle), sin(angle), r_wall, dr_dtheta)
+  if (r_wall <= 0) then
+    call out_io (s_error$, r_name, trim(sec_name) // ' DOES NOT ENCIRCLE SHAPE CENTER!')
+    err = .true.
+    return
+  endif
+enddo
 
 !----------------------------------------------------------------------------
 contains
