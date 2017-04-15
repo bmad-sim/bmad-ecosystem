@@ -86,10 +86,14 @@ contains
 
 subroutine sr3d_read_wall_file (wall_file, lat, err_flag)
 
+type this_surface_ptr_struct
+  type (photon_reflect_surface_struct), pointer :: ptr  => null()
+end type
+
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (surface_input) surface
-type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
+type (this_surface_ptr_struct), allocatable :: surface_ptr(:)
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), allocatable, target :: shape(:)
@@ -450,6 +454,19 @@ do i = 1, wall_in%n_place
 
 enddo
 
+! Count number of subchambers
+
+allocate (sub_name(10), ix_sort(10))
+n_sub = 0
+
+do i = 1, wall_in%n_place
+  if (n_sub == size(sub_name)) call re_allocate(sub_name, n_sub+10)
+  if (n_sub == size(sub_name)) call re_allocate(ix_sort, n_sub+10)
+  sec => wall_in%section(i)
+  write(name, '(2a, i0)') trim(sec%sub_chamber_name), ':', sec%ix_branch
+  call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
+enddo
+
 ! Associate surface
 
 do i = 1, wall_in%n_place
@@ -457,15 +474,20 @@ do i = 1, wall_in%n_place
   call sr3d_associate_surface (sec%section%surface, sec%surface_name, lat%surface)
 enddo
 
-surface_ptr => lat%surface(1)  ! Default surface
+allocate (surface_ptr(n_sub))
+do i = 1, n_sub
+  surface_ptr(i)%ptr => lat%surface(1)  ! Default surface
+enddo
 
 do i = wall_in%n_place, 1, -1
   sec => wall_in%section(i)
+  write(name, '(2a, i0)') trim(sec%sub_chamber_name), ':', sec%ix_branch
+  call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .false.)
 
   if (associated(sec%section%surface)) then
-    if (.not. sec%surface_is_local) surface_ptr => sec%section%surface
+    if (.not. sec%surface_is_local) surface_ptr(ix)%ptr => sec%section%surface
   else
-    sec%section%surface => surface_ptr
+    sec%section%surface => surface_ptr(ix)%ptr
   endif
 enddo
 
@@ -476,21 +498,15 @@ enddo
 
 if (allocated(sr3d_com%branch)) deallocate (sr3d_com%branch)
 allocate(sr3d_com%branch(0:ubound(lat%branch,1)))
-allocate (sub_name(10), ix_sort(10), n_sub_sec(10))
+allocate (n_sub_sec(n_sub))
 
 do ib = 0, ubound(lat%branch, 1)
 
   n_sub = 0
   n_sub_sec = 0
   branch => lat%branch(ib)
-
+  
   do i = 1, wall_in%n_place
-    if (n_sub == size(sub_name)) then
-      call re_allocate(sub_name, n_sub+10)
-      call re_allocate(ix_sort, n_sub+10, init_val = 0)
-      call re_allocate(n_sub_sec, n_sub+10, init_val = 0)
-    endif
-
     sec => wall_in%section(i)
     if (sec%ix_branch /= ib) cycle
     name = sec%sub_chamber_name
@@ -576,9 +592,7 @@ do ib = 0, ubound(lat%branch, 1)
     endif
   enddo
 
-  ! First section of a subchamber must have s = 0
-  ! Last section of a subchamber has s adjusted to match the lattice length.
-  ! Except: if first/last section represents a sub-section beginning or ending.
+  ! If the first section of a subchamber is not marked as a starting or ending section it must have s = 0
 
   s_lat = branch%ele(branch%n_ele_track)%s
 
@@ -621,7 +635,6 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
-
   enddo
 
   ! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
