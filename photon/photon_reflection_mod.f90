@@ -995,7 +995,7 @@ main_loop: do itt = 1, size(x)
     term = term*fzi
     pxs = pxs+term
 
-    if (term < converge * pxs) exit
+    if (term <= converge * pxs) exit
 
   enddo
 
