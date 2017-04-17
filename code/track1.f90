@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
 !
 ! Particle tracking through a single element. 
 ! This includes synchrotron radiation and space charge kicks if enabled by the appropriate
@@ -13,24 +13,28 @@
 !   use bmad
 !
 ! Input:
-!   start_orb -- Coord_struct: Starting position.
-!   ele       -- Ele_struct: Element to track through.
-!   param     -- lat_param_struct: Reference particle info.
-!   track     -- track_struct, optional: Structure holding existing track.
+!   start_orb   -- Coord_struct: Starting position.
+!   ele         -- Ele_struct: Element to track through.
+!   param       -- lat_param_struct: Reference particle info.
+!   track       -- track_struct, optional: Structure holding existing track.
 !   ignore_radiation
-!             -- Logical, optional: If present and True then do not include radiation
+!               -- Logical, optional: If present and True then do not include radiation
 !                  effects along with space charge effects. 
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element. Only used with bmad_standard tracking.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   end_orb   -- Coord_struct: End position.
-!   track     -- track_struct, optional: Structure holding the track information if the 
-!                  tracking method does tracking step-by-step.
-!                  When tracking through multiple elements, the trajectory in an element
-!                  is appended to the existing trajectory. To reset: Set track%n_pt = -1.
-!   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
+!   end_orb     -- Coord_struct: End position.
+!   track       -- track_struct, optional: Structure holding the track information if the 
+!                    tracking method does tracking step-by-step.
+!                    When tracking through multiple elements, the trajectory in an element
+!                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
+!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix including the element. Only used with bmad_standard tracking.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -47,11 +51,13 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
+real(rp), optional :: mat6(6,6)
 real(rp) p0c_start, z_start
 integer tracking_method, stm
 
 character(8), parameter :: r_name = 'track1'
 
+logical, optional :: make_matrix
 logical, optional :: err_flag, ignore_radiation
 logical err, do_extra, finished, radiation_included, do_spin_tracking
 
@@ -177,7 +183,7 @@ case (bmad_standard$)
   if (start2_orb%species == photon$) then
     call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
-    call track1_bmad (start2_orb, ele, param, end_orb, err)
+    call track1_bmad (start2_orb, ele, param, end_orb, err, mat6, make_matrix)
   endif
   if (err) return
 

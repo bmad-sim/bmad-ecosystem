@@ -1073,7 +1073,7 @@ subroutine track_backwards_time (lat, orbit, ix_start, ix_end, direction, ix_bra
   integer, optional :: ix_branch, track_state
 end subroutine
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -1082,6 +1082,8 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ig
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
   logical, optional :: err_flag, ignore_radiation
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine track1_backwards_time (end_orb, ele, param, start_orb, err_flag)
@@ -1094,7 +1096,7 @@ subroutine track1_backwards_time (end_orb, ele, param, start_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
+subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -1102,6 +1104,8 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   logical, optional :: err_flag
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)

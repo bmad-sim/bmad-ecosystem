@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
+! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
 !
 ! Particle tracking through a single element BMAD_standard style.
 !
@@ -10,17 +10,20 @@
 !   use bmad
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting position
-!   ele        -- Ele_struct: Element
-!   param      -- lat_param_struct:
+!   start_orb   -- Coord_struct: Starting position
+!   ele         -- Ele_struct: Element
+!   param       -- lat_param_struct:
 !     %particle     -- Particle type
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element. Only used with bmad_standard tracking.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   end_orb   -- Coord_struct: End position
-!   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
+!   end_orb     -- Coord_struct: End position
+!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !-
 
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
+subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
 
 use track1_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
@@ -36,11 +39,12 @@ type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (taylor_struct) taylor1(6), taylor2(6)
 
+real(rp), optional :: mat6(6,6)
 real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
 real(rp) coef, voltage, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) ks, kss, ksr, beta, mat6(6,6), mat2(2,2), mat4(4,4), vec0(6)
+real(rp) ks, kss, ksr, beta, xmat(6,6), mat2(2,2), mat4(4,4), vec0(6)
 real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref, p_bend, p2_bend, p2xy
@@ -55,6 +59,7 @@ real(rp) cosh1_k, sinh_k, dt, e_rel, p_factor, sin_g, angle, rel_tracking_charge
 integer i, n, n_slice, key, orientation, ix_sec, n_step, ix_pole_max
 
 logical, optional :: err_flag
+logical, optional :: make_matrix
 logical err
 
 character(*), parameter :: r_name = 'track1_bmad'
@@ -102,7 +107,7 @@ select case (key)
                         
 case (beambeam$)
 
-  call track_a_beambeam(end_orb, ele, param)
+  call track_a_beambeam(end_orb, ele, param, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -182,7 +187,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
  
 case (drift$) 
 
-  call track_a_drift (end_orb, length)
+  call track_a_drift (end_orb, length, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -190,7 +195,7 @@ case (drift$)
 
 case (elseparator$)
 
-  call track_a_elseparator (end_orb, ele, param)
+  call track_a_elseparator (end_orb, ele, param, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -513,7 +518,7 @@ case (octupole$)
 
 case (patch$)
 
-  call track_a_patch (ele, end_orb)
+  call track_a_patch (ele, end_orb, mat6 = mat6, make_matrix = make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -521,7 +526,7 @@ case (patch$)
 
 case (quadrupole$)
 
-  call track_a_quadrupole (end_orb, ele, param)
+  call track_a_quadrupole (end_orb, ele, param, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -583,7 +588,7 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call track_a_sad_mult (end_orb, ele, param)
+  call track_a_sad_mult (end_orb, ele, param, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -591,7 +596,7 @@ case (sad_mult$)
 
 case (sbend$)
 
-  call track_a_bend (end_orb, ele, param)
+  call track_a_bend (end_orb, ele, param, mat6, make_matrix)
   call set_end_orb_s()
 
 !-----------------------------------------------
@@ -656,11 +661,11 @@ case (sol_quad$)
   k1 = charge_dir * ele%value(k1$)
   vec0 = 0
   vec0(6) = end_orb%vec(6)
-  call sol_quad_mat6_calc (ks, k1, length, vec0, mat6, dz4_coef)
+  call sol_quad_mat6_calc (ks, k1, length, vec0, xmat, dz4_coef)
   end_orb%vec(5) = end_orb%vec(5) + low_energy_z_correction (end_orb, ele, length) + &
                                       sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4))) 
 
-  end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
+  end_orb%vec(1:4) = matmul (xmat(1:4,1:4), end_orb%vec(1:4))
 
   call offset_particle (ele, param, unset$, end_orb)
 
