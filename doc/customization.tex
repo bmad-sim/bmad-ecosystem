@@ -10,37 +10,34 @@ This chapter discusses how this is done.
 \section{Initial Setup}
 \label{s:cust.init}
 
-Creating a custom version of \tao involves creating custom code that
-is put in a directory that is distinct from the \vn{tao} directory that
-contains the standard \tao code files. 
+Creating a custom version of \tao involves creating custom code that is put in a directory that is
+distinct from the \vn{tao} directory that contains the standard \tao code files.
 
-It is important to
-remember that the code in the \vn{tao} directory is not to be modified.
-This ensures that, as time goes on, and as \tao is developed by the 
-"Taoist" developers, changes to the code in the \vn{tao} directories
-will have a minimal chance to "break" your custom code.
+\textbf{It is important to remember that the code in the \vn{tao} directory is not to be modified.
+This ensures that, as time goes on, and as \tao is developed by the "Taoist" developers, changes to
+the code in the \vn{tao} directories will have a minimal chance to break your custom code.} If you do
+feel you need to change something in the \vn{tao} directory, please seek help first.
 
 To setup a custom \tao version do the following:
   \begin{enumerate}
   \item
-Establish a base directory in which things will be
-built. This directory can have any name.
-Here we will call this directory \vn{ROOT}.
+Establish a base directory in which things will be built. This directory can have any name. Here we
+will call this directory \vn{ROOT}.
   \item
-Make a subdirectory of \vn{ROOT} to put the code. 
-This directory can have any name.
-Here this directory will be called \vn{tao_custom}.
+Make a subdirectory of \vn{ROOT} that will contain the custom code.  This directory can have any
+name.  Here this directory will be called \vn{tao_custom}.
   \item
-Copy the files from the directory \vn{tao/customization} to \vn{Root/tao_custom}. The
-\vn{tao} directory is part of the \bmad package. If you do not know where to find it, ask
-your local Guru where it is. Along with a \vn{README} file, there are two CMake script
-files in the \vn{customization} directory:
+Copy the files from the directory \vn{tao/customization} to \vn{ROOT/tao_custom}. The \vn{tao}
+directory is part of the \bmad package. If you do not know where to find it, ask your local Guru
+where it is. Along with a \vn{README} file, there are two CMake\footnote{CMake is a program used for
+compiling code}  script files in the
+\vn{customization} directory:
 \begin{example}
   CMakeLists.txt
   cmake.custom_tao
 \end{example}
-These scripts are setup to make an executable called \vn{custom_tao} but this can be
-changed.
+These scripts are setup to make an executable called \vn{custom_tao}. This name can be changed
+by modifying the \vn{cmake.custom_tao} file.
   \item
 Copy the file \vn{tao/program/tao_program.f90} to \vn{ROOT/tao_custom}.
   \item
@@ -49,9 +46,16 @@ you will need are the hook files you will want to modify to customize \tao. See 
 details. See \sref{s:cust.example} for an example.
   \item
 Go to the \vn{ROOT/tao_custom} directory and use the command \vn{mk} to create the
-executable \vn{ROOT/production/bin/custom_tao}. Similarly, the command \vn{mkd} will
-create a debug executable \vn{ROOT/debug/bin/custom_tao}.
+executable 
+\begin{example}
+    \vn{ROOT/production/bin/custom_tao}. 
+\end{example}
+Similarly, the command \vn{mkd} will create a debug executable 
+\begin{example}
+    \vn{ROOT/debug/bin/custom_tao}
+\end{example}
 	\end{enumerate}
+A debug executable only needs to be created if you a debugging the code.
 
 %----------------------------------------------------------------
 \section{It's All a Matter of Hooks}

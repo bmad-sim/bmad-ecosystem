@@ -241,7 +241,7 @@ call tao_lattice_calc (calc_ok, init_special = 1)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   do ib = 0, ubound(u%model%lat%branch, 1)
-    call radiation_integrals (u%model%lat, u%model%tao_branch(ib)%orbit, u%model%tao_branch(ib)%modes, u%model%tao_branch(ib)%ix_rad_int_cache)
+    call radiation_integrals (u%model%lat, u%model%tao_branch(ib)%orbit, u%model%tao_branch(ib)%modes, u%model%tao_branch(ib)%ix_rad_int_cache, ib)
   enddo
 enddo
 
