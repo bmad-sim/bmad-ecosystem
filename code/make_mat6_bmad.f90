@@ -64,12 +64,12 @@ real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
 real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k, rel_tracking_charge, rel_charge
 
-integer i, n_slice, key, dir, ix_pole_max
+integer i, n_slice, key, dir, ix_pole_max, tm
 
 real(rp) charge_dir, hkick, vkick, kick
 
 logical, optional :: end_in, err
-logical err_flag, fringe_here, drifting, do_track
+logical err_flag, fringe_here, drifting, do_track, set_tilt
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -81,11 +81,44 @@ mat6 => ele%mat6
 v => ele%value
 
 call mat_make_unit (mat6)
+
+! If element is off.
+
+key = ele%key
+
+if (.not. ele%is_on) then
+  select case (key)
+  case (taylor$, match$, fiducial$, floor_shift$)
+    if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, orb_in)
+    return
+  case (ab_multipole$, multipole$, lcavity$, sbend$, patch$)
+    ! Nothing to do here
+  case default
+    key = drift$  
+  end select
+endif
+
+if (key == sol_quad$ .and. v(k1$) == 0) key = solenoid$
+
+!
+
+select case (key)
+case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$)
+  tm = ele%tracking_method
+  if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
+  call track1 (orb_in, ele, param, c00, mat6 = mat6, make_matrix = .true.)
+  ele%tracking_method = tm
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
+  return
+end select
+
+!
+
 ele%vec0 = 0
 
 length = v(l$)
 rel_p = 1 + orb_in%vec(6) 
-key = ele%key
 rel_tracking_charge = rel_tracking_charge_to_mass(orb_in, param)
 charge_dir = rel_tracking_charge * ele%orientation
 c00 = orb_in
@@ -94,18 +127,17 @@ c00 = orb_in
 ! Note: sad_mult, match, etc. will handle the calc of orb_out if needed.
 
 do_track = (.not. logic_option (.false., end_in))
-select case (ele%key)
-case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$)
-  do_track = .false.
-end select
 
 if (do_track) then
+  tm = ele%tracking_method
+  if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, orb_out)
   else
     call track1 (c00, ele, param, orb_out)
   endif
+  ele%tracking_method = tm
 
   if (orb_out%state /= alive$) then
     mat6 = 0
@@ -119,35 +151,9 @@ endif
 orb_out1 = orb_out
 
 !--------------------------------------------------------
-! If element is off.
-
-if (.not. ele%is_on) then
-  select case (key)
-  case (taylor$, match$, fiducial$, floor_shift$)
-    return
-  case (ab_multipole$, multipole$, lcavity$, sbend$, patch$)
-    ! Nothing to do here
-  case default
-    key = drift$  
-  end select
-endif
-
-!--------------------------------------------------------
 ! Selection...
 
-if (key == sol_quad$ .and. v(k1$) == 0) key = solenoid$
-
 select case (key)
-
-!--------------------------------------------------------
-! beam-beam interaction
-
-case (beambeam$)
-
-  call track_a_beambeam (c00, ele, param, mat6, .true.)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
-  return
 
 !--------------------------------------------------------
 ! Custom
@@ -157,15 +163,6 @@ case (custom$)
   if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
-  return
-
-!-----------------------------------------------
-! Drift
-
-case (drift$) 
-  call track_a_drift (c00, length, mat6, .true.)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
   return
 
 !-----------------------------------------------
@@ -259,7 +256,10 @@ case (elseparator$)
 
 case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
-  call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
+  set_tilt = .false.
+  if (ele%key == kicker$ .or. ele%key == hkicker$ .or. ele%key == vkicker$) set_tilt = .true.
+
+  call offset_particle (ele, param, set$, c00, set_tilt = set_tilt, set_hvkicks = .false.)
 
   hkick = charge_dir * v(hkick$) 
   vkick = charge_dir * v(vkick$) 
@@ -300,12 +300,20 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrum
      endif
   end do
 
-  if (v(tilt_tot$) /= 0) then
+  if (set_tilt .and. v(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
   call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
+  call offset_particle (ele, param, unset$, c00, set_tilt = set_tilt, set_hvkicks = .false.)
+
+  if (ele%key == kicker$) then
+    c00%vec(1) = c00%vec(1) + ele%value(h_displace$)
+    c00%vec(3) = c00%vec(3) + ele%value(v_displace$)
+  endif
+
+  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
+  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity.
@@ -682,26 +690,6 @@ case (octupole$)
   ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
-! Patch
-
-case (patch$) 
-
-  call track_a_patch (ele, c00, .true., track_spin = .false., mat6 = mat6, make_matrix = .true.)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
-  return
-
-!--------------------------------------------------------
-! quadrupole
-
-case (quadrupole$)
-
-  call track_a_quadrupole (c00, ele, param, mat6, .true.)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
-  return
-
-!--------------------------------------------------------
 ! rbends are not allowed internally
 
 case (rbend$)
@@ -788,25 +776,6 @@ case (rfcavity$)
 
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
-
-!--------------------------------------------------------
-! sad_mult
-
-case (sad_mult$)
-
-  call track_a_sad_mult (c00, ele, param, ele%mat6)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
-  return
-
-!--------------------------------------------------------
-! sbend
-
-case (sbend$)
-
-  call track_a_bend (c00, ele, param, mat6, .true.)
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! Sextupole.
