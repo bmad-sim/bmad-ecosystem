@@ -27,7 +27,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
-real(rp) ks, k1, length, z_start, charge_dir, kx, ky
+real(rp) ks, k1, length, z_start, t_start, charge_dir, kx, ky
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll, k0
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) :: vec0(6), kmat(6,6)
@@ -49,6 +49,7 @@ endif
 !
 
 z_start = orbit%vec(5)
+t_start = orbit%t
 length = ele%value(l$)
 rel_pc = 1 + orbit%vec(6)
 n_div = nint(ele%value(num_steps$))
@@ -147,7 +148,7 @@ do nd = 0, n_div
   else
     if (present(mat6)) then
       call sol_quad_mat6_calc (ks, k1, ll, orbit%vec, mat1)
-      if (present(mat6)) mat6 = matmul(mat1, mat6)
+      mat6 = matmul(mat1, mat6)
     endif
     vec0 = 0
     vec0(6) = orbit%vec(6)
@@ -197,10 +198,9 @@ if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
 endif
 
 orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele2, ele2%value(l$), mat6, present(mat6))
+orbit%t = t_start + length * ele%value(E_tot$) / (c_light * ele%value(p0c$)) - (orbit%vec(5) - z_start) / (orbit%beta * c_light)
 
 !
-
-orbit%t = orbit%t + (length + z_start - orbit%vec(5)) / (orbit%beta * c_light)
 
 if (orbit%direction == 1) then
   orbit%s = ele%s
