@@ -96,7 +96,12 @@ do ib = 0, ubound(lat%branch, 1)
       call track1 (start_orb, ele, branch%param, end_orb)
 
       final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
-      write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+      if (ele%key == e_gun$) then
+        write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+      else
+        write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
+                c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
+      endif
 
       if (ele%key == wiggler$) then
         if (j == symp_lie_bmad$) end_bs = end_orb
