@@ -493,6 +493,13 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
     end select
   endif
 
+case (custom$)
+  if (present(num_valid)) num_valid = 3
+  select case (mat6_calc_method)
+  case (static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (diffraction_plate$, mask$, fiducial$, floor_shift$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
