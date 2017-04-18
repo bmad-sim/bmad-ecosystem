@@ -638,6 +638,13 @@ case (lcavity$)
     ele%value(gradient_err$) = 0
     has_changed = .true.
   endif
+
+case (rfcavity$)
+  if (ele%value(phi0$) /= 0) then
+    ele%value(phi0$) = 0
+    has_changed = .true.
+  endif
+    
 end select
 
 ! For speed, use symp_lie_bmad tracking if the taylor map does not exist or if the taylor

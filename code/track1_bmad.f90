@@ -53,7 +53,7 @@ real(rp) xp_start, yp_start, dz4_coef(4,4), sqrt_8, pr, kk
 real(rp) dcos_phi, dgradient, dpz, step_len, r_step
 real(rp) mc2, dE_start, dE_end, dE, dp_dg, g, e_tot, pc, ps, charge_dir
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
-real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
+real(rp) new_pc, new_beta, len_slice, k0l, k1l, k1_factor, t0
 real(rp) cosh1_k, sinh_k, dt, e_rel, p_factor, sin_g, angle, rel_tracking_charge
 
 integer i, n, n_slice, key, orientation, ix_sec, n_step, ix_pole_max
@@ -320,6 +320,7 @@ case (lcavity$)
   else
     dp_dg = (pc_end - pc_start) / gradient_net
   endif
+
   end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
 
   ! Body tracking transverse. Kick is only with standing wave cavities.
@@ -701,6 +702,8 @@ case (taylor$)
 
 case (wiggler$, undulator$)
 
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+
   if (ele%sub_key == map_type$) then
     if (present(err_flag)) err_flag = .true.
     call out_io (s_fatal$, r_name, &
@@ -718,7 +721,10 @@ case (wiggler$, undulator$)
   else
     k_z = pi / ele%value(l_pole$)
   endif
-  k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_p))**2
+
+  k1_factor = -charge_dir * 0.5 * c_light * ele%value(b_max$) / (ele%value(p0c$))**2
+  k1 = k1_factor / rel_p**2
+  k1l = length * k1
 
   p_factor = 1 - (end_orb%vec(2) / rel_p**2)**2 - (end_orb%vec(4) / rel_p**2)**2
   if (p_factor < 0) then
@@ -726,12 +732,14 @@ case (wiggler$, undulator$)
     return
   endif
 
-  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - & 
-                   1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2))
+  p_factor = sqrt(p_factor)
+  end_orb%vec(5) = end_orb%vec(5) + 0.5 * length * (end_orb%beta / beta_ref - 1/p_factor) - &
+                                      k1_factor * (1/(c_light * beta_ref) - 1 / (c_light * end_orb%beta * rel_p**2)) / (4 * k_z**2)
+  end_orb%t = end_orb%t + length / (2 * c_light * end_orb%beta * p_factor) + k1l / (4 * k_z**2 * c_light * end_orb%beta)
 
-  ! 1/2 of the octupole octupole kick at the entrance face.
+  ! 1/2 of the octupole kick at the entrance face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1l * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
 
   ! Quadrupole body
 
@@ -739,9 +747,9 @@ case (wiggler$, undulator$)
   end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2) / rel_p
   end_orb%vec(3:4) = matmul (mat2, end_orb%vec(3:4))
 
-  ! 1/2 of the octupole octupole kick at the exit face.
+  ! 1/2 of the octupole kick at the exit face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1l * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
   
   p_factor = 1 - (end_orb%vec(2) / rel_p**2)**2 - (end_orb%vec(4) / rel_p**2)**2
   if (p_factor < 0) then
@@ -749,14 +757,12 @@ case (wiggler$, undulator$)
     return
   endif
 
-  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - & 
-                   1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2)) + &
-                   low_energy_z_correction (end_orb, ele, length)
+  p_factor = sqrt(p_factor)
+  end_orb%vec(5) = end_orb%vec(5) + 0.5 * length * (end_orb%beta / beta_ref - 1/p_factor) - &
+                                      k1_factor * (1/(c_light * beta_ref) - 1 / (c_light * end_orb%beta * rel_p**2)) / (4 * k_z**2)
+  end_orb%t = end_orb%t + length / (2 * c_light * end_orb%beta * p_factor) + k1l / (4 * k_z**2 * c_light * end_orb%beta)
   
   call offset_particle (ele, param, unset$, end_orb)
-   
-
-  end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_p**2) / (end_orb%beta * c_light)
 
   call set_end_orb_s()
 
