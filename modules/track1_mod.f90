@@ -1140,7 +1140,7 @@ real(rp) :: Xn(6),pz,pzs,pt,b1
 character(20) :: r_name = 'ptc_wedger'
 real(rp), optional :: mat6(6,6)
 
-real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5, fac
+real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5, fac, radix
 real(rp) dpzs_dx1, dpzs_dx2, dpzs_dx4, dpzs_dx5, factor1, factor2
 
 logical err_flag
@@ -1175,7 +1175,9 @@ if (logic_option(.false., make_matrix)) then
   mat6(2,5) = sin(a)*dpz_dx5
 end if
 
-pt=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(4)**2)
+radix = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(4)**2
+if (radix < 1e-10) return
+pt=sqrt(radix)
 dpt_dx4 = -X(4)/pt
 dpt_dx5 = (1/beta0+X(5))/pt
 
@@ -1187,8 +1189,7 @@ if (logic_option(.false., make_matrix)) then
   dpzs_dx5 = (1/beta0+X(5)-Xn(2)*mat6(2,5))/pzs
 end if
 
-Xn(1)=X(1)*cos(a)+(X(1)*X(2)*sin(2.0_rp*a)+sin(a)**2*(2.0_rp*X(1)*pz-b1*X(1)**2) )&
-    / (pzs+pz*cos(a)-X(2)*sin(a))
+Xn(1)=X(1)*cos(a)+(X(1)*X(2)*sin(2.0_rp*a)+sin(a)**2*(2.0_rp*X(1)*pz-b1*X(1)**2)) / (pzs+pz*cos(a)-X(2)*sin(a))
 if (logic_option(.false., make_matrix)) then
   factor1 = cos(a)*pz+pzs-X(2)*sin(a)
   factor2 = (-b1*X(1)**2+2*X(1)*pz)*sin(a)**2+X(1)*X(2)*sin(2*a)

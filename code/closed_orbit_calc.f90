@@ -456,6 +456,8 @@ logical err
 !
 
 orb_start%vec(5) = z_set
+call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+
 call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
 if (track_state /= moving_forward$) then

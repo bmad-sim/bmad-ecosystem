@@ -1406,33 +1406,35 @@ character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        '
 ! energy factors thrown in. Useful for linacs.
 
 type anormal_mode_struct
-  real(rp) emittance        ! Beam emittance
-  real(rp) synch_int(4:6)   ! Synchrotron integrals
-  real(rp) j_damp           ! damping partition number
-  real(rp) alpha_damp       ! damping per turn
-  real(rp) chrom            ! Chromaticity
-  real(rp) tune             ! "Fractional" tune in radians
+  real(rp) :: emittance = 0       ! Beam emittance
+  real(rp) :: synch_int(4:6) = 0  ! Synchrotron integrals
+  real(rp) :: j_damp = 0          ! damping partition number
+  real(rp) :: alpha_damp = 0      ! damping per turn
+  real(rp) :: chrom = 0           ! Chromaticity
+  real(rp) :: tune = 0            ! "Fractional" tune in radians
 end type
 
 type linac_normal_mode_struct
-  real(rp) i2_E4            ! Integral: g^2 * gamma^4
-  real(rp) i3_E7            ! Integral: g^3 * gamma^7
-  real(rp) i5a_E6           ! Integral: (g^3 * H_a) * gamma^6
-  real(rp) i5b_E6           ! Integral: (g^3 * H_b) * gamma^6
-  real(rp) sig_E1           ! Energy spread after 1 pass (eV)
-  real(rp) a_emittance_end  ! a mode emittance at end of linac
-  real(rp) b_emittance_end  ! b mode emittance at end of linac
+  real(rp) :: i2_E4 = 0           ! Integral: g^2 * gamma^4
+  real(rp) :: i3_E7 = 0           ! Integral: g^3 * gamma^7
+  real(rp) :: i5a_E6 = 0          ! Integral: (g^3 * H_a) * gamma^6
+  real(rp) :: i5b_E6 = 0          ! Integral: (g^3 * H_b) * gamma^6
+  real(rp) :: sig_E1 = 0          ! Energy spread after 1 pass (eV)
+  real(rp) :: a_emittance_end = 0 ! a mode emittance at end of linac
+  real(rp) :: b_emittance_end = 0 ! b mode emittance at end of linac
 end type
 
 type normal_modes_struct
-  real(rp) synch_int(0:3) ! Synchrotron integrals I0, I1, I2, and I3
-  real(rp) sigE_E         ! SigmaE/E
-  real(rp) sig_z          ! Sigma_Z
-  real(rp) e_loss         ! Energy loss / turn (eV)
-  real(rp) rf_voltage     ! Total rfcavity voltage (eV)
-  real(rp) pz_aperture    ! pz aperture limit
-  type (anormal_mode_struct)  a, b, z
-  type (linac_normal_mode_struct) lin
+  real(rp) :: synch_int(0:3) = 0  ! Synchrotron integrals I0, I1, I2, and I3
+  real(rp) :: sigE_E = 0          ! SigmaE/E
+  real(rp) :: sig_z = 0           ! Sigma_Z
+  real(rp) :: e_loss = 0          ! Energy loss / turn (eV)
+  real(rp) :: rf_voltage = 0      ! Total rfcavity voltage (eV)
+  real(rp) :: pz_aperture = 0     ! pz aperture limit
+  type (anormal_mode_struct) :: a = anormal_mode_struct()
+  type (anormal_mode_struct) :: b = anormal_mode_struct()
+  type (anormal_mode_struct) :: z = anormal_mode_struct()
+  type (linac_normal_mode_struct) :: lin = linac_normal_mode_struct()
 end type
 
 integer, parameter :: bends$ = 201

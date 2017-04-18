@@ -144,12 +144,6 @@ else
   branch => lat%branch(0)
 endif
 
-bmad_com_save = bmad_com
-bmad_com%radiation_fluctuations_on = .false.
-bmad_com%radiation_damping_on = .false.
-bmad_com%space_charge_on = .false.
-bmad_com%convert_to_kinetic_momentum = .true.
-
 if (allocated(rad_int_all%ele)) then
   if (ubound(rad_int_all%ele, 1) < branch%n_ele_max) then 
     deallocate (rad_int_all%ele)
@@ -165,14 +159,31 @@ if (do_alloc) then
   allocate (rad_int_all%ele(0:branch%n_ele_max))
 endif
 
+rad_int_all%ele(:) = rad_int1_struct()
+
+if (branch%param%particle == photon$) then
+  mode = normal_modes_struct()
+  if (present(rad_int_by_ele)) call move_alloc (rad_int_all%ele, rad_int_by_ele%ele)
+  return
+endif
+
+
+!
+
 ri_info%branch => branch
 ri_info%orbit => orbit
-
-rad_int_all%ele(:) = rad_int1_struct()
 
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_struct()
+
+!
+
+bmad_com_save = bmad_com
+bmad_com%radiation_fluctuations_on = .false.
+bmad_com%radiation_damping_on = .false.
+bmad_com%space_charge_on = .false.
+bmad_com%convert_to_kinetic_momentum = .true.
 
 call init_ele (ele2)
 call init_ele (ele_start)
