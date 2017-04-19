@@ -399,7 +399,7 @@ real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
-real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref
+real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref, phase, amp
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -1908,20 +1908,43 @@ case ('ping_a.')
     if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%a%beta)
     valid_value = .true.
 
-  case ('ping_a.amp_y')
-    datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    if (associated(ele_ref)) datum_value = datum_value - &
-                  sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-    valid_value = .true.
-
   case ('ping_a.phase_x')
     datum_value = ele%a%phi
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi
     valid_value = .true.
 
+  case ('ping_a.amp_y')
+    datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+    valid_value = .true.
+
   case ('ping_a.phase_y')
     datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+    valid_value = .true.
+
+  case ('ping_a.sin_y')
+    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    datum_value = amp * sin(phase)
+
+    if (associated(ele_ref)) then
+      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      datum_value = datum_value - amp * sin(phase)
+    endif
+    valid_value = .true.
+
+  case ('ping_a.cos_y')
+    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    datum_value = amp * cos(phase)
+
+    if (associated(ele_ref)) then
+      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      datum_value = datum_value - amp * cos(phase)
+    endif
     valid_value = .true.
   end select
 
@@ -1932,15 +1955,20 @@ case ('ping_b.')
   if (.not. associated(ele)) return  ! Bad
 
   select case (datum%data_type)
+  case ('ping_b.amp_y')
+    datum_value = sqrt(ele%b%beta)
+    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta)
+    valid_value = .true.
+
+  case ('ping_b.phase_y')
+    datum_value = ele%b%phi
+    if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi
+    valid_value = .true.
+
   case ('ping_b.amp_x')
     datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     if (associated(ele_ref)) datum_value = datum_value - &
                   sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
-    valid_value = .true.
-
-  case ('ping_b.amp_y')
-    datum_value = sqrt(ele%b%beta)
-    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta)
     valid_value = .true.
 
   case ('ping_b.phase_x')
@@ -1948,10 +1976,27 @@ case ('ping_b.')
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
     valid_value = .true.
 
-  case ('ping_b.phase_y')
-    datum_value = ele%b%phi
-    if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi
-    valid_value = .true.
+  case ('ping_b.sin_x')
+    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
+    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
+    datum_value = amp * sin(phase)
+
+    if (associated(ele_ref)) then
+      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
+      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
+      datum_value = datum_value - amp * sin(phase)
+    endif
+
+  case ('ping_b.cos_x')
+    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
+    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
+    datum_value = amp * cos(phase)
+
+    if (associated(ele_ref)) then
+      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
+      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
+      datum_value = datum_value - amp * cos(phase)
+    endif
   end select
 
 !-----------
@@ -3867,7 +3912,8 @@ if (size(re_array) /= 0) then
   call tao_re_allocate_expression_info (stack%info, n)
 
   stack%scale =  1
-  if (index(name, 'ping_a.amp') /= 0) then
+
+  if (index(name, 'ping_a.') /= 0 .and. index(name, 'ping_a.phase') == 0) then
     ix_uni = d_array(1)%d%d1%d2%ix_uni
     if (index(name, '|meas') /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%a_mode_meas
@@ -3875,7 +3921,8 @@ if (size(re_array) /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%a_mode_ref
     endif
   endif
-  if (index(name, 'ping_b.amp') /= 0) then
+
+  if (index(name, 'ping_b.') /= 0 .and. index(name, 'ping_b.phase') == 0) then
     ix_uni = d_array(1)%d%d1%d2%ix_uni
     if (index(name, '|meas') /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%b_mode_meas
@@ -3883,7 +3930,6 @@ if (size(re_array) /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%b_mode_ref
     endif
   endif
-
 
   do i = 1, n
     stack%value(i) = re_array(i)%r

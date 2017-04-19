@@ -153,12 +153,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     meas_value = data(j)%meas_value
-    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') meas_value = meas_value * u%ping_scale%a_mode_meas
-    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) == 'amp') meas_value = meas_value * u%ping_scale%b_mode_meas
-
     ref_value = data(j)%ref_value
-    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) == 'amp') ref_value = ref_value * u%ping_scale%a_mode_ref
-    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) == 'amp') ref_value = ref_value * u%ping_scale%b_mode_ref
+
+    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) /= 'phase') then
+      meas_value = meas_value * u%ping_scale%a_mode_meas
+      ref_value  = ref_value  * u%ping_scale%a_mode_ref
+    endif
+
+    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) /= 'phase') then
+      meas_value = meas_value * u%ping_scale%b_mode_meas
+      ref_value  = ref_value  * u%ping_scale%b_mode_ref
+    endif
 
     if (opt_with_ref .and. opt_with_base) then
       data(j)%delta_merit = (model_value - data(j)%base_value) - (meas_value - ref_value) 
