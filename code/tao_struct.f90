@@ -736,6 +736,8 @@ type tao_lattice_branch_struct
   type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
   integer ix_rad_int_cache                     ! Radiation integrals cache index.
+  type (normal_modes_struct) modes_rf_on       ! Synchrotron integrals stuff
+  type (rad_int_all_ele_struct) rad_int_rf_on
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

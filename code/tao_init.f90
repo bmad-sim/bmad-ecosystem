@@ -238,15 +238,7 @@ endif
 s%u%calc%lattice = .true.
 call tao_lattice_calc (calc_ok, init_special = 1)
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  u => s%u(i)
-  do ib = 0, ubound(u%model%lat%branch, 1)
-    if (u%model%lat%branch(ib)%param%particle == photon$) cycle
-    call radiation_integrals (u%model%lat, u%model%tao_branch(ib)%orbit, u%model%tao_branch(ib)%modes, u%model%tao_branch(ib)%ix_rad_int_cache, ib)
-  enddo
-enddo
-
-!
+! Turn off RF
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
@@ -261,10 +253,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-call tao_lattice_calc (calc_ok, init_special = 2) 
+!
+
+call tao_lattice_calc (calc_ok)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
+
   u%design = u%model
   u%base = u%design
   u%design%tao_branch = u%model%tao_branch
@@ -273,9 +268,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%data%base_value   = u%data%model_value
   u%data%good_design  = u%data%good_model
   u%data%good_base    = u%data%good_model
-enddo
 
-call tao_lattice_calc (calc_ok)
+  u%design%tao_branch%modes = u%design%tao_branch%modes_rf_on
+enddo
 
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
 ! to set model variable values different from design variable values.
