@@ -150,6 +150,7 @@ character(38) :: instr
     case('QUADRUPOLE5:Time_Runge_Kutta')         ; tolerance = 'ABS 1e-11'
     case('RFCAVITY1:Runge_Kutta')                ; tolerance = 'ABS 1e-13'
     case('RFCAVITY1:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
+    case('RFCAVITY2:Runge_Kutta')                ; tolerance = 'ABS 1e-13'
     case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
     case('SBEND2:Time_Runge_Kutta')              ; tolerance = 'ABS 1e-11'
     case('SBEND4:Bmad_Standard')                 ; tolerance = 'ABS 1e-11'
@@ -165,9 +166,14 @@ character(38) :: instr
     case('SOL_QUAD2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-10'
     case('LCAVITY1:Bmad_Standard')               ; tolerance = 'ABS 2e-12'
     case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
+    case('LCAVITY1:Runge_Kutta')                 ; tolerance = 'ABS 2e-14'
+    case('LCAVITY2:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-13'
     case('LCAVITY3:Runge_Kutta')                 ; tolerance = 'ABS 2e-14'
     case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
     case('WIGGLER_MAP1:Time_Runge_Kutta')        ; tolerance = 'ABS 2e-13'
+    case('WIGGLER_MAP1:Runge_Kutta')             ; tolerance = 'ABS 1e-13'
+    case('WIGGLER_PERIODIC1:Runge_Kutta')        ; tolerance = 'ABS 5e-13'
+    case('WIGGLER_PERIODIC1:Time_Runge_Kutta')   ; tolerance = 'ABS 2e-13'
     case default                                 ; tolerance = 'ABS 1e-14'
   end select
 
