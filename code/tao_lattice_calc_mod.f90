@@ -114,7 +114,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
-      if (integer_option(0, init_special) == 1) cycle
 
 
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
@@ -142,15 +141,23 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call err_exit
     end select
 
-    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .and. integer_option(0, init_special) /= 2) then
+    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. integer_option(0, init_special) == 1) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                             tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
+      if (integer_option(0, init_special) == 1) then
+        tao_branch%modes_rf_on = tao_branch%modes
+        tao_branch%rad_int_rf_on = tao_branch%rad_int_rf_on
+      endif
     endif
 
-    if (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
+
+    if (tao_lat%lat%param%geometry == closed$ .and. (u%calc%chrom_for_data .or. &
+                      u%calc%chrom_for_plotting .or. integer_option(0, init_special) == 1)) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
                            tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
     endif
+
+    if (integer_option(0, init_special) == 1) cycle
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
 
@@ -256,6 +263,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo branch_loop
 
+  if (integer_option(0, init_special) == 1) cycle
+
   ! If calc is on common model then transfer data to base of all other universes
 
   if (s%com%common_lattice .and. iuni == ix_common_uni$) then
@@ -278,6 +287,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   call tao_scale_ping_data(u)
 
 enddo uni_loop
+
+if (integer_option(0, init_special) == 1) return
 
 ! do any post-processing
 
