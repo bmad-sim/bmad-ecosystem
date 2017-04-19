@@ -275,6 +275,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%data%good_base    = u%data%good_model
 enddo
 
+call tao_lattice_calc (calc_ok)
+
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
 ! to set model variable values different from design variable values.
 
