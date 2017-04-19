@@ -918,7 +918,7 @@ Photon intensity components in the horizontal and vertical planes.
   \item[photon.phase_x, .phase_y] \Newline
 Photon phases in the horizontal and vertical planes.
 
-  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y] \Newline
+  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y, .cos_y, .sin_y] \Newline
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
 pinged. Ignoring damping, the beam response will be the sum of three components, one for
 each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
@@ -941,19 +941,30 @@ In terms of \tao's data parameters, the correspondence is
     ping_a.amp_x   \(\longrightarrow A_{ax}\)
     ping_a.phase_x \(\longrightarrow \phi_{ax}\)
     ping_a.amp_y   \(\longrightarrow A_{ay}\)
-    ping_a.phase_y \(\longrightarrow \phi_{ax}\)
+    ping_a.phase_y \(\longrightarrow \phi_{ay}\)
+    ping_a.sin_y   \(\longrightarrow A_{ay} \, \sin \phi_{ay}\)
+    ping_a.cos_y   \(\longrightarrow A_{ay} \, \cos \phi_{ay}\)
 \end{example}
-In terms of how \tao analyses ping data, only differences in
-phases are important so $\phi_{a0}$ is ignorable.
+In terms of how \tao analyses ping data, only differences in phases are important so $\phi_{a0}$ is
+ignorable. 
 
-The response can be related to the
-lattice Twiss parameters as given by Eq.~(7) of reference \cite{b:beta.meas}
+The response can be related to the lattice Twiss parameters as given by Eq.~(7) of reference
+\cite{b:beta.meas}
 \begin{align}
   x_a(n) &=  A_a \, \sqrt{\beta_a} \, \cos(n \omega_a) , \CRNO
   y_a(n) &= -A_a \, \sqrt{\beta_b} \Bigl( \cbar{22} \, \cos(n \omega_a) +
      \cbar{12} \, \sin(n \omega_a) \Bigr)
   \label{xabno}
 \end{align}
+
+Roughly, if the coupling is not large, the ``in-plane'' \vn{x} oscillation is insensitive to any
+coupling so that \vn{ping_a.amp_x} and \vn{ping_a.phase_x} can be directly related to the Twiss
+parameters computed without coupling. On the other hand, the ``out-of-plane'' \vn{y} oscillation is
+a direct measure of the coupling. This can be used to measure and correct skew-quadrupole
+errors. Since the design coupling in many machines is zero or very small, in such cases the
+\vn{ping_a.sin_y} and \vn{ping_a.cos_y} datums are better for analysis as opposed to the
+\vn{ping_a.amp_y} and \vn{ping_a.phase_y} datums since the value of \vn{ping_a.phase_y} is
+meaningless when the local coupling, and hence \vn{ping_a.amp_y}, is zero.
 
 For the \vn{design} and \vn{model} values of a datum, \Eq{xabno} is used with $A_a$ taken
 to be unity. To be able to compare the \vn{design} and/or \vn{model} values with the
@@ -971,7 +982,7 @@ since, with a decoupled lattice, the \vn{model} values are zero.
 There is a similar multiplier defined for the reference data. The values of these two
 multipliers are shown with the \vn{show data} command.
 
-  \item[ping_b.amp_x, .phase_x, .amp_y, .phase_y] \Newline
+  \item[ping_b.amp_y, .phase_y, .amp_x, .phase_x, .sin_x, .cos_x] \Newline
 Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
 the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
 \cite{b:beta.meas}:
