@@ -50,7 +50,7 @@ real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_m
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref, p_bend, p2_bend, p2xy
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2, px_end
 real(rp) xp_start, yp_start, dz4_coef(4,4), sqrt_8, pr, kk
-real(rp) dcos_phi, dgradient, dpz, step_len, r_step
+real(rp) dcos_phi, dgradient, dpz, step_len, r_step, dz_factor
 real(rp) mc2, dE_start, dE_end, dE, dp_dg, g, e_tot, pc, ps, charge_dir
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, k1_factor, t0
@@ -322,6 +322,7 @@ case (lcavity$)
   endif
 
   end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
+  end_orb%t = end_orb%t + dp_dg / c_light
 
   ! Body tracking transverse. Kick is only with standing wave cavities.
 
@@ -332,7 +333,9 @@ case (lcavity$)
     end_orb%vec(1) = end_orb%vec(1) + end_orb%vec(2) * length
     end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * length
 
-    end_orb%vec(5) = end_orb%vec(5) - (end_orb%vec(2)**2 + end_orb%vec(4)**2) * beta_end * dp_dg / 2
+    dz_factor = (end_orb%vec(2)**2 + end_orb%vec(4)**2) * dp_dg / 2
+    end_orb%vec(5) = end_orb%vec(5) - beta_end * dz_factor
+    end_orb%t = end_orb%t + dz_factor / c_light
 
     end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
     end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
@@ -376,7 +379,11 @@ case (lcavity$)
     yp2 = end_orb%vec(4)
 
     ! Correction of z for finite transverse velocity assumes a uniform change in slope.
-    end_orb%vec(5) = end_orb%vec(5) - (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * beta_end * dp_dg / 6
+
+    dz_factor = (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * dp_dg / 6
+    end_orb%vec(5) = end_orb%vec(5) - beta_end * dz_factor
+    end_orb%t = end_orb%t + dz_factor / c_light
+
     !
 
     k2 = gradient_net / (2 * E_end) 
@@ -393,16 +400,6 @@ case (lcavity$)
   call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
   call offset_particle (ele, param, unset$, end_orb)
-
-  ! Time & s calc
-  ! end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient_net * c_light)
-
-  if (dE == 0) then
-    end_orb%t = start2_orb%t + length * (E_start / pc_start) / c_light
-  else
-    f = (2 * E_start * dE + dE**2) / pc_start**2
-    end_orb%t = start2_orb%t + pc_start * sqrt_one(f) * length / (dE * c_light)
-  endif
 
   call set_end_orb_s()
 
@@ -722,7 +719,7 @@ case (wiggler$, undulator$)
     k_z = pi / ele%value(l_pole$)
   endif
 
-  k1_factor = -charge_dir * 0.5 * c_light * ele%value(b_max$) / (ele%value(p0c$))**2
+  k1_factor = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
   k1 = k1_factor / rel_p**2
   k1l = length * k1
 
