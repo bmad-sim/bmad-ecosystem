@@ -213,13 +213,14 @@ subroutine chrom_tune (lat, delta_e, chrom_x, chrom_y, err_tol, err_flag)
   logical err_flag
 end subroutine
 
-subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
+subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
   import
   implicit none
   type (lat_struct) lat
   type (coord_struct), allocatable, target :: closed_orb(:)
   integer, optional :: direction, ix_branch, i_dim
   logical, optional, intent(out) :: err_flag
+  logical, optional, intent(in) :: print_err
 end subroutine
 
 subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &

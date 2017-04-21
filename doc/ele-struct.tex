@@ -278,11 +278,9 @@ integer, and, as explained below, ``switch'' attributes. To find out the
 type of a given attribute, use the function \Hyperref{r:attribute.type}{attribute_type}. See the
 routine \vn{type_ele} for an example of how \vn{attribute_type} is used.
 
-An example of a 
-logical attribute is the \vn{flexible} logical of match elements which is stored
-in \vn{%value(flexible\$)}. To evaluate logical attributes,
-the functions \Hyperref{r:is.true}{is_true(param)}
-or \Hyperref{r:is.false}{is_false(param)} should be used.
+An example of a logical attribute is the \vn{flexible} logical of match elements which is stored in
+\vn{%value(flexible\$)}. To evaluate logical attributes, the functions
+\Hyperref{r:is.true}{is_true(param)} or \Hyperref{r:is.false}{is_false(param)} should be used.
 
 Integer attributes stored in the \vn{value(:)} array include \vn{n_slice} (stored
 in \vn{%value(n_slice\$)}). With integer attributes, the \vn{nint(param)} 
@@ -296,7 +294,7 @@ can be constructed by putting a ``\$'' after the associated name. Thus,
 with the \vn{fringe_at} switch, the four integer parameters are \vn{no_end\$},
 \vn{both_ends\$}, \vn{entrance_end\$}, and \vn{exit_end\$}. For example:
 \begin{example}
-  if (ele%value(fringe_type$) == soft_edge_only$) then
+  if (nint(ele%value(fringe_type$)) == soft_edge_only$) then
     ...
 \end{example}
 For printing purposes, to convert a switch value to the appropriate string, use
@@ -433,8 +431,9 @@ The \vn{%floor} component gives the global ``floor'' coordinates (\sref{s:global
 at the downstream end of the element. The components of the \vn{%floor} structure are
 \begin{example}
   type floor_position_struct
-    real(rp) x, y, z            ! offset from origin
-    real(rp) theta, phi, psi    ! angular orientation
+    real(rp) r(3)               ! Offset from origin
+    real(rp) w(3,3)             ! Orientation matrix (\Eq{wwww})
+    real(rp) theta, phi, psi    ! Angular orientation
   end type
 \end{example}
 The routine \Hyperref{r:ele.geometry}{ele_geometry} will calculate an element's 

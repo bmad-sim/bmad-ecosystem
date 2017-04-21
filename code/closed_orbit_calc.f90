@@ -1,5 +1,5 @@
 !+                           
-! Subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
+! Subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
 !
 ! Subroutine to calculate the closed orbit for a circular machine.
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
@@ -25,11 +25,6 @@
 ! is not a multiple of the revolution harmonic (EG in a dispersion measurement), 
 ! lat%absolute_time_tracking needs to be set to True and the phi0_fieldmap attributes 
 ! of the RF cavities should be adjusted using autoscale_phase_and_amp.
-!
-! Note: This routine uses the 1-turn matrix lat%param%t1_no_RF or 
-! lat%param%t1_with_RF in the computations. If you have changed conditions 
-! significantly enough you might want to force a remake of the 1-turn matrices
-! by calling clear_lat_1turn_mats.
 !
 ! The closed orbit calculation stops when the following condition is satisfied:
 !   amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking
@@ -67,6 +62,9 @@
 !                       in the case that radiation damping is turned on.
 !   ix_branch      -- Integer, optional: Lattice branch to find the closed orbit of. 
 !                       Default is 0 (main branch).
+!   print_err      -- logical, optional: Print error message if calc does not converge?
+!                       Default is True. Note: Condition messages like no RF voltage with 
+!                       i_dim = 6 will always be printed. 
 !
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
 !     %rel_tol_tracking -- Relative error. See above. Default = 1d-8
@@ -78,7 +76,7 @@
 !   err_flag       -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
+subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
 
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
@@ -106,18 +104,17 @@ type (matrix_save), allocatable :: m(:)
 
 real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
-real(rp) z0, dz, z_here, this_amp, dz_norm, max_del, this_del, max_eigen
-real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3)
+real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original
+real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
 real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:)
-
-complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
 integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
-logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking
+logical, optional, intent(in) :: print_err
+logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit
 logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
@@ -127,6 +124,7 @@ character(20) :: r_name = 'closed_orbit_calc'
 ! Random fluctuations must be turned off to find the closed orbit.
 
 allocate_m_done = .false.
+printit = logic_option(.true., print_err)
 
 dir = integer_option(+1, direction)
 if (dir /= 1 .and. dir /= -1) then
@@ -238,6 +236,9 @@ case (6)
     rf_freq = min(rf_freq, abs(ele%value(rf_frequency$)))
   enddo
 
+  z_original = orb_start%vec(5) 
+  rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
+
 ! Error
 
 case default
@@ -275,10 +276,14 @@ do i_loop = 1, i_max
 
   call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
 
+  if (status == 1) then ! too large step in z
+    a_lambda = a_lambda * dz_step  ! Scale next step 
+  endif
+
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    call out_io (s_error$, r_name, 'Singular matrix Encountered!', 'Using branch: ' // branch_name(branch))
+    if (printit) call out_io (s_error$, r_name, 'Singular matrix Encountered!', 'Using branch: ' // branch_name(branch))
     call end_cleanup
     return
   endif
@@ -286,7 +291,7 @@ do i_loop = 1, i_max
   if (i_loop == 1 .and. .not. stable_orbit_found) then
     a(1:4) = 0  ! Desperation move.
   elseif (i_loop == 2 .and. .not. stable_orbit_found) then
-    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
+    if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                    'USING BRANCH: ' // branch_name(branch))
     call end_cleanup
     return
@@ -294,9 +299,13 @@ do i_loop = 1, i_max
     amp_co = abs(orb_start%vec)
     dorb = orb_end%vec - orb_start%vec
 
-    if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
-      dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
-      dorb(5) = -orb_end%beta * c_light * dt
+    if (n_dim == 6) then
+      a(5) = modulo2 (a(5), rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
+
+      if (branch%lat%absolute_time_tracking) then
+        dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
+        dorb(5) = -orb_end%beta * c_light * dt
+      endif
     endif
 
     amp_del = abs(dorb)
@@ -335,6 +344,7 @@ do i_loop = 1, i_max
 
       old_start = co_saved(0)%vec
 
+    ! Else try a step by inverting the 1-turn matrix.
     else
       call make_t11_inv (err)
       if (err) then
@@ -351,7 +361,7 @@ do i_loop = 1, i_max
         del_co(5) = dorb(5) / i1_int      
 
       elseif (n_dim == 6) then
-        dz_norm = abs(del_co(5)) / (orb_start%beta * c_light / (10 * rf_freq))
+        dz_norm = abs(del_co(5)) / (rf_wavelen / 10)
         if (dz_norm > 1) then
           del_co = del_co / dz_norm
         endif
@@ -368,22 +378,22 @@ do i_loop = 1, i_max
   ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point.
 
   if (n_dim == 6 .and. t1_needs_checking .and. stable_orbit_found) then
-    call mat_eigen (t1, eigen_val, eigen_vec, error)
-    if (maxval(abs(eigen_val)) - 1 > 1d-5) then    ! Is unstable
-      max_del = 1d10  ! Something large
+    min_max_eigen = eigen_val_z(t1)
+    if (min_max_eigen - 1 > 1d-5) then    ! Is unstable
+      j_max = 0
       z0 = a(5)
-      dz = orb_start%beta * c_light / (8 * rf_freq)
+      dz = rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
-        call track_this_lat(z_here, this_del, max_eigen)
-        if (this_del > max_del) cycle
+        call max_eigen_calc(z_here, max_eigen)
+        if (max_eigen > min_max_eigen) cycle
         j_max = j
-        max_del = this_del
+        min_max_eigen = max_eigen
       enddo
 
       ! Reset
       a(5) = z0 + j_max * dz
-      call track_this_lat(a(5), this_del, max_eigen)
+      call max_eigen_calc(a(5), max_eigen)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -398,12 +408,19 @@ do i_loop = 1, i_max
   old_chisq = chisq
 
   if (i_loop == i_max) then
-    call out_io (s_error$, r_name, &
+    if (maxval(amp_del(1:n_dim)) < 1d-4) then
+      if (printit) call out_io (s_error$, r_name, &
               'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
               'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
               'bmad_com%abs_tol_tracking (\es10.2\)', &
               'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
+    else
+      if (printit) call out_io (s_error$, r_name, &
+              'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+              'Using branch: ' // branch_name(branch), &
+              r_array = [maxval(amp_del(1:n_dim))])
+    endif
     call end_cleanup
     return
   endif
@@ -448,9 +465,9 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine track_this_lat(z_set, del, max_eigen)
+subroutine max_eigen_calc(z_set, max_eigen)
 
-real(rp) z_set, dt, del, dorb(6), max_eigen
+real(rp) z_set, max_eigen
 logical err
 
 !
@@ -465,19 +482,28 @@ if (track_state /= moving_forward$) then
   return
 endif
 
-dorb = orb_end%vec - orb_start%vec
-if (branch%lat%absolute_time_tracking) then
-  dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
-  dorb(5) = -orb_end%beta * c_light * dt
-endif
-del = maxval(abs(dorb))
-
 call this_t1_calc (branch, dir, .true., t1, err); if (err) return
+max_eigen = eigen_val_z(t1)
+
+end subroutine max_eigen_calc
+
+!------------------------------------------------------------------------------
+! contains
+
+function eigen_val_z(t1) result (z_eigen)
+
+real(rp) t1(6,6), z_eigen
+complex(rp) eigen_val(6), eigen_vec(6,6)
+integer ix
+logical error
+
+!
+
 call mat_eigen (t1, eigen_val, eigen_vec, error)
+ix = maxloc(abs(eigen_vec(5,:)) + abs(eigen_vec(6,:)), 1)
+z_eigen = abs(eigen_val(ix))
 
-max_eigen = maxval(abs(eigen_val))
-
-end subroutine track_this_lat
+end function eigen_val_z
 
 !------------------------------------------------------------------------------
 ! contains
@@ -487,7 +513,7 @@ subroutine co_func (a_try, y_fit, dy_da, status)
 real(rp), intent(in) :: a_try(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
-real(rp) del_orb(6), dz_norm
+real(rp) del_orb(6)
 
 integer status, i
 
@@ -495,8 +521,8 @@ integer status, i
 ! To avoid this, veto any step where z changes by more than lambda_rf/10.
 
 if (n_dim == 6) then
-  dz_norm = abs(a_try(5)-a(5)) / (orb_start%beta * c_light / (10 * rf_freq))
-  if (dz_norm > 1) then
+  dz_step = abs(a_try(5)-a(5)) / (rf_wavelen / 10)
+  if (dz_step > 1) then
     status = 1  ! Veto step
     return
   endif
@@ -602,7 +628,7 @@ mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
 call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
-  call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+  if (printit) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
   return
 endif
 
