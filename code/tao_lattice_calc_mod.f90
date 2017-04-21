@@ -325,7 +325,7 @@ integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
 character(20) :: r_name = "tao_single_track"
 
-logical calc_ok, err, radiation_fluctuations_on, err0
+logical calc_ok, err, radiation_fluctuations_on
 
 !
 
@@ -355,17 +355,16 @@ if (u%calc%track) then
       i_dim = 4
     endif
 
-    call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
-    err0 = err
+    call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err, print_err = .false.)
 
     if (err) then
       ! In desperation try a different starting point
       call init_coord (orbit(0), lat%beam_start, branch%ele(0), downstream_end$, orbit(0)%species)
-      call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+      call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err, print_err = .false.)
     endif
 
     if (err) then
-      ! In desperation try a different starting point
+      ! In utmost desperation try a 3rd starting point
       if (i_dim == 4) then
         orbit(0)%vec(1:5) = 0
       else
@@ -381,9 +380,6 @@ if (u%calc%track) then
       enddo
     else
       tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
-      if (err0) then
-        call out_io (s_info$, r_name, 'Closed orbit finally found!')
-      endif
     endif
 
   else
