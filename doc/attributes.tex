@@ -2272,22 +2272,21 @@ The lattice file syntax for the \vn{cylindrical_map} type is:
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
 
-The basic equations used for the \vn{cylindrical_map} decomposition of the fields are
-given in Section~\sref{s:cylind.map.phys}.  \vn{e_re} and \vn{e_im} give the real an
-imaginary part of $e$ and \vn{b_re} and \vn{b_im} give the real and imaginary part of
-$b$. All of these vectors must be present and have the same length. The exception is with
-an $m = 0$ mode either the $e$ or $b$ arrays can be omitted and will default to zero. The
-number of terms $N$ for the $e$ or $b$ vectors must be a power of $2$ and all modes must
-have the same number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
-running from 0 to $N-1$, is associated with a wavelength $k_n$
+The basic equations used for the \vn{cylindrical_map} decomposition of the fields are given in
+Section~\sref{s:cylind.map.phys}.  \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$
+and \vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All of these vectors must be
+present and have the same length. The exception is with an $m = 0$ mode either the $e$ or $b$ arrays
+can be omitted and will default to zero. The number of terms $N$ for the $e$ or $b$ vectors must be
+a power of $2$ and all modes must have the same number of terms. The $n$\Th element in the $e$ or
+$b$ arrays, with $n$ running from 0 to $N-1$, is associated with a wavelength $k_n$
 \begin{equation}
   k_n = \begin{cases}
-    \frac{2 \, \pi \, n}{N \, dz} & n < \frac{N}{2} \\
-    \frac{2 \, \pi \, (n-N)}{N \, dz} & \text{otherwise}
+    \frac{2 \, \pi \, n}{N \, dz} & 0 \le n < \frac{N}{2} \\
+    \frac{2 \, \pi \, (n-N)}{N \, dz} & \frac{N}{2} \le n \le N - 1
   \end{cases}
 \end{equation}
-This convention follows the convention used by Numerical
-Recipes\cite{b:nr}.  
+This convention produces less high frequency components then the convention of using $k_n = 2 \, \pi
+\, n / N dz$.
 
 The longitudinal length of the field is
 \begin{equation}
