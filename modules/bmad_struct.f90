@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 192
+integer, parameter :: bmad_inc_version$ = 193
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1591,6 +1591,7 @@ type extra_parsing_info_struct
   logical :: electric_dipole_moment_set             = .false.
   logical :: ptc_cut_factor_set                     = .false.
   logical :: taylor_order_set                       = .false.
+  logical :: runge_kutta_order_set                  = .false.
   logical :: default_integ_order_set                = .false.
   logical :: ptc_max_fringe_order_set               = .false.
   logical :: use_hard_edge_drifts_set               = .false.
@@ -1647,6 +1648,7 @@ type bmad_common_struct
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved
                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 
+  integer :: runge_kutta_order = 4                    ! Runge Kutta order.
   integer :: default_integ_order = 2                  ! PTC integration order. 
   integer :: ptc_max_fringe_order = 2                 ! PTC max fringe order (2  = > Quadrupole !). 
                                                       !   Must call set_ptc after changing.

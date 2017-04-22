@@ -452,6 +452,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
     if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
     if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))              bp_com%extra%runge_kutta_order_set               = .true.
     if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
     if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
 
@@ -1443,6 +1444,15 @@ case ('TAYLOR_ORDER')
   endif
   ptc_com%taylor_order_saved = ix
   lat%input_taylor_order = ix
+
+case ('RUNGE_KUTTA_ORDER')
+  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag)
+  if (ix /= 2 .and. ix /= 4) then
+    call parser_error ('RUNGE_KUTTA_ORDER NOT EQUAL TO 2 OR 4')
+    return
+  endif
+  bmad_com%runge_kutta_order = ix
+  bp_com%extra%runge_kutta_order_set = .true.
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then

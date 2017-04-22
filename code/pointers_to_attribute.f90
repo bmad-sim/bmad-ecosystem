@@ -125,6 +125,7 @@ case ('BMAD_COM')
   case ('TAYLOR_ORDER');                    ptr_array(1)%i => bmad_com%taylor_order
   case ('DEFAULT_INTEG_ORDER');             ptr_array(1)%i => bmad_com%default_integ_order
   case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => bmad_com%ptc_max_fringe_order
+  case ('RUNGE_KUTTA_ORDER');               ptr_array(1)%i => bmad_com%runge_kutta_order
   case ('MAX_NUM_RUNGE_KUTTA_STEP');        ptr_array(1)%i => bmad_com%max_num_runge_kutta_step
 
   case ('USE_HARD_EDGE_DRIFTS');            ptr_array(1)%l => bmad_com%use_hard_edge_drifts
