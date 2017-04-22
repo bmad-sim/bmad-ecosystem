@@ -216,7 +216,7 @@ real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 real(rp) phi0_autoscale, field_autoscale, ds, beta_ref
 
-complex(rp) exp_kz, exp_m, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
+complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
 integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
@@ -990,7 +990,7 @@ case(fieldmap$)
 
         cl_term => cl_map%ptr%term(n)
         k_zn = twopi * (n - 1) / (size(cl_map%ptr%term) * cl_map%dz)
-        if (2 * n > size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
+        if (2 * n >= size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
 
         cos_ks = cos(k_zn * (s_rel-s0))
         sin_ks = sin(k_zn * (s_rel-s0))
@@ -1008,20 +1008,21 @@ case(fieldmap$)
             B_rho = B_rho + real(cl_term%b_coef * exp_kz * Im_plus)
             B_z   = B_z   + real(cl_term%b_coef * exp_kz * Im_0 * i_imaginary)
           else
+            cm = exp_kz * cos(m * phi - cl_map%theta0_azimuth)
+            sm = exp_kz * sin(m * phi - cl_map%theta0_azimuth)
             Im_plus  = I_bessel(m+1, kap_rho)
             Im_minus = I_bessel(m-1, kap_rho)
             Im_0     = kap_rho * (Im_minus - Im_plus) / (2 * m)
-            exp_m = cmplx(cos(m * phi), sin(m * phi), rp)
 
-            q = exp_kz * exp_m * (Im_minus + Im_plus) / 2
+            q = cm * (Im_minus + Im_plus) / 2
             E_rho = E_rho + real(cl_term%e_coef * q)
             B_rho = B_rho + real(cl_term%b_coef * q)
 
-            q = i_imaginary * exp_kz * exp_m * (Im_minus - Im_plus) / 2
+            q = i_imaginary * sm * (Im_minus - Im_plus) / 2
             E_phi = E_phi + real(cl_term%e_coef * q)
             B_phi = B_phi + real(cl_term%b_coef * q)
 
-            q = i_imaginary * exp_kz * exp_m * Im_0
+            q = i_imaginary * cm * Im_0
             E_z = E_z + real(cl_term%e_coef * q)
             B_z = B_z + real(cl_term%b_coef * q)
           endif
