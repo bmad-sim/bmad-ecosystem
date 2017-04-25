@@ -1,14 +1,11 @@
 !+
 ! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, track_spin, mat6, make_matrix)
 ! 
-! Routine to track through a patch element.
+! Bmad_standard routine to track through a patch element.
 !
 ! The steps for tracking are:
 !   1) Transform from entrance to exit coordinates.
 !   2) Drift particle from the entrance to the exit coordinants.
-!
-! Moudle needed:
-!   use track1_mod
 !
 ! Input:
 !   ele           -- ele_struct: patch element.

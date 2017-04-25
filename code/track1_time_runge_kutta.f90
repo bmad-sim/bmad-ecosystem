@@ -65,7 +65,7 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 ! If element has zero length, skip tracking
 
 if (ele%value(l$) == 0) then
-  
+  call track1_bmad (start_orb, ele, param, end_orb) ! In case there are kicks, or is a patch, etc.
   !If saving tracks, allocate track array and save one point
   if (present(track)) then
     !Convert to global-s to local-t coordinates

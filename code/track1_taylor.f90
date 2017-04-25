@@ -15,7 +15,7 @@
 !     %enegy        -- Energy in GeV
 !     %particle     -- Particle type [positron$, or electron$]
 !   taylor_in(6)  -- taylor_struct, optional: Alternative map to use instead of ele%taylor. 
-
+!
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
 !-
@@ -107,7 +107,7 @@ end_orb%p0c = ele%value(p0c$)
 
 dtime_ref = ele%value(delta_ref_time$)
 
-if (ele%value(p0c$) == ele%value(p0c_start$)) then
+if (start2_orb%vec(6) == end_orb%vec(6) .and. ele%value(p0c$) == ele%value(p0c_start$)) then
   end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 else
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)

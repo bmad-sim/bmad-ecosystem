@@ -124,6 +124,16 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
 
+    ! Wiggler with bmad_standard tracking should be periodic_type
+
+    if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == bmad_standard$ .and. ele%sub_key == map_type$) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'IS A MAP_TYPE WIGGLER AND HAS TRACKING_METHOD = BMAD_STANDARD.', &
+                      'THIS IS NOT A VALID POSSIBLE OPTION FOR THE TRACKING_METHOD.')
+      err_flag = .true.
+    endif
+
     ! With fringe fields it is problematic to define how to handle an element with a negative length.
     ! Solution: Only allow negative length with drift or pipe.
 
