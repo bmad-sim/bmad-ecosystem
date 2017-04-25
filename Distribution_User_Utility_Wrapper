@@ -69,14 +69,14 @@ case ${DIST_SCRIPT} in
 
     dist_test_debug)
         # Test the debug version of the distribution.
-	MK_SCRIPT="${DIST_UTIL}/mkd test"
-	func_dist_build
+	MK_SCRIPT=${DIST_UTIL}/mkd
+	func_dist_build test
 	;;
 
     dist_test_production)
         # Test the production version of the distribution.
-	MK_SCRIPT="${DIST_UTIL}/mk test"
-	func_dist_build
+	MK_SCRIPT=${DIST_UTIL}/mk
+	func_dist_build test
 	;;
 
     *)
