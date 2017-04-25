@@ -1,16 +1,16 @@
 !+
 ! Subroutine track_a_sad_mult (orbit, ele, param, mat6)
 !
-! Routine to track a particle through a sad_mult element.
+! Bmad_standard tracking of a particle through a sad_mult element.
 !
 ! Input:
 !   ele          -- Ele_struct: Sad_mult element.
 !   param        -- lat_param_struct: Lattice parameters.
-!   orbit        -- Coord_struct: Starting position.
+!   orbit        -- coord_struct: Starting position.
 !   mat6(6,6)    -- real(rp), optional: Transfer matrix up to the sad_mult.
 !
 ! Output:
-!   orbit        -- Coord_struct: End position.
+!   orbit        -- coord_struct: End position.
 !   mat6(6,6)    -- real(rp), optional: Transfer matrix. 
 !-
 

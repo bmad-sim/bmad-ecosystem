@@ -545,6 +545,10 @@ if (integer_option(magnetic$, pole_type) == magnetic$) then
   case (vkicker$)
     tilt_dir = 0
     vk = ele%value(kick$)
+  case (kicker$)
+    tilt_dir = 0
+    hk = -ele%value(hkick$)
+    vk =  ele%value(vkick$)
   case (elseparator$)
     ! Kicks are electric
   case default

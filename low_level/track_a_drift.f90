@@ -1,7 +1,7 @@
 !+
 ! Subroutine track_a_drift (orb, length, mat6, make_matrix, include_ref_motion)
 !
-! Subroutine to track a particle as through a drift.
+! Bmad_standard tracking of particle as through a drift.
 !
 ! Input:
 !   orb                 -- coord_struct: Orbit at start of the drift.

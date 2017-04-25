@@ -1,21 +1,18 @@
 !+
 ! Subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
 !
-! Particle tracking through a bend element. 
-!
-! Modules Needed:
-!   use bmad
+! Bmad_standard tracking through a bend element. 
 !
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- Ele_struct: Bend element.
 !   param       -- lat_param_struct: Lattice parameters.
-!   mat6(6,6)  -- Real(rp), optional: Transfer matrix up to the element.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   orbit      -- Coord_struct: End position.
-!   mat6(6,6)  -- Real(rp), optional: Transfer matrix through the element.
+!   orbit      -- coord_struct: End position.
+!   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
 subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)

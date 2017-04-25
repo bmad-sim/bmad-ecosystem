@@ -315,6 +315,14 @@ function default_tracking_species (param) result (species)
   integer species
 end function
 
+function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) orbit
+  integer :: ix_section
+end function
+
 function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
   import
   implicit none
@@ -1003,6 +1011,36 @@ subroutine track_a_elseparator (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_mask (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix, err_flag
+end subroutine
+
 subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
   import
   implicit none
@@ -1022,7 +1060,47 @@ subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_taylor (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_wiggler (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit

@@ -1,11 +1,11 @@
 !+
-! Subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
+! Subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 !
-! Bmad_standard tracking through a quadrupole element. 
+! Bmad_standard tracking through a thick multipole element (sextupole, kicker, etc). 
 !
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
-!   ele         -- ele_struct: Quadrupole element.
+!   ele         -- ele_struct: Thick multipole element.
 !   param       -- lat_param_struct: Lattice parameters.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
@@ -14,9 +14,9 @@
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
+subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
-use track1_mod, except_dummy => track_a_quadrupole
+use track1_mod, except_dummy => track_a_thick_multipole
 
 implicit none
 
@@ -27,7 +27,7 @@ type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) kmat6(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
-real(rp) k1, rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
+real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_step, orientation, ix_pole_max, ix_elec_max
@@ -69,47 +69,9 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 
 do i = 1, n_step
 
-  if (logic_option(.false., make_matrix)) call mat_make_unit (kmat6)
-
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
-  k1 = charge_dir * ele%value(k1$) / rel_p
 
-  call quad_mat2_calc (-k1, step_len, rel_p, kmat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, step_len, rel_p, kmat6(3:4,3:4), dz_y, ddz_y)
-
-  ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
-
-  if (logic_option(.false., make_matrix)) then
-    if (any(orbit%vec(1:4) /= 0)) then
-      kmat6(5,1) = 2 * orbit%vec(1) * dz_x(1) +     orbit%vec(2) * dz_x(2)
-      kmat6(5,2) =     orbit%vec(1) * dz_x(2) + 2 * orbit%vec(2) * dz_x(3)
-      kmat6(5,3) = 2 * orbit%vec(3) * dz_y(1) +     orbit%vec(4) * dz_y(2)
-      kmat6(5,4) =     orbit%vec(3) * dz_y(2) + 2 * orbit%vec(4) * dz_y(3)
-      kmat6(5,6) = orbit%vec(1)**2 * ddz_x(1) + orbit%vec(1)*orbit%vec(2) * ddz_x(2) + orbit%vec(2)**2 * ddz_x(3) + &
-                   orbit%vec(3)**2 * ddz_y(1) + orbit%vec(3)*orbit%vec(4) * ddz_y(2) + orbit%vec(4)**2 * ddz_y(3)  
-    endif
-
-    if (any(kmat6(5,1:4) /= 0)) then
-      kmat6(1,6) = kmat6(5,2) * kmat6(1,1) - kmat6(5,1) * kmat6(1,2)
-      kmat6(2,6) = kmat6(5,2) * kmat6(2,1) - kmat6(5,1) * kmat6(2,2)
-      kmat6(3,6) = kmat6(5,4) * kmat6(3,3) - kmat6(5,3) * kmat6(3,4)
-
-      kmat6(4,6) = kmat6(5,4) * kmat6(4,3) - kmat6(5,3) * kmat6(4,4)
-    endif
-
-    mat6 = matmul(kmat6, mat6)
-  endif
-
-  !
-
-  orbit%vec(5) = orbit%vec(5) + &
-                  dz_x(1) * orbit%vec(1)**2 + dz_x(2) * orbit%vec(1) * orbit%vec(2) + dz_x(3) * orbit%vec(2)**2 + &
-                  dz_y(1) * orbit%vec(3)**2 + dz_y(2) * orbit%vec(3) * orbit%vec(4) + dz_y(3) * orbit%vec(4)**2 
-
-  orbit%vec(1:2) = matmul(kmat6(1:2,1:2), orbit%vec(1:2))
-  orbit%vec(3:4) = matmul(kmat6(3:4,3:4), orbit%vec(3:4))
-
-  orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
+  call track_a_drift (orbit, step_len, mat6, make_matrix)
 
   if (i == n_step) then
     if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
