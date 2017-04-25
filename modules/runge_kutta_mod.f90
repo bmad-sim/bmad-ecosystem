@@ -81,8 +81,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1, s2
-real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save
-real(rp) :: s_edge_track, position(6)
+real(rp) :: ds, ds_did, ds_next, s, s_last, ds_save, s_edge_track
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
 integer :: n_step, s_dir, nr_max
@@ -120,11 +119,8 @@ if (ele%key == patch$) s_edge_track = s2
 ! Save initial point
 
 if (present(track)) then
-  s_last = s - 2.0_rp * track%ds_save
-  if ((abs(s-s_last) > track%ds_save)) then
-    call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
-    s_last = s
-  endif
+  call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
+  s_last = s
 endif
 
 ! now track
@@ -141,7 +137,16 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   do
     if (.not. associated(fringe_info%hard_ele)) exit
     if ((s-s_edge_track)*s_dir < -ds_tiny) exit
+
+    old_orbit = orbit
     call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin)
+    ! If there has been a kick then record
+    if (present(track) .and. any(old_orbit%vec /= orbit%vec)) then
+      if (s /= s_last) call save_a_step (track, ele, param, local_ref_frame, old_orbit, s, .true.)
+      call save_a_step (track, ele, param, local_ref_frame, orbit, s, .true.)
+      s_last = s
+    endif
+
     call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orbit)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
