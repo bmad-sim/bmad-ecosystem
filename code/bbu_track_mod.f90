@@ -33,10 +33,13 @@ end type
 
 type bbu_current_variation_struct
   logical :: variation_on = .false.
-  real(rp) :: t_ramp_start = 0
-  real(rp) :: dt_ramp = 0
-  real(rp) :: dt_plateau = 0
-  real(rp) :: d_charge = 0
+  !!logical :: variation_on = .true.
+  real(rp) :: t_ramp_start = 0 !! in unit of tb
+  real(rp) :: dt_ramp = 0        !! in unit of tb
+  real(rp) :: dt_plateau = 1     !! in unit of tb
+  real(rp) :: ramps_period = 12  !! in unit of tb
+  real(rp) :: charge_top = 1.0
+  real(rp) :: charge_bottom = 1.0
 end type
 
 type bbu_param_struct
@@ -48,7 +51,6 @@ type bbu_param_struct
   logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
   logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
   logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
-  !logical :: use_taylor_for_hybrids = .true.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
   logical :: stable_orbit_anal = .false.         ! Write stable_orbit.out and hom_voltage.out?
   real(rp) :: limit_factor = 2                   ! Init_hom_amp * limit_factor = simulation unstable limit
   real(rp) :: simulation_turns_max = 20          ! Sets the duration of the simulation.
@@ -213,6 +215,10 @@ real(rp) max_x,rms_x,max_y,rms_y
 
 integer i, n, n_period, n_count, n_period_old, ix_ele,irep
 integer, save :: m = 0
+integer n_settling_period
+integer final_count 
+real(rp) hom_voltage_normalized_final_sum, hom_voltage_normalized_final_avg
+
 
 logical lost
 
@@ -257,9 +263,11 @@ bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele
 n_period_old = 1
 hom_voltage_sum = 0
 n_count = 0
+final_count = 0
+hom_voltage_normalized_final_sum = 0 
+hom_voltage_normalized_final_avg = 0
 
-print *, 'bbu_track_all main loop begins !!!'
-print *, 'Test Current is: ', bbu_param%current
+print *, 'bbu_track_all loop begins, TEST CURRENT: ', bbu_param%current
 
 do
   ! Track the beam until beam loss or gain too small or large 
@@ -280,31 +288,51 @@ do
   r_period = bbu_beam%time_now / bbu_beam%one_turn_time  !! Ticking up "continuously" (dt based on bbu_track_a_stage) 
   n_period = int(r_period) + 1                           !! Ticking up at integer steps
 
+  n_settling_period = 10
+
   !!! This huge IF statement is activated only at the beginning of a new period, when n_period ticks up
   ! n_period_old is updated to n_period at the end of the statement, so the 
   ! IF statement is not entered until n_period ticks up by 1 
   if (n_period /= n_period_old) then
     !print *, n_period
+    
     ! computing orb for this period ?
-    do i = 1, size(bbu_beam%stage)
-      if (bbu_beam%stage(i)%n_orb == 0) cycle
-      bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
-      orb  = bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - bbu_beam%stage(i)%ave_orb**2
-      where (orb < 0) orb = 0
-      bbu_beam%stage(i)%rms_orb = sqrt(orb)
-    enddo
+    !! Commeted out Mar 31 2017
+    !do i = 1, size(bbu_beam%stage)
+    !  if (bbu_beam%stage(i)%n_orb == 0) cycle
+    !  bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
+    !  orb  = bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - bbu_beam%stage(i)%ave_orb**2
+    !  where (orb < 0) orb = 0
+    !  bbu_beam%stage(i)%rms_orb = sqrt(orb)
+    !enddo
     !print *, "sqrt:",size(orb),sqrt(orb)
 
-    if (n_period_old == 3) then
+    if (n_period_old == n_settling_period) then
       ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
       ! have passed through the lattice.
       hom_voltage0 = hom_voltage_sum / n_count
       r_period0 = r_period
     endif
 
-    if (n_period_old > 3) then
+    if (n_period_old > n_settling_period) then
       hom_voltage_normalized = (hom_voltage_sum / n_count) / hom_voltage0
-      growth_rate = log(hom_voltage_normalized) / (r_period - r_period0)
+      !!! Showing detailed HOM voltage for all periods after settling
+      !! For debug
+      !print *, '-------------------------------------------'
+      !print *, 'period #: ', n_period_old
+      !print *, 'HOM voltage0: ', hom_voltage0
+      !print *, 'HOM voltage sum: ', hom_voltage_sum
+      !print *, 'Normalized HOM voltage', hom_voltage_normalized
+      
+      if (bbu_param%simulation_turns_max - n_period_old < 5) then
+        final_count = final_count + 1
+        hom_voltage_normalized_final_sum = hom_voltage_normalized_final_sum + hom_voltage_normalized  
+        hom_voltage_normalized_final_avg = hom_voltage_normalized_final_sum / final_count 
+        print *, ' Avg over the final ', final_count,' periods: ', hom_voltage_normalized_final_avg 
+      endif
+
+      !!growth_rate = log(hom_voltage_normalized) / (r_period - r_period0)
+      growth_rate = log(hom_voltage_normalized) 
     else
       hom_voltage_normalized = -1   ! Dummy value for output
     endif
@@ -316,7 +344,7 @@ do
 !         '   over ', n_count, ' bunch passages', &
 !         ' HOM normalized voltage (gain factor): ', hom_voltage_normalized
 
-    if (n_period_old > 3) then
+    if (n_period_old > n_settling_period) then
       if (.not. bbu_param%stable_orbit_anal) then  ! default stable_orbit_anal is false
         if (hom_voltage_normalized < 1/bbu_param%limit_factor) then
           print *, 'Tracking stops b/c hom_voltage_normalized BELOW 1/limit_factor'
@@ -331,14 +359,24 @@ do
       endif
     endif
 
-    if (r_period > bbu_param%simulation_turns_max - 3)  then  !! loop ends when r_period > simulation_turns_max = 1000
-      print *, 'r_period: ', r_period
-      print *, 'Stage #:', bbu_beam%ix_stage_voltage_max, 'HOM #: ', bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  
-    endif
+    !if (r_period > bbu_param%simulation_turns_max - n_settling_period) then  
+      !! loop ends when r_period > simulation_turns_max
+      !print *, 'r_period: ', r_period
+      !print *, 'Stage #:', bbu_beam%ix_stage_voltage_max, 'HOM #: ', bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  
+    !endif
     
     ! Exit loop over periods of max period reached
     if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'Simulation turns max exceeded -- Ending Tracking  \f10.2\ ', &
+      !! These 2 lines are optional. It allows the final hom_voltage_normalized to be
+      !! taken as the average over the last few periods, instead of just the final period
+      !! for which the value can be slightly >1.0 (numerical noise), 
+      !! but the test current is actually physically stable. 
+      !! In short, this prevents the program to be fooled by numerical noise. 
+      hom_voltage_normalized = hom_voltage_normalized_final_avg 
+      growth_rate = log(hom_voltage_normalized) 
+      !! This line exits the loop, and the hom_voltage_normalized (or its log) will be used to
+      !! determine the stability of the test current in an outside (python) program.
+      call out_io (s_warn$, r_name, 'Simulation turns max exceeded -- Ending Tracking  \f10.6\ ', &
                                                    r_array = (/ hom_voltage_normalized /) )
       exit
     endif
@@ -360,7 +398,7 @@ do
   ! Specifically, update bbu_beam%voltage_max after every track_a_stage
   ! and sum them over for each n_period
   ! The sum is reset when n_period ticks up by 1
-  call bbu_hom_voltage_calc (lat, bbu_beam)
+  call bbu_hom_voltage_calc (lat, bbu_beam, n_period)
   hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
   n_count = n_count + 1 ! Number of track_a_stage in one period 
   
@@ -422,10 +460,18 @@ if (ie > 0 .and. ix_ele_end > ie) ix_ele_end = ie
 ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
+!! Print the bunch at the first stage to observe bunch_pattern ( for debug )
+!if (i_stage_min == 1) then
+!  print *, '------------------------------------------------- \n'
+!  print *,'time_now(*1.3GHz): ',bbu_beam%time_now*(1.3*10**9)
+!endif
+
 ! Track the bunch
 do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch(bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
+
+
   if (.not. all(bbu_beam%bunch(ib)%particle%state == alive$)) then
     print *, 'PARTICLE(S) LOST WHILE TRACKING ELEMENT: ', trim(lat%ele(j)%name), '  (', j, ')'
     lost = .true.
@@ -433,20 +479,23 @@ do j = ix_ele_start+1, ix_ele_end
   endif
 
   ! Collect orbit stats at element with wake
-  if (j == this_stage%ix_ele_lr_wake) then
-    do ip = 1, size(bbu_beam%bunch(ib)%particle)
-      this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%vec
-      this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%vec**2
-      this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
-      this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
-      this_stage%n_orb   = this_stage%n_orb + 1
-    enddo
-  endif
+  ! Comment out Mar 31 2017
+  !if (j == this_stage%ix_ele_lr_wake) then
+  !  do ip = 1, size(bbu_beam%bunch(ib)%particle)
+  !    this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%vec
+  !    this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%vec**2
+  !    this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
+  !    this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
+  !    this_stage%n_orb   = this_stage%n_orb + 1
+  !  enddo
+  !endif
 
 enddo
 
 ! Write info to file if needed
-if (bbu_param%bunch_by_bunch_info_file /= '') call write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
+if (bbu_param%bunch_by_bunch_info_file /= '') then
+  call write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
+endif
 
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
@@ -511,6 +560,7 @@ type (bbu_param_struct) bbu_param
 
 integer i, ixb, ix0, ix_bunch
 real(rp) r(2), t_rel, d_charge
+real(rp) t0, charge_diff, slope
 
 character(20) :: r_name = 'bbu_add_a_bunch'
 
@@ -538,40 +588,45 @@ endif
 
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, ix_bunch, bunch)
 
-!!! Vary the bunch current if desired
-!!! Since variation_on is false by default, this IF statement is commented out ( May 9 2016 )
-!if (bbu_param%current_vary%variation_on) then
-!  t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
-!  d_charge = 0
-!  if (t_rel > 0) then
-!    if (t_rel < bbu_param%current_vary%dt_ramp) then
-!      d_charge = bbu_param%current_vary%d_charge * t_rel / bbu_param%current_vary%dt_ramp
-!      t_rel = -1
-!    else
-!      t_rel = t_rel - bbu_param%current_vary%dt_ramp
-!    endif 
-!  endif
-!
-!  if (t_rel > 0) then
-!    if (t_rel < bbu_param%current_vary%dt_plateau) then
-!      d_charge = bbu_param%current_vary%d_charge 
-!      t_rel = -1
-!    else
-!      t_rel = t_rel - bbu_param%current_vary%dt_plateau
-!    endif 
-!  endif
-!
-!  if (t_rel > 0) then
-!    if (t_rel < bbu_param%current_vary%dt_ramp) then
-!      d_charge = bbu_param%current_vary%d_charge * (1 - t_rel / bbu_param%current_vary%dt_ramp)
-!    endif 
-!  endif
-!
-!  if (d_charge /= 0) then
-!    bunch%charge_tot = bunch%charge_tot * d_charge
-!    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
-!  endif
-!endif
+!! Bunch pattern is achieved by multiplying bunch%charge_tot with d_charge(time) 
+!! The "correct" current is not computed here 
+if (bbu_param%current_vary%variation_on) then
+
+  !! scale the bunch time in t_b, then zero it to where ramp begins
+  t0 = bunch%t_center/beam_init%dt_bunch - bbu_param%current_vary%t_ramp_start
+  if (t0<0) then 
+    d_charge = bbu_param%current_vary%charge_bottom
+    !!d_charge = 0
+  else
+    charge_diff = bbu_param%current_vary%charge_top - bbu_param%current_vary%charge_bottom
+    slope = charge_diff/bbu_param%current_vary%dt_ramp
+    t_rel = mod(t0, bbu_param%current_vary%ramps_period)  !! in unit of tb
+
+    if (t_rel < bbu_param%current_vary%dt_ramp) then  
+      d_charge = bbu_param%current_vary%charge_bottom + slope*t_rel
+      !!print *, t_rel, 'going UP'
+  
+    elseif (t_rel < bbu_param%current_vary%dt_ramp  +  bbu_param%current_vary%dt_plateau) then
+      d_charge = bbu_param%current_vary%charge_top 
+      !!print *, t_rel, 'TOP'
+
+    elseif (t_rel < bbu_param%current_vary%dt_ramp*2 + bbu_param%current_vary%dt_plateau) then
+      d_charge = bbu_param%current_vary%charge_bottom + &
+      (bbu_param%current_vary%dt_ramp*2 + bbu_param%current_vary%dt_plateau - t_rel) * slope 
+      !!print *, t_rel, 'going DOWN'
+
+    else
+      d_charge = bbu_param%current_vary%charge_bottom 
+      !!print *, t_rel, 'BOTTOM'
+    endif
+  endif
+  
+  !! print this for bunch_pattern debugging
+  !!print *, 'D_charge: ', d_charge
+
+  bunch%charge_tot = bunch%charge_tot * d_charge
+  bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
+endif
 
 bbu_beam%ix_bunch_end = ixb
 
@@ -616,7 +671,7 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 ! Calculates voltage in mode with maximal amplitude
 ! Specifically, update bbu_beam%ix_stage_voltage_max and bbu_beam%hom_voltage_max 
-subroutine bbu_hom_voltage_calc (lat, bbu_beam)
+subroutine bbu_hom_voltage_calc (lat, bbu_beam, n_period)
 
 implicit none
 
@@ -626,7 +681,12 @@ type (wake_lr_mode_struct), pointer :: lr
 
 real(rp) hom_voltage_max, hom_voltage2
 
+real(rp) hom_voltage_test
+type (wake_lr_mode_struct), pointer :: lr_test
+
 integer i, j, i1, ixm, ix
+integer o, ix_test, n_period
+character(len=20) :: filename
 
 ! Only need to update the last stage tracked
 hom_voltage_max = -1
@@ -653,7 +713,6 @@ bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max
 !  bbu_beam%ix_stage_voltage_max = i1
 !  bbu_beam%hom_voltage_max = hom_voltage_max
 
-
 !! If not, get the maximum 
 !! This only matters when the stage tracked IS the stage holding the old maximum
 !elseif (i1 == bbu_beam%ix_stage_voltage_max) then
@@ -665,6 +724,20 @@ bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max
 ixm = maxloc(bbu_beam%stage%hom_voltage_max, 1)
 bbu_beam%ix_stage_voltage_max = ixm
 bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
+  
+
+!! This section is for Voltage_evolution analysis
+!! This will slow down the program a lot.
+!! Make sure the only the 1st cavity is assigned with HOMs
+ix_test = bbu_beam%stage(1)%ix_ele_lr_wake   ! Find the wake element (cavity) of that corresponding stage
+lr_test => lat%ele(ix_test)%wake%lr_mode(1)
+hom_voltage_test = sqrt( max(lr_test%b_sin**2 + lr_test%b_cos**2, lr_test%a_sin**2 + lr_test%a_cos**2)) 
+!o = lunget()
+!write (filename,"('Volt',I3.3,'.dat')") n_period  
+!! Save voltage data every period
+!open(o, file = filename, Access='append', status = 'unknown')
+!write(o,'(es14.4E3,  es18.8E3)')  bbu_beam%time_now, hom_voltage_test
+!close(o)
 
 !print *,  bbu_beam%ix_stage_voltage_max, bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  
 end subroutine bbu_hom_voltage_calc
