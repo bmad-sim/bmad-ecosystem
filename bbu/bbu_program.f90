@@ -206,9 +206,9 @@ endif
 !! Record cavity names in hom_info.txt
 !! hom_info.txt can be useful if the user intends to assign HOM files randomly
 !! to the cavities
-!if (bbu_param%write_hom_info) then
-!  call rf_cav_names (lat)
-!endif
+if (bbu_param%write_hom_info) then
+  call rf_cav_names (lat)
+endif
 
 !print *, 'bbu_setup running...'
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)

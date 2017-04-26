@@ -8,10 +8,14 @@ SET UP
 1) Obtain the BBU package from SVN.                         
    "/home/USERNAME/nfs/linux_lib/bsim/bbu" should be created.
    (To compile, "mk" and "mkd" under /bsim )
+
 2) Update your python path. Add this line to your .bashrc file (with YOUR username):
-   "export PYTHONPATH=${PYTHONPATH}:/home/USERNAME/nfs/linux_lib/bsim/bbu/python"
+   For CLASSE user: "export PYTHONPATH=${PYTHONPATH}:/home/USERNAME/nfs/linux_lib/bsim/bbu/python"
+   
 3) In test_run.py, properly set the BBU AND Python parameters.
    The user is expected to understand how most parameters do. 
+   If you are NOT a CLASSE user, 
+   MAKE SURE THE CORRECT LATTICE FILE LOCATION is specified in test_run.py
 -------------------------------------
 
 
@@ -23,8 +27,9 @@ RUN BBU
        -------------------------------------------------------
        Command:  python3 ~/nfs/linux_lib/bsim/bbu/test_run.py 
        -------------------------------------------------------
-       Obtain (Ith v.s. tr/tb) for a lattice with one cavity and varying arclength
+       Obtain (Ith v.s. tr/tb) for a lattice with one (thon-lens) cavity and varying arclength
        Can produce the plot for PRSTAB 7 (2004) Fig. 3. (with one dipole HOM assigned, and one-time recirculation)
+       This is the simplest mode to test if the BBU program works.
        Output file: thresh_v_trotb.txt
 2) THRESHOLD (CURRENT) mode:      
        -------------------------------------------------------------------------
@@ -33,7 +38,7 @@ RUN BBU
        For a FIXED lattice with many cavities assigned with (random) HOMs,
        compute the threshold current for N times.
        It is recommended to set N = 1 for parallel computation. 
-       ( fn is the file number, can set to the job number ($JOB_ID) during grid submission )
+       ( fn is the file number, and set to the job number ($JOB_ID) during grid submission )
        Output file:  bbu_threshold_fn.txt  and   rand_assign_homs_fn.txt 
        rand_assign_homs_fn.txt will NOT be produced if random_HOM is set false
 
@@ -47,13 +52,21 @@ RUN BBU
        Output file: thresh_v_phase_PHASE.txt  (produced at where it's called)
 
 
+4) PHASE_SCAN_XY mode:
+       -------------------------------------------------------
+       Command:  python3 ~/nfs/linux_lib/bsim/bbu/test_run.py  PHASE_X  PHASE_Y
+       -------------------------------------------------------
+       Obtain (Ith v.s. tr/tb) for a lattice with one cavity and varying PHASE ADVANCE in both X and Y
+       Phase advances are changed via a Taylor element in the lattice, named talylorW.
+       The correct Twiss parameters must be extracted from the lattice and set in phase_scan.py.
+       Output file: thresh_v_phase_PHASE.txt  (produced at where it's called)
+
 
 Important files
 --------------------------------------
 -> BBU Fortran codes (Core Computation):                 
-(Loaction: .../bsim/bbu/*)
-   1)  bbu_program.f90    ---  Main bmad / tracking code
-   2)  bbu_track_mod.f90  ---  BBU tracking and analysis modules
+   1)  .../bsim/bbu/bbu_program.f90    ---  Main bmad / tracking code
+   2)  .../bsim/code/bbu_track_mod.f90  ---  BBU tracking and analysis modules
                                      
 -> Python main user interface  ( Most upper-level program )
 (Location: .../bsim/bbu/*)
@@ -61,7 +74,7 @@ Important files
                   --- Define all BBU and python parameters ( can be modified by user )
                   --- Create and Clean up the temporary directory
    2) dummy_run.py --- A temporary copy of test_run.py for parallel Grid jobs. 
-                   --- Should be updated to test_run.py regularly.  
+                   --- Should be in sync with test_run.py regularly.  
 
 -> Python package (Call BBU Fortran codes; intermediate calculation, file organization):
 (Location: .../bsim/bbu/python/bbu/*)
@@ -79,12 +92,22 @@ Important files
   2) Grid_submitter.sge --- To submit to a grid for (time-consuming) threshold calculation (specifies the number of jobs)
                         --- calls mlc.sge files, which specify what to run
                         --- To clean up the output (and error) messages, run clean_grid_messages.rc
-  2) collect_thresholds.py  --- Summarizes the calculated threshold currents stored in the "bbu_thresholds_*" output files
+  3) collect_thresholds.py  --- Summarizes the calculated threshold currents stored in the "bbu_thresholds_*" output files
                                 Usually used after a complete grid submission
                             --- Output: bbu_combined_thresholds.txt
-=====================================================================================
 
+-> Local HOM assignment file
+   1) assignHOMs.bmad   --- If this file exists in the directory which the user calls test_run.py 
+                            ( not necessarily the directory where test_run.py locates ),
+                            the HOM assignemnt from the original lattice will be over-written.
+                            Unless the user has specified py_par['random_homs'] to be true
+
+
+=============================
+         OLDER NOTES
+=============================
 BBU PROGRAM __ 2015
+
 
 GENERAL USAGE NOTES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
