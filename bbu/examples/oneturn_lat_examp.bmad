@@ -11,15 +11,15 @@ parameter[e_tot] = 100e6  !total energy at start of lattice
 parameter[n_part] = 100
 
 cavity1: lcavity, L = 1e-9, RF_FREQUENCY = 1.3E9, voltage = 1
+!cavity1: lcavity, L = 0, RF_FREQUENCY = 1.3E9, voltage = 1
 
 ! Arc
-!arc.m12 =  10
 arc.m12 =  -10
-arc.time = 3.46154e-9
-!arc: Taylor, {1: arc.m12, 0 1 0 0 0 0}, {1: -5, 0 0 1 0 0 0}
 arc: Taylor, {1: arc.m12, 0 1 0 0 0 0}
+
+!! The arc length will be overwritten in lat2.lat during DR_scan mode
+arc.time = 3.46154e-9
 arc[L] = c_light * arc.time  
-!arc[L] = 100/(1.3e-9) 
 
 linac: LINE[multipass] = (cavity1)
 erl: LINE = (linac, arc, linac)

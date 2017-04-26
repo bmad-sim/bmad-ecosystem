@@ -20,11 +20,11 @@ def setup_drscan ( arc_time, py_par ):
 #######################
 def calc_arcl ( arctime ):
 #######################
-  c = 2.99792458*10**8
-  beta = 0.999987
+  c = 299792458
+  #beta = 0.999987
   # Find the new arc length for given arc time
-  arc_l = arctime*beta*c    # Beta for speed of bunch (varies by lattice, can just use approximation too)
-  #arc_l = arctime * c  # Approximation
+  #arc_l = arctime*beta*c    # Beta for speed of bunch (varies by lattice, can just use approximation too)
+  arc_l = arctime * c  # Approximation
   return arc_l
 
 #######################
@@ -49,14 +49,14 @@ def make_dr_plot ( py_par ):
     yv = np.array(y)
 
   plt.scatter(xv, yv, marker = 'o', color = 'b')
-  plt.title("DR Scan for Q=10^-4, R/Q=100Ohm, f=2E9Hz, m12=10")
+#  plt.title("DR Scan for Q=10^-4, R/Q=100Ohm, f=2E9Hz, m12=10")
   plt.rcParams.update({'font.size': 20})
   plt.xlabel("Arc Time / Bunch Time")
-  plt.ylabel("Log( HOM Voltage )")
+  plt.ylabel("Ith (A)")
   #plt.text(.15, .9, 'PRSTAB 7 (2004) Fig. 3.')
-  fig = plt.figure()
-  ax = fig.add_subplot(111)  
-  ax.annotate('PRSTAB 7 (2004) Fig. 3.',xy=(0,0))
-
+  #fig = plt.figure()
+  #ax = fig.add_subplot(2,1,1)  
+  #ax.annotate('PRSTAB 7 (2004) Fig. 3.',xy=(0,0))
+  plt.yscale('log')
   plt.show()
 
