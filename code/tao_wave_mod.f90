@@ -2,7 +2,6 @@ module tao_wave_mod
 
 use tao_utils
 
-real(rp), private, allocatable, save :: f_com(:,:)
 type (tao_d1_data_struct), private, pointer, save :: d1_dat
 
 contains
@@ -16,8 +15,8 @@ contains
 ! Routine to setup wave plotting.
 !
 ! Input:
-!   curve_name -- Character(*) curve for wave analysis.
-!   place      -- Character(*) place on plot page to put the plot.
+!   curve_name  -- Character(*) curve for wave analysis.
+!   plot_place  -- Character(*) place on plot page to put the wave plot.
 !-
 
 subroutine tao_wave_cmd (curve_name, plot_place, err)
@@ -36,7 +35,7 @@ type (tao_curve_struct), pointer :: wc, wc1
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_universe_struct), pointer :: u
 
-integer i, p1, p2
+integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
 character(20) :: r_name = 'tao_wave_cmd'
@@ -46,7 +45,7 @@ logical err
 
 ! Find the curve
 
-call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, always_allocate = .true.)
+call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
 if (err) return
 
 err = .true.
@@ -56,12 +55,17 @@ if (size(curve_array) == 0) then
   return
 endif
 
-if (size(curve_array) > 1) then
-  call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
-  return
-endif
+ix_curve = 0
+do i = 1, size(curve_array) 
+  if (curve_array(i)%c%data_type /= curve_name) cycle
+  if (ix_curve /= 0) then
+    call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+    return
+  endif
+  ix_curve = i
+enddo
 
-curve => curve_array(1)%c
+curve => curve_array(ix_curve)%c
 plot => curve%g%p
 
 ! Find the plot region
@@ -129,8 +133,7 @@ if (wc1%data_source == 'data' .or. wc1%data_source == 'data') then
   wg1%x%min = 0
   if (wg1%x%max < ubound(d1_dat%d, 1)) wg1%x%max = ubound(d1_dat%d, 1)
 else
-  call out_io (s_error$, r_name, &
-                    'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc1%data_source)
+  call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc1%data_source)
   return
 endif
 
@@ -284,9 +287,10 @@ endif
 dtype = plot%graph(1)%curve(1)%data_type
 s%wave%data_type = dtype
 
-if (dtype(1:5) == 'orbit' .or. dtype(1:4) == 'beta' .or. dtype(1:2) == 'eta') then
+if (dtype(1:5) == 'orbit' .or. dtype(1:4) == 'beta' .or. dtype(1:2) == 'eta' .or. &
+    dtype == 'ping_a.amp_x' .or. dtype == 'ping_b.amp_y') then
   call tao_orbit_beta_wave_anal (plot)
-elseif (dtype(1:5) == 'phase') then
+elseif (dtype(1:5) == 'phase' .or. dtype == 'ping_a.phase_x' .or. dtype == 'ping_b.phase_y') then
   call tao_phase_wave_anal (plot)
 elseif (dtype(1:7) == 'cbar.12') then
   call tao_cbar_wave_anal (plot)
@@ -361,10 +365,10 @@ do i = 1, n_curve_pt
 
   ix_ele = d1_dat%d(ix)%ix_ele
 
-  if (data_type == 'orbit.x' .or. data_type == 'beta.a') then
+  if (data_type == 'orbit.x' .or. data_type == 'beta.a' .or. data_type(1:6) == 'ping_a') then
     phi(i) = lat%ele(ix_ele)%a%phi + dphi
     beta = lat%ele(ix_ele)%a%beta
-  elseif (data_type == 'orbit.y' .or. data_type == 'beta.b') then
+  elseif (data_type == 'orbit.y' .or. data_type == 'beta.b' .or. data_type(1:6) == 'ping_b') then
     phi(i) = lat%ele(ix_ele)%b%phi + dphi
     beta = lat%ele(ix_ele)%b%beta
   endif
@@ -372,15 +376,19 @@ do i = 1, n_curve_pt
   if (data_type(1:5) == 'orbit') then
     sin_phi(i) = sin(phi(i)) * sqrt(beta)
     cos_phi(i) = cos(phi(i)) * sqrt(beta)
-  else
+  elseif (data_type(1:4) == 'beta') then
     sin_phi(i) = sin(2*phi(i)) * beta
     cos_phi(i) = cos(2*phi(i)) * beta
     phi(i) = 2 * phi(i)
+  else
+    sin_phi(i) = sin(2*phi(i)) * sqrt(beta)
+    cos_phi(i) = cos(2*phi(i)) * sqrt(beta)
+    phi(i) = 2 * phi(i)    
   endif
 
 enddo
 
-if (data_type(1:4) == 'beta') tune = 2 * tune
+if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') tune = 2 * tune
 
 ! Fit
 
@@ -432,7 +440,7 @@ do i = m_min, m_max
     if (phi(j) < phi1) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
   enddo
   if (phi1 > tune) phi1 = phi1 - tune
-  if (data_type(1:4) == 'beta') phi1 = phi1 / 2
+  if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') phi1 = phi1 / 2
   s%wave%kick(nc)%phi = phi1
 enddo
 
@@ -450,7 +458,7 @@ else
                             rms_ba(2)**2 * coef_ba(2)**2) / amp_ba**2
   s%wave%rms_phi   = sqrt(rms_ba(2)**2 * coef_ba(1)**2 +  &
                             rms_ba(1)**2 * coef_ba(2)**2) / amp_ba**2
-  if (data_type(1:4) == 'beta') s%wave%rms_phi = s%wave%rms_phi / 2
+  if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') s%wave%rms_phi = s%wave%rms_phi / 2
 
 endif
 
@@ -498,9 +506,9 @@ n_curve_pt = size(curve%x_symb)
 
 allocate (phi(n_curve_pt), sin_2phi(n_curve_pt), cos_2phi(n_curve_pt), one(n_curve_pt))
 
-if (curve%data_type == 'phase.a') then
+if (curve%data_type == 'phase.a' .or. curve%data_type == 'bing_a.phase_x') then
   tune = lat%ele(n_track)%a%phi
-elseif (curve%data_type == 'phase.b') then
+elseif (curve%data_type == 'phase.b' .or. curve%data_type == 'bing_b.phase_y') then
   tune = lat%ele(n_track)%b%phi
 else
   call err_exit
@@ -629,13 +637,14 @@ implicit none
 type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele
 type (tao_curve_struct), pointer :: curve
 
-real(rp) dphi_s, dphi_r, coef_a(4), coef_b(4), coef_ba(4)
+real(rp) coef_a(4), coef_b(4), coef_ba(4)
 real(rp) rms_a(5), rms_b(5), rms_ba(5)
 real(rp), allocatable :: phi_s(:), phi_r(:), sin_s(:), sin_r(:), cos_s(:), cos_r(:)
 real(rp) amp_as, amp_ar, amp_bs, amp_br, amp_ba_s, amp_ba_r, beta, tune_s, tune_r
-real(rp) phi0_s, phi0_r, phi1_s, phi1_r, phi_r_ave
+real(rp) phi0_s, phi0_r, phi1_s, phi1_r, phi_r_ave, sqrt_beta
 
 integer i, j, m, n, ix, n_track, n_curve_pt, ix_ele, m_min, m_max, nc
 
@@ -657,25 +666,37 @@ tune_s = lat%ele(n_track)%a%phi + lat%ele(n_track)%b%phi
 tune_r = lat%ele(n_track)%a%phi - lat%ele(n_track)%b%phi
 
 do i = 1, n_curve_pt
-
   ix = curve%ix_symb(i)
 
-  dphi_s = 0; dphi_r = 0
+  ix_ele = d1_dat%d(ix)%ix_ele
+  ele => lat%ele(ix_ele)
+
+  phi_s(i) = ele%a%phi + ele%b%phi
+  phi_r(i) = ele%a%phi - ele%b%phi
+
   if (i > s%wave%i_wrap_pt) then
-    dphi_s = tune_s
-    dphi_r = tune_r
+    phi_s(i) = ele%a%phi + ele%b%phi + tune_s
+    phi_r(i) = ele%a%phi - ele%b%phi + tune_r
   endif
 
-  ix_ele = d1_dat%d(ix)%ix_ele
-
-  phi_s(i) = lat%ele(ix_ele)%a%phi + lat%ele(ix_ele)%b%phi + dphi_s
-  phi_r(i) = lat%ele(ix_ele)%a%phi - lat%ele(ix_ele)%b%phi + dphi_r
-
-  sin_s(i) = sin(phi_s(i))
-  cos_s(i) = cos(phi_s(i))
-  sin_r(i) = sin(phi_r(i))
-  cos_r(i) = cos(phi_r(i))
-
+  if (curve%data_type(1:4) == 'cbar') then
+    sin_s(i) = sin(phi_s(i))
+    cos_s(i) = cos(phi_s(i))
+    sin_r(i) = sin(phi_r(i))
+    cos_r(i) = cos(phi_r(i))
+  elseif (curve%data_type(1:6) == 'ping_a') then
+    sqrt_beta = sqrt(ele%b%beta)
+    sin_s(i) = sqrt_beta * sin(phi_s(i))
+    cos_s(i) = sqrt_beta * cos(phi_s(i))
+    sin_r(i) = sqrt_beta * sin(phi_r(i))
+    cos_r(i) = sqrt_beta * cos(phi_r(i))
+  elseif (curve%data_type(1:6) == 'ping_b') then
+    sqrt_beta = sqrt(ele%a%beta)
+    sin_s(i) = sqrt_beta * sin(phi_s(i))
+    cos_s(i) = sqrt_beta * cos(phi_s(i))
+    sin_r(i) = sqrt_beta * sin(phi_r(i))
+    cos_r(i) = sqrt_beta * cos(phi_r(i))
+  endif
 enddo
 
 ! Fit
@@ -686,14 +707,14 @@ call tao_wave_fit (curve, s%wave%i_b1, s%wave%n_b, coef_b, rms_b, sin_s, cos_s, 
 
 ! Put the results into the plot
 
-plot%graph(3)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                                  coef_a(1) * sin_s - coef_a(2) * cos_s - &
-                                  coef_a(3) * sin_r - coef_a(4) * cos_r
-plot%graph(4)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                                  coef_b(1) * sin_s - coef_b(2) * cos_s - &
-                                  coef_b(3) * sin_r - coef_b(4) * cos_r
+plot%graph(3)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - coef_a(1) * sin_s - coef_a(2) * cos_s - &
+                                                                coef_a(3) * sin_r - coef_a(4) * cos_r
+
+plot%graph(4)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - coef_b(1) * sin_s - coef_b(2) * cos_s - &
+                                                                coef_b(3) * sin_r - coef_b(4) * cos_r
 
 plot%graph(3)%curve(1)%y_line = plot%graph(3)%curve(1)%y_symb
+
 plot%graph(4)%curve(1)%y_line = plot%graph(4)%curve(1)%y_symb
 
 ! Compute the possible places between the regions where there could be a kick
@@ -712,13 +733,23 @@ amp_ba_r = sqrt(sum(coef_ba(3:4)**2))
 if (coef_ba(1) == 0 .and. coef_ba(2) == 0) then
   phi0_s = 0
 else
-  phi0_s = atan2(coef_ba(1), coef_ba(2))
+  select case (curve%data_type)
+  case ('cbar.11', 'cbar.22', 'ping_a.cos_y', 'ping_b.cos_x')
+    phi0_s = atan2(-coef_ba(2), coef_ba(1))
+  case ('cbar.12', 'ping_a.sin_y', 'ping_b.sin_x')
+    phi0_s = atan2(coef_ba(1), coef_ba(2))
+  end select
 endif
 
 if (coef_ba(3) == 0 .and. coef_ba(4) == 0) then
   phi0_r = 0
 else
-  phi0_r = atan2(coef_ba(3), coef_ba(4))
+  select case (curve%data_type)
+  case ('cbar.11', 'cbar.22', 'ping_a.cos_y', 'ping_b.cos_x')
+    phi0_r = atan2(-coef_ba(4), coef_ba(3))
+  case ('cbar.12', 'ping_a.sin_y', 'ping_b.sin_x')
+    phi0_r = atan2(coef_ba(3), coef_ba(4))
+  end select
 endif
 
 m_min = int((phi_s(s%wave%i_a2) - phi0_s)/pi) + 1
@@ -831,6 +862,7 @@ implicit none
 
 
 type (tao_curve_struct) curve
+real(rp), allocatable, save :: f_com(:,:)
 
 real(rp) f1(:), coef(:), rms(:)
 real(rp), optional :: f2(:), f3(:), f4(:)
@@ -876,16 +908,8 @@ forall (i = 1:n_f) rms(i) = sqrt(cvm(i,i)) * rms(n_f+1)
 
 deallocate (x, f_com, cvm, v, sig, w)
 
-end subroutine
-
 !---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function tao_wave_funcs (x, ma) result (value)
-!
-! Function called by NR routine SVDFIT
-!-
+contains
 
 function tao_wave_funcs (x, ma) result (value)
 
@@ -901,5 +925,6 @@ value = f_com(1:ma, nint(x))
 
 end function tao_wave_funcs
 
+end subroutine tao_wave_fit
 
 end module

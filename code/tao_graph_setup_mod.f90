@@ -1826,7 +1826,7 @@ type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign, vec3(3), r_bunch
+real(rp) comp_sign, vec3(3), r_bunch, amp, phase
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 
@@ -2147,6 +2147,13 @@ do ii = 1, size(curve%x_line)
     call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
     if (associated (a_ptr%r)) value = a_ptr%r
 
+  case ('e_tot')
+    if (orbit%beta == 0) then
+      value = mass_of(branch%param%particle)
+    else
+      value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+    endif
+
   case ('emit.')
     select case (data_type)
     case ('emit.a')
@@ -2222,13 +2229,6 @@ do ii = 1, size(curve%x_line)
       goto 9000  ! Error message & Return
     end select
 
-  case ('e_tot')
-    if (orbit%beta == 0) then
-      value = mass_of(branch%param%particle)
-    else
-      value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
-    endif
-
   case ('momentum')
     value = orbit%p0c * (1 + orbit%vec(6)) 
 
@@ -2277,6 +2277,42 @@ do ii = 1, size(curve%x_line)
       call orbit_amplitude_calc (ele, orbit, amp_nb = value)
     case default
       goto 9000  ! Error message & Return
+    end select
+
+  case ('ping_a.')
+    select case (data_type)
+    case ('ping_a.amp_x')
+      value = ele%gamma_c * sqrt(ele%a%beta)
+    case ('ping_a.phase_x')
+      value = ele%a%phi
+    case ('ping_a.sin_y')
+      call c_to_cbar (ele, cbar)
+      amp = sqrt(ele%b%beta * (cbar(1,2)**2 + cbar(2,2)**2))
+      phase = ele%a%phi + atan2(cbar(1,2), - cbar(2,2))
+      value = amp * sin(phase)
+    case ('ping_a.cos_y')
+      call c_to_cbar (ele, cbar)
+      amp = sqrt(ele%b%beta * (cbar(1,2)**2 + cbar(2,2)**2))
+      phase = ele%a%phi + atan2(cbar(1,2), - cbar(2,2))
+      value = amp * cos(phase)
+    end select
+
+  case ('ping_b.')
+    select case (data_type)
+    case ('ping_b.amp_y')
+      value = ele%gamma_c * sqrt(ele%b%beta)
+    case ('ping_b.phase_y')
+      value = ele%b%phi
+    case ('ping_b.sin_x')
+      call c_to_cbar (ele, cbar)
+      amp = sqrt(ele%a%beta * (cbar(1,2)**2 + cbar(1,1)**2))
+      phase = ele%b%phi + atan2(cbar(1,2), cbar(1,1))
+      value = amp * sin(phase)
+    case ('ping_b.cos_x')
+      call c_to_cbar (ele, cbar)
+      amp = sqrt(ele%a%beta * (cbar(1,2)**2 + cbar(1,1)**2))
+      phase = ele%b%phi + atan2(cbar(1,2), cbar(1,1))
+      value = amp * cos(phase)
     end select
 
   case ('phase.')

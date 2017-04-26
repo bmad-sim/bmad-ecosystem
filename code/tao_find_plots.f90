@@ -93,7 +93,7 @@ endif
 ix = index(name, '.')
 if (ix == 0) then
   plot_name = name
-  graph_name = ' '
+  graph_name = ''
 else
   plot_name = name(1:ix-1)
   graph_name = name(ix+1:)
@@ -220,14 +220,14 @@ if (.not. present(graph) .and. .not. present(curve)) return
 
 ix = index(graph_name, '.')
 if (ix == 0) then
-  curve_name = ' '
+  curve_name = ''
 else
   curve_name = graph_name(ix+1:)
   graph_name = graph_name(1:ix-1)
 endif
 
-if (logic_option(.false., always_allocate) .and. graph_name == ' ') graph_name = '*'
-if (graph_name == ' ') return
+if (logic_option(.false., always_allocate) .and. graph_name == '') graph_name = '*'
+if (graph_name == '') return
 
 ng = 0
 do i = 1, np
@@ -264,8 +264,8 @@ if (present(graph)) graph = g
 
 if (.not. present(curve)) return
 
-if (logic_option(.false., always_allocate) .and. curve_name == ' ') curve_name = '*'
-if (curve_name == ' ') return
+if (logic_option(.false., always_allocate) .and. curve_name == '') curve_name = '*'
+if (curve_name == '') return
 
 nc = 0
 do j = 1, ng

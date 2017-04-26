@@ -904,7 +904,7 @@ endif
 
 !---------------------------------
 
-n_plots = 71
+n_plots = 75
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -2441,6 +2441,154 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%g => grph
   crv%data_type    = 'phase.b'
   crv%legend_text  = '\gf\dB\u'
+  crv%units        = 'deg'
+endif
+
+!---------------
+! ping_a_skew
+
+if (all(s%plot_page%template%name /= 'ping_a_skew')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_a_skew'
+  plt%description          = 'Pinged a-mode out-of-plane oscillations'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged A-mode Skew'
+  grph%y%label       = 'ping_a: sin_y, cos_y'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'sin_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.sin_y'
+  crv%legend_text  = 'ping_a.sin_y'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'cos_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.cos_y'
+  crv%legend_text  = 'ping_a.cos_y'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_b_skew
+
+if (all(s%plot_page%template%name /= 'ping_b_skew')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_b_skew'
+  plt%description          = 'Pinged b-mode out-of-plane oscillations'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Ping B-mode Skew'
+  grph%y%label       = 'ping_a: sin_x, cos_x'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'sin_x'
+  crv%g => grph
+  crv%data_type    = 'ping_a.sin_x'
+  crv%legend_text  = 'ping_a.sin_x'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'cos_x'
+  crv%g => grph
+  crv%data_type    = 'ping_a.cos_x'
+  crv%legend_text  = 'ping_a.cos_x'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_amp
+
+if (all(s%plot_page%template%name /= 'ping_amp')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_amp'
+  plt%description          = 'Pinged beam in-plane oscillation amplitudes'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged Beam Osc Amplitudes'
+  grph%y%label       = 'A\dax\u, A\dby\u'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'amp_x'
+  crv%g => grph
+  crv%data_type    = 'ping_a.amp_x'
+  crv%legend_text  = 'ping_a.amp_x'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'amp_y'
+  crv%g => grph
+  crv%data_type    = 'ping_b.amp_y'
+  crv%legend_text  = 'ping_b.amp_y'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_phase
+
+if (all(s%plot_page%template%name /= 'ping_phase')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_phase'
+  plt%description          = 'Pinged beam in-plane oscillation phase'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged Beam Osc Phase'
+  grph%y%label       = '\gf\dax\u, \gf\dby\u'
+  grph%component     = 'model - design'
+
+  crv => grph%curve(1)
+  crv%name         = 'phase_x'
+  crv%g => grph
+  crv%data_type    = 'ping_a.phase_x'
+  crv%legend_text  = 'ping_a.phase_x'
+  crv%units        = 'deg'
+
+  crv => grph%curve(2)
+  crv%name         = 'phase_y'
+  crv%g => grph
+  crv%data_type    = 'ping_b.phase_y'
+  crv%legend_text  = 'ping_b.phase_y'
   crv%units        = 'deg'
 endif
 
