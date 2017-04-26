@@ -1904,8 +1904,8 @@ case ('ping_a.')
 
   select case (datum%data_type)
   case ('ping_a.amp_x')
-    datum_value = sqrt(ele%a%beta)
-    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%a%beta)
+    datum_value = ele%gamma_c * sqrt(ele%a%beta)
+    if (associated(ele_ref)) datum_value = datum_value - ele%gamma_c * sqrt(ele_ref%a%beta)
     valid_value = .true.
 
   case ('ping_a.phase_x')
@@ -1923,23 +1923,23 @@ case ('ping_a.')
     valid_value = .true.
 
   case ('ping_a.phase_y')
-    datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
     if (associated(ele_ref)) then
       call tao_this_data_calc (ix_ref, datum, branch, orbit)
-      datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
     endif
     valid_value = .true.
 
   case ('ping_a.sin_y')
     call tao_this_data_calc (ix_ele, datum, branch, orbit)
     amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
     datum_value = amp * sin(phase)
 
     if (associated(ele_ref)) then
       call tao_this_data_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
       datum_value = datum_value - amp * sin(phase)
     endif
     valid_value = .true.
@@ -1947,13 +1947,13 @@ case ('ping_a.')
   case ('ping_a.cos_y')
     call tao_this_data_calc (ix_ele, datum, branch, orbit)
     amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
     datum_value = amp * cos(phase)
 
     if (associated(ele_ref)) then
       call tao_this_data_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
       datum_value = datum_value - amp * cos(phase)
     endif
     valid_value = .true.
@@ -1967,8 +1967,8 @@ case ('ping_b.')
 
   select case (datum%data_type)
   case ('ping_b.amp_y')
-    datum_value = sqrt(ele%b%beta)
-    if (associated(ele_ref)) datum_value = datum_value - sqrt(ele_ref%b%beta)
+    datum_value = ele%gamma_c * sqrt(ele%b%beta)
+    if (associated(ele_ref)) datum_value = datum_value - ele%gamma_c * sqrt(ele_ref%b%beta)
     valid_value = .true.
 
   case ('ping_b.phase_y')
