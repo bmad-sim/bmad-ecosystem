@@ -72,6 +72,8 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
 
   if (present(track)) then
     ptc_track => fibre_ele%t1
+    call save_this_step()
+
     do while (.not. associated(ptc_track, fibre_ele%t2))
       call track_probe (ptc_probe, DEFAULT+SPIN0, node1 = ptc_track, node2 = ptc_track%next)
       call save_this_step()
