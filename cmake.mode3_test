@@ -1,0 +1,22 @@
+set (EXENAME mode3_test)
+
+FILE (GLOB SRC_FILES "mode3_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  lapack95
+  lapack
+  blas
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+  fgsl
+  gsl
+  gslcblas
+)
