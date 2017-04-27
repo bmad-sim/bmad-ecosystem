@@ -13,6 +13,7 @@ set (EXE_SPECS
   cmake.girder_test
   cmake.mat6_calc_method_test
   cmake.mode_flip_test
+  cmake.mode3_test
   cmake.multipass_test
   cmake.parse_test
   cmake.particle_species_test
