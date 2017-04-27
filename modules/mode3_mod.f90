@@ -12,6 +12,7 @@ real(rp), parameter :: Qr(6,6) = reshape( [m, m, o, o, o, o, o, o, o, o, o, o, o
                                            o, o, o, o, o, o, o, o, o, o, m, m, o, o, o, o, o, o], [6,6] )
 real(rp), parameter :: Qi(6,6) = reshape( [o, o, o, o, o, o, m, -m, o, o, o, o, o, o, o, o, o, o, &
                                            o, o, m, -m, o, o, o, o, o, o, o, o, o, o, o, o, m, -m], [6,6] )
+complex(rp), parameter :: Q(6,6) = cmplx(Qr,Qi)                                           
 real(rp), parameter :: S(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
                                           o, o, o, -l, o, o, o, o, l, o, o, o, &
                                           o, o, o, o, o, -l, o, o, o, o, l, o], [6,6] )
@@ -53,8 +54,7 @@ logical err_flag
 
 real(rp) mat_tunes(3)
 real(rp) T1(6,6), T2(6,6), T3(6,6)
-real(rp) eval_r(6), eval_i(6)
-real(rp) evec_r(6,6), evec_i(6,6)
+complex(rp) eval(6), evec(6,6)
 integer i
 
 character(*), parameter :: r_name = 't6_to_b123'
@@ -72,7 +72,7 @@ T2(4,3) = 1.0d0
 T3(5,6) = 1.0d0
 T3(6,5) = 1.0d0
 
-call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
+call eigen_decomp_6mat(t6, eval, evec, err_flag, mat_tunes)
 if (err_flag) then
   call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
   B1 = 0.0d0
@@ -81,7 +81,7 @@ if (err_flag) then
   return
 endif
 
-call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+call order_evecs_by_tune(evec, eval, mat_tunes, abz_tunes, err_flag)
 if (err_flag) then
   call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
   B1 = 0.0d0
@@ -90,11 +90,11 @@ if (err_flag) then
   return
 endif
 
-call normalize_evecs(evec_r, evec_i)
+call normalize_evecs(evec)
 
-B1 = matmul(evec_r, matmul(T1, transpose(evec_r))) - matmul(evec_i, matmul(T1, transpose(evec_i))) 
-B2 = matmul(evec_r, matmul(T2, transpose(evec_r))) - matmul(evec_i, matmul(T2, transpose(evec_i))) 
-B3 = matmul(evec_r, matmul(T3, transpose(evec_r))) - matmul(evec_i, matmul(T3, transpose(evec_i))) 
+B1 = matmul(real(evec), matmul(T1, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T1, transpose(cmplx(evec)))) 
+B2 = matmul(real(evec), matmul(T2, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T2, transpose(cmplx(evec)))) 
+B3 = matmul(real(evec), matmul(T3, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T3, transpose(cmplx(evec)))) 
 
 end subroutine t6_to_B123
 
@@ -380,6 +380,9 @@ end subroutine xyz_to_action
 !
 ! Input:
 !  ring     -- lat_struct: lattice
+!      %a%tune -- a-mode tune (horizontal-like)
+!      %b%tune -- b-mode tune (vertical-like)
+!      %z%tune -- c-mode tune (synchrotron-like)
 !  ix       -- integer: element index at which to calculate J
 !  J(1:6)   -- real(rp): Vector containing normal mode invariants and phases
 !
@@ -426,7 +429,7 @@ end subroutine action_to_xyz
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, tunes, err_flag)
+! Subroutine eigen_decomp_6mat(mat, eval, evec, tunes, err_flag)
 !
 ! Compute eigenvalues and eigenvectors of a real 6x6 matrix.
 ! The evals and evecs are in general complex.
@@ -435,15 +438,13 @@ end subroutine action_to_xyz
 !   mat(6,6)     - real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
 !
 ! Output:
-!   eval_r(6)    - real(rp):  real part of eigenvalues.
-!   eval_i(6)    - real(rp):  complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
+!   eval(6)    - complex(rp):  complex eigenvalues.
+!   evec(6,6)  - complex(rp):  complex eigenvectors arranged down columns.
 !   err_flag     - logical, optional: set to true if an error has occured.
 !   tunes(3)     - real(rp):  Mode tunes, in radians.
 !-
 
-subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
+subroutine eigen_decomp_6mat(mat, eval, evec, err_flag, tunes)
 
 use la_precision, only: wp => dp
 use f95_lapack
@@ -452,14 +453,14 @@ real(rp) mat(6,6)
 real(rp) A(6,6)
 real(rp) VR(6,6)
 real(rp) eval_r(6), eval_i(6)
-real(rp) evec_r(6,6), evec_i(6,6)
+complex(rp) eval(6)
+complex(rp) evec(6,6)
 logical err_flag
 real(rp), optional :: tunes(3)
 
 integer i_error
 integer pair1, pair2, pair3, pairIndexes(6)
 integer i
-complex(rp) evec(6,6)
 complex(rp) check_mat(6,6)
 
 character(*), parameter :: r_name = 'eigen_decomp_6mat'
@@ -472,55 +473,47 @@ err_flag = .true.
 
 A = mat  !LA_GEEV destroys the contents of its first argument.
 CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
+eval = cmplx(eval_r,eval_i)
 if ( i_error /= 0 ) THEN
   call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
   if (global_com%exit_on_error) call err_exit
-  eval_r = 0.0d0
-  eval_i = 0.0d0
-  evec_r = 0.0d0
-  evec_i = 0.0d0
+  eval = 0.0d0
+  evec = 0.0d0
   return
 endif
 
-evec_r(:, 1) = VR(:, 1)
-evec_r(:, 2) = VR(:, 1)
-evec_r(:, 3) = VR(:, 3)
-evec_r(:, 4) = VR(:, 3)
-evec_r(:, 5) = VR(:, 5)
-evec_r(:, 6) = VR(:, 5)
-evec_i(:, 1) = VR(:, 2)
-evec_i(:, 2) = -VR(:, 2)
-evec_i(:, 3) = VR(:, 4)
-evec_i(:, 4) = -VR(:, 4)
-evec_i(:, 5) = VR(:, 6)
-evec_i(:, 6) = -VR(:, 6)
+evec(:, 1) = cmplx(VR(:, 1),  VR(:, 2), rp)
+evec(:, 2) = cmplx(VR(:, 1), -VR(:, 2), rp)
+evec(:, 3) = cmplx(VR(:, 3),  VR(:, 4), rp)
+evec(:, 4) = cmplx(VR(:, 3), -VR(:, 4), rp)
+evec(:, 5) = cmplx(VR(:, 5),  VR(:, 6), rp)
+evec(:, 6) = cmplx(VR(:, 5), -VR(:, 6), rp)
 
-evec = cmplx(evec_r, evec_i, rp)
 check_mat = matmul(transpose(conjg(evec)), matmul(S, evec))
 
 if ( aimag(check_mat(1,1)) > 0.0 ) then
-  evec_i(:, 1) = -evec_i(:, 1)
-  evec_i(:, 2) = -evec_i(:, 2)
-  eval_i(1) = -eval_i(1)
-  eval_i(2) = -eval_i(2)
+  evec(:, 1) = conjg(evec(:, 1))
+  evec(:, 2) = conjg(evec(:, 2))
+  eval(1) = conjg(eval(1))
+  eval(2) = conjg(eval(2))
 endif
 if ( aimag(check_mat(3,3)) > 0.0 ) then
-  evec_i(:, 3) = -evec_i(:, 3)
-  evec_i(:, 4) = -evec_i(:, 4)
-  eval_i(3) = -eval_i(3)
-  eval_i(4) = -eval_i(4)
+  evec(:, 3) = conjg(evec(:, 3))
+  evec(:, 4) = conjg(evec(:, 4))
+  eval(3) = conjg(eval(3))
+  eval(4) = conjg(eval(4))
 endif
 if ( aimag(check_mat(5,5)) > 0.0 ) then
-  evec_i(:, 5) = -evec_i(:, 5)
-  evec_i(:, 6) = -evec_i(:, 6)
-  eval_i(5) = -eval_i(5)
-  eval_i(6) = -eval_i(6)
+  evec(:, 5) = conjg(evec(:, 5))
+  evec(:, 6) = conjg(evec(:, 6))
+  eval(5) = conjg(eval(5))
+  eval(6) = conjg(eval(6))
 endif
 
 if (present(tunes)) then
-  tunes(1) = MyTan(-eval_i(1), eval_r(1))
-  tunes(2) = MyTan(-eval_i(3), eval_r(3))
-  tunes(3) = MyTan(-eval_i(5), eval_r(5))
+  tunes(1) = MyTan(-aimag(eval(1)), real(eval(1)))
+  tunes(2) = MyTan(-aimag(eval(3)), real(eval(3)))
+  tunes(3) = MyTan(-aimag(eval(5)), real(eval(5)))
 endif
 
 err_flag = .false.
@@ -547,35 +540,31 @@ end subroutine eigen_decomp_6mat
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
+! Subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat)
 ! 
 ! This subroutine orderes the eigensystem such that Nmat.mat_symp_conj(N) is closest
 ! to the identity.  Nmat is supplied externally.
 !
 ! Input:
-!   eval_r(6)    - real(rp):  real part of eigenvalues.
-!   eval_i(6)    - real(rp):  complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
+!   eval(6)      - complex(rp):  complex eigenvalues.
+!   evecr(6,6)   - complex(rp):  complex eigenvectors arranged down columns.
 !   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
 !   Nmat(6,6)    - real(rp):  Normalized, real eigen matrix from make_N.
 !
 ! Output:
-!   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
-!   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors arranged down columns.
+!   eval(6)      - complex(rp):  complex eigenvalues.
+!   evec(6,6)    - complex(rp):  complex eigenvectors arranged down columns.
 !   mat_tunes(3) - real(rp):  Ordered normal mode tunes, in radians.
 !-
 
-subroutine order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, mat_tunes, Nmat)
+subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat)
 
-real(rp) evec_r(6,6), evec_i(6,6)
-real(rp) eval_r(6), eval_i(6)
+complex(rp) evec(6,6)
+complex(rp) eval(6)
 real(rp) mat_tunes(3)
 real(rp) Nmat(6,6)
 
-real(rp) evec_r_local(6,6), evec_i_local(6,6)
+complex(rp) evec_local(6,6)
 real(rp) Nlocal(6,6)
 integer pair1, pair2, pair3
 integer pairIndexes(6)
@@ -597,11 +586,11 @@ do i=1, 6
   pair3 = iterations(i, 3)
 
   pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
-  evec_r_local = evec_r(:, pairIndexes)
-  evec_i_local = evec_i(:, pairIndexes)
-  call normalize_evecs(evec_r_local, evec_i_local)
+  evec_local = evec(:, pairIndexes)
+  call normalize_evecs(evec_local)
 
-  Nlocal = matmul(evec_r_local, Qr) - matmul(evec_i_local, Qi)
+  !Nlocal = matmul(evec_local,Q)
+  Nlocal = matmul(real(evec_local), Qr) - matmul(aimag(evec_local), Qi)
 
   check_mat = matmul(mat_symp_conj(Nlocal), Nmat)
 
@@ -613,10 +602,8 @@ pair2 = iterations(best, 2)
 pair3 = iterations(best, 3)
 pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
 
-evec_r = evec_r(:, pairIndexes)
-evec_i = evec_i(:, pairIndexes)
-eval_r = eval_r(pairIndexes)
-eval_i = eval_i(pairIndexes)
+evec = evec(:, pairIndexes)
+eval = eval(pairIndexes)
 mat_tunes = mat_tunes([pair1, pair2, pair3])
 
 !--------------------------------
@@ -638,7 +625,7 @@ end subroutine order_evecs_by_N_similarity
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
+! Subroutine order_evecs_by_plane_dominance(evec, eval, mat_tunes)
 ! 
 ! This subroutine orderes the eigensystem according to which modes dominate the horizontal, 
 ! vertical, and longitudinal planes.  This subroutine works well in machines
@@ -647,32 +634,28 @@ end subroutine order_evecs_by_N_similarity
 ! through the machine, this subroutine will not provide consistent ordering.
 !
 ! Input:
-!   eval_r(6)    - real(rp):  real part of eigenvalues.
-!   eval_i(6)    - real(rp):  complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
+!   eval(6)      - complex(rp):  complex eigenvalues.
+!   evec(6,6)    - complex(rp):  complex eigenvectors arranged down columns.
 !   mat_tunes(3) - real(rp), optional:  Three normal mode tunes, in radians.
 !
 ! Output:
-!   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
-!   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors.
-!   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors.
+!   eval(6)      - complex(rp):  Ordered complex eigenvalues.
+!   evec(6,6)    - complex(rp):  Ordered complex eigenvectors.
 !   mat_tunes(3) - real(rp), optional:  Reordered same as evecs.
 !-
 
-subroutine order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
+subroutine order_evecs_by_plane_dominance(evec, eval, mat_tunes)
 
-real(rp) evec_r(6,6), evec_i(6,6)
-real(rp) eval_r(6), eval_i(6)
+complex(rp) evec(6,6)
+complex(rp) eval(6)
 real(rp), optional :: mat_tunes(3)
 real(rp) vec(3)
 integer pair1, pair2, pair3
 integer pairindexes(6)
 
-pair1 = maxloc([abs(evec_r(1,1)), abs(evec_r(1,3)), abs(evec_r(1,5))], 1)
+pair1 = maxloc([abs(real(evec(1,1))), abs(real(evec(1,3))), abs(real(evec(1,5)))], 1)
 
-vec = [abs(evec_r(3,1)), abs(evec_r(3,3)), abs(evec_r(3,5))]
+vec = [abs(real(evec(3,1))), abs(real(evec(3,3))), abs(real(evec(3,5)))]
 vec(pair1) = -1
 pair2 = maxloc(vec, 1)
 
@@ -680,10 +663,8 @@ pair3 = 6 - pair1 - pair2
 
 pairIndexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
 
-evec_r = evec_r(:, pairIndexes)
-evec_i = evec_i(:, pairIndexes)
-eval_r = eval_r(pairIndexes)
-eval_i = eval_i(pairIndexes)
+evec = evec(:, pairIndexes)
+eval = eval(pairIndexes)
 
 if(present(mat_tunes)) then
   mat_tunes = mat_tunes([pair1, pair2, pair3])
@@ -695,31 +676,26 @@ end subroutine order_evecs_by_plane_dominance
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+! Subroutine order_evecs_by_tune(evec, eval, mat_tunes, abz_tunes, err_flag)
 ! 
 ! This subroutine orders the eigensystem by matching the tunes of the eigensystem to 
 ! externally supplied tunes abz_tunes.  abz_tunes is in radians.
 !
 ! Input:
-!   eval_r(6)    - real(rp):  real part of eigenvalues.
-!   eval_i(6)    - real(rp):  complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
+!   eval(6)       - complex(rp):  complex eigenvalues.
+!   evec(6,6)     - complex(rp):  complex eigenvectors arranged down columns.
+!   mat_tunes(3)  - real(rp):  Three normal mode tunes, in radians.
 !   abz_tunes(3)  - real(rp):  Tunes to order eigensystem by.
 !
 ! Output:
-!   eval_r(6)    - real(rp):  Ordered real part of eigenvalues.
-!   eval_i(6)    - real(rp):  Ordered complex part of eigenvalues.
-!   evec_r(6,6)  - real(rp):  Ordered real part of eigenvectors.
-!   evec_i(6,6)  - real(rp):  Ordered complex part of eigenvectors.
+!   eval(6)      - complex(rp):  Ordered eigenvalues.
+!   evec(6,6)    - complex(rp):  Ordered eigenvectors.
 !   err_flag     - logical, optional:  Set to true if an error occured.
 !-
 
-subroutine order_evecs_by_tune (evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes_in, err_flag)
+subroutine order_evecs_by_tune (evec, eval, mat_tunes, abz_tunes_in, err_flag)
 
-real(rp) evec_r(6,6), evec_i(6,6)
-real(rp) eval_r(6), eval_i(6)
+complex(rp) eval(6), evec(6,6)
 real(rp) mat_tunes(3)
 logical err_flag
 
@@ -797,10 +773,8 @@ select case(minloc(val, 1))
     mat_tunes = mat_tunes([3, 2, 1])
 end select
 
-evec_r = evec_r(:, pairindexes)
-evec_i = evec_i(:, pairIndexes)
-eval_r = eval_r(pairIndexes)
-eval_i = eval_i(pairIndexes)
+evec = evec(:, pairindexes)
+eval = eval(pairIndexes)
 
 err_flag = .false.
 
@@ -843,8 +817,7 @@ logical err_flag
 real(rp), optional :: abz_tunes(3)
 real(rp), optional :: tunes_out(3)
 
-real(rp) eval_r(6), eval_i(6)
-real(rp) evec_r(6,6), evec_i(6,6)
+complex(rp) eval(6), evec(6,6)
 real(rp) mat_tunes(3)
 real(rp) mat(6,6)
 integer i
@@ -853,7 +826,7 @@ character(*), parameter :: r_name = 'make_N'
 
 !
 
-call eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, err_flag, mat_tunes)
+call eigen_decomp_6mat(t6, eval, evec, err_flag, mat_tunes)
 if (err_flag) then
   call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
   N = 0.0d0
@@ -863,7 +836,7 @@ if (err_flag) then
 endif
 
 if ( present(abz_tunes) ) then
-  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+  call order_evecs_by_tune(evec, eval, mat_tunes, abz_tunes, err_flag)
   if (err_flag) then
     call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
     N = 0.0d0
@@ -872,16 +845,16 @@ if ( present(abz_tunes) ) then
     return
   endif
 else
-  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, mat_tunes)
+  call order_evecs_by_plane_dominance(evec, eval, mat_tunes)
 endif
 
 ! if (abs(mat_tunes(3)) .gt. pi) then  !assume synchrotron tune less than pi
 !   mat_tunes(3) = mat_tunes(3) - twopi
 ! endif
 
-call normalize_evecs(evec_r, evec_i)
+call normalize_evecs(evec)
 
-N = matmul(evec_r, Qr) - matmul(evec_i, Qi)
+N = matmul(real(evec), Qr) - matmul(aimag(evec), Qi)
 
 if (present(tunes_out)) then
   tunes_out = mat_tunes
@@ -928,9 +901,8 @@ logical err_flag
 real(rp), optional :: Nmat(6,6)
 
 real(rp) tunes(3)
-real(rp) eval_r(6), eval_i(6)
-real(rp) evec_r(6,6), evec_i(6,6)
 real(rp) sigmas(6,6)
+complex(rp) eval(6), evec(6,6)
 
 integer i
 
@@ -939,7 +911,7 @@ character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
 !
 sigmaS = matmul(sigma_mat, S)
 
-call eigen_decomp_6mat(sigmas, eval_r, eval_i, evec_r, evec_i, err_flag, tunes)
+call eigen_decomp_6mat(sigmas, eval, evec, err_flag, tunes)
 if (err_flag) then
   call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
   normal = 0.0d0
@@ -947,14 +919,14 @@ if (err_flag) then
 endif
 
 if (present(Nmat)) then
-  call order_evecs_by_N_similarity(evec_r, evec_i, eval_r, eval_i, tunes, Nmat)
+  call order_evecs_by_N_similarity(evec, eval, tunes, Nmat)
 else
-  call order_evecs_by_plane_dominance(evec_r, evec_i, eval_r, eval_i, tunes)
+  call order_evecs_by_plane_dominance(evec, eval, tunes)
 endif
 
-normal(1) = abs(eval_i(1))
-normal(2) = abs(eval_i(3))
-normal(3) = abs(eval_i(5))
+normal(1) = abs(aimag(eval(1)))
+normal(2) = abs(aimag(eval(3)))
+normal(3) = abs(aimag(eval(5)))
 
 end subroutine get_emit_from_sigma_mat
 
@@ -1088,38 +1060,31 @@ end subroutine make_smat_from_abc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine normalize_evecs(evec_r, evec_i)
+! Subroutine normalize_evecs(evec)
 !
 ! Normalizes eigenvectors such that transpose(E).S.E = iS, where E = evec_r + i evec_i
 !
 ! Input:
-!   evec_r(6,6)  - real(rp):  real part of eigenvectors arranged down columns.
-!   evec_i(6,6)  - real(rp):  complex part of eigenvectors arranged down columns.
+!   evec(6,6)  - real(rp):  complex eigenvectors arranged down columns.
 ! Output:
-!   evec_r(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
-!   evec_i(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
+!   evec(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
 !-
 
-subroutine normalize_evecs(evec_r, evec_i)
+subroutine normalize_evecs(evec)
 
-real(rp) evec_r(6,6), evec_i(6,6)
-real(rp) norm1, norm2, norm3
 complex(rp) evec(6,6)
+real(rp) norm1, norm2, norm3
 complex(rp) mat(6,6)
 
-evec = cmplx(evec_r, evec_i, rp)
 mat = matmul(transpose(conjg(evec)), matmul(S, evec))
 
 norm1 = sqrt(abs(mat(1,1)))
 norm2 = sqrt(abs(mat(3,3)))
 norm3 = sqrt(abs(mat(5,5)))
 
-evec_r(:, 1:2) = evec_r(:, 1:2) / norm1
-evec_i(:, 1:2) = evec_i(:, 1:2) / norm1
-evec_r(:, 3:4) = evec_r(:, 3:4) / norm2
-evec_i(:, 3:4) = evec_i(:, 3:4) / norm2
-evec_r(:, 5:6) = evec_r(:, 5:6) / norm3
-evec_i(:, 5:6) = evec_i(:, 5:6) / norm3
+evec(:, 1:2) = evec(:, 1:2) / norm1
+evec(:, 3:4) = evec(:, 3:4) / norm2
+evec(:, 5:6) = evec(:, 5:6) / norm3
 
 end subroutine normalize_evecs
 
