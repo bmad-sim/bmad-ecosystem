@@ -750,24 +750,24 @@ if ( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
   return
 endif
 
-val(1) = ( (mat_tunes(1)-abz_tunes(1)) / (mat_tunes(1)+abz_tunes(1)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(2)) / (mat_tunes(2)+abz_tunes(2)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(3)) / (mat_tunes(3)+abz_tunes(3)) )**2
-val(2) = ( (mat_tunes(1)-abz_tunes(1)) / (mat_tunes(1)+abz_tunes(1)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(3)) / (mat_tunes(2)+abz_tunes(3)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(2)) / (mat_tunes(3)+abz_tunes(2)) )**2
-val(3) = ( (mat_tunes(1)-abz_tunes(2)) / (mat_tunes(1)+abz_tunes(2)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(1)) / (mat_tunes(2)+abz_tunes(1)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(3)) / (mat_tunes(3)+abz_tunes(3)) )**2
-val(4) = ( (mat_tunes(1)-abz_tunes(2)) / (mat_tunes(1)+abz_tunes(2)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(3)) / (mat_tunes(2)+abz_tunes(3)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(1)) / (mat_tunes(3)+abz_tunes(1)) )**2
-val(5) = ( (mat_tunes(1)-abz_tunes(3)) / (mat_tunes(1)+abz_tunes(3)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(1)) / (mat_tunes(2)+abz_tunes(1)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(2)) / (mat_tunes(3)+abz_tunes(2)) )**2
-val(6) = ( (mat_tunes(1)-abz_tunes(3)) / (mat_tunes(1)+abz_tunes(3)) )**2 + &
-         ( (mat_tunes(2)-abz_tunes(2)) / (mat_tunes(2)+abz_tunes(2)) )**2 + &
-         ( (mat_tunes(3)-abz_tunes(1)) / (mat_tunes(3)+abz_tunes(1)) )**2
+val(1) = ( (abz_tunes(1)-mat_tunes(1)) / (abz_tunes(1)+mat_tunes(1)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(2)) / (abz_tunes(2)+mat_tunes(2)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(3)) / (abz_tunes(3)+mat_tunes(3)) )**2
+val(2) = ( (abz_tunes(1)-mat_tunes(1)) / (abz_tunes(1)+mat_tunes(1)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(3)) / (abz_tunes(2)+mat_tunes(3)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(2)) / (abz_tunes(3)+mat_tunes(2)) )**2
+val(3) = ( (abz_tunes(1)-mat_tunes(2)) / (abz_tunes(1)+mat_tunes(2)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(1)) / (abz_tunes(2)+mat_tunes(1)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(3)) / (abz_tunes(3)+mat_tunes(3)) )**2
+val(4) = ( (abz_tunes(1)-mat_tunes(2)) / (abz_tunes(1)+mat_tunes(2)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(3)) / (abz_tunes(2)+mat_tunes(3)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(1)) / (abz_tunes(3)+mat_tunes(1)) )**2
+val(5) = ( (abz_tunes(1)-mat_tunes(3)) / (abz_tunes(1)+mat_tunes(3)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(1)) / (abz_tunes(2)+mat_tunes(1)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(2)) / (abz_tunes(3)+mat_tunes(2)) )**2
+val(6) = ( (abz_tunes(1)-mat_tunes(3)) / (abz_tunes(1)+mat_tunes(3)) )**2 + &
+         ( (abz_tunes(2)-mat_tunes(2)) / (abz_tunes(2)+mat_tunes(2)) )**2 + &
+         ( (abz_tunes(3)-mat_tunes(1)) / (abz_tunes(3)+mat_tunes(1)) )**2
 
 if (minval(val, 1) .gt. 0.1) then
   call out_io (s_fatal$, r_name, "Unable to match mat_tunes.  Printing mat_tunes and abz_tunes.")
