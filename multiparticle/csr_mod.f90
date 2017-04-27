@@ -404,8 +404,6 @@ character(20) :: r_name = 'csr_bin_particles'
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
     .not. csr_param%tsc_component_on .and. csr_param%n_shield_images == 0) return
 
-csr%slice(:) = csr_bunch_slice_struct()  ! Zero everything
-
 z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 z_minval = minval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 dz = z_maxval - z_minval
@@ -424,6 +422,8 @@ endif
 
 if (.not. allocated(csr%slice)) &
     allocate (csr%slice(csr_param%n_bin), csr%kick1(-csr_param%n_bin:csr_param%n_bin))
+
+csr%slice(:) = csr_bunch_slice_struct()  ! Zero everything
 
 ! Fill in some z information
 
