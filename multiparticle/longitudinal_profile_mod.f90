@@ -642,14 +642,12 @@ subroutine set_pwd_ele(lat, mode0, inductance)
     function isunstable(mat)
       use bmad
       real(rp) mat(6,6)
-      real(rp) evec_r(6,6), evec_i(6,6)
-      real(rp) eval_r(6), eval_i(6)
+      complex(rp) evec(6,6)
       complex(rp) eval(6)
       logical error
       logical isunstable
 
-      call eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
-      eval = cmplx(eval_r,eval_i)
+      call eigen_decomp_6mat(mat, eval, evec, error)
       isunstable = error
       isunstable = isunstable .or. ( abs(eval(1)-conjg(eval(2))) .gt. 1.0e-15 )
       isunstable = isunstable .or. ( abs(eval(3)-conjg(eval(4))) .gt. 1.0e-15 )

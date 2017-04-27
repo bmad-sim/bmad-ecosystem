@@ -273,15 +273,13 @@ subroutine make_V(M,V,abz_tunes)
 
   complex(rp) Vinv(6,6)
   complex(rp) temp_vec(6)
+  complex(rp) eval(6)
 
   real(rp) temp_mat(6,6)
   complex(rp) check_mat(6,6)
   real(rp) VR(6,6)
   real(rp) eval_r(6), eval_i(6)
   real(rp) evec_r(6,6), evec_i(6,6)
-  real(rp) v1_r(6), v1_i(6)
-  real(rp) v2_r(6), v2_i(6)
-  real(rp) v3_r(6), v3_i(6)
   real(rp) mat_tunes(3)
 
   integer i
@@ -293,6 +291,7 @@ subroutine make_V(M,V,abz_tunes)
   temp_mat = M  !LA_GEEV destroys the contents of its first argument.
 
   call la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
+  eval = cmplx(eval_r, eval_i)
   if ( i_error /= 0 ) THEN
     call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
     if (global_com%exit_on_error) call err_exit
@@ -300,18 +299,11 @@ subroutine make_V(M,V,abz_tunes)
     return
   endif
 
-  v1_r = VR(:, 1) 
-  v1_i = VR(:, 2) 
-  v2_r = VR(:, 3) 
-  v2_i = VR(:, 4) 
-  v3_r = VR(:, 5) 
-  v3_i = VR(:, 6) 
-
-  Vinv(:,1) = cmplx(v1_r,v1_i)
+  Vinv(:,1) = cmplx(VR(:, 1),VR(:, 2))
   Vinv(:,2) = (0.0d0,1.0d0)*conjg(Vinv(:,1))
-  Vinv(:,3) = cmplx(v2_r,v2_i)
+  Vinv(:,3) = cmplx(VR(:, 3),VR(:, 4))
   Vinv(:,4) = (0.0d0,1.0d0)*conjg(Vinv(:,3))
-  Vinv(:,5) = cmplx(v3_r,v3_i)
+  Vinv(:,5) = cmplx(VR(:, 5),VR(:, 6))
   Vinv(:,6) = (0.0d0,1.0d0)*conjg(Vinv(:,5))
   check_mat = matmul(transpose(Vinv),matmul(S6,conjg(Vinv))) !eqn. 79
   if ( aimag(check_mat(1,1)) > 0.0 ) then
@@ -330,12 +322,10 @@ subroutine make_V(M,V,abz_tunes)
     Vinv(:,6) = temp_vec
   endif
 
-  mat_tunes(1) = MyTan(eval_i(1), eval_r(1))
-  mat_tunes(2) = MyTan(eval_i(3), eval_r(3))
-  mat_tunes(3) = MyTan(eval_i(5), eval_r(5))
-  evec_r = real(Vinv)
-  evec_i = aimag(Vinv)
-  call order_evecs_by_tune(evec_r, evec_i, eval_r, eval_i, mat_tunes, abz_tunes, err_flag)
+  mat_tunes(1) = MyTan(aimag(eval(1)), real(eval(1)))
+  mat_tunes(2) = MyTan(aimag(eval(3)), real(eval(3)))
+  mat_tunes(3) = MyTan(aimag(eval(5)), real(eval(5)))
+  call order_evecs_by_tune(Vinv, eval, mat_tunes, abz_tunes, err_flag)
   if(err_flag) then
     call out_io (s_fatal$, r_name, "order_evecs_by_tune failed to identify eigen modes. printing abz_tunes and mat_tunes.")
     write(*,'(a,3f14.5)') "Tunes supplied to subroutine (abz_tunes):        ", abz_tunes
@@ -344,8 +334,7 @@ subroutine make_V(M,V,abz_tunes)
     V = 0.0d0
     return
   endif
-  call normalize_evecs(evec_r,evec_i)
-  Vinv = cmplx(evec_r,evec_i)
+  call normalize_evecs(Vinv)
   V = mat_symp_conj_i(Vinv)
 contains
   function MyTan(y, x) result(arg)
