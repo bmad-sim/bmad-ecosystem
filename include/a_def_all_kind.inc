@@ -32,12 +32,14 @@ TYPE SUPERDRIFT
    TYPE(MAGNET_CHART), POINTER :: P => null()
    real(dp) , POINTER ::L => null()                    !  Storage space for computed
    REAL(DP),DIMENSION(:), POINTER:: D => null(),ang => null()     ! TRANSLATIONS  A_D(3) and Angles
+   INTEGER, POINTER :: A_X1 => null() ,A_X2 => null()
 END  TYPE SUPERDRIFT
 
 TYPE SUPERDRIFTP
    TYPE(MAGNET_CHART), POINTER :: P => null()
    TYPE(REAL_8) , POINTER ::L => null()
    REAL(DP),DIMENSION(:), POINTER:: D => null(),ang => null()     ! TRANSLATIONS  A_D(3) and Angles
+   INTEGER, POINTER :: A_X1 => null() ,A_X2 => null()
 END  TYPE SUPERDRIFTP
 
 TYPE DKD2

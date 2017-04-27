@@ -831,12 +831,16 @@ contains
     logical(lp),INTENT(IN):: PATCH
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
+
      if(dir==1) then
+       X(3)=C%A_X1*X(3);X(4)=C%A_X1*X(4);
        CALL ROT_YZ(C%ANG(1),X,C%P%BETA0,PATCH,k%TIME)
        CALL ROT_XZ(C%ANG(2),X,C%P%BETA0,PATCH,k%TIME)
        CALL ROT_XY(C%ANG(3),X)  !,PATCH)
        CALL TRANS(C%D,X,C%P%BETA0,PATCH,k%TIME)
+       X(3)=C%A_X2*X(3);X(4)=C%A_X2*X(4);
      else
+             X(3)=C%A_X2*X(3);X(4)=C%A_X2*X(4);
              C%D(1)=-C%D(1)
              C%D(2)=-C%D(2)
              C%ANG(3)=-C%ANG(3)
@@ -847,6 +851,7 @@ contains
              C%D(1)=-C%D(1)
              C%D(2)=-C%D(2)
              C%ANG(3)=-C%ANG(3)
+             X(3)=C%A_X1*X(3);X(4)=C%A_X1*X(4);
      endif
 
   END SUBROUTINE PATCH_driftR
@@ -861,11 +866,14 @@ contains
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
      if(dir==1) then
+       X(3)=C%A_X1*X(3);X(4)=C%A_X1*X(4);
        CALL ROT_YZ(C%ANG(1),X,C%P%BETA0,PATCH,k%TIME)
        CALL ROT_XZ(C%ANG(2),X,C%P%BETA0,PATCH,k%TIME)
        CALL ROT_XY(C%ANG(3),X)  !,PATCH)
        CALL TRANS(C%D,X,C%P%BETA0,PATCH,k%TIME)
+       X(3)=C%A_X2*X(3);X(4)=C%A_X2*X(4);
      else
+             X(3)=C%A_X2*X(3);X(4)=C%A_X2*X(4);
              C%D(1)=-C%D(1)
              C%D(2)=-C%D(2)
              C%ANG(3)=-C%ANG(3)
@@ -876,6 +884,7 @@ contains
              C%D(1)=-C%D(1)
              C%D(2)=-C%D(2)
              C%ANG(3)=-C%ANG(3)
+             X(3)=C%A_X1*X(3);X(4)=C%A_X1*X(4);
      endif
 
   END SUBROUTINE PATCH_driftp
@@ -13944,14 +13953,17 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
        deallocate(EL%D)
        deallocate(EL%ANG)
-
+       deallocate(EL%A_X1)
+       deallocate(EL%A_X2)
+ 
        endif
     elseif(i==0)       then          ! nullifies
 
  
        NULLIFY(EL%D)
        NULLIFY(EL%ANG)
- 
+       NULLIFY(EL%A_X1)
+       NULLIFY(EL%A_X2)
     endif
 
   END SUBROUTINE ZEROR_superdrift
@@ -13967,8 +13979,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
  
        deallocate(EL%D)
        deallocate(EL%ANG)
- 
- 
+       deallocate(EL%A_X1)
+       deallocate(EL%A_X2)
  
        endif
     elseif(i==0)       then          ! nullifies
@@ -13976,6 +13988,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
  
        NULLIFY(EL%D)
        NULLIFY(EL%ANG)
+       NULLIFY(EL%A_X1)
+       NULLIFY(EL%A_X2)
  
     endif
 

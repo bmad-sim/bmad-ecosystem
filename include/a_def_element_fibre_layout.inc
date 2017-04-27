@@ -74,6 +74,7 @@ TYPE INTERNAL_STATE
    LOGICAL(LP) SPIN  ! Spin is tracked
    LOGICAL(LP) MODULATION !  One modulated family tracked by probe
    LOGICAL(LP) ONLY_2D  !  REAL_8 Taylor in (x,p_x)
+   LOGICAL(LP) FULL_WAY  ! 
 END TYPE INTERNAL_STATE
 
 

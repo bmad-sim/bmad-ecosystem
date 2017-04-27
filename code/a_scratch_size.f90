@@ -75,38 +75,29 @@ module precision_constants
   real(dp)::rpi4
   real(dp),parameter::RAD_TO_DEG_=180.0_dp/pi,DEG_TO_RAD_=pi/180.0_dp
   !Physical Constants
-  real(dp),parameter::A_ELECTRON=1.15965218111e-3_dp  !frs NIST CODATA 2006
-  real(dp),parameter::A_MUON=1.16592069e-3_dp         !frs NIST CODATA 2006
-  real(dp),parameter::A_PROTON=1.79284735e-0_dp       !frs (approx) NIST CODATA 2006
-  real(dp),parameter:: pmaMUON = 105.6583745E-3_DP    !frs NIST CODATA 2016
-  real(dp) :: e_muon = 0.d0, volt_c=1.0e-3_dp, volt_i=1.0_dp
+  real(dp),parameter::A_ELECTRON=1.1596521809126e-3_dp ! NIST CODATA 2014
+   real(dp),parameter::A_MUON=1.1659208963e-3_dp        ! NIST CODATA 2014
+   real(dp),parameter::A_PROTON=1.79284735e-0_dp        !
+   real(dp),parameter::pmaMUON=105.658374524E-3_dp      ! NIST CODATA 2014
+   real(dp) :: e_muon = 0.d0, volt_c=1.0e-3_dp, volt_i=1.0_dp
  !  real(dp),parameter:: pmadt = 1.875612793e0_dp    ! sateesh
   !  real(dp),parameter:: pmah3 = 2.808391e0_dp    ! sateesh
   !  real(dp),parameter:: A_dt = -0.142987272e0_dp    ! sateesh
   !  real(dp),parameter:: a_h3 =-4.183963e0_dp    ! sateesh
   logical(lp),  public :: longprint = my_true
 
-  real(dp) :: A_particle = A_ELECTRON
-  real(dp),parameter::pmae=5.1099894610e-4_dp           !frs NIST CODATA 2016
-  real(dp),parameter::pmae_amu=5.4461702177e-4_dp     !frs NIST CODATA 2006
-  ![GeV]
-  real(dp),parameter::pmap=0.9382720813e0_dp           !frs NIST CODATA 2016
-  ![GeV]
-  real(dp),parameter::CLIGHT=2.99792458e8_dp          ! exact
-  ![m/s]
-  real(dp),parameter::hbar=6.58211889e-25_dp          !frs NIST CODATA 2006
-  ![GeV*s]
-  real(dp),parameter::dhbar=1.054571628e-34_dp        !frs NIST CODATA 2006
-  ![J*s]
-  real(dp),parameter::qelect=1.602176487e-19_dp       !frs NIST CODATA 2006
-  ![A*s]
-  real(dp),parameter::eps_0=8.854187817e-12_dp        ! exact
-  ![A*S/V*m]
-  real(dp),parameter::class_e_radius=qelect/4.0_dp/pi/eps_0/pmae/1e9_dp
-  ![m]
-  real(dp),parameter::CGAM=4.0_dp*pi/3.0_dp*class_e_radius/pmae**3
-  ![m/Gev^3] old: 8.846056192e-5_dp
-  real(dp),parameter::HBC=hbar*CLIGHT
+   real(dp) :: A_particle=A_ELECTRON
+   real(dp),parameter::pmae=5.10998946131e-4_dp     ! NIST CODATA 2014
+   real(dp),parameter::pmae_amu=5.4461702177e-4_dp  ! NIST CODATA 2014 [GeV]
+   real(dp),parameter::pmap=0.938272081358e0_dp     ! NIST CODATA 2014 [GeV]
+   real(dp),parameter::CLIGHT=2.99792458e8_dp       ! exact [m/s]
+   real(dp),parameter::hbar=6.58211951440e-25_dp    ! NIST CODATA 2014 [GeV*s]
+   real(dp),parameter::dhbar=1.05457180013e-34_dp   ! NIST CODATA 2014 [J*s]
+   real(dp),parameter::qelect=1.602176620898e-19_dp ! NIST CODATA 2014 [A*s]
+   real(dp),parameter::eps_0=8.854187817e-12_dp     ! exact [A*S/V*m]
+   real(dp),parameter::class_e_radius=qelect/4.0_dp/pi/eps_0/pmae/1e9_dp ![m]
+   real(dp),parameter::CGAM=4.0_dp*pi/3.0_dp*class_e_radius/pmae**3 ![m/Gev^3] old: 8.846056192e-5_dp
+   real(dp),parameter::HBC=hbar*CLIGHT              ![GeV*m] old: HBC=1.9732858e-16_dp
   ![GeV*m] old: HBC=1.9732858e-16_dp
   !Smallness Parameters
    !Smallness Parameters

@@ -1532,7 +1532,10 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
         DLD=acos( ((ub(1)*uj(1)+ub(2)*uj(2)) /n0/nj)   )*r0
          ub=uj
  endif
-
+!  2017.4.27
+          S=S+DLD
+          LI=LI+DL
+          SL=SL+P%DIR*DL
           CALL APPEND_EMPTY_THIN( L )
           L%END%TEAPOT_LIKE=TEAPOT_LIKE
           L%END%S(1)=S;L%END%S(2)=LI;L%END%S(3)=SL;L%END%S(4)=DL;L%END%S(5)=DLD;L%END%ds_ac=DLD;
@@ -1544,9 +1547,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
 
 
 !!!!!!!!!
-          S=S+DLD
-          LI=LI+DL
-          SL=SL+P%DIR*DL
+!          S=S+DLD
+!          LI=LI+DL
+!          SL=SL+P%DIR*DL
           IF(MOD(P%MAG%P%NST,2)==0) THEN
              IF(J==P%MAG%P%NST/2) TM=>L%END    !+1
           ELSE
@@ -2347,13 +2350,14 @@ else
 endif
 
 do while(.not.associated(p2,p1))
+
 call survey_integration_fibre(p1,p1%previous%chart%f%b,p1%previous%chart%f%exi)
-!pause
+ 
 p1=>p1%next
 enddo
-write(6,*) p1%previous%mag%name
-write(6,*) p1%previous%chart%f%a
-write(6,*) p1%previous%chart%f%b
+!write(6,*) p1%previous%mag%name
+!write(6,*) p1%previous%chart%f%a
+!write(6,*) p1%previous%chart%f%b
 end subroutine survey_integration_layout
 
 
@@ -2364,7 +2368,7 @@ type(integration_node), pointer :: t
 integer i
 type(layout), pointer  :: r
 real(dp),intent(in):: b0(3),exi0(3,3) 
-real(dp) a0(3),ent0(3,3) 
+real(dp) a0(3),ent0(3,3),ang(3)
 a0=b0
 ent0=exi0
 r=>p%parent_layout
@@ -2377,13 +2381,12 @@ endif
 if(.not.associated(p%t1%a))     CALL  allocate_node_frame( R)   !call FILL_SURVEY_DATA_IN_NODE_LAYOUT(r)
  
 
-p%chart%f%ent=ent0
-p%chart%f%a=a0
 
-  p%mag%p%f%ent=ent0
-  p%mag%p%f%a=a0
-  p%magp%p%f%ent=ent0
-  p%magp%p%f%a=a0
+
+!  p%mag%p%f%ent=ent0
+!  p%mag%p%f%a=a0
+!  p%magp%p%f%ent=ent0
+!  p%magp%p%f%a=a0
 
 t=>p%t1
 call survey_integration_node_p1(t,a0,ent0)
@@ -2393,25 +2396,35 @@ call survey_integration_fringe(t,a0,ent0)
 do i=1,p%mag%p%nst
  t=>t%next
  call survey_integration_node_case0(t,a0,ent0)
- if(i==p%mag%p%nst/2) then
-  p%chart%f%mid=t%exi
-  p%chart%f%o=t%b
-  p%mag%p%f%mid=t%exi
-  p%mag%p%f%o=t%b
-  p%magp%p%f%mid=t%exi
-  p%magp%p%f%o=t%b
- endif
 enddo
 t=>t%next
 call survey_integration_fringe(t,a0,ent0)
 t=>t%next
 call survey_integration_node_p2(t,a0,ent0)
-p%chart%f%exi=ent0
-p%chart%f%b=a0
-  p%mag%p%f%exi=ent0
-  p%mag%p%f%b=a0
-  p%magp%p%f%exi=ent0
-  p%magp%p%f%b=a0
+
+ 
+!!! entrance chart
+ CALL COMPUTE_ENTRANCE_ANGLE(p%chart%f%ent,p%chart%f%exi,ANG)
+p%chart%f%mid=p%chart%f%ent
+!write(6,*) p%mag%name
+!write(6,*) ang
+ang=ang/2
+p%chart%f%o=0.5_dp*(p%chart%f%a+p%chart%f%b)
+CALL GEO_ROT(p%chart%f%mid,ANG,1,basis=p%chart%f%ent)
+ 
+CALL COMPUTE_ENTRANCE_ANGLE(p%mag%p%f%ent,p%mag%p%f%exi,ANG)
+p%mag%p%f%mid=p%mag%p%f%ent
+ang=ang/2
+p%mag%p%f%o=0.5_dp*(p%mag%p%f%a+p%mag%p%f%b)
+CALL GEO_ROT(p%mag%p%f%mid,ANG,1,basis=p%mag%p%f%ent)
+p%magp%p%f%mid=p%mag%p%f%mid
+p%magp%p%f%o=p%mag%p%f%o
+ ! p%mag%p%f%mid=t%exi
+ ! p%mag%p%f%o=t%b
+ ! p%magp%p%f%mid=t%exi
+ ! p%magp%p%f%o=t%b
+ 
+
 
 end subroutine survey_integration_fibre
 
@@ -2423,15 +2436,14 @@ type(integration_node), target :: t
 real(dp) a0(3),ent0(3,3)
 
 if(associated(t%parent_fibre%mag%sdr)) then
-
  call survey_integration_special_superdrift(t,a0,ent0)
 else
  t%a=a0
  t%ent=ent0
- t%parent_fibre%chart%f%a=a0
- t%parent_fibre%chart%f%ent=ent0
- t%parent_fibre%chart%f%b=a0
- t%parent_fibre%chart%f%exi=ent0
+ !t%parent_fibre%chart%f%a=a0
+ !t%parent_fibre%chart%f%ent=ent0
+ !t%parent_fibre%chart%f%b=a0
+ !t%parent_fibre%chart%f%exi=ent0
  t%b=t%a
  t%exi=t%ent
  a0=t%b
@@ -2544,9 +2556,27 @@ call GEO_ROT(exi0,f%patch%a_ang,1, exi0)
 call TRANSLATE_point(a0,f%patch%A_D,1,exi0)  
 call GEO_ROT(exi0,pix2,1, exi0)
 
+!!! entrance chart
+f%chart%f%ent=exi0
+f%chart%f%a=a0
+
+
 pix1=0.0_dp
 pix1(3)=f%MAG%P%TILTD
  call GEO_ROT(exi0,pix1,1, exi0)
+
+
+
+
+pix1=0.0_dp
+if(f%dir==1) then
+ pix1(2)=f%MAG%P%edge(1)
+else
+ pix1(2)=f%MAG%P%edge(2)
+endif
+ call GEO_ROT(exi0,pix1,1, exi0)
+
+
 
     IF(f%MAG%MIS) THEN
       call MIS_survey(a0,exi0,f,a0,exi0,ENTERING)
@@ -2564,6 +2594,20 @@ t%exi=exi0
 
 
 ent0=exi0
+
+ if(f%dir==1) then
+  f%mag%p%f%ent=ent0
+  f%mag%p%f%a=a0
+  f%magp%p%f%ent=ent0
+  f%magp%p%f%a=a0
+else
+  f%mag%p%f%exi=ent0
+  f%mag%p%f%b=a0
+  f%magp%p%f%exi=ent0
+  f%magp%p%f%b=a0
+endif
+
+
 !t%next%a=t%b
 !t%next%ent=t%exi
  
@@ -2576,7 +2620,7 @@ implicit none
 type(integration_node), target :: t
 type(fibre), pointer :: f
 type(superdrift),pointer :: el
-real(dp) pix1(3) ,a0(3),exi0(3,3),ent0(3,3)
+real(dp) pix1(3) ,pix2(3) ,a0(3),exi0(3,3),ent0(3,3)
 logical(lp) :: ENTERING=my_false
 
  
@@ -2584,7 +2628,7 @@ logical(lp) :: ENTERING=my_false
 f=>t%parent_fibre
 el=>f%mag%sdr
 
-pix1=0.0_dp; 
+pix1=0.0_dp; pix2=0;
 
 t%a=a0
 t%ent=ent0
@@ -2592,16 +2636,23 @@ exi0=t%ent
 
 
 if(t%cas==case1.and.f%dir==1) then
-if(entering) then
- f%chart%f%ent=ent0
- f%chart%f%a=a0
-endif
-  f%mag%p%f%ent=ent0
-  f%mag%p%f%a=a0
-  f%magp%p%f%ent=ent0
-  f%magp%p%f%a=a0
+!if(entering) then
+! f%chart%f%ent=ent0
+! f%chart%f%a=a0
+!endif
+!  f%mag%p%f%ent=ent0
+!  f%mag%p%f%a=a0
+!  f%magp%p%f%ent=ent0
+!  f%magp%p%f%a=a0
+
+
+if(el%A_X1==-1) pix1(1)=pi
+if(el%A_X2==-1) pix2(1)=pi
+call GEO_ROT(exi0,pix1,1, ent0) ! new
+ pix1=0
  pix1(1)=el%ang(1)
- call GEO_ROT(exi0,pix1,1, ent0)
+! call GEO_ROT(exi0,pix1,1, ent0)
+ call GEO_ROT(exi0,pix1,1, exi0)  !new
  pix1=0
  pix1(2)=el%ang(2)
  call GEO_ROT(exi0,pix1,1, exi0)
@@ -2609,53 +2660,68 @@ endif
  pix1(3)=el%ang(3)
  call GEO_ROT(exi0,pix1,1, exi0)
 call TRANSLATE_point(a0,el%D,1,exi0)  
-if(.not.entering) then
- f%chart%f%ent=exi0
- f%chart%f%a=a0
-endif
+call GEO_ROT(exi0,pix2,1, exi0)  ! new
+!if(.not.entering) then
+! f%chart%f%ent=exi0
+! f%chart%f%a=a0
+!endif
 
-elseif(t%cas==case1.and.f%dir==-1) then
-  f%chart%f%exi=ent0
-  f%chart%f%b=a0
-  f%mag%p%f%exi=ent0
-  f%mag%p%f%b=a0
-  f%magp%p%f%exi=ent0
-  f%magp%p%f%b=a0
+!elseif(t%cas==case1.and.f%dir==-1) then
+!  f%chart%f%exi=ent0
+!  f%chart%f%b=a0
+!  f%mag%p%f%exi=ent0
+!  f%mag%p%f%b=a0
+!  f%magp%p%f%exi=ent0
+!  f%magp%p%f%b=a0
 endif
 
 if(t%cas==case2.and.f%dir==-1) then
-if(entering) then
- f%chart%f%ent=ent0
- f%chart%f%a=a0
-endif
-  f%mag%p%f%ent=ent0
-  f%mag%p%f%a=a0
-  f%magp%p%f%ent=ent0
-  f%magp%p%f%a=a0
+!if(entering) then
+! f%chart%f%ent=ent0
+! f%chart%f%a=a0
+!endif
+!  f%mag%p%f%ent=ent0
+!  f%mag%p%f%a=a0
+!  f%magp%p%f%ent=ent0
+!  f%magp%p%f%a=a0
+
+if(el%A_X2==-1) pix2(1)=pi
+
+call GEO_ROT(exi0,pix2,1, ent0)  ! new
+
  el%D(1)=-el%D(1)
  el%D(2)=-el%D(2)
-   call TRANSLATE_point(a0,el%D,1,ent0)  
+ !  call TRANSLATE_point(a0,el%D,1,ent0)  
+  call TRANSLATE_point(a0,el%D,1,exi0)  
  el%D(1)=-el%D(1)
  el%D(2)=-el%D(2)
  pix1=0
  pix1(3)=-el%ang(3)
- call GEO_ROT(ent0,pix1,1, exi0)
+ call GEO_ROT(exi0,pix1,1, exi0)
+
+!call GEO_ROT(ent0,pix1,1, exi0)
  pix1=0
  pix1(2)=el%ang(2)
  call GEO_ROT(exi0,pix1,1, exi0)
+ pix1=0
  pix1(1)=el%ang(1)
  call GEO_ROT(exi0,pix1,1, exi0)
-if(.not.entering) then
-  f%chart%f%ent=exi0
-  f%chart%f%a=a0
-endif
-elseif(t%cas==case2.and.f%dir==1) then
-  f%chart%f%exi=ent0
-  f%chart%f%b=a0
-  f%mag%p%f%exi=ent0
-  f%mag%p%f%b=a0
-  f%magp%p%f%exi=ent0
-  f%magp%p%f%b=a0
+pix1=0
+if(el%A_X1==-1) pix1(1)=pi
+ call GEO_ROT(exi0,pix1,1, exi0)
+
+!if(.not.entering) then
+!  f%chart%f%ent=exi0
+!  f%chart%f%a=a0
+!endif
+
+!elseif(t%cas==case2.and.f%dir==1) then
+!  f%chart%f%exi=ent0
+!  f%chart%f%b=a0
+!  f%mag%p%f%exi=ent0
+!  f%mag%p%f%b=a0
+!  f%magp%p%f%exi=ent0
+ ! f%magp%p%f%b=a0
 endif
 
 t%b=a0
@@ -2720,6 +2786,27 @@ t%a=a0
 t%ent=ent0
 exi0=t%ent
 
+ if(f%dir==-1) then
+  f%mag%p%f%ent=ent0
+  f%mag%p%f%a=a0
+  f%magp%p%f%ent=ent0
+  f%magp%p%f%a=a0
+else
+  f%mag%p%f%exi=ent0
+  f%mag%p%f%b=a0
+  f%magp%p%f%exi=ent0
+  f%magp%p%f%b=a0
+endif
+
+
+pix1=0.0_dp
+if(f%dir==1) then
+ pix1(2)=f%MAG%P%edge(2)
+else
+ pix1(2)=f%MAG%P%edge(1)
+endif
+ call GEO_ROT(exi0,pix1,1, exi0)
+
 if(f%mag%kind==kindpa) then
 
 call ADJUST_PANCAKE_frame(f%mag%pa,a0,exi0,2)
@@ -2737,6 +2824,11 @@ endif
 pix1=0.0_dp
 pix1(3)=-f%MAG%P%TILTD
  call GEO_ROT(exi0,pix1,1, exi0)
+
+f%chart%f%exi=exi0
+f%chart%f%b=a0
+
+
 
 pix1=0.0_dp;pix2=0.0_dp;
 if(f%patch%B_X1==-1) pix1(1)=pi
@@ -2847,5 +2939,6 @@ end subroutine survey_integration_node_p2
        ENDIF
     ENDIF
   END SUBROUTINE MIS_survey
+
 
 end module ptc_multiparticle

@@ -88,19 +88,19 @@ module S_status
   !  !!  include "a_def_arbitrary.inc"
   !  !  include "a_def_user2.inc"
 
-  TYPE(INTERNAL_STATE),PARAMETER::DEFAULT0=INTERNAL_STATE   (0,f,f,f,f,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::TOTALPATH0=INTERNAL_STATE (1,f,f,f,f,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::TIME0=INTERNAL_STATE      (0,t,f,f,f,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::RADIATION0=INTERNAL_STATE (0,f,t,f,f,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::NOCAVITY0=INTERNAL_STATE  (0,f,f,t,f,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::FRINGE0=INTERNAL_STATE    (0,f,f,f,t,f,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::STOCHASTIC0=INTERNAL_STATE(0,f,f,f,f,t,f,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::ENVELOPE0=INTERNAL_STATE  (0,f,f,f,f,f,t,f,f,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::ONLY_4d0=INTERNAL_STATE   (0,f,f,t,f,f,f,f,t,f,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::DELTA0=INTERNAL_STATE     (0,f,f,t,f,f,f,f,t,t,f,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::SPIN0=INTERNAL_STATE      (0,f,f,f,f,f,f,f,f,f,t,f,f)
-  TYPE(INTERNAL_STATE),PARAMETER::MODULATION0=INTERNAL_STATE(0,f,f,f,f,f,f,f,f,f,f,t,f)
-  TYPE(INTERNAL_STATE),PARAMETER::only_2d0=INTERNAL_STATE(0,f,f,t,f,f,f,f,f,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::DEFAULT0=INTERNAL_STATE   (0,f,f,f,f,f,f,f,f,f,f,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::TOTALPATH0=INTERNAL_STATE (1,f,f,f,f,f,f,f,f,f,f,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::TIME0=INTERNAL_STATE      (0,t,f,f,f,f,f,f,f,f,f,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::RADIATION0=INTERNAL_STATE (0,f,t,f,f,f,f,f,f,f,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::NOCAVITY0=INTERNAL_STATE  (0,f,f,t,f,f,f,f,f,f,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::FRINGE0=INTERNAL_STATE    (0,f,f,f,t,f,f,f,f,f,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::STOCHASTIC0=INTERNAL_STATE(0,f,f,f,f,t,f,f,f,f,f,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::ENVELOPE0=INTERNAL_STATE  (0,f,f,f,f,f,t,f,f,f,f,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::ONLY_4d0=INTERNAL_STATE   (0,f,f,t,f,f,f,f,t,f,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::DELTA0=INTERNAL_STATE     (0,f,f,t,f,f,f,f,t,t,f,f,f,t)
+  TYPE(INTERNAL_STATE),PARAMETER::SPIN0=INTERNAL_STATE      (0,f,f,f,f,f,f,f,f,f,t,f,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::MODULATION0=INTERNAL_STATE(0,f,f,f,f,f,f,f,f,f,f,t,f,F)
+  TYPE(INTERNAL_STATE),PARAMETER::only_2d0   =INTERNAL_STATE(0,f,f,t,f,f,f,f,f,f,f,f,t,t)
 
   TYPE(INTERNAL_STATE), target ::  DEFAULT=DEFAULT0
   TYPE(INTERNAL_STATE), target ::  TOTALPATH=TOTALPATH0
@@ -1193,6 +1193,7 @@ CONTAINS
     S2%DELTA=       S1%DELTA
     S2%SPIN=       S1%SPIN
     S2%MODULATION=       S1%MODULATION
+    S2%FULL_WAY=       S1%FULL_WAY
     !    S2%spin_dim=       S1%spin_dim
   END SUBROUTINE EQUALt
 
@@ -1300,6 +1301,21 @@ CONTAINS
        add%ENVELOPE   =  F
     ENDIF
     if(add%only_4d.and.add%only_2d) add%only_4d=my_false
+
+    add%RADIATION  =  S1%RADIATION.OR.S2%RADIATION
+    add%NOCAVITY =  S1%NOCAVITY.OR.S2%NOCAVITY
+    add%TIME     =  S1%TIME.OR.S2%TIME
+    add%FRINGE   =       S1%FRINGE.OR.S2%FRINGE
+    add%stochastic   =       S1%stochastic.OR.S2%stochastic
+    add%ENVELOPE   =       S1%ENVELOPE.OR.S2%ENVELOPE
+    add%ONLY_2D  =       S1%ONLY_2D.OR.S2%ONLY_2D
+    add%ONLY_4D  =       S1%ONLY_4D.OR.S2%ONLY_4D
+    add%DELTA  =       S1%DELTA.OR.S2%DELTA
+    add%SPIN  =       S1%SPIN.OR.S2%SPIN
+    add%MODULATION  =       S1%MODULATION.OR.S2%MODULATION
+    add%PARA_IN  =       S1%PARA_IN.OR.S2%PARA_IN.or.ALWAYS_knobs
+
+    ADD%FULL_WAY=ADD%RADIATION.OR.ADD%stochastic.OR.ADD%ENVELOPE.OR.ADD%SPIN.OR.ADD%MODULATION
   END FUNCTION add
 
   FUNCTION sub( S1, S2 )
@@ -1373,6 +1389,7 @@ CONTAINS
        sub%NOCAVITY =  T
        sub%stochastic   =  F
     ENDIF
+    sub%FULL_WAY=sub%RADIATION.OR.sub%stochastic.OR.sub%ENVELOPE.OR.sub%SPIN.OR.sub%MODULATION
   END FUNCTION sub
 
   FUNCTION PARA_REMA(S1)   ! UNARY +

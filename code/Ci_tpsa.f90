@@ -9621,16 +9621,27 @@ endif
      t1=t1+abs(je(i)-je(i+1)+m(j,kr))
      t2=t2+abs(je(i)-je(i+1)-m(j,kr))
     enddo
-        if(k==1) then
-         t1=t1+iabs(-spin_def_tune-ms(kr))
-         t2=t2+iabs(-spin_def_tune+ms(kr))
-        elseif(k==3) then
+!        if(k==1) then
+!         t1=t1+iabs(-spin_def_tune-ms(kr))
+!         t2=t2+iabs(-spin_def_tune+ms(kr))
+!        elseif(k==3) then
+!         t1=t1+iabs(spin_def_tune-ms(kr))
+!         t2=t2+iabs(spin_def_tune+ms(kr))
+!        else
+!         t1=t1+iabs(ms(kr))
+!         t2=t2+iabs(ms(kr))
+!        endif
+       if(k==1) then
          t1=t1+iabs(spin_def_tune-ms(kr))
          t2=t2+iabs(spin_def_tune+ms(kr))
+        elseif(k==3) then
+         t1=t1+iabs(-spin_def_tune-ms(kr))
+         t2=t2+iabs(-spin_def_tune+ms(kr))
         else
          t1=t1+iabs(ms(kr))
          t2=t2+iabs(ms(kr))
         endif
+
       if(t1==0.or.t2==0) removeit=my_false
 
     end subroutine check_resonance_spin
