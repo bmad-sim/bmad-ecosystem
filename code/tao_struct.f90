@@ -99,28 +99,6 @@ type tao_drawing_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape(:)
 end type
 
-type tao_wave_kick_pt_struct
-  real(rp) :: phi_s, phi_r, phi, amp
-  integer :: ix_dat
-end type  
-
-type tao_wave_struct     ! Struct for wave analysis
-  character(40) data_type
-  real(rp) rms_rel_a, rms_rel_b, rms_rel_as, rms_rel_bs, rms_rel_ar, rms_rel_br
-  real(rp) rms_rel_k, rms_rel_ks, rms_rel_kr 
-  real(rp) rms_phi, rms_phi_s, rms_phi_r
-  real(rp) amp_ba_s, amp_ba_r, chi_a, chi_c, chi_ba
-  real(rp) amp_a(2), amp_b(2), amp_ba(2)
-  real(rp) coef_a(4), coef_b(4), coef_ba(4)
-  integer n_func   ! Number of functions used in the fit.
-  integer :: ix_a1 = -1, ix_a2 = -1, ix_b1 = -1, ix_b2 = -1
-  integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
-  integer i_wrap_pt      ! Index of last point before wrap in curve array. 
-  integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
-  integer n_kick
-  type (tao_wave_kick_pt_struct), allocatable :: kick(:)
-end type
-
 !-----------------------------------------------------------------------
 ! Plot structures.
 
@@ -245,8 +223,8 @@ type tao_plot_struct
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  character(16) :: x_axis_type = ''           ! 'index', 'ele_index', 's', 'none',
-                                              !         'floor', or 'phase_space'
+  character(8) :: type = 'normal'             ! or 'wave'
+  character(16) :: x_axis_type = ''           ! 'index', 'ele_index', 's', 'none', 'floor', or 'phase_space'
   logical :: autoscale_x = .false.            ! Horizontal autoscale.
   logical :: autoscale_y = .false.            ! Vertical autoscale.
   logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
@@ -812,6 +790,33 @@ end type
 type tao_dynamic_aperture_struct
   type(aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
   real(rp), allocatable :: pz(:)
+end type
+
+!-----------------------------------------------------------------------
+! Wave analysis structures
+
+type tao_wave_kick_pt_struct
+  real(rp) :: phi_s, phi_r, phi, amp
+  integer :: ix_dat
+end type  
+
+type tao_wave_struct     ! Struct for wave analysis
+  character(40) data_type
+  real(rp) rms_rel_a, rms_rel_b, rms_rel_as, rms_rel_bs, rms_rel_ar, rms_rel_br
+  real(rp) rms_rel_k, rms_rel_ks, rms_rel_kr 
+  real(rp) rms_phi, rms_phi_s, rms_phi_r
+  real(rp) amp_ba_s, amp_ba_r, chi_a, chi_c, chi_ba
+  real(rp) amp_a(2), amp_b(2), amp_ba(2)
+  real(rp) coef_a(4), coef_b(4), coef_ba(4)
+  integer n_func   ! Number of functions used in the fit.
+  integer :: ix_a1 = -1, ix_a2 = -1, ix_b1 = -1, ix_b2 = -1
+  integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
+  integer i_wrap_pt      ! Index of last point before wrap in curve array. 
+  integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
+  integer n_kick
+  type (tao_wave_kick_pt_struct), allocatable :: kick(:)
+  type (tao_graph_struct) :: graph
+  type (ele_struct) :: ele
 end type
 
 !-----------------------------------------------------------------------

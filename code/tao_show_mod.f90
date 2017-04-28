@@ -3721,7 +3721,7 @@ case ('wave')
   nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b:', s%wave%ix_b1, s%wave%ix_b2
 
   select case (s%wave%data_type)
-  case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b')
+  case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_a
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_b
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_Kick/Kick: ', s%wave%rms_rel_k
@@ -3738,7 +3738,7 @@ case ('wave')
                   1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
-  case ('phase.a', 'phase.b')
+  case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_a
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_b
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_Kick/Kick: ', s%wave%rms_rel_k
@@ -3754,7 +3754,7 @@ case ('wave')
                   s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
-  case ('cbar.11', 'cbar.12', 'cbar.22')
+  case ('cbar.11', 'cbar.12', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x')
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+:  ', s%wave%rms_rel_as
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-:  ', s%wave%rms_rel_ar
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+:  ', s%wave%rms_rel_bs
@@ -3769,7 +3769,7 @@ case ('wave')
                                     'Chi_a:           ', s%wave%chi_a, ' [Figure of Merit]'
 
     nl=nl+1; lines(nl) = 'After Dat#     Norm_K    phi+    phi-   phi_a   phi_b'
-    do i = 1, min(s%wave%n_kick, 10)
+    do i = 1, min(s%wave%n_kick, 20)
       nl=nl+1; write(lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') &
             s%wave%kick(i)%ix_dat, &
             s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
@@ -3779,7 +3779,7 @@ case ('wave')
 
   end select
 
-  if (s%wave%n_kick > 10) then
+  if (s%wave%n_kick > 20) then
     nl=nl+1; lines(nl) = ' etc...'
   endif
 

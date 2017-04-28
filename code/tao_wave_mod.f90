@@ -1,8 +1,9 @@
 module tao_wave_mod
 
 use tao_utils
+use tao_graph_setup_mod
 
-type (tao_d1_data_struct), private, pointer, save :: d1_dat
+private ele_at_curve_point
 
 contains
 
@@ -12,7 +13,8 @@ contains
 !+
 ! Subroutine tao_wave_cmd (curve_name, plot_place, err)
 !
-! Routine to setup wave plotting.
+! Routine to do the initial setup for wave plotting.
+! The wave analysis is done by the routine tao_wave_analysis.
 !
 ! Input:
 !   curve_name  -- Character(*) curve for wave analysis.
@@ -30,15 +32,17 @@ type (tao_curve_struct), pointer :: curve
 type (tao_plot_region_struct), pointer :: region
 type (tao_plot_struct), save, target :: wave_plot
 type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: wg, wg1
-type (tao_curve_struct), pointer :: wc, wc1
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (tao_graph_struct), pointer :: wg, wg0
+type (tao_curve_struct), pointer :: wc, wc0
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_universe_struct), pointer :: u
+type (tao_d1_data_struct), pointer :: d1_dat
+type (branch_struct), pointer :: branch
 
 integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
-character(20) :: r_name = 'tao_wave_cmd'
+character(*), parameter :: r_name = 'tao_wave_cmd'
 
 logical :: init_needed = .true.
 logical err
@@ -50,11 +54,6 @@ if (err) return
 
 err = .true.
 
-if (size(curve_array) == 0) then
-  call out_io (s_error$, r_name, 'No curve found.')
-  return
-endif
-
 ix_curve = 0
 do i = 1, size(curve_array) 
   if (curve_array(i)%c%data_type /= curve_name) cycle
@@ -64,6 +63,11 @@ do i = 1, size(curve_array)
   endif
   ix_curve = i
 enddo
+
+if (ix_curve == 0) then
+  call out_io (s_error$, r_name, 'No displayed curve found with this name: ' // curve_name)
+  return
+endif
 
 curve => curve_array(ix_curve)%c
 plot => curve%g%p
@@ -78,30 +82,34 @@ else
 endif
 
 ! Initiate the wave plot.
-! There are four graphs. Each graph has a single curve.
-! The first graph holds the original curve
-! The other three graphs are: 
-!   2) extended original curve 
-!   3) curve - a_region_fit
-!   4) curve - b_region_fit
+! There are three graphs. Each graph has a single curve.
+!   Graph 1: extended original curve 
+!   Graph 2: curve - a_region_fit
+!   Graph 3: curve - b_region_fit
+! Also the original graph is saved in the s%wave structure
 
 if (init_needed) then
-  allocate(wave_plot%graph(4))
+  allocate(wave_plot%graph(3))
   init_needed = .false.
 endif
 
 ! Transfer curve information to the wave plot
 
 wave_plot%name        = 'wave'
+wave_plot%type        = 'wave'
 wave_plot%x_axis_type = plot%x_axis_type
 wave_plot%x           = plot%x
 wave_plot%autoscale_gang_x = .false.
 
 do i = 1, 4
-  wg => wave_plot%graph(i)
+  if (i == 4) then
+    wg => s%wave%graph
+  else
+    wg => wave_plot%graph(i)
+  endif
   wg = curve%g
   wg%x = plot%x
-  wg%box = [1, 5-i, 1, 3]
+  wg%box = [1, 4-i, 1, 3]
 
   if (size(wg%curve) /= 1) then
     deallocate (wg%curve)
@@ -112,41 +120,45 @@ do i = 1, 4
 enddo
 
 !! wave_plot%graph(1)%visible = .false.
-wave_plot%graph(2)%type = 'wave.0'  ! Extended origninal curve.
-wave_plot%graph(3)%type = 'wave.a'  ! Curve - A region fit.
-wave_plot%graph(4)%type = 'wave.b'  ! Curve - B region fit.
+wave_plot%graph(1)%type = 'wave.0'  ! Extended origninal curve.
+wave_plot%graph(2)%type = 'wave.a'  ! Curve - A region fit.
+wave_plot%graph(3)%type = 'wave.b'  ! Curve - B region fit.
 
-wave_plot%graph(2)%name = '0'  ! Extended origninal curve.
-wave_plot%graph(3)%name = 'a'  ! Curve - A region fit.
-wave_plot%graph(4)%name = 'b'  ! Curve - B region fit.
+wave_plot%graph(1)%name = '0'  ! Extended origninal curve.
+wave_plot%graph(2)%name = 'a'  ! Curve - A region fit.
+wave_plot%graph(3)%name = 'b'  ! Curve - B region fit.
 
 ! Set up curves to wrap around the lattice, etc.
 
-wg1 => wave_plot%graph(1)
-wc1 => wg1%curve(1)
+wg0 => s%wave%graph
+wc0 => wg0%curve(1)
 
-wc1%y_axis_scale_factor = 1
+wc0%y_axis_scale_factor = 1
 
-if (wc1%data_source == 'data' .or. wc1%data_source == 'data') then
-  call tao_find_data (err, wc1%data_type, d1_array = d1_array, ix_uni = wc1%ix_universe)
+u => tao_pointer_to_universe (curve%ix_universe)
+branch => u%model%lat%branch(0)
+
+if (wc0%data_source == 'data') then
+  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = wc0%ix_universe)
   d1_dat => d1_array(1)%d1
-  wg1%x%min = 0
-  if (wg1%x%max < ubound(d1_dat%d, 1)) wg1%x%max = ubound(d1_dat%d, 1)
+  wg0%x%min = 0
+  if (wg0%x%max < ubound(d1_dat%d, 1)) wg0%x%max = ubound(d1_dat%d, 1)
+!elseif (wc0%data_source == 'lat' .and. plot%x_axis_type == 's') then
+!  wg0%x%min = 0
+!  wg0%x%max = branch%ele(branch%n_ele_track)%s
 else
-  call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc1%data_source)
+  call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc0%data_source)
   return
 endif
 
-u => tao_pointer_to_universe (curve%ix_universe)
-
-do i = 2, 4
+do i = 1, 3
   wg => wave_plot%graph(i)
   p1 = nint(0.7 * wg%x%major_div_nominal)
   p2 = nint(1.3 * wg%x%major_div_nominal)
-  if (u%model%lat%param%geometry == closed$) then
-    call qp_calc_and_set_axis ('X', 0.0_rp, 1.5*wg1%x%max, p1, p2, 'GENERAL', wg%x%type)
+  if (branch%param%geometry == closed$) then
+    call qp_calc_and_set_axis ('X', 0.0_rp, 1.5*wg0%x%max, p1, p2, 'GENERAL', wg%x%type)
   else
-    call qp_calc_and_set_axis ('X', 0.0_rp, wg1%x%max, p1, p2, 'GENERAL', wg%x%type)
+    call qp_calc_and_set_axis ('X', 0.0_rp, wg0%x%max, p1, p2, 'GENERAL', wg%x%type)
   endif
   call qp_get_axis_attrib ('X', wg%x%min, wg%x%max, wg%x%major_div, wg%x%places)
 enddo
@@ -167,6 +179,13 @@ end subroutine tao_wave_cmd
 !+
 ! Subroutine tao_wave_analysis (plot)
 !
+! Routine to do a wave anaysis. 
+!
+! Input:
+!   plot      -- tao_plot_struct: Plot region setup by tao_wave_cmd.
+!
+! Output:
+!   plot      -- tao_plot_struct: Plot with wave analysis curves.
 !-
 
 subroutine tao_wave_analysis (plot)
@@ -174,51 +193,85 @@ subroutine tao_wave_analysis (plot)
 implicit none
 
 type (tao_plot_struct), target :: plot
-type (tao_graph_struct), pointer :: wg, wg1
-type (tao_curve_struct), pointer :: wc, wc1
+type (tao_graph_struct), pointer :: wg, wg0
+type (tao_curve_struct), pointer :: wc, wc0
 type (tao_universe_struct), pointer :: u
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (tao_d1_data_struct), pointer :: d1_dat
+type (branch_struct), pointer :: branch
 
-integer i, j, n, n_dat_arr, n_pt_curve, n_tot
+integer i, j, n, n_dat_arr, n_pt0, n_tot
 
-character(20) :: r_name = 'tao_wave_analysis'
+character(*), parameter :: r_name = 'tao_wave_analysis'
 character(40) dtype
 
 logical err
 
 !
 
+call tao_graph_setup (plot, s%wave%graph)
+
+plot%graph(1)%x%draw_label = .false.
+plot%graph(1)%x%draw_numbers = .false.
 plot%graph(2)%x%draw_label = .false.
 plot%graph(2)%x%draw_numbers = .false.
-plot%graph(3)%x%draw_label = .false.
-plot%graph(3)%x%draw_numbers = .false.
 
-plot%graph(3)%title = 'After A-Region Subtraction'
-plot%graph(4)%title = 'After B-Region Subtraction'
+plot%graph(2)%title = 'After A-Region Subtraction'
+plot%graph(3)%title = 'After B-Region Subtraction'
 
+plot%graph(2)%title_suffix = ''
 plot%graph(3)%title_suffix = ''
-plot%graph(4)%title_suffix = ''
 
 ! Transfer information from the base curve to the wave curves.
 ! First count how many points we will have
 
-wg1 => plot%graph(1)
-wc1 => wg1%curve(1)
+wg0 => s%wave%graph
+wc0 => wg0%curve(1)
 
-n_dat_arr = size(d1_dat%d)
-n_pt_curve = size(wc1%x_symb)
-s%wave%i_wrap_pt = n_pt_curve
+if (.not. allocated(wc0%x_line)) then
+  n_pt0 = size(wc0%x_symb)
+  allocate (wc0%x_line(n_pt0), wc0%y_line(n_pt0))
+  wc0%x_line = wc0%x_symb
+  wc0%y_line = wc0%y_symb
+  if (allocated(wc0%ix_symb)) then
+    call re_allocate(wc0%ix_line, n_pt0)
+    wc0%ix_line = wc0%ix_symb
+  endif
+elseif (.not. allocated(wc0%x_symb)) then
+  n_pt0 = size(wc0%x_line)
+  allocate (wc0%x_symb(n_pt0), wc0%y_symb(n_pt0))
+  wc0%x_symb  = wc0%x_line
+  wc0%y_symb  = wc0%y_line
+  if (allocated(wc0%ix_line)) then
+    call re_allocate(wc0%ix_symb, n_pt0)
+    wc0%ix_symb = wc0%ix_line
+  endif
+else
+  n_pt0 = size(wc0%x_symb)
+endif
 
-u => tao_pointer_to_universe (wc1%ix_universe)
+u => tao_pointer_to_universe (wc0%ix_universe)
+branch => u%model%lat%branch(0)
 
-if (u%model%lat%param%geometry == closed$) then
-  do i = 1, n_pt_curve
-    if (wc1%ix_symb(i) > nint(0.5 * n_dat_arr)) then
-      n_tot = n_pt_curve + i - 1
+s%wave%i_wrap_pt = n_pt0
+
+if (wc0%data_source == 'data') then
+  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = wc0%ix_universe)
+  d1_dat => d1_array(1)%d1
+  n_dat_arr = size(d1_dat%d)
+else
+  n_dat_arr = n_pt0
+endif
+
+if (branch%param%geometry == closed$ .and. wc0%data_source == 'data') then
+  do i = 1, n_pt0
+    if (wc0%ix_symb(i) > nint(0.5 * n_dat_arr)) then
+      n_tot = n_pt0 + i - 1
       exit
     endif
   enddo
 else
-  n_tot = n_pt_curve
+  n_tot = n_pt0
 endif
 
 ! Init the region placements if needed.
@@ -226,13 +279,13 @@ endif
 if (s%wave%ix_a1 == -1) then
   s%wave%ix_a1 = 5
   s%wave%ix_a2 = 15
-  s%wave%ix_b1 = n_pt_curve - 15
-  s%wave%ix_b2 = n_pt_curve - 5
+  s%wave%ix_b1 = n_pt0 - 15
+  s%wave%ix_b2 = n_pt0 - 5
 endif
 
 ! Transfer the data to th wave arrays
 
-do i = 2, 4
+do i = 1, 3
   wg => plot%graph(i)
   wc => wg%curve(1)
   call re_allocate (wc%x_line, n_tot)
@@ -242,19 +295,19 @@ do i = 2, 4
   call re_allocate (wc%ix_symb, n_tot)
   call re_allocate (s%wave%ix_data, n_tot)
 
-  wc%x_symb(1:n_pt_curve)  = wc1%x_symb
-  wc%y_symb(1:n_pt_curve)  = wc1%y_symb
-  wc%ix_symb(1:n_pt_curve) = wc1%ix_symb
+  wc%x_symb(1:n_pt0)  = wc0%x_symb
+  wc%y_symb(1:n_pt0)  = wc0%y_symb
+  wc%ix_symb(1:n_pt0) = wc0%ix_symb
 
-  wc%x_symb(n_pt_curve+1:n_tot)  = wc1%x_symb(1:n_tot-n_pt_curve) + n_dat_arr
-  wc%y_symb(n_pt_curve+1:n_tot)  = wc1%y_symb(1:n_tot-n_pt_curve)
-  wc%ix_symb(n_pt_curve+1:n_tot) = wc1%ix_symb(1:n_tot-n_pt_curve)
+  wc%x_symb(n_pt0+1:n_tot)  = wc0%x_symb(1:n_tot-n_pt0) + n_dat_arr
+  wc%y_symb(n_pt0+1:n_tot)  = wc0%y_symb(1:n_tot-n_pt0)
+  wc%ix_symb(n_pt0+1:n_tot) = wc0%ix_symb(1:n_tot-n_pt0)
 
   wc%x_line = wc%x_symb
   wc%y_line = wc%y_symb
 
-  s%wave%ix_data(1:n_pt_curve) = wc1%ix_symb
-  s%wave%ix_data(n_pt_curve+1:n_tot) = wc1%ix_symb(1:n_tot-n_pt_curve) + n_dat_arr  
+  s%wave%ix_data(1:n_pt0) = wc0%ix_symb
+  s%wave%ix_data(n_pt0+1:n_tot) = wc0%ix_symb(1:n_tot-n_pt0) + n_dat_arr  
 
 enddo
 
@@ -284,21 +337,36 @@ endif
 
 ! Specific analysis
 
-dtype = plot%graph(1)%curve(1)%data_type
+dtype = s%wave%graph%curve(1)%data_type
 s%wave%data_type = dtype
 
-if (dtype(1:5) == 'orbit' .or. dtype(1:4) == 'beta' .or. dtype(1:2) == 'eta' .or. &
-    dtype == 'ping_a.amp_x' .or. dtype == 'ping_b.amp_y') then
+select case (dtype)
+case ('orbit.x', 'orbit.y', 'beta.a', 'beta.b', 'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y')
   call tao_orbit_beta_wave_anal (plot)
-elseif (dtype(1:5) == 'phase' .or. dtype == 'ping_a.phase_x' .or. dtype == 'ping_b.phase_y') then
+
+case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
   call tao_phase_wave_anal (plot)
-elseif (dtype(1:7) == 'cbar.12') then
+
+case ('cbar.12', 'cbar.11', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x')
   call tao_cbar_wave_anal (plot)
-elseif (dtype(1:7) == 'cbar.11' .or. dtype(1:7) == 'cbar.22' .or. dtype(1:7) == 'cbar.21') then
-  call out_io (s_error$, r_name, 'THIS CBAR COMPONENT NOT YET IMPLMENTED. TRY CBAR.12')
-else
+
+case ('cbar.21')
+  call out_io (s_error$, r_name, 'WAVE ANALYSIS IS NOT POSSIBLE FOR CBAR.21')
+
+case default
   call out_io (s_error$, r_name, 'INVALID CURVE DATA_SOURCE FOR THIS OPERATION: ' // dtype)
-endif
+end select
+
+!
+
+do i = 1, 3
+  wg => plot%graph(i)
+  wc => wg%curve(1)
+  wc%x_symb = wc%x_symb * wg%x_axis_scale_factor
+  wc%y_symb = wc%y_symb * wc%y_axis_scale_factor
+  wc%x_line = wc%x_line * wg%x_axis_scale_factor
+  wc%y_line = wc%y_line * wc%y_axis_scale_factor
+enddo
 
 end subroutine tao_wave_analysis
 
@@ -318,6 +386,7 @@ type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (tao_curve_struct), pointer :: curve
+type (ele_struct), pointer :: ele
 
 real(rp) dphi, coef_a(2), coef_b(2), coef_ba(2)
 real(rp) rms_a(3), rms_b(3), rms_ba(3)
@@ -325,14 +394,14 @@ real(rp), allocatable :: phi(:), sin_phi(:), cos_phi(:)
 real(rp) amp_a, amp_b, amp_ba, beta, tune
 real(rp) phi0, phi1
 
-integer i, j, ix, n_track, n_curve_pt, ix_ele, m_min, m_max, nc
+integer i, j, n_track, n_curve_pt, m_min, m_max, nc
 
 character(20) data_type
-character(40) :: r_name = 'tao_orbit_beta_wave_anal'
+character(*), parameter :: r_name = 'tao_orbit_beta_wave_anal'
 
 ! Init
 
-curve => plot%graph(2)%curve(1)
+curve => plot%graph(1)%curve(1)
 u => tao_pointer_to_universe (curve%ix_universe)
 lat => u%model%lat
 
@@ -348,9 +417,9 @@ if (data_type(1:3) == 'eta') data_type = 'orbit' // trim(data_type(4:))
 
 allocate (phi(n_curve_pt), sin_phi(n_curve_pt), cos_phi(n_curve_pt))
 
-if (data_type == 'orbit.x' .or. data_type == 'beta.a') then
+if (data_type == 'orbit.x' .or. data_type == 'beta.a' .or. data_type(1:6) == 'ping_a') then
   tune = lat%ele(n_track)%a%phi
-elseif (data_type == 'orbit.y' .or. data_type == 'beta.b') then
+elseif (data_type == 'orbit.y' .or. data_type == 'beta.b' .or. data_type(1:6) == 'ping_b') then
   tune = lat%ele(n_track)%b%phi
 else
   call err_exit
@@ -358,19 +427,17 @@ endif
 
 do i = 1, n_curve_pt
 
-  ix = curve%ix_symb(i)
-
   dphi = 0
   if (i > s%wave%i_wrap_pt) dphi = tune
 
-  ix_ele = d1_dat%d(ix)%ix_ele
+  ele => ele_at_curve_point(plot, i)
 
   if (data_type == 'orbit.x' .or. data_type == 'beta.a' .or. data_type(1:6) == 'ping_a') then
-    phi(i) = lat%ele(ix_ele)%a%phi + dphi
-    beta = lat%ele(ix_ele)%a%beta
+    phi(i) = ele%a%phi + dphi
+    beta = ele%a%beta
   elseif (data_type == 'orbit.y' .or. data_type == 'beta.b' .or. data_type(1:6) == 'ping_b') then
-    phi(i) = lat%ele(ix_ele)%b%phi + dphi
-    beta = lat%ele(ix_ele)%b%beta
+    phi(i) = ele%b%phi + dphi
+    beta = ele%b%beta
   endif
 
   if (data_type(1:5) == 'orbit') then
@@ -398,13 +465,11 @@ call tao_wave_fit (curve, s%wave%i_b1, s%wave%n_b, coef_b, rms_b, sin_phi, cos_p
 
 ! Put the results into the plot
 
-plot%graph(3)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                                  coef_a(1) * sin_phi - coef_a(2) * cos_phi
-plot%graph(4)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                                  coef_b(1) * sin_phi - coef_b(2) * cos_phi
+plot%graph(2)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_a(1) * sin_phi - coef_a(2) * cos_phi
+plot%graph(3)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_b(1) * sin_phi - coef_b(2) * cos_phi
 
+plot%graph(2)%curve(1)%y_line = plot%graph(2)%curve(1)%y_symb
 plot%graph(3)%curve(1)%y_line = plot%graph(3)%curve(1)%y_symb
-plot%graph(4)%curve(1)%y_line = plot%graph(4)%curve(1)%y_symb
 
 ! Compute the possible places between the regions where there could be a kick
 
@@ -484,6 +549,7 @@ type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (tao_curve_struct), pointer :: curve
+type (ele_struct), pointer :: ele
 
 real(rp) dphi, coef_a(3), coef_b(3), coef_ba(3)
 real(rp) rms_a(4), rms_b(4), rms_ba(4)
@@ -491,13 +557,13 @@ real(rp), allocatable :: phi(:), sin_2phi(:), cos_2phi(:), one(:)
 real(rp) amp_a, amp_b, amp_ba, beta, tune
 real(rp) phi2_0, phi2_1, kick_amp
 
-integer i, j, ix, n_track, n_curve_pt, ix_ele, m_min, m_max, nc
+integer i, j, n_track, n_curve_pt, m_min, m_max, nc
 
-character(40) :: r_name = 'tao_phase_wave_anal'
+character(*), parameter :: r_name = 'tao_phase_wave_anal'
 
 ! Init
 
-curve => plot%graph(2)%curve(1)
+curve => plot%graph(1)%curve(1)
 u => tao_pointer_to_universe (curve%ix_universe)
 lat => u%model%lat
 
@@ -516,17 +582,15 @@ endif
 
 do i = 1, n_curve_pt
 
-  ix = curve%ix_symb(i)
-
   dphi = 0
   if (i > s%wave%i_wrap_pt) dphi = tune
 
-  ix_ele = d1_dat%d(ix)%ix_ele
+  ele => ele_at_curve_point(plot, i)
 
   if (curve%data_type == 'phase.a') then
-    phi(i) = lat%ele(ix_ele)%a%phi + dphi
+    phi(i) = ele%a%phi + dphi
   elseif (curve%data_type == 'phase.b') then
-    phi(i) = lat%ele(ix_ele)%b%phi + dphi
+    phi(i) = ele%b%phi + dphi
   endif
 
   sin_2phi(i) = sin(2*phi(i))
@@ -543,13 +607,11 @@ call tao_wave_fit (curve, s%wave%i_b1, s%wave%n_b, coef_b, rms_b, sin_2phi, cos_
 
 ! Put the results into the plot
 
-plot%graph(3)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                    coef_a(1) * sin_2phi - coef_a(2) * cos_2phi - coef_a(3) * one
-plot%graph(4)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - &
-                    coef_b(1) * sin_2phi - coef_b(2) * cos_2phi - coef_b(3) * one
+plot%graph(2)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_a(1) * sin_2phi - coef_a(2) * cos_2phi - coef_a(3) * one
+plot%graph(3)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_b(1) * sin_2phi - coef_b(2) * cos_2phi - coef_b(3) * one
 
+plot%graph(2)%curve(1)%y_line = plot%graph(2)%curve(1)%y_symb
 plot%graph(3)%curve(1)%y_line = plot%graph(3)%curve(1)%y_symb
-plot%graph(4)%curve(1)%y_line = plot%graph(4)%curve(1)%y_symb
 
 ! Compute the possible places between the regions where there could be a kick
 
@@ -575,8 +637,8 @@ if (coef_ba(3) < 0) phi2_0 = phi2_0 + pi
 
 !
 
-m_min = int((2*phi(s%wave%i_a2) - phi2_0)/twopi) + 1
-m_max = int((2*phi(s%wave%i_b1) - phi2_0)/twopi)
+m_min = int((phi(s%wave%i_a2) - phi2_0)/pi) + 1
+m_max = int((phi(s%wave%i_b1) - phi2_0)/pi)
 
 nc = m_max - m_min + 1
 s%wave%n_kick = nc
@@ -588,7 +650,7 @@ endif
 nc = 0
 do i = m_min, m_max
   nc = nc + 1
-  phi2_1 = i * twopi + phi2_0
+  phi2_1 = i * pi + phi2_0
   s%wave%kick(nc)%amp = kick_amp
   do j = s%wave%i_a2, s%wave%i_b1
     if (2*phi(j) < phi2_1) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
@@ -609,11 +671,8 @@ else
   s%wave%chi_c     = abs(abs(coef_ba(3)) - amp_ba) / abs(kick_amp)
   s%wave%rms_rel_a = sqrt(rms_a(1)**2 + rms_a(2)**2) / amp_a
   s%wave%rms_rel_b = sqrt(rms_b(1)**2 + rms_b(2)**2) / amp_b
-  s%wave%rms_rel_k = sqrt(rms_ba(1)**2 * coef_ba(1)**2 + &
-                          rms_ba(2)**2 * coef_ba(2)**2 + &
-                          rms_ba(3)**2 * coef_ba(3)**2) / kick_amp**2
-  s%wave%rms_phi   = sqrt(rms_ba(2)**2 * coef_ba(1)**2 +  &
-                          rms_ba(1)**2 * coef_ba(2)**2) / (2 * amp_ba**2)
+  s%wave%rms_rel_k = sqrt(rms_ba(1)**2 * coef_ba(1)**2 + rms_ba(2)**2 * coef_ba(2)**2 + rms_ba(3)**2 * coef_ba(3)**2) / kick_amp**2
+  s%wave%rms_phi   = sqrt(rms_ba(2)**2 * coef_ba(1)**2 + rms_ba(1)**2 * coef_ba(2)**2) / (2 * amp_ba**2)
 endif
 
 ! Cleanup
@@ -637,8 +696,8 @@ implicit none
 type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele
 type (tao_curve_struct), pointer :: curve
+type (ele_struct), pointer :: ele
 
 real(rp) coef_a(4), coef_b(4), coef_ba(4)
 real(rp) rms_a(5), rms_b(5), rms_ba(5)
@@ -646,13 +705,13 @@ real(rp), allocatable :: phi_s(:), phi_r(:), sin_s(:), sin_r(:), cos_s(:), cos_r
 real(rp) amp_as, amp_ar, amp_bs, amp_br, amp_ba_s, amp_ba_r, beta, tune_s, tune_r
 real(rp) phi0_s, phi0_r, phi1_s, phi1_r, phi_r_ave, sqrt_beta
 
-integer i, j, m, n, ix, n_track, n_curve_pt, ix_ele, m_min, m_max, nc
+integer i, j, m, n, n_track, n_curve_pt, m_min, m_max, nc
 
-character(40) :: r_name = 'tao_cbar_wave_anal'
+character(*), parameter :: r_name = 'tao_cbar_wave_anal'
 
 ! Init
 
-curve => plot%graph(2)%curve(1)
+curve => plot%graph(1)%curve(1)
 u => tao_pointer_to_universe (curve%ix_universe)
 lat => u%model%lat
 
@@ -666,10 +725,7 @@ tune_s = lat%ele(n_track)%a%phi + lat%ele(n_track)%b%phi
 tune_r = lat%ele(n_track)%a%phi - lat%ele(n_track)%b%phi
 
 do i = 1, n_curve_pt
-  ix = curve%ix_symb(i)
-
-  ix_ele = d1_dat%d(ix)%ix_ele
-  ele => lat%ele(ix_ele)
+  ele => ele_at_curve_point(plot, i)
 
   phi_s(i) = ele%a%phi + ele%b%phi
   phi_r(i) = ele%a%phi - ele%b%phi
@@ -707,15 +763,11 @@ call tao_wave_fit (curve, s%wave%i_b1, s%wave%n_b, coef_b, rms_b, sin_s, cos_s, 
 
 ! Put the results into the plot
 
-plot%graph(3)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - coef_a(1) * sin_s - coef_a(2) * cos_s - &
-                                                                coef_a(3) * sin_r - coef_a(4) * cos_r
+plot%graph(2)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_a(1) * sin_s - coef_a(2) * cos_s - coef_a(3) * sin_r - coef_a(4) * cos_r
+plot%graph(3)%curve(1)%y_symb = plot%graph(1)%curve(1)%y_symb - coef_b(1) * sin_s - coef_b(2) * cos_s - coef_b(3) * sin_r - coef_b(4) * cos_r
 
-plot%graph(4)%curve(1)%y_symb = plot%graph(2)%curve(1)%y_symb - coef_b(1) * sin_s - coef_b(2) * cos_s - &
-                                                                coef_b(3) * sin_r - coef_b(4) * cos_r
-
+plot%graph(2)%curve(1)%y_line = plot%graph(2)%curve(1)%y_symb
 plot%graph(3)%curve(1)%y_line = plot%graph(3)%curve(1)%y_symb
-
-plot%graph(4)%curve(1)%y_line = plot%graph(4)%curve(1)%y_symb
 
 ! Compute the possible places between the regions where there could be a kick
 
@@ -926,5 +978,51 @@ value = f_com(1:ma, nint(x))
 end function tao_wave_funcs
 
 end subroutine tao_wave_fit
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+
+function ele_at_curve_point (plot, ix_pt) result (ele)
+
+implicit none
+
+type (tao_plot_struct), target :: plot
+type (ele_struct), pointer :: ele
+type (tao_curve_struct), pointer :: curve, curve2
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (tao_universe_struct), pointer :: u
+type (tao_d1_data_struct), pointer :: d1_dat
+type (branch_struct), pointer :: branch
+
+real(rp) s_pos
+
+integer ix_pt
+integer ix, ix_ele
+
+logical err
+
+!
+
+curve => s%wave%graph%curve(1)
+
+curve2 => plot%graph(1)%curve(1)
+
+u => tao_pointer_to_universe (curve%ix_universe)
+branch => u%model%lat%branch(0)
+
+if (curve%data_source == 'data') then
+  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
+  d1_dat => d1_array(1)%d1
+  ix = curve2%ix_symb(ix_pt)
+  ix_ele = d1_dat%d(ix)%ix_ele
+  ele => branch%ele(ix_ele)
+else
+  s_pos = curve%x_line(ix_pt)
+  ele => s%wave%ele
+  call twiss_and_track_at_s (u%model%lat, s_pos, ele, u%design%tao_branch(branch%ix_branch)%orbit, ix_branch = branch%ix_branch)
+endif
+
+end function ele_at_curve_point
 
 end module

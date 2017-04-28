@@ -1344,10 +1344,13 @@ analysis (\sref{c:wave}). The components are
   ix_a = <ix_a1> <ix_a2>  ! A-region left and right boundaries.
   ix_b = <ix_b1> <ix_b2>  ! B-region left and right boundaries.
 \end{example}
+
 Example:
 \begin{example}
   set wave ix_a = 15 27    ! Set A-region to span from datum #15 to #27
 \end{example}
+
+Note: Use the \vn{wave} command (\sref{s:wave}) first to setup the display of the wave analysis.
 
 %--------------------------------------------------------------------------
 %% show --------------------------------------------------------------
@@ -2418,8 +2421,8 @@ do not all point to the same lattice elements.
 \section{wave}\index{commands!wave}
 \label{s:wave}
 
-The \vn{wave} command sets what data is to be used for the wave
-analysis (\sref{c:wave}). Format:
+The \vn{wave} command sets what data is to be used for the wave analysis (\sref{c:wave}). 
+Format:
 \begin{example}
   wave <curve> \{<plot_location>\}
 \end{example}
@@ -2431,6 +2434,21 @@ specified curve must be visible in the plot window.  The \vn{<plot_location>} ar
 specifies the plot region where the results of the wave analysis is to be plotted. If not
 present, the region defaults to the region of the plot containing the curve used for the
 analysis.
+
+Possible \vn{<curve>}s that can be analyzed are:
+\begin{example}
+  orbit.x, orbit.y
+  beta.a,  beta.b
+  phase.a, phase.b
+  eta.x, eta.y
+  cbar.11, cbar.12, cbar.21      ! Analysis not possible for cbar.21
+  ping_a.amp_x, ping_a.phase_x
+  ping_a.sin_y, ping_a.cos_y
+  ping_b.amp_y, ping_b.phase_y
+  ping_b.sin_x, ping_b.cos_x
+\end{example}
+
+Note: use the \vn{set wave} (\sref{s:set.wave}) command to set the boundries of the fit regions.
 
 Examples:
 \begin{example}
