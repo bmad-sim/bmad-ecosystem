@@ -15,6 +15,7 @@ use tao_mod
 use tao_graph_setup_mod
 use tao_scale_mod
 use tao_x_scale_mod
+use tao_wave_mod
 
 implicit none
 
@@ -62,6 +63,11 @@ plot_loop: do ir = 1, size(s%plot_page%region)
 
   if (plot%autoscale_gang_x .and. (plot%x%major_div < 0 .or. plot%x%min == plot%x%max)) &
                                            call tao_x_scale_plot (plot, plot%x%min, plot%x%max)
+
+  if (plot%type == 'wave') then
+    call tao_wave_analysis(plot)
+    cycle
+  endif
 
   ! Loop over all graphs
 

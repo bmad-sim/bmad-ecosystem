@@ -12,7 +12,7 @@ implicit none
 
 integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
 
-private tao_this_data_calc
+private tao_scratch_values_calc
 
 contains
 
@@ -1914,10 +1914,10 @@ case ('ping_a.')
     valid_value = .true.
 
   case ('ping_a.amp_y')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
     endif
     valid_value = .true.
@@ -1925,36 +1925,28 @@ case ('ping_a.')
   case ('ping_a.phase_y')
     datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
     endif
     valid_value = .true.
 
   case ('ping_a.sin_y')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
-    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
-    datum_value = amp * sin(phase)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
-      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
-      datum_value = datum_value - amp * sin(phase)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      datum_value = datum_value + sqrt(ele_ref%b%beta) * scratch%cc(ix_ref)%cbar(1,2)
     endif
     valid_value = .true.
 
   case ('ping_a.cos_y')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
-    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
-    datum_value = amp * cos(phase)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(2,2)
 
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
-      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
-      datum_value = datum_value - amp * cos(phase)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      datum_value = datum_value + sqrt(ele_ref%b%beta) * scratch%cc(ix_ref)%cbar(2,2)
     endif
     valid_value = .true.
   end select
@@ -1977,48 +1969,42 @@ case ('ping_b.')
     valid_value = .true.
 
   case ('ping_b.amp_x')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
     endif
     valid_value = .true.
 
   case ('ping_b.phase_x')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
     endif
     valid_value = .true.
 
   case ('ping_b.sin_x')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
-    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
-    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
-    datum_value = amp * sin(phase)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    datum_value = -sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
-      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
-      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
-      datum_value = datum_value - amp * sin(phase)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      datum_value = datum_value + sqrt(ele_ref%a%beta) * scratch%cc(ix_ref)%cbar(1,2)
     endif
+    valid_value = .true.
 
   case ('ping_b.cos_x')
-    call tao_this_data_calc (ix_ele, datum, branch, orbit)
-    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
-    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
-    datum_value = amp * cos(phase)
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    datum_value = sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,1)
 
     if (associated(ele_ref)) then
-      call tao_this_data_calc (ix_ref, datum, branch, orbit)
-      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
-      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
-      datum_value = datum_value - amp * cos(phase)
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      datum_value = datum_value - sqrt(ele_ref%a%beta) * scratch%cc(ix_ref)%cbar(1,1)
     endif
+    valid_value = .true.
   end select
 
 !-----------
@@ -2771,7 +2757,7 @@ endif
 ! Set up refrence value
 
 if (ix_ref > -1) then
-  if (present(orbit)) call tao_this_data_calc (ix_ref, datum, branch, orbit)
+  if (present(orbit)) call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
   ref_value = vec(ix_ref)
   if (present(good)) then
     if (.not. good(ix_ref)) then
@@ -2788,7 +2774,7 @@ endif
 ! If ele_start does not exist
 
 if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
-  if (present(orbit)) call tao_this_data_calc (ix_ele, datum, branch, orbit)
+  if (present(orbit)) call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
@@ -2813,10 +2799,10 @@ if (ix_ele < ix_start) then   ! wrap around
 
   if (present(orbit)) then
     do i = ix_start, n_track
-      call tao_this_data_calc (i, datum, branch, orbit)
+      call tao_scratch_values_calc (i, datum, branch, orbit)
     enddo
     do i = 0, ix_ele
-      call tao_this_data_calc (i, datum, branch, orbit)
+      call tao_scratch_values_calc (i, datum, branch, orbit)
     enddo
   endif
 
@@ -2873,7 +2859,7 @@ if (ix_ele < ix_start) then   ! wrap around
 else
   if (present(orbit)) then
     do i = ix_start, ix_ele
-      call tao_this_data_calc (i, datum, branch, orbit)
+      call tao_scratch_values_calc (i, datum, branch, orbit)
     enddo
   endif
 
@@ -3003,7 +2989,7 @@ end subroutine integrate_max
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine tao_this_data_calc (ix_ele, datum, branch, orbit)
+subroutine tao_scratch_values_calc (ix_ele, datum, branch, orbit)
 
 type (ele_struct), pointer :: ele
 type (this_array_struct), pointer :: cc_p
@@ -3049,7 +3035,7 @@ case ('orbit.')
 
 end select
 
-end subroutine tao_this_data_calc
+end subroutine tao_scratch_values_calc
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

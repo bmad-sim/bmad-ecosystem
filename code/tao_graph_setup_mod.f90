@@ -13,8 +13,6 @@ contains
 
 subroutine tao_graph_setup (plot, graph)
 
-use tao_wave_mod, only: tao_wave_analysis
-
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -63,9 +61,6 @@ case ('histogram')
 
 case ('dynamic_aperture')
   call tao_graph_dynamic_aperture_setup (plot, graph)
-
-case ('wave.0')  ! Everything done with 'wave.0' graph. 'wave.a' and 'wave.b' are ignored .
-  call tao_wave_analysis(plot)
 
 end select
 
