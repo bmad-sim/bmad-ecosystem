@@ -42,6 +42,10 @@ type (branch_struct), pointer :: branch
 integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
+character(16), parameter :: wave_data_names(19) = [character(16):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
+    'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y', 'phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y', &
+    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x']
+
 character(*), parameter :: r_name = 'tao_wave_cmd'
 
 logical :: init_needed = .true.
@@ -49,24 +53,39 @@ logical err
 
 ! Find the curve
 
-call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
-if (err) return
+if (any(curve_name == wave_data_names)) then
 
-err = .true.
+  call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
+  if (err) return
 
-ix_curve = 0
-do i = 1, size(curve_array) 
-  if (curve_array(i)%c%data_type /= curve_name) cycle
-  if (ix_curve /= 0) then
-    call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+  err = .true.
+
+  ix_curve = 0
+  do i = 1, size(curve_array)
+    if (curve_array(i)%c%data_type /= curve_name) cycle
+    if (ix_curve /= 0) then
+      call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+      return
+    endif
+    ix_curve = i
+  enddo
+
+  if (ix_curve == 0) then
+    call out_io (s_error$, r_name, 'No displayed curve found with this name: ' // curve_name)
     return
   endif
-  ix_curve = i
-enddo
 
-if (ix_curve == 0) then
-  call out_io (s_error$, r_name, 'No displayed curve found with this name: ' // curve_name)
-  return
+else
+  call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, always_allocate = .true.)
+  ix_curve = 0
+  do i = 1, size(curve_array) 
+    if (.not. any(curve_array(i)%c%data_type == wave_data_names)) cycle
+    if (ix_curve /= 0) then
+      call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+      return
+    endif
+    ix_curve = i
+  enddo
 endif
 
 curve => curve_array(ix_curve)%c
@@ -572,9 +591,9 @@ n_curve_pt = size(curve%x_symb)
 
 allocate (phi(n_curve_pt), sin_2phi(n_curve_pt), cos_2phi(n_curve_pt), one(n_curve_pt))
 
-if (curve%data_type == 'phase.a' .or. curve%data_type == 'bing_a.phase_x') then
+if (curve%data_type == 'phase.a' .or. curve%data_type == 'ping_a.phase_x') then
   tune = lat%ele(n_track)%a%phi
-elseif (curve%data_type == 'phase.b' .or. curve%data_type == 'bing_b.phase_y') then
+elseif (curve%data_type == 'phase.b' .or. curve%data_type == 'ping_b.phase_y') then
   tune = lat%ele(n_track)%b%phi
 else
   call err_exit

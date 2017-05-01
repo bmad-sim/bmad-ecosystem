@@ -2429,13 +2429,8 @@ Format:
 
 \vskip 0.1 in
 
-The \vn{<curve>} argument specifies what plot curve is to be used in the analysis. The
-specified curve must be visible in the plot window.  The \vn{<plot_location>} argument
-specifies the plot region where the results of the wave analysis is to be plotted. If not
-present, the region defaults to the region of the plot containing the curve used for the
-analysis.
-
-Possible \vn{<curve>}s that can be analyzed are:
+The \vn{<curve>} argument specifies what plot curve is to be used in the analysis. The specified
+curve must be visible in the plot window. Possible \vn{<curve>}s that can be analyzed are:
 \begin{example}
   orbit.x, orbit.y
   beta.a,  beta.b
@@ -2447,6 +2442,11 @@ Possible \vn{<curve>}s that can be analyzed are:
   ping_b.amp_y, ping_b.phase_y
   ping_b.sin_x, ping_b.cos_x
 \end{example}
+
+The \vn{<plot_location>} argument
+specifies the plot region where the results of the wave analysis is to be plotted. If not
+present, the region defaults to the region of the plot containing the curve used for the
+analysis.
 
 Note: use the \vn{set wave} (\sref{s:set.wave}) command to set the boundries of the fit regions.
 
