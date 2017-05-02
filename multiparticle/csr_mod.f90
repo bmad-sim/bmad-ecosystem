@@ -389,7 +389,7 @@ type (csr_struct), target :: csr
 type (this_local_struct), allocatable :: tloc(:)
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval
+real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot
 real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f, last_sig_x, last_sig_y
 
 integer i, j, n, ix0, ib, ib2, ic
@@ -447,6 +447,7 @@ tloc%ib = -1
 ! between the particle and the bin.
  
 ic = 0
+c_tot = 0    ! Used for debugging sanity check
 do i = 1, size(particle)
   p => particle(i)
   if (p%state /= alive$) cycle
@@ -465,6 +466,7 @@ do i = 1, size(particle)
     slice%charge = slice%charge + charge
     slice%x0 = slice%x0 + p%vec(1) * charge
     slice%y0 = slice%y0 + p%vec(3) * charge
+    c_tot = c_tot + charge
     ic = ic + 1
     tloc(ic)%charge = charge
     tloc(ic)%x0 = p%vec(1)
@@ -572,8 +574,8 @@ endif
 
 z1 = max(zp_center, z0_bin)  ! left integration edge
 z2 = min(zp1, z1_bin)        ! right integration edge
-if (z2 > z1) then         ! If right particle half is in bin ...
-  overlap = 2 * real(((z1 - zp1)**2 - (z2 - zp1)**2), rp) / dz_particle**2
+if (z2 > z1) then            ! If right particle half is in bin ...
+  overlap = overlap + 2 * real(((z1 - zp1)**2 - (z2 - zp1)**2), rp) / dz_particle**2
 endif
 
 end function particle_overlap_in_bin
