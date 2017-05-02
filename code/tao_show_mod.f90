@@ -1558,7 +1558,7 @@ case ('graph')
   if (allocated(graph)) then
     g => graph(1)%g
     if (associated(g%p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%name) // '.' // trim(g%name)
+      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
     nl=nl+1; write(lines(nl), amt)  'type                             = ', g%type
