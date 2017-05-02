@@ -70,11 +70,6 @@ if (any(curve_name == wave_data_names)) then
     ix_curve = i
   enddo
 
-  if (ix_curve == 0) then
-    call out_io (s_error$, r_name, 'No displayed curve found with this name: ' // curve_name)
-    return
-  endif
-
 else
   call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, always_allocate = .true.)
   ix_curve = 0
@@ -86,6 +81,11 @@ else
     endif
     ix_curve = i
   enddo
+endif
+
+if (ix_curve == 0) then
+  call out_io (s_error$, r_name, 'No displayed curve found with this name: ' // curve_name)
+  return
 endif
 
 curve => curve_array(ix_curve)%c
