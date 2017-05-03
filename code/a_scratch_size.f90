@@ -87,13 +87,13 @@ module precision_constants
   logical(lp),  public :: longprint = my_true
 
    real(dp) :: A_particle=A_ELECTRON
-   real(dp),parameter::pmae=5.10998946131e-4_dp     ! NIST CODATA 2014
+   real(dp),parameter::pmae=5.109989461e-4_dp     ! NIST CODATA 2014
    real(dp),parameter::pmae_amu=5.4461702177e-4_dp  ! NIST CODATA 2014 [GeV]
-   real(dp),parameter::pmap=0.938272081358e0_dp     ! NIST CODATA 2014 [GeV]
+   real(dp),parameter::pmap=0.9382720813e0_dp     ! NIST CODATA 2014 [GeV]
    real(dp),parameter::CLIGHT=2.99792458e8_dp       ! exact [m/s]
-   real(dp),parameter::hbar=6.58211951440e-25_dp    ! NIST CODATA 2014 [GeV*s]
-   real(dp),parameter::dhbar=1.05457180013e-34_dp   ! NIST CODATA 2014 [J*s]
-   real(dp),parameter::qelect=1.602176620898e-19_dp ! NIST CODATA 2014 [A*s]
+   real(dp),parameter::hbar=6.582119514e-25_dp    ! NIST CODATA 2014 [GeV*s]
+   real(dp),parameter::dhbar=1.054571800e-34_dp   ! NIST CODATA 2014 [J*s]
+   real(dp),parameter::qelect=1.6021766208e-19_dp ! NIST CODATA 2014 [A*s]
    real(dp),parameter::eps_0=8.854187817e-12_dp     ! exact [A*S/V*m]
    real(dp),parameter::class_e_radius=qelect/4.0_dp/pi/eps_0/pmae/1e9_dp ![m]
    real(dp),parameter::CGAM=4.0_dp*pi/3.0_dp*class_e_radius/pmae**3 ![m/Gev^3] old: 8.846056192e-5_dp
