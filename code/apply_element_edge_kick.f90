@@ -1,5 +1,5 @@
 !+
-! Subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time)
+! Subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
 !
 ! Subroutine, used with runge_kutta and boris tracking, to track through the edge fringe field of an element.
 ! This routine is used and with the bmad_standard field_calc where the field can have an abrubt, 
@@ -17,22 +17,23 @@
 ! Additionally, Any element that has an electric multipole has an edge kick.
 !
 ! Input:
-!   orb         -- Coord_struct: Starting coords in element reference frame.
-!   fringe_info -- fringe_edge_info_struct: Fringe information.
-!   track_ele   -- ele_struct: Element being tracked through. Is different from fringe_info%hard_ele
-!                    when there are superpositions and track_ele can be a super_slave of fringe_info%hard_ele.
-!   param       -- lat_param_struct: lattice parameters.
-!   track_spin  -- logical: Track the spin?
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before fringe.
-!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
-!   rf_time     -- real(rp), optional: RF clock time. If not present then the time will be calculated using the standard algorithm.
+!   orb               -- Coord_struct: Starting coords in element reference frame.
+!   fringe_info       -- fringe_edge_info_struct: Fringe information.
+!   track_ele         -- ele_struct: Element being tracked through. Is different from fringe_info%hard_ele
+!                          when there are superpositions and track_ele can be a super_slave of fringe_info%hard_ele.
+!   param             -- lat_param_struct: lattice parameters.
+!   track_spin        -- logical: Track the spin?
+!   mat6(6,6)         -- Real(rp), optional: Transfer matrix before fringe.
+!   make_matrix       -- logical, optional: Propagate the transfer matrix? Default is false.
+!   rf_time           -- real(rp), optional: RF clock time. If not present then the time will be calculated using the standard algorithm.
+!   apply_sol_fringe  -- logical, optional: Apply the solenoid fringe kick? Default is True.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after application of the edge fringe field.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
 
-subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time)
+subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
 
 use track1_mod, except_dummy => apply_element_edge_kick
 
@@ -52,7 +53,7 @@ complex(rp) xiy, c_vec
 
 integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_elec_max
 
-logical, optional :: make_matrix
+logical, optional :: make_matrix, apply_sol_fringe
 logical finished, track_spin, track_spn
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
@@ -137,12 +138,14 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = at_sign * rel_tracking_charge_to_mass(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
-  orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
-  orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
-  if (track_spn) then
-    f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
-    call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
+  if (logic_option(.true., apply_sol_fringe)) then
+    ks = at_sign * rel_tracking_charge_to_mass(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
+    orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
+    orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
+    if (track_spn) then
+      f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
+      call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
+    endif
   endif
 
 case (lcavity$, rfcavity$, e_gun$)

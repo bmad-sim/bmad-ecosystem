@@ -267,6 +267,7 @@ end subroutine multipole1_kt_to_ab
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   include_kicks -- logical, optional: If True, include hkick/vkick in the n = 0 components.
+!                      Also include sextupole k2 and octupole k3 components.
 !                      Default is False.
 !
 ! Output:
@@ -346,10 +347,9 @@ else
   endif
 endif
 
-! Include h/v kicks?
+! Include h/v & k2/k3 kicks?
 
-if (logic_option(.false., include_kicks)) call multipole_include_kicks (ele, use_ele_tilt, a(0), b(0), pole_type)
-
+if (logic_option(.false., include_kicks)) call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
 
 ix_pole_max = max_nonzero(0, a, b)
 
@@ -505,26 +505,27 @@ end subroutine multipole_ele_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_include_kicks (ele, use_ele_tilt, a0, b0, pole_type)
+! Subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
 !
-! Routine to add in the hkick/vkick element components into the a0 and b0 multipole components.
+! Routine to add in the hkick/vkick element components along with k2 and k3 (but not k1)
+! values into the a and b multipole components.
 !
 ! Input:
 !   ele           -- ele_struct: Lattice element.
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   a0, b0        -- real(rp): Existing skew and normal multipole components.    
+!   a(0:), b(0:)  -- real(rp): Existing skew and normal multipole components.    
 !
 ! Output:
-!   a0, b0        -- real(rp): Skew and normal multipole components with kick values added in.
+!   a(0:), b(0:)  -- real(rp): Skew and normal multipole components with kick values added in.
 
-subroutine multipole_include_kicks (ele, use_ele_tilt, a0, b0, pole_type)
+subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
 
 implicit none
 
 type (ele_struct) ele
 
-real(rp) a0, b0, hk, vk, tilt, cos_t, sin_t
+real(rp) a(0:), b(0:), hk, vk, tilt, cos_t, sin_t
 
 integer, optional :: pole_type
 integer tilt_dir
@@ -566,6 +567,8 @@ else ! electric
   end select
 endif
 
+!
+
 if (hk /= 0 .or. vk /= 0) then
   if (use_ele_tilt) tilt_dir = tilt_dir + 1
 
@@ -578,13 +581,51 @@ if (hk /= 0 .or. vk /= 0) then
   if (tilt /= 0) then
     cos_t = cos(tilt)
     sin_t = sin(tilt)
-    b0 = b0 + hk * cos_t + vk * sin_t
-    a0 = a0 - hk * sin_t + vk * cos_t
+    b(0) = b(0) + hk * cos_t + vk * sin_t
+    a(0) = a(0) - hk * sin_t + vk * cos_t
   else
-    b0 = b0 + hk 
-    a0 = a0 + vk
+    b(0) = b(0) + hk 
+    a(0) = a(0) + vk
   endif
 endif
+
+!
+
+if (integer_option(magnetic$, pole_type) == magnetic$) then
+  select case (ele%key)
+  case (sbend$)
+    call add_in_this_multipole (ele%value(ref_tilt_tot$), 2, ele%value(k2$))
+
+  case (sextupole$)
+    call add_in_this_multipole (ele%value(tilt_tot$), 2, ele%value(k2$))
+
+  case (octupole$)
+    call add_in_this_multipole (ele%value(tilt_tot$), 3, ele%value(k3$))
+  end select
+endif
+
+!-------------------------
+contains
+
+subroutine add_in_this_multipole (tilt, n, kn)
+
+real(rp) tilt, kn, t, kk
+integer n
+
+!
+
+if (kn == 0) return
+kk = kn * ele%value(l$) / factorial(n)
+
+if (use_ele_tilt .and. tilt /= 0) then
+  t = (n+1) * tilt
+  b(n) = b(n) + kk * cos(t)
+  a(n) = a(n) - kk * sin(t)
+else
+  b(n) = b(n) + kk
+endif
+
+end subroutine add_in_this_multipole
 
 end subroutine multipole_include_kicks
 

@@ -1,10 +1,11 @@
 !+
-! Subroutine solenoid_track_and_mat (ele, param, start_orb, end_orb, mat6)
+! Subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
 !
 ! Routine to track a particle through a solenoid element.
 !
 ! Input:
 !   ele          -- Ele_struct: Solenoid element.
+!   length       -- real(rp): Length to track
 !   param        -- lat_param_struct: Lattice parameters.
 !   start_orb    -- Coord_struct: Starting position.
 !   make_matrix  -- Logical: If True then make the transfer matrix.
@@ -14,7 +15,7 @@
 !   mat6(6,6)    -- real(rp), optional :: Transfer matrix. 
 !-
 
-subroutine solenoid_track_and_mat (ele, param, start_orb, end_orb, mat6)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
 
 use make_mat6_mod, except_dummy => solenoid_track_and_mat
 
@@ -33,7 +34,6 @@ real(rp) dpz_dx, dpz_dpx, dpz_dy, dpz_dpy, vec0(6)
 
 vec0 = start_orb%vec
 end_orb = start_orb
-length = ele%value(l$)
 rel_p = 1 + start_orb%vec(6)
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 

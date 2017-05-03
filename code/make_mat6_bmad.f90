@@ -817,7 +817,7 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
-  call solenoid_track_and_mat (ele, param, c00, c00, mat6)
+  call solenoid_track_and_mat (ele, length, param, c00, c00, mat6)
   call offset_particle (ele, param, unset$, c00)
 
   call add_multipoles_and_z_offset (.true.)

@@ -22,7 +22,7 @@ use make_mat6_mod, dummy => track_a_sad_mult
 implicit none
 
 type (coord_struct) :: orbit
-type (ele_struct), target :: ele, ele2, ele3
+type (ele_struct), target :: ele, ele2
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
@@ -131,18 +131,16 @@ call soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, present(ma
 ! Body
 
 knl = knl / n_div
-call transfer_ele(ele, ele3)
 
 do nd = 0, n_div
 
   ll = length / n_div
   if (nd == 0 .or. nd == n_div) ll = ll / 2
-  ele3%value(l$) = ll
 
   ! 
 
   if (abs(k1) < 1d-40) then
-    call solenoid_track_and_mat (ele3, param, orbit, orbit, mat1)
+    call solenoid_track_and_mat (ele, ll, param, orbit, orbit, mat1)
     if (present(mat6)) mat6 = matmul(mat1, mat6)
 
   else

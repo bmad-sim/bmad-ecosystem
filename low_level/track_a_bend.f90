@@ -66,11 +66,6 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (ele%value(k2$) /= 0) then
-  bn(2) = bn(2) + ele%value(k2$) * ele%value(l$) / 2
-  ix_pole_max = max(ix_pole_max, 2)
-endif
-
 ! Set some parameters
 
 g = ele%value(g$)
