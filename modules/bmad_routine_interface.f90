@@ -26,7 +26,7 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   character(*), optional :: use_line
 end subroutine
 
-subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time)
+subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
   import
   implicit none
   type (coord_struct) orb
@@ -34,7 +34,7 @@ subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_sp
   type (ele_struct) hard_ele, track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6), rf_time
-  logical, optional :: make_matrix
+  logical, optional :: make_matrix, apply_sol_fringe
   logical track_spin
 end subroutine
 
@@ -935,12 +935,13 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   logical ok
 end subroutine
 
-subroutine solenoid_track_and_mat (ele, param, start_orb, end_orb, mat6)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   import
   implicit none
   type (ele_struct) ele
   type (lat_param_struct) param
   type (coord_struct) start_orb, end_orb
+  real(rp) length
   real(rp), optional :: mat6(:,:)
 end subroutine
 
@@ -1071,6 +1072,16 @@ subroutine track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
 end subroutine
 
 subroutine track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
+subroutine track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit

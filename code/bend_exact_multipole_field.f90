@@ -788,8 +788,7 @@ else
 endif
 
 b_pole(1) = b_pole(1) + bend_in%value(k1$) * bend_in%value(l$)
-b_pole(2) = b_pole(2) + bend_in%value(k2$) * bend_in%value(l$) / 2
-call multipole_include_kicks (bend_out, .false., a_pole(0), b_pole(0))
+call multipole_include_kicks (bend_out, .false., a_pole, b_pole)
 
 !
 

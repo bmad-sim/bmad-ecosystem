@@ -29,7 +29,12 @@ real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k1l, length, k_z
 
 logical, optional :: make_matrix
 
-!
+! Only periodic type wigglers are handled here.
+! In the horizontal plane the tracking looks like a drift.
+! The tracking in the vertical plane is:
+!   1) 1/2 the octupole kick at the entrance face.
+!   2) Track as a quadrupole through the body
+!   3) 1/2 the octupole kick at the exit face.
 
 z_start = orbit%vec(5)
 t_start = orbit%t
