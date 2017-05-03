@@ -10,6 +10,7 @@ type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
+type (track_struct) track
 
 character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
@@ -93,7 +94,11 @@ do ib = 0, ubound(lat%branch, 1)
                                     default_tracking_species(branch%param), E_photon = ele%value(p0c$) * 1.006)
       start_orb%field = [1, 2]
 
-      call track1 (start_orb, ele, branch%param, end_orb)
+      if (print_extra) then
+        call track1 (start_orb, ele, branch%param, end_orb, track = track)
+      else
+        call track1 (start_orb, ele, branch%param, end_orb)
+      endif
 
       final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
       if (ele%key == e_gun$) then
