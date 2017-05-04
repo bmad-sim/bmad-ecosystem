@@ -58,8 +58,6 @@ if (any(curve_name == wave_data_names)) then
   call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
   if (err) return
 
-  err = .true.
-
   ix_curve = 0
   do i = 1, size(curve_array)
     if (curve_array(i)%c%data_type /= curve_name) cycle
@@ -72,6 +70,8 @@ if (any(curve_name == wave_data_names)) then
 
 else
   call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, always_allocate = .true.)
+  if (err) return
+
   ix_curve = 0
   do i = 1, size(curve_array) 
     if (.not. any(curve_array(i)%c%data_type == wave_data_names)) cycle
@@ -167,6 +167,7 @@ if (wc0%data_source == 'data') then
 !  wg0%x%max = branch%ele(branch%n_ele_track)%s
 else
   call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc0%data_source)
+  err = .true.
   return
 endif
 
@@ -187,8 +188,6 @@ enddo
 call tao_plot_struct_transfer (wave_plot, region%plot)
 region%visible = .true.
 region%plot%r => region
-
-err = .false.
 
 end subroutine tao_wave_cmd
 
@@ -338,10 +337,8 @@ s%wave%n_a = 0
 s%wave%n_b = 0
 
 do i = 1, n_tot
-  if (s%wave%ix_a1 <= s%wave%ix_data(i) .and. s%wave%ix_data(i) <= s%wave%ix_a2) &
-                                                       s%wave%n_a = s%wave%n_a + 1
-  if (s%wave%ix_b1 <= s%wave%ix_data(i) .and. s%wave%ix_data(i) <= s%wave%ix_b2) &
-                                                       s%wave%n_b = s%wave%n_b + 1
+  if (s%wave%ix_a1 <= s%wave%ix_data(i) .and. s%wave%ix_data(i) <= s%wave%ix_a2) s%wave%n_a = s%wave%n_a + 1
+  if (s%wave%ix_b1 <= s%wave%ix_data(i) .and. s%wave%ix_data(i) <= s%wave%ix_b2) s%wave%n_b = s%wave%n_b + 1
   if (s%wave%ix_data(i) >= s%wave%ix_a1 .and. s%wave%i_a1 == -1) s%wave%i_a1 = i
   if (s%wave%ix_data(i) >= s%wave%ix_b1 .and. s%wave%i_b1 == -1) s%wave%i_b1 = i
 enddo
@@ -574,7 +571,7 @@ real(rp) dphi, coef_a(3), coef_b(3), coef_ba(3)
 real(rp) rms_a(4), rms_b(4), rms_ba(4)
 real(rp), allocatable :: phi(:), sin_2phi(:), cos_2phi(:), one(:)
 real(rp) amp_a, amp_b, amp_ba, beta, tune
-real(rp) phi2_0, phi2_1, kick_amp
+real(rp) phi2_0, phi_kick, kick_amp
 
 integer i, j, n_track, n_curve_pt, m_min, m_max, nc
 
@@ -591,13 +588,14 @@ n_curve_pt = size(curve%x_symb)
 
 allocate (phi(n_curve_pt), sin_2phi(n_curve_pt), cos_2phi(n_curve_pt), one(n_curve_pt))
 
-if (curve%data_type == 'phase.a' .or. curve%data_type == 'ping_a.phase_x') then
+select case (curve%data_type)
+case ('phase.a', 'ping_a.phase_x')
   tune = lat%ele(n_track)%a%phi
-elseif (curve%data_type == 'phase.b' .or. curve%data_type == 'ping_b.phase_y') then
+case ('phase.b', 'ping_b.phase_y')
   tune = lat%ele(n_track)%b%phi
-else
+case default
   call err_exit
-endif
+end select
 
 do i = 1, n_curve_pt
 
@@ -606,11 +604,12 @@ do i = 1, n_curve_pt
 
   ele => ele_at_curve_point(plot, i)
 
-  if (curve%data_type == 'phase.a') then
+  select case (curve%data_type)
+  case ('phase.a', 'ping_a.phase_x')
     phi(i) = ele%a%phi + dphi
-  elseif (curve%data_type == 'phase.b') then
+  case ('phase.b', 'ping_b.phase_y')
     phi(i) = ele%b%phi + dphi
-  endif
+  end select
 
   sin_2phi(i) = sin(2*phi(i))
   cos_2phi(i) = cos(2*phi(i))
@@ -644,7 +643,7 @@ amp_ba = sqrt(sum(coef_ba(1:2)**2))
 ! kick_amp is k of quad so positive k means horizontal focusing.
 
 kick_amp = -sign(amp_ba, coef_ba(3)) - coef_ba(3)
-if (curve%data_type == 'phase.a') kick_amp = -kick_amp
+if (curve%data_type == 'phase.a' .or. curve%data_type == 'ping_a.phase_x') kick_amp = -kick_amp
 
 if (coef_ba(1) == 0 .and. coef_ba(2) == 0) then
   phi2_0 = 0
@@ -656,8 +655,8 @@ if (coef_ba(3) < 0) phi2_0 = phi2_0 + pi
 
 !
 
-m_min = int((phi(s%wave%i_a2) - phi2_0)/pi) + 1
-m_max = int((phi(s%wave%i_b1) - phi2_0)/pi)
+m_min = int((2*phi(s%wave%i_a2) - phi2_0)/pi) + 1
+m_max = int((2*phi(s%wave%i_b1) - phi2_0)/pi)
 
 nc = m_max - m_min + 1
 s%wave%n_kick = nc
@@ -669,13 +668,13 @@ endif
 nc = 0
 do i = m_min, m_max
   nc = nc + 1
-  phi2_1 = i * pi + phi2_0
-  s%wave%kick(nc)%amp = kick_amp
+  phi_kick = (i * pi + phi2_0) / 2
   do j = s%wave%i_a2, s%wave%i_b1
-    if (2*phi(j) < phi2_1) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
+    if (phi(j) < phi_kick) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
   enddo
-  if (phi2_1 > 2 * tune) phi2_1 = phi2_1 - 2 * tune
-  s%wave%kick(nc)%phi = phi2_1 / 2
+  if (phi_kick > tune) phi_kick = phi_kick - tune
+  s%wave%kick(nc)%phi = phi_kick
+  s%wave%kick(nc)%amp = kick_amp * (-1)**i
 enddo
 
 ! Compute the fit rms

@@ -155,12 +155,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     meas_value = data(j)%meas_value
     ref_value = data(j)%ref_value
 
-    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:3) /= 'phase') then
+    if (data(j)%d1%d2%name == 'ping_a' .and. data(j)%d1%name(1:5) /= 'phase') then
       meas_value = meas_value * u%ping_scale%a_mode_meas
       ref_value  = ref_value  * u%ping_scale%a_mode_ref
     endif
 
-    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:3) /= 'phase') then
+    if (data(j)%d1%d2%name == 'ping_b' .and. data(j)%d1%name(1:5) /= 'phase') then
       meas_value = meas_value * u%ping_scale%b_mode_meas
       ref_value  = ref_value  * u%ping_scale%b_mode_ref
     endif
