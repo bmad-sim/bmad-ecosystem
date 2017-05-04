@@ -494,3 +494,12 @@ fi
 ulimit -S -c 0
 ulimit -S -s 10240
 ulimit -S -d 25165824
+
+#--------------------------------------------------------------
+# Set Build Linker Flags
+#--------------------------------------------------------------
+if [ -e ${ACC_UTIL}/build_flags_config ] ; then
+    . ${ACC_UTIL}/build_flags_config
+fi
+
+
