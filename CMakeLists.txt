@@ -29,12 +29,6 @@ SET (FFLAGS "-fPIC")
 SET (LINK_FLAGS "-fPIC")
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
-    SET (PLOT_LINK_LIBS "pgplot")
-  ELSE ()
-    SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
-  ENDIF ()
-
   SET (SHARED_DEPS
     bmad 
     xsif
