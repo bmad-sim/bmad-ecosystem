@@ -48,9 +48,5 @@ export TAO_DIR=$DIST_BASE_DIR/tao
 #--------------------------------------------------------------
 export ACC_ENABLE_FPIC=Y
 
-#--------------------------------------------------------------
-# Set Build Linker Flags
-#--------------------------------------------------------------
-if [ -e ${ACC_ROOT_DIR}/util/build_flags_config ] ; then
-    . ${ACC_ROOT_DIR}/util/build_flags_config
-fi
+
+
