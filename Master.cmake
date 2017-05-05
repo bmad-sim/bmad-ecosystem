@@ -208,37 +208,43 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
 ENDIF ()
 
 #-----------------------------------
-# Link Library Definitions 
+# Readline Library Definitions 
 #-----------------------------------
 SET (READLINE_LINK_LIBS readline)
 SET (READLINE_LINK_FLAGS "-lreadline")
 
-SET (STDCXX_LINK_LIBS stdc++)
-SET (STDCXX_LINK_FLAGS "-lstdc++")
-
 #-----------------------------------
-# Plotting Library Linker Flags
+# Plotting library compiler flag
 #-----------------------------------
-
-SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
-
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
 
   IF (${DISTRIBUTION_BUILD})
-    IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
-      SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
-    ELSE ()
-      SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
-    ENDIF ()
+     IF ($ENV{ACC_ROOT_DIR}/${CMAKE_BUILD_TYPE}/lib/*plplotf77d*)
+     	SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+     ELSE ()
+     	SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
+     ENDIF ()
+
+     IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
+       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
+     ELSE ()
+       SET (PLOT_LINK_FLAGS "-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
+     ENDIF ()
+
   ELSE ()
-    SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
+     IF ($ENV{ACC_ROOT_DIR}/${CMAKE_BUILD_TYPE}/lib/*plplotf77d*)
+       SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+     ELSE ()
+       SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
+       SET (PLOT_LINK_FLAGS "-lX11 -lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread")
+     ENDIF ()
   ENDIF ()
 
   IF (${MSYS})
-    # Assuming Qt backend:
+      # Assuming Qt backend:
       SET (SHARED_LINK_LIBS QtSvg4 QtGui4 QtCore4 ${SHARED_LINK_LIBS})
-    ELSE ()
+  ELSE ()
       SET (SHARED_LINK_LIBS cairo pango-1.0 pangocairo-1.0 gobject-2.0 ${SHARED_LINK_LIBS})
   ENDIF ()
 
@@ -247,9 +253,11 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
 ELSE ()
   IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
     SET (PLOT_LIBRARY_F_FLAG "-DCESR_PGPLOT")
-    SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
+    SET (PLOT_LINK_LIBS "pgplot")
+    SET (PLOT_LINK_FLAGS "-lX11")
   ENDIF ()
 ENDIF ()
+
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   SET (ACC_PLOT_LIB_DIRS /usr/lib64)
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
