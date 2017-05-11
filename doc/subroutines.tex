@@ -1,7 +1,7 @@
 \chapter{Bmad Library Routine List}
 
 Below are a list of \bmad and sim_utils routines sorted by their
-functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf}) 
+functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf})
 scripts for more information on individual routines.
 This list includes low level routines that are not generally used in
 writing code for a program but may be useful in certain unique
@@ -104,7 +104,7 @@ Routine to track a bunch of particles through an element.
 
 \index[routine]{track1_bunch_hom}
 \label{r:track1.bunch.hom}
-\item[track1_bunch_hom (bunch_start, ele, param, bunch_end)] \Newline 
+\item[track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)] \Newline 
 Routine to track a bunch of particles through an element.
 
 \end{description}
@@ -161,7 +161,7 @@ Subroutine to reallocate particles within a bunch_struct.
 
 \index[routine]{track_beam}
 \label{r:track.beam}
-\item[track_beam (lat, beam, ele1, ele2, err, centroid)] \Newline 
+\item[track_beam (lat, beam, ele1, ele2, err, centroid, direction)] \Newline 
      Routine to track a beam of particles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
@@ -260,8 +260,8 @@ Routine to calculate the Touschek lifetime for a lat.
 \index[routine]{apply_element_edge_kick_hook}
 \label{r:apply.element.edge.kick.hook}
 \item[\protect\parbox{6in}{
-  apply_element_edge_kick_hook (orb, fringe_info, t_rel, track_ele, param, \\
-  \hspace*{1in} finished, mat6, make_matrix) }] \Newline 
+  apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, \\
+  \hspace*{1in} finished, mat6, make_matrix, rf_time) }] \Newline 
 
 Routine that can be customized to track through the edge field of an element.
 This routine is always called by apply_element_edge_kick.
@@ -286,7 +286,7 @@ This routine is always called by ele_to_fibre.
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
 \item[\protect\parbox{6in}{
-  em_field_custom(ele, param, s_rel, time, orb, local_ref_frame, field, \\
+  em_field_custom(ele, param, s_rel, orb, local_ref_frame, field, \\
   \hspace*{1in} calc_dfield, err_flag) }] \Newline
 Custom routine for calculating fields.
 
@@ -354,9 +354,9 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
-    em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, \\
+    em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, \\
     \hspace*{1in} calc_dfield, err_flag, potential, use_overlap, \\
-    \hspace*{1in} grid_allow_s_out_of_bounds) }] \Newline 
+    \hspace*{1in} grid_allow_s_out_of_bounds, rf_time, used_eles) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -1069,12 +1069,12 @@ Routine to return the transformation matrix for an x_pitch.
 
 \index[routine]{w_mat_for_y_pitch}
 \label{r:w.mat.for.y.pitch}
-\item[w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)] \Newline 
+\item[w_mat_for_y_pitch (y_pitch, return_inverse)] \Newline 
 Routine to return the transformation matrix for an y_pitch.
 
 \index[routine]{w_mat_for_tilt}
 \label{r:w.mat.for.tilt}
-\item[w_mat_for_tilt (tilt, w_mat, w_mat_inv)] \Newline 
+\item[w_mat_for_tilt (tilt, return_inverse)] \Newline 
 Routine to return the transformation matrix for an tilt.
 
 \end{description}
@@ -1300,7 +1300,7 @@ Routine to allocate or re-allocate an element array.
 
 \index[routine]{control_bookkeeper}
 \label{r:control.bookkeeper}
-\item[control_bookkeeper (lat, ele, mark_eles_as_stale)] \Newline
+\item[control_bookkeeper (lat, ele, err_flag)] \Newline
 Routine to calculate the combined strength of the attributes for
 controlled elements.
 
@@ -1753,7 +1753,7 @@ A multi_lord will be found for:
 
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
-\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk, pole_type, scale)] \Newline 
+\item[ab_multipole_kick (a, b, n, ref_species, ele_orientation, coord, kx, ky, dk, pole_type, scale)] \Newline 
 Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
@@ -1773,18 +1773,18 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b, pole_type, include_kicks)] \Newline
+\item[multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt, pole_type)] \Newline
+\item[multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type)] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
 \index[routine]{multipole_init}
 \label{r:multipole.init}
-\item[multipole_init(ele, zero)] \Newline
+\item[multipole_init(ele, who, zero)] \Newline
 Routine to initialize the multipole arrays within an element.
 
 \index[routine]{multipole_kick}
@@ -2967,7 +2967,7 @@ and the 0th order transfer vector.
 
 \index[routine]{sort_taylor_terms}
 \label{r:sort.taylor.terms}
-\item[sort_taylor_terms (taylor_in, taylor_sorted)] \Newline
+\item[sort_taylor_terms (taylor_in, taylor_sorted, min_val)] \Newline
 Routine to sort the taylor terms from "lowest" to "highest" of a
 Taylor series.
 
@@ -2985,7 +2985,7 @@ Taylor1 $\le$ Taylor2
 
 \index[routine]{transfer_map_calc}
 \label{r:transfer.map.calc}
-\item[transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
+\item[transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start) ] \Newline 
 Routine to calculate the transfer map between two elements.
 
 \index[routine]{transfer_map_from_s_to_s}
@@ -3029,7 +3029,7 @@ Routine to invert a taylor map.
 
 \index[routine]{taylor_propagate1}
 \label{r:taylor.propagate1}
-\item[taylor_propagate1 (bmad_taylor, ele, param)] \Newline
+\item[taylor_propagate1 (bmad_taylor, ele, param, track_particle)] \Newline
 Routine to track a real_8 taylor map through an element. 
 The alternative routine, if ele has a taylor series, is concat_taylor. 
 
@@ -3069,7 +3069,7 @@ The following routines perform tracking and closed orbit calculations.
 
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
-\item[check_aperture_limit (orb, ele, particle_at, param, check_momentum)] \Newline
+\item[check_aperture_limit (orb, ele, particle_at, param, orb_old, check_momentum)] \Newline
 Routine to check if an orbit is outside an element's aperture. 
 
 \index[routine]{check_aperture_limit_custom}
@@ -3079,7 +3079,7 @@ Used when \vn{ele%aperture_type} is set to \vn{custom\$}
 
 \index[routine]{closed_orbit_calc}
 \label{r:closed.orbit.calc}
-\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)] \Newline 
+\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)] \Newline 
 Routine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
@@ -3118,8 +3118,8 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, param, set, coord, set_tilt, \\
-    \hspace*{1in} set_multipoles, set_hvkicks, set_z_offset, ds_pos, set_spin)} ] \Newline
+    offset_particle (ele, param, set, coord, set_tilt, set_multipoles, \\
+    \hspace*{1in} set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)} ] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -3131,7 +3131,7 @@ the photon position to correspond to the local crystal or mirror coordinates.
 
 \index[routine]{orbit_amplitude_calc}
 \label{r:orbit.amplitude.calc}
-\item[orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb, particle)] \Newline
+\item[orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)] \Newline
 Routine to calculate the "invariant" amplitude of a particle at a 
 particular point in its orbit. 
 
@@ -3155,7 +3155,7 @@ instead rotating the particle position with negative the angle.
 
 \index[routine]{track1}
 \label{r:track1}
-\item[track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)] \Newline
+\item[track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)] \Newline
 Routine to track through a single element. 
 
 \index[routine]{track1_beam_simple}
@@ -3259,7 +3259,7 @@ Routine to track 1 step using boris tracking.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, length, mat6, make_matrix)] \Newline
+\item[track_a_drift (orb, length, mat6, make_matrix, include_ref_motion)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
