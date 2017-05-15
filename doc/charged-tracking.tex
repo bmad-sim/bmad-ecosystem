@@ -714,8 +714,9 @@ the T-BMT equation (\Eq{tbmt}).
 \label{s:csr.track}
 \index{coherent synchrotron radiation!tracking}
 
-The coherent synchrotron radiation (CSR) component of the CSR simulation (\sref{s:csr}) is
-detailed in the paper by Sagan\cite{b:csr}.
+The coherent synchrotron radiation (CSR) component of the CSR simulation (\sref{s:csr}) is detailed
+in the paper by Sagan\cite{b:csr} with the modification to be able to handle off-axis beams as
+discussed in Sagan and Mayes\cite{b:csr2}.
 
 The space charge (SC) component of the CSR simulaiton is diveded into two parts: A
 longitudinal and a transverse part. The transverse part uses the same Bassetti--Erskine
@@ -771,18 +772,17 @@ approximant of form
   \int_{\zeta_{ij}-dz_{slice}/2}^{\zeta_{ij}+dz_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
   \simeq \frac{1}{a_{00} + a_{20} x^2 + a_{40} x^4 + a_{02} y^2 + a_{04} y^4 + a_{22} x^2 \, y^2}
 \end{equation}
-the \vn{a_{mn}} are calculated from an analytic formula derived from integrating
-\Eq{kelsz}. The reason for using this form is that it is a resonable approximation even
-for very large $x$ or $y$ in that the the actual and approximate kick both go to zero in
-this limit. That this Pad{\'e} approximant is reasonable is dependent upon the fact that
-all the e$a_{mn}$ are either positive or negative. Kicks from different slices can be
-combined using standard Differential Algebra techniques to give a summed kick in the same
-form as above. To avoid divergences, for a given $j$ where the kick is evaluated, all the
-kicks from slices with negative coefficients are combined together and all the kicks from
-slices with positive coefficients are combined together and the total kick is then the sum
-of the ``positive kick'' part and the ``negative kick'' part. The kick applied to a
-particle is calculated by first evaluating the kick, at the particle's $x$ and $y$, at the
-neighboring slices and then using linear interpolation.
+the \vn{a_{mn}} are calculated from an analytic formula derived from integrating \Eq{kelsz}. The
+reason for using this form is that it is a resonable approximation even for very large $x$ or $y$ in
+that the the actual and approximate kick both go to zero in this limit. That this Pad{\'e}
+approximant is reasonable is dependent upon the fact that all the $a_{mn}$ for a slice are either
+all positive or all negative. Kicks from different slices can be combined using standard
+Differential Algebra techniques to give a summed kick in the same form as above. To avoid
+divergences, for a given $j$ where the kick is evaluated, all the kicks from slices with negative
+coefficients are combined together and all the kicks from slices with positive coefficients are
+combined together and the total kick is then the sum of the ``positive kick'' part and the
+``negative kick'' part. The kick applied to a particle is calculated by first evaluating the kick,
+at the particle's $x$ and $y$, at the neighboring slices and then using linear interpolation.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

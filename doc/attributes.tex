@@ -1947,19 +1947,18 @@ Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \end{example}
 
 \index{r0_mag}\index{scale_multipoles}
-Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned
-to them both magnetic and electric multipole fields. In this case, the
-magnetic fields are specified using the same convention as the
-\vn{ab_multipole}.  For such non-multipole elements, the magnetic multipole
-strength is scaled by a factor $F \, r_0^{n_\text{ref}} / r_0^n$
-(cf.~\Eq{ababf}) where $F$ is the strength of the element (for example
-$F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the ``measurement
-radius'' and is set by the \vn{r0_mag} attribute. The default value of
-$r_0$, if the \vn{r0_mag} is not given, is 1.0.  This behavior may be
+Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned to them both magnetic and
+electric multipole fields. In this case, the magnetic fields are specified using the same convention
+as the \vn{ab_multipole}.  For such non-multipole elements, the magnetic multipole strength is
+scaled by a factor $F \, r_0^{n_\text{ref}} / r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of
+the element (for example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the ``measurement
+radius'' and is set by the \vn{r0_mag} attribute. The default value of $r_0$.  This behavior may be
 turned off by setting the \vn{scale_multipoles} attribute.  Example:
 \begin{example}
   q1: quadrupole, b2 = 0.12, a20 = 1e7, scale_multipoles = F
 \end{example}
+Alternatively, a value of zero (the default) for \vn{r0_mag} is equivalent to setting
+\vn{scale_multipoles} to False.
 
 Electric multipoles are specified using normal (\vn{Bn_elec}) and skew
 (\vn{An_elec}) components. \begin{example}
@@ -1975,7 +1974,8 @@ Example:
 \end{example}
 See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric
 multipoles are never scalled by the element's field strength as they are with magnetic
-multipoles.
+multipoles. If the value of \vn{r0_elec} is zero (the default) the multipoles will not
+be scalled. 
 
 Unlike magnetic multipoles, there are no factors of the reference momentum nor the element
 length in the definition for electric multipoles. That is, electric multipole values

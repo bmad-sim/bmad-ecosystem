@@ -102,7 +102,8 @@ contains
 ! Input:
 !   bunch_start  -- Bunch_struct: Starting bunch position.
 !   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
-!   centroid(0:) -- coord_struct, Beam centroid orbit for the lattice branch containing ele.
+!   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
+!                     Hint: Calculate this before beam tracking by tracking a single particle.
 !   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
 !   s_end        -- real(rp), optional: Ending position. Default is ele length.
 !
@@ -593,13 +594,13 @@ end subroutine csr_bin_particles
 ! Input:
 !   ds_kick_pt   -- real(rp): Distance between the beginning of the element we are
 !                    tracking through and the kick point (which is within this element).
-!   csr      -- csr_struct: 
+!   csr          -- csr_struct: 
 !
 ! Output:
-!   csr         -- csr_struct: 
+!   csr          -- csr_struct: 
 !     %kick1(:)          -- CSR kick calculation bin array. 
 !     %slice(:)%kick_csr -- Integrated kick
-!   err_flag    -- logical: Set True if there is an error. False otherwise
+!   err_flag     -- logical: Set True if there is an error. False otherwise
 !-
 
 subroutine csr_bin_kicks (ds_kick_pt, csr, err_flag)
@@ -716,8 +717,8 @@ logical err_flag
 
 character(*), parameter :: r_name = 's_source_calc'
 
-! Each interation of the loop looks for a possible source point in lattice element with index kick1%ix_ele_source.
-! If found, return. If not, move on to another element
+! Each interation of the loop looks for a possible source point in the lattice element with 
+! index kick1%ix_ele_source. If found, return. If not, move on to another element
 
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
@@ -866,8 +867,7 @@ character(*), parameter :: r_name = 'ddz_calc_csr'
 x = spline1(einfo_s%spline, s_chord_source)
 c = cos(einfo_s%theta_chord)
 s = sin(einfo_s%theta_chord)
-kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + &
-                    einfo_s%floor0%r    ! Floor coordinates
+kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + einfo_s%floor0%r    ! Floor coordinates
 
 kick1%L_vec = csr%floor_k%r - kick1%floor_s%r
 kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
@@ -906,7 +906,7 @@ kick1%floor_s%theta = kick1%theta_sl + kick1%theta_L
 ! The above calc for dL neglected csr%y_source. So must correct for this.
 
 if (csr%y_source /= 0) dL = dL - (kick1%L - sqrt(kick1%L_vec(1)**2 + kick1%L_vec(3)**2))
-kick1%dL = dL 
+kick1%dL = dL
 ddz_this = kick1%L / (2 * csr%gamma2) + dL
 ddz_this = ddz_this - kick1%dz_particles
 
