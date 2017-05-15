@@ -26,8 +26,8 @@ contains
 !                     is NOT tracked through). Default is lat%ele(0).
 !   ele2         -- Ele_struct, optional: Ending element.
 !                     Default is lat%ele(lat%n_ele_track).
-!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
-!                     central orbit is far from the zero orbit.
+!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                     Hint: Calculate this before beam tracking by tracking a single particle.
 !   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
@@ -122,8 +122,8 @@ end subroutine track_beam
 !   beam_start   -- Beam_struct: Starting beam position.
 !   lat          -- lat_struct: Lattice containing element to be tracked through.
 !   ele          -- Ele_struct: Element to track through.
-!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
-!                     central orbit is far from the zero orbit.
+!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                     Hint: Calculate this before beam tracking by tracking a single particle.
 !   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
@@ -214,8 +214,8 @@ end subroutine track1_beam_simple
 !   bunch_start  -- bunch_struct: Starting bunch position.
 !   lat          -- lat_struct: Lattice containing element to be tracked through.
 !   ele          -- Ele_struct: element to track through.
-!   centroid(0:) -- coord_struct, optional: Centroid orbit. Only needed if CSR is on and the
-!                     central orbit is far from the zero orbit.
+!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                     Hint: Calculate this before beam tracking by tracking a single particle.
 !   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
