@@ -415,7 +415,7 @@ character(6) expn_str
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
-character(80) index_str
+character(100) str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor
 logical, allocatable, save :: good(:)
@@ -1401,9 +1401,24 @@ case ('expression:')
 
   !! else ! Only do this first time through...
     write (dflt_dat_index, '(i0)') datum%ix_d1
-    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, info, err, .true., &
+    str = datum%data_type(12:)
+    do
+      ix = index(str, 'ele::#[')
+      if (ix == 0) exit
+      if (ix_ele == -1) then
+        call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:))
+        return
+      endif
+      str = str(1:ix+4) // trim(ele_loc_to_string(ele)) // str(ix+6:)
+    enddo
+
+    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., &
                datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
-    if (err) return
+    if (err) then
+      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:))
+      return
+    endif
+
     select case (datum%merit_type)
     case ('min')
       datum_value = minval(expression_value_vec)
