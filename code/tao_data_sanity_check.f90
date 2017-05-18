@@ -95,7 +95,8 @@ elseif (branch%param%geometry == closed$ .and. &
     return
   endif
 
-elseif (d_type(1:11) == 'expression:' .or. d_type(1:8) == 'rad_int.') then
+elseif ((d_type(1:11) == 'expression:' .and. index(d_type, 'ele::#[') == 0) .or. &
+                                                       d_type(1:8) == 'rad_int.') then
   ! Do nothing
 
 else

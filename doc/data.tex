@@ -730,8 +730,7 @@ See also the \vn{norm_emit.}, \vn{apparent_emit.}, and
 
   \item[expression: <arithmetic_expression>] \Newline
 \vn{<arithmetic_expression>} is an arithmetic expression (\sref{s:arithmetic.exp}) which
-is evaluated to get the value of the datum. Here the setting of the datum's
-\vn{data_source} is ignored.  For example:
+is evaluated to get the value of the datum. For example:
 \begin{example}
   datum(i)%data_type = "expression: 1@ele::q10w[beta_a] - 2@ele::q10w[beta_a]"
 \end{example}
@@ -767,6 +766,16 @@ be in universe 2 or higher. Notice that while all datums must be
 assigned a universe, in this case, since all the terms explicitly give
 a universe number, the value of the datum will be independent of the
 universe it is in.
+
+In the above examples, the lattice elements involved were explicitly specified.
+To apply an expression to the lattice element associated with a datum use
+the syntax ``\vn{ele::\#}'' to represent the associated lattice element. Example:
+\begin{example}
+  default_data_type = "expression: ele::#[k1] * ele::#[l]"
+  datum(1:4)%ele_name = "Q01", "Q02", "Q03", "Q04"
+\end{example}
+In this example the values of the four datums will the integrated quadrupole strength K1*L
+of the associated lattice elements \vn{Q01} for the first datum, etc.
 
   \item[floor.x, .y, .z] \Newline
 Position of the element in the global ``floor'' coordinate system. This is the nominal
