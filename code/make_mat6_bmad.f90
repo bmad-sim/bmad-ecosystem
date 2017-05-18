@@ -264,7 +264,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrum
   hkick = charge_dir * v(hkick$) 
   vkick = charge_dir * v(vkick$) 
   kick  = charge_dir * v(kick$) 
-  
+
   n_slice = max(1, nint(length / v(ds_step$)))
   if (ele%key == hkicker$) then
      c00%vec(2) = c00%vec(2) + kick / (2 * n_slice)

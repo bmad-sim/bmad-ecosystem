@@ -12,7 +12,7 @@
 !
 ! Output:
 !   orbit      -- coord_struct: End position.
-!   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
+!   mat6(6,6)  -- real(rp), optional: Transfer matrix to the element end.
 !-
 
 subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)

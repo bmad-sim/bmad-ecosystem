@@ -8,13 +8,13 @@
 !   ele         -- Ele_struct: Element
 !   param       -- lat_param_struct:
 !     %particle     -- Particle type
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element. Only used with bmad_standard tracking.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
 !   end_orb     -- Coord_struct: End position
 !   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
-!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix propagated through the element.
 !-
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
@@ -25,9 +25,8 @@ use geometry_mod, dummy4 => track1_bmad
 implicit none
 
 type (coord_struct) :: start_orb
-type (coord_struct) :: end_orb, temp_orb
-type (ele_struct) :: ele, temp_ele
-type (ele_struct), pointer :: ele0
+type (coord_struct) :: end_orb
+type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
@@ -55,7 +54,6 @@ endif
 ! If element is off... 
 
 key = ele%key
-if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
 
 if (.not. ele%is_on) then
   select case (key)
@@ -64,7 +62,7 @@ if (.not. ele%is_on) then
   case (lcavity$, sbend$, patch$)
     ! Note: LCavities will still do wakefields.
   case default
-    key = drift$  
+    key = drift$
   end select
 endif
 

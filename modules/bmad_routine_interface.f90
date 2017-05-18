@@ -863,6 +863,18 @@ subroutine s_calc (lat)
   type (lat_struct) lat
 end subroutine
 
+subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, rf_time)
+  import
+  implicit none
+  type (track_struct) track
+  type (ele_struct), target :: ele
+  type (lat_param_struct), intent(in) :: param
+  type (coord_struct) orb
+  real(rp), optional :: rf_time, s_rel
+  logical local_ref_frame
+  logical, optional :: save_field
+end subroutine
+
 subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
   import
   implicit none

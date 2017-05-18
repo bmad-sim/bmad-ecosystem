@@ -100,7 +100,7 @@ else
   write (li(1), '(12x, 2(14x, a), 12x, a, 24x, a)') 'A', 'B', 'Cbar', 'C_mat'
   write (li(2), '(2x, a12, 2a, 3a, 3x, 2a)')  'Beta (m)    ', v(ele%a%beta), v(ele%b%beta), '  |', v2(cbar(1,1)), v2(cbar(1,2)), v2(ele%c_mat(1,1)), v2(ele%c_mat(1,2))
   write (li(3), '(2x, a12, 2a, 3a, 3x, 2a)')   'Alpha       ', v(ele%a%alpha), v(ele%b%alpha), '  |', v2(cbar(2,1)), v2(cbar(2,2)), v2(ele%c_mat(2,1)), v2(ele%c_mat(2,2))
-  write (li(4), '(2x, a12, 2a, a, 3x, 2a, 7x, a, l1)') 'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma), '  |', 'Gamma_c =', v2(ele%gamma_c), 'Mode_Flip =', ele%mode_flip
+  write (li(4), '(2x, a12, 2a, a, 3x, 2a, 7x, a, l1)') 'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma), '  |', 'Gamma_c =', v2(ele%gamma_c), 'Mode_Flip = ', ele%mode_flip
   write (li(5), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
   write (li(6), '(2x, a12, 5a)')               'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
   write (li(7), '(2x, a12, 5a)')               'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)

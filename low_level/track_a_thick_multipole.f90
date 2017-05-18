@@ -7,6 +7,7 @@
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- ele_struct: Thick multipole element.
 !   param       -- lat_param_struct: Lattice parameters.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
