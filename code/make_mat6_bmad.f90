@@ -103,7 +103,8 @@ if (key == sol_quad$ .and. v(k1$) == 0) key = solenoid$
 !
 
 select case (key)
-case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$)
+case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
+      rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
   tm = ele%tracking_method
   if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
   call track1 (orb_in, ele, param, c00, mat6 = mat6, make_matrix = .true.)
@@ -250,70 +251,6 @@ case (elseparator$)
 
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
-
-!--------------------------------------------------------
-! Kicker, etc.
-
-case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
-
-  set_tilt = .false.
-  if (ele%key == kicker$ .or. ele%key == hkicker$ .or. ele%key == vkicker$) set_tilt = .true.
-
-  call offset_particle (ele, param, set$, c00, set_tilt = set_tilt, set_hvkicks = .false.)
-
-  hkick = charge_dir * v(hkick$) 
-  vkick = charge_dir * v(vkick$) 
-  kick  = charge_dir * v(kick$) 
-
-  n_slice = max(1, nint(length / v(ds_step$)))
-  if (ele%key == hkicker$) then
-     c00%vec(2) = c00%vec(2) + kick / (2 * n_slice)
-  elseif (ele%key == vkicker$) then
-     c00%vec(4) = c00%vec(4) + kick / (2 * n_slice)
-  else
-     c00%vec(2) = c00%vec(2) + hkick / (2 * n_slice)
-     c00%vec(4) = c00%vec(4) + vkick / (2 * n_slice)
-  endif
-
-  do i = 1, n_slice 
-     call track_a_drift (c00, length/n_slice)
-     call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
-     mat6 = matmul(drift,mat6)
-     if (i == n_slice) then
-        if (ele%key == hkicker$) then
-           c00%vec(2) = c00%vec(2) + kick / (2 * n_slice)
-        elseif (ele%key == vkicker$) then
-           c00%vec(4) = c00%vec(4) + kick / (2 * n_slice)
-        else
-           c00%vec(2) = c00%vec(2) + hkick / (2 * n_slice)
-           c00%vec(4) = c00%vec(4) + vkick / (2 * n_slice)
-        endif
-     else 
-        if (ele%key == hkicker$) then
-           c00%vec(2) = c00%vec(2) + kick / n_slice
-        elseif (ele%key == vkicker$) then
-           c00%vec(4) = c00%vec(4) + kick / n_slice
-        else
-           c00%vec(2) = c00%vec(2) + hkick / n_slice
-           c00%vec(4) = c00%vec(4) + vkick / n_slice
-        endif
-     endif
-  end do
-
-  if (set_tilt .and. v(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, v(tilt_tot$))
-  endif
-
-  call add_multipoles_and_z_offset (.true.)
-  call offset_particle (ele, param, unset$, c00, set_tilt = set_tilt, set_hvkicks = .false.)
-
-  if (ele%key == kicker$) then
-    c00%vec(1) = c00%vec(1) + ele%value(h_displace$)
-    c00%vec(3) = c00%vec(3) + ele%value(v_displace$)
-  endif
-
-  ele%vec0 = c00%vec - matmul(mat6, orb_in%vec)
-  if (.not. logic_option (.false., end_in)) call set_orb_out (orb_out, c00)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity.
