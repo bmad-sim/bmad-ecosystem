@@ -35,7 +35,7 @@ subroutine tao_show_cmd (what, stuff)
 
 implicit none
 
-integer iu, ix, n, nl
+integer iu, ix, n, nl, ios
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 character(*) what, stuff
@@ -81,7 +81,11 @@ do
     if (switch == '-append') then
       open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
     else
-      open (iu, file = file_name, status = 'REPLACE', recl = n_char_show)
+      open (iu, file = file_name, status = 'REPLACE', recl = n_char_show, iostat = ios)
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR WRITING: ' // file_name)
+        return
+      endif
     endif
 
     opened = .true.

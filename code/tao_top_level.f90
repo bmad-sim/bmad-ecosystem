@@ -28,7 +28,7 @@ integer, optional :: errcode
 
 character(*), optional :: command
 character(1000) :: cmd_in
-character(200) cmd_out
+character(300) cmd_out
 character(16) :: r_name = 'tao_top_level'
 
 logical found, err, will_need_input
