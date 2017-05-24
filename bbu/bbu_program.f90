@@ -254,7 +254,7 @@ o = lunget()
 open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
 write(o,'(a, es18.8E3)') 'v_gain = ', hom_voltage_gain
-write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
+!!write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
 write(o,'(a,es14.6)') 'bunch_dt = ', beam_init%dt_bunch
 write(o,'(2a)') 'growth_rate_set = ', logical_to_python( .NOT.(growth_rate == real_garbage$))
 write(o,'(a, es14.6)') 'growth_rate = ', growth_rate

@@ -9,18 +9,18 @@ bbu_par = {  \
 # Make sure the correct lattice is called 
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'",  
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/mlc/mlc.lat'",   
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/1pass_lat.bmad'",  
+'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/1pass_lat.bmad'",  
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/2pass_lat.bmad'", 
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/3pass_lat.bmad'", 
-'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/4pass_lat.bmad'", 
+#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/4pass_lat.bmad'", 
 #'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/eRHIC/eRHIC_lat.bmad'", # Make sure f_b changes accordingly
-'bunch_freq': 1.3e9/31,                # Freq in Hz.
+'bunch_freq': 1.3e9,                # Freq in Hz.
 'limit_factor': 3,                  # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
-'simulation_turns_max': 50,         # Must be > 10. More turns => more accurate but slower
+'simulation_turns_max': 30,         # Must be > 10. More turns => more accurate but slower
 'hybridize': '.true.',               # Combine non-HOM elements to speed up simulation?
 'keep_all_lcavities': '.false.',        # Keep cavities without HOM when hybridizing (default = false)?
 'current': 'temp_curr',              # Test current for the Fortran bbu code. DO NOT MODIFY
-'rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
+#'rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
 
 'lat2_filename': "''",               # For DR-scan and phase-scan, LEAVE IT EMPTY
 'ran_seed': 100,                     # Set specific seed if desired (0 uses system clock)
@@ -42,52 +42,48 @@ py_par = {  \
 #'exec_path':'/home/wl528/nfs/linux_lib/debug/bin/bbu',        # Debug version ( slow )
 'temp_dir': '',                # Will be created, LEAVE IT EMPTY
 'threshold_start_curr': 0.1,  # Initial test current for all modes
+'final_rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
 
 ############## Parameters for DR_SCAN  mode:   #################################
 
-'ndata_pnts_DR': 101,   # integer >=1 required
+'ndata_pnts_DR': 21,   # integer >=1 required
 
 # For something like the PRSTAB 7, Fig. 3, try startarctime = 4.028E-9, endarctime = 4.725E-9, bunch_freq = 1.3E9
-#'start_dr_arctime': 4.028*10**-9,  
-#'end_dr_arctime': 4.725*10**-9,  
-#'start_dr_arctime': 4.05*10**-9,  
-#'end_dr_arctime': 4.72*10**-9,  
-'start_dr_arctime': 1.5/1.3e9,  
-'end_dr_arctime': 100.5/1.3e9,  
+#'start_dr_arctime': 96.5/1.3e9,  
+#'end_dr_arctime': 100.5/1.3e9,  
+'start_dr_arctime': 4.028E-9,  
+'end_dr_arctime': 4.725E-9,  
 
-#'start_dr_arctime': 4.23077*10**-9,  
-#'end_dr_arctime': 4.23077*10**-9,  
 
-#'end_dr_arctime': 4.05*10**-9,  
 'plot_drscan': False,   # Create a python plot?
 
 ############## Parameters for PHASE_SCAN  mode:   ##################################
 
 'ndata_pnts_PHASE': 1,   # integer >=1 required
-'start_phase': 0.00,    # for n_data_pnts >= 2
-'end_phase': 6.28,     # for n_data_pnts >= 2
-'ONE_phase': 0,       # for n_data_pnts = 1 ONLY
-'plot_phase_scan': True,   # Create a python plot ?
+'start_phase': 0.00,     # for n_data_pnts >= 2
+'end_phase': 6.28,       # for n_data_pnts >= 2
+'ONE_phase': 0,          # for n_data_pnts = 1 ONLY
+'plot_phase_scan': False,   # Create a python plot ?
 
 
-'ONE_phase_x': 0,       # for n_data_pnts = 1 ONLY
-'ONE_phase_y': 0,       # for n_data_pnts = 1 ONLY
-'ndata_pnts_PHASE_XY': 1,
+############## Parameters for PHASE_SCAN_XY  mode:   ##################################
+'phase_x': 0, 
+'phase_y': 0,   
 'xy_coupled': 1,        # 1=YES, 0=NO
 ######## Parameters for THRESHOLD mode:  ######################################
 
-#'random_homs': True,   # If True, will (randomly) assign new HOMs in 'hom_dir' to the cavities
-'random_homs': False,  # Set to False if the user wants the PRE-assigned HOMs to be used
+'random_homs': True,   # If True, will (randomly) assign new HOMs in 'hom_dir' to the cavities
+#'random_homs': False,  # Set to False if the user wants the PRE-assigned HOMs to be used
 
 # If random_homs is False, hom_dir is not used 
 # Make sure hom_dir has the desired HOMs to be RANDOMLY/FIXEDLY assigned
-'hom_dir_number': 125,  # Can be 125,250,500, or 1000 (micrometer). Make sure hom_dir has consistent name!!! 
-#'hom_dir_number': 250,  # Can be 125,250,500, or 1000 (micrometer). Make sure hom_dir has consistent name!!! 
 #'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/HOM_lists_250mm/',
 'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_125um_top3/',
 #'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_250um_top3/',
 #'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_125um_top1/',
-'hom_fixed_file_number': -1  #The 5th argument from user (if given) to assign all cavities with the same HOMs
+#'hom_dir_number': 125,  # Can be 125,250,500, or 1000 (micrometer). Make sure hom_dir has consistent name!!! 
+'hom_fixed_file_number': -1 # Do not modify 
+                            #The 5th argument from user (if given) to assign all cavities with the same HOMs
 }
 
 # This runs the code below from the command line:
@@ -119,10 +115,9 @@ def main(argv):
   if (len(sys.argv) == 3):
     print('3 argumnets (including python script) given. PHASE_XY_SCAN mode.')
     mode = 'phase_xy_scan'
-    py_par['ONE_phase_x'] = sys.argv[1]   # If ndata_pnts >=2, ONE_phase is NOT used
-    py_par['ONE_phase_y'] = sys.argv[2]   # If ndata_pnts >=2, ONE_phase is NOT used
-    if (py_par['ndata_pnts_PHASE_XY']==1):
-      print('Scan for one phase combination only: ', py_par['ONE_phase_x'], ', ',py_par['ONE_phase_y'])
+    py_par['phase_x'] = sys.argv[1]  
+    py_par['phase_y'] = sys.argv[2]  
+    print('Scan for the XY phase combination: ', py_par['phase_x'], ', ',py_par['phase_y'])
     working_dir = os.getcwd() # current directory
     print('WORKING DIR ',os.getcwd())
   
@@ -136,21 +131,21 @@ def main(argv):
     if (len(sys.argv) == 5):  
       #The 5th argument given =  the HOM_file_number in "hom_dir" used to assign the HOMs for all cavities.
       print ('CAUTION!! All cavities will be assigned with the SAME HOM based on the 5th argument')  
-      print ('Make sure py_par["random_homs"] is TRUE. (Although the assignment is not "random".) ')
+      print ('Make sure py_par["random_homs"] is TRUE. (Although the assignment is not truly "random".) ')
       py_par['hom_fixed_file_number'] = int(sys.argv[4]) 
 ######################################################################
 
   user_lattice = bbu_par['lat_filename'] 
   print('Lattice name:', bbu_par['lat_filename'])
-  # Create a temp_dir to save all temporary files (will be removed after program ends properly) 
-  # Temporary directory has a randomly-generated name
+  # Create a temp_dir to save all temporary files  
+  # The temp_dir has a randomly-generated name
   py_par['temp_dir'] = make_tempdir( 1, working_dir )  
   os.chdir( py_par['temp_dir'])
   print('Temporary directory created:', py_par['temp_dir']) 
  
   bbu_par['lat_filename'] = '\''+os.path.join(py_par['temp_dir'],'temp_lat.lat')+'\'' 
 
-## creates bbu_template.init which stores all bbu_par
+  # creates bbu_template.init which stores all bbu_par
   find_threshold.keep_bbu_param( bbu_par, py_par['temp_dir'] )
   find_threshold.prepare_lat( py_par, user_lattice )  
 
@@ -235,10 +230,10 @@ def main(argv):
 
   ## for phase scan
   if(mode == 'phase_scan'):
+    print('======  PHASE_SCAN MODE ======')
     bbu_main.phase_scanner( py_par ) 
     print(working_dir)
     # Re-specify the directory to save the files, if necessary
-    # working_dir = '~/nfs/linux_lib/bsim/bbu/cbeta_test/Phase_TTT2/' # Go back to the working dir from temp dir
     os.chdir(working_dir) # Go back to the working dir from temp dir
     # save the result ( Ith vs phase data)
     print('Copying thresh_v_phase.txt to ', working_dir) 
@@ -247,16 +242,15 @@ def main(argv):
   
   ## for phase_XY scan
   if(mode == 'phase_xy_scan'):
-    print('XXXXXXXXXXYYYYYYYYYYYYYY')
+    print('======  PHASE_XY_SCAN MODE ======')
     bbu_main.phase_xy_scanner( py_par ) 
     os.chdir(working_dir) # Go back to the working dir from temp dir
     # save the result ( Ith, phasex, phasey data)
     print('Copying thresh_v_phase_xy.txt to ', working_dir) 
-    shutil.copyfile(os.path.join(py_par['temp_dir'],'thresh_v_phase_xy.txt'), 'thresh_v_phase_'+str(py_par['ONE_phase_x'])+'_'+str(py_par['ONE_phase_y'])+'.txt')
+    shutil.copyfile(os.path.join(py_par['temp_dir'],'thresh_v_phase_xy.txt'), 'thresh_v_phase_'+str(py_par['phase_x'])+'_'+str(py_par['phase_y'])+'.txt')
   
   
-  
-  # clean up the temporary directory for any mode
+  # For any mode, clean up the temporary directory
   # Comment out these two lines if you want to keep the temporary files for debugging 
   print('Deleting temporary directory and its files...') 
   cleanup_workdir( py_par['temp_dir'] )

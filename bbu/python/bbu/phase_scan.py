@@ -50,8 +50,8 @@ def setup_phase_xy_scan ( py_par ):
   # print("Filling lat2.txt with the new phase (Taylor) ")
   # Calculate the arclength for this given recirculation time
     
-  phasex = py_par['ONE_phase_x']
-  phasey = py_par['ONE_phase_y']
+  phasex = py_par['phase_x']
+  phasey = py_par['phase_y']
 
   #1-pass 2016_01_25, after LA.END.MAR\1
   #bxW = 13.58259507  
@@ -146,7 +146,7 @@ def setup_phase_xy_scan ( py_par ):
     my_file.close()
 
   else:
-    print('UNKNOWN XY coupling SCHEME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print("py_par['xy_coupled'] must be 0 or 1 !!")
 #######################
 def make_phase_plot ( py_par ):
 ####################### 
@@ -163,7 +163,7 @@ def make_phase_plot ( py_par ):
   for line in lines:
     p = line.split()
     x.append(float(p[0]))
-    y.append(float(p[2]))
+    y.append(float(p[1]))
 
     xv = np.array(x)
     yv = np.array(y)
