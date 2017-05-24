@@ -21,10 +21,8 @@ def setup_drscan ( arc_time, py_par ):
 def calc_arcl ( arctime ):
 #######################
   c = 299792458
-  #beta = 0.999987
   # Find the new arc length for given arc time
-  #arc_l = arctime*beta*c    # Beta for speed of bunch (varies by lattice, can just use approximation too)
-  arc_l = arctime * c  # Approximation
+  arc_l = arctime * c  
   return arc_l
 
 #######################
