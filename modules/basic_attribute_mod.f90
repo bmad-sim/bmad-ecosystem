@@ -452,7 +452,7 @@ type (photon_surface_struct) surface
 integer i, j, num, ix, iy
 character(40) word
 
-!
+! 
 
 if (.not. attribute_array_init_needed) return
 
@@ -942,6 +942,7 @@ call init_attribute_name1 (em_field$, autoscale_amplitude$,         'AUTOSCALE_A
 call init_attribute_name1 (em_field$, autoscale_phase$,             'AUTOSCALE_PHASE')
 call init_attribute_name1 (em_field$, phi0$,                        'PHI0')
 call init_attribute_name1 (em_field$, phi0_err$,                    'PHI0_ERR')
+call init_attribute_name1 (em_field$, constant_ref_energy$,         'CONSTANT_REF_ENERGY')
 
 call init_attribute_name1 (girder$, l$,                             'L', dependent$)
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
@@ -1512,8 +1513,10 @@ end subroutine init_short_attrib_array
 !
 ! Input:
 !   ix_key       -- Integer: Key index.
-!   ix_attrib    -- Integer: Attribute index.
+!   ix_attrib    -- Integer: Attribute index. 
 !   name         -- Character(*): Attribute name.
+!                     Should be uppercase if attrib_state = is_free$.
+!                     Should contain non-uppercase characters if attrib_state = private$.
 !   attrib_state -- Integer, optional: Class of attribute: does_not_exist$, is_free$, etc.
 !                     Defaults to is_free$.
 !   override     -- Logical, optional: Normally this routine throws an error if 
@@ -1626,7 +1629,8 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO')
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
+      'CONSTANT_REF_ENERGY')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &

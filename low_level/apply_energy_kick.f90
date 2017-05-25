@@ -1,8 +1,10 @@
 !+
 ! Subroutine apply_energy_kick (dE, orbit, mat6, make_matrix)
 ! 
-! Routine to change the energy of a particle by an amount dE
-! Appropriate changes to z and beta will be made
+! Routine to change the energy of a particle by an amount dE.
+! Appropriate changes to z and beta will be made.
+!
+! Note: the matrix propagation assumes a thin lens energy kick which is independent of px, py and pz.
 !
 ! Module needed:
 !   use bmad
@@ -10,7 +12,7 @@
 ! Input:
 !   dE          -- real(rp): Energy change
 !   orbit       -- coord_struct: Beginning coordinates
-!   ddE_dr(2)   -- real(rp), optional: Derivatives od dE [ddE_dx, ddE_dy] needed for mat6 calc.
+!   ddE_dr(2)   -- real(rp), optional: Derivatives of dE [ddE_dx, ddE_dy] needed for mat6 calc.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix before fringe.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !

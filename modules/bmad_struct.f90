@@ -93,13 +93,13 @@ character(16), parameter :: ptc_integration_type_name(0:3) = [&
 
 ! sbend$ and rbend$ are from key definitions.
 
-integer, parameter :: map_type$ = 1, periodic_type$ = 3, const_ref_energy$ = 4, nonconst_ref_energy$ = 5
-character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map                ', &
-    'SBend              ', 'Periodic           ', 'Const_Ref_Energy   ', 'NonConst_Ref_Energy', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'RBend              ']
+integer, parameter :: map_type$ = 1, periodic_type$ = 3
+character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'Map          ', &
+    'SBend        ', 'Periodic     ', 'GARBAGE!     ', 'GARBAGE!     ', &
+    'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
+    'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
+    'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
+    'RBend        ']
 
 ! field_calc names.
 ! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
@@ -1238,7 +1238,7 @@ integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20, direction_beam_start$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, constant_ref_energy$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_to_ref$ = 21, spin_x$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
