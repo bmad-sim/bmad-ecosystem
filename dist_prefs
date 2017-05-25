@@ -103,6 +103,20 @@ export ACC_ENABLE_SHARED="N"
 
 
 #-----------------------------------------------------------
+# By default -fPIC (Position Independent Code) flag is on 
+# static library builds of c/c++ code and off for Fortran
+# code.  Setting the variable ACC_ENABLE_FPIC here to "Y"
+# will enable -fPIC objects to be built in static libraries 
+# (.a files).
+#
+# Setting ACC_ENABLE_SHARED="Y" alone will enable -fPIC in 
+# shared libraries (.so files ) but will not explicitly 
+# enable -fPIC in static libraries (.a files).
+#-----------------------------------------------------------
+export ACC_ENABLE_FPIC="N"
+
+
+#-----------------------------------------------------------
 # Setting the variable ACC_SET_GMAKE_JOBS here to an 
 # interger value will set gmake to execute that number of 
 # recipes or "jobs" at once, effectively running parallel 
@@ -110,3 +124,4 @@ export ACC_ENABLE_SHARED="N"
 # value is "2" and cannot be set lower than "1"
 #-----------------------------------------------------------
 export ACC_SET_GMAKE_JOBS="2"
+
