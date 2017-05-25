@@ -2019,8 +2019,14 @@ logical is_const
 ! has a varying ds/dt(ref).
 
 select case (ele%key)
-case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$, em_field$)
+case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$)
   is_const = .false.
+case (em_field$)
+  if (is_true(ele%value(constant_ref_energy$))) then
+    is_const = .true.
+  else
+    is_const = .false.
+  endif
 case default
   is_const = .true.
 end select
