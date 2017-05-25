@@ -1180,16 +1180,16 @@ if (key1 == key2) then
     ! Bad
   case (wiggler$, undulator$, rfcavity$)
     slave%key = em_field$
-    slave%sub_key = const_ref_energy$
+    slave%value(constant_ref_energy$) = true$
   case (lcavity$)
     slave%key = em_field$
-    slave%sub_key = nonconst_ref_energy$
+    slave%value(constant_ref_energy$) = false$
   case (em_field$)
     slave%key = em_field$
-    if (lord1%sub_key == nonconst_ref_energy$ .or. lord2%sub_key == nonconst_ref_energy$) then
-      slave%sub_key = nonconst_ref_energy$
+    if (is_false(lord1%value(constant_ref_energy$)) .or. is_false(lord2%value(constant_ref_energy$))) then
+      slave%value(constant_ref_energy$) = false$
     else
-      slave%sub_key = const_ref_energy$
+      slave%value(constant_ref_energy$) = true$
     endif
   case default
     slave%key = key1
@@ -1269,13 +1269,13 @@ endif
 if (logic_option(.false., create_jumbo_slave)) then
   slave%key = em_field$
   if (key1 == lcavity$ .or. key2 == lcavity$) then
-    slave%sub_key = nonconst_ref_energy$
+    slave%value(constant_ref_energy$) = false$
   elseif (key1 == em_field$) then
-    slave%sub_key = lord1%sub_key
+    slave%value(constant_ref_energy$) = lord1%value(constant_ref_energy$)
   elseif (key2 == em_field$) then
-    slave%sub_key = lord2%sub_key
+    slave%value(constant_ref_energy$) = lord2%value(constant_ref_energy$)
   else
-    slave%sub_key = const_ref_energy$
+    slave%value(constant_ref_energy$) = true$
   endif
   return
 endif
@@ -1308,13 +1308,13 @@ if (slave%key /= -1) return  ! Have found something
 
 slave%key = em_field$
 if (key1 == lcavity$ .or. key2 == lcavity$) then
-  slave%sub_key = nonconst_ref_energy$
+  slave%value(constant_ref_energy$) = false$
 elseif (key1 == em_field$) then
-  slave%sub_key = lord1%sub_key
+  slave%value(constant_ref_energy$) = lord1%value(constant_ref_energy$)
 elseif (key2 == em_field$) then
-  slave%sub_key = lord2%sub_key
+  slave%value(constant_ref_energy$) = lord2%value(constant_ref_energy$)
 else
-  slave%sub_key = const_ref_energy$
+  slave%value(constant_ref_energy$) = true$
 endif
 
 end subroutine calc_super_slave_key

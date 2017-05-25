@@ -124,6 +124,7 @@ case (em_field$)
   ele%mat6_calc_method = tracking$
   ele%value(fringe_type$) = full$
   ele%value(field_autoscale$) = 1
+  ele%value(constant_ref_energy$) = true$
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$

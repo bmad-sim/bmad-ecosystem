@@ -104,7 +104,8 @@ if (key == sol_quad$ .and. v(k1$) == 0) key = solenoid$
 
 select case (key)
 case (sad_mult$, match$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
-      rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
+      rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$, &
+      elseparator$)
   tm = ele%tracking_method
   if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
   call track1 (orb_in, ele, param, c00, mat6 = mat6, make_matrix = .true.)
@@ -165,92 +166,6 @@ case (custom$)
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   return
-
-!-----------------------------------------------
-! Elseparator
-
-case (elseparator$)
-
-  call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
-
-  ! Compute kick
-
-  rel_charge = abs(rel_tracking_charge) * sign(1, charge_of(orb_in%species))
-  hk = ele%value(hkick$) * rel_charge
-  vk = ele%value(vkick$) * rel_charge
-
-  if (length == 0) length = 1d-50  ! To avoid divide by zero
-  k_E = sqrt(hk**2 + vk**2) / length
-
-  ! Rotate (x, y) so that kick is in +x direction.
-
-  angle = atan2(vk, hk)
-  call tilt_coords (angle, c00%vec)
-
-  !
-
-  E_tot = ele%value(p0c$) * (1 + c00%vec(6)) / c00%beta 
-  E_rel = E_tot / ele%value(p0c$)
-  mc2 = mass_of(orb_in%species)
-
-  x = c00%vec(1)
-  px = c00%vec(2)
-  p_factor = (mc2 / ele%value(p0c$))**2 + c00%vec(2)**2 + c00%vec(4)**2
-
-  ps = sqrt((E_rel + k_E * x)**2 - p_factor)
-  alpha = length / ps
-  coef = k_E * length / ps
-
-  dE_rel_dpz = c00%beta
-  dps_dx  = k_E * (E_rel + k_E * x) / ps
-  dps_dpx = -c00%vec(2) / ps
-  dps_dpy = -c00%vec(4) / ps
-  dps_dpz = dE_rel_dpz * (E_rel + k_E * x) / ps
-
-  sinh_c = sinh(coef)
-  cosh_c = cosh(coef)
-
-  if (abs(coef) < 1d-3) then
-    sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
-    cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
-  else
-    sinh_k = sinh_c / k_E
-    cosh1_k = (cosh_c - 1) / k_E
-  endif
-
-  ff = -x * coef * sinh_c / ps - E_rel * length * sinh_c / ps**2 - px * length * cosh_c / ps**2
-  mat6(1,1) = ff * dps_dx + cosh_c
-  mat6(1,2) = ff * dps_dpx + sinh_k
-  mat6(1,4) = ff * dps_dpy
-  mat6(1,6) = ff * dps_dpz + dE_rel_dpz * cosh1_k
-
-  ff = -(k_E * x + E_rel) * coef * cosh_c / ps - px * coef * sinh_c / ps
-  mat6(2,1) = ff * dps_dx + k_E * sinh_c
-  mat6(2,2) = ff * dps_dpx + cosh_c
-  mat6(2,4) = ff * dps_dpy
-  mat6(2,6) = ff * dps_dpz + dE_rel_dpz * sinh_c
-
-  ff = -length * c00%vec(4) / ps**2
-  mat6(3,1) = ff * dps_dx
-  mat6(3,2) = ff * dps_dpx
-  mat6(3,4) = ff * dps_dpy + length / ps
-  mat6(3,6) = ff * dps_dpz
-
-  ff = -x * coef * cosh_c / ps - E_rel * length * cosh_c / ps**2 - px * length * sinh_c / ps**2
-  dbeta_dpz = mc2**2 * ele%value(p0c$) / E_tot**3
-  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-  mat6(5,1) = -c00%beta * (ff * dps_dx + sinh_c)
-  mat6(5,2) = -c00%beta * (ff * dps_dpx + cosh1_k)
-  mat6(5,4) = -c00%beta * (ff * dps_dpy)
-  mat6(5,6) = dbeta_dpz * (length / beta_ref - (x * sinh_c + E_rel * sinh_k + px * cosh1_k)) - &
-              c00%beta * (ff * dps_dpz + dE_rel_dpz * sinh_k)
-
-  if (v(tilt_tot$) + angle /= 0) then
-    call tilt_mat6 (mat6, v(tilt_tot$) + angle)
-  endif
-
-  call add_multipoles_and_z_offset (.true.)
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity.
@@ -552,25 +467,6 @@ case (match$)
   return
 
 !--------------------------------------------------------
-! Mirror
-
-case (mirror$)
-
-  mat6(1, 1) = -1
-  mat6(2, 1) =  0   ! 
-  mat6(2, 2) = -1
-  mat6(4, 3) =  0
-
-  if (ele%photon%surface%has_curvature) then
-    print *, 'MIRROR CURVATURE NOT YET IMPLEMENTED!'
-    call err_exit
-  endif
-
-  ! Offsets?
-
-  ele%vec0 = orb_out%vec - matmul(mat6, orb_in%vec)
-
-!--------------------------------------------------------
 ! Multipole, AB_Multipole
 
 case (multipole$, ab_multipole$)
@@ -863,26 +759,6 @@ end select
 
 !--------------------------------------------------------
 contains
-
-subroutine add_multipole_slice (knl, tilt, factor, orb, mat6)
-
-type (coord_struct) orb
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp) mat6(6,6), factor, mat6_m(6,6)
-
-!
-
-call multipole_kick_mat (knl, tilt, param%particle, ele, orb, factor, mat6_m)
-
-mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
-mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
-
-call multipole_kicks (knl*factor, tilt, param%particle, ele, orb)
-
-end subroutine
-
-!--------------------------------------------------------
-! contains
 
 subroutine set_orb_out (orb_out, c00)
 

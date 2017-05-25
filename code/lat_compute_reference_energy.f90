@@ -406,7 +406,7 @@ ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't 
 ele%time_ref_orb_out%location = downstream_end$
 
 key = ele%key
-if (key == em_field$ .and. ele%sub_key == nonconst_ref_energy$) key = lcavity$
+if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcavity$
 
 select case (key)
 

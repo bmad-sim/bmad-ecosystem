@@ -92,7 +92,7 @@ case (drift$)
 ! elseparator
 
 case (elseparator$)
-  call track_a_elseparator (end_orb, ele, param, mat6, make_matrix)
+  call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity.

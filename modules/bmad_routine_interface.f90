@@ -164,20 +164,20 @@ subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
   integer n_step
 end subroutine
 
-subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
   import
   implicit none
   real(rp), intent(in) :: E_tot
-  real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, dbeta
+  real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, beta1
   integer, intent(in) :: particle
   logical, optional :: err_flag
 end subroutine
 
-subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, beta1, err_flag)
   import
   implicit none
   real(rp), intent(in) :: pc
-  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
+  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, beta1
   integer, intent(in) :: particle
   logical, optional :: err_flag
 end subroutine
@@ -1012,16 +1012,6 @@ subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
   type (coord_struct) orb
   real(rp) length
   logical phase_relative_to_ref
-end subroutine
-
-subroutine track_a_elseparator (orbit, ele, param, mat6, make_matrix)
-  import
-  implicit none
-  type (coord_struct) orbit
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
 end subroutine
 
 subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)

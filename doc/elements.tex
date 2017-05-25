@@ -1380,7 +1380,19 @@ attributes are:
 \toffset
 See \sref{s:list.em.field} for a full list of element attributes.
 
-\vn{em_field} elements will be created when elements are superimposed (\sref{s:super}) and there is
+\index{constant_ref_energy}
+Attributes specific to an \vn{em_field} element are:
+\begin{example}
+  constant_ref_energy = <Logical> ! Does the element have a constant reference energy? Default = True.
+\end{example}
+
+If the \vn{constant_ref_energy} logical is set to \vn{True} (the default), the reference energy
+(\sref{s:ref.energy}) at the exit end of the element is set equal to the entrance end referece
+energy. This is the same behavior for most other elements. If the \vn{constant_ref_energy} logical
+is set to \vn{False}, the reference energy at the exit end is calculated like it is in a
+\vn{lcavity} or \vn{e_gun} element.
+
+Note: \vn{em_field} elements will be created when elements are superimposed (\sref{s:super}) and there is
 no other suitable element class.
 
 %-----------------------------------------------------------------
@@ -1994,7 +2006,7 @@ between \vn{group} and \vn{overlay} elements is that \vn{overlay}
 elements set the values of the attributes directly while \vn{group}
 elements make delta changes to attribute values.
 
-General \vn{girder} attributes are:
+General \vn{group} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
