@@ -13,6 +13,11 @@ module noplot_interface
 use output_mod
 use quick_plot_struct
 
+
+! This #if def wraps the entire module
+
+#if defined (CESR_NOPLOT)
+
 contains
 
 !-----------------------------------------------------------------------
@@ -532,5 +537,7 @@ end subroutine
 subroutine qp_end_basic ()
 
 end subroutine qp_end_basic
+
+#endif
 
 end module
