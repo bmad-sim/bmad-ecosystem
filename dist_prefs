@@ -32,11 +32,11 @@ export DIST_F90_REQUEST="gfortran"
 #
 # ACC_PLOT_PACKAGE sets the desired plotting library.
 #
-# NOTE: "plplot" is automatically set for Windows builds.
-#
 # Supported options are:
 #   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
+#   "none"           # No Plot Libraries are built, for 
+#                      Windows builds only
 #-----------------------------------------------------------
 export ACC_PLOT_PACKAGE="pgplot"
 
