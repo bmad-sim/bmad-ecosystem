@@ -8,10 +8,15 @@
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1. See the Bmad manual for more details.
 !
+! One must keep in mind that we are NOT using good canonical coordinates since
+!   the energy of the reference particle is changing.
+! This means that the resulting matrix will NOT be symplectic.
+!
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- ele_struct: Thick multipole element.
 !   param       -- lat_param_struct: Lattice parameters.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
@@ -32,9 +37,11 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2), volt_ref
-real(rp) phase, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
-real(rp) mc2, dE_start, dE_end, dE, beta_start, beta_end, beta_start_ref, beta_end_ref
-real(rp) pxy2, xp1, xp2, yp1, yp2
+real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
+real(rp) dE_start, dE_end, dE, beta_start, beta_end, beta_start_ref, beta_end_ref
+real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6)
+real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
+real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 
 logical, optional :: make_matrix
 
@@ -43,7 +50,13 @@ logical, optional :: make_matrix
 length = ele%value(l$)
 if (length == 0) return
 
-call offset_particle (ele, param, set$, orbit)
+! Coupler kick
+
+call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
+
+!
 
 rel_p = 1 + orbit%vec(6)
 E_start_ref  = ele%value(E_tot_start$)
@@ -53,9 +66,11 @@ pc_start_ref = ele%value(p0c_start$)
 pc_end_ref   = ele%value(p0c$)
 beta_start_ref = pc_start_ref / E_start_ref
 beta_end_ref   = pc_end_ref / E_end_ref
+mc2 = mass_of(orbit%species)
 
 pc_start = pc_start_ref * rel_p
-call convert_pc_to (pc_start, orbit%species, E_tot = E_start, beta = beta_start)
+beta_start = orbit%beta
+E_start = pc_start / beta_start 
 
 ! The RF phase is defined with respect to the time at the beginning of the element.
 ! So if dealing with a slave element and absolute time tracking then need to correct.
@@ -67,6 +82,7 @@ phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_autoscale$) + &
 gradient_max = e_accel_field(ele, gradient$)
 
 cos_phi = cos(phase)
+sin_phi = sin(phase)
 gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 
 dE = gradient_net * length
@@ -74,49 +90,88 @@ E_end = E_start + dE
 if (E_end <= mass_of(orbit%species)) then
   orbit%state = lost_z_aperture$
   orbit%vec(6) = -1.01  ! Something less than -1
+  if (present(mat6)) mat6 = 0
   return
 endif
 
 call convert_total_energy_to (E_end, orbit%species, pc = pc_end, beta = beta_end)
 E_ratio = E_end / E_start
-orbit%beta = beta_end
 mc2 = mass_of(orbit%species)
-
-! Coupler kick
-
-call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit)
 
 ! Body tracking longitudinal
 
-orbit%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
-orbit%p0c = pc_end_ref
-
 if (abs(dE) <  1d-4*(pc_end+pc_start)) then
-  dp_dg = length * (E_start / pc_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
+  dp_dg = length * (1 / beta_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
 else
   dp_dg = (pc_end - pc_start) / gradient_net
 endif
 
-orbit%vec(5) = orbit%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
+if (logic_option(.false., make_matrix)) then
+  om = twopi * ele%value(rf_frequency$) / c_light
+  om_g = om * gradient_max * length
+  dbeta1_dE1 = mc2**2 / (pc_start * E_start**2)
+  dbeta2_dE2 = mc2**2 / (pc_end * E_end**2)
+
+  ! Convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
+  mat6(2,:) = mat6(2,:) / rel_p - orbit%vec(2) * mat6(6,:) / rel_p**2
+  mat6(4,:) = mat6(4,:) / rel_p - orbit%vec(4) * mat6(6,:) / rel_p**2
+
+  m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c / (pc_start**2 * E_start)]
+  m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
+  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
+
+  ! longitudinal track
+  kmat = 0
+  kmat(6,5) = om_g * sin_phi
+  kmat(6,6) = 1
+
+  if (abs(dE) <  1d-4*(pc_end+pc_start)) then
+    kmat(5,5) = 1 - length * (-mc2**2 * kmat(6,5) / (2 * pc_start**3) + mc2**2 * dE * kmat(6,5) * E_start / pc_start**5)
+    kmat(5,6) = -length * (-dbeta1_dE1 / beta_start**2 + 2 * mc2**2 * dE / pc_start**4 + &
+                    (mc2 * dE)**2 / (2 * pc_start**5) - 5 * (mc2 * dE)**2 / (2 * pc_start**5))
+  else
+    kmat(5,5) = 1 - kmat(6,5) / (beta_end * gradient_net) + kmat(6,5) * (pc_end - pc_start) / (gradient_net**2 * length)
+    kmat(5,6) = -1 / (beta_end * gradient_net) + 1 / (beta_start * gradient_net)
+  endif
+endif
+
+
+! Convert to (x', y', c(t_ref-t), E) coords
+
+orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
+orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
+orbit%vec(5) = orbit%vec(5) / beta_start
+orbit%vec(6) = rel_p * orbit%p0c / orbit%beta - 1
 orbit%t = orbit%t + dp_dg / c_light
 
-! Body tracking transverse. Kick is only with standing wave cavities.
+! Body tracking. Transverse kick only happens with standing wave cavities.
 
+! Traveling wave
 if (nint(ele%value(cavity_type$)) == traveling_wave$) then
-  orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
-  orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
+
+  if (logic_option(.false., make_matrix)) then
+    kmat(1,1) = 1
+    kmat(1,2) = length
+    kmat(2,2) = 1
+
+    kmat(3,3) = 1
+    kmat(3,4) = length
+    kmat(4,4) = 1
+
+    kmat(5,2) = -length * orbit%vec(4)
+    kmat(5,4) = -length * orbit%vec(4)
+
+    mat6 = matmul(kmat, mat6)
+  endif
 
   orbit%vec(1) = orbit%vec(1) + orbit%vec(2) * length
   orbit%vec(3) = orbit%vec(3) + orbit%vec(4) * length
 
   dz_factor = (orbit%vec(2)**2 + orbit%vec(4)**2) * dp_dg / 2
-  orbit%vec(5) = orbit%vec(5) - beta_end * dz_factor
+  orbit%vec(5) = orbit%vec(5) - dz_factor
   orbit%t = orbit%t + dz_factor / c_light
 
-  orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))  ! Convert back to px
-  orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))  ! Convert back to py
-
-
+! Standing wave
 else
   sqrt_8 = 2 * sqrt_2
   voltage_max = gradient_max * length
@@ -138,8 +193,116 @@ else
   r_mat(2,1) = -sin_a * gradient_max / (sqrt_8 * pc_end)
   r_mat(2,2) =  cos_a * pc_start / pc_end
 
-  orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
-  orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
+  if (logic_option(.false., make_matrix)) then
+    if (abs(voltage_max * cos_phi) < 1d-5 * E_start) then
+      dalpha_dt1 = f * f * om * sin_phi / (2 * sqrt_8) 
+      dalpha_dE1 = -(voltage_max / E_start**2 + voltage_max**2 * cos_phi / E_start**3) / sqrt_8
+      dcoef_dt1 = -length * beta_start * sin_phi * om_g / (2 * E_start)
+      dcoef_dE1 = length * beta_start * voltage_max * cos_phi / (2 * E_start**2) + coef * dbeta1_dE1 / beta_start
+    else
+      dalpha_dt1 = kmat(6,5) / (E_end * sqrt_8 * cos_phi) - log(E_ratio) * om * sin_phi / (sqrt_8 * cos_phi**2)
+      dalpha_dE1 = 1 / (E_end * sqrt_8 * cos_phi) - 1 / (E_start * sqrt_8 * cos_phi)
+      dcoef_dt1 = sqrt_8 * pc_start * cos(alpha) * dalpha_dt1 / gradient_max
+      dcoef_dE1 = coef / (beta_start * pc_start) + sqrt_8 * pc_start * cos(alpha) * dalpha_dE1 / gradient_max
+    endif
+
+    z21 = -gradient_max / (sqrt_8 * pc_end)
+    z22 = pc_start / pc_end  
+
+    c_min = cos_a - sqrt_2 * beta_start * sin_a * cos_phi
+    c_plu = cos_a + sqrt_2 * beta_end * sin_a * cos_phi
+    dc_min = -sin_a - sqrt_2 * beta_start * cos_a * cos_phi 
+    dc_plu = -sin_a + sqrt_2 * beta_end * cos_a * cos_phi 
+
+    cos_term = 1 + 2 * beta_start * beta_end * cos_phi**2
+    dcos_phi = om * sin_phi
+
+    kmat(1,1) =  c_min
+    kmat(1,2) =  coef 
+    kmat(2,1) =  z21 * (sqrt_2 * (beta_start - beta_end) * cos_phi * cos_a + cos_term * sin_a)
+    kmat(2,2) =  c_plu * z22
+
+    kmat(1,5) = orbit%vec(1) * (dc_min * dalpha_dt1 - sqrt_2 * beta_start * sin_a * dcos_phi) + & 
+                 orbit%vec(2) * (dcoef_dt1)
+
+    kmat(1,6) = orbit%vec(1) * (dc_min * dalpha_dE1 - sqrt_2 * dbeta1_dE1 * sin_a * cos_phi) + &
+                 orbit%vec(2) * (dcoef_dE1)
+
+    kmat(2,5) = orbit%vec(1) * z21 * (sqrt_2 * (beta_start - beta_end) * (dcos_phi * cos_a - cos_phi * sin_a * dalpha_dt1)) + &
+                 orbit%vec(1) * z21 * sqrt_2 * (-dbeta2_dE2 * kmat(6,5)) * cos_phi * cos_a + &
+                 orbit%vec(1) * z21 * (4 * beta_start * beta_end *cos_phi * dcos_phi * sin_a + cos_term * cos_a * dalpha_dt1) + &
+                 orbit%vec(1) * z21 * (2 * beta_start * dbeta2_dE2 * kmat(6,5) * sin_a) + &
+                 orbit%vec(1) * (-kmat(2,1) * kmat(6,5) / (beta_end * pc_end)) + &
+                 orbit%vec(2) * z22 * (dc_plu * dalpha_dt1 + sqrt_2 * sin_a * (beta_end * dcos_phi + dbeta2_dE2 * kmat(6,5) * cos_phi)) + &
+                 orbit%vec(2) * z22 * (-c_plu * kmat(6,5) / (beta_end * pc_end))
+
+    kmat(2,6) = orbit%vec(1) * z21 * (sqrt_2 * cos_phi * ((dbeta1_dE1 - dbeta2_dE2) * cos_a - (beta_start - beta_end) * sin_a * dalpha_dE1)) + &
+                 orbit%vec(1) * z21 * (2 * cos_phi**2 * (dbeta1_dE1 * beta_end + beta_start * dbeta2_dE2) * sin_a + cos_term * cos_a * dalpha_dE1) + &
+                 orbit%vec(1) * (-kmat(2,1) / (beta_end * pc_end)) + &
+                 orbit%vec(2) * z22 * (dc_plu * dalpha_dE1 + sqrt_2 * dbeta2_dE2 * sin_a * cos_phi) + &
+                 orbit%vec(2) * c_plu * (1 / (beta_start * pc_end) - pc_start / (beta_end * pc_end**2))
+
+    kmat(3:4,3:4) = kmat(1:2,1:2)
+
+    kmat(3,5) = orbit%vec(3) * (dc_min * dalpha_dt1 - sqrt_2 * beta_start * sin_a * dcos_phi) + & 
+                 orbit%vec(4) * (dcoef_dt1)
+
+    kmat(3,6) = orbit%vec(3) * (dc_min * dalpha_dE1 - sqrt_2 * dbeta1_dE1 * sin_a * cos_phi) + &
+                 orbit%vec(4) * (dcoef_dE1)
+
+    kmat(4,5) = orbit%vec(3) * z21 * (sqrt_2 * (beta_start - beta_end) * (dcos_phi * cos_a - cos_phi * sin_a * dalpha_dt1)) + &
+                 orbit%vec(3) * z21 * sqrt_2 * (-dbeta2_dE2 * kmat(6,5)) * cos_phi * cos_a + &
+                 orbit%vec(3) * z21 * (4 * beta_start * beta_end *cos_phi * dcos_phi * sin_a + cos_term * cos_a * dalpha_dt1) + &
+                 orbit%vec(3) * z21 * (2 * beta_start * dbeta2_dE2 * kmat(6,5) * sin_a) + &
+                 orbit%vec(3) * (-kmat(2,1) * kmat(6,5) / (beta_end * pc_end)) + &
+                 orbit%vec(4) * z22 * (dc_plu * dalpha_dt1 + sqrt_2 * sin_a * (beta_end * dcos_phi + dbeta2_dE2 * kmat(6,5) * cos_phi)) + &
+                 orbit%vec(4) * z22 * (-c_plu * kmat(6,5) / (beta_end * pc_end))
+
+    kmat(4,6) = orbit%vec(3) * z21 * (sqrt_2 * cos_phi * ((dbeta1_dE1 - dbeta2_dE2) * cos_a - (beta_start - beta_end) * sin_a * dalpha_dE1)) + &
+                 orbit%vec(3) * z21 * (2 * cos_phi**2 * (dbeta1_dE1 * beta_end + beta_start * dbeta2_dE2) * sin_a + cos_term * cos_a * dalpha_dE1) + &
+                 orbit%vec(3) * (-kmat(2,1) / (beta_end * pc_end)) + &
+                 orbit%vec(4) * z22 * (dc_plu * dalpha_dE1 + sqrt_2 * dbeta2_dE2 * sin_a * cos_phi) + &
+                 orbit%vec(4) * c_plu * (1 / (beta_start * pc_end) - pc_start / (beta_end * pc_end**2))
+
+
+    ! Correction to z for finite x', y'
+    ! Note: Corrections to kmat(5,5) and kmat(5,6) are ignored since these are small (quadratic
+    ! in the transvers coords).
+
+    c_plu = sqrt_2 * cos_phi * cos_a + sin_a
+
+    drp1_dr0  = -gradient_net / (2 * E_start)
+    drp1_drp0 = 1
+
+    xp1 = drp1_dr0 * orbit%vec(1) + drp1_drp0 * orbit%vec(2)
+    yp1 = drp1_dr0 * orbit%vec(3) + drp1_drp0 * orbit%vec(4)
+
+    drp2_dr0  = (c_plu * z21)
+    drp2_drp0 = (cos_a * z22)
+
+    xp2 = drp2_dr0 * orbit%vec(1) + drp2_drp0 * orbit%vec(2)
+    yp2 = drp2_dr0 * orbit%vec(3) + drp2_drp0 * orbit%vec(4)
+
+    kmat(5,1) = -(orbit%vec(1) * (drp1_dr0**2 + drp1_dr0*drp2_dr0 + drp2_dr0**2) + &
+                   orbit%vec(2) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                                (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+    kmat(5,2) = -(orbit%vec(2) * (drp1_drp0**2 + drp1_drp0*drp2_drp0 + drp2_drp0**2) + &
+                   orbit%vec(1) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                                (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+    kmat(5,3) = -(orbit%vec(3) * (drp1_dr0**2 + drp1_dr0*drp2_dr0 + drp2_dr0**2) + &
+                   orbit%vec(4) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                                (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+    kmat(5,4) = -(orbit%vec(4) * (drp1_drp0**2 + drp1_drp0*drp2_drp0 + drp2_drp0**2) + &
+                   orbit%vec(3) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                                (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+    !
+
+    mat6 = matmul(kmat, mat6)
+  endif
 
   k1 = -gradient_net / (2 * E_start)
   orbit%vec(2) = orbit%vec(2) + k1 * orbit%vec(1)    ! Entrance kick
@@ -157,7 +320,7 @@ else
   ! Correction of z for finite transverse velocity assumes a uniform change in slope.
 
   dz_factor = (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * dp_dg / 6
-  orbit%vec(5) = orbit%vec(5) - beta_end * dz_factor
+  orbit%vec(5) = orbit%vec(5) - dz_factor
   orbit%t = orbit%t + dz_factor / c_light
 
   !
@@ -166,15 +329,37 @@ else
   orbit%vec(2) = orbit%vec(2) + k2 * orbit%vec(1)         ! Exit kick
   orbit%vec(4) = orbit%vec(4) + k2 * orbit%vec(3)         ! Exit kick
 
-  orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))  ! Convert back to px
-  orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))  ! Convert back to py
-
 endif
+
+!
+
+orbit%vec(5) = orbit%vec(5) - (dp_dg - c_light * ele%value(delta_ref_time$))
+orbit%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
+orbit%p0c = pc_end_ref
+
+! Convert back from (x', y', c(t_ref-t), E) coords
+
+if (logic_option(.false., make_matrix)) then
+  rel_p = pc_end / pc_end_ref
+  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (pc_end_ref * beta_end)
+  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (pc_end_ref * beta_end)
+
+  m2(1,:) = [beta_end, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
+  m2(2,:) = [0.0_rp, 1 / (pc_end_ref * beta_end)]
+
+  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
+endif
+
+orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))  ! Convert back to px
+orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))  ! Convert back to py
+orbit%vec(5) = orbit%vec(5) * beta_end
+
+orbit%beta = beta_end
 
 ! Coupler kick
 
-call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit)
+call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
-call offset_particle (ele, param, unset$, orbit)
+call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 end subroutine
