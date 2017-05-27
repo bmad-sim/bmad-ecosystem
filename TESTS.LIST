@@ -9,8 +9,7 @@ geometry_test
 girder_test
 mat6_calc_method_test
 mode_flip_test
-! NOTE: mode3_test shows problem with production vs debug!
-! mode3_test
+mode3_test
 multipass_test
 parse_test
 particle_species_test
