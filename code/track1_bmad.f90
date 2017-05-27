@@ -46,9 +46,6 @@ character(*), parameter :: r_name = 'track1_bmad'
 if (present(err_flag)) err_flag = .false.
 
 end_orb = start_orb     ! transfer start to end
-if (end_orb%species /= photon$) then
-  end_orb%p0c = ele%value(p0c$)
-endif
 
 !-----------------------------------------------
 ! If element is off... 

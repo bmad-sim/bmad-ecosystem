@@ -707,21 +707,6 @@ function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (ti
   logical apply_hard_edge_offset
 end function
 
-subroutine ptc_bookkeeper (lat)
-  import
-  implicit none
-  type (lat_struct) lat
-end subroutine
-
-subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
-  import
-  implicit none
-  type (lat_struct), optional :: lat
-  character(*) flat_file(:)
-  logical err_flag
-  logical, optional :: create_end_marker, from_mad
-end subroutine
-
 subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   import
   implicit none
@@ -731,6 +716,12 @@ subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   real(rp) tune, emit
   real(rp) x_0, xp_0, chi
 end subroutine
+
+function physical_ele_end (track_end, track_direction, ele_orientation, return_stream_end) result (physical_end)
+  import
+  integer track_end, track_direction, ele_orientation, physical_end
+  logical, optional :: return_stream_end
+end function
 
 subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
   import
@@ -785,6 +776,21 @@ subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
   logical, optional :: err_print_flag
   type (ele_pointer_struct), optional, allocatable :: eles(:)
   integer, optional :: ix_attrib
+end subroutine
+
+subroutine ptc_bookkeeper (lat)
+  import
+  implicit none
+  type (lat_struct) lat
+end subroutine
+
+subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
+  import
+  implicit none
+  type (lat_struct), optional :: lat
+  character(*) flat_file(:)
+  logical err_flag
+  logical, optional :: create_end_marker, from_mad
 end subroutine
 
 subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
@@ -856,6 +862,18 @@ function relative_mode_flip (ele1, ele2)
   type (ele_struct) ele1
   type (ele_struct) ele2
 end function
+
+subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+  real(rp) phase
+  real(rp), optional :: mat6(6,6)
+  integer particle_at
+  logical, optional :: make_matrix
+end subroutine
 
 subroutine s_calc (lat)
   import
