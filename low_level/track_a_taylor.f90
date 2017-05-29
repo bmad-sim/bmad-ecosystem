@@ -31,6 +31,8 @@ logical, optional :: make_matrix
 
 !
 
+if (logic_option(.false., make_matrix))   call make_mat6_taylor (ele, param, orbit)
+
 if (ele%orientation * orbit%direction == 1) then
   call track1_taylor (orbit, ele, param, orbit)
 
@@ -42,5 +44,6 @@ else
   ele%taylor = taylor2
   call kill_taylor(taylor1)
 endif
+
 
 end subroutine

@@ -27,11 +27,23 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) beta_ref, dt_ref, voltage, phase0, phase, dE, z, charge_dir, length
 real(rp) mc2, p0c, m2(2,2), t0, factor, pc, E, ff, new_pc, new_beta
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_slice, orientation
+integer ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
 logical drifting
+
+!
+
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
 !
 
@@ -43,12 +55,10 @@ charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
 mc2 = mass_of(orbit%species)
 p0c = orbit%p0c
 
-call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
-
 ! The cavity field is modeled as a standing wave antisymmetric wrt the center.
 ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
 ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
-  ! wave is different from the phase of the forward wave by a constant dt_ref * freq.
+! wave is different from the phase of the forward wave by a constant dt_ref * freq.
 
 voltage = e_accel_field(ele, voltage$) * charge_dir
 
@@ -103,12 +113,13 @@ do i = 0, n_slice
 
 enddo
 
-! coupler kick
+! coupler kick, multipoles, back to lab coords.
 
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
-call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
-!
+call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 end subroutine

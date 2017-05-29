@@ -56,4 +56,6 @@ endif
 if (present(err_flag)) err_flag = .false.
 orbit%vec = matmul (ele%mat6, orbit%vec) + ele%vec0
 
+if (logic_option(.false., make_matrix)) mat6 = ele%mat6
+
 end subroutine

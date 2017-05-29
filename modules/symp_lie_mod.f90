@@ -23,7 +23,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
+! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, make_matrix, track, offset_ele)
 !
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
@@ -32,12 +32,12 @@ contains
 !   use bmad
 !
 ! Input:
-!   ele        -- Ele_struct: Element with transfer matrix
-!   param      -- lat_param_struct: Parameters are needed for some elements.
-!   start_orb  -- Coord_struct: Coordinates at the beginning of element. 
-!   calc_mat6  -- Logical: If True then make the 6x6 transfer matrix.
-!   offset_ele -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
-!                   Default is True.
+!   ele          -- Ele_struct: Element with transfer matrix
+!   param        -- lat_param_struct: Parameters are needed for some elements.
+!   start_orb    -- Coord_struct: Coordinates at the beginning of element. 
+!   make_matrix  -- Logical: If True then make the 6x6 transfer matrix.
+!   offset_ele   -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
+!                     Default is True.
 !
 ! Output:
 !   ele        -- Ele_struct: Element with transfer matrix.
@@ -49,14 +49,14 @@ contains
 !                   is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !-
 
-subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
+subroutine symp_lie_bmad (ele, param, start_orb, end_orb, make_matrix, track, offset_ele)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
-type (coord_struct) :: start_orb, end_orb, start2_orb
+type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (cartesian_map_struct), pointer :: ct_map
@@ -72,43 +72,48 @@ real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dE_p, dpx, dpy, mc2, z_offset, orientation, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp), allocatable :: dz_offset(:)
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_step, n_field, key
+integer ix_pole_max, ix_elec_max
 
 integer num_wig_terms  ! number of wiggler terms
 
-logical calc_mat6, calculate_mat6, err, do_offset
+logical make_matrix, calculate_mat6, err, do_offset
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
 
 ! init
 
-calculate_mat6 = (calc_mat6 .or. synch_rad_com%i_calc_on)
+calculate_mat6 = (make_matrix .or. synch_rad_com%i_calc_on)
+
+end_orb = start_orb
+end_orb%s = ele%s_start
 
 do_offset = logic_option (.true., offset_ele)
-rel_E = (1 + start_orb%vec(6))
+rel_E = (1 + end_orb%vec(6))
 rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
-start2_orb = start_orb
-end_orb = start_orb
-end_orb%s = ele%s_start
 mat6 => ele%mat6
+call mat_make_unit(mat6)
 
 err = .false.
 
-orientation = ele%orientation * start_orb%direction
-rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
+orientation = ele%orientation * end_orb%direction
+rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param)
 charge_dir = rel_tracking_charge * orientation
 
 ! element offset 
 
-if (calculate_mat6) then
-  call drift_mat6_calc (mat6, ele%value(z_offset_tot$), ele, param, end_orb)
-endif
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (do_offset) call offset_particle (ele, param, set$, end_orb)
+if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 ! init
 
@@ -356,24 +361,16 @@ end select
 !----------------------------------------------------------------------------
 ! element offset
 
-if (calculate_mat6) then
-  call drift_mat6_calc (m6, -ele%value(z_offset_tot$), ele, param, end_orb)
-  mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
-  mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
-  mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
-  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
-endif
-
-if (do_offset) call offset_particle (ele, param, unset$, end_orb)
+if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
 ! Correct z-position for wigglers, etc. 
 
 z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
 end_orb%vec(5) = end_orb%vec(5) + z_patch
-end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
-                                                                            (end_orb%beta * c_light)
+end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 
 if (calculate_mat6) then
   mat6(5,6) = mat6(5,6) + ele%value(delta_ref_time$) * c_light * &

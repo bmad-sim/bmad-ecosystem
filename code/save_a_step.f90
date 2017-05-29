@@ -69,7 +69,7 @@ end if
 
 orb2 = orb
 if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, &
-          set_z_offset = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+                                                  set_z_offset = .false., set_hvkicks = .false., ds_pos = s_rel)
 
 track%orb(n_pt) = orb2
 track%orb(n_pt)%ix_ele = ele%ix_ele

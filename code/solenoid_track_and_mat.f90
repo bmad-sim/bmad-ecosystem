@@ -163,9 +163,5 @@ mat6(6,6) = 1
 e_tot = ele%value(p0c$) * (1 + vec0(6)) / start_orb%beta
 mat6(5,6) = length * (mass_of(start_orb%species)**2 * ele%value(e_tot$) / e_tot**3 - 1/pz + (rel_p/pz)**2 / pz)
 
-if (ele%value(tilt_tot$) /= 0) then
-  call tilt_mat6 (mat6, ele%value(tilt_tot$))
-endif
-
 end subroutine solenoid_track_and_mat
 

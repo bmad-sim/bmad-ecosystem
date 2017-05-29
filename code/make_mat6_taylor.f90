@@ -38,10 +38,10 @@ if (ele%taylor_map_includes_offsets) then
 
 else
   call init_coord (orb0, orb_in, ele, upstream_end$, orb_in%species)
-  call offset_particle (ele, param, set$, orb0, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, orb0, set_hvkicks = .false.)
   call taylor_to_mat6 (ele%taylor, orb0%vec, ele%vec0, ele%mat6, orb_out%vec)
   call init_coord (orb_out, orb_out%vec, ele, downstream_end$, orb_in%species)
-  call offset_particle (ele, param, unset$, orb_out, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, orb_out, set_hvkicks = .false.)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
 

@@ -599,14 +599,6 @@ subroutine multipole_init (ele, who, zero)
   logical, optional :: zero
 end subroutine
 
-subroutine multipole_spin_precession (ele, param, orbit)
-  import
-  implicit none
-  type (ele_struct) :: ele
-  type (lat_param_struct) param
-  type (coord_struct) orbit
-end subroutine
-
 subroutine name_to_list (lat, ele_names)
   import
   implicit none
@@ -628,8 +620,7 @@ function num_lords (slave, lord_type) result (num)
 integer lord_type, num
 end function
 
-subroutine offset_particle (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, &
-                                                                           ds_pos, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) :: ele
@@ -637,21 +628,7 @@ subroutine offset_particle (ele, param, set, coord, set_tilt, set_multipoles, se
   type (coord_struct), intent(inout) :: coord
   integer particle
   logical, intent(in) :: set
-  logical, optional, intent(in) :: set_multipoles, set_tilt, set_hvkicks, set_z_offset, set_spin
-  real(rp), optional :: ds_pos, mat6(6,6)
-  logical, optional :: make_matrix
-end subroutine
-
-subroutine offset_particle2 (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, &
-                                                                           ds_pos, set_spin, mat6, make_matrix)
-  import
-  implicit none
-  type (ele_struct) :: ele
-  type (lat_param_struct) param
-  type (coord_struct), intent(inout) :: coord
-  integer particle
-  logical, intent(in) :: set
-  logical, optional, intent(in) :: set_multipoles, set_tilt, set_hvkicks, set_z_offset, set_spin
+  logical, optional, intent(in) :: set_tilt, set_hvkicks, set_z_offset, set_spin
   real(rp), optional :: ds_pos, mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
@@ -963,6 +940,16 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   real(rp) phi_b_set
   real(rp) dk1(:)
   logical ok
+end subroutine
+
+subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  real(rp) ks, k1, s_len
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)

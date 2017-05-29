@@ -704,15 +704,17 @@ sign_z_vel = start_orb%direction * ele%orientation
 temp_start = start_orb
 call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
-call offset_particle (ele, param, set$, temp_start, .true., .true., .true., set_spin = .true.)
+call offset_particle (ele, param, set$, temp_start, .true., .true., set_spin = .true.)
+call multipole_spin_tracking (ele, param, temp_start)
+
 if (fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
   call apply_element_edge_kick (temp_start, fringe_info, ele, param, .true.)
   call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
-temp_end   = end_orb
-call offset_particle (ele, param, set$, temp_end, .true., .false., .false., .true., ele%value(l$))
+temp_end  = end_orb
+call offset_particle (ele, param, set$, temp_end, .true., .false., .true., ele%value(l$))
 if (fringe_info%particle_at == second_track_edge$ .and. fringe_info%ds_edge /= 0) &
                                                   call track_a_drift (temp_end, fringe_info%ds_edge)
 temp_end%spin = temp_start%spin
@@ -794,7 +796,10 @@ end select
 if (fringe_info%particle_at == second_track_edge$) then
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
 endif
-call offset_particle (ele, param, unset$, temp_end, .true., .true., .true., set_spin = .true.)
+
+call multipole_spin_tracking (ele, param, temp_end)
+call offset_particle (ele, param, unset$, temp_end, .true., .true., set_spin = .true.)
+
 
 end_orb%spin = temp_end%spin
 
@@ -1044,5 +1049,85 @@ call em_field_calc (ele, param, s_eval, orb, .true., field)
 omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
 
 end function misc_omega_func
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine multipole_spin_tracking (ele, param, orbit)
+!
+! Subroutine to track the spins in a multipole field integrated over half the element.
+!
+! Input:
+!   ele         -- Ele_struct: Element
+!   param       -- Lat_param_struct
+!   orbit       -- coord_struct: Particle coordinates.
+!
+! Output:
+!   orbit       -- coord_struct: Particle coordinates.
+!-
+
+subroutine multipole_spin_tracking (ele, param, orbit)
+
+use multipole_mod
+
+implicit none
+
+type (ele_struct) :: ele
+type (lat_param_struct) param
+type (coord_struct) orbit
+
+complex(rp) kick, pos
+
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), knl, Ex, Ey
+
+integer n, sign_z_vel, ix_pole_max
+
+! spin tracking for magnetic multipoles
+
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn)
+
+! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
+! according to bmad manual, chapter "physics", section "Magnetic Fields"
+! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
+
+if (ix_pole_max > -1) then
+  kick = bn(0) + i_imaginary * an(0)
+  pos = orbit%vec(1) + i_imaginary * orbit%vec(3)
+  if (pos /= 0) then
+    kick = kick + (bn(1) + i_imaginary * an(1)) * pos
+    do n = 2, ix_pole_max
+      pos = pos * (orbit%vec(1) + i_imaginary * orbit%vec(3))
+      kick = kick + (bn(n) + i_imaginary * an(n)) * pos
+    enddo
+  endif
+
+  ! Rotate spin
+
+  sign_z_vel = orbit%direction * ele%orientation
+
+  if (kick /= 0) then
+    call rotate_spin_given_field (orbit, sign_z_vel, &
+              [aimag(kick), real(kick), 0.0_rp] * (ele%value(p0c$) / (2 * charge_of(orbit%species) * c_light)))
+  endif
+
+  ! calculate rotation of local coordinate system due to dipole component
+
+  if (ele%key == multipole$ .and. (bn(0) /= 0 .or. an(0) /= 0)) then
+    kick = bn(0) + i_imaginary * an(0)
+    call rotate_spin ([-aimag(kick), -real(kick), 0.0_rp], orbit%spin)
+  endif
+endif
+
+! Spin tracking for electric multipoles
+
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, electric$)
+do n = 0, ix_pole_max
+  if (an(n) == 0 .and. bn(n) == 0) cycle
+  call elec_multipole_field(an(n), bn(n), n, orbit, Ex, Ey)
+  call rotate_spin_given_field (orbit, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * ele%value(l$)/2)
+enddo
+
+end subroutine multipole_spin_tracking
 
 end module spin_mod

@@ -39,9 +39,9 @@ if (ele%taylor_map_includes_offsets) then  ! simple case
   call track1_this_body
 
 else
-  call offset_particle (ele, param, set$, end_orb, .false., .false., .false.)
+  call offset_particle (ele, param, set$, end_orb, .false., .false.)
   call track1_this_body
-  call offset_particle (ele, param, unset$, end_orb, .false., .false., .false.)
+  call offset_particle (ele, param, unset$, end_orb, .false., .false.)
 endif
 
 

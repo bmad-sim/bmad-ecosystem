@@ -72,8 +72,7 @@ ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false., &
-                                                                                       mat6 = mat6, make_matrix = present(mat6))
+  call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = present(mat6))
 
   if (ix_pole_max > -1) then
     call multipole_kicks (knl, tilt, param%particle, ele, orbit)
@@ -82,8 +81,7 @@ if (length == 0) then
     endif
   endif
 
-  call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false., &
-                                                                                       mat6 = mat6, make_matrix = present(mat6))
+  call offset_particle (ele2, param, unset$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = present(mat6))
 
   orbit%s = ele%s
   orbit%location = downstream_end$
@@ -113,8 +111,7 @@ tilt = tilt - tilt(1)
 call multipole_kt_to_ab (knl, tilt, a_pole, b_pole)
 knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
-call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., &
-                                                                                       mat6 = mat6, make_matrix = present(mat6))
+call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = present(mat6))
 
 ! Entrance edge kicks
 ! The multipole hard edge routine takes care of the quadrupole hard edge.
@@ -144,15 +141,7 @@ do nd = 0, n_div
     if (present(mat6)) mat6 = matmul(mat1, mat6)
 
   else
-    if (present(mat6)) then
-      call sol_quad_mat6_calc (ks, k1, ll, orbit%vec, mat1)
-      mat6 = matmul(mat1, mat6)
-    endif
-    vec0 = 0
-    vec0(6) = orbit%vec(6)
-    call sol_quad_mat6_calc (ks, k1, ll, vec0, mat1, dz4_coef)
-    orbit%vec(5) = orbit%vec(5) + sum(orbit%vec(1:4) * matmul(dz4_coef, orbit%vec(1:4))) 
-    orbit%vec(1:4) = matmul (mat1(1:4,1:4), orbit%vec(1:4))
+    call sol_quad_mat6_calc (ks, k1, ll, ele, orbit, mat6, present(mat6))
   endif
 
   ! multipole kicks
@@ -185,8 +174,7 @@ if (orbit_too_large (orbit, param)) return
 
 ! End stuff
 
-call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., &
-                                                                                       mat6 = mat6, make_matrix = present(mat6))
+call offset_particle (ele2, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = present(mat6))
 
 if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
   ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
@@ -195,7 +183,6 @@ if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
   orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
 endif
 
-orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele2, ele2%value(l$), mat6, present(mat6))
 orbit%t = t_start + length * ele%value(E_tot$) / (c_light * ele%value(p0c$)) - (orbit%vec(5) - z_start) / (orbit%beta * c_light)
 
 !
