@@ -70,7 +70,7 @@ do ib = 0, ubound(lat%branch, 1)
     do j = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
-      if (j == mad$ .and. print_extra) cycle   ! Ignore MAD
+      if (j == mad$) cycle   ! Ignore MAD
       if (j == taylor$ .and. lat%beam_start%direction == -1) cycle
       ele%tracking_method = j
 
@@ -171,10 +171,10 @@ character(38) :: instr
     case('SOL_QUAD2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-10'
     case('LCAVITY1:Bmad_Standard')               ; tolerance = 'ABS 2e-12'
     case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
-    case('LCAVITY1:Runge_Kutta')                 ; tolerance = 'ABS 2e-14'
+    case('LCAVITY1:Runge_Kutta')                 ; tolerance = 'ABS 1e-13'
     case('LCAVITY2:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-13'
-    case('LCAVITY3:Runge_Kutta')                 ; tolerance = 'ABS 2e-14'
-    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
+    case('LCAVITY3:Runge_Kutta')                 ; tolerance = 'ABS 1e-13'
+    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'ABS 1e-13'
     case('WIGGLER_MAP1:Time_Runge_Kutta')        ; tolerance = 'ABS 2e-13'
     case('WIGGLER_MAP1:Runge_Kutta')             ; tolerance = 'ABS 1e-13'
     case('WIGGLER_PERIODIC1:Runge_Kutta')        ; tolerance = 'ABS 5e-13'
