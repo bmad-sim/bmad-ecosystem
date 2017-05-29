@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) kmat6(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
+real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
 real(rp) k1, rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -53,7 +53,7 @@ step_len = ele%value(l$) * r_step
 
 ! Entrance edge
 
-call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
@@ -69,35 +69,35 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 
 do i = 1, n_step
 
-  if (logic_option(.false., make_matrix)) call mat_make_unit (kmat6)
+  if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
   k1 = charge_dir * ele%value(k1$) / rel_p
 
-  call quad_mat2_calc (-k1, step_len, rel_p, kmat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, step_len, rel_p, kmat6(3:4,3:4), dz_y, ddz_y)
+  call quad_mat2_calc (-k1, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+  call quad_mat2_calc ( k1, step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
   if (logic_option(.false., make_matrix)) then
     if (any(orbit%vec(1:4) /= 0)) then
-      kmat6(5,1) = 2 * orbit%vec(1) * dz_x(1) +     orbit%vec(2) * dz_x(2)
-      kmat6(5,2) =     orbit%vec(1) * dz_x(2) + 2 * orbit%vec(2) * dz_x(3)
-      kmat6(5,3) = 2 * orbit%vec(3) * dz_y(1) +     orbit%vec(4) * dz_y(2)
-      kmat6(5,4) =     orbit%vec(3) * dz_y(2) + 2 * orbit%vec(4) * dz_y(3)
-      kmat6(5,6) = orbit%vec(1)**2 * ddz_x(1) + orbit%vec(1)*orbit%vec(2) * ddz_x(2) + orbit%vec(2)**2 * ddz_x(3) + &
+      kmat(5,1) = 2 * orbit%vec(1) * dz_x(1) +     orbit%vec(2) * dz_x(2)
+      kmat(5,2) =     orbit%vec(1) * dz_x(2) + 2 * orbit%vec(2) * dz_x(3)
+      kmat(5,3) = 2 * orbit%vec(3) * dz_y(1) +     orbit%vec(4) * dz_y(2)
+      kmat(5,4) =     orbit%vec(3) * dz_y(2) + 2 * orbit%vec(4) * dz_y(3)
+      kmat(5,6) = orbit%vec(1)**2 * ddz_x(1) + orbit%vec(1)*orbit%vec(2) * ddz_x(2) + orbit%vec(2)**2 * ddz_x(3) + &
                    orbit%vec(3)**2 * ddz_y(1) + orbit%vec(3)*orbit%vec(4) * ddz_y(2) + orbit%vec(4)**2 * ddz_y(3)  
     endif
 
-    if (any(kmat6(5,1:4) /= 0)) then
-      kmat6(1,6) = kmat6(5,2) * kmat6(1,1) - kmat6(5,1) * kmat6(1,2)
-      kmat6(2,6) = kmat6(5,2) * kmat6(2,1) - kmat6(5,1) * kmat6(2,2)
-      kmat6(3,6) = kmat6(5,4) * kmat6(3,3) - kmat6(5,3) * kmat6(3,4)
+    if (any(kmat(5,1:4) /= 0)) then
+      kmat(1,6) = kmat(5,2) * kmat(1,1) - kmat(5,1) * kmat(1,2)
+      kmat(2,6) = kmat(5,2) * kmat(2,1) - kmat(5,1) * kmat(2,2)
+      kmat(3,6) = kmat(5,4) * kmat(3,3) - kmat(5,3) * kmat(3,4)
 
-      kmat6(4,6) = kmat6(5,4) * kmat6(4,3) - kmat6(5,3) * kmat6(4,4)
+      kmat(4,6) = kmat(5,4) * kmat(4,3) - kmat(5,3) * kmat(4,4)
     endif
 
-    mat6 = matmul(kmat6, mat6)
+    mat6 = matmul(kmat, mat6)
   endif
 
   !
@@ -106,8 +106,8 @@ do i = 1, n_step
                   dz_x(1) * orbit%vec(1)**2 + dz_x(2) * orbit%vec(1) * orbit%vec(2) + dz_x(3) * orbit%vec(2)**2 + &
                   dz_y(1) * orbit%vec(3)**2 + dz_y(2) * orbit%vec(3) * orbit%vec(4) + dz_y(3) * orbit%vec(4)**2 
 
-  orbit%vec(1:2) = matmul(kmat6(1:2,1:2), orbit%vec(1:2))
-  orbit%vec(3:4) = matmul(kmat6(3:4,3:4), orbit%vec(3:4))
+  orbit%vec(1:2) = matmul(kmat(1:2,1:2), orbit%vec(1:2))
+  orbit%vec(3:4) = matmul(kmat(3:4,3:4), orbit%vec(3:4))
 
   orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
 
@@ -127,7 +127,7 @@ fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 if (orbit%state /= alive$) return
 
-call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 

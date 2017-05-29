@@ -113,7 +113,7 @@ endif
 
 call reference_energy_correction (ele, orb_end, first_track_edge$)
 
-call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false.)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
@@ -148,7 +148,7 @@ enddo
 
 ! back to lab coords
 
-call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false.)
 
 call reference_energy_correction (ele, orb_end, second_track_edge$)
 

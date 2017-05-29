@@ -123,12 +123,29 @@ case (match$)
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_tilt = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_tilt = .false.)
 
   call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilt)
-  if (ix_pole_max > -1) call multipole_kicks (knl, tilt, param%particle, ele, end_orb, ref_orb_offset = (ele%key == multipole$))
 
-  call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
+  if (ix_pole_max > -1) then
+    call multipole_kicks (knl, tilt, param%particle, ele, end_orb, ref_orb_offset = (ele%key == multipole$))
+
+    if (logic_option(.false., make_matrix)) then
+      call multipole_kick_mat (knl, tilt, param%particle, ele, end_orb, 1.0_rp, ele%mat6)
+
+      ! if knl(0) is non-zero then the reference orbit itself is bent
+      ! and we need to account for this.
+
+      if (knl(0) /= 0 .and. ele%key == multipole$) then
+        ele%mat6(2,6) = knl(0) * cos(tilt(0))
+        ele%mat6(4,6) = knl(0) * sin(tilt(0))
+        ele%mat6(5,1) = -ele%mat6(2,6)
+        ele%mat6(5,3) = -ele%mat6(4,6)
+      endif
+    endif
+  endif
+
+  call offset_particle (ele, param, unset$, end_orb, set_tilt = .false.)
 
 !-----------------------------------------------
 ! octupole

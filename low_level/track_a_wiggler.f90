@@ -26,6 +26,11 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k1l, length, k_z, charge_dir, rel_p, t_start
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6)
+real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
+
+integer ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
 
@@ -36,14 +41,27 @@ logical, optional :: make_matrix
 !   2) Track as a quadrupole through the body
 !   3) 1/2 the octupole kick at the exit face.
 
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+!
+
+call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
+
+!
+
 z_start = orbit%vec(5)
 t_start = orbit%t
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 length = ele%value(l$)
 charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
 rel_p = 1 + orbit%vec(6)
+mc2_rel = mass_of(orbit%species) / orbit%p0c
 
-call offset_particle (ele, param, set$, orbit)
+!
 
 if (ele%value(l_pole$) == 0) then
   k_z = 1d100    ! Something large
@@ -55,42 +73,74 @@ k1_factor = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))*
 k1 = k1_factor / rel_p**2
 k1l = length * k1
 
-p_factor = 1 - (orbit%vec(2) / rel_p**2)**2 - (orbit%vec(4) / rel_p**2)**2
-if (p_factor < 0) then
-  orbit%state = lost_z_aperture$
-  return
-endif
-
-p_factor = sqrt(p_factor)
-orbit%vec(5) = orbit%vec(5) + 0.5 * length * (orbit%beta / beta_ref - 1/p_factor) - &
-                                    k1_factor * (1/(c_light * beta_ref) - 1 / (c_light * orbit%beta * rel_p**2)) / (4 * k_z**2)
-orbit%t = orbit%t + length / (2 * c_light * orbit%beta * p_factor) + k1l / (4 * k_z**2 * c_light * orbit%beta)
-
 ! 1/2 of the octupole kick at the entrance face.
+
+if (logic_option(.false., make_matrix)) then
+  m43 = k1l * rel_p * k_z**2 * orbit%vec(3)**2
+  m46 = -k1l * k_z**2 * orbit%vec(3)**3 / 3
+  mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
+endif
 
 orbit%vec(4) = orbit%vec(4) + k1l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
 
 ! Quadrupole body
 
-call quad_mat2_calc (k1, length, rel_p, mat2)
-orbit%vec(1) = orbit%vec(1) + length * orbit%vec(2) / rel_p
-orbit%vec(3:4) = matmul (mat2, orbit%vec(3:4))
+if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
+
+call quad_mat2_calc (0.0_rp, length, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+call quad_mat2_calc (k1,     length, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
+
+! The mat6(i,6) terms are constructed so that mat6 is sympelctic
+
+if (logic_option(.false., make_matrix)) then
+  if (any(orbit%vec(1:4) /= 0)) then
+    kmat(5,1) = 2 * orbit%vec(1) * dz_x(1) +     orbit%vec(2) * dz_x(2)
+    kmat(5,2) =     orbit%vec(1) * dz_x(2) + 2 * orbit%vec(2) * dz_x(3)
+    kmat(5,3) = 2 * orbit%vec(3) * dz_y(1) +     orbit%vec(4) * dz_y(2)
+    kmat(5,4) =     orbit%vec(3) * dz_y(2) + 2 * orbit%vec(4) * dz_y(3)
+    kmat(5,6) = orbit%vec(1)**2 * ddz_x(1) + orbit%vec(1)*orbit%vec(2) * ddz_x(2) + orbit%vec(2)**2 * ddz_x(3) + &
+                orbit%vec(3)**2 * ddz_y(1) + orbit%vec(3)*orbit%vec(4) * ddz_y(2) + orbit%vec(4)**2 * ddz_y(3)  
+  endif
+
+  if (any(kmat(5,1:4) /= 0)) then
+    kmat(1,6) = kmat(5,2) * kmat(1,1) - kmat(5,1) * kmat(1,2)
+    kmat(2,6) = kmat(5,2) * kmat(2,1) - kmat(5,1) * kmat(2,2)
+    kmat(3,6) = kmat(5,4) * kmat(3,3) - kmat(5,3) * kmat(3,4)
+
+    kmat(4,6) = kmat(5,4) * kmat(4,3) - kmat(5,3) * kmat(4,4)
+  endif
+
+  mat6 = matmul(kmat, mat6)
+endif
+
+!
+
+orbit%vec(5) = orbit%vec(5) + &
+                dz_x(1) * orbit%vec(1)**2 + dz_x(2) * orbit%vec(1) * orbit%vec(2) + dz_x(3) * orbit%vec(2)**2 + &
+                dz_y(1) * orbit%vec(3)**2 + dz_y(2) * orbit%vec(3) * orbit%vec(4) + dz_y(3) * orbit%vec(4)**2 
+
+orbit%vec(1:2) = matmul(kmat(1:2,1:2), orbit%vec(1:2))
+orbit%vec(3:4) = matmul(kmat(3:4,3:4), orbit%vec(3:4))
+
+orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, length, mat6, make_matrix)
 
 ! 1/2 of the octupole kick at the exit face.
 
-orbit%vec(4) = orbit%vec(4) + k1l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
-
-p_factor = 1 - (orbit%vec(2) / rel_p**2)**2 - (orbit%vec(4) / rel_p**2)**2
-if (p_factor < 0) then
-  orbit%state = lost_z_aperture$
-  return
+if (logic_option(.false., make_matrix)) then
+  m43 = k1l * rel_p * k_z**2 * orbit%vec(3)**2
+  m46 = -k1l * k_z**2 * orbit%vec(3)**3 / 3
+  mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
 endif
 
-p_factor = sqrt(p_factor)
-orbit%vec(5) = orbit%vec(5) + 0.5 * length * (orbit%beta / beta_ref - 1/p_factor) - &
-                                    k1_factor * (1/(c_light * beta_ref) - 1 / (c_light * orbit%beta * rel_p**2)) / (4 * k_z**2)
-orbit%t = orbit%t + length / (2 * c_light * orbit%beta * p_factor) + k1l / (4 * k_z**2 * c_light * orbit%beta)
+orbit%vec(4) = orbit%vec(4) + k1l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
 
-call offset_particle (ele, param, unset$, orbit)
+!
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
+
+call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+orbit%t = t_start + length / (c_light * beta_ref) + (z_start - orbit%vec(5)) / (c_light * orbit%beta)
 
 end subroutine

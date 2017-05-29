@@ -291,7 +291,7 @@ if (use_cache .or. init_cache) then
 
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
-    call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_multipoles = .false., set_hvkicks = .false.)
+    call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_hvkicks = .false.)
 
     if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$ .and. ele2%tracking_method /= custom$) then
       ! bmad_standard and taylor will not properly do partial track through a periodic_type wiggler so
@@ -316,7 +316,7 @@ if (use_cache .or. init_cache) then
 
     if (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
       track%n_pt = -1
-      call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, calc_mat6 = .true., track = track)
+      call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, make_matrix = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
         z_here = track%orb(k)%s - ele2%s_start

@@ -195,7 +195,7 @@ if (ele%field_calc == refer_to_lords$) then
 
   lab_orb = orbit
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., ds_pos = s_rel)
   endif
   z = lab_orb%vec(5)
 
@@ -247,7 +247,7 @@ endif
 
 local_orb = orbit
 if (.not. local_ref_frame) then
-  call offset_particle (ele, param, set$, local_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., ds_pos = s_rel)
 endif
 
 !----------------------------------------------------------------------------
@@ -1217,7 +1217,7 @@ end select
 if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   lab_orb = orbit
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
+    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., ds_pos = s_rel)
   endif
 
   lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_rel]

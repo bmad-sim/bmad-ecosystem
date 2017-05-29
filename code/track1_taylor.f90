@@ -81,7 +81,7 @@ start2_orb = start_orb
 end_orb = start_orb
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
 endif
 
 if (start_orb%direction == 1) then
@@ -97,7 +97,7 @@ else
 endif
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 endif
 
 end_orb%s = ele%s

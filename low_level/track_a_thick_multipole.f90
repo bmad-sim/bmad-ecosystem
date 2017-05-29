@@ -85,7 +85,7 @@ step_len = ele%value(l$) * r_step
 
 ! Entrance edge
 
-call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
@@ -124,7 +124,7 @@ fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 if (orbit%state /= alive$) return
 
-call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 

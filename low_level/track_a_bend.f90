@@ -51,8 +51,7 @@ logical drifting
 
 start_orb = orbit
 
-call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., &
-                                                                  mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 ! Entrance edge kick
 
 c_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
@@ -357,8 +356,7 @@ if (orbit_too_large(orbit, param)) return
 fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
-call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., &
-                                                                       mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 

@@ -288,7 +288,7 @@ logical err_flag, no_aperture_here
 call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, local_ref_frame, err_flag = err_flag)
 
 test_orb = orb
-call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false.)
 d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
 rf_time = rf_time + this_dt
 

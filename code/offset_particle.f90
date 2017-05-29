@@ -1,6 +1,5 @@
 !+
-! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_multipoles, set_hvkicks, set_z_offset, 
-!                                                                           ds_pos, set_spin, mat6, make_matrix)
+! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the ends of the element. Additionally, this routine will:
@@ -44,8 +43,6 @@
 !   set_tilt       -- Logical, optional: Default is True.
 !                    T -> Rotate using ele%value(tilt$) and ele%value(roll$) for sbends.
 !                    F -> Do not rotate
-!   set_multipoles -- Logical, optional: Default is True.
-!                    T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                    T -> Apply 1/2 any hkick or vkick.
 !   set_z_offset   -- Logical, optional: Default is True.
@@ -65,11 +62,9 @@
 !     mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !-
 
-subroutine offset_particle (ele, param, set, orbit, set_tilt, set_multipoles, set_hvkicks, set_z_offset, &
-                                                                            ds_pos, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
 
 use geometry_mod, except_dummy => offset_particle
-use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
 use spin_mod, only: rotate_spin, rotate_spin_given_field 
 use rotation_3d_mod
 
@@ -91,16 +86,15 @@ integer particle, sign_z_vel
 integer n, ix_pole_max
 
 logical, intent(in) :: set
-logical, optional, intent(in) :: set_tilt, set_multipoles, set_spin
+logical, optional, intent(in) :: set_tilt, set_spin
 logical, optional, intent(in) :: set_hvkicks, set_z_offset
 logical, optional :: make_matrix
-logical set_multi, set_hv, set_t, set_hv1, set_hv2, set_z_off, set_spn
+logical set_hv, set_t, set_hv1, set_hv2, set_z_off, set_spn
 
 !---------------------------------------------------------------         
 
 rel_p = (1 + orbit%vec(6))
 
-set_multi  = logic_option (.true., set_multipoles)
 set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
@@ -229,32 +223,6 @@ if (set) then
     if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin)
   endif
 
-  ! Set: Multipoles
-
-  if (set_multi) then
-    call multipole_ele_to_kt(ele, .false., ix_pole_max, knl, tilt)
-    if (ix_pole_max > -1) then
-      call multipole_kicks (knl/2, tilt, param%particle, ele, orbit)
-      if (set_spn) call multipole_spin_precession (ele, param, orbit)
-    endif
-
-    call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, electric$)
-    if (ix_pole_max > -1) then
-      do n = 0, n_pole_maxx
-        if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, param%particle, ele%orientation, orbit, kx, ky, pole_type = electric$, scale = length/2)
-        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
-        ! Are taken into account is not to have any energy shifts.
-        orbit%vec(2) = orbit%vec(2) + kx
-        orbit%vec(4) = orbit%vec(4) + ky
-        if (set_spn) then
-          call elec_multipole_field(an(n), bn(n), n, orbit, Ex, Ey)
-          call rotate_spin_given_field (orbit, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (length/2))
-        endif
-      enddo
-    endif
-  endif
-
   ! Set: HV kicks for kickers and separators only.
   ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
@@ -305,32 +273,6 @@ else
     endif
   endif
 
-  ! Unset: Multipoles
-
-  if (set_multi) then
-    call multipole_ele_to_kt(ele, .false., ix_pole_max, knl, tilt)
-    if (ix_pole_max > -1) then
-      call multipole_kicks (knl/2, tilt, param%particle, ele, orbit)
-      if (set_spn) call multipole_spin_precession (ele, param, orbit)
-    endif
-
-    call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, electric$)
-    if (ix_pole_max > -1) then
-      do n = 0, n_pole_maxx
-        if (an(n) == 0 .and. bn(n) == 0) cycle
-        call ab_multipole_kick (an(n), bn(n), n, param%particle, ele%orientation, orbit, kx, ky, pole_type = electric$, scale = length/2)
-        ! Note that there is no energy kick since, with the fringe fields, the net result when both ends
-        ! Are taken into account is not to have any energy shifts.
-        orbit%vec(2) = orbit%vec(2) + kx
-        orbit%vec(4) = orbit%vec(4) + ky
-        if (set_spn) then
-          call elec_multipole_field(an(n), bn(n), n, orbit, Ex, Ey)
-          call rotate_spin_given_field (orbit, sign_z_vel, EL = [Ex, Ey, 0.0_rp] * (length/2))
-        endif
-      enddo
-    endif
-  endif
-
   ! Unset: Tilt & Roll
 
   if (set_t .and. ele%key /= sbend$) then
@@ -346,8 +288,7 @@ else
   if (set_hv1) then
     orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
     orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, &
-                                    (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
   endif
 
   ! Unset: Offset and pitch
@@ -465,84 +406,3 @@ mat6 = matmul (dmat, mat6)
 end subroutine apply_offsets_to_matrix
 
 end subroutine offset_particle
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine multipole_spin_precession (ele, param, orbit)
-!
-! Subroutine to track the spins in a multipole field.
-! Only half the field is used.
-!
-! Input:
-!   ele              -- Ele_struct: Element
-!     %value(x_pitch$)        -- Horizontal roll of element.
-!     %value(y_pitch$)        -- Vertical roll of element.
-!     %value(tilt$)           -- Tilt of element.
-!     %value(roll$)           -- Roll of dipole.
-!   param            -- Lat_param_struct
-!   orbit            -- coord_struct: Coordinates of the particle.
-!   do_half_prec     -- Logical, optional: Default is False.
-!                          Apply half multipole effect only (for kick-drift-kick model)
-!   include_sextupole_octupole  -- Logical, optional: Default is False.
-!                          Include the effects of sextupoles and octupoles
-!
-! Output:
-!   spin(2)          -- Complex(rp): Resultant spin
-!-
-
-subroutine multipole_spin_precession (ele, param, orbit)
-
-use multipole_mod, only: multipole_ele_to_ab
-
-use spin_mod, dummy => multipole_spin_precession
-
-implicit none
-
-type (ele_struct) :: ele
-type (lat_param_struct) param
-type (coord_struct) orbit
-
-complex(rp) kick, pos
-
-real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), knl
-
-integer n, sign_z_vel, ix_pole_max
-
-!
-
-call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn)
-if (ix_pole_max == -1) return
-
-! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
-! according to bmad manual, chapter "physics", section "Magnetic Fields"
-! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
-
-kick = bn(0) + i_imaginary * an(0)
-pos = orbit%vec(1) + i_imaginary * orbit%vec(3)
-if (pos /= 0) then
-  kick = kick + (bn(1) + i_imaginary * an(1)) * pos
-  do n = 2, max_nonzero(0, an, bn)
-    pos = pos * (orbit%vec(1) + i_imaginary * orbit%vec(3))
-    kick = kick + (bn(n) + i_imaginary * an(n)) * pos
-  enddo
-endif
-
-! Rotate spin
-
-sign_z_vel = orbit%direction * ele%orientation
-
-if (kick /= 0) then
-  call rotate_spin_given_field (orbit, sign_z_vel, &
-            [aimag(kick), real(kick), 0.0_rp] * (ele%value(p0c$) / (2 * charge_of(param%particle) * c_light)))
-endif
-
-! calculate rotation of local coordinate system due to dipole component
-
-if (ele%key == multipole$ .and. (bn(0) /= 0 .or. an(0) /= 0)) then
-  kick = bn(0) + i_imaginary * an(0)
-  call rotate_spin ([-aimag(kick), -real(kick), 0.0_rp], orbit%spin)
-endif
-
-end subroutine multipole_spin_precession

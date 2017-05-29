@@ -42,9 +42,9 @@ type (lat_param_struct) param
 
 orb%vec = 0
 orb%species = default_tracking_species(param)
-call offset_particle (ele, param, set$, orb, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, set$, orb, set_hvkicks = .false.)
 orb%vec = ele%vec0 + matmul (ele%mat6, orb%vec)
-call offset_particle (ele, param, unset$, orb, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, orb, set_hvkicks = .false.)
 ele%vec0 = orb%vec
 
 ! transform the ref_orb
