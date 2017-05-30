@@ -83,7 +83,7 @@ integer :: species
 logical convert_to_amu
 
 write (*, '(a, i0)')    'species: ', species
-write (*, '(a, a)'),   'name:    ', species_name(species)
+write (*, '(a, a)')     'name:    ', species_name(species)
 if (convert_to_amu) then
   write (*, '(a, f20.5)') 'mass:    ', mass_of(species)/atomic_mass_unit
 else
