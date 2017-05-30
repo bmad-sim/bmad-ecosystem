@@ -4,8 +4,6 @@ set (SRC_FILES
   compare_tracking_methods_text/compare_tracking_methods_text.f90
 )
 
-set (INC_DIRS
-)
 
 set (LINK_LIBS
   bmad 

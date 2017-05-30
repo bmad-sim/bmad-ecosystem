@@ -2,9 +2,6 @@ set (EXENAME wake_fit)
 
 FILE (GLOB SRC_FILES "wake_fit/*.f90")
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   sim_utils
   recipes_f-90_LEPP 

@@ -4,9 +4,6 @@ set (SRC_FILES
   bmad_to_autocad/bmad_to_autocad.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   xsif

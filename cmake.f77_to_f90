@@ -4,9 +4,6 @@ set (SRC_FILES
   f77_to_f90/f77_to_f90.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   xsif

@@ -4,9 +4,6 @@ set (SRC_FILES
   element_attributes/element_attributes.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   xsif

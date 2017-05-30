@@ -4,9 +4,6 @@ set (SRC_FILES
   compare_tracking_methods_plot/compare_tracking_methods_plot.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   xsif
