@@ -4,9 +4,6 @@ set (SRC_FILES
   bmad_to_csrtrack/bmad_to_csrtrack.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   xsif

@@ -4,9 +4,6 @@ set (SRC_FILES
   ptc_flat_file_to_bmad/ptc_to_bmad.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   util_programs
   bmad         

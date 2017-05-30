@@ -5,9 +5,6 @@ set (SRC_FILES
   rf_field_coef_calc/rf_field_coef_calc_mod.f90
 )
 
-set (INC_DIRS
-)
-
 set (LINK_LIBS
   bmad 
   sim_utils
