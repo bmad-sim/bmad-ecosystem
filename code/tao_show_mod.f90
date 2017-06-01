@@ -1738,7 +1738,8 @@ case ('lattice')
       n_attrib = n_attrib + 1
       attrib_list(n_attrib) = stuff2(1:ix_s2)
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
-      if (print_lords == maybe$) print_lords = no$
+      ! Why was this put in? Consider: "show lat Q* -attrib k1"
+      !! if (print_lords == maybe$) print_lords = no$  
 
     case ('-base')
       lat_type = base$
