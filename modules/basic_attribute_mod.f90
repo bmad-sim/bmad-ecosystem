@@ -1827,7 +1827,7 @@ end subroutine string_attrib
 !--------------------------------------------------------------------------
 !+
 ! Function switch_attrib_value_name (attrib_name, attrib_value, ele, 
-!                                     is_default) result (attrib_val_name)
+!                                     is_default, name_list) result (attrib_val_name)
 !
 ! Routine to return the name corresponding to the value of a given switch attribute.
 !
@@ -1847,24 +1847,27 @@ end subroutine string_attrib
 ! Input:
 !   attrib_name  -- Character(*): Name of the attribute. Must be upper case.
 !   attrib_value -- Real(rp): Value of the attribute.
-!   ele          -- ele_struct" Lattice element that the attribute is contained in.
+!   ele          -- ele_struct: Lattice element that the attribute is contained in.
+!                     Generally only needed to determine the default value.
 !
 ! Output:
 !   attrib_val_name -- Character(40): Name corresponding to the value.
 !   is_default      -- Logical, optional: If True then the value of the attiribute
 !                        corresponds to the default value. If this argument is
 !                        present, the ele argument must also be present.
+!   name_list(:)     -- character(20), allocatable, optional: List of names the switch can take.
 !-
 
-function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default) result (attrib_val_name)
+function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default, name_list) result (attrib_val_name)
 
 type (ele_struct) :: ele, ele2
 character(*) attrib_name
 real(rp) attrib_value
 integer ix_attrib_val
-character(40) attrib_val_name
-character(24) :: r_name = 'switch_attrib_value_name'
 logical, optional :: is_default
+character(*), optional, allocatable :: name_list(:)
+character(40) attrib_val_name
+character(*), parameter :: r_name = 'switch_attrib_value_name'
 
 ! 
 
@@ -2040,6 +2043,7 @@ case ('VELOCITY_DISTRIBUTION')
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
+  attrib_val_name = str_garbage$
 end select
 
 !---------------------------------------
@@ -2047,16 +2051,24 @@ contains
 
 subroutine get_this_attrib_name (val_name, ix_attrib_val, name_array, min_arr)
 
-integer ix_attrib_val, min_arr
+integer ix_attrib_val, min_arr, i
 character(*) val_name
 character(*) name_array(min_arr:)
 
 !
 
 if (ix_attrib_val < lbound(name_array, 1) .or. ix_attrib_val > ubound(name_array, 1)) then
-  val_name = 'Garbage!'
+  val_name = str_garbage$
 else
   val_name = name_array(ix_attrib_val)
+endif
+
+if (present(name_list)) then
+  if (allocated(name_list)) deallocate(name_list)
+  allocate (name_list(lbound(name_array, 1):ubound(name_array, 1)))
+  do i = lbound(name_array, 1), ubound(name_array, 1)
+    name_list(i) = name_array(i)
+  enddo
 endif
 
 end subroutine get_this_attrib_name
