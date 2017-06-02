@@ -25,6 +25,7 @@ complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
 
 integer, parameter :: int_garbage$ = -987654
 real(rp), parameter :: real_garbage$ = -987654.3
+character(*), parameter :: str_garbage$ = 'GARBAGE!'
 
 ! lf$ (the line feed or LF character) can be used to encode a multiline string.
 ! EG: string = 'First Line' // lf$ // 'Second Line'
