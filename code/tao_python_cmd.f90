@@ -76,16 +76,17 @@ character(n_char_show), pointer :: li(:)
 character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt
 character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
+character(20), allocatable :: name_list(:)
 character(20) cmd, command, who
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(28)= [ &
+character(20) :: cmd_names(31)= [ &
   'beam_init      ', 'branch1        ', 'bunch1         ', &
   'data_create    ', 'data_destroy   ', 'data_general   ', 'data_d2        ', 'data_d1        ', 'data1          ', &
-  'global         ', 'help           ', &
+  'enum           ', 'global         ', 'help           ', &
   'lat_ele_list   ', 'lat_ele1       ', 'lat_general    ', &
   'orbit_at_s     ', &
   'plot_list      ', 'plot1          ', 'plot_graph     ', 'plot_curve     ', 'plot_line      ', 'plot_symbol    ', &
-  'twiss_at_s     ', 'universe       ', &
+  'species_to_int ', 'species_to_str ', 'twiss_at_s     ', 'universe       ', &
   'var_create     ', 'var_destroy    ', 'var_general    ', 'var_v1         ', 'var1           ']
 
 real(rp) s_pos
@@ -544,6 +545,35 @@ case ('data1')
   nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
   nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
+
+!----------------------------------------------------------------------
+! List of possible values for enumerated numbers.
+! Command syntax:
+!   python enum <enum_name>
+! Example:
+!   python enum tracking_method
+
+case ('enum')
+
+  name = upcase(line)
+  a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
+  if (a_name == str_garbage$) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid switch name.')
+    call end_stuff()
+    return
+  endif
+
+  n = 0
+  do i = lbound(name_list, 1), ubound(name_list, 1)
+    if (index(name_list(i), '!') == 0 .and. name_list(i) /= '') n = n + 1
+  enddo
+
+  nl=nl+1; write(li(nl), '(i0)') n
+  do i = lbound(name_list, 1), ubound(name_list, 1)
+    if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
+    nl=nl+1; write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
+  enddo
 
 !----------------------------------------------------------------------
 ! Global parameters
@@ -1061,6 +1091,46 @@ case ('plot1')
   nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
   nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
+
+!----------------------------------------------------------------------
+! Convert species name to corresponding integer
+! Command syntax:
+!   python species_to_int <species_str>
+! Example:
+!   python species_to_int CO2++
+
+case ('species_to_int')
+
+  n = species_id(line)
+  if (n == invalid$ .or. line == '') then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species name.')
+    call end_stuff()
+    return
+  endif
+
+  nl=nl+1; write (li(nl), '(i0)') n
+
+!----------------------------------------------------------------------
+! Convert species integer id to corresponding 
+! Command syntax:
+!   python species_to_str <species_int>
+! Example:
+!   python species_to_str -1     ! Returns 'Electron'
+
+case ('species_to_str')
+
+  call string_to_int (line, 0, n, err)
+  name = species_name(n)
+
+  if (err .or. line == '' .or. name == invalid_name) then
+    nl=nl+1; li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species integer id number.')
+    call end_stuff()
+    return
+  endif
+
+  nl=nl+1; write (li(nl), '(a)') trim(name)
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
