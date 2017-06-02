@@ -147,10 +147,10 @@ endif
 
 amt = '(3a)'
 imt = '(a,i0,a)'
-rmt = '(a,es21.13,a)'
+rmt = '(a,es24.16,a)'
 lmt = '(a,l1,a)'
 vamt = '(a, i0, 3a)'
-vrmt = '(a, i0, a, es21.13)'
+vrmt = '(a, i0, a, es24.16)'
 
 nl = 0
 ss => scratch
@@ -216,7 +216,7 @@ case ('branch1')
   nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
   nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
   nl=nl+1; write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
-  nl=nl+1; write (li(nl), imt) 'param.default_tracking_species;INT;F;',          branch%param%default_tracking_species
+  nl=nl+1; write (li(nl), amt) 'param.default_tracking_species;INT;F;',          species_name(branch%param%default_tracking_species)
   nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
   nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
   nl=nl+1; write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
@@ -569,7 +569,6 @@ case ('enum')
     if (index(name_list(i), '!') == 0 .and. name_list(i) /= '') n = n + 1
   enddo
 
-  nl=nl+1; write(li(nl), '(i0)') n
   do i = lbound(name_list, 1), ubound(name_list, 1)
     if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
     nl=nl+1; write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
@@ -766,7 +765,7 @@ case ('lat_ele1')
       case (is_integer$)
         nl=nl+1; write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
       case (is_real$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, es21.13)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+        nl=nl+1; write (li(nl), '(2a, l1, a, es24.16)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       case (is_switch$)
         name = switch_attrib_value_name (a_name, ele%value(i), ele)
         nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';STR;', free, ';', trim(name)
@@ -797,8 +796,8 @@ case ('lat_ele1')
     endif
 
   case ('floor')
-    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-    nl=nl+1; write (li(nl), '(3(es21.13, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
+    nl=nl+1; write (li(nl), '(3(es24.16, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+    nl=nl+1; write (li(nl), '(3(es24.16, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
 
   case ('twiss')
     call twiss_out (ele%a, 'a')
@@ -1021,7 +1020,7 @@ case ('plot_line')
     
   call re_allocate_lines (nl+size(cur%x_line)+100)
   do i = 1, size(cur%x_line)
-    nl=nl+1; write (li(nl), '(i0, 2(a, es21.13))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+    nl=nl+1; write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -1052,7 +1051,7 @@ case ('plot_symbol')
     
   call re_allocate_lines (size(cur%x_symb)+100)
   do i = 1, size(cur%x_symb)
-    nl=nl+1; write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+    nl=nl+1; write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -1317,7 +1316,7 @@ case ('var_v1')
   do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     v_ptr => v1_ptr%v(i)
     if (.not. v_ptr%exists) cycle
-    nl=nl+1; write (li(nl), '(2a, i0, 5a, 3(es21.13, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+    nl=nl+1; write (li(nl), '(2a, i0, 5a, 3(es24.16, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
                      v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                      v_ptr%meas_value, ';', v_ptr%model_value, ';', &
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
@@ -1637,7 +1636,7 @@ character(*) suffix
 character(20) fmt
 logical, optional :: emit_out
 
-fmt = '(3a, es21.13)'
+fmt = '(3a, es24.16)'
 
 nl=nl+1; write (li(nl), fmt) 'beta_', suffix, ';REAL;F;',                          twiss%beta
 nl=nl+1; write (li(nl), fmt) 'alpha_', suffix, ';REAL;F;',                         twiss%alpha
