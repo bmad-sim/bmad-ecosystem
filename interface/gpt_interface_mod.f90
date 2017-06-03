@@ -1197,7 +1197,7 @@ case (solenoid$)
     ! XZ ordering: ix changes fastest (inner loop)
     do ix = 0, nx
       do iz = 0, nz
-        write (gpt_file_unit, '(4'//rfmt//')') ,  x_step * ix, z_step * iz - z0, &
+        write (gpt_file_unit, '(4'//rfmt//')')  x_step * ix, z_step * iz - z0, &
                  Bx_factor * real (  pt(ix, iz, 1)%B(1) ), &
                  Bz_factor * real (  pt(ix, iz, 1)%B(3) )            
       enddo

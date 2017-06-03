@@ -627,7 +627,7 @@ case (lcavity$, rfcavity$, e_gun$)
     ! XZ ordering: ix changes fastest (inner loop)
     do ix = 0, nx
       do iz = 0, nz
-        write (opal_file_unit, '(2'//rfmt//')') , &
+        write (opal_file_unit, '(2'//rfmt//')') &
           Bz_factor * real (  pt(ix, iz, 1)%B(3) ), &
           Bx_factor * real (  pt(ix, iz, 1)%B(1) )            
       enddo
