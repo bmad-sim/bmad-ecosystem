@@ -443,7 +443,7 @@ case (lcavity$, rfcavity$, e_gun$)
   
   select case (dimensions)
   case(1)
-    write (iu, '(a)', advance='NO'), 'Map1D_TM('
+    write (iu, '(a)', advance='NO') 'Map1D_TM('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'.gdf', '", '
     write (iu, '(1a)', advance='NO') ' "z", "Ez", '
@@ -455,7 +455,7 @@ case (lcavity$, rfcavity$, e_gun$)
     write (iu, '(a)') ');'  
     
   case(2)
-    write (iu, '(a)', advance='NO'), 'Map25D_TM('
+    write (iu, '(a)', advance='NO') 'Map25D_TM('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'.gdf', '", '
     write (iu, '(1a)', advance='NO') ' "r", "z", "Er", "Ez", "Bphi", '
@@ -478,7 +478,7 @@ case (lcavity$, rfcavity$, e_gun$)
       component = 'H'
     endif
     
-    write (iu, '(a)', advance='NO'), 'Map3D_'//component//'complex('
+    write (iu, '(a)', advance='NO') 'Map3D_'//component//'complex('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'_'//component//'.gdf', '", '
     if (i==1) then
@@ -506,7 +506,7 @@ case (solenoid$)
   call write_property('field_scale', max_field, 'signed abs max on-axis Bz in T')
   select case (dimensions)
   case(1)
-    write (iu, '(a)', advance='NO'), 'Map1D_B('
+    write (iu, '(a)', advance='NO') 'Map1D_B('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'.gdf', '", '
     write (iu, '(1a)', advance='NO') '"z", "Bz", '
@@ -514,7 +514,7 @@ case (solenoid$)
     write (iu, '(a)') ');'    
 
   case(2)
-    write (iu, '(a)', advance='NO'), 'Map2D_B('
+    write (iu, '(a)', advance='NO') 'Map2D_B('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'.gdf', '", '
     write (iu, '(1a)', advance='NO') ' "r", "z", "Br", "Bz", '
@@ -522,7 +522,7 @@ case (solenoid$)
     write (iu, '(a)') ');'    
 
   case(3)
-    write (iu, '(a)', advance='NO'), 'Map3D_B('
+    write (iu, '(a)', advance='NO') 'Map3D_B('
     call write_geometry()
     write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'_B.gdf', '", '
     write (iu, '(1a)', advance='NO') ' "x", "y", "z", "Bx", "By", "Bz", '
@@ -544,7 +544,7 @@ case (sbend$)
     !call write_property('field_scale', max_field, 'signed abs max on-axis By in T')
     !select case (dimensions)
     !case(3)
-    !  write (iu, '(a)', advance='NO'), 'Map3D_B('
+    !  write (iu, '(a)', advance='NO') 'Map3D_B('
     !  call write_geometry()
     !  write (iu, '(3a)', advance='NO')  '"', trim(fieldgrid_output_name)//'_B.gdf', '", '
     !  write (iu, '(1a)', advance='NO') ' "x", "y", "z", "Bx", "By", "Bz", '
@@ -557,7 +557,7 @@ case (sbend$)
 case (quadrupole$)   
    call write_property('gradient', ele%value(b1_Gradient$), 'T/m')
    call write_property('L', ele%value(L$), 'm') 
-   write (iu, '(a)', advance='NO'), 'quadrupole('
+   write (iu, '(a)', advance='NO') 'quadrupole('
    call write_geometry()
    call write_property('L')
    call write_comma()
