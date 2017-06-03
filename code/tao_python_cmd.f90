@@ -560,7 +560,7 @@ case ('enum')
 
   name = upcase(line)
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
-  if (a_name == str_garbage$) then
+  if (.not. allocated(name_list)) then
     nl=nl+1; li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid switch name.')
     call end_stuff()
