@@ -186,71 +186,72 @@ do i = 1, num_ele_attrib$
   if (a_name == null_name$) cycle
   if (attrib%type == private$) cycle
   ix_tot = corresponding_tot_attribute_index (ele, i)
+
   if (i >= custom_attribute1$ .and. i <= custom_attribute5$) then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 3x, a)') &
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
                       i, a_name(1:n_att), '=', ele%value(i), '! Custom attribute'
 
   elseif (ix_tot > 0) then
     if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, i7, 3x, a16, a, es15.7)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
-                      ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, i3, 3x, a16, a, es15.7, 1x, a8)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
+                      ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot), attrib%units
 
   elseif (a_name == 'RF_FREQUENCY' .and. ele%value(i) /= 0) then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
-                      'RF_WAVELENGTH   =', c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$))
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9, 1x, a)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
+                      'RF_WAVELENGTH   =', c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)), 'm'
 
   elseif (a_name == 'P0C_START') then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 10x, a, f13.9)') &
+                      i, a_name(1:n_att), '=', ele%value(i), &
                       'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
 
   elseif (a_name == 'E_TOT_START') then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
-                      'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7, 1x, a8)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
+                      'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$), attrib%units
 
   elseif (a_name == 'P0C') then
     if (particle == photon$) then
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es14.6)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
-                      'REF_WAVELENGTH  =', c_light * h_planck / ele%value(p0c$)
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es14.6, 1x, a)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
+                      'REF_WAVELENGTH  =', c_light * h_planck / ele%value(p0c$), 'm'
     else
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
                       'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
     endif
 
   elseif (a_name == 'E_TOT') then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
-                      i, a_name(1:n_att), '=', ele%value(i), ',', &
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
                       'GAMMA           =', ele%value(e_tot$) / mass_of(particle)
 
   elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
-    units = ' deg]'
-    if (a_name == 'DBRAGG_ANGLE_DE') units = ' deg/eV]'
+    units = ' deg'
+    if (a_name == 'DBRAGG_ANGLE_DE') units = ' deg/eV'
     if (.not. type_zero .and. ele%value(i) == 0) cycle
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
-                 i, a_name(1:n_att), '=', ele%value(i), '[', ele%value(i) * 180 / pi, trim(units)
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
+                 i, a_name(1:n_att), '=', ele%value(i), ele%value(i) * 180 / pi, trim(units)
   else
     attrib_type = attribute_type(a_name)
     if (is_a_tot_attribute(ele, i)) cycle
     select case (attrib_type)
     case (is_logical$)
       if (ele%value(i) /= 0) ele%value(i) = 1
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, l1, a, i0, a)')  i, a_name(1:n_att), '=  ', &
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, l1, a, i0, a)')  i, a_name(1:n_att), '=  ', &
                                   is_true(ele%value(i)), ' (', nint(ele%value(i)), ')'
     case (is_integer$)
       if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
     case (is_real$)
       if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8)')  i, a_name(1:n_att), '=', ele%value(i), attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele, is_default)
       if (.not. is_default .or. type_zero) then
-        nl=nl+1; write (li(nl), '(i6, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
+        nl=nl+1; write (li(nl), '(i5, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
                                                       trim(name), ' (', nint(ele%value(i)), ')'
       endif
     end select
@@ -758,13 +759,13 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     if (ele%lord_status == group_lord$) then
       do i = 1, size(ele%control_var)
         a_name = ele%control_var(i)%name
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 11x, 3a, es15.7)')  i, &
+        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 11x, 3a, es15.7)')  i, &
                       a_name(1:n_att), '  =', ele%control_var(i)%value, &
                       'OLD_', a_name(1:n_att), '  =', ele%control_var(i)%old_value
       enddo
     else  ! overlay_lord
       do i = 1, size(ele%control_var)
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, &
+        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  i, &
                       ele%control_var(i)%name, '  =', ele%control_var(i)%value
       enddo
     endif
