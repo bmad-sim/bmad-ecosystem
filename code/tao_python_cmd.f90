@@ -5,11 +5,14 @@
 !
 ! Note: The syntax for "variable list form" is:
 !   <component_name>;<type>;<variable>;<component_value>
+!
 ! <type> is one of:
 !   STR
 !   INT
 !   REAL
 !   LOGIC
+!   ENUM
+!
 ! <variable> indicates if the component can be varied. It is one of:
 !   T
 !   F
@@ -79,11 +82,11 @@ character(200) line, file_name
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(31)= [ &
+character(20) :: cmd_names(32)= [ &
   'beam_init      ', 'branch1        ', 'bunch1         ', &
   'data_create    ', 'data_destroy   ', 'data_general   ', 'data_d2        ', 'data_d1        ', 'data1          ', &
   'enum           ', 'global         ', 'help           ', &
-  'lat_ele_list   ', 'lat_ele1       ', 'lat_general    ', &
+  'lat_ele_list   ', 'lat_ele1       ', 'lat_general    ', 'lat_param_units', &
   'orbit_at_s     ', &
   'plot_list      ', 'plot1          ', 'plot_graph     ', 'plot_curve     ', 'plot_line      ', 'plot_symbol    ', &
   'species_to_int ', 'species_to_str ', 'twiss_at_s     ', 'universe       ', &
@@ -657,21 +660,6 @@ case ('help')
 !----------------------------------------------------------------------
 ! Lattice element list.
 ! Command syntax:
-!   python lat_general <ix_universe>
-
-case ('lat_general')
-
-  u => point_to_uni(.false., err); if (err) return
-  
-  lat => u%design%lat
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
-  enddo
-
-!----------------------------------------------------------------------
-! Lattice element list.
-! Command syntax:
 !   python lat_ele <branch_name>
 ! <branch_name> should have the form:
 !   <ix_uni>@<ix_branch>
@@ -733,13 +721,13 @@ case ('lat_ele1')
     nl=nl+1; write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
     nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
     nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;STR;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
-    nl=nl+1; write (li(nl), amt) 'tracking_method;STR;T;',                  tracking_method_name(ele%tracking_method)
-    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;STR;T;',             spin_tracking_method_name(ele%spin_tracking_method)
-    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;STR;T;',             ptc_integration_type_name(ele%ptc_integration_type)
-    nl=nl+1; write (li(nl), amt) 'field_calc;STR;T;',                       field_calc_name(ele%field_calc)
-    nl=nl+1; write (li(nl), amt) 'aperture_at;STR;T;',                      aperture_at_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), amt) 'aperture_type;STR;T;',                    aperture_type_name(ele%aperture_type)
+    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;ENUM;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
+    nl=nl+1; write (li(nl), amt) 'tracking_method;ENUM;T;',                  tracking_method_name(ele%tracking_method)
+    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;ENUM;T;',             spin_tracking_method_name(ele%spin_tracking_method)
+    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;ENUM;T;',             ptc_integration_type_name(ele%ptc_integration_type)
+    nl=nl+1; write (li(nl), amt) 'field_calc;ENUM;T;',                       field_calc_name(ele%field_calc)
+    nl=nl+1; write (li(nl), amt) 'aperture_at;ENUM;T;',                      aperture_at_name(ele%aperture_at)
+    nl=nl+1; write (li(nl), amt) 'aperture_type;ENUM;T;',                    aperture_type_name(ele%aperture_type)
     nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
     nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
     nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
@@ -768,7 +756,7 @@ case ('lat_ele1')
         nl=nl+1; write (li(nl), '(2a, l1, a, es24.16)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       case (is_switch$)
         name = switch_attrib_value_name (a_name, ele%value(i), ele)
-        nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';STR;', free, ';', trim(name)
+        nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';ENUM;', free, ';', trim(name)
       end select
     enddo
 
@@ -811,6 +799,32 @@ case ('lat_ele1')
     call out_io (s_error$, r_name, 'python lat_ele1 <ele>|<which> <who>: Bad <who>: ' // who)
     return
   end select  
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Command syntax:
+!   python lat_general <ix_universe>
+
+case ('lat_general')
+
+  u => point_to_uni(.false., err); if (err) return
+  
+  lat => u%design%lat
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
+  enddo
+
+!----------------------------------------------------------------------
+! Units of a parameter associated with a lattice or lattice element.
+! Command syntax:
+!   python lat_param_units <param_name>
+
+case ('lat_param_units')
+
+  name = upcase(line)
+  a_name = attribute_units(name)
+  nl=nl+1; write(li(nl), '(a)') a_name
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
