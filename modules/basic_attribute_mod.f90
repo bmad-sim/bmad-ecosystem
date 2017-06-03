@@ -17,6 +17,7 @@ integer, parameter :: does_not_exist$ = -1, is_free$ = 1, quasi_free$ = 2, depen
 type ele_attribute_struct
   character(40) :: name = null_name$
   integer :: type = does_not_exist$
+  character(16) :: units = ''
 end type
 
 type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)
@@ -432,6 +433,7 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_info%name = '!BAD INDEX'
 else
   attrib_info = attrib_array(ele%key, ix_att)
+  attrib_info%units = attribute_units(attrib_info%name)
 endif
 
 end function attribute_info
@@ -681,15 +683,6 @@ do i = 1, n_key$
   end select
 enddo
 
-attrib_array(hybrid$, a0$+1:a0$+6)%name = ['KICK1', 'KICK2', 'KICK3', 'KICK4', 'KICK5', 'KICK6']
-attrib_array(hybrid$, a0_elec$+1:a0_elec$+36)%name = &
-                                           ['MAT11', 'MAT12', 'MAT13', 'MAT14', 'MAT15', 'MAT16', &
-                                            'MAT21', 'MAT22', 'MAT23', 'MAT24', 'MAT25', 'MAT26', &
-                                            'MAT31', 'MAT32', 'MAT33', 'MAT34', 'MAT35', 'MAT36', &
-                                            'MAT41', 'MAT42', 'MAT43', 'MAT44', 'MAT45', 'MAT46', &
-                                            'MAT51', 'MAT52', 'MAT53', 'MAT54', 'MAT55', 'MAT56', &
-                                            'MAT61', 'MAT62', 'MAT63', 'MAT64', 'MAT65', 'MAT66']
-
 !----------------------------------------------------------
 ! Convention: Private attributes have names in lower case.
 
@@ -723,7 +716,7 @@ call init_attribute_name1 (beambeam$, cmat_12$,                     'CMAT_12')
 call init_attribute_name1 (beambeam$, cmat_21$,                     'CMAT_21')
 call init_attribute_name1 (beambeam$, cmat_22$,                     'CMAT_22')
 
-call init_attribute_name1 (beginning_ele$, l$,                           'l', dependent$)
+call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
 call init_attribute_name1 (beginning_ele$, floor_set$,                   'floor_set', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
 call init_attribute_name1 (beginning_ele$, ref_time_start$,              'ref_time_start', private$)
@@ -874,12 +867,12 @@ call init_attribute_name1 (detector$, l$,                             'L', depen
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
-call init_attribute_name1 (diffraction_plate$, l$,                    'l', dependent$)
+call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
 call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
 call init_attribute_name1 (diffraction_plate$, field_scale_factor$,   'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (diffraction_plate$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 
-call init_attribute_name1 (mask$, l$,                                 'l', dependent$)
+call init_attribute_name1 (mask$, l$,                                 'l', private$)
 call init_attribute_name1 (mask$, mode$,                              'MODE')
 call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
@@ -1447,10 +1440,10 @@ call init_attribute_name1 (photon_init$, ref_wavelength$,            'REF_WAVELE
 do i = 1, n_key$
   if (attrib_array(i, l$)%name /= 'L') cycle
   if (attrib_array(i, l$)%type /= is_free$) cycle
-  call init_attribute_name1 (i, accordion_edge$, 'Accordion_Edge')
-  call init_attribute_name1 (i, start_edge$,     'Start_Edge')
-  call init_attribute_name1 (i, end_edge$,       'End_Edge')
-  call init_attribute_name1 (i, s_position$,     'S_Position')
+  call init_attribute_name1 (i, accordion_edge$, 'Accordion_Edge', private$)
+  call init_attribute_name1 (i, start_edge$,     'Start_Edge', private$)
+  call init_attribute_name1 (i, end_edge$,       'End_Edge', private$)
+  call init_attribute_name1 (i, s_position$,     'S_Position', private$)
 enddo
 
 !-----------------------------------------------------------------------
@@ -1592,10 +1585,13 @@ end function has_orientation_attributes
 !+
 ! Function attribute_type (attrib_name) result (attrib_type)
 !
-! Routine to return the type of an attribute.
+! Routine to return the logical type of an attribute.
 !
 ! A "switch" attribute is an attribute whose value corresponds to some string.
 ! For example, the "COUPLER_AT" attirbute with value 1 corresponds to "ENTRANCE_END", etc. 
+!
+! A "struct" attribute is an attribute that is the name for a "structure". For example,
+! CARTESIAN_MAP is the name of the structure hoding a Cartesian map.
 !
 ! If attrib_name corresponds to a switch attribute, The routine switch_attrib_value_name can 
 ! be used to print the name corresponding to the attribute's value.
@@ -1612,7 +1608,7 @@ end function has_orientation_attributes
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
-!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, or unknown$
+!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$ or unknown$
 !-
 
 function attribute_type (attrib_name) result (attrib_type)
@@ -1630,10 +1626,10 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
-      'CONSTANT_REF_ENERGY')
+      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'AD_N_DIV_MAX', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', &
       'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER')
   attrib_type = is_integer$
@@ -1644,12 +1640,16 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
-      'LORD_STATUS')
+      'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME')
   attrib_type = is_string$
+
+case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'LR_WAKE_SPLINE', 'REF_ORBIT', &
+      'SUPERIMPOSE', 'SURFACE', 'TAYLOR_FIELD', 'TERM', 'VAR')
+  attrib_type = is_struct$
 
 case default
   if (attribute_index(0, attrib_name, can_abbreviate = .false.) == 0) then
@@ -1660,6 +1660,186 @@ case default
 end select
 
 end function attribute_type 
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_units (attrib_name, unrecognized_units) result (attrib_units)
+!
+! Routine to return the units associated with an attribute.
+! Example: attrib_units('P0C') -> 'eV'
+!
+! Input:
+!   attrib_name        -- character(*): Name of the attribute. Must be upper case.
+!   unrecognized_units -- character(*), optional: String to use if the attribute name is unrecognized.
+!                           Note: Non-real attributes (EG: 'TRACKING_METHOD') are not recognized.
+!                           Default is ""
+! Output:
+!   attrib_units -- character(16): Units associated with the attribute.
+!-
+
+function attribute_units (attrib_name, unrecognized_units) result (attrib_units)
+
+character(*) attrib_name
+character(*), optional :: unrecognized_units
+character(16) attrib_units
+
+!
+
+select case (attrib_name)
+
+case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', 'ALPHA_B1', &
+      'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BBI_CONSTANT', 'B_PARAM', &
+      'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
+      'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
+      'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
+      'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_POLE', 'N_SAMPLE', 'N_SLICE_SPLINE', 'OSC_AMPLITUDE', &
+      'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
+      'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_E', 'SIG_VX', 'SIG_VY', &
+      'SPINOR_POLARIZATION', 'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', &
+      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT')
+  attrib_units = ''
+
+case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
+      'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', &
+      'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
+      'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
+      'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
+      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_POLE', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
+      'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
+      'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
+      'X', ' X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &
+      'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
+      'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', 'X_RAY_LINE_LEN', &
+      'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', &
+      'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR')
+  attrib_units = 'm'
+
+
+case ('V1_UNITCELL', 'V2_UNITCELL', 'V_DISPLACE', 'V_UNITCELL')
+  attrib_units = 'm^3'
+
+case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', &
+      'COUPLER_ANGLE', 'CRITICAL_ANGLE', 'CRUNCH', 'CRUNCH_CALIB', 'DARWIN_WIDTH_PI', 'DARWIN_WIDTH_SIGMA', &
+      'DPHI_A', 'DPHI_B', 'DPHI_ORIGIN', 'DPSI_ORIGIN', 'DTHETA_ORIGIN', 'E1', 'E2', 'GRAZE_ANGLE', & 
+      'PHASE_X', 'PHASE_Y', 'PHI_A', 'PHI_B', 'PHI_POSITION', 'PSI_ANGLE', 'PSI_POSITION', 'QUAD_TILT', &
+      'REF_TILT', 'REF_TILT_TOT', 'ROLL', 'ROLL_TOT', 'SPINOR_PHI', 'SPINOR_THETA', 'SPINOR_XI', 'THETA_POSITION', &
+      'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', &
+      'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
+      'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21')
+  attrib_units = 'rad'
+
+case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS')
+  attrib_units = 'rad/2Pi'
+
+case ('CRITICAL_ANGLE_FACTOR')
+  attrib_units = 'rad*eV'
+
+case ('CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'H1', 'H2')
+  attrib_units = '1/m'
+
+case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS')
+  attrib_units = '1/m^2'
+
+case ('CURVATURE_X0_Y4', 'CURVATURE_X1_Y3', 'CURVATURE_X2_Y2', 'CURVATURE_X3_Y1', 'CURVATURE_X4_Y0')
+  attrib_units = '1/m^3'
+
+case ('CURVATURE_X0_Y5', 'CURVATURE_X1_Y4', 'CURVATURE_X2_Y3', 'CURVATURE_X3_Y2', 'CURVATURE_X4_Y1', 'CURVATURE_X5_Y0')
+  attrib_units = '1/m^4'
+
+case ('CURVATURE_X0_Y6', 'CURVATURE_X1_Y5', 'CURVATURE_X2_Y4', 'CURVATURE_X3_Y3', 'CURVATURE_X4_Y2', 'CURVATURE_X5_Y1', 'CURVATURE_X6_Y0')
+  attrib_units = '1/m^5'
+
+case ('DBRAGG_ANGLE_DE')
+  attrib_units = 'rad/eV'
+
+case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
+      'P0C', 'P0C_START', 'PC')
+  attrib_units = 'eV'
+
+case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET')
+  attrib_units = 'sec'
+
+case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')
+  attrib_units = 'm*rad'
+
+case ('E_FIELD', 'E_FIELD_X', 'E_FIELD_Y')
+  attrib_units = 'V/m'
+
+case ('VOLTAGE', 'VOLTAGE_ERR')
+  attrib_units = 'Volt'
+
+
+case ('GRADIENT', 'GRADIENT_ERR')
+  attrib_units = 'eV/m'
+
+case ('LR_FREQ_SPREAD', 'RF_FREQUENCY')
+  attrib_units = 'Hz'
+
+case ('BS_FIELD', 'B_FIELD', 'B_FIELD_ERR', 'B_MAX')
+  attrib_units = 'T'
+
+case ('B1_GRADIENT');                           attrib_units = 'T/m'
+case ('B2_GRADIENT');                           attrib_units = 'T/m^2'
+case ('B3_GRADIENT');                           attrib_units = 'T/m^3'
+case ('BL_HKICK', 'BL_KICK', 'BL_VKICK');       attrib_units = 'T*m'
+case ('A0', 'B0', 'K0L');                       attrib_units = ''
+case ('A1', 'B1', 'K1L', 'KS');                 attrib_units = '1/m'
+case ('A2', 'B2', 'K2L', 'K1');                 attrib_units = '1/m^2'
+case ('A3', 'B3', 'K3L', 'K2');                 attrib_units = '1/m^3'
+case ('A4', 'B4', 'K4L', 'K3');                 attrib_units = '1/m^4'
+case ('A5', 'B5', 'K5L');                       attrib_units = '1/m^5'
+case ('A6', 'B6', 'K6L');                       attrib_units = '1/m^6'
+case ('A7', 'B7', 'K7L');                       attrib_units = '1/m^7'
+case ('A8', 'B8', 'K8L');                       attrib_units = '1/m^8'
+case ('A9', 'B9', 'K9L');                       attrib_units = '1/m^9'
+case ('A10', 'B10', 'K10L');                    attrib_units = '1/m^10'
+case ('A11', 'B11', 'K11L');                    attrib_units = '1/m^11'
+case ('A12', 'B12', 'K12L');                    attrib_units = '1/m^12'
+case ('A13', 'B13', 'K13L');                    attrib_units = '1/m^13'
+case ('A14', 'B14', 'K14L');                    attrib_units = '1/m^14'
+case ('A15', 'B15', 'K15L');                    attrib_units = '1/m^15'
+case ('A16', 'B16', 'K16L');                    attrib_units = '1/m^16'
+case ('A17', 'B17', 'K17L');                    attrib_units = '1/m^17'
+case ('A18', 'B18', 'K18L');                    attrib_units = '1/m^18'
+case ('A19', 'B19', 'K19L');                    attrib_units = '1/m^19'
+case ('A20', 'B20', 'K20L');                    attrib_units = '1/m^20'
+case ('A21', 'B21', 'K21L');                    attrib_units = '1/m^21'
+case ('A0_ELEC', 'B0_ELEC');                    attrib_units = 'V/m'
+case ('A1_ELEC', 'B1_ELEC');                    attrib_units = 'V/m^2'
+case ('A2_ELEC', 'B2_ELEC');                    attrib_units = 'V/m^3'
+case ('A3_ELEC', 'B3_ELEC');                    attrib_units = 'V/m^4'
+case ('A4_ELEC', 'B4_ELEC');                    attrib_units = 'V/m^5'
+case ('A5_ELEC', 'B5_ELEC');                    attrib_units = 'V/m^6'
+case ('A6_ELEC', 'B6_ELEC');                    attrib_units = 'V/m^7'
+case ('A7_ELEC', 'B7_ELEC');                    attrib_units = 'V/m^8'
+case ('A8_ELEC', 'B8_ELEC');                    attrib_units = 'V/m^9'
+case ('A9_ELEC', 'B9_ELEC');                    attrib_units = 'V/m^10'
+case ('A10_ELEC', 'B10_ELEC');                  attrib_units = 'V/m^11'
+case ('A11_ELEC', 'B11_ELEC');                  attrib_units = 'V/m^12'
+case ('A12_ELEC', 'B12_ELEC');                  attrib_units = 'V/m^13'
+case ('A13_ELEC', 'B13_ELEC');                  attrib_units = 'V/m^14'
+case ('A14_ELEC', 'B14_ELEC');                  attrib_units = 'V/m^15'
+case ('A15_ELEC', 'B15_ELEC');                  attrib_units = 'V/m^16'
+case ('A16_ELEC', 'B16_ELEC');                  attrib_units = 'V/m^17'
+case ('A17_ELEC', 'B17_ELEC');                  attrib_units = 'V/m^18'
+case ('A18_ELEC', 'B18_ELEC');                  attrib_units = 'V/m^19'
+case ('A19_ELEC', 'B19_ELEC');                  attrib_units = 'V/m^20'
+case ('A20_ELEC', 'B20_ELEC');                  attrib_units = 'V/m^21'
+case ('A21_ELEC', 'B21_ELEC');                  attrib_units = 'V/m^22'
+
+case default
+  if (present(unrecognized_units)) then
+    attrib_units = unrecognized_units
+  else
+    attrib_units = ''
+  endif
+
+end select
+
+
+end function attribute_units
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1904,6 +2084,10 @@ case ('COUPLER_AT')
 case ('DEFAULT_TRACKING_SPECIES')
   attrib_val_name = species_name(ix_attrib_val)
   if (present(is_default)) is_default = (ix_attrib_val == ref_particle$)
+
+case ('ELE_ORIGIN', 'REF_ORIGIN')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, anchor_pt_name, lbound(anchor_pt_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == anchor_center$)
 
 case ('ENERGY_DISTRIBUTION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))

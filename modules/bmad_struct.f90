@@ -71,21 +71,21 @@ integer, parameter :: n_methods$ = 15
 
 character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
-      'Linear          ', 'Garbage         ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Linear          ', 'GARBAGE!        ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
       'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Garbage         ', 'Symp_Lie_PTC    ', 'Garbage         ', &
-      'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
-      'Garbage         ', 'Garbage         ', 'Garbage         ', 'Garbage         ', &
-      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']
+      'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
+      'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
+      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
+      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ']
 
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a']
+      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'GARBAGE!        ', 'GARBAGE!        ', 'MAD             ', 'GARBAGE!       a']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
 character(16), parameter :: ptc_integration_type_name(0:3) = [&
@@ -495,7 +495,7 @@ integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_f
 integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
 integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
 
-character(20), parameter :: cartesian_map_term_name(0:12) = [ 'Garbage           ', &
+character(20), parameter :: cartesian_map_term_name(0:12) = [ 'GARBAGE!          ', &
                                         'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
                                         'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
                                         'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
@@ -1558,6 +1558,7 @@ end type
 type (synch_rad_common_struct), save :: synch_rad_com
 
 integer, parameter :: unknown$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
+integer, parameter :: is_struct$ = 6 
 
 ! For coords_floor_to_curvilinear status argument
 
