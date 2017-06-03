@@ -2036,6 +2036,7 @@ end subroutine string_attrib
 !                        corresponds to the default value. If this argument is
 !                        present, the ele argument must also be present.
 !   name_list(:)     -- character(20), allocatable, optional: List of names the switch can take.
+!                         Deallocated if there is an error.
 !-
 
 function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default, name_list) result (attrib_val_name)
@@ -2052,6 +2053,12 @@ character(*), parameter :: r_name = 'switch_attrib_value_name'
 ! 
 
 ix_attrib_val = nint(attrib_value)
+
+if (present(name_list)) then
+  if (allocated(name_list)) deallocate(name_list)
+endif
+
+!
 
 select case (attrib_name)
 
@@ -2248,7 +2255,6 @@ else
 endif
 
 if (present(name_list)) then
-  if (allocated(name_list)) deallocate(name_list)
   allocate (name_list(lbound(name_array, 1):ubound(name_array, 1)))
   do i = lbound(name_array, 1), ubound(name_array, 1)
     name_list(i) = name_array(i)
