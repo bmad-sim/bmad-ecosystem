@@ -315,53 +315,55 @@ end subroutine make_HVBP
 !  err_flag -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !-
 
-!subroutine xyz_to_action(ring, loc, X, J, err_flag)
+subroutine xyz_to_action(ring, loc, X, J, err_flag)
+
+type(lat_struct) ring
+!!class(*) :: loc
+integer loc
+
+real(rp) X(6)
+real(rp) J(6)
+logical err_flag
+
+real(rp) t6(6,6)
+real(rp) N(6,6)
+real(rp) abz_tunes(3)
+
+integer ix_use
+
+type(ele_struct) ele_at_s
+
+character(*), parameter :: r_name = 'xyz_to_action'
+
 !
-!type(lat_struct) ring
-!class(*) :: loc
-!real(rp) X(6)
-!real(rp) J(6)
-!logical err_flag
-!
-!real(rp) t6(6,6)
-!real(rp) N(6,6)
-!real(rp) abz_tunes(3)
-!
-!integer ix_use
-!
-!type(ele_struct) ele_at_s
-!
-!character(*), parameter :: r_name = 'xyz_to_action'
-!
-!!
-!
-!abz_tunes(1) = ring%a%tune
-!abz_tunes(2) = ring%b%tune
-!abz_tunes(3) = ring%z%tune
-!
-!select type(loc)
-!type is (integer)
-!  call transfer_matrix_calc (ring, t6, ix1=loc, one_turn=.true.)
-!type is (real(rp))
-!  ix_use = element_at_s(ring, loc, .false.)
-!  call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
-!  call twiss_and_track_at_s (ring, loc, ele_at_s)
-!  t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
-!end select
-!
-!if (all(abs(abz_tunes).gt. 0.0001)) then
-!  call make_N(t6, N, err_flag, abz_tunes)
-!else
-!  call make_N(t6, N, err_flag)
-!endif
-!if ( err_flag ) then
-!  call out_io (s_error$, r_name, "Error received from make_N.")
-!  J = 0.0d0
-!  return
-!endif
-!
-!J = matmul(mat_symp_conj(N), X)
-!end subroutine xyz_to_action
+
+abz_tunes(1) = ring%a%tune
+abz_tunes(2) = ring%b%tune
+abz_tunes(3) = ring%z%tune
+
+!!select type(loc)
+!!type is (integer)
+  call transfer_matrix_calc (ring, t6, ix1=loc, one_turn=.true.)
+!!type is (real(rp))
+!!  ix_use = element_at_s(ring, loc, .false.)
+!!  call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
+!!  call twiss_and_track_at_s (ring, loc, ele_at_s)
+!!  t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
+!!end select
+
+if (all(abs(abz_tunes).gt. 0.0001)) then
+  call make_N(t6, N, err_flag, abz_tunes)
+else
+  call make_N(t6, N, err_flag)
+endif
+if ( err_flag ) then
+  call out_io (s_error$, r_name, "Error received from make_N.")
+  J = 0.0d0
+  return
+endif
+
+J = matmul(mat_symp_conj(N), X)
+end subroutine xyz_to_action
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
