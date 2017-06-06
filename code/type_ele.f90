@@ -232,8 +232,8 @@ do i = 1, num_ele_attrib$
     units = ' deg'
     if (a_name == 'DBRAGG_ANGLE_DE') units = ' deg/eV'
     if (.not. type_zero .and. ele%value(i) == 0) cycle
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
-                 i, a_name(1:n_att), '=', ele%value(i), ele%value(i) * 180 / pi, trim(units)
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f10.4, a)') &
+                 i, a_name(1:n_att), '=', ele%value(i), attrib%units, ele%value(i) * 180 / pi, trim(units)
   else
     attrib_type = attribute_type(a_name)
     if (is_a_tot_attribute(ele, i)) cycle
