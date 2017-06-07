@@ -750,7 +750,7 @@ case ('lat_ele1')
 
       select case (attribute_type(a_name))
       case (is_logical$)
-        nl=nl+1; write (li(nl), '(2a, l1, 2a)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+        nl=nl+1; write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
       case (is_integer$)
         nl=nl+1; write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
       case (is_real$)
