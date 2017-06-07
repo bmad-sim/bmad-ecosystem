@@ -411,7 +411,14 @@ if (search_for_lat_eles /= '') then
     grouping = .false.
     search_string = search_string(13:)
   endif
-  search_string = '-no_slaves ' // trim(search_string)
+
+  if (index(search_string, '-no_slaves') /= 0) then
+    call out_io (s_error$, r_name, &
+          'Note: The "-no_slaves" switch is not valid with search_for_lat_eles for *variables*.')
+  else
+    search_string = '-no_slaves ' // trim(search_string)
+  endif
+
   if (any(var%universe /= '')) then
     call out_io (s_abort$, r_name, &
            "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
@@ -422,11 +429,14 @@ if (search_for_lat_eles /= '') then
   ! first count how many variables we need
 
   num_ele = 0
+  found_one = .false.
   allocate(ele_names(100), an_indexx(100))
+
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_init_find_elements (s%u(iu), search_string, eles, default_attribute)
+    call tao_init_find_elements (s%u(iu), search_string, eles, default_attribute, found_one)
+
     if (grouping) then
       do kk = 1, size(eles)
         call find_indexx(eles(kk)%ele%name, ele_names, an_indexx, num_ele, ixm, ix2m)
@@ -447,10 +457,10 @@ if (search_for_lat_eles /= '') then
   enddo
   deallocate(ele_names, an_indexx)
 
-  if (num_ele == 0) then
+  if (.not. found_one) then
     call out_io (s_error$, r_name, &
-              'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
-              'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
+            'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
+            'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
     return
   endif
 
