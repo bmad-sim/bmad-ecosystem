@@ -80,7 +80,7 @@ character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt
 character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
 character(20), allocatable :: name_list(:)
-character(20) cmd, command, who
+character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
 character(20) :: cmd_names(32)= [ &
   'beam_init      ', 'branch1        ', 'bunch1         ', &
@@ -699,7 +699,7 @@ case ('lat_ele1')
   who = line(1:ix)
 
   u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
+  tao_lat => point_to_tao_lat(err, which); if (err) return
   ele => point_to_ele(err); if (err) return
 
   select case (who)
@@ -746,6 +746,7 @@ case ('lat_ele1')
       if (a_name == null_name$) cycle
       if (attrib%type == private$) cycle
       free = attribute_free (ele, a_name, .false.)
+      if (which /= 'model') free = .false.
 
       select case (attribute_type(a_name))
       case (is_logical$)
@@ -761,13 +762,19 @@ case ('lat_ele1')
     enddo
 
   case ('multipole')
+    if (which == 'model') then
+      v_str = '];REAL;T;'
+    else
+      v_str = '];REAL;F;'
+    endif
+
     if (associated(ele%a_pole)) then
       do i = 0, ubound(ele%a_pole, 1)
         if (ele%a_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole[', i, '];REAL;T;', ele%a_pole(i) 
+          nl=nl+1; write (li(nl), vrmt) 'a_pole[', i, v_str, ele%a_pole(i) 
         endif
         if (ele%b_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole[', i, '];REAL;T;', ele%b_pole(i) 
+          nl=nl+1; write (li(nl), vrmt) 'b_pole[', i, v_str, ele%b_pole(i) 
         endif
       enddo
     endif
@@ -775,10 +782,10 @@ case ('lat_ele1')
     if (associated(ele%a_pole_elec)) then
       do i = 0, ubound(ele%a_pole_elec, 1)
         if (ele%a_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole_elec[', i, '];REAL;T;', ele%a_pole_elec(i) 
+          nl=nl+1; write (li(nl), vrmt) 'a_pole_elec[', i, v_str, ele%a_pole_elec(i) 
         endif
         if (ele%b_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole_elec[', i, '];REAL;T;', ele%b_pole_elec(i) 
+          nl=nl+1; write (li(nl), vrmt) 'b_pole_elec[', i, v_str, ele%b_pole_elec(i) 
         endif
       enddo
     endif
@@ -788,8 +795,9 @@ case ('lat_ele1')
     nl=nl+1; write (li(nl), '(3(es24.16, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
 
   case ('twiss')
-    call twiss_out (ele%a, 'a')
-    call twiss_out (ele%b, 'b')
+    free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
+    call twiss_out (ele%a, 'a', can_vary = free)
+    call twiss_out (ele%b, 'b', can_vary = free)
 
   case ('orbit')
     call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
@@ -1481,9 +1489,10 @@ end subroutine re_allocate_lines
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_tao_lat (err) result (tao_lat)
+function point_to_tao_lat (err, which) result (tao_lat)
 
 type (tao_lattice_struct), pointer :: tao_lat
+character(*), optional :: which
 logical err
 
 err = .false.
@@ -1514,6 +1523,7 @@ case default
   err = .true.
 end select
 
+if (present(which)) which = line(ix+1:)
 line = line(1:ix-1)
 
 end function point_to_tao_lat
@@ -1643,21 +1653,28 @@ end subroutine orbit_out
 !----------------------------------------------------------------------
 ! contains
 
-subroutine twiss_out (twiss, suffix, emit_out)
+subroutine twiss_out (twiss, suffix, emit_out, can_vary)
 
 type (twiss_struct) twiss
 character(*) suffix
 character(20) fmt
-logical, optional :: emit_out
+character(8) v_str
+logical, optional :: emit_out, can_vary
+
+if (logic_option(.false., can_vary)) then
+  v_str = ';REAL;T;'
+else
+  v_str = ';REAL;F;'
+endif
 
 fmt = '(3a, es24.16)'
 
-nl=nl+1; write (li(nl), fmt) 'beta_', suffix, ';REAL;F;',                          twiss%beta
-nl=nl+1; write (li(nl), fmt) 'alpha_', suffix, ';REAL;F;',                         twiss%alpha
+nl=nl+1; write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
+nl=nl+1; write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
 nl=nl+1; write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
-nl=nl+1; write (li(nl), fmt) 'phi_', suffix, ';REAL;F;',                           twiss%phi
-nl=nl+1; write (li(nl), fmt) 'eta_', suffix, ';REAL;F;',                           twiss%eta
-nl=nl+1; write (li(nl), fmt) 'etap_', suffix, ';REAL;F;',                          twiss%etap
+nl=nl+1; write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
+nl=nl+1; write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
+nl=nl+1; write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
 
 if (logic_option(.false., emit_out)) then
   nl=nl+1; write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
