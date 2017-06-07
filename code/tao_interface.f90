@@ -296,7 +296,17 @@ subroutine tao_init (err_flag)
   implicit none
   logical :: err_flag
 end subroutine
- 
+
+subroutine tao_init_find_elements (u, search_string, eles, attribute, found_one)
+  import
+  implicit none
+  type (tao_universe_struct), target :: u
+  type (ele_pointer_struct), allocatable :: eles(:)
+  character(*) search_string
+  character(*), optional :: attribute
+  logical, optional :: found_one
+end subroutine
+
 subroutine tao_init_lattice (lat_file)
   implicit none
   character(*) lat_file
