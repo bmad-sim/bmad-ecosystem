@@ -1569,7 +1569,8 @@ case ('MAT6_CALC_METHOD')
     if (wild_key0) then
       err_flag = .false.
     else
-      call parser_error ('NOT A VALID MAT6_CALC_METHOD: ' // word, &
+      err_flag = .true.
+      call parser_error ('NOT A VALID MAT6_CALC_METHOD: ' // mat6_calc_method_name(switch), &
                          'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
     endif
     return
@@ -7994,10 +7995,11 @@ ixp = index(word, '[')
 if (ixp == 0) then
   call match_word (word, name_list, this_switch, can_abbreviate = .false.)
   if (this_switch < 1) then
-    line = trim(name_list(1))
-    do  i = 2, size(name_list)
-      line = line // ', ' // trim(name_list(i))
+    do  i = 1, size(name_list)
+      if (name_list(i) == str_garbage$) cycle
+      line = line // ' ' // trim(name_list(i)) // ','
     enddo
+    line = line(1:len_trim(line)-1)
     call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word, &
                        'POSSIBILITIES ARE: ' // line)
     return
