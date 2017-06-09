@@ -286,13 +286,14 @@ end subroutine make_HVBP
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine xyz_to_action(ring, loc, X, J, err_flag)
+! Subroutine xyz_to_action(ring, where, X, J, err_flag)
 !
 ! Given the canonical phase space coordinates X of a particle, this returns
 ! a vector from which Ja, Jb, Jc can be easily extracted.
 !
 ! The J vector looks like:
-! J = (sqrt(2Ja)cos(phia), -sqrt(2Ja)sin(phia), sqrt(2Jb)cos(phib), -sqrt(2Jb)sin(phib), sqrt(2Jc)cos(phic), -sqrt(2Jc)sin(phic))
+! J = (sqrt(2Ja)cos(phia), -sqrt(2Ja)sin(phia), sqrt(2Jb)cos(phib), 
+!                                 -sqrt(2Jb)sin(phib), sqrt(2Jc)cos(phic), -sqrt(2Jc)sin(phic))
 !
 ! NOTE: Mind the negative sign on the sin terms when computing phase advances or calculating frequency spectra.
 !
@@ -307,7 +308,7 @@ end subroutine make_HVBP
 !
 ! Input:
 !  ring     -- lat_struct: lattice
-!  loc      -- class(integer or real(rp)): location in ring: either element index or s coordinate.
+!  where    -- class(integer or real(rp)): location in ring: either element index or s coordinate.
 !  X(1:6)   -- real(rp): canonical phase space coordinates of the particle
 !
 ! Output:
@@ -315,11 +316,10 @@ end subroutine make_HVBP
 !  err_flag -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !-
 
-subroutine xyz_to_action(ring, loc, X, J, err_flag)
+subroutine xyz_to_action(ring, where, X, J, err_flag)
 
 type(lat_struct) ring
-!!class(*) :: loc
-integer loc
+class(*) :: where
 
 real(rp) X(6)
 real(rp) J(6)
@@ -341,15 +341,15 @@ abz_tunes(1) = ring%a%tune
 abz_tunes(2) = ring%b%tune
 abz_tunes(3) = ring%z%tune
 
-!!select type(loc)
-!!type is (integer)
-  call transfer_matrix_calc (ring, t6, ix1=loc, one_turn=.true.)
-!!type is (real(rp))
-!!  ix_use = element_at_s(ring, loc, .false.)
-!!  call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
-!!  call twiss_and_track_at_s (ring, loc, ele_at_s)
-!!  t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
-!!end select
+select type(where)
+type is (integer)
+  call transfer_matrix_calc (ring, t6, ix1=where, one_turn=.true.)
+type is (real(rp))
+  ix_use = element_at_s(ring, where, .false.)
+  call transfer_matrix_calc (ring, t6, ix1=ix_use, one_turn=.true.)
+  call twiss_and_track_at_s (ring, where, ele_at_s)
+  t6 = matmul(ele_at_s%mat6, matmul(mat_symp_conj(ring%ele(ix_use)%mat6), matmul(t6, matmul(ring%ele(ix_use)%mat6, mat_symp_conj(ele_at_s%mat6)))))
+end select
 
 if (all(abs(abz_tunes).gt. 0.0001)) then
   call make_N(t6, N, err_flag, abz_tunes)
