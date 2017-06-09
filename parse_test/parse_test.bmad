@@ -3,8 +3,8 @@ beginning[beta_a] = 10
 beginning[beta_b] = 10
 
 parameter[particle] = He++
-beam, energy =   5.28900
-parameter[p0c] = 1e12
+beam, energy =   +5.28900
+parameter[p0c] = +1e12
 
 a_mom = anomalous_moment_of(parameter[particle])
 !!! cc = charge_of(deuteron)
