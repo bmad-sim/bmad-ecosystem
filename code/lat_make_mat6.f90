@@ -50,7 +50,7 @@ integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave, species
 logical, optional :: err_flag
 logical transferred, zero_orbit, err
 
-character(16), parameter :: r_name = 'lat_make_mat6'
+character(*), parameter :: r_name = 'lat_make_mat6'
 
 !
 
@@ -187,7 +187,7 @@ if (i_ele < 0) then
         ele%vec0 = 0
         cycle
       endif
-      call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true., err)
+      call make_mat6(ele, branch%param, ref_orb(i-1), err_flag = err)
     endif
     if (err) return
 
@@ -225,7 +225,7 @@ if (i_ele < 0) then
     if (zero_orbit .or. i_branch /= slave0%ix_branch) then
       call make_mat6(lord, lat%branch(slave0%ix_branch)%param, err_flag = err)
     else
-      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, ref_orb(i0-1), ref_orb(i1), .true., err)
+      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, ref_orb(i0-1), err_flag = err)
     endif
     if (err) return
   enddo 
@@ -264,7 +264,7 @@ endif
 
 if (i_ele <= branch%n_ele_track) then
   if (present(ref_orb)) then
-     call make_mat6(ele, branch%param, ref_orb(i_ele-1), ref_orb(i_ele), .true., err_flag)
+     call make_mat6(ele, branch%param, ref_orb(i_ele-1), err_flag = err_flag)
   else
      call make_mat6(ele, branch%param, err_flag = err_flag)
   endif

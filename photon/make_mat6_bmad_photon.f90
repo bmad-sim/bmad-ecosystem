@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_bmad_photon (ele, param, c0, c1, end_in, err)
+! Subroutine make_mat6_bmad_photon (ele, param, c0, c1, err)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -10,8 +10,6 @@
 !   ele    -- Ele_struct: Element with transfer matrix
 !   param  -- lat_param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
-!   end_in -- Logical, optional: If present and True then the end coords c1
-!               will be taken as input. Not output as normal.
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
@@ -21,7 +19,7 @@
 !   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6_bmad_photon (ele, param, c0, c1, end_in, err)
+subroutine make_mat6_bmad_photon (ele, param, c0, c1, err)
 
 use bmad_interface, dummy => make_mat6_bmad_photon
 
@@ -33,8 +31,8 @@ type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:), v(:)
 
-logical, optional :: end_in, err
-character(16), parameter :: r_name = 'make_mat6_bmad'
+logical, optional :: err
+character(*), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
 ! init
