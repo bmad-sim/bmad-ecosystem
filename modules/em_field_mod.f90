@@ -102,7 +102,7 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 
 use geometry_mod
 
-type (ele_struct), target :: ele
+type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
 type (ele_pointer_struct), allocatable :: use_list(:)
 type (ele_struct), pointer :: lord
@@ -243,20 +243,47 @@ if (ele%field_calc == refer_to_lords$) then
 endif
 
 !----------------------------------------------------------------------------
-! convert to local coords
-
-local_orb = orbit
-if (.not. local_ref_frame) then
-  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., ds_pos = s_rel)
-endif
-
-!----------------------------------------------------------------------------
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then 
   call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield)
   return
 end if
+
+!-------------------------------
+! Sad mult is complicated by the fact that the sad_mult defines additional multipole misalignment
+
+if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
+  call transfer_ele(ele, ele2)
+  ele2%value(sad_flag$) = 1  ! To prevent infinite recursion
+
+  ! Solenoid calc. Ignore multipoles
+  nullify(ele2%a_pole)
+  nullify(ele2%b_pole)
+  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field1, calc_dfield, err_flag, potential, &
+                                                     use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+  ! multipole calc
+  ele2%value(ks$) = 0
+  ele2%value(bs_field$) = 0
+  ele2%value(x_pitch_tot$) = ele%value(x_pitch_tot$) + ele%value(x_pitch_mult$)
+  ele2%value(y_pitch_tot$) = ele%value(y_pitch_tot$) + ele%value(y_pitch_mult$)
+  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
+  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
+  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field2, calc_dfield, err_flag, potential, &
+                                                     use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+
+  field%b  = field1%b + field2%b
+  field%db = field1%db + field2%db 
+  return
+endif
+
+!----------------------------------------------------------------------------
+! convert to local coords
+
+local_orb = orbit
+if (.not. local_ref_frame) then
+  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., ds_pos = s_rel)
+endif
 
 !----------------------------------------------------------------------------
 ! Set up common variables for all (non-custom) methods
@@ -485,7 +512,7 @@ case (bmad_standard$)
   !------------------------------------------
   ! Solenoid
 
-  case (solenoid$)
+  case (solenoid$, sad_mult$)
 
     field%b(3) = ele%value(ks$) * f_p0c
 

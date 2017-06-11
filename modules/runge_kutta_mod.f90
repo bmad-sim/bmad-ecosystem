@@ -474,7 +474,7 @@ end subroutine rk_step1
 ! Subroutine kick_vector_calc (ele, param, s_rel, orbit, local_ref_frame, dr_ds, field, err)
 !
 ! Subroutine to calculate the dr/ds "kick vector" where
-!     r = [x, p_x, y, p_y, z, p_z, t, spin1_re, spin1_im, spin2_re, spin2_im] 
+!     r = [x, p_x, y, p_y, z, p_z, t, spin_x,y,z]
 !
 ! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be 
 ! the P0 at the exit end of the element.
@@ -609,7 +609,7 @@ dr_ds(7) = dt_ds
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
   sign_z_vel = orbit%direction * ele%orientation
-  dr_ds(8:10) = orbit%direction * (f_bend  * spin_omega (field, orbit, sign_z_vel) + sign_z_vel * [-gy_bend, gx_bend, 0.0_rp])
+  dr_ds(8:10) = orbit%direction * (f_bend * spin_omega (field, orbit, sign_z_vel) + sign_z_vel * [-gy_bend, gx_bend, 0.0_rp])
 else
   dr_ds(8:10) = 0
 endif

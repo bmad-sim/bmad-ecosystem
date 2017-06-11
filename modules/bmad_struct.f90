@@ -1222,7 +1222,7 @@ integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
-integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
+integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8

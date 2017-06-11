@@ -3617,13 +3617,11 @@ See \sref{s:list.sad.mult} for a full list of element attributes.
 \index{fringe_type}\index{kill_fringe}
 Attributes specific to an \vn{sextupole} element are:
 \begin{example}
-  angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
   bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
   e1, e2          = <Real>    ! Bend face angles.
   eps_step_scale  = <Real>    ! Step size scale. Default = 1. SAD equivalent: EPS.
   fq1             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F1.
   fq2             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F2.
-  g               = <Real>    ! Bend strength 1/rho
   ks              = <Real>    ! Solenoid strength. 
   x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
   y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
@@ -3633,6 +3631,8 @@ Attributes specific to an \vn{sextupole} element are:
   fringe_at       = <Switch>  ! Where fringe is applied. SAD equivalent: FRINGE.
 \end{example}
 
+%  angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
+%  g               = <Real>    ! Bend strength 1/rho
 %  rf_frequency    = <Real>    ! Rf frequency (Hz). SAD equivalent: FREQ.
 %  harmon          = <Real>    ! Harmonic number. SAD equivalent: HARM.
 %  phi0            = <Real>    ! Cavity phase. SAD equivalent: PHI.
@@ -3682,6 +3682,11 @@ A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}
 \item
 SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end
 of the element as opposed to \bmad's convention of referencing to the element center.
+\item
+  The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
+SAD \vn{MULT} element attributes:
+\begin{example}
+  angle, harmon, freq, phi, dphi, volt, dvolt
 \end{itemize}
 
 %-----------------------------------------------------------------

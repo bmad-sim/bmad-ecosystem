@@ -100,10 +100,8 @@ if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
   tilt(0) = atan2(ky, kx)
 endif
 
-if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
-  orbit%vec(2) = orbit%vec(2) + ele%value(y_offset_mult$) * ks / 2
-  orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
-endif
+orbit%vec(2) = orbit%vec(2) + ele%value(y_offset_mult$) * ks / 2
+orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
 
 ele2%value(tilt_tot$) = tilt(1) 
 tilt = tilt - tilt(1)
@@ -176,12 +174,8 @@ if (orbit_too_large (orbit, param)) return
 
 call offset_particle (ele2, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = present(mat6))
 
-if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
-  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
-  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
-  orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
-  orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
-endif
+orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
+orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
 
 orbit%t = t_start + length * ele%value(E_tot$) / (c_light * ele%value(p0c$)) - (orbit%vec(5) - z_start) / (orbit%beta * c_light)
 
