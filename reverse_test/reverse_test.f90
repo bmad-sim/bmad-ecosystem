@@ -34,7 +34,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat
+real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat, max_diff_spin
 integer nargs, ie, ib, im
 logical :: verbosity = .false.
 
@@ -64,6 +64,7 @@ call bmad_parser (lat_file, lat)
 max_diff_vec_r = 0
 max_diff_vec_b = 0
 max_diff_mat = 0
+max_diff_spin = 0
 
 !
 
@@ -124,7 +125,7 @@ case (symp_lie_ptc$, symp_lie_bmad$)
 end select
 
 call track1 (orb_0f, ele, ele%branch%param, orb_1f)
-call make_mat6(ele, ele%branch%param, orb_0f, orb_1f, .true.)
+call make_mat6(ele, ele%branch%param, orb_0f)
 
 str = trim(ele%name) // '@' // tracking_method_name(ele%tracking_method)
 
@@ -139,11 +140,14 @@ end if
 ! Tracking in the forward direction with the orientation of the element reversed.
 
 orb_0r_orient         = orb_1f
+!!orb_0r_orient%spin    = orb_0f%spin
 orb_0r_orient%vec(2)  = -orb_1f%vec(2)
 orb_0r_orient%vec(4)  = -orb_1f%vec(4)  
 
 ele2 = ele
 if (ele2%key == elseparator$) then
+  ele2%value(hkick$) = -ele%value(hkick$)
+  ele2%value(hkick$) = -ele%value(hkick$)
 elseif (ele2%key == rfcavity$) then
   orb_0r_orient%species  = antiparticle(orb_0r_orient%species)
   orb_0r_orient%vec(5) = orb_0f%vec(5)
@@ -157,11 +161,16 @@ else
   orb_0r_orient%species   = antiparticle(orb_0r_orient%species)
 endif
 
+if (associated(ele2%a_pole_elec)) then
+  ele2%a_pole_elec = -ele2%a_pole_elec
+  ele2%b_pole_elec = -ele2%b_pole_elec
+endif
+
 ele2%orientation = -1
 ele2%branch%param%default_tracking_species = anti_ref_particle$
 
 call track1(orb_0r_orient, ele2, ele2%branch%param, orb_1r_orient)
-call make_mat6(ele2, ele%branch%param, orb_0r_orient, orb_1r_orient, .true.)
+call make_mat6(ele2, ele%branch%param, orb_0r_orient)
 
 orb_1r_orient_sav = orb_1r_orient
 
@@ -247,9 +256,10 @@ diff_mat = maxval(abs(dmat))
 max_diff_vec_r = max(max_diff_vec_r, diff_vec_r)
 max_diff_vec_b = max(max_diff_vec_b, diff_vec_b)
 max_diff_mat = max(max_diff_mat, diff_mat)
+max_diff_spin = max(maxval(abs(dspin_r_orient)), maxval(abs(dspin_b_track)))
 
 if (verbosity) then
-  print '(2a, t50, 3es10.2)', 'Max Diff: ', trim(str), diff_vec_r, diff_vec_b, diff_mat
+  print '(2a, t40, 4es10.2)', 'Max Diff: ', trim(str), diff_vec_r, diff_vec_b, diff_mat, max_diff_spin
 endif
 
 end subroutine test_this
