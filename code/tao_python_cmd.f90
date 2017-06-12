@@ -670,6 +670,8 @@ case ('lat_ele_list')
   ix_branch = parse_branch(.false., err); if (err) return
   branch => u%design%lat%branch(ix_branch)
 
+  call re_allocate_lines (branch%n_ele_max+100)
+
   do i = 0, branch%n_ele_max
     nl=nl+1; write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
   enddo
