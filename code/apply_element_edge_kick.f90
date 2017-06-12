@@ -29,8 +29,9 @@
 !   apply_sol_fringe  -- logical, optional: Apply the solenoid fringe kick? Default is True.
 !
 ! Output:
-!   orb        -- Coord_struct: Coords after application of the edge fringe field.
-!   mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
+!   fringe_info   -- fringe_edge_info_struct: Fringe information.
+!   orb           -- Coord_struct: Coords after application of the edge fringe field.
+!   mat6(6,6)     -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
 
 subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
@@ -139,7 +140,7 @@ case (sbend$)
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
   if (logic_option(.true., apply_sol_fringe)) then
-    ks = at_sign * rel_tracking_charge_to_mass(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
+    ks = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / orb%p0c
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
     orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
     if (track_spn) then

@@ -713,10 +713,16 @@ if (fringe_info%particle_at == first_track_edge$) then
 endif
 
 temp_end  = end_orb
+
 call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., ds_pos = s_end)
-if (fringe_info%particle_at == second_track_edge$ .and. fringe_info%ds_edge /= 0) then
-  call track_a_drift (temp_end, fringe_info%ds_edge)
+
+if (fringe_info%particle_at == second_track_edge$) then 
+  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, fringe_info%ds_edge)
+  temp_end%species = antiparticle(temp_end%species)  ! To reverse element edge kick
+  call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
+  temp_end%species = end_orb%species
 endif
+
 temp_end%spin = temp_start%spin
 
 ! 
@@ -725,7 +731,7 @@ if (ele%value(l$) == 0) then
   temp_end%vec = (temp_end%vec + temp_start%vec) / 2
   call multipole_spin_tracking (ele, param, temp_end)
 else
-  call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
+  call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
@@ -747,17 +753,18 @@ end subroutine track1_spin_bmad
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine spline_fit_orbit (start_orb, end_orb, spline_x, spline_y)
+subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
 
 implicit none
 
+type (ele_struct) ele
 type (coord_struct) start_orb, end_orb
 real(rp) spline_x(0:3), spline_y(0:3)
 real(rp) ds, alpha, beta
 
 !
 
-ds = abs(end_orb%s - start_orb%s)
+ds = abs(ele%value(l$))
 
 ! X
 
