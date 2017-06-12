@@ -25,7 +25,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k1l, length, k_z, charge_dir, rel_p, t_start
+real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k1l, length, k_z, rel_p, t_start
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6)
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
@@ -51,13 +51,13 @@ call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_m
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
 
-!
+! Notice that the averageed quadrupole and octupole kicks are independent of the sign of the particle charge and independent 
+! of the longitudinal direction of travel of the particle!
 
 z_start = orbit%vec(5)
 t_start = orbit%t
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 length = ele%value(l$)
-charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
 rel_p = 1 + orbit%vec(6)
 mc2_rel = mass_of(orbit%species) / orbit%p0c
 
@@ -69,7 +69,7 @@ else
   k_z = pi / ele%value(l_pole$)
 endif
 
-k1_factor = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
+k1_factor = -abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
 k1 = k1_factor / rel_p**2
 k1l = length * k1
 
