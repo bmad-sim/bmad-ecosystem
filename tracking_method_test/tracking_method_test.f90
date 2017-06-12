@@ -23,7 +23,7 @@ logical print_extra
 
 global_com%exit_on_error = .false.
 
-fmt = '(a,t42, a, 7es18.10)'
+fmt = '(a,t47, a, 7es18.10)'
 
 print_extra = .false.
 nargs = cesr_iargc()
@@ -31,11 +31,11 @@ if (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
 
-elseif (nargs > 0)then
+elseif (nargs > 0) then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt = '(a, t42, a, 7es14.6)'
+  fmt = '(a, t47, a, 7es14.6)'
 endif
 
 call bmad_parser (lat_file, lat)
@@ -61,17 +61,36 @@ if (print_extra) then
   print *
 endif
 
+call track_it (1, 1)
+if (.not. print_extra) call track_it (1, -1)
+
+close(1)
+
+!------------------------------------------------
+contains
+
+subroutine track_it(d_sign, p_sign)
+
+integer d_sign, p_sign
+
+!
+
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
+  if (branch%param%particle == photon$ .and. p_sign /= 1) cycle
+
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
+    if (p_sign /= 1 .and. (ele%key == sbend$ .or. ele%key == e_gun$)) cycle
     ele%spin_tracking_method = tracking$
+
     isn = 0
     do j = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
       if (j == taylor$ .and. lat%beam_start%direction == -1) cycle
+      if (p_sign /= 1 .and. (j == taylor$ .or. j == linear$)) cycle
       ele%tracking_method = j
 
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
@@ -92,6 +111,7 @@ do ib = 0, ubound(lat%branch, 1)
       start_orb = lat%beam_start
       call init_coord (start_orb, start_orb, ele, upstream_end$, &
                                     default_tracking_species(branch%param), E_photon = ele%value(p0c$) * 1.006)
+      if (p_sign == -1) start_orb%species = antiparticle(start_orb%species)
       start_orb%field = [1, 2]
 
       if (print_extra) then
@@ -100,7 +120,12 @@ do ib = 0, ubound(lat%branch, 1)
         call track1 (start_orb, ele, branch%param, end_orb)
       endif
 
-      final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
+      if (p_sign == 1) then
+        final_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
+      else
+        final_str = trim(ele%name) // '-Anti:' // trim(tracking_method_name(j))
+      endif
+
       if (ele%key == e_gun$) then
         write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
       else
@@ -118,12 +143,12 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
         isn = isn + 1
         final_str = trim(final_str) // ' dSpin'
-        write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
+        write (line(isn), '(a, t47, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 
       if (branch%param%particle == photon$) then
-        write (1, '(3a, t42, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
+        write (1, '(3a, t47, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
       endif
     end do
 
@@ -140,10 +165,10 @@ do ib = 0, ubound(lat%branch, 1)
   end do
 enddo
 
-close(1)
+end subroutine track_it
 
 !--------------------------------------------------------------------------------------
-contains
+! contains
   
 character(10) function tolerance(instr)
 character(38) :: instr
