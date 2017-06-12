@@ -173,31 +173,31 @@ case ('beam_init')
   u => point_to_uni(.false., err); if (err) return
   beam_init => u%beam%beam_init
 
-  nl=nl+1; write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
-  nl=nl+1; write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
-  nl=nl+1; write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
-  nl=nl+1; write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
-  nl=nl+1; write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
-  nl=nl+1; write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
-  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
-  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
-  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
-  nl=nl+1; write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
-  nl=nl+1; write (li(nl), rmt) 'a_emit;REAL;T;',                           beam_init%a_emit
-  nl=nl+1; write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
-  nl=nl+1; write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
-  nl=nl+1; write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
-  nl=nl+1; write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
-  nl=nl+1; write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
-  nl=nl+1; write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
-  nl=nl+1; write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=nl+1; write (li(nl), amt) 'species;STR;T;',                           beam_init%species
-  nl=nl+1; write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
-  nl=nl+1; write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
-  nl=nl+1; write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
-  nl=nl+1; write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
-  nl=nl+1; write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
+  nl=incr(nl); write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
+  nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
+  nl=incr(nl); write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
+  nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
+  nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
+  nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
+  nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
+  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
+  nl=incr(nl); write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
+  nl=incr(nl); write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
+  nl=incr(nl); write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
+  nl=incr(nl); write (li(nl), rmt) 'a_emit;REAL;T;',                           beam_init%a_emit
+  nl=incr(nl); write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
+  nl=incr(nl); write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
+  nl=incr(nl); write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
+  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
+  nl=incr(nl); write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
+  nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
+  nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
+  nl=incr(nl); write (li(nl), amt) 'species;STR;T;',                           beam_init%species
+  nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
+  nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
+  nl=incr(nl); write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
+  nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
+  nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
 !----------------------------------------------------------------------
 ! Lattice element list.
@@ -210,20 +210,20 @@ case ('branch1')
   ix_branch = parse_branch(.false., err); if (err) return
   branch => u%design%lat%branch(ix_branch)
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;F;',                              branch%name
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
-  nl=nl+1; write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                              branch%name
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
 
-  nl=nl+1; write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
-  nl=nl+1; write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
-  nl=nl+1; write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
-  nl=nl+1; write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
-  nl=nl+1; write (li(nl), amt) 'param.default_tracking_species;INT;F;',          species_name(branch%param%default_tracking_species)
-  nl=nl+1; write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
-  nl=nl+1; write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
-  nl=nl+1; write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
-  nl=nl+1; write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
+  nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
+  nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
+  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
+  nl=incr(nl); write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
+  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;INT;F;',          species_name(branch%param%default_tracking_species)
+  nl=incr(nl); write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
+  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
+  nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
+  nl=incr(nl); write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
@@ -249,11 +249,11 @@ case ('bunch1')
   call twiss_out(bunch_params%b, 'b', .true.)
   call twiss_out(bunch_params%c, 'c', .true.)
 
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
-  nl=nl+1; write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
-  nl=nl+1; write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
-  nl=nl+1; write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
-  nl=nl+1; write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
+  nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
+  nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
+  nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
+  nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
 
 !----------------------------------------------------------------------
 ! List of datums in a given data d1 array.
@@ -269,14 +269,14 @@ case ('data_d1')
   call tao_find_data (err, line, d1_array = d1_array)
 
   if (err .or. .not. allocated(d1_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1 data name.')
     call end_stuff()
     return
   endif
 
   d1_ptr => d1_array(1)%d1
-  nl=nl+1; write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
+  nl=incr(nl); write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
 
 !----------------------------------------------------------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
@@ -305,7 +305,7 @@ case ('data_d1')
 case ('data_create')
 
   if (ix_line == 0) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No d2 name given')
     call end_stuff()
     return
@@ -315,7 +315,7 @@ case ('data_create')
 
   call string_trim (line(ix_line+1:), line, ix_line)
   if (.not. is_integer(line)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Number of d1 arrays missing or invalid')
     call end_stuff()
     return
@@ -334,7 +334,7 @@ case ('data_create')
   enddo
 
   if (ix_line /= 0 .or. i /= n_d1+1) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array of datum min/max for each d1.')
     call end_stuff()
     return
@@ -357,7 +357,7 @@ case ('data_create')
     call destroy_this_data (a_name)
     call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
                                    'This old data has been destroyed to make room for the new data.')
-!!    nl=nl+1; li(nl) = 'INVALID'
+!!    nl=incr(nl); li(nl) = 'INVALID'
 !!    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
 !!                                   'Destroy with "python data_destroy" first.')
 !!    call end_stuff()
@@ -448,7 +448,7 @@ case ('data_d2')
   call tao_find_data (err, line, d2_array = d2_array)
 
   if (err .or. .not. allocated(d2_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
     call end_stuff()
     return
@@ -457,20 +457,20 @@ case ('data_d2')
   d2_ptr => d2_array(1)%d2
 
   do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
+    nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
-  nl=nl+1; write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
-  nl=nl+1; write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
-  nl=nl+1; write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
-  nl=nl+1; write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
-  nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
-  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
-  nl=nl+1; write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
-  nl=nl+1; write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
-  nl=nl+1; write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
+  nl=incr(nl); write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
+  nl=incr(nl); write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
+  nl=incr(nl); write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
+  nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
+  nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
+  nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
+  nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
+  nl=incr(nl); write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
+  nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
+  nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
 
 !----------------------------------------------------------------------
 ! Data d2 info for a given universe.
@@ -484,7 +484,7 @@ case ('data_general')
   do i = 1, u%n_d2_data_used
     d2_ptr => u%d2_data(i)
     if (d2_ptr%name == '') cycle
-    nl=nl+1; write (li(nl), '(a)') d2_ptr%name
+    nl=incr(nl); write (li(nl), '(a)') d2_ptr%name
   enddo
 
 !----------------------------------------------------------------------
@@ -501,7 +501,7 @@ case ('data1')
   call tao_find_data (err, line, d_array = d_array)
 
   if (.not. allocated(d_array) .or. size(d_array) /= 1) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
     call end_stuff()
     return
@@ -509,45 +509,45 @@ case ('data1')
 
   d_ptr => d_array(1)%d
 
-  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
-  nl=nl+1; write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
-  nl=nl+1; write (li(nl), amt) 'eval_point;STR;T;',                       d_ptr%eval_point
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
-  nl=nl+1; write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref
-  nl=nl+1; write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
-  nl=nl+1; write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
-  nl=nl+1; write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
-  nl=nl+1; write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value
-  nl=nl+1; write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value
-  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
-  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
-  nl=nl+1; write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
-  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
-  nl=nl+1; write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
-  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
-  nl=nl+1; write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
-  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
-  nl=nl+1; write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
-  nl=nl+1; write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
-  nl=nl+1; write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
-  nl=nl+1; write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
-  nl=nl+1; write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
-  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
-  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
-  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
-  nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
-  nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
+  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name
+  nl=incr(nl); write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
+  nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
+  nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
+  nl=incr(nl); write (li(nl), amt) 'eval_point;STR;T;',                       d_ptr%eval_point
+  nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
+  nl=incr(nl); write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
+  nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
+  nl=incr(nl); write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel
+  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value
+  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value
+  nl=incr(nl); write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value
+  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
+  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
+  nl=incr(nl); write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
+  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
+  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
+  nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
+  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
+  nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
+  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
+  nl=incr(nl); write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
+  nl=incr(nl); write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
+  nl=incr(nl); write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
+  nl=incr(nl); write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
+  nl=incr(nl); write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
+  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
 
 !----------------------------------------------------------------------
 ! List of possible values for enumerated numbers.
@@ -561,7 +561,7 @@ case ('enum')
   name = upcase(line)
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid switch name.')
     call end_stuff()
     return
@@ -574,7 +574,7 @@ case ('enum')
 
   do i = lbound(name_list, 1), ubound(name_list, 1)
     if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
-    nl=nl+1; write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
+    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
   enddo
 
 !----------------------------------------------------------------------
@@ -585,54 +585,54 @@ case ('enum')
 
 case ('global')
 
-  nl=nl+1; write (li(nl), rmt) 'y_axis_plot_dmin;REAL;T;',                s%global%y_axis_plot_dmin
-  nl=nl+1; write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
-  nl=nl+1; write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
-  nl=nl+1; write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
-  nl=nl+1; write (li(nl), rmt) 'lmdif_eps;REAL;T;',                       s%global%lmdif_eps
-  nl=nl+1; write (li(nl), rmt) 'svd_cutoff;REAL;T;',                      s%global%svd_cutoff
-  nl=nl+1; write (li(nl), rmt) 'unstable_penalty;REAL;T;',                s%global%unstable_penalty
-  nl=nl+1; write (li(nl), rmt) 'merit_stop_value;REAL;T;',                s%global%merit_stop_value
-  nl=nl+1; write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',             s%global%random_sigma_cutoff
-  nl=nl+1; write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
-  nl=nl+1; write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
-  nl=nl+1; write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
-  nl=nl+1; write (li(nl), imt) 'phase_units;INT;T;',                      s%global%phase_units
-  nl=nl+1; write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
-  nl=nl+1; write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
-  nl=nl+1; write (li(nl), imt) 'n_top10;INT;T;',                          s%global%n_top10
-  nl=nl+1; write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
-  nl=nl+1; write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
-  nl=nl+1; write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
-  nl=nl+1; write (li(nl), amt) 'prompt_string;STR;T;',                    s%global%prompt_string
-  nl=nl+1; write (li(nl), amt) 'prompt_color;STR;T;',                     s%global%prompt_color
-  nl=nl+1; write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
-  nl=nl+1; write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
-  nl=nl+1; write (li(nl), amt) 'var_out_file;STR;T;',                     s%global%var_out_file
-  nl=nl+1; write (li(nl), lmt) 'initialized;LOGIC;T;',                    s%global%initialized
-  nl=nl+1; write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
-  nl=nl+1; write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
-  nl=nl+1; write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
-  nl=nl+1; write (li(nl), lmt) 'label_keys;LOGIC;T;',                     s%global%label_keys
-  nl=nl+1; write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
-  nl=nl+1; write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
-  nl=nl+1; write (li(nl), lmt) 'init_plot_needed;LOGIC;T;',               s%global%init_plot_needed
-  nl=nl+1; write (li(nl), lmt) 'orm_analysis;LOGIC;T;',                   s%global%orm_analysis
-  nl=nl+1; write (li(nl), lmt) 'plot_on;LOGIC;T;',                        s%global%plot_on
-  nl=nl+1; write (li(nl), lmt) 'lattice_calc_on;LOGIC;T;',                s%global%lattice_calc_on
-  nl=nl+1; write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase
-  nl=nl+1; write (li(nl), lmt) 'stop_on_error;LOGIC;T;',                  s%global%stop_on_error
-  nl=nl+1; write (li(nl), lmt) 'command_file_print_on;LOGIC;T;',          s%global%command_file_print_on
-  nl=nl+1; write (li(nl), lmt) 'box_plots;LOGIC;T;',                      s%global%box_plots
-  nl=nl+1; write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
-  nl=nl+1; write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
-  nl=nl+1; write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
-  nl=nl+1; write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
-  nl=nl+1; write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
-  nl=nl+1; write (li(nl), lmt) 'draw_curve_off_scale_warn;LOGIC;T;',      s%global%draw_curve_off_scale_warn
-  nl=nl+1; write (li(nl), lmt) 'wait_for_cr_in_single_mode;LOGIC;T;',     s%global%wait_for_CR_in_single_mode
-  nl=nl+1; write (li(nl), lmt) 'disable_smooth_line_calc;LOGIC;T;',       s%global%disable_smooth_line_calc
-  nl=nl+1; write (li(nl), lmt) 'debug_on;LOGIC;T;',                       s%global%debug_on
+  nl=incr(nl); write (li(nl), rmt) 'y_axis_plot_dmin;REAL;T;',                s%global%y_axis_plot_dmin
+  nl=incr(nl); write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
+  nl=incr(nl); write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
+  nl=incr(nl); write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
+  nl=incr(nl); write (li(nl), rmt) 'lmdif_eps;REAL;T;',                       s%global%lmdif_eps
+  nl=incr(nl); write (li(nl), rmt) 'svd_cutoff;REAL;T;',                      s%global%svd_cutoff
+  nl=incr(nl); write (li(nl), rmt) 'unstable_penalty;REAL;T;',                s%global%unstable_penalty
+  nl=incr(nl); write (li(nl), rmt) 'merit_stop_value;REAL;T;',                s%global%merit_stop_value
+  nl=incr(nl); write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',             s%global%random_sigma_cutoff
+  nl=incr(nl); write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
+  nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
+  nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
+  nl=incr(nl); write (li(nl), imt) 'phase_units;INT;T;',                      s%global%phase_units
+  nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
+  nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
+  nl=incr(nl); write (li(nl), imt) 'n_top10;INT;T;',                          s%global%n_top10
+  nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
+  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
+  nl=incr(nl); write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
+  nl=incr(nl); write (li(nl), amt) 'prompt_string;STR;T;',                    s%global%prompt_string
+  nl=incr(nl); write (li(nl), amt) 'prompt_color;STR;T;',                     s%global%prompt_color
+  nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
+  nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
+  nl=incr(nl); write (li(nl), amt) 'var_out_file;STR;T;',                     s%global%var_out_file
+  nl=incr(nl); write (li(nl), lmt) 'initialized;LOGIC;T;',                    s%global%initialized
+  nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
+  nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
+  nl=incr(nl); write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
+  nl=incr(nl); write (li(nl), lmt) 'label_keys;LOGIC;T;',                     s%global%label_keys
+  nl=incr(nl); write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
+  nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
+  nl=incr(nl); write (li(nl), lmt) 'init_plot_needed;LOGIC;T;',               s%global%init_plot_needed
+  nl=incr(nl); write (li(nl), lmt) 'orm_analysis;LOGIC;T;',                   s%global%orm_analysis
+  nl=incr(nl); write (li(nl), lmt) 'plot_on;LOGIC;T;',                        s%global%plot_on
+  nl=incr(nl); write (li(nl), lmt) 'lattice_calc_on;LOGIC;T;',                s%global%lattice_calc_on
+  nl=incr(nl); write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase
+  nl=incr(nl); write (li(nl), lmt) 'stop_on_error;LOGIC;T;',                  s%global%stop_on_error
+  nl=incr(nl); write (li(nl), lmt) 'command_file_print_on;LOGIC;T;',          s%global%command_file_print_on
+  nl=incr(nl); write (li(nl), lmt) 'box_plots;LOGIC;T;',                      s%global%box_plots
+  nl=incr(nl); write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
+  nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
+  nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+  nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
+  nl=incr(nl); write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
+  nl=incr(nl); write (li(nl), lmt) 'draw_curve_off_scale_warn;LOGIC;T;',      s%global%draw_curve_off_scale_warn
+  nl=incr(nl); write (li(nl), lmt) 'wait_for_cr_in_single_mode;LOGIC;T;',     s%global%wait_for_CR_in_single_mode
+  nl=incr(nl); write (li(nl), lmt) 'disable_smooth_line_calc;LOGIC;T;',       s%global%disable_smooth_line_calc
+  nl=incr(nl); write (li(nl), lmt) 'debug_on;LOGIC;T;',                       s%global%debug_on
 
 
 !----------------------------------------------------------------------
@@ -647,7 +647,7 @@ case ('help')
   do i = 1, n
     if (li(i) == '') cycle
     call string_trim(li(i), line, ix)
-    nl=nl+1; name1(nl) = line(1:ix)
+    nl=incr(nl); name1(nl) = line(1:ix)
     call string_trim(line(ix+1:), line, ix)
     if (ix == 0) cycle
     nl2=nl2+1; name2(nl2) = line
@@ -673,7 +673,7 @@ case ('lat_ele_list')
   call re_allocate_lines (branch%n_ele_max+100)
 
   do i = 0, branch%n_ele_max
-    nl=nl+1; write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
+    nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
   enddo
 
 !----------------------------------------------------------------------
@@ -706,40 +706,40 @@ case ('lat_ele1')
 
   select case (who)
   case ('general')
-    nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             ele%name
-    nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             ele%type
-    nl=nl+1; write (li(nl), amt) 'alias;STR;T;',                            ele%alias
-    nl=nl+1; write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
-    nl=nl+1; write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
-    nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               ele%s
-    nl=nl+1; write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
-    nl=nl+1; write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
-    nl=nl+1; write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
-    nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
-    nl=nl+1; write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
-    nl=nl+1; write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
-    nl=nl+1; write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
-    nl=nl+1; write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
-    nl=nl+1; write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
-    nl=nl+1; write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
-    nl=nl+1; write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=nl+1; write (li(nl), amt) 'mat6_calc_method;ENUM;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
-    nl=nl+1; write (li(nl), amt) 'tracking_method;ENUM;T;',                  tracking_method_name(ele%tracking_method)
-    nl=nl+1; write (li(nl), amt) 'spin_tracking_method;ENUM;T;',             spin_tracking_method_name(ele%spin_tracking_method)
-    nl=nl+1; write (li(nl), amt) 'ptc_integration_type;ENUM;T;',             ptc_integration_type_name(ele%ptc_integration_type)
-    nl=nl+1; write (li(nl), amt) 'field_calc;ENUM;T;',                       field_calc_name(ele%field_calc)
-    nl=nl+1; write (li(nl), amt) 'aperture_at;ENUM;T;',                      aperture_at_name(ele%aperture_at)
-    nl=nl+1; write (li(nl), amt) 'aperture_type;ENUM;T;',                    aperture_type_name(ele%aperture_type)
-    nl=nl+1; write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
-    nl=nl+1; write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
-    nl=nl+1; write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
-    nl=nl+1; write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
-    nl=nl+1; write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
-    nl=nl+1; write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
-    nl=nl+1; write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
-    nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
-    nl=nl+1; write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
-    nl=nl+1; write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
+    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             ele%name
+    nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                             ele%type
+    nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                            ele%alias
+    nl=incr(nl); write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
+    nl=incr(nl); write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
+    nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               ele%s
+    nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
+    nl=incr(nl); write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
+    nl=incr(nl); write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
+    nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
+    nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
+    nl=incr(nl); write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
+    nl=incr(nl); write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
+    nl=incr(nl); write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
+    nl=incr(nl); write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
+    nl=incr(nl); write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
+    nl=incr(nl); write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
+    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;',                 mat6_calc_method_name(ele%mat6_calc_method)
+    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;',                  tracking_method_name(ele%tracking_method)
+    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;',             spin_tracking_method_name(ele%spin_tracking_method)
+    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;',             ptc_integration_type_name(ele%ptc_integration_type)
+    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;',                       field_calc_name(ele%field_calc)
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;',                      aperture_at_name(ele%aperture_at)
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;',                    aperture_type_name(ele%aperture_type)
+    nl=incr(nl); write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
+    nl=incr(nl); write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
+    nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
+    nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
+    nl=incr(nl); write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
+    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+    nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
+    nl=incr(nl); write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
+    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
 
   case ('parameters')
     do i = 1, num_ele_attrib$
@@ -752,14 +752,14 @@ case ('lat_ele1')
 
       select case (attribute_type(a_name))
       case (is_logical$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+        nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
       case (is_integer$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
+        nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
       case (is_real$)
-        nl=nl+1; write (li(nl), '(2a, l1, a, es24.16)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+        nl=incr(nl); write (li(nl), '(2a, l1, a, es24.16)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       case (is_switch$)
         name = switch_attrib_value_name (a_name, ele%value(i), ele)
-        nl=nl+1; write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';ENUM;', free, ';', trim(name)
+        nl=incr(nl); write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';ENUM;', free, ';', trim(name)
       end select
     enddo
 
@@ -773,10 +773,10 @@ case ('lat_ele1')
     if (associated(ele%a_pole)) then
       do i = 0, ubound(ele%a_pole, 1)
         if (ele%a_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole[', i, v_str, ele%a_pole(i) 
+          nl=incr(nl); write (li(nl), vrmt) 'a_pole[', i, v_str, ele%a_pole(i) 
         endif
         if (ele%b_pole(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole[', i, v_str, ele%b_pole(i) 
+          nl=incr(nl); write (li(nl), vrmt) 'b_pole[', i, v_str, ele%b_pole(i) 
         endif
       enddo
     endif
@@ -784,17 +784,17 @@ case ('lat_ele1')
     if (associated(ele%a_pole_elec)) then
       do i = 0, ubound(ele%a_pole_elec, 1)
         if (ele%a_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'a_pole_elec[', i, v_str, ele%a_pole_elec(i) 
+          nl=incr(nl); write (li(nl), vrmt) 'a_pole_elec[', i, v_str, ele%a_pole_elec(i) 
         endif
         if (ele%b_pole_elec(i) /= 0) then
-          nl=nl+1; write (li(nl), vrmt) 'b_pole_elec[', i, v_str, ele%b_pole_elec(i) 
+          nl=incr(nl); write (li(nl), vrmt) 'b_pole_elec[', i, v_str, ele%b_pole_elec(i) 
         endif
       enddo
     endif
 
   case ('floor')
-    nl=nl+1; write (li(nl), '(3(es24.16, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-    nl=nl+1; write (li(nl), '(3(es24.16, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
+    nl=incr(nl); write (li(nl), '(3(es24.16, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+    nl=incr(nl); write (li(nl), '(3(es24.16, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
 
   case ('twiss')
     free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
@@ -805,7 +805,7 @@ case ('lat_ele1')
     call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
 
   case default
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, 'python lat_ele1 <ele>|<which> <who>: Bad <who>: ' // who)
     return
   end select  
@@ -822,7 +822,7 @@ case ('lat_general')
   lat => u%design%lat
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
-    nl=nl+1; write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
+    nl=incr(nl); write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
   enddo
 
 !----------------------------------------------------------------------
@@ -834,7 +834,7 @@ case ('lat_param_units')
 
   name = upcase(line)
   a_name = attribute_units(name)
-  nl=nl+1; write(li(nl), '(a)') a_name
+  nl=incr(nl); write(li(nl), '(a)') a_name
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
@@ -871,18 +871,18 @@ case ('plot_list')
       if (p%phantom) cycle
       if (p%name == '') cycle
       if (p%name == 'scratch') cycle
-      nl=nl+1; write (li(nl), '(i0, 2a)') i, ';', trim(p%name)
+      nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', trim(p%name)
     enddo
 
   elseif (line == 'r') then
     do i = 1, size(s%plot_page%region)
       pr => s%plot_page%region(i)
       if (pr%name == '') cycle
-      nl=nl+1; write (li(nl), '(i0, 5a, l1)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible
+      nl=incr(nl); write (li(nl), '(i0, 5a, l1)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible
     enddo
 
   else
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t"')
   endif
 
@@ -902,7 +902,7 @@ case ('plot_graph')
   call tao_find_plots (err, line, 'COMPLETE', graph = graph)
 
   if (err .or. .not. allocated(graph)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Bad graph name')
     call end_stuff()
     return
@@ -913,54 +913,54 @@ case ('plot_graph')
   n = 0
   if (allocated(g%curve)) n = size(g%curve)
 
-  nl=nl+1; write (li(nl), imt) 'num_curves;INT;T;',                       n
+  nl=incr(nl); write (li(nl), imt) 'num_curves;INT;T;',                       n
   do i = 1, n
-    nl=nl+1; write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
+    nl=incr(nl); write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             g%name
-  nl=nl+1; write (li(nl), amt) 'type;STR;T;',                             g%type
-  nl=nl+1; write (li(nl), amt) 'title;STR;T;',                            g%title
-  nl=nl+1; write (li(nl), amt) 'title_suffix;STR;F;',                     g%title_suffix
-  nl=nl+1; write (li(nl), amt) 'component;STR;T;',                        g%component
-  nl=nl+1; write (li(nl), amt) 'why_invalid;STR;F;',                      g%why_invalid
-  nl=nl+1; write (li(nl), amt) 'floor_plan_view;STR;T;',                  g%floor_plan_view
-  nl=nl+1; write (li(nl), amt) 'floor_plan_orbit_color;STR;T;',           g%floor_plan_orbit_color
-  nl=nl+1; write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',             g%x_axis_scale_factor
-  nl=nl+1; write (li(nl), rmt) 'symbol_size_scale;REAL;T;',               g%symbol_size_scale
-  nl=nl+1; write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',             g%floor_plan_rotation
-  nl=nl+1; write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;T;',          g%floor_plan_orbit_scale
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        g%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;T;',                      g%ix_universe
-  nl=nl+1; write (li(nl), lmt) 'clip;LOGIC;T;',                           g%clip
-  nl=nl+1; write (li(nl), lmt) 'valid;LOGIC;F;',                          g%valid
-  nl=nl+1; write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                   g%y2_mirrors_y
-  nl=nl+1; write (li(nl), lmt) 'limited;LOGIC;F;',                        g%limited
-  nl=nl+1; write (li(nl), lmt) 'draw_axes;LOGIC;T;',                      g%draw_axes
-  nl=nl+1; write (li(nl), lmt) 'correct_xy_distortion;LOGIC;T;',          g%correct_xy_distortion
-  nl=nl+1; write (li(nl), lmt) 'floor_plan_size_is_absolute;LOGIC;T;',    g%floor_plan_size_is_absolute
-  nl=nl+1; write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;T;',  g%floor_plan_draw_only_first_pass
-  nl=nl+1; write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',              g%draw_curve_legend
-  nl=nl+1; write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
-  nl=nl+1; write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             g%name
+  nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                             g%type
+  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                            g%title
+  nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                     g%title_suffix
+  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        g%component
+  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                      g%why_invalid
+  nl=incr(nl); write (li(nl), amt) 'floor_plan_view;STR;T;',                  g%floor_plan_view
+  nl=incr(nl); write (li(nl), amt) 'floor_plan_orbit_color;STR;T;',           g%floor_plan_orbit_color
+  nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',             g%x_axis_scale_factor
+  nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',               g%symbol_size_scale
+  nl=incr(nl); write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',             g%floor_plan_rotation
+  nl=incr(nl); write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;T;',          g%floor_plan_orbit_scale
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        g%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      g%ix_universe
+  nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                           g%clip
+  nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;F;',                          g%valid
+  nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                   g%y2_mirrors_y
+  nl=incr(nl); write (li(nl), lmt) 'limited;LOGIC;F;',                        g%limited
+  nl=incr(nl); write (li(nl), lmt) 'draw_axes;LOGIC;T;',                      g%draw_axes
+  nl=incr(nl); write (li(nl), lmt) 'correct_xy_distortion;LOGIC;T;',          g%correct_xy_distortion
+  nl=incr(nl); write (li(nl), lmt) 'floor_plan_size_is_absolute;LOGIC;T;',    g%floor_plan_size_is_absolute
+  nl=incr(nl); write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;T;',  g%floor_plan_draw_only_first_pass
+  nl=incr(nl); write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',              g%draw_curve_legend
+  nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
+  nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=nl+1; write (li(nl), amt) 'y.label;STR;T;',                         g%y%label
-  nl=nl+1; write (li(nl), rmt) 'y.max;REAL;T;',                          g%y%max
-  nl=nl+1; write (li(nl), rmt) 'y.min;REAL;T;',                          g%y%min
-  nl=nl+1; write (li(nl), imt) 'y.major_div;INT;T;',                     g%y%major_div
-  nl=nl+1; write (li(nl), imt) 'y.major_div_nominal;INT;T;',             g%y%major_div_nominal
-  nl=nl+1; write (li(nl), imt) 'y.places;INT;T;',                        g%y%places
-  nl=nl+1; write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                  g%y%draw_label
-  nl=nl+1; write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                g%y%draw_numbers
+  nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                         g%y%label
+  nl=incr(nl); write (li(nl), rmt) 'y.max;REAL;T;',                          g%y%max
+  nl=incr(nl); write (li(nl), rmt) 'y.min;REAL;T;',                          g%y%min
+  nl=incr(nl); write (li(nl), imt) 'y.major_div;INT;T;',                     g%y%major_div
+  nl=incr(nl); write (li(nl), imt) 'y.major_div_nominal;INT;T;',             g%y%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y.places;INT;T;',                        g%y%places
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                  g%y%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                g%y%draw_numbers
 
-  nl=nl+1; write (li(nl), amt) 'y2.label;STR;T;',                        g%y2%label
-  nl=nl+1; write (li(nl), rmt) 'y2.max;REAL;T;',                         g%y2%max
-  nl=nl+1; write (li(nl), rmt) 'y2.min;REAL;T;',                         g%y2%min
-  nl=nl+1; write (li(nl), imt) 'y2.major_div;INT;T;',                    g%y2%major_div
-  nl=nl+1; write (li(nl), imt) 'y2.major_div_nominal;INT;T;',            g%y2%major_div_nominal
-  nl=nl+1; write (li(nl), imt) 'y2.places;INT;T;',                       g%y2%places
-  nl=nl+1; write (li(nl), lmt) 'y2.draw_label;LOGIC;T;',                 g%y2%draw_label
-  nl=nl+1; write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',               g%y2%draw_numbers
+  nl=incr(nl); write (li(nl), amt) 'y2.label;STR;T;',                        g%y2%label
+  nl=incr(nl); write (li(nl), rmt) 'y2.max;REAL;T;',                         g%y2%max
+  nl=incr(nl); write (li(nl), rmt) 'y2.min;REAL;T;',                         g%y2%min
+  nl=incr(nl); write (li(nl), imt) 'y2.major_div;INT;T;',                    g%y2%major_div
+  nl=incr(nl); write (li(nl), imt) 'y2.major_div_nominal;INT;T;',            g%y2%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y2.places;INT;T;',                       g%y2%places
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_label;LOGIC;T;',                 g%y2%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',               g%y2%draw_numbers
 
 !----------------------------------------------------------------------
 ! Curve information for a plot
@@ -972,7 +972,7 @@ case ('plot_curve')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (err .or. .not. allocated(curve)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
@@ -980,41 +980,41 @@ case ('plot_curve')
 
   cur => curve(1)%c
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             cur%name
-  nl=nl+1; write (li(nl), amt) 'data_source;STR;T;',                      cur%data_source
-  nl=nl+1; write (li(nl), amt) 'data_type_x;STR;T;',                      cur%data_type_x
-  nl=nl+1; write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
-  nl=nl+1; write (li(nl), amt) 'data_type;STR;T;',                        cur%data_type
-  nl=nl+1; write (li(nl), amt) 'component;STR;T;',                        cur%component
-  nl=nl+1; write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
-  nl=nl+1; write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
-  nl=nl+1; write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text
-  nl=nl+1; write (li(nl), amt) 'units;STR;T;',                            cur%units
-  nl=nl+1; write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               cur%s
-  nl=nl+1; write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
-  nl=nl+1; write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color0
-  nl=nl+1; write (li(nl), imt) 'ix_universe;INT;T;',                      cur%ix_universe
-  nl=nl+1; write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
-  nl=nl+1; write (li(nl), imt) 'ix_branch;INT;T;',                        cur%ix_branch
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref;INT;T;',                       cur%ix_ele_ref
-  nl=nl+1; write (li(nl), imt) 'ix_ele_ref_track;INT;T;',                 cur%ix_ele_ref_track
-  nl=nl+1; write (li(nl), imt) 'ix_bunch;INT;T;',                         cur%ix_bunch
-  nl=nl+1; write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
-  nl=nl+1; write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
-  nl=nl+1; write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
-  nl=nl+1; write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
-  nl=nl+1; write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
-  nl=nl+1; write (li(nl), lmt) 'use_z_color;LOGIC;T;',                    cur%use_z_color
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
+  nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      cur%data_source
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;STR;T;',                      cur%data_type_x
+  nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
+  nl=incr(nl); write (li(nl), amt) 'data_type;STR;T;',                        cur%data_type
+  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
+  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
+  nl=incr(nl); write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text
+  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            cur%units
+  nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
+  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
+  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color0
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      cur%ix_universe
+  nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        cur%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       cur%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;T;',                 cur%ix_ele_ref_track
+  nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         cur%ix_bunch
+  nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
+  nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
+  nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
+  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;T;',                    cur%use_z_color
 
-  nl=nl+1; write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
-  nl=nl+1; write (li(nl), amt)  'line.color;STR;T;',                      qp_color_name(cur%line%color)
-  nl=nl+1; write (li(nl), amt)  'line.pattern;STR;T;',                    qp_line_pattern_name(cur%line%pattern)
+  nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
+  nl=incr(nl); write (li(nl), amt)  'line.color;STR;T;',                      qp_color_name(cur%line%color)
+  nl=incr(nl); write (li(nl), amt)  'line.pattern;STR;T;',                    qp_line_pattern_name(cur%line%pattern)
 
-  nl=nl+1; write (li(nl), amt)  'symbol.type;STR;T;',                     qp_symbol_type_name(cur%symbol%type)
-  nl=nl+1; write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
-  nl=nl+1; write (li(nl), amt)  'symbol.fill_pattern;STR;T;',             qp_fill_name(cur%symbol%fill_pattern)
-  nl=nl+1; write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+  nl=incr(nl); write (li(nl), amt)  'symbol.type;STR;T;',                     qp_symbol_type_name(cur%symbol%type)
+  nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
+  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;STR;T;',             qp_fill_name(cur%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
 ! Points used to construct a smooth line for a plot curve.
@@ -1027,7 +1027,7 @@ case ('plot_line')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
@@ -1036,7 +1036,7 @@ case ('plot_line')
   cur => curve(1)%c
 
   if (.not. allocated(cur%x_line)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
     call end_stuff()
     return
@@ -1044,7 +1044,7 @@ case ('plot_line')
     
   call re_allocate_lines (nl+size(cur%x_line)+100)
   do i = 1, size(cur%x_line)
-    nl=nl+1; write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+    nl=incr(nl); write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -1058,7 +1058,7 @@ case ('plot_symbol')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
     call end_stuff()
     return
@@ -1067,7 +1067,7 @@ case ('plot_symbol')
   cur => curve(1)%c
 
   if (.not. allocated(cur%x_symb)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
     call end_stuff()
     return
@@ -1075,7 +1075,7 @@ case ('plot_symbol')
     
   call re_allocate_lines (size(cur%x_symb)+100)
   do i = 1, size(cur%x_symb)
-    nl=nl+1; write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+    nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -1089,7 +1089,7 @@ case ('plot1')
 
   call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
   if (err) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
     call end_stuff()
     return
@@ -1100,20 +1100,20 @@ case ('plot1')
   n = 0
   if (allocated(p%graph)) n = size(p%graph)
 
-  nl=nl+1; write (li(nl), imt) 'num_graphs;INT;T;',                       n
+  nl=incr(nl); write (li(nl), imt) 'num_graphs;INT;T;',                       n
   do i = 1, n
-    nl=nl+1; write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
+    nl=incr(nl); write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
   enddo
 
-  nl=nl+1; write (li(nl), amt) 'name;STR;T;',                             p%name
-  nl=nl+1; write (li(nl), amt) 'description;STR;T;',                      p%description
-  nl=nl+1; write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
-  nl=nl+1; write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
-  nl=nl+1; write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
-  nl=nl+1; write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
-  nl=nl+1; write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             p%name
+  nl=incr(nl); write (li(nl), amt) 'description;STR;T;',                      p%description
+  nl=incr(nl); write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
+  nl=incr(nl); write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
+  nl=incr(nl); write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
 
 !----------------------------------------------------------------------
 ! Convert species name to corresponding integer
@@ -1126,13 +1126,13 @@ case ('species_to_int')
 
   n = species_id(line)
   if (n == invalid$ .or. line == '') then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species name.')
     call end_stuff()
     return
   endif
 
-  nl=nl+1; write (li(nl), '(i0)') n
+  nl=incr(nl); write (li(nl), '(i0)') n
 
 !----------------------------------------------------------------------
 ! Convert species integer id to corresponding 
@@ -1147,13 +1147,13 @@ case ('species_to_str')
   name = species_name(n)
 
   if (err .or. line == '' .or. name == invalid_name) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species integer id number.')
     call end_stuff()
     return
   endif
 
-  nl=nl+1; write (li(nl), '(a)') trim(name)
+  nl=incr(nl); write (li(nl), '(a)') trim(name)
 
 !----------------------------------------------------------------------
 ! Twiss at given s position
@@ -1185,11 +1185,11 @@ case ('universe')
 
   u => point_to_uni(.false., err); if (err) return
   
-  nl=nl+1; write (li(nl), imt) 'ix_uni;INT;F;',                           u%ix_uni
-  nl=nl+1; write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
-  nl=nl+1; write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
-  nl=nl+1; write (li(nl), lmt) 'reverse_tracking;LOGIC;T;',               u%reverse_tracking
-  nl=nl+1; write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
+  nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           u%ix_uni
+  nl=incr(nl); write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
+  nl=incr(nl); write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
+  nl=incr(nl); write (li(nl), lmt) 'reverse_tracking;LOGIC;T;',               u%reverse_tracking
+  nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------
 ! Create a v1 variable structure along with associated var array.
@@ -1217,7 +1217,7 @@ case ('var_create')
   call tao_cmd_split (line, 3, name1, .true., err)
 
   if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Is Malformed')
     call end_stuff()
     return
@@ -1273,7 +1273,7 @@ case ('var_destroy')
 
   call tao_find_var (err, line, v1_array = v1_array)
   if (err .or. .not. allocated(v1_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 var name')
     call end_stuff()
     return
@@ -1316,7 +1316,7 @@ case ('var_general')
   do i = 1, s%n_v1_var_used
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == '') cycle
-    nl=nl+1; write (li(nl), '(2a, 2(i0, a))') trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
+    nl=incr(nl); write (li(nl), '(2a, 2(i0, a))') trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
   enddo
 
 !----------------------------------------------------------------------
@@ -1329,7 +1329,7 @@ case ('var_v1')
   call tao_find_var (err, line, v1_array = v1_array)
 
   if (err .or. .not. allocated(v1_array)) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 name')
     call end_stuff()
     return
@@ -1340,13 +1340,13 @@ case ('var_v1')
   do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     v_ptr => v1_ptr%v(i)
     if (.not. v_ptr%exists) cycle
-    nl=nl+1; write (li(nl), '(2a, i0, 5a, 3(es24.16, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es24.16, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
                      v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                      v_ptr%meas_value, ';', v_ptr%model_value, ';', &
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
   enddo
 
-  nl=nl+1; write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
+  nl=incr(nl); write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
 
 !----------------------------------------------------------------------
 ! Info on an individual variable
@@ -1359,7 +1359,7 @@ case ('var1')
   call tao_find_var (err, line, v_array = v_array)
 
   if (.not. allocated(v_array) .or. size(v_array) /= 1) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid variable name')
     call end_stuff()
     return
@@ -1367,41 +1367,41 @@ case ('var1')
 
   v_ptr => v_array(1)%v
 
-  nl=nl+1; write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
-  nl=nl+1; write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
+  nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
+  nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
-  nl=nl+1; write (li(nl), amt) 'ele_name;STR;T;',                         v_ptr%ele_name
-  nl=nl+1; write (li(nl), amt) 'attrib_name;STR;T;',                      v_ptr%attrib_name
-  nl=nl+1; write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
-  nl=nl+1; write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
-  nl=nl+1; write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
-  nl=nl+1; write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
-  nl=nl+1; write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
-  nl=nl+1; write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
-  nl=nl+1; write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
-  nl=nl+1; write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
-  nl=nl+1; write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
-  nl=nl+1; write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
-  nl=nl+1; write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
-  nl=nl+1; write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
-  nl=nl+1; write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
-  nl=nl+1; write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
-  nl=nl+1; write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
-  nl=nl+1; write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
-  nl=nl+1; write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
-  nl=nl+1; write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
-  nl=nl+1; write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
-  nl=nl+1; write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
-  nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-  nl=nl+1; write (li(nl), amt) 'merit_type;STR;T;',                       v_ptr%merit_type
-  nl=nl+1; write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
-  nl=nl+1; write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
-  nl=nl+1; write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
-  nl=nl+1; write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
-  nl=nl+1; write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
-  nl=nl+1; write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
-  nl=nl+1; write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
-  nl=nl+1; write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         v_ptr%ele_name
+  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;T;',                      v_ptr%attrib_name
+  nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
+  nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
+  nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
+  nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
+  nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
+  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
+  nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
+  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
+  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
+  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
+  nl=incr(nl); write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
+  nl=incr(nl); write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
+  nl=incr(nl); write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
+  nl=incr(nl); write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
+  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
+  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
+  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
+  nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
+  nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
+  nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
+  nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       v_ptr%merit_type
+  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
+  nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
+  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
+  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
+  nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
 
 !----------------------------------------------------------------------
 
@@ -1448,7 +1448,7 @@ err = .false.
 if (has_ampersand) then
   ix = index(line, '@')
   if (ix == 0) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing "@"')
     call end_stuff()
     err = .true.
@@ -1466,13 +1466,25 @@ if (ios /= 0) ix_universe = -999
 u => tao_pointer_to_universe(ix_universe)
 
 if (.not. associated(u)) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": bad universe index')
   call end_stuff()
   err = .true.
 endif
 
 end function point_to_uni
+
+!----------------------------------------------------------------------
+! contains
+
+function incr(n) result (n1)
+
+integer n, n1
+
+n1 = n + 1
+if (n1 > size(ss%lines)) call re_allocate_lines(int(1.5 * n1))
+
+end function
 
 !----------------------------------------------------------------------
 ! contains
@@ -1506,7 +1518,7 @@ line = line(1:ix)
 
 ix = index(line, '|')
 if (ix == 0) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(command) // '" Expecting "|" character')
   err = .true.
   return
@@ -1520,7 +1532,7 @@ case ('base')
 case ('design')
   tao_lat => u%design
 case default
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, 'python ' // trim(input_str) //  ': Expecting "|<which>" where <which> must be one of "model", "base", or "design"')
   err = .true.
 end select
@@ -1544,7 +1556,7 @@ nullify(ele)
 call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
 
 if (n_loc /= 1) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Cannot locate element.')
   return
 endif
@@ -1570,7 +1582,7 @@ if (has_separator) then
   ix = index(line, '>>')
 
   if (ix == 0) then
-    nl=nl+1; li(nl) = 'INVALID'
+    nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing ">>"')
     call end_stuff()
     err = .true.
@@ -1587,7 +1599,7 @@ read (str, *, iostat = ios) ix_branch
 if (ios /= 0) ix_branch = -999
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(str) == 0) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" missing or out of range branch index')
   call end_stuff()
   err = .true.
@@ -1606,7 +1618,7 @@ logical err
 
 call string_to_real (line, real_garbage$, a_real, err)
 if (err .or. a_real == real_garbage$) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Bad real number')
   call end_stuff()
   return
@@ -1621,34 +1633,34 @@ subroutine orbit_out (orbit)
 
 type (coord_struct) orbit
 
-nl=nl+1; write (li(nl), rmt) 'x;REAL;F;',                                orbit%vec(1)
-nl=nl+1; write (li(nl), rmt) 'px;REAL;F;',                               orbit%vec(2)
-nl=nl+1; write (li(nl), rmt) 'y;REAL;F;',                                orbit%vec(3)
-nl=nl+1; write (li(nl), rmt) 'py;REAL;F;',                               orbit%vec(4)
-nl=nl+1; write (li(nl), rmt) 'z;REAL;F;',                                orbit%vec(5)
-nl=nl+1; write (li(nl), rmt) 'pz;REAL;F;',                               orbit%vec(6)
+nl=incr(nl); write (li(nl), rmt) 'x;REAL;F;',                                orbit%vec(1)
+nl=incr(nl); write (li(nl), rmt) 'px;REAL;F;',                               orbit%vec(2)
+nl=incr(nl); write (li(nl), rmt) 'y;REAL;F;',                                orbit%vec(3)
+nl=incr(nl); write (li(nl), rmt) 'py;REAL;F;',                               orbit%vec(4)
+nl=incr(nl); write (li(nl), rmt) 'z;REAL;F;',                                orbit%vec(5)
+nl=incr(nl); write (li(nl), rmt) 'pz;REAL;F;',                               orbit%vec(6)
 
-nl=nl+1; write (li(nl), rmt) 'spin_x;REAL;F;',                           orbit%spin(1)
-nl=nl+1; write (li(nl), rmt) 'spin_y;REAL;F;',                           orbit%spin(2)
-nl=nl+1; write (li(nl), rmt) 'spin_z;REAL;F;',                           orbit%spin(3)
+nl=incr(nl); write (li(nl), rmt) 'spin_x;REAL;F;',                           orbit%spin(1)
+nl=incr(nl); write (li(nl), rmt) 'spin_y;REAL;F;',                           orbit%spin(2)
+nl=incr(nl); write (li(nl), rmt) 'spin_z;REAL;F;',                           orbit%spin(3)
 
-nl=nl+1; write (li(nl), rmt) 'field_x;REAL;F;',                          orbit%field(1)
-nl=nl+1; write (li(nl), rmt) 'field_y;REAL;F;',                          orbit%field(2)
+nl=incr(nl); write (li(nl), rmt) 'field_x;REAL;F;',                          orbit%field(1)
+nl=incr(nl); write (li(nl), rmt) 'field_y;REAL;F;',                          orbit%field(2)
 
-nl=nl+1; write (li(nl), rmt) 'phase_x;REAL;F;',                          orbit%phase(1)
-nl=nl+1; write (li(nl), rmt) 'phase_y;REAL;F;',                          orbit%phase(2)
+nl=incr(nl); write (li(nl), rmt) 'phase_x;REAL;F;',                          orbit%phase(1)
+nl=incr(nl); write (li(nl), rmt) 'phase_y;REAL;F;',                          orbit%phase(2)
 
-nl=nl+1; write (li(nl), rmt) 's;REAL;F;',                                orbit%s
-nl=nl+1; write (li(nl), rmt) 't;REAL;F;',                                orbit%t
-nl=nl+1; write (li(nl), rmt) 'charge;REAL;F;',                           orbit%charge
-nl=nl+1; write (li(nl), rmt) 'path_len;REAL;F;',                         orbit%path_len
-nl=nl+1; write (li(nl), rmt) 'p0c;REAL;F;',                              orbit%p0c
-nl=nl+1; write (li(nl), rmt) 'beta;REAL;F;',                             orbit%beta
-nl=nl+1; write (li(nl), imt) 'ix_ele;INT;F;',                            orbit%ix_ele
-nl=nl+1; write (li(nl), amt) 'state;STR;F;',                             coord_state_name(orbit%state)
-nl=nl+1; write (li(nl), imt) 'direction;INT;F;',                         orbit%direction
-nl=nl+1; write (li(nl), amt) 'species;STR;F;',                           species_name(orbit%species)
-nl=nl+1; write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
+nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                orbit%s
+nl=incr(nl); write (li(nl), rmt) 't;REAL;F;',                                orbit%t
+nl=incr(nl); write (li(nl), rmt) 'charge;REAL;F;',                           orbit%charge
+nl=incr(nl); write (li(nl), rmt) 'path_len;REAL;F;',                         orbit%path_len
+nl=incr(nl); write (li(nl), rmt) 'p0c;REAL;F;',                              orbit%p0c
+nl=incr(nl); write (li(nl), rmt) 'beta;REAL;F;',                             orbit%beta
+nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            orbit%ix_ele
+nl=incr(nl); write (li(nl), amt) 'state;STR;F;',                             coord_state_name(orbit%state)
+nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         orbit%direction
+nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           species_name(orbit%species)
+nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
 
 end subroutine orbit_out
 
@@ -1671,18 +1683,18 @@ endif
 
 fmt = '(3a, es24.16)'
 
-nl=nl+1; write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
-nl=nl+1; write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
-nl=nl+1; write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
-nl=nl+1; write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
-nl=nl+1; write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
-nl=nl+1; write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
+nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
+nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
+nl=incr(nl); write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
+nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
+nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
 
 if (logic_option(.false., emit_out)) then
-  nl=nl+1; write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
-  nl=nl+1; write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
-  nl=nl+1; write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
-  nl=nl+1; write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
+  nl=incr(nl); write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
+  nl=incr(nl); write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
+  nl=incr(nl); write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
+  nl=incr(nl); write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
 endif
 
 end subroutine twiss_out
@@ -1696,7 +1708,7 @@ character(*) d_name
 
 call tao_find_data (err, d_name, d2_array = d2_array)
 if (err .or. .not. allocated(d2_array)) then
-  nl=nl+1; li(nl) = 'INVALID'
+  nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
   call end_stuff()
   return
