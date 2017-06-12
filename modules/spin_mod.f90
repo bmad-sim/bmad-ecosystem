@@ -681,31 +681,30 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
-real(rp) a_quat(0:3) ! quaternion four-vector
-real(rp) omega1, xi, gamma0, gammaf, v, x, u, spline_x(0:3), spline_y(0:3)
-real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, omega(3)
-real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) anomalous_moment, m_particle, sign_k, abs_a, coef, s_edge_track
-real(rp) vec0(6), ks, kss, length, kl, kl2, c, s, m21, m22, m23, m24
+real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_start, s_end
 
-integer key, sign_z_vel
+integer key
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
-!
+! Spin tracking handled by track_a_patch for patch elements.
 
-if (ele%key == patch$) return  ! Spin tracking handled by track_a_patch for patch elements.
-
-m_particle = mass_of(start_orb%species)
-anomalous_moment = anomalous_moment_of(start_orb%species)
-sign_z_vel = start_orb%direction * ele%orientation
+if (ele%key == patch$) return  
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
+
+if (start_orb%direction == 1) then
+  s_start = 0
+  s_end = ele%value(l$)
+else
+  s_start = ele%value(l$)
+  s_end = 0
+endif
 
 temp_start = start_orb
 call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
-call offset_particle (ele, param, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
+call offset_particle (ele, param, set$, temp_start, set_hvkicks = .false., set_spin = .true., ds_pos = s_start)
 
 if (fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
@@ -714,9 +713,10 @@ if (fringe_info%particle_at == first_track_edge$) then
 endif
 
 temp_end  = end_orb
-call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., ds_pos = ele%value(l$))
-if (fringe_info%particle_at == second_track_edge$ .and. fringe_info%ds_edge /= 0) &
-                                                  call track_a_drift (temp_end, fringe_info%ds_edge)
+call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., ds_pos = s_end)
+if (fringe_info%particle_at == second_track_edge$ .and. fringe_info%ds_edge /= 0) then
+  call track_a_drift (temp_end, fringe_info%ds_edge)
+endif
 temp_end%spin = temp_start%spin
 
 ! 
@@ -737,7 +737,7 @@ if (fringe_info%particle_at == second_track_edge$) then
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
 endif
 
-call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_spin = .true.)
+call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_spin = .true., ds_pos = s_end)
 
 end_orb%spin = temp_end%spin
 
@@ -812,10 +812,11 @@ real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 
 integer j, k, n, n_pts
 
-! Note: Integrate over start_orb%s to end_orb%s. This will be the whole element except for RF cavities.
+! Only integrate over where the field is finite. 
+! This will be the whole element except for RF cavities.
 
-s0 = start_orb%s - ele%s_start
-s1 = end_orb%s - ele%s_start
+s0 = (ele%value(l$) - hard_edge_model_length(ele)) / 2 + bmad_com%significant_length/10
+s1 = (ele%value(l$) + hard_edge_model_length(ele)) / 2 - bmad_com%significant_length/10
 
 q_array(1)%h = 1
 z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
@@ -871,11 +872,11 @@ type (em_field_struct) field
 type (lat_param_struct) param
 
 real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) ds, s_tot
+real(rp) ds, s_tot, s2
 
 !
 
-ds = abs(s_eval - start_orb%s + ele%s_start)
+ds = s_eval
 s_tot = abs(end_orb%s - start_orb%s)
 
 orb = end_orb
@@ -891,7 +892,13 @@ orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline
 orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
 orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
 
-call em_field_calc (ele, param, s_eval, orb, .true., field)
+if (orb%direction == 1) then
+  s2 = s_eval
+else
+  s2 = ele%value(l$) - s_eval
+endif
+
+call em_field_calc (ele, param, s2, orb, .true., field)
 
 ! 1 + g*x term comes from the curved coordinates.
 
@@ -958,7 +965,7 @@ if (ix_pole_max > -1) then
 
   if (kick /= 0) then
     call rotate_spin_given_field (orbit, sign_z_vel, &
-              [aimag(kick), real(kick), 0.0_rp] * (ele%value(p0c$) / (charge_of(orbit%species) * c_light)))
+              [aimag(kick), real(kick), 0.0_rp] * (ele%value(p0c$) / (charge_of(param%particle) * c_light)))
   endif
 
   ! calculate rotation of local coordinate system due to dipole component

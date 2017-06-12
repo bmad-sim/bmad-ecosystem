@@ -65,7 +65,7 @@ else
 endif
 
 orb%vec(5) = orb%vec(5) + dz
-orb%s = orb%s + length
+orb%s = orb%s + orb%direction * length
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(matd)
