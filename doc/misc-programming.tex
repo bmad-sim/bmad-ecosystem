@@ -225,6 +225,7 @@ There are three \vn{hook} routines that are available:
   \Hyperref{r:ele.geometry.hook}{ele_geometry_hook}
   \Hyperref{r:ele.to.fibre.hook}{ele_to_fibre_hook}
   \Hyperref{r:time.runge.kutta.periodic.kick.hook}{time_runge_kutta_periodic_kick_hook}
+  \Hyperref{r:track1.beam.hook}{track1_beam_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
   \Hyperref{r:track1.wake.hook}{track1_wake_hook}
@@ -248,17 +249,21 @@ for example, to add the kick due to a passing beam ! on a residual gas ion that 
 tracked. See the documentation in the file \vn{time_runge_kutta_periodic_kick_hook.f90}
 for more details.
 
-The last two routines are called by the \Hyperref{r:track1}{track1} routine (along with
-\vn{track1_custom} if the element being tracked through has its tracking method set to
-\vn{custom}).  The \vn{track1_preprocess} and \vn{track1_postprocess}
-routines are useful for a number of things. For example, if the effect of an electron
-cloud is to be modeled, these two routines can be used to put in half the electron cloud
-kick at the beginning of an element and half the kick at the end.
+The \vn{track1_beam_hook} routine can be used for custom beam tracking through an element.
+
+The \vn{track1_preprocess} and \vn{track1_postprocess} routines are called by the
+\Hyperref{r:track1}{track1} routine. [Additionally, if the element being tracked through has its
+tracking method set to \vn{custom}, the \vn{track1_custom} routine is called.] The
+\vn{track1_preprocess} and \vn{track1_postprocess} routines are useful for a number of things. For
+example, if the effect of an electron cloud is to be modeled, these two routines can be used to put
+in half the electron cloud kick at the beginning of an element and half the kick at the end.
 
 The routine \vn{track1_preprocess} has an additional feature in that
 it has an argument \vn{radiation_included} that can be set to \vn{True}
 if the routine \vn{track1_custom} will be called and \vn{track1_custom} will
 be handling radiation damping and excitation effects.
+
+The \vn{track1_wake_hook} can be used to apply custom wakes.
 
 %-----------------------------------------------------------------------------
 \section{Physical and Mathematical Constants}

@@ -344,8 +344,8 @@ requirements of how to handle forking can vary greatly from one
 situation to the next, \bmad does not try to track from one \vn{branch}
 to the next in any one of its tracking routines. 
 
-The discussion here is restriced to the case where the paticle being
-tracked is simply transfered from the forking element to the target
+The discussion here is restricted to the case where the particle being
+tracked is simply transferred from the forking element to the target
 branch. [Thus the subject of photon generation is not covered here.]
 
 There are two cases discussed here. The first case is when a given
@@ -472,7 +472,7 @@ It is important to note that to slice up a given element, the \vn{s_to_s} tracki
 routines will not always work. For example, consider the case where a given element is
 followed by a zero length multipole. If \vn{track_from_s_to_s} is called with a value for
 \vn{s2} (the value at the end of the track) which corresponds to the exit end of this
-element, the result will also include tracking through teh zero length multipole. Thus, in
+element, the result will also include tracking through the zero length multipole. Thus, in
 the case where a given element is to be sliced, one or the other of the two slice routines
 given above must be first used to create an element slice then this slice can be used for
 tracking.
@@ -760,9 +760,17 @@ Tracking a beam is done using the \Hyperref{r:track.beam}{track_beam} routine
 \end{example}
 or, for tracking element by element, \Hyperref{r:track1.beam}{track1_beam} can be used.
 
-For analyzing a bunch of particles, that is, for computing such things
-as the sigma matrix from the particle distribution, the
-\Hyperref{r:calc.bunch.params}{calc_bunch_params} routine can be used. 
+For analyzing a bunch of particles, that is, for computing such things as the sigma matrix from the
+particle distribution, the \Hyperref{r:calc.bunch.params}{calc_bunch_params} routine can be used.
+
+Notice that when a particle bunch is tracked to a given longitudinal position in the lattice, all
+the particles of the bunch are at that longitudinal position (this is no different if particles are
+tracked individually independent of the bunch). Given that the bunch has a non-zero bunch length,
+the current time $t(s)$ associated with the particles will be different for different particles (See
+\Eq{zbctt}). If it is desired to reconstruct the shape of the bunch at {\em constant time}, each
+particle must be tracked either forward or backwards by an appropriate amount. Since this tracking
+generally involves only very short distances, it is usually acceptable to ignore any fields and to
+propagate the particles as if they were in a field free region.
 
 %----------------------------------------------------------------
 \section{Spin Tracking}

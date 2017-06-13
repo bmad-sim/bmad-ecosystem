@@ -5,7 +5,7 @@
 import sys, os
 
 for arg in sys.argv[1:]:
-  print arg
+  print (arg)
   file_in = open(arg)
   file_out = open(arg + 'x', mode = 'w')
 
@@ -18,7 +18,7 @@ for arg in sys.argv[1:]:
       subr = line[ix1+5:ix2]
       subr = subr.replace('_', '.')
       line = line[0:ix1] + '\\Hyperref{r:' +  subr + '}{' + line[ix1+5:]
-      print line
+      print (line)
 
     file_out.write(line)
     
