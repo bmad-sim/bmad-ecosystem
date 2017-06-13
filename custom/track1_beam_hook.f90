@@ -23,7 +23,7 @@
 
 subroutine track1_beam_hook (beam_start, lat, ele, beam_end, err, centroid, direction, finished)
 
-use bmad
+use bmad, dummy => track1_beam_hook
 
 implicit none
 
