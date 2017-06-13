@@ -144,7 +144,12 @@ type (coord_struct), optional :: centroid(0:)
 
 integer, optional :: direction
 integer i, n_mode
-logical err
+logical err, finished
+
+! Hook
+
+call track1_beam_hook (beam_start, lat, ele, beam_end, err, centroid, direction, finished)
+if (finished) return
 
 ! loop over all bunches in a beam
 

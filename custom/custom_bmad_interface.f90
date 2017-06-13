@@ -108,6 +108,18 @@ subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, in
   integer :: init_needed
 end subroutine
 
+subroutine track1_beam_hook (beam_start, lat, ele, beam_end, err, centroid, direction, finished)
+  import
+  implicit none
+  type (beam_struct) beam_start
+  type (beam_struct) :: beam_end
+  type (lat_struct) :: lat
+  type (ele_struct) ele
+  type (coord_struct), optional :: centroid(0:)
+  integer, optional :: direction
+  logical err, finished
+end subroutine
+
 subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
   import
   implicit none
