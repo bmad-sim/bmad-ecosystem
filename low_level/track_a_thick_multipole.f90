@@ -29,7 +29,7 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), optional :: mat6(6,6)
 real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) rtc, hk, vk, kick, angle_E, cos_E, sin_E, k_E, beta_ref, mc2
+real(rp) rtc, hk, vk, kick, angle_E, k_E, beta_ref, mc2
 
 integer i, n_step, orientation, ix_pole_max, ix_elec_max
 
@@ -56,16 +56,8 @@ if (ele%key == elseparator$) then
 
   angle_E = atan2(vk, hk)
 
-  if (kick == 0) then
-    cos_E = 1
-    sin_E = 0
-  else
-    cos_E = hk / kick
-    sin_E = vk / kick
-  endif
-
   if (ele%value(l$) == 0) then
-    k_E = 1
+    k_E = 1  ! Something non-zero
   else
     k_E = kick / ele%value(l$)
   endif
@@ -101,7 +93,7 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 
 do i = 1, n_step
 
-  if (ele%key == elseparator$) then
+  if (ele%key == elseparator$ .and. kick /= 0) then
     call track_this_elsep(step_len)
     if (orbit%state /= alive$) return
   else
