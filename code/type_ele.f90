@@ -106,7 +106,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default
+logical type_zero, err_flag, print_it, is_default, has_it
 
 ! init
 
@@ -703,19 +703,53 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   ! Print info on element's lords
 
   if (ele%slave_status <= 0) then
-    nl=nl+1; write (li(nl), '(a)') 'Slave_status: BAD!', ele%slave_status
+    nl=nl+1; write (li(nl), '(a)') 'Slave_status: BAD! PLEASE SEEK HELP!', ele%slave_status
   else
     nl=nl+1; write (li(nl), '(2a)') 'Slave_status: ', control_name(ele%slave_status)
   endif
 
-  if (ele%n_lord /= 0) then
-    nl=nl+1; li(nl) = 'Lords:'
+  select case (ele%slave_status)
+  case (multipass_slave$)
+    lord => pointer_to_lord(ele, 1)
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(ele%name), '  (Index: ', lord%ix_ele, ')'
+    nl=nl+1; li(nl) = 'Other slaves of this Lord:'
+    nl=nl+1; li(nl) = '   Index   Name'
+    do i = 1, lord%n_slave
+      slave => pointer_to_slave(lord, i)
+      if (slave%ix_ele == ele%ix_ele) cycle
+      nl=nl+1; write (li(nl), '(i8, 3x, a)') slave%ix_ele, trim(slave%name)
+    enddo
+
+  case (super_slave$)
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Super_Lord(s):'
+    nl=nl+1; li(nl) = '   Index   Name                             Type'
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%lord_status /= super_lord$) cycle
+      nl=nl+1; write (li(nl), '(i8, 3x, a, t45, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key))
+    enddo
+  end select
+
+  ! Print controller lords
+
+  has_it = .false.
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%lord_status == multipass_lord$ .or. lord%lord_status == super_lord$) cycle
+    has_it = .true.
+    exit
+  enddo
+
+  if (has_it) then
+    nl=nl+1; li(nl) = 'Controller Lord(s):'
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ctl)
       select case (lord%lord_status)
-      case (super_lord$, multipass_lord$, girder_lord$)
+      case (super_lord$, multipass_lord$)
+        cycle
+      case (girder_lord$)
         coef_str = ''
         a_name = ''
         val_str = ''
@@ -734,6 +768,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     enddo
     nl=nl+1; li(nl) = ''
   endif
+
+  !
 
   if (ele%n_lord_field /= 0) then
     nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
