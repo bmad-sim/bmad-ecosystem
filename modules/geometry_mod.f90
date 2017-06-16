@@ -30,7 +30,6 @@ contains
 ! Output:
 !   lat -- lat_struct: The lattice.
 !     %ele(i)%floor --  floor_position_struct: Floor position.
-!
 !-
 
 subroutine lat_geometry (lat)
@@ -109,11 +108,11 @@ do n = 0, ubound(lat%branch, 1)
   if (branch%ele(ie0)%bookkeeping_state%floor_position == stale$) branch%ele(ie0)%bookkeeping_state%floor_position = ok$
 
   do i = ie0+1, branch%n_ele_track
-    call propagate_geometry(i, 1)
+    call propagate_geometry(i, 1, stale)
   enddo
 
   do i = ie0-1, 0, -1
-    call propagate_geometry(i, -1)
+    call propagate_geometry(i, -1, stale)
   enddo
 
 enddo
@@ -149,9 +148,11 @@ enddo
 !---------------------------------------------------
 contains
 
-subroutine propagate_geometry (ie, dir)
+subroutine propagate_geometry (ie, dir, stale)
 
+type (floor_position_struct) floor0
 integer ie, dir, ix
+logical stale
 
 !
 
@@ -164,10 +165,9 @@ if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
     call out_io (s_fatal$, r_name, 'CONFUSION! PLEASE CONTACT DAVID SAGAN!')
     call err_exit
   endif
-  stale = .false.
-else
-  stale = .true.
 endif
+
+floor0 = ele%floor
 
 if (dir == 1) then
   call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp, set_ok = .true.)
@@ -175,6 +175,8 @@ else
   call ele_geometry (branch%ele(ie+1)%floor, branch%ele(ie+1), ele%floor, -1.0_rp)
   ele%bookkeeping_state%floor_position = ok$
 endif
+
+stale = (.not. (ele%floor == floor0))
 
 ! target branch only needs to be recomputed if target branch index is greater than present branch.
 
