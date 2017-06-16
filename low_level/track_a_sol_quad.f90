@@ -72,7 +72,7 @@ do i = 1, n_step
 
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
 
-  if (ele%key == solenoid$) then
+  if (ele%key == solenoid$ .or. ele%value(k1$) == 0) then
     if (logic_option(.false., make_matrix)) then
       call solenoid_track_and_mat (ele, step_len, param, orbit, orbit, kmat)
       mat6 = matmul(kmat, mat6)
