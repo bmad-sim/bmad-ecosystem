@@ -48,7 +48,7 @@ type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele
 
 real(rp), optional :: mat6(6,6), rf_time
-real(rp) f, l_drift, ks, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
+real(rp) f, l_drift, ks4, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
@@ -140,13 +140,16 @@ case (sbend$)
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
   if (logic_option(.true., apply_sol_fringe)) then
-    ks = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / orb%p0c
-    orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
-    orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
+    ! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.
+    ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4 * orb%p0c)
+    orb%vec(2) = orb%vec(2) + ks4 * orb%vec(3)
+    orb%vec(4) = orb%vec(4) - ks4 * orb%vec(1)
     if (track_spn) then
       f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
       call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
     endif
+    orb%vec(2) = orb%vec(2) + ks4 * orb%vec(3)
+    orb%vec(4) = orb%vec(4) - ks4 * orb%vec(1)
   endif
 
 case (lcavity$, rfcavity$, e_gun$)
