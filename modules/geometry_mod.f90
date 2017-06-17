@@ -1,7 +1,6 @@
 module geometry_mod
 
-use bmad_struct
-use bmad_interface
+use multipass_mod
 use lat_ele_loc_mod
 use rotation_3d_mod
 
@@ -151,8 +150,9 @@ contains
 subroutine propagate_geometry (ie, dir, stale)
 
 type (floor_position_struct) floor0
-type (ele_struct), pointer :: lord
-integer ie, dir, ix
+type (ele_pointer_struct), allocatable :: chain_ele(:)
+
+integer ie, dir, ix, ix_pass, n_links
 logical stale
 
 !
@@ -196,15 +196,16 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
   endif
 endif
 
-if (stale .and. ele%slave_status == multipass_slave$) then
-  call set_ele_status_stale (pointer_to_lord(ele, 1), floor_position_group$)
+!
 
-elseif (stale .and. ele%slave_status == super_slave$) then 
-  lord => pointer_to_lord(ele, 1)
-  if (lord%slave_status == multipass_slave$) then
-    call set_ele_status_stale (pointer_to_lord(lord, 1), floor_position_group$)
-  endif
+call multipass_chain(ele, ix_pass, n_links, chain_ele)
+if (ix_pass > 0) then
+  do ie = ix_pass+1, n_links
+    chain_ele(ie)%ele%bookkeeping_state%floor_position = stale$
+  enddo
 endif
+
+!
 
 ele%bookkeeping_state%floor_position = ok$
 
