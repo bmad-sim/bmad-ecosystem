@@ -241,7 +241,7 @@ endif
 ! otherwise make a single element
 
 ele => branch%ele(i_ele)
-call control_bookkeeper (lat, ele)
+if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat, ele)
 
 ! Check if transfer matrix needs to be recomputed
 
