@@ -16,11 +16,6 @@
 !
 ! For rfcaities, life is more complicated since the fields are time dependent.
 ! In this case, longitudinal mirror symmetry must be used.
-! The procedure for rfcavities is then:
-!   0) Start with some given particle coordinates.
-!   1) Track the particle through an element, 
-!   2) Start with the same initial coords and same charge and track in reverse.
-!      Note: Must shift the time and z to be at the correct phase of the accelerating backward wave.
 !-
 
 program reverse_test
@@ -146,19 +141,21 @@ end if
 ! Tracking in the forward direction with the orientation of the element reversed.
 
 orb_0r_orient         = orb_1f
-!!orb_0r_orient%spin    = orb_0f%spin
 orb_0r_orient%vec(2)  = -orb_1f%vec(2)
 orb_0r_orient%vec(4)  = -orb_1f%vec(4)  
-orb_0r_orient%species   = antiparticle(orb_0r_orient%species)
+orb_0r_orient%vec(5)  = -orb_1f%vec(5)  
+orb_0r_orient%species = antiparticle(orb_0r_orient%species)
+orb_0r_orient%t       = -orb_1f%t
 
 ele_r = ele
 if (ele_r%key == elseparator$) then
   ele_r%value(hkick$) = -ele%value(hkick$)
   ele_r%value(vkick$) = -ele%value(vkick$)
 elseif (ele_r%key == rfcavity$) then
-  orb_0r_orient%vec(5) = orb_0f%vec(5)
-  orb_0r_orient%vec(6) = orb_0f%vec(6)
-  orb_0r_orient%t      = orb_0f%t
+  ele_r%value(phi0$) = 0.5 - ele%value(phi0$)
+elseif (ele_r%key == lcavity$) then
+  ele_r%value(phi0$)     = 0.5  - ele%value(phi0$)
+  ele_r%value(phi0_err$) = -ele%value(phi0_err$)
 elseif (ele_r%key == patch$) then
    ele_r%value(upstream_ele_dir$) = -1
    ele_r%value(downstream_ele_dir$) = -1
@@ -181,7 +178,6 @@ orb_1r_orient%vec(4)    = -orb_1r_orient%vec(4)
 
 dorb_r_orient%vec    = orb_1r_orient%vec - orb_0f%vec
 dorb_r_orient%vec(5) = (orb_1r_orient%vec(5) - orb_0r_orient%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
-dorb_r_orient%vec(6) = (orb_1r_orient%vec(6) - orb_0r_orient%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
 dorb_r_orient%t      = (orb_1r_orient%t - orb_0r_orient%t) - (orb_1f%t - orb_0f%t)
 dspin_r_orient       = orb_1r_orient%spin - orb_0f%spin
 
@@ -202,17 +198,12 @@ dmat_r = ele%mat6 - dmat_r
 orb_0b_track = orb_0r_orient
 orb_0b_track%direction = -1
 
-ele_b = ele
-if (ele_b%key == elseparator$) then
-  ele_b%value(hkick$) = -ele%value(hkick$)
-  ele_b%value(vkick$) = -ele%value(vkick$)
+ele_b = ele_r
+ele_b%orientation = 1
+if (ele_b%key == patch$) then
+   ele_b%value(upstream_ele_dir$) = +1
+   ele_b%value(downstream_ele_dir$) = +1
 endif
-
-if (associated(ele_b%a_pole_elec)) then
-  ele_b%a_pole_elec = -ele_b%a_pole_elec
-  ele_b%b_pole_elec = -ele_b%b_pole_elec
-endif
-
 
 call track1(orb_0b_track, ele_b, ele%branch%param, orb_1b_track)
 call make_mat6(ele_b, ele%branch%param, orb_0b_track)
@@ -224,7 +215,6 @@ orb_1b_track%vec(4)    = -orb_1b_track%vec(4)
 
 dorb_b_track%vec    = orb_1b_track%vec - orb_0f%vec
 dorb_b_track%vec(5) = (orb_1b_track%vec(5) - orb_0b_track%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
-dorb_b_track%vec(6) = (orb_1b_track%vec(6) - orb_0b_track%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
 dorb_b_track%t      = (orb_1b_track%t - orb_0b_track%t) - (orb_1f%t - orb_0f%t)
 dspin_b_track       = orb_1b_track%spin - orb_0f%spin
 
