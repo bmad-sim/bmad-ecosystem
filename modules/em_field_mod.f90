@@ -66,9 +66,6 @@ end function g_bend_from_em_field
 ! Note: The fields due to any kicks will be present. It therefore important in tracking to make sure that 
 ! offset_particle does not add in kicks at the beginning and end which would result in double counting the kicks.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele             -- Ele_struct: Lattice element.
 !   param           -- lat_param_struct: Lattice parameters.
@@ -1464,23 +1461,19 @@ end subroutine rotate_em_field
 !+
 ! Subroutine grid_field_linear_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
 !
-! Subroutine to interpolate the E and B fields on a rectilinear grid
-!
-! Note: No error checking is done for providing x2 or x3 for 2D and 3D calculations!
-!
-! Modules needed:
-!   use bmad_struct
+! Subroutine to interpolate the E and B fields on a rectilinear grid.
 !
 ! Input:
-!   ele      -- ele_struct: Element containing the grid
+!   ele      -- ele_struct: Element containing the grid.
 !   orbit    -- coord_struct: Used for constructing an error message if the particle is out of bounds.
-!   grid     -- grid_field_struct: Grid to interpolate
+!   grid     -- grid_field_struct: Grid to interpolate.
 !   err_flag -- Logical: Set to true if there is an error. False otherwise.
-!   x1       -- real(rp) : dimension 1 interpolation point
-!   x2       -- real(rp), optional : dimension 2 interpolation point
-!   x3       -- real(rp), optional : dimension 3 interpolation point
-!   allow_s_out_of_bounds -- logical, optional : allow s-coordinate grossly out of bounds to return
-!                 zero field without an error. 
+!   x1       -- real(rp): dimension 1 interpolation point.
+!   x2       -- real(rp), optional: dimension 2 interpolation point.
+!   x3       -- real(rp), optional: dimension 3 interpolation point.
+!   allow_s_out_of_bounds -- logical, optional: allow s-coordinate grossly out of bounds to return
+!                 zero field without an error. This is used when the field of one element overlaps
+!                 the field of another.
 !
 ! Output:
 !   field    -- grid_field_pt_struct: Interpolated field (complex)
@@ -1501,18 +1494,20 @@ logical :: allow_s_out_of_bounds
 
 character(32), parameter :: r_name = 'grid_field_linear_interpolate'
 
-integer, parameter :: allow_none$ = 1, allow_small$ = 2, allow_all$ = 3
+integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
 
 ! Pick appropriate dimension 
 
 err_flag = .false.
 
-allow_s = allow_small$
+allow_s = allow_some$
 if (allow_s_out_of_bounds) allow_s = allow_all$
 
 grid_dim = grid_field_dimension(grid%geometry)
-select case(grid_dim)
 
+! xz grid
+
+select case(grid_dim)
 case (2)
 
   lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
@@ -1521,7 +1516,7 @@ case (2)
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
   if (i2 < lbnd - 1 .or. i2 > ubnd) return 
 
-  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
@@ -1551,6 +1546,8 @@ case (2)
                  + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(:)  
   endif
 
+! xyz grid
+
 case (3)
 
   lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
@@ -1559,8 +1556,8 @@ case (3)
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
   if (i3 < lbnd - 1 .or. i3 > ubnd) return 
 
-  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_none$); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_none$); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_tiny$); if (err_flag) return
     
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
@@ -1638,15 +1635,27 @@ if (i0 < ig0 .or. i0 >= ig1) then
   g_field%B = 0
 
   select case (allow_out_of_bounds)
-  case (allow_none$)
-    ! Definite Error
-  case (allow_small$)
+  case (allow_tiny$)
+    ! Here do extrapolation is the point is within one dr/2 of the grid boundary.
+    ! Otherwise it is an error.
+    if (i0 == ig0 - 1 .and. rel_x0 > 0.5) then
+      i0 = ig0
+      rel_x0 = rel_x0 - 1
+      return
+    elseif (i0 == ig1 .and. rel_x0 < 0.5) then
+      i0 = ig1 - 1
+      rel_x0 = rel_x0 + 1
+      return
+    endif
+
+  case (allow_some$)
     ! Here only generate an error message if the particle is grossly outside of the grid region.
     ! Here "gross" is defined as dOut > L_grid/2 where dOut is the distance between the
     ! particle and the grid edge and L_grid is the length of the grid.
     x_diff = (ig1 - ig0) * grid%dr(ix_x)
     x_ave = (ig1 + ig0) * grid%dr(ix_x) / 2
     if (abs(x - x_ave) < x_diff .or. i0 == ig0-1 .or. i0 == ig1) return
+
   case (allow_all$)
     return
   end select
