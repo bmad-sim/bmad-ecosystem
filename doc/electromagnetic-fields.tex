@@ -119,11 +119,10 @@ skew quadrupole.
 
 \index{r0_mag}
 \index{F (multipole scale factor)}
-The actual $a_n$, $b_n$ values used in particle tracking are scaled from the input values
-given in the lattice file. There are two scale factors that are applied. The first scale
-factor is used if the \vn{field_master} attribute (\sref{s:field.master}) is True for an
-element so that the multipole values specified in the lattice file are not reference
-energy normalized
+The actual $a_n$, $b_n$ values used in particle tracking are scaled from the input values given in
+the lattice file. There are two scale factors that are applied. The first scale factor is used if
+the \vn{field_master} attribute (\sref{s:field.master}) is True (default is False) for an element so
+that the multipole values specified in the lattice file are not reference energy normalized
 \Begineq
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
@@ -134,7 +133,7 @@ The second scaling is applied when the multipoles are associated with a non
 \vn{AB_Multipole} element and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is
 \vn{True}. This scaling uses a measurement radius $r_0$ and a scale factor $F$:
 \Begineq
-  \bigl[ a_n, b_n \bigr] =
+  \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr]
   \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
   \label{ababf}

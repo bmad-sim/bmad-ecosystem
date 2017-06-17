@@ -151,21 +151,29 @@ contains
 subroutine propagate_geometry (ie, dir, stale)
 
 type (floor_position_struct) floor0
+type (ele_struct), pointer :: lord
 integer ie, dir, ix
 logical stale
 
 !
 
 ele => branch%ele(ie)
-if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) return
-if (ele%ix_ele == 0) ele%value(floor_set$) = true$
 
 if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
-  if (dir == -1) then
+  if (dir == -1 .or. ie == branch%n_ele_track) then
     call out_io (s_fatal$, r_name, 'CONFUSION! PLEASE CONTACT DAVID SAGAN!')
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
+    return
   endif
+  ! If the position of the element just after a flexible patch is stale, 
+  ! the patch geometry should be recomputed just to be on the safe side.
+  if (branch%ele(ie+1)%bookkeeping_state%floor_position /= ok$) stale = .true.  
 endif
+
+!
+
+if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) return
+if (ele%ix_ele == 0) ele%value(floor_set$) = true$
 
 floor0 = ele%floor
 
@@ -173,7 +181,6 @@ if (dir == 1) then
   call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp, set_ok = .true.)
 else
   call ele_geometry (branch%ele(ie+1)%floor, branch%ele(ie+1), ele%floor, -1.0_rp)
-  ele%bookkeeping_state%floor_position = ok$
 endif
 
 stale = (.not. (ele%floor == floor0))
@@ -189,9 +196,17 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
   endif
 endif
 
-if (ele%n_lord > 0) then
-  call set_lords_status_stale (ele, floor_position_group$)
+if (stale .and. ele%slave_status == multipass_slave$) then
+  call set_ele_status_stale (pointer_to_lord(ele, 1), floor_position_group$)
+
+elseif (stale .and. ele%slave_status == super_slave$) then 
+  lord => pointer_to_lord(ele, 1)
+  if (lord%slave_status == multipass_slave$) then
+    call set_ele_status_stale (pointer_to_lord(lord, 1), floor_position_group$)
+  endif
 endif
+
+ele%bookkeeping_state%floor_position = ok$
 
 end subroutine propagate_geometry
 

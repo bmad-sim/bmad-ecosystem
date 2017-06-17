@@ -1475,7 +1475,7 @@ end subroutine set_ele_status_stale
 !+
 ! Subroutine set_lords_status_stale (ele, stat_group, flag)
 !
-! Routine to recursively set the status flag of all slaves of an element.
+! Routine to recursively set the status flag of all lords of an element.
 !
 ! Input:
 !   ele        -- ele_struct: Element
