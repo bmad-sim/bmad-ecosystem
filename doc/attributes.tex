@@ -2422,11 +2422,14 @@ with the file \vn{apex_gun_grid.bmad} being:
 
 It is considered an error if the field of the grid is evaluated for a point that is transversely
 outside of the grid. That is, a grid must extend transversely to the aperture or at least beyound
-the trajectory of any particle. On the other hand, it is acceptable to evaluate the grid field at a
-point that is longitudinally outside of the grid. In this case, the field is assumed to
-go to zero. This is done by effectively adding to the grid two planes of zero field longitudinally
-to either side of the grid. So a particle traveling ouside of the grid longitudinally will see the
-field drop to zero within one longitudinal grid spacing length.
+the trajectory of any particle. [Actually, to prevent problems when the aperture is set at the grid
+boundary, if the distance between the particle and the grid boundary is within 1/2 of the spacing
+between grid points, no error is generated and the field will calcuated using extrapolation.] On the
+other hand, it is acceptable to evaluate the grid field at a point that is longitudinally outside of
+the grid. In this case, the field is assumed to go to zero. This is done by effectively adding to
+the grid two planes of zero field longitudinally to either side of the grid. So a particle traveling
+ouside of the grid longitudinally will see the field drop to zero within one longitudinal grid
+spacing length.
 
 %-----------------------------------------------------------------
 \subsection{Taylor_Field Field Map}

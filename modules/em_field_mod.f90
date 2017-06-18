@@ -1662,8 +1662,8 @@ if (i0 < ig0 .or. i0 >= ig1) then
 
   err_flag = .true.
   call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
-                                 'FOR ELEMENT: ' // ele%name, &
-                                 'PARTICLE POSITION: /3F12.6/', &
+                                 'FOR ELEMENT: ' // ele%name // '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                 'PARTICLE POSITION: \3F12.6\ ', &
                                  'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], &
                                  r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
 endif
