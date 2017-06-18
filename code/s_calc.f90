@@ -49,11 +49,11 @@ do i = 0, ubound(lat%branch, 1)
   do n = 0, branch%n_ele_track
     ele => branch%ele(n)
     ele%s_start = ss
-    if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
     ! Patch element have a length that is a dependent variable
     if (ele%key == patch$ .and. ele%bookkeeping_state%attributes /= ok$) call attribute_bookkeeper(ele, branch%param)
     ss = ss + ele%value(l$)
     ele%s = ss
+    if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
   enddo
 
   branch%param%total_length = ss - branch%ele(0)%s
