@@ -49,13 +49,7 @@ contains
 !+
 ! Subroutine multipass_all_info (lat, info)
 !
-! Subroutine to put multipass information into a multipass_all_info_struct structure.
-!
-! Note: Use deallocate_multipass_all_info_struct(info) to deallocate info 
-! components after use.
-!
-! Modules needed:
-!   use multipass_mod
+! Routine to put multipass information into a multipass_all_info_struct structure.
 !
 ! Input:
 !   lat -- lat_struct: Lattice
