@@ -152,7 +152,7 @@ subroutine propagate_geometry (ie, dir, stale)
 type (floor_position_struct) floor0
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 
-integer ie, dir, ix, ix_pass, n_links
+integer ie, dir, ix, ix_pass, n_links, k
 logical stale
 
 !
@@ -199,10 +199,24 @@ endif
 !
 
 call multipass_chain(ele, ix_pass, n_links, chain_ele)
+
 if (ix_pass > 0) then
-  do ie = ix_pass+1, n_links
-    chain_ele(ie)%ele%bookkeeping_state%floor_position = stale$
+  do k = ix_pass+1, n_links
+    chain_ele(k)%ele%bookkeeping_state%floor_position = stale$
   enddo
+
+  if (ele%slave_status == super_slave$) then
+    do k = 1, ele%n_lord
+      lord => pointer_to_lord(ele, k)
+      if (lord%lord_status /= super_lord$) exit
+      lord%bookkeeping_state%floor_position = stale$
+      lord => pointer_to_lord(lord, 1)  ! multipass lord
+      lord%bookkeeping_state%floor_position = stale$
+    enddo
+  else
+    lord => pointer_to_lord(ele, 1)
+    lord%bookkeeping_state%floor_position = stale$
+  endif
 endif
 
 !
