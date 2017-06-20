@@ -86,11 +86,8 @@ source ${HOME}/.dist_env_setup.tmp
 #----------------------------------------------------------
 if ( [ "${DIST_F90}" == "gfortran" ] ) ; then
   if ( [ "$(type gfortran &> /dev/null ; echo $?)" -eq 0 ] ) ; then
-    export GCC_VER_STR=$(gfortran --version | head -1 | cut -d. -f1)
-    export GCC_MAJOR_VER="${GCC_VER_STR: -1}"
-    export GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d. -f2)
-    [ `uname` == "Darwin" ] && export GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d. -f1 | awk ' { print $5} ')
-    [ `uname` == "Darwin" ] && export GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d. -f2)
+    GCC_MAJOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 2)
+    GCC_MINOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 4)
       if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
         echo -e "\nPlease upgrade your version of GCC/gfortran or set your PATH to where a minimum 4.9 version of GCC/gfortran is located.\n"
       elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then

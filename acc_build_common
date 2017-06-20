@@ -202,9 +202,8 @@ func_check_gcc_version () {
 
     if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
 
-	GCC_VER_STR=$(gcc --version | head -1 | cut -d. -f1)
-	GCC_MAJOR_VER="${GCC_VER_STR: -1}"
-	GCC_MINOR_VER=$(gcc --version | head -1 | cut -d. -f2)
+	GCC_MAJOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 2)
+	GCC_MINOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 4)
 
 	if ( [ "${FC}" == "gfortran" ] ) ; then
 
