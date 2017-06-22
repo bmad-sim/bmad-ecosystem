@@ -109,21 +109,12 @@ endif
 ! Convert particle to element coordinates
 ! Kicks and multipoles should be turned off in offset_particle
 
-! Particle is moving forward towards the entrance
-if (end_orb%direction == +1 .and. end_orb%location /= inside$) then
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., ds_pos = 0.0_rp, set_spin = set_spin) 
-
-! Interior start, reference momentum is at the end. No edge kicks are given
-elseif (end_orb%location == inside$) then
+! Interior start, reference momentum is at the end.
+if (end_orb%location == inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., ds_pos =s_rel, set_spin = set_spin)
-
-! Particle is at the exit surface, should be moving backwards
-elseif (end_orb%direction == -1 .and. end_orb%location /= inside$) then
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., ds_pos = s_rel, set_spin = set_spin)
-
+! Particle is at an end.
 else
-  call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 endif
 
 ! ele(s-based) -> ele(t-based)
