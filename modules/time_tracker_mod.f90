@@ -197,7 +197,11 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
       call save_a_step (track, ele, param, .false., orb)
       ! Query the local field to save
-      call em_field_calc (ele, param, orb%vec(5), orb, local_ref_frame, saved_field, .false., err_flag, rf_time = rf_time)
+      if (ele%orientation == 1) then
+        call em_field_calc (ele, param, orb%vec(5), orb, local_ref_frame, saved_field, .false., err_flag, rf_time = rf_time)
+      else
+         call em_field_calc (ele, param, ele%value(l$)-orb%vec(5), orb, local_ref_frame, saved_field, .false., err_flag, rf_time = rf_time)
+      endif
       if (err_flag) return
       track%field(track%n_pt) = saved_field
       ! Set next save time 
@@ -609,7 +613,7 @@ dvec_dt(2) = c_light*force(1)
 dvec_dt(3) = vel(2)
 dvec_dt(4) = c_light*force(2)
 dvec_dt(5) = vel(3)
-dvec_dt(6) = c_light*force(3)
+dvec_dt(6) = c_light*force(3) * ele%orientation
 
 ! Curvilinear coordinates have added terms
 
