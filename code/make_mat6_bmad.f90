@@ -1,31 +1,29 @@
 !+
-! Subroutine make_mat6_bmad (ele, param, orb_in, orb_out, err)
+! Subroutine make_mat6_bmad (ele, param, start_orb, end_orb, err)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
-!   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- lat_param_struct: Parameters are needed for some elements.
+!   ele       -- Ele_struct: Element to track through.
+!   param     -- lat_param_struct: Parameters are needed for some elements.
+!   start_orb -- coord_struct: Starting coords.
 !
 ! Output:
 !   ele       -- Ele_struct: Element with transfer matrix.
 !     %vec0     -- 0th order map component
 !     %mat6     -- 6x6 transfer matrix.
-!   orb_out   -- Coord_struct: Coordinates at the end of element.
+!   end_orb   -- Coord_struct: Coordinates at the end of element.
 !   err       -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6_bmad (ele, param, orb_in, orb_out, err)
+subroutine make_mat6_bmad (ele, param, start_orb, end_orb, err)
 
 use track1_mod, dummy1 => make_mat6_bmad
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: orb_in, orb_out
+type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct)  param
 
 integer key, tm
@@ -48,8 +46,8 @@ key = ele%key
 if (.not. ele%is_on) then
   select case (key)
   case (taylor$, match$, fiducial$, floor_shift$)
-    orb_out = orb_in
-    call set_orb_out
+    end_orb = start_orb
+    call set_end_orb
     return
 
   case (ab_multipole$, multipole$, lcavity$, sbend$, patch$)
@@ -71,18 +69,18 @@ case (ab_multipole$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, 
       sol_quad$, solenoid$, taylor$, wiggler$, undulator$)
   tm = ele%tracking_method
   if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
-  call track1 (orb_in, ele, param, orb_out, mat6 = ele%mat6, make_matrix = .true.)
+  call track1 (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
   ele%tracking_method = tm
 
-  ele%vec0 = orb_out%vec - matmul(ele%mat6, orb_in%vec)
-  call set_orb_out
+  ele%vec0 = end_orb%vec - matmul(ele%mat6, start_orb%vec)
+  call set_end_orb
 
 !--------------------------------------------------------
 ! Marker, branch, photon_branch, etc.
 
 case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$, mask$) 
-  orb_out = orb_in
-  call set_orb_out
+  end_orb = start_orb
+  call set_end_orb
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -117,16 +115,16 @@ end select
 !--------------------------------------------------------
 contains
 
-subroutine set_orb_out ()
+subroutine set_end_orb ()
 
-type (coord_struct) orb_out, c00
+type (coord_struct) end_orb, c00
 
-if (orb_out%direction == 1) then
-  orb_out%s = ele%s
+if (end_orb%direction == 1) then
+  end_orb%s = ele%s
 else
-  orb_out%s = ele%s_start
+  end_orb%s = ele%s_start
 endif
 
-end subroutine set_orb_out
+end subroutine set_end_orb
 
 end subroutine make_mat6_bmad

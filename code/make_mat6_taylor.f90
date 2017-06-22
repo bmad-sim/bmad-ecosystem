@@ -1,55 +1,45 @@
 !+
-! Subroutine make_mat6_taylor (ele, param, orb_in)
+! Subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
-!   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- lat_param_struct: Parameters are needed for some elements.
-!   orb_in -- Coord_struct: Coordinates at the beginning of element. 
+!   ele      -- Ele_struct: Element to track through.
+!   param     -- lat_param_struct: Parameters are needed for some elements.
+!   start_orb -- coord_struct: Starting coords.
 !
 ! Output:
-!   ele    -- Ele_struct: Element with transfer matrix.
-!     %vec0  -- 0th order map component
-!     %mat6  -- 1st order map component (6x6 transfer matrix).
+!   ele       -- Ele_struct: Element with transfer matrix.
+!     %vec0     -- 0th order map component
+!     %mat6     -- 6x6 transfer matrix.
+!   end_orb   -- Coord_struct: Coordinates at the end of element.
+!   err       -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6_taylor (ele, param, orb_in)
+subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
 
-use ptc_interface_mod, except_dummy => make_mat6_taylor
-use make_mat6_mod, except_dummy2 => make_mat6_taylor
+use bmad_interface
+use ptc_interface_mod, only: ele_to_taylor
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: orb0, orb_in, orb_out
+type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct)  param
 
-! If ele%taylor_map_includes_offsets = False then the Taylor map does not have
-! any offsets in it and we must put them in explicitly using offset_particle.
+logical, optional :: err_flag
 
-if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, ele%taylor, orb_in)
+!
 
-if (ele%taylor_map_includes_offsets) then
-  call taylor_to_mat6 (ele%taylor, orb_in%vec, ele%vec0, ele%mat6)
+if (present(err_flag)) err_flag = .false.
 
-else
-  call init_coord (orb0, orb_in, ele, upstream_end$, orb_in%species)
-  call offset_particle (ele, param, set$, orb0, set_hvkicks = .false.)
-  call taylor_to_mat6 (ele%taylor, orb0%vec, ele%vec0, ele%mat6, orb_out%vec)
-  call init_coord (orb_out, orb_out%vec, ele, downstream_end$, orb_in%species)
-  call offset_particle (ele, param, unset$, orb_out, set_hvkicks = .false.)
+if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, ele%taylor, start_orb)
 
-  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
+call mat_make_unit (ele%mat6)
 
-  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
+call track1_taylor (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
 
-  ele%vec0 = orb_out%vec - matmul(ele%mat6, orb_in%vec)
-
-endif
+ele%vec0 = end_orb%vec - matmul(ele%mat6, start_orb%vec)
 
 end subroutine
 
