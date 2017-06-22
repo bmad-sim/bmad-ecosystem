@@ -87,8 +87,7 @@ case (custom$)
   call make_mat6_custom (ele, param, a_start_orb, a_end_orb, err)
 
 case (taylor$)
-  call make_mat6_taylor (ele, param, a_start_orb)
-  call track1_taylor (a_start_orb, ele, param, a_end_orb)
+  call make_mat6_taylor (ele, param, a_start_orb, a_end_orb, err)
 
 case (bmad_standard$)
   if (a_start_orb%species == photon$) then

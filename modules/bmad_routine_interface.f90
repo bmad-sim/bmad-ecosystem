@@ -496,12 +496,13 @@ recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine make_mat6_taylor (ele, param, start_orb)
+subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (coord_struct) :: start_orb
+  type (coord_struct) :: start_orb, end_orb
   type (lat_param_struct) param
+  logical, optional :: err_flag
 end subroutine
 
 subroutine make_mat6_bmad (ele, param, start_orb, end_orb, err)
@@ -1095,16 +1096,6 @@ subroutine track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track_a_taylor (orbit, ele, param, mat6, make_matrix)
-  import
-  implicit none
-  type (coord_struct) orbit
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
-end subroutine
-
 subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
@@ -1251,14 +1242,16 @@ subroutine track1_symp_map (start_orb, ele, param, end_orb)
   type (lat_param_struct) :: param
 end subroutine
 
-subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
+subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
-  type (taylor_struct), optional, target :: taylor_in(6)
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+  type (taylor_struct), optional, target :: taylor(6)
 end subroutine
 
 subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)

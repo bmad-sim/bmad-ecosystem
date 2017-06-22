@@ -201,7 +201,7 @@ case (sol_quad$, solenoid$)
 ! Taylor
 
 case (taylor$)
-  call track_a_taylor (end_orb, ele, param, mat6, make_matrix)
+  call track1_taylor (end_orb, ele, param, end_orb, mat6 = mat6, make_matrix = make_matrix)
 
 !-----------------------------------------------
 ! wiggler:

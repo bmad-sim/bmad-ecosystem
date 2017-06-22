@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
+! Subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_matrix)
 !
 ! Subroutine to track through an element using the element's taylor map.
 ! If the taylor map does not exist, one will be created using the old
@@ -12,15 +12,15 @@
 !   start_orb     -- Coord_struct: Starting coords.
 !   ele           -- Ele_struct: Element to track through.
 !   param         -- lat_param_struct: Beam parameters.
-!     %enegy        -- Energy in GeV
-!     %particle     -- Particle type [positron$, or electron$]
-!   taylor_in(6)  -- taylor_struct, optional: Alternative map to use instead of ele%taylor. 
+!   make_matrix   -- logical, optional: Propagate the transfer matrix? Default is false.
+!   taylor        -- taylor_struct, optional: Alternative map to use instead of ele%taylor. 
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
+!   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
+subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_matrix)
 
 use ptc_interface_mod, except_dummy => track1_taylor
 
@@ -28,80 +28,95 @@ implicit none
 
 type (coord_struct) :: start_orb, end_orb, start2_orb
 type (coord_struct) :: orb0
-type (taylor_struct), optional, target :: taylor_in(6)
 type (lat_param_struct) :: param
 type (ele_struct), target :: ele
-type (taylor_struct), pointer :: taylor(:)
+type (taylor_struct), target :: taylor2(6)
+type (taylor_struct), optional, target :: taylor(6)
+type (taylor_struct), pointer :: taylor_ptr(:)
 
-real(rp) dtime_ref
+real(rp), optional :: mat6(6,6)
+real(rp) dtime_ref, z0
+
 integer dir
+
+logical, optional :: make_matrix
+
 character(*), parameter :: r_name = 'track1_taylor'
 
+! Some init
+
+start2_orb = start_orb
+end_orb = start_orb
+dir = ele%orientation * end_orb%direction
 
 ! Which map to use?
 
-if (present(taylor_in)) then
-  taylor => taylor_in
+if (present(taylor)) then
+  taylor_ptr => taylor
 else
-  taylor => ele%taylor
+  taylor_ptr => ele%taylor
 endif
 
-! Err checking
+! Err check
 
-if (.not. associated(taylor(1)%term)) then
-  ! call out_io (s_warn$, r_name, &
-  !       'TAYLOR SERIES NOT PRESENT FOR: ' // ele%name, &
-  !       'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...')
-  orb0%vec = taylor%ref
-  call ele_to_taylor(ele, param, taylor)
+if (.not. associated(taylor_ptr(1)%term)) then
+  if (present(taylor)) then
+    call out_io (s_warn$, r_name, 'BAD TAYLOR MAP ARGUMENT!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  ! Else create a Taylor map around the zero orbit.
+  call ele_to_taylor(ele, param, ele%taylor)
 endif
-
-!if (abs(rel_tracking_charge_to_mass(start_orb, param) - param%default_rel_tracking_charge) > 1d-10) then
-!  call out_io (s_fatal$, r_name, 'DEFAULT_REL_TRACKING_CHARGE DOES NOT AGREE WITH CHARGE OF TRACKED PARTICLE', &
-!                                 'FOR TRACKING OF ELEMENT: ' // ele%name)
-!  if (global_com%exit_on_error) call err_exit
-!endif
 
 ! If tracking backwards then need to invert the Taylor map
 
-if (start_orb%direction /= 1) then
+if (dir /= 1) then
   if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
     call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
-  allocate (taylor(6))
-  call taylor_inverse (ele%taylor, taylor)
+  call taylor_inverse (taylor_ptr, taylor2)
+  taylor_ptr => taylor2
 endif
 
 ! If the Taylor map does not have the offsets included then do the appropriate
 ! tracking.
 
-start2_orb = start_orb
-end_orb = start_orb
-
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 endif
 
-if (start_orb%direction == 1) then
-  call track_taylor (end_orb%vec, taylor, end_orb%vec)
+!
+
+if (logic_option(.false., make_matrix)) call taylor_to_mat6 (taylor_ptr, end_orb%vec, ele%vec0, mat6)
+
+
+!
+
+if (dir == 1) then
+  call track_taylor (end_orb%vec, taylor_ptr, end_orb%vec)
+
 else
   end_orb%vec(2) = -end_orb%vec(2)
   end_orb%vec(4) = -end_orb%vec(4)
-  end_orb%vec(5) = -end_orb%vec(5)
-  call track_taylor (end_orb%vec, taylor, end_orb%vec)
+  z0 = end_orb%vec(5)
+
+  call track_taylor (end_orb%vec, taylor_ptr, end_orb%vec)
+
   end_orb%vec(2) = -end_orb%vec(2)
   end_orb%vec(4) = -end_orb%vec(4)
-  end_orb%vec(5) = -end_orb%vec(5)
+  end_orb%vec(5) = z0 - (end_orb%vec(5) - z0)
+
+  call kill_taylor(taylor2)
 endif
+
+!
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 endif
-
-end_orb%s = ele%s
-end_orb%p0c = ele%value(p0c$)
 
 ! Time change of particle
 
@@ -113,9 +128,5 @@ else
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
   end_orb%t = start2_orb%t + dtime_ref + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif
-
-! Cleanup
-
-if (start_orb%direction /= 1) deallocate(taylor)
 
 end subroutine
