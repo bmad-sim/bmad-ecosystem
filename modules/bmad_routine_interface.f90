@@ -254,13 +254,14 @@ subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   logical err_flag
 end subroutine
 
-subroutine create_girder (lat, ix_ele, con, init_ele)
+subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
   import
   implicit none
   type (lat_struct) lat
-  type (ele_struct), optional :: init_ele
+  type (ele_struct) :: init_ele
   type (control_struct) con(:)
   integer, intent(in) :: ix_ele
+  logical err_flag
 end subroutine
 
 subroutine create_group (lord, con, err, err_print_flag)

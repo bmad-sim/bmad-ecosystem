@@ -54,7 +54,12 @@ endif
 
 dorb6 = max(0.0_rp, 1.01 * (abs_p - (1 + c0%vec(6))))   ! Shift in start%vec(6) to apply.
 
-call init_coord(c00, c0, ele, upstream_end$, c0%species, shift_vec6 = .false.)
+if (c0%direction == 1) then
+  call init_coord(c00, c0, ele, upstream_end$, c0%species, c0%direction, shift_vec6 = .false.)
+else
+  call init_coord(c00, c0, ele, downstream_end$, c0%species, c0%direction, shift_vec6 = .false.)
+endif
+
 call track1 (c00, ele, param, c1)
 
 ! Symmetric tracking uses more tracks but is more accurate
