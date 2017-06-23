@@ -27,16 +27,25 @@ type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
-real(rp) dtime_ref
+real(rp) dtime_ref, mat6(6,6)
 
 ! 
 
 start2_orb = start_orb
 end_orb = start_orb
-end_orb%vec = matmul (ele%mat6, start_orb%vec) + ele%vec0
-
-end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
+
+if (ele%orientation * start_orb%direction == 1) then
+  end_orb%vec = matmul (ele%mat6, start_orb%vec) + ele%vec0
+
+else
+  end_orb%vec(2) = -end_orb%vec(2)
+  end_orb%vec(4) = -end_orb%vec(4)
+  end_orb%vec = matmul(mat_symp_conj(ele%mat6), end_orb%vec - ele%vec0)
+  end_orb%vec(2) = -end_orb%vec(2)
+  end_orb%vec(4) = -end_orb%vec(4)
+  end_orb%vec(5) = start_orb%vec(5) - (end_orb%vec(5) - start_orb%vec(5))
+endif
 
 ! If delta_ref_time has not been set then just assume that the particle has constant velocity.
 

@@ -5240,7 +5240,13 @@ main_loop: do n_in = 1, n_ele_max
         endif
 
         call new_control (lat, ix_lord)
-        call create_girder (lat, ix_lord, cs(1:n_slave), lord)
+        call create_girder (lat, ix_lord, cs(1:n_slave), lord, err)
+        if (err) then
+          call parser_error ('ERROR CONSTRUCTING GIRDER')
+          lat%n_ele_max = lat%n_ele_max - 1
+          return
+        endif
+
         created_girder_lord = .true.
         ix1_slave = cs(1)%slave%ix_ele
 
