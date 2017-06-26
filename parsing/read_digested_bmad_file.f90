@@ -655,7 +655,7 @@ enddo
 do i = 1, 3; do j = 1, 3
   if (ix_st(i,j) == -1) cycle
   read (d_unit, err = 9650) ele%spin_taylor(i,j)%ref
-  allocate (ele%spin_taylor(i,j)%term(ix_t(j)))
+  allocate (ele%spin_taylor(i,j)%term(ix_st(i,j)))
   do k = 1, ix_st(i,j)
     read (d_unit, err = 9700) ele%spin_taylor(i,j)%term(k)
   enddo

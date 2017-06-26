@@ -143,11 +143,11 @@ type bp_common_struct
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
-  character(200) line1_file_name               ! Name of file from which input_line1 was read
-  character(200) line2_file_name               ! Name of file from which input_line1 was read
+  character(200) line1_file_name               ! Name of file from which %input_line1 was read
+  character(200) line2_file_name               ! Name of file from which %input_line2 was read
   character(n_parse_line) parse_line
-  character(n_parse_line) input_line1          ! For debug messages
-  character(n_parse_line) input_line2          ! For debug messages
+  character(n_parse_line) input_line1          ! Line before current line. For debug messages.
+  character(n_parse_line) input_line2          ! Current line. For debug messages.
   character(40) parser_name
   logical :: bmad_parser_calling = .false.              ! used for expand_lattice
   logical error_flag                           ! Set True on error
@@ -1188,7 +1188,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     ct_map => ele%cartesian_map(1)
     allocate(ct_map%ptr)
     allocate(ct_map%ptr%term(ix))
-    ct_map%ptr%file = bp_com%line1_file_name
+    ct_map%ptr%file = bp_com%line2_file_name
     ct_map%master_parameter = polarity$
   else
     ct_map => ele%cartesian_map(1)
