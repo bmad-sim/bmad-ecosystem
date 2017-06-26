@@ -163,7 +163,19 @@ Case (wiggler$, undulator$)
     if (field_ele%key == ele%key) exit
   enddo
 
+  if (size(field_ele%cartesian_map) > 1) then
+    call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS MULTIPLE CARTESIAN MAPS. SYMP_LIE_PTC CAN ONLY HANDLE ONE.')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
   ct_map => field_ele%cartesian_map(1)
+  if (ct_map%field_type /= magnetic$) then
+    call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS A CARTESIAN MAP THAT IS NOT MAGNETIC. SYMP_LIE_PTC CAN NOT HANDLE THIS.')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
   wig_term => ct_map%ptr%term
   z_offset = dz_offset(i)
 
