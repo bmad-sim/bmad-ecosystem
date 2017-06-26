@@ -4,7 +4,7 @@ use output_mod
 use tao_mod
 
 type cmd_history_struct  ! record the command history
-  character(100) cmd     ! the command
+  character(200) cmd     ! the command
   integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
   logical cmd_file       ! Did command come from a command file
 end type
