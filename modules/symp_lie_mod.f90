@@ -69,7 +69,7 @@ real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
-real(rp) dE_p, dpx, dpy, mc2, z_offset, orientation, rel_tracking_charge, charge_dir
+real(rp) dE_p, dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp), allocatable :: dz_offset(:)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
@@ -89,7 +89,13 @@ character(16) :: r_name = 'symp_lie_bmad'
 calculate_mat6 = (make_matrix .or. synch_rad_com%i_calc_on)
 
 end_orb = start_orb
-end_orb%s = ele%s_start
+if (end_orb%direction == 1) then
+  end_orb%s = ele%s_start
+  s = 0   ! longitudianal position
+else
+  end_orb%s = ele%s
+  s = ele%value(l$)
+endif
 
 do_offset = logic_option (.true., offset_ele)
 rel_E = (1 + end_orb%vec(6))
@@ -101,9 +107,9 @@ call mat_make_unit(mat6)
 
 err = .false.
 
-orientation = ele%orientation * end_orb%direction
+orient_dir = ele%orientation * end_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param)
-charge_dir = rel_tracking_charge * orientation
+charge_dir = rel_tracking_charge * orient_dir
 
 ! element offset 
 
@@ -119,8 +125,6 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 
 call compute_even_steps (ele%value(ds_step$), ele%value(l$), bmad_com%default_ds_step, ds, n_step)
 ds2 = ds / 2
-
-s = 0   ! longitudianl position
 
 ! radiation damping and fluctuations...
 ! The same kick is applied over the entire wiggler to save time.
@@ -191,7 +195,7 @@ Case (wiggler$, undulator$)
 
     ! s half step
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
     call update_wig_s_terms
 
     ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
@@ -247,7 +251,7 @@ Case (wiggler$, undulator$)
 
     ! s half step
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
     call update_wig_s_terms
 
     if (present(track)) call save_this_track_pt ()
@@ -272,7 +276,7 @@ case (lcavity$, rfcavity$)
 
     ! s half step
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
 !    call rf_drift1 (calculate_mat6)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_kick (calculate_mat6)
@@ -280,7 +284,7 @@ case (lcavity$, rfcavity$)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_drift1 (calculate_mat6)
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
 
     if (present(track)) call save_this_track_pt ()
 
@@ -328,7 +332,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   do i = 1, n_step
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     call bsq_drift1 (calculate_mat6)
@@ -338,7 +342,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     call bsq_drift2 (calculate_mat6)
     call bsq_drift1 (calculate_mat6)
 
-    s = s + ds2
+    s = s + ds2 * end_orb%direction
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     if (present(track)) call save_this_track_pt ()
@@ -386,7 +390,12 @@ endif
 
 !
 
-end_orb%s = ele%s
+if (end_orb%direction == 1) then
+  end_orb%s = ele%s
+else
+  end_orb%s = ele%s_start
+endif
+
 end_orb%p0c = ele%value(p0c$)
 
 !----------------------------------------------------------------------------
@@ -458,7 +467,7 @@ logical do_mat6
 
 end_orb%vec(1) = end_orb%vec(1) + ds2 * end_orb%vec(2) / rel_E
 end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(2)**2 / (2*rel_E2)
-end_orb%s = end_orb%s + ds2
+end_orb%s = end_orb%s + ds2 * end_orb%direction
 
 if (do_mat6) then
   mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)               * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
@@ -677,14 +686,14 @@ do j = 1, num_wig_terms
     tmj%trig_y =  1
     tmj%family = x_family$
     tmj%coef_Ax =  coef * wt%kz / wt%ky                ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef * wt%kx / wt%ky * orientation  ! Missing factor of: 1/k_y
+    tmj%coef_Az =  coef * wt%kx / wt%ky * orient_dir   ! Missing factor of: 1/k_y
 
   case (hyper_y_family_y$)
     tmj%trig_x = -1
     tmj%trig_y =  1
     tmj%family = y_family$
     tmj%coef_Ay = -coef * wt%kz / wt%ky                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * orientation                  ! Missing factor of: 1/k_x
+    tmj%coef_Az = -coef * orient_dir                   ! Missing factor of: 1/k_x
 
   case (hyper_y_family_qu$)
     tmj%trig_x = -1
@@ -706,14 +715,14 @@ do j = 1, num_wig_terms
     tmj%trig_y =  1
     tmj%family = x_family$
     tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef * wt%kx / wt%kz * orientation  ! Missing factor of: 1/k_y
+    tmj%coef_Az =  coef * wt%kx / wt%kz * orient_dir   ! Missing factor of: 1/k_y
 
   case (hyper_xy_family_y$)
     tmj%trig_x =  1
     tmj%trig_y =  1
     tmj%family = y_family$
     tmj%coef_Ay = -coef                                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * wt%ky / wt%kz * orientation  ! Missing factor of: 1/k_x
+    tmj%coef_Az = -coef * wt%ky / wt%kz * orient_dir   ! Missing factor of: 1/k_x
 
   case (hyper_xy_family_qu$)
     tmj%trig_x =  1
@@ -734,15 +743,15 @@ do j = 1, num_wig_terms
     tmj%trig_x =  1
     tmj%trig_y = -1
     tmj%family = x_family$
-    tmj%coef_Ax =  coef * wt%kz / wt%kx * orientation  ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef                                ! Missing factor of: 1/k_y
+    tmj%coef_Ax =  coef * wt%kz / wt%kx                ! Missing factor of: 1/k_y
+    tmj%coef_Az =  coef * orient_dir                   ! Missing factor of: 1/k_y
 
   case (hyper_x_family_y$)
     tmj%trig_x =  1
     tmj%trig_y = -1
     tmj%family = y_family$
     tmj%coef_Ay = -coef * wt%kz / wt%kx                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * wt%ky / wt%kx * orientation  ! Missing factor of: 1/k_x
+    tmj%coef_Az = -coef * wt%ky / wt%kx * orient_dir   ! Missing factor of: 1/k_x
 
   case (hyper_x_family_qu$)
     tmj%trig_x =  1
@@ -947,7 +956,7 @@ end select
 
 spz_offset = s + z_offset - s0 - ct_map%r0(3)
 
-if (orientation == -1) spz_offset = ele%value(l$) - spz_offset
+if (ele%orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
 
 tm(1:num_wig_terms)%c_z = cos(kzz(1:num_wig_terms))
