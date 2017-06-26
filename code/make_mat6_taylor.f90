@@ -18,7 +18,7 @@
 
 subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
 
-use bmad_interface
+use bmad_interface, dummy => make_mat6_taylor
 use ptc_interface_mod, only: ele_to_taylor
 
 implicit none
