@@ -152,8 +152,8 @@ re_interface_end         = re.compile('end +interface')
 re_type                  = re.compile(r'type *\(')
 re_module_begin          = re.compile('module')
 re_module_header_end     = re.compile('contains')
-re_parameter             = re.compile(' parameter.*::')
-re_parameter1            = re.compile(r'\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
+re_parameter             = re.compile(' parameter\s*::')
+re_parameter1            = re.compile(r'\s*([\$\w]+)\s*(\(.+\)|)?\s*=')  # match to: "charge_of(-3:n_charge$) = "
 re_type_interface_end    = re.compile('end +(type|interface)')
 re_end                   = re.compile('end')
 re_routine_name_here     = re.compile('program|subroutine|function|interface')
