@@ -72,8 +72,8 @@ do ib = 0, ubound(lat%branch, 1)
     do im = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
       if (im == mad$  .or. im == symp_map$ .or. im == custom$) cycle
-      if (im /= bmad_standard$ .and. im /= symp_lie_ptc$ .and. im /= runge_kutta$) cycle
-      if (im == symp_lie_ptc$) cycle
+!      if (im /= bmad_standard$ .and. im /= symp_lie_ptc$ .and. im /= runge_kutta$ .and. im /= taylor$) cycle
+!      if (im /= symp_lie_bmad$) cycle
 
       ele%tracking_method = im
 
@@ -114,14 +114,15 @@ real(rp) diff_vec_r, diff_vec_b, diff_mat, diff_spin
 integer n
 logical :: err_flag
 
-!
+!-------------------------------------------------------------------
+! Forward tracking
 
 call init_coord (orb_0f, lat%beam_start, ele, upstream_end$)
 
+ele%mat6_calc_method = tracking$
+
 select case (ele%tracking_method)
-case (runge_kutta$)
-  ele%mat6_calc_method = tracking$
-case (symp_lie_ptc$, symp_lie_bmad$)
+case (symp_lie_ptc$, symp_lie_bmad$, bmad_standard$)
   ele%mat6_calc_method = ele%tracking_method
 end select
 
@@ -138,7 +139,8 @@ if (verbosity) then
   print '(a, 3f12.6, 4x, 3f12.6)', 'Spin:', orb_0f%spin, orb_1f%spin - orb_0f%spin
 end if
 
-! Tracking in the forward direction with the orientation of the element reversed.
+!-------------------------------------------------------------------
+! Tracking with element reversed orientation (in the forward direction)
 
 orb_0r_orient         = orb_1f
 orb_0r_orient%vec(2)  = -orb_1f%vec(2)
@@ -152,9 +154,9 @@ if (ele_r%key == elseparator$) then
   ele_r%value(hkick$) = -ele%value(hkick$)
   ele_r%value(vkick$) = -ele%value(vkick$)
 elseif (ele_r%key == rfcavity$) then
-  ele_r%value(phi0$) = 0.5 - ele%value(phi0$)
+  ele_r%value(phi0$)     = -ele%value(phi0$)
 elseif (ele_r%key == lcavity$) then
-  ele_r%value(phi0$)     = 0.5  - ele%value(phi0$)
+  ele_r%value(phi0$)     = -ele%value(phi0$)
   ele_r%value(phi0_err$) = -ele%value(phi0_err$)
 elseif (ele_r%key == patch$) then
    ele_r%value(upstream_ele_dir$) = -1
@@ -193,7 +195,7 @@ dmat_r(:,5) = -dmat_r(:,5)
 dmat_r = ele%mat6 - dmat_r
 
 !-------------------------------------------------------------------
-! Tracking backwards through the unreversed element.
+! Tracking backwards (element is unreversed).
 
 orb_0b_track = orb_0r_orient
 orb_0b_track%direction = -1
