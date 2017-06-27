@@ -964,6 +964,20 @@ if (cos_perp > 1) then
   endif
 endif
 
+if (cos_perp < 0) then
+  call out_io (s_error$, r_name, &
+  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \f10.5\ ', & 
+  'WILL IGNORE THIS PHOTON...', &
+  'dw_perp: \3f10.5\ ', & 
+  r_array = [cos_perp, dw_perp])
+  call sr3d_print_photon_info (photon)
+  call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
+  err_flag = .true.
+  return
+endif
+
+!
+
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
@@ -980,25 +994,16 @@ else
 endif
 wall_hit(n_wall_hit)%reflectivity = reflectivity
 
-if (cos_perp < 0) then
-  call out_io (s_error$, r_name, &
-  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \f10.5\ ', & 
-  'WILL IGNORE THIS PHOTON...', &
-  'dw_perp: \3f10.5\ ', & 
-  r_array = [cos_perp, dw_perp])
-  call sr3d_print_photon_info (photon)
-  call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
-  err_flag = .true.
-  return
-endif
-
 ! absorption or reflection...
 ! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
+
+! If the photon is traveling essentially parallel to the wall (cos_perp < 1d-10) then considered it absorbed.
+! This is done to to prevent a singular situation when trying to reflect the photon.
 
 call ran_uniform(r)
 if (.not. sr3d_params%allow_absorption) reflectivity = 1
 
-if (r <= reflectivity) then
+if (r <= reflectivity .and. cos_perp > 1d-10) then
   absorbed = .false.
 
   if (sr3d_params%specular_reflection_only .or. r < reflectivity * rel_reflect_specular) then
