@@ -212,15 +212,6 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ] ; the
 
 
   #--------------------------------------------------------------
-  # Set plot environment for MSYS/MinGW
-  #--------------------------------------------------------------
-  if [[ $ACC_COMPILER_TOOLSET == mingw* ]]; then
-    export ACC_PLOT_PACKAGE="plplot"
-    export ACC_PLOT_DISPLAY_TYPE="QT"
-  fi
-
-
-  #--------------------------------------------------------------
   # Source the main DISTRIBUTION environment variable list into 
   # this script's environment.
   #--------------------------------------------------------------
