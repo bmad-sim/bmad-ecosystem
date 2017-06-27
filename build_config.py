@@ -192,7 +192,6 @@ release_build_list = [
                 '/CESR/CESR_progs/ethscope',
                 '/CESR/CESR_progs/fbph',
                 '/CESR/CESR_progs/gdl_inp',
-                '/CESR/CESR_progs/gifo',
                 '/CESR/CESR_progs/grofix',
                 '/CESR/CESR_progs/inj',
                 '/CESR/CESR_progs/ldinit',
