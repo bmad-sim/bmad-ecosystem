@@ -95,17 +95,19 @@ end subroutine absolute_photon_position
 ! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
 !
 ! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
-! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
+! The photon is initialized using the standard formulas for bending radiation.
 !
-! If integ_prob is not present or is negative, the photon's energy will be in the range [E_min, E_max].
-! To not restrict the photon's energy, set E_max = 0 in which case effectively [E_min, E_max] = [0, Infinity].
+! The energy of the photon is calculated in one of two ways:
 !
-! integ_prob is the integrated probability of the generated photon having the energy it does.
-! If integ_prob is present and positive, E_min and E_max are ignored.
-! If integ_prob is negative then a random number is used to determine the photon's energy.
-! If integ_prob is zero or positive it must be in the range [0, 1].
-! An integ_prob of zero means that the generated photon will have energy E_min.
-! An integ_prob of one means that the generated photon will have energy E_max.
+!   1) If E_integ_prob is present and non-negative, the photon energy E will be such that the integrated 
+!       probability  [E_min, E] relative to the integrated probability in the range [E_min, E_max] is E_integ_prob. 
+!       That is, E_integ_prob can be used to to give photon energies equally spaced in terms of the integrated probability distribution.
+!
+!   2) If E_integ_prob is not present, or is negative, the photon energy is chosen at random in 
+!       the range [E_min, E_max].
+
+! An E_integ_prob of zero means that the generated photon will have energy E_min.
+! An E_integ_prob of one means that the generated photon will have energy E_max.
 !
 ! The photon's polarization, will have unit amplitude.
 !
@@ -120,11 +122,11 @@ end subroutine absolute_photon_position
 !   g_bend_x     -- Real(rp): Bending 1/rho component in horizontal plane.
 !   g_bend_y     -- Real(rp): Bending 1/rho component in vertical plane.
 !   gamma        -- Real(rp): Relativistic gamma factor of generating charged particle.
-!   E_min        -- Real(rp), optional: Minimum photon energy.
-!   E_max        -- Real(rp), optional: Maximum phton energy. 
-!                               If not present or equal to 0 -> energy range = [0, Infinity].
-!   E_integ_prob -- real(rp):, optional :: integrated energy probability. 
-!                               If present, E_min and E_max are ignored.
+!   E_min        -- Real(rp), optional: Minimum photon energy. Default is zero.
+!   E_max        -- Real(rp), optional: Maximum phton energy.  Default is Infinity.
+!                    If non-positive then E_max will be taken to be Infinity.
+!   E_integ_prob -- real(rp):, optional :: integrated energy probability. See above.
+!                                If E_integ_prob is non-negative, it must be in the range [0, 1].
 !
 ! output:
 !   orbit             -- coord_struct: Initialized photon.
@@ -144,20 +146,23 @@ real(rp) E_rel, gamma_phi, E_photon, r_min, r_max, r, Emin, Emax
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
 e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
+Emin = real_option(0.0_rp, E_min)
+Emax = real_option(0.0_rp, E_max)
+
 integ_prob = real_option(-1.0_rp, E_integ_prob)
 if (integ_prob >= 0) then
-  if (E_max <= 0) then
+  if (Emax <= 0 .and. Emin <= 0) then
     call bend_photon_energy_init (E_rel, integ_prob)
   else
-    r_min = bend_photon_energy_integ_prob(E_min, g_bend, gamma)
-    r_max = bend_photon_energy_integ_prob(E_max, g_bend, gamma)
+    if (Emin <= 0) Emin = 0
+    if (Emax <= 0) Emax = 1.0d100
+    r_min = bend_photon_energy_integ_prob(Emin, g_bend, gamma)
+    r_max = bend_photon_energy_integ_prob(Emax, g_bend, gamma)
     r = r_min + integ_prob * (r_max - r_min)
     call bend_photon_energy_init (E_rel, r)
   endif
   
 else
-  Emin = real_option(0.0_rp, E_min)
-  Emax = real_option(0.0_rp, E_max)
   if (Emax <= 0) then
     call bend_photon_energy_init (E_rel)
   else
@@ -717,6 +722,7 @@ if (init_needed) then
   spline(5)%pt(0)%c2 = max(vp/2, 2*vp - 3*v) 
   spline(5)%pt(0)%c3 = 1.1
 
+  spline(5)%spline_type = end_spline$
 
   ! Fill in rest of the spline fit coefs.
 
@@ -849,8 +855,7 @@ case (gen_poly_spline$)
 
 case (end_spline$)
 
-  fit_val = spline%pt(i)%c0 + spline%pt(i)%c1 * x + &
-                                    spline%pt(i)%c2 * x**2 / (1 - x/spline%pt(i)%c3)
+  fit_val = spline%pt(i)%c0 + spline%pt(i)%c1 * x + spline%pt(i)%c2 * x**2 / (1 - x/spline%pt(i)%c3)
 
 ! Coding error if here.
 
