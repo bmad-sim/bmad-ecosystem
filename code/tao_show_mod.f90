@@ -3308,11 +3308,11 @@ case ('value')
   if (err) return
 
   if (size(value) == 1) then
-    nl=nl+1; write(lines(nl), '(3x, es17.8)') value(1)
+    nl=nl+1; write(lines(nl), '(3x, es25.17)') value(1)
   else
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
-      nl=nl+1; write(lines(nl), '(i4, a, es17.8)') i, ':  ', value(i)
+      nl=nl+1; write(lines(nl), '(i4, a, es25.17)') i, ':  ', value(i)
     enddo
   endif
 
