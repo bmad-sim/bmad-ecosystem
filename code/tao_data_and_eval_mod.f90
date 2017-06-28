@@ -397,7 +397,7 @@ type (spin_polar_struct) polar_spin
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
-real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value
+real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
 real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref, phase, amp
 real(rp), allocatable, save :: value_vec(:)
@@ -1666,10 +1666,17 @@ case ('momentum_compaction')
   call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
   do i = ix_start, ix_ele
-    value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+    s_len = branch%ele(i)%s - branch%ele(ix_start)%s
+    if (s_len == 0) then
+      value_vec(i) = 0
+    else
+      value_vec(i) = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / s_len
+    endif
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
   call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+!-----------
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
