@@ -12,11 +12,11 @@ implicit none
 integer i, ix(1)
 logical op
 
-!
+! Close open files. The range [30, 60] is the range used by lunget.
 
 do i = 30, 60
   inquire (i, opened = op)
-  if (op) close(op)
+  if (op) close(i)
 enddo
 
 !
