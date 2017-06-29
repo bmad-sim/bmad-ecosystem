@@ -10,6 +10,16 @@ subroutine err_exit
 implicit none
 
 integer i, ix(1)
+logical op
+
+!
+
+do i = 30, 60
+  inquire (i, opened = op)
+  if (op) close(op)
+enddo
+
+!
 
 print *
 print *, '!-------------------------------------------------'
