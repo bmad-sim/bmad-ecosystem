@@ -984,8 +984,6 @@ type control_struct
   integer :: ix_attrib = 0       ! Index of attribute controlled
 end type
 
-integer, parameter :: overlap$ = 60, multipass$ = 62
-
 ! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
 ! Note that backwards_time_tracking is put in the lat_param_struct rather than begin a global
 ! for multithreaded applications.
@@ -1355,7 +1353,8 @@ integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
 integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
-integer, parameter :: to_line$ = 110, field_overlaps$ = 110
+! Make sure that lat%control(i)%ix_attrib /= field_overlaps$ for all girders, superposition, overlays, and groups.
+integer, parameter :: to_line$ = 110, field_overlaps$ = 110 
 integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
@@ -1771,42 +1770,6 @@ case default;                  state_str = 'UNKNOWN!'
 end select
 
 end function coord_state_name
-
-!-------------------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------------------
-!+
-! Function control_type_name (control_type) result (type_str)
-!
-! Routine to return the string representation of a %type component of a control_struct.
-!
-! Input:
-!   control_type -- integer: Value of a %type component of a control_struct.
-!
-! Output:
-!   type_str     -- character(20): String representation.
-!-
-
-function control_type_name (control_type) result (type_str)
-
-implicit none
-
-integer control_type
-character(12) type_str
-
-!
-
-select case (control_type)
-case (overlap$);               type_str = 'Overlap'
-case (overlay$);               type_str = 'Overlay'
-case (multipass$);             type_str = 'Multipass'
-case (superimpose$);           type_str = 'Superimpose'
-case (group$);                 type_str = 'Group'
-case (girder$);                type_str = 'Girder'
-case default;                  type_str = 'UNKNOWN!'
-end select
-
-end function control_type_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
