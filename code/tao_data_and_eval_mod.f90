@@ -1645,6 +1645,7 @@ case ('momentum')
   if (data_source == 'beam') return
   call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
 !-----------
 
 case ('momentum_compaction')
@@ -2049,6 +2050,32 @@ case ('r.')
   enddo
 
   call tao_load_this_datum (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+!-----------
+
+case ('r56_compaction')
+  if (data_source == 'beam') return
+
+  if (ix_ref < 0) then
+    ix_ref = 0
+    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+  endif
+
+  orb0 => orbit(ix_ref)
+  call make_v_mats (ele_ref, v_mat, v_inv_mat)
+  eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
+  eta_vec = matmul (v_mat, eta_vec)
+  one_pz = 1 + orb0%vec(6)
+  eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
+  eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
+
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+
+  do i = ix_start, ix_ele
+    value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+    if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
+  enddo
+  call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
 
