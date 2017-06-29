@@ -1,7 +1,7 @@
 !+
 ! Function mat_symp_conj_i (mat) result (mat_conj)
 !
-! Function to take the symplectic conjugate of a square matrix.
+! Function to take the symplectic conjugate of a square complex matrix.
 !
 ! Modules needed:
 !   use sim_utils

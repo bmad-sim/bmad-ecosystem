@@ -581,6 +581,11 @@ subroutine string_trim (in_string, out_string, word_len)
   integer word_len
 end subroutine string_trim
 
+function virtual_memory_usage() result (usage)
+  implicit none
+  integer usage
+end function
+
 end interface
 
 ! This is to suppress the ranlib "has no symbols" message
