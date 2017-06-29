@@ -167,13 +167,20 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(i)
     i1 = ele%ix1_slave; i2 = ele%ix1_slave+ele%n_slave+ele%n_slave_field-1
     if (i1 < 1) cycle
-    if (control(i1) == i1 .and. control(i2) == i2) cycle
+    if (control(i1) == i1 .and. control(i2) == i2) cycle  ! Nothing to do if control info has not changed
 
     ele%ix1_slave = 0  ! Start with no slaves
     ele%n_slave = 0
+    ele%n_slave_field = 0
     do j = i1, i2
-      if (control(j) /= -1 .and. ele%ix1_slave == 0) ele%ix1_slave = control(j)
-      if (control(j) /= -1) ele%n_slave = control(j) - ele%ix1_slave + 1
+      if (control(j) == -1) cycle
+      if (ele%ix1_slave == 0) ele%ix1_slave = control(j)
+      ctl => lat%control(control(j))
+      if (ctl%ix_attrib == field_overlaps$) then
+        ele%n_slave_field = ele%n_slave_field + 1
+      else
+        ele%n_slave = ele%n_slave + 1
+      endif
     enddo
   enddo
 
@@ -206,8 +213,14 @@ do ib = 0, ubound(lat%branch, 1)
     ele%n_lord = 0
     ele%n_lord_field = 0
     do j = i1, i2
-      if (ic(j) /= -1 .and. ele%ic1_lord == 0) ele%ic1_lord = ic(j)
-      if (ic(j) /= -1) ele%n_lord = ic(j) - ele%ic1_lord + 1
+      if (ic(j) == -1) cycle
+      if (ele%ic1_lord == 0) ele%ic1_lord = ic(j)
+      ctl => lat%control(ic(j))
+      if (ctl%ix_attrib == field_overlaps$) then
+        ele%n_lord_field = ele%n_lord_field + 1
+      else
+        ele%n_lord = ele%n_lord + 1
+      endif
     enddo
 
     ! Correct slave_status
