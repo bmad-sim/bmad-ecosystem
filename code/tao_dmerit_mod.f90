@@ -243,7 +243,8 @@ do j = 1, s%n_var_used
   enddo
   if (zero_dmodel) then
     s%var(j)%good_var = .false.
-    call out_io (s_info$, r_name, 'Data is independent of Variable: ' // tao_var1_name(s%var(j)))
+    call out_io (s_info$, r_name, 'Data is independent of Variable: ' // tao_var1_name(s%var(j)), &
+                                  'Will not use this variable in optimization.')
   endif
 enddo
 

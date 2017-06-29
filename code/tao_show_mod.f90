@@ -1042,6 +1042,11 @@ case ('data')
 
 case ('derivative')
 
+  if (word1 == '') then
+    word1 = '*'
+    stuff2 = '*'
+  endif
+
   call tao_find_data (err, word1, d_array = d_array)
   if (err) return
 

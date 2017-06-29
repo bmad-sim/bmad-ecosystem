@@ -1821,7 +1821,7 @@ type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign, vec3(3), r_bunch, amp, phase
+real(rp) comp_sign, vec3(3), r_bunch, amp, phase, ds
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 
@@ -1976,7 +1976,7 @@ do ii = 1, size(curve%x_line)
       return
     endif
 
-    if (data_type == 'momentum_compaction') then
+    if (data_type == 'momentum_compaction' .or. data_type == 'r56_compaction') then
       if (first_time) then
         call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
         first_time = .false.
@@ -2234,7 +2234,12 @@ do ii = 1, size(curve%x_line)
     one_pz = 1 + orb_ref%vec(6)
     eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
     eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+    ds = ele%s - branch%ele(0)%s
+    if (ds == 0) then
+      value = 0
+    else
+      value = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / ds
+    endif
 
   case ('norm_emit.')
     select case (data_type)
@@ -2327,6 +2332,15 @@ do ii = 1, size(curve%x_line)
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
     value = mat6(i, j)
+
+  case ('r56_compaction')
+    call make_v_mats (ele_ref, v_mat, v_inv_mat)
+    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
+    eta_vec = matmul (v_mat, eta_vec)
+    one_pz = 1 + orb_ref%vec(6)
+    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
+    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
+    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
   case ('sigma.')
     select case (data_type)

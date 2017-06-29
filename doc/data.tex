@@ -797,7 +797,7 @@ Measured beam coupling parameters. See also \vn{bpm_k.11b, ...}.
 Particle momentum.
 
   \item[momentum_compaction] \Newline
-Momentum compaction factor.
+Momentum compaction factor. Also see \vn{r56_compaction}.
 
   \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline
 Used for storing the orbit over many turns. Only used for plotting purposes.
@@ -1030,6 +1030,22 @@ With the \vn{rad_int.xxx} datums, the integral if from \vn{ele_ref} to \vn{ele}.
   .i5a_e6     ! Energy normalized I5a
   .i5b_e6     ! Energy normalized I5b
 \end{example}
+
+  \item[r56_compaction] \Newline
+This datum is defined to be
+\Begineq
+  M_{5,6} + \sum_{i=1}^4 M_{5,i} \, \eta_i
+\Endeq
+where $\Bf M$ is the transfer matrix between the reference element and the element where the datum
+is evaluated and $\eta$ is the dispersion vector evaluated at the reference element.
+
+This datum is closely related to the momentum compaction. When \vn{r56_compaction} is evaluated
+from the start of the lattice to the end, the value of \vn{r56_compaction} will be related to the
+momentum compaction via:
+\begin{example}
+  r56_compaction = -momentum_compaction * L
+\end{example}
+where \vn{L} is the length of the lattice. 
 
   \item[ref_time] \Newline
 This is the time the reference particle passes the exit end of the element.
@@ -1296,6 +1312,7 @@ squared.
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
                                       & Term in linear transfer map                   & lat         & No  \\ \hline 
 
+  r56_compaction                      & R56 like compaction factor.                   & lat         & No  \\ \hline
   rad_int.i1, .i2, etc.               & Radiation integrals                           & lat         & No  \\ \hline
   rad_int1.i1, .i2, etc.              & Single element radiation integrals            & lat         & No  \\ \hline
   ref_time                            & Reference time                                & beam, lat   & Yes \\ \hline
