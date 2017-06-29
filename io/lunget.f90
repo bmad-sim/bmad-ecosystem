@@ -16,21 +16,33 @@
 
 integer function lunget()
 
-  implicit none
+use output_mod, dummy => lunget
 
-  logical op
-  integer lun, i
-  lunget=0                ! happy compiler
-  do i=30,60
-    lun = i
-    inquire(lun,opened=op)
-    if(.not.op) then
-      lunget=i
-      return
-    endif
-  enddo
-  print *, ' LUNGET: no logical unit openable between 30 and 60 ! '
-  stop 
+implicit none
+
+logical op
+integer lun, i
+character(*), parameter :: r_name = 'lunget'
+
+
+! Note: If you change the range [30,60] also err_exit needs to be modified.
+
+lunget=0                ! happy compiler
+
+do i=30,60
+  lun = i
+  inquire(lun,opened=op)
+  if(.not.op) then
+    lunget=i
+    return
+  endif
+enddo
+
+!
+
+call out_io (s_fatal$, r_name, 'NO LOGICAL UNIT OPENABLE BETWEEN 30 AND 60!')
+if (global_com%exit_on_error) call err_exit
+return
 
 end function
 
