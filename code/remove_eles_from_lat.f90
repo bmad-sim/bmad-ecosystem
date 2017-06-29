@@ -45,7 +45,29 @@ integer i, j, ib, ix, i1, i2
 integer :: ic(lat%n_ic_max), control(lat%n_control_max), control_to_ic(lat%n_control_max)
 
 logical, optional :: check_sanity
-logical err_flag
+logical err_flag, found_one
+
+! Mark for removal any lords that do not have any live slaves.
+
+do
+  found_one = .false.
+
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    lord => lat%ele(i)
+    if (lord%key == -1) cycle
+
+    do j = 1, lord%n_slave
+      slave => pointer_to_slave(lord, j)
+      if (slave%key /= -1) exit  ! Exit if has a live slave
+      if (j == lord%n_slave) then
+        lord%key = -1           ! Mark for removal
+        found_one = .true.
+      endif
+    enddo
+  enddo
+
+  if (.not. found_one) exit
+enddo
 
 ! Allocate
 
