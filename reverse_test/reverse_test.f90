@@ -33,19 +33,26 @@ real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat, max_diff_spin
 integer nargs, ie, ib, im
 logical :: verbosity = .false.
 
-character(40) :: lat_file  = 'reverse.bmad'
+character(40) :: lat_file  = 'reverse.bmad', tracking_method = ''
 character(100) :: str
 
 !
 
 nargs = cesr_iargc()
-if (nargs == 1)then
-   call cesr_getarg(1, lat_file)
-   print *, 'Using ', trim(lat_file)
-   verbosity = .true.
-elseif (nargs > 1) then
+
+if (nargs > 2) then
   print *, 'Only one command line arg permitted.'
   call err_exit
+endif
+
+if (nargs > 0)then
+ call cesr_getarg(1, lat_file)
+ print *, 'Using ', trim(lat_file)
+ verbosity = .true.
+endif
+
+if (nargs == 2) then
+  call cesr_getarg(2, tracking_method)
 endif
 
 bmad_com%spin_tracking_on = .true.
@@ -72,8 +79,8 @@ do ib = 0, ubound(lat%branch, 1)
     do im = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
       if (im == mad$  .or. im == symp_map$ .or. im == custom$) cycle
-!      if (im /= bmad_standard$ .and. im /= symp_lie_ptc$ .and. im /= runge_kutta$ .and. im /= taylor$) cycle
-!      if (im /= symp_lie_bmad$) cycle
+      if ((ele%key == rfcavity$ .or. ele%key == lcavity$) .and. im == taylor$) cycle
+      if (tracking_method /= '' .and. upcase(tracking_method_name(im)) /= upcase(tracking_method)) cycle
 
       ele%tracking_method = im
 

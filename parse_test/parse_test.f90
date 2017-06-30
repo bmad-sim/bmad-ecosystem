@@ -77,6 +77,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 enddo
 
 lat%branch(0)%ele(1)%key = -1
+lat%branch(0)%ele(4)%key = -1
 lat%branch(1)%ele(1)%key = -1
 lat%branch(2)%ele(1)%key = -1
 

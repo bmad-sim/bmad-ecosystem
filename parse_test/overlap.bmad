@@ -13,15 +13,30 @@ dd: drift
 xx: quadrupole, l = 1, field_overlaps = yy
 yy: quadrupole, l = 1, field_overlaps = xx
 
+tt1: quad, l = 1, field_overlaps = tt2
+tt2: quad, l = 1, field_overlaps = tt1
+
 ma: marker, superimpose, ref = a
 mb: marker, superimpose, ref = b
 
 d: drift, l = 10
 
 z1: line[multipass] = (a, b, c)
+
 z2: line = (dd, z1, d, z1)
-xlin: line = (dd, xx)
+z2[beta_a] = 10
+z2[beta_b] = 10
+z2[geometry] = open
+
+xlin: line = (dd, xx, tt1, tt2)
+xlin[beta_a] = 10
+xlin[beta_b] = 10
+xlin[geometry] = open
+
 ylin: line = (dd, yy)
+ylin[beta_a] = 10
+ylin[beta_b] = 10
+ylin[geometry] = open
 
 use, xlin, ylin, z2
 
