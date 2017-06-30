@@ -29,12 +29,19 @@ type (coord_struct) :: c0, c1
 type (lat_param_struct)  param
 type (taylor_struct) bmad_taylor(6)
 
+logical st
+
 !
+
+st = bmad_com%spin_tracking_on
+bmad_com%spin_tracking_on = .false.
 
 call ele_to_taylor(ele, param, bmad_taylor, c0, .true.)
 call taylor_to_mat6 (bmad_taylor, c0%vec, ele%vec0, ele%mat6)
 call track1_taylor (c0, ele, param, c1, bmad_taylor)
 call kill_taylor (bmad_taylor)
+
+bmad_com%spin_tracking_on = st
 
 end subroutine
 
