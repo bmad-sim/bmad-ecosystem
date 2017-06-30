@@ -76,7 +76,7 @@ type (ele_struct), intent(inout) :: ele_out
 type (ele_struct), intent(in) :: ele_in
 type (ele_struct) ele_save
 
-integer i, n, n2, ub(2), ub1
+integer i, j, n, n2, ub(2), ub1
 
 ! 1) Save ele_out pointers in ele_save
 ! 2) Set ele_out = ele_in.
@@ -235,6 +235,15 @@ endif
 do i = 1, 6
   ele_out%taylor(i)%term => ele_save%taylor(i)%term ! reinstate
   ele_out%taylor(i) = ele_in%taylor(i)      ! use overloaded taylor_equal_taylor
+enddo
+
+! %spin_taylor
+
+do i = 1, 3
+do j = 1, 3
+  ele_out%spin_taylor(i,j)%term => ele_save%spin_taylor(i,j)%term ! reinstate
+  ele_out%spin_taylor(i,j) = ele_in%spin_taylor(i,j)      ! use overloaded taylor_equal_taylor
+enddo
 enddo
 
 ! %wall3d
