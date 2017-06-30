@@ -621,6 +621,7 @@ if (is_bend) then
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
   n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
+  if (n_bend < 1) return   ! A crazy angle can cause int(100*angle) to be negative !!
   ang    = ele%value(angle$) * ele%orientation
   length = ele%value(l$)     * ele%orientation
   do j = 0, n_bend
