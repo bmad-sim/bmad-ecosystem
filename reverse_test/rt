@@ -1,1 +1,1 @@
-totalview ../../debug/bin/reverse_test -a lat.bmad
+totalview ../../debug/bin/reverse_test -a lat.bmad $1
