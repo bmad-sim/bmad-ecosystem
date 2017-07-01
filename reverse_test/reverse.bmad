@@ -60,7 +60,7 @@ sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset =
 sol_quad2:         sol_quad, l = 2.6, k1 = 1e-5, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 wiggler_map1:      wiggler, l = 0.1, term(1) = {0.03, 3.00, 4.00, 5.00, 0.63}, num_steps = 10, tracking_method = taylor
-wiggler_periodic1: wiggler, l = 1, b_max = 0.2, n_pole = 20, num_steps = 100, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
+wiggler_periodic1: wiggler, l = 1, b_max = 0.2, n_pole = 20, num_steps = 10, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
 
 WIG_01E: WIGGLER, 
    cartesian_map = call::wig1_18w_1.cartesian_map, L = 1.6, TILT = -2.61431456E-4, n_pole = 1,
@@ -69,7 +69,7 @@ WIG_01E: WIGGLER,
    Z_OFFSET = -4.53921036E-4, DS_STEP = 0.16, mat6_calc_method = Symp_Lie_Bmad,
    tracking_method = Symp_Lie_Bmad, A1 = -1.522837748E-5
 
-
+*[num_steps] = 3
 
 l1: line = (ab_multipole1,beambeam1,drift1,ecollimator1,elseparator1,elseparator2,hkicker1,instrument1,kicker1,monitor1,
              multipole1,octupole1,patch1, quadrupole1,quadrupole2,quadrupole3)

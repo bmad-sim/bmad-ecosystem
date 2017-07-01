@@ -75,6 +75,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   do ie = 1, lat%n_ele_max - 1 ! Do not test end marker
     ele => branch%ele(ie)
+    !! print *, ie, '   ', ele%name
 
     do im = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
@@ -286,7 +287,7 @@ max_diff_mat  = max(max_diff_mat, diff_mat)
 max_diff_spin = max(max_diff_spin, diff_spin)
 
 if (verbosity) then
-  print '(2a, t40, 4es10.2)', 'Max Diff: ', trim(str), diff_vec_r, diff_vec_b, diff_mat, diff_spin
+  print '(2a, t45, 4es10.2)', 'Max Diff: ', trim(str), diff_vec_r, diff_vec_b, diff_mat, diff_spin
 endif
 
 end subroutine test_this
@@ -305,21 +306,12 @@ character(16) tol
 
 str_out = trim(str1) // str2
 
-tol = 'REL 1E-5'
+tol = 'ABS 1E-5'
 
 select case (str_out)
-case ('"QUADRUPOLE5@Bmad_Standard:dorb_r_orient"');    tol = 'ABS 1e-9'
-case ('"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r_orient"');    tol = 'ABS 1e-9'
-case ('"RFCAVITY1@Runge_Kutta:dorb_r_orient"');        tol = 'ABS 3e-9'
-case ('"RFCAVITY2@Bmad_Standard:dorb_r_orient"');      tol = 'ABS 1e-6'
-case ('"SBEND4@Bmad_Standard:dorb_b_track"');          tol = 'ABS 2e-8'
-case ('"SBEND4@Runge_Kutta:dorb_b_track"');            tol = 'ABS 1e-7'
-case ('"SBEND4@Bmad_Standard:dorb_r_orient"');         tol = 'ABS 2e-8'
-case ('"SBEND4@Runge_Kutta:dorb_r_orient"');           tol = 'ABS 1e-7'
-case ('"SBEND4@Runge_Kutta:xmat"');                    tol = 'ABS 2e-5'
 end select
 
-write (str_out, '(a, t47, a, t60, 7es12.4)') trim(str_out), tol, val
+write (str_out, '(a, t52, a, t62, 7es12.4)') trim(str_out), tol, val
 
 end function line_out
 
