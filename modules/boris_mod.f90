@@ -93,13 +93,6 @@ else
   s2 = ele%value(l$)
 endif
 
-! If the element is using a hard edge model then need to stop at the hard edges
-! to apply the appropriate hard edge kick.
-
-call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_start, .true.)
-
-call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
-
 ! go to local coords
 
 orb_end = orb_start
@@ -109,7 +102,20 @@ if (ele%key == patch$) then
   call track_a_patch (ele, orb_end, .false., s0, ds_ref)
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
   orb_end%vec(5) = orb_end%vec(5) + ds_ref * orb_end%beta / beta0 + s0
+else
+  if (orb_start%direction == -1) then
+    s0 = s1
+    s1 = s2
+    s2 = s0
+  endif
 endif
+
+! If the element is using a hard edge model then need to stop at the hard edges
+! to apply the appropriate hard edge kick.
+
+call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_end, .true.)
+
+call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
 call reference_energy_correction (ele, orb_end, first_track_edge$)
 

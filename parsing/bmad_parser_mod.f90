@@ -1872,8 +1872,10 @@ if (logic_option(.false., check_free)) then
 else
   attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
   if (attrib_info%type == dependent$) then
-    call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
-                                      'FOR: ' // ele%name)
+    if (.not. wild_key0) then
+      call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
+                         'FOR: ' // ele%name)
+    endif
     is_problem = .true.
   endif
 endif
