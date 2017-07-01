@@ -17,8 +17,7 @@ patch_test
 photon_test
 NOTE: SKIPPING PTC_TEST!
 ! ptc_test
-NOTE: REVERSE_TEST DISABLED DURING UPGRADE
-! reverse_test
+reverse_test
 sad_test
 sim_utils_test
 slice_test
