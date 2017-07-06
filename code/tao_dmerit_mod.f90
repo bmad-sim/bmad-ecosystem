@@ -76,7 +76,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   nd = 0
   do j = 1, size(u%data)
     if (.not. u%data(j)%useit_opt) then
-      u%data(j)%ix_dmodel = 0
+      u%data(j)%ix_dmodel = -1
       cycle
     endif
     nd = nd + 1
@@ -89,7 +89,7 @@ enddo
 nv = 0
 do j = 1, s%n_var_used
   if (.not. s%var(j)%useit_opt) then
-    s%var(j)%ix_dvar = 0
+    s%var(j)%ix_dvar = -1
     cycle
   endif
   nv = nv + 1
