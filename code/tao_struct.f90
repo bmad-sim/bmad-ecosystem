@@ -335,7 +335,7 @@ type tao_data_struct
   integer :: ix_ele_merit               ! Index of lattice elment where merit is evaluated.
   integer :: ix_d1                      ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer :: ix_data = -1               ! Index of this datum in the u%data(:) array of data_structs.
-  integer :: ix_dModel                  ! Row number in the dModel_dVar derivative matrix.
+  integer :: ix_dModel = -1             ! Row number in the dModel_dVar derivative matrix.
   integer :: eval_point = anchor_end$   ! Where to evaluate the data relative to the lattice element.
   real(rp) :: meas_value                ! Measured datum value. 
   real(rp) :: ref_value                 ! Measured datum value from the reference data set.
@@ -449,7 +449,7 @@ type tao_var_struct
   type (tao_var_slave_struct) :: common_slave
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
-  integer ix_dvar           ! Column in the dData_dVar derivative matrix.
+  integer :: ix_dvar = -1   ! Column in the dData_dVar derivative matrix.
   integer ix_attrib         ! Index in ele%value(:) array if appropriate.
   integer ix_key_table      ! Has a key binding?
   real(rp), pointer :: model_value      ! Model value.

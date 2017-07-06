@@ -1056,7 +1056,7 @@ case ('derivative')
 
   i1 = 0
   do id = 1, size(d_array)
-    if (d_array(id)%d%ix_dmodel == 0) cycle
+    if (d_array(id)%d%ix_dmodel == -1) cycle
     i1 = i1 + 1
   enddo
 
@@ -1076,7 +1076,7 @@ case ('derivative')
       u => s%u(d_ptr%d1%d2%ix_uni)
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
-      if (jd /= 0 .and. jv /= 0) then
+      if (jd > 0 .and. jv > 0) then
         nl=nl+1; write(lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
         found = .true.
@@ -1085,7 +1085,7 @@ case ('derivative')
   enddo
 
   if (.not. found) then
-    nl=nl+1; write(lines(nl), '(a)') 'No Derivatives'
+    nl=nl+1; write(lines(nl), '(a)') 'No Derivative(s) Found'
   endif
   
   result_id = show_what
