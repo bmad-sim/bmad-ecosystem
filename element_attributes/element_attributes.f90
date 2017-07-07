@@ -27,7 +27,7 @@ end type
 
 type (table_struct), target :: table(n_key$)
 type (table_struct), pointer :: tab
-type (entry_struct), pointer :: e1, e2, e3
+type (entry_struct), pointer :: e1, e2, e3, e4
 type (ele_struct) ele
 type (ele_attribute_struct) attrib
 
@@ -181,7 +181,7 @@ write (1, '(a)') ''
 
 do it = 1, n_table, 1
   tab => table(it)
-  tab%name = capitalized_key_name(tab%key)
+  tab%name = key_name(tab%key)
 
   if (tab%key == def_bmad_com$) cycle
   if (tab%key == def_beam_start$) cycle
@@ -207,40 +207,41 @@ do it = 1, n_table, 1
 
   select case (tab%key)
   case (sbend$)
-    write (1, *) '\section{Bends: Rbend and Sbend Attributes}'
+    write (1, *) '\section{Bends: Rbend and Sbend Element Attributes}'
     write (1, *) '\label{s:list.bend}'
   case (ecollimator$)
-    write (1, *) '\section{Collimators: Ecollimator and Rcollimator Attributes}'
+    write (1, *) '\section{Collimators: Ecollimator and Rcollimator Element Attributes}'
     write (1, *) '\label{s:list.collimator}'
   case (fork$)
-    write (1, *) '\section{Fork and Photon_Fork Attributes}'
+    write (1, *) '\section{Fork and Photon_Fork Element Attributes}'
     write (1, *) '\label{s:list.fork}'
   case (instrument$)
-    write (1, *) '\section{Instrument, Monitor, and Pipe Attributes}'
+    write (1, *) '\section{Instrument, Monitor, and Pipe Element Attributes}'
     write (1, *) '\label{s:list.instrument}'
   case (hkicker$)
-    write (1, *) '\section{Kickers: Hkicker and Vkicker Attributes}'
+    write (1, *) '\section{Kickers: Hkicker and Vkicker Element Attributes}'
     write (1, *) '\label{s:list.hvkicker}'
   case (wiggler$)
-    write (1, *) '\section{:Wiggler and Undulator Attributes}'
+    write (1, *) '\section{:Wiggler and Undulator Element Attributes}'
     write (1, *) '\label{s:list.wiggler}'
   case default
-    write (1, *) '\section{', trim(tab%name), 'Attributes}'
+    write (1, *) '\section{', trim(tab%name), ' Element Element Attributes}'
     name = downcase(key_name(tab%key))
     call str_substitute (name, '_', '.')
     write (1, *) '\label{s:list.', trim(name), '}'
   end select
 
   write (1, *)
-  write (1, *) '\begin{tabular}{lll} \toprule'
+  write (1, *) '\begin{tabular}{llll} \toprule'
   ele%key = tab%key
-  n_row = (tab%n_line+2)/3
+  n_row = (tab%n_line+3)/4
   do ie = 1, n_row
     e1 => tab%entry(indx(ie))
     e2 => tab%entry(indx(ie+n_row))
     e3 => tab%entry(indx(ie+2*n_row))
-    write (1, '(14a)') downcase(e1%name(1:n_char)), ' & ', &
-                       downcase(e2%name(1:n_char)), ' & ', downcase(e3%name(1:n_char)), ' \\'
+    e4 => tab%entry(indx(ie+3*n_row))
+    write (1, '(14a)') downcase(e1%name(1:n_char)), ' & ', downcase(e2%name(1:n_char)), ' & ', &
+                       downcase(e3%name(1:n_char)), ' & ', downcase(e4%name(1:n_char)), ' \\'
   enddo
   write (1, *) '\bottomrule'
   write (1, *) '\end{tabular}'
