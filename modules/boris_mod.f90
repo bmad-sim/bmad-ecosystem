@@ -222,7 +222,7 @@ charge = charge_of(start%species)
 mass = mass_of(start%species) / ele%value(p0c$)
 
 end = start
-ds2 = ele%orientation * ds / 2
+ds2 = end%direction * ds / 2
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 
 ! 1) Push the position 1/2 step
@@ -233,7 +233,7 @@ if (p2_z < 0 .or. p_tot < 0) then
   end%state = lost_z_aperture$
   return
 endif
-p_z = sqrt(p2_z) * ele%orientation
+p_z = sqrt(p2_z) * end%direction
 ds2_f = ds2 / p_z
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
@@ -270,7 +270,7 @@ if (p2_z < 0 .or. p_tot < 0) then
   end%state = lost_z_aperture$
   return
 endif
-p_z = sqrt(p2_z) * ele%orientation
+p_z = sqrt(p2_z) * end%direction
 
 ! 4) Push the momenta a full step using the "R" matrix.
 

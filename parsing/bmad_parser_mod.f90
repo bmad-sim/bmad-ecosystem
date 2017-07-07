@@ -230,8 +230,10 @@ type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
 type (wake_lr_spline_struct), allocatable :: lr_pa_temp(:)
 type (wake_lr_spline_struct), pointer :: lr_pa
+type (ac_kicker_struct), pointer :: ac
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
+real(rp), allocatable :: table(:,:)
 real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
@@ -244,7 +246,7 @@ character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
-logical is_attrib, err_flag2, old_style_input
+logical is_attrib, err_flag2, old_style_input, ok
 logical, optional :: check_free, wild_and_key0
 
 ! Get next WORD.
@@ -649,6 +651,8 @@ case ('ELE_END')
   return
 end select
 
+!-------------------------------------------------------------------
+
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
@@ -662,6 +666,44 @@ if (ix_attrib < 1) then
   else
     call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
   endif
+  return
+endif
+
+! ac_kicker amp_vs_time
+
+if (attrib_word == 'AMP_VS_TIME') then
+  ac => ele%ac_kick
+  if (.not. parse_real_lists (lat, trim(ele%name) // ' AMP_VS_TIME', table, 2)) return
+  n = size(table, 1)
+  allocate (ac%amp_vs_time(n))
+  do i = 1, n
+    ac%amp_vs_time(i)%time = table(i,1)
+    ac%amp_vs_time(i)%amp  = table(i,2)
+    ac%amp_vs_time(i)%spline%x0 = table(i,1)
+    ac%amp_vs_time(i)%spline%y0 = table(i,2)
+  enddo
+  call spline_akima (ac%amp_vs_time%spline, ok)
+  if (.not. ok) call parser_error ('ERROR CREATING SPLINE FOR AC_KICKER AMP_VS_TIME CURVE.', 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+if (attrib_word == 'FREQUENCIES') then
+  ac => ele%ac_kick
+  if (.not. parse_real_lists (lat, trim(ele%name) // ' FREQUENCIES', table, 3)) return
+  n = size(table, 1)
+  allocate (ac%frequencies(n))
+  do i = 1, n
+    ac%frequencies(i)%f    = table(i,1)
+    ac%frequencies(i)%amp  = table(i,2)
+    ac%frequencies(i)%phi  = table(i,3)
+  enddo
+  return
+endif
+
+! ac_kicker frequencies
+
+if (attrib_word == 'FREQUENCIES') then
+
   return
 endif
 
@@ -711,6 +753,15 @@ if (attrib_word == 'WALL') then
   else
     allocate (ele%wall3d(1))
     wall3d => ele%wall3d(1)
+  endif
+
+  ! Can imagine in the future that an element could have different types of walls.
+  ! Right now this is not true.
+
+  if (ele%key == mask$ .or. ele%key == diffraction_plate$) then
+    wall3d%type = mask_plate$
+  else
+    wall3d%type = chamber_wall$
   endif
 
   wall3d_loop: do
@@ -7681,7 +7732,7 @@ end function parse_integer_list2
 ! Example:   "(1.2, 2.3, 4.4, 8.5)"
 ! 
 ! Similar to parse_real_list2 except does not use allocatable array.
-! See parse_real_list2 for more details
+! Also see: parse_real_lists.
 !-
 
 function parse_real_list (lat, err_str, real_array, exact_size, open_delim, &
@@ -7723,12 +7774,63 @@ end function parse_real_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Function parse_real_lists (lat, err_str, table, size2) result (is_ok)
+!
+! Routine to parse a list of reals of the form:
+!    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...} 
+! And re_IJ is put in table(I,J).
+! size2 is the size of the inner array.
+! 
+! Similar to parse_real_list2 except does not use allocatable array.
+! Also see: parse_real_lists.
+!-
+
+function parse_real_lists (lat, err_str, table, size2) result (is_ok)
+
+implicit none
+
+type (lat_struct) lat
+
+real(rp), allocatable :: real_array(:)
+real(rp), allocatable :: table(:,:)
+
+integer size2
+
+character(*) err_str
+
+logical is_ok, exact_size
+
+!
+
+is_ok = .false.
+!if (.not. parse_real_list2 (lat, err_str, vec, num_found, size(real_array), &
+!                          open_delim, separator, close_delim, default_value)) return
+
+!if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
+!  call parser_error (err_str)
+!  return
+!endif
+
+!real_array(1:num_found) = vec(1:num_found)
+
+is_ok = .true.
+
+end function parse_real_lists
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, open_delim, 
 !                            separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    open_delim real_1 separator real_2 . . . close_delim
 ! Example:   "(1.2, 2.3, 4.4, 8.5)"
+!
+! Also see:
+!   pase_real_list
+!   parse_real_lists.
 !
 ! Input:
 !  lat        -- lat_struct: lattice

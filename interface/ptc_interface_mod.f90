@@ -2538,7 +2538,6 @@ enddo
 
 call kill (da)
 call kill (y)
-call kill (yc)
 call kill_taylor (tlr)
 
 if (present(err)) err = .false.

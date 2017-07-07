@@ -117,12 +117,13 @@ type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
+type (ac_kicker_struct), pointer :: ac
 
 real(rp), optional :: rf_time
 real(rp) :: x, y, s, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
-real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey
+real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
-real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff
+real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
@@ -134,7 +135,7 @@ real(rp) phi0_autoscale, field_autoscale, ds, beta_ref
 complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
-integer i, j, m, n, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
+integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
 
 logical :: local_ref_frame
 logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
@@ -351,7 +352,7 @@ case (bmad_standard$)
   !------------------------------------------
   ! Kicker  
 
-  case (kicker$)
+  case (kicker$, ac_kicker$)
     field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
     field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
 
@@ -1232,6 +1233,39 @@ case default
   if (present(err_flag)) err_flag = .true.
   return
 end select
+
+! Scale ac_kicker element field
+
+if (ele%key == ac_kicker$) then
+  ac => ele%ac_kick
+
+  if (present(rf_time)) then
+    time = rf_time - ac%t_offset
+  else
+    time = particle_rf_time(orbit, ele, .true., s_rel) - ac%t_offset
+  endif
+
+  if (allocated(ac%frequencies)) then
+    a_amp = 0
+    do i = 1, size(ac%frequencies)
+      a_amp = a_amp + ac%frequencies(i)%amp * cos(twopi*(ac%frequencies(i)%f * time + ac%frequencies(i)%phi))
+    enddo
+
+  else
+    n = size(ac%amp_vs_time)
+    call bracket_index(ac%amp_vs_time%time, 1, n, time, ix)
+    if (ix < 1 .or. ix == n) then
+      a_amp = 0
+    else
+      a_amp = spline1 (ac%amp_vs_time(ix)%spline, time)
+    endif
+  endif
+
+  field%E = a_amp * field%E
+  field%B = a_amp * field%B
+  field%dE = a_amp * field%dE
+  field%dB = a_amp * field%dB
+endif
 
 !----------------------------------------------------------------------------
 ! overlapping of fields from other elements

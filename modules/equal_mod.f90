@@ -147,6 +147,11 @@ else
   call transfer_fieldmap (ele_in, ele_out, cartesian_map$)
 endif
 
+! %ac_kick
+
+ele_out%ac_kick => ele_save%ac_kick  ! reinstate
+call transfer_ac_kick (ele_in%ac_kick, ele_out%ac_kick)
+
 ! %cylindrical_map, etc.
 
 ele_out%cylindrical_map => ele_save%cylindrical_map ! Reinstate for transfer call 

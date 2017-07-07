@@ -352,11 +352,12 @@ if (present(ele)) then
     call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
     call err_exit
   endif
-  if (orb%location /= upstream_end$ .or. ele%key == beginning_ele$) then
+
+  if (orb%location == downstream_end$ .or. orb%location == inside$ .or. ele%key == beginning_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
-    if (orb%location == downstream_end$) orb%s = ele%s
+    if (orb%location /= inside$) orb%s = ele%s
   else
     p0c = ele%value(p0c_start$)
     e_tot = ele%value(e_tot_start$)
@@ -435,7 +436,7 @@ if (present(ele)) then
         orb%vec(5) = 0
       endif
 
-    else
+    elseif (orb%location /= inside$) then
       orb%t = ref_time - orb%vec(5) / (orb%beta * c_light)
       if (present(t_ref_offset)) orb%t = orb%t + t_ref_offset
     endif
