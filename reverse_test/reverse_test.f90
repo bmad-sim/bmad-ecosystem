@@ -116,7 +116,7 @@ type (ele_struct) ele, ele_r, ele_b
 type (coord_struct) orb_0f, orb_1f, orb_0r_orient, orb_1r_orient, dorb_r_orient, orb_0b_track, orb_1b_track, dorb_b_track
 type (coord_struct) orb_1r_orient_sav, orb_1b_track_sav
 
-real(rp) dmat_r(6,6), dmat_b(6,6), m(6,6), vec1(6), dspin_r_orient(3), dspin_b_track(3)
+real(rp) dmat_r(6,6), m(6,6), vec1(6), dspin_r_orient(3), dspin_b_track(3)
 real(rp) diff_vec_r, diff_vec_b, diff_mat, diff_spin
 
 integer n
@@ -144,7 +144,7 @@ if (verbosity) then
   print *, str
   print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
   print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
-  print '(a, 3f12.6, 4x, 3f12.6)', 'Spin:', orb_0f%spin, orb_1f%spin - orb_0f%spin
+  print '(a, 3f13.7, 4x, 3f13.7)', 'Spin:', orb_0f%spin, orb_1f%spin - orb_0f%spin
 end if
 
 !-------------------------------------------------------------------
@@ -158,6 +158,10 @@ orb_0r_orient%species = antiparticle(orb_0r_orient%species)
 orb_0r_orient%t       = -orb_1f%t
 
 ele_r = ele
+ele_r%value(ref_time_start$) = -ele%ref_time  ! So z, t, and ref_t are consistant
+ele_r%ref_time = ele_r%value(ref_time_start$) + ele_r%value(delta_ref_time$)
+ele_r%orientation = -1
+
 if (ele_r%key == elseparator$) then
   ele_r%value(hkick$) = -ele%value(hkick$)
   ele_r%value(vkick$) = -ele%value(vkick$)
@@ -175,8 +179,6 @@ if (associated(ele_r%a_pole_elec)) then
   ele_r%a_pole_elec = -ele_r%a_pole_elec
   ele_r%b_pole_elec = -ele_r%b_pole_elec
 endif
-
-ele_r%orientation = -1
 
 call track1(orb_0r_orient, ele_r, ele_r%branch%param, orb_1r_orient)
 call make_mat6(ele_r, ele%branch%param, orb_0r_orient)
@@ -205,18 +207,22 @@ dmat_r = ele%mat6 - dmat_r
 !-------------------------------------------------------------------
 ! Tracking backwards (element is unreversed).
 
-orb_0b_track = orb_0r_orient
+orb_0b_track   = orb_0r_orient
+orb_0b_track%t = -orb_1f%t
 orb_0b_track%direction = -1
 
 ele_b = ele_r
 ele_b%orientation = 1
+ele_b%ref_time    = -ele%ref_time
+ele_b%value(ref_time_start$) = ele_b%ref_time - ele_b%value(delta_ref_time$)
+
 if (ele_b%key == patch$) then
    ele_b%value(upstream_ele_dir$) = +1
    ele_b%value(downstream_ele_dir$) = +1
 endif
 
 call track1(orb_0b_track, ele_b, ele%branch%param, orb_1b_track)
-call make_mat6(ele_b, ele%branch%param, orb_0b_track)
+!! call make_mat6(ele_b, ele%branch%param, orb_0b_track)
 
 orb_1b_track_sav = orb_1b_track
 
@@ -230,14 +236,14 @@ dspin_b_track       = orb_1b_track%spin - orb_0f%spin
 
 ! Matrix
 
-call mat_inverse(ele_b%mat6, dmat_b)
-dmat_b(2,:) = -dmat_b(2,:)
-dmat_b(4,:) = -dmat_b(4,:)
-dmat_b(5,:) = -dmat_b(5,:)
-dmat_b(:,2) = -dmat_b(:,2)
-dmat_b(:,4) = -dmat_b(:,4)
-dmat_b(:,5) = -dmat_b(:,5)
-dmat_b = ele%mat6 - dmat_b
+!call mat_inverse(ele_b%mat6, dmat_b)
+!dmat_b(2,:) = -dmat_b(2,:)
+!dmat_b(4,:) = -dmat_b(4,:)
+!dmat_b(5,:) = -dmat_b(5,:)
+!dmat_b(:,2) = -dmat_b(:,2)
+!dmat_b(:,4) = -dmat_b(:,4)
+!dmat_b(:,5) = -dmat_b(:,5)
+!dmat_b = ele%mat6 - dmat_b
 
 if (verbosity) then
   print *
@@ -252,15 +258,15 @@ if (verbosity) then
   print '(a, 3es12.4)',             'dSpin_b_track:', dspin_b_track
   print *
   do n = 1, 6
-    print '(6f12.6)', ele%mat6(n,:)
+    print '(6f13.7)', ele%mat6(n,:)
   enddo
   print *
   do n = 1, 6
-    print '(6f12.6, 5x, 6f12.6)', ele_r%mat6(n,:), ele_b%mat6(n,:) 
+    print '(6f13.7, 5x, 6f13.7)', ele_r%mat6(n,:) !!, ele_b%mat6(n,:) 
   enddo
   print *
   do n = 1, 6
-    print '(6f12.6, 5x, 6f12.6)', dmat_r(n,:), dmat_b(n,:)
+    print '(6f13.7, 5x, 6f13.7)', dmat_r(n,:) !!, dmat_b(n,:)
   enddo
   print *
 end if
@@ -272,13 +278,15 @@ str = '"' // trim(ele%name) // '@' // trim(tracking_method_name(ele%tracking_met
 write (1, '(a)') trim(line_out(str, 'dorb_r_orient"', [dorb_r_orient%vec, c_light * dorb_r_orient%t]))
 write (1, '(a)') trim(line_out(str, 'dorb_b_track" ', [dorb_b_track%vec, c_light * dorb_b_track%t]))
 write (1, '(a)') trim(line_out(str, 'xmat_r"', [maxval(abs(dmat_r))]))
-write (1, '(a)') trim(line_out(str, 'xmat_b"', [maxval(abs(dmat_b))]))
+!!write (1, '(a)') trim(line_out(str, 'xmat_b"', [maxval(abs(dmat_b))]))
 write (1, '(a)') trim(line_out(str, 'dspin_r_orient"', dspin_r_orient))
 write (1, '(a)') trim(line_out(str, 'dspin_b_track"', dspin_b_track))
 
+dorb_b_track%vec(5) = 0  ! Ignore
+
 diff_vec_r = maxval([abs(dorb_r_orient%vec), abs(dorb_r_orient%t)])
 diff_vec_b = maxval([abs(dorb_b_track%vec), abs(dorb_b_track%t)])
-diff_mat  = max(maxval(abs(dmat_r)), maxval(abs(dmat_b)))
+diff_mat  = maxval(abs(dmat_r))
 diff_spin = max(maxval(abs(dspin_r_orient)), maxval(abs(dspin_b_track)))
 
 max_diff_vec_r = max(max_diff_vec_r, diff_vec_r)
@@ -306,7 +314,7 @@ character(16) tol
 
 str_out = trim(str1) // str2
 
-tol = 'ABS 1E-5'
+tol = 'ABS 1E-6'
 
 select case (str_out)
 end select

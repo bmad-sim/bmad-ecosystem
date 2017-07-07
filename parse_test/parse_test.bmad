@@ -52,8 +52,8 @@ c: diffraction_plate, mode = transmission,
 
 mm: mask, mode = transmission, 
   wall = {
-    section = {s = 0, v(1) = {1, 1}},
-    section = {s = 1, v(1) = {1, 1}}}
+    section = {type = clear, v(1) = {1, 1}},
+    section = {type = opaque, v(1) = {1, 1}}}
 
 m2: mask
 m2[wall] = mm[wall]
@@ -119,7 +119,7 @@ q1: quad, L=0.1, superimpose, ref = pp, offset = -0.2
 q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
-ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt)
+ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt, m2)
 use, ll, phot, tag_line, group_line
 
 phot: line = (ddd, cap, cry, ff)
@@ -133,7 +133,7 @@ mp: marker, superimpose, offset = 3, ref = phot>>beginning
 
 ddd: drift, l = 10
 ff: fork, to_line = f_line
-qq: quadrupole, l = 1
+qq: pipe, l = 1
 f_line: line = (qq)
 f_line[particle] = photon
 mk: marker, superimpose, ref = qq, offset = 0.3
