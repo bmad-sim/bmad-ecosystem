@@ -2608,7 +2608,7 @@ Thus the following is equivalent to the above example:
   b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
 \end{example}
 
-The field when \vn{field_calc} is set to \vn{bmad_standard} never extends beyond the
+The field, when \vn{field_calc} (\sref{s:integ}) is set to \vn{bmad_standard}, never extends beyond the
 element boundary and so a \vn{bmad_standard} field will never overlap another element.
 
 %-----------------------------------------------------------------
@@ -2844,9 +2844,9 @@ tracking is done. Fringe effects are {\em not} applied when an element's
   mad
 \end{example}
 Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{boris},
-\vn{runge_kutta}, or \vn{time_runge_kutta}, and the element's \vn{field_calc} is not
-\vn{bmad_standard}. This is done since it is assumed, in this case, that the body of the
-field includes any fringe fields.
+\vn{runge_kutta}, or \vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is
+not \vn{bmad_standard}. This is done since it is assumed, in this case, that the body of the field
+includes any fringe fields.
 
 %-----------------------------------------------------------------
 \subsection{Turning On/Off Fringe Effects}

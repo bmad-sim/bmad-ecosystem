@@ -78,6 +78,7 @@ type (em_taylor_term_struct), pointer :: t_term
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
+type (ac_kicker_struct), pointer :: ac
 
 real(rp) s0, x_lim, y_lim, val
 
@@ -374,6 +375,9 @@ do ib = 0, ubound(lat%branch, 1)
           write (line, '(3a)') trim(line), trim(slave%name), ', '
         endif
       enddo
+
+    ! Everything but a girder
+
     else
       line = trim(ele%name) // ': ' // key_name(ele%key)
     endif
@@ -407,6 +411,31 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%lord_status == super_lord$ .or. is_multi_sup) then
       write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
       line = trim(line) // ', superimpose, ele_origin = beginning, ref = x__' // trim(ele%name)
+    endif
+
+    ! AC_Kicker
+
+    if (associated(ele%ac_kick)) then
+      ac => ele%ac_kick
+      line = trim(line) // ', t_offset = ' // trim(re_str(ac%t_offset))
+      if (allocated(ac%amp_vs_time)) then
+        line = trim(line) // ', amp_vs_time = {(' // trim(re_str(ac%amp_vs_time(1)%amp)) // &
+                             ', ' // trim(re_str(ac%amp_vs_time(1)%time)) // ')'
+        do i = 1, size(ac%amp_vs_time) -1
+          line = trim(line) // ', (' // trim(re_str(ac%amp_vs_time(i)%amp)) // &
+                             ', ' // trim(re_str(ac%amp_vs_time(i)%time)) // ')'
+        enddo
+        line = trim(line) // '}'
+
+      else
+        line = trim(line) // ', frequencies = {(' // trim(re_str(ac%frequencies(1)%f)) // &
+                  ', ' // trim(re_str(ac%frequencies(1)%amp)) // ', ' // trim(re_str(ac%frequencies(1)%phi))  // ')'
+        do i = 1, size(ac%frequencies) -1
+          line = trim(line) // ', (' // trim(re_str(ac%frequencies(i)%f)) // &
+                  ', ' // trim(re_str(ac%frequencies(i)%amp)) // ', ' // trim(re_str(ac%frequencies(i)%phi)) // ')'
+        enddo
+        line = trim(line) // '}'
+      endif
     endif
 
     ! Wall3d
@@ -444,8 +473,14 @@ do ib = 0, ubound(lat%branch, 1)
         do i = 1, size(ele%wall3d(1)%section)
           section => ele%wall3d(1)%section(i)
           write (iu2, '(2x, a)')   'section = {'
-          write (iu2, '(4x, 3a)')  's     = ', trim(re_str(section%s)), ','
-          if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', trim(re_str(section%s)), ','
+
+          if (ele%key == diffraction_plate$ .or. ele%key == mask$) then
+            write (iu2, '(4x, 3a)') 'type = ', trim(wall3d_section_type_name(section%type)), ','
+          else
+            write (iu2, '(4x, 3a)')  's     = ', trim(re_str(section%s)), ','
+            if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', trim(re_str(section%s)), ','
+          endif
+
           end_str = ','
           do j = 1, size(section%v)
             if (j == size(section%v)) then

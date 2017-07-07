@@ -80,6 +80,7 @@ type (ele_attribute_struct) attrib
 type (lat_param_struct) param
 type (control_struct), pointer :: ctl
 type (all_pointer_struct) a_ptr
+type (ac_kicker_struct), pointer :: ac
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
@@ -156,7 +157,7 @@ endif
 if (ele%key <= 0) then
   nl=nl+1; write (li(nl), *) 'Key: BAD VALUE!', ele%key
 else
-  nl=nl+1; write (li(nl), *) 'Key: ', capitalized_key_name(ele%key)
+  nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
 endif
 
 if (ele%sub_key /= 0) then
@@ -570,6 +571,29 @@ if (associated(ele%taylor_field)) then
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
+  endif
+endif
+
+! ac_kick
+
+if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
+  ac => ele%ac_kick
+  nl=nl+1; li(nl) = ''
+  nl=nl+1; write (li(nl), '(a, 3es16.8)') '  t_offset: ', ac%t_offset
+
+  if (allocated(ac%amp_vs_time)) then
+    nl=nl+1; li(nl) = '     Indx   Time    Amplitude'    
+    do i = 1, size(ac%amp_vs_time)
+      nl=nl+1; write (li(nl), '(i9, 2es14.6)') i, ac%amp_vs_time(i)%time, ac%amp_vs_time(i)%amp
+    enddo
+  endif
+
+  if (allocated(ac%frequencies)) then
+    nl=nl+1; li(nl) = '     Indx   Freq  Amplitude          Phi'    
+    do i = 1, size(ac%frequencies)
+      nl=nl+1; write (li(nl), '(i9, 3es14.6)') i, &
+                                ac%frequencies(i)%f, ac%frequencies(i)%amp, ac%frequencies(i)%phi
+    enddo
   endif
 endif
 

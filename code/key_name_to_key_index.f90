@@ -24,7 +24,7 @@ use basic_attribute_mod, dummy => key_name_to_key_index
 implicit none
 
 character(*) key_str
-character(16) name
+character(16) name, this_key
 
 logical, optional :: abbrev_allowed
 logical abbrev
@@ -51,13 +51,14 @@ call string_trim (name, name, n_name)
 abbrev = logic_option(.false., abbrev_allowed)
 
 do i = 1, n_key$
+  call str_upcase(this_key, key_name(i))
   if (abbrev .and. (n_name > 2 .or. name(1:2) == "RF")) then
-    if (name(:n_name) == key_name(i)(1:n_name)) then
+    if (name(:n_name) == this_key(1:n_name)) then
       key_index = i
       n_match = n_match + 1
     endif
   else
-    if (name == key_name(i)) then
+    if (name == this_key) then
       key_index = i
       return
     endif

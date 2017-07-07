@@ -77,7 +77,7 @@ stat_b = 0
 ierr = stat(full_digested_name, stat_b)
 
 fname = '!DIGESTED:' // full_digested_name
-write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
+write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! stat_b(10) = Modification date
  
 ! write other file names.
 ! file names starting with '!' are not true file names but information to be stored in file.
@@ -88,7 +88,7 @@ do j = 1, n_file
     call simplify_path (file_names(j), fname)
     ierr = stat(fname, stat_b)
   endif
-  write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
+  write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! stat_b(10) = Modification date
 enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
@@ -99,7 +99,7 @@ write (d_unit) &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, &
         lat%n_ic_max, lat%input_taylor_order, lat%absolute_time_tracking, &
-        .false., lat%pre_tracker, lat%photon_type
+        lat%pre_tracker, lat%photon_type
 write (d_unit) ubound(lat%branch, 1)
 
 ! custom attribute names
@@ -132,7 +132,7 @@ do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
   write (d_unit) branch%param
   write (d_unit) branch%name, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, 0
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -206,9 +206,10 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
+type (ac_kicker_struct), pointer :: ac
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im
+integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch, ix_lr_spline
 
 logical write_wake, mode3
@@ -290,13 +291,13 @@ endif
 ! Now write the element info. 
 ! The last zero is for future use.
 
-write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, &
-          0, ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
+          ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
           ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, 0.0_rp, ele%vec0, ele%mat6, &
+          ele%a, ele%b, ele%z, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
           ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
@@ -307,8 +308,8 @@ write (d_unit) &
           ele%logic, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%csr_calc_on, ele%orientation, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, 0, &
-          0, ele%bookkeeping_state, ele%ptc_integration_type
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
+          ele%bookkeeping_state, ele%ptc_integration_type
 
 ! This compresses the ele%value array
 
@@ -328,6 +329,28 @@ if (n_var /= 0) then
   do i = 1, n_var
     write (d_unit) ele%control_var(i)
   enddo
+endif
+
+! AC_kicker
+
+if (associated(ele%ac_kick)) then
+  ac => ele%ac_kick
+  n1 = -1; n2 = -1
+  if (allocated(ac%amp_vs_time)) n1 = size(ac%amp_vs_time)
+  if (allocated(ac%frequencies)) n2 = size(ac%frequencies)
+  write (d_unit) ac%t_offset, n1, n2
+
+  if (allocated(ac%amp_vs_time)) then
+    do n = lbound(ac%amp_vs_time, 1), ubound(ac%amp_vs_time, 1)
+      write (d_unit) ac%amp_vs_time(n)
+    enddo
+  endif
+
+  if (allocated(ac%frequencies)) then
+    do n = lbound(ac%frequencies, 1), ubound(ac%frequencies, 1)
+      write (d_unit) ac%frequencies(n)
+    enddo
+  endif
 endif
 
 ! Cartesian map
@@ -528,9 +551,9 @@ if (write_wall) then
 
   write (d_unit) size(wall3d)
   do i = 1, size(wall3d)
-    write (d_unit) size(wall3d(i)%section)
-    write (d_unit) wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
-        wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
+    write (d_unit) size(wall3d(i)%section), wall3d(i)%type, &
+                   wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
+                   wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
 
     do j = lbound(wall3d(i)%section, 1), ubound(wall3d(i)%section, 1)
       call write_this_wall3d_section (wall3d(i)%section(j))

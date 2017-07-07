@@ -8,6 +8,13 @@ use bmad_struct
 
 interface
 
+
+subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
+  import
+  implicit none
+  type (ac_kicker_struct), pointer :: ac_kick_in, ac_kick_out
+end subroutine transfer_ac_kick
+
 subroutine add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, n_add_lord_field, add_at_end)
   import
   implicit none

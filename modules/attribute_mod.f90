@@ -128,6 +128,14 @@ case (ab_multipole$)
     is_valid = .true.
   end select
 
+case (ac_kicker$)
+  if (present(num_valid)) num_valid = 5
+  select case (tracking_method)
+  case (runge_kutta$, time_runge_kutta$, boris$, linear$, custom$)
+    is_valid = .true.
+  end select
+  
+
 case (beambeam$)
   if (present(num_valid)) num_valid = 3
   select case (tracking_method)
@@ -464,6 +472,13 @@ case (ab_multipole$)
     is_valid = .true.
   end select
 
+case (ac_kicker$)
+  if (present(num_valid)) num_valid = 3
+  select case (mat6_calc_method)
+  case (static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (beambeam$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
@@ -747,7 +762,14 @@ select case (ele%key)
 case (ab_multipole$)
   if (present(num_valid)) num_valid = 2
   select case (spin_tracking_method)
-  case (bmad_standard$, custom$)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (ac_kicker$)
+  if (present(num_valid)) num_valid = 2
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -776,7 +798,7 @@ case (sad_mult$, patch$)
 case default
   if (present(num_valid)) num_valid = 3
   select case (spin_tracking_method)
-  case (bmad_standard$, custom$, symp_lie_ptc$, tracking$)
+  case (custom$, symp_lie_ptc$, tracking$)
     is_valid = .true.
   end select
 end select

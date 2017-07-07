@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 193
+integer, parameter :: bmad_inc_version$ = 195
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -342,12 +342,12 @@ end type
 
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
-integer, parameter :: chamber_wall$ = 1, safe_wall$ = 2
-character(12), parameter :: wall3d_name(2) = [character(12) :: 'Chamber_Wall', 'Safe_Wall']
+integer, parameter :: chamber_wall$ = 1, mask_plate$ = 2
+character(12), parameter :: wall3d_name(2) = [character(12) :: 'Chamber_Wall', 'Mask_Plate']
 
 type wall3d_struct
   character(40) :: name = ''
-  integer :: type = chamber_wall$                 ! or safe_wall$
+  integer :: type = chamber_wall$                 ! or mask_plate$
   integer :: ix_wall3d = 0                        ! Index in branch%wall3d(:) array.
   integer :: n_link = 1                           ! For memory management of ele%wall3d
   real(rp) :: thickness = -1                      ! For diffraction_plate elements
@@ -485,6 +485,26 @@ type wake_struct
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
+end type
+
+! ac_kicker structure
+
+type ac_kicker_time_struct
+  real(rp) :: amp = 0
+  real(rp) :: time = 0
+  type (spline_struct) :: spline = spline_struct()
+end type
+
+type ac_kicker_freq_struct
+  real(rp) :: amp = 0
+  real(rp) :: f = 0
+  real(rp) :: phi = 0
+end type
+
+type ac_kicker_struct
+  real(rp) :: t_offset = 0
+  type (ac_kicker_time_struct), allocatable :: amp_vs_time(:)
+  type (ac_kicker_freq_struct), allocatable :: frequencies(:)
 end type
 
 ! Cartesian field decomposition
@@ -883,35 +903,44 @@ end type
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
-!     Modify read_digested_bmad_file.
-!     Modify write_digested_bmad_file.
-!     Modify init_ele
-!     Modify ele_equal_ele
+!     run scripts to regenerate cpp_bmad_interface library.
+!     Modify:
+!       read_digested_bmad_file
+!       write_digested_bmad_file
+!       parsing routines to read in modified/new parameters...
+!       deallocate_ele_pointers
+!       ele_equal_ele
+!       type_ele
+!       write_bmad_lattice_file
+!       pointer_to_attribute
+!       pointers_to_attribute
+
 
 type ele_struct
-  character(40) :: name = '<Initialized>'           ! name of element.
-  character(40) :: type = ''                        ! type name.
-  character(40) :: alias = ''                       ! Another name.
-  character(40) :: component_name = ''              ! Used by overlays, multipass patch, etc.
-  character(200), pointer :: descrip => null()      ! Description string.
-  type (twiss_struct) :: a = twiss_struct()         ! Twiss parameters at end of element
-  type (twiss_struct) :: b = twiss_struct()         ! Twiss parameters at end of element
-  type (twiss_struct) :: z = twiss_struct()         ! Twiss parameters at end of element
-  type (xy_disp_struct) :: x = xy_disp_struct()     ! Projected dispersions.
-  type (xy_disp_struct) :: y = xy_disp_struct()     ! Projected dispersions.
+  character(40) :: name = '<Initialized>'                ! name of element.
+  character(40) :: type = ''                             ! type name.
+  character(40) :: alias = ''                            ! Another name.
+  character(40) :: component_name = ''                   ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip => null()           ! Description string.
+  type (twiss_struct) :: a = twiss_struct()              ! Twiss parameters at end of element
+  type (twiss_struct) :: b = twiss_struct()              ! Twiss parameters at end of element
+  type (twiss_struct) :: z = twiss_struct()              ! Twiss parameters at end of element
+  type (xy_disp_struct) :: x = xy_disp_struct()          ! Projected dispersions.
+  type (xy_disp_struct) :: y = xy_disp_struct()          ! Projected dispersions.
+  type (ac_kicker_struct), pointer :: ac_kick => null()  ! ac_kicker element parameters.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
-  type (branch_struct), pointer :: branch => null()                          ! Pointer to branch containing element.
-  type (controller_var_struct), pointer :: control_var(:) => null()          ! group & overlay variables.
+  type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
+  type (controller_var_struct), pointer :: control_var(:) => null()      ! group & overlay variables.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
-  type (fibre), pointer :: ptc_fibre => null()                               ! PTC tracking.
+  type (fibre), pointer :: ptc_fibre => null()                           ! PTC tracking.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
-                                                               ! Reference position in global coords.
+                                                                     ! Reference position in global coords.
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
-  type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
+  type (mode3_struct), pointer :: mode3 => null()                    ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                                ! Radiation integral calc cached values 
@@ -1054,7 +1083,7 @@ type branch_struct
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()
-  type (mode_info_struct), pointer :: a => null(), b => null(), z => null()
+  type (mode_info_struct), pointer :: a => null(), b => null(), z => null() ! Note: Tunes are the fractional part.
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d(:) => null()
@@ -1087,7 +1116,7 @@ type lat_struct
   character(200) :: input_file_name = ''           ! Name of the lattice input file
   character(80) :: title = ''                      ! General title
   character(60), allocatable :: attribute_alias(:) ! Aliases for custom1$, etc.
-  type (mode_info_struct) a, b, z                  ! Tunes, etc.
+  type (mode_info_struct) a, b, z                  ! Tunes, etc. Note: Tunes are the fractional part.
   type (lat_param_struct) param                    ! Parameters
   type (bookkeeping_state_struct) lord_state       ! lord bookkeeping status.
   type (ele_struct) ele_init                       ! For use by any program
@@ -1131,29 +1160,12 @@ integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, photon_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
+integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57, ac_kicker$ = 58
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 57
+integer, parameter :: n_key$ = 58
 character(20), parameter :: key_name(n_key$) = [ &
-    'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
-    'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
-    'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
-    'SOL_QUAD         ', 'MARKER           ', 'KICKER           ', 'HYBRID           ', &
-    'OCTUPOLE         ', 'RBEND            ', 'MULTIPOLE        ', 'BEND_SOL_        ', &
-    'DEF_MAD_BEAM     ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
-    'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'BEGINNING_ELE    ', &
-    'LINE_ELE         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
-    'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
-    'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_FORK      ', &
-    'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
-    'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
-    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'PHOTON_INIT      ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
-    'MASK             ']
-
-character(20), parameter :: capitalized_key_name(n_key$) = [ &
     'Drift            ', 'Sbend            ', 'Quadrupole       ', 'Group            ', &
     'Sextupole        ', 'Overlay          ', 'Custom           ', 'Taylor           ', &
     'RFcavity         ', 'ELseparator      ', 'BeamBeam         ', 'Wiggler          ', &
@@ -1168,7 +1180,7 @@ character(20), parameter :: capitalized_key_name(n_key$) = [ &
     'Capillary        ', 'Multilayer_Mirror', 'E_Gun            ', 'EM_Field         ', &
     'Floor_Shift      ', 'Fiducial         ', 'Undulator        ', 'Diffraction_Plate', &
     'Photon_Init      ', 'Sample           ', 'Detector         ', 'Sad_Mult         ', &
-    'Mask             ']
+    'Mask             ', 'AC_Kicker        ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1343,10 +1355,10 @@ integer, parameter :: aperture_limit_on$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
-integer, parameter :: term$ = 101
+integer, parameter :: term$ = 101, frequencies$ = 101
 integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
-integer, parameter :: z_position$ = 104
+integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107

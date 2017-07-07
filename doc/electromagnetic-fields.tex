@@ -142,7 +142,7 @@ $r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ 
 automatically depending upon the type of element as shown in Table~\ref{t:ab}. The
 $\gamma_p$ term is
 
-\index{kicker}\index{hkicker}\index{vkicker}
+\index{kicker}\index{hkicker}\index{vkicker}\index{ac_kicker}
 \index{rbend}\index{sbend}\index{elseparator}
 \index{quadrupole}\index{solenoid}\index{sol_quad}
 \index{sextupole}\index{octupole}
@@ -153,7 +153,8 @@ $\gamma_p$ term is
   {\em Element} & $F$                              & $n_\text{ref}$ \\ \midrule
   \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   \vn{Hkicker}     & Kick                                   & 0 \\
-  \vn{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Kicker},\vn{AC_Kicker}
+                   & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   \vn{Rbend}       & G * L                                  & 0 \\
   \vn{Sbend}       & G * L                                  & 0 \\
   \vn{Vkicker}     & Kick                                   & 0 \\

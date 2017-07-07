@@ -1,32 +1,29 @@
 !+
-! Subroutine make_mat6_bmad_photon (ele, param, c0, c1, err)
+! Subroutine make_mat6_bmad_photon (ele, param, start_orb, end_orb, err)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
-!   ele    -- Ele_struct: Element with transfer matrix
-!   param  -- lat_param_struct: Parameters are needed for some elements.
-!   c0     -- Coord_struct: Coordinates at the beginning of element. 
+!   ele       -- Ele_struct: Element with transfer matrix
+!   param     -- lat_param_struct: Parameters are needed for some elements.
+!   start_orb -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
-!   ele    -- Ele_struct: Element with transfer matrix.
-!     %vec0  -- 0th order map component
-!     %mat6  -- 6x6 transfer matrix.
-!   c1     -- Coord_struct: Coordinates at the end of element.
-!   err    -- Logical, optional: Set True if there is an error. False otherwise.
+!   ele      -- Ele_struct: Element with transfer matrix.
+!     %vestart_orb  -- 0th order map component
+!     %mat6    -- 6x6 transfer matrix.
+!   end_orb  -- Coord_struct: Coordinates at the end of element.
+!   err      -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6_bmad_photon (ele, param, c0, c1, err)
+subroutine make_mat6_bmad_photon (ele, param, start_orb, end_orb, err)
 
 use bmad_interface, dummy => make_mat6_bmad_photon
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: c0, c1
+type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:), v(:)

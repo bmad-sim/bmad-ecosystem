@@ -44,7 +44,7 @@ integer mat6_calc_method, species
 logical, optional :: err_flag
 logical rad_fluct_save, err, finished
 
-character(16), parameter :: r_name = 'make_mat6'
+character(*), parameter :: r_name = 'make_mat6'
 
 !--------------------------------------------------------
 ! Some init.
@@ -59,6 +59,12 @@ else if (start_orb%state == not_set$ .or. start_orb%p0c /= ele%value(p0c_start$)
   call init_coord(a_start_orb, start_orb, ele, upstream_end$, default_tracking_species(param))
 else
   a_start_orb = start_orb
+endif
+
+if (a_start_orb%direction == -1) then  ! Can only happen if start_orb is present
+  call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALCULATION NOT ALLOWED WITH BACKWARD TRACKING.')
+  if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 ! init

@@ -450,7 +450,7 @@ parsing_loop: do
 
     ! Not a simple name so have to loop over all elements and look for a match
 
-    if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
+    if (key > -1) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = '*'
       wild_here = .true.
 

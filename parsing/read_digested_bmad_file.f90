@@ -39,8 +39,8 @@ type (bmad_common_struct) bmad_com_read
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
-integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, ios2, n_wall_section, garbage, idum2, j1, j2
+integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at
+integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
@@ -50,7 +50,7 @@ character(60) p_name
 character(25) :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag
-logical is_ok, l_dummy
+logical is_ok
 logical found_it, can_read_this_old_version, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
@@ -108,7 +108,7 @@ do i = 1, n_files
 
   stat_b = 0
 
-  read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10, idum1, idum2
+  read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10
   file_names(i) = fname_read
 
   ! Cannot use full file name to check if this is the original digested file since
@@ -170,7 +170,7 @@ read (d_unit, err = 9030)  &
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max, &
-        lat%input_taylor_order, lat%absolute_time_tracking, l_dummy, lat%pre_tracker, lat%photon_type
+        lat%input_taylor_order, lat%absolute_time_tracking, lat%pre_tracker, lat%photon_type
 read (d_unit, err = 9070) n_branch
 
 ! custom attribute names
@@ -207,7 +207,7 @@ do i = 1, n_branch
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, idum1
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
 
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
@@ -429,29 +429,28 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
-
-real(rp) rdum
+type (ac_kicker_struct), pointer :: ac
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, idum1, idum2, n_var, ix_d, ix_m, ix_lr_spline
+integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(3,3)
-integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
-logical error, is_alloc_pt
+logical error, is_alloc_pt, ac_kicker_alloc
 
 !
 
 error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
-        mode3, ix_r, ix_s, ix_wall3d_branch, &
-        idum2, ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+        mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
+        ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
         ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-        ele%a, ele%b, ele%z, rdum, ele%vec0, ele%mat6, &
+        ele%a, ele%b, ele%z, ele%vec0, ele%mat6, &
         ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
         ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
@@ -462,8 +461,8 @@ read (d_unit, err = 9100, end = 9100) &
         ele%logic, ele%field_calc, ele%aperture_at, &
         ele%aperture_type, ele%csr_calc_on, ele%orientation, &
         ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-        ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
-        idum2, ele%bookkeeping_state, ele%ptc_integration_type
+        ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
+        ele%bookkeeping_state, ele%ptc_integration_type
 
 ! Decompress value array
 
@@ -480,6 +479,27 @@ if (n_var /= 0) then
   do i = 1, n_var
     read (d_unit, err = 9120) ele%control_var(i)
   enddo
+endif
+
+! AC_kicker
+
+if (ac_kicker_alloc) then
+  allocate (ele%ac_kick)
+  ac => ele%ac_kick
+  read (d_unit, err = 9130) ac%t_offset, n1, n2
+  if (n1 > -1) then
+    allocate (ac%amp_vs_time(n1))
+    do n = lbound(ac%amp_vs_time, 1), ubound(ac%amp_vs_time, 1)
+      read (d_unit, err = 9130) ac%amp_vs_time(n)
+    enddo
+  endif
+
+  if (n2 > -1) then
+    allocate(ac%frequencies(n1))
+    do n = lbound(ac%frequencies, 1), ubound(ac%frequencies, 1)
+      read (d_unit, err = 9130) ac%frequencies(n)
+    enddo
+  endif
 endif
 
 ! Cartesian_map
@@ -687,7 +707,7 @@ if (ix_wall3d > 0) then
   call read_this_wall3d (ele%wall3d, error)
   if (error) return
 elseif (ix_wall3d < 0) then
-  read (d_unit, err = 9900) idum1
+  read (d_unit, err = 9900) idum
   ele%wall3d => lat%branch(ix_wall3d_branch)%ele(abs(ix_wall3d))%wall3d
   if (.not. associated(ele%wall3d)) then
     call out_io(s_error$, r_name, 'ERROR IN WALL3D INIT.')
@@ -696,7 +716,7 @@ elseif (ix_wall3d < 0) then
   endif
   ele%wall3d%n_link = ele%wall3d%n_link + 1
 else
-  read (d_unit, err = 9900) idum1
+  read (d_unit, err = 9900) idum
 endif
 
 !
@@ -726,6 +746,13 @@ return
 9120  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING VALUES OF ELEMENT # \i0\ ', &
+                                  i_array = [ix_ele_in])
+close (d_unit)
+return
+
+9130  continue
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                 'ERROR READING AC_KICKER VALUES OF ELEMENT # \i0\ ', &
                                   i_array = [ix_ele_in])
 close (d_unit)
 return
@@ -859,7 +886,10 @@ read (d_unit, iostat = ios) n_wall
 if (n_wall > 0) allocate(wall3d(n_wall))
 
 do i = 1, n_wall
-  read (d_unit, iostat = ios) n_wall_section
+  read (d_unit, iostat = ios) n_wall_section, wall3d(i)%type, &
+          wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
+          wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
+
   if (n_wall_section == 0) then
     error = .false.
     return
@@ -868,16 +898,6 @@ do i = 1, n_wall
   if (ios /= 0) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                      'ERROR READING WALL3D N_WALL_SECTION NUMBER')
-    close (d_unit)
-    return
-  endif
-
-  read (d_unit, iostat = ios) wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
-           wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
-
-  if (ios /= 0) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-                                     'ERROR READING WALL PRIORITY')
     close (d_unit)
     return
   endif

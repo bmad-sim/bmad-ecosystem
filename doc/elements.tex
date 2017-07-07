@@ -11,7 +11,8 @@ available in \bmad.
 {\tt
 \begin{tabular}{llll} \toprule
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
-  AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \\
+  AB_Multipole      & \ref{s:ab.m}        &  Match             & \ref{s:match}    \\ 
+  AC_Kicker         & \ref{s:ac.kick}     &  Monitor           & \ref{s:monitor}  \\
   BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \\
   Beginning_Ele     & \ref{s:begin.ele}   &  Null_Ele          & \ref{s:null.ele} \\
   Bend_Sol_Quad     & \ref{s:bsq}         &  Octupole          & \ref{s:oct}      \\
@@ -30,8 +31,7 @@ available in \bmad.
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
   Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
   Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
-  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
-  Match             & \ref{s:match}       &                    &                  \\ \bottomrule
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\ \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -139,6 +139,83 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{AC_Kicker}
+\label{s:ac.kick}
+\index{ab_kicker|hyperbf}
+
+An \vn{ac_kicker} element simulates a time dependent kicker element.
+
+General \vn{ac_kicker} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Mag \& Elec multipoles     & \ref{s:multip}  \\
+  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Field Maps                 & \ref{s:fieldmap}  & Reference energy           & \ref{s:energy}  \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.ac.kicker} for a full list of element attributes.
+
+Attributes specific to a \vn{bend_sol_quad} element are:
+\begin{example}
+  t_offset   = <Real>                                      ! Time offset of field waveform.
+  amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}          ! Field amplitude vs Time.
+  frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Frequency components.
+\end{example}
+Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
+
+An \vn{ac_kicker} element is like a \vn{kicker} element except that the field varies in time. The
+field is calculated in two steps:
+\begin{enumerate}
+\item Calculate the field the same as for a \vn{kicker} element (\sref{s:kicker}).
+\item Scale the field by the function $A(t-t_0)$ where $t$ is the time and $t_0$ is set
+by the \vn{t_offset} attribute. 
+\end{enumerate}
+The time is calculated, like the RF cavities, using either relative or absolute time (\sref{s:rf.time}).
+
+There are two ways to specify the dimensionless time variation $A(t)$ of the field. One way is to
+specify points on the $A(t)$ curve using the \vn{amp_vs_time}
+attribute. Example:
+\begin{example}
+  mk: ac_kicker, l = 0.3, scale_multipoles = F, b1 = 0.27, t_offset = 3.6e-8,
+          amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
+\end{example}
+The element in this example is an AC quadrupole kicker. The times (in seconds) must be in assending
+order and no two times may be the same (that is, no infinate slopes). \bmad uses a cubic spline fit
+to interpolate between the time points. For times outside of the range specified by
+\vn{amp_vs_time}, the amplitude is taken to be zero.
+
+The second way to specify $A(t)$ is to specify the frequencies in the $A(t)$ spectrum using the
+\vn{frequencies} attribute:
+\Begineq
+  A(t) = \sum_i \, A_i \, \cos( 2 \, \pi (f_i \, t + \phi_i))
+\Endeq
+Example:
+\begin{example}
+  mk: ac_kicker, l = 0.3, field_calc = fieldmap, cartesian_map = \{...\},
+          frequencies = \{(3.4e6, 0.34, 0.12), ...\}
+\end{example}
+Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
+
+Note: The calculated field will only obey Maxwell's equations in the limit that the time variation
+of the field is ``slow'':
+\Begineq
+  \omega \ll \frac{c}{r}
+\Endeq
+where $\omega$ is the characteristic frequency of the field variation, $c$ is the speed of light,
+and $r$ is the characteristic size of the \vn{ac_kicker} element. That is, the fields at opposite ends
+of the element must be able to ``communicate'' in a time scale short compared to the time scale of
+the change in the field.
+
+%-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
 \index{beambeam|hyperbf}
@@ -154,11 +231,11 @@ General \vn{beambeam} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
-  Description strings        & \ref{s:alias}    & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}    &                            &                 \\
+  Aperture limits            & \ref{s:limit}    & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}  \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}   \\
+  Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -294,30 +371,22 @@ General \vn{bend_sol_quad} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
-  Mag \& Elec multipoles     & \ref{s:multip}    & Length                     & \ref{s:l}        \\
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}   \\
-  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}   \\
-  Description strings        & \ref{s:alias}     & Symplectify                & \ref{s:symp}     \\
-  Fringe fields              & \ref{s:fringe}    & Field Maps                 & \ref{s:fieldmap} \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods}  \\
-  Is_on                      & \ref{s:is.on}     &                            &                  \\
+  Mag \& Elec multipoles     & \ref{s:multip}    &                            &                  \\
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}        \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\
+  Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}     \\
+  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap} \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
 
-\index{x_quad}
-\index{y_quad}
-\index{quad_tilt}
-\index{tilt}
-\index{dks_ds}
-\index{g}
-\index{bend_tilt}
-\index{angle}
-\index{rho}
-\index{k1}
-\index{ks}
+\index{x_quad}\index{y_quad}\index{quad_tilt}\index{tilt}
+\index{dks_ds}\index{g}\index{bend_tilt}\index{angle}
+\index{rho}\index{k1}\index{ks}
 Attributes specific to a \vn{bend_sol_quad} element are:
 \begin{example}
   g           = <Real>    ! Bend strength 1/rho
@@ -396,7 +465,8 @@ General \vn{rbend} and \vn{sbend} attributes are:
   Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
   Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap} \\
-  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}  \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}  \\
+  Length                     & \ref{s:l}         &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -484,8 +554,9 @@ used with the vertically pure solutions
   \bfB &= \sum_{n = 0}^\infty \left[ \frac{a_n}{n+1} \nabla \phi_n^r + \frac{b_n}{n+1} \nabla \phi_n^i \right] \nonumber
   \bfE &= \sum_{n = 0}^\infty \left[ \frac{a_{en}}{n+1} \nabla \phi_n^i + \frac{b_{en}}{n+1} \nabla \phi_n^r \right]
 \end{align}
-and if \vn{exact_multipoles} is set to \vn{horizontally_pure} the horizontally pure solutions $\psi_n^r$ and $\psi_n^i$ are
-used instead of the vertically pure solutions $\phi_n^r$ and $\phi_n^i$.
+and if \vn{exact_multipoles} is set to \vn{horizontally_pure} the horizontally pure solutions
+$\psi_n^r$ and $\psi_n^i$ are used instead of the vertically pure solutions $\phi_n^r$ and
+$\phi_n^i$.
 
 To use exact multipoles with PTC based tracking (\sref{c:methods}), the PTC exact model
 tracking must be turned on. That is, in the lattice file set:
@@ -742,13 +813,13 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section          \\ \midrule
-  Aperture limits            & \ref{s:limit}    & Overlapping Fields         & \ref{s:overlap}  \\
-  Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}   \\
-  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}    \\
-  Description strings        & \ref{s:alias}    & Symplectify                & \ref{s:symp}     \\
-  Hkick \& Vkick             & \ref{s:kick}     & Field Maps                 & \ref{s:fieldmap} \\
+  Aperture limits            & \ref{s:limit}    & Offsets, Pitches \& Tilt   & \ref{s:offset}   \\
+  Chamber wall               & \ref{s:wall}     & Overlapping Fields         & \ref{s:overlap}  \\
+  Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}   \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}    \\
+  Hkick \& Vkick             & \ref{s:kick}     & Symplectify                & \ref{s:symp}     \\
+  Integration settings       & \ref{s:integ}    & Field Maps                 & \ref{s:fieldmap} \\
   Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods}  \\
-  Offsets, Pitches \& Tilt   & \ref{s:offset}   &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -989,13 +1060,13 @@ General \vn{custom} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Field Maps                 & \ref{s:fieldmap}  & Symplectify                & \ref{s:symp}    \\
-  Fringe fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Is_on                      & \ref{s:is.on}     &                            &                 \\ 
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
+  Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1208,14 +1279,14 @@ General \vn{e_gun} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section           \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}    \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}    \\ 
-  Custom attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}   \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}    \\ 
-  Field autoscaling          & \ref{s:autoscale} & Symplectify                & \ref{s:symp}      \\
-  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}  \\
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}         \\
+  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}    \\
+  Custom attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}    \\ 
+  Description strings        & \ref{s:alias}     & Overlapping Fields         & \ref{s:overlap}   \\
+  Field autoscaling          & \ref{s:autoscale} & Reference energy           & \ref{s:energy}    \\ 
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}      \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}  \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}   \\ 
-  Length                     & \ref{s:l}         &                            &                   \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1320,8 +1391,9 @@ General \vn{elseparator} attributes are:
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\ 
   Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
-  Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap} \\  
-  Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}  \\ 
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap} \\  
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
+  Length                     & \ref{s:l}         &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1367,13 +1439,13 @@ attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\ 
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
-  Field Maps                 & \ref{s:fieldmap}  & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\ 
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\
+  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2211,14 +2283,14 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section          \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
-  Custom Attributes          & \ref{s:cust.att}    & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}       & Superposition              & \ref{s:super}   \\
-  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}    \\
-  Instrumental variables     & \ref{s:meas.attrib} & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}       &                            &                 \\
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}        & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}  \\
+  Hkick \& Vkick             & \ref{s:kick}        & Superposition              & \ref{s:super}   \\
+  Instrumental variables     & \ref{s:meas.attrib} & Symplectify                & \ref{s:symp}    \\
+  Integration settings       & \ref{s:integ}       & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2253,14 +2325,14 @@ General \vn{hkicker} \vn{vkicker} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
-  Chamber wall               & \ref{s:wall}      & Mag \& Elec multipoles     & \ref{s:multip}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
-  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \\
-  Is_on                      & \ref{s:is.on}     &                            &                 \\
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Mag \& Elec multipoles     & \ref{s:multip}  \\
+  Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Field Maps                 & \ref{s:fieldmap}  & Reference energy           & \ref{s:energy}  \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2284,11 +2356,10 @@ attributes. Example:
 
 \index{hkick}\index{vkick}
 \index{h_displace}\index{v_displace}
-A \vn{kicker} can deflect a beam in both planes. Note that a
-\vn{kicker} uses the \vn{hkick} and \vn{vkick} attributes while
-\vn{hkicker} and \vn{vkicker} elements use the \vn{kick} attribute. 
-In addition, a \vn{kicker} can apply a displacement to a particle
-using the \vn{h_displace} and \vn{v_displace} attributes.
+A \vn{kicker} can deflect a beam in both planes. Note that a \vn{kicker} uses the \vn{hkick} and
+\vn{vkick} attributes while \vn{hkicker} and \vn{vkicker} elements use the \vn{kick} attribute.  In
+addition, a \vn{kicker} can apply a displacement to a particle using the \vn{h_displace} and
+\vn{v_displace} attributes.
 
 General \vn{kicker} attributes are:
 \begin{center}
@@ -2302,7 +2373,8 @@ General \vn{kicker} attributes are:
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}    \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}     \\
   Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap} \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2335,8 +2407,9 @@ General \vn{lcavity} attributes are:
   Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{s:super}      \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}   \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
-  Length                     & \ref{s:l}         & Wakes                      & \ref{s:wakes}      \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\
+  Is_on                      & \ref{s:is.on}     & Wakes                      & \ref{s:wakes}      \\
+  Length                     & \ref{s:l}         &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2924,8 +2997,9 @@ General \vn{octupole} attributes are:
   Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
   Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
   Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
-  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Integration settings       & \ref{s:integ}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}           &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3182,20 +3256,14 @@ coordinate transformation. This matters when the speed of the reference particle
 than $c$. For this reason, and due to complications involving PTC, it is recommended to
 use two patches in a row when both the orbit and energy are to be patched.
 
-The \vn{t_offset} attribute offsets the reference time:
+The \vn{t_offset} attribute offsets the reference time so that the reference time at the exit end of
+the patch \vn{t_ref(exit)} is related to the reference time at the beginning of the patch
+\vn{t_ref(entrance)} via
 \begin{example}
   t_ref(exit) = t_ref(entrance) + t_offset + dt_travel_ref
 \end{example}
-where \vn{dt_transit_ref} is the time for the reference particle to
-travel through the patch and \vn{dt_travel_ref} is the time the
-reference particle takes to travel the patch. Setting the
-\vn{t_offset} attribute will affect a particle's $z$ coordinate via
-\Eqs{zbctt}. That is, \vn{t_offset} can be used to control the change
-in the \vn{z} coordinate when tracking through a patch without
-affecting the relative orientation of the exit edge of the patch
-relative to the entrance end.
-
-\vn{dt_travel_ref} in the above equation is computed by:
+where \vn{dt_travel_ref} is the time for the reference particle to travel through the patch.
+\vn{dt_travel_ref} is defined to be:
 \begin{example}
   dt_travel_ref = L / beta_ref
 \end{example}
@@ -3203,22 +3271,31 @@ Where \vn{L} is the length of the \vn{patch} as shown in \fig{f:patch}
 and \vn{beta_ref} is the reference velocity/c at the exit end of the
 element. That is, the reference energy offset is applied {\em before}
 the reference particle is tracked through the patch. Since this point
-can be confusing, it i recommended that a \vn{patch} element be split
+can be confusing, it is recommended that a \vn{patch} element be split
 into two consecutive patches if the \vn{patch} has finite \vn{l} and
 \vn{E_tot_offset} values.
 
-When a lattice branch contains both normally oriented and reversed
-elements (\sref{s:ref.construct}), a \vn{patch}, or series of
-\vn{patches}, which reflects the $z$ direction must be placed in
-between. See \sref{s:ex.patch} for an example. Such a \vn{patch}, (or
-patches) is called a \vn{reflection} \vn{patch}. See
-Section~\sref{s:reflect.patch} for more details on how a reflection
-patch is defined.
+While a finite \vn{t_offset} will affect the reference time at the end of a patch, a finite
+\vn{t_offset} will {\em not} affect the time that is calculated for a particle to reach the end of
+the patch. On the other hand, a finite \vn{t_offset} will affect a particle's $z$ coordinate via
+\Eqs{zbctt}. The change in $z$, $\delta z$ will be
+\Begineq
+  \delta z = \beta \, c \, \text{t_offset}
+\Endeq
+where $\beta$ is the normalized particle speed (which is independent of any energy patch). Another
+way of looking at this is to note that In a drift, if the particle is on-axis and on-energy, t and
+t_ref change but z does not change. In a time patch (a patch with only \vn{t_offset} finite), t_ref
+and z change but t does not.
+
+When a lattice branch contains both normally oriented and reversed elements
+(\sref{s:ref.construct}), a \vn{patch}, or series of \vn{patches}, which reflects the $z$ direction
+must be placed in between. See \sref{s:ex.patch} for an example. Such a \vn{patch}, (or patches) is
+called a \vn{reflection} \vn{patch}. See Section~\sref{s:reflect.patch} for more details on how a
+reflection patch is defined.
 
 \index{wall}
-Since the geometry of a \vn{patch} element is complicated,
-interpolation of the chamber wall in the region of a patch follows
-special rules. See section~\sref{s:wall.vacuum} for more details.
+Since the geometry of a \vn{patch} element is complicated, interpolation of the chamber wall in the
+region of a patch follows special rules. See section~\sref{s:wall.vacuum} for more details.
 
 %-----------------------------------------------------------------
 \section{Photon_Init}
@@ -3441,14 +3518,14 @@ General \vn{quadrupole} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Description strings        & \ref{s:alias}     & Overlapping Fields         & \ref{s:overlap}    \\
+  Fringe Fields              & \ref{s:fringe}    & Reference energy           & \ref{s:energy}     \\ 
+  Hkick \& Vkick             & \ref{s:kick}      & Superposition              & \ref{s:super}      \\
+  Integration settings       & \ref{s:integ}     & Symplectify                & \ref{s:symp}       \\
   Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap}   \\ 
   Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}    \\ 
-  Mag \& Elec multipoles     & \ref{s:multip}    &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3505,8 +3582,9 @@ General \vn{rfcavity} attributes are:
   Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{s:super}      \\
   Fringe Fields              & \ref{s:fringe}     & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Is_on                      & \ref{s:is.on}      & Tracking \& transfer map   & \ref{c:methods}    \\
-  Length                     & \ref{s:l}          & Wakes                      & \ref{s:wakes}      \\
+  Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
+  Is_on                      & \ref{s:is.on}      & Wakes                      & \ref{s:wakes}      \\
+  Length                     & \ref{s:l}          &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3755,15 +3833,16 @@ General \vn{sextupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
-  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
-  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section           \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}    \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}    \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}   \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}    \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}     \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}      \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}  \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}   \\ 
+  Length                     & \ref{s:l}         &                            &                   \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3799,15 +3878,16 @@ General \vn{solenoid} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
-  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
-  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         &                            &                    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3842,15 +3922,16 @@ General \vn{sol_quad} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
-  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
-  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         &                            &                    \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -4048,15 +4129,16 @@ General \vn{wiggler} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
-  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
-  Is_on                      & \ref{s:is.on}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Length                     & \ref{s:l}           & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         &                            &                    \\ 
   \bottomrule
 \end{tabular}
 \end{center}

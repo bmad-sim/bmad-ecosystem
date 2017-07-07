@@ -124,6 +124,26 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
 
+    ! ac_kicker needs to have the time variation defined.
+
+    if (ele%key == ac_kicker$) then
+      if (.not. allocated(ele%ac_kick%amp_vs_time) .and. .not. allocated(ele%ac_kick%frequencies)) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'DOES NOT HAVE THE TIME DEPENDENCE (USING AMP_VS_TIME OR FREQUENCIES ATTRIBUTES) DEFINED.')
+        err_flag = .true.
+      endif
+
+      if (allocated(ele%ac_kick%amp_vs_time) .and. allocated(ele%ac_kick%frequencies)) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS SET BOTH AMP_VS_TIME AND FREQUENCIES ATTRIBUTES SET.', &
+                      'ONE AND ONLY ONE SHOULD BE SET.')
+        err_flag = .true.
+      endif
+    endif
+
+
     ! Wiggler with bmad_standard tracking should be periodic_type
 
     if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == bmad_standard$ .and. ele%sub_key == map_type$) then
@@ -232,6 +252,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         endif
 
         do j = 1, size(ele%wall3d(1)%section)
+          if (ele%wall3d(1)%section(j)%s /= 0) then
+            call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'WHICH IS A ' // key_name(ele%key), &
+                      'HAS A FINITE "S" VALUE. THIS DOES NOT MAKE SENSE.')
+            err_flag = .true.
+            exit
+          endif      
+
           ii = ele%wall3d(1)%section(j)%type
           if (ii == opaque$ .or. ii == clear$) cycle
           call out_io (s_fatal$, r_name, &
