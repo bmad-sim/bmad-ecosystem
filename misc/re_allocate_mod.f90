@@ -12,7 +12,7 @@ use sim_utils_struct
 ! array will be lost if n is less than the original size of the array
 ! 
 ! Note: For pointers to an array use the re_associate routine.
-! Note: Also see the re_allocate2 routine.
+! Note: Also see the re_allocate2 and re_allocate2d routines.
 ! 
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
@@ -24,9 +24,6 @@ use sim_utils_struct
 !   Subroutine re_allocate_all_pointer (a_ptr, n, exact)
 !   Subroutine re_allocate_complex (cmpl, n, exact, init_val)
 !   Subroutine re_allocate_logical (logic, n, exact, init_val)
-!
-! Modules needed:
-!   use re_allocate_mod
 !
 ! Input:
 !   str(:)      -- Character(*), allocatable: String array.
@@ -67,9 +64,9 @@ end interface
 ! This is modeled after the reallocate functions in Numerical Recipes.
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
-! 
+!
 ! Note: For pointers to an array use the re_associate routine.
-! Note: Alos see the re_allocate routine.
+! Also see the re_allocate and re_allocate2d routines.
 !
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
@@ -137,9 +134,6 @@ end interface
 !   Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
 !   Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
 !
-! Modules needed:
-!   use re_allocate_mod
-!
 ! Input:
 !   str2(:,:)   -- Character(*), allocatable: String array.
 !   inte2(:,:)  -- Integer, allocatable: Integer array.
@@ -185,9 +179,6 @@ end interface
 !   Subroutine re_associate_integer (inte, n, exact, init_val)
 !   Subroutine re_associate_real (re, n, exact, init_val)
 !   Subroutine re_associate_logical (logic, n, exact, init_val)
-!
-! Modules needed:
-!   use re_allocate_mod
 !
 ! Input:
 !   str(:)   -- Character(*), pointer: String array.
