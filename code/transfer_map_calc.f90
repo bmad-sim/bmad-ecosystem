@@ -153,8 +153,7 @@ type (taylor_struct) :: map(:)
 type (ele_struct) ele
 integer i, k
 
-! match, lcavity and taylor elements do not have corresponding ptc fibre elements.
-! In this case we must concat.
+!
 
 call taylor_propagate1 (map, ele, branch%param, ref_orb)
 

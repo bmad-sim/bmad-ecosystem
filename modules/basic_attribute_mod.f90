@@ -1084,8 +1084,6 @@ call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
 call init_attribute_name1 (kicker$, taylor_field$,                  'TAYLOR_FIELD')
 
-call init_attribute_name1 (ac_kicker$, h_displace$,                    'H_DISPLACE')
-call init_attribute_name1 (ac_kicker$, v_displace$,                    'V_DISPLACE')
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (ac_kicker$, field_master$,                  'FIELD_MASTER')
@@ -1097,6 +1095,7 @@ call init_attribute_name1 (ac_kicker$, grid_field$,                    'GRID_FIE
 call init_attribute_name1 (ac_kicker$, taylor_field$,                  'TAYLOR_FIELD')
 call init_attribute_name1 (ac_kicker$, amp_vs_time$,                   'AMP_VS_TIME')
 call init_attribute_name1 (ac_kicker$, frequencies$,                   'FREQUENCIES')
+call init_attribute_name1 (ac_kicker$, t_offset$,                      'T_OFFSET')
 
 call init_attribute_name1 (bend_sol_quad$, angle$,                  'ANGLE')
 call init_attribute_name1 (bend_sol_quad$, k1$,                     'K1')
