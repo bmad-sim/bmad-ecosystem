@@ -2763,6 +2763,13 @@ type (coord_struct), optional :: track_particle
 
 real(rp) beta0, beta1, m2_rel
 
+! If the element is a taylor then just concat since this is faster.
+
+if (ele%key == taylor$) then
+  call concat_ele_taylor (bmad_taylor, ele, bmad_taylor)
+  return
+endif
+
 ! set the taylor order in PTC if not already done so
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
