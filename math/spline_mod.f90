@@ -244,21 +244,23 @@ logical ok
 
 integer i, nmax
 
+character(*), parameter :: r_name = 'spline_akima'
+
 ! init
                      
 ok = .false.  ! assume the worst
 nmax = ubound(spline, 1)
 
 if (nmax < 2) then
-  print *, 'ERROR IN SPLINE_AKIMA: LESS THAN 2 DATA POINTS USED!'
+  call out_io (s_error$, r_name, 'LESS THAN 2 DATA POINTS USED!')
   return
 endif
 
 do i = 2, nmax
   if (spline(i-1)%x0 .ge. spline(i)%x0) then
-    print *, 'ERROR IN SPLINE_AKIMA: DATA POINTS NOT IN ASENDING ORDER!'
-    print *, i-1, spline(i-1)%x0, spline(i)%y0
-    print *, i, spline(i)%x0, spline(i)%y0
+    call out_io (s_error$, r_name, 'DATA POINTS NOT IN ASENDING ORDER!', &
+           'FOR POINTS: (\i0\, \es10.2\, \es10.2\), and (\i0\, \es10.2\, \es10.2\)', &
+           i_array = [i-1, i], r_array = [spline(i-1)%x0, spline(i)%y0, spline(i)%x0, spline(i)%y0])
     return
   endif
 enddo
@@ -270,6 +272,7 @@ spline(:)%coef(0) = spline(:)%y0  ! spline passes through all the data points
 if (nmax .eq. 2) then
   spline(1)%coef(1) = (spline(2)%y0 - spline(1)%y0) / (spline(2)%x0 - spline(1)%x0)
   spline(1)%coef(2:3) = 0
+  ok = .true.
   return
 endif
 
