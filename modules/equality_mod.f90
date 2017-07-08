@@ -14,23 +14,24 @@ module equality_mod
 use bmad_struct
 
 interface operator (==)
-  module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table
-  module procedure eq_photon_reflect_surface, eq_controller_var, eq_coord, eq_coord_array, eq_bpm_phase_coupling
-  module procedure eq_expression_atom, eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_wake_lr_position1
-  module procedure eq_wake_lr_spline, eq_lat_ele_loc, eq_wake, eq_taylor_term, eq_taylor
-  module procedure eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map
-  module procedure eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt
-  module procedure eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field, eq_floor_position
-  module procedure eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state
-  module procedure eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point
-  module procedure eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex
-  module procedure eq_wall3d_section, eq_wall3d, eq_control, eq_ellipse_beam_init, eq_kv_beam_init
-  module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
-  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map
-  module procedure eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1
-  module procedure eq_rad_int_all_ele, eq_ptc_genfield, eq_ele, eq_complex_taylor_term, eq_complex_taylor
-  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_bunch_params
-  module procedure eq_beam, eq_aperture_data, eq_aperture_param, eq_aperture_scan
+  module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
+  module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var
+  module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_mode
+  module procedure eq_wake_sr, eq_wake_lr_mode, eq_wake_lr_position1, eq_wake_lr_spline, eq_lat_ele_loc
+  module procedure eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor
+  module procedure eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term
+  module procedure eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1
+  module procedure eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_space_charge, eq_xy_disp
+  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
+  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
+  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch
+  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data
+  module procedure eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -106,6 +107,80 @@ is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
 is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
 
 end function eq_surface_orientation
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_ac_kicker_time (f1, f2) result (is_eq)
+
+implicit none
+
+type(ac_kicker_time_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%amp == f2%amp)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%time == f2%time)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%spline == f2%spline)
+
+end function eq_ac_kicker_time
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_ac_kicker_freq (f1, f2) result (is_eq)
+
+implicit none
+
+type(ac_kicker_freq_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%amp == f2%amp)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%f == f2%f)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi == f2%phi)
+
+end function eq_ac_kicker_freq
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_ac_kicker (f1, f2) result (is_eq)
+
+implicit none
+
+type(ac_kicker_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t_offset == f2%t_offset)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%amp_vs_time) .eqv. allocated(f2%amp_vs_time))
+if (.not. is_eq) return
+if (allocated(f1%amp_vs_time)) is_eq = all(shape(f1%amp_vs_time) == shape(f2%amp_vs_time))
+if (.not. is_eq) return
+if (allocated(f1%amp_vs_time)) is_eq = all(f1%amp_vs_time == f2%amp_vs_time)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%frequencies) .eqv. allocated(f2%frequencies))
+if (.not. is_eq) return
+if (allocated(f1%frequencies)) is_eq = all(shape(f1%frequencies) == shape(f2%frequencies))
+if (.not. is_eq) return
+if (allocated(f1%frequencies)) is_eq = all(f1%frequencies == f2%frequencies)
+
+end function eq_ac_kicker
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1794,6 +1869,8 @@ is_eq = is_eq .and. (f1%ixx == f2%ixx)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%live_branch .eqv. f2%live_branch)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%backwards_time_tracking .eqv. f2%backwards_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
@@ -2158,6 +2235,8 @@ is_eq = is_eq .and. (f1%sad_n_div_max == f2%sad_n_div_max)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%runge_kutta_order == f2%runge_kutta_order)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%default_integ_order == f2%default_integ_order)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc_max_fringe_order == f2%ptc_max_fringe_order)
@@ -2322,6 +2401,11 @@ is_eq = is_eq .and. (f1%z == f2%z)
 is_eq = is_eq .and. (f1%x == f2%x)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%y == f2%y)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%ac_kick) .eqv. associated(f2%ac_kick))
+if (.not. is_eq) return
+if (associated(f1%ac_kick)) is_eq = (f1%ac_kick == f2%ac_kick)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 !! f_side.equality_test[type, 1, PTR]
@@ -2458,7 +2542,7 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%slave_status == f2%slave_status)
+is_eq = is_eq .and. (f1%lord_status == f2%lord_status)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_slave == f2%n_slave)
 !! f_side.equality_test[integer, 0, NOT]
@@ -2466,7 +2550,7 @@ is_eq = is_eq .and. (f1%n_slave_field == f2%n_slave_field)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix1_slave == f2%ix1_slave)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%lord_status == f2%lord_status)
+is_eq = is_eq .and. (f1%slave_status == f2%slave_status)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_lord == f2%n_lord)
 !! f_side.equality_test[integer, 0, NOT]

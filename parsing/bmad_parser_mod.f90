@@ -673,7 +673,8 @@ endif
 
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, trim(ele%name) // ' AMP_VS_TIME', table, 2)) return
+  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2)) return
+  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
   do i = 1, n
@@ -689,7 +690,8 @@ endif
 
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, trim(ele%name) // ' FREQUENCIES', table, 3)) return
+  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3)) return
+  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequencies(n))
   do i = 1, n
@@ -855,7 +857,8 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
 
         case ('R0')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', section%r0, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' SECTION R0', section%r0, .true.)) return
+          if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
         ! Parse "V() = ..." constructs.
 
@@ -7780,38 +7783,51 @@ end function parse_real_list
 !    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...} 
 ! And re_IJ is put in table(I,J).
 ! size2 is the size of the inner array.
+! The size of the outer array can be anything.
 ! 
 ! Similar to parse_real_list2 except does not use allocatable array.
 ! Also see: parse_real_lists.
 !-
 
-function parse_real_lists (lat, err_str, table, size2) result (is_ok)
+function parse_real_lists (lat, ele, err_str, table, size2) result (is_ok)
 
 implicit none
 
 type (lat_struct) lat
+type (ele_struct) ele
 
-real(rp), allocatable :: real_array(:)
+real(rp), allocatable :: vec(:)
 real(rp), allocatable :: table(:,:)
 
 integer size2
+integer nn, num_found
 
 character(*) err_str
+character(1) delim
 
-logical is_ok, exact_size
+logical is_ok, delim_found
 
 !
 
 is_ok = .false.
-!if (.not. parse_real_list2 (lat, err_str, vec, num_found, size(real_array), &
-!                          open_delim, separator, close_delim, default_value)) return
+if (.not. allocated(table)) allocate (table(100,size2))
 
-!if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
-!  call parser_error (err_str)
-!  return
-!endif
+if (.not. expect_one_of ('{', .false., ele, delim, delim_found)) return
+nn = 0
+do
+  if (.not. parse_real_list2 (lat, err_str, vec, num_found, size2, '(', ',', ')')) return
+  if (num_found /= size2) then
+    call parser_error (err_str)
+    return
+  endif
+  nn = nn + 1
+  if (nn > size(table, 1)) call re_allocate2d(table, 2*nn, size2)
+  table(nn,:) = vec
+  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (delim == '}') exit
+enddo
 
-!real_array(1:num_found) = vec(1:num_found)
+call re_allocate2d(table, nn, size2)
 
 is_ok = .true.
 
@@ -7859,20 +7875,27 @@ function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, op
 type (lat_struct) lat
 
 real(rp), allocatable :: real_array(:)
-integer :: num_found
-integer, optional :: num_expected
-character(*) err_str
-character(1), optional :: open_delim, close_delim, separator
-logical is_ok
 real(rp), optional :: default_value
 
+integer :: num_found
+integer, optional :: num_expected
+
+logical is_ok
+
+character(*) err_str
+character(1), optional :: open_delim, close_delim, separator
+
 ! Local
+
+real(rp) :: default_val, value
+
 integer num_expect
+integer  ix_word
+
 character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
-integer  ix_word
+
 logical delim_found, err_flag
-real(rp) :: default_val, value
 
 ! Optional arguments
 
