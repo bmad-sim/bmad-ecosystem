@@ -80,4 +80,14 @@ l2[e_tot] = 1e6
 l2[geometry] = open
 use, l2
 
+beam_start[x]  = 0.000
+beam_start[px] = -0.000
+beam_start[y]  = 0.000
+beam_start[py] = -0.000
+beam_start[z]  = 0.000
+beam_start[pz] = 2
 
+t1:           taylor, l = 0.5, {1: 0.1, 1 1 0 0 0 0}, {2: 0.02|}, {3: 0.03|44}, ref_orb = (0,0,0,0,0,0)
+
+l3: line = (taylor1)
+use, l3
