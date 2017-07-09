@@ -685,6 +685,7 @@ if (attrib_word == 'AMP_VS_TIME') then
   enddo
   call spline_akima (ac%amp_vs_time%spline, ok)
   if (.not. ok) call parser_error ('ERROR CREATING SPLINE FOR AC_KICKER AMP_VS_TIME CURVE.', 'FOR ELEMENT: ' // ele%name)
+  err_flag = .false.
   return
 endif
 
@@ -699,6 +700,7 @@ if (attrib_word == 'FREQUENCIES') then
     ac%frequencies(i)%amp  = table(i,2)
     ac%frequencies(i)%phi  = table(i,3)
   enddo
+  err_flag = .false.
   return
 endif
 

@@ -1112,7 +1112,7 @@ do j = 1, slave%n_lord
   elseif (lord%key == vkicker$) then
     x_kick = x_kick - lord%value(kick$) * sin(tilt) * coef
     y_kick = y_kick + lord%value(kick$) * cos(tilt) * coef
-  elseif (lord%key == kicker$) then
+  elseif (lord%key == ac_kicker$ .or. lord%key == kicker$) then
     c = cos(tilt) * coef
     s = sin(tilt) * coef
     x_kick = x_kick + c * lord%value(hkick$) - s * lord%value(vkick$)
@@ -1222,7 +1222,7 @@ elseif (slave%key == hkicker$) then
 elseif (slave%key == vkicker$) then
   slave%value(kick$) = sqrt(x_kick**2 + y_kick**2)
   slave%value(tilt$) = atan2(-x_kick, y_kick)
-elseif (slave%key == kicker$) then
+elseif (slave%key == ac_kicker$ .or. slave%key == kicker$) then
   slave%value(tilt$) = 0
   slave%value(hkick$) = x_kick
   slave%value(vkick$) = y_kick

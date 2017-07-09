@@ -1238,7 +1238,7 @@ case ('E_TOT', 'P0C')
   if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-          hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
+          hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
       return  ! Is free
     end select
   endif
