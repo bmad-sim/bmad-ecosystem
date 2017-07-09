@@ -609,9 +609,9 @@ case (bmad_standard$)
 
   if (add_kicks .and. has_hkick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
     select case (ele%key)
-    ! Handled above
-    case (kicker$, hkicker$, vkicker$, elseparator$)  
-    ! Everything else
+    ! Kickers and elsep handled above
+    case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
+    ! Everything else...
     case default
       if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
         field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / ele%value(l$)

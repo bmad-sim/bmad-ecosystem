@@ -317,9 +317,9 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif
 
-    case (kicker$, hkicker$, vkicker$)
+    case (ac_kicker$, kicker$, hkicker$, vkicker$)
       if (val(l$) /= 0) then
-        if (ele%key == kicker$) then
+        if (ele%key == ac_kicker$ .or. ele%key == kicker$) then
           kick_magnitude = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
         else
           kick_magnitude = val(kick$) / val(l$)

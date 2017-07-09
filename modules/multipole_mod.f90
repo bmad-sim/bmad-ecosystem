@@ -439,7 +439,7 @@ case (sbend$, rbend$)
   const = this_ele%value(l$) * (this_ele%value(g$) + this_ele%value(g_err$))
   ref_exp = 0
 
-case (elseparator$, kicker$)
+case (elseparator$, kicker$, ac_kicker$)
   if (this_ele%value(hkick$) == 0) then
     const = this_ele%value(vkick$)
   elseif (this_ele%value(vkick$) == 0) then
@@ -547,7 +547,7 @@ if (integer_option(magnetic$, pole_type) == magnetic$) then
   case (vkicker$)
     tilt_dir = 0
     vk = ele%value(kick$)
-  case (kicker$)
+  case (ac_kicker$, kicker$)
     tilt_dir = 0
     hk = -ele%value(hkick$)
     vk =  ele%value(vkick$)
