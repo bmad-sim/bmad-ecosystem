@@ -76,7 +76,7 @@ case (beambeam$)
 !-----------------------------------------------
 ! Thick multipoles
 
-case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$) 
+case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$, kicker$, hkicker$, vkicker$) 
   call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------

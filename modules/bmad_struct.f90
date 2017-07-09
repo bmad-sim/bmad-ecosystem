@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 195
+integer, parameter :: bmad_inc_version$ = 196
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -496,13 +496,12 @@ type ac_kicker_time_struct
 end type
 
 type ac_kicker_freq_struct
-  real(rp) :: amp = 0
   real(rp) :: f = 0
+  real(rp) :: amp = 0
   real(rp) :: phi = 0
 end type
 
 type ac_kicker_struct
-  real(rp) :: t_offset = 0
   type (ac_kicker_time_struct), allocatable :: amp_vs_time(:)
   type (ac_kicker_freq_struct), allocatable :: frequencies(:)
 end type
@@ -1276,15 +1275,15 @@ integer, parameter :: y_pitch$ = 35
 integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
 integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
-integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
-integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
-integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
-integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
-integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
+integer, parameter :: d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
+integer, parameter :: hkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
+integer, parameter :: vkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
+integer, parameter :: BL_hkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
+integer, parameter :: BL_vkick$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
+integer, parameter :: BL_kick$ = 44, B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
 integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
-integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47
+integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, coupler_at$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.

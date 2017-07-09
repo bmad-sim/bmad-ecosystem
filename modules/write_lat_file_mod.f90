@@ -417,20 +417,19 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (associated(ele%ac_kick)) then
       ac => ele%ac_kick
-      line = trim(line) // ', t_offset = ' // trim(re_str(ac%t_offset))
       if (allocated(ac%amp_vs_time)) then
-        line = trim(line) // ', amp_vs_time = {(' // trim(re_str(ac%amp_vs_time(1)%amp)) // &
-                             ', ' // trim(re_str(ac%amp_vs_time(1)%time)) // ')'
-        do i = 1, size(ac%amp_vs_time) -1
-          line = trim(line) // ', (' // trim(re_str(ac%amp_vs_time(i)%amp)) // &
-                             ', ' // trim(re_str(ac%amp_vs_time(i)%time)) // ')'
+        line = trim(line) // ', amp_vs_time = {(' // trim(re_str(ac%amp_vs_time(1)%time)) // &
+                             ', ' // trim(re_str(ac%amp_vs_time(1)%amp)) // ')'
+        do i = 2, size(ac%amp_vs_time)
+          line = trim(line) // ', (' // trim(re_str(ac%amp_vs_time(i)%time)) // &
+                             ', ' // trim(re_str(ac%amp_vs_time(i)%amp)) // ')'
         enddo
         line = trim(line) // '}'
 
       else
         line = trim(line) // ', frequencies = {(' // trim(re_str(ac%frequencies(1)%f)) // &
                   ', ' // trim(re_str(ac%frequencies(1)%amp)) // ', ' // trim(re_str(ac%frequencies(1)%phi))  // ')'
-        do i = 1, size(ac%frequencies) -1
+        do i = 2, size(ac%frequencies)
           line = trim(line) // ', (' // trim(re_str(ac%frequencies(i)%f)) // &
                   ', ' // trim(re_str(ac%frequencies(i)%amp)) // ', ' // trim(re_str(ac%frequencies(i)%phi)) // ')'
         enddo

@@ -579,7 +579,6 @@ endif
 if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
   ac => ele%ac_kick
   nl=nl+1; li(nl) = ''
-  nl=nl+1; write (li(nl), '(a, 3es16.8)') '  t_offset: ', ac%t_offset
 
   if (allocated(ac%amp_vs_time)) then
     nl=nl+1; li(nl) = '     Indx      Time     Amplitude'    

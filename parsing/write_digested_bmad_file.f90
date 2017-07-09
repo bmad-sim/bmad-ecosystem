@@ -338,7 +338,7 @@ if (associated(ele%ac_kick)) then
   n1 = -1; n2 = -1
   if (allocated(ac%amp_vs_time)) n1 = size(ac%amp_vs_time)
   if (allocated(ac%frequencies)) n2 = size(ac%frequencies)
-  write (d_unit) ac%t_offset, n1, n2
+  write (d_unit) n1, n2
 
   if (allocated(ac%amp_vs_time)) then
     do n = lbound(ac%amp_vs_time, 1), ubound(ac%amp_vs_time, 1)

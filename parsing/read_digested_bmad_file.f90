@@ -486,7 +486,7 @@ endif
 if (ac_kicker_alloc) then
   allocate (ele%ac_kick)
   ac => ele%ac_kick
-  read (d_unit, err = 9130) ac%t_offset, n1, n2
+  read (d_unit, err = 9130) n1, n2
   if (n1 > -1) then
     allocate (ac%amp_vs_time(n1))
     do n = lbound(ac%amp_vs_time, 1), ubound(ac%amp_vs_time, 1)
