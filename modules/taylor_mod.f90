@@ -748,6 +748,8 @@ logical, optional :: save_old
 
 !
 
+bmad_taylor%ref = 0
+
 if (n_term < 0) then
   if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
   return
@@ -922,6 +924,7 @@ do i = 1, n
 enddo
 
 if (j < n) call init_taylor_series (taylor_sorted, j, .true.)
+taylor_sorted%ref = taylor_in%ref
 
 end subroutine sort_taylor_terms
 
