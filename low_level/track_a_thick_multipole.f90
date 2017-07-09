@@ -29,7 +29,7 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), optional :: mat6(6,6)
 real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) rtc, hk, vk, kick, angle_E, k_E, beta_ref, mc2
+real(rp) rtc, hk, vk, kick, angle_E, k_E, beta_ref, mc2, ac_amp, s_pos
 
 integer i, n_step, orientation, ix_pole_max, ix_elec_max
 
@@ -86,8 +86,10 @@ if (orbit%state /= alive$) return
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
+ac_amp = ac_kicker_amp(0.0_rp)
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, ac_amp*r_step/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ac_amp*step_len/2, mat6, make_matrix)
 
 ! Body
 
@@ -100,9 +102,12 @@ do i = 1, n_step
     call track_a_drift (orbit, step_len, mat6, make_matrix)
   endif
 
+  s_pos = i * step_len / n_step
+  ac_amp = ac_kicker_amp(s_pos)
+
   if (i == n_step) then
-    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
-    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
+    if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, ac_amp*r_step/2,   mat6, make_matrix)
+    if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ac_amp*step_len/2, mat6, make_matrix)
   else
     if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, r_step,   mat6, make_matrix)
     if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, step_len, mat6, make_matrix)
@@ -122,6 +127,41 @@ orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%v
 
 !---------------------------------------------
 contains
+
+function ac_kicker_amp(s_pos) result (ac_amp)
+
+type (ac_kicker_struct), pointer :: ac
+real(rp) s_pos, time, ac_amp
+integer i, n, ix
+
+!
+
+ac_amp = 1
+if (ele%key /= ac_kicker$) return
+
+ac => ele%ac_kick
+time = particle_rf_time(orbit, ele, .true., s_pos) - ele%value(t_offset$)
+
+if (allocated(ac%frequencies)) then
+  ac_amp = 0
+  do i = 1, size(ac%frequencies)
+    ac_amp = ac_amp + ac%frequencies(i)%amp * cos(twopi*(ac%frequencies(i)%f * time + ac%frequencies(i)%phi))
+  enddo
+
+else
+  n = size(ac%amp_vs_time)
+  call bracket_index(ac%amp_vs_time%time, 1, n, time, ix)
+  if (ix < 1 .or. ix == n) then
+    ac_amp = 0
+  else
+    ac_amp = spline1 (ac%amp_vs_time(ix)%spline, time)
+  endif
+endif
+
+end function
+
+!---------------------------------------------
+! contains
 
 subroutine track_this_elsep (step_len)
 

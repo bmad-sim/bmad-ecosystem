@@ -42,7 +42,6 @@ select case (ele%key)
 case (ac_kicker$)
   allocate (ele%ac_kick)
   ele%mat6_calc_method = tracking$
-  ele%tracking_method  = runge_kutta$
 
 case (beambeam$)
   ele%value(charge$) = -1

@@ -165,8 +165,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%t_offset == f2%t_offset)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%amp_vs_time) .eqv. allocated(f2%amp_vs_time))
 if (.not. is_eq) return

@@ -1240,9 +1240,9 @@ if (ele%key == ac_kicker$) then
   ac => ele%ac_kick
 
   if (present(rf_time)) then
-    time = rf_time - ac%t_offset
+    time = rf_time - ele%value(t_offset$) 
   else
-    time = particle_rf_time(orbit, ele, .true., s_rel) - ac%t_offset
+    time = particle_rf_time(orbit, ele, .true., s_rel) - ele%value(t_offset$)
   endif
 
   if (allocated(ac%frequencies)) then

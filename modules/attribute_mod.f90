@@ -129,9 +129,9 @@ case (ab_multipole$)
   end select
 
 case (ac_kicker$)
-  if (present(num_valid)) num_valid = 5
+  if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (runge_kutta$, time_runge_kutta$, boris$, linear$, custom$)
+  case (bmad_standard$, runge_kutta$, time_runge_kutta$, boris$, linear$, custom$)
     is_valid = .true.
   end select
   
