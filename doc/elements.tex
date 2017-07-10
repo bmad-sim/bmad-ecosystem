@@ -189,7 +189,7 @@ attribute. Example:
           amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
 \end{example}
 The element in this example is an AC quadrupole kicker. The times (in seconds) must be in assending
-order and no two times may be the same (that is, no infinate slopes). \bmad uses a cubic spline fit
+order and no two times may be the same. \bmad uses a cubic spline fit
 to interpolate between the time points. For times outside of the range specified by
 \vn{amp_vs_time}, the amplitude is taken to be zero.
 
