@@ -460,7 +460,9 @@ if (search_for_lat_eles /= '') then
   if (.not. found_one) then
     call out_io (s_error$, r_name, &
             'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
-            'WHILE SETTING UP VARIABLE ARRAY: ' // v1_var%name)
+            'WHILE SETTING UP VARIABLE ARRAY FOR: ' // v1_var%name, &
+            'THIS V1_VARIABLE WILL NOT BE CREATED!')
+    s%n_v1_var_used = s%n_v1_var_used - 1
     return
   endif
 

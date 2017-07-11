@@ -3363,7 +3363,7 @@ case ('variable')
 
   enddo
 
-  if (.not. allocated (s%v1_var)) then
+  if (s%n_v1_var_used == 0) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
     return 
   endif
