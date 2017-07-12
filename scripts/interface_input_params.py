@@ -2,7 +2,6 @@
 
 struct_def_files = [
     '../sim_utils/math/spline_mod.f90',
-    '../bmad/modules/basic_bmad_mod.f90', 
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/twiss_mod.f90', 
     '../bmad/modules/taylor_mod.f90',
@@ -24,6 +23,9 @@ struct_list = [
     'spline_struct',
     'spin_polar_struct',
     'surface_orientation_struct',
+    'ac_kicker_time_struct',
+    'ac_kicker_freq_struct',
+    'ac_kicker_struct',
     'interval1_coef_struct',
     'photon_reflect_table_struct',
     'photon_reflect_surface_struct',

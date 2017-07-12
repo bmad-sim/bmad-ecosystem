@@ -81,7 +81,6 @@ namespace Bmad {
 ''')
 
 searchit('../bmad/modules/bmad_struct.f90')
-searchit('../bmad/modules/basic_bmad_mod.f90')
 searchit('../sim_utils/io/output_mod.f90')
 searchit('../sim_utils/interfaces/physical_constants.f90')
 searchit('../sim_utils/interfaces/particle_species_mod.f90')

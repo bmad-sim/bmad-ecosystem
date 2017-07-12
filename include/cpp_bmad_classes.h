@@ -31,6 +31,21 @@ typedef valarray<CPP_surface_orientation>          CPP_surface_orientation_ARRAY
 typedef valarray<CPP_surface_orientation_ARRAY>    CPP_surface_orientation_MATRIX;
 typedef valarray<CPP_surface_orientation_MATRIX>   CPP_surface_orientation_TENSOR;
 
+class CPP_ac_kicker_time;
+typedef valarray<CPP_ac_kicker_time>          CPP_ac_kicker_time_ARRAY;
+typedef valarray<CPP_ac_kicker_time_ARRAY>    CPP_ac_kicker_time_MATRIX;
+typedef valarray<CPP_ac_kicker_time_MATRIX>   CPP_ac_kicker_time_TENSOR;
+
+class CPP_ac_kicker_freq;
+typedef valarray<CPP_ac_kicker_freq>          CPP_ac_kicker_freq_ARRAY;
+typedef valarray<CPP_ac_kicker_freq_ARRAY>    CPP_ac_kicker_freq_MATRIX;
+typedef valarray<CPP_ac_kicker_freq_MATRIX>   CPP_ac_kicker_freq_TENSOR;
+
+class CPP_ac_kicker;
+typedef valarray<CPP_ac_kicker>          CPP_ac_kicker_ARRAY;
+typedef valarray<CPP_ac_kicker_ARRAY>    CPP_ac_kicker_MATRIX;
+typedef valarray<CPP_ac_kicker_MATRIX>   CPP_ac_kicker_TENSOR;
+
 class CPP_interval1_coef;
 typedef valarray<CPP_interval1_coef>          CPP_interval1_coef_ARRAY;
 typedef valarray<CPP_interval1_coef_ARRAY>    CPP_interval1_coef_MATRIX;
@@ -524,6 +539,88 @@ extern "C" void surface_orientation_to_c (const Opaque_surface_orientation_class
 extern "C" void surface_orientation_to_f (const CPP_surface_orientation&, Opaque_surface_orientation_class*);
 
 bool operator== (const CPP_surface_orientation&, const CPP_surface_orientation&);
+
+
+//--------------------------------------------------------------------
+// CPP_ac_kicker_time
+
+class Opaque_ac_kicker_time_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ac_kicker_time {
+public:
+  Real amp;
+  Real time;
+  CPP_spline spline;
+
+  CPP_ac_kicker_time() :
+    amp(0.0),
+    time(0.0),
+    spline()
+    {}
+
+  ~CPP_ac_kicker_time() {
+  }
+
+};   // End Class
+
+extern "C" void ac_kicker_time_to_c (const Opaque_ac_kicker_time_class*, CPP_ac_kicker_time&);
+extern "C" void ac_kicker_time_to_f (const CPP_ac_kicker_time&, Opaque_ac_kicker_time_class*);
+
+bool operator== (const CPP_ac_kicker_time&, const CPP_ac_kicker_time&);
+
+
+//--------------------------------------------------------------------
+// CPP_ac_kicker_freq
+
+class Opaque_ac_kicker_freq_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ac_kicker_freq {
+public:
+  Real amp;
+  Real f;
+  Real phi;
+
+  CPP_ac_kicker_freq() :
+    amp(0.0),
+    f(0.0),
+    phi(0.0)
+    {}
+
+  ~CPP_ac_kicker_freq() {
+  }
+
+};   // End Class
+
+extern "C" void ac_kicker_freq_to_c (const Opaque_ac_kicker_freq_class*, CPP_ac_kicker_freq&);
+extern "C" void ac_kicker_freq_to_f (const CPP_ac_kicker_freq&, Opaque_ac_kicker_freq_class*);
+
+bool operator== (const CPP_ac_kicker_freq&, const CPP_ac_kicker_freq&);
+
+
+//--------------------------------------------------------------------
+// CPP_ac_kicker
+
+class Opaque_ac_kicker_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ac_kicker {
+public:
+  CPP_ac_kicker_time_ARRAY amp_vs_time;
+  CPP_ac_kicker_freq_ARRAY frequencies;
+
+  CPP_ac_kicker() :
+    amp_vs_time(CPP_ac_kicker_time_ARRAY(CPP_ac_kicker_time(), 0)),
+    frequencies(CPP_ac_kicker_freq_ARRAY(CPP_ac_kicker_freq(), 0))
+    {}
+
+  ~CPP_ac_kicker() {
+  }
+
+};   // End Class
+
+extern "C" void ac_kicker_to_c (const Opaque_ac_kicker_class*, CPP_ac_kicker&);
+extern "C" void ac_kicker_to_f (const CPP_ac_kicker&, Opaque_ac_kicker_class*);
+
+bool operator== (const CPP_ac_kicker&, const CPP_ac_kicker&);
 
 
 //--------------------------------------------------------------------
@@ -2421,6 +2518,7 @@ public:
   Int geometry;
   Int ixx;
   Bool stable;
+  Bool live_branch;
   Bool backwards_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_beam_init beam_init;
@@ -2437,6 +2535,7 @@ public:
     geometry(0),
     ixx(0),
     stable(false),
+    live_branch(true),
     backwards_time_tracking(false),
     bookkeeping_state(),
     beam_init()
@@ -2833,6 +2932,7 @@ public:
   Real sad_amp_max;
   Int sad_n_div_max;
   Int taylor_order;
+  Int runge_kutta_order;
   Int default_integ_order;
   Int ptc_max_fringe_order;
   Int max_num_runge_kutta_step;
@@ -2870,6 +2970,7 @@ public:
     sad_amp_max(5.0e-2),
     sad_n_div_max(1000),
     taylor_order(0),
+    runge_kutta_order(4),
     default_integ_order(2),
     ptc_max_fringe_order(2),
     max_num_runge_kutta_step(10000),
@@ -3022,6 +3123,7 @@ public:
   CPP_twiss z;
   CPP_xy_disp x;
   CPP_xy_disp y;
+  CPP_ac_kicker* ac_kick;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_controller_var_ARRAY control_var;
   CPP_cartesian_map_ARRAY cartesian_map;
@@ -3060,11 +3162,11 @@ public:
   Int sub_key;
   Int ix_ele;
   Int ix_branch;
-  Int slave_status;
+  Int lord_status;
   Int n_slave;
   Int n_slave_field;
   Int ix1_slave;
-  Int lord_status;
+  Int slave_status;
   Int n_lord;
   Int n_lord_field;
   Int ic1_lord;
@@ -3125,6 +3227,7 @@ public:
     z(),
     x(),
     y(),
+    ac_kick(NULL),
     bookkeeping_state(),
     control_var(CPP_controller_var_ARRAY(CPP_controller_var(), 0)),
     cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
@@ -3163,11 +3266,11 @@ public:
     sub_key(0),
     ix_ele(-1),
     ix_branch(0),
-    slave_status(Bmad::NOT_A_CHILD),
+    lord_status(Bmad::NOT_A_LORD),
     n_slave(0),
     n_slave_field(0),
     ix1_slave(0),
-    lord_status(Bmad::NOT_A_LORD),
+    slave_status(Bmad::NOT_A_CHILD),
     n_lord(0),
     n_lord_field(0),
     ic1_lord(0),
@@ -3201,6 +3304,7 @@ public:
 
   ~CPP_ele() {
     delete descrip;
+    delete ac_kick;
     delete mode3;
     delete photon;
     delete rad_int_cache;

@@ -114,6 +114,44 @@ template bool is_all_equal (const CPP_surface_orientation_MATRIX&, const CPP_sur
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_ac_kicker_time& x, const CPP_ac_kicker_time& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.amp == y.amp);
+  is_eq = is_eq && (x.time == y.time);
+  is_eq = is_eq && (x.spline == y.spline);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ac_kicker_time_ARRAY&, const CPP_ac_kicker_time_ARRAY&);
+template bool is_all_equal (const CPP_ac_kicker_time_MATRIX&, const CPP_ac_kicker_time_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_ac_kicker_freq& x, const CPP_ac_kicker_freq& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.amp == y.amp);
+  is_eq = is_eq && (x.f == y.f);
+  is_eq = is_eq && (x.phi == y.phi);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ac_kicker_freq_ARRAY&, const CPP_ac_kicker_freq_ARRAY&);
+template bool is_all_equal (const CPP_ac_kicker_freq_MATRIX&, const CPP_ac_kicker_freq_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_ac_kicker& x, const CPP_ac_kicker& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.amp_vs_time, y.amp_vs_time);
+  is_eq = is_eq && is_all_equal(x.frequencies, y.frequencies);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ac_kicker_ARRAY&, const CPP_ac_kicker_ARRAY&);
+template bool is_all_equal (const CPP_ac_kicker_MATRIX&, const CPP_ac_kicker_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_interval1_coef& x, const CPP_interval1_coef& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.c0 == y.c0);
@@ -1019,6 +1057,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.geometry == y.geometry);
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
+  is_eq = is_eq && (x.live_branch == y.live_branch);
   is_eq = is_eq && (x.backwards_time_tracking == y.backwards_time_tracking);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   is_eq = is_eq && (x.beam_init == y.beam_init);
@@ -1217,6 +1256,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.sad_amp_max == y.sad_amp_max);
   is_eq = is_eq && (x.sad_n_div_max == y.sad_n_div_max);
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
+  is_eq = is_eq && (x.runge_kutta_order == y.runge_kutta_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
   is_eq = is_eq && (x.max_num_runge_kutta_step == y.max_num_runge_kutta_step);
@@ -1306,6 +1346,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.z == y.z);
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
+  is_eq = is_eq && ((x.ac_kick == NULL) == (y.ac_kick == NULL));
+  if (!is_eq) return false;
+  if (x.ac_kick != NULL) is_eq = (*x.ac_kick == *y.ac_kick);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   is_eq = is_eq && is_all_equal(x.control_var, y.control_var);
   is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
@@ -1354,11 +1397,11 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.sub_key == y.sub_key);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
-  is_eq = is_eq && (x.slave_status == y.slave_status);
+  is_eq = is_eq && (x.lord_status == y.lord_status);
   is_eq = is_eq && (x.n_slave == y.n_slave);
   is_eq = is_eq && (x.n_slave_field == y.n_slave_field);
   is_eq = is_eq && (x.ix1_slave == y.ix1_slave);
-  is_eq = is_eq && (x.lord_status == y.lord_status);
+  is_eq = is_eq && (x.slave_status == y.slave_status);
   is_eq = is_eq && (x.n_lord == y.n_lord);
   is_eq = is_eq && (x.n_lord_field == y.n_lord_field);
   is_eq = is_eq && (x.ic1_lord == y.ic1_lord);
