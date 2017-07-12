@@ -572,7 +572,7 @@ Section~\sref{s:crystal.ref}.
 
 \index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
 For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele}) elements, the
-shift in the reference coordinates from the entrance end to the exit end of the element is
+shift in the exit end reference coordinates is
 given by \Eqs{vwlv} and \eq{wws} with 
 \begin{align}
   \bfL &= 
@@ -583,6 +583,11 @@ given by \Eqs{vwlv} and \eq{wws} with
   \bfS &= \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
   \label{swww}
 \end{align}
+
+The difference here between \vn{patch} and \vn{floor_shift} elements is that, with a
+\vn{patch} element, the shift is relative to the exit end of the previous element while,
+for a \vn{floor_shift} element, the shift is relative to the reference point on the 
+origin element specified by the \vn{origin_ele} parameter of the \vn{floor_shift}.
 
 %-----------------------------------------------------------------------------
 \subsection{Fiducial and Girder Elments Origin Shift Transformation}

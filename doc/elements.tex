@@ -1517,7 +1517,8 @@ element is the unit map.
 A \vn{fiducial} element sets the global floor coordinates (\sref{s:global}) of itself and of the
 elements, both upstream and downstream, around it. This can be thought of as a two step process. The
 first step is to determine the global coordinates of the \vn{fiducial} element itself, and the
-second step is to shift the coordinates of the elements around it.
+second step is to shift the coordinates of the elements around it. That is, shifting the position
+of a \vn{fiducial} element shifts the lattice elements around it as one solid body.
 
 The floor coordinates of the \vn{fiducial} element are determined
 starting with an \vn{origin_ele} element. If \vn{origin_ele} is not
@@ -1600,10 +1601,9 @@ machine.
 \label{s:floor.ele}
 \index{floor_shift|hyperbf}
 
-A \vn{floor_shift} element shifts the reference orbit in the global
-coordinate system without affecting particle tracking. That is, in
-terms of tracking, a \vn{floor_shift} element is equivalent to a
-\vn{marker} (\sref{s:mark}) element. 
+A \vn{floor_shift} element shifts the reference orbit in the global coordinate system without
+affecting particle tracking. That is, in terms of tracking, a \vn{floor_shift} element is equivalent
+to a \vn{marker} (\sref{s:mark}) element. 
 
 Also see \vn{patch} (\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial}) elements.
 
@@ -1622,45 +1622,56 @@ General \vn{floor_shift} element attributes are:
 \toffset
 See \sref{s:list.floor.shift} for a full list of element attributes.
 
-\index{l}\index{x_offset}\index{y_offset}
-\index{z_offset}\index{tilt}
-\index{x_pitch}\index{y_pitch}
+\index{l}\index{x_offset}\index{y_offset}\index{z_offset}
+\index{tilt}\index{x_pitch}\index{y_pitch}
+\index{origin_ele}\index{origin_ele_ref_pt}
 Attributes specific to a \vn{floor_shift} elements are:
 \begin{example}
-  l                 = <Real>    ! Length
-  x_offset          = <Real>    ! x offset from previous element
-  y_offset          = <Real>    ! y offset from previous element
-  z_offset          = <Real>    ! z offset from previous element
-  x_pitch           = <Real>    ! rotation in the reference coords.
-  y_pitch           = <Real>    ! rotation in the reference coords.
-  tilt              = <Real>    ! rotation in the reference coords.
+  l                 = <Real>     ! Length
+  x_offset          = <Real>     ! x offset from origin point.
+  y_offset          = <Real>     ! y offset from origin point.
+  z_offset          = <Real>     ! z offset from origin point.
+  x_pitch           = <Real>     ! rotation of the reference coords.
+  y_pitch           = <Real>     ! rotation of the reference coords.
+  tilt              = <Real>     ! rotation of the reference coords.
   origin_ele        = <Name>     ! Reference element.
-  origin_ele_ref_pt = <location> ! Reference pt on reference ele.
+  origin_ele_ref_pt = <location> ! Reference pt on the reference ele.
 \end{example}
 
-The \vn{floor_shift} element shifts the reference orbit relative to the
-\vn{origin_ele}. Unlike the \vn{patch element} \sref{s:patch}, the
-transfer map through a \vn{floor_shift} element will be the unit
-map. That is, the phase space coordinates of a particle will not
-change when tracking through a \vn{floor_shift} element. The reference
-position transformation through a \vn{floor_shift} element is given in
-Section~\sref{s:patch.coords}.
+The \vn{floor_shift} element sets the reference orbit at the exit end of the \vn{floor_shift}
+element as follows: Start with the the reference orbit at the \vn{origin_ele} reference point (see
+below). This coordinate system is shifted using the offset, pitch and tilt parameters of the
+\vn{floor_shift} element. The shifted coordinate system is used as the coordinate system at the exit
+end of the \vn{floor_shift} element. The reference position transformation through a
+\vn{floor_shift} element is given in Section~\sref{s:patch.coords}. In this respect, the \vn{floor_shift}
+element is similar to the \vn{fiducial} element. The difference being that the \vn{fiducial} element affects
+the global floor coordinates of elements both upstream and downstream of the \vn{fiducial} element while a
+\vn{floor_shift} element only affects the floor position of elements downstream from it.
+ 
+Like a \vn{fiducial} element, the transfer map through a \vn{floor_shift} element will be the
+unit map. That is, the phase space coordinates of a particle will not change when tracking through a
+\vn{floor_shift} element. 
 
-The \vn{l} attribute can be used to adjust the longitudinal $s$
-position.
+The \vn{l} attribute can be used to adjust the longitudinal $s$ position.
 
 The \vn{floor_shift} element can be used, for example, to restore the
 correct global geometry when a section of the lattice is represented by, say,
 a \vn{taylor} type element.
 
-If \vn{origin_ele} is not specified, the previous element is used. If the
-\vn{origin_ele} has a finite length, the reference point may be chosen
-using the \vn{origin_ele_ref_pt} attribute which may be set to one of
+If an \vn{origin_ele} is specified, the position of this element must to calculated before the the
+position of the \vn{fiducial} element is calculated. See the discussion of the \vn{origin_ele} for
+\vn{fiducial} elements (\sref{s:fiducial}).  Notice that if the \vn{origin_ele} is specified, and is
+different from the element upstream from the \vn{floor_shift} element, the coordinates at the exit
+end of the \vn{floor_shift} element is independent of the coordinates of the upstream element.
+
+If the \vn{origin_ele} has a finite length, the reference point may be chosen using the
+\vn{origin_ele_ref_pt} attribute which may be set to one of
 \begin{example}
   entrance_end
   center
   exit_end         ! Default
 \end{example}
+
 
 PTC does not have an analogous element for the \vn{Floor_shift}
 element. When converting to PTC, a \vn{floor_shift} element will be treated
