@@ -2715,6 +2715,9 @@ case (patch$)
   call set_ele_status_stale (ele, ref_energy_group$)
   call set_ele_status_stale (ele, floor_position_group$)
 
+case (floor_shift$, fiducial$)
+  call set_ele_status_stale (ele, floor_position_group$)
+
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
       associated(a_ptr, ele%value(rho$))) then

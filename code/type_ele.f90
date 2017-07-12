@@ -57,10 +57,10 @@ use expression_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord, slave
+type (ele_struct), pointer :: lord, slave, ele0
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
-type (floor_position_struct) :: floor
+type (floor_position_struct) :: floor, f0
 type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
 type (cartesian_map_struct), pointer :: ct_map
@@ -1054,7 +1054,7 @@ if (logic_option(.false., type_floor_coords)) then
     ! Misalignments are referenced to beginning of element
     call ele_geometry (ele%floor, ele, floor, -1.0_rp)
     floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$))
     call ele_geometry (floor, ele, floor)
 
   case (girder$)
@@ -1069,10 +1069,18 @@ if (logic_option(.false., type_floor_coords)) then
   end select
 
   nl=nl+1; li(nl) = ''
-  nl=nl+1; li(nl) = 'Global Floor Coords:'
+  nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
   nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi   
-  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi   
+  nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+  nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+  ele0 => pointer_to_next_ele(ele, -1)
+  if (associated(ele0)) then
+    if (ele%ix_ele /= 0 .or. ele%branch%param%geometry == closed$) then
+      f0 = ele0%floor
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
+                                                                                                         '! Delta with respect to last element'  
+    endif
+  endif
 endif
 
 ! finish
