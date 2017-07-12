@@ -136,19 +136,15 @@ See Sec.~\sref{s:cust.read.example} for an example of how to use this hook.
 \subsection{tao\_hook\_evaluate\_a\_datum}
 \index{customizing!tao_hook_evaluate_a_datum}
 
-Any custom data types are defined and calculated here. If a
-non-standard data type is listed in the initialization files, then a
-corresponding data type must be placed in this routine. The tutorial
+Any custom data types are defined and calculated here. If a non-standard data type is listed in the
+initialization files, then a corresponding data type must be placed in this routine. The tutorial
 uses this hook routine when calculating the emittance.
 
-\tao evaluates data at each element while each lattice is being
-calculated. At initialization time \tao determines which datums are to
-be evaluated at each element then calls \vn{tao_evaluate_a_datum} at
-each element for each datum that needs to be evaluated. If a range of
-elements are specified for a datum then \vn{tao_evaluate_a_datum} is
-called for this datum at the last element in the
-range. \vn{tao_evaluate_a_datum} starts by calling
-\vn{tao_hook_evaluate_a_datum} to evaluate the custom data types.
+Dependent lattice parameters (such as closed orbits, beta functions, etc.) are recalculated every
+time \tao believes the lattice has changed (for example, after a \vn{change} command).  This is done
+in \vn{tao_lattice_calc}. \vn{tao_lattice_calc} in turn calls \vn{tao_evaluate_a_datum} for each
+datum. \vn{tao_evaluate_a_datum} in turn calls \vn{tao_hook_evaluate_a_datum} to allow for custom
+data evaluations.
 
 As explained in the dummy file, the datum merit type affects how a
 datum's value should be calculated. There is a helper subroutine in

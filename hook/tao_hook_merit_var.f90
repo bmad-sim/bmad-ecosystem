@@ -25,7 +25,7 @@ implicit none
 type (tao_var_struct) var
 
 integer, intent(in) :: i_uni, j_var
-character(20) :: r_name = 'tao_hook_merit_var'
+character(*), parameter :: r_name = 'tao_hook_merit_var'
 
 !
 

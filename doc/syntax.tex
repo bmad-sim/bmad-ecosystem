@@ -344,12 +344,53 @@ Examples:
   ele::Q01W[is_on]|model     The on/off status of element \vn{Q01W}.
 \end{example}
 
-There is some overlap between element parameters and lattice parameters
-(\sref{s:lat.token}).  For historical reasons, the \vn{element} parameter syntax roughly
-follows a convention developed for \bmad lattice files which is somewhat different from
-the convention developed for \tao data. For example, the $a$-mode beta is named
-\vn{beta.a} in \tao while \bmad uses the name \vn{beta_a}. See the \bmad manual for more
-information on the \bmad lattice file syntax.
+There is some overlap between element parameters and lattice parameters (\sref{s:lat.token}).  For
+historical reasons, the \vn{element} parameter syntax roughly follows a convention developed for
+\bmad lattice files which is somewhat different from the convention developed for \tao data. For
+example, the $a$-mode beta is named \vn{beta.a} in \tao while \bmad uses the name \vn{beta_a}. See
+the \bmad manual for more information on the \bmad lattice file syntax. The following table lists
+the parameters that have both \tao datum and \bmad element parameter names
+\begin{table}[ht] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{\tao Datum}                   & \vn{\bmad Element Parameter}        \\ \midrule
+  alpha.a, alpha.b                  & alpha_a, alpha_b                    \\
+  beta.a, beta.b                    & beta_a, beta_b                      \\
+  c_mat.11, etc.                    & cmat_11, etc.                       \\
+  e_tot                             & e_tot                               \\
+  eta.a, eta.b                      & eta_a, eta_b                        \\
+  eta.x, eta.y                      & eta_x, eta_y                        \\
+  etap.a, etap.b                    & etap_a, etap_b                      \\
+  etap.x, etap.y                    & etap_x, etap_y                      \\
+  floor.x, floor.y, floor.z         & x_position, y_position, z_position  \\
+  floor.theta, floor.phi, floor.psi & theta_position, phi_position, psi_position \\
+  gamma.a, gamma.b                  & gamma_a, gamma_b                    \\
+  phase.a, phase.b                  & phi_a, phi_b                        \\
+\bottomrule
+\end{tabular}
+} 
+\caption{\tao datums that have equivalent \bmad element parameters.}  
+\label{t:delta}
+\end{table}
+
+The following table lists the parameters that have both \tao datum and \bmad particle orbit names
+\begin{table}[ht] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{\tao Datum}               & \vn{\bmad Orbit Parameter}         \\ \midrule
+  orbit.x, orbit.y, orbit.z     & x, y, z                            \\
+  orbit.px, orbit.py, orbit.pz  & px, py, pz                         \\
+  spin.x, spin.y, spin.z        & spin_x, spin_y, spin_z             \\
+  spin.amp spin.theta, spin.phi & spinor_polarization, spinor_theta, spinor_phi \\
+\bottomrule
+\end{tabular}
+} 
+\caption{\tao datums that have equivalent \bmad orbital parameters.}  
+\label{t:delta}
+\end{table}
+
 
 For parameters that are vaying throughout the element, like the Twiss parameters,
 \vn{ele::} will evaluate the parameter at the exit end of the element and \vn{ele_mid::}

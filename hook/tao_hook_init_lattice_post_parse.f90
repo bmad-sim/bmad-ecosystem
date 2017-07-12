@@ -18,7 +18,7 @@ subroutine tao_hook_init_lattice_post_parse (u)
 
   type (tao_universe_struct) u
 
-  character(40) :: r_name = 'tao_hook_init_lattice_post_parse'
+  character(*), parameter :: r_name = 'tao_hook_init_lattice_post_parse'
   
 !
   

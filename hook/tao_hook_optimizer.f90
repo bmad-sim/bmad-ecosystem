@@ -14,12 +14,11 @@ use tao_mod, dummy => tao_hook_optimizer
 
 implicit none
 
-character(20) :: r_name = 'tao_hook_optimizer'
+character(*), parameter :: r_name = 'tao_hook_optimizer'
 logical abort
 
 !
 
-call out_io (s_error$, r_name, &
-                      'THIS DUMMY ROUTINE NEEDS TO BE OVER WRITTEN!')
+call out_io (s_error$, r_name, 'THIS DUMMY ROUTINE NEEDS TO BE OVER WRITTEN!')
 
 end subroutine
