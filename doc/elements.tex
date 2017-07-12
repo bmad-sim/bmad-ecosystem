@@ -1472,10 +1472,13 @@ no other suitable element class.
 \label{s:fiducial}
 \index{fiducial|hyperbf}
 
-A \vn{fiducial} element is used to fix the position and orientation of
-the reference orbit within the global coordinate system at the
-location of the \vn{fiducial} element. A \vn{fiducial} element will
-affect the reference orbit both upstream and downstream of the element.
+A \vn{fiducial} element is used to fix the position and orientation of the reference orbit within
+the global coordinate system at the location of the \vn{fiducial} element. A \vn{fiducial} element
+will affect the global floor coordinates (\sref{s:global}) of elements both upstream and downstream
+of the fiducial element.
+
+Other elements that are used to shift the lattice in the global coordinate frame are
+\vn{floor_shift} (\sref{s:floor.ele}) and \vn{patch} (\sref{s:patch}).
 
 General \vn{fiducial} element attributes are:
 \begin{center}
@@ -1511,11 +1514,10 @@ For tracking purposes, the \vn{fiducial} element is considered to be a
 zero length marker. That is, the transfer map through a \vn{fiducial}
 element is the unit map.
 
-A \vn{fiducial} element sets the reference orbit of itself and of the
-elements, both upstream and downstream, around it. This can be thought
-of as a two step process. The first step is to determine the global
-coordinates of the \vn{fiducial} element itself, and the second step is
-to shift the coordinates of the elements around it.
+A \vn{fiducial} element sets the global floor coordinates (\sref{s:global}) of itself and of the
+elements, both upstream and downstream, around it. This can be thought of as a two step process. The
+first step is to determine the global coordinates of the \vn{fiducial} element itself, and the
+second step is to shift the coordinates of the elements around it.
 
 The floor coordinates of the \vn{fiducial} element are determined
 starting with an \vn{origin_ele} element. If \vn{origin_ele} is not
@@ -1601,8 +1603,9 @@ machine.
 A \vn{floor_shift} element shifts the reference orbit in the global
 coordinate system without affecting particle tracking. That is, in
 terms of tracking, a \vn{floor_shift} element is equivalent to a
-\vn{marker} (\sref{s:mark}) element. Also see \vn{patch}
-(\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial}) elements.
+\vn{marker} (\sref{s:mark}) element. 
+
+Also see \vn{patch} (\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial}) elements.
 
 General \vn{floor_shift} element attributes are:
 \begin{center}
