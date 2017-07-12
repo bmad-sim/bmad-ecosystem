@@ -4,15 +4,14 @@
 ! See the Programmer's manual for how to add custom data types here.
 !
 ! Input:
-!   datum        -- tao_data_struct: the current datum to evaluate
-!   u            -- tao_universe_struct: universe this datum is in
-!   tao_lat      -- Tao_lattice_struct: Lattice to use.
+!   datum        -- tao_data_struct: The current datum to evaluate
+!   u            -- tao_universe_struct: Universe this datum is in
+!   tao_lat      -- tao_lattice_struct: Lattice to use.
 !
 ! Output:
-!   datum_value  -- real(rp): which datum value to compute (model_value,
-!                             design_value, etc...)
-!   Found        -- Logical: TRUE if  this datum is evaluated in this subroutine.
-!   valid_value  -- Logical: Set false when there is a problem. Set true otherwise.
+!   found        -- Logical: True if  this datum is evaluated in this subroutine.
+!   datum_value  -- real(rp): Which datum value to compute (model_value, design_value, etc...)
+!   valid_value  -- Logical: Set False when there is a problem. Set True otherwise.
 !   why_invalid  -- Character(*), optional: Tells why datum value is invalid.
 !-
 
@@ -30,7 +29,7 @@ real(rp) datum_value
 logical found, valid_value
 
 character(*), optional :: why_invalid
-character(20) :: r_name = 'tao_hook_evaluate_a_datum'
+character(*), parameter :: r_name = 'tao_hook_evaluate_a_datum'
 
 !
 

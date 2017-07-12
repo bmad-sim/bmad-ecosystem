@@ -160,12 +160,13 @@ Table~\ref{t:delta}.
 \begin{table}[ht] 
 \centering 
 {\tt
-\begin{tabular}{|l|l|l|} \hline
-  \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{delta} \\ \hline 
-  F & F & Model - Meas                \\ \hline 
-  T & F & Model - Meas + Ref - Design \\ \hline 
-  F & T & Model - Meas - Base         \\ \hline 
-  T & T & Model - Meas + Ref - Base   \\ \hline 
+\begin{tabular}{lll} \toprule
+  \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{delta} \\ \midrule
+  F & F & Model - Meas                \\
+  T & F & Model - Meas + Ref - Design \\
+  F & T & Model - Meas - Base         \\
+  T & T & Model - Meas + Ref - Base   \\
+\bottomrule
 \end{tabular}
 } 
 \caption{The form of \vn{delta}}  
@@ -190,11 +191,12 @@ types as given in Table~\ref{t:con.type}.
 \begin{table}[ht]
 \centering
 {\tt
-\begin{tabular}{|l|l|l|} \hline
-  {\it Merit\_Type}       & {\it Non-zero-Condition} \\ \hline 
-  \vn{target}            & Any \vn{delta}   \\ \hline 
-  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\ \hline 
-  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\ \hline 
+\begin{tabular}{|l|l|l|} \toprule
+  {\it Merit\_Type}       & {\it Non-zero-Condition} \\ \midrule
+  \vn{target}            & Any \vn{delta}   \\
+  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\
+  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\
+\bottomrule
 \end{tabular}
 }
 \caption{Constraint Type List.}

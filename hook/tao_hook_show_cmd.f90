@@ -26,7 +26,7 @@ type (tao_var_struct) var
 
 character(*) what, stuff, result_id
 character(*), allocatable :: lines(:)
-character(24) :: r_name = 'tao_hook_show_cmd'
+character(*), parameter :: r_name = 'tao_hook_show_cmd'
 
 integer nl
 
