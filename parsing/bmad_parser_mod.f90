@@ -40,17 +40,17 @@ type seq_ele_struct
 end type
 
 type seq_struct
-  character(40) name              ! name of sequence
+  character(40) name                ! name of sequence
   type (seq_ele_struct), pointer :: ele(:) => null()
   character(40), pointer :: dummy_arg(:) => null()
   character(40), pointer :: corresponding_actual_arg(:) => null()
-  integer type                    ! LINE$, REPLACEMENT_LINE$ or LIST$
-  integer ix                      ! current index of element in %ele
-  integer indexx                  ! alphabetical order sorted index
-  character(200) file_name        ! file where sequence is defined
-  integer ix_line                 ! line number in filewhere sequence is defined
+  integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
+  integer ix                        ! current index of element in %ele
+  integer indexx                    ! alphabetical order sorted index
+  character(200) :: file_name = ''  ! file where sequence is defined
+  integer ix_line                   ! line number in filewhere sequence is defined
   logical multipass
-  logical ptc_layout              ! Put in separate PTC layout
+  logical ptc_layout                ! Put in separate PTC layout
 end type
 
 type used_seq_struct
@@ -6413,7 +6413,7 @@ end subroutine bp_set_ran_status
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_debug_print_info (debug_line)
+! Subroutine parser_debug_print_info (lat, debug_line, sequence)
 !
 ! Subroutine to remove all null_ele elements.
 !
@@ -6421,15 +6421,38 @@ end subroutine bp_set_ran_status
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_debug_print_info (lat, debug_line)
+subroutine parser_debug_print_info (lat, debug_line, sequence)
 
 type (lat_struct) lat
+type (seq_struct), target, optional :: sequence(:)
+type (seq_struct), pointer :: seq
+integer i, j, ix
+logical found
 character(*) debug_line
-integer i, ix
 
 !
 
+found = .false.
 call str_upcase (debug_line, debug_line)
+
+if (index(debug_line, 'SEQ') /= 0 .and. present(sequence)) then
+  print *
+  print *, '----------------------------------------'
+  print *, 'Number of sequences:', size(sequence)
+  print *, 'Use Line: ', trim(lat%use_name)
+  do i = 1, size(sequence)
+    seq => sequence(i)
+    print *
+    print *, '----------------------------------'
+    print '(a, i3, 2x, a, 2x, a)', 'Sequence: ', i, trim(seq%name), trim(this_type(seq%type))
+    print '(1x, a, 2x, a)', 'In file:', trim(seq%file_name)
+    print *, 'Multipass:', seq%multipass
+    do j = 1, size(seq%ele)
+      print '(i5, 2x, a16, 2x, i1, 2x, a)', j, &
+              this_type(seq%ele(j)%type), seq%ele(j)%ele_orientation, trim(seq%ele(j)%name)
+    enddo
+  enddo
+endif
 
 if (index(debug_line, 'VAR') /= 0) then
   print *
@@ -6438,6 +6461,7 @@ if (index(debug_line, 'VAR') /= 0) then
   do i = bp_com%ivar_init+1, bp_com%ivar_tot
     print '(i6, 2x, a, es18.10)', i, bp_com%var(i)%name, bp_com%var(i)%value
   enddo
+  found = .true.
 endif
 
 if (index(debug_line, 'SLAVE') /= 0) then
@@ -6449,6 +6473,7 @@ if (index(debug_line, 'SLAVE') /= 0) then
     print *, 'Ele #', i
     call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
   enddo
+  found = .true.
 endif
 
 if (index(debug_line, 'LORD') /= 0) then
@@ -6460,6 +6485,7 @@ if (index(debug_line, 'LORD') /= 0) then
     print *, 'Ele #', i
     call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
   enddo
+  found = .true.
 endif
 
 if (index(debug_line, 'LATTICE') /= 0) then  
@@ -6477,6 +6503,7 @@ if (index(debug_line, 'LATTICE') /= 0) then
     print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', lat%ele(i)%name(1:30),  &
            key_name(lat%ele(i)%key), lat%ele(i)%value(l$), lat%ele(i)%s
   enddo
+  found = .true.
 endif
 
 ix = index(debug_line, 'ELE')
@@ -6493,6 +6520,7 @@ if (ix /= 0) then
     call type_ele (lat%ele(i), .false., 0, .true., 0, .true., .true., .true., .true., .true.)
     call string_trim (debug_line(ix+1:), debug_line, ix)
   enddo
+  found = .true.
 endif
 
 if (index(debug_line, 'BEAM_START') /= 0) then
@@ -6500,7 +6528,38 @@ if (index(debug_line, 'BEAM_START') /= 0) then
   print *, '----------------------------------------'
   print *, 'beam_start:'
   print '(3x, 6es13.4)', lat%beam_start%vec      
+  found = .true.
 endif
+
+!--------------------------------
+
+if (.not. found) then
+  print *, 'BAD PARSER_DEBUG LINE: ' // trim(debug_line)
+endif
+
+!--------------------------------------------------------------
+contains
+
+function this_type (ix) result (type_str)
+integer ix, k
+character(20) type_str
+
+select case (ix)
+case (line$)
+  type_str = 'Line'
+case (list$)
+  type_str = 'List'
+case (replacement_line$)
+  type_str = 'Replacement_Line'
+case (element$)
+  type_str = 'Element'
+case (0)
+  type_str = 'Zero!!'
+case default
+  type_str = '???'
+end select
+
+end function
 
 end subroutine parser_debug_print_info
 

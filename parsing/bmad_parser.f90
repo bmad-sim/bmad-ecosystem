@@ -1194,7 +1194,7 @@ call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), downstream_end$, E_
 !-------------------------------------------------------------------------
 ! Print lattice info if debug is on
 
-if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
+if (debug_line /= '') call parser_debug_print_info (lat, debug_line, sequence(1:iseq_tot))
 
 ! Write digested file
 
