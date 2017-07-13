@@ -1,5 +1,6 @@
-parameter[lattice] = "Tao optics matching example"
 
+parameter[lattice] = "Tao optics matching example"
+no_digested
 
 beginning[beta_a] = 5
 beginning[beta_b] = 5
