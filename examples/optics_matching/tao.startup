@@ -7,7 +7,7 @@ set universe * on
 alias vim sp vim
 
 ! legacy view command
-alias view set default uni =
+alias view set default uni = [[1]]
 
 alias vv veto var *
 alias vd veto dat *@*
@@ -22,18 +22,18 @@ alias ogeo set global optimizer = geodesic_lm
 alias sgeo set geodesic_lm
 set geodesic_lm print_level = 2
 
-alias scycles set global n_opti_cycles = 
-alias sloops  set global n_opti_loops = 
-alias sde     set global de_lm_step_ratio = 
-alias spop set global de_var_to_population_factor = 
+alias scycles set global n_opti_cycles = [[1]]
+alias sloops  set global n_opti_loops = [[1]] 
+alias sde     set global de_lm_step_ratio = [[1]]
+alias spop set global de_var_to_population_factor = [[1]]
 alias SLD set lattice model=design
 
-alias sfloor set graph floor.plan floor_plan_view = 
+alias sfloor set graph floor.plan floor_plan_view = [[1]]
 
 alias beamoff set global track_type = single
 alias beamon set global track_type = beam
 
-alias snparticle set beam_init n_particle =
+alias snparticle set beam_init n_particle = [[1]]
 
 alias timeron  set global beam_timer_on = true
 alias timeroff  set global beam_timer_on = false
