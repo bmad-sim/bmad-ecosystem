@@ -2718,8 +2718,15 @@ of the region in which it is placed.
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{phase-space.pdf}
-  \caption{Example Phase Space plot.}
+  \subfloat[Horizontal phase space]{
+  %\includegraphics[width=5in]{phase-space.pdf}
+  \includegraphics[width=0.45\textwidth]{plot-color-xpx}
+  \label{f:phase.space}
+  }
+  \subfloat[Longitudinal phase space]{
+  \includegraphics[width=0.45\textwidth]{plot-color-zpz}
+  }  
+  \caption{Example Phase Space plot, with points colored by the \vn{pz} coordinate.}
   \label{f:phase.space}
 \end{figure}
 
@@ -2730,31 +2737,33 @@ with a \vn{graph} by setting \vn{graph%type} equal to
 (\sref{s:plot.data}). An example is show in Figure~\ref{f:phase.space}.
 Example Phase Space template:
 \begin{example}
-  &tao_template_plot
-    plot%name = "zphase"
-    plot%x%min =   -10e-3
-    plot%x%max = 10e-3
-    plot%x%major_div_nominal = 4
-    plot%x%label = "z"
-    plot%n_graph = 1
-  /
+&tao_template_plot
+  plot%name = "xphase"
+  plot%x%min =   -2.5
+  plot%x%max = 0.5
+  plot%x%label = "x (mm)"
+  plot%n_graph = 1
+/
 
-  &tao_template_graph
-    graph_index = 1
-    graph%name = "z"
-    graph%type = "phase_space"
-    graph%box = 1, 1, 1, 1
-    graph%title = "Z-Pz"
-    graph%margin =  0.12, 0.12, 0.12, 0.12, "%BOX"
-    graph%y%label = "Pz"
-    graph%y%max = 3
-    graph%y%min = -3
-    graph%y%major_div_nominal = 4
-    graph%n_curve = 1
-    curve(1)%data_type_x = "z" 
-    curve(1)%data_type = "pz" 
-    curve(1)%data_source = "beam"
-    curve(1)%ele_ref_name = "BEGINNING"
+&tao_template_graph
+  graph_index = 1
+  graph%name = "x"
+  graph%type = "phase_space"
+  graph%box = 1, 1, 1, 1
+  graph%title = "X-Px"
+  graph%margin =  0.15, 0.06, 0.12, 0.12, "%BOX"
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label =  "p\textbackslash{}dx\textbackslash{}u/p\textbackslash{}d0\textbackslash{}u (mrad)"
+  graph%y%major_div = 4
+  graph%n_curve = 1
+  graph%y%label_offset=.4
+  curve(1)%data_type = "x-px" 
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%data_source = "beam_tracking"
+  curve(1)%ele_ref_name = "END"
+  curve(1)%symbol%type = 1
+  curve(1)%data_type_z = "pz"
+  curve(1)%use_z_color = T
   /
 \end{example}
 
@@ -2784,6 +2793,24 @@ $px$ coordinate.
 To change the place in the lattice where the data for the
 \vn{phase_space} curve is evaluated, use the \vn{set curve
 ele_ref_name} or \vn{set curve ix_ele_ref} commands.
+
+Points can be colored by another phase space coordinate by activating
+\vn{use_z_color = T}. 
+The available curve options and defaults are:
+\begin{example}
+  use_z_color = F
+  data_type_z = "" 
+  z_color0 = 0
+  z_color1 = 0
+  autoscale_z_color = T
+\end{example}
+These can be the init file, or in Tao using the \vn{set curve} command. 
+The \vn{data_type_z} can be set to any of the available phase space coordinates.
+\vn{z_color0} and \vn{z_color1} specify the minimum and maximum of this coordinate
+to be used in the color range. Values above or below this range will be colored
+Black or Grey, respectively. 
+If \vn{autoscale_z_color=T}, then these will be set automatically based on the
+limits of the \vn{data_type_z} coordinate. 
 
 If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
 must be either:

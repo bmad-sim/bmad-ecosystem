@@ -664,6 +664,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), rmt)  'z_color1             = ', c1%z_color1
       nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
       nl=nl+1; write(lines(nl), lmt)  'use_z_color          = ', c1%use_z_color
+      nl=nl+1; write(lines(nl), lmt)  'autoscale_z_color    = ', c1%autoscale_z_color
       nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
       nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
