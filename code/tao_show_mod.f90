@@ -214,10 +214,10 @@ character(3) undef_str
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, switch
+character(40) ele_name, sub_name, ele1_name, ele2_name
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
-character(100) :: word1, fmt, fmt2, fmt3
+character(100) :: word1, fmt, fmt2, fmt3, switch
 character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
