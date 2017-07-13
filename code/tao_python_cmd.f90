@@ -993,7 +993,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
   nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
-  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color0
+  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      cur%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
   nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        cur%ix_branch
@@ -1006,6 +1006,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
   nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
   nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;T;',                    cur%use_z_color
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;T;',              cur%autoscale_z_color
 
   nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
   nl=incr(nl); write (li(nl), amt)  'line.color;STR;T;',                      qp_color_name(cur%line%color)

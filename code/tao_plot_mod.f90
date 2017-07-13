@@ -1522,7 +1522,8 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct) :: curve
 
-integer i
+real(rp) :: dz
+integer i, color
 logical have_data
 character(16) num_str
 
@@ -1533,10 +1534,23 @@ call qp_set_symbol (curve%symbol)
 
 if (curve%draw_symbols .and. allocated(curve%x_symb)) then
   if (size(curve%x_symb) > 0) have_data = .true.
-  if (graph%symbol_size_scale > 0) then
+  
+  if (graph%symbol_size_scale > 0) then  
     do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
       call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), height = curve%symb_size(i), clip = graph%clip)
-    enddo
+    enddo 
+    
+  ! Color by z  
+  elseif (curve%use_z_color) then  
+     if (curve%autoscale_z_color) then
+       curve%z_color0 = minval(curve%z_symb(:))
+       curve%z_color1 = maxval(curve%z_symb(:))
+     endif
+     dz = (curve%z_color1 - curve%z_color0)
+    do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
+        call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), clip = graph%clip, color = z_color())
+    enddo    
+    
   else
     call qp_draw_symbols (curve%x_symb, curve%y_symb, symbol_every = curve%symbol_every, clip = graph%clip)
   endif
@@ -1561,6 +1575,21 @@ if (curve%draw_line .and. allocated(curve%x_line)) then
 endif
 
 call qp_use_axis (y = 'Y')  ! reset
+
+contains
+
+  function z_color()
+  integer :: z_color
+  real(rp) :: z
+  if (dz==0) then
+    z_color = black$
+  else
+    z = (curve%z_symb(i) - curve%z_color0)/dz
+    z = 1-z ! Make red -> purple with PLPlot
+    z_color = qp_continuous_color(z)  
+   endif
+  end function
+
 
 end subroutine tao_draw_curve_data
 

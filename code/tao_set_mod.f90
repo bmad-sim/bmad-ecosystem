@@ -934,6 +934,9 @@ case ('use_y2')
 
 case ('use_z_color')
   call tao_set_logical_value (this_curve%use_z_color, component, set_value, error)
+  
+case ('autoscale_z_color')
+  call tao_set_logical_value (this_curve%autoscale_z_color, component, set_value, error)  
 
 case ('data_source')
   this_curve%data_source = set_value

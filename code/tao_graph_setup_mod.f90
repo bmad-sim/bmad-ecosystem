@@ -267,7 +267,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 real(rp) emit_a, emit_b
 
-integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
+integer k, n, m, ib, ix1_ax, ix2_ax, ix3_ax, ix, i
 
 logical err, same_uni
 
@@ -351,6 +351,7 @@ do k = 1, size(graph%curve)
     call re_allocate (curve%x_symb, n)
     call re_allocate (curve%y_symb, n)
     if (graph%symbol_size_scale > 0) call re_allocate (curve%symb_size, n)
+    if (curve%use_z_color) call re_allocate (curve%z_symb, n)
 
     n = 0
     do ib = 1, size(beam%bunch)
@@ -361,6 +362,10 @@ do k = 1, size(graph%curve)
       call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2, ele)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
+      if (curve%use_z_color) then
+        call tao_phase_space_axis (curve%data_type_z,   ix3_ax, p, scratch%axis3, ele)
+        curve%z_symb(n+1:n+m) = pack(scratch%axis3, mask = (p%state == alive$))
+      endif
       if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
                            sqrt(p(:)%field(1)**2 + p(:)%field(2)**2), mask = (p%state == alive$))
       curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%state == alive$))

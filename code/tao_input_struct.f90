@@ -92,6 +92,7 @@ type tao_curve_input
   logical :: draw_symbol_index = .false.
   logical :: use_y2 = .false.
   logical :: use_z_color = .false.
+  logical :: autoscale_z_color = .true.
   logical :: draw_interpolated_curve = .true.
   logical :: smooth_line_calc = .true.
   character(40) :: ele_ref_name = ''

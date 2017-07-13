@@ -166,6 +166,7 @@ type tao_curve_struct
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
   logical :: use_z_color = .false.       ! For phase space plots.
+  logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -679,7 +680,7 @@ type tao_scratch_space_struct
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
-  real(rp), allocatable :: axis1(:), axis2(:)
+  real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)
   character(n_char_show), allocatable :: lines(:) !For returning data to python through strings

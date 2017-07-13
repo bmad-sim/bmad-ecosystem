@@ -600,6 +600,7 @@ do  ! Loop over plot files
         crv%draw_symbol_index    = curve(j)%draw_symbol_index
         crv%use_y2               = curve(j)%use_y2
         crv%use_z_color          = curve(j)%use_z_color
+        crv%autoscale_z_color    = curve(j)%autoscale_z_color
         crv%symbol               = curve(j)%symbol
         crv%line                 = curve(j)%line
         crv%smooth_line_calc     = curve(j)%smooth_line_calc
