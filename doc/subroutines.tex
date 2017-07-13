@@ -359,9 +359,8 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
-    em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, \\
-    \hspace*{1in} calc_dfield, err_flag, potential, use_overlap, \\
-    \hspace*{1in} grid_allow_s_out_of_bounds, rf_time, used_eles) }] \Newline 
+    em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, \\
+    \hspace*{0.5in} potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -877,18 +876,25 @@ Routine to make sure the attributes of an element are self-consistent.
 
 \index[routine]{autoscale_phase_and_amp}
 \label{r:autoscale.phase.and.amp}
-\item[autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)] \Newline 
+\item[\protect\parbox{6in}{
+      autoscale_phase_and_amp(ele, param, err_flag, scale_phase, \\
+      \hspace*{1in} scale_amp, call_bookkeeper)} ] \Newline 
 Routine to set the phase offset and amplitude scale of the accelerating field. 
 This routine works on lcavity, rfcavity and e_gun elements.
 
 \index[routine]{create_element_slice}
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele_in, l_slice, \\
-    \hspace*{1in} offset, param, include_upstream_end, \\
-    \hspace*{1in} include_downstream_end, err_flag, old_slice)} ] \Newline 
+    create_element_slice (sliced_ele, ele_in, l_slice, offset, param, \\
+    \hspace*{0.5in} include_upstream_end, include_downstream_end, err_flag, old_slice)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
+
+\index[routine]{create_field_overlap}
+\label{r:create.field.overlap}
+\item[create_field_overlap (lat, lord_name, slave_name, err_flag)] \Newline 
+Subroutine to add the bookkeeping information to a lattice for an element's field
+overlapping another element.
 
 \index[routine]{create_group}
 \label{r:create.group}
@@ -996,6 +1002,11 @@ Routine to set the bookkeeping status block.
     \hspace*{1in} add_suffix, check_sanity, save_null_drift, err_flag)} ] \Newline
 Routine to split a lat at a point.
 
+\index[routine]{value_of_attribute}
+\label{r:value.of.attribute}
+\item[value_of_attribute (ele, attrib_name, err_flag, err_print_flag) result (value)] \Newline 
+Returns the value of an element attribute.
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1058,7 +1069,9 @@ Given a position local to ele, return global floor coordinates.
 
 \index[routine]{coords_floor_to_local_curvilinear}
 \label{r:position.in.local.frame}
-\item[coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat) result(local_position)] \Newline 
+\item[\protect\parbox{6in}{
+      coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat) \\
+      \hspace*{1in} \hfill result(local_position)} ] \Newline 
 Given a position in global coordinates, return local curvilinear coordinates in ele
   relative to floor0
 
@@ -1115,10 +1128,11 @@ Function to return the name of an attribute for a particular type of element.
 \item[attribute_type (attrib_name) result (attrib_type)] \Newline 
 Routine to return the type (logical, integer, real, or named) of an attribute.
 
-\index[routine]{switch_attrib_value_name}
-\label{r:switch.attrib.value.name}
-\item[switch_attrib_value_name (attrib_name, attrib_value, ele, is_default, name_list) result (val_name)] \Newline 
-Routine to return the name corresponding to the value of a given attribute.
+\index[routine]{branch_name}
+\label{r:branch.name}
+\item[branch_name(branch) result (name)] \Newline 
+Routine to return a string with the lattice branch name encoded.
+This routine is useful for error messages.
 
 \index[routine]{check_if_s_in_bounds}
 \label{r:check.if.s.in.bounds}
@@ -1193,6 +1207,9 @@ name known to bmad.
 Routine to make a list of the elements in a lat 
 whose name matches the names in the ele_names list. 
 
+\item[num_lords (slave, lord_type) result (num)] \Newline 
+Routine to return the number of lords of a lattice element of a certain type.
+
 \index[routine]{pointer_to_indexed_attribute}
 \label{r:pointer.to.indexed.attribute}
 \item[\protect\parbox{6in}{
@@ -1220,6 +1237,14 @@ Function to point to a slave of a lord.
 \label{r:rf.is.on}
 \item[rf_is_on (branch) result (is_on)] \Newline 
 Routine to check if any rfcavity is powered in a branch.
+
+\index[routine]{switch_attrib_value_name}
+\label{r:switch.attrib.value.name}
+\hspace*{1in} 
+\item[\protect\parbox{6in}{
+      switch_attrib_value_name (attrib_name, attrib_value, ele, is_default, name_list) \\
+      \hfill result (val_name)} ] \Newline 
+Routine to return the name corresponding to the value of a given switch attribute.
 
 \index[routine]{type_ele}
 \label{r:type.ele}
