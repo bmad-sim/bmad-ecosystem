@@ -106,13 +106,13 @@ headers and plenty of comments throughout the dummy code to aid in the
 modification of these subroutines.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_graph\_setup}
+\subsection{tao_hook_graph_setup}
 \index{customizing!tao_hook_graph_data_setup}
 
 Use this to setup custom graph data for a plot.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_command}\index{customizing!tao_hook_commad}
+\subsection{tao_hook_command}\index{customizing!tao_hook_commad}
 \label{s:hook.command}
 
 Any custom commands are placed here. The dummy subroutine already has
@@ -133,7 +133,7 @@ Section~\sref{s:lat.calc}.
 See Sec.~\sref{s:cust.read.example} for an example of how to use this hook.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_evaluate\_a\_datum}
+\subsection{tao_hook_evaluate_a_datum}
 \index{customizing!tao_hook_evaluate_a_datum}
 
 Any custom data types are defined and calculated here. If a non-standard data type is listed in the
@@ -144,38 +144,18 @@ Dependent lattice parameters (such as closed orbits, beta functions, etc.) are r
 time \tao believes the lattice has changed (for example, after a \vn{change} command).  This is done
 in \vn{tao_lattice_calc}. \vn{tao_lattice_calc} in turn calls \vn{tao_evaluate_a_datum} for each
 datum. \vn{tao_evaluate_a_datum} in turn calls \vn{tao_hook_evaluate_a_datum} to allow for custom
-data evaluations.
+data evaluations. 
 
-As explained in the dummy file, the datum merit type affects how a
-datum's value should be calculated. There is a helper subroutine in
-the dummy hook routine called \vn{load_it} to aid in modifying the
-datum's value based on the merit type. If there is a range of elements
-associated with datum then a merit type other than \vn{target}
-requires that the entire range of elements associated with the datum
-be searched for the appropriate value to be returned.  See
-Chapter~\ref{c:opti} for details on the merit type.
-
-For example, if the data type is \vn{orbit.x} (yes, this is already
-defined in \tao) then the appropriate case item in
-\vn{tao_hook_load_data_array} would be:
+See the \vn{tao_evaluate_a_datum} routine as an example as how to handle datums.
+The arguments for \vn{tao_hook_evaluate_a_datum} is
 \begin{example}
-select case (datum%data_type)
-
-case ('orbit.x')
-  call load_it (orb(:)%vec(1))
+  tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 \end{example}
-\vn{load_it} will then look at each datum. If the merit type is other
-than \vn{target} then \vn{load_it} will search the appropriate range
-of elements for either the minimum or maximum horizontal orbit value
-and this will be the datum's value. Because, a datum may refer to a
-range of elements, the entire orbit array (from 0 to \vn{n_ele_max})
-is passed to \vn{load_it} for each \vn{orbit.x} datum.
-
-If the only merit type that is going to be used is \vn{target} then
-\vn{load_it} can be ignored.
+The \vn{found} logical argument should be set to \vn{True} for datums that are handled by this
+hook routine and \vn{found} sould be set to \vn{False} for all other datums.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_init1 and tao_hook_init2}
+\subsection{tao_hook_init1 and tao_hook_init2}
 \label{s:hook.init}
 \index{customizing!tao_hook_init}
 
@@ -190,7 +170,7 @@ model variable values different from design variable values since when \vn{tao_h
 is called the \vn{model} lattice has not yet been initialized.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_init\_design\_lattice}
+\subsection{tao_hook_init_design_lattice}
 \index{customizing!tao_hook_init_design_lattice}
 
 This will do a custom lattice initialization. The standard lattice
@@ -209,7 +189,7 @@ create a custom initialization file used by this routine that reads in
 any elements to be inserted.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_lattice\_calc}
+\subsection{tao_hook_lattice_calc}
 \index{customizing!tao_hook_lattice_calc}
 
 The standard lattice calculation can be performed for single particle,
@@ -222,7 +202,7 @@ possibility of, for example, tracking a single particle for one
 lattice and beams in another.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_merit\_data}
+\subsection{tao_hook_merit_data}
 \index{customizing!tao_hook_merit_data}
 
 A custom data merit type can be defined here. Table~\ref{t:con.type}
@@ -235,7 +215,7 @@ order for the custom \vn{load_it} to be used.  See
 calculated.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_merit\_var}
+\subsection{tao_hook_merit_var}
 \index{customizing!tao_hook_merit_var}
 
 This hook will allow for a custom variable merit type. However, since
@@ -244,7 +224,7 @@ to be modified.  See \vn{tao_merit.f90} for how the standard
 merit types are calculated.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_optimizer}
+\subsection{tao_hook_optimizer}
 \index{customizing!tao_hook_optimizer}
 
 If a non standard optimizer is needed, then it can be implemented
@@ -252,7 +232,7 @@ here. See the \vn{tao_*_optimizer.f90} files for how the
 standard optimizers are implemented.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_plot\_graph}
+\subsection{tao_hook_plot_graph}
 \index{customizing!tao_hook_plot_graph}
 
 This will customize the plotting of a graph. See the \tao module
@@ -260,7 +240,7 @@ This will customize the plotting of a graph. See the \tao module
 need to know how \vn{quick_plot} works (See the \bmad manual).
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_plot\_data\_setup}
+\subsection{tao_hook_plot_data_setup}
 \index{customizing!tao_hook_plot_data_setup}
 
 Use this routine to override the \vn{tao_plot_data_setup} routine which
@@ -270,7 +250,7 @@ may be useful if you want to make a plot that isn't simply the
 information in a data or variable array.
 
 %-----------------------------------------------------------------
-\subsection{tao\_hook\_post\_process\_data}
+\subsection{tao_hook_post_process_data}
 \index{customizing!tao_hook_post_process_data}
 
 Here can be placed anything that needs to be done after the data
@@ -306,19 +286,21 @@ The formula for single particle emittance is
 \Endeq
 Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the
 \cmd{case select} construct (also add the necessary type declarations)
-\begin{verbatim}
+\begin{example}
+  type (coord_struct), pointer :: orbit(:)
+  ...
+  orbit => tao_lat%tao_branch(0)%orbit
+  ...
   case ('particle_emittance.x') 
-
-    datum_value =  ( ele%x%gamma * tao_lat%orb(ix1)%vec(1)**2 + &
-		     2 * ele%x%alpha * tao_lat%orb(ix1)%vec(1) * tao_lat%orb(ix1)%vec(2) + &
-		     ele%x%beta * tao_lat%orb(ix1)%vec(2)**2)
+    datum_value =  (ele%a%gamma * orbit(ix1)%vec(1)**2 + &
+		     2 * ele%a%alpha * orbit(ix1)%vec(1) * orbit(ix1)%vec(2) + &
+		     ele%a%beta * orbit(ix1)%vec(2)**2)
     
   case ('particle_emittance.y')
-
-    datum_value = ( ele%y%gamma * tao_lat%orb(ix1)%vec(3)**2 + &
-		     2 * ele%y%alpha * tao_lat%orb(ix1)%vec(3) * tao_lat%orb(ix1)%vec(4) + &
-		     ele%y%beta * tao_lat%orb(ix1)%vec(4)**2)
-\end{verbatim}
+    datum_value = (ele%b%gamma * orbit(ix1)%vec(3)**2 + &
+		     2 * ele%b%alpha * orbit(ix1)%vec(3) * orbit(ix1)%vec(4) + &
+		     ele%b%beta * orbit(ix1)%vec(4)**2)
+\end{example}
 This defines what is to be calculated for each \vn{particle_emittance}
 datum.  There are two transverse coordinates, so two definitions need
 to be made, one for each dimension.
@@ -496,7 +478,7 @@ is the name of the data file, and the third argument, \vn{data_or_ref} should be
 \vn{meas_value} or \vn{ref_value} of the appropriate \vn{tao_data_struct}.
 
 %----------------------------------------------------------------
-\subsection{Analysis of the tao\_hook\_command.f90 File}
+\subsection{Analysis of the tao_hook_command.f90 File}
 \label{s:hook.cmd.anal}
 
 The first part of the \vn{tao_hook_command} routine parses the command line to see
