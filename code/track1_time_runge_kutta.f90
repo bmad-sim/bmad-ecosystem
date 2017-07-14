@@ -62,29 +62,6 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
             (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$) .and. &
             is_true(ele%value(spin_fringe_on$)))
 
-! If element has zero length, skip tracking
-
-if (ele%value(l$) == 0) then
-  call track1_bmad (start_orb, ele, param, end_orb) ! In case there are kicks, or is a patch, etc.
-  !If saving tracks, allocate track array and save one point
-  if (present(track)) then
-    !Convert to global-s to local-t coordinates
-    !Tracks use vec(5) = s_rel
-    call convert_particle_coordinates_s_to_t(end_orb, 0.0_rp)
-    call save_a_step (track, ele, param, .false., end_orb, end_orb%vec(5), .true., rf_time = rf_time)
-  endif
-
-  ! Reset particle to s-coordinates
-  end_orb = start_orb
-  if (end_orb%direction == +1) then
-    end_orb%location = downstream_end$
-  else
-    end_orb%location = upstream_end$
-  endif
-  err_flag = .false.
-  return
-end if
-
 ! Relative s. Adjust to match element edges if close enough
 s_rel =  end_orb%s - ele%s_start
 if (abs(s_rel) < bmad_com%significant_length) then

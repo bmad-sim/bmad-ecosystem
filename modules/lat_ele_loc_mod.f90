@@ -245,7 +245,7 @@ type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
 character(*) name
-character(20) :: r_name = 'lat_ele1_locator'
+character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
 integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
@@ -269,7 +269,10 @@ else
     key = 0
   else
     key = key_name_to_key_index (name(:ix-1), .true.)
-    if (key < 1) return
+    if (key < 1) then
+      call out_io (s_error$, r_name, 'BAD ELEMENT KEY: ', name(:ix-1))
+      return
+    endif
   endif
   name = name(ix+2:)
 endif

@@ -532,6 +532,22 @@ instead of reversal ``--'', reflection here does not make physical
 sense.  Needed here is a reversing patch \vn{P} (\sref{s:patch})
 between reversed and unreversed elements.
 
+The general rule for deciding how to group multipass elements into slave groups which represent the
+same physical element is the following. For any given element in the lattice, this element has some
+line it came from. Call this line $L_0$ and denote by $n_0$ the index where the element under
+consideration is in $L_0$ line (the first element in $L_0$ has index 1, etc.). The $L_0$ line in
+turn came from some other line. Call this line $L_1$ and denote by $n_1$ the position of $L_0$ in
+$L_1$. This chain of lines $L_0$, $L_1$, ..., $L_n$ ends at some point and the last (top) line $L_n$
+will be one of the root lines listed in the \vn{use} statement (\sref{s:use}). For any given element in the
+lattice, starting with $L_0$ and proceeding upwards through the chain, let $L_m$ be the first line
+reached that is marked as \vn{multipass}. If no such line exists for a given element then that
+element is not part of any multipass grouping and is ignored. All lattice elements that have the
+same chain $L_0$, ..., $L_m$ (where $L_m$ is the lowest multipass line) and have the same position
+indexes $n_0$, ..., $n_m$ represent the same physical element and are slaved together. For example,
+using the example above, the first element of the lattice, \vn{A\B1}, has the chain of lines $L_0$ =
+\vn{m_line}, and $L_1$ = \vn{u_line} and indexes $n_0$ = 1 and $n_1$ = 1. This is identical to the last
+element in the lattice (\vn{A\B2}) so these two elements will be grouped together.
+
 Notice that the global coordinates (\sref{s:global}) of the slaves of
 a given multipass lord are not constrained by \bmad to be the same. It
 is up to the lattice designer to make sure that the physical positions of
