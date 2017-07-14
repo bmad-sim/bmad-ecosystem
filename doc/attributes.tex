@@ -2260,7 +2260,7 @@ The lattice file syntax for the \vn{cylindrical_map} type is:
     master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
     ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
     m                = <Integer>,          ! Mode number
-    harmonic         = <Integer>,          ! Harmonic number 
+    harmonic         = <Integer>,          ! RF frequency harmonic number 
     phi0_fieldmap    = <Real>,             ! Phase of oscillations.
     theta0_azimuth   = <Real>,             ! Azimuthal orientation.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
@@ -2273,6 +2273,10 @@ The lattice file syntax for the \vn{cylindrical_map} type is:
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
+
+To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
+the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
+Sec.~\sref{s:fieldmap.com}.
 
 The basic equations used for the \vn{cylindrical_map} decomposition of the fields are given in
 Section~\sref{s:cylind.map.phys}.  \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$
@@ -2320,7 +2324,7 @@ A \vn{grid_field} is grid of field points specified using the syntax:
     field_type       = <String>,    ! Type of field: Default = Mixed.
     field_scale      = <Real>,      ! Scale factor for the E & B fields.
     phi0_fieldmap    = <Real>,      ! Phase of oscillations.
-    harmonic         = <Integer>,   ! Harmonic number 
+    harmonic         = <Integer>,   ! RF frequency harmonic number 
     master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
     curved_ref_frame = <Logical>,   ! Use a curved reference frame with bends?
     r0   = (...),                   ! Grid origin. Syntax is \vn{geometry} dependent.
@@ -2331,6 +2335,10 @@ A \vn{grid_field} is grid of field points specified using the syntax:
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
+
+To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
+the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
+Sec.~\sref{s:fieldmap.com}.
 
 For \vn{field_type} set to \vn{electric} or \vn{magnetic}, the field is DC. That is, For
 \vn{field_type} set to \vn{electric} or \vn{magnetic}, the value of \vn{harmonic} must be
