@@ -54,6 +54,13 @@ character(*), parameter :: r_name = 'track1_time_runge_kutta'
 
 !---------------------------------
 
+if (ele%key /= patch$ .and. ele%value(l$) == 0) then
+  call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  return
+endif
+
+!
+
 err_flag = .true.
 
 end_orb = start_orb

@@ -27,7 +27,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)
+! Subroutine track1_boris (start_orb, ele, param, end_orb, err_flag, track, s_start, s_end)
 !
 ! Subroutine to do Boris tracking. For more information on Boris tracking 
 ! see the boris_mod module documentation.
@@ -36,7 +36,7 @@ contains
 !   use bmad
 !
 ! Input: 
-!   orb_start  -- Coord_struct: Orb_starting coords.
+!   start_orb  -- Coord_struct: start_orbing coords.
 !   ele        -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -56,12 +56,12 @@ contains
 !                  is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !-
 
-subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)
+subroutine track1_boris (start_orb, ele, param, end_orb, err_flag, track, s_start, s_end)
 
 implicit none
 
-type (coord_struct), intent(in) :: orb_start
-type (coord_struct), intent(out) :: orb_end
+type (coord_struct), intent(in) :: start_orb
+type (coord_struct), intent(out) :: end_orb
 type (ele_struct) ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
@@ -76,6 +76,13 @@ integer i, n_step
 character(16), parameter :: r_name = 'track1_boris'
 
 logical err_flag, track_spin
+
+! Boris is not able to handle a zero length element with a non-zero multipole.
+
+if (ele%key /= patch$ .and. ele%value(l$) == 0) then
+  call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  return
+endif
 
 ! init
 
@@ -95,15 +102,15 @@ endif
 
 ! go to local coords
 
-orb_end = orb_start
-orb_end%s = s1 + ele%s_start + ele%value(z_offset_tot$)
+end_orb = start_orb
+end_orb%s = s1 + ele%s_start + ele%value(z_offset_tot$)
 
 if (ele%key == patch$) then
-  call track_a_patch (ele, orb_end, .false., s0, ds_ref)
+  call track_a_patch (ele, end_orb, .false., s0, ds_ref)
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
-  orb_end%vec(5) = orb_end%vec(5) + ds_ref * orb_end%beta / beta0 + s0
+  end_orb%vec(5) = end_orb%vec(5) + ds_ref * end_orb%beta / beta0 + s0
 else
-  if (orb_start%direction == -1) then
+  if (start_orb%direction == -1) then
     s0 = s1
     s1 = s2
     s2 = s0
@@ -113,18 +120,18 @@ endif
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
 
-call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_end, .true.)
+call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .true.)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
-call reference_energy_correction (ele, orb_end, first_track_edge$)
+call reference_energy_correction (ele, end_orb, first_track_edge$)
 
-call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false.)
+call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
-  call save_a_step (track, ele, param, .true., orb_end, s1, .true.)
+  call save_a_step (track, ele, param, .true., end_orb, s1, .true.)
 endif
 
 ! track through the body
@@ -136,8 +143,8 @@ do
   do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(fringe_info%hard_ele)) exit
     track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
-    call apply_element_edge_kick (orb_end, fringe_info, ele, param, track_spin)
-    call calc_next_fringe_edge (ele, s_edge_track, fringe_info, orb_end)
+    call apply_element_edge_kick (end_orb, fringe_info, ele, param, track_spin)
+    call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb)
   enddo
 
   if (abs(s - s2) < bmad_com%significant_length) exit
@@ -145,18 +152,18 @@ do
   s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
-  call track1_boris_partial (orb_end, ele, param, s, ds, orb_end)
+  call track1_boris_partial (end_orb, ele, param, s, ds, end_orb)
   s = s + ds
 
-  if (present(track)) call save_a_step (track, ele, param, .true., orb_end, s, .true.)
+  if (present(track)) call save_a_step (track, ele, param, .true., end_orb, s, .true.)
   
 enddo
 
 ! back to lab coords
 
-call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 
-call reference_energy_correction (ele, orb_end, second_track_edge$)
+call reference_energy_correction (ele, end_orb, second_track_edge$)
 
 ! The z value computed in Boris tracking is off for elements where the particle changes energy is not 
 ! constant (see Boris tracking for more details). In this case make the needed correction.
@@ -165,7 +172,7 @@ call reference_energy_correction (ele, orb_end, second_track_edge$)
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dref_time = ele%value(l$) / (beta0 * c_light)
-orb_end%vec(5) = orb_end%vec(5) + (ele%value(delta_ref_time$) - dref_time) * orb_end%beta * c_light
+end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
 err_flag = .false.
 

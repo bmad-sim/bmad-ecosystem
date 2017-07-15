@@ -1446,7 +1446,6 @@ enddo
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
-! Note: A patch element has a z_offset, not an z_offset.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90

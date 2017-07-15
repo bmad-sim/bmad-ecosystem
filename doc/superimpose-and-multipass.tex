@@ -544,9 +544,19 @@ reached that is marked as \vn{multipass}. If no such line exists for a given ele
 element is not part of any multipass grouping and is ignored. All lattice elements that have the
 same chain $L_0$, ..., $L_m$ (where $L_m$ is the lowest multipass line) and have the same position
 indexes $n_0$, ..., $n_m$ represent the same physical element and are slaved together. For example,
-using the example above, the first element of the lattice, \vn{A\B1}, has the chain of lines $L_0$ =
-\vn{m_line}, and $L_1$ = \vn{u_line} and indexes $n_0$ = 1 and $n_1$ = 1. This is identical to the last
-element in the lattice (\vn{A\B2}) so these two elements will be grouped together.
+using the example above, the first element of the lattice, \vn{A\B1}, has the chain of lines 
+\begin{example}
+  \(L_0, n_0\) = m_line, 1
+  \(L_1, n_1\) = u_line, 1
+\end{example} 
+The last element in the lattice, (\vn{A\B2}), has the chain
+\begin{example}
+  \(L_0, n_0\) = m_line, 1
+  \(L_1, n_1\) = m2_line, 1
+  \(L_2, n_2\) = u_line, 3
+\end{example}
+Cutting the chains at the first multipass line, \vn{m_line}, results in identical chains (each with
+a single line) so the two elements will be slaved together.
 
 Notice that the global coordinates (\sref{s:global}) of the slaves of
 a given multipass lord are not constrained by \bmad to be the same. It
