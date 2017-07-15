@@ -117,7 +117,6 @@ type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
-type (ac_kicker_struct), pointer :: ac
 
 real(rp), optional :: rf_time
 real(rp) :: x, y, s, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
@@ -1237,28 +1236,11 @@ end select
 ! Scale ac_kicker element field
 
 if (ele%key == ac_kicker$) then
-  ac => ele%ac_kick
 
   if (present(rf_time)) then
-    time = rf_time - ele%value(t_offset$) 
+    a_amp = ac_kicker_amp (ele, rf_time)
   else
-    time = particle_rf_time(orbit, ele, .true., s_rel) - ele%value(t_offset$)
-  endif
-
-  if (allocated(ac%frequencies)) then
-    a_amp = 0
-    do i = 1, size(ac%frequencies)
-      a_amp = a_amp + ac%frequencies(i)%amp * cos(twopi*(ac%frequencies(i)%f * time + ac%frequencies(i)%phi))
-    enddo
-
-  else
-    n = size(ac%amp_vs_time)
-    call bracket_index(ac%amp_vs_time%time, 1, n, time, ix)
-    if (ix < 1 .or. ix == n) then
-      a_amp = 0
-    else
-      a_amp = spline1 (ac%amp_vs_time(ix)%spline, time)
-    endif
+    a_amp = ac_kicker_amp (ele, particle_rf_time(orbit, ele, .true., s_rel))
   endif
 
   field%E = a_amp * field%E

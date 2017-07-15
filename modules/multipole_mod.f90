@@ -554,9 +554,11 @@ if (integer_option(magnetic$, pole_type) == magnetic$) then
   case (elseparator$)
     ! Kicks are electric
   case default
-    tilt_dir = -1
-    hk = -ele%value(hkick$)
-    vk =  ele%value(vkick$)
+    if (has_hkick_attributes(ele%key)) then
+      tilt_dir = -1
+      hk = -ele%value(hkick$)
+      vk =  ele%value(vkick$)
+    endif
   end select
 
 else ! electric

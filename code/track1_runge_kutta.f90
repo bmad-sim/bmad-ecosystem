@@ -12,9 +12,7 @@
 ! Input:
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct
-!   param      -- lat_param_struct: Beam parameters.
-!     %enegy     -- Energy in GeV
-!     %particle  -- Particle type [positron$, or electron$]
+!   param      -- lat_param_struct: Lattice parameters.
 !
 !   bmad_com -- Bmad common block (not an argument).
 !     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1d-6.
@@ -44,12 +42,10 @@ logical err_flag, set_spin
 
 character(*), parameter :: r_name = 'track1_runge_kutta'
 
-! Runge Kuta is not able to handle a zero length element.
-! In this case use bmad_standard. 
+! Runge Kuta is not able to handle a zero length element with a non-zero multipole.
 
 if (ele%key /= patch$ .and. ele%value(l$) == 0) then
-  call track1_bmad (start_orb, ele, param, end_orb, err_flag)
-  if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp, .true.)
+  call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
   return
 endif
 

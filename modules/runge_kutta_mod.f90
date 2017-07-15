@@ -51,9 +51,7 @@ contains
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
-!   param     -- lat_param_struct: Beam parameters.
-!     %enegy       -- Energy in GeV
-!     %particle    -- Particle type [positron$, or electron$]
+!   param     -- lat_param_struct: Lattice parameters.
 !   s1        -- Real: Starting point relative to physical entrance.
 !   s2        -- Real: Ending point relative physical entrance.
 !   local_ref_frame 

@@ -4128,7 +4128,8 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
     ! renormalize the patch length to get PTC to agree with Bmad.
 
     ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
-    ptc_fibre%patch%b_t = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
+    ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%value(t_offset$) * c_light 
+    ptc_fibre%patch%b_l = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
   endif
 
 !----------------------------------------------------------------------

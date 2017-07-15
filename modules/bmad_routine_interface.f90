@@ -8,12 +8,13 @@ use bmad_struct
 
 interface
 
-
-subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
+function ac_kicker_amp(ele, time) result (ac_amp)
   import
   implicit none
-  type (ac_kicker_struct), pointer :: ac_kick_in, ac_kick_out
-end subroutine transfer_ac_kick
+  type (ele_struct) ele
+  type (ac_kicker_struct), pointer :: ac
+  real(rp) time, ac_amp
+end function
 
 subroutine add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, n_add_lord_field, add_at_end)
   import
@@ -1124,6 +1125,17 @@ subroutine track_a_wiggler (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  import
+  implicit none
+  type (coord_struct) :: start_orb
+  type (coord_struct) :: end_orb
+  type (ele_struct), target :: ele
+  type (lat_param_struct), target :: param
+  logical err_flag
+  type (track_struct), optional :: track
+end subroutine
+
 subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   import
   implicit none
@@ -1272,6 +1284,12 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   logical err_flag
   type (track_struct), optional :: track
 end subroutine
+
+subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
+  import
+  implicit none
+  type (ac_kicker_struct), pointer :: ac_kick_in, ac_kick_out
+end subroutine transfer_ac_kick
 
 subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
   import
