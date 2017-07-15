@@ -24,9 +24,146 @@ module S_fitting_new
 
 contains
 
+  subroutine lattice_fit_TUNE_gmap_rad(R,my_state,EPSF,POLY,NPOLY,TARG,NP)
+    IMPLICIT NONE
+    TYPE(layout), target,intent(inout):: R
+    TYPE(POL_BLOCK), intent(inout),dimension(:)::POLY
+    INTEGER, intent(in):: NPOLY,NP
+    real(dp) , intent(IN),dimension(:)::TARG
+    real(dp) CLOSED(6)
+    TYPE(INTERNAL_STATE), intent(IN):: my_STATE
+    TYPE(INTERNAL_STATE) STATE
+    INTEGER I,SCRATCHFILE, MF
+    TYPE(TAYLOR), allocatable:: EQ(:)
+    TYPE(REAL_8) Y(6)
+    TYPE(NORMALFORM) NORM
+    integer :: neq=2, no=2,nt,j,it
+    type(damap) id
+    type(gmap) g
+    TYPE(TAYLOR)t
+    real(dp) epsf,epsr,epsnow,gam(2)
+    !    EPSF=.0001
+    epsr=abs(epsf)
+
+    allocate(eq(neq))
+
+    nt=neq+np
+    STATE=time0+radiation0
+
+    CALL INIT(STATE,no,NP)
+
+    SET_TPSAFIT=.FALSE.
+
+
+    DO I=1,NPOLY
+       R=POLY(i)
+    ENDDO
+
+    CLOSED(:)=0.0_dp
+    it=0
+100 continue
+    it=it+1
+      call FIND_ORBIT_x(r,CLOSED,state,1.d-7,fibre1=1)
+ 
+    write(6,*) "closed orbit "
+    write(6,*) CLOSED
+
+
+    CALL INIT(STATE,no,NP,BERZ)
+    CALL ALLOC(NORM)
+    CALL ALLOC(Y)
+    CALL ALLOC(EQ)
+    call alloc(id)
+
+    id=1
+    Y=CLOSED+id
+
+    CALL TRACK_probe_x(R,Y,+STATE,fibre1=1)
+    write(6,*) "c_%no,c_%nv,c_%nd,c_%nd2"
+    write(6,*) c_%no,c_%nv,c_%nd,c_%nd2
+    write(6,*) "c_%ndpt,c_%npara,c_%npara,c_%np_pol"
+    write(6,*)  c_%ndpt,c_%npara,c_%npara,c_%np_pol
+
+     id=y
+    NORM=id
+    gam(1)=(norm%a_t%v(2).sub.'1')**2+(norm%a_t%v(2).sub.'01')**2
+    gam(2)=(norm%a_t%v(4).sub.'001')**2+(norm%a_t%v(4).sub.'0001')**2
+    write(6,*) "  Gamma= ",GAM
+    !      CALL KANALNUMMER(MF)
+   ! OPEN(UNIT=1111,FILE='GAMMA.TXT')
+   ! WRITE(1111,*) "  Gamma= ",GAM
+
+    write(6,*) " tunes ",NORM%TUNE(1), NORM%TUNE(2)
+
+    eq(1)=       ((NORM%dhdj%v(1)).par.'000000')-targ(1)
+    eq(2)=       ((NORM%dhdj%v(2)).par.'000000')-targ(2)
+    epsnow=abs(eq(1))+abs(eq(2))
+    call kanalnummer(SCRATCHFILE)
+    OPEN(UNIT=SCRATCHFILE,FILE='EQUATION.TXT')
+    rewind scratchfile
+
+    do i=1,neq
+       eq(i)=eq(i)<=c_%npara
+    enddo
+    do i=1,neq
+       call daprint(eq(i),scratchfile)
+    enddo
+    close(SCRATCHFILE)
+    CALL KILL(NORM)
+    CALL KILL(Y)
+    CALL KILL(id)
+    CALL KILL(EQ)
 
 
 
+    CALL INIT(1,nt)
+    call alloc(g,nt)
+    call kanalnummer(SCRATCHFILE)
+    OPEN(UNIT=SCRATCHFILE,FILE='EQUATION.TXT')
+    rewind scratchfile
+    do i=np+1,nt
+       call read(g%v(i),scratchfile)
+    enddo
+    close(SCRATCHFILE)
+
+    call alloc(t)
+    do i=1,np
+       g%v(i)=1.0_dp.mono.i
+       do j=np+1,nt
+          t=g%v(j).d.i
+          g%v(i)=g%v(i)+(1.0_dp.mono.j)*t
+       enddo
+    enddo
+    CALL KILL(t)
+
+    g=g.oo.(-1)
+    tpsafit=0.0_dp
+    tpsafit(1:nt)=g
+
+    SET_TPSAFIT=.true.
+
+    DO I=1,NPOLY
+       R=POLY(i)
+    ENDDO
+    SET_TPSAFIT=.false.
+
+    CALL ELP_TO_EL(R)
+
+    !    write(6,*) " more "
+    !    read(5,*) more
+    if(it>=max_fit_iter) goto 101
+    if(epsnow<=epsr) goto 102
+    GOTO 100
+
+101 continue
+    write(6,*) " warning did not converge "
+
+102 continue
+    CALL KILL_PARA(R)
+    deallocate(eq)
+
+  end subroutine lattice_fit_TUNE_gmap_rad
+ 
 subroutine find_time_patch(kekb,my_default,emax,bmadpatch,wipeout,kf,kb)
 implicit none
 type(layout), pointer :: kekb
@@ -54,6 +191,8 @@ if(wi) then
   f%patch%time=0
   f%patch%a_t=0
   f%patch%b_t=0
+  f%patch%a_L=0
+  f%patch%b_L=0
  f=>f%next
  enddo
 endif
@@ -94,12 +233,14 @@ if(bm) then
 
  if(f%next%mag%kind==kind4) then
   f%patch%time=2
-  f%patch%B_T=closed_orbit(6)+f%patch%B_T
+  f%patch%B_L=closed_orbit(6)+f%patch%B_L
+  f%patch%B_T=closed_orbit(6)/F%beta0+f%patch%B_T
  ke=ke+1
  elseif(f%mag%kind==kind4) then
   if(associated(f,f2)) then
    f%next%patch%time=1
-   f%patch%A_T=closed_orbit(6)+f%patch%A_T
+   f%patch%A_L=closed_orbit(6)+f%patch%A_L
+   f%patch%A_T=closed_orbit(6)/F%beta0+f%patch%A_T
   kc=kc+1
   endif
  closed_orbit(6)=0.d0
@@ -111,16 +252,19 @@ if(abs(closed_orbit(6))>ee.or.f%next%mag%kind==kind4.or.f%mag%kind==kind4) then
 
  if(f%next%mag%kind==kind4) then
   f%next%patch%time=1
-  f%next%patch%A_T=closed_orbit(6)+f%next%patch%A_T
+  f%next%patch%A_L=closed_orbit(6)+f%next%patch%A_L
+  f%next%patch%A_T=closed_orbit(6)/F%beta0+f%next%patch%A_T
  kc=kc+1
  elseif(f%mag%kind==kind4) then
   f%patch%time=3
-  f%patch%B_T=closed_orbit(6)+f%patch%B_T
+  f%patch%B_L=closed_orbit(6)+f%patch%B_L
+  f%patch%B_T=closed_orbit(6)/F%beta0+f%patch%B_T
   ke=ke+1
  closed_orbit(6)=0.d0
  else
   f%patch%time=2
-  f%patch%B_T=closed_orbit(6)+f%patch%B_T
+  f%patch%B_L=closed_orbit(6)+f%patch%B_L
+  f%patch%B_T=closed_orbit(6)/F%beta0+f%patch%B_T
   ke=ke+1
   closed_orbit(6)=0.d0
  endif
@@ -135,11 +279,13 @@ enddo
 
 
 if(bm) then
-  f2%next%patch%A_T=closed_orbit(6)+f2%next%patch%A_T
+  f2%next%patch%A_L=closed_orbit(6)+f2%next%patch%A_L
+  f2%next%patch%A_T=closed_orbit(6)/F%beta0+f2%next%patch%A_T
 else
 f=> kekb%end
   f%patch%time=2
-  f%patch%B_T=closed_orbit(6)+f%patch%B_T
+  f%patch%B_L=closed_orbit(6)+f%patch%B_L
+  f%patch%B_T=closed_orbit(6)/F%beta0+f%patch%B_T
   ke=ke+1
 endif
  

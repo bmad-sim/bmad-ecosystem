@@ -774,6 +774,7 @@ nmark=0
        WRITE(LINE,*) M%B_D,M%B_ANG,"  b_d, b_ang "
        WRITE(MF,'(A255)') LINE
        WRITE(MF,*) M%A_T,M%B_T,"  time patches a_t and b_t "
+       WRITE(MF,*) M%A_L,M%B_L,"  patch length patches a_t and b_t "
        WRITE(MF,*) " >>>>>>>>>>>>>>>>>>  END  <<<<<<<<<<<<<<<<<<"
     else
        WRITE(MF,*) " NO PATCH "
@@ -792,7 +793,9 @@ nmark=0
        READ(MF,*) M%A_X1,M%A_X2,M%B_X1,M%B_X2
        READ(MF,*) M%A_D,M%A_ANG
        READ(MF,*) M%B_D,M%B_ANG
-       READ(MF,*) M%A_T,M%B_T
+       READ(MF,*) M%A_T,M%B_T !M%A_L,M%B_L
+M%A_L=M%A_T
+M%B_L=M%B_T
        READ(MF,*) LINE
     endif
 
@@ -2751,6 +2754,8 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  patch0%B_ANG=f%B_ANG
  patch0%A_T=f%A_T
  patch0%B_T=f%B_T
+ patch0%A_L=f%A_L
+ patch0%B_L=f%B_L
  patch0%ENERGY=f%ENERGY
  patch0%TIME=f%TIME
  patch0%geometry=f%patch
@@ -2774,6 +2779,8 @@ f%B_X2= patch0%B_X2
  f%B_ANG=patch0%B_ANG
  f%A_T=patch0%A_T
  f%B_T=patch0%B_T
+ f%A_L=patch0%A_L
+ f%B_L=patch0%B_L
  f%ENERGY=patch0%ENERGY
  f%TIME=patch0%TIME
  f%patch=patch0%geometry
@@ -3911,6 +3918,8 @@ implicit none
      patch0%B_ANG=0 
      patch0%A_T=0
      patch0%B_T=0
+     patch0%A_L=0
+     patch0%B_L=0
      patch0%ENERGY=0
      patch0%TIME=0
      patch0%GEOMETRY=0

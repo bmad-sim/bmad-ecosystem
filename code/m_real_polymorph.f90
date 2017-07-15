@@ -46,7 +46,7 @@ module polymorphic_taylor
   ! PRIVATE EQUAL1D,EQUAL2D
   ! end complex stuff
   private printpoly,printdouble,printsingle,dmulmapconcat
-  private line
+  private line,Mequaldacon
   character(120) line
   !integer npol
   !parameter (npol=20)
@@ -80,6 +80,7 @@ INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
      MODULE PROCEDURE singleequal
      MODULE PROCEDURE taylorEQUAL    !taylor=real_8
      MODULE PROCEDURE EQUALtaylor    !real_8= taylor    ! here 2002.10.9
+     MODULE PROCEDURE Mequaldacon   ! dequaldacon on array
      MODULE PROCEDURE Dequaldacon  !
      MODULE PROCEDURE equaldacon   !
      ! For resetting
@@ -4831,8 +4832,16 @@ contains
     end select
   END SUBROUTINE univreal_8
 
-
-
+  SUBROUTINE  Mequaldacon(S2,R1)
+    implicit none
+    type (real_8),INTENT(inOUT)::S2(:)
+    real(dp),INTENT(IN)::R1
+    integer i
+    do i=1,size(s2)
+      s2(i)=0.0_dp
+    enddo
+    end SUBROUTINE  Mequaldacon
+  
   SUBROUTINE  Dequaldacon(S2,R1)
     implicit none
     integer ipause, mypauses

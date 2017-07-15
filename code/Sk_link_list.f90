@@ -1601,12 +1601,14 @@ CONTAINS
     el1%PATCH%B_D=0.0_dp
     el1%PATCH%B_ANG=0.0_dp
     el1%PATCH%B_T=0.0_dp
+    el1%PATCH%B_L=0.0_dp
 
     EL2%PATCH%A_X1=1
     EL2%PATCH%A_X2=1
     EL2%PATCH%A_D=0.0_dp
     EL2%PATCH%A_ANG=0.0_dp
     EL2%PATCH%A_T=0.0_dp
+    EL2%PATCH%A_L=0.0_dp
 
     if(el1%PATCH%patch==3) then
        el1%PATCH%patch=1

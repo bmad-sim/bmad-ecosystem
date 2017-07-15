@@ -16,7 +16,7 @@ module ptc_multiparticle
   private MAKE_NODE_LAYOUT_2 !,DRIFT_TO_TIME
   PRIVATE MODULATE_R,MODULATE_P
   PRIVATE TRACK_MODULATION_R,TRACK_MODULATION_P
- LOGICAL :: no_mis=.TRUE.
+ LOGICAL :: no_mis=.TRUE. 
   !  LOGICAL :: OLD_MOD=.TRUE.
 
   logical(lp),private, parameter :: dobb=.true.
@@ -607,9 +607,9 @@ CONTAINS
 
     IF(PATCHT/=0.AND.PATCHT/=2.AND.(K%TOTALPATH==0)) THEN
       if(K%time) then
-       X(6)=X(6)-C%PATCH%a_T/c%beta0
+       X(6)=X(6)-C%PATCH%a_T  !/c%beta0
       else
-       X(6)=X(6)-C%PATCH%a_T
+       X(6)=X(6)-C%PATCH%a_L 
       endif
     ENDIF
 
@@ -694,9 +694,9 @@ CONTAINS
 
     IF(PATCHT/=0.AND.PATCHT/=2.AND.(K%TOTALPATH==0)) THEN
       if(K%time) then
-       X(6)=X(6)-C%PATCH%a_T/c%beta0
+       X(6)=X(6)-C%PATCH%a_T    !/c%beta0
       else
-       X(6)=X(6)-C%PATCH%a_T
+       X(6)=X(6)-C%PATCH%a_L
       endif
     ENDIF
 
@@ -744,9 +744,9 @@ CONTAINS
 
     IF(PATCHT/=0.AND.PATCHT/=1.AND.(K%TOTALPATH==0)) THEN
       if(K%time) then
-       X(6)=X(6)-C%PATCH%b_T/c%beta0
+       X(6)=X(6)-C%PATCH%b_T   !/c%beta0
       else
-       X(6)=X(6)-C%PATCH%b_T
+       X(6)=X(6)-C%PATCH%b_L
       endif
     ENDIF
 
@@ -828,9 +828,9 @@ ENDIF
 
     IF(PATCHT/=0.AND.PATCHT/=1.AND.(K%TOTALPATH==0)) THEN
       if(K%time) then
-       X(6)=X(6)-C%PATCH%b_T/c%beta0
+       X(6)=X(6)-C%PATCH%b_T   !/c%beta0
       else
-       X(6)=X(6)-C%PATCH%b_T
+       X(6)=X(6)-C%PATCH%b_L
       endif
     ENDIF
 
@@ -958,6 +958,7 @@ endif
     !    TYPE(INTERNAL_STATE), INTENT(IN) :: K
     type(element),pointer :: el
     LOGICAL TA
+    type(work) w,we
     IF(.NOT.CHECK_STABLE) return
     !       CALL RESET_APERTURE_FLAG
     !    endif
@@ -987,6 +988,7 @@ endif
 
     SELECT CASE(T%CAS)
     CASE(CASEP1)
+
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
      if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
 TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==-1.OR.T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==0
@@ -2569,13 +2571,15 @@ pix1(3)=f%MAG%P%TILTD
 
 
 pix1=0.0_dp
+if(f%mag%p%exact) then
 if(f%dir==1) then
  pix1(2)=f%MAG%P%edge(1)
 else
  pix1(2)=f%MAG%P%edge(2)
 endif
- call GEO_ROT(exi0,pix1,1, exi0)
 
+ call GEO_ROT(exi0,pix1,1, exi0)
+endif
 
 
     IF(f%MAG%MIS) THEN
@@ -2800,12 +2804,14 @@ endif
 
 
 pix1=0.0_dp
+if(f%mag%p%exact) then
 if(f%dir==1) then
  pix1(2)=f%MAG%P%edge(2)
 else
  pix1(2)=f%MAG%P%edge(1)
 endif
  call GEO_ROT(exi0,pix1,1, exi0)
+endif
 
 if(f%mag%kind==kindpa) then
 

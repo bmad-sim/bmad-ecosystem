@@ -4412,7 +4412,8 @@ nullify(EL%filef,el%fileb);
     beta0i=1.0_dp/BETa01
     GAMMA0=erg/XMC2
  
-    CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/XMC2**3
+    CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/pmae**3
+!    CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/XMC2**3
     CRAD=CGAM*TWOPII   !*ERG**3
     CFLUC=CON  !*ERG**5
     GAMMA2=erg**2/XMC2**2

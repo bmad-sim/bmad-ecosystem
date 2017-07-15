@@ -17,10 +17,10 @@ module tree_element_MODULE
   private EQUAL_IDENTITY_SPINOR,EQUAL_PROBE_REAL6
   PRIVATE EQUAL_SPINOR8_SPINOR,EQUAL_PROBE8_PROBE,EQUAL_PROBE8_REAL6
   private EQUAL_IDENTITY_SPINOR_8_r3 ,EQUAL_SPINOR_SPINOR8
-  private ALLOC_rf_phasor_8,KILL_rf_phasor_8,realdp_spinor
+  private ALLOC_rf_phasor_8,KILL_rf_phasor_8,realdp_spinor,cross_real
   private sub_spinor
   private EQUAL_PROBE_PROBE
-  private dot_spinor_8,dot_spinor
+  private dot_spinor_8,dot_spinor,dot_real
   private  read_spinor_8
   !  private smatp,smatmulp
 
@@ -80,8 +80,13 @@ module tree_element_MODULE
 
 
   INTERFACE OPERATOR (.dot.)
+     MODULE PROCEDURE dot_real
      MODULE PROCEDURE dot_spinor
      MODULE PROCEDURE dot_spinor_8
+  END  INTERFACE
+
+  INTERFACE OPERATOR (.cross.)
+     MODULE PROCEDURE cross_real
   END  INTERFACE
 
   INTERFACE OPERATOR (*)
@@ -1434,6 +1439,24 @@ CONTAINS
 
   END FUNCTION dot_spinor
   
+
+  FUNCTION dot_real( S1, S2 )
+    implicit none
+    real(dp) dot_real
+    real(dp), INTENT (IN) :: S1(:),S2(:)
+
+    INTEGER I
+
+    dot_real=0.0_dp
+   
+    DO I=1,min(size(s1),size(s2))
+       dot_real=dot_real+s1(i)*s2(i)
+    ENDDO
+
+  END FUNCTION dot_real
+
+
+
   subroutine make_spinor_basis(s1,s2,s3)
   implicit none
     TYPE (SPINOR) s1,s2,s3
@@ -1486,15 +1509,22 @@ CONTAINS
     TYPE (SPINOR) cross_spinor
     TYPE (SPINOR), INTENT (IN) :: S1,S2
 
- 
- 
-
        cross_spinor%x(1)= s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
        cross_spinor%x(2)= -s1%x(1)*s2%x(3)+s1%x(3)*s2%x(1)
        cross_spinor%x(3)= s1%x(1)*s2%x(2)-s1%x(2)*s2%x(1)
     
-
   END FUNCTION cross_spinor
+
+  FUNCTION cross_real( S1, S2 )
+    implicit none
+    real(dp) cross_real(3)
+    real(dp), INTENT (IN) :: S1(3),S2(3)
+
+       cross_real(1)= s1(2)*s2(3)-s1(3)*s2(2)
+       cross_real(2)=-s1(1)*s2(3)+s1(3)*s2(1)
+       cross_real(3)= s1(1)*s2(2)-s1(2)*s2(1)
+    
+  END FUNCTION cross_real
 
   FUNCTION cross_spinor8( S1, S2 )
     implicit none

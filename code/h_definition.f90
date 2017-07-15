@@ -365,7 +365,10 @@ module definition
   end type c_spinor
   !@3 ---------------------------------------------</br>
 
-
+type c_yu_w
+ type (c_taylor),pointer :: w(:,:)=> null() !@1 orbital part of the map 
+ integer :: n=0 !@1 of non zero w
+end type c_yu_w
 
 type c_damap
  type (c_taylor) v(lnv) !@1 orbital part of the map 
