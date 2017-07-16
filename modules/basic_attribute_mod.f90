@@ -651,7 +651,7 @@ enddo
 
 do i = 1, n_key$
   select case (i)
-  case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
+  case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, bend_sol_quad$, &
          hkicker$, vkicker$, sad_mult$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
