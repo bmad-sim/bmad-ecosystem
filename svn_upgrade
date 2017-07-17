@@ -5,10 +5,12 @@
 # version.
 #
 
-for d in $(ls -d */)
+LIST=$(ls -d */)
+
+for DIR in ${LIST}
 do
-    echo ${d}
-    cd ${d}
+    echo ${DIR}
+    cd ${DIR}
     svn upgrade
     cd ..
 done
