@@ -1461,7 +1461,7 @@ case ('FIELD_OVERLAPS')
   ! If pele is not present then bmad_parser2 is the parser and this is an element in the lattice.
   ! In this case, simple call create_field_overlap directly.
 
-  call get_list_of_names (ele, 'FIELD_OVERLAPS', name_list, delim, delim_found, err_flag)
+  call get_list_of_names (ele, 'FIELD_OVERLAPS', name_list, delim, delim_found, err_flag); if (err_flag) return
   nn = size(name_list)
 
   if (present(pele)) then
@@ -1489,11 +1489,11 @@ case ('REF_ORBIT')
 
 case ('PTC_MAX_FRINGE_ORDER')
   call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', level = s_warn$)
-  call parser_get_integer (bmad_com%ptc_max_fringe_order, word, ix_word, delim, delim_found, err_flag)
+  call parser_get_integer (bmad_com%ptc_max_fringe_order, word, ix_word, delim, delim_found, err_flag); if (err_flag) return
   bp_com%extra%ptc_max_fringe_order_set = .true.
 
 case ('TAYLOR_ORDER')
-  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag)
+  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag); if (err_flag) return
   if (ix <= 0) then
     call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
     return
@@ -1502,7 +1502,7 @@ case ('TAYLOR_ORDER')
   lat%input_taylor_order = ix
 
 case ('RUNGE_KUTTA_ORDER')
-  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag)
+  call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag); if (err_flag) return
   if (ix /= 2 .and. ix /= 4) then
     call parser_error ('RUNGE_KUTTA_ORDER NOT EQUAL TO 2 OR 4')
     return
@@ -1514,7 +1514,7 @@ case ('SYMPLECTIFY')
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
     ele%symplectify = .true.
   else
-    call get_logical (attrib_word, ele%symplectify, err_flag)
+    call get_logical (attrib_word, ele%symplectify, err_flag); if (err_flag) return
   endif
   
 case ('IS_ON')
@@ -1526,7 +1526,7 @@ case ('USE_HARD_EDGE_DRIFTS')
   bp_com%extra%use_hard_edge_drifts_set = .true.
 
 case ('SUPERIMPOSE')  ! ele[superimpose] = False case
-  call get_logical (attrib_word, logic, err_flag)
+  call get_logical (attrib_word, logic, err_flag); if (err_flag) return
   if (logic) then
     ele%lord_status = super_lord$
   else
@@ -1535,28 +1535,28 @@ case ('SUPERIMPOSE')  ! ele[superimpose] = False case
   pele%superposition_has_been_set = .true.
 
 case ('APERTURE_AT')
-  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('APERTURE_TYPE')
-  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('ABSOLUTE_TIME_TRACKING')
-  call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
+  call get_logical (attrib_word, lat%absolute_time_tracking, err_flag); if (err_flag) return
 
 case ('CAVITY_TYPE')
-  call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(cavity_type$) = ix
 
 case ('COUPLER_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(coupler_at$) = ix
 
 case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag)
+  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag); if (err_flag) return
 
 case ('CSR_CALC_ON')
-  call get_logical (attrib_word, ele%csr_calc_on, err_flag)
+  call get_logical (attrib_word, ele%csr_calc_on, err_flag); if (err_flag) return
 
 case ('DEFAULT_TRACKING_SPECIES')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1568,16 +1568,16 @@ case ('DEFAULT_TRACKING_SPECIES')
   ele%value(default_tracking_species$) = ix
 
 case ('ENERGY_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(energy_distribution$) = ix
 
 case ('EXACT_MULTIPOLES')
-  call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(exact_multipoles$) = ix
 
 case ('PTC_EXACT_MODEL')
-  call get_logical (attrib_word, logic, err_flag)
-  if (.not. err_flag) call set_ptc (exact_modeling = logic)
+  call get_logical (attrib_word, logic, err_flag); if (err_flag) return
+  call set_ptc (exact_modeling = logic)
 
 case ('PTC_EXACT_MISALIGN')
   call get_logical (attrib_word, logic, err_flag)
@@ -1585,42 +1585,41 @@ case ('PTC_EXACT_MISALIGN')
   call set_ptc (exact_misalign = logic)
 
 case ('OFFSET_MOVES_APERTURE')
-  call get_logical (attrib_word, ele%offset_moves_aperture, err_flag)
+  call get_logical (attrib_word, ele%offset_moves_aperture, err_flag); if (err_flag) return
 
 case ('FIELD_MASTER', 'HARMON_MASTER')
-  call get_logical (attrib_word, ele%field_master, err_flag)
+  call get_logical (attrib_word, ele%field_master, err_flag); if (err_flag) return
 
 case ('SCALE_MULTIPOLES')
-  call get_logical (attrib_word, ele%scale_multipoles, err_flag)
+  call get_logical (attrib_word, ele%scale_multipoles, err_flag); if (err_flag) return
 
 case ('FIELD_CALC')
-  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('REF_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('ELE_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('PTC_FRINGE_GEOMETRY')
-  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ptc_fringe_geometry$) = ix
 
 case ('FRINGE_TYPE')
   if (ele%key == rbend$ .or. ele%key == sbend$) then
-    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
+    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   else
-    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele, delim, delim_found)
+    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   endif
   ele%value(fringe_type$) = ix
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(higher_order_fringe_type$) = ix
 
 case ('MAT6_CALC_METHOD')
-  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found)
-  if (err_flag) return
+  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found); if (err_flag) return
   if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then
     if (wild_key0) then
       err_flag = .false.
@@ -1634,19 +1633,19 @@ case ('MAT6_CALC_METHOD')
   ele%mat6_calc_method = switch
 
 case ('REF_COORDINATES')
-  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ref_coordinates$) = ix
 
 case ('REF_ORBIT_FOLLOWS')
-  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ref_orbit_follows$) = ix
 
 case ('MODE')
-  call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(mode$) = ix
 
 case ('PTC_INTEGRATION_TYPE')
-  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('PARTICLE')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1660,7 +1659,7 @@ case ('PARTICLE')
   ele%value(particle$) = ix
 
 case ('PTC_FIELD_GEOMETRY')
-  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ptc_field_geometry$) = ix
 
   if (ele%key == sbend$ .and. ix == true_rbend$) then
@@ -1669,38 +1668,37 @@ case ('PTC_FIELD_GEOMETRY')
   endif
 
 case ('GEOMETRY')
-  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   branch => pointer_to_branch(ele%name, lat, .true.)
   if (associated(branch)) branch%param%geometry = ix
   ele%value(geometry$) = ix
 
 case ('LIVE_BRANCH')
-  call get_logical_real (attrib_word, ele%value(live_branch$), err_flag)
-  if (err_flag) return
+  call get_logical_real (attrib_word, ele%value(live_branch$), err_flag); if (err_flag) return
   branch => pointer_to_branch(ele%name, lat, .true.)
   if (associated(branch)) branch%param%live_branch = is_true(ele%value(live_branch$))
 
 case ('PHOTON_TYPE')
-  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   lat%photon_type = ix   ! photon_type has been set.
 
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
                      'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
                      'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
-  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(geometry$) = ix
 
 case ('FRINGE_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(fringe_at$) = ix
 
 case ('ORIGIN_ELE_REF_PT')
-  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(origin_ele_ref_pt$) = ix
 
 case ('SPATIAL_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(spatial_distribution$) = ix
 
 case ('SPIN_TRACKING_METHOD')
@@ -1724,7 +1722,7 @@ case ('SPIN_TRACKING_METHOD')
   ele%spin_tracking_method = switch
 
 case ('TAYLOR_MAP_INCLUDES_OFFSETS')
-  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag)
+  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag); if (err_flag) return
 
 case ('TRACKING_METHOD')
   call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
@@ -1741,12 +1739,13 @@ case ('TRACKING_METHOD')
   ele%tracking_method = switch
 
 case ('VELOCITY_DISTRIBUTION')
-  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found)
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(velocity_distribution$) = ix
 
 case default   ! normal attribute
 
-  call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag2, .false.)
+  ! attrib_word = "x_limit" for example will generate an error here but this is not a true error.
+  call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.) 
 
   if (attribute_type(attrib_word) == is_logical$) then
     if (associated (a_ptr%l)) then
@@ -1757,8 +1756,7 @@ case default   ! normal attribute
     if (err_flag) return
 
   else
-    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-    if (err_flag) return
+    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag); if (err_flag) return
 
     ! multipole attribute?
     if (ele%key == hybrid$ .and. is_attribute(ix_attrib, multipole$)) then
@@ -6452,6 +6450,7 @@ if (index(debug_line, 'SEQ') /= 0 .and. present(sequence)) then
               this_type(seq%ele(j)%type), seq%ele(j)%ele_orientation, trim(seq%ele(j)%name)
     enddo
   enddo
+  found = .true.
 endif
 
 if (index(debug_line, 'VAR') /= 0) then
@@ -8189,11 +8188,11 @@ ixp = index(word, '[')
 if (ixp == 0) then
   call match_word (word, name_list, this_switch, can_abbreviate = .false.)
   if (this_switch < 1) then
-    do  i = 1, size(name_list)
+    line = trim(name_list(1))
+    do  i = 2, size(name_list)
       if (name_list(i) == str_garbage$) cycle
-      line = line // ' ' // trim(name_list(i)) // ','
+      line = line // ', ' // trim(name_list(i))
     enddo
-    line = line(1:len_trim(line)-1)
     call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word, &
                        'POSSIBILITIES ARE: ' // line)
     return

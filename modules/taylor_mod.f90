@@ -722,15 +722,14 @@ end subroutine remove_taylor_term
 ! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 !
 ! Subroutine to initialize or extend a Bmad Taylor series (6 of these series make
-! a Taylor map). Note: This routine does not zero the structure. The calling
-! routine is responsible for setting all values along with the reference position.
+! a Taylor map). Note: This routine does not zero the terms.
 !
 ! Input:
 !   bmad_taylor -- taylor_struct: Old structure.
 !   n_term      -- integer: Number of terms to allocate. 
 !                    n_term < 0 => bmad_taylor%term pointer will be disassociated.
-!   save_old    -- logical, optional: If True then save any old terms when
-!                    bmad_taylor is resized. Default is False.
+!   save_old    -- logical, optional: If True then save any old terms and ref orbit when
+!                    bmad_taylor is resized. If False zero the ref orbit. Default is False.
 !
 ! Output:
 !   bmad_taylor -- Taylor_struct: Initalized structure.
@@ -748,7 +747,7 @@ logical, optional :: save_old
 
 !
 
-bmad_taylor%ref = 0
+if (.not. logic_option (.false., save_old)) bmad_taylor%ref = 0
 
 if (n_term < 0) then
   if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)

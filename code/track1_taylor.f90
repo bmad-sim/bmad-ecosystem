@@ -37,8 +37,6 @@ type (taylor_struct), pointer :: taylor_ptr(:)
 real(rp), optional :: mat6(6,6)
 real(rp) dtime_ref, z0
 
-integer dir
-
 logical, optional :: make_matrix
 
 character(*), parameter :: r_name = 'track1_taylor'
@@ -47,7 +45,6 @@ character(*), parameter :: r_name = 'track1_taylor'
 
 start2_orb = start_orb
 end_orb = start_orb
-dir = ele%orientation * end_orb%direction
 
 ! Which map to use?
 
@@ -69,9 +66,11 @@ if (.not. associated(taylor_ptr(1)%term)) then
   call ele_to_taylor(ele, param, ele%taylor)
 endif
 
-! If tracking backwards then need to invert the Taylor map
+! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent
+! of whether the element is reversed (ele%orientation = -1) or not.
+! If tracking backwards then need to invert the Taylor map.
 
-if (dir /= 1) then
+if (start_orb%direction /= 1) then
   if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
     call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
@@ -92,10 +91,9 @@ endif
 
 if (logic_option(.false., make_matrix)) call taylor_to_mat6 (taylor_ptr, end_orb%vec, ele%vec0, mat6)
 
-
 !
 
-if (dir == 1) then
+if (start_orb%direction == 1) then
   call track_taylor (end_orb%vec, taylor_ptr, end_orb%vec)
 
 else
