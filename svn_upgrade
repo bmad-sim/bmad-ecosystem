@@ -7,8 +7,6 @@
 
 LIST=$(ls -d */)
 
-[ "$(svn upgrade &> /dev/null ; echo $?)" -eq 0 ] || echo "Upgrade not available in this version of svn." || exit 0
-
 for DIR in ${LIST}
 do
     echo ${DIR}
@@ -16,3 +14,4 @@ do
     svn upgrade
     cd ..
 done
+
