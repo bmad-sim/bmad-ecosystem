@@ -281,6 +281,13 @@ definition of the lines they refer to. Additionally, there can be
 multiple \vn{use} statements.  The last \vn{use} statement in the file
 defines which \vn{line} to use.
 
+The total number of branches in the lattice is equal to the number of lines that appear on
+the \vn{use} statement plus the number of \vn{fork} and \vn{photon_fork} elements that branch
+to a new branch.
+
+To set such things as the geometry of a branch, beginning Twiss parameters, etc., see Section
+\vn{s:beginning}.
+
 %-----------------------------------------------------------------------------
 \section{Line and List Tags}
 \index{tags for lines and lists|hyperbf}

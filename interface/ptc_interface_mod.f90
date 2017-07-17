@@ -2463,7 +2463,7 @@ implicit none
 type (taylor_struct) :: taylor_in(:)
 type (taylor_struct) :: taylor_inv(:)
 type (taylor_struct) tlr(size(taylor_in)), tlr2(size(taylor_in))
-type (real_8) y(size(taylor_in)), yc(size(taylor_in))
+type (real_8) y(size(taylor_in))
 type (damap) da
 
 real(rp) c0(size(taylor_in))
@@ -2510,25 +2510,18 @@ da = y
 da = da**(-1)
 y = da
 
-! Put constant terms back in.
-! If the Map is written as:
-!   R_out = T * (R_in - R_ref) + C
-! Then inverting:
-!   R_in = T_inv * (R_out - C) + R_ref = T_inv * (I - C) * R_out + R_ref
-! Therefore: R_ref_inv = C
-
-if (any(c0 /= 0)) then
-  call real_8_init(yc)
-  c8 = c0
-  yc = -c8                       ! Convert this to taylor map: I - c8
-  call concat_real_8 (yc, y, y)
-  call kill (yc)
-  taylor_inv%ref = c0
-endif
-
 ! Transfer inverse to taylor_inv.
+! If the Map is written as:
+!   R_out = T' (R_in - R_ref) + C
+! Where C = constant part of map and T' = T - C 
+! Then:
+!   R_in = T'^-1 (R_out - C) + R_ref
+! Thus:
+!   T_inv = T'^-1 + R_ref
+!   R_ref_inv = C
 
 taylor_inv = y
+taylor_inv%ref = c0
 
 do i = 1, size(taylor_in)
   call add_taylor_term(taylor_inv(i), taylor_in(i)%ref, expn0)

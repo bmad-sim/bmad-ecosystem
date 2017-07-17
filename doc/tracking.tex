@@ -44,7 +44,7 @@ longitudinal position in the lattice. The definition of the
     real(rp) vec(6)     ! (x, px, y, py, z, pz)
     real(rp) s          ! Longitudinal position
     real(rp) t          ! Absolute time (not relative to reference).
-    complex(rp) spin(2) ! Spin in spinor notation
+    real(rp) spin(3)    ! (x, y, z) Spin vector
     real(rp) field(2)   ! Photon (x, y) field intensity.
     real(rp) phase(2)   ! Photon (x, y) phase.
     real(rp) charge     ! charge in a particle (Coul).
@@ -61,11 +61,47 @@ longitudinal position in the lattice. The definition of the
 end type
 \end{example}
 
-The \vn{%vec(:)} array defines the phase space coordinants
-(\sref{s:phase.space}). Note that for photons, the definition of the
-phase space coordinates (\sref{s:photon.phase.space}) is different
-from that used for charged particles.
+The components of the \vn{coord_struct}:
+\begin{description}
+\item{\%beta} \Newline
+The normalized velocity $v/c$ is stored in \vn{%beta}.
 
+\item{\%direction} \Newline
+Longitudinal direction of travel. A setting of +1 is in the forward direction
+and a setting of -1 is in the reverse direction.
+
+\item{\%field_x, \%field_y} \Newline
+The \vn{%field_x} and \vn{%field_y} components are for photon
+tracking and are in units of field/sqrt(cross-section-area). That is,
+the square of these units is an intensity. It is up to individual
+programs to define an overall scaling factor for the intensity if
+desired.
+
+\item{\%ix_ele} \Newline
+The \vn{%ix_ele} component gives the index of the element in the
+\vn{lat%branch(ib)%ele(:)} array that was tracked through. If the
+element tracked through is not associated with a lattice, \vn{%ix_ele}
+is set to -1. When initializing a \vn{coord_struct} (see below),
+\vn{%ix_ele} will be initialized to \vn{not_set\$}.
+
+\item{\%location} \Newline
+The \vn{%location} component indicates where a particle is
+longitudinally with respect to the element being
+tracked. \vn{%location} will be on of:
+\begin{example}
+  entrance_end\$
+  inside\$
+  exit_end\$
+\end{example}
+\vn{entrance_end\$} indicates that the particle is at the element's
+entrance ($-s$) end and \vn{exit_end\$} indicates that the particle is
+at the element's exit ($+s$) end.  \vn{inside\$} indicates that the
+particle is in between. If the element has edge fields (for example,
+the \vn{e1} and \vn{e2} edge fields of a bend), a particle at the
+\vn{entrance_end\$} or \vn{exit_end\$} is considered to be just
+outside the element.
+
+\item{\%p0c} \Newline
 For charged-particles, the reference momentum in eV is stored in the
 \vn{%p0c} component. For photons, \vn{%p0c} is the actual (not
 reference) momentum. For charged-particles, \vn{%p0c} may be negative
@@ -73,26 +109,13 @@ if the particle is traveling backwards longitudinally. For photons,
 \vn{%vec(6)} ($\beta_z$) will be negative if the photon is going
 backward.
 
-The normalized velocity $v/c$ is stored in \vn{%beta}.
-
-The \vn{%spin} component gives a particles spin (\sref{s:spin.dyn}) in
-spinor notation.
-
+\item{\%s} \Newline
 The \vn{%s} component gives the absolute s-position of the particle
-and \vn{%t} gives the absolute time.
 
-The \vn{%field_x} and \vn{%field_y} components are for photon
-tracking and are in units of field/sqrt(cross-section-area). That is,
-the square of these units is an intensity. It is up to individual
-programs to define an overall scaling factor for the intensity if
-desired.
+\item{\%spin(3)} \Newline
+The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:spin.dyn}).
 
-The \vn{%ix_ele} component gives the index of the element in the
-\vn{lat%branch(ib)%ele(:)} array that was tracked through. If the
-element tracked through is not associated with a lattice, \vn{%ix_ele}
-is set to -1. When initializing a \vn{coord_struct} (see below),
-\vn{%ix_ele} will be initialized to \vn{not_set\$}.
-
+\item{\%state} \Newline
 The \vn{%state} component will be one of:
 \begin{example}
   not_set\$
@@ -132,21 +155,16 @@ printed, use the function \Hyperref{r:coord.state.name}{coord_state_name}
   print *, 'State of the orbit: ', coord_state_name(orbit%state)
 \end{example}
 
-The \vn{%location} component indicates where a particle is
-longitudinally with respect to the element being
-tracked. \vn{%location} will be on of:
-\begin{example}
-  entrance_end\$
-  inside\$
-  exit_end\$
-\end{example}
-\vn{entrance_end\$} indicates that the particle is at the element's
-entrance ($-s$) end and \vn{exit_end\$} indicates that the particle is
-at the element's exit ($+s$) end.  \vn{inside\$} indicates that the
-particle is in between. If the element has edge fields (for example,
-the \vn{e1} and \vn{e2} edge fields of a bend), a particle at the
-\vn{entrance_end\$} or \vn{exit_end\$} is considered to be just
-outside the element.
+\item{\%t} \Newline
+\vn{%t} gives the absolute time.
+
+\item{\%vec(:)} \Newline
+The \vn{%vec(:)} array defines the phase space coordinants
+(\sref{s:phase.space}). Note that for photons, the definition of the
+phase space coordinates (\sref{s:photon.phase.space}) is different
+from that used for charged particles.
+
+\end{description}
 
 To initialize a \vn{coord_struct} so it can be used as the start of
 tracking, the \Hyperref{r:init.coord}{init_coord} routine can be used:
@@ -291,7 +309,7 @@ different from tracking a particle in the reversed ($-s$) direction.
 Alternatively to \vn{track_all}, the routine
 \Hyperref{r:track.many}{track_many} can be used to track through a
 selected number of elements or to track backwards (See
-\sref{s:reverse.track}).
+\sref{s:back.track}).
 
 The \vn{track_all} routine serves as a good example of how tracking
 works. A condensed version of the code is shown in
@@ -696,13 +714,31 @@ is given by \vn{%ele%integrator_order}.
 PTC (\sref{c:ptc}) currently implements integrators of order 2, 4, or 6.
 
 %----------------------------------------------------------------
-\section{Reverse Tracking}
-\label{s:reverse.track}
-\index{tracking!reverse}
+\section{Tracking Backwards}
+\label{s:back.track}
+\index{tracking!backwards}
 
-Reverse tracking in when a particle goes in the direction of
-decreasing \vn{s}. The \Hyperref{r:track.many}{track_many} routine can
-be used for this. See the \vn{track_many} routine for more details.
+Tracking backwards happens when a particle goes in the direction of decreasing \vn{s}. This is
+indicated in the \vn{coord_struct} by \vn{coord%direction = -1}. 
+
+The \vn{time_runge_kutta} \vn{tracking_method} is able to handle the situation where a particle
+would reverse direction due to string electric or magnetic fields. All other tracking methods are
+not able to handle this since they are position ($s$) based, instead of time based. With non
+\vn{time_runge_kutta} tracking methods, the equations of motion become singular when a particle
+``tries'' to reverse direction. In such a situation, the particle will be marked as lost and the
+\vn{coord_struct} will have \vn{%status} /= \vn{alive\$}.
+
+The \Hyperref{r:track.many}{track_many} routine can
+be used for re. See the \vn{track_many} routine for more details.
+
+%----------------------------------------------------------------
+\section{Reversed Elements and Tracking}
+\label{s:reverse.track}
+\index{reversed elements}
+
+With a lattice element that is reversed (\vn{s:ele.reverse}), the transfer map and transfer matrix
+that is stored in the element is, just like for a non-reversed element, appropriate for a particle
+traveling in the $+s$ direction.
 
 %----------------------------------------------------------------
 \section{Beam (Particle Distribution) Tracking}

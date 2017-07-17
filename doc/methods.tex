@@ -93,9 +93,10 @@ indicates a program linking problem. See \vn{s:custom.ele} for more details.
 
 \index{linear!tracking_method}
 \item[\vn{Linear}]
-Linear just uses the 0th order vector with the 1st order 6x6 transfer
-matrix for an element. Very simple.  Depending upon how the transfer
-matrix was generated this may or may not be symplectic.
+Linear just uses the 0th order vector with the 1st order 6x6 transfer matrix for an element. Very
+simple. Depending upon how the transfer matrix was generated this may or may not be
+symplectic. Note: a \vn{linear} tracking method may not be used with \vn{mat6_calc_method} set to
+\vn{tracking} since this would give a circular dependency.
 
 \index{MAD!tracking_method}
 \item[\vn{MAD}]
@@ -362,11 +363,11 @@ parameter (\sref{s:param}).
 
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}]
-This uses the tracking method set by \vn{tracking_method} to track 6
-particles around the central orbit. This method is susceptible to inaccuracies
-caused by nonlinearities. Furthermore this method
-is almost surely slow. While non--symplectic, the advantage of this method
-is that it is directly related to any tracking results.
+This uses the tracking method set by \vn{tracking_method} to track 6 particles around the central
+orbit. This method is susceptible to inaccuracies caused by nonlinearities. Furthermore this method
+is almost surely slow. While non--symplectic, the advantage of this method is that it is directly
+related to any tracking results. Note: a \vn{linear} tracking method may not be used with
+\vn{mat6_calc_method} set to \vn{tracking} since this would give a circular dependency.
 
 \end{description}
 
