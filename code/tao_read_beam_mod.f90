@@ -57,13 +57,17 @@ if (index(line, '!BINARY') /= 0) then
   rb_com%file_type = 'BIN:1'
 elseif (index(line, '!BIN::2') /= 0) then 
   rb_com%file_type = 'BIN:2'
+elseif (index(line, '!BIN::3') /= 0) then 
+  rb_com%file_type = 'BIN:3'
+elseif (index(line, '!ASCII::3') /= 0) then 
+  rb_com%file_type = 'ASCII:3'
 else
   rb_com%file_type = 'ASCII'
 endif
 
 if (rb_com%file_type == 'ASCII') then
   rewind (rb_com%iu)
-else
+elseif (rb_com%file_type /= 'ASCII:3') then
   close (rb_com%iu)
   open (rb_com%iu, file = full_file_name, form = 'unformatted', status = 'old')
 endif
