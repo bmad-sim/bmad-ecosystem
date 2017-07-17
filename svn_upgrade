@@ -1,14 +1,14 @@
+#!/bin/bash
 #
 # To upgrade local svn directory
 # from 1.6 to current svn client
 # version.
 #
-#!/bin/bash
 
 for d in $(ls -d */)
 do
-echo $d
-cd $d
-svn upgrade
-cd ..
+    echo ${d}
+    cd ${d}
+    svn upgrade
+    cd ..
 done
