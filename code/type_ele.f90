@@ -204,8 +204,8 @@ do i = 1, num_ele_attrib$
                       'RF_WAVELENGTH   =', c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)), 'm'
 
   elseif (a_name == 'P0C_START') then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 10x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), &
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
                       'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
 
   elseif (a_name == 'E_TOT_START') then
