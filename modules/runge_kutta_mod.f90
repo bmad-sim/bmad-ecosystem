@@ -216,6 +216,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     end if
   endif
 
+  ! Exit?
+
+  if (orbit%state /= alive$) return
+
   ! Calculate next step size. If there was a hard edge then take into account the step that would have
   ! been taken if no hard edge was present.
 
