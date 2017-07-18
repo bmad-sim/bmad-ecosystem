@@ -872,8 +872,6 @@ branch => lat%branch(slave%ix_branch)
 ix_slave = slave%ix_ele
 err_flag = .false.
 
-call set_ele_status_stale (slave, attribute_group$)
-
 if (slave%slave_status /= super_slave$) then
   call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
   if (global_com%exit_on_error) call err_exit
@@ -882,6 +880,39 @@ if (slave%slave_status /= super_slave$) then
 endif
 
 slave%field_calc = refer_to_lords$
+
+! Bookkeeping for EM_Field slave is independent of the lords.
+
+if (slave%key == em_field$) then
+  value = slave%value
+  slave%value = 0
+  slave%value(l$)                   = value(l$)
+  slave%value(constant_ref_energy$) = value(constant_ref_energy$)
+  slave%value(delta_ref_time$)      = value(delta_ref_time$)
+  slave%value(p0c_start$)           = value(p0c_start$)
+  slave%value(e_tot_start$)         = value(e_tot_start$)
+  slave%value(p0c$)                 = value(p0c$)
+  slave%value(e_tot$)               = value(e_tot$)
+  slave%value(ref_time_start$)      = value(ref_time_start$)
+  slave%value(check_sum$)           = value(check_sum$)
+  slave%value(n_ref_pass$)          = 1
+  slave%value(fringe_type$)         = none$
+  slave%value(fringe_at$)           = no_end$
+  slave%value(spin_fringe_on$)      = false$
+  slave%value(autoscale_phase$)     = false$
+  slave%value(autoscale_amplitude$) = false$
+  slave%value(custom_attribute1$:custom_attribute_max$) = value(custom_attribute1$:custom_attribute_max$)
+  slave%tracking_method = runge_kutta$
+  do i = 1, slave%n_lord
+    lord => pointer_to_lord(slave, i)
+    if (lord%tracking_method == time_runge_kutta$) slave%tracking_method = time_runge_kutta$
+  enddo
+  return
+endif
+
+!
+
+call set_ele_status_stale (slave, attribute_group$)
 
 !-----------------------------------------------------------------------
 ! A "major" super_lord is something other than a pipe.
