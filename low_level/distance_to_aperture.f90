@@ -1,8 +1,9 @@
 !+
 ! Function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
 !
-! Routine to calculate the percentage distance from the particle to the wall aperture.
-! Distances are negative if the particle is inside the wall.
+! Routine to calculate the distance of the particle from the wall aperture normalized by the distance
+! from the origin to the wall.
+! Distances are negative if the particle is inside the wall and positive if outside.
 !
 ! This routine is similar to wall3d_d_radius except that this routine works with apertures set by the
 ! element parameters x1_limit, y1_limit, x2_limit, y2_limit.
@@ -13,12 +14,11 @@
 !   ele             -- ele_struct: Element containing aperture.
 !
 ! Output:
-!   no_aperture_here  -- logical: True if aperture does not exist at the
-!                          longitudinal location of the particle.
-!   dist              -- real(rp): Percentage distance to the aperture.
+!   no_aperture_here  -- logical: True if aperture does not exist at the longitudinal location of the particle.
+!   dist              -- real(rp): Normalized distance of the particle from the aperture.
 !-
 
-function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
+recursive function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
 
 use wall3d_mod, dummy => distance_to_aperture
 
@@ -26,16 +26,35 @@ implicit none
 
 type (coord_struct) orbit
 type (ele_struct) ele
+type (ele_struct), pointer :: lord
 
-real(rp) dist, x_particle, y_particle, r_wall, x_lim, y_lim, x0, y0, r, position(6), d_radius
-integer particle_at, physical_end
-logical no_aperture_here
+real(rp) dist, x_particle, y_particle, r_wall, x_lim, y_lim, x0, y0, r, position(6), d_radius, lord_dist
+integer particle_at, physical_end, i
+logical no_aperture_here, no_ap
 
 ! Init
 
 dist = real_garbage$
 no_aperture_here = .true.
 if (.not. bmad_com%aperture_limit_on) return
+
+! super_slave elements have the aperture info stored in the lord(s).
+! In this case return the most positive number
+
+if (ele%slave_status == super_slave$) then
+  physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%lord_status /= super_lord$) cycle
+    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
+    lord_dist = distance_to_aperture (orbit, particle_at, lord, no_ap)
+    if (dist == real_garbage$ .or. lord_dist > dist) then
+      dist = lord_dist
+      no_aperture_here = no_ap
+    endif
+  enddo
+  return
+endif
 
 ! Custom calc
 

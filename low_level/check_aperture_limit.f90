@@ -49,7 +49,7 @@ logical do_tilt, err, no_wall, x_aperture, y_aperture
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
-! Super_slave elements have the aperture info stored in the lord
+! Super_slave elements have the aperture info stored in the lord(s).
 
 param%unstable_factor = 0
 
