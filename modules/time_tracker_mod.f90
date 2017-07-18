@@ -242,9 +242,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     dt_next = dt_next_save
     if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
       call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
-      if (orb%state /= alive$) return
     endif
   endif
+
+  if (orb%state /= alive$) return
 
   if (orb%direction /= old_direction) then
     call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
