@@ -902,7 +902,9 @@ if (slave%key == em_field$) then
   slave%value(autoscale_phase$)     = false$
   slave%value(autoscale_amplitude$) = false$
   slave%value(custom_attribute1$:custom_attribute_max$) = value(custom_attribute1$:custom_attribute_max$)
-  slave%tracking_method = runge_kutta$
+  slave%mat6_calc_method            = tracking$
+  slave%spin_tracking_method        = tracking$
+  slave%tracking_method             = runge_kutta$
   do i = 1, slave%n_lord
     lord => pointer_to_lord(slave, i)
     if (lord%tracking_method == time_runge_kutta$) slave%tracking_method = time_runge_kutta$
