@@ -332,7 +332,7 @@ function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
   integer :: ix_section
 end function
 
-function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
+recursive function distance_to_aperture (orbit, particle_at, ele, no_aperture_here) result (dist)
   import
   implicit none
   type (coord_struct) orbit
