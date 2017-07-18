@@ -84,7 +84,7 @@ real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
 integer :: n_step, s_dir, nr_max
 
-logical local_ref_frame, err_flag, err, at_hard_edge, track_spin
+logical local_ref_frame, err_flag, err, at_hard_edge, track_spin, too_large
 
 character(*), parameter :: r_name = 'odeint_bmad'
 
@@ -180,7 +180,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   select case (ele%aperture_at)
   case (continuous$, wall_transition$)
-    call check_aperture_limit (orbit, ele, in_between$, param, old_orbit)
+    call check_aperture_limit (orbit, ele, in_between$, param, old_orbit, check_momentum = .false.)
     if (orbit%state /= alive$) then
       if (n_step == 1) return  ! Cannot do anything if this is the first step
       ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
@@ -198,6 +198,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         return
       endif
     endif
+    if (orbit%state == alive$) too_large =  orbit_too_large (orbit, param)  ! Now check momentum aperture.
   end select
 
   ! Save track
