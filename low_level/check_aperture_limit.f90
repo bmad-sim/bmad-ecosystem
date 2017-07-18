@@ -24,7 +24,7 @@
 !
 ! Output:
 !   orb   -- Coord_struct: coordinates of a particle.
-!     %state -- State of the particle
+!     %state -- State of the particle. Not set if particle is not past an aperture.
 !-
 
 recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb, check_momentum)
@@ -49,9 +49,19 @@ logical do_tilt, err, no_wall, x_aperture, y_aperture
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
-! Super_slave elements have the aperture info stored in the lord(s).
+! 
 
 param%unstable_factor = 0
+
+! Check p_x and p_y
+
+if (logic_option(.true., check_momentum)) then
+  if (orbit_too_large (orb, param)) return
+endif
+
+if (.not. bmad_com%aperture_limit_on) return
+
+! Super_slave elements have the aperture info stored in the lord(s).
 
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
 
@@ -60,7 +70,7 @@ if (ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
     if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
-    call check_aperture_limit (orb, lord, particle_at, param, old_orb, check_momentum)
+    call check_aperture_limit (orb, lord, particle_at, param, old_orb, check_momentum = .false.)
     if (orb%state /= alive$) return
   enddo
   return
@@ -71,12 +81,6 @@ endif
 if (ele%aperture_type == custom_aperture$) then
   call check_aperture_limit_custom (orb, ele, particle_at, param, err)
   return
-endif
-
-! Check p_x and p_y
-
-if (logic_option(.true., check_momentum)) then
-  if (orbit_too_large (orb, param)) return
 endif
 
 ! Check if there is an aperture here. If not, simply return.
@@ -131,8 +135,8 @@ y0 = (ele%value(y2_limit$) - ele%value(y1_limit$)) / 2
 x_particle = x_particle - x0
 y_particle = y_particle - y0
 
-if (.not. bmad_com%aperture_limit_on .or. x_lim == 0) x_lim = bmad_com%max_aperture_limit
-if (.not. bmad_com%aperture_limit_on .or. y_lim == 0) y_lim = bmad_com%max_aperture_limit
+if (x_lim == 0) x_lim = bmad_com%max_aperture_limit
+if (y_lim == 0) y_lim = bmad_com%max_aperture_limit
 
 ! 
 

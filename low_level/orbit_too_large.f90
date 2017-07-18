@@ -16,7 +16,7 @@
 !
 ! Output:
 !   orbit         -- coord_struct: Particle orbit.
-!     %state          -- Particle status.
+!     %state          -- Particle status. Not set if orbit is OK.
 !   is_too_large  -- logical: True if orbit is too large. False otherwise.
 !   param         -- lat_param_struct, optional: 
 !     %unstable_factor  -- Set if orbit is too large. Otherwise not set

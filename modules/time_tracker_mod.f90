@@ -168,7 +168,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   select case (ele%aperture_at)
   case (continuous$, wall_transition$)
-    call check_aperture_limit (orb, ele, in_between$, param, old_orb)
+    call check_aperture_limit (orb, ele, in_between$, param, old_orb, check_momentum = .false.)
     if (orb%state /= alive$) then
       ! Cannot do anything if this is the first step
       if (n_step == 1) return
