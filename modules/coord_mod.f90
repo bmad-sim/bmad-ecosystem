@@ -278,17 +278,17 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+! Subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 
 implicit none
 
-type (coord_struct) orb, orb_in, orb_in_save
+type (coord_struct) orb_out, orb_in, orb
 type (ele_struct), optional, target :: ele
 
 real(rp), optional :: E_photon, t_offset, spin(3)
@@ -301,13 +301,11 @@ logical, optional :: shift_vec6
 
 character(16), parameter :: r_name = 'init_coord1'
 
-! Use temporary orb_in_save so if actual arg for vec, particle, or E_photon
-! is part of the orb actual arg things do not get overwriten.
+!
 
-orb_in_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 orb = orb_in
 
-species = orb_in_save%species
+species = orb_in%species
 if (present(particle)) then
   if (particle /= not_set$) species = particle
 endif
@@ -389,9 +387,9 @@ if (orb%species == photon$) then
   endif
 
   ! If original particle is not a photon, photon is launched in same direciton as particle 
-  if (orb_in_save%species /= photon$ .and. orb_in_save%species /= not_set$) then
+  if (orb_in%species /= photon$ .and. orb_in%species /= not_set$) then
     orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
-    if (dir == 0) orb%direction = orb_in_save%direction
+    if (dir == 0) orb%direction = orb_in%direction
   endif
   orb%vec(6) = orb%direction * sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
@@ -448,6 +446,8 @@ if (present(ele)) then
   endif
 
 endif
+
+orb_out = orb
 
 end subroutine init_coord2
 
