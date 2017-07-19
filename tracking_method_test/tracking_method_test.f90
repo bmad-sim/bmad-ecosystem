@@ -175,6 +175,7 @@ character(10) function tolerance(instr)
 character(38) :: instr
 
   select case (instr)
+    case('AC_KICKER2:Time_Runge_Kutta')          ; tolerance = 'ABS 1e-11'
     case('QUADRUPOLE1:Time_Runge_Kutta')         ; tolerance = 'ABS 5e-12'
     case('QUADRUPOLE2:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-11'
     case('QUADRUPOLE4:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-11'
