@@ -223,7 +223,7 @@ real(rp) :: f, p_z, d2, alpha, dxv, dyv, dt2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
 real(rp) :: p2, dt, beta_ref, p2_z
 
-character(*), parameter :: 'track1_boris_partial'
+character(*), parameter :: r_name = 'track1_boris_partial'
 
 !
 
