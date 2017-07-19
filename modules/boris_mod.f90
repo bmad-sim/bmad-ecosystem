@@ -219,11 +219,14 @@ type (coord_struct) :: start, end
 type (em_field_struct) :: field
 
 real(rp), intent(in) :: s, ds
-real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
+real(rp) :: f, p_z, d2, alpha, dxv, dyv, dt2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
 real(rp) :: p2, dt, beta_ref, p2_z
 
+character(*), parameter :: 'track1_boris_partial'
+
 !
+
 
 charge = charge_of(start%species)
 mass = mass_of(start%species) / ele%value(p0c$)
@@ -240,15 +243,15 @@ if (p2_z < 0 .or. p_tot < 0) then
   end%state = lost_z_aperture$
   return
 endif
-p_z = sqrt(p2_z) * end%direction
-ds2_f = ds2 / p_z
+p_z = sqrt(p2_z) * end%direction * ele%orientation
+dt2_f = abs(ds2 / p_z)
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
-dt = ds2 * p_tot / (p_z * old_beta * c_light)
+dt = dt2_f * p_tot / (old_beta * c_light)
 
-end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
-end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-end%vec(5) = end%vec(5) + ds2 * (old_beta/beta_ref - p_tot/p_z) 
+end%vec(1) = end%vec(1) + dt2_f * end%vec(2) 
+end%vec(3) = end%vec(3) + dt2_f * end%vec(4)
+end%vec(5) = end%vec(5) + (ds2 * old_beta/beta_ref - dt2_f * p_tot) 
 
 end%s = end%s + ds2
 end%t = end%t + dt
@@ -277,7 +280,7 @@ if (p2_z < 0 .or. p_tot < 0) then
   end%state = lost_z_aperture$
   return
 endif
-p_z = sqrt(p2_z) * end%direction
+p_z = sqrt(p2_z) * end%direction * ele%orientation
 
 ! 4) Push the momenta a full step using the "R" matrix.
 
@@ -322,10 +325,10 @@ end%vec(5) = end%vec(5) * beta / old_beta
 ! 6) Push the position 1/2 step.
 
 p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
-ds2_f = ds2 / p_z
+dt2_f = ds2 / p_z
 
-end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
-end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
+end%vec(1) = end%vec(1) + dt2_f * end%vec(2) 
+end%vec(3) = end%vec(3) + dt2_f * end%vec(4)
 end%vec(5) = end%vec(5) + ds2 * (beta/beta_ref - p_tot/p_z) 
 end%vec(6) = p_tot - 1
 

@@ -50,8 +50,8 @@ private reallocate_coord_n, reallocate_coord_lat
 ! Routine to initialize a coord_struct. 
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
+!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 !
 ! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
 ! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
@@ -68,23 +68,24 @@ private reallocate_coord_n, reallocate_coord_lat
 !   use bmad
 !
 ! Input:
-!   orb_in       -- Coord_struct: Input orbit.
+!   orb_in       -- coord_struct: Input orbit.
 !   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
 !   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
 !   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
 !                     Must be present if ele argument is present.
 !                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.
 !                     Default is upstream_end$.
-!   particle     -- Integer, optional: Particle type (electron$, etc.). 
+!   particle     -- integer, optional: Particle type (electron$, etc.). 
 !                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
-!   dirction     -- Integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
+!   dirction     -- integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
 !                     0 -> Ignore. Default is to not change orb%direction except for photons which get set
 !                     according to orb%vec(6).
 !   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
 !   t_ref_offset -- real(rp), optional: Offset of the reference time. This is non-zero when
 !                     there are multiple bunches and the reference time for a particular particle
 !                     is pegged to the time of the center of the bunch.
-!   shift_vec6   -- Logical, optional: If present and False, prevent the shift of orb%vec(6).
+!   shift_vec6   -- logical, optional: If present and False, prevent the shift of orb%vec(6).
+!   spin(3)      -- real(rp), optional: Particle spin. Taken to be zero if not present.
 !
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
@@ -248,19 +249,19 @@ end subroutine reallocate_coord_array
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 
 implicit none
 
 type (coord_struct) orb, orb_temp
 type (ele_struct), optional :: ele
-real(rp), optional :: vec(:), t_ref_offset, E_photon
+real(rp), optional :: vec(:), t_ref_offset, E_photon, spin(3)
 integer, optional :: element_end, particle, direction
 logical, optional :: shift_vec6
 
@@ -269,7 +270,7 @@ logical, optional :: shift_vec6
 orb_temp = coord_struct()
 if (present(vec)) orb_temp%vec = vec
 
-call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 
 end subroutine init_coord1
 
@@ -277,20 +278,20 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6, spin)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_in_save
 type (ele_struct), optional, target :: ele
 
-real(rp), optional :: E_photon, t_ref_offset
+real(rp), optional :: E_photon, t_ref_offset, spin(3)
 real(rp) p0c, e_tot, ref_time
 
 integer, optional :: element_end, particle, direction
@@ -344,6 +345,10 @@ if (orb%location == start_end$) then
     orb%location = downstream_end$
   endif
 endif
+
+! spin
+
+if (present(spin)) orb%spin = spin
 
 ! Energy values
 
