@@ -124,6 +124,33 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
 
+    ! autoscale phase needs an AC field
+
+    if (is_true(ele%value(autoscale_phase$)) .and. ele%field_calc == fieldmap$) then
+      foundit = .false.
+      if (associated(ele%cylindrical_map)) then
+        do i = 1, size(ele%cylindrical_map)
+          if (ele%cylindrical_map(i)%harmonic == 0) cycle
+          foundit = .true.
+          exit
+        enddo
+      endif
+      if (associated(ele%grid_field)) then
+        do i = 1, size(ele%grid_field)
+          if (ele%grid_field(i)%harmonic == 0) cycle
+          foundit = .true.
+          exit
+        enddo
+      endif
+      if (.not. foundit) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS AUTOSCALE_PHASE = T BUT ALL FIELD MAPS HAVE HARMONIC = 0.', &
+                      'THAT IS, THERE ARE NO NO AC FIELDS PRESENT!')
+        err_flag = .true.
+      endif
+    endif
+
     ! ac_kicker needs to have the time variation defined.
 
     if (ele%key == ac_kicker$) then
