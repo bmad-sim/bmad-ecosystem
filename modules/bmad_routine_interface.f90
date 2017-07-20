@@ -357,13 +357,20 @@ function e_accel_field (ele, voltage_or_gradient) result (field)
   integer voltage_or_gradient 
 end function
 
-subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   import
   type (ele_struct) ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
   logical err_flag
 end subroutine
+
+function ele_has_constant_ds_dt_ref (ele) result (is_const)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical is_const
+end function
 
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
   import

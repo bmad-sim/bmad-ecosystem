@@ -1909,49 +1909,6 @@ end function pointer_to_ele2
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_has_constant_ds_dt_ref (ele) result (is_const)
-!
-! Function to determine if an element has a constant longitudinal reference velocity.
-! When in doubt, the assumption is that the longitudinal velocity is not constant.
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   ele -- ele_struct: Element.
-!
-! Output:
-!   is_const -- Logical: True if reference velocity must be a constant.
-!-
-
-function ele_has_constant_ds_dt_ref (ele) result (is_const)
-
-type (ele_struct) ele
-logical is_const
-
-! Anything with longitudinal electric fields or anything
-! where the "zero-orbit" is not a straight line down the middle
-! has a varying ds/dt(ref).
-
-select case (ele%key)
-case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$)
-  is_const = .false.
-case (em_field$)
-  if (is_true(ele%value(constant_ref_energy$))) then
-    is_const = .true.
-  else
-    is_const = .false.
-  endif
-case default
-  is_const = .true.
-end select
-
-end function ele_has_constant_ds_dt_ref
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
 !
 ! Function to determine if the tracking for an element uses a "hard edge model"

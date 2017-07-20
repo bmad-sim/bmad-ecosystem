@@ -81,7 +81,7 @@ endif
 
 ! init
 
-ds_safe = bmad_com%significant_length / 10
+ds_safe = bmad_com%significant_length / 100
 dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
