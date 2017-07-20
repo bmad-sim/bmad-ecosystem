@@ -127,22 +127,24 @@ call odeint_bmad_time(end_orb, ele, param, rf_time, local_ref_frame, err, track)
 if (err) return
 
 !------
-!Convert back to s-based coordinates
+! Convert back to s-based coordinates.
+! The particle is either dead or is alive and at an element end.
 
-if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
-  !Particle left entrance end going backwards
-  !set reference time and momentum
+if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
-  end_orb%direction = -1
-
-  !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, ele%value(ref_time_start$))
-  !unset
+  end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+
+elseif (end_orb%location == downstream_end$) then
+  end_orb%p0c = ele%value(p0c$)
+  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
+  end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 elseif (end_orb%state /= alive$) then
-  !Particle is lost in the interior of the element.
-  !  The reference is a the end of the element
+  ! Particle is lost in the interior of the element.
+  ! The reference energy in the interior is equal to the ref energy at the exit end of the element.
   if (end_orb%vec(6) < 0) then
     end_orb%p0c = ele%value(p0c$)
     end_orb%direction = -1
@@ -151,26 +153,16 @@ elseif (end_orb%state /= alive$) then
     end_orb%direction = 1
   end if
 
-  !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
-  !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., ds_pos = end_orb%s - ele%s_start, set_spin = set_spin)
-
-elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
-  !Particle left exit end going forward
-  end_orb%p0c = ele%value(p0c$)
-  end_orb%direction = 1
-  !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
-  !unset
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
 endif
 
-!Set relativistic beta
+! Set relativistic beta
+
 call convert_pc_to (end_orb%p0c * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
 err_flag = .false.
 

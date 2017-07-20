@@ -324,7 +324,7 @@ dE_max2 = dE_particle(pz_max2)
 ! If we do not have any phase that shows acceleration this generally means that the
 ! initial particle energy is low and the ele%value(field_autoscale$) is much to large.
 
-if (dE_max1 < 0) then
+if (dE_max1 <= 0) then
   call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele%name)
   err_flag = .true.
   return
@@ -509,7 +509,7 @@ call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiati
 
 pz = end_orb%vec(6)
 is_lost = .not. particle_is_moving_forward(end_orb)
-if (is_lost) pz = -1
+if (is_lost) pz = -2
 
 n_call = n_call + 1
 
@@ -523,7 +523,14 @@ function dE_particle(pz) result (de)
 
 real(rp) pz, e_tot, de
 
-call convert_pc_to ((1 + pz) * ele%value(p0c$), param%particle, e_tot = e_tot)
+!
+
+if (pz < -1) then
+  e_tot = -1  ! If particle has been lost.
+else
+  call convert_pc_to ((1 + pz) * ele%value(p0c$), param%particle, e_tot = e_tot)
+endif
+
 de = e_tot - e_tot_start
 
 end function dE_particle

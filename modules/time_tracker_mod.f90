@@ -743,9 +743,12 @@ real(rp), pointer :: vec(:)
 vec => particle%vec
 p0c = particle%p0c
 pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
-if (vec(6) >= 0) then
+
+! If vec(6) = 0 then leave %direction as is.
+
+if (vec(6) > 0) then
   particle%direction = 1
-else
+elseif (vec(6) > 0) then
   particle%direction = -1
 endif
 
