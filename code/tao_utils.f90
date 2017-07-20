@@ -410,6 +410,10 @@ case ('phase_x', 'phase.x')
   value = orbit%phase(1)
 case ('phase_y', 'phase.y')
   value = orbit%phase(2)
+case ('t', 'time')
+  value = orbit%t
+case ('beta')
+  value = orbit%beta
 case ('energy')
   if (orbit%species == photon$) then
     value = orbit%p0c

@@ -1302,15 +1302,15 @@ case ('element')
       if (bmad_com%spin_tracking_on) then
         fmt  = '(2x, a, 2f15.8, f13.8, a, es16.8, 2x, a, es12.4)'
         fmt2 = '(2x, a, 2f15.8, f13.8, a, es16.8, 2x, a, f11.6)'
-        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), orb%spin(1), '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
-        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), orb%spin(2), '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
-        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), orb%spin(3), '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
+        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), orb%spin(1), '  | Particle [sec]:    ', orb%t, 'E_tot;', e_tot
+        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), orb%spin(2), '  | Part-Ref [sec]:    ', dt,    'PC:   ', pc
+        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), orb%spin(3), '  | (Ref-Part)*Vel [m]:', z,     'Beta: ', orb%beta
       else
         fmt  = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, es12.4)'
         fmt2 = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, f11.6)'
-        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), '  | Absolute [sec]:   ', orb%t, 'E_tot;', e_tot
-        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | Abs-Ref [sec]:    ', dt,    'PC:   ', pc
-        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (Ref-Abs)*Vel [m]:', z,     'Beta: ', orb%beta
+        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), '  | Particle [sec]:    ', orb%t, 'E_tot;', e_tot
+        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | Part-Ref [sec]:    ', dt,    'PC:   ', pc
+        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (Ref-Part)*Vel [m]:', z,     'Beta: ', orb%beta
       endif
     endif
   endif
