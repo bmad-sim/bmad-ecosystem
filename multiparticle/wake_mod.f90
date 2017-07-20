@@ -569,41 +569,58 @@ implicit none
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: particle(:)
 type (coord_struct) temp
-integer i, k, nm, i0, i1
+integer ix, k, nm, i0, i1, n_max, kk
 real(rp) z1, z2
-logical ordered
 
 ! Init if needed. 
 
 particle => bunch%particle
-nm = size(particle)
+n_max = size(particle)
+nm = n_max
 
-if (bunch%ix_z(1) == 0) then
+! If first time through
+
+if (bunch%ix_z(1) < 1) then
   call indexx (bunch%particle%vec(5), bunch%ix_z)
   bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
 endif
 
 ! Order is from large z (head of bunch) to small z.
-! This ordering calc is efficient when the particles are already more-or-less 
-! ordered to start with.  
+! This ordering calc is efficient when the particles are already more-or-less ordered to start with.  
 
+ix = 1
 do
-  ordered = .true.
-  bunch%n_live = 0
-  do i = 1, nm-1
-    i0 = bunch%ix_z(i); i1 = bunch%ix_z(i+1)
-    if ((particle(i0)%vec(5) < particle(i1)%vec(5)) .or. &
-        (particle(i0)%state /= alive$ .and. particle(i1)%state == alive$)) then
-      bunch%ix_z(i:i+1) = bunch%ix_z(i+1:i:-1)
-      ordered = .false.
-    endif
-    if (particle(i0)%state == alive$) bunch%n_live = i
-  enddo
-  if (ordered) exit
+  if (ix > nm) exit
+  i0 = bunch%ix_z(ix)
+
+  if (particle(i0)%state /= alive$) then
+    bunch%ix_z(ix:nm) = [bunch%ix_z(ix+1:nm), i0]
+    nm = nm - 1
+    cycle
+  endif
+
+  if (ix >= nm) exit
+  i1 = bunch%ix_z(ix+1)
+
+  if (particle(i1)%state /= alive$) then
+    bunch%ix_z(ix+1:nm) = [bunch%ix_z(ix+2:nm), i1]
+    nm = nm - 1
+    cycle
+  endif
+
+  if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
+    do k = ix-1, 1, -1
+      kk = bunch%ix_z(k)
+      if (particle(kk)%vec(5) >= particle(i1)%vec(5)) exit
+    enddo
+  
+    bunch%ix_z(k+1:ix+1) = [bunch%ix_z(ix+1), bunch%ix_z(k+1:ix)]
+  endif
+
+  ix = ix + 1
 enddo
 
-i1 = bunch%ix_z(nm)
-if (particle(i1)%state == alive$) bunch%n_live = nm
+bunch%n_live = nm
 
 end subroutine order_particles_in_z
 
