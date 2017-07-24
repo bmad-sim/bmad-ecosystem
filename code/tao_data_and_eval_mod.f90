@@ -3339,8 +3339,8 @@ character(*), optional :: dflt_dat_or_var_index
 
 character(200) phrase
 character(1) delim
-character(40) word, word2, default_source
-character(40) :: r_name = "tao_evaluate_expression"
+character(80) word, word2, default_source
+character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
 logical delim_found, split, ran_function_pending, use_good_user
