@@ -42,10 +42,10 @@ type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
 real(rp) vec(6), d_radius
-real(rp) s_rel, s1, s2, del_s, p0c_save
-real(rp) s_edge_track, s_edge_hard, rf_time
+real(rp) s_rel, s0, s1, s2, ds_ref, del_s, p0c_save
+real(rp) s_edge_track, s_edge_hard, rf_time, beta_ref
 
-integer :: i, hard_end
+integer :: i, hard_end, t_dir
 
 logical :: local_ref_frame = .true.
 logical :: abs_time, err_flag, err, set_spin
@@ -63,6 +63,7 @@ endif
 
 err_flag = .true.
 
+t_dir = 1
 end_orb = start_orb
 rf_time = particle_rf_time (end_orb, ele, .true., end_orb%s - ele%s_start)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$ .and. &
@@ -96,9 +97,18 @@ endif
 ! Interior start, reference momentum is at the end.
 if (end_orb%location == inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., ds_pos =s_rel, set_spin = set_spin)
+  if (ele%value(l$) < 0) t_dir = -1
+
+elseif (ele%key == patch$) then
+  call track_a_patch (ele, end_orb, .false., s0, ds_ref)
+  beta_ref = ele%value(p0c$) / ele%value(E_tot$)
+  end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction * ele%orientation) * end_orb%beta / beta_ref 
+  if (s0 > 0) t_dir = -1
+
 ! Particle is at an end.
 else
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+  if (ele%value(l$) < 0) t_dir = -1
 endif
 
 ! ele(s-based) -> ele(t-based)
@@ -122,7 +132,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, rf_time, local_ref_frame, err, track)
+call odeint_bmad_time(end_orb, ele, param, t_dir, rf_time, local_ref_frame, err, track)
 
 if (err) return
 

@@ -145,7 +145,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       if (.not. foundit) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS AUTOSCALE_PHASE = T BUT ALL FIELD MAPS HAVE HARMONIC = 0.', &
+                      'HAS AUTOSCALE_PHASE = T AND FIELD_CALC = FIELDMAP BUT ALL FIELD MAPS HAVE HARMONIC = 0.', &
                       'THAT IS, THERE ARE NO NO AC FIELDS PRESENT!')
         err_flag = .true.
       endif

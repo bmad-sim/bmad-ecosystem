@@ -21,6 +21,8 @@
 ! Note: If ele%orientation = -1 then the upstream end is the exit end of the element and 
 !   the downstream end is the entrance end of the element.
 !
+! Note: There are no element coordinates associated with a patch element so this routine will do nothing in this case.
+!
 ! Options:
 !   Using the element tilt in the offset.
 !   Using the HV kicks.
@@ -92,6 +94,8 @@ logical, optional :: make_matrix
 logical set_hv, set_t, set_hv1, set_hv2, set_z_off, set_spn
 
 !---------------------------------------------------------------         
+
+if (ele%key == patch$) return
 
 rel_p = (1 + orbit%vec(6))
 

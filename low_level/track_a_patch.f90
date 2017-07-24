@@ -1,5 +1,5 @@
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, track_spin, mat6, make_matrix)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref,  track_spin, mat6, make_matrix)
 ! 
 ! Bmad_standard routine to track through a patch element.
 !
@@ -22,6 +22,7 @@
 !   s_ent      -- real(rp), optional: Longitudinal coordinate of initial particle position at
 !                   the entrance face in the frame of reference of the exit face.
 !                   For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
+!   ds_ref     -- real(rp), optional: Distance reference particle travels from entrance to exit.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix through the element.
 !-
 
