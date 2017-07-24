@@ -11,7 +11,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, rf_time, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -19,30 +19,32 @@ contains
 ! Tracking is done until the particle is lost or exits the element.
 !
 ! Input: 
-!   orb   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
-!   ele     -- Ele_struct: Element to track through.
+!   orb             -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
+!   ele             -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
-!   param   -- lat_param_struct: Beam parameters.
-!   rf_time -- real(rp): Time relative to RF clock
-!   local_ref_frame 
-!           -- Logical: If True then take the 
-!                input and output coordinates as being with 
-!                respect to the frame of referene of the element. 
+!   param           -- lat_param_struct: Beam parameters.
+!   t_dir           -- real(rp): Direction of time travel = +/-1. Can be negative for patches.
+!                       Will be -1 if element has a negative length.
 !
-!   track   -- Track_struct: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
+!   rf_time         -- real(rp): Time relative to RF clock
+!   local_ref_frame -- Logical: If True then take the 
+!                       input and output coordinates as being with 
+!                       respect to the frame of referene of the element. 
+!
+!   track           -- Track_struct: Structure holding the track information.
+!     %save_track     -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   orb      -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
-!   err_flag -- Logical: Set True if there is an error. False otherwise.
-!   track    -- Track_struct: Structure holding the track information.
+!   orb            -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   err_flag       -- Logical: Set True if there is an error. False otherwise.
+!   track          -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, rf_time, local_ref_frame, err_flag, track)
+subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
@@ -61,7 +63,7 @@ real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_tim
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
 real(rp) :: s_fringe_edge, ref_time, stop_time
 
-integer :: n_step, n_pt, old_direction
+integer :: t_dir, n_step, n_pt, old_direction
 
 logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
@@ -69,27 +71,17 @@ logical :: edge_kick_applied, track_spin, stop_time_limited
 
 character(*), parameter :: r_name = 'odeint_bmad_time'
 
-! If element length < 0 must track backwards in time.
-! This has not yet been implemented.
-
-if (ele%value(l$) < 0) then
-  call out_io (s_error$, r_name, &
-          'Time Runge-Kutta tracking through element with negative length not yet implemented!', &
-          'Element: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
-endif
-
 ! init
 
 ds_safe = bmad_com%significant_length / 100
-dt_next = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
+dt_next = t_dir * bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
 
 call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
 old_direction = orb%direction
 
 if (present(track)) then
-  dt_save = track%ds_save/c_light
+  dt_save = t_dir * track%ds_save/c_light
   t_save = rf_time
 endif 
 
@@ -106,10 +98,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Overstepped edge?
   ! Can happen that an edge overstep happens at the beginning of tracking. For example, an sbend with
   ! a finite x_offset shifts the s-position of the element ends. In this case, do not track to edge.
-  if ((orb%vec(5) - s_fringe_edge)*orb%direction > -ds_safe) then
+  if ((orb%vec(5) - s_fringe_edge)*orb%direction*t_dir > -ds_safe) then
   
     zbrent_needed = .true.
-    if ((orb%vec(5)-s_fringe_edge)*orb%direction < ds_safe) zbrent_needed = .false.
+    if ((orb%vec(5)-s_fringe_edge)*orb%direction*t_dir < ds_safe) zbrent_needed = .false.
     if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
@@ -193,7 +185,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   !Save track
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
-    if (rf_time >= t_save .or. exit_flag) then
+    if ((rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
       ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
       call save_a_step (track, ele, param, .false., orb)
       ! Query the local field to save
@@ -220,8 +212,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   stop_time_limited = .false.
   dt = dt_next
 
-  if (stop_time /= real_garbage$ .and. dt > stop_time - orb%t) then
-    if (stop_time < orb%t) then
+  if (stop_time /= real_garbage$ .and. t_dir * dt > t_dir * (stop_time - orb%t)) then
+    if (t_dir * stop_time < t_dir * orb%t) then
       call out_io (s_error$, r_name, 'STOP_TIME FROM TIME_RUNGE_KUTTA_PERIODIC_KICK_HOOK IS IN THE PAST!')
       stop_time = real_garbage$
     else
@@ -235,7 +227,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   old_orb = orb
   t_old = rf_time
 
-  call rk_adaptive_time_step (ele, param, orb, rf_time, dt, dt_did, dt_next, local_ref_frame, err)
+  call rk_adaptive_time_step (ele, param, orb, t_dir, rf_time, dt, dt_did, dt_next, local_ref_frame, err)
   edge_kick_applied = .false.
 
   if (stop_time_limited) then
@@ -322,7 +314,7 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_adaptive_time_step (ele, param, orb, rf_time, dt_try, dt_did, dt_next, local_ref_frame, err_flag)
+subroutine rk_adaptive_time_step (ele, param, orb, t_dir, rf_time, dt_try, dt_did, dt_next, local_ref_frame, err_flag)
 
 implicit none
 
@@ -339,6 +331,8 @@ real(rp) :: r_scal(9), rel_tol, abs_tol
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
+
+integer t_dir
 
 logical local_ref_frame, err_flag
 character(24), parameter :: r_name = 'rk_adaptive_time_step'
@@ -363,7 +357,7 @@ do
   call rk_time_step1 (ele, param, rf_time,  orb, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
-    if (dt < 1d-3/c_light) then
+    if (dt * t_dir < 1d-3/c_light) then
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
       if (global_com%exit_on_error) call err_exit
       return
@@ -379,7 +373,7 @@ do
     if (err_max <=  1.0) exit
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
-  dt = sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
+  dt = t_dir * sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
   t_new = rf_time + dt
 
   if (t_new == rf_time) then
@@ -400,7 +394,7 @@ end if
 ! Increase step size, limited by an estimated next step ds = L/4
 
 if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
-  dt_next = abs(ele%value(L$)/8.0_rp / dr_dt(5))
+  dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
 endif
 
 ! finish

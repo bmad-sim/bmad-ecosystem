@@ -294,9 +294,9 @@ case (octupole$)
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 5
+  if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
