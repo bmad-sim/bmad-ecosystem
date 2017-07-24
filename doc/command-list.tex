@@ -1876,8 +1876,19 @@ printed.  The general form of \vn{<attrib>} is:
   attribute-name         or
   attribute-name@format
 \end{example}
-where \vn{attribute-name} is the name of an attribute and \vn{format} specifies the format
-to be used. The default format is \vn{es12.4}.  Example:
+where \vn{attribute-name} is the name of an attribute and \vn{format} specifies the Fortran style
+edit descriptors to be used. The default format is \vn{es12.4}. Example descriptors:
+\begin{example}
+  From   Example
+  ----   -------
+  Fw.d   F13.5    ! For real numbers. No exponent. 
+  ESw.d  ES13.4   ! For real numbers. Has exponent
+  Lw     L4       ! For logical numbers
+  Iw     I8       ! For integers
+  wX     4x       ! Whitespace. 
+\end{example}
+In the above, ``\vn{w}'' is the width of the field and ``\vn{d}'' is the number of digits to
+the right of the decimal. Example:
 \begin{example}
   show lat -attrib is_on@l4 -attrib voltage rfcavity::*
 \end{example}

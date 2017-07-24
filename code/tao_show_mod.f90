@@ -1995,18 +1995,14 @@ case ('lattice')
       column(14) = show_lat_column_struct('ele::#[orbit_y]',     '3p, f8.3',    8, 'orbit|y [mm]', .false.)
       column(15) = show_lat_column_struct('x',                   'x',           3, '', .false.)
       column(16) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track_State', .false.)
+      if (print_lords /= no$ ) then
+        column(17)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
+        column(18)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
+      endif
     endif
 
   end select
 
-  if (what_to_print /= 'custom' .and. print_lords /= no$) then
-    do i = size(column), 1, -1
-      if (column(i)%name == '') cycle
-      column(i+1)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
-      column(i+2)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
-      exit
-    enddo
-  endif
 
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
 
