@@ -58,8 +58,7 @@ subroutine tao_cmd_history_print (n_print)
 implicit none
 
 integer n_print, i
-character(120) line
-character(16) :: r_name = 'tao_history'
+character(*), parameter :: r_name = 'tao_history'
 
 !
 
@@ -75,8 +74,7 @@ if (i < 1) i = i + size(history)
 
 do
   if (history(i)%ix /= 0) then
-    write (line, '(i4, 2a)') history(i)%ix, ': ', trim(history(i)%cmd)
-    call out_io (s_blank$, r_name, line)
+    call out_io (s_blank$, r_name, '\i4\: ' // history(i)%cmd, i_array = [history(i)%ix])
   endif
   if (i == ix_history) return
   i = i + 1
