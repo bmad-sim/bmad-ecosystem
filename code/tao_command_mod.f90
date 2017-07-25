@@ -4,7 +4,7 @@ use output_mod
 use tao_mod
 
 type cmd_history_struct  ! record the command history
-  character(200) cmd     ! the command
+  character(:), allocatable :: cmd     ! the command
   integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
   logical cmd_file       ! Did command come from a command file
 end type
@@ -209,7 +209,7 @@ character(*) cmd_line
 character(*), optional :: separator
 character(*) cmd_word(:)
 character(16) :: r_name = 'tao_cmd_split'
-character(200) line
+character(300) line
 character(1), parameter :: tab = char(9)
 
 logical err
