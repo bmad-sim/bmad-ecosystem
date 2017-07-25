@@ -169,7 +169,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (datum%ele_ref_name /= '') then
       call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err_flag)
       if (err_flag) return
-      if (size(eles) /= 1) then
+      if (n_loc /= 1) then
         if (print_err) call out_io (s_error$, r_name, &
                         'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
         return
