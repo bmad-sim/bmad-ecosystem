@@ -102,7 +102,7 @@ ExpandName = FileName
 
 ! A UNIX-style environment variable will have a leading '$' 
 
-If ( iDollar == 1 ) then
+If (iDollar == 1) then
       
 ! Expand Unix-style environment variable names
 ! Environment variable specifies the full name
@@ -191,7 +191,7 @@ else
     ExpandName = ExpandName(1:iLeftB-1) // ExpandName(iLeftB+1:)
   endif
 
-Endif
+endif
 
 outfile = ExpandName
 if (present(valid)) valid = .true.
@@ -301,14 +301,13 @@ InLen = Len_Trim(FileName)
 ! Locate special characters (last dollar-sign, last colon, last slash)
 
 ix   = 0
-iBracket = Scan( FileName(:InLen), ']', .True. )
+iBracket = Scan(FileName(:InLen), ']', .True.)
 If (iBracket .gt. ix) ix = iBracket
-iColon   = Scan( FileName(:InLen), ':', .True. )
+iColon   = Scan(FileName(:InLen), ':', .True.)
 If (iColon .gt. ix) ix = iColon
-iSlash   = Scan( FileName(:InLen), '/', .True. )
+iSlash   = Scan(FileName(:InLen), '/', .True.)
 If (iSlash .gt. ix) ix = iSlash
 
-    
 Path     = FileName(:ix)
 BaseName = FileName(ix+1:InLen)
 call string_trim(path, path, ix)
