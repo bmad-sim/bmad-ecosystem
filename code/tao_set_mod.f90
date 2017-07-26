@@ -1761,7 +1761,7 @@ elseif (size(r_dat) /= 0) then
   enddo
 
 else
-  call out_io (s_error$, r_name, 'LEFT HAND SIDE MUST POINT TO A SCALER OR ARRAY OF DATA COMPONENTS.')
+  call out_io (s_error$, r_name, 'LEFT HAND SIDE MUST POINT TO A SCALAR OR ARRAY OF DATA COMPONENTS.')
   return
 endif
 
