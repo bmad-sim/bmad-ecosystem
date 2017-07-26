@@ -871,7 +871,8 @@ end subroutine drift_orbit_time
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_time_particle_distribution  (time_file_unit, bunch, style, branch, err)
+! Subroutine write_time_particle_distribution  (time_file_unit, bunch, style, &
+!                                               branch, format, err)
 !
 ! Subroutine to write a time-based bunch from a standard Bmad bunch
 ! 
@@ -896,6 +897,8 @@ end subroutine drift_orbit_time
 !   style          -- character(16), optional: Style of output file:
 !                            'BMAD' (default), 'OPAL', 'ASTRA', 'GPT'
 !   branch         -- branch_struct, optional: Required for 'ASTRA' style
+!   format         -- character(10): format for numerical output. 
+!                                    default: 'es15.7'
 !
 ! Output:          
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
@@ -903,7 +906,7 @@ end subroutine drift_orbit_time
 
 
 
-subroutine write_time_particle_distribution (time_file_unit, bunch, style, branch, err)
+subroutine write_time_particle_distribution (time_file_unit, bunch, style, branch, format, err)
 
 implicit none
 
@@ -917,6 +920,7 @@ type (coord_struct) :: orb, orb_ref
 real(rp)        :: dt, pc, gmc, gammabeta(3), charge_alive
 
 character(10)   ::  rfmt 
+character(10), optional :: format
 integer :: n_alive
 integer :: i, i_style, a_species_id, a_status
 integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3, gpt$ = 4
@@ -943,7 +947,7 @@ endif
 if (present(err)) err = .true.
 
 !Format for numbers
-  rfmt = 'es13.5'
+  rfmt = string_option('es15.7',format )
 
 ! Number of alive particles
 n_alive = count(bunch%particle(:)%state == alive$)
@@ -993,8 +997,8 @@ do i = 1, size(bunch%particle)
   
   !Get time to track backwards by
   dt = orb%t - bunch%t_center
-  
-  !Get pc before conversion
+
+ !Get pc before conversion
   pc = (1+orb%vec(6)) * orb%p0c 
   
   !convert to time coordinates
