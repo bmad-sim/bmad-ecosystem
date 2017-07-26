@@ -129,7 +129,7 @@ enddo
 
 ! if auto scale was done...
 
-call string_option (this_axis, '', axis)
+this_axis = string_option ('', axis)
 
 do_gang = plot%autoscale_gang_y
 if (present(gang)) then
@@ -209,7 +209,7 @@ logical found_data, found_data2
 
 ! If specific min/max values are given then life is easy.
 
-call string_option (this_axis, '', axis)
+this_axis = string_option ('', axis)
 
 if (y_min /= y_max) then
 
