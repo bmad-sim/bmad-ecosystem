@@ -483,7 +483,7 @@ a lattice file. For example, a program might need error tolerance
 for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not designed to use the custom
-attributes. Currently, up to five scaler (that is, single valued) custom attributes may be
+attributes. Currently, up to five scalar (that is, single valued) custom attributes may be
 defined for any given element type. The syntax for defining custom attributes is:
 \begin{example}
   parameter[custom_attributeN] = "\{class::\}attribute_name"
@@ -589,12 +589,12 @@ exponent is marked with the letter E. For example
 \end{example}
 Symbolic constants can be defined using the syntax
 \begin{example}
-  parameter_name = expression
+  constant_name = expression
 \end{example}
 \index{MAD!syntax compatibility with BMAD}
 Alternatively, to be compatible with \mad, using ``:='' instead of ``='' is accepted
 \begin{example}
-  parameter_name := expression
+  constant_name := expression
 \end{example}
 Examples:
 \begin{example}
@@ -763,6 +763,43 @@ ID (internally to \bmad, this is an integer). The use of \vn{species} is only ne
 setting a variable to a species ID (as the set of \vn{my_particle} in the above example).
 
 %-----------------------------------------------------------------------------
+\section{Statement Order}
+\label{s:state.order}
+\index{statement order|hyperbf}
+
+With some exceptions, statements in a lattice file can be in any order. For example, the lines
+(\sref{s:lines.wo.arg}) specified in a \vn{use} statement (\sref{s:use}) can come after the \vn{use}
+statement. And \vn{group} (\sref{s:group}) and \vn{overlay} (\sref{s:overlay}) controller elements
+may be defined before the slave elements whose parameters they control are defined.
+
+The exceptions to this rule are:
+\begin{itemize}
+\item 
+If there is an \vn{expand_lattice} statement (\sref{s:expand.lat}), all \vn{line}s
+(\sref{s:lines.wo.arg}), \vn{list}s (\sref{s:replace.list}), and \vn{use} (\sref{s:use}) statements
+necessary for lattice expansion must come before.
+\item
+Immediate evaluation of arithmetic expressions (\sref{s:arith}) mandates that values be defined
+before use.
+\item
+A lattice element must be defined before any of its parameters are set. Example:
+\begin{example}
+  pp[z_offset] = 0.1    ! WRONG! PP HAS NOT BEEN DEFINED YET!
+  pp: patch             ! Here PP is defined
+\end{example}
+In this example, the \vn{z_offset} of the element \vn{pp} is set before \vn{pp} has been
+defined. This is an error. As an extension of this rule notice that the set of element parameters
+using wild card characters will only set those parameters that have been already defined. For
+example:
+\begin{example}
+  crystal::*[b_param] = 0.2
+  c5: crystal
+\end{example}
+In this example, the \vn{b_param} of all \vn{crystal} elements is set to \vn{0.2} {\em except} for
+\vn{c5} and all other crystal elements that are defined after the set.
+\end{itemize}
+
+%-----------------------------------------------------------------------------
 \section{Print Statement}
 \label{s:print}
 \index{print statement|hyperbf}
@@ -917,20 +954,25 @@ the file.
 
 %----------------------------------------------------------------------------
 \section{Expand_Lattice Statement}
-\label{s:expand}
-\index{lattice!expansion|hyperbf}
+\label{s:expand.lat}
 \index{expand_lattice|hyperbf}
 
-At some point in parsing a lattice file, the ordered sequence (or
-sequences if there are multiple branches) of elements that form a
-lattice must be constructed. This process is called \vn{lattice
-expansion} since the element sequence can be built up from
-sub--sequences (\sref{c:sequence}). Normally, lattice expansion
-happens automatically at the end of the parsing of the lattice file
-but an explicit \vn{expand_lattice} statement in a lattice file will
-cause immediate expansion. The reason why this can be important is
-that there are restrictions, on some types of operations which must
-come either before or after lattice expansion:
+Normally, lattice expansion happens automatically at the end of the parsing of the lattice file but
+an explicit \vn{expand_lattice} statement in a lattice file will cause immediate expansion. See
+\sref{s:expand} for details.
+
+%----------------------------------------------------------------------------
+\section{Lattice Expansion}
+\label{s:expand}
+\index{lattice!expansion|hyperbf}
+
+At some point in parsing a lattice file, the ordered sequence (or sequences if there are multiple
+branches) of elements that form a lattice must be constructed. This process is called \vn{lattice
+expansion} since the element sequence can be built up from sub--sequences
+(\sref{c:sequence}). Normally, lattice expansion happens automatically at the end of the parsing of
+the lattice file but an explicit \vn{expand_lattice} statement in a lattice file will cause
+immediate expansion. The reason why lattice expansion may be necessary before the end of the file is
+due to the fact that some operations need to be done after lattice expansion. This includes:
 \begin{Itemize}
 \item 
 \index{ran}
@@ -938,11 +980,6 @@ come either before or after lattice expansion:
 The \vn{ran} and \vn{ran_gauss} functions, when used with elements
 that show up multiple times in a lattice, generally need to be used
 after lattice expansion. See \sref{s:functions}.
-\item
-\index{line}\index{list}\index{use}
-All \vn{line}s (\sref{s:lines.wo.arg}), \vn{list}s
-(\sref{s:replace.list}), and \vn{use} (\sref{s:use}) statements must
-come before lattice expansion.
 \item
 Some dependent variables may be set as if they are independent
 variables but only if done before lattice expansion. See \sref{s:depend}.
@@ -957,8 +994,33 @@ Setting individual element attributes for tagged elements can only be done
 after lattice expansion (\sref{s:tag}).
 \end{Itemize}
 
+Notice that all \vn{line}s (\sref{s:lines.wo.arg}), \vn{list}s (\sref{s:replace.list}), and \vn{use}
+(\sref{s:use}) statements necessary for lattice expansion must come before an \vn{expand_lattice}
+statement.
+
 Lattice expansion is only done once so it is an error if multiple
 \vn{expand_lattice} statements are present.
+
+The steps used for lattice expansion are:
+\begin{enumerate}
+\item
+Instantiate all of the lines listed in the last \vn{use} statement (\sref{s:use}). If an instantiated line has
+\vn{fork} or \vn{photon_fork} (\sref{s:fork}) elements, instantiate the lines connected to the fork
+elements if the \vn{fork} or \vn{photon_fork} is connected to a new branch. Instantiation of a given
+line involves:
+\begin{enumerate}
+\item
+Line expansion (\sref{c:sequence}) where the element sequence is constructed from the line and sub-lines.
+\item
+Adding any superpositions (\sref{s:super}).
+\end{enumerate}
+\item
+Form multipass lords and mark the appropriate multipass slaves (\sref{s:multipass}).
+\item
+Add girder control elements (\sref{s:girder}).
+\item
+Add group (\sref{s:group}) and overlay (\sref{s:overlay}) control elements.
+\end{enumerate}
 
 \index{secondary lattice file}
 A lattice file where all the statements are post lattice expansion

@@ -2274,6 +2274,10 @@ The lattice file syntax for the \vn{cylindrical_map} type is:
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
 
+For DC fields, the \vn{e} coefficients specify the electric fields and the \vn{b} coefficients
+specify the magnetic fields. For AC fields, the \vn{e} coefficients specify modes that have finite
+longitudinal fields while the modes associated with the \vn{b} coefficients do not.
+
 To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
 the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
 Sec.~\sref{s:fieldmap.com}.
