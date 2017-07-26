@@ -128,9 +128,9 @@ end function real_option
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine string_option (string_default, opt_string)
+! Function string_option (string_default, opt_string) result (str_out)
 !
-! Subroutine to return either opt_string if it is present, or string_default 
+! Function to return either opt_string if it is present, or string_default 
 ! if opt_string is not present.
 !
 ! Modules needed:
@@ -141,28 +141,28 @@ end function real_option
 !   opt_string     -- Character(*), optional: Input string.
 !
 ! Output:
-!   string_option -- Character(*): 
+!   string_out    -- Character(:), allocatable:
 !                       = opt_string       if present.
 !                       = string_default   otherwise.
 !-
 
-subroutine string_option (string_out, string_default, opt_string) 
+function string_option (string_default, opt_string) result (string_out)
 
-  implicit none
+implicit none
 
-  character(*), intent(in) :: string_default
-  character(*), intent(in), optional :: opt_string
-  character(*) string_out
+character(*) :: string_default
+character(*), optional :: opt_string
+character(:), allocatable :: string_out
 
 !
 
-  if (present(opt_string)) then
-    string_out = opt_string
-  else
-    string_out = string_default
-  endif
+if (present(opt_string)) then
+  string_out = opt_string
+else
+  string_out = string_default
+endif
 
-end subroutine string_option
+end function string_option
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
