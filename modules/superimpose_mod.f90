@@ -206,17 +206,21 @@ zero_length_lord = .false.
 if (abs(l_super) < 10*bmad_com%significant_length .and. .not. logic_option(.false., create_jumbo_slave)) then
   zero_length_lord = .true.
   ds_small = 10 * bmad_com%significant_length
+
   if (branch%ele(ix1_split)%value(l$) > ds_small) then
     call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split2_done, &
-                                                            .false., .false., save_null_drift, err)
+                                              .false., .false., save_null_drift, err, choose_max = .true.)
     ix2_split = ix2_split + 1
+
   elseif (branch%ele(ix1_split+1)%value(l$) > ds_small) then
     call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split2_done, &
-                                                            .false., .false., save_null_drift, err)
+                                              .false., .false., save_null_drift, err, choose_max = .false.)
+
   else
     call out_io (s_fatal$, r_name, 'CONFUSED SUPERPOSITION WITH ELEMENT OF SMALL LENGTH!')
     if (global_com%exit_on_error) call err_exit
   endif
+
   if (err) return
   branch%ele(ix1_split)%value(l$) = branch%ele(ix1_split)%value(l$) + ds_small - l_super ! Reset to original size - l_super
   branch%ele(ix1_split)%s = branch%ele(ix1_split)%s + ds_small - l_super
@@ -244,7 +248,6 @@ endif
 ! from the region
 
 if (.not. zero_length_lord) then
-
   do 
     if (branch%ele(ix1_split+1)%value(l$) /= 0) exit
     ix1_split = ix1_split + 1
@@ -256,7 +259,6 @@ if (.not. zero_length_lord) then
     ix2_split = ix2_split - 1
     if (ix2_split == -1) ix2_split = branch%n_ele_track
   enddo
-
 endif
 
 ! If there are null_ele elements in the superimpose region then just move them
@@ -647,14 +649,22 @@ real(rp) s_here
 
 integer ix_split, which
 
-logical split_done, err
+logical split_done, err, choose_max
 logical, optional :: save_null_drift, create_jumbo_slave
+
+! Try to split so that the minimum number of elements are to be superimposed upon.
+
+if (which == 1) then
+  choose_max = .true.
+else
+  choose_max = .false.
+endif
 
 ! If creating a jumbo slave then only split at drift elements
 
 if (logic_option(.false., create_jumbo_slave)) then
   split_done = .false.
-  ix_split = element_at_s(branch%lat, s_here, .false., branch%ix_branch, err)
+  ix_split = element_at_s(branch%lat, s_here, choose_max, branch%ix_branch, err)
   if (err) return
   if (branch%ele(ix_split)%key /= drift$) then
     if (which == 1) ix_split = ix_split - 1
@@ -663,7 +673,7 @@ if (logic_option(.false., create_jumbo_slave)) then
 endif
 
 call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, &
-                                                            .false., .false., save_null_drift, err)
+                                                            .false., .false., save_null_drift, err, choose_max = choose_max)
 
 end function split_this_lat 
 
