@@ -1,11 +1,11 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
 !
-! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
-! would create a "runt" element with length less than 5*bmad_com%significant_length.
+! Routine to split an element of the lattice into two to create a lattice that has an element boundary at the point s = s_split. 
+! This routine will not split the lattice if the split would create a "runt" element with length less than 5*bmad_com%significant_length.
 !
 ! split_lat will create a super_lord element if needed and will redo the 
-! appropriate bookkeeping for lords and slaves. 
+! appropriate bookkeeping for lords and slaves.
 !
 ! Note: split_lat does NOT call make_mat6. The Twiss parameters are also not recomputed.
 !
@@ -23,15 +23,18 @@
 !   save_null_drift -- logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if when superpositions are done. See add_superimpose for more info.
 !                         Default is False.
+!   choose_max      -- logical, optional: If no splitting of an element is needed, ix_split will be set to the maximum possible index.
+!                       There can be multiple possible values for ix_split if there exist zero length elements at the split point.
+!                       If a split is done, the setting of choose_max is immaterial.
 !
 ! Output:
 !   lat        -- lat_struct: Modified lat structure.
-!   ix_split   -- integer: Index of element just before the split.
+!   ix_split   -- integer: Index of element just before the s = s_split point.
 !   split_done -- logical: True if lat was split.
 !   err_flag   -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
 
 use bmad_interface, except_dummy => split_lat
 use bookkeeper_mod, only: control_bookkeeper
@@ -53,9 +56,9 @@ integer ix_split, ixc, ix_attrib, ix_super_lord
 integer ix2, inc, nr, n_ic2, ct
 
 logical split_done, err, controls_need_removing
-logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
+logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 
-character(16) :: r_name = "split_lat"
+character(*), parameter :: r_name = "split_lat"
 
 ! Check for s_split out of bounds.
 
@@ -72,14 +75,26 @@ endif
 
 ! Find where to split.
 
-do ix_split = 0, branch%n_ele_track
-  if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
-    split_done = .false.
-    if (present(err_flag)) err_flag = .false.
-    return
-  endif
-  if (branch%ele(ix_split)%s > s_split) exit
-enddo
+if (logic_option(.false., choose_max)) then
+  do ix_split = branch%n_ele_track, 0, -1
+    if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
+      split_done = .false.
+      if (present(err_flag)) err_flag = .false.
+      return
+    endif
+    if (branch%ele(ix_split)%s_start <= s_split - 5*ds_fudge) exit
+  enddo
+
+else
+  do ix_split = 0, branch%n_ele_track
+    if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
+      split_done = .false.
+      if (present(err_flag)) err_flag = .false.
+      return
+    endif
+    if (branch%ele(ix_split)%s > s_split) exit
+  enddo
+endif
 
 split_done = .true.
 ele = branch%ele(ix_split)

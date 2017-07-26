@@ -976,7 +976,7 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   real(rp), optional :: mat6(:,:)
 end subroutine
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -984,7 +984,7 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   integer ix_branch
   integer ix_split
   logical split_done
-  logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
+  logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 end subroutine
 
 subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
