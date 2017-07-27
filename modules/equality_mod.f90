@@ -144,9 +144,9 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%amp == f2%amp)
-!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%f == f2%f)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%amp == f2%amp)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi == f2%phi)
 

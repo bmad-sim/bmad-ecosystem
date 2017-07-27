@@ -258,6 +258,13 @@ do ib = 0, ubound(lat%branch, 1)
         ! Note: Any multipass lord element where the reference energy is not constant must have n_ref_pass = 1.
         if (lord_compute) then
           if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
+            select case (ele%key)
+            case (lcavity$, em_field$, custom$)
+              ! These elements store energy values in e_tot_start and p0c_start rather than e_tot and p0c.
+              lord%value(p0c$) = lord%value(p0c_start$)
+              lord%value(e_tot$) = lord%value(e_tot_start$)
+            end select
+
             if (lord%value(p0c$) > 0) then
               call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
             elseif (lord%value(e_tot$) > 0) then
@@ -266,6 +273,7 @@ do ib = 0, ubound(lat%branch, 1)
               ! Marker element, for example, may not set either p0c or e_tot.
               cycle
             endif
+
             lord%ref_time = 0
             call ele_compute_ref_energy_and_time (lord, lord, branch%param, err)
           else
