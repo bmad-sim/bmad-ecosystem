@@ -131,7 +131,7 @@ lattice parameters in an expression.
 \section{Specifying Data Parameters in Expressions}
 \label{s:data.token}
 
-A data (\sref{s:data.org}) parameter ``\vn{token}'' is a string that specifies a scaler or an array
+A data (\sref{s:data.org}) parameter ``\vn{token}'' is a string that specifies a scalar or an array
 of data parameters.  The general form for data tokens in expressions
 (\sref{s:arithmetic.exp}) is:
 \begin{example}
@@ -190,7 +190,7 @@ same size.
 \section{Specifying Variable Parameters in Expressions}
 \label{s:var.token}
 
-A variable (\sref{c:var}) parameter ``\vn{token}'' is a string that specifies a scaler or an array
+A variable (\sref{c:var}) parameter ``\vn{token}'' is a string that specifies a scalar or an array
 of variable parameters. The general form for variable tokens in expressions
 (\sref{s:arithmetic.exp}) is:
 \begin{example}
@@ -245,7 +245,7 @@ same size.
 
 ``Lattice parameters'' are like \vn{data} parameters (\sref{s:data.token}) except lattice
 parameters are calculated from the lattice and do not have to be defined at initialization
-time.  A lattice parameter ``\vn{token}'' is a string that specifies a scaler or an array of lattice
+time.  A lattice parameter ``\vn{token}'' is a string that specifies a scalar or an array of lattice
 parameters. The general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
 \begin{example}
   \{[<universe(s)>]@\}lat::<parameter>[\{<ref_ele>&\}<element_list>]\{|<component>\}
@@ -294,7 +294,7 @@ between element \vn{q0} and each element in the range from element
 
 Beam parameters are like lattice parameters (\sref{s:lat.token}) except beam parameters
 are derived from tracking a beam of particles and may only be used in an expression if beam
-tracking is turned on.  A beam parameter ``\vn{token}'' is a string that specifies a scaler or an
+tracking is turned on.  A beam parameter ``\vn{token}'' is a string that specifies a scalar or an
 array of beam parameters. The general form for data tokens in expressions
 (\sref{s:arithmetic.exp}) is:
 \begin{example}
@@ -324,7 +324,7 @@ The list of possible beam \vn{<parameter>} names is given in \Sref{s:data.types}
 ``Element parameters'' are parameters associated with lattice elements like the quadrupole
 strength associated with an element. Element parameters also include derived quantities
 like the computed Twiss parameters and the beam orbit. An element parameter ``\vn{token}''
-is a string that specifies a scaler or an array of element parameters. The general form
+is a string that specifies a scalar or an array of element parameters. The general form
 for element tokens in expressions is:
 \begin{example}
   \{<universe(s)>@\}ele::<element_list>[<parameter>]\{|<component>\}

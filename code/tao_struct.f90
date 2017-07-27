@@ -27,6 +27,14 @@ interface assignment (=)
   module procedure tao_lat_equal_tao_lat
 end interface
 
+!---------
+
+type cmd_history_struct  ! record the command history
+  character(:), allocatable :: cmd     ! the command
+  integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
+  logical cmd_file       ! Did command come from a command file
+end type
+
 !-----------------------------------------------------------------------
 ! A tao_real_pointer_struct is just a pointer to a real number.
 ! This is used to construct arrays of reals.
@@ -613,6 +621,8 @@ type tao_common_struct
   integer :: n_universes = 1   
   integer :: default_universe = 1        ! Default universe to work with.
   integer :: default_branch = 0          ! Default lattice branch to work with.
+  integer :: ix_history = 0 ! present index to command history array
+  integer :: n_history      ! present history index
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.                   ! Used for the cmd history stack
   logical :: multi_commands_here = .false.
@@ -870,6 +880,7 @@ type tao_super_universe_struct
   type (tao_wave_struct) :: wave 
   integer :: n_var_used = 0
   integer :: n_v1_var_used = 0
+  type (cmd_history_struct) :: history(1000) ! command history
 end type
 
 type (tao_super_universe_struct), save, target :: s

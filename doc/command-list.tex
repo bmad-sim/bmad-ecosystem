@@ -55,14 +55,14 @@ substituted. A possible
   exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ \hline 
   flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
   help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
-  history       & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
-  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
-  pause         & \sref{s:pause}    & value         & \sref{s:value}    \\ \hline
-  place         & \sref{s:place}    & wave          & \sref{s:wave}     \\ \hline
-  plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ \hline 
-  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ \hline 
-  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
-  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
+  misalign      & \sref{s:misalign} & use           & \sref{s:use}      \\ \hline 
+  pause         & \sref{s:pause}    & veto          & \sref{s:veto}     \\ \hline 
+  place         & \sref{s:place}    & value         & \sref{s:value}    \\ \hline
+  plot          & \sref{s:plot}     & wave          & \sref{s:wave}     \\ \hline
+  ptc           & \sref{s:ptc}      & write         & \sref{s:write}    \\ \hline 
+  python        & \sref{s:python}   & x_axis        & \sref{s:x.axis}   \\ \hline 
+  quit          & \sref{s:quit}     & x_scale       & \sref{s:x.scale}  \\ \hline 
+  re_execute    & \sref{s:re.exe}   & xy_scale      & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -332,27 +332,6 @@ appropriately defined. Generally, \vn{TAO_DIR} will be defined if the appropriat
 script has been run. For ``Distributions'', this is the same setup script used to setup a
 distribution. See your local \bmad guru for details.
 
-%% history --------------------------------------------------------------
-\section{history}\index{commands!history}
-\label{s:history}
-
-The \vn{history} command shows or reruns prior commands.  Format:
-\begin{example}
-  history           ! Print the command history.
-  history <number>  ! Re-execute a command by number.
-  history <string>  ! Re-execute last command that begins with <string>.
-\end{example}
-
-\vskip 0.2in 
-Every \tao command entered is recorded in a ``history stack'' and these
-commands can be viewed and reinvoked as needed.
-
-Examples
-\begin{example}
-  history 34   ! Re-execute command number 34.
-  history set  ! Re-execute last set command.  
-\end{example}
-
 %% misalign --------------------------------------------------------------
 \section{misalign}\index{command!misalign}
 \label{s:misalign}
@@ -554,6 +533,28 @@ contact David Sagan if needed.
 Format:
 \begin{example}
   quit
+\end{example}
+
+%% re_execute --------------------------------------------------------------
+\section{re_execute}
+\index{commands!re_execute}
+\label{s:re.exe}
+
+The \vn{re_execute} command reruns prior commands.  Format:
+\begin{example}
+  re_execute <index>   ! Re-execute a command with the given index number.
+  re_execute <string>  ! Re-execute last command that begins with <string>.
+\end{example}
+
+\vskip 0.2in 
+Every \tao command entered is recorded in a ``history stack''. These
+commands can be viewed using the \vn{show history} command. The \vn{show_history}
+command will also display the index number associated with each command.
+
+Examples
+\begin{example}
+  re_exe 34   ! Re-execute command number 34.
+  re_exe set  ! Re-execute last ``set'' command.  
 \end{example}
 
 %% read --------------------------------------------------------------
@@ -1383,6 +1384,7 @@ Format:
   show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}   ! \sref{s:show.global}
   show graph <graph_name>                                             ! \sref{s:show.graph}
+  show history \{-no_num\} \{<num_to_display>\}                         ! \sref{s:show.history}
   show hom                                                            ! \sref{s:show.hom}
   show key_bindings                                                   ! \sref{s:show.key}
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
@@ -1752,6 +1754,35 @@ Example:
 \begin{example}
   show graph r2.g1         ! Show the attributes of graph "g1" which is 
                            !   plotted in region "r2".
+\end{example}
+
+%% show history --------------------------------------------------------------
+
+\subsection{show history}
+\label{s:show.history}
+
+Syntax:
+\begin{example}
+  show history \{-no_num\} \{<num_to_display>\}
+\end{example}
+
+Shows the command history. Each command is given an index number starting from 1 for
+the first command. This index is printed with the command unless the \vn{-no_num} switch
+is present.
+
+The number of commands printed is, by defulat, the last 50. Setting the \vn{<num_to_display>} will
+change this. Setting \vn{<num_to_display>} to \vn{all}  will cause all the commands to be printed.
+
+Use the command \vn{re_execute} (\sref{s:re.exe}) to re-execute a command. 
+
+
+If a command file has been called, the commands within the command file will be displayed
+but will be proceeded by an exclamation mark ``!'' to show that the command was not ``directly'' executed.
+
+Examples
+\begin{example}
+  show -write cmd_file hist all -no   ! Create a command history file
+  show hist 30                        ! Show the last 30 commands.
 \end{example}
 
 %% show hom --------------------------------------------------------------

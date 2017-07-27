@@ -48,8 +48,8 @@ character(16) :: cmd_names(37) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
-    'call         ', 'ptc          ', 'alias        ', 'help         ', 'history      ', &
-    'single_mode  ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
+    'call         ', 'ptc          ', 'alias        ', 'help         ', 'single_mode  ', &
+    're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
     'python       ', 'quiet        ']
@@ -272,15 +272,6 @@ case ('help')
   return
 
 !--------------------------------
-! HISTORY
-
-case ('history')
-
-  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
-  call tao_history_cmd (cmd_word(1), err)
-  return
-
-!--------------------------------
 ! MISALIGN
 
 case ('misalign')
@@ -338,7 +329,7 @@ case ('plot')
   call tao_plot_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
-! ptc
+! PTC
 
 case ('ptc')
 
@@ -348,7 +339,7 @@ case ('ptc')
   return
 
 !--------------------------------
-! python
+! PYTHON
 
 case ('python')
 
@@ -356,7 +347,7 @@ case ('python')
   return
 
 !--------------------------------
-! quietpython
+! QUIET PYTHON
 
 case ('quiet')
 
@@ -365,6 +356,22 @@ if (s%com%cmd_file_level == 0) then
 else
   s%global%quiet = .true.
 endif
+
+!--------------------------------
+! RE_EXECUTE
+
+case ('re_execute')
+
+  call tao_re_execute (cmd_line, err)
+  return
+
+!--------------------------------
+! READ
+
+case ('read')
+
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_read_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! RESTORE, USE, VETO
@@ -384,14 +391,6 @@ case ('restore', 'use', 'veto')
     call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
     return
   endif 
-
-!--------------------------------
-! READ
-
-case ('read')
-
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
-  call tao_read_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! REINITIALIZE

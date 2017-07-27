@@ -3,16 +3,6 @@ module tao_command_mod
 use output_mod
 use tao_mod
 
-type cmd_history_struct  ! record the command history
-  character(:), allocatable :: cmd     ! the command
-  integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
-  logical cmd_file       ! Did command come from a command file
-end type
-
-type (cmd_history_struct), private, save :: history(1000) ! command history
-integer, private, save :: ix_history = 0 ! present index to command history array
-integer, private, save :: n_history      ! present history index
-
 contains
 
 !----------------------------------------------------------------------------
@@ -32,14 +22,14 @@ character(*) cmd
 
 !
 
-ix_history = ix_history + 1
-if (ix_history > size(history)) ix_history = 1
-n_history = n_history + 1
-history(ix_history)%ix = n_history
+s%com%ix_history = s%com%ix_history + 1
+if (s%com%ix_history > size(s%history)) s%com%ix_history = 1
+s%com%n_history = s%com%n_history + 1
+s%history(s%com%ix_history)%ix = s%com%n_history
 if (s%com%cmd_from_cmd_file) then
-  history(ix_history)%cmd = '  ! ' // trim(cmd)
+  s%history(s%com%ix_history)%cmd = '  ! ' // trim(cmd)
 else
-  history(ix_history)%cmd = trim(cmd)
+  s%history(s%com%ix_history)%cmd = trim(cmd)
 endif
 
 end subroutine
@@ -48,72 +38,32 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_cmd_history_print (n_print)
+! Subroutine tao_re_exectue (string, err)
 !
-! Subroutine to print the command history.
+! Subroutine to execute a previous command.
 !-
 
-subroutine tao_cmd_history_print (n_print)
-
-implicit none
-
-integer n_print, i
-character(*), parameter :: r_name = 'tao_history'
-
-!
-
-if (ix_history == 0) return
-
-if (n_print > 0) then
-  i = mod (ix_history - n_print + 1, size(history))
-else
-  i = mod (ix_history + 1, size(history))
-endif
-
-if (i < 1) i = i + size(history)
-
-do
-  if (history(i)%ix /= 0) then
-    call out_io (s_blank$, r_name, '\i4\: ' // history(i)%cmd, i_array = [history(i)%ix])
-  endif
-  if (i == ix_history) return
-  i = i + 1
-  if (i > size(history)) i = 1
-enddo
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_history_cmd (string, err)
-!
-! Subroutine to print the command history.
-!-
-
-subroutine tao_history_cmd (string, err)
+subroutine tao_re_execute (string, err)
 
 implicit none
 
 integer ios, ix1, ix, ix_rec
+character(100) line
 character(*) string
-character(100) cmd_out
-character(16) :: r_name = 'tao_history_cmd'
+character(*), parameter :: r_name = 'tao_history_cmd'
 logical err
-
-!
-
-if (string == ' ') then
-  call tao_cmd_history_print (50)
-  return
-endif
 
 !
 
 err = .true.
 
-if (index('-+0123456789', string(1:1)) /= 0) then  ! number
+if (is_integer(string)) then
+  call string_trim(string, line, ix)
+  if (line(ix+1:) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF AFTER INTEGER INDEX.')
+    return
+  endif
+
   read (string, *, iostat = ios) ix_rec
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'ERROR READING HISTORY NUMBER')
@@ -121,34 +71,34 @@ if (index('-+0123456789', string(1:1)) /= 0) then  ! number
   endif
 
   if (ix_rec > 0) then
-    if (ix_rec > n_history .or. ix_rec < n_history - (size(history) - 1)) then
+    if (ix_rec > s%com%n_history .or. ix_rec < s%com%n_history - (size(s%history) - 1)) then
       call out_io (s_error$, r_name, 'INVALID INDEX FOR THE HISTORY LIST.')
       return
     endif
-    ix = ix_rec + ix_history - n_history
+    ix = ix_rec + s%com%ix_history - s%com%n_history
   else
-    if (-ix_rec > size(history) - 1 .or. -ix_rec > n_history - 1) then 
+    if (-ix_rec > size(s%history) - 1 .or. -ix_rec > s%com%n_history - 1) then 
       call out_io (s_error$, r_name, 'INVALID INDEX FOR THE HISTORY LIST.')
       return
     endif
-    ix = ix_history + ix_rec
+    ix = s%com%ix_history + ix_rec
   endif
 
-  if (ix < 1) ix = ix + size(history)
+  if (ix < 1) ix = ix + size(s%history)
 
 !
 
 else
 
-  ix = ix_history
+  ix = s%com%ix_history
   do
 
-    if (index(history(ix)%cmd, trim(string)) == 1) exit
+    if (index(s%history(ix)%cmd, trim(string)) == 1) exit
 
     ix = ix - 1
-    if (ix < 1) ix = ix + size(history)
+    if (ix < 1) ix = ix + size(s%history)
 
-    if (ix == ix_history .or. history(ix)%ix == 0) then
+    if (ix == s%com%ix_history .or. s%history(ix)%ix == 0) then
       call out_io (s_error$, r_name, 'COMMAND NOT FOUND IN THE HISTORY LIST.')
       return
     endif
@@ -159,12 +109,13 @@ endif
 
 ! put the command in the common area so it can be used next.
 
-s%com%cmd = history(ix)%cmd
+call string_trim(s%history(ix)%cmd, s%com%cmd, ix)
+if (s%com%cmd(1:1) == '!') s%com%cmd = s%com%cmd(2:)
 s%com%use_cmd_here = .true.
 
 err = .false.
 
-end subroutine
+end subroutine tao_re_execute
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
