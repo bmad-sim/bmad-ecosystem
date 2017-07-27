@@ -222,24 +222,24 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(33) = [ &
+character(16) :: show_what, show_names(34) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
    'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
-   'matrix          ', 'field           ', 'wake_elements   ']
+   'matrix          ', 'field           ', 'wake_elements   ', 'history         ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
-integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
+integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min
 integer, allocatable :: ix_c(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned
-logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
+logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
@@ -487,7 +487,7 @@ case ('branch')
 
   do 
 
-    call tao_next_switch (stuff2, ['-universe   '], .false., switch, err, ix_s2)
+    call tao_next_switch (stuff2, ['-universe'], .false., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -1333,6 +1333,62 @@ case ('element')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! field
+
+case ('field')
+
+  call  str_upcase(ele_name, word1)
+  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+  if (err) return
+  u => s%u(ix_u)
+  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
+  if (err) return
+  ele => eles(1)%ele
+  call init_coord (orb, ele = ele, element_end = downstream_end$)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing X value'
+    result_id = 'field:bad-x'
+    return
+  endif
+  read(stuff2, *) orb%vec(1)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing Y value'
+    result_id = 'field:bad-y'
+    return
+  endif
+  read(stuff2, *) orb%vec(3)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing Z value'
+    result_id = 'field:bad-z'
+    return
+  endif
+  read(stuff2, *) z
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0) then
+    orb%t = 0
+  else
+    if (.not. is_real(stuff2, .true.)) then
+      nl = 1; lines(1) = 'Bad T value'
+      result_id = 'field:bad-t'
+      return
+    endif
+    read(stuff2, *) orb%t
+  endif
+
+  call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
+  if (err) return
+
+  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'B:', field%B
+  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'E:', field%E
+
+!----------------------------------------------------------------------
 ! global
 
 case ('global')
@@ -1496,62 +1552,6 @@ case ('global')
   result_id = show_what
 
 !----------------------------------------------------------------------
-! field
-
-case ('field')
-
-  call  str_upcase(ele_name, word1)
-  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-  if (err) return
-  u => s%u(ix_u)
-  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
-  if (err) return
-  ele => eles(1)%ele
-  call init_coord (orb, ele = ele, element_end = downstream_end$)
-
-  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing X value'
-    result_id = 'field:bad-x'
-    return
-  endif
-  read(stuff2, *) orb%vec(1)
-
-  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing Y value'
-    result_id = 'field:bad-y'
-    return
-  endif
-  read(stuff2, *) orb%vec(3)
-
-  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing Z value'
-    result_id = 'field:bad-z'
-    return
-  endif
-  read(stuff2, *) z
-
-  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0) then
-    orb%t = 0
-  else
-    if (.not. is_real(stuff2, .true.)) then
-      nl = 1; lines(1) = 'Bad T value'
-      result_id = 'field:bad-t'
-      return
-    endif
-    read(stuff2, *) orb%t
-  endif
-
-  call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
-  if (err) return
-
-  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'B:', field%B
-  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'E:', field%E
-
-!----------------------------------------------------------------------
 ! graph
 
 case ('graph')
@@ -1638,6 +1638,68 @@ case ('graph')
     nl=1; lines(1) = 'This is not a graph'
     return
   endif
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! history
+
+case ('history')
+
+  show_labels = .true.
+  n_print = 50
+
+  do 
+    call tao_next_switch (stuff2, ['-no_num'], .false., switch, err, ix_s2)
+
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-no_num')
+      show_labels = .false.
+
+    case default
+      if (switch == 'all') then
+        n_print = 100000
+      else
+        read (switch, *, iostat = ios) n_print
+        if (ios /= 0) then
+          call out_io (s_error$, r_name, 'ERROR READING HISTORY NUMBER')
+          return
+        endif
+      endif
+
+    end select
+  enddo
+
+  !
+
+  if (s%com%ix_history == 0) return
+
+  if (n_print > 0) then
+    i = mod (s%com%ix_history - n_print + 1, size(s%history))
+  else
+    i = mod (s%com%ix_history + 1, size(s%history))
+  endif
+
+  if (i < 1) i = i + size(s%history)
+
+  do
+    if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
+
+    if (s%history(i)%ix /= 0) then
+      if (show_labels) then
+        nl=nl+1; write (lines(nl), '(i4, 2a)') s%history(i)%ix, ': ', s%history(i)%cmd
+      else
+        nl=nl+1; write (lines(nl), '(a)') s%history(i)%cmd
+      endif
+    endif
+
+    if (i == s%com%ix_history) exit
+    i = i + 1
+    if (i > size(s%history)) i = 1
+  enddo
 
   result_id = show_what
 

@@ -103,6 +103,7 @@ endif
 
 if (s%com%use_cmd_here) then
   cmd_out = s%com%cmd
+  call out_io (s_blank$, r_name, '  ' // cmd_out)
   call alias_translate (cmd_out, err)
   s%com%use_cmd_here = .false.
   return
