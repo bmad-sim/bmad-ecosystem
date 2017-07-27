@@ -1467,8 +1467,8 @@ type em_field_struct
 end type
 
 type em_potential_struct
-  real(rp) :: phi = 0         ! Electric scaler potential.
-  real(rp) :: phi_B = 0       ! Magnetic scaler potential.
+  real(rp) :: phi = 0         ! Electric scalar potential.
+  real(rp) :: phi_B = 0       ! Magnetic scalar potential.
   real(rp) :: A(3) = 0        ! Magnetic vector potential.
 end type
 

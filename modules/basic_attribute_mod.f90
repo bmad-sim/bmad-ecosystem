@@ -496,8 +496,14 @@ do i = 1, n_key$
   call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
   call init_attribute_name1 (i, ptc_integration_type$,   'PTC_INTEGRATION_TYPE')
 
-  call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
-  call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+  if (i == lcavity$ .or. i == em_field$ .or. i == custom$) then
+    call init_attribute_name1 (i, E_tot$,                  'E_TOT', dependent$)
+    call init_attribute_name1 (i, p0c$,                    'P0C', dependent$)  
+  else
+    call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
+    call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+  endif
+
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
   call init_attribute_name1 (i, ref_time_start$,         'ref_time_start', private$)
 
@@ -920,8 +926,8 @@ call init_attribute_name1 (elseparator$, taylor_field$,             'TAYLOR_FIEL
 call init_attribute_name1 (elseparator$, E_tot_start$,              'E_tot_start', private$)
 call init_attribute_name1 (elseparator$, p0c_start$,                'p0c_start', private$)
 
-call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', dependent$)
-call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', dependent$)
+call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', quasi_free$) ! varied in multipass
+call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', quasi_free$)
 call init_attribute_name1 (em_field$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (em_field$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD')
@@ -974,8 +980,8 @@ call init_attribute_name1 (lcavity$, field_autoscale$,              'FIELD_AUTOS
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (lcavity$, autoscale_phase$,              'AUTOSCALE_PHASE')
 call init_attribute_name1 (lcavity$, cavity_type$,                  'CAVITY_TYPE')
-call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
-call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
+call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', quasi_free$)
+call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', quasi_free$)
 call init_attribute_name1 (lcavity$, phi0_multipass$,               'PHI0_MULTIPASS')
 call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
@@ -1134,8 +1140,8 @@ call init_attribute_name1 (custom$, val11$,                         'VAL11')
 call init_attribute_name1 (custom$, val12$,                         'VAL12')
 call init_attribute_name1 (custom$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (custom$, delta_e$,                       'DELTA_E')
-call init_attribute_name1 (custom$, e_tot_start$,                   'E_TOT_START', dependent$)
-call init_attribute_name1 (custom$, p0c_start$,                     'P0C_START', dependent$)
+call init_attribute_name1 (custom$, e_tot_start$,                   'E_TOT_START', quasi_free$)
+call init_attribute_name1 (custom$, p0c_start$,                     'P0C_START', quasi_free$)
 
 call init_attribute_name1 (floor_shift$, l$,                        'L')
 call init_attribute_name1 (floor_shift$, origin_ele$,               'ORIGIN_ELE')
@@ -1193,8 +1199,8 @@ call init_attribute_name1 (octupole$, p0c_start$,                   'p0c_start',
 
 call init_attribute_name1 (patch$, l$,                              'L', dependent$)
 call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
-call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', dependent$)
-call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', dependent$)
+call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', quasi_free$)
+call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', quasi_free$)
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
