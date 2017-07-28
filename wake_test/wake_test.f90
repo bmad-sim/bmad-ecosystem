@@ -13,7 +13,7 @@ type (bunch_struct) :: bunch, bunch_init, bunch0, bunch2
 
 real(rp) dz, z0
 
-integer i, nargs, n, ie
+integer i, nargs, n, ie, i0, i1
 
 logical print_extra, err_flag
 
@@ -176,5 +176,31 @@ enddo
 
 write (1, '(a, 6es18.9)') '"dB-LR-P20" ABS 1E-19' , bunch2%particle(20)%vec - bunch%particle(20)%vec
 write (1, '(a, 6es18.9)') '"dB-LR-P40" ABS 1E-19' , bunch2%particle(40)%vec - bunch%particle(40)%vec
+
+!---------------------------------
+! Sort test
+
+bunch%particle(1)%state = lost$
+bunch%particle(3)%state = lost$
+bunch%particle(10)%state = lost$
+call order_particles_in_z (bunch)
+
+do i = 1, size(bunch%particle) - 1
+  i0 = bunch%ix_z(i)
+  i1 = bunch%ix_z(i+1)
+
+  if (bunch%particle(i1)%state /= alive$) then
+    if (i /= bunch%n_live) then
+      print *, 'Sort problem1'
+      call err_exit
+    endif
+    exit
+  endif
+
+  if (bunch%particle(i0)%vec(5) < bunch%particle(i1)%vec(5)) then
+    print *, 'Sort problem2'
+    call err_exit
+  endif
+enddo
 
 end program

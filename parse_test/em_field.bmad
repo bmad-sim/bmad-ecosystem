@@ -36,7 +36,7 @@ m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, cylindrical_map = {
 m2: lcavity, l = m1[l], voltage = m1[voltage], rf_frequency = m1[rf_frequency], field_calc = m1[field_calc]
 m2[cylindrical_map] = m1[cylindrical_map]
 
-g1: rfcavity, voltage = 2, rf_frequency = 1e6, grid_field = {
+g1: rfcavity, voltage = 2, rf_frequency = 0e6, grid_field = {
   geometry = xyz,
   field_type = electric,
   harmonic = 0,
@@ -52,10 +52,11 @@ g1: rfcavity, voltage = 2, rf_frequency = 1e6, grid_field = {
   pt(-1, 0,  0) = (1, 0, 0),
   pt( 0, 0,  0) = (0, 1, 0),
   pt(-1, 1,  0) = (1, 0, 0),
-  pt( 0, 1,  0) = (0, 1, 0)}, l = 0.3, field_calc = fieldmap
+  pt( 0, 1,  0) = (0, 1, 0)}, l = 0.3, field_calc = fieldmap, autoscale_phase = F
 
 g2: rfcavity, l = g1[l], voltage = g1[voltage], rf_frequency = g1[rf_frequency], field_calc = g1[field_calc]
 g2[grid_field] = g1[grid_field]
+g2[autoscale_phase] = F
 
 t1: sbend, k1 = 2, taylor_field = {
   field_type = electric, 

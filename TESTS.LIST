@@ -25,6 +25,7 @@ slice_test
 spin_test
 superimpose_test
 synrad3d_test
+tao_test
 NOTE: SKIPPING TAYLOR_TEST!
 ! taylor_test
 time_runge_kutta_test
