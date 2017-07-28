@@ -571,11 +571,11 @@ method. ``X'' denotes an available method.}
 \index{taylor!and Taylor maps}
 ``Integration methods'' are tracking methods that involve integrating
 through an element's magnetic and electric fields.  Integration
-methods are split into two classes: Those that involve Taylor maps and
+methods are split into two classes: Those that can track Taylor maps and
 those that simply track a particle's position.  The Taylor map methods
 are
 \begin{example}
-  symp_lie_bmad
+  symp_lie_bmad   ! Only to first order
   symp_lie_ptc    ! Uses PTC
   taylor          ! Uses PTC
 \end{example}
@@ -672,29 +672,25 @@ Possible values for \vn{field_calc} are:
   fieldmap
 \end{example}
 \index{custom}\index{runge_kutta}
-\vn{Custom} means that the field calculations are done outside of the \bmad software. A
-program doing \vn{custom} field calculations will need the appropriate custom routine
-(\sref{s:custom.ele}). Elements that set \vn{field_calc} to \vn{fieldmap} need to have a
-field map defined (\sref{s:fieldmap}).
+\vn{Custom} means that the field calculations are done outside of the \bmad software. A program
+doing \vn{custom} field calculations will need the appropriate custom routine
+(\sref{s:custom.ele}). Elements that set \vn{field_calc} to \vn{fieldmap} need to have a field map
+defined (\sref{s:fieldmap}).
 
-The \vn{csr_calc_on} switch toggles on/off Coherent Synchrotron Radiation effects.
-The default is True. CSR effects are only present if the program that is being run
-is setup to track bunches of particles (as opposed to single particle tracking).
+The \vn{csr_calc_on} switch toggles on/off Coherent Synchrotron Radiation effects.  The default is
+True. CSR effects are only present if the program that is being run is setup to track bunches of
+particles (as opposed to single particle tracking).
 
-\vn{Warning:} When tracking a particle through a custom field using
-\vn{runge_kutta}, it is important that the field obey Maxwell's
-equations. Fields that do not obey Maxwell's Equations may cause the
-\vn{runge_kutta} adaptive step size control algorithm to take smaller
-and smaller steps until the step size becomes so small the tracking
-will stop. What happens is that the step size control algorithm takes
-a step and then takes two half steps over the same region and from
-this estimates the error in the calculation. If the error is larger
-than the allowed tolerance the control algorithm shortens the step and
-tries again. A field that does not obey Maxwell's equations can fool
-the control algorithm into thinking that the error is always larger
-than the allowed tolerance for any finite step size. A typical
-situation is where the field has an unphysical step across some
-boundary.
+\vn{Warning:} When tracking a particle through a custom field using \vn{runge_kutta}, it is
+important that the field obey Maxwell's equations. Fields that do not obey Maxwell's Equations may
+cause the \vn{runge_kutta} adaptive step size control algorithm to take smaller and smaller steps
+until the step size becomes so small the tracking will stop. What happens is that the step size
+control algorithm takes a step and then takes two half steps over the same region and from this
+estimates the error in the calculation. If the error is larger than the allowed tolerance the
+control algorithm shortens the step and tries again. A field that does not obey Maxwell's equations
+can fool the control algorithm into thinking that the error is always larger than the allowed
+tolerance for any finite step size. A typical situation is where the field has an unphysical step
+across some boundary.
 
 \index{boris}
 The phase space coordinates used with \vn{boris} tracking are not the
