@@ -115,6 +115,9 @@ for test_dir in test_dir_list:
 
   os.chdir(dir_split[0])
 
+  print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+  print_all ('Starting testing in subdirectory: ' + dir_split[0])
+
   # Remove output.now
 
   os.system('rm output.now')
@@ -124,24 +127,23 @@ for test_dir in test_dir_list:
   program = dir_split[0]
   if program[-1] == '/': program = program[:-1]
 
-  ## exe_file construct disabled since this is not a good solution for custom needs.
-  ## A substitute will be coded when needed...
-  ## if os.path.exists('exe_file'):
-  ##  exe_file = open ('exe_file', 'r')
-  ##  program = exe_file.readline().strip().split()[0]
+  # run.py
+  if os.path.exists('run.py'):
+    print_all ('     Found run.py. Running this script.')
+    os.system('python run.py')
 
-  program = bin_dir + program
-
-  print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-  print_all ('Starting testing in subdirectory: ' + dir_split[0])
-  print_all ('     Running program: ' + program)
+  else:
+    program = bin_dir + program
+    print_all ('     Running program: ' + program)
   
-  if not os.path.isfile(program):
-    print_all ('     !!! Program does not exist!', True, True)
-    os.chdir('..')
-    continue
+    if not os.path.isfile(program):
+      print_all ('     !!! Program does not exist!', True, True)
+      os.chdir('..')
+      continue
 
-  os.system(program)
+    os.system(program)
+
+  # Look for output
 
   if not os.path.isfile('output.now'):
     print_all ('     !!! Program failed to create "output.now" file', True, True)

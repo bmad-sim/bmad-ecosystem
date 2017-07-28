@@ -82,8 +82,13 @@ do ib = 0, ubound(lat%branch, 1)
 
     do im = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
-      if (im == mad$  .or. im == symp_map$ .or. im == custom$) cycle
+      if (im == mad$) cycle
+      if (im == symp_map$) cycle
+      if (im == custom$) cycle
       if (im == boris$) cycle
+      if (im == taylor$ .and. ele%key == rfcavity$) cycle
+      if (im == taylor$ .and. ele%key == lcavity$) cycle
+      if (im == symp_lie_ptc$ .and. ele%key == patch$) cycle
       if (tracking_method /= '' .and. upcase(tracking_method_name(im)) /= upcase(tracking_method)) cycle
 
       ele%tracking_method = im
