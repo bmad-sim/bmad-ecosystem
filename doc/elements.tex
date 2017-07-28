@@ -496,7 +496,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l                  = <Real>     ! ``Length'' of bend. See below.
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord                         ! Chord length. Dependent attribute. See \sref{s:l}.
-  n_ref_pass         = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  n_ref_pass         = 0 or 1     ! Multipass reference turn (\sref{s:multipass}).
   ptc_field_geometry = <Switch>   ! See below.
   rho                = <Real>     ! Design bend radius. A settable dependent var (\sref{s:depend}).
   roll               = <Real>     ! See \ref{s:offset}.
@@ -688,21 +688,16 @@ For example:
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
 
-The \vn{n_ref_pass} attribute are only used
-when a bend is part of a \vn{multipass} line and is used to set the
-reference geometry of the bend. See section~\sref{s:multipass} for
-more details.
+The \vn{n_ref_pass} attribute are only used when a bend is part of a \vn{multipass} line and is used
+to set the reference geometry of the bend. See section~\sref{s:multipass} for more details.
 
-In the local coordinate system (\sref{s:ref}), looking from ``above''
-(bend viewed from positive $y$), and with \vn{ref_tilt} = 0, a positive
-\vn{angle} represents a particle rotating clockwise. In this
-case. \vn{g} will also be positive. For counterclockwise rotation,
-both \vn{angle} and \vn{g} will be negative but the length \vn{l} is
-always positive. Also, looking from above, a positive \vn{e1}
-represents a clockwise rotation of the entrance face and a positive
-\vn{e2} represents a counterclockwise rotation of the exit face. This
-is true irregardless of the sign of \vn{angle} and \vn{g}. Also it is
-always the case that the pole faces will be parallel when
+In the local coordinate system (\sref{s:ref}), looking from ``above'' (bend viewed from positive
+$y$), and with \vn{ref_tilt} = 0, a positive \vn{angle} represents a particle rotating clockwise. In
+this case. \vn{g} will also be positive. For counterclockwise rotation, both \vn{angle} and \vn{g}
+will be negative but the length \vn{l} is always positive. Also, looking from above, a positive
+\vn{e1} represents a clockwise rotation of the entrance face and a positive \vn{e2} represents a
+counterclockwise rotation of the exit face. This is true irregardless of the sign of \vn{angle} and
+\vn{g}. Also it is always the case that the pole faces will be parallel when
 \begin{example}
   e1 + e2 = angle
 \end{example}

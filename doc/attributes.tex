@@ -2255,11 +2255,11 @@ as described in Sec.~\sref{s:cylind.map.phys}.
 
 The lattice file syntax for the \vn{cylindrical_map} type is:
 \begin{example}
-  map = \{
+  cylindrical_map = \{
     field_scale      = <Real>,             ! Scale factor for the E & B fields.
     master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
     ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
-    m                = <Integer>,          ! Mode number
+    m                = <Integer>,          ! Azimuthal mode number
     harmonic         = <Integer>,          ! RF frequency harmonic number 
     phi0_fieldmap    = <Real>,             ! Phase of oscillations.
     theta0_azimuth   = <Real>,             ! Azimuthal orientation.
@@ -2283,12 +2283,15 @@ the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute i
 Sec.~\sref{s:fieldmap.com}.
 
 The basic equations used for the \vn{cylindrical_map} decomposition of the fields are given in
-Section~\sref{s:cylind.map.phys}.  \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$
-and \vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All of these vectors must be
-present and have the same length. The exception is with an $m = 0$ mode either the $e$ or $b$ arrays
-can be omitted and will default to zero. The number of terms $N$ for the $e$ or $b$ vectors must be
-a power of $2$ and all modes must have the same number of terms. The $n$\Th element in the $e$ or
-$b$ arrays, with $n$ running from 0 to $N-1$, is associated with a wavelength $k_n$
+Section~\sref{s:cylind.map.phys}. A lattice element may have multiple \vn{cylindriacl_map}
+components with each \vn{cylindrical_map} being associated with a particular azimuthal mode $m$.
+
+\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and \vn{b_re} and \vn{b_im} give the
+real and imaginary part of $b$. All of these vectors must be present and have the same length. The
+exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be omitted and will default to
+zero. The number of terms $N$ for the $e$ or $b$ vectors must be a power of $2$ and all modes must
+have the same number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$ running from 0
+to $N-1$, is associated with a wavelength $k_n$
 \begin{equation}
   k_n = \begin{cases}
     \frac{2 \, \pi \, n}{N \, dz} & 0 \le n < \frac{N}{2} \\
@@ -2315,6 +2318,20 @@ Example:
     e_coef_re = (...),       e_coef_im = (...),
     b_coef_re = (...),       b_coef_im = (...)\}, field_calc = fieldmap
 \end{example}
+
+Note: When using PTC based tracking (\sref{c:methods}), the following restrictions apply:
+\begin{Itemize}
+\item
+The fields must be DC.
+\item
+all the \vn{e_coef} and \vn{b_coef} arrays must have the same length.
+\item
+\vn{r0} must be zero.
+\item
+The associated element cannot be an \vn{sbend} or \vn{rbend}.
+\item
+May not be combined with other field map types.
+\end{Itemize}
 
 %-----------------------------------------------------------------
 \subsection{Grid_Field Field Map}
