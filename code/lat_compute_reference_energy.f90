@@ -538,7 +538,8 @@ endif
 abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
 abs_tol(2) = bmad_com%significant_length/c_light
 
-if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.)) then
+if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.) .or. &
+      ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_state%floor_position /= ok$) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord
