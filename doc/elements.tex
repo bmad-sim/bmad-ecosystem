@@ -3170,6 +3170,7 @@ See \sref{s:list.patch} for a full list of element attributes.
 \index{flexible}\index{e_tot_offset}
 \index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
 \index{x_pitch}\index{y_pitch}\index{t_offset}
+\index{e_tot_set}\index{p0c_set}
 Attributes specific to a \vn{patch} elements are:
 \begin{example}
   x_offset        = <Real>    ! Exit face offset from Entrance.
@@ -3180,6 +3181,8 @@ Attributes specific to a \vn{patch} elements are:
   y_pitch         = <Real>    ! Exit face orientation from Entrance.
   tilt            = <Real>    ! Exit face orientation from Entrance.
   e_tot_offset    = <Real>    ! Reference energy offset (eV).
+  e_tot_set       = <Real>    ! Reference energy at exit end (eV).
+  p0c_set         = <Real>    ! Reference momentum at exit end (eV).
   flexible        = <Logic>   ! Default: False.
   l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
 \end{example}
@@ -3259,6 +3262,10 @@ $p_x$, $p_y$ and $p_z$ coordinates via \Eqs{ppp} and \eq{ppppp}.
 Notice that \vn{e_tot_offset} does not affect a particle's actual
 energy, it just affects the difference between the particle energy and
 the reference energy. 
+
+Alternatively, to set the reference energy, the \vn{E_tot_set} or \vn{p0c_set} attributes
+can be used to set the reference energy/momenum at the exit end. It is is an error
+if more than one of \vn{e_tot_offset}, \vn{E_tot_set} and \vn{p0c_set} is nonzero.
 
 \vn{Important}: \bmad may apply the energy transformation either before or after the
 coordinate transformation. This matters when the speed of the reference particle is less

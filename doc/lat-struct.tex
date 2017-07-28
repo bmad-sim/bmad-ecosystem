@@ -537,7 +537,7 @@ The following ordering of slaves and lords is observed:
 The associated \vn{super_slave} elements of a given \vn{super_lord}
 element are ordered from the entrance end of the \vn{super_lord}
 to the exit end. That is, in the code snippet above,
-\vn{pointer_to_slave (lat, this_ele, 1)} will point to the slave at
+\vn{pointer_to_slave (this_ele, 1)} will point to the slave at
 the start of the \vn{super_lord} and 
 \vn{ pointer_to_slave (this_ele, this_ele%n_lord)}
 will point to the slave at the exit end of the \vn{super_lord}.
@@ -588,8 +588,7 @@ controlled and coefficients, on all group elements in a lattice.
     if (lord%lord_status = group_lord$) then 
       print *, 'Slaves for group lord: ', lord%name
       do j = 1, lord%n_slave
-        slave => pointer_to_slave (lord, j, ix_con)
-        con => lat%control(ix_con)
+        slave => pointer_to_slave (lord, j, con)
         attrib_name = attribute_name (slave, con%ix_attrib)
         print *, i, slave%name, attrib_name, con%coef
       enddo
@@ -607,47 +606,32 @@ Example:
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave
+  type (control_struct), pointer :: con1, con2
   ...
-  lord => lat%ele(i)                    ! Point to some element
-  if (lord%n_slave > 0) then
-    slave => pointer_to_slave (lord, 1, ix_con)
-    print *, lord%ix1_slave == ix_con   ! Will print "T" for True
-  endif
-\end{example}
-This fact can be used to determine where a slave is in the list of slaves
-for a lord. The following example prints the pass number of a \vn{multipass_slave}
-taking advantage of the fact that the pass number 
-\begin{example}
-  type (lat_struct), target :: lat
-  type (ele_struct), pointer :: lord, slave
-  ...
-  slave => lat%ele(i)                ! Point to some element  
-  if (slave%slave_status == multipass_slave$) then
-    ! The multipass_lord of this element is the first lord.
-    lord => pointer_to_lord(slave, 1, ix_con)   
-    print *, 'Multipass_slave: ', slave%name
-    print *, 'Is in pass number:', ix_con - lord%ix1_slave + 1
-  endif
+  lord => lat%ele(i)                    ! Point to some lord
+  do j = 1, lord%n_slave
+    slave => pointer_to_slave (lord, j, con1)
+    con2 => lat%control(lord%ix1_slave+j-1) ! con1 and con2 are the same.
+  enddo
 \end{example}
 
 \index{ele_struct!\%ic1_lord}\index{ele_struct!\%n_lord}
 \index{lat_struct!\%ic}\index{ele_struct!\%n_lord_field}
-Except for a \vn{slice_slave}, the \vn{%ic1_lord}, \vn{%n_lord}, and \vn{%n_lord_field}
-components of a given slave element, along with the \vn{lat%ic(:)} array, can be used to
-find the lords of the slave.  Somewhat simplified, the code for the
-\Hyperref{r:pointer.to.lord}{pointer_to_lord} function is:
+Except for a \vn{slice_slave}, the \vn{%ic1_lord}, \vn{%n_lord}, and \vn{%n_lord_field} components
+of a given slave element, along with the \vn{lat%ic(:)} array, can be used to find the lords of the
+slave.  Simplified, the code for the \Hyperref{r:pointer.to.lord}{pointer_to_lord} function is:
 \begin{example}
-  function pointer_to_lord (slave, ix_lord, ix_control) result (lord_ptr)
+  function pointer_to_lord (slave, ix_lord, con, ...) result (lord_ptr)
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) slave
     type (ele_struct), pointer :: lord_ptr
-    integer, optional :: ix_control
+    type (control_struct), pointer, optional :: control
     integer ix_lord, icon
     !
     icon = lat%ic(slave%ic1_lord + ix_lord - 1)
     lord_ptr => lat%ele(lat%control(icon)%ix_lord)
-    if (present(ix_control)) ix_control = icon
+    if (present(con)) con => lat%control(icon)
   end function
 \end{example}
 This method for finding the lords of an element is considered
