@@ -300,6 +300,8 @@ if (ele1%key == patch$) then
   ele1%value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
   ele1%value(t_offset$)     = lord%value(t_offset$)
   ele1%value(e_tot_offset$) = lord%value(e_tot_offset$)
+  ele1%value(e_tot_set$)    = lord%value(e_tot_set$)
+  ele1%value(p0c_set$)      = lord%value(p0c_set$)
 
   do i = 2, lord%n_slave
     ele2 => pointer_to_slave (lord, i)
@@ -311,6 +313,8 @@ if (ele1%key == patch$) then
     ele2%value(z_offset$)     = ele2%value(l$)
     ele2%value(t_offset$)     = 0
     ele2%value(e_tot_offset$) = 0
+    ele1%value(e_tot_set$)    = 0
+    ele1%value(p0c_set$)      = 0
   enddo
 endif
 

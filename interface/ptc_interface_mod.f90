@@ -4151,7 +4151,7 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
     beta_start = ele%value(p0c_start$) / ele%value(E_tot_start$)
     beta_end = ele%value(p0c$) / ele%value(E_tot$)
 
-    if (ele%value(e_tot_offset$) == 0) then
+    if (beta_start == beta_end) then
       ptc_fibre%patch%energy = 0
     else
       ptc_fibre%patch%energy = 4 ! Internal entrance patch. Must be done after find_patch call.

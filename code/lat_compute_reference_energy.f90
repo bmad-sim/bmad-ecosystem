@@ -485,6 +485,15 @@ case (patch$)
     endif
     call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
     if (err) return
+
+  elseif (ele%value(E_tot_set$) /= 0) then
+    ele%value(E_tot$) = ele%value(E_tot_set$)
+    call convert_total_energy_to (ele%value(E_tot_set$), param%particle, pc = ele%value(p0c$))
+
+  elseif (ele%value(p0c_set$) /= 0) then
+    ele%value(p0c$) = ele%value(p0c_set$)
+    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$))
+
   else
     ele%value(E_tot$) = E_tot_start
     ele%value(p0c$) = p0c_start

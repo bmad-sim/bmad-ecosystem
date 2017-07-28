@@ -181,6 +181,29 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    ! Patch element should have at most one of e_tot_offset, e_tot_set and p0c_set nonzero
+
+    if (ele%key == patch$) then
+      n = 0
+      if (ele%value(e_tot_offset$) /= 0) n = n + 1
+      if (ele%value(e_tot_set$) /= 0) n = n + 1
+      if (ele%value(p0c_set$) /= 0) n = n + 1
+
+      if (n > 1) then
+        call out_io (s_fatal$, r_name, &
+                      'PATCH ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS MORE THAN ONE OF E_TOT_OFFSET, E_TOT_SET AND P0C_SET NONZERO!')
+        err_flag = .true.
+      endif  
+
+      if ((ele%value(e_tot_set$) /= 0 .or. ele%value(p0c_set$) /= 0) .and. ele%orientation == -1) then
+        call out_io (s_fatal$, r_name, &
+                      'PATCH ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS REVERSED ORIENTATION AND HAS E_TOT_SET OR P0C_SET NONZERO!')
+        err_flag = .true.
+      endif  
+    endif
+
     ! With fringe fields it is problematic to define how to handle an element with a negative length.
     ! Solution: Only allow negative length with drift or pipe.
 

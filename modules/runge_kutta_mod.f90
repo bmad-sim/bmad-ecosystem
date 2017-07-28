@@ -541,12 +541,12 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (em_field_struct) field
-type (coord_struct) orbit
+type (coord_struct) orbit, orbit2
 
 real(rp), intent(in) :: s_rel
 real(rp), intent(out) :: dr_ds(10)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
-real(rp) vel(3), E_force(3), B_force(3)
+real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
 integer rel_dir, sign_z_vel
@@ -565,13 +565,26 @@ e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 rel_dir = ele%orientation * orbit%direction
 
 ! Calculate the field. 
-! Important: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
+! Note: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
 
-if (ele%orientation == 1) then
+if (ele%key == patch$) then
+  ! Particle going towards an end uses the coordinate of that end.
+  ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
+  if (ele%orientation * orbit%direction == 1) then
+    call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, .false., err)
+  else
+!    call patch_transform_coords (orbit, orbit2, w_mat)
+    call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, .false., err)
+!    call rotate_em_field (field, w, w, .false.)
+  endif
+
+elseif (ele%orientation == 1) then
   call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, .false., err)
+
 else
   call em_field_calc (ele, param, ele%value(l$)-s_rel, orbit, local_ref_frame, field, .false., err)
 endif
+
 if (err) return
 
 ! Bend factor

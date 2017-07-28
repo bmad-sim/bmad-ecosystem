@@ -415,6 +415,25 @@ The components that determine this control are:
 This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struct}).
 
 %--------------------------------------------------------------------------
+\section{Group and Overlay Controller Elements}
+\label{s:control.ele}
+\index{group}\index{overlay}
+
+\vn{Group} and \vn{overlay} elements use the \vn{%control_var(:)} array for storing information about
+the control variables. Each element in the array represents a single variable. \vn{%control_var(:)}
+is an array of \vn{controller_var_struct} structures and these structures look like:
+\begin{example}
+  type controller_var_struct
+    character(40) :: name = ''
+    real(rp) :: value = 0
+    real(rp) :: old_value = 0
+  end type
+\end{example}
+The \vn{%old_value} component is only used for \vn{group} elements. 
+
+See Section~\sref{s:lat.add.delete} for an example of setting up a controller element within a program.
+
+%--------------------------------------------------------------------------
 \section{Coordinates, Offsets, etc.}
 \label{s:ele.offset}
 \index{global coordinates!in ele_struct}

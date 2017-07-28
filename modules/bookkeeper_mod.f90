@@ -1844,6 +1844,8 @@ if (lord%key == patch$) then
     value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
     value(t_offset$)     = lord%value(t_offset$)
     value(e_tot_offset$) = lord%value(e_tot_offset$)
+    value(e_tot_set$)    = lord%value(e_tot_set$)
+    value(p0c_set$)      = lord%value(p0c_set$)
   else
     value(x_pitch$)      = 0
     value(y_pitch$)      = 0
@@ -1853,6 +1855,8 @@ if (lord%key == patch$) then
     value(z_offset$)     = slave%value(l$) ! L is set by create_element_slice
     value(t_offset$)     = 0
     value(e_tot_offset$) = 0
+    value(e_tot_set$)    = 0
+    value(p0c_set$)      = 0
   endif
 
   value(x_pitch_tot$)     = value(x_pitch$)
