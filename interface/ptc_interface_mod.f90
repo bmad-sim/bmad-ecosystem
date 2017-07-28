@@ -1057,8 +1057,7 @@ use c_tpsa, only: c_verbose, E_MUON
 implicit none
 
 integer, optional :: integ_order, particle, n_step, taylor_order
-integer this_method, this_steps
-integer nd2, t_order
+integer this_method, this_steps, t_order
 
 real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
