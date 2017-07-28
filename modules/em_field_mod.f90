@@ -242,8 +242,8 @@ endif
 !----------------------------------------------------------------------------
 ! Custom field calc 
 
-if (ele%field_calc == custom$) then 
-  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield)
+if (ele%field_calc == custom$) then
+  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag)
   return
 end if
 

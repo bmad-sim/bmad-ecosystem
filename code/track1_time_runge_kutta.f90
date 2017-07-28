@@ -1,6 +1,3 @@
-!-----------------------------------------------------------
-!-----------------------------------------------------------
-!-----------------------------------------------------------
 !+ 
 ! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track)
 !
@@ -24,7 +21,6 @@
 !                    When tracking through multiple elements, the trajectory in an element
 !                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !-
-
 
 subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 
@@ -79,7 +75,7 @@ else if (abs(s_rel - ele%value(l$))  < bmad_com%significant_length) then
 endif
 
 !------
-!Check wall
+! Check wall
 
 call check_aperture_limit (end_orb, ele, in_between$, param)
 if (end_orb%state /= alive$) then
@@ -103,7 +99,7 @@ elseif (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)
   beta_ref = ele%value(p0c$) / ele%value(E_tot$)
   end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction * ele%orientation) * end_orb%beta / beta_ref 
-  if (s0 > 0) t_dir = -1
+  if (s0*ele%orientation > 0) t_dir = -1
 
 ! Particle is at an end.
 else

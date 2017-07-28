@@ -3,8 +3,8 @@
 !
 ! Routine to do lattice self-consistency checks including checking control links, etc.
 !
-! Modules needed:
-!   use bmad
+! If the global variable global_com%exit_on_error = True and there is an error then 
+! this routine will stop the program.
 !
 ! Input:
 !   lat -- lat_struct: Lattice to check
@@ -690,6 +690,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                   'DOES NOT HAVE A REFERENCE ENERGY OR N_REF_PASS DEFINED')
         err_flag = .true.
       endif
+    endif
+
+    ! n_ref_pass for a multipass_lord must be 0 or 1
+
+    if (l_stat == multipass_lord$ .and. (ele%value(n_ref_pass$) /= 0 .and. ele%value(n_ref_pass$) /= 1)) then
+      call out_io (s_fatal$, r_name, &
+                  'MULTIPASS_LORD: ' // ele%name, &
+                  'HAS N_REF_PASS THAT IS NOT 0 NOR 1: \f10.6\ ', r_array = [ele%value(n_ref_pass$)])
+      err_flag = .true.
     endif
 
     ! A multipass lord that is a magnetic or electric element must either:
