@@ -884,6 +884,15 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   logical, optional :: save_field
 end subroutine
 
+recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeeping, flag)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer stat_group
+  logical, optional :: control_bookkeeping
+  integer, optional :: flag
+end subroutine
+
 subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
   import
   implicit none
