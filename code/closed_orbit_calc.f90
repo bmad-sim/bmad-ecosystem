@@ -367,8 +367,9 @@ do i_loop = 1, i_max
         endif
       endif
 
-      a = a + del_co(1:n_dim)
-
+      if (all(abs(del_co(1:n_dim)) < 1e-2)) then
+        a = a + del_co(1:n_dim)
+      endif
     endif
   endif
 

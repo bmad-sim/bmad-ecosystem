@@ -672,7 +672,7 @@ do ib = 0, ubound(lat%branch, 1)
 
             select case (g_field%field_type)
             case (mixed$)
-              write (iu2, '(2x, a, 13a)') string, &
+              write (iu2, '(2x, a, 13a)') trim(string), &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
@@ -680,12 +680,12 @@ do ib = 0, ubound(lat%branch, 1)
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
             case (electric$)
-              write (iu2, '(2x, a, 13a)') string, &
+              write (iu2, '(2x, a, 13a)') trim(string), &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), end_str
             case (magnetic$)
-              write (iu2, '(2x, a, 13a)') string, &
+              write (iu2, '(2x, a, 13a)') trim(string), &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
                                                  trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
@@ -901,8 +901,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
-      !! if (attrib%name == 'MATCH_END') val = ele%value(match_end_input$)
-      !! if (attrib%name == 'MATCH_END_ORBIT') val = ele%value(match_end_orbit_input$)
+      if ((attrib%name == 'P0C' .or. attrib%name == 'P0C_START') .and. &
+                          (ele%lord_status /= multipass_lord$ .or. ele%value(n_ref_pass$) /= 0)) cycle
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.

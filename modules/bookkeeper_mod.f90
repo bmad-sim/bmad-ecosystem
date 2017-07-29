@@ -1718,9 +1718,12 @@ endif
 
 ! Ref energy shift for e_gun only happens at start of element.
 
-if (lord%key == e_gun$ .and. .not. include_upstream_end) then
-  value(e_tot_ref_init$) = lord%value(e_tot_start$)
-  value(p0c_ref_init$)   = lord%value(p0c_start$)
+if (lord%key == e_gun$) then
+  if (.not. include_upstream_end) then
+    value(e_tot_ref_init$) = lord%value(e_tot_start$)
+    value(p0c_ref_init$)   = lord%value(p0c_start$)
+  endif
+  value(voltage$) = lord%value(gradient$) * slave%value(l$)
 endif
 
 ! fringe fields 

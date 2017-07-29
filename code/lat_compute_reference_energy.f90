@@ -393,7 +393,7 @@ real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, ab
 real(rp) value_saved(num_ele_attrib$)
 
 integer i, key
-logical err_flag, err, changed, saved_is_on
+logical err_flag, err, changed, saved_is_on, energy_stale
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -547,8 +547,8 @@ endif
 abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
 abs_tol(2) = bmad_com%significant_length/c_light
 
-if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.) .or. &
-      ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_state%floor_position /= ok$) then
+energy_stale = ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.)
+if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_state%floor_position /= ok$) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord
@@ -563,9 +563,10 @@ if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.) .or. &
   old_floor = ele%floor
   call ele_geometry (ele0%floor, ele, ele%floor)
   ele%bookkeeping_state%floor_position = ele0%bookkeeping_state%floor_position
+
   if (ele%ix_ele > 0) then ! If element is associated with a lattice
     if (.not. old_floor == ele%floor) call set_lords_status_stale (ele, floor_position_group$) ! Need to update girders
-    call set_lords_status_stale (ele, ref_energy_group$)
+    call set_lords_status_stale (ele, ref_energy_group$)!, control_bookkeeping = .true.)
   endif
 
 endif
