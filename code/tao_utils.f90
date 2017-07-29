@@ -1124,8 +1124,11 @@ call out_io (s_blank$, r_name, [ &
         '  -building_wall <wall_file>      # Define the building tunnel wall                      ', &
         '  -color_prompt                   # Set color of prompt string to blue                   ', &
         '  -data <data_file>               # Define data for plotting and optimization            ', &
+        '  -debug                          # Debug mode for Wizards                               ', &
         '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting        ', &
         '  -geometry <width>x<height>      # Plot window geometry                                 ', &
+        '  -gui_mode                       # GUI mode for interfacing Tao with a script           ', &
+        '  -help                           # Display this list of command line options            ', &
         '  -hook_init_file <init_file>     # Init file for hook routines (Default = tao_hook.init)', &
         '  -init <tao_init_file>           # Tao init file                                        ', &
         '  -lat <bmad_lattice_file>        # Bmad lattice file                                    ', &
