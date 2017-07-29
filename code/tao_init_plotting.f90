@@ -851,6 +851,7 @@ type (branch_struct), pointer :: branch
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c3, default_plot_g1c4
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
+type (tao_plot_struct), pointer :: plot
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., fork$, '*'), &
       tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., crystal$, '*'), &
@@ -880,7 +881,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
 
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
-integer i, j, k, ie
+integer i, j, k, ie, ic
 character(40) name
 character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
 
@@ -915,6 +916,19 @@ if (allocated(s%plot_page%template)) then
   deallocate (temp_template)
   np = n
   if (s%plot_page%template(np)%name == 'scratch') np = np - 1
+
+  do j = 1, n
+    plot => s%plot_page%template(j)
+    if (.not. allocated(plot%graph)) cycle
+    do k = 1, size(plot%graph)
+      plot%graph(k)%p => plot
+      if (.not. allocated(plot%graph(k)%curve)) cycle
+      do ic = 1, size(plot%graph(k)%curve)
+        plot%graph(k)%curve(ic)%g => plot%graph(k)
+      enddo
+    enddo
+  enddo
+
 else
   allocate (s%plot_page%template(n_plots))
   np = 0

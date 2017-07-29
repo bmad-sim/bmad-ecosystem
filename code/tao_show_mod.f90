@@ -2819,7 +2819,10 @@ case ('plot')
   ! Find particular plot
 
   call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false.)
-  if (err) return
+  if (err) then
+    nl = 1; lines(nl) = 'CANNOT FIND PLOT WITH NAME: ' // attrib0
+    return
+  endif
 
   if (allocated(plot)) then
     p => plot(1)%p
