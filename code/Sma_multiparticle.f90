@@ -1045,6 +1045,8 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
           CALL ADJUST_WI(EL%WI,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDPA)
           CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)
+       case(KINDabell)
+          CALL ADJUST_abell(EL%ab,X,k,T%CAS)
        case(kindsuperdrift)
         if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,X,k,el%p%exact,1)
         if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,X,k,el%p%exact,-1)
@@ -1130,6 +1132,9 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
        case(KINDPA)
           CALL TRACK_SLICE(EL%PA,X,k,T%POS_IN_FIBRE-2)
        global_e= x(5)*el%p%p0c
+       case(KINDabell)
+          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
+ !      global_e= x(5)*el%p%p0c treat like electric
        case(kindsuperdrift)
           call track_slice(EL%sdr,X,k)
        global_e= x(5)*el%p%p0c
@@ -1259,7 +1264,10 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
        case(KINDWIGGLER)
           CALL ADJUST_WI(EL%WI,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDPA)
-          CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
+          CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)    
+       case(KINDabell)
+          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
+ !      global_e= x(5)*el%p%p0c treat like electric
        case(kindsuperdrift)
         if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,X,k,el%p%exact,1)
         if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,X,k,el%p%exact,-1)
@@ -2514,7 +2522,21 @@ CASE(KINDPA)
   call geo_rot(exi0,exi0,ang,exi0)
   endif
 
+CASE(KINDabell)
+   h=m%l/p%nst
+  if(m%ab%hc==0.0_dp) then
+   d=(/0.0_dp,0.0_dp,h/)
 
+   call geo_tra(b0,exi0,d,1)
+  else
+  ang=0.0_dp
+  ang(2)=h*m%ab%hc/2
+  h=2*sin(ang(2))/m%ab%hc
+  d=(/0.0_dp,0.0_dp,h/)
+  call geo_rot(exi0,exi0,ang,exi0)
+  call geo_tra(b0,exi0,d,1)
+  call geo_rot(exi0,exi0,ang,exi0)
+  endif
 
 CASE(KIND16)
    h=m%l/p%nst
@@ -2591,7 +2613,13 @@ if(f%mag%kind==kindpa) then
 call ADJUST_PANCAKE_frame(f%mag%pa,a0,exi0,1)
 !
 write(6,*) " I am here in survey_integration_node_p1 "
-endif 
+endif
+if(f%mag%kind==kindabell) then
+
+call ADJUST_abell_frame(f%mag%ab,a0,exi0,1)
+!
+write(6,*) " I am here in survey_integration_node_p1 "
+endif  
 t%b=a0
 !t%ent=ent0   ! mistake????
 t%exi=exi0
@@ -2775,6 +2803,41 @@ end subroutine survey_integration_special_superdrift
     endif
   END SUBROUTINE ADJUST_PANCAKE_frame
 
+ SUBROUTINE ADJUST_abell_frame(EL,a0,exi0,J)
+    IMPLICIT NONE
+    real(dp), target :: a0(3),exi0(3,3)
+    TYPE(abell),INTENT(INOUT):: EL
+    INTEGER, INTENT(IN) :: J
+    real(dp) d(3),ang(3)
+    d=0
+    ang=0
+    if(el%hc==0.0_dp) then  !<------ Rectangular geometry
+
+    IF(J==1) then
+    d(1)=el%xc; d(3)=el%dc; d(2)=el%vc; 
+        ang(2)=el%angc
+        call GEO_ROT(exi0,ang,1, exi0)
+        call TRANSLATE_point(a0,D,1,exi0)  
+    else
+    d(1)=-el%xc ;d(3)=el%dc;d(2)=-el%vc;
+        ang(2)=el%angc
+        call TRANSLATE_point(a0,D,1,exi0)  
+        call GEO_ROT(exi0,ang,1, exi0)
+    endif
+    else  !<------ Sector geometry
+    IF(J==1) then
+    d(1)=el%xc; d(3)=el%dc;d(2)=el%vc;
+        ang(2)=el%angc
+        call TRANSLATE_point(a0,D,1,exi0)  
+        call GEO_ROT(exi0,ang,1, exi0)
+    else
+    d(1)=-el%xc; d(3)=el%dc;d(2)=-el%vc;
+         ang(2)=el%angc
+        call GEO_ROT(exi0,ang,1, exi0)
+        call TRANSLATE_point(a0,D,1,exi0)  
+    endif
+    endif
+  END SUBROUTINE ADJUST_abell_frame
 
 subroutine survey_integration_node_p2(t,a0,ent0)
 implicit none
@@ -2820,7 +2883,12 @@ call ADJUST_PANCAKE_frame(f%mag%pa,a0,exi0,2)
 write(6,*) " I am here in survey_integration_node_p1 "
 endif 
 
+if(f%mag%kind==kindabell) then
 
+call ADJUST_abell_frame(f%mag%ab,a0,exi0,2)
+!
+write(6,*) " I am here in survey_integration_node_p1 "
+endif  
 
     IF(f%MAG%MIS) THEN
       call MIS_survey(a0,exi0,f,a0,exi0,ENTERING)

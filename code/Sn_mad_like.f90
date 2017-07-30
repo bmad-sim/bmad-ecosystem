@@ -8,7 +8,7 @@ module Mad_like
   IMPLICIT NONE
   public
 
-  private QUADTILT, SOLTILT, EL_Q,EL_0,pancake_tilt
+  private QUADTILT, SOLTILT, EL_Q,EL_0,pancake_tilt,abellTILT
   private drft,r_r !,rot,mark
   PRIVATE SEXTTILT,OCTUTILT
   private HKICKTILT,VKICKTILT,GKICKTILT
@@ -347,6 +347,11 @@ module Mad_like
   INTERFACE pancake
      MODULE PROCEDURE pancake_tilt
   end  INTERFACE
+
+  INTERFACE abell_dragt
+     MODULE PROCEDURE abellTILT
+  end  INTERFACE
+
 
   !  Taylor map
   !  INTERFACE Taylor_map
@@ -1560,6 +1565,69 @@ CONTAINS
 
   END FUNCTION SBTILT
 
+  FUNCTION  abellTILT(NAME,L,T,LIST)
+    implicit none
+    type (EL_LIST) abellTILT
+    type (EL_LIST),optional, INTENT(IN)::list
+    type (TILTING),optional, INTENT(IN):: T
+    CHARACTER(*),optional, INTENT(IN):: NAME
+    real(dp),optional , INTENT(IN):: L
+    real(dp) E11,E22,L1,ANG1
+
+    E11=0.0_dp
+    E22=0.0_dp
+    L1=0.0_dp
+
+
+    IF(PRESENT(L)) L1=L ;
+    if(present(list)) then
+       abellTILT=list
+       l1=list%L
+       ANG1=LIST%B0
+       E11=LIST%T1
+       E22=LIST%T2
+    else
+       abellTILT=0
+    endif
+
+
+
+    abellTILT%B0=ANG1/L1
+    abellTILT%L=L1
+    abellTILT%LD=L1
+    abellTILT%T1=E11;
+    abellTILT%T2=E22;
+
+    IF(ANG1/=0.0_dp) THEN
+       abellTILT%LC=2.0_dp*SIN(ANG1/2.0_dp)/abellTILT%B0
+    ELSE
+       abellTILT%LC=abellTILT%L
+    ENDIF
+    IF(LEN(NAME)>nlp) THEN
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1x,a72))'
+       !w_p%c(1)=name
+       write(6,'(a17,1x,a16)') ' IS TRUNCATED TO ', NAME(1:16)
+       ! call ! WRITE_I
+       abellTILT%NAME=NAME(1:16)
+    ELSE
+       abellTILT%NAME=NAME
+    ENDIF
+
+    if(present(t)) then
+       IF(T%NATURAL) THEN
+          abellTILT%tilt=t%tilt(1)
+       ELSE
+          abellTILT%tilt=t%tilt(0)
+       ENDIF
+    endif
+
+    abellTILT%KIND=kindabell
+    abellTILT%K(1)=abellTILT%B0+abellTILT%K(1)
+    abellTILT%nmul=0
+
+  END FUNCTION abellTILT
 
   FUNCTION  POTTILT(NAME,L,ANG,E1,E2,T,LIST)
     implicit none
@@ -1597,8 +1665,8 @@ CONTAINS
     POTTILT%T1=E11;
     POTTILT%T2=E22;
 
-    IF(ANG/=0.0_dp) THEN
-       POTTILT%LC=2.0_dp*SIN(ANG/2.0_dp)/POTTILT%B0
+    IF(ANG1/=0.0_dp) THEN
+       POTTILT%LC=2.0_dp*SIN(ANG1/2.0_dp)/POTTILT%B0
     ELSE
        POTTILT%LC=POTTILT%L
     ENDIF
@@ -2649,6 +2717,7 @@ CONTAINS
     type(element),pointer :: s2
     type(elementp), pointer :: s2p
     type(fibre), pointer::el
+
     !    integer ntot,ntot_rad,ntot_REV,ntot_rad_REV
 
     nullify(el);
@@ -2843,10 +2912,10 @@ CONTAINS
     !    endif
 
     !    CALL SETFAMILY(S2,ntot,ntot_rad,ntot_REV,ntot_rad_REV,6)
-    if(s2%kind/=kindpa) then
+    if(s2%kind/=kindpa.and.s2%kind/=kindabell) then
        CALL SETFAMILY(S2)  !,NTOT=ntot,ntot_rad=ntot_rad,NTOT_REV=ntot_REV,ntot_rad_REV=ntot_rad_REV,ND2=6)
     else
-
+        if(s2%kind==kindpa) then
        CALL SETFAMILY(S2,t=t_em)  !,T_ax=T_ax,T_ay=T_ay)
 
        S2%P%METHOD=4
@@ -2858,7 +2927,17 @@ CONTAINS
        s2%pa%xprime=xprime_pancake
        s2%vorname=filec
        deallocate(t_em)
+        else  ! abell
+       CALL SETFAMILY(S2)  !,T_ax=T_ax,T_ay=T_ay)
 
+       s2%ab%angc=angc
+       s2%ab%xc=xc
+       s2%ab%dc=dc
+       s2%ab%hc=hc
+       s2%ab%vc=vc
+       s2%ab%xprime=xprime_pancake
+
+        endif
     endif
 
     IF(S2%KIND==KIND4) THEN
@@ -3393,6 +3472,21 @@ CONTAINS
    nstc=nst0
    end subroutine set_pancake_constants 
 
+   subroutine set_abell_constants(angc0,xc0,dc0,vc0,hc0,m_abell0,n_abell0)
+   implicit none
+   real(dp) angc0,xc0,dc0,hc0,hd0,ld0,vc0
+   integer m_abell0,n_abell0
+   character(vp) filec0
+   logical xprime0
+   angc=angc0
+   xc=xc0
+   dc=dc0
+   hc=hc0
+   vc=vc0
+   xprime_pancake=.false.
+   m_abell=m_abell0
+   n_abell=n_abell0
+   end subroutine set_abell_constants 
   
   ! linked
 

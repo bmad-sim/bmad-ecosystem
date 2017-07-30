@@ -28,7 +28,7 @@ MODULE c_TPSA
   private dexpt,dcost,dsint,dtant,DAPRINTTAYLORS,c_clean_yu_w
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,c_dputint0,c_dputint0r
   private GETintnd2t,equalc_cspinor_cspinor,c_AIMAG,c_real,equalc_ray_ray
-  PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor  !,CHARINT
+  PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor,pbbrav,cpbbrav  !,CHARINT
   !  PUBLIC VAR,ASS
   private pbbra,liebra,full_absT,c_asstaylor,getcharnd2s,GETintnd2s,GETintk,c_clean_taylorn
   private shiftda,shift000,cDEQUAL,pri,rea,cfu000,alloc_DA,alloc_c_spinmatrix,cpbbra
@@ -354,6 +354,14 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
      MODULE PROCEDURE liebra    !#  F=<G,H> includes spin now 
      MODULE PROCEDURE liebraspinor  !# used by liebra 
   END INTERFACE
+
+  INTERFACE getvf
+     MODULE PROCEDURE pbbrav
+  end INTERFACE getvf
+
+  INTERFACE cgetvf
+     MODULE PROCEDURE cpbbrav
+  end INTERFACE cgetvf
 
   ! intrisic functions overloaded
 
@@ -2856,6 +2864,59 @@ end  SUBROUTINE  flatten_c_factored_lie_r
     c_master=localmaster
 
   END FUNCTION pbbra
+
+
+  FUNCTION pbbrav( S1 )
+    implicit none
+    TYPE (c_vector_field) pbbrav
+    TYPE (c_taylor), INTENT (IN) :: S1
+    type(c_damap) s2
+    integer localmaster
+    integer i
+
+    IF(.NOT.C_STABLE_DA) then
+     pbbrav%v%i=0
+     RETURN
+    endif
+    localmaster=c_master
+    call alloc(s2)
+     pbbrav%n=nd2
+     call c_ass_vector_field(pbbrav)
+    pbbrav=0
+s2=1
+    do i=1,nd2
+     pbbrav%v(i)=s1.pb.s2%v(i)
+    enddo
+    c_master=localmaster
+    call kill(s2)
+  END FUNCTION pbbrav
+
+  FUNCTION cpbbrav( S1, S2 )
+    implicit none
+    TYPE (c_vector_field) cpbbrav
+    TYPE (c_taylor), INTENT (IN) :: S1
+    type(c_damap) s2
+    integer localmaster
+    integer i
+
+    IF(.NOT.C_STABLE_DA) then
+     cpbbrav%v%i=0
+     RETURN
+    endif
+    localmaster=c_master
+    call alloc(s2)
+    s2=1
+     cpbbrav%n=nd2
+     call c_ass_vector_field(cpbbrav)
+    cpbbrav=0
+
+    do i=1,nd2
+     cpbbrav%v(i)=s1.cpb.s2%v(i)
+    enddo
+    c_master=localmaster
+    call kill(s2)
+  END FUNCTION cpbbrav
+
 
 FUNCTION cpbbra( S1, S2 )
     implicit none
@@ -5784,19 +5845,21 @@ cgetvectorfield=0
 
   SUBROUTINE  c_pri_map(S1,MFILE,DEPS,dospin)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_damap),INTENT(IN)::S1
     logical, optional :: dospin
-    integer i,j,k
+    integer i,j,k,mfi
     logical(lp) rad_in,dos
     real(dp) norm
      dos=.true.
+     mfi=6
+     if(present(mfile)) mfi=mfile
 
      if(present(dospin)) dos=dospin
 
-    write(mfile,*) "  "
-    write(mfile,*) s1%n, " Dimensional map "
+    write(mfi,*) "  "
+    write(mfi,*) s1%n, " Dimensional map "
     do i=1,s1%n
      call c_pri(s1%v(i),mfile,deps)
     enddo
@@ -5804,35 +5867,35 @@ cgetvectorfield=0
 if(dos) then
         call c_full_norm_spin(s1%s,k,norm)
         if(k==-1) then
-          write(mfile,*) " Spin Matrix "
+          write(mfi,*) " Spin Matrix "
           call c_pri_spinmatrix(S1%s,MFILE,DEPS)  
          endif
         if(k==0) then
-         write(mfile,*) " No Spin Matrix "
+         write(mfi,*) " No Spin Matrix "
         endif
         if(k==1) then
-         write(mfile,*) " Spin Matrix is identity "
+         write(mfi,*) " Spin Matrix is identity "
         endif
 else
-         write(mfile,*) " Spin Matrix is not printed per user's request "
+         write(mfi,*) " Spin Matrix is not printed per user's request "
 endif
             call c_check_rad(s1%e_ij,rad_in)
         if(rad_in) then
-         write(mfile,*) "Stochastic Radiation "
+         write(mfi,*) "Stochastic Radiation "
           do i=1,6
           do j=1,6
-           write(mfile,*) i,j,s1%e_ij(i,j)
+           write(mfi,*) i,j,s1%e_ij(i,j)
           enddo
           enddo
         else
-         write(mfile,*) "No Stochastic Radiation "
+         write(mfi,*) "No Stochastic Radiation "
         endif   
       
   END SUBROUTINE c_pri_map
 
   SUBROUTINE  c_read_map(S1,MFILE)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     type (c_damap),INTENT(inout)::S1
     integer i,j,i1,j2
 
@@ -5870,14 +5933,16 @@ endif
 
   SUBROUTINE  c_pri_vec(S1,MFILE,DEPS)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_vector_field),INTENT(IN)::S1
-    integer i
+    integer i,mfi
     real(dp) norm
+     mfi=6
+     if(present(mfile)) mfi=mfile
 
-    write(mfile,*) "  "
-    write(mfile,*) s1%n, " Dimensional Vector Field "
+    write(mfi,*) "  "
+    write(mfi,*) s1%n, " Dimensional Vector Field "
     do i=1,s1%n
      call c_pri(s1%v(i),mfile,deps)
     enddo
@@ -5890,20 +5955,22 @@ endif
 
   SUBROUTINE  c_pri_factored_lie(S1,MFILE,DEPS)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_factored_lie),INTENT(IN)::S1
-    integer i
+    integer i,mfi
+     mfi=6
+     if(present(mfile)) mfi=mfile
 
-    write(mfile,*) "  "
+    write(mfi,*) "  "
     if(s1%dir==1) then
-     write(mfile,*) " Dragt-Finn Representation ", s1%dir
+     write(mfi,*) " Dragt-Finn Representation ", s1%dir
     else
-     write(mfile,*) " Inverse Dragt-Finn Representation ", s1%dir
+     write(mfi,*) " Inverse Dragt-Finn Representation ", s1%dir
     endif
-    write(mfile,*) s1%n, "  Vector Fields "
+    write(mfi,*) s1%n, "  Vector Fields "
     do i=1,s1%n
-       write(mfile,*) " Vector field number ",i
+       write(mfi,*) " Vector field number ",i
      call c_pri_vec(s1%f(i),mfile,deps)
     enddo
     
@@ -5912,16 +5979,18 @@ endif
 
   SUBROUTINE  c_pri_spinmatrix(S1,MFILE,DEPS) ! spin routine
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_spinmatrix),INTENT(IN)::S1
-    integer i,j
+    integer i,j,mfi
+     mfi=6
+     if(present(mfile)) mfi=mfile
 
     do i=1,3
     do j=1,3
-     write(mfile,*) " "
-     write(mfile,*) i,j
-     write(mfile,*) " "
+     write(mfi,*) " "
+     write(mfi,*) i,j
+     write(mfi,*) " "
      call c_pri(s1%s(i,j),mfile,deps)
     enddo
     enddo
@@ -6003,17 +6072,19 @@ endif
 
   SUBROUTINE  c_pri_spinor(S1,MFILE,DEPS) ! spin routine
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+        INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_spinor),INTENT(IN)::S1
-    integer i
+    integer i,mfi
+     mfi=6
+     if(present(mfile)) mfi=mfile
 
-      write(mfile,*) " Complex Spinor "
+      write(mfi,*) " Complex Spinor "
     do i=1,3
  
-     write(mfile,*) " "
-     write(mfile,*) i
-     write(mfile,*) " "
+     write(mfi,*) " "
+     write(mfi,*) i
+     write(mfi,*) " "
      call c_pri(s1%v(i),mfile,deps)
 
     enddo
@@ -6046,22 +6117,24 @@ endif
 
   SUBROUTINE  c_pri(S1,MFILE,DEPS)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+    INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
     type (c_taylor),INTENT(IN)::S1
     REAL(DP) PREC
-
+    integer mfi
+mfi=6
+if(present(mfile)) mfi=mfile
     IF(PRESENT(DEPS)) THEN
        PREC=-1.0_dp
        CALL c_taylor_eps(PREC)
        CALL c_taylor_eps(DEPS)
     ENDIF
-
+   
     ! if(old) then
     if(print77) then
-       CALL c_DAPRI77(s1%i,MFILE)
+       CALL c_DAPRI77(s1%i,mfi)
     else
-       CALL c_DAPRI(s1%i,MFILE)
+       CALL c_DAPRI(s1%i,mfi)
     endif
 
     IF(PRESENT(DEPS))  CALL c_taylor_eps(PREC)
@@ -6070,14 +6143,16 @@ endif
 
   SUBROUTINE  DAPRINTTAYLORS(S1,MFILE,PREC)
     implicit none
-    INTEGER,INTENT(IN)::MFILE
+    INTEGER,OPTIONAL,INTENT(IN)::MFILE
     type (C_TAYLOR),INTENT(IN)::S1(:)
     REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
-    INTEGER I
+    INTEGER I,mfi
+mfi=6
+if(present(mfile)) mfi=mfile
 
     DO I=1,size(S1)
        if(s1(i)%i>0) then
-          if(size(S1)>1) write(MFILE,*) "Taylor #",i
+          if(size(S1)>1) write(mfi,*) "Taylor #",i
           CALL C_PRI(s1(i),MFILE,PREC)
        endif
     ENDDO
@@ -9114,6 +9189,116 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
     call kill(pha,tune_spin)
 end subroutine c_full_canonise
 
+subroutine c_identify_resonance(j,n,c) 
+    implicit none
+    integer, intent(inout) :: J(:)
+    complex(dp), intent(out) :: c
+    integer, intent(out) :: n
+    integer i
+
+    do i=1,ndt*2
+       if(j(i)/=0) exit
+    enddo
+        n=i
+        if(mod(n,2)==0) then
+          n=n-1
+         else
+          n=n+1
+        endif
+        c=1.0_dp/(j(i)*n_cai)
+        j(i)=j(i)-1
+        
+
+end subroutine c_identify_resonance
+
+subroutine c_full_factorise(at,as,a0,a1,a2) 
+!#general: manipulation
+!# This routine is of great pedagogical importance.
+!# It factors a canonical transformation as
+!# at=a_cs o rotation(phase,nu_spin) as explained in Chap.7 of my Springer book.
+!# a_cs = a_s o a_0 o a_1 o a_2
+    implicit none
+    type(c_damap) , intent(inout) :: at 
+    type(c_damap) , optional, intent(inout) :: as,a2,a1,a0
+
+
+    type(c_damap) att,a0t,a1t,a2t,ast
+    type(c_taylor) p
+    integer i,kspin
+    real(dp) norm
+
+
+    call alloc(att)
+    call alloc(a0t)
+    call alloc(a1t)
+    call alloc(a2t)    
+    call alloc(ast)
+ 
+ 
+    
+  !  at= (a,s) =  (a,I) o  (I,s)
+    call c_full_norm_spin(at%s,kspin,norm)  
+ ! storing the spin because the code is careless (sets it to zero)   
+      if(kspin==-1) then
+         att=at
+         att%s=1
+         ast=1
+         ast%s=at%s 
+      else
+       att=at
+       ast=1
+      endif
+ 
+!  at= (a,s) =  (att,I) o  (I,ats)
+
+      att%s=0
+
+
+ 
+    call extract_only_a0(att,a0t)
+
+!call print(phi%v(6),6)
+!pause 1
+    
+    call extract_only_a1(att,a1t)
+!    if(present(phase))     ar=ar*phi
+!call print(phi%v(6),6)
+!pause 2
+!    if(no>1) 
+ !   call extract_a2(att,ar)
+
+!call print(phi%v(6),6)
+!pause 3
+
+    a2t=att
+
+
+
+    a0t%s=1
+    a1t%s=1
+    a2t%s=1
+
+
+
+
+
+    if(present(a0)) a0=a0t
+ 
+    if(present(a1)) a1=a1t
+
+    if(present(a2)) a2=a2t
+
+    if(present(as)) as=ast 
+
+
+    call kill(att)
+    call kill(a0t)
+    call kill(a1t)
+    call kill(a2t)
+    call kill(ast)
+ 
+ 
+end subroutine c_full_factorise
 
  subroutine c_normal(xy,n,dospin,no_used,rot,phase,nu_spin)
 !#general:  normal
@@ -13238,6 +13423,91 @@ subroutine extract_a0(a,a0)
     call kill(v)  
 end subroutine extract_a0
 
+subroutine extract_only_a0(a,a0)
+!#internal: manipulation
+!# This routines extracts a0: the full fixed point map.
+    implicit none
+    type(c_damap) , intent(inout) :: a,a0
+ 
+    type(c_damap) a0t,at,ai,x,v
+    type(c_taylor)  t1
+    integer i
+    integer np_pos
+
+
+    ! a0 is for the fixed point
+    
+    at%n=nv
+    call alloc(at)
+    call alloc(ai)
+    call alloc(a0t)
+    call alloc(t1)
+    call alloc(x)
+    call alloc(v)    
+     ai=a
+    
+!! extract the dispersion
+     if(ndpt/=0) at%v(ndpt)=1.0_dp.cmono.ndpt
+     np_pos=nv-np+1
+     do i=np_pos,nv
+      at%v(i)=1.0_dp.cmono.i      
+     enddo     
+     
+     a0t=ai*at
+
+ 
+
+!!! Force the symplectic condition in the time variable
+    if(ndpt/=0) then 
+         t1=0
+         do i=1,ndt
+            x%v(2*i)  =(-1)**(2*i-1)*(a0t%v(2*i-1))
+            x%v(2*i-1)=(-1)**(2*i  )*(a0t%v(2*i))
+            v%v(2*i)=   x%v(2*i).d.ndpt
+            v%v(2*i-1)= x%v(2*i-1).d.ndpt
+         enddo
+         do i=1,ndt
+             t1=-(1.0_dp.cmono.(2*i-1))*v%v(2*i-1)+t1  ! first order
+             t1=-(1.0_dp.cmono.(2*i))*v%v(2*i)+t1      ! first order
+             t1=-0.5_dp*(x%v(2*i-1)*v%v(2*i)-x%v(2*i)*v%v(2*i-1))+t1  ! second order
+         enddo
+         t1=(-1)**ndpt*t1
+         a0t%v(ndptb)=(1.0_dp.cmono.ndptb)+t1 !!! effect on  time added to identity map in the time-energy plane
+         a0t%v(ndpt)=1.0_dp.cmono.ndpt
+  
+    endif
+
+
+     do i=1,nd2
+      if(i/=ndpt.and.i/=ndptb) a0t%v(i)=a0t%v(i)+(1.0_dp.cmono.i)      
+     enddo  
+
+
+ 
+    a0=a0t
+    a=a0**(-1)*a
+
+ !   if(ndpt/=0) then
+ !        call print(a%v(ndpt),6)
+ !        at=0
+ !        at%v(ndpt)=(1.0_dp.cmono.ndpt)
+ !        ai=a*at
+ !        at=1
+ !        at%v(ndpt)=ai%v(ndpt)
+ !        call print(at%v(ndpt),6)
+ !        a=at**(-1)*a
+ !        a0=a0*at
+ !   endif
+ 
+
+
+    call kill(at)
+    call kill(ai)
+    call kill(t1) 
+    call kill(a0t)  
+    call kill(x)
+    call kill(v)  
+end subroutine extract_only_a0
 
  subroutine extract_a1(a,a1,phi1)
 !#internal: manipulation
@@ -13352,6 +13622,63 @@ end subroutine extract_a0
      call kill(b1) 
     call kill(cphi,sphi,t)
 end subroutine extract_a1
+
+ subroutine extract_only_a1(a,a1)
+!#internal: manipulation
+!# This routines extracts a1
+
+    implicit none
+    type(c_damap) , intent(inout) :: a,a1
+    type(c_damap) b1 
+    type(c_taylor)  t
+    complex(dp) v
+ 
+    integer i,j,k,kr
+    integer, allocatable :: je(:)
+
+ 
+     call alloc(b1) 
+    call alloc(t)
+ 
+    allocate(je(nv))
+     je=0
+ 
+    
+ 
+!! extract the linear part as a function parameters (delta included)
+     
+      do i=1,nd2
+       j=1
+        do while(.true.) 
+
+
+          call  c_cycle(a%v(i),j,v ,je); if(j==0) exit;   
+          kr=0
+          do k=1,nd2
+
+           kr=je(k)+kr
+          enddo
+          if(kr==1) then
+           b1%v(i)=b1%v(i)+(v.cmono.je)
+          endif
+       enddo
+     enddo
+
+    
+ 
+     a=b1**(-1)*a
+
+     a1=b1
+
+!  imposed Teng-Edward A_12=0 or, for fun, Anti-Teng-Edwards A_21=0
+
+ 
+
+
+    deallocate(je)
+     call kill(b1) 
+    call kill(t)
+end subroutine extract_only_a1
 
 
 
@@ -14718,4 +15045,129 @@ enddo
 end subroutine transform_c_yu_w
 
 !!!!!!!!!!!!!!!!!!   End of Yu Li Hua  factorization   !!!!!!!!!!!!!!!!!! 
+subroutine c_fast_canonise(u,u_c,phase,damping)
+implicit none
+type(c_damap), intent(inout) ::  u,u_c
+real(dp), optional, intent(inout) :: phase(:),damping(:)
+real(dp) b(6,6),ri(6,6),ang,damp(3),t,cphi,sphi,s(6,6)
+ 
+integer i
+
+s=0
+do i=1,nd
+s(2*i-1,2*i)=1 
+s(2*i,2*i-1)=-1 
+enddo
+
+b=0
+ri=0
+b=u
+
+s=matmul(matmul(b,s),transpose(b))
+
+do i=1,nd
+    damp(i)=sqrt(abs(s(2*i-1,2*i)))
+enddo
+
+!det=FindDet(b(1:nd2,1:nd2), nd2)**(1.0_dp/nd2)
+!write(6,*) damp
+
+ 
+      do i=1,nd2/2
+      if((i<=ndt).or.(i>nd-rf)) then
+ !    damp(i)=sqrt(b(2*i-1,2*i-1)*b(2*i,2*i)-b(2*i-1,2*i)*b(2*i,2*i-1))
+       if(courant_snyder_teng_edwards) then
+        t=sqrt(b(2*i-1,2*i-1)**2+b(2*i-1,2*i)**2)
+        cphi=b(2*i-1,2*i-1)/t
+        sphi=b(2*i-1,2*i)/t
+       else
+        t=sqrt(b(2*i,2*i-1)**2+b(2*i,2*i)**2)
+        cphi=b(2*i,2*i)/t
+        sphi=-b(2*i,2*i-1)/t
+       endif
+       ri(2*i-1,2*i-1)=cphi /damp(i)
+       ri(2*i,2*i)=cphi/damp(i)
+       ri(2*i-1,2*i)=-sphi /damp(i)
+       ri(2*i,2*i-1)=sphi /damp(i)
+  
+    endif
+ 
+
+!!! Corrects the time variable with the d/dp_t term
+ !      if(ndpt/=0) then         
+ !       t= cphi + i_*sphi
+ !        t=-i_*log(t)
+ !        t=-(t.d.ndpt)/(2.0_dp,0.0_dp)
+ !        phi1%v(ndptb)=phi1%v(ndptb)+(-1)**(ndptb)*t*((1.0_dp.cmono.(2*i-1))**2+(1.0_dp.cmono.(2*i))**2)
+ !      endif
+
+ if(present(phase)) then
+     ang=-atan2(sphi,cphi)
+  phase(i)=phase(i)-ang/twopi
+ endif
+  if(present(damping)) then
+  damping(i)=damping(i)-log(damp(i))
+ endif
+      enddo
+
+
+
+ u_c=matmul(b,ri)
+
+end subroutine c_fast_canonise
+
+!Function to find the determinant of a square matrix
+!Author : Louisda16th a.k.a Ashwith J. Rego
+!Description: The subroutine is based on two key points:
+!1] A determinant is unaltered when row operations are performed: Hence, using this principle,
+!row operations (column operations would work as well) are used
+!to convert the matrix into upper traingular form
+!2]The determinant of a triangular matrix is obtained by finding the product of the diagonal elements
+!
+REAL(dp) FUNCTION FindDet(mat, n)
+    IMPLICIT NONE
+    REAL(dp), DIMENSION(n,n) :: matrix,mat
+    INTEGER, INTENT(IN) :: n
+    REAL(dp) :: m, temp
+    INTEGER :: i, j, k, l
+    LOGICAL :: DetExists = .TRUE.
+    matrix=mat
+    l = 1
+    !Convert to upper triangular form
+    DO k = 1, n-1
+        IF (matrix(k,k) == 0) THEN
+            DetExists = .FALSE.
+            DO i = k+1, n
+                IF (matrix(i,k) /= 0) THEN
+                    DO j = 1, n
+                        temp = matrix(i,j)
+                        matrix(i,j)= matrix(k,j)
+                        matrix(k,j) = temp
+                    END DO
+                    DetExists = .TRUE.
+                    l=-l
+                    EXIT
+                ENDIF
+            END DO
+            IF (DetExists .EQV. .FALSE.) THEN
+                FindDet = 0
+                return
+            END IF
+        ENDIF
+        DO j = k+1, n
+            m = matrix(j,k)/matrix(k,k)
+            DO i = k+1, n
+                matrix(j,i) = matrix(j,i) - m*matrix(k,i)
+            END DO
+        END DO
+    END DO
+    
+    !Calculate determinant by finding product of diagonal elements
+    FindDet = l
+    DO i = 1, n
+        FindDet = FindDet * matrix(i,i)
+    END DO
+    
+END FUNCTION FindDet
+
   END MODULE  c_tpsa

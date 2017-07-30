@@ -46,6 +46,7 @@ module S_status
   !  integer, parameter :: KINDmu      = KIND23+3
   integer, parameter :: KINDpa     = KIND23+3
   integer, parameter :: kindsuperdrift = KIND23+4
+  integer, parameter :: kindabell= KIND23+5
   integer, parameter :: drift_kick_drift = kind2
   integer, parameter :: matrix_kick_matrix = kind7
   integer, parameter :: kick_sixtrack_kick = kind6

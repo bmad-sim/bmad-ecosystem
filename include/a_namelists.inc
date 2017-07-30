@@ -93,6 +93,15 @@ namelist / sol50name / sol50
 type(tp10_list) tp100
 namelist / tp100name / tp100
 
+  TYPE ab_list
+    integer n_m(2)
+	complex(dp) b(nmul_max,nmul_max)  
+	real(dp) dz_t(nmul_max+1)  
+	real(dp) scale_angc_xc_vc_dc_hc(6)
+  END TYPE ab_list
+type(ab_list) ab0
+namelist / ab0name / ab0
+ 
   TYPE k16_list
    logical(lp) DRIFTKICK,LIKEMAD
   END TYPE k16_list

@@ -296,20 +296,13 @@ contains
     CASE("PANCAKE        ")
        if(sixtrack_compatible) stop 13
        BLANK=pancake(KEY%LIST%NAME,KEY%LIST%file)
+    CASE("ABELL_DRAGT    ")
+       if(sixtrack_compatible) stop 13
+       BLANK=abell_dragt(KEY%LIST%NAME,LIST=KEY%LIST)
     CASE("INTERNALPANCAKE")
        if(sixtrack_compatible) stop 13
        BLANK=pancake(KEY%LIST%NAME,br=br)
-       !    CASE("TAYLORMAP      ")
-       !       IF(KEY%LIST%file/=' '.and.KEY%LIST%file_rev/=' ') THEN
-       !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE=KEY%LIST%file,FILE_REV=KEY%LIST%file_REV,t=tilt.is.KEY%tiltd)
-       !       ELSEIF(KEY%LIST%file/=' '.and.KEY%LIST%file_rev==' ') THEN
-       !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE=KEY%LIST%file,t=tilt.is.KEY%tiltd)
-       !       ELSEIF(KEY%LIST%file==' '.and.KEY%LIST%file_rev/=' ') THEN
-       !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,FILE_REV=KEY%LIST%file_REV,t=tilt.is.KEY%tiltd)
-       !       ELSE
-       !          BLANK=TAYLOR_MAP(KEY%LIST%NAME,t=tilt.is.KEY%tiltd)
-       !       ENDIF
-       ! BLANK%bend_fringe=key%list%bend_fringe
+
     CASE DEFAULT
        WRITE(6,*) " "
        WRITE(6,*) " THE MAGNET"
@@ -2668,7 +2661,8 @@ end subroutine read_lattice
      read(mf,NML=sol50name)
     case(kind10)
       read(mf,NML=tp100name)
-
+    case(kindabell)
+      read(mf,NML=ab0name)
     case(kind16,kind20)
 
      read(mf,NML=k160name)
@@ -3114,6 +3108,8 @@ end subroutine el_el0
         call sol5_sol50(EL,dir,mf)
     case(kind10)
         call tp10_tp100(EL,dir,mf)
+    case(kindabell)
+        call ab_ab0(EL,dir,mf)
 
     case(kind16,kind20)
         call k16_k160(EL,dir,mf)
@@ -3436,6 +3432,59 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
 endif
 endif
 end subroutine tp10_tp100
+
+
+subroutine  ab_ab0(f,dir,mf)
+implicit none
+type(element), target :: f
+logical(lp),optional ::  dir
+integer,optional :: mf
+ 
+
+if(present(dir)) then
+if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
+
+ ab0%N_m=0 
+ ab0%dz_t=0 
+ ab0%b=0 
+ ab0%scale_angc_xc_vc_dc_hc=0 
+ 
+! if(f%electric) then
+!  tp100%ae(1:size(F%tp10%ae))=F%tp10%ae
+!  tp100%be(1:size(F%tp10%be))=F%tp10%be
+! endif
+
+     if(present(mf)) then
+     write(mf,NML=ab0name)
+    endif   
+ 
+ else
+    if(present(mf)) then
+     read(mf,NML=ab0name)
+    endif  
+   n_abell=ab0%n_m(1) 
+   m_abell=ab0%n_m(2)
+   CALL SETFAMILY(f)
+ !if(f%electric) then
+ ! F%tp10%ae=tp100%ae(1:sector_nmul_max) 
+ ! F%tp10%be=tp100%be(1:sector_nmul_max)
+ ! call GETAEBE(f%TP10)
+ !endif
+ F%ab%n=ab0%n_m(1) 
+ F%ab%m=ab0%n_m(2) 
+ F%ab%b=ab0%b(1:ab0%n_m(2) ,1:ab0%n_m(2))
+ F%ab%t=ab0%dz_t(2:ab0%n_m(2)+1)
+ F%ab%dz=ab0%dz_t(1)
+F%ab%SCALE= ab0%scale_angc_xc_vc_dc_hc(1)
+F%ab%angc= ab0%scale_angc_xc_vc_dc_hc(2)
+F%ab%xc= ab0%scale_angc_xc_vc_dc_hc(3)
+F%ab%vc= ab0%scale_angc_xc_vc_dc_hc(4)
+F%ab%dc= ab0%scale_angc_xc_vc_dc_hc(5)
+F%ab%hc= ab0%scale_angc_xc_vc_dc_hc(6)
+ 
+endif
+endif
+end subroutine ab_ab0
 
 subroutine  k16_k160(f,dir,mf)
 implicit none

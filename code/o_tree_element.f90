@@ -270,7 +270,8 @@ CONTAINS
   SUBROUTINE  print6(S1,mf)
     implicit none
     type (real_8),INTENT(INout)::S1(:)
-    integer        mf,i
+    integer,optional :: mf
+    integer        i
     
  !   if(size(s1)==6) then
  !    do i=1,ndd
@@ -1150,22 +1151,25 @@ CONTAINS
    subroutine print_probe(DS,MF)
     implicit none
     TYPE(probe), INTENT(INOUT) :: DS
-    INTEGER MF,I
- 
+    INTEGER I,mfi
+     integer,optional :: mf
+
+     mfi=6
+     if(present(mf)) mf=mfi
 
     WRITE(MF,*) " ORBIT "
     do i=1,6
-       write(mf,*) ' Variable ',i
-       write(mf,'(6(1X,G20.13))') ds%x(i) 
+       write(mfi,*) ' Variable ',i
+       write(mfi,'(6(1X,G20.13))') ds%x(i) 
     enddo
  
-    WRITE(MF,*) " SPIN X "
-       write(mf,'(3(1X,G20.13))') ds%s(1)%x 
+    WRITE(MFi,*) " SPIN X "
+       write(mfi,'(3(1X,G20.13))') ds%s(1)%x 
  
-    WRITE(MF,*) " SPIN Y "
+    WRITE(MFi,*) " SPIN Y "
        write(mf,'(3(1X,G20.13))') ds%s(2)%x 
  
-    WRITE(MF,*) " SPIN Z "
+    WRITE(MFi,*) " SPIN Z "
        write(mf,'(3(1X,G20.13))') ds%s(3)%x 
 
  
@@ -1176,13 +1180,16 @@ CONTAINS
   subroutine print_probe8(DS,MF)
     implicit none
     TYPE(probe_8), INTENT(INOUT) :: DS
-    INTEGER MF,I,j
+    INTEGER MFi,I,j
     logical(lp) rad_in
+    integer,optional :: mf
+     mfi=6
+     if(present(mf)) mf=mfi
 
     WRITE(MF,*) " ORBIT "
     do i=1,6
-       write(mf,*) ' Variable ',i
-       call print(ds%x(i),mf)
+       write(mfi,*) ' Variable ',i
+       call print(ds%x(i),mfi)
     enddo
     !    WRITE(MF,*) " SPIN 0 "
     !    do i=1,3
@@ -1190,19 +1197,19 @@ CONTAINS
     !       call print(ds%s(0)%x(i),mf)
     !    enddo
     WRITE(MF,*) " SPIN X "
-    call print(ds%s(1),mf)
+    call print(ds%s(1),mfi)
     !    do i=1,3
     !       write(mf,*) ' Spin Variable ',i
     !       call print(ds%s(1)%x(i),mf)
     !    enddo
     WRITE(MF,*) " SPIN Y "
-    call print(ds%s(2),mf)
+    call print(ds%s(2),mfi)
     !    do i=1,3
     !       write(mf,*) ' Spin Variable ',i
     !       call print(ds%s(2)%x(i),mf)
     !    enddo
     WRITE(MF,*) " SPIN Z "
-    call print(ds%s(3),mf)
+    call print(ds%s(3),mfi)
     !    do i=1,3
     !       write(mf,*) ' Spin Variable ',i
     !       call print(ds%s(3)%x(i),mf)
@@ -1219,7 +1226,7 @@ CONTAINS
 
        do i=1,6
           do j=1,6
-             write(mf,*) i,j,ds%e_ij(i,j)
+             write(mfi,*) i,j,ds%e_ij(i,j)
           enddo
        enddo
     else
@@ -1228,7 +1235,7 @@ CONTAINS
 
     endif
     if(doing_ac_modulation_in_ptc) then
-       call print(ds%ac,mf)
+       call print(ds%ac,mfi)
     else
        WRITE(MF,*) "NO MODULATION  "
 
@@ -1239,13 +1246,16 @@ CONTAINS
   subroutine print_rf_phasor_8(S,MF)
     implicit none
     TYPE(rf_phasor_8), INTENT(INOUT) :: s
-    INTEGER MF,I
+    INTEGER MFi,I
+    integer,optional :: mf
+     mfi=6
+     if(present(mf)) mf=mfi
 
-    write(mf,*) ' AC INFORMATION : omega, pseudo-time, hands of the clock'
-    call print(s%om,mf)
-    call print(s%t,mf)
+    write(mfi,*) ' AC INFORMATION : omega, pseudo-time, hands of the clock'
+    call print(s%om,mfi)
+    call print(s%t,mfi)
     do i=1,2
-       call print(s%x(i),mf)
+       call print(s%x(i),mfi)
     enddo
 
   END subroutine print_rf_phasor_8
@@ -1254,11 +1264,14 @@ CONTAINS
   subroutine print_spinor_8(S,MF)
     implicit none
     TYPE(spinor_8), INTENT(INOUT) :: s
-    INTEGER MF,I
+    INTEGER MFi,I
+    integer,optional :: mf
+     mfi=6
+     if(present(mf)) mf=mfi
 
     do i=1,3
-       write(mf,*) ' Spin Variable ',i
-       call print(s%x(i),mf)
+       write(mfi,*) ' Spin Variable ',i
+       call print(s%x(i),mfi)
     enddo
 
   END subroutine print_spinor_8

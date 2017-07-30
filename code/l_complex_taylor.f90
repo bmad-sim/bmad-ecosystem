@@ -18,7 +18,7 @@ module complex_taylor
   private dcosht,dsinht,dtanht,dsqrtt
   private getdiff,getdATRA,GETORDER,CUTORDER,getchar ,dputchar,dputint
   private set_in_complex   !, assc  !check,
-  private dimagt,drealt,dcmplxt,CEQUAL,DEQUAL,REQUAL
+  private dimagt,drealt,dcmplxt,CEQUAL,DEQUAL,REQUAL,CONJGT
   private GETCHARnd2,GETintnd2,GETint,getcharnd2s,GETintnd2s,GETintk
   private CFUC,CFURES,varco,varco1
   !  completing tpsa.f90
@@ -830,7 +830,9 @@ module complex_taylor
      MODULE PROCEDURE dcmplxt
   END INTERFACE
 
-
+  INTERFACE CONJG
+     MODULE PROCEDURE CONJGT
+  END INTERFACE
 
   INTERFACE abs
      MODULE PROCEDURE abstpsat
@@ -1528,7 +1530,7 @@ contains
   SUBROUTINE  printcomplex(S2,i,PREC)
     implicit none
     type (complextaylor),INTENT(INOUT)::S2
-    integer i
+    integer,optional :: i
     REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
 
     call daprint(s2%r,i,PREC)
@@ -2574,6 +2576,24 @@ contains
 
     master=localmaster
   END FUNCTION dcmplxt
+
+  FUNCTION CONJGT( S1 )
+    implicit none
+    TYPE (complextaylor) CONJGT
+    TYPE (complextaylor), INTENT (IN) :: S1
+    integer localmaster
+    localmaster=master
+
+    call ass(CONJGT)
+
+    CONJGT%r=s1%R
+    CONJGT%i=-S1%I
+
+    master=localmaster
+  END FUNCTION CONJGT
+
+
+
 
   FUNCTION datant( S1 )
     implicit none

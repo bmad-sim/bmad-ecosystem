@@ -188,6 +188,7 @@ module precision_constants
   DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0,1,1/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
+ 
 !  integer, parameter :: no_e=5  !  electric 
   logical(lp) :: use_complex_in_ptc=.false.
   logical(lp) :: change_sector=my_true
