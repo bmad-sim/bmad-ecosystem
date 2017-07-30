@@ -549,7 +549,7 @@ if(beam_init%use_t_coords) then
 
     ! Convert to s coordinates
     p%p0c = ele%value(p0c$)
-    call convert_particle_coordinates_t_to_s (p, ele%ref_time)
+    call convert_particle_coordinates_t_to_s (p, ele, ele%ref_time)
     ! beta calc
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = p%beta)  
     p%state = alive$
