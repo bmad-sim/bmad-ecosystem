@@ -107,7 +107,7 @@ if (beam_init%n_particle > 1) then
     endif
 
     !Write the first bunch only
-    call write_time_particle_distribution (iu, beam%bunch(1), 'BMAD')
+    call write_time_particle_distribution (iu, beam%bunch(1), ele0, 'BMAD')
     print *, "Written bmad particles: ", time_particle_filename
     close(iu)
     
