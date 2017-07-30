@@ -92,7 +92,7 @@ if (beam_init%n_particle > 1) then
 
     !Write the first bunch only
     !call write_opal_particle_distribution (iu, beam%bunch(1), mass_of(lat%param%particle),  err)
-    call write_time_particle_distribution (iu, beam%bunch(1), style = 'GPT', branch = lat%branch(0))
+    call write_time_particle_distribution (iu, beam%bunch(1), ele0, style = 'GPT', branch = lat%branch(0))
     print *, "Written gpt particles: ", gpt_particle_filename
     close(iu)
   endif
