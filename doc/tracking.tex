@@ -67,8 +67,12 @@ The components of the \vn{coord_struct}:
 The normalized velocity $v/c$ is stored in \vn{%beta}.
 
 \item{\%direction} \Newline
-Longitudinal direction of travel. A setting of +1 is in the forward direction
-and a setting of -1 is in the reverse direction.
+Longitudinal direction of travel. A setting of +1 is in the forward (downstream) direction and a
+setting of -1 is in the reverse (upstream) direction (\sref{s:ref.construct}).  Notice that the
+setting of \vn{direction} is independent of the orientation of the lattice element the particle is
+traveling through. That is, for an element with reversed \vn{orientation} (\vn{ele%orientation} = -1),
+a particle with \vn{direction} = 1 will be traveling towards the \vn{entrance} end of the element and
+with \vn{direction} = -1 the particle will be traveling towards the \vn{exit} end.
 
 \item{\%field_x, \%field_y} \Newline
 The \vn{%field_x} and \vn{%field_y} components are for photon

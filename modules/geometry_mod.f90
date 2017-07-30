@@ -1231,13 +1231,15 @@ end function coords_floor_to_curvilinear
 !                              in_ele_frame, w_mat, calculate_angles) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
+! Note: if the element is a patch then local_position%r(3) is the longitudinal position with
+! respect to the exit end instead of the entrance end.
 !
 ! Input:
 !   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates,
-!                                             where %r = [x, y, s_local], 
+!                        with %r = [x, y, s_local] where s_local is wrt the beginning of the element.
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
 !   in_ele_frame    -- logical, optional :: local_position is in ele body frame and includes misalignments.
-!                               Default: .false.
+!                               Default: False. Ignored if element is a patch.
 !
 ! Result:
 !   global_position -- floor_position_struct: Position in global coordinates.
@@ -1261,12 +1263,24 @@ real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), s
 real(rp), optional :: w_mat(3,3)
 logical, optional :: in_ele_frame
 logical, optional :: calculate_angles
+character(*), parameter :: r_name = 'coords_local_curvilinear_to_floor'
+
+!
+
+if (ele%orientation == -1) then
+  call out_io (s_fatal$, r_name, 'CALCULATION WITH REVERSED ELEMENT NOT YET IMPLEMENTED! ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
 ! Set x and y for floor offset 
 
 p = local_position
  
-if (logic_option(.false., in_ele_frame)) then
+if (ele%key == patch$) then
+  call mat_make_unit(S_mat)
+
+elseif (logic_option(.false., in_ele_frame)) then
    ! General geometry with possible misalignments
    p = coords_element_frame_to_local(p, ele, w_mat = S_mat)
    
@@ -1275,10 +1289,10 @@ elseif (ele%key == sbend$) then
   s = p%r(3)
   p%r(3) = 0
   p = bend_shift(p, ele%value(g$), ele%value(L$) - s, w_mat = S_mat, tilt=ele%value(ref_tilt_tot$) )
-  
+
 else
    ! Element has Cartesian geometry, no misalignments. 
-   ! position is relative to ele's exit: 
+   ! Shift position to be relative to ele's exit: 
   p%r(3) = p%r(3) - ele%value(L$)
   call mat_make_unit(S_mat)
 endif 

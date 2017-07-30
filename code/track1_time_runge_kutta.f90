@@ -96,10 +96,15 @@ if (end_orb%location == inside$) then
   if (ele%value(l$) < 0) t_dir = -1
 
 elseif (ele%key == patch$) then
+  if (start_orb%location == inside$) then
+    call out_io (s_error$, r_name, 'TIME-RUNGE-KUTTA TRACKING STARTING WITH A INSIDE A PATCH IS NOT PERMITED: ' // ele%name)
+    return
+  endif
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)
   beta_ref = ele%value(p0c$) / ele%value(E_tot$)
   end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction * ele%orientation) * end_orb%beta / beta_ref 
   if (s0*ele%orientation > 0) t_dir = -1
+  s_rel = s0
 
 ! Particle is at an end.
 else
@@ -109,7 +114,7 @@ endif
 
 ! ele(s-based) -> ele(t-based)
 
-call convert_particle_coordinates_s_to_t(end_orb, s_rel)
+call convert_particle_coordinates_s_to_t(end_orb, ele, s_rel)
 
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
@@ -138,13 +143,13 @@ if (err) return
 
 if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele%value(ref_time_start$))
+  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%value(ref_time_start$))
   end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%ref_time)
   end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
@@ -159,7 +164,7 @@ elseif (end_orb%state /= alive$) then
     end_orb%direction = 1
   end if
 
-  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%ref_time)
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., ds_pos = end_orb%s - ele%s_start, set_spin = set_spin)
 
 else

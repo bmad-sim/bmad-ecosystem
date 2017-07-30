@@ -743,7 +743,7 @@ real(rp)       :: dt, pc, gmc, gammabeta(3)
 character(40)  :: r_name = 'write_opal_particle_distribution'
 character(10)   ::  rfmt 
 integer n_particle, i
-
+type (ele_struct) :: ele
 
 !
 if (present(err)) err = .true.
@@ -770,8 +770,8 @@ do i = 1, n_particle
   ! Get pc before conversion
   pc = (1+orb%vec(6))*orb%p0c
 
-  ! convert to time coordinates
-  call convert_particle_coordinates_s_to_t (orb, orb%s)
+  ! convert to time coordinates. Assume no reversed orientation elements here.
+  call convert_particle_coordinates_s_to_t (orb, ele, orb%s)
   
   ! get \gamma m c
   gmc = sqrt(pc**2 + mc2**2) / c_light

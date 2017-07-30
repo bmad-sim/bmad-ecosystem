@@ -98,6 +98,14 @@ if (logic_option(.false., init_needed)) then
   endif
 endif
 
+! patch element does not have a fringe and the edge is, by convention, at s = 0 independent of the 
+! direction of travel.
+
+if (track_ele%key == patch$) then
+  s_edge_track = 0
+  return
+endif
+
 ! Find next hard edge. 
 
 if (orbit%direction == 1) then

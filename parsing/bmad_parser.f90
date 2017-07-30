@@ -801,6 +801,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   if (n_branch == 0) then
     lat%ele(0)                  = in_lat%ele(0)    ! Beginning element
+    lat%ele(0)%orientation      = lat%ele(1)%orientation
     lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
     lat%beam_start              = in_lat%beam_start
@@ -1315,8 +1316,7 @@ logical err, added
 
 !
 
-if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START' .or. &
-    word_1 == 'END') then
+if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START' .or. word_1 == 'END') then
   call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
   err = .true.
   return
