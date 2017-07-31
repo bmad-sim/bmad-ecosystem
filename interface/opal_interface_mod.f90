@@ -238,8 +238,7 @@ ele_loop: do ie = ix_start, ix_end
    !----------------------------------------------------------
    case (quadrupole$)
      write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
-     ! Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
-     call value_to_line (line, q_sign*val(b1_gradient$), 'k1', 'R')
+     call value_to_line (line, val(b1_gradient$), 'k1', 'R')
      call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
@@ -288,8 +287,24 @@ ele_loop: do ie = ix_start, ix_end
      call value_to_line (line, ele%s - val(L$), 'elemedge', 'R',ignore_if_zero = .false.)
   end select
 
-  ! type (general attribute)
-  ! if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
+  !----------------------------------------------------------
+  ! General -----------------------------------
+  !----------------------------------------------------------
+
+  ! type 
+  if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
+  
+  ! Alignment errors (MAD-style, also see write_lattice_in_foreign_format)
+  
+  if (ele%key == sbend$) then
+    call value_to_line (line,  -val(ref_tilt$), 'psi', 'R')
+  else
+    call value_to_line (line,  val(x_pitch$), 'dtheta', 'R')
+    call value_to_line (line, -val(y_pitch$), 'dphi', 'R')
+    call value_to_line (line, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'R')
+    call value_to_line (line, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'R')
+    call value_to_line (line, val(z_offset$), 'dz', 'R')
+  endif
 
   ! end line
   write (line, '(2a)') trim(line), trim(eol_char)
@@ -703,93 +718,5 @@ end if
 
 end subroutine write_opal_field_grid_file
 
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+ 
-! Subroutine write_opal_particle_distribution  (opal_file_unit, bunch,  mc2, err)
-!
-! Subroutine to write an OPAL bunch from a standard Bmad bunch
-! 
-! Note: The OPAL file format is
-!       n_particles
-!       x  \beta_x*\gamma  y \beta_y*\gamma z \beta_z*\gamma
-!       . . .
-!       all at the same time. All particles represent the same amount of charge
-!   
-!
-! Input:
-!   opal_file_unit -- Integer: unit number to write to, if > 0
-!   bunch          -- bunch_struct: bunch to be written.
-!                            Particles are drifted to bmad_bunch%t_center for output
-!   mc2            -- real(rp): particle mass in eV
-!
-! Output:          
-!   err            -- Logical, optional: Set True if, say a file could not be opened.
-!-
-
-subroutine write_opal_particle_distribution (opal_file_unit, bunch, mc2, err)
-
-implicit none
-
-integer          :: opal_file_unit
-type (bunch_struct) :: bunch
-real(rp)            :: mc2
-logical, optional   :: err
-
-type (coord_struct) :: orb
-real(rp)       :: dt, pc, gmc, gammabeta(3)
-character(40)  :: r_name = 'write_opal_particle_distribution'
-character(10)   ::  rfmt 
-integer n_particle, i
-type (ele_struct) :: ele
-
-!
-if (present(err)) err = .true.
-
-! TODO: Check that weights are all the same
-
-n_particle = size(bunch%particle)
-
-! Format for numbers
-  rfmt = 'es13.5'
-
-! Write number of particles to first line
-write(opal_file_unit, '(i8)') n_particle
-
-!\gamma m c
-
-! Write out all particles to file
-do i = 1, n_particle
-  orb = bunch%particle(i)
-  
-  ! Get time to track backwards by
-  dt = orb%t - bunch%t_center
-  
-  ! Get pc before conversion
-  pc = (1+orb%vec(6))*orb%p0c
-
-  ! convert to time coordinates. Assume no reversed orientation elements here.
-  call convert_particle_coordinates_s_to_t (orb, ele, orb%s)
-  
-  ! get \gamma m c
-  gmc = sqrt(pc**2 + mc2**2) / c_light
-  
-  gammabeta =  orb%vec(2:6:2) / mc2
-  
-  ! OPAL has a problem with zero beta_z
-  if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30
-  
-  !'track' particles backwards in time and write to file
-  write(opal_file_unit, '(6'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   ! x - dt mc2 \beta_x \gamma / \gamma m c
-                                         gammabeta(1), &
-                                         orb%vec(3) - dt*orb%vec(4)/gmc, &   ! y - dt mc2 \beta_y \gamma / \gamma m c
-                                         gammabeta(2),  &
-                                         orb%vec(5) - dt*orb%vec(6)/gmc, &   ! s - dt mc2 \beta_s \gamma / \gamma m c
-                                         gammabeta(3) 
-end do 
-
-end subroutine  write_opal_particle_distribution
 
 end module
