@@ -5542,6 +5542,10 @@ do k = lord2%ix1_slave, lord2%ix1_slave+lord2%n_slave-1
   enddo
 enddo
 
+! Finish.
+
+call control_bookkeeper (lat, lord2)
+
 err_flag = .false.
 
 end subroutine make_this_overlay_group_lord

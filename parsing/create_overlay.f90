@@ -7,11 +7,6 @@
 ! the arithmatic expression is modified so that the controlled attribute is linear
 ! in lord%control_var(1) with a coefficient given by the single numeric term.
 !
-! Note: See the Bmad manual for directions as to how to use this routine.
-!
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lord           -- ele_struct: Overlay element.
 !   contrl(:)      -- Control_struct: control info. 1 element for each slave.
@@ -186,10 +181,6 @@ do i = 1, lord%n_slave
   call add_lattice_control_structs (slave, n_add_lord = 1)
   lat%ic(slave%ic1_lord+slave%n_lord-1) = lord%ix1_slave + i - 1
 enddo
-
-! Finish: Do control bookkeeping.
-
-call control_bookkeeper (lat, lord)
 
 end subroutine
 
