@@ -1,136 +1,368 @@
-#----------------------------------------------------------
-#  dist_source_me
-#  --------------
-#   
-#  This is a multi-shell script meant to be sourced
-#  into your environment to set up a Unix/Linux account
-#  for using the LEPP BMAD Distribution build system.
+#-----------------------------------------------------------------
+# dist_vars.sh
 #
-#  The following syntax will set up your environment
-#  while working in any of the following shells:
-#    csh / tcsh / sh / ksh / bash / ash
+# Bmad Distribution libraries management and software build system
+# environment setup script.
 #
-# USAGE:
-#  This mechanism may be invoked by a profile or login
-#  script or manually once a session is started.
+# This script uses Bourne shell syntax.
 #
+#-----------------------------------------------------------------
+
+
+
+#-----------------------------------------------------------------
+# Function used to determine if the passed-in directory is the 
+# top-level directory of a valid distribution source tree.
+#     Accepts: Full pathname of directory to test
+#-----------------------------------------------------------------
+func_is_dir_toplevel () {
+
+    DIST_TOPLEVEL_CHECKLIST="bmad build_system util"
+    TESTDIR=${1}
+    RETVAL="Y"
+
+    for DIR in ${DIST_TOPLEVEL_CHECKLIST}
+    do
+	if [ ! -d "${TESTDIR}/${DIR}" ] ; then
+	    RETVAL="N"
+	    break
+	fi
+    done
+
+    echo ${RETVAL}
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to set the environment for specific OSes
+#-----------------------------------------------------------------
+func_set_os_env () {
+
+    export ACC_COMPILER_TOOLSET=default
+
+    if ( [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+        # Workaround for $(uname -m) == x86_64 on Msys2/MinGW-w64-i686
+	if [[ "$(uname -o)/$(uname -s)" == "Msys/MINGW32_NT-6.1" ]] ; then
+
+	    export DIST_OS_ARCH="$(uname -o)/$(uname -s)_$(uname -m)"
+
+	    if [[ "$(uname -m)" == "x86_64" ]] ; then
+		export PATH=${DIST_BASE_DIR}/util/mingw-w64-i686:${PATH}
+	    fi
+	fi
+
+        # Determine the compiler toolset for Msys2/MinGW-w64-i686
+	if [[ "$(uname -o)" == "Msys" ]]; then
+
+            # msys/mingw32 has MINGW32-NT-6.1:
+	    if [[ "$(uname -s)" == MINGW32* ]]; then
+		export ACC_COMPILER_TOOLSET=mingw32-msys
+	    fi
+
+            # msys2/mingw-w64 has MINGW64-NT-6.1:
+	    if [[ "$(uname -s)" == MINGW64* ]]; then
+		export ACC_COMPILER_TOOLSET=mingw64-msys
+	    fi
+	fi
+    fi
+
+    # For Mac OS X "Darwin"
+    if [ "$(uname)" == "Darwin" ] ; then
+	# Force MacPorts gcc/g++ as GNU compiler
+	if [ -e /opt/local/bin/gcc ] ; then
+	    export CC=gcc
+	    export CXX=g++
+	fi
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to check for Fortran. If gfortran is requested, 
+# check for a minimum version of 4.9 
+#-----------------------------------------------------------------
+func_check_fortran_version () {
+
+    if ( [ "${DIST_F90_REQUEST}" == "gfortran" ] ) ; then
+
+	if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+	    GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | cut -c 2)
+	    GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | cut -c 4)
+
+	    if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
+		echo -e "\nPlease upgrade your version of GCC/gfortran" \
+		    >> ${DIST_SETUP_LOG}
+		echo -e "or set your PATH to where a minimum 4.9 version" \
+		    >> ${DIST_SETUP_LOG}
+		echo -e "of GCC/gfortran is located.\n" \
+		    >> ${DIST_SETUP_LOG}
+
+	    elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
+
+		# Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific
+		if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then
+		    DEVTOOLSET_DIR=/opt/rh/devtoolset
+
+		    if [ -d "${DEVTOOLSET_DIR}-3" ] ; then
+			source ${DEVTOOLSET_DIR}-3/enable 
+			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
+			    >> ${DIST_SETUP_LOG}
+			echo -e "in ${DEVTOOLSET_DIR}-3" \
+			    >> ${DIST_SETUP_LOG}
+
+		    elif [ -d "${DEVTOOLSET_DIR}-4" ] ; then
+			source ${DEVTOOLSET_DIR}-4/enable
+			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
+			    >> ${DIST_SETUP_LOG}
+			echo -e "in ${DEVTOOLSET_DIR}-4" \
+			    >> ${DIST_SETUP_LOG}
+
+		    elif [ -d "${DEVTOOLSET_DIR}-6" ] ; then
+			source ${DEVTOOLSET_DIR}-5/enable
+			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
+			    >> ${DIST_SETUP_LOG}
+			echo -e "in ${DEVTOOLSET_DIR}-6" \
+			    >> ${DIST_SETUP_LOG}
+		    else
+			echo -e "\nPlease upgrade to Red Hat Developer Toolset 3" \
+			    >> ${DIST_SETUP_LOG}
+			echo -e "or set your PATH to where a minimum 4.9 version of GCC/gfortran is located.\n" \
+			    >> ${DIST_SETUP_LOG}
+		    fi
+
+		else
+		    echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
+			>> ${DIST_SETUP_LOG}
+		    echo -e "Please upgrade your version of GNU GCC/gfortran" \
+			>> ${DIST_SETUP_LOG}
+		    echo -e "or set your PATH to where a minimum 4.9 version of GNU GCC/gfortran is located.\n" \
+			>> ${DIST_SETUP_LOG}
+		fi
+	    fi
+	    echo -e "\nUsing: $(gfortran --version | head -1)\n" \
+		>> ${DIST_SETUP_LOG}
+
+	else
+	    echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
+		>> ${DIST_SETUP_LOG}
+	    echo -e "Please install GNU GCC/gfortran (version 4.9 or greater is recommended)" \
+		>> ${DIST_SETUP_LOG}
+	    echo -e "or set your PATH to where GNU GCC/gfortran is located.\n" \
+		>> ${DIST_SETUP_LOG}
+	fi
+
+    elif ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+	echo -e "\nUsing: $(ifort --version | head -1)\n" \
+	    >> ${DIST_SETUP_LOG}
+
+    # This is CLASSE specific, for user convenience sake
+    elif ( [ -e /nfs/opt/intel/ifort/bin/compilervars.sh ] ) ; then
+	source /nfs/opt/intel/ifort/bin/compilervars.sh intel64
+	echo -e "\nUsing: $(ifort --version | head -1)\n" \
+	    >> ${DIST_SETUP_LOG}
+
+    else
+	echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
+	    >> ${DIST_SETUP_LOG}
+	echo -e "Your requested Fortran compiler, ${DIST_F90_REQUEST}, is not installed on your system." \
+	    >> ${DIST_SETUP_LOG}
+	echo -e "Please install or check your PATH.\n" \
+	    >> ${DIST_SETUP_LOG}
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to set the Bmad Environment
+#-----------------------------------------------------------------
+func_set_bmad_env () {
+
+    export ACC_ROOT_DIR=${DIST_BASE_DIR}
+
+    echo -e "\$DIST_BASE_DIR = ${DIST_BASE_DIR}" \
+	>> ${DIST_SETUP_LOG}
+
+    unset DIST_F90_REQUEST
+
+    echo -e "Sourcing User build preferences from util/dist_prefs..." \
+	>> ${DIST_SETUP_LOG}
+    source ${DIST_BASE_DIR}/util/dist_prefs
+
+    echo "Sourcing common build variable set..." \
+	>> ${DIST_SETUP_LOG}
+    source ${DIST_BASE_DIR}/util/dist_env_vars
+
+    echo "Setting the Fortran compiler..." \
+	>> ${DIST_SETUP_LOG}
+    export DIST_F90=${DIST_F90_REQUEST}
+
+    export DIST_OS=$(uname)
+    export DIST_ARCH=$(uname -m)
+    [ "${DIST_OS_ARCH}" ] || export DIST_OS_ARCH="${DIST_OS}_${DIST_ARCH}"
+    export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
+
+    alias distinfo="env | grep DIST ; env | grep ACC"
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to add the distribution's util, bin and GNU Util bin
+# to user's PATH and LD_LIBRARY_PATH
+#-----------------------------------------------------------------
+func_add_bmad_path () {
+
+    GNU_UTIL_PROD_BIN=${DIST_BASE_DIR}/production/gnu_utilities/bin
+    GNU_UTIL_DEBUG_BIN=${DIST_BASE_DIR}/debug/gnu_utilities/bin
+    BMAD_BIN_PROD_PATH=${DIST_BASE_DIR}/production/bin
+    BMAD_BIN_DEBUG_PATH=${DIST_BASE_DIR}/debug/bin
+    BMAD_LIB_PROD_PATH=${DIST_BASE_DIR}/production/lib
+    BMAD_LIB_DEBUG_PATH=${DIST_BASE_DIR}/debug/lib
+
+    PATH_FOUND=0
+    USER_PATH=${PATH}
+    USER_PATH_LIST=$(echo ${USER_PATH} | sed s/:/\ /g)
+
+    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${GNU_UTIL_DEBUG_BIN} ${GNU_UTIL_PROD_BIN} ${DIST_UTIL} )
+
+    if [ ! -d ${GNU_UTIL_DEBUG_BIN} ] ; then
+	BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${GNU_UTIL_PROD_BIN} ${DIST_UTIL} )
+	if [ ! -d ${GNU_UTIL_PROD_BIN} ] ; then
+	    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${DIST_UTIL} )
+	fi
+    fi
+
+    for BMAD_DIR in ${BMAD_DIRS[@]}
+    do
+	for DIR in ${USER_PATH_LIST}
+	do
+	    if ( [ "${DIR}" == "${BMAD_DIR}" ] ) ; then 
+		PATH_FOUND=1
+	    fi
+	done
+
+	if [ "${PATH_FOUND}" -eq 0 ] ; then 
+
+	    if [ "${BMAD_DIR}" != "${DIST_UTIL}" ] ; then
+		USER_PATH=${BMAD_DIR}:${USER_PATH}
+	    else
+		USER_PATH=${USER_PATH}:${BMAD_DIR}
+	    fi
+	fi
+    done
+
+    export PATH=${USER_PATH}
+
+    if [ ${LD_LIBRARY_PATH} ] ; then
+	USER_LIB_PATH_LIST=$(echo ${LD_LIBRARY_PATH} | sed s/:/\ /g)
+
+	BMAD_LIBS=( ${BMAD_LIB_DEBUG_PATH} ${BMAD_LIB_PROD_PATH} )
+
+	for BMAD_LIB in ${BMAD_LIBS[@]}
+	do
+	    for LIB_PATH in ${USER_LIB_PATH_LIST}
+	    do
+		if ( [ "${LIB_PATH}" == "${BMAD_LIB}" ] ) ; then 
+		    PATH_FOUND=1
+		fi
+	    done
+
+	    if [ "${PATH_FOUND}" -eq 0 ] ; then
+		export LD_LIBRARY_PATH=${BMAD_LIB}:${LD_LIBRARY_PATH}
+	    fi
+	done
+
+    else
+	export LD_LIBRARY_PATH=${BMAD_LIB_PROD_PATH}:${BMAD_LIB_DEBUG_PATH}
+
+        # Set DYLD_LIBRARY_PATH for Mac OS X
+	if [ "${DIST_OS}" == "Darwin" ] ; then
+
+	    if ( [ "${DIST_F90_REQUEST}" == "ifort" ] && [ -d /opt/intel/lib ] ) ; then
+		export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
+
+	    elif [ -d /opt/local/lib ] ; then
+		export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/local/lib
+	    fi
+	fi
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Main Script
 #
-# Developer notes:
-# This script is designed to be shell-agnostic.  It
-# employs only basic syntax to perform the necessary
-# status logging and script sourcing and has been verified
-# to work under Bourne-compatible and C-style shells
-# (bash & tcsh).  If its functionality is extended, please
-# bear this requirement in mind.
+# If this script is run in the top-level directory of a 
+# distribution source tree, use that directory, otherwise
+# check to see if a directory has been specified in the
+# DIST_BASE_DIR environment variable.
 #
-# The entire setup sequence of scripts and variables lists
-# requires the following GNU system tools to operate:
-#  bash
-#  grep
-#  sed
-#----------------------------------------------------------
+# If neither, cough up an error message prompting the user
+# to try again.
+#
+# Check for a distribution signature in subdirectories of 
+# the current working directory.
+#
+# Determine if current working directory is the top level
+# of a distribution source tree.
+#
+# Set universal ACC_ROOT_DIR variable. Defined for both 
+# Release and Distribution Builds.
+#-----------------------------------------------------------------
+DIST_SETUP_LOG=${HOME}/.Bmad_Dist_Setup_Log.tmp
+CWD=$(pwd)
+CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
+DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
 
+if ( [ "${CWD_DIR_CHECK}" == "Y" ] ) ; then
+    export DIST_BASE_DIR=${CWD}
+    echo -e "\nCurrent working directory is the root of a Bmad Distribution tree." \
+	> ${DIST_SETUP_LOG}
 
-#----------------------------------------------------------
-# Dump a descriptive error message to the setup log file.
-# This will be overwritten by the environment setup script
-# when/if it is sourced.  Otherwise, this describes the
-# failure that occurred prior to running the source step.
-#----------------------------------------------------------
-"echo" "" > ${HOME}/.dist_setup_log.tmp
-"echo" "Execution of distribution setup chain starting in dist_source_me failed." >> ${HOME}/.dist_setup_log.tmp
-"echo" "" >> ${HOME}/.dist_setup_log.tmp
-"echo" "Verify that the current working directory when running dist_source_me is the" >> ${HOME}/.dist_setup_log.tmp
-"echo" "top level directory of a distribution source tree -or- if running the script" >> ${HOME}/.dist_setup_log.tmp
-"echo" "from another location, that the value of the environment variable DIST_BASE_DIR"  >> ${HOME}/.dist_setup_log.tmp
-"echo" "contains the full path of the top-level directory of a distribution source tree AND has" >> ${HOME}/.dist_setup_log.tmp
-"echo" "been made available (exported) to child processes of your current shell." >> ${HOME}/.dist_setup_log.tmp
-"echo" "" >> ${HOME}/.dist_setup_log.tmp
+    func_set_os_env
+    func_set_bmad_env
+    func_add_bmad_path
+    func_check_fortran_version
+    
+elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
+    echo -e "\nThe working directory of the Bmad Distribution tree is defined by DIST_BASE_DIR." \
+	> ${DIST_SETUP_LOG}
 
+    func_set_os_env
+    func_set_bmad_env
+    func_add_bmad_path
+    func_check_fortran_version
 
-
-#---------------------------------------------------------
-# Create the environment setup temporary file that the
-# "gen_env" will populate below.  Creating it here avoids
-# file existence errors under tcsh in the event the 
-# dist_gen_env script is unable to run.
-#---------------------------------------------------------
-"touch" ${HOME}/.dist_env_setup.tmp
-
-
-
-#----------------------------------------------------------
-# Generate temporary file containing all environment
-# changes necesary for the build system to function.
-# Try first assuming the current working directory is the
-# top level directory of a distribution tree, fall back
-# on a more general approach os using an explicitly-set
-# variable to locate a particular distribution top level
-# directory.
-#----------------------------------------------------------
-"echo" "Running ${DIST_BASE_DIR}/util/dist_gen_env..." >> ${HOME}/.dist_setup_log.tmp
-
-("/bin/bash" ./util/dist_gen_env) >& /dev/null || ("/bin/bash" /${DIST_BASE_DIR}/util/dist_gen_env) >& /dev/null || "echo" "Locating dist_gen_env script failed." >> ${HOME}/.dist_setup_log.tmp
-
-
-
-#----------------------------------------------------------
-# Apply the changes generated above.
-#----------------------------------------------------------
-source ${HOME}/.dist_env_setup.tmp
-
-
-
-#----------------------------------------------------------
-# if gfortran is requested, check for a minimum 4.9 version
-#----------------------------------------------------------
-if ( [ "${DIST_F90}" == "gfortran" ] ) ; then
-  if ( [ "$(type gfortran &> /dev/null ; echo $?)" -eq 0 ] ) ; then
-    GCC_MAJOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 2)
-    GCC_MINOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 4)
-      if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
-        echo -e "\nPlease upgrade your version of GCC/gfortran or set your PATH to where a minimum 4.9 version of GCC/gfortran is located.\n"
-      elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
-        if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then
-          DEVTOOLSET_DIR=/opt/rh/devtoolset
-          if [ -d "${DEVTOOLSET_DIR}-3" ] ; then
-            . ${DEVTOOLSET_DIR}-3/enable 
-            echo -e "\nFound gfortran - enabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-3"
-          elif [ -d "${DEVTOOLSET_DIR}-4" ] ; then
-            . ${DEVTOOLSET_DIR}-4/enable
-            echo -e "\nFound gfortran - enabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-4"
-          elif [ -d "${DEVTOOLSET_DIR}-5" ] ; then
-            . ${DEVTOOLSET_DIR}-5/enable
-            echo -e "\nFound gfortran - enabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-5"
-          else
-            echo -e "\nPlease upgrade to Red Hat Developer Toolset 3 or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
-          fi
-        else
-          echo -e "\nPlease upgrade your version of GNU GCC/gfortran or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
-        fi
-      fi
-        echo -e "\nUsing: $(gfortran --version | head -1)"
-  else
-    echo -e "\nPlease install GNU GCC/gfortran (version 4.9 or greater is recommended) or set your PATH to where GNU GCC is located.\n"
-  fi
-elif ( [ "$(type ifort &> /dev/null ; echo $?)" -eq 0 ] ) ; then
-  echo -e "\nUsing: $(ifort --version | head -1)"
 else
-  echo -e "\nYour requested Fortran compiler, ${DIST_F90}, is not installed on your system.  Please check your PATH."
+    echo -e "\nERROR - Cannot Enable the Bmad Distribution Environment.\n" \
+	> ${DIST_SETUP_LOG}
+    echo -e "Verify that the current working directory is the top level directory of a distribution source tree" \
+	>> ${DIST_SETUP_LOG}
+    echo -e "-OR- if sourcing the this script from another location, " \
+	>> ${DIST_SETUP_LOG}
+    echo -e "verify that the value of the environment variable DIST_BASE_DIR" \
+	>> ${DIST_SETUP_LOG}
+    echo -e "contains the full path of the top-level directory of a distribution source tree," \
+	>> ${DIST_SETUP_LOG}
+    echo -e "-AND- has been made available (exported) to child processes of your current shell.\n" \
+	>> ${DIST_SETUP_LOG}
+
+    [ "${DIST_SETUP_QUIET}" == "Y" ] \
+	&& echo -e "\nERROR - Cannot Enable the Bmad Distribution Environment." \
+	&& echo -e "\nPlease see ${DIST_SETUP_LOG}\n"
 fi
 
+echo -e "For updates, information and help - please see the Bmad Distribution Wiki at:\n" \
+        >> ${DIST_SETUP_LOG}
+echo -e "     https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc\n" \
+        >> ${DIST_SETUP_LOG}
 
-
-
-#----------------------------------------------------------
-# Tell the user the status of sourcing the script.
-#----------------------------------------------------------
-cat ${HOME}/.dist_setup_log.tmp
-
-
-
-#----------------------------------------------------------
-# Clean up
-#----------------------------------------------------------
-("rm" ${HOME}/.dist_env_setup.tmp) >& /dev/null
-
+#-----------------------------------------------------------------
+# Display Logfile, unless requested not to.
+#-----------------------------------------------------------------
+[ "${DIST_SETUP_QUIET}" != "Y" ] && cat ${DIST_SETUP_LOG}
