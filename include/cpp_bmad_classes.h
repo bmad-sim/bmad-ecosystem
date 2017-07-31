@@ -576,13 +576,13 @@ class Opaque_ac_kicker_freq_class {};  // Opaque class for pointers to correspon
 
 class CPP_ac_kicker_freq {
 public:
-  Real amp;
   Real f;
+  Real amp;
   Real phi;
 
   CPP_ac_kicker_freq() :
-    amp(0.0),
     f(0.0),
+    amp(0.0),
     phi(0.0)
     {}
 
@@ -3131,7 +3131,6 @@ public:
   CPP_taylor_field_ARRAY taylor_field;
   CPP_grid_field_ARRAY grid_field;
   CPP_floor_position floor;
-  CPP_ptc_genfield ptc_genfield;
   CPP_mode3* mode3;
   CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
@@ -3235,7 +3234,6 @@ public:
     taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
     grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
     floor(),
-    ptc_genfield(),
     mode3(NULL),
     photon(NULL),
     rad_int_cache(NULL),

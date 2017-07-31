@@ -129,8 +129,8 @@ template bool is_all_equal (const CPP_ac_kicker_time_MATRIX&, const CPP_ac_kicke
 
 bool operator== (const CPP_ac_kicker_freq& x, const CPP_ac_kicker_freq& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.amp == y.amp);
   is_eq = is_eq && (x.f == y.f);
+  is_eq = is_eq && (x.amp == y.amp);
   is_eq = is_eq && (x.phi == y.phi);
   return is_eq;
 };
@@ -1356,7 +1356,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.taylor_field, y.taylor_field);
   is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
   is_eq = is_eq && (x.floor == y.floor);
-  is_eq = is_eq && (x.ptc_genfield == y.ptc_genfield);
   is_eq = is_eq && ((x.mode3 == NULL) == (y.mode3 == NULL));
   if (!is_eq) return false;
   if (x.mode3 != NULL) is_eq = (*x.mode3 == *y.mode3);
