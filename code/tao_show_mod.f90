@@ -2955,10 +2955,22 @@ case ('taylor_map', 'matrix')
       endif
       if (err .or. size(eles) == 0) return
       ele => eles(1)%ele
-      if (ele%lord_status == super_lord$) ele => pointer_to_slave (ele, ele%n_slave)
+
+      select case (ele%lord_status)
+      case (super_lord$) 
+        ele => pointer_to_slave (ele, ele%n_slave)
+      case (overlay_lord$, multipass_lord$, girder_lord$, group_lord$)
+        nl=1; lines(1) = 'LORD ELEMENT OF THIS TYPE (' // trim(control_name(ele%lord_status)) // &
+                         ') DOES NOT HAVE A DEFINITE POSITION: ' // ele1_name
+        return
+      end select
+
       ix1 = ele%ix_ele
       ix_branch = ele%ix_branch
     endif
+
+    branch => lat%branch(ix_branch)
+
 
     if (ele2_name == '' .and. ele1_name /= '') then
       ix2 = ix1
@@ -2975,7 +2987,16 @@ case ('taylor_map', 'matrix')
       endif
       if (err .or. size(eles) == 0) return
       ele => eles(1)%ele
-      if (ele%lord_status == super_lord$) ele => pointer_to_slave (ele, ele%n_slave)
+
+      select case (ele%lord_status)
+      case (super_lord$) 
+        ele => pointer_to_slave (ele, ele%n_slave)
+      case (overlay_lord$, multipass_lord$, girder_lord$, group_lord$)
+        nl=1; lines(1) = 'LORD ELEMENT OF THIS TYPE (' // trim(control_name(ele%lord_status)) // &
+                         ')DOES NOT HAVE A DEFINITE POSITION: ' // ele1_name
+        return
+      end select
+
       ix2 = ele%ix_ele
       if (ele%ix_branch /= ix_branch) then
         nl=1; lines(1) = 'ELEMENTS ARE IN DIFFERENT LATTICE BRANCHES'
@@ -2983,8 +3004,6 @@ case ('taylor_map', 'matrix')
       endif
 
     endif
-
-    branch => lat%branch(ix_branch)
 
     if (ele2_name == '') then
       nl=nl+1; lines(nl) = 'Map from: ' // trim(branch%ele(ix1)%name)
