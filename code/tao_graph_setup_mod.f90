@@ -1833,7 +1833,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 character(40) data_type, name
 character(40) data_type_select, data_source
 character(*), parameter :: r_name = 'tao_calc_data_at_s'
-logical err, good(:), first_time
+logical err, good(:), first_time, radiation_fluctuations_on
 
 ! Some init
 
@@ -1867,6 +1867,9 @@ if (curve%data_source == 'lat') then
 endif
 
 ! x1 and x2 are the longitudinal end points of the plot
+
+radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
+bmad_com%radiation_fluctuations_on = .false.
 
 x1 = branch%ele(0)%s
 x2 = branch%ele(n_ele_track)%s
@@ -1971,6 +1974,7 @@ do ii = 1, size(curve%x_line)
 
     if (err) then
       good(ii:) = .false.
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
       return
     endif
 
@@ -1978,6 +1982,7 @@ do ii = 1, size(curve%x_line)
       write (curve%message_text, '(f10.3)') s_now
       curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
                            trim(adjustl(curve%message_text))
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
       return
     endif
 
@@ -2395,9 +2400,9 @@ do ii = 1, size(curve%x_line)
       call taylor_make_unit (t_map, orbit%vec)
     endif
     if (s_now < s_last) cycle
-    i = tao_read_this_index (data_type, 3); if (i == 0) return
-    j = tao_read_this_index (data_type, 4); if (j == 0) return
-    k = tao_read_this_index (data_type, 5); if (k == 0) return
+    i = tao_read_this_index (data_type, 3); if (i == 0) goto 9000
+    j = tao_read_this_index (data_type, 4); if (j == 0) goto 9000
+    k = tao_read_this_index (data_type, 5); if (k == 0) goto 9000
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), taylor_expn([j, k]))
 
@@ -2408,10 +2413,10 @@ do ii = 1, size(curve%x_line)
     endif
     if (s_now < s_last) cycle
     expnt = 0
-    i = tao_read_this_index (data_type, 4); if (i == 0) return
+    i = tao_read_this_index (data_type, 4); if (i == 0) goto 9000
     do j = 5, 15
       if (data_type(j:j) == '') exit
-      k = tao_read_this_index (data_type, j); if (k == 0) return
+      k = tao_read_this_index (data_type, j); if (k == 0) goto 9000
       expnt(k) = expnt(k) + 1
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
@@ -2426,6 +2431,8 @@ do ii = 1, size(curve%x_line)
 
 enddo
 
+bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+
 return
 
 ! Error message
@@ -2435,6 +2442,8 @@ call out_io (s_warn$, r_name, &
                     'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
 call out_io (s_blank$, r_name, "Will not perform any smoothing.")
 good = .false.
+bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+
 
 end subroutine tao_calc_data_at_s
 
