@@ -144,7 +144,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call convert_particle_coordinates_t_to_s(orb, ele, ref_time) 
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
-      call convert_particle_coordinates_s_to_t(orb, ele, s_save)
+      call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation)
       call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
@@ -179,7 +179,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call convert_particle_coordinates_t_to_s(orb, ele, ele%ref_time)
       call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore vec(5) to relative s 
-      call convert_particle_coordinates_s_to_t(orb, ele, orb%s - (ele%s_start + ele%value(z_offset_tot$)))
+      call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s_start + ele%value(z_offset_tot$)), ele%orientation)
       if (orb%state /= alive$) exit_flag = .true.
     endif
   end select
@@ -679,7 +679,7 @@ ele =>  branch%ele(orb%ix_ele)
 particle = orb;
 if (.not. logic_option( .false., in_time_coordinates)) then
   ! Set vec(5) to be relative to entrance of ele 
-  call convert_particle_coordinates_s_to_t (particle, ele, particle%s - ele%s_start)
+  call convert_particle_coordinates_s_to_t (particle, particle%s - ele%s_start, ele%orientation)
 endif
 
 !Set for coords_local_curvilinear_to_floor
@@ -756,7 +756,7 @@ end subroutine convert_particle_coordinates_t_to_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_s_to_t (particle, ele, z)
+! Subroutine convert_particle_coordinates_s_to_t  (particle, z, orientation)
 !
 ! Subroutine to convert particle coordinates from s-based to t-based system. 
 !
@@ -769,15 +769,15 @@ end subroutine convert_particle_coordinates_t_to_s
 !     vec(6) = c*p_s = m c^2 \gamma \beta_s   [eV]
 !
 ! Input:
-!   particle  -- coord_struct: input particle
-!   ele        -- ele_sturct: Element particle is going through
-!   z         -- real(rp): New z (vec(5)) coordinate.
+!   particle        -- coord_struct: input particle
+!   z               -- real(rp): New z (vec(5)) coordinate.
+!   orientation -- integer, optional: ele%orientation for vec(6). Default: 1
 !
 ! Output:
 !    particle   -- coord_struct: output particle.
 !-
 
-subroutine convert_particle_coordinates_s_to_t (particle, ele, z)
+subroutine convert_particle_coordinates_s_to_t (particle, z, orientation)
 
 implicit none
 
@@ -785,11 +785,12 @@ type (coord_struct), intent(inout), target :: particle
 type (ele_struct) ele
 real(rp) z
 real(rp), pointer :: vec(:)
+integer, optional :: orientation
 
 vec => particle%vec
 
 ! Convert s to t
-vec(6) = particle%direction * ele%orientation * particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
+vec(6) = particle%direction * integer_option(orientation, 1) * particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
 ! vec(1) = vec(1) !this is unchanged
 vec(2) = vec(2) * particle%p0c
 ! vec(3) = vec(3) !this is unchanged
@@ -995,7 +996,7 @@ do i = 1, size(bunch%particle)
   pc = (1+orb%vec(6)) * orb%p0c 
   
   !convert to time coordinates
-  call convert_particle_coordinates_s_to_t (orb, ele, orb%s)
+  call convert_particle_coordinates_s_to_t (orb, orb%s)
   
   !get \gamma m c
   gmc = sqrt(pc**2 + mass_of(orb%species)**2) / c_light
