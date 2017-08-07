@@ -24,11 +24,11 @@ logical valid
 
 valid = .false.
 
+if (string == '') return
+
 do i1 = 1, len(string)
   if (string(i1:i1) /= ' ') exit
 enddo
-
-if (i1 == len(string)+1) return
 
 ! first char may be a + or -
 
