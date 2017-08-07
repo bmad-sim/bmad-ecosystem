@@ -82,7 +82,7 @@ call track1 (start_orb, ele, lat%param, end_orb4, track=track)
 print *, 'TRACK4'
 do i=1, track%n_pt
   orb = track%orb(i)
-  call convert_particle_coordinates_s_to_t (orb, ele, orb%s)
+  call convert_particle_coordinates_s_to_t (orb, orb%s, ele%orientation)
   write(*, '(5es18.10)') orb%t, orb%s, orb%vec(5), orb%vec(6) , field%E(3)
 enddo
 print *, 'ENDTRACK4'
