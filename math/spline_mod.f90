@@ -12,7 +12,7 @@ type spline_struct
   real(rp) :: coef(0:3) = 0      ! coefficients for cubic spline
 end type
 
-private akima_spline_coef23_calc, akima_spline_slope_calc, end_akima_spline_calc 
+private akima_spline_coef23_calc, akima_spline_slope_calc
 
 contains
 
@@ -157,8 +157,8 @@ end subroutine spline_evaluate
 ! Input:
 !   a_spline  -- spline_struct: Single spline structure.
 !   x         -- real(rp): Point for evaluation.
-!   n         -- integer, optional: Output derivative order. May be 0, 1, 2, or 3. Default is 0.
-!                   n = 1 => output is dy/dx, n = 2 => output is d^2y/dx^2, etc.
+!   n         -- integer, optional: Output derivative order. May be -1, 0, 1, 2, or 3. Default is 0.
+!                   n = -1 => output is integral of y, n = 1 => output is dy/dx, n = 2 => output is d^2y/dx^2, etc.
 !
 ! Output:
 !   y         -- real(rp), optional: Interpolated spline value or derivative.
@@ -184,6 +184,9 @@ dx = x - a_spline%x0
 c = a_spline%coef
 
 select case (integer_option(0, n))
+case (-1)
+  y = ((((c(3)/4 * dx) + c(2)/3) * dx + c(1)/2) * dx + c(0)) * dx
+
 case (0)
   y = (((c(3) * dx) + c(2)) * dx + c(1)) * dx + c(0)
 
@@ -236,7 +239,6 @@ subroutine spline_akima (spline, ok)
 implicit none
 
 type (spline_struct) :: spline(:)
-type (spline_struct) :: end(0:5)
 
 real(rp) y21, y32, x21, x32, x221, x232
 
@@ -296,15 +298,8 @@ endif
 
 ! load coef0 and calc spline at ends
 
-end(0:3) = spline(4:1:-1)
-call end_akima_spline_calc (end)
-spline(1)%coef(1) = end(3)%coef(1)
-spline(2)%coef(1) = end(2)%coef(1)
-
-end(0:3) = spline(nmax-3:nmax)
-call end_akima_spline_calc (end)
-spline(nmax)%coef(1) = end(3)%coef(1)
-spline(nmax-1)%coef(1) = end(2)%coef(1)
+call end_akima_spline_calc (spline, 0)
+call end_akima_spline_calc (spline, 1)
 
 ! calc spline everywhere else
      
@@ -324,20 +319,42 @@ end subroutine spline_akima
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine end_akima_spline_calc (end)
+! Subroutine end_akima_spline_calc (spline, which_end)
 !
-! Private routine.
+! Routine to calculate the slopes at the ends of a spline array
+!
+! Input:
+!   spline(:)   -- spline_struct: Array of splines.
+!   which_end   -- integer: 0 => calculate slopes for the start end of the array.
+!                           1 => calculate slopes for the end end of the array.
+!
+! Output:
+!   spline(:)   -- spline_struct: Array with slopes at end calculated.
 !-
 
-subroutine end_akima_spline_calc (end)
+subroutine end_akima_spline_calc (spline, which_end)
 
 implicit none
 
+type (spline_struct) :: spline(:)
 type (spline_struct), target :: end(0:5)
 real(rp), pointer :: x(:), y(:)
 real(rp) rk
+integer which_end, nmax
 
 !                                                                 
+
+select case (which_end)
+case (0)
+  end(0:3) = spline(4:1:-1)
+case (1)
+  nmax = ubound(spline, 1)
+  end(0:3) = spline(nmax-3:nmax)
+case default
+  call err_exit
+end select
+
+!
 
 x => end(1:5)%x0
 y => end(1:5)%y0
@@ -351,6 +368,17 @@ y(5) = y(4) + (x(5) - x(4)) * ((y(4) - y(3)) / (x(4) - x(3)) + rk)
 
 call akima_spline_slope_calc(end(0:4))
 call akima_spline_slope_calc(end(1:5))
+
+!
+
+select case (which_end)
+case (0)
+  spline(1)%coef(1) = end(3)%coef(1)
+  spline(2)%coef(1) = end(2)%coef(1)
+case (1)
+  spline(nmax)%coef(1) = end(3)%coef(1)
+  spline(nmax-1)%coef(1) = end(2)%coef(1)
+end select
 
 end subroutine end_akima_spline_calc 
 
