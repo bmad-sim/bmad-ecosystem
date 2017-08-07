@@ -114,7 +114,7 @@ endif
 
 ! ele(s-based) -> ele(t-based)
 
-call convert_particle_coordinates_s_to_t(end_orb, ele, s_rel)
+call convert_particle_coordinates_s_to_t(end_orb, s_rel, ele%orientation)
 
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
