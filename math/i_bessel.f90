@@ -27,6 +27,8 @@ real(rp) arg, i_bes
 
 !
 
+if (arg > 700) i_bes = 1d100  ! Something large.
+
 select case(m)
 case (0);     i_bes = fgsl_sf_bessel_ic0(arg)
 case (1);     i_bes = fgsl_sf_bessel_ic1(arg)
