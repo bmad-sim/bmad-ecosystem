@@ -588,7 +588,8 @@ case (lcavity$, rfcavity$, e_gun$)
       field_im%E=0
       field_im%B=0
     else
-      call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.0_rp)
+      call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
+      print *, field_im%E(3)
     endif
     pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
     pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
