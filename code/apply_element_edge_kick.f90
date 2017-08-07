@@ -91,16 +91,26 @@ endif
 call apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
 if (finished) return
 
-!------------------------------------------------------------------------------------
-! Only need this routine when the field_calc or tracking is bmad_standard.
-! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
-
-if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
+!
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
+
+! Edge field when %field_calc = fieldcalc$
+
+!if (track_ele%field_calc == fieldmap$ .and. track_ele%tracking_method /= bmad_standard$) then
+!  call electric_longitudinal_fringe()
+!  return
+!endif
+
+
+!------------------------------------------------------------------------------------
+! Only need this section when the field_calc or tracking is bmad_standard.
+! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
+
+if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
 
 if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
 
@@ -111,13 +121,13 @@ else
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
-call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$)
 
 ! Static electric longitudinal field
 ! Note: magnetic fringe effects, which may shift the particle's (x, y) position, need to
 ! be applied before the electric fringe on entrance and after the electric fringe on exit in
 ! order to conserve the particle's energy.
 
+call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$)
 if (particle_at == second_track_edge$) call electric_longitudinal_fringe()
 
 ! Static magnetic and electromagnetic fringes
@@ -212,10 +222,15 @@ subroutine electric_longitudinal_fringe()
 
 type (em_potential_struct) potential
 type (em_field_struct) field
+type (cartesian_map_struct), pointer :: ct
+type (cylindrical_map_struct), pointer :: cy
+
 real(rp) f, E_r(2)
 complex(rp) ab_elec, xiy_old
+integer i
+logical err_flag
 
-!
+! Multipole fringe
 
 if (ix_elec_max > -1) then
   f = at_sign * charge_of(orb%species) 
@@ -243,6 +258,16 @@ if (ix_elec_max > -1) then
   endif
 
 endif
+
+! DC fieldmap fringe. 
+
+if (hard_ele%field_calc == fieldmap$ .and. hard_ele%tracking_method /= bmad_standard$) then
+  f = at_sign * charge_of(orb%species) 
+  call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, potential)
+  call apply_energy_kick (f * potential%phi, orb, f * field%E(1:2), mat6, make_matrix)
+  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, f * potential%phi])
+endif  
+
 
 end subroutine electric_longitudinal_fringe
 
