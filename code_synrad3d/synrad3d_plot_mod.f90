@@ -10,17 +10,92 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine sr3d_plot_diffuse_probability (plot_param, lat)
+!
+! Routine to plot diffuse reflection probability curves
+!
+! Input;
+!   plot_param -- sr3d_plot_param_struct: Plot parameters.
+!-
+
+subroutine sr3d_plot_diffuse_probability (plot_param, lat)
+
+use nr
+
+implicit none
+
+type (lat_struct), target :: lat
+type (sr3d_plot_param_struct) plot_param
+type (photon_reflect_surface_struct), pointer :: surface
+
+real(rp) energy, angle, theta_out, phi_out, x(100), y1(100), y2(100)
+integer i, ix, i_chan
+
+character(80) ans
+
+!
+
+energy = 34.0
+angle = 1.45
+surface => lat%surface(1)
+
+!! call photon_diffuse_scattering (angle, energy, surface, theta_out, phi_out, cheb_param)
+
+do i = 1, 100
+  x(i) = i / 100.0_rp
+  y1(i) = 0
+  y2(i) = 0
+enddo
+
+!
+
+call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
+call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+call qp_set_margin (0.07_rp, 0.05_rp, 0.10_rp, 0.05_rp, '%PAGE')
+
+!
+
+do
+
+  call qp_calc_and_set_axis ('X', 0.0_rp, 1.0_rp, 10, 16, 'GENERAL')
+  call qp_calc_and_set_axis ('Y', min(minval(y1), minval(y2)), max(maxval(y1), maxval(y2)), 6, 10, 'GENERAL')
+
+  call qp_clear_page
+
+  call qp_draw_graph (x, y1, 'x', 'cum_x', 'cheb', .true., 0)
+  call qp_draw_polyline (x, y2, line_pattern = 1)
+
+  print *, 'surface_roughness_rms:    ', surface%surface_roughness_rms
+  print *, 'roughness_correlation_len:', surface%roughness_correlation_len
+
+  call read_a_line ('Input: ', ans)
+  call string_trim(ans, ans, ix)
+  if (ix == 0) cycle
+
+enddo
+
+end subroutine sr3d_plot_diffuse_probability
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine sr3d_plot_reflection_probability (plot_param, lat)
 !
 ! Routine to plot reflection probability curves
 !
 ! Input;
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
+!   lat        -- lat_struct: Lattice
 !-
 
 subroutine sr3d_plot_reflection_probability (plot_param, lat)
 
 implicit none
+
+type (lat_struct), target :: lat
+type (sr3d_plot_param_struct) plot_param
+type (photon_reflect_surface_struct), pointer :: surface
 
 type yplot
   real(rp), allocatable :: y_reflect(:)
@@ -30,20 +105,17 @@ type yplot
   type (qp_line_struct) line
 end type
 
-type (lat_struct), target :: lat
-type (sr3d_plot_param_struct) plot_param
 type (yplot), allocatable :: ny(:)
-type (photon_reflect_surface_struct), pointer :: surface
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
 real(rp) value, value1, value2, y_min, y_max
 real(rp), allocatable :: x(:)
 
-integer i, j, n, ix, ios, n_lines, i_chan, n_max, d_max
+integer i, j, n, ix, ios, n_lines, i_chan, n_max, d_max, ix_surface
 
 logical fixed_energy, logic
 
-character(80) ans, head_lab, descrip, fmt
+character(80) ans, head_lab, descrip, fmt, text
 character(16) x_lab, y_lab, param, reflection_type
 
 ! init
@@ -59,7 +131,8 @@ y_lab = 'Reflectivity'
 reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
-surface => lat%surface(1)
+ix_surface = 1
+surface => lat%surface(ix_surface)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -138,11 +211,12 @@ do
   enddo
 
   call qp_draw_curve_legend (0.5_rp, 0.0_rp, '%GRAPH/LT', ny(:)%line, 40.0_rp, text = ny(:)%label, text_offset = 10.0_rp)
+  write (text, '(a, i0)') 'ix_surface = ', ix_surface
+  call qp_draw_text (text, 0.98_rp, 0.95_rp, '%GRAPH', 'RT')
 
   ! Get input:
 
   print *
-
 
   print '(a)', 'Surfaces Defined:'
   n_max = maxval(len_trim(lat%surface%name))
@@ -217,7 +291,8 @@ do
       cycle
     endif
 
-    surface => lat%surface(ix)
+    ix_surface = ix
+    surface => lat%surface(ix_surface)
 
   case ('type')
 
