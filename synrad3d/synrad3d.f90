@@ -61,7 +61,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_e
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
-            surface_roughness_rms, roughness_correlation_len, photon_track_file, filter_phantom_photons
+            surface_roughness_rms, roughness_correlation_len, photon_track_file, filter_phantom_photons, diffuse_com
 
 namelist / start / orbit, ix_branch, ran_state, random_seed
 
@@ -231,6 +231,8 @@ if (plotting /= '') then
     call sr3d_plot_wall_vs_s (plot_param, lat, plotting)
   elseif (index('reflect', trim(plotting)) == 1) then
     call sr3d_plot_reflection_probability(plot_param, lat)
+  elseif (index('diffuse', trim(plotting)) == 1) then
+    call sr3d_plot_diffuse_probability(plot_param, lat)
   else
     call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
     stop
