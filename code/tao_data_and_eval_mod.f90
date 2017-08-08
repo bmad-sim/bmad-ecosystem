@@ -1667,7 +1667,7 @@ case ('momentum_compaction')
   call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
   do i = ix_start, ix_ele
-    s_len = branch%ele(i)%s - branch%ele(ix_start)%s
+    s_len = branch%ele(i)%s - branch%ele(ix_ref)%s
     if (s_len == 0) then
       value_vec(i) = 0
     else
