@@ -121,7 +121,7 @@ do i = 1, s%n_var_used
   if (present(var_ix))           var_ix(j)      = i
 enddo
 
-end subroutine
+end subroutine tao_get_opt_vars
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -162,7 +162,6 @@ do i = 1, s%n_var_used
   call tao_set_var_model_value (s%var(i), var_vec(j), print_limit_warning)
 enddo
 
-end subroutine
-
+end subroutine tao_set_opt_vars
 
 end module
