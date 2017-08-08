@@ -23,7 +23,7 @@ integer(rp), private, parameter :: maxsum = 1000, ismax = 20, bmax = 100
 logical, private :: appsw = .true.
 
 type diffuse_common_struct
-  logical :: use_spline_fit = .true.
+  logical :: use_spline_fit = .false.
   real(rp) :: area_err_tol = 4d-3
 end type
 
