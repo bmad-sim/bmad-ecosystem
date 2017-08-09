@@ -1,10 +1,10 @@
 !+
-! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
+! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, ds_pos, set_spin, mat6, make_matrix)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the ends of the element. Additionally, this routine will:
 !   a) Apply the half kicks due to multipole and kick attributes.
-!   b) Add drift transform to the coordinates due to nonzero %value(z_offset_tot$).
+!   b) drift to the actual misaligned edge of the element.
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
@@ -47,10 +47,10 @@
 !                    F -> Do not rotate
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                    T -> Apply 1/2 any hkick or vkick.
-!   set_z_offset   -- Logical, optional: Default is True.
-!                    T -> Particle will be translated by ele%value(z_offset$) to propagate between the nominal
-!                           edge of the element and the true physical edge of the element.
-!                    F -> Do no translate. Used by save_a_step routine.
+!   drift_to_edge  -- Logical, optional: Default is True.
+!                    T -> Particle will be propagated from where the particle is (at the
+!                           nominal edge of the element) and the true physical edge of the element.
+!                    F -> Do no propagate. Used by save_a_step routine.
 !   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to upstream end.
 !                    If not present then, for orbit%direction = 1,  ds_pos = 0 is assumed when set = T and 
 !                    ds_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
@@ -64,7 +64,7 @@
 !     mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !-
 
-subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, ds_pos, set_spin, mat6, make_matrix)
 
 use geometry_mod, except_dummy => offset_particle
 use spin_mod, only: rotate_spin, rotate_spin_given_field 
@@ -89,9 +89,9 @@ integer n, ix_pole_max
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_spin
-logical, optional, intent(in) :: set_hvkicks, set_z_offset
+logical, optional, intent(in) :: set_hvkicks, drift_to_edge
 logical, optional :: make_matrix
-logical set_hv, set_t, set_hv1, set_hv2, set_z_off, set_spn
+logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn
 
 !---------------------------------------------------------------         
 
@@ -102,7 +102,7 @@ rel_p = (1 + orbit%vec(6))
 set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
-set_z_off  = logic_option (.true., set_z_offset) .and. has_orientation_attributes(ele)
+do_drift  = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
 set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
 
 sign_z_vel = ele%orientation * orbit%direction
@@ -195,7 +195,7 @@ if (set) then
 
       if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
 
-      if (set_z_off .and. position%r(3) /= 0) then
+      if (do_drift .and. position%r(3) /= 0) then
         ! The reference particle does not move! That is, the reference time is the time the referece particle
         ! reaches the *nominal* edge of the element and this is independent of any misalignments.
         call track_a_drift (orbit, -sign_z_vel*position%r(3), mat6, make_matrix, include_ref_motion = .false.)
@@ -359,7 +359,7 @@ else
 
       if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
 
-      if (set_z_off .and. position%r(3) /= 0) then
+      if (do_drift .and. position%r(3) /= 0) then
         ! The reference particle does not move! That is, the reference time is the time the referece particle
         ! reaches the *nominal* edge of the element and this is independent of any misalignments.
         call track_a_drift (orbit, -sign_z_vel*position%r(3), mat6, make_matrix, include_ref_motion = .false.)

@@ -130,7 +130,8 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(e_tot_ref_init$) = init_elem%value(e_tot_start$) ! In case gun is a super_lord.
     gun_ele%value(p0c_ref_init$) = init_elem%value(p0c_start$)
 
-    if (gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$) < mass_of(default_tracking_species(branch%param))) then
+    if (gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$) < mass_of(default_tracking_species(branch%param)) .and. &
+        (is_true(gun_ele%value(autoscale_amplitude$)) .or. gun_ele%tracking_method == bmad_standard$)) then
       call out_io (s_fatal$, r_name, '(INITIAL ENERGY) + (E_GUN VOLTAGE) MUST BE NON-NEGATIVE! ' // gun_ele%name, &
                                      'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
       if (global_com%exit_on_error) call err_exit

@@ -65,11 +65,11 @@ if (n_pt > n_old) then
   deallocate(track2%orb, track2%field, track2%map)
 end if
 
-! Notice that a translation due to a finite ele%value(z_offset$) is not wanted here.
+!
 
 orb2 = orb
 if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, &
-                                                  set_z_offset = .false., set_hvkicks = .false., ds_pos = s_rel)
+                                                  drift_to_edge = .false., set_hvkicks = .false., ds_pos = s_rel)
 
 track%orb(n_pt) = orb2
 track%orb(n_pt)%ix_ele = ele%ix_ele

@@ -66,4 +66,12 @@ else
   end_orb%t = start2_orb%t + dtime_ref + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif
 
+!
+
+if (end_orb%direction == 1) then
+  end_orb%s = ele%s
+else
+  end_orb%s = ele%s_start
+endif
+
 end subroutine

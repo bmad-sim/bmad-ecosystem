@@ -64,6 +64,8 @@ integer i, i1, i2
 logical vec_present, one_turn_this
 logical, optional :: one_turn
 
+character(*), parameter :: r_name = 'transfer_matrix_calc'
+
 !
 
 vec_present = present(xfer_vec)
@@ -75,6 +77,14 @@ branch => lat%branch(integer_option(0, ix_branch))
 i1 = integer_option(0, ix1) 
 i2 = integer_option(branch%n_ele_track, ix2) 
 one_turn_this = logic_option (.false., one_turn)
+
+if (i1 < 0 .or. i1 > branch%n_ele_track .or. i2 < 0 .or. i2 > branch%n_ele_track) then
+  call out_io (s_fatal$, r_name, 'ELEMENT INDEXES OUT OF BOUNDS: \i0\, \i0\ ', &
+                                 i_array = [i1, i2])
+  if (global_com%exit_on_error) call err_exit
+  xfer_mat = 0
+  return
+endif 
 
 if (branch%param%geometry == closed$ .and. present(ix1) .and. .not. present(ix2)) then
   i2 = i1

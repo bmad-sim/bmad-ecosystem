@@ -29,7 +29,7 @@ use track1_mod, dummy2 => track1_time_runge_kutta
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: start_orb, end_orb, orb
 type (coord_struct) :: ele_origin
 type (lat_param_struct), target :: param
 type (ele_struct), target :: ele
@@ -38,7 +38,7 @@ type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
 real(rp) vec(6), d_radius
-real(rp) s_rel, s0, s1, s2, ds_ref, del_s, p0c_save
+real(rp) s_rel, s0, s1, s2, ds_ref, del_s, p0c_save, dz_ref_time
 real(rp) s_edge_track, s_edge_hard, rf_time, beta_ref
 
 integer :: i, hard_end, t_dir
@@ -66,8 +66,15 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
             (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$) .and. &
             is_true(ele%value(spin_fringe_on$)))
 
-! Relative s. Adjust to match element edges if close enough
+! s_rel is longitudinal position relative to entrance end (element body coords).
+! Remember that if an element has reversed orientation, +s direction in body coords is opposite to
+! the reference trajectory +s direction.
+! Adjust to match element edges if close enough
+
+
 s_rel =  end_orb%s - ele%s_start
+if (ele%orientation == -1) s_rel = ele%value(l$) - s_rel
+
 if (abs(s_rel) < bmad_com%significant_length) then
   s_rel = 0
 else if (abs(s_rel - ele%value(l$))  < bmad_com%significant_length) then
@@ -85,6 +92,14 @@ if (end_orb%state /= alive$) then
   end_orb%state = lost$
   return
 endif
+
+! Since the reference time used to calculate z may be shifted from 
+! what is stored in ele, calculate a dz_ref_time correction
+
+orb = start_orb
+call convert_particle_coordinates_s_to_t(orb, s_rel, ele%orientation)
+call convert_particle_coordinates_t_to_s(orb, ele)
+dz_ref_time = start_orb%vec(5) - orb%vec(5)
 
 !------
 ! Convert particle to element coordinates
@@ -112,9 +127,11 @@ else
   if (ele%value(l$) < 0) t_dir = -1
 endif
 
-! ele(s-based) -> ele(t-based)
+! Convert orbit coords to time based.
 
 call convert_particle_coordinates_s_to_t(end_orb, s_rel, ele%orientation)
+
+!
 
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
@@ -133,7 +150,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, t_dir, rf_time, local_ref_frame, err, track)
+call odeint_bmad_time(end_orb, ele, param, t_dir, rf_time, dz_ref_time, local_ref_frame, err, track)
 
 if (err) return
 
@@ -143,13 +160,13 @@ if (err) return
 
 if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%value(ref_time_start$))
+  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%value(ref_time_start$), dz_ref_time)
   end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%ref_time, dz_ref_time)
   end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
@@ -164,7 +181,7 @@ elseif (end_orb%state /= alive$) then
     end_orb%direction = 1
   end if
 
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ele%ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele, dz_ref_time = dz_ref_time)
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., ds_pos = end_orb%s - ele%s_start, set_spin = set_spin)
 
 else

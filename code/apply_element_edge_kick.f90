@@ -98,22 +98,6 @@ fringe_at = nint(track_ele%value(fringe_at$))
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
-! Edge field when %field_calc = fieldcalc$
-
-!if (track_ele%field_calc == fieldmap$ .and. track_ele%tracking_method /= bmad_standard$) then
-!  call electric_longitudinal_fringe()
-!  return
-!endif
-
-
-!------------------------------------------------------------------------------------
-! Only need this section when the field_calc or tracking is bmad_standard.
-! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
-
-if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
-
-if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
-
 if (particle_at == first_track_edge$) then
   at_sign = 1
 else
@@ -121,6 +105,21 @@ else
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
+
+! Edge field when %field_calc = fieldmap$
+
+if (track_ele%field_calc == fieldmap$ .and. track_ele%tracking_method /= bmad_standard$) then
+  call electric_longitudinal_fringe()
+  return
+endif
+
+
+!------------------------------------------------------------------------------------
+! Only need this section when the field_calc or tracking is bmad_standard.
+! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
+
+if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
+if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
 
 ! Static electric longitudinal field
 ! Note: magnetic fringe effects, which may shift the particle's (x, y) position, need to
@@ -232,31 +231,32 @@ logical err_flag
 
 ! Multipole fringe
 
-if (ix_elec_max > -1) then
-  f = at_sign * charge_of(orb%species) 
+if (hard_ele%field_calc == bmad_standard$) then
+  if (ix_elec_max > -1) then
+    f = at_sign * charge_of(orb%species) 
 
-  if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
-    call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., potential)
-    call apply_energy_kick (f * potential%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
-    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+    if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
+      call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., potential)
+      call apply_energy_kick (f * potential%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
 
-  else  
-    xiy = 1
-    c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
-    phi = 0
-    E_r = 0
-    do i = 0, ix_elec_max
-      xiy_old = xiy
-      xiy = xiy * c_vec
-      if (a_pole_elec(i) == 0 .and. b_pole_elec(i) == 0) cycle
-      ab_elec = cmplx(b_pole_elec(i), -a_pole_elec(i), rp)
-      phi = phi + real(ab_elec * xiy) / (i + 1)
-      if (logic_option(.false., make_matrix)) E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
-    enddo
-    call apply_energy_kick (f * phi, orb, f * E_r, mat6, make_matrix)
-    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, f * phi])
+    else  
+      xiy = 1
+      c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
+      phi = 0
+      E_r = 0
+      do i = 0, ix_elec_max
+        xiy_old = xiy
+        xiy = xiy * c_vec
+        if (a_pole_elec(i) == 0 .and. b_pole_elec(i) == 0) cycle
+        ab_elec = cmplx(b_pole_elec(i), -a_pole_elec(i), rp)
+        phi = phi + real(ab_elec * xiy) / (i + 1)
+        if (logic_option(.false., make_matrix)) E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
+      enddo
+      call apply_energy_kick (f * phi, orb, f * E_r, mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, f * phi])
+    endif
   endif
-
 endif
 
 ! DC fieldmap fringe. 
