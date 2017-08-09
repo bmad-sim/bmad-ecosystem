@@ -103,7 +103,7 @@ endif
 ! go to local coords
 
 end_orb = start_orb
-end_orb%s = s1 + ele%s_start + ele%value(z_offset_tot$)
+end_orb%s = s1 + ele%s_start
 
 if (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)

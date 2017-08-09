@@ -8,54 +8,6 @@
 \index{MAD!conversion}
 
 %-----------------------------------------------------------------------------
-\subsection{Convert MAD-X to Bmad Via PTC}
-\label{s:mad.bmad.ptc}
-
-\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC ``flat''
-file and then using \bmad to convert the flat file to a \bmad lattice file. 
-
-The advantage of converting via PTC rather than using UAP (\sref{s:mad.bmad.uap} is that
-one does not have to worry about removing action commands from the \mad-X file. The
-disadvantages are:
-  \begin{description}
-  \item 
-the conversion does not preserve any of the look and feel of the original \mad-X file. 
-  \item
-the conversion via PTC does not work with \mad8 lattices.
-  \item
-\mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
-elements become drifts in a flat file.
-  \item
-\mad-X does not transfer beginning Twiss and orbit information to the flat file needed for open lattices.
-  \item
-\mad-X does not transfer the zeroth (dipole) order multipoles of a multipole element to the flat file.
-  \end{description}
-
-
-First, take a \mad-X lattice file and append the following to it:
-\begin{example}
-  use, period = LINE_NAME_HERE;
-  ptc_create_universe;
-  ptc_create_layout, model = 1, method = 2, nst = 1; 
-  !! ptc_create_layout, model=1, method=2, nst=1, exact;  ! Use this if exact is wanted
-  ptc_script, file="create_flat.ptc";
-\end{example}
-Substitute the actual sequence or line name for ``LINE_NAME_HERE''.
-
-Second, create a file called \vn{create_flat.ptc} with the following in it:
-\begin{example}
-  select layout
-  1
-  print flat file
-  XXX.flat
-  return
-\end{example}
-The flat file name \vn{XXX.flat} can be changed if desired.
-
-Now run \mad-X with the lattice file. A flat file will be created. This flat file can
-converted to \bmad as documented in \sref{s:ptc.convert}
-
-%-----------------------------------------------------------------------------
 \subsection{Convert MAD to Bmad Via UAP}
 \label{s:mad.bmad.uap}
 
@@ -111,6 +63,53 @@ nonlinearity that the actual wiggler has.
 The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
 \vn{util_programs/bmad_to_mad_or_xsif}.
 
+%-----------------------------------------------------------------------------
+%\subsection{Convert MAD-X to Bmad Via PTC}
+%\label{s:mad.bmad.ptc}
+%
+%\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC ``flat''
+%file and then using \bmad to convert the flat file to a \bmad lattice file. 
+%
+%The advantage of converting via PTC rather than using UAP (\sref{s:mad.bmad.uap}) is that
+%one does not have to worry about removing action commands from the \mad-X file. The
+%disadvantages are:
+%  \begin{description}
+%  \item 
+%the conversion does not preserve any of the look and feel of the original \mad-X file. 
+%  \item
+%the conversion via PTC does not work with \mad8 lattices.
+%  \item
+%\mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
+%elements become drifts in a flat file.
+%  \item
+%\mad-X does not transfer beginning Twiss and orbit information to the flat file needed for open lattices.
+%  \item
+%\mad-X does not transfer the zeroth (dipole) order multipoles of a multipole element to the flat file.
+%  \end{description}
+%
+%First, take a \mad-X lattice file and append the following to it:
+%\begin{example}
+%  use, period = LINE_NAME_HERE;
+%  ptc_create_universe;
+%  ptc_create_layout, model = 1, method = 2, nst = 1; 
+%  !! ptc_create_layout, model=1, method=2, nst=1, exact;  ! Use this if exact is wanted
+%  ptc_script, file="create_flat.ptc";
+%\end{example}
+%Substitute the actual sequence or line name for ``LINE_NAME_HERE''.
+%
+%Second, create a file called \vn{create_flat.ptc} with the following in it:
+%\begin{example}
+%  select layout
+%  1
+%  print flat file
+%  XXX.flat
+%  return
+%\end{example}
+%The flat file name \vn{XXX.flat} can be changed if desired.
+%
+%Now run \mad-X with the lattice file. A flat file will be created. This flat file can
+%converted to \bmad as documented in \sref{s:ptc.convert}
+
 %---------------------------------------------------------------------------
 \section{XSIF Conversion}
 \label{s:xsif.convert}
@@ -147,12 +146,12 @@ Parser} can be used (\sref{s:aml}). Additionally, the
 XSIF (cf.~\sref{s:mad.convert}).
 
 %---------------------------------------------------------------------------
-\section{PTC Conversion}
-\label{s:ptc.convert}
-\index{ptc!conversion}
-
-For a programmer, 
-For conversion from \bmad to PTC there are two possibilites
+%\section{PTC Conversion}
+%\label{s:ptc.convert}
+%\index{ptc!conversion}
+%
+%For a programmer, 
+%For conversion from \bmad to PTC there are two possibilites
 
 %---------------------------------------------------------------------------
 \section{SAD Conversion}

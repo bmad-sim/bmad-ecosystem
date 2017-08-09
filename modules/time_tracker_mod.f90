@@ -11,7 +11,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, local_ref_frame, err_flag, track)
+! Subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, dz_ref_time, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -29,7 +29,9 @@ contains
 !   t_dir           -- real(rp): Direction of time travel = +/-1. Can be negative for patches.
 !                       Will be -1 if element has a negative length.
 !
-!   rf_time         -- real(rp): Time relative to RF clock
+!   rf_time         -- real(rp): Time relative to RF clock.
+!   dz_ref_time     -- real(rp): z offset due to difference between the nominal reference time stored in
+!                        the element and the actual reference time used to calculate z.
 !   local_ref_frame -- Logical: If True then take the 
 !                       input and output coordinates as being with 
 !                       respect to the frame of referene of the element. 
@@ -44,7 +46,7 @@ contains
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, local_ref_frame, err_flag, track)
+subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, dz_ref_time, local_ref_frame, err_flag, track)
 
 use nr, only: zbrent
 
@@ -61,7 +63,7 @@ type (fringe_edge_info_struct) fringe_info
 real(rp), target :: t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(9), vec_err(9), s_target, dt_next_save
-real(rp) :: s_fringe_edge, ref_time, stop_time, s_stop_fwd
+real(rp) :: s_fringe_edge, ref_time, stop_time, s_stop_fwd, dz_ref_time
 
 integer :: t_dir, n_step, n_pt, old_direction
 
@@ -97,9 +99,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   runge_kutta_com%num_steps_done = n_step
 
-  ! Overstepped edge?
-  ! Can happen that an edge overstep happens at the beginning of tracking. For example, an sbend with
-  ! a finite x_offset shifts the s-position of the element ends. In this case, do not track to edge.
+  ! edge?
+
   if ((orb%vec(5) - s_fringe_edge)*orb%direction*ele%orientation*t_dir > -ds_safe) then
   
     zbrent_needed = .true.
@@ -141,7 +142,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         ref_time = fringe_info%hard_ele%ref_time
       end if
       s_save = orb%vec(5)
-      call convert_particle_coordinates_t_to_s(orb, ele, ref_time) 
+      call convert_particle_coordinates_t_to_s(orb, ele, ref_time, dz_ref_time) 
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
       call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation)
@@ -174,9 +175,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         ! So step a small amount to make sure that the particle is past the wall.
         dummy = wall_intersection_func(dt+ds_safe/c_light) ! Final call to set orb
       endif
+      orb%location = inside$
       orb%state = lost$
       ! Convert for wall handler
-      call convert_particle_coordinates_t_to_s(orb, ele, ele%ref_time)
+      call convert_particle_coordinates_t_to_s(orb, ele, dz_ref_time = dz_ref_time)
       call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore vec(5) to relative s 
       call convert_particle_coordinates_s_to_t(orb, orb%s - (ele%s_start + ele%value(z_offset_tot$)), ele%orientation)
@@ -488,7 +490,7 @@ endif
 
 
 orb_new%t = orb%t + dt
-orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
+orb_new%s = orb%s + ele%orientation * (orb_new%vec(5) - orb%vec(5))
 
 if (orb_new%vec(6) > 0) then
   orb_new%direction = ele%orientation
@@ -705,28 +707,31 @@ end function particle_in_global_frame
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
+! Subroutine convert_particle_coordinates_t_to_s (particle, ele, tref, dz_ref_time)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
 ! Input:
-!   particle   -- coord_struct: input particle coordinates
-!   ele        -- ele_sturct: Element particle is going through
-!   tref       -- real: reference time for z coordinate
+!   particle    -- coord_struct: input particle coordinates.
+!   ele         -- ele_sturct: Element particle is going through.
+!   tref        -- real(rp), optional: Reference time for z coordinate.
+!                    If not present then interpolate edge reference times.
+!   dz_ref_time -- real(rp): z offset due to difference between the nominal reference time stored in
+!                        the element and the actual reference time used to calculate z.
 !
 ! Output:
 !   particle   -- coord_struct: output particle 
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
+subroutine convert_particle_coordinates_t_to_s (particle, ele, tref, dz_ref_time)
 
 implicit none
 
 type (coord_struct), intent(inout), target :: particle
 type (ele_struct) ele
 real(rp) :: p0c
-real(rp), intent(in) :: tref
-real(rp) :: pctot
+real(rp), intent(in), optional :: tref, dz_ref_time
+real(rp) :: pctot, tr, r
 real(rp), pointer :: vec(:)
 
 !
@@ -743,12 +748,25 @@ elseif (vec(6)*ele%orientation > 0) then
   particle%direction = -1
 endif
 
+! What is the reference time?
+
+if (present(tref)) then
+  tr = tref
+elseif (ele%value(l$) == 0) then  ! Can happen with a patch
+  tr = ele%ref_time
+else
+  r = particle%vec(5) / ele%value(l$)
+  tr = ele%value(ref_time_start$) * (1 - r) + ele%ref_time * r
+endif
+
 ! Convert t to s. vec(1) and vec(3) are unchanged.
 
 vec(2) = vec(2)/p0c
 vec(4) = vec(4)/p0c
-vec(5) = -c_light * particle%beta *  (particle%t - tref) 
+vec(5) = -c_light * particle%beta *  (particle%t - tr) 
 vec(6) = pctot/p0c - 1.0_rp
+
+if (present(dz_ref_time)) vec(5) = vec(5) + dz_ref_time
 
 end subroutine convert_particle_coordinates_t_to_s
 

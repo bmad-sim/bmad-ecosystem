@@ -923,6 +923,7 @@ call init_attribute_name1 (elseparator$, cartesian_map$,            'CARTESIAN_M
 call init_attribute_name1 (elseparator$, cylindrical_map$,          'CYLINDRICAL_MAP')
 call init_attribute_name1 (elseparator$, grid_field$,               'GRID_FIELD')
 call init_attribute_name1 (elseparator$, taylor_field$,             'TAYLOR_FIELD')
+call init_attribute_name1 (elseparator$, ptc_canonical_coords$,     'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (elseparator$, E_tot_start$,              'E_tot_start', private$)
 call init_attribute_name1 (elseparator$, p0c_start$,                'p0c_start', private$)
 
@@ -932,6 +933,7 @@ call init_attribute_name1 (em_field$, cartesian_map$,               'CARTESIAN_M
 call init_attribute_name1 (em_field$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (em_field$, taylor_field$,                'TAYLOR_FIELD')
+call init_attribute_name1 (em_field$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
 call init_attribute_name1 (em_field$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
@@ -1075,6 +1077,7 @@ call init_attribute_name1 (hkicker$, cartesian_map$,                'CARTESIAN_M
 call init_attribute_name1 (hkicker$, cylindrical_map$,              'CYLINDRICAL_MAP')
 call init_attribute_name1 (hkicker$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (hkicker$, taylor_field$,                 'TAYLOR_FIELD')
+call init_attribute_name1 (hkicker$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 
 attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
@@ -1089,6 +1092,7 @@ call init_attribute_name1 (kicker$, cartesian_map$,                 'CARTESIAN_M
 call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
 call init_attribute_name1 (kicker$, taylor_field$,                  'TAYLOR_FIELD')
+call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC')
@@ -1123,6 +1127,7 @@ call init_attribute_name1 (bend_sol_quad$, cartesian_map$,          'CARTESIAN_M
 call init_attribute_name1 (bend_sol_quad$, cylindrical_map$,        'CYLINDRICAL_MAP')
 call init_attribute_name1 (bend_sol_quad$, grid_field$,             'GRID_FIELD')
 call init_attribute_name1 (bend_sol_quad$, taylor_field$,           'TAYLOR_FIELD')
+call init_attribute_name1 (bend_sol_quad$, ptc_canonical_coords$,   'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (bend_sol_quad$, E_tot_start$,            'E_tot_start', private$)
 call init_attribute_name1 (bend_sol_quad$, p0c_start$,              'p0c_start', private$)
 
@@ -1168,6 +1173,7 @@ call init_attribute_name1 (quadrupole$, cartesian_map$,             'CARTESIAN_M
 call init_attribute_name1 (quadrupole$, cylindrical_map$,           'CYLINDRICAL_MAP')
 call init_attribute_name1 (quadrupole$, grid_field$,                'GRID_FIELD')
 call init_attribute_name1 (quadrupole$, taylor_field$,              'TAYLOR_FIELD')
+call init_attribute_name1 (quadrupole$, ptc_canonical_coords$,      'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start', private$)
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
@@ -1182,6 +1188,7 @@ call init_attribute_name1 (sextupole$, cartesian_map$,              'CARTESIAN_M
 call init_attribute_name1 (sextupole$, cylindrical_map$,            'CYLINDRICAL_MAP')
 call init_attribute_name1 (sextupole$, grid_field$,                 'GRID_FIELD')
 call init_attribute_name1 (sextupole$, taylor_field$,               'TAYLOR_FIELD')
+call init_attribute_name1 (sextupole$, ptc_canonical_coords$,       'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sextupole$, E_tot_start$,                'E_tot_start', private$)
 call init_attribute_name1 (sextupole$, p0c_start$,                  'p0c_start', private$)
 
@@ -1194,6 +1201,7 @@ call init_attribute_name1 (octupole$, cartesian_map$,               'CARTESIAN_M
 call init_attribute_name1 (octupole$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (octupole$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (octupole$, taylor_field$,                'TAYLOR_FIELD')
+call init_attribute_name1 (octupole$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (octupole$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (octupole$, p0c_start$,                   'p0c_start', private$)
 
@@ -1274,6 +1282,7 @@ call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_M
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
 call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD')
 call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
+call init_attribute_name1 (sbend$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
@@ -1287,6 +1296,7 @@ call init_attribute_name1 (solenoid$, cartesian_map$,               'CARTESIAN_M
 call init_attribute_name1 (solenoid$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (solenoid$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (solenoid$, taylor_field$,                'TAYLOR_FIELD')
+call init_attribute_name1 (solenoid$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (solenoid$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start', private$)
 
@@ -1307,6 +1317,7 @@ call init_attribute_name1 (sol_quad$, cartesian_map$,               'CARTESIAN_M
 call init_attribute_name1 (sol_quad$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (sol_quad$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (sol_quad$, taylor_field$,                'TAYLOR_FIELD')
+call init_attribute_name1 (sol_quad$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sol_quad$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (sol_quad$, p0c_start$,                   'p0c_start', private$)
 
@@ -1418,8 +1429,9 @@ call init_attribute_name1 (wiggler$, cartesian_map$,                'CARTESIAN_M
 call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL_MAP')
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIELD')
-call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
+call init_attribute_name1 (wiggler$, E_tot_start$,                  'E_tot_start', private$)
+call init_attribute_name1 (wiggler$, p0c_start$,                    'p0c_start', private$)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 

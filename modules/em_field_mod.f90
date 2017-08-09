@@ -126,7 +126,7 @@ real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 real(rp) phi0_autoscale, field_autoscale, ds, beta_ref
@@ -808,49 +808,70 @@ case(fieldmap$)
             endif
           end select
 
-          select case (ct_term%type)
-          case (hyper_y_family_x$)
-            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
-            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
-          case (hyper_xy_family_x$)
-            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
-            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
-          case (hyper_x_family_x$)
-            potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
-            potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
+          if (ct_map%field_type == magnetic$) then
+            select case (ct_term%type)
+            case (hyper_y_family_x$)
+              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
+              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
+            case (hyper_xy_family_x$)
+              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
+              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
+            case (hyper_x_family_x$)
+              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
+              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
 
-          case (hyper_y_family_y$)
-            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
-            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
-          case (hyper_xy_family_y$)
-            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
-            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
-          case (hyper_x_family_y$)
-            potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
-            potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
+            case (hyper_y_family_y$)
+              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
+              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
+            case (hyper_xy_family_y$)
+              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
+              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
+            case (hyper_x_family_y$)
+              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
+              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
 
-          case (hyper_y_family_qu$)
-            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
-            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
-          case (hyper_xy_family_qu$)
-            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
-            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
-          case (hyper_x_family_qu$)
-            potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
-            potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
+            case (hyper_y_family_qu$)
+              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
+              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
+            case (hyper_xy_family_qu$)
+              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
+              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
+            case (hyper_x_family_qu$)
+              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
+              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
 
-          case (hyper_y_family_sq$)
-            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
-            potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
-          case (hyper_xy_family_sq$)
-            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
-            potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
-          case (hyper_x_family_sq$)
-            potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
-            potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
-          end select
+            case (hyper_y_family_sq$)
+              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
+              potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
+            case (hyper_xy_family_sq$)
+              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
+              potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
+            case (hyper_x_family_sq$)
+              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
+              potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
+            end select
+
+          else  ! electric$
+            select case (ct_term%type)
+            case (hyper_y_family_x$);   potential%phi = potential%phi + coef * s_x * c_y * c_z / ct_term%ky
+            case (hyper_xy_family_x$);  potential%phi = potential%phi + coef * s_y * c_y * c_z / ct_term%kz
+            case (hyper_x_family_x$);   potential%phi = potential%phi + coef * s_x * c_y * c_z / ct_term%kx
+
+            case (hyper_y_family_y$);   potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%ky
+            case (hyper_xy_family_y$);  potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%kz
+            case (hyper_x_family_y$);   potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%kx
+
+            case (hyper_y_family_qu$);   potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%ky
+            case (hyper_xy_family_qu$);  potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%kz
+            case (hyper_x_family_qu$);   potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%kx
+
+            case (hyper_y_family_sq$);   potential%phi = potential%phi + coef * c_x * c_y * c_z / ct_term%ky
+            case (hyper_xy_family_sq$);  potential%phi = potential%phi + coef * c_x * c_y * c_z / ct_term%kz
+            case (hyper_x_family_sq$);   potential%phi = potential%phi - coef * c_x * c_y * c_z / ct_term%kx
+            end select
+          endif
+
         endif
-
       enddo
 
       !
@@ -914,6 +935,9 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
+      coef = field_autoscale * cl_map%field_scale
+      if (cl_map%master_parameter > 0) coef = coef * ele%value(cl_map%master_parameter)
+
       !
 
       m = cl_map%m
@@ -932,10 +956,10 @@ case(fieldmap$)
 
         cl_term => cl_map%ptr%term(n)
         k_zn = twopi * (n - 1) / (size(cl_map%ptr%term) * cl_map%dz)
-        if (2 * n >= size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
+        if (2 * n > size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
 
-        cos_ks = cos(k_zn * (s_rel-s0))
-        sin_ks = sin(k_zn * (s_rel-s0))
+        cos_ks = cos(k_zn * z)
+        sin_ks = sin(k_zn * z)
         exp_kz = cmplx(cos_ks, sin_ks, rp)
 
         ! DC
@@ -960,13 +984,25 @@ case(fieldmap$)
             E_rho = E_rho + real(cl_term%e_coef * q)
             B_rho = B_rho + real(cl_term%b_coef * q)
 
-            q = i_imaginary * sm * (Im_minus - Im_plus) / 2
+            q = -sm * (Im_minus - Im_plus) / 2
             E_phi = E_phi + real(cl_term%e_coef * q)
             B_phi = B_phi + real(cl_term%b_coef * q)
 
             q = i_imaginary * cm * Im_0
             E_z = E_z + real(cl_term%e_coef * q)
             B_z = B_z + real(cl_term%b_coef * q)
+          endif
+
+          if (present(potential)) then
+            if (k_zn == 0) then
+              if (m == 0) then
+                potential%phi = potential%phi + coef * real(cl_term%e_coef * z)
+              elseif (m == 1) then
+                potential%phi = potential%phi + coef * real(cl_term%e_coef * cm * radius / 2)
+              endif
+            else
+              potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * exp_kz * Im_0 / k_zn)
+            endif
           endif
 
         ! RF mode 
@@ -1019,8 +1055,7 @@ case(fieldmap$)
       ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
 
       if (cl_map%harmonic /= 0) then
-        expt = field_autoscale * cl_map%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
-        if (cl_map%master_parameter > 0) expt = expt * ele%value(cl_map%master_parameter)
+        expt = exp(-I_imaginary * twopi * (freq * (time + t_ref)))
         E_rho = E_rho * expt
         E_phi = E_phi * expt
         E_z   = E_z * expt
@@ -1034,13 +1069,16 @@ case(fieldmap$)
       Er = real(E_rho, rp); Ep = real(E_phi, rp); Ez = real(E_z, rp)
       Br = real(B_rho, rp); Bp = real(B_phi, rp); Bz = real(B_z, rp)
 
-      mode_field%E = mode_field%E + [cos(phi) * Er - sin(phi) * Ep, sin(phi) * Er + cos(phi) * Ep, Ez]
-      mode_field%B = mode_field%B + [cos(phi) * Br - sin(phi) * Bp, sin(phi) * Br + cos(phi) * Bp, Bz]
+      mode_field%E = coef * [cos(phi) * Er - sin(phi) * Ep, sin(phi) * Er + cos(phi) * Ep, Ez]
+      mode_field%B = coef * [cos(phi) * Br - sin(phi) * Bp, sin(phi) * Br + cos(phi) * Bp, Bz]
 
       if (ele%key == sbend$) call restore_curvilinear_field(mode_field%E, mode_field%B)
 
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
+
+      if (present(potential)) then
+      endif
 
     enddo
 
@@ -1139,7 +1177,7 @@ case(fieldmap$)
         return
       end select
       
-      if (ele%key == sbend$ .and. .not. g_field%curved_ref_frame) call restore_curvilinear_field(mode_field%E, field%B)
+      if (ele%key == sbend$ .and. .not. g_field%curved_ref_frame) call restore_curvilinear_field(mode_field%E, mode_field%B)
 
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
@@ -1401,7 +1439,7 @@ end subroutine to_field_map_coords
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! restore_curvilinear_field(field)
+! restore_curvilinear_field(field_a, field_b)
 !
 ! For sbend with Grid calculation.
 
