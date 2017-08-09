@@ -1584,7 +1584,7 @@ end subroutine vec_bmad_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)
+! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat, state)
 !
 ! Routine to convert a PTC orbit vector to a Bmad orbit vector.
 !
@@ -1597,10 +1597,11 @@ end subroutine vec_bmad_to_ptc
 !
 ! Output:
 !   vec_bmad(6)    -- real(rp): Bmad coordinates.
-!   conversion_mat -- Real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
+!   conversion_mat -- real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
+!   state          -- integer, optional: Set to lost_pz_aperture$ if energy is too low. Set to alive$ otherwise.
 !-
 
-subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)
+subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat, state)
 
 implicit none
 
@@ -1608,11 +1609,20 @@ real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0, vec_temp(6)
 real(rp), optional :: conversion_mat(6,6)
 real(rp) factor1, factor2
+integer, optional :: state
 
 !
 
+if (present(state)) state = alive$
+
+factor1 = 1+2*vec_ptc(5)/beta0+vec_ptc(5)**2
+if (factor1 <= 0) then
+  if (present(state)) state = lost_pz_aperture$
+  return
+endif
+
 vec_temp = vec_ptc
-vec_temp(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
+vec_temp(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(factor1)+1)
 vec_temp(5) = -vec_ptc(6) * (1 + vec_temp(6)) / (1/beta0 + vec_ptc(5))
 
 if (present(conversion_mat)) then

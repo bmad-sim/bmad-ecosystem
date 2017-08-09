@@ -240,7 +240,7 @@ beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 p_tot = 1 + end%vec(6)
 p2_z = p_tot**2 - end%vec(2)**2 - end%vec(4)**2
 if (p2_z < 0 .or. p_tot < 0) then
-  end%state = lost_z_aperture$
+  end%state = lost_pz_aperture$
   return
 endif
 p_z = sqrt(p2_z) * end%direction * ele%orientation
@@ -277,7 +277,7 @@ U_tot = U_tot + field%e(3) * f / c_light
 p_tot = sqrt (U_tot**2 - mass**2)
 p2_z = p_tot**2 - end%vec(2)**2 - end%vec(4)**2
 if (p2_z < 0 .or. p_tot < 0) then
-  end%state = lost_z_aperture$
+  end%state = lost_pz_aperture$
   return
 endif
 p_z = sqrt(p2_z) * end%direction * ele%orientation

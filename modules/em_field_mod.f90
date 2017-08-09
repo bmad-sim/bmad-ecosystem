@@ -996,12 +996,14 @@ case(fieldmap$)
           if (present(potential)) then
             if (k_zn == 0) then
               if (m == 0) then
-                potential%phi = potential%phi + coef * real(cl_term%e_coef * z)
+                potential%phi = potential%phi + coef * real(cl_term%e_coef * z * i_imaginary)
               elseif (m == 1) then
                 potential%phi = potential%phi + coef * real(cl_term%e_coef * cm * radius / 2)
               endif
+            elseif (m == 0) then
+              potential%phi = potential%phi + coef * real(cl_term%e_coef * exp_kz * Im_0 / k_zn)
             else
-              potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * exp_kz * Im_0 / k_zn)
+              potential%phi = potential%phi + coef * real(cl_term%e_coef * cm * exp_kz * Im_0 / k_zn)
             endif
           endif
 

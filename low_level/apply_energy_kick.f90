@@ -19,7 +19,7 @@
 ! Output:
 !   orbit      -- coord_struct: coordinates with added dE energy kick.
 !     %vec(6)    -- Set to -1 if particle energy becomes negative. 
-!     %state     -- Set to lost_z_aperture$ is particle energy becomes negative.
+!     %state     -- Set to lost_pz_aperture$ is particle energy becomes negative.
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix transfer matrix including energy kick.
 !-
 
@@ -47,7 +47,7 @@ E_new = pc / orbit%beta + dE
 if (E_new < 0) then
   orbit%vec(6) = -1
   orbit%beta = 0
-  orbit%state = lost_z_aperture$
+  orbit%state = lost_pz_aperture$
   return
 endif
 

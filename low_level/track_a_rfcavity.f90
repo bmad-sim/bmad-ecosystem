@@ -101,7 +101,7 @@ do i = 0, n_slice
   call apply_energy_kick (dE, orbit)
   
   if (orbit%vec(6) == -1) then
-    orbit%state = lost_z_aperture$
+    orbit%state = lost_pz_aperture$
     return
   endif
 

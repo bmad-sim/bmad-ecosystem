@@ -64,7 +64,7 @@ endif
 
 if (orbit%species == photon$) then
   if (abs(orbit%vec(6)) > 1) then
-    orbit%state = lost_z_aperture$
+    orbit%state = lost_pz_aperture$
     if (present(param)) param%unstable_factor = abs(orbit%vec(6)) - 1
     return
   endif

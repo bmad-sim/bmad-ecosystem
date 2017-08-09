@@ -549,7 +549,7 @@ The DC \vn{cylindrical} parametrization used by \bmad essentially follows Ventur
 al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the synax used to cylindrical
 maps in \bmad. The electric and magnetic fields are both described by a scalar potential
 \Begineq
-  \bfB = \nabla \, \psi_B, \qquad \bfE = \nabla \, \psi_E
+  \bfB = -\nabla \, \psi_B, \qquad \bfE = \nabla \, -\psi_E
 \Endeq
 The scalar potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
 The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
@@ -563,7 +563,7 @@ transformation so that only a finite number of coefficients are needed.}
 Expressed in cylindrical coordinates the decomposition of $\psi_{Bm}$ is
 \Begineq
   \psi_{Bm} = \sum_{n=-N/2}^{N/2-1} \psi_{Bmn} =
-  \sum_{n=-N/2}^{N/2-1} \frac{1}{k_n} \, e^{i \, k_n \, z} \,
+  \sum_{n=-N/2}^{N/2-1} \frac{-1}{k_n} \, e^{i \, k_n \, z} \,
   \cos (m \, \theta - \theta_{0m}) \, b_m(n) \, I_m(k_n \, \rho)
   \label{psps1k}
 \Endeq

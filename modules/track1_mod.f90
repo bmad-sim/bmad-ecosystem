@@ -1636,7 +1636,7 @@ if (particle_at == first_track_edge$) then
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1644,7 +1644,7 @@ if (particle_at == first_track_edge$) then
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
@@ -1652,7 +1652,7 @@ if (particle_at == first_track_edge$) then
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1661,7 +1661,7 @@ else if (particle_at == second_track_edge$) then
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1669,7 +1669,7 @@ else if (particle_at == second_track_edge$) then
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1677,7 +1677,7 @@ else if (particle_at == second_track_edge$) then
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_z_aperture$
+    orb%state = lost_pz_aperture$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)

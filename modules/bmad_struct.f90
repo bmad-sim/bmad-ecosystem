@@ -374,7 +374,7 @@ integer, parameter :: moving_forward$ = -9
 integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
-integer, parameter :: lost_z_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
+integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
@@ -1694,6 +1694,7 @@ type ptc_common_struct
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
   integer :: taylor_order_saved = 3     ! Default to use.
   logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
+  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time? 
 end type
 
 type (ptc_common_struct), save :: ptc_com
@@ -1777,7 +1778,7 @@ case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
 case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
 case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
-case (lost_z_aperture$);       state_str = 'Hit Z Side'
+case (lost_pz_aperture$);       state_str = 'Hit Z Side'
 case default;                  state_str = 'UNKNOWN!'
 end select
 
