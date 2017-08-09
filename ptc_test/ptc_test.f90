@@ -6,9 +6,10 @@
 
 program ptc_test
 
-use bmad
+use bmad, dummy => dp
 use polymorphic_taylor
-use ptc_layout_mod
+use s_def_kind
+use ptc_layout_mod, dummy2 => dp
 
 implicit none
 
@@ -20,12 +21,14 @@ type (normal_modes_struct) mode
 type (taylor_struct) bmad_taylor(6)
 type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
-type (track_struct) track
+type (track_struct) orb_track
+type (em_field_struct) field
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
 real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6), sigma_mat(6,6)
 real(rp) a_pole, b_pole, a_pole2, b_pole2
+real(dp) b_pot, e_pot, b_field_ptc(3), e_field_ptc(3), a(3), da(3,2), x(6), z
 
 integer i, j
 character(80) str
@@ -39,14 +42,38 @@ open (1, file = 'output.now')
 
 !-------------------------------------------------------
 
+call bmad_parser ('map.bmad', lat)
+
+ele => lat%ele(1)
+call ele_to_fibre(ele, ele%ptc_fibre, lat%param, .true.)
+x(1) = lat%beam_start%vec(1)
+x(3) = lat%beam_start%vec(3)
+z = lat%beam_start%vec(5)
+call b_e_field(ele%ptc_fibre%mag%ab, x, z, e_pot, e_field_ptc, b_pot, b_field_ptc, a, da)
+call em_field_calc (ele, lat%param, z, lat%beam_start, .true., field)
+
+print '(a, 3f14.6)','B PTC:  ', b_field_ptc * ele%value(p0c$) / c_light
+print '(a, 3f14.6)','B Bmad: ', field%b
+print '(a, 3f14.6)','B Diff: ', b_field_ptc * ele%value(p0c$) / c_light - field%b
+
+print *
+print '(a, 3f14.6)','E PTC:  ', e_field_ptc
+print '(a, 3f14.6)','E Bmad: ', field%e
+print '(a, 3f14.6)','E Diff: ', e_field_ptc - field%e
+
+
+stop
+
+!-------------------------------------------------------
+
 call bmad_parser ('track.bmad', lat)
 
-call track1 (lat%beam_start, lat%ele(1), lat%param, end_orb1, track, err_flag)
+call track1 (lat%beam_start, lat%ele(1), lat%param, end_orb1, orb_track, err_flag)
 
 print *
 
-do i = 0, track%n_pt
-  print '(i4, f10.6, 4x, 6f10.6)', i, track%orb(i)%s, track%orb(i)%vec
+do i = 0, orb_track%n_pt
+  print '(i4, f10.6, 4x, 6f10.6)', i, orb_track%orb(i)%s, orb_track%orb(i)%vec
 enddo
 
 stop

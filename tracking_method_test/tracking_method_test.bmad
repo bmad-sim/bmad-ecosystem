@@ -29,9 +29,9 @@ elseparator2:      elseparator, l = 4.5, vkick = 0.005, gap = 0.11, num_steps = 
 hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
-lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
                             tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
