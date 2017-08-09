@@ -110,7 +110,8 @@ cc: sextupole
 
 ov1: overlay = {aa}, hkick
 ov2: overlay = {aa:-2}, hkick
-gr1: group = {aa:-vkick^2}, var = {vkick}
+gr1: group = {aa:-vkick^2/c_light}, var = {vkick}
+gr2: group = {aa[k1]:k1, aa[tilt]:tilt}, var = {k1, tilt}
 
 b*[k1] = 1
 *[tracking_method] = runge_kutta

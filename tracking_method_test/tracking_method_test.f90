@@ -14,7 +14,7 @@ type (track_struct) track
 
 character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
-character(38) :: out_str, fmt, tol_str
+character(38) :: out_str, fmt, tol_str, track_method
 integer :: i, j, ib, nargs, isn
 
 logical print_extra
@@ -24,15 +24,14 @@ logical print_extra
 global_com%exit_on_error = .false.
 
 fmt = '(a,t47, a, 7es18.10)'
+track_method = ''
 
 print_extra = .false.
 nargs = cesr_iargc()
-if (nargs > 1) then
-  print *, 'Only one command line arg permitted.'
-  call err_exit
 
-elseif (nargs > 0) then
+if (nargs > 0) then
   call cesr_getarg(1, lat_file)
+  call cesr_getarg(2, track_method)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
   fmt = '(a, t47, a, 7es14.6)'
@@ -86,6 +85,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     isn = 0
     do j = 1, n_methods$
+      if (track_method /= '' .and. upcase(tracking_method_name(j)) /= upcase(track_method)) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
