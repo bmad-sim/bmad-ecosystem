@@ -28,11 +28,12 @@ logical, optional :: do_allocate
 
 ele%component_name = ''
 
-! Default fringe set for non bend elements.
+! Some overall defaults.
 
-if (attribute_index(ele, 'FRINGE_AT') /= 0)        ele%value(fringe_at$) = both_ends$
-if (attribute_index(ele, 'FRINGE_TYPE') /= 0)      ele%value(fringe_type$) = none$
-if (attribute_index(ele, 'SPIN_FRINGE_ON') /= 0)   ele%value(spin_fringe_on$) = true$
+if (attribute_index(ele, 'FRINGE_AT') /= 0)            ele%value(fringe_at$) = both_ends$
+if (attribute_index(ele, 'FRINGE_TYPE') /= 0)          ele%value(fringe_type$) = none$
+if (attribute_index(ele, 'SPIN_FRINGE_ON') /= 0)       ele%value(spin_fringe_on$) = true$
+if (attribute_index(ele, 'PTC_CANONICAL_COORDS') /= 0) ele%value(ptc_canonical_coords$) = true$
 ele%taylor_map_includes_offsets = .true.
 
 ! Other inits.

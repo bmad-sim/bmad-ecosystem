@@ -21,7 +21,7 @@
 subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
 
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
-use ptc_spin, only: probe, assignment(=), operator(+), SPIN0, DEFAULT, track_probe, track_probe_x
+use ptc_spin, only: probe, assignment(=), operator(+), internal_state, SPIN0, DEFAULT, track_probe, track_probe_x
 use s_tracking, only: DEFAULT, alloc_fibre, integration_node
 use mad_like, only: fibre, kill
 
@@ -35,6 +35,7 @@ type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 type (probe) ptc_probe
 type (integration_node), pointer :: ptc_track
+type (internal_state) state
 
 real(dp) re(6), beta0, beta1
 integer i, stm
@@ -65,6 +66,12 @@ orbit = end_orb
 
 call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
 
+if (bmad_com%spin_tracking_on) then
+  STATE = DEFAULT+SPIN0
+else
+  STATE = DEFAULT
+endif
+
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$) .or. present(track)) then
   ptc_probe = re
@@ -75,16 +82,16 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     call save_this_step()
 
     do while (.not. associated(ptc_track, fibre_ele%t2))
-      call track_probe (ptc_probe, DEFAULT+SPIN0, node1 = ptc_track, node2 = ptc_track%next)
+      call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
       call save_this_step()
       ptc_track => ptc_track%next
     enddo
 
-    call track_probe (ptc_probe, DEFAULT+SPIN0, node1 = ptc_track, node2 = ptc_track%next)
+    call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
     call save_this_step()
 
   else
-    call track_probe (ptc_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
+    call track_probe (ptc_probe, STATE, fibre1 = fibre_ele)
   endif
 
   end_orb%spin = ptc_probe%s(1)%x

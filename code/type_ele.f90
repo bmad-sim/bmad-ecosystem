@@ -833,8 +833,6 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   !
 
   if (ele%n_slave /= 0) then
-    nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-
     n_char = 10
     do i = 1, ele%n_slave
       slave => pointer_to_slave (ele, i)
@@ -844,6 +842,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     select case (ele%lord_status)
 
     case (multipass_lord$, super_lord$, girder_lord$)
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
@@ -852,6 +851,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case default
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Expression_Val summed over all overlays controlling the attribute.]'
       nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
