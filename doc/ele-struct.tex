@@ -35,8 +35,11 @@ type ele_struct
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
   type (controller_var_struct), pointer :: control_var(:) 
+  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define E/M fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define E/M fields
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
-  type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
+  type (taylor_field_struct), pointer :: taylor_field(:)       ! Used to define E/M fields.
+  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define E/M fields.
   type (fibre), pointer :: ptc_fiber           ! PTC tracking.
   type (floor_position_struct) floor           ! Global floor position.
   type (ptc_genfield_struct), pointer :: ptc_genfield  ! For symp_map
@@ -46,6 +49,7 @@ type ele_struct
                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge 
   type (taylor_struct) :: taylor(6)            ! Taylor terms
+  type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
   type (wake_struct), pointer :: wake    ! Wakes
     ele_struct definition continued on next figure...
 \end{verbatim}
@@ -62,13 +66,12 @@ The complete structure is shown in this and the following figure.}
 \begin{verbatim}
     ... ele_struct definition continued from previous figure.
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
-  type (wig_struct), pointer :: wig            ! Wiggler field
   type(coord_struct) map_ref_orb_in(6)         ! Transfer map ref orbit at upstream end of element.
   type(coord_struct) map_ref_orb_out(6)        ! Transfer map ref orbit at downstream end of element.
   type(coord_struct) time_ref_orb_in(6)        ! Reference orbit at upstream end for ref_time calc.
   type(coord_struct) time_ref_orb_out(6)       ! Reference orbit at downstream end for ref_time calc.
-  real(rp) value(n_attrib_maxx)                ! attribute values.
-  real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
+  real(rp) value(num_ele_attrib$)              ! attribute values.
+  real(rp) old_value(num_ele_attrib$)          ! Used to see if %value(:) array has changed.
   real(rp) vec0(6)                             ! 0th order transport vector.
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
@@ -109,6 +112,7 @@ The complete structure is shown in this and the following figure.}
   logical is_on                  ! For turning element on/off.
   logical logic                  ! For general use. Not used by Bmad.
   logical bmad_logic             ! For Bmad internal use only.
+  logical select                 ! For element selection. Used by make_hybrid_ring, etc.
   logical csr_calc_on            ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?          
 end type
@@ -301,21 +305,17 @@ For printing purposes, to convert a switch value to the appropriate string, use
 the routine\Hyperref{r:switch.attrib.value.name}{switch_attrib_value_name} can be used.
 
 \index{ele_struct!\%field_master}\index{harmon}
-The \vn{%field_master} logical within an element sets whether it is
-the normalized strength or field strength that is the independent
-variable. See \sref{s:depend} for more details. When the element is
-an \vn{rfcavity}, \vn{%field_master} is used to store the setting
-of the \vn{harmon_master} flag. 
+The \vn{%field_master} logical within an element sets whether it is the normalized strength or field
+strength that is the independent variable. See \sref{s:depend} for more details. When the element is
+an \vn{rfcavity}, \vn{%field_master} is used to store the setting of the \vn{harmon_master} flag.
 
 \index{ele_struct!\%old_value(:)}
-The \vn{%old_value(:)} component of the \vn{ele_struct} is used by the 
-\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine to check for
-changes for changes in the \vn{%value(:)} array since the last time 
-the \vn{attribute_bookkeeper} routine had been called. 
-If nothing has been changed, the \vn{attribute_bookkeeper} routine knows
-not to waste time recalculating dependent values. Essentially what
-this means is that the \vn{%old_value(:)} 
-array should not be modified outside of \vn{attribute_bookkeeper}.
+The \vn{%old_value(:)} component of the \vn{ele_struct} is used by the
+\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine to check for changes for changes in
+the \vn{%value(:)} array since the last time the \vn{attribute_bookkeeper} routine had been called.
+If nothing has been changed, the \vn{attribute_bookkeeper} routine knows not to waste time
+recalculating dependent values. Essentially what this means is that the \vn{%old_value(:)} array
+should not be modified outside of \vn{attribute_bookkeeper}.
 
 %--------------------------------------------------------------------------
 \section{Connection with the Lat_Struct}
@@ -339,19 +339,17 @@ will point to the encomposing lattice. That is
     print *, associated(ele2, ele)  ! Will print True.
   endif
 \end{example}
-In this example the \vn{ele2} pointer is constructed to point to the
-\vn{ele} element. The test (\vn{ele%ix_ele}~>~-1) is needed since
-\vn{ele_struct} elements may exist outside of any \vn{lat_struct}
-instance. Such ``external'' elements always have \vn{%ix_ele}~<~0.
-A value for \vn{%ix_ele} of -2 is special in that it prevents the
+In this example the \vn{ele2} pointer is constructed to point to the \vn{ele} element. The test
+(\vn{ele%ix_ele}~>~-1) is needed since \vn{ele_struct} elements may exist outside of any
+\vn{lat_struct} instance. Such ``external'' elements always have \vn{%ix_ele}~<~0.  A value for
+\vn{%ix_ele} of -2 is special in that it prevents the
 \Hyperref{r:deallocate.ele.pointers}{deallocate_ele_pointers} routine from deallocating the pointers
 of an element which has its \vn{%ix_ele} set to -2.
 
-An element ``slice'' is an example of an element that exists external
-to any \vn{lat_struct} instance. A slice is an \vn{ele_struct}
-instance that represents some sub-section of a given element. Element
-slices are useful when tracking particles only part way through an
-element (\sref{s:tracking.partial}).
+An element ``slice'' is an example of an element that exists external to any \vn{lat_struct}
+instance. A slice is an \vn{ele_struct} instance that represents some sub-section of a given
+element. Element slices are useful when tracking particles only part way through an element
+(\sref{s:tracking.partial}).
 
 %--------------------------------------------------------------------------
 \section{Limits}
@@ -495,9 +493,19 @@ read the position of an element a program should look at
 
 \index{ele_struct!\%s}
 \index{ele_struct!\%ref_time}
-The longitudinal position at the downstream end of an element is stored in \vn{%s}
-and the reference time is stored in \vn{%ref_time}. See \sref{s:global}
-for more details.
+The longitudinal position at the downstream end of an element is stored in \vn{%s} and the reference
+time is stored in \vn{%ref_time}. This reference time is calculated assuming that the reference time
+is zero at the start of the lattice. Also stored in the \vn{ele_struct} is the reference time at the
+start of the element and the differnece in the reference time between the end and the beginning.
+These are given in \vn{%value(ref_time_start$)} and \vn{%value(delta_ref_time$)} respectively.
+
+Notice that the reference time used to calculate the $z$ phase
+space coordinate (\Eq{zbctt}) may be different from \vn{%ref_time}. For example, with multiple
+bunches the $z$ phase space coordinate is generally taken to be with respect to a reference particle
+at the center of the bunch the particle is in. And, at a given element, the reference time of the
+different bunch reference particles will be different. Another example happens when a particle is
+tracked through multiple turns. In this case the reference time at a given element will depend upon
+the turn number.
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps: Linear and Non-linear (Taylor)}

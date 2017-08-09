@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 196
+integer, parameter :: bmad_inc_version$ = 197
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -931,11 +931,11 @@ type ele_struct
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
   type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
   type (controller_var_struct), pointer :: control_var(:) => null()      ! group & overlay variables.
-  type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define DC fields
-  type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define DC fields
+  type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
-  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define DC and AC fields.
-  type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define DC and AC fields.
+  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
+  type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC tracking.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
                                                                      ! Reference position in global coords.
@@ -1236,7 +1236,7 @@ integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: voltage$ = 9
+integer, parameter :: voltage$ = 9, eps_step_scale$ = 9
 integer, parameter :: fringe_type$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
@@ -1269,22 +1269,22 @@ integer, parameter :: cmat_21$ = 29, l_sagitta$ = 29
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30, l_chord$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
-integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
+integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, t_offset$ = 32, spinor_xi$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, spinor_polarization$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
 integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
-integer, parameter :: d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
-integer, parameter :: hkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
-integer, parameter :: vkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
-integer, parameter :: BL_hkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
-integer, parameter :: BL_vkick$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
-integer, parameter :: BL_kick$ = 44, B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
-integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
-integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
-integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, coupler_at$ = 47, E_tot_set$ = 47
+integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
+integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
+integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
+integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
+integer, parameter :: pendellosung_period_sigma$ = 43, BL_kick$ = 43, B_field$ = 43, E_field$ = 43
+integer, parameter :: coupler_phase$ = 44, darwin_width_pi$ = 44, B_field_err$ = 44
+integer, parameter :: B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45, pendellosung_period_pi$ = 45
+integer, parameter :: B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
+integer, parameter :: coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.

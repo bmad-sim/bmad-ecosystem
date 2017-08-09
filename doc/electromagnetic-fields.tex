@@ -408,10 +408,14 @@ x_0, y_0, \phi_z)$ and a switch called \vn{family} which can be one of:
   x,  qu
   y,  sq
 \end{example}
-Roughly, the \vn{x} \vn{family} gives a field that is like a horizontal dipole, the \vn{y}
-\vn{family} is good for simulating vertical dipole fields, the \vn{qu} \vn{family} is good
-for simulating quadrupole fields, and the \vn{sq} \vn{family} is good for simulating skew
-quadrupole fields.
+Roughly, taking the offsets $x_0$ and $y_0$ to be zero (see the equations below), the \vn{x}
+\vn{family} gives a field on-axis where the $y$ component of the field is zero. that is, the \vn{x}
+family is useful for simulating, say, magnetic vertical bend dipoles. The \vn{y} \vn{family} has a
+field that on-axis has no $x$ component. The \vn{qu} \vn{family} has a magnetic quadrupole like
+(which for electric fields is skew quadrupole like) field on-axis and the \vn{sq} \vn{family} has a
+magnetic skew quadrupole like field on-axis. Additionally, assuming that the $x_0$ and $y_0$ offsets
+are zero, the \vn{sq} family, unlike the other three families, has a nonzero on-axis $z$ field
+component.
 
 Each family has three possible forms These are designated as ``\vn{hyper-y}'',
 ``\vn{hyper-xy}'', and ``\vn{hyper-x}''. 
@@ -541,9 +545,9 @@ Sec.~\sref{s:cylind.ac}.
 \subsection{DC Cylindrical Map Decomposition}
 \label{s:cylind.dc}
 
-The DC \vn{cylindrical} parametrization used by \bmad essentially
-follows Venturini et al.\cite{b:vent.map}. The electric and magnetic
-fields are both described by a scalar potential
+The DC \vn{cylindrical} parametrization used by \bmad essentially follows Venturini et
+al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the synax used to cylindrical
+maps in \bmad. The electric and magnetic fields are both described by a scalar potential
 \Begineq
   \bfB = \nabla \, \psi_B, \qquad \bfE = \nabla \, \psi_E
 \Endeq
@@ -570,10 +574,11 @@ given by
 \Begineq
   k_n = \frac{2 \pi \, n}{N \, dz}
 \Endeq
-where $N$ is the number of modes of $\psi_m$, and $dz$ is the
-longitudinal ``distance between points''. That is, the the
-above equations will only be accurate over a longitudinal length
-$(N-1) \, dz$.
+where $N$ is the number of ``sample points'', and $dz$ is the longitudinal ``distance between
+points''. That is, the the above equations will only be accurate over a longitudinal length $(N-1)
+\, dz$. Note: Typically the sum in \Eq{psps1k} and other equations below runs from $0$ to $N-1$.
+Using a sum from $-N/2$ to $N/2-1$ gives exactly the same field at the sample points ($z = 0, dz,
+2\,ds, \ldots$) and has the virtue that the field is smoother in between.
 
 The field associated with $\psi_{Bm}$ is for $m = 0$:
 \begin{align}
@@ -640,8 +645,8 @@ For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
 \end{align}
 
 Note: The description of the field using \vn{``generalized gradients''}\cite{b:newton} is similar to
-the above equations. The difference is that terms in $\theta$ and $\rho$ are expanded in a Taylor series
-in $x$ and $y$.
+the above equations. The difference is that, with the generalized gradient formalism, terms in
+$\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 
 %-----------------------------------------------------------------
 \subsection{AC Cylindrical Map Decomposition}

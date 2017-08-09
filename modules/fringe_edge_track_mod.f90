@@ -48,7 +48,6 @@ type (coord_struct) :: orbit
 real(rp) s_edge_track, s_orb
 integer i, num_lords, dir
 logical, optional :: init_needed, time_tracking
-logical has_z_offset
 
 character(*), parameter :: r_name = 'calc_next_finge_edge'
 
@@ -66,31 +65,22 @@ character(*), parameter :: r_name = 'calc_next_finge_edge'
 ! upsteam_end$ means outside element on the upsteam side, downsteam_end$ manes outside element on the downstream side.
 ! The routine apply_element_edge_kick will modify %location as appropriate when the particle is tracked through an edge.
 
-s_orb = orbit%s - (track_ele%s_start + track_ele%value(z_offset_tot$))
-dir = 1
-if (track_ele%value(l$) < 0 .and. .not. logic_option(.false., time_tracking)) dir = -1
+s_orb = orbit%s - track_ele%s_start
+dir = track_ele%orientation
+if (track_ele%value(l$) < 0 .and. .not. logic_option(.false., time_tracking)) dir = -dir
 
 if (logic_option(.false., init_needed)) then
   nullify(fringe_info%hard_ele)
 
   if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
     call re_allocate(fringe_info%location, track_ele%n_lord)
-    num_lords = 0; has_z_offset = .false.
+    num_lords = 0
     do i = 1, track_ele%n_lord
       lord => pointer_to_lord(track_ele, i)
       if (lord%key == overlay$ .or. lord%key == group$) cycle
       num_lords = num_lords + 1
-      ! Can handle jumbo super_lord with z_offset but not regular super_lord.
-      if (lord%value(z_offset_tot$) /= 0 .and. lord%value(lord_pad1$) == 0 .and. &
-                                               lord%value(lord_pad2$) == 0) has_z_offset = .true.
       call init_this_ele (lord, i, dir)
     enddo
-
-    if (num_lords > 1 .and. has_z_offset) then
-      call out_io (s_error$, r_name, 'TRACKING INTEGRATION THROUGH A SLAVE ELEMENT WITH MULTIPLE LORDS AND', &
-                                     'ANY LORD HAVING A FINITE Z_OFFSET WILL NOT BE ACCURATE!', &
-                                     'FOR ELEMENT: ' // track_ele%name)
-    endif
 
   else
     call re_allocate(fringe_info%location, 1)

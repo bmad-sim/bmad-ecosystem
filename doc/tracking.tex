@@ -114,7 +114,11 @@ if the particle is traveling backwards longitudinally. For photons,
 backward.
 
 \item{\%s} \Newline
-The \vn{%s} component gives the absolute s-position of the particle
+The \vn{%s} component gives the absolute $s$-position of the particle. When tracking through
+an element (say with Runge-Kutta tracking), and when the particle coordinates is expressed in
+element body coordinates (\sref{s:lab.body.transform}), the $s$-position at any point within 
+the element, by definition, is independent of any misalignments the element has as long as 
+the element is not reversed. If the element is reversed, the $s$-position is reversed as well.
 
 \item{\%spin(3)} \Newline
 The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:spin.dyn}).

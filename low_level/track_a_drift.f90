@@ -10,6 +10,7 @@
 !   make_matrix         -- logical, optional: Propagate the transfer matrix? Default is false.
 !   include_ref_motion  -- logical, optional: Include effect of the motion of the reference particle?
 !                           Default is True. False is basically only used by offset_particle.
+!                           Additionally, if False, orb%s is not changed.
 !
 ! Output:
 !   orb        -- coord_struct: Orbit at end of the drift.
@@ -50,7 +51,8 @@ orb%vec(3) = orb%vec(3) + length * py / pz
 if (orb%beta > 0) then
   if (logic_option(.true., include_ref_motion)) then
     beta_ref = orb%p0c / sqrt(mass_of(orb%species)**2 + orb%p0c**2)
-    dz = length * (orb%beta /beta_ref - 1/pz)
+    dz = length * (orb%beta/beta_ref - 1/pz)
+    orb%s = orb%s + orb%direction * length
   else
     dz = -length /pz
   endif
@@ -59,13 +61,13 @@ if (orb%beta > 0) then
 else
   if (logic_option(.true., include_ref_motion)) then
     dz = length * (1 - 1/pz)
+    orb%s = orb%s + orb%direction * length
   else
     dz = -length /pz
   endif
 endif
 
 orb%vec(5) = orb%vec(5) + dz
-orb%s = orb%s + orb%direction * length
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(matd)

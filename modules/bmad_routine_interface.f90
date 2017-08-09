@@ -634,7 +634,7 @@ function num_lords (slave, lord_type) result (num)
 integer lord_type, num
 end function
 
-subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, drift_to_edge, ds_pos, set_spin, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) :: ele
@@ -642,7 +642,7 @@ subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, set_z
   type (coord_struct), intent(inout) :: coord
   integer particle
   logical, intent(in) :: set
-  logical, optional, intent(in) :: set_tilt, set_hvkicks, set_z_offset, set_spin
+  logical, optional, intent(in) :: set_tilt, set_hvkicks, drift_to_edge, set_spin
   real(rp), optional :: ds_pos, mat6(6,6)
   logical, optional :: make_matrix
 end subroutine

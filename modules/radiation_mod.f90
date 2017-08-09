@@ -313,7 +313,7 @@ g2 = 0; g3 = 0
 
 n0 = lbound(track%orb, 1)
 n1 = track%n_pt
-s0 = ele%s_start + ele%value(z_offset_tot$)
+s0 = ele%s_start
 
 do j = n0, n1
 

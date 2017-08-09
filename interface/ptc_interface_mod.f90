@@ -3231,6 +3231,7 @@ type (coord_struct), optional :: track_particle
 type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
+type (cylindrical_map_struct), pointer :: cy
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
@@ -3246,18 +3247,20 @@ type (taylor) ptc_taylor
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
-real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
+real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp) beta0, beta1, ref0(6), ref1(6)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 
+complex(rp) k_0
+
 integer, optional :: integ_order, steps
-integer i, ii, j, k, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
+integer i, ii, j, k, m, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
 integer np, max_order, ix_pole_max, exact_model_saved
 
-logical use_offsets, kill_spin_fringe, onemap
+logical use_offsets, kill_spin_fringe, onemap, found
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3624,12 +3627,6 @@ if ((ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
     return
   endif
 
-  if (associated(ele2%cylindrical_map)) then
-    call out_io (s_fatal$, r_name, 'CYLINDRICAL_MAP WITH PTC TRACKING NOT YET IMPLEMENTED. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
   n = 0
   if (associated(ele2%cylindrical_map)) n = n + size(ele2%cylindrical_map)
   if (associated(ele2%cartesian_map)) n = n + size(ele2%cartesian_map)
@@ -3641,6 +3638,18 @@ if ((ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
     if (global_com%exit_on_error) call err_exit
     return
   endif
+endif
+
+! cylindrical field
+
+if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
+  PUT_A_ABELL = 0
+  ptc_key%magnet = 'abell_dragt'
+  n_abell = 0
+  do i = 1, size(ele%cylindrical_map)
+    n_abell = max(n_abell, size(ele%cylindrical_map(i)%ptr%term))
+  enddo
+  m_abell = maxval(ele%cylindrical_map%m)
 endif
 
 ! taylor_field
@@ -3783,6 +3792,71 @@ ptc_fibre%dir = ele%orientation
 if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
 
 lielib_print(12) = n
+
+! Cylindrical field
+
+if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
+  do m = 0, m_abell
+    found = .false.
+    do j = 1, size(ele%cylindrical_map)
+      cy => ele%cylindrical_map(j)
+      if (m /= cy%m) cycle
+      found = .true.
+      exit
+    enddo
+
+    if (found) then
+      coef_e = cy%field_scale
+      if (cy%master_parameter > 0) coef_e = coef_e * ele%value(cy%master_parameter)
+      if (ele%key == lcavity$ .or. ele%key == rfcavity$) coef_e = coef_e * ele%value(field_autoscale$)
+      coef_b = coef_e * c_light / ele%value(p0c$)
+      coef_e = -coef_e * 1d-6  ! Notice negative sign.
+
+      ptc_fibre%mag%ab%t(m)  = cy%theta0_azimuth  ! Magnetic theta0
+      ptc_fibre%mag%ab%te(m) = cy%theta0_azimuth  ! Electric theta0
+      ptc_fibre%mag%ab%dz(m) = cy%dz
+
+      n = size(cy%ptr%term%b_coef)
+      select case (cy%ele_anchor_pt)
+      case (anchor_beginning$)
+        k_0 = -I_imaginary * twopi * cy%r0(3) / (n * cy%dz)
+      case (anchor_center$)
+        k_0 = -I_imaginary * twopi * (cy%r0(3) + ele%value(l$)/2) / (n * cy%dz)
+      case (anchor_end$)
+        k_0 = -I_imaginary * twopi * (cy%r0(3) + ele%value(l$)) / (n * cy%dz)
+      end select
+
+      do ii = 1, n
+        k = ii - 1 + lbound(ptc_fibre%magp%ab%b, 2)
+        if (ii <= n/2) then
+          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii+n/2)%b_coef
+          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii+n/2)%e_coef
+        else
+          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii-n/2)%b_coef
+          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii-n/2)%e_coef
+        endif
+      enddo
+      !! ptc_fibre%mag%ab%b(m,:) = [cy%ptr%term(n/2+1:n)%b_coef, cy%ptr%term(1:n/2)%b_coef] * coef
+    else
+      ptc_fibre%mag%ab%t(m)   = 0
+      ptc_fibre%mag%ab%dz(m)  = 1
+      ptc_fibre%mag%ab%b(m,:) = 0
+      ptc_fibre%mag%ab%e(m,:) = 0
+    endif
+
+    ptc_fibre%magp%ab%t(m)   = ptc_fibre%mag%ab%t(m)
+    ptc_fibre%magp%ab%te(m)  = ptc_fibre%mag%ab%te(m)
+    ptc_fibre%magp%ab%dz(m)  = ptc_fibre%mag%ab%dz(m)
+    do ii = lbound(ptc_fibre%magp%ab%b, 2), ubound(ptc_fibre%magp%ab%b, 2)
+      ptc_fibre%magp%ab%b(m,ii) = ptc_fibre%mag%ab%b(m,ii)
+      ptc_fibre%magp%ab%e(m,ii) = ptc_fibre%mag%ab%e(m,ii)
+    enddo
+
+    ptc_fibre%mag%ab%xprime = xprime_abell   ! is_false(ele%value(ptc_canonical_coords$))
+    ptc_fibre%magp%ab%xprime = ptc_fibre%mag%ab%xprime
+  enddo
+
+endif
 
 !-----------------------------
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
