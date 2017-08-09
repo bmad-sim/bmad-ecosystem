@@ -1335,6 +1335,15 @@ contains
 
        call A_TRANS(EL%cav21,Z,X,k,A,AD,B,E)
 
+    CASE(kindabell)     ! travelling wave cavity
+       IF(EL%ab%P%DIR==1) THEN
+          Z= pos*el%l/el%p%nst
+       ELSE
+          Z=EL%L-pos*el%l/el%p%nst
+       ENDIF
+
+       call B_E_FIELD(EL%ab,x,Z,B_in=b)
+
 
     CASE(KIND22)     ! helical dipole
        IF(EL%HE22%P%DIR==1) THEN
@@ -1438,6 +1447,12 @@ contains
        call A_TRANS(EL%cav21,Z,X,k,A,AD,B,E)
        call kill(a,3)
        call kill(ad,3)
+
+    CASE(kindabell)     ! travelling wave cavity
+       CALL get_z_ab(EL%ab,POS,z)
+
+       call B_E_FIELD(EL%ab,x,Z,B_in=b)
+
     CASE(KIND22)     ! helical dipole
        IF(EL%HE22%P%DIR==1) THEN
           Z= pos*el%l/el%p%nst
@@ -2023,7 +2038,7 @@ call kill(e)
     TYPE(ELEMENT),  pointer :: EL
     TYPE(MAGNET_CHART),  pointer :: P
     REAL(DP),  INTENT(INOUT) ::E(3)
-    REAL(DP) N,H,DP1,A,AP,B,BP,z,AV(3)
+    REAL(DP) N,H,DP1,A,AP,B,BP,z,ve,AV(3)
     integer, optional,intent(in) :: pos
     type(internal_state) k
 
@@ -2087,7 +2102,41 @@ call kill(e)
           E(3)=N/DP1
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
+       ELSEif(el%kind==kindabell) then
+    
 
+
+          if(el%ab%xprime) then
+               H=1.0_dp+el%pa%hc*X(1)
+               N=root(H**2+X(2)**2+X(4)**2)
+               E(1)=X(2)/N
+               E(2)=X(4)/N
+               E(3)=H/N
+               XPA(1)=X(2)
+               XPA(2)=X(4)
+               XP(1)=X(2)
+               XP(2)=X(4)
+          else
+              CALL get_z_ab(EL%ab,POS,z)
+              call B_E_FIELD(EL%ab,X,Z,psie_in=ve,A_in=av)
+
+            IF(k%TIME) THEN
+               DP1=root(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+ve)**2)
+            ELSE
+               DP1=1.0_dp+(X(5)+EL%P%CHARGE*ve)
+            ENDIF
+
+             Xpa(1)=X(2)-EL%P%CHARGE*AV(1)
+             Xpa(2)=X(4)-EL%P%CHARGE*AV(2)
+             N=root(DP1**2-Xpa(1)**2-Xpa(2)**2)
+
+             E(1)=Xpa(1)/DP1
+             E(2)=Xpa(2)/DP1
+             E(3)=N/DP1
+             XP(1)=XPA(1)/N
+             XP(2)=XPA(2)/N
+
+             endif
        else
 
 
@@ -2129,13 +2178,14 @@ call kill(e)
     TYPE(ELEMENTP),  pointer :: EL
     TYPE(MAGNET_CHART),  pointer :: P
     type(real_8), INTENT(INOUT) ::E(3)
-    type(real_8) N,H,DP1,A,AP,B,BP,z,AV(3)
+    type(real_8) N,H,DP1,A,AP,B,BP,z,AV(3),ve
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer, optional,intent(in) :: pos
 
     P=>EL%P
 
-    CALL ALLOC(N,H,DP1 )
+    CALL ALLOC(N,H,DP1,A,AP,B,BP,z,ve )
+    CALL ALLOC(AV )
 
     IF(k%TIME) THEN
        DP1=SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2)
@@ -2157,7 +2207,6 @@ call kill(e)
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
        ELSEif(el%kind==kindwiggler) then
-          call alloc(A,AP,B,BP,z)
           CALL get_z_wi(EL%wi,POS,z)
           CALL COMPX(EL%wi,Z,X,A,AP)
           Xpa(1)=X(2)-A
@@ -2171,16 +2220,14 @@ call kill(e)
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
 
-          call kill(A,AP,B,BP,z)
-
        ELSEif(el%kind==kind22) then
-          CALL ALLOC(AV,3)
 
           IF(EL%HE22%P%DIR==1) THEN
              Z= pos*el%l/el%p%nst
           ELSE
              Z=EL%L-pos*el%l/el%p%nst
           ENDIF
+
           CALL compute_f4(EL%he22,X,Z,A=AV)
           Xpa(1)=X(2)-EL%P%CHARGE*AV(1)
           Xpa(2)=X(4)-EL%P%CHARGE*AV(2)
@@ -2191,12 +2238,45 @@ call kill(e)
           E(3)=N/DP1
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
-          CALL KILL(AV,3)
+       ELSEif(el%kind==kindabell) then
+    
 
+
+          if(el%ab%xprime) then
+               H=1.0_dp+el%pa%hc*X(1)
+               N=SQRT(H**2+X(2)**2+X(4)**2)
+               E(1)=X(2)/N
+               E(2)=X(4)/N
+               E(3)=H/N
+               XPA(1)=X(2)
+               XPA(2)=X(4)
+               XP(1)=X(2)
+               XP(2)=X(4)
+          else
+              CALL get_z_ab(EL%ab,POS,z)
+              call B_E_FIELD(EL%ab,X,Z,psie_in=ve,A_in=av)
+
+            IF(k%TIME) THEN
+               DP1=SQRT(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+ve)**2)
+            ELSE
+               DP1=1.0_dp+(X(5)+EL%P%CHARGE*ve)
+            ENDIF
+
+             Xpa(1)=X(2)-EL%P%CHARGE*AV(1)
+             Xpa(2)=X(4)-EL%P%CHARGE*AV(2)
+             N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
+
+             E(1)=Xpa(1)/DP1
+             E(2)=Xpa(2)/DP1
+             E(3)=N/DP1
+             XP(1)=XPA(1)/N
+             XP(2)=XPA(2)/N
+
+             endif
        else
 
 
-          N=SQRT(DP1**2-X(2)**2-X(4)**2)
+          N=sqrt(DP1**2-X(2)**2-X(4)**2)
 
           E(1)=X(2)/DP1
           E(2)=X(4)/DP1
@@ -2226,7 +2306,8 @@ call kill(e)
     E(3)=EL%P%dir*E(3)
 
 
-    CALL KILL(N,H,DP1 )
+     CALL kill(N,H,DP1,A,AP,B,BP,z,ve )
+     CALL kill(AV )
 
   END subroutine DIRECTION_VP
 

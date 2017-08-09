@@ -1439,11 +1439,14 @@ contains
 
   END SUBROUTINE allocpolyn
 
-  SUBROUTINE  printpoly(S2,i)
+  SUBROUTINE  printpoly(S2,mf)
     implicit none
     type (double_complex),INTENT(INOUT)::S2
-    integer,optional :: i
     integer ipause,mypauses
+    integer,optional :: mf
+    integer i
+    i=6
+    if(present(mf)) i=mf
 
     if(s2%kind/=0) then
 
@@ -4167,7 +4170,8 @@ contains
        !w_p%fc='((1X,A72,/,1x,a72))'
        !w_p%fi='(1((1X,i4)))'
          write(6,*) " trouble in cpscmul"
-         write(6,*) "s1%kind "
+         write(6,*) "s1%kind ",s1%kind
+         read(5,*) localmaster
        !w_p=(/s1%kind/)
        ! call !write_e(0)
     end select

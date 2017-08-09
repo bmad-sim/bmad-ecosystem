@@ -89,8 +89,8 @@ TYPE ABELL
    TYPE(MAGNET_CHART), POINTER:: P => null()
    real(dp) , POINTER ::L => null()                    !  Storage space for computed
    real(dp),  DIMENSION(:), POINTER :: AN => null(),BN => null()                 ! MULTIPLICATIVE FACTOR USUALLY 1
-   real(dp), POINTER :: DZ => null(), T(:) => null()
-   complex(dp), POINTER :: B(:,:) => null()
+   real(dp), POINTER :: DZ(:) => null(), T(:) => null(), TE(:) => null() !, phi0(:) => null()
+   complex(dp), POINTER :: B(:,:) => null(),E(:,:) => null()
    INTEGER , POINTER :: N,M => null()  
    REAL(DP), POINTER :: SCALE=> null(),angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
    logical,pointer :: xprime=> null()
@@ -101,8 +101,8 @@ TYPE ABELLP
    TYPE(MAGNET_CHART), POINTER:: P => null()
    TYPE(REAL_8), POINTER ::L => null()                    !  Storage space for computed
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN => null(),BN => null()  
-   real(dp), POINTER :: DZ => null(),T(:) => null()
-   complex(dp), POINTER :: B(:,:) => null()
+   real(dp), POINTER :: DZ(:) => null(),T(:) => null(), TE(:) => null()  !, phi0(:) => null()
+   complex(dp), POINTER :: B(:,:) => null(),E(:,:) => null()
    INTEGER , POINTER :: N,M => null()  
    real(dp),  POINTER :: angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
    TYPE(REAL_8),  POINTER :: SCALE=> null()

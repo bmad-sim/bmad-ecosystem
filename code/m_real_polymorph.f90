@@ -4149,13 +4149,14 @@ contains
     end select
   END FUNCTION iscdiv
 
-  SUBROUTINE  printpoly(S2,i,prec)
+  SUBROUTINE  printpoly(S2,mf,prec)
     implicit none
-    integer ipause, mypauses
+    integer ipause, mypauses,i
     type (real_8),INTENT(INOUT)::S2
-    integer,optional :: i
+    integer,optional :: mf
     real(dp), optional :: prec
-
+    i=6
+    if(present(mf)) i=mf
     if(s2%kind/=0) then
 
        select  case (s2%kind)
@@ -4183,21 +4184,27 @@ contains
 
   END SUBROUTINE printpoly
 
-  SUBROUTINE  printdouble(S2,i)
+  SUBROUTINE  printdouble(S2,mf)
     implicit none
     real(dp),INTENT(INOUT)::S2
-     integer,optional :: i
-
-    write(i,*)  s2
+    integer,optional :: mf
+    integer i
+ 
+    i=6
+    if(present(mf)) i=mf
+    write(mf,*)  s2
 
   END SUBROUTINE printdouble
 
-  SUBROUTINE  printsingle(S2,i)
+  SUBROUTINE  printsingle(S2,mf)
     implicit none
     real(sp),INTENT(INOUT)::S2
-    integer,optional :: i
-
-    write(i,*)  s2
+    integer,optional :: mf
+    integer i
+ 
+    i=6
+    if(present(mf)) i=mf
+    write(mf,*)  s2
 
   END SUBROUTINE printsingle
 

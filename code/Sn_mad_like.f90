@@ -50,9 +50,9 @@ module Mad_like
   REAL(DP)  MAD_TREE_LD , MAD_TREE_ANGLE
   type(tree_element), allocatable :: t_em(:) !,t_ax(:),t_ay(:)
 
-  real(dp), private ::  angc,xc,dc,hc,LC,HD,LD,vc
+  real(dp), private ::  angc=0,xc=0,dc=0,hc=0,LC=0,HD=0,LD=0,vc=0
   integer, private :: nstc
-  logical ::   xprime_pancake = .true.
+  logical ::   xprime_pancake = .true.,xprime_abell=.true.
    character(vp) , private :: filec
   logical(lp) :: set_ap=my_false
   TYPE EL_LIST
@@ -1577,7 +1577,7 @@ CONTAINS
     E11=0.0_dp
     E22=0.0_dp
     L1=0.0_dp
-
+    ang1=0.0_dp
 
     IF(PRESENT(L)) L1=L ;
     if(present(list)) then
@@ -2935,7 +2935,7 @@ CONTAINS
        s2%ab%dc=dc
        s2%ab%hc=hc
        s2%ab%vc=vc
-       s2%ab%xprime=xprime_pancake
+       s2%ab%xprime=xprime_abell
 
         endif
     endif
@@ -3472,18 +3472,17 @@ CONTAINS
    nstc=nst0
    end subroutine set_pancake_constants 
 
-   subroutine set_abell_constants(angc0,xc0,dc0,vc0,hc0,m_abell0,n_abell0)
+   subroutine set_abell_constants(angc0,xc0,dc0,vc0,hc0,xprime0,m_abell0,n_abell0)
    implicit none
    real(dp) angc0,xc0,dc0,hc0,hd0,ld0,vc0
-   integer m_abell0,n_abell0
-   character(vp) filec0
    logical xprime0
+   integer m_abell0,n_abell0
    angc=angc0
    xc=xc0
    dc=dc0
    hc=hc0
    vc=vc0
-   xprime_pancake=.false.
+   xprime_pancake=xprime0
    m_abell=m_abell0
    n_abell=n_abell0
    end subroutine set_abell_constants 

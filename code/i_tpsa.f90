@@ -48,21 +48,29 @@ MODULE TPSA
 INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
 !INTEGER, private, PARAMETER :: DP = KIND(1.0D0)
  
-real(dp) :: switch_bessel=0.001d0
-private norm_bessel_Ir,nbit,nbittr,nbitrt
+logical:: switch_bessel=.true.
+private norm_bessel_Ir,nbit,nbittr,nbitrt,etienne_bessel_Ir,etienne_bessel_It,etienne_bessel_Itr,etienne_bessel_Irt
+private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
   type(dalevel) scratchda(ndumt)   !scratch levels of DA using linked list
   real(dp), pointer :: tn0(:)=>null()
  
-
-
- INTERFACE norm_bessel_I
-     MODULE PROCEDURE norm_bessel_Ir
-     MODULE PROCEDURE nbit
-     MODULE PROCEDURE nbittr
-     MODULE PROCEDURE nbitrt
+ INTERFACE nbi
+     MODULE PROCEDURE nbitreal
+     MODULE PROCEDURE nbittaylor
+     MODULE PROCEDURE nbittaylorrt
+     MODULE PROCEDURE nbittaylortr
   END INTERFACE
 
- INTERFACE nbi
+ INTERFACE nbi_etienne
+     MODULE PROCEDURE etienne_bessel_Itr
+     MODULE PROCEDURE etienne_bessel_Irt
+     MODULE PROCEDURE etienne_bessel_Ir
+     MODULE PROCEDURE etienne_bessel_It
+  END INTERFACE
+
+
+
+ INTERFACE nbi_david
      MODULE PROCEDURE norm_bessel_Ir
      MODULE PROCEDURE nbit
      MODULE PROCEDURE nbittr
@@ -4044,13 +4052,285 @@ endif
 
   END SUBROUTINE clean_gmap
 
+function etienne_bessel_Ir(n, x, y,km) result (value)
+
+implicit none
+
+real(dp) x, y, value,dvalo
+real(dp) r2, rr2, denom, r2k, r, scale, dval,eps
+integer, optional :: km
+integer n, k,km0
+integer, parameter :: nk_max = 1000
+logical done
+!
+eps=1.e-8_dp
+done=.false.
+r2 = x**2 + y**2
+km0=15
+if(present(km)) km0=km
+scale = 1.0_dp/2**n !/ (2**n * factorial(n))
+  
+
+do k=1,n
+scale=scale/k
+enddo
+
+ 
+
+! Close to origin case.
+! Crossover point is hurestically derived for n <= 30
+
+!if (r2 < 2.28 * (n+7)) then
+  value = 1
+
+  rr2 = r2 / 4
+  denom = 1.0_dp
+  r2k = 1
+  dvalo=1.d38
+  do k = 1, nk_max
+    r2k = r2k * rr2
+    denom = denom * k * (n + k)
+    dval = r2k / denom 
+    value = value + dval
+    dvalo=dval
+  if(done) then
+     if(dvalo>=dval) exit
+    else
+    if (k>km0.and.dval < eps * value) then
+      done=.true.
+    endif
+  endif
+    if (k == nk_max) then
+      print *, 'Internal error in norm_bessel_I: No convergence!'
+      stop
+    endif
+  enddo
+if(present(km)) write(6,*) k
+  value = scale * value
+
+
+end function etienne_bessel_Ir
+
+
+function etienne_bessel_It(n, x, y,km) result (value)
+
+implicit none
+
+type(taylor) x, y
+type(taylor)   r2, rr2, denom, r2k, r, scale, dval, value,dvalo
+real(dp) eps
+integer, optional :: km
+integer n, k,km0
+integer, parameter :: nk_max = 1000
+logical done
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      value%i=0
+     RETURN
+    endif
+    localmaster=master
+
+
+    !    call check(s1)
+    call ass(value)
+call alloc(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+eps=1.e-8_dp
+done=.false.
+r2 = x**2 + y**2
+km0=15
+if(present(km)) km0=km
+scale = 1.0_dp/2**n !/ (2**n * factorial(n))
+  
+
+do k=1,n
+scale=scale/k
+enddo
+
+ 
+
+! Close to origin case.
+! Crossover point is hurestically derived for n <= 30
+
+!if (r2 < 2.28 * (n+7)) then
+  value = 1
+
+  rr2 = r2 / 4
+  denom = 1.0_dp
+  r2k = 1
+  dvalo=1.d38
+  do k = 1, nk_max
+    r2k = r2k * rr2
+    denom = denom * k * (n + k)
+    dval = r2k / denom 
+    value = value + dval
+    dvalo=dval
+  if(done) then
+     if(full_abs(dvalo)>=full_abs(dval)) exit
+    else
+    if (k>km0.and.full_abs(dval) < eps * full_abs(value)) then
+      done=.true.
+    endif
+  endif
+    if (k == nk_max) then
+      print *, 'Internal error in norm_bessel_I: No convergence!'
+      stop
+    endif
+  enddo
+if(present(km)) write(6,*) k
+
+  value = scale * value
+call kill(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+
+    master=localmaster
+end function etienne_bessel_It
+
+
+function etienne_bessel_Itr(n, x, y,km) result (value)
+
+implicit none
+
+type(taylor) x 
+type(taylor)   r2, rr2, denom, r2k, r, scale, dval, value,dvalo
+real(dp) eps,y
+integer, optional :: km
+integer n, k,km0
+integer, parameter :: nk_max = 1000
+logical done
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      value%i=0
+     RETURN
+    endif
+    localmaster=master
+
+
+    !    call check(s1)
+    call ass(value)
+call alloc(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+eps=1.e-8_dp
+done=.false.
+r2 = x**2 + y**2
+km0=15
+if(present(km)) km0=km
+scale = 1.0_dp/2**n !/ (2**n * factorial(n))
+  
+
+do k=1,n
+scale=scale/k
+enddo
+
+ 
+
+! Close to origin case.
+! Crossover point is hurestically derived for n <= 30
+
+!if (r2 < 2.28 * (n+7)) then
+  value = 1
+
+  rr2 = r2 / 4
+  denom = 1.0_dp
+  r2k = 1
+  dvalo=1.d38
+  do k = 1, nk_max
+    r2k = r2k * rr2
+    denom = denom * k * (n + k)
+    dval = r2k / denom 
+    value = value + dval
+    dvalo=dval
+  if(done) then
+     if(full_abs(dvalo)>=full_abs(dval)) exit
+    else
+    if (k>km0.and.full_abs(dval) < eps * full_abs(value)) then
+      done=.true.
+    endif
+  endif
+    if (k == nk_max) then
+      print *, 'Internal error in norm_bessel_I: No convergence!'
+      stop
+    endif
+  enddo
+if(present(km)) write(6,*) k
+
+  value = scale * value
+call kill(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+
+    master=localmaster
+end function etienne_bessel_Itr
+
+
+function etienne_bessel_Irt(n, x, y,km) result (value)
+
+implicit none
+
+type(taylor)  y
+type(taylor)   r2, rr2, denom, r2k, r, scale, dval, value,dvalo
+real(dp) x,eps
+integer, optional :: km
+integer n, k,km0
+integer, parameter :: nk_max = 1000
+logical done
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      value%i=0
+     RETURN
+    endif
+    localmaster=master
+
+
+    !    call check(s1)
+    call ass(value)
+call alloc(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+eps=1.e-8_dp
+done=.false.
+r2 = x**2 + y**2
+km0=15
+if(present(km)) km0=km
+scale = 1.0_dp/2**n !/ (2**n * factorial(n))
+  
+
+do k=1,n
+scale=scale/k
+enddo
+
+ 
+
+! Close to origin case.
+! Crossover point is hurestically derived for n <= 30
+
+!if (r2 < 2.28 * (n+7)) then
+  value = 1
+
+  rr2 = r2 / 4
+  denom = 1.0_dp
+  r2k = 1
+  dvalo=1.d38
+  do k = 1, nk_max
+    r2k = r2k * rr2
+    denom = denom * k * (n + k)
+    dval = r2k / denom 
+    value = value + dval
+    dvalo=dval
+  if(done) then
+     if(full_abs(dvalo)>=full_abs(dval)) exit
+    else
+    if (k>km0.and.full_abs(dval) < eps * full_abs(value)) then
+      done=.true.
+    endif
+  endif
+    if (k == nk_max) then
+      print *, 'Internal error in norm_bessel_I: No convergence!'
+      stop
+    endif
+  enddo
+if(present(km)) write(6,*) k
+
+  value = scale * value
+call kill(r2, rr2, denom, r2k, r, scale, dval,dvalo)
+
+    master=localmaster
+end function etienne_bessel_Irt
 
   !!! bessel   !!!!!!!!!!  2017
-
-
-
-
-
 
 !-------------------------------------------------------------------
 !-------------------------------------------------------------------
@@ -4079,7 +4359,7 @@ real(dp) x, y, value
 real(dp) r2, rr2, denom, r2k, r, scale, dval
 
 integer n, k
-integer, parameter :: nk_max = 15
+integer, parameter :: nk_max = 100
 
 !
 
@@ -4104,7 +4384,7 @@ if (r2 < 2.28 * (n+7)) then
   value = 1
 
   rr2 = r2 / 4
-  denom = 1.0
+  denom = 1.0_dp
   r2k = 1
 
   do k = 1, nk_max
@@ -4294,6 +4574,95 @@ end function
 	end if
 	END FUNCTION poly_eval
 
+  FUNCTION nbittaylortr( n,x,y )
+    implicit none
+    TYPE (taylor) nbittaylortr
+    TYPE (taylor), INTENT (IN) :: x
+    real(dp) y 
+    integer, INTENT (IN) :: n
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      nbittaylortr%i=0
+     RETURN
+    endif
+    localmaster=master
+    call ass(nbittaylortr)
+    if(switch_bessel) then
+
+     nbittaylortr=nbi_etienne(n,x,y)
+    else
+
+     nbittaylortr=nbi_david(n,x,y)
+
+    endif
+    master=localmaster
+    END FUNCTION nbittaylortr
+
+  FUNCTION nbittaylorrt( n,x,y )
+    implicit none
+    TYPE (taylor) nbittaylorrt
+    TYPE (taylor), INTENT (IN) :: y
+    real(dp) x
+    integer, INTENT (IN) :: n
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      nbittaylorrt%i=0
+     RETURN
+    endif
+    localmaster=master
+    call ass(nbittaylorrt)
+    if(switch_bessel) then
+
+     nbittaylorrt=nbi_etienne(n,x,y)
+    else
+
+     nbittaylorrt=nbi_david(n,x,y)
+
+    endif
+    master=localmaster
+
+    END FUNCTION nbittaylorrt
+
+  FUNCTION nbittaylor( n,x,y )
+    implicit none
+    TYPE (taylor) nbittaylor
+    TYPE (taylor), INTENT (IN) :: x,y 
+    integer, INTENT (IN) :: n
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+      nbittaylor%i=0
+     RETURN
+    endif
+    localmaster=master
+    call ass(nbittaylor)
+    if(switch_bessel) then
+
+     nbittaylor=nbi_etienne(n,x,y)
+    else
+
+     nbittaylor=nbi_david(n,x,y)
+
+    endif
+    master=localmaster
+    END FUNCTION nbittaylor
+
+  FUNCTION nbitreal( n,x,y )
+    implicit none
+    real(dp) nbitreal
+    real(dp),  INTENT (IN) :: x,y 
+    integer, INTENT (IN) :: n
+
+    if(switch_bessel) then
+
+     nbitreal=nbi_etienne(n,x,y)
+    else
+
+     nbitreal=nbi_david(n,x,y)
+
+    endif
+ 
+    END FUNCTION nbitreal
+
   FUNCTION nbit( n,x,y )
     implicit none
     TYPE (taylor) nbit
@@ -4315,12 +4684,12 @@ end function
      y0=y
      dx=x**2+y**2-(x0**2+y0**2)
      tn=1.0_dp
-     nbit=norm_bessel_I(n,x0,y0)
+     nbit=nbi_david(n,x0,y0)
      fac=1.0_dp
      do i=1,no
       tn=tn*dx
       fac=fac/i/2.0_dp
-      div=norm_bessel_I(n+i,x0,y0)*fac 
+      div=nbi_david(n+i,x0,y0)*fac 
       nbit=nbit+tn*div
      enddo
 

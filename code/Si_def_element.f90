@@ -1475,11 +1475,14 @@ CONTAINS
    !real(dp), POINTER :: DZ => null(), T(:) => null()
    !complex(dp), POINTER :: B(:,:) => null()
    !INTEGER , POINTER :: N,M => null()  
-       ALLOCATE(EL%ab%dz);EL%ab%dz=0
+
        ALLOCATE(EL%ab%m);EL%ab%m=m_abell;
        ALLOCATE(EL%ab%n);EL%ab%n=n_abell;
-       ALLOCATE(EL%ab%t(m_abell));EL%ab%t=0.0_dp;
-       ALLOCATE(EL%ab%b(m_abell,n_abell));EL%ab%t=0.0_dp; 
+       ALLOCATE(EL%ab%dz(0:m_abell));EL%ab%dz=0
+       ALLOCATE(EL%ab%t(0:m_abell));EL%ab%t=0.0_dp;
+       ALLOCATE(EL%ab%b(0:m_abell,-n_abell/2:n_abell/2-1));EL%ab%b=0.0_dp; 
+       ALLOCATE(EL%ab%tE(0:m_abell));EL%ab%tE=0.0_dp;
+       ALLOCATE(EL%ab%E(0:m_abell,-n_abell/2:n_abell/2-1));EL%ab%E=0.0_dp; 
        CALL POINTERS_abell(EL%ab) !,angc,xc,dc,h) !,t_ax,t_ay)
     END SELECT
   END SUBROUTINE SETFAMILYR
@@ -1953,11 +1956,14 @@ CONTAINS
    !complex(dp), POINTER :: B(:,:) => null()
    !INTEGER , POINTER :: N,M => null()  
 
-       ALLOCATE(EL%ab%dz);EL%ab%dz=0
+
        ALLOCATE(EL%ab%m);EL%ab%m=m_abell;
        ALLOCATE(EL%ab%n);EL%ab%n=n_abell;
-       ALLOCATE(EL%ab%t(m_abell));EL%ab%t=0.0_dp;
-       ALLOCATE(EL%ab%b(m_abell,n_abell));EL%ab%b=0.0_dp; 
+       ALLOCATE(EL%ab%dz(0:m_abell));EL%ab%dz=0
+       ALLOCATE(EL%ab%t(0:m_abell));EL%ab%t=0.0_dp;
+       ALLOCATE(EL%ab%b(0:m_abell,-n_abell/2:n_abell/2-1));EL%ab%b=0.0_dp; 
+       ALLOCATE(EL%ab%tE(0:m_abell));EL%ab%tE=0.0_dp;
+       ALLOCATE(EL%ab%E(0:m_abell,-n_abell/2:n_abell/2-1));EL%ab%E=0.0_dp; 
        CALL POINTERS_abell(EL%ab) !,angc,xc,dc,h) !,t_ax,t_ay)
     END SELECT
 

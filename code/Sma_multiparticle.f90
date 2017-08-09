@@ -1266,7 +1266,7 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
        case(KINDPA)
           CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)    
        case(KINDabell)
-          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
+          CALL ADJUST_ABELL(EL%AB,X,k,T%CAS)
  !      global_e= x(5)*el%p%p0c treat like electric
        case(kindsuperdrift)
         if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,X,k,el%p%exact,1)
@@ -1377,6 +1377,8 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
        case(KINDPA)
           CALL TRACK_SLICE(EL%PA,X,k,T%POS_IN_FIBRE-2)
          global_e= x(5)*el%p%p0c
+       case(KINDabell)
+          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
        case(kindsuperdrift)
           call track_slice(EL%sdr,X,k)
          global_e= x(5)*el%p%p0c
@@ -2531,6 +2533,9 @@ CASE(KINDabell)
   else
   ang=0.0_dp
   ang(2)=h*m%ab%hc/2
+
+
+
   h=2*sin(ang(2))/m%ab%hc
   d=(/0.0_dp,0.0_dp,h/)
   call geo_rot(exi0,exi0,ang,exi0)

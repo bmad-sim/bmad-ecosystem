@@ -3445,10 +3445,25 @@ if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
 
  ab0%N_m=0 
- ab0%dz_t=0 
+ ab0%dz_t_te=0 
  ab0%b=0 
+ ab0%e=0 
  ab0%scale_angc_xc_vc_dc_hc=0 
  
+ ab0%n_m(1)= F%ab%n
+ ab0%n_m(2)= F%ab%m
+ ab0%b(1:ab0%n_m(2) ,1:ab0%n_m(2))= F%ab%b
+ ab0%dz_t_te(2*ab0%n_m(2)+3:3*ab0%n_m(2)+3)=F%ab%te
+ab0%dz_t_te(ab0%n_m(2)+2:2*ab0%n_m(2)+2)= F%ab%t
+ab0%dz_t_te(1:ab0%n_m(2)+1)= F%ab%dz
+ab0%scale_angc_xc_vc_dc_hc(1)=F%ab%SCALE 
+ ab0%scale_angc_xc_vc_dc_hc(2)=F%ab%angc
+ ab0%scale_angc_xc_vc_dc_hc(3)=F%ab%xc
+ ab0%scale_angc_xc_vc_dc_hc(4)=F%ab%vc
+ ab0%scale_angc_xc_vc_dc_hc(5)=F%ab%dc
+ ab0%scale_angc_xc_vc_dc_hc(6)=F%ab%hc
+ 
+
 ! if(f%electric) then
 !  tp100%ae(1:size(F%tp10%ae))=F%tp10%ae
 !  tp100%be(1:size(F%tp10%be))=F%tp10%be
@@ -3473,8 +3488,9 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  F%ab%n=ab0%n_m(1) 
  F%ab%m=ab0%n_m(2) 
  F%ab%b=ab0%b(1:ab0%n_m(2) ,1:ab0%n_m(2))
- F%ab%t=ab0%dz_t(2:ab0%n_m(2)+1)
- F%ab%dz=ab0%dz_t(1)
+ F%ab%te=ab0%dz_t_te(2*ab0%n_m(2)+3:3*ab0%n_m(2)+3)
+ F%ab%t=ab0%dz_t_te(ab0%n_m(2)+2:2*ab0%n_m(2)+2)
+ F%ab%dz=ab0%dz_t_te(1:ab0%n_m(2)+1)
 F%ab%SCALE= ab0%scale_angc_xc_vc_dc_hc(1)
 F%ab%angc= ab0%scale_angc_xc_vc_dc_hc(2)
 F%ab%xc= ab0%scale_angc_xc_vc_dc_hc(3)
