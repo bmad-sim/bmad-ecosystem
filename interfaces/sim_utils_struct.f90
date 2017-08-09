@@ -19,6 +19,7 @@ type all_pointer_struct
 end type 
 
 complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
+complex(rp), parameter :: i_imag = (0.0d0, 1.0d0)
   
 ! real_garbage$ and int_garbage$ can be used, for example, to identify
 ! variable that have not been set.
