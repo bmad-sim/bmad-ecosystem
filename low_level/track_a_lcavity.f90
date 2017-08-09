@@ -98,7 +98,7 @@ gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 dE = gradient_net * length
 E_end = E_start + dE
 if (E_end <= mass_of(orbit%species)) then
-  orbit%state = lost_z_aperture$
+  orbit%state = lost_pz_aperture$
   orbit%vec(6) = -1.01  ! Something less than -1
   if (present(mat6)) mat6 = 0
   return

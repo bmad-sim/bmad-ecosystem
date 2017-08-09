@@ -185,7 +185,7 @@ if (set) then
 
       pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
       if (pz <= 0) then
-        orbit%state = lost_z_aperture$
+        orbit%state = lost_pz_aperture$
         return
       endif
       p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
@@ -349,7 +349,7 @@ else
 
       pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
       if (pz <= 0) then
-        orbit%state = lost_z_aperture$
+        orbit%state = lost_pz_aperture$
         return
       endif
       p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]

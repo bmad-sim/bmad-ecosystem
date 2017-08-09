@@ -21,7 +21,8 @@
 subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
 
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
-use ptc_spin, only: probe, assignment(=), operator(+), internal_state, SPIN0, DEFAULT, track_probe, track_probe_x
+use ptc_spin, only: probe, assignment(=), operator(+), internal_state, SPIN0, TOTALPATH0, &
+                                                            DEFAULT, track_probe, track_probe_x
 use s_tracking, only: DEFAULT, alloc_fibre, integration_node
 use mad_like, only: fibre, kill
 
@@ -35,7 +36,7 @@ type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 type (probe) ptc_probe
 type (integration_node), pointer :: ptc_track
-type (internal_state) state
+type (internal_state) state, state0
 
 real(dp) re(6), beta0, beta1
 integer i, stm
@@ -47,6 +48,10 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
+STATE0 = DEFAULT
+if (ptc_com%use_totalpath) STATE0 = STATE0 + TOTALPATH0
+if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
+
 call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 
 ! Track a drift if using hard edge model
@@ -54,7 +59,7 @@ call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param, .true.)
-  call track_probe_x (re, DEFAULT, fibre1 = fibre_ele)
+  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
 endif  
 
 !-----------------------------
@@ -66,11 +71,7 @@ orbit = end_orb
 
 call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
 
-if (bmad_com%spin_tracking_on) then
-  STATE = DEFAULT+SPIN0
-else
-  STATE = DEFAULT
-endif
+!
 
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$) .or. present(track)) then
@@ -98,8 +99,8 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
   re = ptc_probe%x
 
 else
-  ! Orignally used track (fibre_ele, re, DEFAULT) but this will not track taylor elements correctly.
-  call track_probe_x (re, DEFAULT, fibre1 = fibre_ele)
+  ! Orignally used track (fibre_ele, re, STATE) but this will not track taylor elements correctly.
+  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
 endif
 
 !-----------------------------
@@ -107,10 +108,11 @@ endif
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param, .true.)
-  call track_probe_x (re, DEFAULT, fibre1 = fibre_ele)
+  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
 endif  
 
-call vec_ptc_to_bmad (re, beta1, end_orb%vec)
+call vec_ptc_to_bmad (re, beta1, end_orb%vec, state = end_orb%state)
+if (end_orb%state /= alive$) return
 
 ! 
 
@@ -121,9 +123,12 @@ endif
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 
-end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
+if (ptc_com%use_totalpath) then
+  end_orb%t = start2_orb%t + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
+else
+  end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
                           start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
-
+endif
 
 !---------------------------------------------------------------------
 contains

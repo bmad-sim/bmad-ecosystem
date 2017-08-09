@@ -688,7 +688,7 @@ character(*), parameter :: r_name = 'track1_cyrstal'
 
 if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
-  orbit%state = lost_z_aperture$
+  orbit%state = lost_pz_aperture$
   if (global_com%exit_on_error) call err_exit
   return
 endif

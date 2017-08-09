@@ -401,7 +401,7 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
   Ky = f_elec * field%E(2)
   alpha = (kx * (2*orbit%vec(2) - kx) + ky * (2*orbit%vec(4) - ky)) / (1 + orbit%vec(6))**2
   if (alpha < -1) then
-    orbit%state = lost_z_aperture$
+    orbit%state = lost_pz_aperture$
     return
   endif
   orbit%vec(6) = orbit%vec(6) + (1 + orbit%vec(6)) * sqrt_one(alpha)
