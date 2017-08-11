@@ -69,6 +69,8 @@ end subroutine type_ptc_layout
 ! In this case, ele%ptc_fibre will be set to point to the last PTC fibre. That is the 
 ! exit end of ele will correspond to the exit end of ele%ptc_fibre.
 !
+! Note: Photon branches will not be included in the layout.
+!
 ! Module Needed:
 !   use ptc_layout_mod
 !
@@ -106,18 +108,22 @@ character(20), parameter :: r_name = 'lat_to_ptc_layout'
 lat%ptc_uses_hard_edge_drifts = logic_option(bmad_com%use_hard_edge_drifts, use_hard_edge_drifts) 
 
 do i = 0, ubound(lat%branch, 1)
-  call branch_to_ptc_m_u (lat%branch(i), use_hard_edge_drifts)
+  branch => lat%branch(i)
+  if (branch%param%particle == photon$) cycle
+  call branch_to_ptc_m_u (branch, use_hard_edge_drifts)
 enddo
 
 ! setup m_t
 
 do i = 0, ubound(lat%branch, 1)
 
+  branch => lat%branch(i)
+  if (branch%param%particle == photon$) cycle
+
   call append_empty_layout(m_t)
   call set_up (m_t%end)
   write (m_t%end%name, '(a, i4)') 'm_t Bmad branch:', i  ! For diagnostic purposes
 
-  branch => lat%branch(i)
   branch%ptc%m_t_layout => m_t%end   ! Save layout
 
   lay => m_t%end
