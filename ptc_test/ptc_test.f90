@@ -57,9 +57,9 @@ print '(a, 3f14.6)','B Bmad: ', field%b
 print '(a, 3f14.6)','B Diff: ', b_field_ptc * ele%value(p0c$) / c_light - field%b
 
 print *
-print '(a, 3f14.6)','E PTC:  ', e_field_ptc
+print '(a, 3f14.6)','E PTC:  ', e_field_ptc * ele%value(p0c$)
 print '(a, 3f14.6)','E Bmad: ', field%e
-print '(a, 3f14.6)','E Diff: ', e_field_ptc - field%e
+print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
 
 
 stop
