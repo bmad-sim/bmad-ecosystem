@@ -185,6 +185,8 @@ case (bmad_standard$)
   else
     call track1_bmad (start2_orb, ele, param, end_orb, err, mat6, make_matrix)
   endif
+
+  if (present(track)) call add_to_track()
   if (err) return
 
 case (runge_kutta$) 
@@ -193,12 +195,15 @@ case (runge_kutta$)
 
 case (linear$) 
   call track1_linear (start2_orb, ele, param, end_orb)
+  if (present(track)) call add_to_track()
 
 case (taylor$) 
   call track1_taylor (start2_orb, ele, param, end_orb)
+  if (present(track)) call add_to_track()
 
 case (symp_map$) 
   call track1_symp_map (start2_orb, ele, param, end_orb)
+  if (present(track)) call add_to_track()
 
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, start2_orb, end_orb, .false., track)
@@ -214,6 +219,7 @@ case (boris$)
 
 case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
+  if (present(track)) call add_to_track()
 
 case (custom$)
   call track1_custom (start2_orb, ele, param, end_orb, err, finished, track)
@@ -279,5 +285,15 @@ call check_aperture_limit (end_orb, ele, second_track_edge$, param)
 call track1_postprocess (start2_orb, ele, param, end_orb)
 
 if (present(err_flag)) err_flag = .false.
+
+!--------------------------------------------------------------------
+contains
+
+! Add the the track. 
+
+subroutine add_to_track()
+call save_a_step(track, ele, param, .false., start_orb)
+call save_a_step(track, ele, param, .false., end_orb)
+end subroutine add_to_track
 
 end subroutine

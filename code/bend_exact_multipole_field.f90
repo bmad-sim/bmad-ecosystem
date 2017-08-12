@@ -368,9 +368,9 @@ endif
 
 if (present(potential) .and. pole_coef%value /= 0 .and. n-j > -1) then
   if (field_type == magnetic$) then
-    potential%phi_B = potential%phi_B + rho * F_value(F_coef(j), xg) * pole_coef%value
+    potential%phi_B = potential%phi_B - rho * F_value(F_coef(j), xg) * pole_coef%value
   else
-    potential%phi = potential%phi + rho * F_value(F_coef(j), xg) * pole_coef%value
+    potential%phi = potential%phi - rho * F_value(F_coef(j), xg) * pole_coef%value
   endif
 endif
 

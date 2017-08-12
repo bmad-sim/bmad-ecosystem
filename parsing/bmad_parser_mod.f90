@@ -4264,7 +4264,7 @@ if (pele%ref_name == blank_name$) then
   endif
 
   if (ele_at_s%iyy == 0) then  ! If not in multipass region proceed as normal.
-    call check_for_multipass_superimpose_problem (branch, super_ele, err_flag); if (err_flag) return
+    call check_for_superimpose_problem (branch, super_ele, err_flag); if (err_flag) return
     call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
                                         create_jumbo_slave = pele%create_jumbo_slave)
     if (err_flag) bp_com%error_flag = .true.
@@ -4437,7 +4437,7 @@ do
         ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
         call compute_super_lord_s (ele, super_ele, pele, ix_insert)
         super_ele%iyy = ele%iyy   ! Multipass info
-        call check_for_multipass_superimpose_problem (branch, super_ele, err_flag, ele); if (err_flag) return
+        call check_for_superimpose_problem (branch, super_ele, err_flag, ele); if (err_flag) return
         ! Don't need to save drifts since a multipass_lord drift already exists.
         call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
                save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
@@ -4547,7 +4547,7 @@ do
     else
       call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
       super_ele%iyy = ref_ele%iyy   ! Multipass info
-      call check_for_multipass_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
+      call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
       call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
@@ -4720,7 +4720,7 @@ end subroutine compute_super_lord_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine check_for_multipass_superimpose_problem (branch, super_ele, err_flag, ref_ele)
+! Subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele)
 !
 ! Subroutine to check if there is a problem superimposing an element when there is multipass.
 ! In particular will check that:
@@ -4734,21 +4734,22 @@ end subroutine compute_super_lord_s
 ! This subroutine is not intended for general use.
 !-
 
-subroutine check_for_multipass_superimpose_problem (branch, super_ele, err_flag, ref_ele)
+subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele)
 
 implicit none
 
 type (ele_struct) super_ele
 type (ele_struct), optional :: ref_ele
-type (ele_struct), pointer :: ele1, ele2
+type (ele_struct), pointer :: ele, ele1, ele2, ele_stop
 type (branch_struct) :: branch
 real(rp) eps
 logical err_flag
 integer ix1, ix2
 
 
-!
+! Check for out-of-bounds.
 
+err_flag = .true.
 eps = bmad_com%significant_length
 
 ele1 => pointer_to_element_at_s (branch, super_ele%s_start + eps, .true., err_flag)
@@ -4756,13 +4757,37 @@ if (err_flag) then
   call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'UPSTREAM ELEMENT EDGE OUT OF BOUNDS.')
   return
 endif
-if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
 
 ele2 => pointer_to_element_at_s (branch, super_ele%s - eps, .false., err_flag)
 if (err_flag) then
   call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
   return
 endif
+
+! A Negative length element (EG a patch) at the edge of the superipose region is problematic.
+! Search +/- 10 elements outside of the range [ele1, ele2] to make sure.
+
+ele => pointer_to_next_ele(ele1, max(-10, -ele1%ix_ele))
+ele_stop => pointer_to_next_ele(ele2, min(10, ele2%branch%n_ele_track-ele2%ix_ele))
+
+do
+  if (ele%ix_ele == ele_stop%ix_ele) exit
+  if (ele%value(l$) < 0) then
+    if (ele%s_start > super_ele%s_start .and. ele%s < super_ele%s_start .or. &
+        ele%s_start > super_ele%s .and. ele%s < super_ele%s) then
+      call parser_error ('EDGE OF SUPERIMPOSE OF: ' // super_ele%name, &
+                         'OVERLAPS ELEMENT WITH NEGATIVE LENGTH: ' // ele%name, &
+                         'THIS IS NOT A WELL DEFINED SITUATION!')
+      return
+    endif
+  endif
+  ele => pointer_to_next_ele(ele)
+enddo
+
+
+! Ref ele check.
+
+if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
 if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
 
 if (present(ref_ele)) then
@@ -4786,7 +4811,7 @@ endif
 
 err_flag = .false.
 
-end subroutine check_for_multipass_superimpose_problem 
+end subroutine check_for_superimpose_problem 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

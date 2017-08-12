@@ -538,7 +538,7 @@ case (bmad_standard$)
   ! Add multipoles
 
   if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$) then
-    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc)
+    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, potential)
     field%e = field%e + field2%e
     field%b = field%b + field2%b
     if (do_df_calc) then
@@ -996,14 +996,14 @@ case(fieldmap$)
           if (present(potential)) then
             if (k_zn == 0) then
               if (m == 0) then
-                potential%phi = potential%phi + coef * real(cl_term%e_coef * z * i_imaginary)
+                potential%phi = potential%phi - coef * real(cl_term%e_coef * z * i_imaginary)
               elseif (m == 1) then
-                potential%phi = potential%phi + coef * real(cl_term%e_coef * cm * radius / 2)
+                potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * radius / 2)
               endif
             elseif (m == 0) then
-              potential%phi = potential%phi + coef * real(cl_term%e_coef * exp_kz * Im_0 / k_zn)
+              potential%phi = potential%phi - coef * real(cl_term%e_coef * exp_kz * Im_0 / k_zn)
             else
-              potential%phi = potential%phi + coef * real(cl_term%e_coef * cm * exp_kz * Im_0 / k_zn)
+              potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * Im_0 / k_zn)
             endif
           endif
 

@@ -1707,6 +1707,7 @@ end subroutine remove_lord_slave_link
 !   skip_beginning -- logical, optional: If True then skip beginning element #0
 !                       when wrapping around. Default is False.
 !   follow_fork    -- logical, optional: If True then fork at any fork element.
+!                       Default is False.
 !
 !   next_ele -- ele_struct, pointer: Element after this_ele (if offset = 1).
 !                Nullified if there is an error. EG bad this_ele.

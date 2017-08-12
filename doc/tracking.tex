@@ -850,3 +850,32 @@ stored in:
 \end{example}
 where \vn{gen_ele} is the 
 generating element (not the element with the aperture).
+
+%-------------------------------------------------------------------------
+\section{Recording the track through an element}
+\label{s:track.track}
+
+Occasionally it is useful to record the track through an element when tracking with Runge-Kutta,
+etc. This can be done by calling \zzz{track1} and supplying the \vn{track} argument. Example:
+\begin{example}
+  type (track_struct) track
+  ...
+  track%n_pt = -1
+  call track1 (start_orb, ele, param, end_orb, track)
+\end{example}
+
+A \vn{track_struct} structure has components:
+\begin{example}
+  type track_struct
+    type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:)
+    type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:)
+    type (track_map_struct), allocatable :: map(:)  ! An array of maps: %cylindrical_map(0:)
+    real(rp) :: ds_save = 1d-3                      ! Min distance between points.
+    integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
+    integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
+    integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
+  end type
+\end{example}
+The \vn{%orb} and other arrays 
+The \vn{%n_pt} component gives the upp
+\blablabla

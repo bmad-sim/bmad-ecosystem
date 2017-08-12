@@ -95,7 +95,8 @@ s = s1
 s_dir = sign(1.0_rp, s2-s1)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
 ds_tiny  = bmad_com%significant_length/100
-track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
+track_spin = (ele%spin_tracking_method == tracking$ .and. &
+                                (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$))
 
 orbit%s = s1 + ele%s_start
 
