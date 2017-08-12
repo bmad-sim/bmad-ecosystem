@@ -7,7 +7,6 @@
 program ptc_test
 
 use bmad, dummy => dp
-use polymorphic_taylor
 use s_def_kind
 use ptc_layout_mod, dummy2 => dp
 
