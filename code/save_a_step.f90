@@ -38,12 +38,16 @@ real(rp), optional :: rf_time, s_rel
 logical local_ref_frame
 logical, optional :: save_field
 
-! Not allocated
+! Init
 
 if (.not. allocated (track%orb)) then
   allocate(track%orb(0:100))
   allocate(track%field(0:100))
   allocate(track%map(0:100))
+  track%n_pt = -1
+endif
+
+if (track%n_pt < 0) then
   track%n_ok = 0
   track%n_bad = 0
   track%n_pt = -1

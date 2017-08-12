@@ -33,8 +33,8 @@ use bmad_utils_mod
 ! is modulo the branch length:
 !     s_eff = s - branch_length * floor(s/branch_length)
 !
-! Modules needed:
-!   use bmad
+! Note: If there are multiple elements that are at the given s position due to the presence of
+! an element with a negative length, which of the possible elements is actually chosen is ill-defined. 
 !
 ! Input:
 !   lat        -- lat_struct: Lattice of elements.
@@ -220,8 +220,8 @@ end function element_at_s_lat
 ! is modulo the branch length:
 !     s_eff = s - branch_length * floor(s/branch_length)
 !
-! Modules needed:
-!   use bmad
+! Note: If there are multiple elements that are at the given s position due to the presence of
+! an element with a negative length, which of the possible elements is actually chosen is ill-defined. 
 !
 ! Input:
 !   branch     -- branch_struct: Branch to use

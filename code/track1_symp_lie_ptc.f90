@@ -50,6 +50,8 @@ beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
 STATE0 = DEFAULT
 if (ptc_com%use_totalpath) STATE0 = STATE0 + TOTALPATH0
+
+STATE = STATE0
 if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
 
 call vec_bmad_to_ptc (start_orb%vec, beta0, re)

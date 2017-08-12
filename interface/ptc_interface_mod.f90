@@ -3497,6 +3497,7 @@ case (rfcavity$, lcavity$)
     ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
     ptc_key%list%cavity_totalpath = 1  ! 
+    if (ptc_key%nstep == 1) ptc_key%nstep = 1  ! Bug with nstep = 1.
   case (ptc_standard$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
@@ -3653,7 +3654,7 @@ endif
 ! cylindrical field
 
 if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
-  PUT_A_ABELL = 0
+  PUT_A_ABELL = 1
   ptc_key%magnet = 'abell_dragt'
   n_abell = 0
   do i = 1, size(ele%cylindrical_map)

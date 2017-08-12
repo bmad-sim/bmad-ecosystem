@@ -237,10 +237,10 @@ if (hard_ele%field_calc == bmad_standard$) then
 
     if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
       call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., potential)
-      call apply_energy_kick (f * potential%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
-      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+      call apply_energy_kick (-f * potential%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * potential%phi])
 
-    else  
+    else
       xiy = 1
       c_vec = cmplx(orb%vec(1), orb%vec(3), rp)
       phi = 0
@@ -250,11 +250,11 @@ if (hard_ele%field_calc == bmad_standard$) then
         xiy = xiy * c_vec
         if (a_pole_elec(i) == 0 .and. b_pole_elec(i) == 0) cycle
         ab_elec = cmplx(b_pole_elec(i), -a_pole_elec(i), rp)
-        phi = phi + real(ab_elec * xiy) / (i + 1)
+        phi = phi - real(ab_elec * xiy) / (i + 1)
         if (logic_option(.false., make_matrix)) E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
       enddo
-      call apply_energy_kick (f * phi, orb, f * E_r, mat6, make_matrix)
-      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, f * phi])
+      call apply_energy_kick (-f * phi, orb, f * E_r, mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * phi])
     endif
   endif
 endif
@@ -264,8 +264,8 @@ endif
 if (hard_ele%field_calc == fieldmap$ .and. hard_ele%tracking_method /= bmad_standard$) then
   f = at_sign * charge_of(orb%species) 
   call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, potential)
-  call apply_energy_kick (f * potential%phi, orb, f * field%E(1:2), mat6, make_matrix)
-  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, f * potential%phi])
+  call apply_energy_kick (-f * potential%phi, orb, f * field%E(1:2), mat6, make_matrix)
+  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * potential%phi])
 endif  
 
 
