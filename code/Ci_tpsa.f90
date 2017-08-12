@@ -9211,20 +9211,17 @@ subroutine c_identify_resonance(j,n,c)
 
 end subroutine c_identify_resonance
 
-subroutine c_full_factorise(at,as,a0,a1,a2) 
+subroutine c_full_factorise(at,as,a0,a1,a2,dir) 
 !#general: manipulation
-!# This routine is of great pedagogical importance.
-!# It factors a canonical transformation as
-!# at=a_cs o rotation(phase,nu_spin) as explained in Chap.7 of my Springer book.
-!# a_cs = a_s o a_0 o a_1 o a_2
+!# a_t = a_s o a_0 o a_1 o a_2
     implicit none
     type(c_damap) , intent(inout) :: at 
     type(c_damap) , optional, intent(inout) :: as,a2,a1,a0
-
+    integer,optional :: dir
 
     type(c_damap) att,a0t,a1t,a2t,ast
     type(c_taylor) p
-    integer i,kspin
+    integer i,kspin,ii
     real(dp) norm
 
 
@@ -9235,7 +9232,8 @@ subroutine c_full_factorise(at,as,a0,a1,a2)
     call alloc(ast)
  
  
-    
+    ii=1
+    if(present(dir)) ii=dir
   !  at= (a,s) =  (a,I) o  (I,s)
     call c_full_norm_spin(at%s,kspin,norm)  
  ! storing the spin because the code is careless (sets it to zero)   
@@ -9279,7 +9277,13 @@ subroutine c_full_factorise(at,as,a0,a1,a2)
     a2t%s=1
 
 
-
+    if(ii==-1) then
+     att=a0t*a1t*a2t
+     ast=att**(-1)*ast*att
+     a1t=a0t*a1t*a0t**(-1)
+     a2t=a0t*a2t*a0t**(-1)
+     a2t=a1t*a2t*a1t**(-1)
+    endif
 
 
     if(present(a0)) a0=a0t
@@ -15049,23 +15053,29 @@ subroutine c_fast_canonise(u,u_c,phase,damping)
 implicit none
 type(c_damap), intent(inout) ::  u,u_c
 real(dp), optional, intent(inout) :: phase(:),damping(:)
-real(dp) b(6,6),ri(6,6),ang,damp(3),t,cphi,sphi,s(6,6)
+real(dp) b(6,6),b0(6,6),ri(6,6),ang,damp(3),t,cphi,sphi,s(6,6)
  
 integer i
 
 s=0
+b0=0
 do i=1,nd
+b0(2*i-1,2*i-1)=1
+b0(2*i,2*i)=1
 s(2*i-1,2*i)=1 
 s(2*i,2*i-1)=-1 
 enddo
 
 b=0
+
 ri=0
 b=u
 
+if(ndpt/=0)  call extract_a0_mat(b,b0)
+
 s=matmul(matmul(b,s),transpose(b))
 
-do i=1,nd
+do i=1,ndt
     damp(i)=sqrt(abs(s(2*i-1,2*i)))
 enddo
 
@@ -15073,8 +15083,8 @@ enddo
 !write(6,*) damp
 
  
-      do i=1,nd2/2
-      if((i<=ndt).or.(i>nd-rf)) then
+      do i=1,ndt
+      if((i<=ndt)) then  !.or.(i>nd-rf)) then
  !    damp(i)=sqrt(b(2*i-1,2*i-1)*b(2*i,2*i)-b(2*i-1,2*i)*b(2*i,2*i-1))
        if(courant_snyder_teng_edwards) then
         t=sqrt(b(2*i-1,2*i-1)**2+b(2*i-1,2*i)**2)
@@ -15093,14 +15103,6 @@ enddo
     endif
  
 
-!!! Corrects the time variable with the d/dp_t term
- !      if(ndpt/=0) then         
- !       t= cphi + i_*sphi
- !        t=-i_*log(t)
- !        t=-(t.d.ndpt)/(2.0_dp,0.0_dp)
- !        phi1%v(ndptb)=phi1%v(ndptb)+(-1)**(ndptb)*t*((1.0_dp.cmono.(2*i-1))**2+(1.0_dp.cmono.(2*i))**2)
- !      endif
-
  if(present(phase)) then
      ang=-atan2(sphi,cphi)
   phase(i)=phase(i)-ang/twopi
@@ -15112,9 +15114,44 @@ enddo
 
 
 
- u_c=matmul(b,ri)
+      if(ndpt/=0) then
+        ri(5,5)=1
+        ri(6,6)=1
+        ri(ndptb,ndpt)=- b(ndptb,ndpt)
+!        write(6,'(6(1x,f12.5))') b(6,1:6)
+!        write(6,'(6(1x,f12.5))') s(6,1:6) 
+        if(mod(ndpt,2)==0) then
+         i=ndpt/2
+        else
+         i=ndptb/2
+        endif
+       phase(i)=phase(i)+b(ndptb,ndpt)
+
+      endif
+
+       s=matmul(b,ri)
+       u_c=matmul(b0,s)
+
 
 end subroutine c_fast_canonise
+
+subroutine extract_a0_mat(a,a0)
+!#internal: manipulation
+!# This routines extracts a0: the full fixed point map.
+    implicit none
+    real(dp), intent(inout) :: a(6,6),a0(6,6)
+    type(c_damap) aa,aa0
+    call alloc(aa,aa0)
+    aa=a
+    aa0=a0
+    call extract_a0(aa,aa0)
+    a=aa
+    a0=aa0
+      call kill(aa,aa0)
+end subroutine extract_a0_mat
+
+
+
 
 !Function to find the determinant of a square matrix
 !Author : Louisda16th a.k.a Ashwith J. Rego

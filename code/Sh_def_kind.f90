@@ -105,7 +105,7 @@ MODULE S_DEF_KIND
   private elliptical_b_r,elliptical_b_p  ! valishev
   private PATCH_driftR,PATCH_driftp,SUPER_DRIFT_p,SUPER_DRIFT_r,INTERabell,INTEPabell
   private fx_newr,fx_newp
-
+  private gen_conv_to_pxp,gen_conv_to_pxr,gen_conv_to_xpp,gen_conv_to_xpr
   INTEGER, PRIVATE :: TOTALPATH_FLAG
   !  private DRIFT_pancaker,DRIFT_pancakep,KICKPATH_pancaker,KICKPATH_pancakep
   ! using x and x'
@@ -160,7 +160,7 @@ MODULE S_DEF_KIND
  logical :: piotr_freq=.false.,syphers=.true.,freq_redefine = .false.
 integer :: put_a_abell = 1
 private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,get_z_abp
-
+private fx_newcr,fx_newcp,fx_newc
 
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
@@ -812,6 +812,10 @@ private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,ge
      MODULE PROCEDURE fx_newp
   END INTERFACE
 
+  INTERFACE fx_newc
+     MODULE PROCEDURE fx_newcr
+     MODULE PROCEDURE fx_newcp
+  END INTERFACE
 
   INTERFACE fxc
      MODULE PROCEDURE fxr_canonical
@@ -830,6 +834,16 @@ private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,ge
   INTERFACE feval
      MODULE PROCEDURE FEVAL_pancaker
      MODULE PROCEDURE FEVAL_pancakeP
+  END INTERFACE
+
+  INTERFACE gen_conv_to_px
+     MODULE PROCEDURE gen_conv_to_pxr
+     MODULE PROCEDURE gen_conv_to_pxp
+  END INTERFACE
+
+  INTERFACE gen_conv_to_xp
+     MODULE PROCEDURE gen_conv_to_xpr
+     MODULE PROCEDURE gen_conv_to_xpp
   END INTERFACE
 
   INTERFACE conv_to_xp
@@ -14516,77 +14530,28 @@ SUBROUTINE ZEROr_teapot(EL,I)
     real(dp), INTENT(INout) :: X(6)
     real(dp), INTENT(INOUT) :: F(6)
     real(dp), INTENT(INOUT) :: Z
-    REAL(DP) PZ,DEL,H,B(3),E(3),VM,A(3),DA(3,2),VE   ! vm MAGNETIC POTENTIAL
+    REAL(DP) PZ,DEL,H,B(3),E(3),VM,A(3),DA(3,2),VE,beta0   ! vm MAGNETIC POTENTIAL
     TYPE(abell),  INTENT(INout) :: EL
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
      
+    if(k%time) then
+       beta0=el%p%beta0; 
+    else
+       beta0=1.0_dp; 
+    endif
 
 
     if(el%xprime) then   !!!!   
 
- !    if(ABELL_NEW) then
       call B_E_FIELD(EL,X,Z,PSIE_IN=VE,E_IN=E,B_in=b,kick=.true.)
            DEL=x(5)+VE
-      call fx_new(f,x,k,b,e,ve,EL%P,EL%P%B0) 
-  !   else
- !     call B_E_FIELD(EL,X,Z,B_in=b,kick=.true.)
- !          DEL=x(5)+VE
- !      CALL fx(f,x,k,b,EL%p,el%p%b0)
+      call fx_new(f,x,k,EL%P%EXACT,EL%P%b0,beta0,b,e,ve) 
 
-  !      if(k%TIME) then
-  !        F(6)=f(6)+(k%TOTALPATH-1)/EL%P%BETA0
-  !          else
-  !        F(6)=f(6)+(k%TOTALPATH-1)
-  !      endif
-  !   endif
     else
 call B_E_FIELD(EL,X,Z,PSIE_IN=VE,E_IN=E,B_in=b,A_in=a,DA_in=da,kick=.true.)
+  call fx_newc(f,x,k,EL%P%EXACT,EL%P%b0,beta0,b,a,da,e,ve)   
 
-     H=1.0_dp+EL%P%B0*X(1)
 
-      IF(EL%P%EXACT) THEN
-        if(k%TIME) then
-
-           DEL=x(5)+VE
-           PZ=root(1.0_dp+2*del/EL%P%BETA0+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*PZ+(H/PZ)*((1.0_dp/EL%P%BETA0+del)*(-e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
-           F(4)= (H/PZ)*((1.0_dp/EL%P%BETA0+del)*(-e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp/EL%P%BETA0+del)/PZ+(k%TOTALPATH-1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)+VE
-           PZ=root(1.0_dp+2*del+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*PZ+(H/PZ)*((1.0_dp+del)*(-e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
-           F(4)= (H/PZ)*((1.0_dp+del)*(-e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp+del)/PZ+(k%TOTALPATH-1)  !! ld=L in sector bend
-        endif
-     ELSE
-        if(k%TIME) then
-           DEL=x(5)+VE
-           PZ=ROOT(1.0_dp+2*del/EL%P%BETA0+del**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ 
-           F(2)=EL%P%B0*pz+( (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/PZ  + DA(3,1)
-           F(4)= ( (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/PZ + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp/EL%P%BETA0+del)/PZ*(1.0_dp+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(k%TOTALPATH-1)/EL%P%BETA0 &
-           +EL%P%B0*x(1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)+VE
-           PZ=1.0_dp+del
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*pz+( (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/PZ  + DA(3,1)
-           F(4)=( (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/PZ + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
-        endif
-     ENDIF
      endif
      global_e= DEL*el%p%p0c
    END subroutine feval_abellr
@@ -14600,6 +14565,8 @@ subroutine feval_abellP(Z,X,k,f,EL)   !electric teapot s
     TYPE(abellP),  INTENT(INout) :: EL
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer i,j
+    real(dp) beta0
+
      call alloc(PZ,DEL,H,VM)
      call alloc(E);call alloc(B);call alloc(A);
       CALL alloc(VE)
@@ -14608,75 +14575,27 @@ subroutine feval_abellP(Z,X,k,f,EL)   !electric teapot s
        call alloc(da(i,j))
       enddo
      enddo
-     e=0.0_dp
-     DEL=0.0_DP
-!     call B_E_FIELD(EL,vm,B,A,DA,X,Z,kick=.true.)
+
+
+    if(k%time) then
+       beta0=el%p%beta0; 
+    else
+       beta0=1.0_dp; 
+    endif
 
 
     if(el%xprime) then   !!!!   
- !    if(ABELL_NEW) then
+
       call B_E_FIELD(EL,X,Z,PSIE_IN=VE,E_IN=E,B_in=b,kick=.true.)
            DEL=x(5)+VE
-      call fx_new(f,x,k,b,e,ve,EL%P,EL%P%B0) 
-  !   else
- !     call B_E_FIELD(EL,X,Z,B_in=b,kick=.true.)
- !          DEL=x(5)+VE
- !      CALL fx(f,x,k,b,EL%p,el%p%b0)
+      call fx_new(f,x,k,EL%P%EXACT,EL%P%b0,beta0,b,e,ve) 
 
-  !      if(k%TIME) then
-  !        F(6)=f(6)+(k%TOTALPATH-1)/EL%P%BETA0
-  !          else
-  !        F(6)=f(6)+(k%TOTALPATH-1)
-  !      endif
-  !   endif
     else
  
 call B_E_FIELD(EL,X,Z,PSIE_IN=VE,E_IN=E,B_in=b,A_in=a,DA_in=da,kick=.true.)
-  !   call B_E_FIELD(EL,X,Z,A_in=a,DA_in=da,kick=.true.)
-     H=1.0_dp+EL%P%B0*X(1)
-     IF(EL%P%EXACT) THEN
-        if(k%TIME) then
+  call fx_newc(f,x,k,EL%P%EXACT,EL%P%b0,beta0,b,a,da,e,ve)   
 
-           DEL=x(5)+VE
-           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*PZ+(H/PZ)*((1.0_dp/EL%P%BETA0+del)*(-e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
-           F(4)= (H/PZ)*((1.0_dp/EL%P%BETA0+del)*(-e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp/EL%P%BETA0+del)/PZ+(k%TOTALPATH-1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)+VE
-           PZ=sqrt(1.0_dp+2*del+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*PZ+(H/PZ)*((1.0_dp+del)*(-e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
-           F(4)= (H/PZ)*((1.0_dp+del)*(-e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=H*(1.0_dp+del)/PZ+(k%TOTALPATH-1)  !! ld=L in sector bend
-        endif
-     ELSE
-        if(k%TIME) then
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2)
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ 
-           F(2)=EL%P%B0*pz+( (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/PZ  + DA(3,1)
-           F(4)= ( (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/PZ + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp/EL%P%BETA0+del)/PZ*(1.0_dp+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(k%TOTALPATH-1)/EL%P%BETA0 &
-           +EL%P%B0*x(1)/EL%P%BETA0  !! ld=L in sector bend
-        else
-           DEL=x(5)-E(3)*EL%P%CHARGE
-           PZ=1.0_dp+del
-           F(1)=(X(2)-A(1))*H/PZ
-           F(3)=(X(4)-A(2))*H/PZ
-           F(2)=EL%P%B0*pz+( (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/PZ  + DA(3,1)
-           F(4)=( (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/PZ + DA(3,2)
-           F(5)=0.0_dp
-           F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*x(1)   !! ld=L in sector bend
-        endif
-     ENDIF
+
 endif
      global_e= DEL*el%p%p0c
      call kill(PZ,DEL,H,VM)
@@ -14756,11 +14675,11 @@ endif
         B(2)=dd*0.5_DP*EXP(I_*K_N*Z)*EL%B(M,N)*nbm1*YN*K_N +B(2)
         B(3)=I_*K_N*dd*0.5_DP*EXP(I_*K_N*Z)*EL%B(M,N)*nbm+B(3)
         PSIE=PSIE+EXP(I_*K_N*Z)*0.5_DP*EL%E(M,N)*ddE*nbm      
-        E(1)=DYE*M*EXP(I_*K_N*Z)*0.5_DP*EL%E(M,N)*nbm+E(1)
-        E(1)=ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm1*XN*K_N +E(1)
-        E(2)=I_*DXE*M*EXP(I_*K_N*Z)*0.5_DP*EL%E(M,N)*nbm+E(2)
-        E(2)=ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm1*YN*K_N +E(2)
-        E(3)=I_*K_N*ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm+E(3)
+        E(1)=-DYE*M*EXP(I_*K_N*Z)*0.5_DP*EL%E(M,N)*nbm+E(1)
+        E(1)=-ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm1*XN*K_N +E(1)
+        E(2)=-I_*DXE*M*EXP(I_*K_N*Z)*0.5_DP*EL%E(M,N)*nbm+E(2)
+        E(2)=-ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm1*YN*K_N +E(2)
+        E(3)=-I_*K_N*ddE*0.5_DP*EXP(I_*K_N*Z)*EL%E(M,N)*nbm+E(3)
 
         if(n==0) then
        AMI=-0.5_dp*EXP(I_*K_N*Z)/M*EL%B(M,N)*nbm*d  
@@ -14814,9 +14733,9 @@ endif
         B(1)=EXP(I_*K_N*Z)*XN*EL%B(0,N)*nbm1+B(1)
         B(2)=EXP(I_*K_N*Z)*YN*EL%B(0,N)*nbm1+B(2)
         B(3)=I_*EXP(I_*K_N*Z)*EL%B(0,N)*nbm+B(3)
-        E(1)=EXP(I_*K_N*Z)*XN*EL%E(0,N)*nbm1+E(1)
-        E(2)=EXP(I_*K_N*Z)*YN*EL%E(0,N)*nbm1+E(2)
-        E(3)=I_*EXP(I_*K_N*Z)*EL%E(0,N)*nbm+E(3)
+        E(1)=-EXP(I_*K_N*Z)*XN*EL%E(0,N)*nbm1+E(1)
+        E(2)=-EXP(I_*K_N*Z)*YN*EL%E(0,N)*nbm1+E(2)
+        E(3)=-I_*EXP(I_*K_N*Z)*EL%E(0,N)*nbm+E(3)
         AMI=I_*EL%B(0,N)*nbm1*EXP(I_*K_N*Z)
         C=I_*EL%B(0,N)*EXP(I_*K_N*Z)*K_N
         CX=C*XN*NBI(2,XN,YN)
@@ -15907,110 +15826,199 @@ endif
 
   END SUBROUTINE KILLTEAPOT
 
-!!!!!!!!!!!!!!!!!!!!!!!!         new xprime force routine      !!!!!!!!!!!!!!!!!!!!!!!
-  subroutine fx_newr(f,x,state,b,e,ve,p,hcurv)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
+!!!!!!!!!!!!!!!!!!!!!!!!         new canonical force routine      !!!!!!!!!!!!!!!!!!!!!!!
+  subroutine fx_newcr(f,x,state,exact,hcurv,beta0,b,a,da,e,ve)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
     implicit none
 
-
-    real(dp) ,intent(inOUT) :: b(3),e(3),ve,hcurv
-    type(MAGNET_CHART), pointer:: p
+  
+    real(dp) ,intent(inOUT) :: b(3),e(3),ve,hcurv,a(3),da(3,2),beta0
     real(dp) ,intent(inout) :: x(6)
     real(dp), intent(inout):: f(6)
     TYPE(INTERNAL_STATE) state !,OPTIONAL :: K
-    real(dp)  d(2),c(3),BETA0,de,delt,del,g(2),xp,yp,rho,k,ed,det
+    real(dp)  del,pz,h
+    logical exact
 
-    if(state%time) then
-       beta0=p%beta0; 
-    else
-       beta0=1.0_dp; 
-    endif
+     DEL=x(5)-VE
+     H=1.0_dp+hcurv*x(1)
+IF(EXACT) THEN
+           PZ=root(1.0_dp+2*del/beta0+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
+           F(1)=(X(2)-A(1))*H/PZ
+           F(3)=(X(4)-A(2))*H/PZ
+           F(2)=hcurv*PZ+(H/PZ)*((1.0_dp/beta0+del)*(e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
+           F(4)= (H/PZ)*((1.0_dp/beta0+del)*(e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
+           F(5)=0.0_dp
+           F(6)=H*(1.0_dp/beta0+del)/PZ+(state%TOTALPATH-1)/beta0  !! ld=L in sector bend
+     
+ELSE
+           PZ=root(1.0_dp+2*del/beta0+del**2)
+           F(1)=(X(2)-A(1))/PZ
+           F(3)=(X(4)-A(2))/PZ 
+           F(2)=hcurv*PZ+(1.0_dp/PZ)*(1.0_dp/beta0+del)*e(1)*( H + 0.5_dp* ((X(2)-A(1))**2 + (X(4)-A(2))**2)/pz**2 )
+           F(2)=F(2)+((X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/pz + DA(3,1)
+           F(4)=(1.0_dp/PZ)*(1.0_dp/beta0+del)*e(2)*( H + 0.5_dp* ((X(2)-A(1))**2 + (X(4)-A(2))**2)/pz**2 )
+           F(4)=F(4)+ ((X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/pz  + DA(3,2)
+
+           F(5)=0.0_dp
+           F(6)=(1.0_dp/beta0+del)/PZ*(H+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(state%TOTALPATH-1)/beta0  !! ld=L in sector bend
+
+     ENDIF
+
+
+  end subroutine fx_newcr
+
+  subroutine fx_newcp(f,x,state,exact,hcurv,beta0,b,a,da,e,ve)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
+    implicit none
+    type(real_8) ,intent(inOUT) :: b(3),e(3),ve,a(3),da(3,2)
+    real(dp) ,intent(inOUT) :: hcurv,beta0
+    type(real_8) ,intent(inout) :: x(6)
+    type(real_8), intent(inout):: f(6)
+    TYPE(INTERNAL_STATE) state !,OPTIONAL :: K
+    type(real_8)  del,pz,h
+    logical exact
+    call  alloc(del,pz,h)
+     DEL=x(5)-VE
+     H=1.0_dp+hcurv*x(1)
+IF(EXACT) THEN
+           PZ=sqrt(1.0_dp+2*del/beta0+del**2-(X(2)-A(1))**2-(X(4)-A(2))**2)
+           F(1)=(X(2)-A(1))*H/PZ
+           F(3)=(X(4)-A(2))*H/PZ
+           F(2)=hcurv*PZ+(H/PZ)*((1.0_dp/beta0+del)*(e(1))+ (X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) ) + DA(3,1)
+           F(4)= (H/PZ)*((1.0_dp/beta0+del)*(e(2))+ (X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) ) + DA(3,2)
+           F(5)=0.0_dp
+           F(6)=H*(1.0_dp/beta0+del)/PZ+(state%TOTALPATH-1)/beta0  !! ld=L in sector bend
+     
+ELSE
+           PZ=sqrt(1.0_dp+2*del/beta0+del**2)
+           F(1)=(X(2)-A(1))/PZ
+           F(3)=(X(4)-A(2))/PZ 
+           F(2)=hcurv*PZ+(1.0_dp/PZ)*(1.0_dp/beta0+del)*e(1)*( H + 0.5_dp* ((X(2)-A(1))**2 + (X(4)-A(2))**2)/pz**2 )
+           F(2)=F(2)+((X(2)-A(1))*DA(1,1)+(X(4)-A(2))*DA(2,1) )/pz + DA(3,1)
+           F(4)=(1.0_dp/PZ)*(1.0_dp/beta0+del)*e(2)*( H + 0.5_dp* ((X(2)-A(1))**2 + (X(4)-A(2))**2)/pz**2 )
+           F(4)=F(4)+ ((X(2)-A(1))*DA(1,2)+(X(4)-A(2))*DA(2,2) )/pz  + DA(3,2)
+
+
+           F(5)=0.0_dp
+           F(6)=(1.0_dp/beta0+del)/PZ*(H+0.5_dp*((X(2)-A(1))**2+(X(4)-A(2))**2)/pz**2)+(state%TOTALPATH-1)/beta0  !! ld=L in sector bend
+
+ENDIF
+call  kill(del,pz,h)
+
+  end subroutine fx_newcp
+
+!!!!!!!!!!!!!!!!!!!!!!!!         new xprime force routine      !!!!!!!!!!!!!!!!!!!!!!!
+  subroutine fx_newr(f,x,state,exact,hcurv,beta0,b,e,ve)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
+    implicit none
+
+    real(dp) ,intent(inOUT) :: b(3),e(3),ve,hcurv,BETA0
+    real(dp) ,intent(inout) :: x(6)
+    real(dp), intent(inout):: f(6)
+    TYPE(INTERNAL_STATE) state !,OPTIONAL :: K
+    real(dp)  d(2),c(3),de,delt,del,g(2),xp,yp,rho,k,ed,det
+    logical exact 
 
     xp=x(2);yp=x(4);
-    de=x(5)+VE
+    de=x(5)-VE
     delt=root(1.0_dp + 2*de/beta0 + de**2)
     del=(1.0_dp/beta0 + de)/delt
     k=(1.0_dp+hcurv*x(1))
+    ed=-(e(1)*xp + e(2)*yp + e(3)*k)
+    f(1)=xp
+    f(3)=yp
+
+   if(exact) then
+
     rho=root(xp**2+yp**2+k**2)
-    ed=e(1)*xp + e(2)*yp + e(3)*k
-    
+
     g(1)=k*hcurv*xp**2/rho**3*delt
     g(2)=k*hcurv*xp*yp/rho**3*delt
     
-    d(1)=xp/rho*del*ed + g(1) - rho*del*e(1) + delt*k*hcurv/rho + yp*b(3) - k*b(2)
-    d(2)=yp/rho*del*ed + g(2) - rho*del*e(2) +                  - xp*b(3) + k*b(1)
+    d(1)=xp/rho*del*ed + g(1) + rho*del*e(1) + delt*k*hcurv/rho + yp*b(3) - k*b(2)
+    d(2)=yp/rho*del*ed + g(2) + rho*del*e(2)                    - xp*b(3) + k*b(1)
     
     c(1)=delt*(1/rho-xp**2/rho**3)
     c(2)=delt*(1/rho-yp**2/rho**3)
     c(3)=xp*yp*delt/rho**3
-    det=c(1)*c(2)-c(3)**2
-   
-    f(1)=xp
-    f(3)=yp
+    det=c(1)*c(2)-c(3)**2 
+
     f(2)=(c(2)*d(1)+c(3)*d(2))/det
     f(4)=(c(3)*d(1)+c(1)*d(2))/det
     f(5)=0.0_dp
 
     f(6)=del*rho 
  
-
           F(6)=f(6)+(state%TOTALPATH-1)/BETA0
+    else
 
+      f(2)=e(1)*del/delt*(k+0.5_dp*xp**2+0.5_dp*yp**2)+xp*ed*del/delt+hcurv+(yp*b(3)-k*b(2))/delt  
+      f(4)=e(2)*del/delt*(k+0.5_dp*xp**2+0.5_dp*yp**2)+yp*ed*del/delt      +(-xp*b(3)+k*b(1))/delt 
+      f(5)=0.0_dp
+
+
+      F(6)=del*(k+0.5_dp*(xp**2+yp**2) )
+      F(6)=f(6)+(state%TOTALPATH-1)/BETA0
+    endif
 
   end subroutine fx_newr
 
-  subroutine fx_newp(f,x,state,b,e,ve,p,hcurv)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
+  subroutine fx_newp(f,x,state,exact,hcurv,beta0,b,e,ve)  ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
     implicit none
 
 
      type(real_8) ,intent(inOUT) :: b(3),e(3),ve 
-    real(dp) ,intent(inout) :: hcurv
-    type(MAGNET_CHART), pointer:: p
      type(real_8) ,intent(inout) :: x(6)
      type(real_8), intent(inout):: f(6)
     TYPE(INTERNAL_STATE) state !,OPTIONAL :: K
     type(real_8)  d(2),c(3),g(2),xp,yp,rho,k,ed,det,de,delt,del
-    real(dp)  BETA0
+    real(dp)  BETA0,hcurv
+    logical exact
 
      call alloc(xp,yp,rho,k,ed,det,de,delt,del)
      call alloc(d)
      call alloc(c)
      call alloc(g)
 
-    if(state%time) then
-       beta0=p%beta0; 
-    else
-       beta0=1.0_dp; 
-    endif
+    
 
     xp=x(2);yp=x(4);
-    de=x(5)+VE
+    de=x(5)-VE
     delt=sqrt(1.0_dp + 2*de/beta0 + de**2)
     del=(1.0_dp/beta0 + de)/delt
     k=(1.0_dp+hcurv*x(1))
+    ed=-(e(1)*xp + e(2)*yp + e(3)*k)
+    f(1)=xp
+    f(3)=yp
+
+   if(exact) then
+
     rho=sqrt(xp**2+yp**2+k**2)
-    ed=e(1)*xp + e(2)*yp + e(3)*k
-    
+
     g(1)=k*hcurv*xp**2/rho**3*delt
     g(2)=k*hcurv*xp*yp/rho**3*delt
     
-    d(1)=xp/rho*del*ed + g(1) - rho*del*e(1) + delt*k*hcurv/rho + yp*b(3) - k*b(2)
-    d(2)=yp/rho*del*ed + g(2) - rho*del*e(2) +                  - xp*b(3) + k*b(1)
+    d(1)=xp/rho*del*ed + g(1) + rho*del*e(1) + delt*k*hcurv/rho + yp*b(3) - k*b(2)
+    d(2)=yp/rho*del*ed + g(2) + rho*del*e(2)                    - xp*b(3) + k*b(1)
     
     c(1)=delt*(1/rho-xp**2/rho**3)
     c(2)=delt*(1/rho-yp**2/rho**3)
     c(3)=xp*yp*delt/rho**3
-    det=c(1)*c(2)-c(3)**2
-   
-    f(1)=xp
-    f(3)=yp
+    det=c(1)*c(2)-c(3)**2 
+
     f(2)=(c(2)*d(1)+c(3)*d(2))/det
     f(4)=(c(3)*d(1)+c(1)*d(2))/det
     f(5)=0.0_dp
 
     f(6)=del*rho 
  
-
           F(6)=f(6)+(state%TOTALPATH-1)/BETA0
+    else
+
+      f(2)=e(1)*del/delt*(k+0.5_dp*xp**2+0.5_dp*yp**2)+xp*ed*del/delt+hcurv+(yp*b(3)-k*b(2))/delt  
+      f(4)=e(2)*del/delt*(k+0.5_dp*xp**2+0.5_dp*yp**2)+yp*ed*del/delt      +(-xp*b(3)+k*b(1))/delt 
+      f(5)=0.0_dp
+
+      F(6)=del*(k+0.5_dp*(xp**2+yp**2) )
+      F(6)=f(6)+(state%TOTALPATH-1)/BETA0
+    endif
 
 
      call kill(xp,yp,rho,k,ed,det,de,delt,del)
@@ -16959,24 +16967,114 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     return
   end  subroutine rk4_pancakeP
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!   abell conversion  !!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+  SUBROUTINE gen_conv_to_xpr(X,a,ve,exact,beta0,hcurv)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    real(dp) ti,ve,a(3),beta0,hcurv
+    logical exact
+
+    if(exact) then
+       ti=ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+       x(2)=(1.0_dp+hcurv*X(1))*(X(2)-put_a_abell*a(1))/ti
+       x(4)=(1.0_dp+hcurv*X(1))*(X(4)-put_a_abell*a(2))/ti
+    else
+       ti=ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)
+       x(2)=(X(2)-put_a_abell*a(1))/ti
+       x(4)=(X(4)-put_a_abell*a(2))/ti
+    endif
+
+  end SUBROUTINE gen_conv_to_xpr
+
+  SUBROUTINE gen_conv_to_xpp(X,a,ve,exact,beta0,hcurv)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    type(real_8)  ti,ve,a(3) 
+    real(dp) beta0,hcurv
+    logical exact
+ 
+    call alloc(ti)
+
+    if(exact) then
+       ti=sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+       x(2)=(1.0_dp+hcurv*X(1))*(X(2)-put_a_abell*a(1))/ti
+       x(4)=(1.0_dp+hcurv*X(1))*(X(4)-put_a_abell*a(2))/ti
+    else
+       ti=sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)
+       x(2)=(X(2)-put_a_abell*a(1))/ti
+       x(4)=(X(4)-put_a_abell*a(2))/ti
+    endif
+
+    call kill(ti)
+
+  end SUBROUTINE gen_conv_to_xpp
+
+  SUBROUTINE gen_conv_to_pxr(X,a,ve,exact,beta0,hcurv)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    real(dp) ti,ve,z,a(3),beta0,hcurv
+    logical exact
+
+    if(exact) then
+       ti=ROOT((1.0_dp+hcurv*X(1))**2+X(2)**2+X(4)**2)
+       x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+       x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+    else
+       x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2) + put_a_abell*a(1)
+       x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2) + put_a_abell*a(2)
+    endif
+
+  end SUBROUTINE gen_conv_to_pxr
+
+  SUBROUTINE gen_conv_to_pxp(X,a,ve,exact,beta0,hcurv)
+    IMPLICIT NONE
+    type(real_8) ,INTENT(INOUT):: X(6)
+    type(real_8) ti,ve,z,a(3) 
+    real(dp)  beta0,hcurv
+    logical exact
+
+    if(exact) then
+      call alloc(ti)
+       ti=sqrt((1.0_dp+hcurv*X(1))**2+X(2)**2+X(4)**2)
+       x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+       x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+      call kill(ti)
+    else
+       x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2) + put_a_abell*a(1)
+       x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/beta0+(X(5)-ve)**2) + put_a_abell*a(2)
+    endif
+
+  end SUBROUTINE gen_conv_to_pxp
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!   abell conversion  !!!!!!!!!!!!!!!!!!!!!!!!!!!! 
   SUBROUTINE conv_to_xprABELL(EL,X,k,ent)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(ABELL),INTENT(INOUT):: EL
-    real(dp) ti,ve,z,a(3)
+    real(dp) ti,ve,z,a(3),beta0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer ent
     z=ent*el%l
     call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-    if(k%TIME) then
-       ti=ROOT(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2-(X(2)-a(1))**2-(X(4)-a(2))**2)
-       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
-       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
-    else
-       ti=ROOT((1.0_dp+x(5)+ve)**2-(X(2)-a(1))**2-(X(4)-a(2))**2)
-       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
-       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
-    endif
+      
+      if(k%TIME) then
+       beta0=el%p%beta0
+      else
+       beta0=1.0_dp
+      endif
+      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   if(k%TIME) then
+ !      ti=ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   else
+ !      ti=ROOT((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   endif
 
   end SUBROUTINE conv_to_xprabell
 
@@ -16987,23 +17085,32 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     type(real_8) ti,ve,z,a(3)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer ent
-
+    real(dp) beta0
 
     call alloc(ti,ve,z)
     call alloc(a)
     z=ent*el%l
 
     call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-    if(k%TIME) then
-       ti=sqrt(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2-(X(2)-a(1))**2-(X(4)-a(2))**2)
-       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
-       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
-    else
-       ti=sqrt((1.0_dp+x(5)+ve)**2-(X(2)-a(1))**2-(X(4)-a(2))**2)
-       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
-       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
-    endif
-    call kill(ti,ve,z)
+
+      if(k%TIME) then
+       beta0=el%p%beta0
+      else
+       beta0=1.0_dp
+      endif
+      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   if(k%TIME) then
+ !      ti=sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   else
+ !      ti=sqrt((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   endif
+ 
+   call kill(ti,ve,z)
     call kill(a)
 
   end SUBROUTINE conv_to_xppabell
@@ -17012,20 +17119,27 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(ABELL),INTENT(INOUT):: EL
-    real(dp) ti,ve,z,a(3)
+    real(dp) ti,ve,z,a(3),beta0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer ent
     z=ent*el%l
     call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
 
-    ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
-    if(k%TIME) then
-       x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2)/ti + put_a_abell*a(1)
-       x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2)/ti + put_a_abell*a(2)
-    else
-       x(2)=x(2)*(1.0_dp+(X(5)+ve))/ti + put_a_abell*a(1)
-       x(4)=x(4)*(1.0_dp+(X(5)+ve))/ti + put_a_abell*a(2)
-    endif
+  if(k%TIME) then
+   beta0=el%p%beta0
+  else
+   beta0=1.0_dp
+  endif
+    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+ !   if(k%TIME) then
+ !      x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+ !   else
+ !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
+ !   endif
 
   end SUBROUTINE conv_to_pxrabell
 
@@ -17036,19 +17150,27 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     type(real_8) ti,ve,z,a(3)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer ent
+    real(dp) beta0
     call alloc(ti,ve,z)
     call alloc(a)
     z=ent*el%l
     call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
 
-    ti=sqrt((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
-    if(k%TIME) then
-       x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2)/ti + put_a_abell*a(1)
-       x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)+ve)/el%p%beta0+(X(5)+ve)**2)/ti + put_a_abell*a(2)
-    else
-       x(2)=x(2)*(1.0_dp+(X(5)+ve))/ti + put_a_abell*a(1)
-       x(4)=x(4)*(1.0_dp+(X(5)+ve))/ti + put_a_abell*a(2)
-    endif
+  if(k%TIME) then
+   beta0=el%p%beta0
+  else
+   beta0=1.0_dp
+  endif
+    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   ti=sqrt((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+ !   if(k%TIME) then
+ !      x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+ !   else
+ !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
+ !   endif
 
     call kill(ti,ve,z)
     call kill(a)
