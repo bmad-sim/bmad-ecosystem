@@ -115,6 +115,7 @@ do ib = 0, ubound(lat%branch, 1)
       start_orb%field = [1, 2]
 
       if (print_extra) then
+        track%n_pt = -1  ! Reset
         call track1 (start_orb, ele, branch%param, end_orb, track = track)
       else
         call track1 (start_orb, ele, branch%param, end_orb)
