@@ -67,10 +67,10 @@ if (err) return
 ! representing the region
 
 call tao_plot_struct_transfer (template(1)%p, region%plot)
-if (s%com%gui_mode) then
-  region%visible = .false.
-else
+if (s%global%plot_on) then
   region%visible = .true.
+else
+  region%visible = .false.
 endif
 region%plot%r => region
 
@@ -88,7 +88,7 @@ do i = 1, size(region%plot%graph)
     endif
     u => s%u(tao_universe_number(curve%ix_universe))
     if (.not. allocated(u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
-      if (.not. s%com%gui_mode) u%calc%lattice = .true.
+      if (s%global%plot_on) u%calc%lattice = .true.
       u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%save_beam = .true.
     endif
   enddo

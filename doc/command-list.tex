@@ -736,8 +736,8 @@ variables, etc. Format:
   set lat_layout <component> = <value>                      ! \sref{s:set.lat.layout}
   set lattice \{n@\}<destination\_lat> = <source\_lat>          ! \sref{s:set.lattice}
   set opti_de_param <component> = <value>                   ! \sref{s:set.opti.de.param}
-  set plot <plot> <component> = <value>                     ! \sref{s:set.plot}
-  set plot_page <component> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
+  set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
+  set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> recalculate                  ! \sref{s:set.universe}
@@ -1174,7 +1174,7 @@ Example:
 
 Format:
 \begin{example}
-  set plot <plot> <component> = <value>
+  set plot <plot_or_region> <parameter> = <value>
 \end{example}
 
 For \vn{set plot}, \vn{<component>}s that can be set are:
@@ -1185,9 +1185,15 @@ For \vn{set plot}, \vn{<component>}s that can be set are:
   component   = <string>    ! \sref{s:plot.data}
 \end{example}
 
-If \vn{component} is set, the \vn{<value>} is stored in the graphs of the plot since the
-\vn{component} attribute is associated with individual graphs and not the plot as a
-whole. Also see the commands:
+The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
+the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
+used by \tao to decide whether to calculate the points needed for plotting curves (saves time if the
+computation is not needed). This is relavent when \tao is interfaced to a \vn{gui}
+(\sref{s:gui.plot}).
+
+Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the graphs of
+the plot since the \vn{component} attribute is associated with individual graphs and not the plot as
+a whole. Other commands that involve \vn{component} are:
 \begin{example}
   plot                    ! \sref{s:plot}
   set graph component     ! \sref{s:set.graph}

@@ -42,7 +42,16 @@ as opposed to the \vn{show} command . See the \vn{python} command for more detai
 
 %--------------------------------------------------------------------------
 \section{Plotting Issues}
+\label{s:gui.plot}
 
-   4: set plot r11 visible = T
-   5: show curve -line beta
+When using \tao with a \vn{gui}, and when the \vn{gui} is doing the plotting, the \vn{-noplot}
+option (\sref{s:command.line}) should be used when starting \tao. The \vn{-noplot} option prevents
+\tao from opening a plotting window.
 
+Even though \tao is not displaying the plot page when the \vn{-noplot} option is used, \tao will
+still calculate the points needed for plotting curves for use by the \vn{gui}. In this case, a few
+points must be kept in mind: First the names of the default plot regions are simplified to be 'r1',
+'r2', etc. Use the \vn{show plot} command (\sref{s:show.plot}) to view a list. Second, to prevent
+unneeded computation, the \vn{visible} parameter of template plots that are placed (\sref{s:place})
+is set to False and must be set to True, using the \vn{set plot} command (\sref{s:set.plot}), to
+enable computation of the curve points.

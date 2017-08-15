@@ -38,9 +38,6 @@ character(20) :: r_name = 'tao_plot_setup'
 
 ! setup the plots
 
-! Allow non-interactive (python) to setup plots even without an X window
-if (.not. s%global%plot_on .and. .not. s%com%gui_mode) return 
-
 plot_loop: do ir = 1, size(s%plot_page%region)
 
   plot => s%plot_page%region(ir)%plot

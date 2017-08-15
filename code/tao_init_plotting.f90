@@ -49,7 +49,7 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 
 real(rp) y1, y2
 
-integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
+integer iu, i, j, k, k1, k2, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, color, i_graph, ic
 
 character(*) plot_file_in
@@ -776,7 +776,7 @@ endif
 
 ! initial placement of plots
 
-if (.not. s%com%gui_mode) then
+if (s%global%plot_on) then
   do i = 1, size(place)
     if (place(i)%region == ' ') cycle
     call tao_place_cmd (place(i)%region, place(i)%plot)
@@ -2815,44 +2815,69 @@ endif
 
 y_layout = 0.15
 
-if (all(s%plot_page%region(:)%name /= 'layout')) then
-  nr = nr + 1
-  s%plot_page%region(nr)%name = 'layout'
-  s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+if (s%global%plot_on) then
+  if (all(s%plot_page%region(:)%name /= 'layout')) then
+    nr = nr + 1
+    s%plot_page%region(nr)%name = 'layout'
+    s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+  endif
+
+  do i = 1, 4
+    do j = 1, i
+      write (name, '(a, 2i0)') 'r', j, i
+      if (any(s%plot_page%region(:)%name == name)) cycle
+      nr = nr + 1
+      s%plot_page%region(nr)%name = name
+      y1 = y_layout + (1 - y_layout) * real(i-j)/ i
+      y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
+      s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
+    enddo
+  enddo
+
+  if (all(s%plot_page%region(:)%name /= 'layout1')) then
+    nr = nr + 1
+    s%plot_page%region(nr)%name = 'layout1'
+    s%plot_page%region(nr)%location = [0.0_rp, 0.5_rp, 0.0_rp, y_layout]
+  endif
+
+  if (all(s%plot_page%region(:)%name /= 'layout2')) then
+    nr = nr + 1
+    s%plot_page%region(nr)%name = 'layout2'
+    s%plot_page%region(nr)%location = [0.5_rp, 1.0_rp, 0.0_rp, y_layout]
+  endif
+
+  k1 = 2
+  do k2 = 1, 4
+    do i = 1, k1
+    do j = 1, k2
+      write (name, '(a, 4i0)') 'r', i, k1, j, k2
+      if (any(s%plot_page%region(:)%name == name)) cycle
+      nr = nr + 1
+      s%plot_page%region(nr)%name = name
+      !! if (100*k+10*i+j > 411) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+      x1 = real(k1-i)/ k1
+      x2 = real(k1-i+1) / k1
+      y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
+      y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
+      s%plot_page%region(nr)%location = [x1, x2, y1, y2]
+    enddo
+    enddo
+  enddo
+
+else
+  do i = 1, size(s%plot_page%region)
+    write (name, '(a, 2i0)') 'r', i
+    if (any(s%plot_page%region(:)%name == name)) cycle
+    nr = nr + 1
+    if (nr > 20) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+    s%plot_page%region(nr)%name = name
+    if (nr == size(s%plot_page%region)) exit
+  enddo
 endif
-
-do i = 1, 4
-  do j = 1, i
-    write (name, '(a, 2i0)') 'r', j, i
-    if (any(s%plot_page%region(:)%name == name)) cycle
-    nr = nr + 1
-    s%plot_page%region(nr)%name = name
-    y1 = y_layout + (1 - y_layout) * real(i-j)/ i
-    y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
-    s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
-  enddo
-enddo
-
-do k = 1, 6
-  do i = 1, k
-  do j = 1, k
-    write (name, '(a, 4i0)') 'r', i, k, j, k
-    if (any(s%plot_page%region(:)%name == name)) cycle
-    nr = nr + 1
-    s%plot_page%region(nr)%name = name
-    s%plot_page%region(nr)%list_with_show_plot_command = .false.
-    x1 = real(k-i)/ k
-    x2 = real(k-i+1) / k
-    y1 = y_layout + (1 - y_layout) * real(k-j)/ k
-    y2 = y_layout + (1 - y_layout) * real(k-j+1) / k
-    s%plot_page%region(nr)%location = [x1, x2, y1, y2]
-  enddo
-  enddo
-enddo
 
 !
 
-if (all (place(:)%region == '') .and. .not. s%com%gui_mode) then
+if (all (place(:)%region == '') .and. s%global%plot_on) then
   branch => s%u(1)%model%lat%branch(0)
   if (branch%param%particle == photon$) then
     call tao_place_cmd ('r13', 'floor_plan')
