@@ -10,8 +10,8 @@
 
 # Set Plot Library Linker Flags
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
-    export PLOT_LINK_LIBS="plplot plplotcxx plplotf95 csirocsa qsastime"
-    export PLOT_LINK_FLAGS="-lplplot -lplplotcxx -lplplotf95 -lcsirocsa -lqsastime -lpthread"
+    export PLOT_LINK_LIBS="plplotf95 plplotcxx plplot csirocsa qsastime"
+    export PLOT_LINK_FLAGS="-lplplotf95 -lplplotcxx -lplplot -lcsirocsa -lqsastime -lpthread"
 else
     export PLOT_LINK_LIBS="pgplot"
     export PLOT_LINK_FLAGS="-lpgplot"
