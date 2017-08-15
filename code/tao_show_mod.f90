@@ -934,8 +934,8 @@ case ('data')
     n=9+n_name;    line2(n:) = 'Ref_Ele'  ! n = i4 + 2x + n_name + 2x + 1
     n=n+n_ref+2;   line2(n:) = 'Start_Ele'
     n=n+n_start+2; line2(n:) = 'Ele'
-    n=n+n_ele+10;  line2(n:) = 'Meas         Model        Design | Opt  Plot'
-                   line1(n:) = '                                 |   Useit'
+    n=n+n_ele+12;  line2(n:) = 'Meas           Model          Design | Opt  Plot'
+                   line1(n:) = '                                     |   Useit'
 
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
@@ -944,8 +944,8 @@ case ('data')
 
     call re_allocate (lines, nl+100+size(d_array), .false.)
 
-    fmt  = '(i4, 4(2x, a), 3es14.4, 2l6)'
-    fmt2 = '(4x, 4(2x, a), 3es14.4, 2l6)'
+    fmt  = '(i4, 4(2x, a), 3es16.7, 2l6)'
+    fmt2 = '(4x, 4(2x, a), 3es16.7, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
@@ -1473,7 +1473,6 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', s%com%plot_file
     nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', s%com%var_file
     nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', s%com%startup_file
-    nl=nl+1; write(lines(nl), lmt) 's%com%gui_mode               = ', s%com%gui_mode
     nl=nl+1; write(lines(nl), lmt) 's%com%combine_consecutive_elements_of_like_name = ', &
                                                 s%com%combine_consecutive_elements_of_like_name
     nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(s%com%cmd_file%paused)
@@ -2805,12 +2804,20 @@ case ('plot')
     nl=nl+1; lines(nl) = '                                               Location on Page'
     nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
     nl=nl+1; lines(nl) = '-----------               -----------------------------------------'
+    found = .false.
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
       if (region%name == '') cycle
-      if (.not. region%list_with_show_plot_command .and. region%plot%name == '') cycle
+      if (.not. region%list_with_show_plot_command .and. region%plot%name == '') then
+        found = .true.
+        cycle
+      endif
       nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
     enddo
+
+    if (found) then
+      nl=nl+1; write(lines(nl), '(a)') '[Etc... In the interest of brevity, other regions not listed.]'
+    endif
 
     result_id = 'plot:'
     return

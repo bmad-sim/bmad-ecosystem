@@ -613,20 +613,19 @@ case ('ptc')
 
   if (file_name == '') file_name = 'ptc.flatfile'
 
+  if (.not. associated(branch%ptc%m_t_layout)) then
+    call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
+                                  'You must use the command "ptc init" before creating a flat file.')
+    return
+  endif
+
   select case (which)
-  case ('-old', '-new')
-    if (.not. associated(branch%ptc%m_t_layout)) then
-      call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
-                                    'You must use the command "ptc init" before creating a flat file.')
-      return
-    endif
+  case ('-old')
+    call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
 
-    if (which == '-old') then
-      call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
-    else
-      call print_new_flat (branch%ptc%m_t_layout, file_name)
-    endif
-
+  case ('-new')
+    call print_new_flat (branch%ptc%m_t_layout, file_name)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
 
   case ('-all')

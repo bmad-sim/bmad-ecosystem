@@ -7,7 +7,7 @@
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
 !   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
-!   cmd_in     -- Character(*), optional: Command from something like Python if s%com%gui_mode = T.
+!   cmd_in     -- Character(*), optional: Command. Used, for example, when using Python.
 !
 ! Output:
 !   cmd_out    -- Character(*): Command from the user.

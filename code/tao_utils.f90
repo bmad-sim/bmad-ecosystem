@@ -1053,7 +1053,7 @@ do
     call get_next_arg (s%com%plot_file)
 
   case ('-gui_mode')
-    s%com%gui_mode = .true.
+    call out_io (s_error$, r_name, 'NOTE: -gui_mode NO LONGER DOES ANYTHING!')
 
   case ('-startup')
     call get_next_arg (s%com%startup_file)
@@ -1127,7 +1127,6 @@ call out_io (s_blank$, r_name, [ &
         '  -debug                          # Debug mode for Wizards                               ', &
         '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting        ', &
         '  -geometry <width>x<height>      # Plot window geometry                                 ', &
-        '  -gui_mode                       # GUI mode for interfacing Tao with a script           ', &
         '  -help                           # Display this list of command line options            ', &
         '  -hook_init_file <init_file>     # Init file for hook routines (Default = tao_hook.init)', &
         '  -init <tao_init_file>           # Tao init file                                        ', &
@@ -1141,7 +1140,6 @@ call out_io (s_blank$, r_name, [ &
         '  -rf_on                          # Keep RF on (Default is to turn off)                  ', &
         '  -startup <starup_command_file>  # Commands to run after parsing Tao init file          ', &
         '  -var <var_file>                 # Define variables for plotting and optimization       '])
-
 
 end subroutine tao_print_command_line_info
 

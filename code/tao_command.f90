@@ -304,10 +304,6 @@ case ('pause')
 
 case ('place')
 
-  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
-    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
-  endif
-
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
   if (cmd_word(3) /= ' ') then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(3))
@@ -320,10 +316,6 @@ case ('place')
 ! PLOT
 
 case ('plot')
-
-  if (.not. s%global%plot_on  .and. .not. s%com%gui_mode) then
-    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
-  endif
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
   call tao_plot_cmd (cmd_word(1), cmd_word(2))
@@ -451,10 +443,6 @@ case ('run_optimizer', 'flatten')
 ! SCALE
 
 case ('scale')
-
-  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
-    call out_io (s_info$, r_name, "PLOTTING TURNED OFF!")
-  endif
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
 
@@ -640,11 +628,6 @@ case ('write')
 
 case ('x_axis')
 
-  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
-  endif
-
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
   call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
@@ -652,11 +635,6 @@ case ('x_axis')
 ! X_SCALE
 
 case ('x_scale')
-
-  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
-  endif
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
 
@@ -687,11 +665,6 @@ case ('x_scale')
 ! XY_SCALE
 
 case ('xy_scale')
-
-  if (.not. s%global%plot_on .and. .not. s%com%gui_mode) then
-    call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
-    return
-  endif
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
 

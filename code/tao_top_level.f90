@@ -40,9 +40,9 @@ s_ptr => s       ! Used for debugging
 ! Set interactive flags
 
 if (present(command)) then
-  s%com%gui_mode = .true.
+  s%global%plot_on = .false.
 else
-  s%com%gui_mode = .false.
+  s%global%plot_on = .true.
 endif
 
 ! Read command line arguments.

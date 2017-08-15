@@ -1525,22 +1525,25 @@ border is called the plot area.
 \vn{plot_page%title(i)} set the page title. There are two title areas 
 (i = 1,2). If only the title string is given then the other variables 
 are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995, \vn{justify} = 
-"CC" and \vn{units} = "%PAGE". See the quickplot documentation for 
+"CC" and \vn{units} = "\vn{%PAGE}". See the quickplot documentation for 
 the \vn{justify} variable syntax.
 
-The plot area is divided up into rectangular regions where plots may be placed (what
-defines a plot is discussed below).  \vn{region(i)} is an array of five elements that
-defines the i\Th region. The first element of this array is the name of the region. This
-name may not contain a dot ``.''.  The second and third elements of the array, \vn{l_x1},
-and \vn{l_x2}, define the location of the left and right edges of the region as a fraction
-of the plot area width starting from the left edge of the plot area.  The final elements
-of the \vn{region(i)} array, \vn{l_y1} and \vn{l_y2}.  define the location of the bottom
-and top edges of the region as a fraction of the height of the plot area with respect to
-the plot area's bottom edge. Thus, in the above example, region 1 extends from the left
-border of the plot area (\vn{region(1)%l_x1} = 0) to the right border (\vn{region(1)%l_x2}
-= 0) and vertically from the center (\vn{region(1)%l_y1} = 0.5) to the top edge
-(\vn{region(1)%l_x2} = 1.0). Regions may overlap any one can define as many regions as one
-likes.
+The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
+is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
+that defines the i\Th region. The first element of this array is the name of the region. This name
+may not contain a dot ``.''.  The second and third elements of the array, \vn{l_x1}, and \vn{l_x2},
+define the location of the left and right edges of the region as a fraction of the plot area width
+starting from the left edge of the plot area.  The final elements of the \vn{region(i)} array,
+\vn{l_y1} and \vn{l_y2}.  define the location of the bottom and top edges of the region as a
+fraction of the height of the plot area with respect to the plot area's bottom edge. Thus, in the
+above example, region 1 extends from the left border of the plot area (\vn{region(1)%l_x1} = 0) to
+the right border (\vn{region(1)%l_x2} = 0) and vertically from the center (\vn{region(1)%l_y1} =
+0.5) to the top edge (\vn{region(1)%l_x2} = 1.0). Regions may overlap any one can define as many
+regions as one likes.
+
+Besides the regions that the user sets up in the \vn{tao_plot_page} namelist, \tao defines a number
+of default regions whose names begin with the letter '\vn{r}'. Use the \vn{show plot} command
+(\sref{s:plot}) to view a list of these plots.
 
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
 the \vn{place} command \sref{s:place}) causes any existing plots that overlap the
