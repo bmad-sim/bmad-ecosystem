@@ -23,7 +23,8 @@ integer(rp), private, parameter :: maxsum = 1000, ismax = 20, bmax = 100
 logical, private :: appsw = .true.
 
 type diffuse_common_struct
-  logical :: use_spline_fit = .false.
+  ! Eventually will eliminate Chebyshev code and this logical. Keep for now for cross-checking.
+  logical :: use_spline_fit = .true. 
   real(rp) :: area_err_tol = 4d-3
 end type
 
@@ -881,6 +882,8 @@ if (diffuse_com%use_spline_fit) then
   enddo
 
 ! Fit the probability distribution to Chebyshev polynomials.
+! This is known to produce bad results for smoother surfaces so eventually this
+! will be eliminated. Keep for now for cross-check purposes.
 else
   cheb_param%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse_vec)
   cheb_param%cch_int = chint (0.0_rp, 1.0_rp, cheb_param%cch)
