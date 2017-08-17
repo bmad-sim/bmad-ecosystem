@@ -70,8 +70,8 @@ ENDIF ()
 set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
 IF (${DISTRIBUTION_BUILD})
-  IF ("$ENV{ACC_ENABLE_SHARED}" MATCHES "Y" AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CMAKE_SKIP_RPATH FALSE)
+  IF ("$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
+    SET (CMAKE_SKIP_INSTALL_RPATH TRUE)
   ENDIF ()
   set (FORTRAN_COMPILER $ENV{DIST_F90})
   set (RELEASE_DIR $ENV{DIST_BASE_DIR})
@@ -214,46 +214,36 @@ SET (READLINE_LINK_LIBS readline)
 SET (READLINE_LINK_FLAGS "-lreadline")
 
 #-----------------------------------
-# Plotting library compiler flag
+# Plotting Library Linker flags
 #-----------------------------------
+
+SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
+
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
 
   IF (${DISTRIBUTION_BUILD})
-     IF ($ENV{ACC_ROOT_DIR}/${CMAKE_BUILD_TYPE}/lib/*plplotf77d*)
-     	SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
-     ELSE ()
-     	SET (PLOT_LINK_LIBS plplotf95 plplotcxx plplot csirocsa qsastime)
-     ENDIF ()
-
-     IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
-       SET (PLOT_LINK_FLAGS "-lX11 -lplplotf95 -lplplotcxx -lplplot -lcsirocsa -lqsastime -lpthread")
-     ELSE ()
-       SET (PLOT_LINK_FLAGS "-lplplotf95 -lplplotcxx -lplplot -lcsirocsa -lqsastime -lpthread")
-     ENDIF ()
-
+    IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
+      SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
+    ELSE ()
+      SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
+    ENDIF ()
   ELSE ()
-     IF ($ENV{ACC_ROOT_DIR}/${CMAKE_BUILD_TYPE}/lib/*plplotf77d*)
-       SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
-     ELSE ()
-       SET (PLOT_LINK_LIBS plplotf95 plplotcxx plplot csirocsa qsastime)
-       SET (PLOT_LINK_FLAGS "-lX11 -lplplotf95 -lplplotcxx -lplplot -lcsirocsa -lqsastime -lpthread")
-     ENDIF ()
+    SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
   ENDIF ()
 
   IF (${MSYS})
-      # Assuming Qt backend:
-      SET (SHARED_LINK_LIBS QtSvg4 QtGui4 QtCore4 ${SHARED_LINK_LIBS})
+    # Assuming Qt backend:
+    SET (SHARED_LINK_LIBS QtSvg4 QtGui4 QtCore4 ${SHARED_LINK_LIBS})
   ELSE ()
-      SET (SHARED_LINK_LIBS cairo pango-1.0 pangocairo-1.0 gobject-2.0 ${SHARED_LINK_LIBS})
+    SET (SHARED_LINK_LIBS cairo pango-1.0 pangocairo-1.0 gobject-2.0 ${SHARED_LINK_LIBS})
   ENDIF ()
 
   SET (ACC_PLOT_INC_DIRS)
 
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
   SET (PLOT_LIBRARY_F_FLAG "-DCESR_PGPLOT")
-  SET (PLOT_LINK_LIBS "pgplot")
-  SET (PLOT_LINK_FLAGS "-lX11")
+  SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
 
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "none")
   SET (PLOT_LIBRARY_F_FLAG "-DCESR_NOPLOT")
@@ -622,7 +612,7 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
   ADD_DEPENDENCIES (${LIBNAME}-shared ${LIBNAME}) 
   LIST (APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
-  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS})
+  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS} ${SHARED_LINK_LIBS})
 ENDIF ()
 
 
