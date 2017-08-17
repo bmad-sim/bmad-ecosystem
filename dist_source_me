@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------
-# dist_vars.sh
+# dist_source_me
 #
 # Bmad Distribution libraries management and software build system
 # environment setup script.
@@ -195,6 +195,7 @@ func_set_bmad_env () {
     echo "Sourcing common build variable set..." \
 	>> ${DIST_SETUP_LOG}
     source ${DIST_BASE_DIR}/util/dist_env_vars
+    source ${DIST_BASE_DIR}/util/build_flags_config
 
     echo "Setting the Fortran compiler..." \
 	>> ${DIST_SETUP_LOG}
@@ -279,14 +280,14 @@ func_add_bmad_path () {
     else
 	export LD_LIBRARY_PATH=${BMAD_LIB_PROD_PATH}:${BMAD_LIB_DEBUG_PATH}
 
-        # Set DYLD_LIBRARY_PATH for Mac OS X
+        # Configure DYLD_LIBRARY_PATH for Mac OS X
 	if [ "${DIST_OS}" == "Darwin" ] ; then
 
 	    if ( [ "${DIST_F90_REQUEST}" == "ifort" ] && [ -d /opt/intel/lib ] ) ; then
 		export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
 
 	    elif [ -d /opt/local/lib ] ; then
-		export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/local/lib
+	     	export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 	    fi
 	fi
     fi

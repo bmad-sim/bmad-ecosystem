@@ -1,16 +1,11 @@
-#!/bin/bash
-
 # Script to define common build linker flags
 # This script is invoked by either the ACC Release or 
 # Distribution environments.
 # No Package Specific settings are in this file.
-# Exit Codes found in /usr/include/sysexits.h
-
-#set -x
 
 # Set Plot Library Linker Flags
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
-    export PLOT_LINK_LIBS="plplotf95 plplotcxx plplot csirocsa qsastime"
+    export PLOT_LINK_LIBS="plplotf95;plplotcxx;plplot;csirocsa;qsastime"
     export PLOT_LINK_FLAGS="-lplplotf95 -lplplotcxx -lplplot -lcsirocsa -lqsastime -lpthread"
 else
     export PLOT_LINK_LIBS="pgplot"
