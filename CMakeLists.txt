@@ -4,6 +4,8 @@ set(LIBNAME sim_utils)
 
 set (CREATE_SHARED true)
 
+SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
+
 set(INC_DIRS 
 )
 
@@ -28,14 +30,6 @@ set(TEST_EXE_SPECS
 # set (CFLAGS "-pg")
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
-    SET (PLOT_LINK_LIBS "pgplot")
-  ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
-    SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
-  ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "none")
-    SET (PLOT_LINK_LIBS)
-  ENDIF ()
-
   SET (SHARED_DEPS
     recipes_f-90_LEPP 
     ${PLOT_LINK_LIBS}
