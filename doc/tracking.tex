@@ -70,9 +70,10 @@ The normalized velocity $v/c$ is stored in \vn{%beta}.
 Longitudinal direction of travel. A setting of +1 is in the forward (downstream) direction and a
 setting of -1 is in the reverse (upstream) direction (\sref{s:ref.construct}).  Notice that the
 setting of \vn{direction} is independent of the orientation of the lattice element the particle is
-traveling through. That is, for an element with reversed \vn{orientation} (\vn{ele%orientation} = -1),
-a particle with \vn{direction} = 1 will be traveling towards the \vn{entrance} end of the element and
-with \vn{direction} = -1 the particle will be traveling towards the \vn{exit} end.
+traveling through. That is, for an element with reversed \vn{orientation} (\vn{ele%orientation} =
+-1), a particle with \vn{direction} = 1 will be traveling towards the \vn{entrance} end of the
+element and with \vn{direction} = -1 the particle will be traveling towards the \vn{exit} end
+(\sref{s:ref.construct}).
 
 \item{\%field_x, \%field_y} \Newline
 The \vn{%field_x} and \vn{%field_y} components are for photon
@@ -736,8 +737,8 @@ not able to handle this since they are position ($s$) based, instead of time bas
 ``tries'' to reverse direction. In such a situation, the particle will be marked as lost and the
 \vn{coord_struct} will have \vn{%status} /= \vn{alive\$}.
 
-The \Hyperref{r:track.many}{track_many} routine can
-be used for re. See the \vn{track_many} routine for more details.
+As an alternative to tracking backwards, reversing the lattice and tracking forwards is possible
+(\sref{s:reverse.track}).
 
 %----------------------------------------------------------------
 \section{Reversed Elements and Tracking}
@@ -852,30 +853,30 @@ where \vn{gen_ele} is the
 generating element (not the element with the aperture).
 
 %-------------------------------------------------------------------------
-\section{Recording the track through an element}
-\label{s:track.track}
+%\section{Recording the Track Through an Element}
+%\label{s:track.track}
+%
+%Occasionally it is useful to record the track through an element when tracking with Runge-Kutta,
+%etc. This can be done by calling \Hyperref{r:track1}{track1} and supplying the \vn{track} argument. Example:
+%\begin{example}
+%  type (track_struct) track
+%  ...
+%  track%n_pt = -1
+%  call track1 (start_orb, ele, param, end_orb, track)
+%\end{example}
+%
+%A \vn{track_struct} structure has components:
+%\begin{example}
+%  type track_struct
+%    type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:)
+%    type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:)
+%    type (track_map_struct), allocatable :: map(:)  ! An array of maps: %cylindrical_map(0:)
+%    real(rp) :: ds_save = 1d-3                      ! Min distance between points.
+%    integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
+%    integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
+%    integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
+%  end type
+%\end{example}
+%The \vn{%orb} and other arrays 
+%The \vn{%n_pt} component gives the upp
 
-Occasionally it is useful to record the track through an element when tracking with Runge-Kutta,
-etc. This can be done by calling \zzz{track1} and supplying the \vn{track} argument. Example:
-\begin{example}
-  type (track_struct) track
-  ...
-  track%n_pt = -1
-  call track1 (start_orb, ele, param, end_orb, track)
-\end{example}
-
-A \vn{track_struct} structure has components:
-\begin{example}
-  type track_struct
-    type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:)
-    type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:)
-    type (track_map_struct), allocatable :: map(:)  ! An array of maps: %cylindrical_map(0:)
-    real(rp) :: ds_save = 1d-3                      ! Min distance between points.
-    integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
-    integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
-    integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
-  end type
-\end{example}
-The \vn{%orb} and other arrays 
-The \vn{%n_pt} component gives the upp
-\blablabla

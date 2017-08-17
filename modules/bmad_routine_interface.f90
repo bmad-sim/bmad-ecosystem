@@ -577,6 +577,17 @@ subroutine mat6_add_offsets (ele, param)
   type (lat_param_struct) param
 end subroutine
 
+subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) start_orb
+  real(rp) mat6(6,6), vec0(6)
+  type (ele_struct), optional, target :: twiss_ele
+  logical :: err_flag
+  logical, optional :: include_delta_time
+end subroutine
+
 function mexp (x, m) result (this_exp)
   import
   implicit none
@@ -735,6 +746,15 @@ function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) 
   integer, optional :: ix_slave
   integer ix_lord
   logical, optional :: field_overlap_ptr
+end function
+
+function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
+  import
+  implicit none
+  type (ele_struct), target :: this_ele
+  type (ele_struct), pointer :: next_ele
+  integer, optional :: offset
+  logical, optional :: skip_beginning, follow_fork
 end function
 
 function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)

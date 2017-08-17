@@ -1019,6 +1019,7 @@ call init_attribute_name1 (marker$, lr_wake_spline$,                'LR_WAKE_SPL
 
 
 call init_attribute_name1 (match$, l$,                              'L')
+call init_attribute_name1 (match$, delta_time$,                     'DELTA_TIME')
 call init_attribute_name1 (match$, beta_a0$,                        'BETA_A0')
 call init_attribute_name1 (match$, alpha_a0$,                       'ALPHA_A0')
 call init_attribute_name1 (match$, beta_b0$,                        'BETA_B0')

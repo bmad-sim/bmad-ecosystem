@@ -41,7 +41,7 @@ real(rp) det_factor, deriv_rel, gamma2_c
 logical error
 logical, optional :: err_flag
 
-character(20), parameter :: r_name = 'twiss_propagate1'
+character(*), parameter :: r_name = 'twiss_propagate1'
 
 !---------------------------------------------------------------------
 ! init
@@ -72,7 +72,7 @@ key2 = ele2%key
 ! Special match case
 
 if (ele2%key == match$ .and. is_true(ele2%value(match_end$))) then
-  call match_ele_to_mat6 (ele2, error, ele1)
+  call match_ele_to_mat6 (ele2, ele1%map_ref_orb_out, ele2%mat6, ele2%vec0, error, ele1, .true.)
 endif
 
 !---------------------------------------------------------------------

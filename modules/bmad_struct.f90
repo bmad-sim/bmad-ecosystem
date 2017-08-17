@@ -1206,7 +1206,9 @@ integer, parameter :: alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8
 integer, parameter :: alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11
 integer, parameter :: eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15
 integer, parameter :: eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
-integer, parameter :: match_end_input$ = 20, match_end$ = 21
+integer, parameter :: match_end_input$ = 20
+integer, parameter :: match_end$ = 21
+integer, parameter :: delta_time$ = 22
 integer, parameter :: x0$ = 24, px0$ = 25, y0$ = 26, py0$ = 27, z0$ = 28, pz0$ = 29
 integer, parameter :: x1$ = 30, px1$ = 31, y1$ = 32, py1$ = 33, z1$ = 34, pz1$ = 35
 integer, parameter :: match_end_orbit_input$ = 36, match_end_orbit$ = 37
