@@ -4,6 +4,8 @@ set (LIBNAME tao)
 
 set (CREATE_SHARED true)
 
+SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
+
 ## Profiler flags
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 # set (FFLAGS "-pg")  # For profiling
@@ -26,14 +28,6 @@ set(SHARED_DEPS
   )
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
-    SET (PLOT_LINK_LIBS "pgplot")
-  ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
-    SET (PLOT_LINK_LIBS plplot plplotcxx plplotf95 csirocsa qsastime)
-  ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "none")
-    SET (PLOT_LINK_LIBS)
-  ENDIF ()
-
   SET (SHARED_DEPS
     xsif
     xrlf03
