@@ -2924,18 +2924,11 @@ logical use_offsets, err_flag
 character(16) :: r_name = 'ele_to_taylor'
 
 ! Match elements are not implemented in PTC so just use the matrix.
-! Also Taylor elements already have a taylor map.
 
 if (ele%key == match$) then
-  call match_ele_to_mat6 (ele, err_flag)
-  if (err_flag) then
-    call out_io (s_error$, r_name, 'CANNOT CONSTRUCT TAYLOR MAP FOR MATCH ELEMENT: ' // ele%name)
-    return
-  endif
   call mat6_to_taylor (ele%vec0, ele%mat6, bmad_taylor)
   if (.not. warning_given) then
-    call out_io (s_warn$, r_name, &
-      'Note: Taylor maps for Match elements are always 1st order!')
+    call out_io (s_warn$, r_name, 'Note: Taylor maps for Match elements are always 1st order!')
     warning_given = .true.
   endif
   return

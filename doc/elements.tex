@@ -2696,15 +2696,16 @@ See \sref{s:list.match} for a full list of element attributes.
 
 Attributes specific to a \vn{match} element are:
 \begin{example}
-  beta_a0   = <Real>,  beta_b0  = <Real>   ! Beginning betas
-  beta_a1   = <Real>,  beta_b1  = <Real>   ! Ending betas
-  alpha_a0  = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
-  alpha_a1  = <Real>,  alpha_b1 = <Real>   ! Ending alphas
-  eta_x0    = <Real>,  eta_y0   = <Real>   ! Beginning etas 
-  eta_x1    = <Real>,  eta_y1   = <Real>   ! Ending etas 
-  etap_x0   = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
-  etap_x1   = <Real>,  etap_y1  = <Real>   ! Ending eta'
-  dphi_a    = <Real>,  dphi_b   = <Real>   ! Phase advances
+  beta_a0     = <Real>,  beta_b0  = <Real>   ! Beginning betas
+  beta_a1     = <Real>,  beta_b1  = <Real>   ! Ending betas
+  alpha_a0    = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
+  alpha_a1    = <Real>,  alpha_b1 = <Real>   ! Ending alphas
+  eta_x0      = <Real>,  eta_y0   = <Real>   ! Beginning etas 
+  eta_x1      = <Real>,  eta_y1   = <Real>   ! Ending etas 
+  etap_x0     = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
+  etap_x1     = <Real>,  etap_y1  = <Real>   ! Ending eta'
+  dphi_a      = <Real>,  dphi_b   = <Real>   ! Phase advances
+  delta_time  = <Real>                       ! Change in time.
   match_end = <Logic>                      ! See below. Default is False.
   x0, px0, y0, py0, z0, pz0 = <Real>       ! Beginning coordinates
   x1, px1, y1, py1, z1, pz1 = <Real>       ! Ending coordinates
@@ -2753,6 +2754,15 @@ y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
     \text{x0} \\ \text{px0} \\ \text{y0} \\ \text{py0} \\ \text{z0} \\ \text{pz0} 
     \end{pmatrix}
 \Endeq
+
+The \vn{delta_time} parameter adds a constant to the particle's time. This will also affect the $z$
+phase space coordinate through \Eq{zbctt} and the transfer map though the element. If
+\vn{delta_time} is zero, the tranfer map through the element will be the $\Bf M$ matrix as discussed
+above. With a finite \vn{delta_time}, the transfer map will be different from $\Bf M$.  The order of
+operations, is the effect of \vn{delta_time} is applied first and the linear transformation above is
+applied afterwards.  Since using \vn{match_end} or \vn{match_end_orbit} with a finite
+\vn{delta_time} can be confusing, such a situation is not allowed. Use two separate \vn{patch}
+elements if needed.
 
 \index{l}
 The length attribute \vn{l} is not used in the transfer matrix
@@ -3296,7 +3306,7 @@ While a finite \vn{t_offset} will affect the reference time at the end of a patc
 the patch. On the other hand, a finite \vn{t_offset} will affect a particle's $z$ coordinate via
 \Eqs{zbctt}. The change in $z$, $\delta z$ will be
 \Begineq
-  \delta z = \beta \, c \, \text{t_offset}
+  \delta z = \beta \cdot c \cdot \text{t_offset}
 \Endeq
 where $\beta$ is the normalized particle speed (which is independent of any energy patch). Another
 way of looking at this is to note that In a drift, if the particle is on-axis and on-energy, t and

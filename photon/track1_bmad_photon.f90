@@ -131,17 +131,7 @@ case (match$)
                    ele%value(z1$), ele%value(pz1$)]
 
   else
-
-    call match_ele_to_mat6 (ele, err)
-    if (err) then
-      ! Since there are cases where this error may be raised many 
-      ! times, do not print an error message.
-      end_orb%state = lost$
-    endif
-
-    end_orb%vec = matmul (ele%mat6, end_orb%vec) + ele%vec0
-    end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
-    end_orb%s = ele%s
+    call track1_bmad (start2_orb, ele, param, end_orb, err_flag)
   endif
 
 !-----------------------------------------------
