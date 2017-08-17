@@ -6,11 +6,13 @@ use var quad
 and the Twiss parameters at marker Mar.END:
 use dat twiss.end
 
-and optimize using the lmdif and de optimizers:
-olmdif
-ode
+and optimize using the lmdif and de optimizers with the commands:
+  set global optimizer = lmdif
+and:
+   ode set global optimizer = de
 
-and also manually using the keys:
-single (then use keys 1-6)
+Also try varying things using single mode with the command:
+  single 
+then use keys 1-6, Q-Y (see the manual for more details).
 
 
