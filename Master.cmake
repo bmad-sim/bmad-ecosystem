@@ -258,7 +258,7 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   SET (ACC_PLOT_LIB_DIRS /opt/local/lib /opt/X11/lib)
 ENDIF ()
 
-IF (${CMAKE_Fortran_COMPILER} MATCHES "ifort" AND $ENV{ACC_ENABLE_SHARED} MATCHES "Y")
+IF (${CMAKE_Fortran_COMPILER} MATCHES "ifort" AND "$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
   SET (PLOT_LINK_FLAGS "${PLOT_LINK_FLAGS} -lifcore -lifport -limf -lsvml -lintlc")
 ENDIF ()
 
