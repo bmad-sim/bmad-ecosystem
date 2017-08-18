@@ -1138,6 +1138,10 @@ case ('dpz_dz')
   endif
 
 case ('e_tot')
+
+  call out_io (s_warn$, r_name, '"e_tot" has been renamed to "orbit.e_tot" to avoid confusion with lattice element referece energy parameter.', &
+                'Please modify your input file appropriately.')
+
   if (ix_ref > -1) then
     if (data_source == 'beam') then
       orb => bunch_params(ix_ref)%centroid
@@ -1159,6 +1163,12 @@ case ('e_tot')
   enddo
 
   call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+!-----------
+
+case ('e_tot_ref')
+  if (data_source == 'beam') return
+  call tao_load_this_datum (branch%ele(:)%value(e_tot$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
 
@@ -1696,6 +1706,29 @@ case ('orbit.')
   endif
 
   select case (datum%data_type)
+
+  case ('orbit.e_tot')
+    if (ix_ref > -1) then
+      if (data_source == 'beam') then
+        orb => bunch_params(ix_ref)%centroid
+      else
+        orb => orbit(ix_ref)
+      endif
+      if (orb%state == not_set$) return
+      value_vec(ix_ref) = (1 + orb%vec(6)) * orb%p0c / orb%beta
+    endif
+
+    do i = ix_start, ix_ele
+      if (data_source == 'beam') then
+        orb => bunch_params(i)%centroid
+      else
+        orb => orbit(i)
+      endif
+      if (orb%state == not_set$) return
+      call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
+    enddo
+
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case ('orbit.x')
     if (data_source == 'beam') then

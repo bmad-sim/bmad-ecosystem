@@ -1993,7 +1993,7 @@ if (all(s%plot_page%template%name /= 'energy')) then
 
   crv => grph%curve(1)
   crv%g => grph
-  crv%data_type     = 'e_tot'
+  crv%data_type     = 'orbit.e_tot'
   crv%units        = 'eV'
 endif
 
