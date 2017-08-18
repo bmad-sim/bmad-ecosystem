@@ -2152,12 +2152,8 @@ do ii = 1, size(curve%x_line)
     call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
     if (associated (a_ptr%r)) value = a_ptr%r
 
-  case ('e_tot')
-    if (orbit%beta == 0) then
-      value = mass_of(branch%param%particle)
-    else
-      value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
-    endif
+  case ('e_tot_ref')
+    value = ele%value(E_tot$)
 
   case ('emit.')
     select case (data_type)
@@ -2265,6 +2261,12 @@ do ii = 1, size(curve%x_line)
 
   case ('orbit.')
     select case (data_type)
+    case ('orbit.e_tot')
+      if (orbit%beta == 0) then
+        value = mass_of(branch%param%particle)
+      else
+        value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+      endif
     case ('orbit.x')
       value = orbit%vec(1)
     case ('orbit.y')

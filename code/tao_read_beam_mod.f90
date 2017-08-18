@@ -23,9 +23,6 @@ contains
 ! Routine to open a beam file for reading.
 ! Call tao_close_beam_file when done.
 !
-! Modules needed:
-!   use tao_read_beam_mod
-!
 ! Input:
 !   file_name -- Character(*): Name of the beam file.
 !   err_flag  -- Logical :: Set true if cannot open the file
@@ -40,7 +37,7 @@ logical err_flag
 character(*) file_name
 character(100) :: full_file_name
 character(80) line
-character(20), parameter :: r_name = 'tao_open_beam_file'
+character(*), parameter :: r_name = 'tao_open_beam_file'
 
 ! Open file and determine whether the file is binary or ascii
 
@@ -53,23 +50,23 @@ if (rb_com%iu == 0) then
 endif
 
 read (rb_com%iu, '(a80)') line
-if (index(line, '!BINARY') /= 0) then 
+if (index(line, '!BINARY') == 1) then 
   rb_com%file_type = 'BIN:1'
-elseif (index(line, '!BIN::2') /= 0) then 
+elseif (index(line, '!BIN::2') == 1) then
   rb_com%file_type = 'BIN:2'
-elseif (index(line, '!BIN::3') /= 0) then 
+elseif (index(line, '!BIN::3') == 1) then 
   rb_com%file_type = 'BIN:3'
+
 elseif (index(line, '!ASCII::3') /= 0) then 
   rb_com%file_type = 'ASCII:3'
 else
-  rb_com%file_type = 'ASCII'
+  rb_com%file_type = 'ASCII:3'
 endif
 
-if (rb_com%file_type == 'ASCII') then
-  rewind (rb_com%iu)
-elseif (rb_com%file_type /= 'ASCII:3') then
+if (rb_com%file_type(1:3) == 'BIN') then
   close (rb_com%iu)
   open (rb_com%iu, file = full_file_name, form = 'unformatted', status = 'old')
+  read (rb_com%iu) line(1:7)  ! read "!BINARY::3" line
 endif
 
 rb_com%file_name = full_file_name
@@ -84,9 +81,6 @@ end subroutine tao_open_beam_file
 ! Subroutine tao_close_beam_file ()
 !
 ! Routine to close a beam file that was opened with open_beam_file.
-!
-! Modules needed:
-!   use tao_read_beam_mod
 !-
 
 subroutine tao_close_beam_file ()
@@ -111,9 +105,6 @@ end subroutine tao_close_beam_file
 !
 ! Routine to read in the beam parameters from a file
 !
-! Modules needed:
-!   use tao_read_beam_mod
-!
 ! Output:
 !   ix_ele     -- Integer: Index of the lattice element at which the beam is to
 !                   be specified. 0 => beginning of lattice. -1 => End of file.
@@ -129,7 +120,6 @@ implicit none
 
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
-character(80) line
 character(*), parameter :: r_name = 'tao_read_beam_file_header'
 logical err
 
@@ -137,12 +127,11 @@ logical err
 
 err = .true.
 
-if (rb_com%file_type == 'ASCII') then
+if (rb_com%file_type(1:5) == 'ASCII') then
   read (rb_com%iu, *, iostat = ios, err = 8000) ix_ele
   read (rb_com%iu, *, iostat = ios, err = 8000) n_bunch
   read (rb_com%iu, *, iostat = ios, err = 8000) n_particle
 else
-  read (rb_com%iu) line(1:7)  ! read "!BINARY" line
   read (rb_com%iu, iostat = ios, err = 8000) ix_ele, n_bunch, n_particle
 endif
 
@@ -167,9 +156,6 @@ end subroutine tao_read_beam_file_header
 ! Subroutine to set some beam parameters.
 ! These parameters will override the parameters set in the beam file.
 ! This subroutine must be called before read_beam.
-!
-! Modules needed:
-!   use tao_read_beam_mod
 !
 ! Input:
 !   n_bunch       -- Integer: Number of bunches.
@@ -200,9 +186,6 @@ end subroutine tao_set_beam_params
 !
 ! Subroutine to read in a beam definition file opened by tao_open_beam_file.
 ! 
-! Modules needed:
-!   use tao_read_beam_mod
-!
 ! Output:
 !   beam -- Beam_struct: Structure hoding the beam information.
 !   err  -- Logical: Set True if there is an error. False otherwise.
@@ -223,7 +206,7 @@ integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge
 
-character(16) :: r_name = 'tao_read_beam'
+character(*), parameter :: r_name = 'tao_read_beam'
 character(300) line, line_in
 
 logical err, error, in_parens
@@ -234,7 +217,6 @@ err = .true.
 
 ! Parameters come from the beam file unless set_beam_params has been called.
 
-rewind (rb_com%iu)
 call tao_read_beam_file_header (i, n_bunch, n_particle, error); if (error) return
 n_particle_lines = n_particle
 
@@ -383,7 +365,7 @@ do i = 1, n_bunch
       read (rb_com%iu, iostat = ios) bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
       bunch%particle%species = electron$
       call this_error_out ('OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
-    else
+    else  ! BIN:2 and BIN:3
       read (rb_com%iu, iostat = ios) species, bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
       p%species = species
     endif

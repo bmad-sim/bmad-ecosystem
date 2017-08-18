@@ -127,7 +127,7 @@ case ('cbar.')
   case default
   end select
 
-case ('e_tot');               value = (1 + orbit%vec(6)) * orbit%p0c / orbit%beta
+case ('e_tot_ref');          value = ele%value(e_tot$)
 
 case ('eta.')
   select case (dat_name)
@@ -194,6 +194,7 @@ case ('orbit.')
   case ('orbit.amp_b');       value = amp_b
   case ('orbit.norm_amp_a');  value = amp_na
   case ('orbit.norm_amp_b');  value = amp_nb
+  case ('orbit.e_tot');       value = (1 + orbit%vec(6)) * orbit%p0c / orbit%beta
   case default;               err_flag = .true.
   end select
 
