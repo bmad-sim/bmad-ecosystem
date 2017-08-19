@@ -35,9 +35,9 @@ real(rp) scale
 character(*) what
 character(20) action, name, lat_type, which
 character(200) switch
-character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
+character(*), parameter :: r_name = 'tao_write_cmd'
 
 character(20) :: names(24) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
@@ -136,10 +136,12 @@ case ('beam')
       if (.not. is_open) then
         if (ascii) then
           open (iu, file = file_name)
-          write (iu, '(a)') '!ASCII::3'
+          which = '!ASCII::3'
+          write (iu, '(a)') which
         else
           open (iu, file = file_name, form = 'unformatted')
-          write (iu) '!BIN::3'
+          which = '!BIN::3'
+          write (iu) which
         endif
         is_open = .true.
       endif
