@@ -32,24 +32,27 @@ subroutine tao_open_beam_file (file_name, err_flag)
 
 implicit none
 
+integer ios
 logical err_flag
 
 character(*) file_name
 character(100) :: full_file_name
-character(80) line
+character(20) line  ! Important that this match write statement if a binary file.
 character(*), parameter :: r_name = 'tao_open_beam_file'
 
 ! Open file and determine whether the file is binary or ascii
 
 err_flag = .true.
 
-call tao_open_file (file_name, rb_com%iu, full_file_name, s_error$)
+call tao_open_file (file_name, rb_com%iu, full_file_name, s_error$, binary = .true.)
 if (rb_com%iu == 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
   return
 endif
 
-read (rb_com%iu, '(a80)') line
+!
+
+read (rb_com%iu) line
 if (index(line, '!BINARY') == 1) then 
   rb_com%file_type = 'BIN:1'
 elseif (index(line, '!BIN::2') == 1) then
@@ -57,17 +60,19 @@ elseif (index(line, '!BIN::2') == 1) then
 elseif (index(line, '!BIN::3') == 1) then 
   rb_com%file_type = 'BIN:3'
 
-elseif (index(line, '!ASCII::3') /= 0) then 
-  rb_com%file_type = 'ASCII:3'
 else
+  close (rb_com%iu)
+  call tao_open_file (file_name, rb_com%iu, full_file_name, s_error$)
+  read (rb_com%iu, *, iostat = ios) line
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
+    return
+  endif
   rb_com%file_type = 'ASCII:3'
+  if (index(line, '!ASCII::3') == 0) rewind(rb_com%iu)
 endif
 
-if (rb_com%file_type(1:3) == 'BIN') then
-  close (rb_com%iu)
-  open (rb_com%iu, file = full_file_name, form = 'unformatted', status = 'old')
-  read (rb_com%iu) line(1:7)  ! read "!BINARY::3" line
-endif
+!
 
 rb_com%file_name = full_file_name
 err_flag = .false.
@@ -127,7 +132,7 @@ logical err
 
 err = .true.
 
-if (rb_com%file_type(1:5) == 'ASCII') then
+if (rb_com%file_type == 'ASCII:3') then
   read (rb_com%iu, *, iostat = ios, err = 8000) ix_ele
   read (rb_com%iu, *, iostat = ios, err = 8000) n_bunch
   read (rb_com%iu, *, iostat = ios, err = 8000) n_particle
@@ -236,7 +241,7 @@ do i = 1, n_bunch
   p => bunch%particle
   p = orb_init   ! init with default params
 
-  if (rb_com%file_type == 'ASCII') then
+  if (rb_com%file_type == 'ASCII:3') then
 
     read (rb_com%iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(upcase(line), 'BEGIN_BUNCH') == 0) then

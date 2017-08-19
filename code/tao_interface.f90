@@ -348,11 +348,12 @@ function tao_merit (calc_ok) result (this_merit)
   logical, optional :: calc_ok
 end function
  
-subroutine tao_open_file (file, iunit, file_name, error_severity)
+subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   implicit none
   character(*) file
   character(*) file_name
   integer iunit, error_severity
+  logical, optional :: binary
 end subroutine
 
 function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
