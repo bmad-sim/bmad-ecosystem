@@ -38,7 +38,7 @@ integer ios, n_level
 
 character(*) :: cmd_out
 character(*), optional :: prompt_str, cmd_in
-character(80) prompt_string
+character(80) prompt_string, color_prompt_string
 character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) name
@@ -65,6 +65,18 @@ if (present(cmd_in)) cmd_out = cmd_in
 
 prompt_string = s%global%prompt_string
 if (present(prompt_str)) prompt_string = prompt_str
+color_prompt_string = prompt_string
+
+select case (s%global%prompt_color)
+case ('BLACK');   call add_color (prompt_string, color_prompt_string, black_color)
+case ('RED');     call add_color (prompt_string, color_prompt_string, red_color)
+case ('GREEN');   call add_color (prompt_string, color_prompt_string, green_color)
+case ('YELLOW');  call add_color (prompt_string, color_prompt_string, yellow_color)
+case ('BLUE');    call add_color (prompt_string, color_prompt_string, blue_color)
+case ('MAGENTA'); call add_color (prompt_string, color_prompt_string, magenta_color)
+case ('CYAN');    call add_color (prompt_string, color_prompt_string, cyan_color)
+case ('GRAY');    call add_color (prompt_string, color_prompt_string, gray_color)
+end select
 
 ! If single character input wanted then...
 
@@ -135,7 +147,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
-      if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
+      if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
       return
     endif
 
@@ -175,7 +187,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       
     enddo loop1
 
-    if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
+    if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
     call do_loop(cmd_out)
@@ -185,7 +197,13 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   call alias_translate (cmd_out, err)
   call check_for_multi_commands
 
+  if (s%com%multi_commands_here) then
+    call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+  endif
+
   return
+
+  !-----------------------------------------
 
   8000 continue
   close (s%com%cmd_file(n_level)%ix_unit)
@@ -227,7 +245,7 @@ call alias_translate (cmd_out, err)
 call check_for_multi_commands
 
 if (s%com%multi_commands_here) then
-  call out_io (s_blank$, r_name, '', trim(prompt_string) // ': ' // trim(cmd_out))
+  call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
 endif
 
 !-------------------------------------------------------------------------
@@ -261,16 +279,22 @@ end subroutine
 recursive subroutine alias_translate2 (cmd_out, err, translated, alias_cmd2)
 
 character(*) cmd_out
-character(:), allocatable :: alias_cmd, alias_cmd2
+character(:), allocatable :: alias_cmd, alias_cmd2, tail
 
 integer ic, i, j, ix
 logical err, translated
 
 ! Look for a translation for the first word
 
-call string_trim (cmd_out, cmd_out, ic)
 ix = index(cmd_out, ';')
-if (ix < ic .and. ix /= 0) ic = ix-1
+if (ix == 0) then
+  tail = ''
+else
+  tail = trim(cmd_out(ix:))
+  cmd_out = cmd_out(1:ix-1)
+endif
+
+call string_trim (cmd_out, cmd_out, ic)
 
 alias_cmd2 = cmd_out
 
@@ -281,7 +305,12 @@ do i = 1, s%com%n_alias
   ! We have a match...
   ! Now get the actual arguments and replace dummy args with actual args.
 
-  alias_cmd = s%com%alias(i)%expanded_str
+  alias_cmd = trim(s%com%alias(i)%expanded_str)
+  ix = index(alias_cmd, ';')
+  if (ix /= 0) then
+    tail = alias_cmd(ix:) // tail
+    alias_cmd = alias_cmd(1:ix-1)
+  endif
 
   do j = 1, 9
     call string_trim (cmd_out(ic+1:), cmd_out, ic)
@@ -296,13 +325,14 @@ do i = 1, s%com%n_alias
 
   call string_trim (cmd_out(ic+1:), cmd_out, ic)
   call alias_translate2 (alias_cmd, err, translated, alias_cmd2) ! Translation is an alias?
-  cmd_out = trim(alias_cmd2) // ' ' // cmd_out
+  cmd_out = trim(alias_cmd2) // ' ' // trim(cmd_out) // tail
   translated = .true.
 
   return
 
 enddo
 
+cmd_out = trim(cmd_out) // tail
 translated = .false.
 
 end subroutine
@@ -461,6 +491,15 @@ if (allocated(temp)) then
 endif
 
 end subroutine set_loop_level
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
+
+subroutine add_color (str, c_str, color)
+character(*) str, c_str, color
+c_str = trim(color) // trim(str) // trim(reset_color)
+end subroutine add_color
 
 end subroutine tao_get_user_input
 
