@@ -237,7 +237,7 @@ contains
 subroutine alias_translate (cmd_out, err)
 
 character(*) cmd_out
-character(100) old_cmd_out, alias_cmd
+character(:), allocatable :: old_cmd_out, alias_cmd
 
 logical err, translated
 
@@ -261,7 +261,7 @@ end subroutine
 recursive subroutine alias_translate2 (cmd_out, err, translated, alias_cmd2)
 
 character(*) cmd_out
-character(100) alias_cmd, alias_cmd2
+character(:), allocatable :: alias_cmd, alias_cmd2
 
 integer ic, i, j, ix
 logical err, translated
