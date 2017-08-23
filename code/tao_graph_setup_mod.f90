@@ -2574,6 +2574,7 @@ do m = 1, size(scratch%comp)
 
     datum%ix_ele = eles(ie)%ele%ix_ele
     datum%ix_branch = eles(ie)%ele%ix_branch
+    datum%exists = .true.
 
     select case (scratch%comp(m)%name)
     case ('') 
