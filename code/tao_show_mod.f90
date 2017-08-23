@@ -2775,6 +2775,8 @@ case ('plot')
     nl=nl+1; lines(nl) = 'plot_page parameters:'
     nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
     nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                  = ', s%plot_page%n_curve_pts
+    nl=nl+1; write(lines(nl), f3mt) '  %border                       = ', s%plot_page%border%x1, s%plot_page%border%x2, &
+                                                                          s%plot_page%border%y1, s%plot_page%border%y2
     nl=nl+1; write(lines(nl), f3mt) '  %text_height                  = ', s%plot_page%text_height 
     nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale        = ', s%plot_page%main_title_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale       = ', s%plot_page%graph_title_text_scale 
