@@ -24,13 +24,13 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele1, ele2
 
-integer i
+integer i, jv
 
-character(40) :: r_name = 'combine_consecutive_elements'
+character(*), parameter :: r_name = 'combine_consecutive_elements'
 
 ! loop over all elements...
 
-do i = 1, lat%n_ele_track
+ele_loop: do i = 1, lat%n_ele_track
 
   ele1 => lat%ele(i)
   ele2 => lat%ele(i+1)
@@ -51,10 +51,13 @@ do i = 1, lat%n_ele_track
     ele2%value(e1$) = ele2%value(e1$)
   endif
 
-  if (any(ele1%value /= ele2%value)) then
-    call out_io (s_error$, r_name, 'ELEMENT PARAMETERS DO NOT MATCH FOR: ' // ele1%name)
-    cycle
-  endif
+  do jv = 1, size(ele1%value)
+    if (attribute_name(ele1, jv) == 'REF_TIME_START' .or. attribute_name(ele1, jv) == null_name$) cycle
+    if (abs(ele1%value(jv) - ele2%value(jv)) > 1d-14 * (abs(ele1%value(jv)) + abs(ele2%value(jv)))) then
+      call out_io (s_error$, r_name, 'ELEMENT PARAMETERS DO NOT MATCH FOR: ' // ele1%name)
+      cycle ele_loop
+    endif
+  enddo
 
   if (ele1%value(x_pitch_tot$) /= 0 .or. ele1%value(y_pitch_tot$) /= 0) then
     call out_io (s_error$, r_name, 'ELEMENT HAS NON-ZERO PITCH: ' // ele1%name)
@@ -69,7 +72,7 @@ do i = 1, lat%n_ele_track
   ele1%value(BL_hkick$) = 2 * ele1%value(BL_hkick$)
   ele1%value(BL_vkick$) = 2 * ele1%value(BL_vkick$)
 
-enddo
+enddo ele_loop
 
 call remove_eles_from_lat (lat)     ! Remove all null_ele elements
 
