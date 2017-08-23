@@ -2,6 +2,9 @@
 \chapter{Getting information From Tao}
 \label{c:get.info}
 
+To use \tao with this chapter, please starup \tao as explained in \sref{s:obtaining} in 
+the \vn{introduction_to_tao} directory that you have copied to your local area.
+
 %----------------------------------------------------------------
 \section{The Plotting Window}
 \index{plotting}
@@ -10,6 +13,14 @@ When \tao first starts up, \tao will create a new window for
 displaying plots. This window will be called the \vn{plot}
 window. Commands to \tao can be typed in from the original window from
 which \tao was invoked. This will be called the \vn{command} window.
+
+Figure~\ref{f:plot.begin} shows what you will see in the plot window. In the top two plots you see
+the \vn{x} and \vn{y} model lattice orbit data. The horizontal axis is the \cesr BPM index. The
+horizontal pretzel and L03 vertical bump in CESR can be clearly seen. The slight vertical
+displacement due to the solenoid compensation can also be seen around the IP. The orbit data is for
+a closed orbit electron (this being a storage ring). The bottom two plots show the relative particle
+phase, that is, the difference between the model and design phases (as documented in the plot title
+as [model - design]). 
 
 As a first step, let us command \tao to display some plotting
 information using the command:
@@ -20,69 +31,73 @@ The information will be displayed in the command window. The first
 section of the \vn{show plot} output shows information on font sizes:
 \begin{example}
   plot_page parameters:
-  %size                       =   400  500
-  %n_curve_pts                =   401
-  %text_height                = 12.000
-  %main_title_text_scale      = 1.300
-  %graph_title_text_scale     = 1.100
-  %axis_number_text_scale     = 0.900
-  %axis_label_text_scale      = 1.000
-  %key_table_text_scale       = 0.900
-  %legend_text_scale          = 0.800
+  %size                         =   400  500
+  %n_curve_pts                  =   401
+  %text_height                  = 12.000
+  %main_title_text_scale        = 1.300
+  %graph_title_text_scale       = 1.100
+  %axis_number_text_scale       = 0.900
+  %axis_label_text_scale        = 1.000
+  %key_table_text_scale         = 0.900
+  %legend_text_scale            = 0.700
+  %floor_plan_shape_scale       = 1.000
+  %lat_layout_shape_scale       = 1.000
+  %delete_overlapping_plots     = T
 \end{example}
 See section~\sref{s:init.plot} for more details. 
 
-The second section of the \vn{show plot} output
-lists the plot \vn{templates} (\sref{c:plotting}) and
+The second section of the \vn{show plot} output lists the plot \vn{templates} (\sref{c:plotting} and
 \sref{s:template}) that \tao knows about:
 \begin{example}
  Templates:
-   Plot                .Graph
-   ------------------  ----------
-   orbit               .x  .y
-   phase               .a  .b
-   beta                .a  .b
-   eta                 .x  .y
-   cbar                .22  .12  .11
-   quad_k1             .k1
-   floor               .this
+   Plot               
+   ------------------ 
+   orbit              
+   phase              
+   beta               
+   eta                
+   cbar               
+   quad_k1
+   floor              
 \end{example}
-In this case, these templates are defined in the \vn{tao_plot.init}
-file. There is an \vn{orbit} plot template which has two associated
-graphs: \vn{orbit.x} and \vn{orbit.y}, etc. To see more information on, for example,
-the \vn{phase} template plot, use the command
-\begin{example}
-  show plot phase
-\end{example}
-and to see more information on, for example, the \vn{orbit.y} graph use the command
-\begin{example}
-  show plot orbit.y
-\end{example}
-Similarly, the \vn{show plot} command can be used to display
-information about the curves within each graph.
+The template plots come from two sources. First templates are defined, in this example, in the
+\vn{tao_plot.init} file. Second, \tao defines a set of default templates.
 
-The next block of information in the \vn{show plot} command is:
+%---------------------------
+
+\begin{figure}[tb]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=3in]{plot-page1.pdf}
+    \caption{The plot window at startup}
+    \label{f:plot.begin}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=3in]{plot-eta-beta.pdf}
+    \caption{Plotting dispersion and beta function}
+    \label{f:plot.eta.beta}
+  \end{subfigure}
+  \caption{Example plots.}
+\end{figure}
+
+%---------------------------
+
+The next block of information in the \vn{show plot} command are the regions in which
+template plots have been placed:
 \begin{example}
   Plot Region         <-->  Plot                 x1    x2    y1    y2
   -----------               -----------------------------------------
   top                 <-->  orbit               0.00  1.00  0.48  0.95
   bottom              <-->  phase               0.00  1.00  0.00  0.48
+  layout              <-->                      0.00  1.00  0.00  0.15
+  r11                 <-->                      0.00  1.00  0.15  1.00
+  r12                 <-->                      0.00  1.00  0.58  1.00
+  ... etc...
 \end{example}
-This shows that two plot regions have been defined called \vn{top} and
-\vn{bottom}. The \vn{top} plot contains an \vn{orbit} plot and
-the \vn{bottom} region contains a betatron \vn{phase} plot.
-
-Figure~\ref{f:plot.begin} shows what you will see in the plot
-window. In the top two plots you see the \vn{x} and \vn{y} model
-lattice orbit data. The horizontal axis is the \cesr BPM index. The
-horizontal pretzel and L03 vertical bump in CESR can be clearly
-seen. The slight vertical displacement due to the solenoid
-compensation can also be seen around the IP. The orbit data is for a
-closed orbit electron (this being a storage ring). The bottom two
-plots show the relative particle phase, that is, the difference
-between the model and design phases (as documented in the plot title
-as [model - design]). Two plot regions are defined in \tao
-\vn{top} and \vn{bottom}.
+Plot regions (\vn{top}, \vn{bottom}, and \vn{layout}) are defined, in this example, in the
+\vn{tao_plot.init} file. Additional default plot regions, all beginning with the letter \vn{r}, are
+defined by \tao. Here, the \vn{top} plot contains an \vn{orbit} plot and the \vn{bottom} region
+contains a betatron \vn{phase} plot.
 
 To see information on, say, the orbit plot, use the command
 \begin{example}
@@ -109,28 +124,35 @@ This shows:
      x
      y
 \end{example}
+This command shows that the \vn{orbit} plot has two associate graphs (\sref{c:plotting}) called
+\vn{x} and \vn{y}.  To see information on, say, the \vn{x} graph use the command 
+\begin{example}
+  show graph orbit.x    ! \sref{s:show.graph}
+\end{example}
+Similarly, the \vn{show curve} (\sref{s:show.curve}) command can be used to display
+information about the curves within each graph.
+
 Also see the \vn{show graph} and \vn{show curve} commands.
 Section~\sref{s:init.plot} has information on the plot parameters.
 
 \index{commands!plot}
 Let's view the absolute model phase. Use the command:
 \begin{example}
-  plot bottom model
+  set plot bottom component = model
 \end{example}
 This will change the data plotted in the bottom two graphs to just the
-model.  The plots are now way off scale. Let \tao automatically set
+model.  The plotted curves are now way off scale. Let \tao automatically set
 the scale by typing:
 \index{commands!scale}
 \begin{example}
   scale bottom
 \end{example}
-As expected, the phase increases approximately linearly as the
-particle travels through the ring. Zero phase is halfway through the
-ring (at L03 in \cesr lingo).  This is always true. Absolute phase is
-arbitrary so \tao sets the average phase to zero when generating the
-data. To set this back to relative phase type:
+As expected, the phase increases approximately linearly as the particle travels through the
+ring. Zero phase is about halfway through the ring. This is due to the fact that the absolute phase
+is arbitrary so \tao sets the average phase to zero when plotting phase data. To set the plot back to
+relative phase type:
 \begin{example}
-  plot bottom model - design
+  set plot bottom component = model - design
 \end{example}
 
 Let's now look at the beta function by typing
@@ -160,17 +182,15 @@ Now let's look at the coupling (C-matrix) by typing
   place bottom cbar
   scale bottom
 \end{example}
-We see that there is strong coupling within the CLEO solenoid and
-virtually no coupling anywhere else. To zoom in the scale so that we
-can see the residual coupling outside the interaction region type
+We see that there is strong coupling within the CLEO solenoid (at the left and right edges of the
+plot) and virtually no coupling anywhere else. To zoom in the scale so that we can see the residual
+coupling outside the interaction region type
 \begin{example}
   scale bottom -0.01 0.01
 \end{example}
-The \vn{**Limited**} displayed in red on the bottom plots tells us
-that there are data points outside the plotted region.  We now see
-that there is a small amount of coupling at the L03 region (BPM
-indexes 45-55) and a few other places along the ring. Your plot window
-should now look like Figure~\ref{f:plot.coupling.no.IR}.
+The \vn{**Curve Off Scale**} displayed in red on the bottom plots tells us that there are data
+points outside the plotted region.  We now see that there is a small amount of coupling throught the
+lattice.
 
 The x-axis is currently the BPM index number. It is sometimes
 convenient to plot the data versus longitudinal position. This is done
@@ -179,6 +199,17 @@ by typing
 \begin{example}
   x-axis * s
 \end{example}
+
+%------------------------
+
+\begin{figure}
+  \centering
+  \includegraphics[width=3in]{plot-coupling-no-IR.pdf}
+  \caption{Cbar and quarupole K1 plots.}
+  \label{f:plot.coupling.no.IR}
+\end{figure}
+
+%------------------------
 
 The \cmd{all} will apply the change to all plot areas (both top and
 bottom). In any of the above commands \cmd{top} or \cmd{bottom} could
@@ -189,31 +220,11 @@ been set up in the plot initialization file (See
 Section~\sref{s:init.plot} for details on initializing plotting). Type
 the following to view the quadrupole k1 values:
 \begin{example}
-  place bottom quad_k1
+  place top quad_k1
 \end{example}
+Your plot window should now look like Figure~\ref{f:plot.coupling.no.IR}.
 \index{commands!plot}
 \index{commands!place}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{plot-page1.pdf}
-  \caption{The plot window at startup}
-  \label{f:plot.begin}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{plot-eta-beta.pdf}
-  \caption{Plotting dispersion and beta function}
-  \label{f:plot.eta.beta}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{plot-coupling-no-IR.pdf}
-  \caption{Zooming in on the residual coupling outside the IR.}
-  \label{f:plot.coupling.no.IR}
-\end{figure}
 
 %----------------------------------------------------------------
 \section{The Show Command}
