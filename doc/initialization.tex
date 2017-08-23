@@ -1409,7 +1409,7 @@ for each of these momenta.
 Optionally parameters \vn{n_angle}, \vn{min_angle}, and \vn{max_angle} can be set to indicate
 the angle in the $x-y$ plane to scan about the closed orbit.
 
-Be default, the dynamic aperture calculation is off for all universes. To turn it on,
+By default, the dynamic aperture calculation is off for all universes. To turn it on,
 use the \vn{set} command (\sref{s:set}):
 \begin{example}
   set universe 1 dynamic_aperture_calc on
@@ -1421,7 +1421,8 @@ The results can be plotted. See \sref{s:dynamicapertureplot}.
 
 \clearpage
 %-----------------------------------------------------------------
-\section{Initializing Plotting}\index{plotting initializing}
+\section{Initializing Plotting}
+\index{plotting initializing}
 \label{s:init.plot} 
 
 \subsection{Plot Window}
@@ -1432,9 +1433,9 @@ The results can be plotted. See \sref{s:dynamicapertureplot}.
   \centering
   \includegraphics{plot-page.pdf}
   \caption[The plot window.]{The plot window has a boarder whose position is determined by 
-the setting of the plot_page%border parameter in the tao_plot_page namelist.
+the setting of the \vn{plot_page\%border} parameter in the tao_plot_page namelist.
 Plots are placed in ``\vn{regions}'' whose location is determined
-by the setting of the \vn{region(i)} parameters in the same namelist. 
+by the setting of the \vn{region(i)} parameters in the same namelist.}
   \label{f:plot.page}
 \end{figure}
 
@@ -1452,7 +1453,7 @@ plots go. The syntax of this block is:
   &tao_plot_page
     plot_page%plot_display_type        = <string>  ! Display type: 'X' or 'TK'
     plot_page%size                     = <x_size>, <y_size>         ! size in POINTS 
-    plot_page%border                   = <\(x1_b\)>, <\(x2_b\)>, <\(y1_b\)>, <\(y2_b\)>, "<units>"
+    plot_page%border                   = <x1\(_{\dstyle{b}}\)>, <x2\(_{\dstyle{b}}\)>, <y1\(_{\dstyle{b}}\)>, <y2\(_{\dstyle{b}}\)>, "<units>"
     plot_page%text_height              = <num>    ! height in POINTS. Def = 12
     plot_page%main_title_text_scale    = <num>    ! Relative to text_height. Def = 1.3
     plot_page%graph_title_text_scale   = <num>    ! Relative to text_height. Def = 1.1
@@ -1467,8 +1468,8 @@ plots go. The syntax of this block is:
                                                   !   smooth curve. Default = 401
      = <T/F>    ! Used with "show plot" command.
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
-    include_default_plots              = <T/F>    ! Include default plot templates? Def = T.
-    region(i) = "<region_name>" <\(x1_r\)>, <\(x2_r\)>, <\(y1_r\)>, <\(y2_r\)>  ! % plot area
+    include_default_plots              = <T/F>    ! Include default templates? Def = T.
+    region(i) = "<region_name>" <x1\(_{\dstyle{r}}\)>, <x2\(_{\dstyle{r}}\)>, <y1\(_{\dstyle{r}}\)>, <y2\(_{\dstyle{r}}\)>  
     place(i)  = "<region_name>", "<template_name>"
     default_plot%...                            ! See below.
     default_graph%...                           ! See below. 
@@ -1519,26 +1520,25 @@ Note: The environmental variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default dis
 type. You can set this variable in your login file to avoid having to setup a \tao
 init file to set this.
 
-\vn{plot_page%border} sets a border around the edges of the
-window. As shown in Figure~\ref{f:plot.page} $x1_b$, $x2_b$ are
-the right and left border widths and $y1_b$ and $y2_b$ are the
-bottom and top border widths respectively.  The rectangle within this
-border is called the plot area.
+\vn{plot_page%border} sets a border around the edges of the window. As shown in
+Figure~\ref{f:plot.page} x1$_{\dstyle{b}}$, x2$_{\dstyle{b}}$ are the right and left border widths
+and y1$_{\dstyle{b}}$ and y2$_{\dstyle{b}}$ are the bottom and top border widths respectively.  The
+rectangle within this border is called the plot area.
 
-\vn{plot_page%title(i)} set the page title. There are two title areas 
-(i = 1,2). If only the title string is given then the other variables 
-are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995, \vn{justify} = 
-"CC" and \vn{units} = "\vn{%PAGE}". See the quickplot documentation for 
-the \vn{justify} variable syntax.
+\vn{plot_page%title(i)} set the page title. There are two title areas (i = 1,2). If only the title
+string is given then the other variables are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995,
+\vn{justify} = "CC" and \vn{units} = "\vn{%PAGE}". See the quickplot documentation for the
+\vn{justify} variable syntax.
 
 The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
 is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
 that defines the i\Th region. The first element of this array is the name of the region. This name
-may not contain a dot ``.''.  The last four elements of the \vn{retion(i)} array, $x1_r$, $x2_r$,
-$y1_r$ and $y2_r$ define the location of the region as illustrated in Figure~\ref{f:plot.page}.  $x1_r$ and $x2_r$
-are normalized to the width of the plot area and $y1_r$ and $y2_r$ are normalized to the height of the plot
-area. That is, these four number should be in the range $[0, 1]$.
-Regions may overlap any one can define as many regions as one likes.
+may not contain a dot ``.''.  The last four elements of the \vn{retion(i)} array, x1$_{\dstyle{r}}$,
+x2$_{\dstyle{r}}$, y1$_{\dstyle{r}}$ and y2$_{\dstyle{r}}$ define the location of the region as
+illustrated in Figure~\ref{f:plot.page}.  x1$_{\dstyle{r}}$ and x2$_{\dstyle{r}}$ are normalized to
+the width of the plot area and y1$_{\dstyle{r}}$ and y2$_{\dstyle{r}}$ are normalized to the height
+of the plot area. That is, these four number should be in the range $[0, 1]$.  Regions may overlap
+any one can define as many regions as one likes.
 
 Besides the regions that the user sets up in the \vn{tao_plot_page} namelist, \tao defines a number
 of default regions whose names begin with the letter '\vn{r}'. Use the \vn{show plot} command
@@ -2720,13 +2720,14 @@ of the region in which it is placed.
 
 \begin{figure}
   \centering
-  \subfloat[Horizontal phase space]{
-  %\includegraphics[width=5in]{phase-space.pdf}
-  \includegraphics[width=0.45\textwidth]{plot-color-xpx}
-  }
-  \subfloat[Longitudinal phase space]{
-  \includegraphics[width=0.45\textwidth]{plot-color-zpz}
-  }  
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{plot-color-xpx}
+    \caption{Horizontal phase space}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{plot-color-zpz}
+    \caption{Longitudinal phase space}
+  \end{subfigure}  
   \caption{Example Phase Space plot, with points colored by the \vn{pz} coordinate.}
   \label{f:phase.space}
 \end{figure}

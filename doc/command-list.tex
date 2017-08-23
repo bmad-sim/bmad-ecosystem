@@ -61,8 +61,9 @@ substituted. A possible
   plot          & \sref{s:plot}     & wave          & \sref{s:wave}     \\ \hline
   ptc           & \sref{s:ptc}      & write         & \sref{s:write}    \\ \hline 
   python        & \sref{s:python}   & x_axis        & \sref{s:x.axis}   \\ \hline 
-  quit          & \sref{s:quit}     & x_scale       & \sref{s:x.scale}  \\ \hline 
-  re_execute    & \sref{s:re.exe}   & xy_scale      & \sref{s:xy.scale} \\ \hline
+  quiet         & \sref{s:quiet}    & x_scale       & \sref{s:x.scale}  \\ \hline 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
+  re_execute    & \sref{s:re.exe}   &               &                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -126,6 +127,16 @@ Section~\sref{s:command.files} for more details.
 
 The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such
 a call, the command \vn{ptc init} must be issued.
+
+If the command file has the \vn{quiet} command in it, output to the terminal is surpresed (but
+only for the duration of the execution of the file).
+
+Other useful commands to put in a command file are to speed up execution are:
+\begin{example}
+  set global lattice_calc_on = F   ! Stop lattic calculations
+  set global plot_on = F           ! Halt replotting
+\end{example}
+If set, at the end of the command file these logicals should be toggled back to True.
 
 Examples:
 \begin{example}
@@ -524,6 +535,26 @@ For further documentation on the python command, please look at the file tao/cod
 
 Note: At this point in time, the \vn{python} command is still in development.  Please
 contact David Sagan if needed.
+
+%% quiet --------------------------------------------------------------
+\section{quiet}\index{commands!quiet}
+\label{s:quiet}
+
+Format:
+\begin{example}
+  quiet
+\end{example}
+
+The \vn{quiet} command can only be used in command files (\sref{s:call}).
+When placed in a command file, output to the terminal is surpresed (but
+only from the \vn{quiet} command for the duration of the execution of the file).
+
+Other useful commands to put in a command file are to speed up execution are:
+\begin{example}
+  set global lattice_calc_on = F   ! Stop lattic calculations
+  set global plot_on = F           ! Halt replotting
+\end{example}
+If set, at the end of the command file these logicals should be toggled back to True.
 
 %% quit --------------------------------------------------------------
 \section{quit}\index{commands!quit}

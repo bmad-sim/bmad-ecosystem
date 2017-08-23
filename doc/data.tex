@@ -665,13 +665,9 @@ Damping partition numbers.
   \item[dpx_dx, dpy_dy, etc.] \Newline
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
 
-  \item[e_tot] \Newline
-The \vn{e_tot} data type gives the total energy of a tracked particle (with
-\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
-\vn{beam}).
-
-Notice that this is different from the \vn{E_tot} attribute of a lattice element which
-is the reference energy at that element.
+  \item[e_tot_ref] \Newline
+The reference energy of the lattice. This is the same as the \vn{E_tot} attribute of a lattice element.
+For the actual particle energy, use \vn{orbit.e_tot}.
 
   \item[element_attrib.<attrib_name>] \Newline
 The \vn{element_attrib.<attrib_name>} data type is associated with the
@@ -896,6 +892,14 @@ the transfer map from the reference element to the evaluation element.
 Note: If the reference element is not specified, or if the reference
 element is the same as the evaluation element, this data type cannot
 be used with a linear lattice.
+
+  \item[orbit.e_tot] \Newline
+The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
+\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
+\vn{beam}).
+
+Notice that this is different from the \vn{E_tot} attribute of a lattice element which
+is the reference energy at that element.
 
   \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
 Orbit position and momenta
@@ -1237,13 +1241,13 @@ squared.
   chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
   chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
   chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
-  chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat       & No  \\ \hline
-  chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat       & No  \\ \hline
+  chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
+  chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
 
   damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
   dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
 
-  e_tot                               & Beam total energy (eV)                    & lat         & Yes \\ \hline
+  e_tot_ref                           & Lattice reference energy (eV)             & lat         & No \\ \hline
   element_attrib.<attrib_name>        & lattice element attribute                 & lat         & No  \\ \hline
   emit.a, .b, .c                      & Emittance                                 & beam, lat   & No  \\ \hline
   eta.x, .y, .z                       & Lab Frame dispersion                      & beam, lat   & Yes \\ \hline 
@@ -1273,6 +1277,8 @@ squared.
   norm_emit.x, .y, .z                 & Normalized projected emittance            & beam, lat   & No  \\ \hline 
   normal.<type>.$i$.<monomial>        & Normal Form map component                 & lat         & No  \\ \hline
   
+  orbit.e_tot                         & Beam energy (eV)                          & beam, lat   & Yes \\ \hline
+
   orbit.x, .y, .z                     & Orbit position                            & beam, lat   & Yes \\ \hline 
   orbit.px, .py, .pz                  & Orbit Momenta                             & beam, lat   & Yes \\ \hline 
   orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
@@ -1284,13 +1290,13 @@ squared.
   \end{tabular}
                                       & Taylor term of the periodic map           & lat         & No  \\ \hline 
 
-  phase.a, .b                         & Betatron phase                            & lat        & Yes \\ \hline 
+  phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
   phase_frac.a, .b                    & \begin{tabular}{@{}l}
                                          Fractional betatron phase \\       
                                          $-\pi < \phi_{\mbox{frac}} < \pi$ \\
                                        \end{tabular}                              & lat         & No  \\ \hline 
 
-  phase_frac_diff                     & Phase diff between $a$ and $b$ modes      & lat        & No  \\ \hline 
+  phase_frac_diff                     & Phase diff between $a$ and $b$ modes      & lat         & No  \\ \hline 
   photon.intensity                    & Photon total intensity                    & beam, lat   & No  \\ \hline 
   \begin{tabular}{@{}l}
     photon.intensity_x, \\

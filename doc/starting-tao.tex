@@ -34,30 +34,33 @@ An initialization file is actually not needed. In this case, a
 templates for plotting.
 
 This tutorial uses the example set of input files that comes with the \tao library.
-These files can be viewd and/or downloaded at:
+If you are using a computer on the Cornell CLASSE linux cluster, you can get the
+files from: 
 \begin{example}
-  https://accserv.lepp.cornell.edu/svn/trunk/src/tao/examples/cesr
+  $ACC_RELEASE_DIR/tao/examples/introduction_to_tao
 \end{example}
-this will create a sub-directory \vn{example} in your current directory with 
-the appropriate files.
+If you are not on the cluster the example is at:
+\begin{example}
+  $ACC_ROOT_DIR/tao/examples/introduction_to_tao
+\end{example}
+In either case, copy this directory to your local area for use with the following sections.
 
 %----------------------------------------------------------------
 \section{Initializing Tao}
 \index{initializing!files}
 \label{s:initializing}
 
-Initialization occurs when \tao is started. The initialization
-information can reside in one file or it can be split into a number of
-files as discussed in Section~\sref{s:init.global}.
+Initialization occurs when \tao is started. The initialization information can reside in one file or
+it can be split into a number of files as discussed in Section~\sref{s:init.global}. If no
+initialization files are found. \tao uses a default initialization.
 
-Using the example files provided with \tao (\sref{s:obtaining}), \tao
-is started with the command:
+\tao is started with the command:
 \begin{example}
   \$ACC_EXE/tao
 \end{example}
-Since no initialization file is specified on the command line, the
-default file \vn{tao.init} is used. In the example \vn{tao.init} there
-is the following:
+Since no initialization file is specified on the command line, the default file \vn{tao.init} (if it
+exists) is used.  Using the example files in the \vn{introduction_to_tao} directory \tao
+(\sref{s:obtaining}), the \vn{tao.init} there has the following lines:
 \begin{example}
   &tao_start
     plot_file = 'tao_plot.init'

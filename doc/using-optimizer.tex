@@ -3,6 +3,9 @@
 \index{optimization}
 \label{c:optimizer}
 
+To use \tao with this chapter, please starup \tao as explained in \sref{s:obtaining} in 
+the \vn{introduction_to_tao} directory that you have copied to your local area.
+
 \index{lm!optimizer}\index{de!optimizer}
 There are three non-linear optimizers included with \tao: Two
 optimizers are based on the Levenburg-Marquardt method. These are
@@ -172,4 +175,19 @@ input format (\sref{s:init.data}). For example:
   data( 6) = 'alpha.b' ''        'end_lin3' 'max'   -0.6  1e3   T 
 /
 \end{example}
+
+%----------------------------------------------------------------
+\section{Lattice Correction}
+\label{s:lattice_opt}
+
+Lattice corrections involves the modeling of measured data (for example, orbit data) generally to
+find a set of corrector strengths that can ``correct'' the machine. The thory of this is covered
+\sref{s:lattice.correction}. In this section, and example orbit correction is presented.
+
+To use \tao with this section, please starup \tao as explained in \sref{s:obtaining} in the
+\vn{introduction_to_tao} directory that you have copied to your local area. \tao will open a 
+plot window that looks like Figure~\ref{f:plot.begin}.
+
+
+
 
