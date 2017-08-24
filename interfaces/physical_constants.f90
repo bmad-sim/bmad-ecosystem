@@ -7,6 +7,11 @@ module physical_constants
 
 use precision_def
 
+type physical_const_struct
+  character(40) name
+  real(rp) value
+end type
+
 real(rp), parameter :: pi = 3.141592653589793238462643383279d0
 real(rp), parameter :: twopi = 2 * pi
 real(rp), parameter :: fourpi = 4 * pi
@@ -53,6 +58,41 @@ real(rp), parameter :: anomalous_mag_moment_electron = 1.159652193d-3
 real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284735d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
+
+type (physical_const_struct), parameter :: physical_const_list(32) = [ &
+                 physical_const_struct('pi', pi), &
+                 physical_const_struct('twopi', twopi), &
+                 physical_const_struct('fourpi', fourpi), &
+                 physical_const_struct('e_log', 2.718281828459_rp), &
+                 physical_const_struct('sqrt_2', sqrt_2), &
+                 physical_const_struct('degrad', 180 / pi), &
+                 physical_const_struct('degrees', pi / 180), & ! From degrees to radians.
+                 physical_const_struct('raddeg', pi / 180), &
+                 physical_const_struct('m_electron', m_electron), &
+                 physical_const_struct('m_muon', m_muon), &
+                 physical_const_struct('m_pion_0', m_pion_0), &
+                 physical_const_struct('m_pion_charged', m_pion_charged), &
+                 physical_const_struct('m_proton', m_proton), &
+                 physical_const_struct('m_deuteron', m_deuteron), &
+                 physical_const_struct('c_light', c_light), &
+                 physical_const_struct('r_e', r_e), &
+                 physical_const_struct('r_p', r_p), &
+                 physical_const_struct('e_charge', e_charge), &
+                 physical_const_struct('h_planck', h_planck), &
+                 physical_const_struct('h_bar_planck', h_bar_planck), &
+                 physical_const_struct('pmass', p_mass), &
+                 physical_const_struct('emass', e_mass), &
+                 physical_const_struct('clight', c_light), &
+                 physical_const_struct('fine_struct_const', fine_structure_constant), &
+                 physical_const_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
+                 physical_const_struct('anom_mag_proton', anomalous_mag_moment_proton), &      ! Old style. Deprecated.
+                 physical_const_struct('anom_mag_muon', anomalous_mag_moment_muon), &          ! Old style. Deprecated.
+                 physical_const_struct('anom_mag_deuteron', anomalous_mag_moment_deuteron), &  ! Old style. Deprecated.
+                 physical_const_struct('anom_moment_electron', anomalous_mag_moment_electron), &
+                 physical_const_struct('anom_moment_proton', anomalous_mag_moment_proton), &
+                 physical_const_struct('anom_moment_muon', anomalous_mag_moment_muon), &
+                 physical_const_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
+
 
 ! This is to suppress the ranlib "has no symbols" message
 
