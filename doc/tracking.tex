@@ -737,8 +737,14 @@ not able to handle this since they are position ($s$) based, instead of time bas
 ``tries'' to reverse direction. In such a situation, the particle will be marked as lost and the
 \vn{coord_struct} will have \vn{%status} /= \vn{alive\$}.
 
-As an alternative to tracking backwards, reversing the lattice and tracking forwards is possible
-(\sref{s:reverse.track}).
+The ``problem'' with tracking backwards is that the reference time $t_0(s)$ that is used to compute
+the $z$ phase space coordinate (\Eq{zbctt}) is independent of the motion of any particle. That is, a
+particle traveling backwards will have a large negative $z$. As an alternative to tracking
+backwards, reversing the lattice and tracking forwards is possible (\sref{s:reverse.track}).
+
+One restriction with backwards tracking is that, for simplicities sake, \bmad does not
+compute transfer matrices for propagation in the backwards direction. Tracking with reversed
+elements does not have this restriction.
 
 %----------------------------------------------------------------
 \section{Reversed Elements and Tracking}

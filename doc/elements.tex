@@ -504,11 +504,19 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 
 \begin{figure}[tb]
   \centering
-  \subfigure[rbend]
-  {\includegraphics{rbend-coords.pdf}}
-  \hspace{1cm}
-  \subfigure[sbend]
-  {\includegraphics{sbend-coords.pdf}}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics{rbend-coords.pdf}
+    \caption{rbend}
+    \label{f:bend.rbend}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics{sbend-coords.pdf}
+    \caption{sbend}
+    \label{f:bend.sbend}
+  \end{subfigure}
+  \hfill
   \caption[Coordinate systems for (a) \vn{rbend}\ and (b) \vn{sbend}\ elements.]
 {Coordinate systems for (a) \vn{rbend} and (b) \vn{sbend} elements.
 For the bends drawn as viewed from ``above'' (viewed from positive $y$),
@@ -525,8 +533,8 @@ bend towards negative $x$ values (see \fig{f:local.coords}).
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is
 \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet
-(\fig{f:bend}a). Zero \vn{e1} and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet
-(\fig{f:bend}b).  An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to
+(\fig{f:bend.rbend}). Zero \vn{e1} and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet
+(\fig{f:bend.sbend}).  An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to
 an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).  This formula holds for both
 positive and negative angles.
 

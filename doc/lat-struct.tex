@@ -396,55 +396,54 @@ be in either the tracking or control parts of the branch.
   \footnotesize
 
   \centering
-  \subfigure[Possible {ele\%lord_status} and {ele\%slave_status} combinations
-    within an individual element.]
-  {
- \begin{tabular}{lcccccc} 
-    \toprule
-    & \multicolumn{6}{c}{\vn{ele\%lord_status}} \\ \cmidrule{2-7}
-    \vn{ele\%slave_status} &
-    \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
-    \begin{sideways}\vn{group_lord\$}\end{sideways} &
-    \begin{sideways}\vn{girder_lord\$}\end{sideways} &
-    \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
-    \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
-    \begin{sideways}\vn{super_lord\$}\end{sideways}
-    \\ \midrule
-    %                         NL  GR  GI  O   M   S
-    \vn{not_a_child\$}      & X & X & X & X & X & X \\ 
-    \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
-    \vn{slice_slave\$}      & X &   &   &   &   &   \\
-    \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
-  \end{tabular}
-  \label{f:lord.slave.a}
-  }
+  \begin{subfigure}[b]{0.45\textwidth}
+    \begin{tabular}{lcccccc} 
+      \toprule
+      & \multicolumn{6}{c}{\vn{ele\%lord_status}} \\ 
+      \cmidrule(lr){2-7}
+      {\vn{ele{\%}slave_status}} &
+      \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+      \begin{sideways}\vn{group_lord\$}\end{sideways} &
+      \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+      \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+      \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+      \begin{sideways}\vn{super_lord\$}\end{sideways}
+      \\ \midrule
+      %                         NL  GR  GI  O   M   S
+      \vn{not_a_child\$}      & X & X & X & X & X & X \\ 
+      \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
+      \vn{slice_slave\$}      & X &   &   &   &   &   \\
+      \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
+    \end{tabular}
+    \caption{Possible {ele\%lord_status} and {ele\%slave_status} combinations within an individual element.}
+    \label{f:lord.slave.a}
+  \end{subfigure}
   \hfill
-  \subfigure[Possible {\%lord_status} and {\%slave_status} combinations
-    for any lord/slave pair.]
-  {
-  \begin{tabular}{lcccccc} 
-    \toprule
-    & \multicolumn{6}{c}{\vn{lord\%lord_status}} \\ \cmidrule{2-7}
-    \vn{slave\%slave_status} &
-    \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
-    \begin{sideways}\vn{group_lord\$}\end{sideways} &
-    \begin{sideways}\vn{girder_lord\$}\end{sideways} &
-    \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
-    \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
-    \begin{sideways}\vn{super_lord\$}\end{sideways}
-    \\ \midrule
-    %                         NL  GR  GI  O   M   S
-    \vn{not_a_child\$}      &   & X & X & X &   &   \\ 
-    \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
-    \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
-  \end{tabular}
-  \label{f:lord.slave.b}
-  }
-  \caption[Possible element \%lord_status/\%slave_status combinations.]
-  {Possible \%lord_status/\%slave_status combinations. 
-   ``X'' marks a possible combination.
-   ``1'' indicates that the slave will have exactly one lord of the type 
-   given in the column.}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \begin{tabular}{lcccccc} 
+      \toprule
+      & \multicolumn{6}{c}{\vn{lord\%lord_status}} \\ 
+      \cmidrule(lr){2-7}
+      {\vn{slave{\%}slave_status}} &
+      \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+      \begin{sideways}\vn{group_lord\$}\end{sideways} &
+      \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+      \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+      \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+      \begin{sideways}\vn{super_lord\$}\end{sideways}
+      \\ \midrule
+      %                         NL  GR  GI  O   M   S
+      \vn{not_a_child\$}      &   & X & X & X &   &   \\ 
+      \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
+      \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
+    \end{tabular}
+    \caption{Possible {\%lord_status} and {\%slave_status} combinations for any lord/slave pair.}
+    \label{f:lord.slave.b}
+  \end{subfigure}
+  \caption[Possible element \%lord_status/\%slave_status combinations.]{Possible 
+    \%lord_status/\%slave_status combinations. 
+    ``X'' marks a possible combination.
+    ``1'' indicates that the slave will have exactly one lord of the type given in the column.}
   \label{f:lord.slave}
 \end{table}
 
