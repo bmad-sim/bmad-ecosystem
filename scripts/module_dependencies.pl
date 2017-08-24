@@ -7,7 +7,9 @@ $found_one = 0;
 find (\&searchit, './modules');
 find (\&searchit, './parsing');
 find (\&searchit, './photon');
-find (\&searchit, './synrad');
+find (\&searchit, './interface');
+find (\&searchit, './low_level');
+find (\&searchit, './code');
 find (\&searchit, './multiparticle');
 
 #foreach $module (keys %table) {
