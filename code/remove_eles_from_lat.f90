@@ -12,8 +12,7 @@
 ! In this case, the appropriate lord%n_slave value must have been adjusted for 
 ! the appropriate lord element.
 !
-! Modules Needed:
-!   use bmad
+! Note: Lattice_bookkeeper is not called by this routine.
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
@@ -26,7 +25,7 @@
 
 subroutine remove_eles_from_lat (lat, check_sanity)
 
-use bmad_interface, except => remove_eles_from_lat
+use bookkeeper_mod, except => remove_eles_from_lat
 
 implicit none
                          
@@ -255,6 +254,7 @@ endif
 
 ! do a check
 
+call set_flags_for_changed_attribute(lat)
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err_flag)
 
 end subroutine
