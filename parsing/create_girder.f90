@@ -113,6 +113,7 @@ lat%n_control_max = n_con2
 do i = 1, girder_ele%n_slave
 
   slave => pointer_to_slave(girder_ele, i)
+  if (slave%slave_status == free$) slave%slave_status = minor_slave$
 
   ! You cannot control super_slaves, group or overlay elements
 

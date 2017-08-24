@@ -208,13 +208,54 @@ representing the track can be constructed (\sref{s:multipass}).
 Superposition and multipass can be combined in situations where there
 are overlapping fields in elements where the particle passes through
 
-\index{not_a_child}\index{multipass_slave}\index{slice_slave}\index{super_slave}
+\index{no_major_lord}\index{multipass_slave}\index{slice_slave}\index{super_slave}
 \index{not_a_lord}\index{group_lord}\index{girder_lord}\index{overlay_lord}
 \index{multipass_lord}\index{super_lord}\index{slave_status}\index{lord_status}
 Each lattice element is assigned a \vn{slave_status} indicating what kind of slave it is
 and a \vn{lord_status} indicating what kind of lord it is. Normally a user does not
 have to worry about this since these status attributes are handled automatically by \bmad.
-See Section~\sref{s:lat.control} for more details.
+The possible \vn{lord_status} settings are:
+  \begin{description}
+  \item[girder_lord]\Newline 
+A \vn{girder_lord} element is a \vn{girder} element  (\sref{s:girder}). 
+  \item[multipass_lord]\Newline
+\vn{multipass_lord} elements are created when
+multipass lines are present (\sref{s:multipass}). 
+  \item[overlay_lord]\Newline 
+An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). 
+  \item[group_lord]\Newline 
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}).
+  \item[super_lord]\Newline 
+A \vn{super_lord} element is created when elements are
+superimposed on top of other elements (\sref{s:super}).
+  \item[not_a_lord]\Newline
+This element does not control anything.
+  \end{description}
+Any element whose \vn{lord_status} is something other than
+\vn{not_a_lord} is called a \vn{lord} element. In the \vn{tracking part}
+of the branch, \vn{lord_status} will always be
+\vn{not_a_lord}. In the \vn{lord section} of the branch, under normal
+circumstances, there will never be any \vn{not_a_lord} elements.
+
+The possible \vn{slave_status} settings are
+  \begin{description}
+  \item[multipass_slave]\Newline
+A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
+(\sref{s:multipass}).
+  \item[slice_slave]\Newline
+A \vn{slice_slave} element represents a longitudinal slice of another element.
+Slice elements are not part of the lattice but rather are created on-the-fly
+when, for example, a program needs to track part way through an element.
+  \item[super_slave]\Newline 
+A \vn{super_slave} element is an element in the tracking part of the branch that 
+has one or more \vn{super_lord} lords (\sref{s:super}).
+  \item[minor_slave]\Newline
+\vn{minor_slave} elements are elements that are not \vn{slice_slave}s and do not have a
+\vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. \vn{minor_slave}s
+will have at least one \vn{overlay_lord}, \vn{group_lord}, or \vn{girder_lord}.
+  \item[free]\Newline
+A \vn{free} element is an element with no lords.
+  \end{description}
 
 For historical reasons, each \vn{branch} in a lattice has a
 \vn{tracking section} and a \vn{lord section} and the \vn{tracking

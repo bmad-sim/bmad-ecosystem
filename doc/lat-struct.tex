@@ -367,7 +367,7 @@ and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
-\index{not_a_child\$}\index{slice_slave\$}
+\index{free\$}\index{minor_slave\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[multipass_slave\$]\Newline
@@ -380,13 +380,15 @@ when, for example, a program needs to track part way through an element.
   \item[super_slave\$]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the branch that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
-  \item[not_a_child\$]\Newline
-\vn{Not_a_child} elements are elements that are not \vn{super_slaves},
-\vn{multipass_slaves}, nor \vn{slice_slaves}. \vn{Not_a_child} elements can, however, have
-attributes that are controlled by \vn{overlay_lords}, \vn{group_lords}, or
-\vn{girder_lords}.
-
-\end{description}
+  \item[minor_slave\$]\Newline
+A \vn{minor_slave} element is an element that is not a \vn{slice_slave} and does not have a
+\vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. A \vn{minor_slave}
+element will some have attributes that are controlled by \vn{overlay_lords}, \vn{group_lords},
+or \vn{girder_lords}.
+  \item[free\$]\Newline
+A \vn{free} element is one that has no lords. [But there still might be field overlap from 
+other elements.]
+  \end{description}
 
 \vn{super_slave} elements
 always appear in the tracking part of the branch. The other types can

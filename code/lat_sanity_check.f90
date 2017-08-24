@@ -51,9 +51,9 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, [not_a_child$, multipass_slave$, super_slave$]) = .true.
-good_control(overlay_lord$, [not_a_child$, multipass_slave$, super_slave$]) = .true.
-good_control(girder_lord$, [not_a_child$, multipass_slave$]) = .true.
+good_control(group_lord$, [minor_slave$, multipass_slave$, super_slave$]) = .true.
+good_control(overlay_lord$, [minor_slave$, multipass_slave$, super_slave$]) = .true.
+good_control(girder_lord$, [minor_slave$, multipass_slave$]) = .true.
 good_control(super_lord$, [super_slave$]) = .true.
 good_control(multipass_lord$, [multipass_slave$]) = .true.
 
@@ -796,7 +796,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (.not. any( [not_a_child$, super_slave$, multipass_slave$] == s_stat)) then
+    if (.not. any( [minor_slave$, free$, super_slave$, multipass_slave$] == s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [i_t, s_stat] )

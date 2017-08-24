@@ -626,22 +626,22 @@ is_on                       & superimpose                 & x_pitch             
  \label{s:list.match}
  
  \begin{tabular}{llll} \toprule
-alias                       & dphi_b                      & match_end_orbit             & tracking_method             \\
-alpha_a0                    & ele_origin                  & match_end_orbit_input       & type                        \\
-alpha_a1                    & etap_x0                     & offset                      & x0                          \\
-alpha_b0                    & etap_x1                     & offset_moves_aperture       & x1                          \\
-alpha_b1                    & etap_y0                     & p0c                         & x1_limit                    \\
-aperture                    & etap_y1                     & ptc_integration_type        & x2_limit                    \\
-aperture_at                 & eta_x0                      & px0                         & x_limit                     \\
-aperture_type               & eta_x1                      & px1                         & y0                          \\
-beta_a0                     & eta_y0                      & py0                         & y1                          \\
-beta_a1                     & eta_y1                      & py1                         & y1_limit                    \\
-beta_b0                     & e_tot                       & pz0                         & y2_limit                    \\
-beta_b1                     & is_on                       & pz1                         & y_limit                     \\
-create_jumbo_slave          & l                           & reference                   & z0                          \\
-delta_ref_time              & mat6_calc_method            & ref_origin                  & z1                          \\
+alias                       & dphi_a                      & match_end_input             & superimpose                 \\
+alpha_a0                    & dphi_b                      & match_end_orbit             & tracking_method             \\
+alpha_a1                    & ele_origin                  & match_end_orbit_input       & type                        \\
+alpha_b0                    & etap_x0                     & offset                      & x0                          \\
+alpha_b1                    & etap_x1                     & offset_moves_aperture       & x1                          \\
+aperture                    & etap_y0                     & p0c                         & x1_limit                    \\
+aperture_at                 & etap_y1                     & ptc_integration_type        & x2_limit                    \\
+aperture_type               & eta_x0                      & px0                         & x_limit                     \\
+beta_a0                     & eta_x1                      & px1                         & y0                          \\
+beta_a1                     & eta_y0                      & py0                         & y1                          \\
+beta_b0                     & eta_y1                      & py1                         & y1_limit                    \\
+beta_b1                     & e_tot                       & pz0                         & y2_limit                    \\
+create_jumbo_slave          & is_on                       & pz1                         & y_limit                     \\
+delta_ref_time              & l                           & reference                   & z0                          \\
+delta_time                  & mat6_calc_method            & ref_origin                  & z1                          \\
 descrip                     & match_end                   & spin_tracking_method        &                             \\
-dphi_a                      & match_end_input             & superimpose                 &                             \\
  \bottomrule
  \end{tabular}
  \vfill
