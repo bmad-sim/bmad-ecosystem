@@ -162,11 +162,12 @@ lord%ix1_slave = nc0 + 1
 lat%n_control_max = nc2
 
 ! Loop over all slaves
-! Free elements convert to overlay slaves.
+! Free elements convert to minor slaves.
 
 do i = 1, lord%n_slave
 
   slave => pointer_to_slave(lord, i)
+  if (slave%slave_status == free$) slave%slave_status = minor_slave$
 
   ! You cannot overlay super_slaves 
 

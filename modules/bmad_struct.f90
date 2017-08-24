@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 197
+integer, parameter :: bmad_inc_version$ = 198
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -123,15 +123,15 @@ character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 
 ! Control element logicals
 ! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
 
-integer, parameter :: not_a_child$ = 1, super_slave$ = 2
+integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
 
-character(16), parameter :: control_name(12) = [ &
-            'NOT_A_CHILD    ', 'SUPER_SLAVE    ', 'Garbage!       ', 'GROUP_LORD     ', &
-            'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
-            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
+character(20), parameter :: control_name(12) = [character(20):: &
+            'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
+            'Super_Lord', 'Overlay_Lord', 'Girder_Lord', 'Multipass_Lord ', &
+            'Multipass_Slave', 'Not_a_Lord', 'Slice_Slave', 'Control_Lord']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
@@ -975,7 +975,7 @@ type ele_struct
   integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
-  integer :: slave_status = not_a_child$          ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
+  integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
   integer :: n_lord = 0                           ! Number of lords (except field lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.

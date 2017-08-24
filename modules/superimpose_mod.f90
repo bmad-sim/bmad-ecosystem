@@ -109,7 +109,7 @@ endif
 drift%key = drift$
 
 call transfer_ele (super_ele_in, super_saved)
-super_saved%slave_status = not_a_child$
+super_saved%slave_status = free$
 super_saved%n_lord = 0
 super_saved%ic1_lord = 0
 
@@ -295,7 +295,7 @@ enddo
 all_drift = (ix2_split > ix1_split)
 do i = ix1_split+1, ix2_split
   if (branch%ele(i)%key /= drift$) all_drift = .false.
-  if (branch%ele(i)%slave_status /= not_a_child$) all_drift = .false.
+  if (branch%ele(i)%slave_status == super_slave$ .or. branch%ele(i)%slave_status == multipass_slave$) all_drift = .false.
   if (.not. all_drift) exit
 enddo
 
@@ -843,7 +843,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
 
     ele => branch%ele(i)
-    if (ele%slave_status /= not_a_child$ .and. ele%lord_status /= multipass_lord$) cycle
+    if ((ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) .and. ele%lord_status /= multipass_lord$) cycle
     if (ele%value(drift_id$) /= drift_id) cycle
 
     ixx = ixx + 1

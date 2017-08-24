@@ -1095,8 +1095,7 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine check_this_attribute_free (ele, attrib_name, lat, &
-                            do_print, do_except_overlay, free, ix_recursion, ix_lord)
+subroutine check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, free, ix_recursion, ix_lord)
 
 implicit none
 
@@ -1249,7 +1248,7 @@ end select
 
 ! check if it is a dependent variable.
 
-if (attrib_info%type == not_a_child$) return
+if (attrib_info%type == is_free$) return
 
 select case (ele%key)
 case (sbend$)

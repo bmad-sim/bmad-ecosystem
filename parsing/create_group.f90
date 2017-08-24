@@ -103,7 +103,9 @@ do i = 1, n_control
   ix_branch = contrl(i)%slave%ix_branch
   ix_attrib = contrl(i)%ix_attrib
   branch => lat%branch(ix_branch)
+
   slave => branch%ele(ix_slave)
+  if (slave%slave_status == free$) slave%slave_status = minor_slave$
 
   ! If the slave attribute is a multipole component, make sure it exists.
 

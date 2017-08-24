@@ -1524,7 +1524,7 @@ enddo
 slave%n_lord = slave%n_lord - 1
 if (slave%n_lord == 0) then
   slave%ic1_lord = 0
-  slave%slave_status = not_a_child$
+  slave%slave_status = free$
 endif
 
 lord%n_slave = lord%n_slave - 1

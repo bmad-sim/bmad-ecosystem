@@ -225,12 +225,12 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Correct slave_status
 
-    ele%slave_status = not_a_child$
+    ele%slave_status = free$
     do j = 1, ele%n_lord
       lord => pointer_to_lord(ele, j)
       select case(lord%lord_status)
       case (group_lord$, overlay_lord$, girder_lord$)
-        ! Nothing to do
+        if (ele%slave_status == free$) ele%slave_status = minor_slave$
       case (multipass_lord$)
         ele%slave_status = multipass_slave$
       case (super_lord$)

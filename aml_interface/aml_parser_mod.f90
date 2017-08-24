@@ -325,7 +325,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
     ele%slave_status = multipass_slave$
 
   case ('')
-    ele%slave_status = not_a_child$
+    ele%slave_status = free$
 
   case default
     call parser_error('UNKNOWN SLAVE_RANK: ' // slave_rank)

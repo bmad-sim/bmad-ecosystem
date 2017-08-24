@@ -5331,14 +5331,14 @@ logical is_matched, add_slave
 
 is_matched = match_wild(ele%name, input_slave_name)
 
-if (is_matched .or. (pele%is_range .and. ixs == 2 .and. ele%slave_status == not_a_child$)) then
+if (is_matched .or. (pele%is_range .and. ixs == 2 .and. (ele%slave_status == free$ .or. ele%slave_status == minor_slave$))) then
 
   if (is_matched) ixs = ixs + 1  ! Next element in list
 
   if (ele%key == drift$) then
     if (is_matched) matched_to_drift = .true.
 
-  else ! If not a drift then ele will be a girder_slave
+  else ! If not a drift then ele will be a girder slave
     ! First check for duplicates. For example, element with superimposed 
     ! marker will be duplicated unless a check is made.
     add_slave = .true.
