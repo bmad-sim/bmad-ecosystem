@@ -3848,24 +3848,12 @@ logical err_flag, print_err, print_error, delim_found
 
 err_flag = .false.
 
-select case (str)
-case ('pi')
+call match_word(str, physical_const_list%name, ix, .false., .false.)
+if (ix > 0) then
   call re_allocate(stack%value, 1)
-  stack%value(1) = pi  
+  stack%value(1) = physical_const_list(ix)%value
   return
-case ('twopi')
-  call re_allocate(stack%value, 1)
-  stack%value(1) = twopi  
-  return
-case ('fourpi')
-  call re_allocate(stack%value, 1)
-  stack%value(1) = 4*pi  
-  return
-case ('sqrt_2')
-  call re_allocate(stack%value, 1)
-  stack%value(1) = sqrt(2.0_rp)  
-  return
-end select
+endif
 
 ! An array "[...]"
 
