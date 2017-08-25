@@ -59,7 +59,10 @@ real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284735d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
 
-type (physical_const_struct), parameter :: physical_const_list(32) = [ &
+! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
+! where if you pass physical_const_list%name to a routine there will be a crash.
+
+type (physical_const_struct) :: physical_const_list(32) = [ &
                  physical_const_struct('pi', pi), &
                  physical_const_struct('twopi', twopi), &
                  physical_const_struct('fourpi', fourpi), &
