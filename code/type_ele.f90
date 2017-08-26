@@ -94,6 +94,7 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), pointer :: r_ptr
 
 character(*), optional, allocatable :: lines(:)
+character(:), allocatable :: a_str
 character(200), pointer :: li(:)
 character(200), allocatable :: li2(:)
 character(200) coef_str
@@ -856,9 +857,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
         if (allocated(ctl%stack)) then
-          coef_str = expression_stack_to_string (ctl%stack)
+          a_str = expression_stack_to_string (ctl%stack)
           call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control_var)
-          write (coef_str, '(es12.4, 4x, a)') val, trim(coef_str)
+          write (coef_str, '(es12.4, 4x, a)') val, trim(a_str)
         else
           coef_str = ' ------ '
         endif
