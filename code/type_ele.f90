@@ -852,7 +852,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case default
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Expression_Val summed over all overlays controlling the attribute.]'
+      if (ele%key == overlay$) then
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Expression_Val summed over all Overlays controlling the attribute.]'
+      else ! Group
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Value of the controlled attribute, Expression_Val = Value calculated by the Group element.]'
+      endif
       nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
