@@ -29,7 +29,7 @@ character(*), parameter :: r_name = 'combine_consecutive_elements'
 
 ! loop over all elements...
 
-ele_loop: do i = 1, lat%n_ele_track
+ele_loop: do i = 1, lat%n_ele_track - 1
 
   ele1 => lat%ele(i)
   ele2 => lat%ele(i+1)
