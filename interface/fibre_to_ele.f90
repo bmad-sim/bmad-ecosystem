@@ -8,7 +8,7 @@
 !   use ptc_layout_mod
 !
 ! Input:
-!   ptc_fibre     -- fibre: PTC fiber.
+!   ptc_fibre     -- fibre: PTC fibre.
 !   ix_ele        -- integer: Index in ele(:) array of element last used.
 !   branch        -- branch_struct: branch containing elements.
 !   from_mad      -- logical, optional: If True, ignore PTC specific parameters like integrator_order.
