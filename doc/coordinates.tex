@@ -1,6 +1,38 @@
 \chapter{Coordinates}
 \index{coordinates|hyperbf}
 
+\bmad uses three coordinate systems as illustrated in \fig{f:coords}. First, the \vn{global} (also
+called ``\vn{floor}'') coordinates are independent of the accelerator. Thus such things as the 
+building the accelerator is in may be described using \vn{global} coordinates. 
+
+It is not convenient to describe the position of the beam using the \vn{global} coordinate system so
+a ``\vn{local}'' coordinate system is used (\sref{s:local.coords}). 
+This curvilinear coordinate system defines the nominal position of the lattice elements.
+The relationship between the \vn{local} and \vn{global} coordinate systems is described in \sref{s:global}.
+
+The ``nominal'' position of a lattice element is the position of the element without what are called ``misalignments''
+(that is, position and orientation shifts). Each lattice element has ``\vn{body}'' coordinates which are attached
+to the physical element. That is, the electric and magnetic fields of an element are described with respect to \vn{body} coordinates.
+If there are no misalignments, the \vn{body} coordinates are aligned with the \vn{local}
+coordinates. With misalignments, \vn{body} and \vn{local} coordinates will not coincide.
+When discussing \vn{local} vs \vn{body} coordinates, it can be less confusing to use the name
+``\vn{laboratory}'' cordinates instead of \vn{local} coordinates.
+
+\begin{figure}[!b]
+  \centering
+  \includegraphics[width=5.5in]{coordinates.pdf}
+  \caption[The three coordinate system used by \bmad.]
+{The three coordinate systems used by \bmad:
+The \vn{global} (or ``\vn{floor}'') coordinate system is independent of the accelerator.
+The \vn{local} curvilinear coordinate system follows the bends of the accelerator. 
+Each lattice element has \vn{body} coordinates. Generally the \vn{body} coordinate
+are the same as the \vn{local} coordinates but if an element is ``misaligned'' (for
+illustration purposes, the misalignment shown is much larger than typical),
+the two will not coincide.}
+  \label{f:coords}
+\end{figure}
+
+
 %-----------------------------------------------------------------------------
 \section{Local Reference Coordinates}
 \label{s:local.coords}
@@ -11,7 +43,7 @@
 \index{reference orbit|hyperbf}
 \index{laboratory coordinates|hyperbf}
 
-\begin{figure}[!b]
+\begin{figure}[tb]
   \centering
   \includegraphics[height=8.4cm]{local-coords.pdf}
   \caption[The local Reference System.]
