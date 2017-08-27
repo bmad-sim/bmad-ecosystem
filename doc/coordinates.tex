@@ -11,11 +11,13 @@ This curvilinear coordinate system defines the nominal position of the lattice e
 The relationship between the \vn{local} and \vn{global} coordinate systems is described in \sref{s:global}.
 
 The ``nominal'' position of a lattice element is the position of the element without what are called ``misalignments''
-(that is, position and orientation shifts). Each lattice element has ``\vn{body}'' coordinates which are attached
-to the physical element. That is, the electric and magnetic fields of an element are described with respect to \vn{body} coordinates.
-If there are no misalignments, the \vn{body} coordinates are aligned with the \vn{local}
-coordinates. With misalignments, \vn{body} and \vn{local} coordinates will not coincide.
-When discussing \vn{local} vs \vn{body} coordinates, it can be less confusing to use the name
+(that is, position and orientation shifts). Each lattice element has ``\vn{element body}'' coordinates which are attached
+to the physical element. That is, the electric and magnetic fields of an element are described with respect to \vn{element} coordinates.
+If there are no misalignments, the \vn{element} coordinates are aligned with the \vn{local}
+coordinates. With misalignments, \vn{element} and \vn{local} coordinates will not coincide.
+The transformation between \vn{local} and \vn{element} coordinates is given in \sref{s:lab.body.transform}.
+
+When discussing \vn{local} vs \vn{element} coordinates, it can be less confusing to use the name
 ``\vn{laboratory}'' cordinates instead of \vn{local} coordinates.
 
 \begin{figure}[!b]
@@ -25,7 +27,7 @@ When discussing \vn{local} vs \vn{body} coordinates, it can be less confusing to
 {The three coordinate systems used by \bmad:
 The \vn{global} (or ``\vn{floor}'') coordinate system is independent of the accelerator.
 The \vn{local} curvilinear coordinate system follows the bends of the accelerator. 
-Each lattice element has \vn{body} coordinates. Generally the \vn{body} coordinate
+Each lattice element has \vn{element} coordinates. Generally the \vn{element} coordinate
 are the same as the \vn{local} coordinates but if an element is ``misaligned'' (for
 illustration purposes, the misalignment shown is much larger than typical),
 the two will not coincide.}
