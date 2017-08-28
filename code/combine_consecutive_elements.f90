@@ -16,7 +16,7 @@
 
 subroutine combine_consecutive_elements (lat)
 
-use bookkeeper_mod, except => combine_consecutive_elements
+use ptc_interface_mod, except => combine_consecutive_elements
 
 implicit none
 
@@ -126,6 +126,10 @@ ele_loop: do i = 1, lat%n_ele_track - 1
 
   case (rfcavity$, lcavity$)
     ele1%value(voltage$) = 2 * ele1%value(voltage$)
+
+  case (taylor$)
+    call concat_ele_taylor (ele1%taylor, ele2, ele1%taylor)
+
   end select
 
 enddo ele_loop
