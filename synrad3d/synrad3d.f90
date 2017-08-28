@@ -96,8 +96,13 @@ do while (i < cesr_iargc())
     read (arg, *) ix_photon_out
   case default
     if (arg(1:1) == '-') then
-      print *, 'I DO NOT UNDERSTAND: ', trim(arg)
+      print *, 'ERROR: I DO NOT UNDERSTAND: ', trim(arg)
       print *
+      ok = .false.
+    endif
+    if (param_file /= '') then
+      print '(9a)', 'ERROR: LOOKS LIKE THERE ARE MULTIPLE MASTER INPUT FILES SPECIFIED: "', &
+                      trim(param_file), ':" and "', trim(arg), '"'
       ok = .false.
     endif
     param_file = arg
