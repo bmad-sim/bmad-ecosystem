@@ -1100,7 +1100,7 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
   enddo
 enddo
-call remove_eles_from_lat (lat, .false.)  
+call remove_eles_from_lat (lat, .false.)
 
 ! Consistancy check
 
