@@ -648,13 +648,13 @@ enddo
 
 ! make matrices for entire lat
 
-call set_flags_for_changed_attribute(lat)
-call lattice_bookkeeper (lat)
-
 do i = 1, lat%n_ele_max
   if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
 enddo
 call remove_eles_from_lat (lat)  ! remove all null_ele elements.
+
+call set_flags_for_changed_attribute(lat)
+call lattice_bookkeeper (lat)
 
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit) 
 
