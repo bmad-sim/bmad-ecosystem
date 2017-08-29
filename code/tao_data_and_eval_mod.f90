@@ -3556,6 +3556,8 @@ parsing_loop: do
       select case (word2)
       case ('sin')
         call pushit (op, i_op, sin$)
+      case ('sinc')
+        call pushit (op, i_op, sinc$)
       case ('cos')
         call pushit (op, i_op, cos$)
       case ('tan') 
@@ -4231,6 +4233,9 @@ do i = 1, size(stack)
 
   case (sin$) 
     stk2(i2)%value = sin(stk2(i2)%value)
+
+  case (sinc$) 
+    stk2(i2)%value = sinc(stk2(i2)%value)
 
   case (cos$) 
     stk2(i2)%value = cos(stk2(i2)%value)
