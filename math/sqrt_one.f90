@@ -10,12 +10,13 @@
 !   ds1 -- real(rp): Result.
 !-
 
-function sqrt_one(eps) result (ds1)
+elemental function sqrt_one(eps) result (ds1)
 
 use precision_def
 implicit none
 
-real(rp) eps, ds1
+real(rp), intent(in) :: eps
+real(rp) ds1
 
 ds1 = eps / (sqrt(1 + eps) + 1)
 
