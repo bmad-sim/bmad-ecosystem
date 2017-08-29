@@ -527,8 +527,8 @@ controls the two \vn{A\B n} elements and similarly with \vn{B}. This
 lattice represents the case where a particle goes through the m_line
 in the ``forward'' direction, gets turned around in the \vn{arc} line,
 and then passes back through \vn{m_line} in the reverse direction.
-While it is possible to use reflection ``-'' (\sref{s:lines.wo.arg})
-instead of reversal ``--'', reflection here does not make physical
+While it is possible to use reflection ``$-$'' (\sref{s:lines.wo.arg})
+instead of reversal ``$--$'' (\sref{s:ele.reverse}), reflection here does not make physical
 sense.  Needed here is a reversing patch \vn{P} (\sref{s:patch})
 between reversed and unreversed elements.
 
@@ -589,3 +589,4 @@ If \vn{e_tot} or \vn{p0c} is set, \vn{n_ref_pass} will default to 0 and it is an
 1. If neither \vn{e_tot} nor \vn{p0c} is set, \vn{n_ref_pass} will default to 1 and it is an error
 to set it to 0.
 
+An example of an ERL lattice with multipass can be found in Section~\sref{s:ex.erl}.
