@@ -17,17 +17,18 @@ integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ =
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_var$ = 35
+integer, parameter :: sinc$ = 36
 
-character(12), parameter :: expression_op_name(35) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(36) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
-                                    'species', '?!+Species']
+                                    'species', '?!+Species', 'sinc']
 
 
-integer, parameter :: expression_eval_level(35) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(36) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -172,6 +173,8 @@ parsing_loop: do
       select case (upcase(word))
       case ('SIN') 
         call pushit (op, i_op, sin$)
+      case ('SINC') 
+        call pushit (op, i_op, sinc$)
       case ('COS') 
         call pushit (op, i_op, cos$)
       case ('TAN') 
@@ -560,6 +563,9 @@ do i = 1, size(stack)
 
   case (sin$)
     stack2(i2)%value = sin(stack2(i2)%value)
+
+  case (sinc$)
+    stack2(i2)%value = sinc(stack2(i2)%value)
 
   case (cos$)
     stack2(i2)%value = cos(stack2(i2)%value)
