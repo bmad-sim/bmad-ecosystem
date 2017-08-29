@@ -10,12 +10,13 @@
 !   y -- real(rp): sin(x) / x
 !-
 
-function sinc(x) result (y)
+elemental function sinc(x) result (y)
 
 use precision_def
 implicit none
 
-real(rp) x, y
+real(rp), intent(in) :: x
+real(rp) y
 real(rp), parameter :: sinc_eps = sqrt(6.0_rp*epsilon(1.0_rp))
 
 !

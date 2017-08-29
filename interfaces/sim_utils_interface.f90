@@ -444,10 +444,11 @@ subroutine run_timer(command, time)
   character(*) command
 end subroutine
 
-function sinc(x) result (y)
+elemental function sinc(x) result (y)
   import
   implicit none
-  real(rp) x, y
+  real(rp), intent(in) :: x
+  real(rp) y
 end function
 
 subroutine skip_header (ix_unit, error_flag)
@@ -456,9 +457,10 @@ subroutine skip_header (ix_unit, error_flag)
   logical error_flag
 end subroutine
 
-function sqrt_one(eps) result (ds1)
+elemental function sqrt_one(eps) result (ds1)
   import
-  real(rp) eps, ds1
+  real(rp), intent(in) :: eps
+  real(rp) ds1
 end function
 
 function str_find_first_in_set(line, set) result (ix_match)
