@@ -444,6 +444,12 @@ subroutine run_timer(command, time)
   character(*) command
 end subroutine
 
+function sinc(x) result (y)
+  import
+  implicit none
+  real(rp) x, y
+end function
+
 subroutine skip_header (ix_unit, error_flag)
   implicit none
   integer ix_unit
