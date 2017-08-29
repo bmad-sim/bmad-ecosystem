@@ -224,7 +224,7 @@ The \vn{%param} component within each \vn{lat%branch(:)} is a
     real(rp) n_part             ! Particles/bunch (for beambeam elements).
     real(rp) total_length       ! total_length of lattice
     real(rp) unstable_factor    ! closed branch: growth rate/turn. 
-                                ! open branch: |orbit/limit|
+                                !   all branches: |orbit/limit|
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
     real(rp) t1_no_RF(6,6)      ! Transverse 1-turn 4x4 matrix (RF off).
     integer particle            ! +1 = positrons, -1 = electrons, etc.
@@ -272,8 +272,8 @@ not stable the Twiss parameters cannot be computed. If unstable,
 \vn{%param%unstable_factor} will be set to the growth rate per turn of
 the unstable mode.
 
-For open branches, if a particle is lost in tracking,
-\vn{%param%unstable_factor} will be set to
+Besides being set when the 1--turn transfer matrix is calculated, \vn{%param%unstable_factor}
+will be set if a particle is lost in tracking to:
 \begin{example}
   orbit_amplitude / limit - 1
 \end{example}
