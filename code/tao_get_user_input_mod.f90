@@ -1,3 +1,18 @@
+module tao_get_user_input_mod
+
+use tao_mod
+use input_mod
+
+character(5), parameter, private :: sub_str(9) = ['[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
+                            '[[6]]', '[[7]]', '[[8]]', '[[9]]']
+
+private tao_alias_translate
+
+contains
+
+!-------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------
 !+
 ! Subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
 !
@@ -18,9 +33,6 @@
 
 subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
 
-use tao_mod, dummy => tao_get_user_input
-use input_mod
-
 implicit none
 
 type do_loop_struct
@@ -39,8 +51,6 @@ integer ios, n_level
 character(*) :: cmd_out
 character(*), optional :: prompt_str, cmd_in
 character(80) prompt_string, color_prompt_string
-character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
-                            '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) name
 character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
@@ -116,7 +126,7 @@ endif
 if (s%com%use_cmd_here) then
   cmd_out = s%com%cmd
   call out_io (s_blank$, r_name, '  ' // cmd_out)
-  call alias_translate (cmd_out, err)
+  cmd_out = tao_alias_translate (cmd_out, err)
   s%com%use_cmd_here = .false.
   return
 endif
@@ -194,7 +204,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     
   endif
 
-  call alias_translate (cmd_out, err)
+  cmd_out = tao_alias_translate (cmd_out, err)
   call check_for_multi_commands
 
   if (s%com%multi_commands_here) then
@@ -241,7 +251,7 @@ if (present (will_need_input)) then
   endif
 endif
 
-call alias_translate (cmd_out, err)
+cmd_out = tao_alias_translate (cmd_out, err)
 call check_for_multi_commands
 
 if (s%com%multi_commands_here) then
@@ -251,95 +261,6 @@ endif
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 contains
-
-subroutine alias_translate (cmd_out, err)
-
-character(*) cmd_out
-character(:), allocatable :: old_cmd_out, alias_cmd
-
-logical err, translated
-
-!
-
-old_cmd_out = cmd_out ! Save old command line for the command history.
-translated = .false.    ! No translation done yet
-call alias_translate2 (cmd_out, err, translated, alias_cmd)
-
-!if (translated) then
-!  print '(2a)', 'Alias: ', trim (alias_cmd)
-!  cmd_out = trim(cmd_out) // "  ! " // trim(old_cmd_out)  
-!endif
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-! contains
-
-recursive subroutine alias_translate2 (cmd_out, err, translated, alias_cmd2)
-
-character(*) cmd_out
-character(:), allocatable :: alias_cmd, alias_cmd2, tail
-
-integer ic, i, j, ix
-logical err, translated
-
-! Look for a translation for the first word
-
-ix = index(cmd_out, ';')
-if (ix == 0) then
-  tail = ''
-else
-  tail = trim(cmd_out(ix:))
-  cmd_out = cmd_out(1:ix-1)
-endif
-
-call string_trim (cmd_out, cmd_out, ic)
-
-alias_cmd2 = cmd_out
-
-do i = 1, s%com%n_alias
-
-  if (cmd_out(1:ic) /= s%com%alias(i)%name) cycle
-
-  ! We have a match...
-  ! Now get the actual arguments and replace dummy args with actual args.
-
-  alias_cmd = trim(s%com%alias(i)%expanded_str)
-  ix = index(alias_cmd, ';')
-  if (ix /= 0) then
-    tail = alias_cmd(ix:) // tail
-    alias_cmd = alias_cmd(1:ix-1)
-  endif
-
-  do j = 1, 9
-    call string_trim (cmd_out(ic+1:), cmd_out, ic)
-    do
-      ix = index (alias_cmd, sub_str(j))
-      if (ix == 0) exit
-      alias_cmd = alias_cmd(1:ix-1) // trim(cmd_out(1:ic)) // alias_cmd(ix+5:)
-    enddo
-  enddo
-
-  ! Append rest of string
-
-  call string_trim (cmd_out(ic+1:), cmd_out, ic)
-  call alias_translate2 (alias_cmd, err, translated, alias_cmd2) ! Translation is an alias?
-  cmd_out = trim(alias_cmd2) // ' ' // trim(cmd_out) // tail
-  translated = .true.
-
-  return
-
-enddo
-
-cmd_out = trim(cmd_out) // tail
-translated = .false.
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-! contains
 
 subroutine check_for_multi_commands
 
@@ -502,4 +423,88 @@ c_str = trim(color) // trim(str) // trim(reset_color)
 end subroutine add_color
 
 end subroutine tao_get_user_input
+
+!-------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------
+
+recursive function tao_alias_translate (cmd_in, err, depth) result(cmd_out)
+
+character(*) cmd_in
+character(:), allocatable :: cmd_out, tail, alias_cmd
+
+integer, optional :: depth
+integer ic, i, j, ix, this_depth
+logical err
+character(*), parameter :: r_name = 'tao_alias_translate'
+
+!
+
+if (present(depth)) then
+  this_depth = depth + 1
+  if (this_depth > 100) then
+    call out_io (s_error$, r_name, 'INFINITE RECURSION LOOP TRANSLATING ALIASES.')
+    cmd_out = ''
+    err = .true.
+    return
+  endif
+else
+  this_depth = 1
+  err = .false.
+endif
+
+! Look multiple commands
+
+ix = index(cmd_in, ';')
+if (ix /= 0) then
+  cmd_out = tao_alias_translate(cmd_in(1:ix-1), err, this_depth)
+  tail = cmd_in(ix+1:)
+
+  do 
+    ix = index(cmd_out, ';')
+    if (ix == 0) exit
+    cmd_out = trim(cmd_out) // ';' // tao_alias_translate(tail(1:ix-1), err, depth)
+    tail = tail(ix+1:)
+  enddo
+
+  cmd_out = trim(cmd_out) // ';' // tao_alias_translate(tail, err, depth)
+  return
+endif
+
+! Here if there is just a single command to translate
+
+tail = cmd_in
+call string_trim (tail, tail, ic)
+
+do i = 1, s%com%n_alias
+
+  if (tail(1:ic) /= s%com%alias(i)%name) cycle
+
+  ! We have a match...
+  ! Now get the actual arguments and replace dummy args with actual args.
+
+  alias_cmd = trim(s%com%alias(i)%expanded_str)
+
+  do j = 1, 9
+    call string_trim (tail(ic+1:), tail, ic)
+    do
+      ix = index (alias_cmd, sub_str(j))
+      if (ix == 0) exit
+      alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // alias_cmd(ix+5:)
+    enddo
+  enddo
+
+  ! The translation may need to be translated.
+
+  cmd_out = tao_alias_translate (alias_cmd, err, this_depth) ! Translation is an alias?
+  return
+enddo
+
+! No translation needed
+
+cmd_out = trim(cmd_in)
+
+end function tao_alias_translate
+
+end module
 

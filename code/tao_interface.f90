@@ -141,13 +141,6 @@ subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, alw
   logical err
 end subroutine
  
-subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
-  implicit none
-  character(*) :: cmd_out
-  character(*), optional :: prompt_str, cmd_in
-  logical, optional :: wait_flag, will_need_input
-end subroutine
- 
 subroutine tao_has_been_created ()
 end subroutine
  

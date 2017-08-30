@@ -17,6 +17,7 @@
 subroutine tao_top_level (command, errcode)
 
 use tao_command_mod, dummy => tao_top_level
+use tao_get_user_input_mod, only: tao_get_user_input
 !use tao_mpi_mod
 
 implicit none

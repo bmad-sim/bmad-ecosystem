@@ -642,6 +642,31 @@ end subroutine tao_set_wave_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_beam_start_cmd (who, set_value)
+!
+! Routine to set beam_start variables
+! 
+! Input:
+!   who       -- Character(*): which beam_start variable to set
+!   set_value -- Character(*): Value to set to.
+!
+! Output:
+!    s%beam_start  -- Beam_start variables structure.
+!-
+
+subroutine tao_set_beam_start_cmd (who, set_value)
+
+type (tao_universe_struct), pointer :: u
+character(*) who, set_value
+
+character(*), parameter :: r_name = 'tao_set_beam_start_cmd'
+
+end subroutine tao_set_beam_start_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_beam_init_cmd (who, set_value)
 !
 ! Routine to set beam_init variables
@@ -662,7 +687,7 @@ type (beam_init_struct) beam_init
 type (tao_universe_struct), pointer :: u
 character(*) who, set_value
 character(40) who2
-character(20) :: r_name = 'tao_set_beam_init_cmd'
+character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
 integer i, iu, ios
 logical err
