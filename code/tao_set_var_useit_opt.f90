@@ -19,7 +19,6 @@ type (tao_var_struct), pointer :: v(:)
 !
 
 v => s%var
-v(:)%useit_opt = v(:)%good_opt .and. v(:)%exists .and. &
-                            v(:)%good_user .and. v(:)%good_var
+v(:)%useit_opt = v(:)%good_opt .and. v(:)%exists .and. v(:)%good_user .and. v(:)%good_var
 
 end subroutine tao_set_var_useit_opt

@@ -866,12 +866,12 @@ do ii = 1, size(a_ptr)
   var_slave%model_value => a_ptr(ii)%r
   var_slave%base_value  => b_ptr(ii)%r
   var_slave%ix_uni = ix_uni
-  if (size(eles) == 0) then
-    var_slave%ix_ele    = -1
-    var_slave%ix_branch = 0
-  else
+  if (associated(eles(ii)%ele)) then
     var_slave%ix_ele    = eles(ii)%ele%ix_ele
     var_slave%ix_branch = eles(ii)%ele%ix_branch
+  else
+    var_slave%ix_ele    = -1
+    var_slave%ix_branch = 0
   endif
 
   var%model_value => var%slave(1)%model_value

@@ -1279,7 +1279,8 @@ case ('plot_x_axis_var')
     endif
 
     u => tao_pointer_to_universe(ix_uni)
-    call pointers_to_attribute (u%model%lat, name(1:ix1-1), name(ix1+1:ix2-1), .true., scratch%attribs, err)
+    call pointers_to_attribute (u%model%lat, name(1:ix1-1), name(ix1+1:ix2-1), .true., scratch%attribs, &
+                                                                                 err, eles = scratch%eles)
     if (err .or. size(scratch%attribs) /= 1) then
       graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
       return
@@ -1303,6 +1304,7 @@ case ('plot_x_axis_var')
     val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
       var_ptr = val
+      call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
       s%u(ix_uni)%calc%lattice = .true.
     else
       call tao_set_var_model_value (scratch%var_array(1)%v, val)

@@ -421,6 +421,15 @@ subroutine tao_set_data_useit_opt (data)
   type (tao_data_struct), optional :: data(:)
 end subroutine
 
+subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
+  import
+  implicit none
+  type (tao_universe_struct) u
+  type (ele_struct), pointer, optional :: ele_ptr
+  real(rp), pointer, optional :: val_ptr
+  character(*) ele_name
+end subroutine
+
 subroutine tao_set_var_useit_opt ()
 end subroutine
 

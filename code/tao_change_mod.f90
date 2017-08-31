@@ -287,28 +287,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     delta = m_ptr(i)%r - old_value(i)
 
-    ! Beam_start. 
-
-    if (e_name == 'BEAM_START') then
-      u%beam%beam_init%center            = u%model%lat%beam_start%vec
-
-      u%model%tao_branch(0)%orbit(0)%vec = u%model%lat%beam_start%vec
-      u%model%tao_branch(0)%orb0%vec     = u%model%lat%beam_start%vec
-
-      u%model%tao_branch(0)%orbit(0)%t   = u%model%lat%beam_start%t
-      u%model%tao_branch(0)%orb0%t       = u%model%lat%beam_start%t
-
-      u%model%tao_branch(0)%orbit(0)%p0c   = u%model%lat%beam_start%p0c
-      u%model%tao_branch(0)%orb0%p0c       = u%model%lat%beam_start%p0c
-
-      u%beam%init_beam0 = .true.
-    endif
-
-    !
-
-    if (size(eles) > 0) then
-      call set_flags_for_changed_attribute (eles(i)%ele, m_ptr(i)%r)
-    endif
+    call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i)%r)
 
     max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
     fmt = '(5f14.6, 4x, a)'
@@ -319,7 +298,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     if (nl < 11) then
       name = 'BEAM_START'
-      if (size(eles) > 0) name = eles(i)%ele%name
+      if (associated(eles(i)%ele) > 0) name = eles(i)%ele%name
       nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
                               old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
                               m_ptr(i)%r-old_value(i), trim(name)
