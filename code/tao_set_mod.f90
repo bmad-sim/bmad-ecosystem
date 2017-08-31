@@ -1551,7 +1551,7 @@ elseif (size(s_var) /= 0) then
     v_ptr%slave(1)%base_value => a_ptr%r
   endif
 
-! Only possibility left is real/ The value_str might be a number or it might 
+! Only possibility left is real. The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_var) /= 0) then
