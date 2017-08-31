@@ -298,7 +298,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     if (nl < 11) then
       name = 'BEAM_START'
-      if (associated(eles(i)%ele) > 0) name = eles(i)%ele%name
+      if (associated(eles(i)%ele)) name = eles(i)%ele%name
       nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
                               old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
                               m_ptr(i)%r-old_value(i), trim(name)
