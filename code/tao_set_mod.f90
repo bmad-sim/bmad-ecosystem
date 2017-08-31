@@ -657,9 +657,54 @@ end subroutine tao_set_wave_cmd
 subroutine tao_set_beam_start_cmd (who, set_value)
 
 type (tao_universe_struct), pointer :: u
+type (all_pointer_struct), allocatable :: a_ptr(:)
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
+type (tao_expression_info_struct), allocatable :: info(:)
+
+real(rp), allocatable :: set_val(:)
+
+integer ix, iu
+
 character(*) who, set_value
+character(40) who2, name
 
 character(*), parameter :: r_name = 'tao_set_beam_start_cmd'
+
+logical, allocatable :: this_u(:)
+logical err, free
+
+! Find set_val
+
+call tao_evaluate_expression (set_value, 1, .false., set_val, info, err); if (err) return
+
+!
+
+call tao_pick_universe (who, who2, this_u, err); if (err) return
+call string_trim (upcase(who2), who2, ix)
+
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
+
+  call pointers_to_attribute (u%model%lat, 'BEAM_START', who2, .true., a_ptr, err, .true.)
+  if (err) return
+
+  if (u%model%lat%param%geometry == closed$) then
+    free = .false.
+    write (name, '(i0, a)') iu, '@multi_turn_orbit'
+    call tao_find_data (err, name, d2_array, print_err = .false.)
+    if (size(d2_array) > 0) free = .true.
+    if (who2 == 'PZ' .and. .not. s%global%rf_on) free = .true.
+    if (.not. free) then
+      call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE.')
+      return
+    endif
+  endif
+
+  ! Set value
+
+  a_ptr(1)%r = set_val(1)
+enddo
 
 end subroutine tao_set_beam_start_cmd
 

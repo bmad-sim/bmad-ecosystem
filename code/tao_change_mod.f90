@@ -64,7 +64,7 @@ endif
 
 ! find change value(s)
 
-call to_number (num_str, size(v_array), change_number, abs_or_rel, err);  if (err) return
+call tao_to_change_number (num_str, size(v_array), change_number, abs_or_rel, err);  if (err) return
 old_merit = tao_merit()
 
 ! We need at least one variable to exist.
@@ -264,7 +264,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Find change value(s)
 
-  call to_number (num_str, nd, change_number, abs_or_rel, err);  if (err) return
+  call tao_to_change_number (num_str, nd, change_number, abs_or_rel, err);  if (err) return
   old_merit = tao_merit()
 
   ! put in change
@@ -363,7 +363,7 @@ end subroutine tao_change_ele
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine to_number (num_str, n_size, change_number, abs_or_rel, err)
+subroutine tao_to_change_number (num_str, n_size, change_number, abs_or_rel, err)
 
 implicit none
 
@@ -375,7 +375,7 @@ integer ix, ios, n_size
 character(*) num_str
 character(*) abs_or_rel
 character(len(num_str)) number_str
-character(20) :: r_name = 'to_number'
+character(*), parameter :: r_name = 'tao_to_change_number'
 
 logical err
 
@@ -392,6 +392,6 @@ end select
 
 call tao_evaluate_expression (number_str, n_size, .false., change_number, info, err)
 
-end subroutine
+end subroutine tao_to_change_number
 
 end module
