@@ -1422,12 +1422,15 @@ subroutine draw_ele_beam_chamber (ele)
 type (ele_struct) ele
 
 real(rp) y1_plus, y1_minus, y2_plus, y2_minus, x1, x2, y1, y2
-integer section_id, icol
+integer section_id, icol, n_curve_pts
 
 ! Draw beam chamber wall. 
 
 icol = black$
 if (allocated (graph%curve)) icol = graph%curve(1)%line%color
+
+n_curve_pts = s%plot_page%n_curve_pts
+if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 if (associated(ele%wall3d)) then
   call calc_wall_radius (ele%wall3d(1)%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
@@ -1439,7 +1442,7 @@ if (associated(ele%wall3d)) then
   do section_id = 2, size(ele%wall3d(1)%section)
     x2 = ele%s_start + ele%wall3d(1)%section(section_id)%s
     if (section_id /= size(ele%wall3d(1)%section) .and. &
-            (x2 - x1) < (graph%x%max - graph%x%min) / s%plot_page%n_curve_pts) cycle
+            (x2 - x1) < (graph%x%max - graph%x%min) / n_curve_pts) cycle
     call calc_wall_radius (ele%wall3d(1)%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
     call calc_wall_radius (ele%wall3d(1)%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
     !scale wall

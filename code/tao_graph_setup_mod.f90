@@ -268,6 +268,7 @@ real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 real(rp) emit_a, emit_b
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix3_ax, ix, i
+integer n_curve_pts
 
 logical err, same_uni
 
@@ -278,6 +279,9 @@ character(40) :: r_name = 'tao_graph_phase_space_setup'
 
 graph%valid = .false.
 if (size(graph%curve) == 0) return
+
+n_curve_pts = s%plot_page%n_curve_pts
+if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 same_uni = .true.
 ix = tao_universe_number(graph%curve(1)%ix_universe)
@@ -425,7 +429,7 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'twiss') then
 
-    n = 2 * s%plot_page%n_curve_pts
+    n = 2 * n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -466,7 +470,7 @@ do k = 1, size(graph%curve)
       write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
   endif
 
-    n = 2 * s%plot_page%n_curve_pts
+    n = 2 * n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -1111,7 +1115,7 @@ real(rp), allocatable :: value_arr(:)
 real(rp), pointer :: var_ptr
 
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
-integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2
+integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts
 
 logical err, err_flag, smooth_curve, found, zero_average_phase, ok
 logical straight_line_between_syms, valid, in_graph
@@ -1123,6 +1127,9 @@ character(16) data_source, dflt_index
 character(20), parameter :: r_name = 'tao_curve_data_setup'
 
 !
+
+n_curve_pts = s%plot_page%n_curve_pts
+if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 call re_allocate_eles (scratch%eles, 1, exact = .true.)
 err_flag = .true.
@@ -1249,11 +1256,11 @@ case ('expression')
 
 case ('plot_x_axis_var')
 
-  call re_allocate (curve%ix_symb, s%plot_page%n_curve_pts)
-  call re_allocate (curve%x_symb, s%plot_page%n_curve_pts)
-  call re_allocate (curve%y_symb, s%plot_page%n_curve_pts)
-  call re_allocate (curve%x_line, s%plot_page%n_curve_pts)
-  call re_allocate (curve%y_line, s%plot_page%n_curve_pts)
+  call re_allocate (curve%ix_symb, n_curve_pts)
+  call re_allocate (curve%x_symb, n_curve_pts)
+  call re_allocate (curve%y_symb, n_curve_pts)
+  call re_allocate (curve%x_line, n_curve_pts)
+  call re_allocate (curve%y_line, n_curve_pts)
 
   if (plot%x_axis_type == 'lat') then
 
@@ -1292,8 +1299,8 @@ case ('plot_x_axis_var')
 
   val0 = var_ptr
 
-  do i = 1, s%plot_page%n_curve_pts 
-    val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (s%plot_page%n_curve_pts - 1)
+  do i = 1, n_curve_pts 
+    val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
       var_ptr = val
       s%u(ix_uni)%calc%lattice = .true.
@@ -1671,9 +1678,9 @@ case ('s')
 
     ! allocate data space
 
-    call re_allocate (curve%y_line, s%plot_page%n_curve_pts) 
-    call re_allocate (curve%x_line, s%plot_page%n_curve_pts) 
-    call re_allocate (good, s%plot_page%n_curve_pts) 
+    call re_allocate (curve%y_line, n_curve_pts) 
+    call re_allocate (curve%x_line, n_curve_pts) 
+    call re_allocate (good, n_curve_pts) 
     curve%y_line = 0
     good = .true.
 

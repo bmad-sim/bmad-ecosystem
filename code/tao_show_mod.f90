@@ -2851,7 +2851,8 @@ case ('plot')
     nl=nl+1; write(lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
     nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
     nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
-    
+    nl=nl+1; write(lines(nl), imt) 'n_curve_pts          = ', p%n_curve_pts
+
     nl=nl+1; lines(nl) = 'Graphs:'
     do i = 1, size(p%graph)
       nl=nl+1; write(lines(nl), amt) '   ', p%graph(i)%name

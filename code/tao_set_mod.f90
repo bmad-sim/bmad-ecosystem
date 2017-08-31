@@ -1123,6 +1123,9 @@ do i = 1, size(plot)
 
   select case (component)
 
+    case ('n_curve_pts')
+      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, set_value, error)
+
     case ('autoscale_x')
       call tao_set_logical_value (plot(i)%p%autoscale_x, component, set_value, error)
 

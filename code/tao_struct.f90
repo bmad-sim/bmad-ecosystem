@@ -232,6 +232,7 @@ type tao_plot_struct
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
+  integer :: n_curve_pts = -1                 ! Overrides s%plot_page%n_curve_pts.
   character(8) :: type = 'normal'             ! or 'wave'
   character(16) :: x_axis_type = ''           ! 'index', 'ele_index', 's', 'none', 'floor', or 'phase_space'
   logical :: autoscale_x = .false.            ! Horizontal autoscale.
@@ -281,7 +282,7 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_text_offset = 10 ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: lat_layout_shape_scale = 1.0
-  integer :: n_curve_pts = 401              ! Number of points for plotting a smooth curve
+  integer :: n_curve_pts = 401              ! Default number of points for plotting a smooth curve.
   integer :: id_window = -1                 ! X window id number.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
 end type
