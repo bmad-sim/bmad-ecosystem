@@ -405,8 +405,12 @@ if (.not. allocated(eles)) then
   return
 endif
 
-if (.not. logic_option(.false., exact) .and. size(eles) >= n) return
-if  (size(eles) == n) return
+if (size(eles) == n .or. (.not. logic_option(.false., exact) .and. size(eles) >= n)) then
+  if (.not. logic_option (.false., save_old)) eles = ele_pointer_struct()
+  return
+endif
+
+!
 
 if (logic_option (.false., save_old)) then
   call move_alloc (eles, l_temp)

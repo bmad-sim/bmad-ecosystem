@@ -666,8 +666,8 @@ end type
 
 type ele_pointer_struct
   type (ele_struct), pointer :: ele => null()
-  type (lat_ele_loc_struct) loc
-  integer id          
+  type (lat_ele_loc_struct) :: loc = lat_ele_loc_struct()
+  integer :: id = -1                    ! For general use. Not used by Bmad.
 end type
 
 ! Structure for ptc genfield
