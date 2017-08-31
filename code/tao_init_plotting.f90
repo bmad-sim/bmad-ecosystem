@@ -107,6 +107,7 @@ default_plot%autoscale_gang_y = .true.
 default_plot%autoscale_x = .false.
 default_plot%autoscale_y = .false.
 default_plot%n_graph = 0
+default_plot%n_curve_pts = -1
 
 default_graph = tao_graph_input()
 default_graph%x                     = init_axis
@@ -433,6 +434,7 @@ do  ! Loop over plot files
     plt%description          = plot%description
     plt%x_axis_type          = plot%x_axis_type
     plt%x                    = plot%x
+    plt%n_curve_pts          = plot%n_curve_pts
     plt%autoscale_gang_x     = plot%autoscale_gang_x 
     plt%autoscale_gang_y     = plot%autoscale_gang_y 
     plt%autoscale_x          = plot%autoscale_x 

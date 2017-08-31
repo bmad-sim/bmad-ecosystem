@@ -1115,6 +1115,7 @@ case ('plot1')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=incr(nl); write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
   nl=incr(nl); write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
+  nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
 
 !----------------------------------------------------------------------
 ! Convert species name to corresponding integer
