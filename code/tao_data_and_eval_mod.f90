@@ -3823,10 +3823,10 @@ subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_er
       dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
 
 type (tao_eval_stack1_struct) stack, stack2
-type (tao_real_pointer_struct), allocatable, save :: re_array(:)
-type (tao_data_array_struct), allocatable, save :: d_array(:)
-type (tao_integer_array_struct), allocatable, save :: int_array(:)
-type (tao_var_array_struct), allocatable, save :: v_array(:)
+type (tao_real_pointer_struct), allocatable :: re_array(:)
+type (tao_data_array_struct), allocatable :: d_array(:)
+type (tao_integer_array_struct), allocatable :: int_array(:)
+type (tao_var_array_struct), allocatable :: v_array(:)
 type (tao_data_struct) datum
 type (tao_data_struct), pointer :: d
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
@@ -3913,7 +3913,10 @@ endif
 
 name = stack%name
 
-if (.not. allocated(re_array)) allocate (re_array(0))
+allocate (re_array(0))
+allocate (d_array(0))
+allocate (int_array(0))
+allocate (v_array(0))
 
 ! Decide data source
 
