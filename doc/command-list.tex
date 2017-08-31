@@ -753,6 +753,7 @@ The \vn{set} command is used to set values for data,
 variables, etc. Format:
 \begin{example}
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
+  set beam_start \{n@\}<coordinate> = <value>                 ! \sref{s:set.beam.start}
   set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
   set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
   set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
@@ -831,6 +832,40 @@ Examples:
 \begin{example}
   set beam_init 3@center(2) = 0.004  ! Set px center of beam for universe 3.
   set beam_init [1,2]@sig_e = 0.02   ! Set sig_e for universes 1 and 2.
+\end{example}
+
+%% set beam_start --------------------------------------------------------------
+
+\subsection{set beam_start}
+\label{s:set.beam.start}
+
+Format:
+\begin{example}
+  set beam_start \{n@\}<coordinate> = <value>
+\end{example}
+
+The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
+or universes to apply the set command to.
+
+For lattices with an open geometry, \vn{set beam_start <coordinate> <number>} can be used to vary
+the starting coordinates for single particle tracking or the centroid coordinates for beam
+tracking. Here \vn{<coordinate>} is one of:
+\begin{example}
+  x, px, y, py, z, pz, t
+\end{example}
+For photons, \vn{<coordinate>} may also be:
+\begin{example}
+  field_x, field_y, phase_x, phase_y
+\end{example}
+For closed lattices only the \vn{pz} component is applicable. For lattices that have an
+\vn{e_gun} (which necessarily implies that the lattice has an open geometry), the time
+\vn{t} coordinate must be varied instead of \vn{pz}.
+
+To see the values for \vn{beam_start} use the command \vn{show element 0}.
+
+Examples:
+\begin{example}
+  set beam_start 2@x = 0.001         ! set beginning x position in universe 2 to 1 mm.
 \end{example}
 
 %% set bmad_com --------------------------------------------------------------
