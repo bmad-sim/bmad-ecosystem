@@ -39,8 +39,9 @@
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
 !   eles(:)      -- Ele_pointer_struct, optional, allocatable: Array of element pointers.
-!                     Size of eles will be zero if there are no associated lattice elements.
-!                     If there are assocaited lattice eles: size(eles) = size(ptr_array).
+!                     size(eles) = size(ptr_array). 
+!                     If there are no associated lattice elements, eles(i)%ele will be null.
+!                     
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
 !-
@@ -75,6 +76,7 @@ logical, optional :: err_print_flag
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
 call re_allocate(ptr_array, 0)
+if (present(eles)) call re_allocate_eles (eles, 0)
 
 !---
 
@@ -83,10 +85,6 @@ select case (ele_name)
 ! Selected parameters in bmad_com
 
 case ('BMAD_COM')
-
-  if (present(eles)) then
-    call re_allocate_eles (eles, 0)
-  endif
 
   if (attrib_name(1:5) == 'D_ORB') then
     call string_trim(attrib_name(6:), str, ix)
@@ -98,12 +96,14 @@ case ('BMAD_COM')
     if (str /= ')') err_flag = .true.
     if (.not. err_flag) then
       call re_allocate (ptr_array, 1)
+      if (present(eles)) call re_allocate_eles (eles, 1)
       ptr_array(1)%r => bmad_com%d_orb(n)
       return
     endif
   endif    
 
   call re_allocate (ptr_array, 1)
+  if (present(eles)) call re_allocate_eles (eles, 1)
 
   select case(attrib_name)
   case ('MAX_APERTURE_LIMIT');              ptr_array(1)%r => bmad_com%max_aperture_limit
@@ -148,6 +148,7 @@ case ('BMAD_COM')
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
     call re_allocate(ptr_array, 0)
+    if (present(eles)) call re_allocate_eles (eles, 0)
     err_flag = .true.
   end select
 
@@ -157,17 +158,15 @@ case ('BMAD_COM')
 
 case ('BEAM_START')
 
-  if (present(eles)) then
-    call re_allocate_eles (eles, 0)
-  endif
-
   call re_allocate (ptr_array, 1)
+  if (present(eles)) call re_allocate_eles (eles, 1)
 
   ix = attribute_index (beam_start, attrib_name)
   if (ix < 1) then
     if (do_print) call out_io (s_error$, r_name, &
            'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
     call re_allocate(ptr_array, 0)
+    if (present(eles)) call re_allocate_eles (eles, 0)
     err_flag = .true.
     return
   endif
@@ -234,6 +233,7 @@ case ('BEAM_START')
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
     call re_allocate(ptr_array, 0)
+    if (present(eles)) call re_allocate_eles (eles, 0)
     err_flag = .true.
   end select
 
@@ -247,8 +247,8 @@ case ('PARAMETER')
 
   select case(attrib_name)
   case ('N_PART')
-    if (present(eles)) call re_allocate_eles (eles, 0)
     call re_allocate (ptr_array, 1)
+    if (present(eles)) call re_allocate_eles (eles, 1)
     ptr_array(1)%r => lat%param%n_part
     return
   end select
@@ -261,6 +261,7 @@ call lat_ele_locator (ele_name, lat, eles2, n_loc, err_flag)
 if (n_loc == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
   call re_allocate(ptr_array, 0)
+  if (present(eles)) call re_allocate_eles (eles, 0)
   err_flag = .true.
   return  
 endif
@@ -282,6 +283,7 @@ if (n == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, &
                                                'NOT FOUND FOR: ' // ele_name)
   call re_allocate(ptr_array, 0)
+  if (present(eles)) call re_allocate_eles (eles, 0)
   err_flag = .true.
   return  
 endif
