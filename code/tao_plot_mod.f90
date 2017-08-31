@@ -1217,14 +1217,18 @@ do
   if (ele1%ix_branch /= graph%ix_branch) return
   x1 = ele1%s
   x2 = ele2%s
-  ! If out of range then try a negative position
-  if (branch%param%geometry == closed$ .and. x1 > graph%x%max) then
+  ! If out of range then try to shift by lat_len to get in range
+  if (branch%param%geometry == closed$ .and. x1 > graph%x%max .and. x2 > graph%x%max) then
     x1 = x1 - lat_len
     x2 = x2 - lat_len
   endif
+  if (branch%param%geometry == closed$ .and. x1 < graph%x%min .and. x2 < graph%x%min) then
+    x1 = x1 + lat_len
+    x2 = x2 + lat_len
+  endif
     
-  if (x1 > graph%x%max) return
-  if (x2 < graph%x%min) return
+  if (x1 > graph%x%max .and. x2 > graph%x%max) return
+  if (x1 < graph%x%min .and. x2 < graph%x%min) return
 
   ! Here if element is to be drawn...
   ! r1 and r2 are the scale factors for the lines below and above the center line.
@@ -1262,7 +1266,20 @@ do
 
   this_name = dat_var_name
   if (this_name == '') this_name = ele%name
-  call draw_shape_for_lat_layout (this_name, ele%s - ele%value(l$) / 2, ele_shape)
+
+  ! Does this element wrap around?
+
+  if (branch%param%geometry == closed$ .and. x2 < x1 .and. ele%value(l$) > 0) then
+    if (x1 > graph%x%min .and. x1 < graph%x%max) then
+      call draw_shape_for_lat_layout (this_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
+    endif
+    if (x2 > graph%x%min .and. x2 < graph%x%max) then
+      call draw_shape_for_lat_layout (this_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), ele_shape)
+    endif
+
+  else
+    call draw_shape_for_lat_layout (this_name, x1, x2, (x1 + x2)/2, ele_shape)
+  endif
 
   if (.not. ele_shape%multi) return
   ix_shape_min = ix_shape_min + ix_shape
@@ -1274,10 +1291,10 @@ end subroutine draw_ele_for_lat_layout
 !--------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine draw_shape_for_lat_layout (name_in, s_pos, ele_shape)
+subroutine draw_shape_for_lat_layout (name_in, x1, x2, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
-real(rp) :: s_pos, y_off, r_dum = 0
+real(rp) :: s_pos, y_off, r_dum = 0, x1, x2
 integer icol
 character(*) name_in
 character(20) shape_name
