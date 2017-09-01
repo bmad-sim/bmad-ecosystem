@@ -1196,7 +1196,7 @@ type (tao_graph_struct) graph
 type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-real(rp) dat_var_value
+real(rp) dat_var_value, x_lab
 integer section_id, icol, ix_shape_min, ix_shape
 
 character(40) dat_var_name, this_name
@@ -1278,7 +1278,8 @@ do
     endif
 
   else
-    call draw_shape_for_lat_layout (this_name, x1, x2, (x1 + x2)/2, ele_shape)
+    x_lab = min(max((x1+x2)/2, graph%x%min), graph%x%max)
+    call draw_shape_for_lat_layout (this_name, x1, x2, x_lab, ele_shape)
   endif
 
   if (.not. ele_shape%multi) return
@@ -1308,10 +1309,10 @@ icol = qp_translate_to_color_index (ele_shape%color)
 ! Draw the shape
 
 if (shape_name == 'DIAMOND') then
-  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, color = icol)
-  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, color = icol)
-  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, color = icol)
-  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, color = icol)
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, color = icol, clip = .true.)
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, color = icol, clip = .true.)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, color = icol, clip = .true.)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, color = icol, clip = .true.)
 endif
 
 if (shape_name == 'CIRCLE') then
@@ -1324,24 +1325,24 @@ if (shape_name == 'X') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (x1, y1, 'DATA', x1, y1, 'POINTS')
   call qp_convert_point_rel (x2, y2, 'DATA', x2, y2, 'POINTS')
-  call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', color = icol)
-  call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', color = icol)
+  call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', color = icol, clip = .true.)
+  call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', color = icol, clip = .true.)
 endif
 
 if (shape_name == 'BOW_TIE') then
-  call qp_draw_line (x1, x2, y1, y1, color = icol)
-  call qp_draw_line (x1, x2, y2, y2, color = icol)
+  call qp_draw_line (x1, x2, y1, y1, color = icol, clip = .true.)
+  call qp_draw_line (x1, x2, y2, y2, color = icol, clip = .true.)
 endif
 
 if (shape_has_box) then
-  call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
+  call qp_draw_rectangle (x1, x2, y1, y2, color = icol, clip = .true.)
 endif
 
 ! Draw X for XBOX or BOW_TIE
 
 if (shape_name == 'XBOX' .or. shape_name == 'BOW_TIE') then
-  call qp_draw_line (x1, x2, y2, y1, color = icol)
-  call qp_draw_line (x1, x2, y1, y2, color = icol)
+  call qp_draw_line (x1, x2, y2, y1, color = icol, clip = .true.)
+  call qp_draw_line (x1, x2, y1, y2, color = icol, clip = .true.)
 endif
 
 ! Put on a label
