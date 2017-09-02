@@ -703,8 +703,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Set value
 
-  call tao_set_flags_for_changed_attribute (u, 'BEAM_START')
   a_ptr(1)%r = set_val(1)
+  call tao_set_flags_for_changed_attribute (u, 'BEAM_START')
 enddo
 
 end subroutine tao_set_beam_start_cmd

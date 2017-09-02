@@ -2,6 +2,7 @@
 ! Subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
 !
 ! Routine to set flags in the model lattice indicating that a parameter value has changed.
+! Call this routine *after* setting the variable.
 !
 ! Input:
 !   u        -- tao_universe_sturct: Universe containing the lattice.
@@ -46,5 +47,7 @@ endif
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
 endif
+
+u%calc%lattice = .true.
 
 end subroutine tao_set_flags_for_changed_attribute
