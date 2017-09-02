@@ -33,6 +33,8 @@ type (tao_v1_var_input) v1_var
 type (tao_var_struct), pointer :: var_ptr
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_var_input) var(n_var_minn:n_var_maxx)
+type (tao_var_slave_struct), pointer :: sl
+type (all_pointer_struct), allocatable :: a_ptr(:), b_ptr(:)
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
@@ -268,6 +270,33 @@ enddo
 close (iu)
 deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
+
+! For a variable pointing to a term in a taylor map, the pointer can get messed up if a later variable points to a taylor term
+! that does not exist forcing the reallocation of the map to create the taylor term.
+! To get around this just repoint the pointers
+
+do i = 1, size(s%var)
+  var_ptr => s%var(i)
+  num = 0
+
+  do 
+    if (num == size(var_ptr%slave)) exit
+    sl => var_ptr%slave(num+1)
+    u => s%u(sl%ix_uni)
+    call pointers_to_attribute (u%model%lat, var_ptr%ele_name, var_ptr%attrib_name, .true., a_ptr, err, .false.)
+    call pointers_to_attribute (u%model%lat, var_ptr%ele_name, var_ptr%attrib_name, .true., b_ptr, err, .false.)
+    do j = 1, size(a_ptr)
+      var_ptr%slave(num+j)%model_value => a_ptr(j)%r
+      var_ptr%slave(num+j)%base_value => b_ptr(j)%r
+    enddo
+    num = num + size(a_ptr)
+  enddo
+
+  var_ptr%model_value => var_ptr%slave(1)%model_value
+  var_ptr%base_value => var_ptr%slave(1)%base_value
+enddo
+
+!
 
 call tao_setup_key_table ()
 
@@ -610,7 +639,7 @@ enddo
 s%n_v1_var_used = 0
 s%n_var_used = 0
 
-end subroutine
+end subroutine tao_allocate_v1_var
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -672,7 +701,7 @@ if (size(var%slave) > 0) then
   var%exists = .true.
 endif
 
-end subroutine
+end subroutine tao_var_stuffit2
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -797,8 +826,8 @@ end subroutine tao_pointer_to_var_in_lattice
 ! to the appropriate variable in a lattice.
 !
 ! Input:
-!   var       -- Tao_var_struct: Structure has the info of where to point.
-!   ix_uni    -- Integer: the universe to use
+!   var         -- Tao_var_struct: Structure has the info of where to point.
+!   ix_uni      -- Integer: the universe to use
 !
 ! Output:
 !   var%slave(ix_slave) -- Tao_var_slave_struct: New component of %slave(:) array is added. 
