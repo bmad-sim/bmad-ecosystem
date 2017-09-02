@@ -317,12 +317,10 @@ logical err
 
 ! Check if a "do" statement
 
-call string_trim (cmd_out, cmd_word(1), ix)
+call tao_cmd_split (cmd_out, 9, cmd_word, .false., err, '=,')
 if (cmd_word(1) /= 'do' .and. cmd_word(1) /= 'enddo') return
 
 !
-
-call tao_cmd_split (cmd_out, 9, cmd_word, .false., err, '=,')
 
 if (cmd_word(1) == 'do') then
 
