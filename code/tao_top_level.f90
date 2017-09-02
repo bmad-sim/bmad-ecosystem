@@ -11,7 +11,7 @@
 !                                         If present, getting user input from the terminal is bypassed. 
 !                                          
 ! Output:
-!   errcode    -- integer, optional: Return error code
+!   errcode    -- integer, optional: Return error code: 0 => OK, Not 0 => Err.
 !-
 
 subroutine tao_top_level (command, errcode)

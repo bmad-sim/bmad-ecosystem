@@ -247,7 +247,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call calc_z_tune(u%design%lat, ib)
       if (.not. s%global%rf_on) then
         call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
-        call set_on_off (rfcavity$, u%design%lat, off$, ix_branch = ib)
+        call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
+        u%model%tao_branch(0)%orb0 = u%model%lat%beam_start
       endif
     endif
   enddo

@@ -311,8 +311,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  u%calc%lattice = .true.
-
 enddo
 
 !----------------------------------
