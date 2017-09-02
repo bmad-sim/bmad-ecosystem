@@ -278,6 +278,7 @@ deallocate (default_key_b, default_key_d)
 do i = 1, size(s%var)
   var_ptr => s%var(i)
   num = 0
+  if (size(var_ptr%slave) == 0) cycle
 
   do 
     if (num == size(var_ptr%slave)) exit
