@@ -27,17 +27,16 @@ end type
 
 type rad_int_cache1_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
-  !! type (ele_struct), pointer :: ele
   real(rp) del_z
   integer :: cache_type = no_cache$
 end type
 
 type rad_int_cache_struct
   type (rad_int_cache1_struct), allocatable :: c_ele(:)
-  logical set
+  logical :: in_use = .false.
 end type
 
-type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
+type (rad_int_cache_struct), allocatable, target, save :: rad_int_cache_common(:)
 
 !
 

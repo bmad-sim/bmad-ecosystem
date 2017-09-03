@@ -623,6 +623,8 @@ do i = 1, ele_num
   enddo
 enddo
 
+call drift_multipass_name_correction(lat) ! In case superimposing upon multipass elements.
+
 ! Go through and create the overlay, girder, and group lord elements.
 
 call parser_add_lord (lat2, ele_num, plat, lat)

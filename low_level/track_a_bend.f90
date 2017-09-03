@@ -194,23 +194,7 @@ do n = 1, n_step
       dpx_t_dpy = ct*df_dpy
       dpx_t_dpz = ct*df_dpz
 
-      if (abs(angle) < 1d-5 .and. abs(g_tot * step_len) < 1d-5) then
-        mat6_i(1,1) = 1
-        mat6_i(1,2) = step_len / p_long + step_len * px**2 / p_long**3 - 3 * g_tot * px * (step_len * Dy)**2 / (2 * p_long**5) + &
-                      g * step_len * (step_len *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
-                      g * step_len * px * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
-        mat6_i(1,3) = 0
-        mat6_i(1,4) = step_len * px *py / p_long**3 + &
-                      g_tot * step_len**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
-                      g * step_len * (-step_len * py - x * px * py / p_long) / p_long**2 + &
-                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
-        mat6_i(1,5) = 0
-        mat6_i(1,6) = -step_len * px * rel_p / p_long**3 + &
-                      g_tot * step_len**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
-                      g * step_len * (step_len * rel_p + x * px * rel_p / p_long) / p_long**2 - &
-                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
-
-      elseif (abs(g_tot) < 1d-5 * abs(g)) then
+      if (abs(g_tot) < 1d-5 * abs(g)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
@@ -236,6 +220,23 @@ do n = 1, n_step
                       +(-dalpha_dpz+(1+g*x)*dp_long_dpz)/(g*alpha) &
                       -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpz)/(g**2*alpha**3) &
                       +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpz)/(g**3*alpha**5)
+
+      elseif (abs(angle) < 1d-5 .and. abs(g_tot * step_len) < 1d-5) then
+        mat6_i(1,1) = 1
+        mat6_i(1,2) = step_len / p_long + step_len * px**2 / p_long**3 - 3 * g_tot * px * (step_len * Dy)**2 / (2 * p_long**5) + &
+                      g * step_len * (step_len *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
+                      g * step_len * px * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
+        mat6_i(1,3) = 0
+        mat6_i(1,4) = step_len * px *py / p_long**3 + &
+                      g_tot * step_len**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
+                      g * step_len * (-step_len * py - x * px * py / p_long) / p_long**2 + &
+                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
+        mat6_i(1,5) = 0
+        mat6_i(1,6) = -step_len * px * rel_p / p_long**3 + &
+                      g_tot * step_len**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
+                      g * step_len * (step_len * rel_p + x * px * rel_p / p_long) / p_long**2 - &
+                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
+
       else
         eps = px_t**2 + py**2
         deps_dx  = 2*px_t*st*df_dx
