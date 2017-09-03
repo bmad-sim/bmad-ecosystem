@@ -4104,6 +4104,73 @@ end subroutine add_this_multipass
 !+
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! If this is a drift multipass whose multipass_slave elements are the result
+! of splitting a drift with superposition then make sure that all split drift elements 
+! of the lattice with the same base name have a name of the form "<base_name>#<n>" where
+! <n> is an index from 1 for the first split drift.
+!-
+
+subroutine drift_multipass_name_correction (lat)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele, slave, lord, lord2
+type (branch_struct), pointer :: branch
+
+integer i, j, k, ie, ixb, ixb2, ix_pass, n_links, ix_n
+
+character(40) base_name
+
+!
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  lord => lat%ele(ie)
+  ixb = index(lord%name, '#') - 1
+  if (lord%key /= drift$ .or. ixb < 1) cycle
+
+  ix_n = 0
+  base_name = lord%name(1:ixb) 
+
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    do j = 1, branch%n_ele_track
+      ele => branch%ele(j)
+      if (ele%key /= drift$) cycle
+      ixb2 = index(ele%name, '#') - 1
+      if (ixb2 /= ixb) cycle
+      if (base_name(1:ixb) /= ele%name(1:ixb)) cycle
+      ! super_slave drifts are temporary constructs that need to be ignored.
+      ! This routine will be called later to correct the name of such elements.
+      if (ele%slave_status == super_slave$) cycle 
+      if (ele%slave_status == multipass_slave$) then
+        call multipass_chain (ele, ix_pass, n_links)
+        if (ix_pass /= 1) cycle  ! Only do renaming once
+        lord2 => pointer_to_lord(ele, 1)
+        ix_n = ix_n + 1
+        write (lord2%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+        do k = 1, lord2%n_slave
+          slave => pointer_to_slave(lord2, k)
+          write (slave%name, '(2a, i0, a, i0)') base_name(1:ixb), '#', ix_n, '\', k      !'
+        enddo
+      else
+        ix_n = ix_n + 1
+        write (ele%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+      endif
+    enddo
+  enddo
+
+enddo
+
+end subroutine drift_multipass_name_correction
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !-
 
 subroutine reallocate_bp_com_var()

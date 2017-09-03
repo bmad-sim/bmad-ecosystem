@@ -43,7 +43,7 @@ implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (ele_struct) this_ele
-type (ele_struct), pointer :: ele, slave, lord, lord2, ele2, ele0, mad_beam_ele, param_ele
+type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, mad_beam_ele, param_ele
 type (ele_struct), save :: marker_ele
 type (seq_struct), target, allocatable :: sequence(:), temp_seq(:)
 type (branch_struct), pointer :: branch0, branch
@@ -57,10 +57,10 @@ real(rp) beta, val
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
-integer :: ix_param_ele, ix_mad_beam_ele, ix_n
+integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, ixb, ixb2, ix_pass, n_links
+integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave
 integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
 integer, pointer :: n_max, n_ptr
 
@@ -69,7 +69,7 @@ character(*), optional :: use_line
 
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
-character(40) word_2, name, base_name
+character(40) word_2, name
 character(40) this_name, word_1, this_branch_name
 character(40), allocatable ::  in_name(:), seq_name(:), names(:)
 character(80) debug_line
@@ -1011,48 +1011,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-! If this is a drift multipass whose multipass_slave elements are the result
-! of splitting a drift with superposition then make sure that all split drift elements 
-! of the lattice with the same base name have a name of the form "<base_name>#<n>" where
-! <n> is an index from 1 for the first split drift.
-
-do ie = lat%n_ele_track+1, lat%n_ele_max
-  lord => lat%ele(ie)
-  ixb = index(lord%name, '#') - 1
-  if (lord%key /= drift$ .or. ixb < 1) cycle
-
-  ix_n = 0
-  base_name = lord%name(1:ixb) 
-
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    do j = 1, branch%n_ele_track
-      ele => branch%ele(j)
-      if (ele%key /= drift$) cycle
-      ixb2 = index(ele%name, '#') - 1
-      if (ixb2 /= ixb) cycle
-      if (base_name(1:ixb) /= ele%name(1:ixb)) cycle
-      ! super_slave drifts are temporary constructs that need to be ignored.
-      ! This routine will be called later to correct the name of such elements.
-      if (ele%slave_status == super_slave$) cycle 
-      if (ele%slave_status == multipass_slave$) then
-        call multipass_chain (ele, ix_pass, n_links)
-        if (ix_pass /= 1) cycle  ! Only do renaming once
-        lord2 => pointer_to_lord(ele, 1)
-        ix_n = ix_n + 1
-        write (lord2%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
-        do k = 1, lord2%n_slave
-          slave => pointer_to_slave(lord2, k)
-          write (slave%name, '(2a, i0, a, i0)') base_name(1:ixb), '#', ix_n, '\', k      !'
-        enddo
-      else
-        ix_n = ix_n + 1
-        write (ele%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
-      endif
-    enddo
-  enddo
-
-enddo
+call drift_multipass_name_correction(lat)
 
 !-------------------------------------
 ! If a girder elements refer to a line then must expand that line.

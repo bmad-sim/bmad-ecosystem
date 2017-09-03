@@ -34,7 +34,7 @@ integer i, ix_cache
 
 !
 
-rad_int_cache_common(ix_cache)%set = .false.
+rad_int_cache_common(ix_cache)%in_use = .false.
 ix_cache = 0
 
 end subroutine release_rad_int_cache 

@@ -116,6 +116,7 @@ type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
 type (rad_int1_struct) int_tot
 type (rad_int1_struct), pointer :: rad_int1
+type (rad_int_cache_struct), allocatable :: cache_temp(:)
 
 real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
@@ -127,7 +128,7 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, ip, ir, key, key2, n_step, ix_pole_max
+integer i, j, k, n, ip, ir, key, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
@@ -210,16 +211,27 @@ use_cache = .true.
 init_cache = .true.
 cache_only_wig = .false.
 
+if (.not. allocated(rad_int_cache_common)) allocate (rad_int_cache_common(0:10))
+
 if (.not. present(ix_cache)) then
   cache => rad_int_cache_common(0)
   cache_only_wig = .true.
+
 elseif (ix_cache == -1) then
   cache => rad_int_cache_common(0)
   cache_only_wig = .true.
+
 elseif (ix_cache == 0) then
+  n = ubound(rad_int_cache_common, 1)
+  if (count(rad_int_cache_common(1:n)%in_use) == n) then
+    call move_alloc(rad_int_cache_common, cache_temp)
+    allocate (rad_int_cache_common(0:2*n))
+    rad_int_cache_common(0:n) = cache_temp
+  endif
+
   do i = 1, ubound(rad_int_cache_common, 1)
-    if (rad_int_cache_common(i)%set) cycle
-    rad_int_cache_common(i)%set = .true.
+    if (rad_int_cache_common(i)%in_use) cycle
+    rad_int_cache_common(i)%in_use = .true.
     ix_cache = i
     cache => rad_int_cache_common(i)
     exit
@@ -228,6 +240,7 @@ elseif (ix_cache == 0) then
       if (global_com%exit_on_error) call err_exit
     endif
   enddo
+
 elseif (ix_cache > 0) then
   if (ix_cache > ubound(rad_int_cache_common, 1)) then
     call out_io (s_fatal$, r_name, 'INVALID IX_CACHE ARGUMENT \i0\ ', ix_cache)
@@ -235,6 +248,7 @@ elseif (ix_cache > 0) then
   endif
   cache => rad_int_cache_common(ix_cache)
   init_cache = .false.
+
 else  ! ix_cache < -1
   use_cache = .false.
   init_cache = .false.
