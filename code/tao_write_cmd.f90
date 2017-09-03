@@ -293,6 +293,7 @@ case ('curve')
 
   c => curve(1)%c
   iu = lunget()
+  ok = .false.
 
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
@@ -306,25 +307,36 @@ case ('curve')
     enddo
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
     close(iu)
+    ok = .true.
   endif
 
-  call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
-  open (iu, file = file_name)
-  write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-  do i = 1, size(c%x_symb)
-    write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
-  enddo
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
-  close(iu)
+  if (allocated(c%x_symb) .and. allocated(c%y_symb)) then
+    call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
+    open (iu, file = file_name)
+    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
+    do i = 1, size(c%x_symb)
+      write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
+    enddo
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    close(iu)
+    ok = .true.
+  endif
 
-  call file_suffixer (file_name, file_name, 'line_dat', .true.)
-  open (iu, file = file_name)
-  write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-  do i = 1, size(c%x_line)
-    write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
-  enddo
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
-  close(iu)
+  if (allocated(c%x_line) .and. allocated(c%y_line)) then
+    call file_suffixer (file_name, file_name, 'line_dat', .true.)
+    open (iu, file = file_name)
+    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
+    do i = 1, size(c%x_line)
+      write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
+    enddo
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    close(iu)
+    ok = .true.
+  endif
+
+  if (.not. ok) then
+    call out_io (s_info$, r_name, 'No data found in curve to write')
+  endif
 
 !---------------------------------------------------
 ! derivative_matrix
