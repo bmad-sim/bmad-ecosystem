@@ -1860,6 +1860,7 @@ ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
 
 if (lat%param%geometry == closed$ .and. .not. lat%param%stable) then
+  curve%g%why_invalid = 'Unstable Lattice'
   good = .false.
   return
 endif
@@ -1867,8 +1868,8 @@ endif
 if (curve%data_source == 'lat') then
   select case (data_type(1:5))
   case ('sigma', 'emitt', 'norm_')
-    call out_io (s_warn$, r_name, &
-              'curve%data_source = "lat" is not compatable with data_type: ' // data_type)
+    curve%g%why_invalid = 'curve%data_source = "lat" is not compatable with data_type: ' // data_type
+    call out_io (s_warn$, r_name, curve%g%why_invalid)
     call out_io (s_blank$, r_name, "Will not perform any plot smoothing")
     good = .false.
     return
