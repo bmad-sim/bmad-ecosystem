@@ -1502,7 +1502,12 @@ logical have_data
 ! Draw the graph outline.
 
 call tao_draw_data_graph (plot, graph)
-if (.not. graph%valid) return
+if (.not. graph%valid) then
+  if (graph%why_invalid /= '') then
+    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+  endif
+  return
+endif
 
 ! loop over all the curves of the graph and draw them
 
@@ -1512,8 +1517,13 @@ do k = 1, size(graph%curve)
   call tao_draw_curve_data (plot, graph, graph%curve(k), have_data)
 enddo
 
-if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
-                            0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+if (.not. have_data) then
+  if (graph%why_invalid /= '') then
+    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+  else
+    call qp_draw_text ('**No Plottable Data**', 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+  endif
+endif
 
 end subroutine tao_plot_data
 
