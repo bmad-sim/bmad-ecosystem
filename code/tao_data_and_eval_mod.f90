@@ -3394,8 +3394,7 @@ phrase = expression
 
 call string_trim (phrase, phrase, ios)
 if (ios == 0) then
-  call out_io (s_warn$, r_name, &
-    "Expression is blank", len(phrase))
+  call out_io (s_warn$, r_name, "Expression is blank")
   value = 0.0
   return
 endif
