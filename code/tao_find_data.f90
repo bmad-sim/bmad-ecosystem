@@ -89,7 +89,7 @@ character(80) dat_name, component_name
 character(16), parameter :: real_components(16) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
              'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
-             'weight', 'invalid', 'scratch', 's_offset']
+             'weight', 'invalid', 'invalid_value', 's_offset']
 character(16), parameter :: logic_components(9) = [ &
              'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
