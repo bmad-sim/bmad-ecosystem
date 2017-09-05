@@ -8,7 +8,6 @@
 !--------------------------------------------------------
 &tao_design_lattice
   n_universes =1
- ! unique_name_suffix="*::_?"
   design_lattice(1)%file = "lat.bmad"
 /
 
@@ -58,19 +57,64 @@ global%beam_timer_on = T
 !------------------------Variables---------------------------------------
 !------------------------------------------------------------------------
 
+&tao_var
+	v1_var%name = 'phase'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'phideg'
+	default_low_lim = -180
+	default_high_lim = 180
+  default_key_delta = 1
+	ix_min_var = 1
+var(1:)%ele_name = 'o_phase'
+!	search_for_lat_eles = 'lcavity::*'
+   default_key_bound = T	
+/
 
 &tao_var
-  v1_var%name = 'quad'
-  default_step = 1e-4
-  default_universe = '1'
-  default_attribute = 'k1'
-  !default_low_lim = -50
-  !default_high_lim = 50
-  default_key_delta = 1e-2
-  ix_min_var = 1
-  search_for_lat_eles = 'Quad::*'
-  ! or:
-  !var(1:)%ele_name = 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'
-   default_key_bound = T
+	v1_var%name = 'L'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'L'
+	default_low_lim = 0
+	!default_high_lim = 10
+  default_key_delta = 1e-3
+	ix_min_var = 1
+  var(1:)%ele_name = 't1'
+!search_for_lat_eles = 'lcavity::*'
+   default_key_bound = T	
 /
+
+
+
+
+&tao_var
+	v1_var%name = 'r56'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'tt56'
+	default_low_lim = -1
+	default_high_lim = 1
+  default_key_delta = 1e-1
+	ix_min_var = 1
+  !var(1:)%ele_name = 't1'
+	search_for_lat_eles = 'taylor::*'
+   default_key_bound = T	
+/
+&tao_var
+	v1_var%name = 't566'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'tt566'
+	!default_low_lim = -1
+	!default_high_lim = 1
+   default_key_delta = 1
+	ix_min_var = 1
+  !var(1:)%ele_name = 't1'
+	search_for_lat_eles = 'taylor::*'
+   default_key_bound = T	
+/
+
+
+
 

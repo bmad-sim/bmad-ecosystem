@@ -108,6 +108,80 @@ the plot page) is broken up.
   ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
   ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
 /  
+         
+         
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'zphase'
+  plot%x%min = -6
+  plot%x%max =  6
+  !plot%x%major_div = 10
+  plot%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gd (10\u-3\d)'
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%n_curve = 1
+  graph%y%label_offset=.2
+  curve(1)%data_type = 'z-pz' 
+  curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = 1
+  curve(1)%symbol%color =4
+  
+  ! Color by pz
+  curve(1)%data_type_z = 'pz'
+  curve(1)%z_color0 = -.02
+  curve(1)%z_color1 =  .02
+  curve(1)%use_z_color = F
+/   
+         
+ 
+&tao_template_plot
+  plot%name = 'zphase2'
+  plot%x%min = -6
+  plot%x%max =  6
+  !plot%x%major_div = 10
+  plot%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'z-energy'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000 ! m->mm
+  graph%y%label = '\(0555) (MeV)'  ! \(0555) is caligraphic E
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%n_curve = 1
+  graph%y%label_offset=.2
+  curve(1)%data_type = 'energy' 
+  curve(1)%data_type_x = 'z' 
+  curve(1)%y_axis_scale_factor = 1e-6 ! eV -> MeV
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = 1
+  curve(1)%symbol%color =12
+/   
+         
                                           	
 ! Colors: 
 !"BLACK" 
@@ -119,6 +193,9 @@ the plot page) is broken up.
 !"CYAN" 
 !"BLUE" 
 !"PURPLE" 
+
+
+
 
 
 

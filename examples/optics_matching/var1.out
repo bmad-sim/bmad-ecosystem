@@ -1,43 +1,43 @@
- Q1[K1] =   3.87011931941879E+00
- Q2[K1] =  -1.91642928269328E+01
- Q3[K1] =   1.57325169692857E+01
- Q4[K1] =  -1.73590144633726E+01
- Q5[K1] =  -1.69143295268456E+00
- Q6[K1] =   9.72125576393067E-02
+ Q1[K1] =   4.31191654926780E+01
+ Q2[K1] =   1.04975753056961E+01
+ Q3[K1] =  -1.70371247579408E+01
+ Q4[K1] =   8.13704585399019E+01
+ Q5[K1] =  -1.11402907144782E+01
+ Q6[K1] =   4.91238619684535E+01
  
  end_file
  
  
  ! Top 10
  
- Constraint                   Ref_Ele    Start_Ele      Ele     Target      Value      Merit     Max
- twiss[4]   alpha.b <target>                        MAR.END  -1.000E+00  -1.000E+00  9.12E-27
- twiss[3]   beta.b <target>                         MAR.END   1.250E+01   1.250E+01  2.56E-27
- twiss[1]   beta.a <target>                         MAR.END   1.250E+01   1.250E+01  5.05E-28
- twiss[2]   alpha.a <target>                        MAR.END  -1.000E+00  -1.000E+00  1.77E-28
- twiss[5]   eta.x <target>                          MAR.END   0.000E+00  -4.857E-17  2.36E-32
- quad[6]    Q6[K1]                                  4.35     -1.000E+30   9.721E-02  0.00E+00
- quad[5]    Q5[K1]                                  3.95     -1.000E+30  -1.691E+00  0.00E+00
- quad[4]    Q4[K1]                                  3.15     -1.000E+30  -1.736E+01  0.00E+00
- quad[3]    Q3[K1]                                  2.75     -1.000E+30   1.573E+01  0.00E+00
- quad[2]    Q2[K1]                                  1.95     -1.000E+30  -1.916E+01  0.00E+00
- Constraint                   Ref_Ele    Start_Ele      Ele     Target      Value      Merit     Max
+ Constraints                  Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ twiss[1]   beta.a <target>                         END       1.250E+01   1.250E+01  1.35E-24
+ twiss[2]   alpha.a <target>                        END      -1.000E+00  -1.000E+00  5.57E-25
+ twiss[4]   alpha.b <target>                        END      -1.000E+00  -1.000E+00  1.44E-26
+ twiss[3]   beta.b <target>                         END       1.250E+01   1.250E+01  1.02E-26
+ twiss[6]   etap.x <target>                         END       0.000E+00   1.554E-15  2.42E-28
+ twiss[5]   eta.x <target>                          END       0.000E+00   4.496E-15  2.02E-28
+ quad[6]    Q6[K1]                                  4.35     -1.000E+30   4.912E+01  0.00E+00
+ quad[5]    Q5[K1]                                  3.95     -1.000E+30  -1.114E+01  0.00E+00
+ quad[4]    Q4[K1]                                  3.15     -1.000E+30   8.137E+01  0.00E+00
+ quad[3]    Q3[K1]                                  2.75     -1.000E+30  -1.704E+01  0.00E+00
+ Constraints                  Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
  
-  figure of merit: 1.235457E-26
+  figure of merit: 1.933741E-24
  
- Constraint                   Ref_Ele    Start_Ele      Ele     Target      Value      Merit     Max
- twiss[1]   beta.a <target>                         MAR.END   1.250E+01   1.250E+01  5.05E-28
- twiss[2]   alpha.a <target>                        MAR.END  -1.000E+00  -1.000E+00  1.77E-28
- twiss[3]   beta.b <target>                         MAR.END   1.250E+01   1.250E+01  2.56E-27
- twiss[4]   alpha.b <target>                        MAR.END  -1.000E+00  -1.000E+00  9.12E-27
- twiss[5]   eta.x <target>                          MAR.END   0.000E+00  -4.857E-17  2.36E-32
- twiss[6]   etap.x <target>                         MAR.END   0.000E+00   0.000E+00  0.00E+00
- quad[1]    Q1[K1]                                  1.55     -1.000E+30   3.870E+00  0.00E+00
- quad[2]    Q2[K1]                                  1.95     -1.000E+30  -1.916E+01  0.00E+00
- quad[3]    Q3[K1]                                  2.75     -1.000E+30   1.573E+01  0.00E+00
- quad[4]    Q4[K1]                                  3.15     -1.000E+30  -1.736E+01  0.00E+00
- quad[5]    Q5[K1]                                  3.95     -1.000E+30  -1.691E+00  0.00E+00
- quad[6]    Q6[K1]                                  4.35     -1.000E+30   9.721E-02  0.00E+00
- Constraint                   Ref_Ele    Start_Ele      Ele     Target      Value      Merit     Max
+ Constraints                  Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ twiss[1]   beta.a <target>                         END       1.250E+01   1.250E+01  1.35E-24
+ twiss[2]   alpha.a <target>                        END      -1.000E+00  -1.000E+00  5.57E-25
+ twiss[3]   beta.b <target>                         END       1.250E+01   1.250E+01  1.02E-26
+ twiss[4]   alpha.b <target>                        END      -1.000E+00  -1.000E+00  1.44E-26
+ twiss[5]   eta.x <target>                          END       0.000E+00   4.496E-15  2.02E-28
+ twiss[6]   etap.x <target>                         END       0.000E+00   1.554E-15  2.42E-28
+ quad[1]    Q1[K1]                                  1.55     -1.000E+30   4.312E+01  0.00E+00
+ quad[2]    Q2[K1]                                  1.95     -1.000E+30   1.050E+01  0.00E+00
+ quad[3]    Q3[K1]                                  2.75     -1.000E+30  -1.704E+01  0.00E+00
+ quad[4]    Q4[K1]                                  3.15     -1.000E+30   8.137E+01  0.00E+00
+ quad[5]    Q5[K1]                                  3.95     -1.000E+30  -1.114E+01  0.00E+00
+ quad[6]    Q6[K1]                                  4.35     -1.000E+30   4.912E+01  0.00E+00
+ Constraints                  Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
  
-  figure of merit: 1.235457E-26
+  figure of merit: 1.933741E-24
