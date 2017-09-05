@@ -29,6 +29,46 @@ global%beam_timer_on = T
   /
 
 
+
+!------------------------Beam--------------------------------------------
+!------------------------------------------------------------------------
+&tao_beam_init
+        beam_init%n_particle = 150
+        beam_init%random_engine = 'quasi' ! or 'pseudo'
+		ix_universe = 1
+        !beam0_file = 'beam.in'
+        !ix_track_start = 123 !corresponts to la.mar.beg\1
+		beam_saved_at =  "MARKER::*"
+		!track_start = 'LA.MAR.BEG\1'
+        beam_init%a_norm_emit = 1.0e-6
+        beam_init%b_norm_emit = 1.0e-6
+        beam_init%dPz_dz = 0.0
+        beam_init%n_bunch = 1     
+        beam_init%bunch_charge = 77.0e-12
+        beam_init%sig_e = 1e-3
+        beam_init%sig_z = 0.000899377 ! 3 ps * cLight
+  beam_init%distribution_type = 'ran_gauss', 'ran_gauss', 'grid'
+  
+  beam_init%grid(1)%n_x    = 3
+  beam_init%grid(1)%n_px   = 3
+  beam_init%grid(1)%x_min  = -10e-6
+  beam_init%grid(1)%x_max  =  10e-6
+  beam_init%grid(1)%px_min =  -1e-12
+  beam_init%grid(1)%px_max =  1e-12
+  
+  beam_init%grid(3)%n_x    = 50
+  beam_init%grid(3)%n_px   = 3
+  beam_init%grid(3)%x_min  = -2e-3
+  beam_init%grid(3)%x_max  =  2e-3
+  beam_init%grid(3)%px_min =  -1e-3
+  beam_init%grid(3)%px_max =  1e-3
+
+/
+
+
+
+
+
 !------------------------Data--------------------------------------------
 !------------------------------------------------------------------------
 
