@@ -1004,7 +1004,15 @@ case ('Ja')
     enddo
   endif
 
-
+case ('energy')
+  ix_axis = 13
+  if (present(p)) then
+    do i=1, size(p)
+      call convert_pc_to((1.0_rp+ p(i)%vec(6))* p(i)%p0c,  p(i)%species, e_tot =  axis(i))
+    enddo
+  endif
+  
+case ('t');     ix_axis = 14; if (present(p)) axis = p%t
 
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
