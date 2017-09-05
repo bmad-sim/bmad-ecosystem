@@ -15,5 +15,7 @@ sc all -10 10
 
 sc r22 0 50
 
+place r3 key
+
 set var r56[1]|model = 0.234
 set var t566[1]|model = 0.567

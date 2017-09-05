@@ -19,16 +19,20 @@ the plot page) is broken up.
   region(4)%location = 0.0, 1.0, 0.0, 0.1
 
   region(5)%name = 'r21'
-  region(5)%location = 0.0, .5, 0.1, 0.5
+  region(5)%location = 0.0, .5, 0.2, 0.6
   region(6)%name = 'r11'
-  region(6)%location = 0.0, .5, .5, 1.0
+  region(6)%location = 0.0, .5, .6, 1.0
   region(7)%name = 'r22'
-  region(7)%location = 0.5, 1.0, 0.1, 0.5
+  region(7)%location = 0.5, 1.0, 0.2, 0.6
   region(8)%name = 'r12'
-  region(8)%location = 0.5, 1.0, 0.5, 1.0
+  region(8)%location = 0.5, 1.0, 0.6, 1.0
+
+  region(9)%name = 'r3'
+  region(9)%location = 0, 1.0, 0, 0.2
+
   
-  region(9)%name = 'r00'
-  region(9)%location = 0.0, 1.0, 0.0, 1.0
+  region(10)%name = 'r00'
+  region(10)%location = 0.0, 1.0, 0.0, 1.0
 
  ! place(1) = 'floor', 'floor'
  ! place(2) = 'top', 'beta'
