@@ -398,13 +398,13 @@ do k = 1, size(graph%curve)
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type_x, &
               'FOR CURVE: ' // curve%name)
-      call err_exit
+      return
     endif
     if (.not. associated(d1_y)) then
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
               'FOR CURVE: ' // curve%name)
-      call err_exit
+      return
     endif
 
     if (lbound(d1_x%d, 1) /= lbound(d1_y%d, 1) .or. &
@@ -412,7 +412,7 @@ do k = 1, size(graph%curve)
       call out_io (s_error$, r_name, &
               'BOUNDS FOR X-AXIS AND Y-AXIS DATA OF PHASE SPACE PLOTTING MISMATCHED.', &
               'FOR CURVE: ' // curve%name)
-      call err_exit
+      return
     endif
 
     n = size(d1_x%d)
@@ -484,7 +484,7 @@ do k = 1, size(graph%curve)
     call out_io (s_abort$, r_name, &
         'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
         'FOR CURVE: '// curve%name)
-    call err_exit
+    return
   endif
 
 enddo
@@ -883,7 +883,7 @@ do k = 1, size(graph%curve)
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
               'FOR CURVE: ' // curve%name)
-      call err_exit
+      return
     endif
 
     allocate(data(size(d1%d)))
@@ -895,7 +895,7 @@ do k = 1, size(graph%curve)
     call out_io (s_abort$, r_name, &
         'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
         'FOR CURVE: '// curve%name)
-    call err_exit
+    return
   endif
 
   ! Bin the data
@@ -1016,7 +1016,6 @@ case ('t');     ix_axis = 14; if (present(p)) axis = p%t
 
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
-  call err_exit
   if (present(err)) err = .true.
 end select
 
@@ -1638,7 +1637,7 @@ case ('lat', 'beam')
 
   case default
     call out_io (s_error$, r_name, 'BAD PLOT%X_AXIS_TYPE: ' // plot%x_axis_type)
-    call err_exit
+    return
   end select
 
 if (curve%draw_symbols) then
@@ -1945,7 +1944,7 @@ do ii = 1, size(curve%x_line)
   case ('beam')
     if (.not. allocated(tao_branch%bunch_params)) then
       call out_io (s_fatal$, r_name, 'BUNCH_PARAMS NOT ALLOCATED.')
-      call err_exit
+      return
     endif
  
     call bracket_index (tao_branch%bunch_params(:)%s, 0, n_ele_track, s_now, ix)
@@ -2017,7 +2016,7 @@ do ii = 1, size(curve%x_line)
 
   case default
     call out_io (s_fatal$, r_name, 'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
-    call err_exit
+    return
   end select
 
   !-------------------------------
