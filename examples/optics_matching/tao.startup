@@ -4,7 +4,7 @@ veto var *
 set universe * on
 
 !---Aliases 
-alias vim sp vim
+alias vim sp vim [[1]]
 
 ! legacy view command
 alias view set default uni = [[1]]

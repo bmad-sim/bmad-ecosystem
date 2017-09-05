@@ -41,7 +41,7 @@ global%beam_timer_on = T
 
 &tao_d2_data
         d2_data%name = 'twiss'
-        n_d1_data = 1
+        n_d1_data = 2
 /
 &tao_d1_data
         ix_d1_data = 1
@@ -54,6 +54,12 @@ global%beam_timer_on = T
         datum( 6) =  'etap.x'     '' '' 'END'   'target'   0   1e2
 
 /
+&tao_d1_data
+    ix_d1_data = 2
+    d1_data%name = 'max'
+    datum( 1) =  'beta.a'    '' 'Q1' 'END'   'max'  100   1e1
+    datum( 2) =  'eta.x'     '' 'Q1' 'END'   'abs_max'  1     1e2
+/ 
 
 !------------------------Variables---------------------------------------
 !------------------------------------------------------------------------

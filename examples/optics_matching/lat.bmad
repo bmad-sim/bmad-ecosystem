@@ -43,9 +43,13 @@ Mar.END)
 
 O_angle: overlay = {
   b1[g]:angle_deg*pi/180/b1[L],
+  b1[e2]:angle_deg*pi/180,
   b2[g]:angle_deg*pi/180/b2[L] * -1,
+  b2[e1]:angle_deg*pi/180 * -1,
   b3[g]:angle_deg*pi/180/b3[L] * -1,
-  b4[g]:angle_deg*pi/180/b4[L]},
+  b3[e2]:angle_deg*pi/180 * -1, 
+  b4[g]:angle_deg*pi/180/b4[L],
+  b4[e1]:angle_deg*pi/180},
   var = {angle_deg}
 O_angle[angle_deg] = 10
 
