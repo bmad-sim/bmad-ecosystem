@@ -102,7 +102,7 @@ enddo
 ! Write header 
 
 write (fmt, '(a, i5, a, i2, a)') '(a, ', j_var1-2, 'x, a, ', j_att, 'x, a)'
-write (header_str, fmt) 'Name', 'Attrib', 'Value     Value0      Delta Opt'
+write (header_str, fmt) 'Name', 'Attrib', 'Value         Value0          Delta Opt'
 
 ! Write key info
 
@@ -122,6 +122,8 @@ else
   n = 3 * floor(m/3.0)
   p = 3 - (m - n)
 endif
+
+exp_str = ''
 
 if (m >= -1 .and. m <= 1) then
   fmt2 = '(f11.4, a)'
