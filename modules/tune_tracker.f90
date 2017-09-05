@@ -194,6 +194,9 @@ function init_dTT(incoming_tt_param,saved_coords) result(id)
   log_luns(id) = lunget()
   open(unit=log_luns(id),FILE=tt_log_name,status='REPLACE')
 
+  write(log_luns(id),'(a)') "# Tune tracker channels"
+  write(log_luns(id),'(a1,a7,3a14)') "#", "turn", "I", "P", "D"
+
   if(tt_param(id)%use_D_chan) then
     if( .not. tt_param(id)%useSaveState ) then
       tt_param(id)%wls_id = initFixedWindowLS(tt_param(id)%wls_N,tt_param(id)%Dt,tt_param(id)%wls_order,1)
