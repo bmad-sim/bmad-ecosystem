@@ -24,6 +24,8 @@ global%beam_timer_on = T
   global%de_lm_step_ratio = 1500
   global%optimizer = 'lmdif'
   global%n_opti_cycles = 100
+
+  global%prompt_color = 'BLUE'
   !---Bmad---
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = T
