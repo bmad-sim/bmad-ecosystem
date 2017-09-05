@@ -15,11 +15,17 @@ p3: pipe, L = 1
 p4: pipe, L = 1
 p5: pipe, L = 1
 
+chicange_angle = 10*pi/180
 
-b1: sbend, L = 0.2, angle = 10*pi/180
-b2: sbend, L = 0.2, angle = -10*pi/180
-b3: sbend, L = 0.2, angle = -10*pi/180
-b4: sbend, L = 0.2, angle = 10*pi/180
+b1: sbend, L = 0.2, angle = chicange_angle
+b2: sbend, L = 0.2, angle = -chicange_angle
+b3: sbend, L = 0.2, angle = -chicange_angle
+b4: sbend, L = 0.2, angle = chicange_angle
+
+b1[e2] = chicange_angle 
+b2[e1] = -chicange_angle 
+b3[e2] = -chicange_angle 
+b4[e1] = chicange_angle 
 
 
 Mar.BEG: marker
@@ -35,6 +41,13 @@ p5,
 Mar.END)
 
 
+O_angle: overlay = {
+  b1[g]:angle_deg*pi/180/b1[L],
+  b2[g]:angle_deg*pi/180/b2[L] * -1,
+  b3[g]:angle_deg*pi/180/b3[L] * -1,
+  b4[g]:angle_deg*pi/180/b4[L]},
+  var = {angle_deg}
+O_angle[angle_deg] = 10
 
 q1: quad, L = 0.1, superimpose, ref = p2, offset = -.2
 q2: quad, L = 0.1, superimpose, ref = p2, offset = .2
