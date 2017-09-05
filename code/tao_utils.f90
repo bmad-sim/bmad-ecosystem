@@ -102,7 +102,7 @@ enddo
 ! Write header 
 
 write (fmt, '(a, i5, a, i2, a)') '(a, ', j_var1-2, 'x, a, ', j_att, 'x, a)'
-write (header_str, fmt) 'Name', 'Attrib', 'Value         Value0          Delta Opt'
+write (header_str, fmt) 'Name', 'Attrib', 'Value     Value0      Delta Opt'
 
 ! Write key info
 
@@ -134,6 +134,8 @@ else
   write (exp_str, '(a, i3.2)') 'E', n
   if (exp_str(2:2) == ' ') exp_str(2:2) = '+'
 endif
+
+model_str = ''; val0_str = ''; delta_str = ''
 
 write (model_str, fmt2) var%model_value / 10.0**n, exp_str
 write (val0_str,  fmt2) var%key_val0 / 10.0**n, exp_str
