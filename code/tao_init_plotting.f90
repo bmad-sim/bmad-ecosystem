@@ -2452,6 +2452,7 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%data_type    = 'phase.a'
   crv%legend_text  = '\gf\dA\u'
   crv%units        = 'deg'
+  crv%y_axis_scale_factor = 180/pi
 
   crv => grph%curve(2)
   crv%name         = 'b'
@@ -2459,6 +2460,7 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%data_type    = 'phase.b'
   crv%legend_text  = '\gf\dB\u'
   crv%units        = 'deg'
+  crv%y_axis_scale_factor = 180/pi
 endif
 
 !---------------
@@ -2600,6 +2602,7 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   crv%data_type    = 'ping_a.phase_x'
   crv%legend_text  = 'ping_a.phase_x'
   crv%units        = 'deg'
+  crv%y_axis_scale_factor = 180/pi
 
   crv => grph%curve(2)
   crv%name         = 'phase_y'
@@ -2607,6 +2610,7 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   crv%data_type    = 'ping_b.phase_y'
   crv%legend_text  = 'ping_b.phase_y'
   crv%units        = 'deg'
+  crv%y_axis_scale_factor = 180/pi
 endif
 
 !---------------

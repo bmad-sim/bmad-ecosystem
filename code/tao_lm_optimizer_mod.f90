@@ -51,13 +51,13 @@ character(80) line
 
 ! Calc derivative matrix
 
-call tao_dModel_dVar_calc (s%global%derivative_recalc)
+call tao_dModel_dVar_calc (s%global%derivative_recalc, abort)
+if (abort) return
 call tao_veto_vars_with_zero_dmodel ()
 
 ! setup
 
 a_lambda = -1
-abort = .false.
 
 merit0 = tao_merit()
 
@@ -145,7 +145,7 @@ do i = 1, s%global%n_opti_cycles+1
   ! reinit the derivative matrix 
 
   if (s%global%lm_opt_deriv_reinit > 0 .and. a_lambda > s%global%lm_opt_deriv_reinit) then
-    call tao_dmodel_dvar_calc (.true.)
+    call tao_dmodel_dvar_calc (.true., abort)
     a_lambda = 1
   endif
 
