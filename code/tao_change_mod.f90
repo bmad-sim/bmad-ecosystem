@@ -41,7 +41,7 @@ integer nl, i, ixa, ix, err_num, n
 
 character(*) name, num_str
 character(20) :: r_name = 'tao_change_var'
-character(20) abs_or_rel, component
+character(20) abs_or_rel, component, str
 character(100) l1, num, fmt
 character(200), allocatable, save :: lines(:)
 
@@ -104,17 +104,12 @@ enddo
 
 new_merit = tao_merit()
 
-if (max_val > 1e3) then
-  fmt = '(5x, I5, 2x, f12.0, a, 4f12.0)'
-elseif (max_val < 1d-4) then
-  fmt = '(5x, I5, 2x, es12.9, a, 4es12.4)'
-else
-  fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
-endif
+str = real_num_fortran_format(max_val, 14, 2)
+fmt = '(5x, i5, 2x, ' // trim(str) // ', a, 4' // trim(str) // ')'
 
 call re_allocate (lines, 200)
 nl = 0
-l1 = '     Index     Old_Model       New_Model       Delta  Old-Design  New-Design'
+l1 = '     Index       Old_Model         New_Model         Delta    Old-Design    New-Design'
 nl=nl+1; lines(nl) = l1
 
 n = size(v_array)
@@ -130,11 +125,8 @@ do i = 1, size(v_array)
 enddo
 nl=nl+1; lines(nl) = l1
 
-if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(5x, 2(a, es15.6), es15.6)'
-else
-  fmt = '(5x, 2(a, f13.6), f13.6)'
-endif
+str = real_num_fortran_format(max(abs(old_merit), abs(new_merit)), 14, 1)
+fmt = '(5x, 2(a, ' // trim(str) // '), ' // trim(str) // ')'
 
 nl=nl+1; lines(nl) = ' '
 nl=nl+1; write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
@@ -188,7 +180,7 @@ character(*) num_str
 character(40) e_name, a_name, fmt, name
 character(20) :: r_name = 'tao_change_ele'
 character(len_lines), allocatable, save :: lines(:)
-character(20) abs_or_rel
+character(20) abs_or_rel, str
 
 logical err, etc_added
 logical, allocatable :: this_u(:), free(:)
@@ -290,9 +282,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i)%r)
 
     max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
-    fmt = '(5f14.6, 4x, a)'
-    if (max_val > 100) fmt = '(5f14.0, 4x, a)'
-    if (max_val < 1d-4) fmt = '(5es14.4, 4x, a)'
+    str = real_num_fortran_format(max_val, 14, 2)
+    fmt = '(5' // trim(str) // ', 4x, a)'
 
     ! Record change but only for the first 10 variables.
 
@@ -318,11 +309,8 @@ enddo
 
 new_merit = tao_merit()
 
-if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(2(a, es13.4), a, es13.4)'
-else
-  fmt = '(2(a, f13.6), a, f13.6)'
-endif
+str = real_num_fortran_format(max(abs(old_merit), abs(new_merit)), 14, 1)
+fmt = '(2(a, ' // trim(str) // '), a, ' // trim(str) // ')'
 
 nl=nl+1; lines(nl) = ' '
 nl=nl+1;write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
