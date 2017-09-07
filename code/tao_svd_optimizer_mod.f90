@@ -46,12 +46,12 @@ character(1) char
 
 ! Calc derivative matrix
 
-call tao_dModel_dVar_calc (s%global%derivative_recalc)
+call tao_dModel_dVar_calc (s%global%derivative_recalc, abort)
+if (abort) return
 call tao_veto_vars_with_zero_dmodel ()
 
 ! Setup
 
-abort = .false.
 merit0 = tao_merit()
 
 call tao_get_opt_vars (var_value)

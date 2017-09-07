@@ -58,7 +58,7 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-logical quit_tao, err, silent, gang, abort
+logical quit_tao, err, silent, gang, abort, err_flag
 
 ! pause if single stepping
 
@@ -211,7 +211,7 @@ case ('cut_ring')
 
 case ('derivative')
 
-  call tao_dmodel_dvar_calc(.true.)
+  call tao_dmodel_dvar_calc(.true., err_flag)
   call out_io (s_blank$, r_name, 'Derivative calculated')
 
   return

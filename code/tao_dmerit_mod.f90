@@ -8,7 +8,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_dModel_dVar_calc (force_calc)
+! Subroutine tao_dModel_dVar_calc (force_calc, err_flag)
 !
 ! Subroutine to calculate the dModel_dVar derivative matrix.
 !
@@ -22,11 +22,12 @@ contains
 !                  Sets the var%good_var logical to False.
 !
 ! Output:
-!   s       -- Super_universe_struct.
+!   s        -- Super_universe_struct.
 !    %u(:)%dModel_dVar(:,:)  -- Derivative matrix
+!   err_flag -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine tao_dmodel_dvar_calc (force_calc)
+subroutine tao_dmodel_dvar_calc (force_calc, err_flag)
 
 implicit none
 
@@ -40,6 +41,7 @@ integer n_data, n_var, nd, nv
 
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
 
+logical :: err_flag
 logical reinit, force_calc, calc_ok, err_message_out
 
 ! make sure size of matrices are correct.
@@ -47,6 +49,7 @@ logical reinit, force_calc, calc_ok, err_message_out
 
 call tao_set_var_useit_opt
 call tao_set_data_useit_opt
+err_flag = .false.
 
 reinit = force_calc 
 n_var = count (s%var%useit_opt)
@@ -124,6 +127,8 @@ endif
 merit_value = tao_merit (calc_ok)
 if (.not. calc_ok) then
   call out_io (s_error$, r_name, 'BASE MODEL CALCULATION HAS PROBLEMS', ' ')
+  err_flag = .true.
+  return
 endif
 
 s%var%old_value = s%var%delta_merit
@@ -159,7 +164,8 @@ do j = 1, s%n_var_used
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
     call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
-    call err_exit
+    err_flag = .true.
+    return
   endif
   model_value = s%var(j)%model_value
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
@@ -188,8 +194,8 @@ do j = 1, s%n_var_used
 
       call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
                       'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
+      err_flag = .true.
       err_message_out = .true.
-
     enddo
   enddo
 
@@ -264,10 +270,11 @@ subroutine tao_dmerit_calc ()
 type (tao_data_struct), pointer :: data
 
 integer i, j, k, nv, nd
+logical err_flag
 
 !
 
-call tao_dmodel_dvar_calc (.false.)
+call tao_dmodel_dvar_calc (.false., err_flag)
 
 s%var(:)%dmerit_dvar = 0
 

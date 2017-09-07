@@ -198,10 +198,11 @@ type (tao_universe_struct), pointer :: u
 integer :: mm, nn, nd, k, i, j, im, iv, nv, n
 real(8) :: x(nn), fjac(mm, nn)
 real(rp), allocatable, save :: var_delta(:)
+logical err_flag
 
 !
 
-call tao_dModel_dVar_calc (.true.)
+call tao_dModel_dVar_calc (.true., err_flag)
 
 call tao_get_opt_vars (var_delta = var_delta, ignore_if_weight_is_zero = .true.)
 nd = size(var_delta)

@@ -104,10 +104,10 @@ enddo
 
 new_merit = tao_merit()
 
-if (max_val > 100) then
+if (max_val > 1e3) then
   fmt = '(5x, I5, 2x, f12.0, a, 4f12.0)'
 elseif (max_val < 1d-4) then
-  fmt = '(5x, I5, 2x, es12.9, a, 4es12.9)'
+  fmt = '(5x, I5, 2x, es12.9, a, 4es12.4)'
 else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
