@@ -437,6 +437,15 @@ function remove_quotes (str_in) result (str_out)
   character(len(str_in)) str_out
 end function
 
+function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
+  import
+  implicit none
+  real(rp) number
+  integer, optional :: n_blanks
+  integer width
+  character(9) fmt_str
+end function
+
 subroutine run_timer(command, time)
   import
   implicit none
