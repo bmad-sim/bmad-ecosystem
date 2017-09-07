@@ -161,7 +161,6 @@ call tao_init_global(init_tao_file)
 call tao_init_lattice (init_tao_file)
 call tao_init_dynamic_aperture (init_tao_file)
 call tao_init_beams (beam_file)
-call tao_init_variables (var_file)
 call tao_init_data (data_file)
 call tao_init_building_wall (building_wall_file)
 
@@ -272,6 +271,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u%design%tao_branch%modes = u%design%tao_branch%modes_rf_on
 enddo
+
+! Call tao_init_variables after the u%design = u%model since variables have pointers to lattice attributes.
+
+call tao_init_variables (var_file)
 
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
 ! to set model variable values different from design variable values.

@@ -462,6 +462,9 @@ subroutine tao_use_var (action, var_name)
   character(*) :: var_name
 end subroutine
  
+subroutine tao_var_repoint ()
+end subroutine
+
 subroutine tao_var_show_use (v1_var, lines, nl)
   import
   implicit none
