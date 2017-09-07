@@ -529,9 +529,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (.not. s%com%common_lattice .and. .not. s%u(i)%is_on) cycle
 
-  file_name = out_file
-  if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
-                  file_name(1:ix_hash-1), i, trim(file_name(ix_hash+1:))
+  if (ix_hash /= 0) then
+    write (file_name, '(a, i0, a)') out_file(1:ix_hash-1), i, trim(out_file(ix_hash+1:))
+  else
+    file_name = out_file
+  endif
 
   open (iu, file = file_name, recl = 300, iostat = ios)
   if (ios /= 0) then
