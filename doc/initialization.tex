@@ -218,7 +218,7 @@ Possible choices for the <parser> are:
   xsif      ! For an xsif lattice file.
   digested  ! For a digested BMAD file.
 \end{example}
-If \vn{\#reverse} is present, tracking will be in the reverse direciton from the end of
+If \vn{\#reverse} is present, tracking will be in the reverse direction from the end of
 the lattice to the beginning. The sign of the charge of the tracked particle
 will also be reversed. This is useful for simulating beams that go in the backward direction.
 
@@ -1548,6 +1548,10 @@ When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a pl
 the \vn{place} command \sref{s:place}) causes any existing plots that overlap the
 placed plot to become invisible. 
 
+The \vn{plot_page%n_curve_pts} sets the default number of points to use for drawing ``smooth''
+curves. Default is 401. This default may be overridden by setting the \vn{plot%n_curve_pts}
+component of a plot (\sref{s:template}).
+
 \vn{place(i)} determines the initial placement of plots.
 
 \vn{default_plot} sets the defaults for any \vn{plot}s
@@ -1599,6 +1603,7 @@ Template plots are defined using namelists with a name of
     plot%autoscale_gang_y = <logical>    ! Default: True.
     plot%autoscale_x = <logical>         ! Default: False.
     plot%autoscale_y = <logical>         ! Default: False.
+    plot%n_curve_pts = <integer>         ! Used to override plot_page%n_curve_pts.
     default_graph%...                    ! See below
   /
 \end{example}
@@ -2032,11 +2037,11 @@ components are specified, the \vn{graph%component} settings are ignored for
 that expression.
 
 %-----------------------------------------------------------------
-\subsection{Plotting With a Variable Value on the X-Axis}
+\subsection{Plotting With a Variable Parameter on the X-Axis}
 \index{plot!plotting as a function of a variable}
 \label{s:plot.var}
 
-Data can be plotted as a function of a variable by setting
+Data can be plotted as a function of a lattice parameter by setting
 \vn{plot%x_axis_type} to \vn{"lat"} (for lattice variables) or
 \vn{"var"} (for \tao variables) and setting \vn{curve(:)%data_type_x}
 to the name of the variable. In this case, the \vn{curve(:)%data_type}
@@ -2046,6 +2051,7 @@ Example:
 \begin{example}
   &tao_template_plot
     plot%x_axis_type = "lat"
+    plot%n_curve_pts = 50
     ...
   /
 
@@ -2056,6 +2062,7 @@ Example:
     ...
   /
 \end{example}
+Here the number of curve points has been set to 50 to reduce the evaluation overhead.
 
 Note: \tao treats the \vn{design} and \vn{base} lattices as static so
 that varying a variable will not affect these lattices. Thus,
@@ -2196,7 +2203,7 @@ rotations. Example: (\sref{s:init.plot})
 \end{example}
 
 The beam orbit can be drawn upon the floor plan. This is done by setting
-\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero surpresses the
+\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero suppresses the
 drawing of the orbit. This scale is used to scale the distance between the centerline of
 the elements and the orbit. Note: If \vn{graph%floor_plan_orbit_scale} is not unity, the
 plotted orbit when going through a \vn{patch} element with a finite transverse offset will
@@ -2347,7 +2354,7 @@ affect the size of an element shape while if
 \vn{floor_plan_size_is_absolute} is True then the size of an element
 will scale with the zoom.
 
-The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, surpresses drawing of
+The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, suppresses drawing of
 \vn{multipass_slave} lattice elements that are associated with the second and higher
 passes. This logical defaults to False. Setting to True is only useful in some extreme
 circumstances where the plotting of additional passes leads to large pdf/ps file sizes.
