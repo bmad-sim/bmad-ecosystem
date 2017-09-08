@@ -27,6 +27,9 @@ type (tao_var_slave_struct), pointer :: var_slave
 type (tao_plot_struct), pointer :: p
 type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
+type (tao_lattice_struct), pointer :: tao_lat
+type (branch_struct), pointer :: branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 
 real(rp) value
 real(rp), pointer :: ptr_attrib
@@ -41,7 +44,7 @@ character(16) init_name
 integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios
 integer iu_log
 
-logical err, calc_ok, valid_value
+logical err, calc_ok, valid_value, this_calc_ok
 logical :: err_flag
 
 namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
@@ -161,6 +164,7 @@ call tao_init_global(init_tao_file)
 call tao_init_lattice (init_tao_file)
 call tao_init_dynamic_aperture (init_tao_file)
 call tao_init_beams (beam_file)
+call tao_init_variables (var_file)
 call tao_init_data (data_file)
 call tao_init_building_wall (building_wall_file)
 
@@ -234,8 +238,35 @@ endif
 
 ! Calculate radiation integrals.
 
-s%u%calc%lattice = .true.
-call tao_lattice_calc (calc_ok, init_special = 1)
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(i)
+  tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
+
+  do ib = 0, ubound(tao_lat%lat%branch, 1)
+    branch => tao_lat%lat%branch(ib)
+    tao_branch => tao_lat%tao_branch(ib)
+
+    call tao_data_coupling_init(branch)
+
+    if (.not. branch%param%live_branch) cycle
+    
+    do j = 1, 6
+      tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
+    enddo
+
+    call tao_inject_particle (u, tao_lat, ib)
+    call tao_single_track (u, tao_lat, this_calc_ok, ib)
+
+    call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                          tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
+
+    tao_branch%modes_rf_on = tao_branch%modes
+    tao_branch%rad_int_rf_on = tao_branch%rad_int_rf_on
+
+    call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
+                         tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
+  enddo
+enddo
 
 ! Turn off RF
 
@@ -255,11 +286,11 @@ enddo
 
 !
 
+s%u%calc%lattice = .true.
 call tao_lattice_calc (calc_ok)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-
   u%design = u%model
   u%base = u%design
   u%design%tao_branch = u%model%tao_branch
@@ -268,13 +299,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%data%base_value   = u%data%model_value
   u%data%good_design  = u%data%good_model
   u%data%good_base    = u%data%good_model
-
   u%design%tao_branch%modes = u%design%tao_branch%modes_rf_on
 enddo
 
-! Call tao_init_variables after the u%design = u%model since variables have pointers to lattice attributes.
-
-call tao_init_variables (var_file)
+call tao_var_repoint()
 
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
 ! to set model variable values different from design variable values.

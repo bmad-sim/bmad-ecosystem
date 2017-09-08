@@ -50,3 +50,4 @@ x-a all s
 sc
 
 call Setup.tao
+show key
