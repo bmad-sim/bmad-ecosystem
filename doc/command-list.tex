@@ -45,12 +45,13 @@ substituted. A possible
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \hline
-  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\ \hline
-  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ \hline 
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ \hline 
-  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ \hline 
-  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ \hline 
-  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\ \hline  
+  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\ \hline
+  call          & \sref{s:call}     & read          & \sref{s:read}     \\ \hline
+  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ \hline 
+  clip          & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ \hline 
+  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ \hline 
+  derivative    & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ \hline 
+  do, enddo     & \sref{s:do}       & set           & \sref{s:set}      \\ \hline  
   end_file      & \sref{s:end.file} & show          & \sref{s:show}     \\ \hline 
   exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ \hline 
   flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
@@ -63,7 +64,6 @@ substituted. A possible
   python        & \sref{s:python}   & x_axis        & \sref{s:x.axis}   \\ \hline 
   quiet         & \sref{s:quiet}    & x_scale       & \sref{s:x.scale}  \\ \hline 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
-  re_execute    & \sref{s:re.exe}   &               &                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -130,6 +130,8 @@ a call, the command \vn{ptc init} must be issued.
 
 If the command file has the \vn{quiet} command in it, output to the terminal is surpresed (but
 only for the duration of the execution of the file).
+
+Command loops can be implemented in a command file. See Section~\sref{s:do} for more details.
 
 Other useful commands to put in a command file are to speed up execution are:
 \begin{example}
@@ -269,6 +271,34 @@ The \vn{continue} command is used to continue reading of a suspended command fil
 \begin{example}
   continue
 \end{example}
+
+%% do --------------------------------------------------------------
+\section{do, enddo}\index{commands!do}
+\label{s:do}
+
+Command loops can be implemented in a command file files. Format:
+\begin{example}
+  do <var> = <l_bound>, <u_bound> \{<incr>\}
+    ...   ! use the syntax ``[[<var>]]'' to refer to a variable.
+  enddo
+\end{example}
+Note: ``\vn{enddo}'' is one word and my not be split into two words.
+Loops can be nested and the number of levels is not unlimited. 
+
+A loop will execute the code in between the \vn{do} and \vn{enddo} lines a certain number of
+times. Each time trough the the the integer variable \vn{<var>} will be increamented by \vn{<incr>},
+starting at \vn{<l_bound>} and stopping before \vn{<var>} is greater than \vn{<u_bound>}. If
+\vn{<incr>} is not present, the increment will be 1. Note: \vn{<l_bound>}, \vn{<u_bound>}, and
+\vn{<incr>} must all be integers.
+
+Example:
+\begin{example}
+  do j = 0, 10, 2
+    set beam_start pz = 1e-3 * [[j]]
+    ...
+  enddo
+\end{example}
+As shown in the above example, to refer to a loop variable in a command, use the syntax ``[[<var>]]''.
 
 %% end_file --------------------------------------------------------------
 \section{end_file} \label{s:end.file}
