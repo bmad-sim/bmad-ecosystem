@@ -238,7 +238,7 @@ end subroutine lattice_bookkeeper
 !   err_flag -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine control_bookkeeper (lat, ele, dummy, err_flag)
+subroutine control_bookkeeper (lat, ele, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct), optional :: ele
@@ -246,7 +246,6 @@ type (ele_struct), pointer :: slave, lord, branch_ele, ele2
 type (branch_struct), pointer :: branch
 
 integer i, j, ie, ib, n1, n2
-integer, optional :: dummy    ! Will remove after test
 
 logical, optional :: err_flag
 logical err
