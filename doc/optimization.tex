@@ -380,6 +380,36 @@ details.
   \end{description}
 
 %------------------------------------------------------------------------
+\section{Optimization Troubleshooting Tips}
+\label{s:opt.trouble}
+\index{optimization troubleshooting}
+
+Optimizations can behave in strange ways. Here are some tips on how to diagnose problems.
+
+The \vn{show optimizer} (\sref{s:show.optimizer}) command will show global parameters
+associated with optimizations. This will show some of the parameters that can be 
+varied to get better convergence. One quick thing to do is to increase the number of
+optimization loops and/or optimization cycles:
+\begin{example}
+	set global n_opti_loops = ...
+	set global n_opti_cycles = ...
+\end{example}
+
+One of the first things to check is the merit function, the top contributors can be seen
+with the command \vn{show top10} (\srefl{s:show.top10}). And individual contributions
+can be viewed using the \vn{show variable} and \vn{show data} commands.
+
+If using an optimizer that uses the derivative matrix (\vn{lm}, \vn{geodesic_lm} and 
+\vn{svd} optimizers), The variable \vn{step} sizes that are used to calculate the derivative
+should be checked to make sure that the \vn{step} is not too small so that roundoff is a problem
+but yet not too large so that nonlinearities make the calculation inaccurate. One way to
+check that the step size is adequate for a given variable is to vary the variable using
+the command \vn{change var} (\sref{s:change}). This command will print out the the change
+in the merit function per change in variable which can be compared to the derivatives 
+as shown with the \vn{show top10 -derivative} (\srefl{s:show.top10}) or the
+\vn{show derivative} (\sref{s:show.derivative}) command.
+
+%------------------------------------------------------------------------
 \section{Common Base Lattice (CBL) Analysis}
 \label{s:cbl}
 \index{common base lattice}

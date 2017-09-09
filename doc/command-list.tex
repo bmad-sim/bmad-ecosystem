@@ -717,7 +717,9 @@ The \vn{run_optimizer} command runs an optimizer. Format:
 \vskip 0.2in 
 
 \index{de!optimizer}\index{lm!optimizer}
-If \vn{<optimizer>} is not given then the default optimizer is used. To stop the optimizer
+If \vn{<optimizer>} is not given then the default optimizer is used. 
+Use the \vn{show optimizer} (\sref{s:show.optimizer}) command to see optimizer parameters.
+To stop the optimizer
 before it is finished press the period ``.''  key. If you want the optimizer to run
 forever run the optimizer in \vn{single mode}. Valid optimizers are:
 \begin{example}
@@ -726,7 +728,9 @@ forever run the optimizer in \vn{single mode}. Valid optimizers are:
   lm            ! Levenburg-Marquardt from Numerical Recipes 
   lmdif         ! Levenburg-Marquardt 
 \end{example}
-See \sref{s:lattice.correction} for more details on the different optimizers.
+
+See Chapter~\sref{c:opti} for details on how \tao structures optimization and 
+for more details on the different optimizers.
 
 Examples:
 \begin{example}
@@ -2457,6 +2461,7 @@ The \vn{show wave} command shows the results of the current wave analysis (\sref
 
 The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).
 For on-line help when running \tao go to \vn{single mode} and type ``?''.
+To get out of single mode type ``Z''.
 
 %% spawn --------------------------------------------------------------
 \section{spawn}\index{commands!spawn}
