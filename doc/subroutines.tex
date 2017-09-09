@@ -3034,7 +3034,7 @@ Routine to transfer the values from one taylor map to another.
 
 \index[routine]{taylor_make_unit}
 \label{r:taylor.make.unit}
-\item[taylor_make_unit (bmad_taylor, ref_orbit)] \Newline
+\item[taylor_make_unit (bmad_taylor, rf_orbit)] \Newline
 Routine to make the unit Taylor map
 
 \index[routine]{taylor_to_mat6}
@@ -3139,7 +3139,7 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, param, set, orbit, set_tilt, \\
+    offset_particle (ele, param, set, orbit, set_tilt, set_multipoles, \\
     \hspace*{1in} set_hvkicks, set_z_offset, ds_pos, set_spin, mat6, make_matrix)} ] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
@@ -3248,7 +3248,7 @@ Routine to compute from tracking the Twiss parameters and the transfer matrices
 for every element in the lat. 
 
 \index[routine]{wall_hit_handler_custom}
-\item[wall_hit_handler_custom (orb, ele, s, t)] \Newline 
+\item[wall_hit_handler_custom (orb, ele, s)] \Newline 
 This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
 
 \end{description}

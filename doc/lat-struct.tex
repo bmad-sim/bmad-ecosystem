@@ -168,16 +168,6 @@ to the same memory blocks
   lat%param               <--->  lat%branch(0)%param        
 \end{example}
 
-All \vn{%branch%ele(:)} arrays are allocated with zero as the lower
-bound. The \vn{%ele(0)} element of all branches is an \vn{beginning_ele}
-element with its \vn{%name} component set to ``\vn{BEGINNING}''.
-\vn{%ele(0)%mat6} is always the unit matrix. For the root branch, the
-\vn{%branch(0)%ele(0:)} array is divided up into two parts: The
-``tracking'' part and a ``control'' part (also called the ``lord''
-part). The tracking part of this array holds the elements that are
-tracked through. The control part holds elements that control
-attributes of other elements (\sref{s:lat.control}). The bounds of
-these two parts is given in Table~\ref{t:part.extent}.
 \begin{table}[tb]
 \begin{center}
 \begin{tabular}{lll}
@@ -190,9 +180,20 @@ control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}     \\ \bottomrule
 \caption[Bounds of the root branch array.]
 {Bounds of the tracking and control parts 
 of the root branch (\vn{lat\%branch(0)\%ele(:)}) array.}
-\end{center}
 \label{t:part.extent}
+\end{center}
 \end{table}
+
+All \vn{%branch%ele(:)} arrays are allocated with zero as the lower
+bound. The \vn{%ele(0)} element of all branches is an \vn{beginning_ele}
+element with its \vn{%name} component set to ``\vn{BEGINNING}''.
+\vn{%ele(0)%mat6} is always the unit matrix. For the root branch, the
+\vn{%branch(0)%ele(0:)} array is divided up into two parts: The
+``tracking'' part and a ``control'' part (also called the ``lord''
+part). The tracking part of this array holds the elements that are
+tracked through. The control part holds elements that control
+attributes of other elements (\sref{s:lat.control}). The bounds of
+these two parts is given in Table~\ref{t:part.extent}.
 Only the root branch has a lord section so 
 \vn{%branch%n_ele_track} and \vn{%branch%n_ele_max} are the same for 
 all other branches. Since the root branch can also be accessed via the \vn{lat%ele(:)}

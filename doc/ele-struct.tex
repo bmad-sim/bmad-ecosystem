@@ -35,12 +35,12 @@ type ele_struct
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
   type (controller_var_struct), pointer :: control_var(:) 
-  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define E/M fields
-  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define E/M fields
+  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define DC fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define DC fields
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
-  type (taylor_field_struct), pointer :: taylor_field(:)       ! Used to define E/M fields.
-  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define E/M fields.
-  type (fibre), pointer :: ptc_fibre           ! PTC tracking.
+  type (taylor_field_struct), pointer :: taylor_field(:)       ! Used to define DC and AC fields.
+  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
+  type (fibre), pointer :: ptc_fiber           ! PTC tracking.
   type (floor_position_struct) floor           ! Global floor position.
   type (ptc_genfield_struct), pointer :: ptc_genfield  ! For symp_map
   type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
@@ -48,7 +48,8 @@ type ele_struct
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge 
-  type (taylor_struct) :: taylor(6)            ! Taylor terms
+  type (taylor_struct) :: taylor(6)            ! Orbital Taylor map.
+  type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
   type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
   type (wake_struct), pointer :: wake    ! Wakes
     ele_struct definition continued on next figure...
@@ -81,15 +82,17 @@ The complete structure is shown in this and the following figure.}
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:)               ! multipole
   real(rp), pointer :: b_pole(:)               ! multipoles
+  real(rp), pointer :: a_pole_elec(:)          ! Electrostatic multipoles.
+  real(rp), pointer :: b_pole_elec(:)          ! Electrostatic multipoles.
   integer key                    ! key value
   integer sub_key                ! EG for wigglers: map_type$, periodic_type$
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer slave_status           ! super_slave$, etc.
+  integer lord_status            ! overlay_lord$, etc.
   integer n_slave                ! Number of slaves
   integer n_slave_field          ! Number of field slaves
   integer ix1_slave              ! Pointer to lat%control array
-  integer lord_status            ! overlay_lord$, etc.
+  integer slave_status           ! super_slave$, etc.
   integer n_lord                 ! Number of lords
   integer n_lord_field           ! Number of field lords
   integer ic1_lord               ! Pointer to lat%ic array.

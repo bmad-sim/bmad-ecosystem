@@ -227,6 +227,11 @@ through drifts just before and just after the tracking of the body of
 the element so that the particle ends at the proper virtual exit end.
 
 %----------------------------------------------------------------
+\section{Intra Element Trajectory}
+
+
+
+%----------------------------------------------------------------
 \section{Tracking Through a Lattice Branch}
 
 When tracking through a lattice branch, one often defines an array of
@@ -356,8 +361,8 @@ exit end of the $n$\Th element.
     enddo
   end subroutine
 \end{listing}
-\label{f:track.all}
 \caption{Condensed track_all code.}
+\label{f:track.all}
 \end{centering}
 \end{figure}
 
@@ -547,8 +552,8 @@ the index of the element at which a particle is lost.
 \vn{%param%end_lost_at} gives which end the particle was lost at. 
 The possible values for \vn{lat%param%end_lost_at} are:
 \begin{example}
-  entrance_end\$
-  exit_end\$
+  entrance_end$
+  exit_end$
 \end{example}
 When tracking forward, if a particle is lost at the exit end of an
 element then the place where the orbit was outside the aperture is at
@@ -561,9 +566,9 @@ element).
 To tell how a particle is lost, check the \vn{lat%param%plane_lost_at}
 parameter. Possible values for this are:
 \begin{example}
-  x_plane\$
-  y_plane\$
-  z_plane\$
+  x_plane$
+  y_plane$
+  z_plane$
 \end{example}
 \vn{x_plane\$} and \vn{y_plane\$} indicate that the particle was lost
 either horizontally, or vertically. \vn{z_plane\$} indicates that the

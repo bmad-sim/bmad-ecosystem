@@ -129,8 +129,7 @@ statements. See \sref{s:ele.names} for more details.
 \begin{figure}[tb]
  \begin{center}
  \includegraphics[width=6.0in]{superimpose-ip.pdf}
- \caption[Superposition example.]
- {
+ \caption[Superposition example.]{
 Superposition Example. A) Interaction region layout
 with quadrupoles overlapping a solenoid. B) The Bmad lattice
 representation has a list of split elements to track through and the
@@ -237,6 +236,15 @@ of the branch, \vn{lord_status} will always be
 \vn{not_a_lord}. In the \vn{lord section} of the branch, under normal
 circumstances, there will never be any \vn{not_a_lord} elements.
 
+Lord elements are divided into two classes. 
+A \vn{major} lord represents a physical element which the slave elements are a part of.
+\vn{super_lord}s and \vn{multipass_lord}s are \vn{major} lords. 
+As a consequence, a \vn{major} lord is a lord that
+controls nearly all of the attributes of its slaves. 
+The other lords --- \vn{girder_lord}s, \vn{group_lord}s and 
+\vn{overlay_lord}s --- are called \vn{minor} lords.
+These lords only control some subset of a slaves attributes.
+
 The possible \vn{slave_status} settings are
   \begin{description}
   \item[multipass_slave]\Newline
@@ -250,9 +258,8 @@ when, for example, a program needs to track part way through an element.
 A \vn{super_slave} element is an element in the tracking part of the branch that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
   \item[minor_slave]\Newline
-\vn{minor_slave} elements are elements that are not \vn{slice_slave}s and do not have a
-\vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. \vn{minor_slave}s
-will have at least one \vn{overlay_lord}, \vn{group_lord}, or \vn{girder_lord}.
+\vn{minor_slave} elements are elements that are not \vn{slice_slave}s and are only controlled
+by \vn{minor} lords (\vn{overlay_lord}s, \vn{group_lord}s, or \vn{girder_lord}s).
   \item[free]\Newline
 A \vn{free} element is an element with no lords.
   \end{description}
