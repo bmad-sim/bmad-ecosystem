@@ -279,7 +279,7 @@ type (tao_universe_struct), pointer :: u
 character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
 
-integer iu, ios, iuni
+integer iu, ios, iuni, i
 logical err, needs_quotes
 
 namelist / params / global
@@ -323,6 +323,12 @@ call tao_data_check (err)
 if (err) return
 
 select case (who)
+case ('plot_on')
+  ! Place commands issued when plotting is off have %visible set to False.
+  do i = 1, size(s%plot_page%region)
+    if (s%plot_page%region(i)%plot%name == '') cycle
+    s%plot_page%region(i)%visible = .true.
+  enddo
 case ('prompt_color')
   call upcase_string(global%prompt_color)
 case ('random_seed')
