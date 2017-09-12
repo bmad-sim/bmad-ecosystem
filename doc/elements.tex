@@ -2117,81 +2117,68 @@ Attributes specific to a \vn{Group} element are:
 The general syntax for a \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
-                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
+              VAR = \{var1, var2, ...\}, var1 = init_val1, old_var1 = init_val_old1, ...
 \end{example}
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
 
-As explained further below, there are two numbers associated with each
+Example:
+\begin{example}
+  gr1: group = \{...\}, var = \{a, b\}, a = 1, old_a = 2
+  gr2[old_b] = 2
+\end{example}
+There are two numbers associated with each
 variable in a group: One number is the value of the variable (also
 called the ``present'' value) and the other number is the ``old''
 value. To refer to these old values prepend the string ``old_'' to the
 variable name. Thus, in the above example, the old variable values
 have names \vn{old_a} and \vn{old_b} and these old values can be set
-in the same manner as the present values. Example:
-\begin{example}
-  gr1: group = \{...\}, var = \{a, b\}, a = 1, old_a = 1
-  gr2[old_b] = 2
-\end{example}
+in the same manner as the present values.
 
-A \vn{group} element is like an \vn{overlay} element in that a
-\vn{group} element controls the attribute values of other ``slave''
-elements. Unlike an \vn{overlay}, which sets a specific value directly,
-a \vn{group} element is used to make changes in value. An
-example will make this clear:
+A \vn{group} element is like an \vn{overlay} element in that a \vn{group} element controls the
+attribute values of other ``slave'' elements. The difference is that the value of a slave attribute
+that is controlled by (one or more) \vn{overlay} elements is uniquely determined by the controlling
+\vn{overlay} elements. A \vn{group} element, on the other hand, is used to make changes in
+value. An example will make this clear:
 \begin{example}
-  gr: group = \{q1[k1]:a^2\}, var = \{a\} 
+  gr: group = \{q1[k1]:0.1*a^2\}, var = \{a\}, a = 2, old_a = 1
   q, quad, k1 = 0.5
 \end{example}
-When a program reads the lattice, the value of \vn{q[k1]} will be 0.5
-and the value of \vn{gr[a]}, along with the associated old value
-\vn{gr[old_a]} will have the default value of 0. Now if the program
-sets \vn{gr[a]} (just as a program can set any attribute in the
-lattice) to, say, the value 0.3, the \bmad bookkeeping code will
-compute a delta value of
+When a program reads the lattice file, initially the value of \vn{q[k1]} will be 0.5 as set
+in the definition of \vn{q}. Later, during lattice expansion (\sref{s:expand}), the group elements
+are added to the lattice. When the group element \vn{gr} is added, the fact that \vn{old_a} and
+\vn{a} are different causes the the value of \vn{q[k1]} to be modified. The delta value is
 \begin{example}
-  delta = a^2 - old_a^2
-        = 0.09
+  delta = 0.1*a^2 - 0.1*old_a^2
+        = 0.3
 \end{example}
-In general, deltas are computed as the difference between the
-arithmetic expression evaluated with the present variable values and
-the arithmetic expression evaluated with the old variable values. In
-the present example, there is a single delta and it is applied to
-\vn{q[k1]} which gives this attribute a value of 0.59 = 0.5 +
-0.09. After all deltas are applied, the old variable values are set to
-the present variable values so that further evaluations will give zero
-deltas. In the present example, \vn{gr[old_a]} is set to 0.3 which is
-the value of \vn{gr[a]}
+And this is added to the existing value of 0.5 so that the value of \vn{q[k1]} becomes 0.8.  After
+the value of \vn{q[k1]} has been updated, the value of \vn{old_a} is automatically update to be the
+present value of \vn{a} so that the value of \vn{q[k1]} will not be further modified.
 
-Within a program, if both a group variable and a slave attribute are
-modified, the value of the slave attribute will be dependent upon the
-order of which is modified first. For example:
+In general, deltas used to modify slave attributes are computed as the difference between the
+arithmetic expression evaluated with the present variable values and
+the arithmetic expression evaluated with the old variable values.
+
+Notice that in a lattice file the value of a slave attribute after the lattice is read in is
+independent of whether the group is defined before or after elements whose attributes are controlled
+by the group. This is true since the effect of a \vn{group} element happens when the lattice is
+expanded, not when parser reads the \vn{group} definition. On the other hand, after the lattice has
+been read in, if a program varies both a group variable and a slave attribute,
+the value of the slave attribute will be dependent upon the
+order of which is modified first. For example, consider a lattice containing:
 \begin{example}
   gr: group = \{q[k1]:a^2\}, var = \{a\} 
   q, quad
 \end{example}
-Now if a program first sets \vn{gr[a]} to 0.3 and then sets \vn{q[k1]}
-to 0.5, the result is that \vn{q[k1]} will have a value of 0.5. That
-is, the value of \vn{q[k1]} will be independent of \vn{gr[a]}. If the
-setting is reversed so that \vn{q[k1]} is set first, the value of
-\vn{q[k1]} will be 0.59. Since the result is order dependent, trying
-to ``simultaneously'' vary the attributes of both group variables and
-slave attributes can lead to unpredictable results. For example,
-consider lattice ``optimization'' where a program varies a set of
-lattice parameters to achieve certain goals (for example, minimum beta
-at some point in the lattice, etc.). If the list of parameters to be
-varied contains both group variables and slave attributes, the actual
-changes to slave attributes may be different from what the program
-expects when the program varies its list of parameters.
-
-When a lattice file is read in, variable values for any groups are
-always applied last. This is independent of the order that they appear
-in the file. For example:
-\begin{example}
-  gr: group = \{q1[k1]:a^2\}, var = \{a\}, a = 0.6, old_a = 0.2
-  q, quad, k1 = 0.5
-\end{example}
-In this example, when the lattice is read in, the value of q1[k1] would be
-$0.57 = 0.5 + (0.6^2 - 0.2^2)$ 
+Now if a program first sets \vn{gr[a]} to 0.3 and then sets \vn{q[k1]} to 0.5, the result is that
+\vn{q[k1]} will have a value of 0.5. That is, the value of \vn{q[k1]} will be independent of
+\vn{gr[a]}. If the setting is reversed so that \vn{q[k1]} is set first, the value of \vn{q[k1]} will
+be 0.59. Since the result is order dependent, trying to ``simultaneously'' vary the attributes of
+both group variables and slave attributes can lead to unpredictable results. For example, consider
+lattice ``optimization'' where a program varies a set of lattice parameters to achieve certain goals
+(for example, minimum beta at some point in the lattice, etc.). If the list of parameters to be
+varied contains both group variables and slave attributes, the actual changes to slave attributes
+may be different from what the user expects when the program varies its list of parameters.
 
 \index{overlay}\index{girder}
 Different \vn{group} elements may control the same slave attribute and
@@ -3095,7 +3082,7 @@ For example:
   over1: overlay = \{a_ele, b_ele:2.0\}, var = \{hkick\}, hkick = 0.003
   over2: overlay = \{b_ele\}, var = \{hkick\}
   over2[hkick] = 0.9
-  a_ele: quad, hkick = 0.05, ...
+  a_ele: quad, hkick = 0.05   ! NO: Cannot control slave attributes of overlays
   b_ele: rbend, ...
   this_line: line = (... a_ele, ... b_ele, ...)
   use, this_line
