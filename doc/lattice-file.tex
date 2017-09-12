@@ -970,7 +970,7 @@ At some point in parsing a lattice file, the ordered sequence (or sequences if t
 branches) of elements that form a lattice must be constructed. This process is called \vn{lattice
 expansion} since the element sequence can be built up from sub--sequences
 (\sref{c:sequence}). Normally, lattice expansion happens automatically at the end of the parsing of
-the lattice file but an explicit \vn{expand_lattice} statement in a lattice file will cause
+the lattice file (or files) but an explicit \vn{expand_lattice} statement in a lattice file will cause
 immediate expansion. The reason why lattice expansion may be necessary before the end of the file is
 due to the fact that some operations need to be done after lattice expansion. This includes:
 \begin{Itemize}
