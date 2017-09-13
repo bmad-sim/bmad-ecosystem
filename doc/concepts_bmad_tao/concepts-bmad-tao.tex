@@ -1,0 +1,138 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+%\documentclass{article}
+\documentclass{hitec}
+
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage[TABBOTCAP]{subfigure}
+\usepackage{toc-bmad}
+\usepackage{xspace}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{index}
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
+
+%----------------------------------------------------------------
+
+\input{macros.tex}
+
+\newcommand{\BF}[1]{{\normalfont\textbf{#1}}}
+
+\renewcommand{\ttdefault}{txtt}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+\title{Bmad and Tao Concepts}
+\author{}
+\date{David Sagan \\ June 24, 2016}
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%------------------------------------------------------------------------------
+\Section{A Guide for the Perplexed}
+\label{s:guide}
+
+This is a guide to introduce the reader to some of the concepts that are used by the \bmad toolkit
+for relativistic charged--particle and X-Ray simulations and as an initial training manual
+for using the \tao simulation program.
+
+%------------------------------------------------------------------------------
+\Section{Overview: What is Bmad? What is Tao?}
+\label{s:overview}
+
+\bmad is an open-source subroutine library for relativistic
+charged--particle and X-Ray simulations in accelerators and
+storage rings. \bmad has been developed at Cornell University's
+Laboratory for Elementary Particle Physics.
+Over the years, \bmad has been used for a wide range of charged-particle and X-ray
+simulations. The following list gives some idea as to the range that \bmad has been put to use
+for:
+\begin{display}
+  Lattice design                              X-ray simulations
+  Spin tracking                               Wakefields and HOMs
+  Beam breakup simulations in ERLs            Touschek Simulations
+  Intra-beam scattering (IBS) simulations     Dark current tracking
+  Coherent Synchrotron Radiation (CSR)        Frequency map analysis
+\end{display}
+
+The advantage of \bmad over a stand-alone simulation program is that when new types of simulations
+need to be developed, \bmad can be used to cut down on the time needed to develop such programs
+with the added benefit that the number of programming errors will be reduced
+as well. The disadvantage of \bmad is that, as a toolkit, one cannot proform any calculations
+without first developing a program. To get around this, a program called \tao was developed.
+\tao is a general purpose simulation program, based upon \bmad. \tao can be used to view
+lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
+Additionally, \tao's object oriented design makes it relatively easy to extend it. For
+example, it can be used for orbit flattening in a machine control system.
+
+%------------------------------------------------------------------------------
+\Section{Resources}
+\label{s:resources}
+
+More information is readily available at the \bmad and \tao web site:
+\begin{display}
+  \url{http://www.lepp.cornell.edu/~dcs/bmad}
+\end{display}
+Links to the \bmad and \tao manuals can be found there as well as instructions for
+downloading and setup if needed, etc.
+
+%------------------------------------------------------------------------------
+\Section{How to Use this Manual}
+
+It is assumed that you are able to run \tao.
+
+%------------------------------------------------------------------------------
+\Section{Introduction to Bmad Lattices}
+
+The basis of any \bmad based simulation is a lattice file. So the following is a
+simple example:
+\begin{code}
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV   Or can set p0c
+
+parameter[geometry] = open      ! or closed
+parameter[particle] = electron  ! Default is positron
+
+d: drift, L = 0.5
+b: sbend, L = 0.5, g = 1    ! g = 1 / bending_radius
+q: quadrupole, L = 0.6, k1 = 0.23
+
+lat: line = (d, b, q)   ! List of lattice elements
+use, lat                ! Line used to construct the lattice
+\end{code}
+
+%------------------------------------------------------------------------------
+\Section{Introduction to Tao}
+
+This section is a quick introduction to \tao. To run \tao, at minimum needs a lattice file as input.
+
+\end{document}
