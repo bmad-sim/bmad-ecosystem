@@ -11,7 +11,7 @@
 \usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
 \usepackage{alltt}
 \usepackage{rotating}
-\usepackage[TABBOTCAP]{subfigure}
+\usepackage{subcaption}
 \usepackage{toc-bmad}
 \usepackage{xspace}
 %%\usepackage{makeidx}
@@ -42,13 +42,14 @@
 \settextfraction{0.9}  % Width of text
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
 \newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
 
 \newenvironment{display}
   {\vspace*{-1.5ex} \begin{alltt}}
   {\end{alltt} \vspace*{-1.0ex}}
 
-\title{Bmad and Tao Concepts}
+\title{Bmad and Tao Concepts Tutorial}
 \author{}
 \date{David Sagan \\ June 24, 2016}
 \begin{document}
@@ -60,9 +61,12 @@
 \Section{A Guide for the Perplexed}
 \label{s:guide}
 
-This is a guide to introduce the reader to some of the concepts that are used by the \bmad toolkit
-for relativistic charged--particle and X-Ray simulations and as an initial training manual
+This is a tutorial to introduce the reader to some of the concepts that are used by the \bmad toolkit
+for relativistic charged--particle and X-Ray simulations and as an initial training tutorial
 for using the \tao simulation program.
+
+It is assumed that you know something about accelerator physics. In particular it is assumed that
+you know about beta functions, dispersion and closed orbits.
 
 %------------------------------------------------------------------------------
 \Section{Overview: What is Bmad? What is Tao?}
@@ -105,12 +109,29 @@ Links to the \bmad and \tao manuals can be found there as well as instructions f
 downloading and setup if needed, etc.
 
 %------------------------------------------------------------------------------
-\Section{How to Use this Manual}
+\Section{How to Use this Tutorial}
 
-It is assumed that you are able to run \tao.
+This tutorial contains a set of examples which involve running the \tao program. 
+While it is not 100\% necessary that you actually run \tao with the examples, it is
+definitely easier to absorb the material if you do. For instructions on installing \bmad
+and \tao, please go to the \bmad web site (\sref{s:resources}).
+
+\tao is a command line program so you will need a terminal emulator program like \vn{terminal} on a
+Mac.
+
+To find out if everything is properly setup. Issue the command
+\begin{code}
+> which tao
+\end{code}
+The response should be the location of the \tao executable which will look something like:
+\begin{code}
+/Users/dcs16/bmad/bmad_dist/production/bin/tao
+\end{code}
+If there is no response, consult your local \bmad Guru or look at the \bmad web site.
 
 %------------------------------------------------------------------------------
 \Section{Introduction to Bmad Lattices}
+\label{s:bmad.intro}
 
 The basis of any \bmad based simulation is a lattice file. So the following is a
 simple example:
@@ -120,7 +141,7 @@ beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV   Or can set p0c
 
 parameter[geometry] = open      ! or closed
-parameter[particle] = electron  ! Default is positron
+parameter[particle] = electron  ! Reference particle.
 
 d: drift, L = 0.5
 b: sbend, L = 0.5, g = 1    ! g = 1 / bending_radius
@@ -129,10 +150,183 @@ q: quadrupole, L = 0.6, k1 = 0.23
 lat: line = (d, b, q)   ! List of lattice elements
 use, lat                ! Line used to construct the lattice
 \end{code}
+Part I of the \bmad manual covers lattice syntax so please refer to that for information that
+is not covered here.
+
+Some comments on the above lattice:
+  \begin{description}
+  \item[{beginning[...], parameter[...]}] \Newline
+Global parameters (parameters of the lattice that are not associated with any one given lattice
+element) can be set using \vn{beginning[...]}, \vn{parameter[...]} and \vn{beam_start[...]}
+constructs. See the \vn{Lattice File Global Parameters} chapter in the \bmad manual for a
+complete list of parameters that can be set.
+  \item[{parameter[geometry]}] \Newline
+The \vn{parameter[geometry]} parameter set whether the geometry of the lattice is considered
+\vn{open} like a 1-pass accelerating linac or \vn{closed} like a storage ring. If the lattice is
+closed, the closed orbit is used as the reference orbit and the computed beta functions
+correspond to the periodic solution. If the lattice is \vn{open}, the orbit and beta functions
+are computed using the beginning orbit and beta functions as set in the lattice. The default
+geometry is \vn{open} if the lattice contains an \vn{lcavity} (linac accelerating RF cavity) 
+element and is \vn{closed} if no \vn{lcavity} is present.
+  \item[{beginning[beta_a], beginning[beta_b]}] \Newline
+The \vn{beginning[beta_a]} and \vn{beginning[beta_b]} parameters are the beta functions at beginning
+of the lattice. The beginning beta functions will be only used by \bmad if the lattice geometry is
+set to \vn{open}. Note: Some programs will use the labels \vn{beta_x} and \vn{beta_y} for the beta
+functions. This is inaccurate since the beta functions are associated with the normal modes of
+oscillation of the beam and, if there is horizontal/vertical coupling, the normal modes will not
+correspond to purely horizontal and purely vertical motion. In the limit of no coupling, the
+\vn{a}-mode will correspond to horizontal oscillations and the \vn{b}-mode will correspond to
+vertical oscillations.
+  \item[{beginning[e_tot]}] \Newline
+The \vn{beginning[e_tot]} parameter sets the reference total energy at the beginning of the lattice.
+Alternatively, \vn{beginning[p0c]} can be used to set the reference momentum at the beginning of the
+lattice.
+  \item[{parameter[particle]}] \Newline
+The \vn{parameter[particle]} parameter sets the reference particle. Besides fundamental particles,
+ions can be used. For example, the reference particle could be set to \vn{\#12C+3} which is triply
+charged carbon-12. The default reference particles are positrons.
+  \item[d, b, q] \Newline
+The lattice element named \vn{d} is a drift element. That is, a field free region. The \vn{b} is a
+dipole bend and \vn{q} has a quadrupole element. See the \vn{Elements} chapter in the \bmad manual
+for more details.
+  \item[lat: line = (...)] \Newline
+A lattice consists of an ordered list of elements that the beam goes through. \vn{lines} are used
+to define this ordered list. In this instance a line called \vn{lat} contains the elements
+\vn{d}, \vn{b}, and \vn{q} in that order. 
+See the \vn{Beam lines and Replacement Lists} chapter of the \bmad manual for more details.
+  \item[use, lat] \Newline
+The \vn{use} statement in a lattice file identifies the particular line used to construct the
+lattice. This is needed since a lattice file may define multiple lines and lines can contain
+sub-lines, etc.
+  \end{description}
+
+[Note: the above discussion assumes that the lattice has only one \vn{branch}. Branches will be
+discussed in more detail later.]
+
+%------------------------------------------------------------------------------
+\Section{Starting Tao}
+\label{s:tao.start}
+
+\begin{figure}[tb]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{lat-init.pdf}
+    \caption{Initial graphics when \tao is run with the \vn{lat.bmad} lattice file.}
+    \label{f:lat.init}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{lat-floor.pdf}
+    \caption{Graphics after a \vn{place r22 floor_plan} command.}
+    \label{f:lat.floor}
+  \end{subfigure}
+  \caption{Example \tao graphics.}
+\end{figure}
+
+To run, \tao needs a lattice file as input. For this example, the lattice file shown in
+section~\sref{s:bmad.intro} will be used. Copy the lattice into a file and called \vn{lat.bmad}.
+Make sure that the directory from which you are running \tao does not have a file called
+\vn{tao.init} since this file can affect things (more on that later). Run \tao with the command:
+\begin{code}
+> tao -lat lat.bmad
+\end{code}
+\tao should open a window for plotting. If this window is too large for your screen, you can adjust
+the size of the plotting window by using the \vn{-geometry} option. Example:
+\begin{code}
+> tao -lat lat.bmad -geom 400x400
+\end{code}
+Consult the \tao manual for a list of command line arguments or use the command:
+\begin{code}
+> tao -help
+\end{code}
+
+The plot window that is created when you run tao with the given lattice should look like
+figure~\ref{f:lat.init}. The default is to have three plots: beta, dispersion, and orbit, along with
+what is called a \vn{lat_layout} plot (at the bottom of the window) that graphically shows the
+lattice elements.
 
 %------------------------------------------------------------------------------
 \Section{Introduction to Tao}
+\label{s:tao.intro}
 
-This section is a quick introduction to \tao. To run \tao, at minimum needs a lattice file as input.
+This section gives a quick introduction to \tao. Start \tao as explaned in the previous
+section with the lattice file \vn{lat.bmad}. In your terminal window there should be 
+a \vn{Tao>} prompt where you can type \tao commands.
+
+\subsection{Getting Help}
+
+To get a list of Tao commands use the \vn{help} command
+\begin{code}
+Tao> help
+
+Type 'help <command>' for help on an individual command
+Available commands:
+  alias                             read
+  call                              restore
+  change                            reinitialize
+  clip                              run_optimizer
+  continue                          scale
+  derivative                        set
+  end_file                          show
+  exit                              single_mode
+  flatten                           spawn
+... etc...
+\end{code}
+[For brevity's sake, \vn{... etc...} is used when the output has been truncated.]
+
+\tao commands are documented in the \vn{Tao Line Mode Commands} chapter of the \tao manual.
+This same documentation can be displayed using the \vn{help <command>} command where
+\vn{<command>} is the name of a command. Example:
+\begin{code}
+Tao> help set
+
+The "set" command is used to set values for data,
+variables, etc. Format:
+  set beam_init {n@}<component> = <value>
+  set beam_start {n@}<coordinate> = <value>
+  set bmad_com <component> = <value>
+  set csr_param <component> = <value>
+  set curve <curve> <component> = <value>
+  set data <data_name>|<component> = <value>
+  set default <parameter> = <value>
+  set element <element_list> <attribute> = <value>
+  set floor_plan <component> = <value>
+  set geodesic_lm <component> = <value>
+... etc...
+
+Also see the "change" command . The "change" command is specialized
+for varying real parameters while the "set" command is more general.
+
+... etc...
+
+Use the command:
+  help set <what>
+to obtain more information on a particular set subtopic. Example:
+  help set plot
+\end{code}
+
+Some commands are complicated enough so that there is a second level to the help on these commands.
+The \vn{set} command is an example of such a command. Thus you can type \vn{help set curve} for
+help on setting plotting curve parameters.
+
+\subsection{To Show a List of Elements in the Lattice}
+
+To show the elements in the lattice use the command \vn{show lattice}:
+\begin{code}
+Tao> show lat
+      Values at End of Element:
+ Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
+                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00   0.000   Alive
+     1  D         Drift                 0.500   0.500   10.03   0.050   0.00   0.000   10.03   0.050   0.00   0.000   Alive
+     2  B         Sbend                 1.000   0.500    7.87   0.104   0.12   0.000   10.00   0.100   0.00   0.000   Alive
+     3  Q         Quadrupole            1.600   0.600    3.50   0.217   0.40   0.000   10.64   0.159   0.00   0.000   Alive
+     4  END       Marker                1.600   0.000    3.50   0.217   0.40   0.000   10.64   0.159   0.00   0.000   Alive
+ Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
+                                                            a       a      a  x [mm]       b       b      b  y [mm]
+      Values at End of Element:
+\end{code}
+
+
 
 \end{document}
