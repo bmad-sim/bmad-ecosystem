@@ -56,7 +56,7 @@ character(*) lat_file
 character(1) delim 
 character(16) :: r_name = 'bmad_parser2'
 character(32) word_1
-character(40) word_2, name, this_name
+character(40) word_2, name, this_name, old_parser_name
 character(40), allocatable :: lat_name(:)
 character(80) debug_line
 character(280) parse_line_save, call_file
@@ -70,6 +70,7 @@ logical wild_here, wild_and_key0
 
 if (present(err_flag)) err_flag = .true.
 bp_com%write_digested2 = (.not. bp_com%always_parse)
+old_parser_name = bp_com%parser_name
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
@@ -647,7 +648,6 @@ do i = 1, ele_num
   enddo
 enddo
 
-
 ! make matrices for entire lat
 
 do i = 1, lat%n_ele_max
@@ -678,5 +678,7 @@ if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 call deallocate_lat_pointers (lat2)
 
 if (present(err_flag)) err_flag = bp_com%error_flag
+
+bp_com%parser_name = old_parser_name
 
 end subroutine

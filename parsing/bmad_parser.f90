@@ -1283,6 +1283,8 @@ enddo
 
 call deallocate_lat_pointers(in_lat)
 
+bp_com%parser_name = ''
+
 end subroutine parser_end_stuff 
 
 !---------------------------------------------------------------------
