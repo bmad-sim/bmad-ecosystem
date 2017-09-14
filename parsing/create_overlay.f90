@@ -24,9 +24,8 @@
 
 subroutine create_overlay (lord, contrl, err, err_print_flag)
 
-use bmad_interface, except_dummy => create_overlay
+use bmad_parser_mod, except_dummy => create_overlay
 use expression_mod
-use bookkeeper_mod, only: control_bookkeeper
 
 implicit none
 
@@ -154,6 +153,26 @@ do j = 1, n_slave
       c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
     endif
   endif
+
+  ! Evaluate any variable values.
+
+  do is = 1, size(c%stack)
+    select case (c%stack(is)%type)
+    case (ran$, ran_gauss$)
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                         'FOR ELEMENT: ' // lord%name)
+    case (variable$)
+      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value)
+      ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
+      ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
+      ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
+      ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
+      if (index(c%stack(is)%name, '[') /= 0) then
+        c%stack(is)%type = numeric$
+        c%stack(is)%name = ''
+      endif
+    end select
+  enddo
 
 enddo
 
