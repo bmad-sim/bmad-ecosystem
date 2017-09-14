@@ -413,7 +413,8 @@ be in either the tracking or control parts of the branch.
       \begin{sideways}\vn{super_lord\$}\end{sideways}
       \\ \midrule
       %                         NL  GR  GI  O   M   S
-      \vn{not_a_child\$}      & X & X & X & X & X & X \\ 
+      \vn{free\$}             & X & X & X & X & X & X \\ 
+      \vn{minor_slave\$}      & X & X & X & X & X & X \\ 
       \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
       \vn{slice_slave\$}      & X &   &   &   &   &   \\
       \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
@@ -436,7 +437,8 @@ be in either the tracking or control parts of the branch.
       \begin{sideways}\vn{super_lord\$}\end{sideways}
       \\ \midrule
       %                         NL  GR  GI  O   M   S
-      \vn{not_a_child\$}      &   & X & X & X &   &   \\ 
+      \vn{free\$}             &   &   &   &   &   &   \\ 
+      \vn{minor_slave\$}      &   & X & X & X &   &   \\ 
       \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
       \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
     \end{tabular}
@@ -561,15 +563,14 @@ Each element of this array is a \vn{control_struct} structure
   type control_struct
     type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
     type (lat_ele_loc_struct) slave ! Slave location
-    integer ix_lord                 ! index to lord element
-    real(rp) coef                   ! control coefficient
-    integer ix_attrib               ! index of attribute controlled
+    type (lat_ele_loc_struct) lord  ! Lord location
+    integer ix_attrib               ! index of controlled attribute 
   end type
 \end{example}
 \index{girder}\index{overlay}\index{group}
 \index{lat_struct!\%control}
 Each element in the \vn{lat%control(:)} array holds the information on
-one lord/slave pair. The \vn{%ix_lord} component gives the index of
+one lord/slave pair. The \vn{%lord} component gives the location of
 the lord element which is always in the root branch --- branch 0. The
 \vn{%slave} component give the element location of the slave element.
 The \vn{%stack} and \vn{%ix_attrib} components are used to store the
@@ -632,7 +633,7 @@ slave.  Simplified, the code for the \Hyperref{r:pointer.to.lord}{pointer_to_lor
     integer ix_lord, icon
     !
     icon = lat%ic(slave%ic1_lord + ix_lord - 1)
-    lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+    lord_ptr => lat%ele(lat%control(icon)%lord%ix_ele)
     if (present(con)) con => lat%control(icon)
   end function
 \end{example}

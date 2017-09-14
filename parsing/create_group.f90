@@ -28,7 +28,7 @@
 
 subroutine create_group (lord, contrl, err, err_print_flag)
 
-use bmad_interface, except_dummy => create_group
+use bmad_parser_mod, except_dummy => create_group
 use expression_mod
 
 implicit none
@@ -89,7 +89,7 @@ do iv = 1, size(lord%control_var)
   call upcase_string(lord%control_var(iv)%name)
 enddo
 
-! loop over all controlled elements
+! loop over all controlled attributes
 
 do i = 1, n_control
 
@@ -183,6 +183,27 @@ do i = 1, n_control
 
   call add_lattice_control_structs (slave, n_add_lord = 1)
   lat%ic(slave%ic1_lord+slave%n_lord-1) = n_con
+
+  ! Evaluate any variable values.
+
+  do is = 1, size(c%stack)
+    select case (c%stack(is)%type)
+    case (ran$, ran_gauss$)
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                         'FOR ELEMENT: ' // lord%name)
+    case (variable$)
+      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value)
+      ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
+      ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
+      ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
+      ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
+      if (index(c%stack(is)%name, '[') /= 0) then
+        c%stack(is)%type = numeric$
+        c%stack(is)%name = ''
+      endif
+    end select
+  enddo
+
 enddo
 
 ! End stuff

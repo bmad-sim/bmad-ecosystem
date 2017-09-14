@@ -5135,7 +5135,7 @@ type multi_ele_pointer_struct
 end type  
 
 type (lat_struct), target :: in_lat, lat
-type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave0, g_slave1
+type (ele_struct), pointer :: lord, slave, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable, target :: cs(:)
@@ -5541,33 +5541,9 @@ endif
 
 lat%ele(ix_lord)%value(gang$) = lord%value(gang$)
 
-! Evaluate any variable values.
-
-lord2 => lat%ele(ix_lord)
-do k = lord2%ix1_slave, lord2%ix1_slave+lord2%n_slave-1
-  con => lat%control(k)
-  do ic = 1, size(con%stack)
-    select case (con%stack(ic)%type)
-    case (ran$, ran_gauss$)
-      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
-                         'FOR ELEMENT: ' // lord%name)
-    case (variable$)
-      call word_to_value (con%stack(ic)%name, lat, con%stack(ic)%value)
-      ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
-      ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
-      ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
-      ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
-      if (index(con%stack(ic)%name, '[') /= 0) then
-        con%stack(ic)%type = numeric$
-        con%stack(ic)%name = ''
-      endif
-    end select
-  enddo
-enddo
-
 ! Finish.
 
-call control_bookkeeper (lat, lord2)
+call control_bookkeeper (lat, lat%ele(ix_lord))
 
 err_flag = .false.
 
