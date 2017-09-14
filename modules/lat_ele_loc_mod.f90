@@ -45,6 +45,10 @@ contains
 !   "2>>45:51"         Elements 45 through 51 of branch 2.
 !   "q1:q5"            Elements between "q1" and "q5"
 !   "marker::a*##2"    2^nd marker element in each branch whose name begins with "a".
+!
+! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
+! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
+! case q5 will appearr in eles(:) before q1 independent of the order in the lattice.
 ! 
 ! Modules Needed:
 !   use lat_ele_loc_mod

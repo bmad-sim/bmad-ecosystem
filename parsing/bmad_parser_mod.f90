@@ -143,15 +143,15 @@ type bp_common_struct
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
-  character(200) line1_file_name               ! Name of file from which %input_line1 was read
-  character(200) line2_file_name               ! Name of file from which %input_line2 was read
+  character(200) line1_file_name           ! Name of file from which %input_line1 was read
+  character(200) line2_file_name           ! Name of file from which %input_line2 was read
   character(n_parse_line) parse_line
-  character(n_parse_line) input_line1          ! Line before current line. For debug messages.
-  character(n_parse_line) input_line2          ! Current line. For debug messages.
-  character(40) parser_name
-  logical :: bmad_parser_calling = .false.              ! used for expand_lattice
-  logical error_flag                           ! Set True on error
-  logical fatal_error_flag                     ! Set True on fatal (must abort now) error 
+  character(n_parse_line) input_line1      ! Line before current line. For debug messages.
+  character(n_parse_line) input_line2      ! Current line. For debug messages.
+  character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
+  logical :: bmad_parser_calling = .false. ! used for expand_lattice
+  logical error_flag                       ! Set True on error
+  logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
   logical input_line_meaningful
   logical do_superimpose
   logical write_digested      ! For bmad_parser
@@ -2888,7 +2888,7 @@ ele_name = var_name(:ix1-1)    ! name of attribute
 ix2 = index(var_name, ']')
 attrib_name = var_name(ix1+1:ix2-1)
 
-if (attrib_name == 'S' .and. bp_com%parser_name /= 'bmad_parser2') then
+if (attrib_name == 'S' .and. bp_com%parser_name == 'bmad_parser') then
   call parser_error ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
 endif
 
@@ -3893,14 +3893,26 @@ if (bp_com%print_err) then
 
   nl = 0
 
-  select case (err_level)
-  case (s_info$)
-    nl=nl+1; lines(nl) = 'Note from: ' // trim(bp_com%parser_name) // ': ' // trim(what1)
-  case (s_warn$)
-    nl=nl+1; lines(nl) = 'WARNING IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
-  case (s_error$)
-    nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
-  end select
+  if (bp_com%parser_name == '') then
+    select case (err_level)
+    case (s_info$)
+      nl=nl+1; lines(nl) = 'Note: ' // trim(what1)
+    case (s_warn$)
+      nl=nl+1; lines(nl) = 'WARNING: ' // trim(what1)
+    case (s_error$)
+      nl=nl+1; lines(nl) = 'ERROR: ' // trim(what1)
+    end select
+
+  else
+    select case (err_level)
+    case (s_info$)
+      nl=nl+1; lines(nl) = 'Note from: ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+    case (s_warn$)
+      nl=nl+1; lines(nl) = 'WARNING IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+    case (s_error$)
+      nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+    end select
+  endif
 
   if (present(what2)) then
     nl=nl+1; lines(nl) = '     ' // trim(what2)
