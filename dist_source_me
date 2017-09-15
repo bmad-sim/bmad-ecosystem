@@ -121,7 +121,7 @@ func_check_fortran_version () {
 			    >> ${DIST_SETUP_LOG}
 
 		    elif [ -d "${DEVTOOLSET_DIR}-6" ] ; then
-			source ${DEVTOOLSET_DIR}-5/enable
+			source ${DEVTOOLSET_DIR}-6/enable
 			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
 			    >> ${DIST_SETUP_LOG}
 			echo -e "in ${DEVTOOLSET_DIR}-6" \
