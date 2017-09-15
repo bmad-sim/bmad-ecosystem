@@ -415,7 +415,7 @@ character(6) expn_str
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
-character(100) str
+character(300) str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor
 logical, allocatable, save :: good(:)

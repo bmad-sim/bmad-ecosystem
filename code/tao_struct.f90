@@ -334,7 +334,7 @@ type tao_data_struct
   character(40) :: ele_name = ''        ! Name of the lattice element where datum is evaluated.
   character(40) :: ele_start_name = ''  ! Name of starting lattice element when there is a range 
   character(40) :: ele_ref_name = ''    ! Name of reference lattice element
-  character(200) :: data_type = ''      ! Type of data: 'orbit.x', etc.
+  character(300) :: data_type = ''      ! Type of data: 'orbit.x', etc.
   character(40) :: merit_type = ''      ! Type of constraint: 'target', 'max', 'min', etc.
   character(20) :: data_source = ''     ! 'lat', or 'beam'
   integer :: ix_bunch = 0               ! Bunch number to get the data from.
