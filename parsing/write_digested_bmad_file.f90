@@ -64,8 +64,8 @@ if (present(n_files)) n_file = n_files
 
 d_unit = lunget()
 
-call fullfilename (digested_name, full_digested_name)
-inquire (file = full_digested_name, name = full_digested_name)
+call fullfilename (digested_name, fname)
+inquire (file = fname, name = full_digested_name)
 call simplify_path (full_digested_name, full_digested_name)
 open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
 

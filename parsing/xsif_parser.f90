@@ -616,8 +616,8 @@ call xsif_io_close
 if (bp_com%write_digested) then
   call file_name_list_show (file_names, n_names)
   do i = 1, n_names
-    call fullfilename (file_names(i), file_names(i))
-    inquire (file = file_names(i), name = file_names(i))
+    call fullfilename (file_names(i), full_name)
+    inquire (file = full_name, name = file_names(i))
   enddo
   call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
   deallocate (file_names)
