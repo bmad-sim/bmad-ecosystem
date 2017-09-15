@@ -67,8 +67,8 @@ d_unit = lunget()
 inc_version = -1
 lat%n_ele_track = 0
 
-call fullfilename (digested_file, full_digested_file)
-inquire (file = full_digested_file, name = full_digested_file)
+call fullfilename (digested_file, fname_full)
+inquire (file = fname_full, name = full_digested_file)
 call simplify_path (full_digested_file, full_digested_file)
 open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)

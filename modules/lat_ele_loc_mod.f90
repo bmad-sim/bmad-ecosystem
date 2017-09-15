@@ -48,7 +48,7 @@ contains
 !
 ! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
 ! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
-! case q5 will appearr in eles(:) before q1 independent of the order in the lattice.
+! case q5 will appear in eles(:) before q1 independent of the order in the lattice.
 ! 
 ! Modules Needed:
 !   use lat_ele_loc_mod

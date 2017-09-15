@@ -5832,14 +5832,14 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file,
 
 character(*) lat_file, digested_file
 character(*), optional :: full_lat_file, use_line
-character(200) full_name
+character(200) name, full_name
 
 integer ix
 
 ! Get the full_lat_file name
 
-call fullfilename (lat_file, full_name)
-inquire (file = full_name, name = full_name)  ! full input file_name
+call fullfilename (lat_file, name)
+inquire (file = name, name = full_name)  ! full input file_name
 if (present (full_lat_file)) full_lat_file = full_name
 
 ! Construct the digested_file name
