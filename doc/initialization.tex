@@ -1429,16 +1429,6 @@ The results can be plotted. See \sref{s:dynamicapertureplot}.
 \label{s:plot.page}
 \index{initialization!plotting!plot window}
 
-\begin{figure}
-  \centering
-  \includegraphics{plot-page.pdf}
-  \caption[The plot window.]{The plot window has a boarder whose position is determined by 
-the setting of the \vn{plot_page\%border} parameter in the tao_plot_page namelist.  Plots are placed
-in ``\vn{regions}'' whose location is determined by the setting of the \vn{region(i)} parameters in
-the same namelist.} Regions may overlap. 
-  \label{f:plot.page}
-\end{figure}
-
 Plotting is defined by an initialization file whose name is defined
 by the \vn{tao_start} namelist (\sref{s:init.global}).
 The first namelist block in the file has a block
@@ -1475,6 +1465,21 @@ plots go. The syntax of this block is:
     default_graph%...                           ! See below. 
   /
 \end{example}
+
+%-----------------------
+
+\begin{figure}[bt]
+  \centering
+  \includegraphics{plot-page.pdf}
+  \caption[The plot window.]{The plot window has a boarder whose position is determined by 
+the \vn{plot_page\%border} parameter in the tao_plot_page namelist.  Plots are placed
+in ``\vn{regions}'' whose location is determined by the setting of the \vn{region(i)} parameters in
+the same namelist. Regions may overlap.} 
+  \label{f:plot.page}
+\end{figure}
+
+%-----------------------
+
 For example:
 \begin{example}
   &tao_plot_page
