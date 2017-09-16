@@ -72,13 +72,11 @@ you know about beta functions, dispersion and closed orbits.
 \Section{Overview: What is Bmad? What is Tao?}
 \label{s:overview}
 
-\bmad is an open-source subroutine library for relativistic
-charged--particle and X-Ray simulations in accelerators and
-storage rings. \bmad has been developed at Cornell University's
-Laboratory for Elementary Particle Physics.
-Over the years, \bmad has been used for a wide range of charged-particle and X-ray
-simulations. The following list gives some idea as to the range that \bmad has been put to use
-for:
+\bmad is an open-source subroutine library for relativistic charged--particle and X-Ray simulations
+in accelerators and storage rings. \bmad has been developed at Cornell University's Laboratory for
+Elementary Particle Physics.  Over the years, \bmad has been used for a wide range of
+charged-particle and X-ray simulations. The following list gives some idea as to the range that
+\bmad has been put to use for:
 \begin{display}
   Lattice design                              X-ray simulations
   Spin tracking                               Wakefields and HOMs
@@ -90,7 +88,7 @@ for:
 The advantage of \bmad over a stand-alone simulation program is that when new types of simulations
 need to be developed, \bmad can be used to cut down on the time needed to develop such programs
 with the added benefit that the number of programming errors will be reduced
-as well. The disadvantage of \bmad is that, as a toolkit, one cannot proform any calculations
+as well. The disadvantage of \bmad is that, as a toolkit, one cannot perform any calculations
 without first developing a program. To get around this, a program called \tao was developed.
 \tao is a general purpose simulation program, based upon \bmad. \tao can be used to view
 lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
@@ -209,13 +207,13 @@ discussed in more detail later.]
 
 \begin{figure}[tb]
   \centering
-  \begin{subfigure}[b]{0.45\textwidth}
+  \begin{subfigure}[b]{0.47\textwidth}
     \includegraphics[width=\textwidth]{lat-init.pdf}
     \caption{Initial graphics when \tao is run with the \vn{lat.bmad} lattice file.}
     \label{f:lat.init}
   \end{subfigure}
   \hfil
-  \begin{subfigure}[b]{0.45\textwidth}
+  \begin{subfigure}[b]{0.47\textwidth}
     \includegraphics[width=\textwidth]{lat-floor.pdf}
     \caption{Graphics after a \vn{place r22 floor_plan} command.}
     \label{f:lat.floor}
@@ -240,20 +238,19 @@ Consult the \tao manual for a list of command line arguments or use the command:
 > tao -help
 \end{code}
 
-The plot window that is created when you run tao with the given lattice should look like
-figure~\ref{f:lat.init}. The default is to have three plots: beta, dispersion, and orbit, along with
-what is called a \vn{lat_layout} plot (at the bottom of the window) that graphically shows the
-lattice elements.
+In your terminal window there should be a \vn{Tao>} prompt where you can type \tao commands.
+Additionally, a plot window is created. When you run tao with the above lattice, the plot window
+should look like figure~\ref{f:lat.init}. The default is to have three plots: beta, dispersion, and
+orbit, along with what is called a \vn{lat_layout} plot (at the bottom of the window) that
+graphically shows the lattice elements. Note: If you do not want \tao to display the plot window,
+use the \vn{-noplot} option on the command line.
 
-%------------------------------------------------------------------------------
-\Section{Introduction to Tao}
-\label{s:tao.intro}
+%----------------------------------------------------------
+\Section{Tao: Getting Help}
 
-This section gives a quick introduction to \tao. Start \tao as explaned in the previous
-section with the lattice file \vn{lat.bmad}. In your terminal window there should be 
-a \vn{Tao>} prompt where you can type \tao commands.
-
-\subsection{Getting Help}
+\vn{To Do}: Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{lat.bmad} of section~\sref{s:bmad.intro} and experiment with the \vn{help} command
+as you read this section.
 
 To get a list of Tao commands use the \vn{help} command
 \begin{code}
@@ -309,23 +306,310 @@ Some commands are complicated enough so that there is a second level to the help
 The \vn{set} command is an example of such a command. Thus you can type \vn{help set curve} for
 help on setting plotting curve parameters.
 
+%----------------------------------------------------------
+\Section{Tao: Show This and Show That}
+
+\vn{To Do}: Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{lat.bmad} of section~\sref{s:bmad.intro} and experiment with the \vn{show} command as you read
+this section. [Alternatively, use one of the more complicated lattices in the
+\vn{examples/lattice_file_examples} directory (if you do not know where this directory is, consult
+your local \bmad Guru).]
+
 \subsection{To Show a List of Elements in the Lattice}
 
 To show the elements in the lattice use the command \vn{show lattice}:
+{\small
 \begin{code}
-Tao> show lat
+ Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00   0.000   Alive
-     1  D         Drift                 0.500   0.500   10.03   0.050   0.00   0.000   10.03   0.050   0.00   0.000   Alive
-     2  B         Sbend                 1.000   0.500    7.87   0.104   0.12   0.000   10.00   0.100   0.00   0.000   Alive
-     3  Q         Quadrupole            1.600   0.600    3.50   0.217   0.40   0.000   10.64   0.159   0.00   0.000   Alive
-     4  END       Marker                1.600   0.000    3.50   0.217   0.40   0.000   10.64   0.159   0.00   0.000   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+ Index  name      key                       s       l    beta     phi ...
+                                                            a       a ...
+     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000 ...
+     1  D         Drift                 0.500   0.500   10.03   0.050 ...
+     2  B         Sbend                 1.000   0.500    7.87   0.104 ...
+     3  Q         Quadrupole            1.600   0.600    3.50   0.217 ...
+     4  END       Marker                1.600   0.000    3.50   0.217 ...
+ Index  name      key                       s       l    beta     phi ...
+                                                            a       a ...
       Values at End of Element:
-\end{code}
+\end{code}}
+
+Notice that \bmad adds two extra elements to the lattice. A zero length beginning element called \vn{BEGINNING}
+and a zero length marker element at the end called \vn{END}.
+
+The "show lat" command, like many other commands, has lots of optional parameters to customize the
+table of information printed:
+
+{\small
+\begin{code}
+Tao> help show lat
+
+Syntax:
+  show lattice {-0undef} {-all} {-attribute <attrib>} {-base}
+      {-blank_replacement <string>}  {-branch <name_or_index>}
+      {-custom <file_name>} {-design} {-floor_coords} {-lords} {-middle}
+      {-no_label_lines} {-no_tail_lines} {-no_slaves} {-orbit} 
+      {-remove_line_if_zero <column #>} {-s <s1>:<s2>} {-tracking_elements}
+      {<element_list>}
+
+Show a table of Twiss and orbit data, etc. at the specified element locations. 
+The default is to show the parameters at the exit end of the elements. 
+... etc...
+\end{code}}
+
+%----------------------------------------------------------
+\subsection{To Show the Attributes of a Lattice Element}
+
+Use the \vn{show element} command to show the attributes of a particular lattice elements. Example:
+{\small
+\begin{code} 
+Tao> show ele b   ! or: show ele 2
+
+ Element #                2
+ Element Name: B
+ Key: Sbend
+ Sub Key: SBend
+ S_start, S:    0.500000,    1.000000
+ Ref_time:  3.340005E-09
+
+ Attribute values [Only non-zero/non-default values shown]:
+    1   L                            =  5.0000000E-01 m
+    6   G                            =  1.0000000E+00 1/m
+    8   RHO                          =  1.0000000E+00 m
+   13   SPIN_FRINGE_ON               =  T (1)
+   19   E1                           =  0.0000000E+00 rad
+   20   E2                           =  0.0000000E+00 rad
+   29   L_SAGITTA                    =  3.1087578E-02 m
+		 ... etc...
+
+Twiss at end of element:
+                          A              B            Cbar    ...
+  Beta (m)         7.87064432     9.99974729  |   0.00000000  ...
+  Alpha            3.93634109     0.20027369  |   0.00000000  ...
+  Gamma (1/m)      2.09573455     0.10401358  |   Gamma_c =   ...
+  Phi (rad)        0.10395730     0.09991742            X     ...
+  Eta (m)          0.12241744     0.00000000     0.12241744   ...
+  Etap             0.48187421     0.00000000     0.48187421   ...
+
+Orbit:  Positron   State: Alive
+         Position[mm] Momentum[mrad]        Spin   |
+  X:       0.00000000     0.00000000               | Particle [sec]: ...
+  Y:       0.00000000     0.00000000               | Part-Ref [sec]: ...
+  Z:       0.00000000     0.00000000               | (Ref-Part)*Vel  ...
+\end{code}}
+Note: By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
+
+%----------------------------------------------------------
+\subsection{To Show a List of Elements Using Wild Cards}
+
+Use the \vn{show element} with a wild card character to show all elements matching a particular
+pattern. Wild card character are:
+{\small
+\begin{code}
+"*" -- Matches to any number of characters.
+"%" -- Matches to any single character.
+\end{code}}
+The general syntax is:
+{\small
+\begin{code}
+show element <element_type>::<name_with_wild_card_characters>
+\end{code}}
+
+For example, to show all elements whose name begins with "Q" the command is:
+{\small
+\begin{code}
+Tao> show ele q*
+
+         1  Q                                                1.000
+Number of Matches: 1
+\end{code}}
+
+Or to show all sbend elements the command is:
+{\small
+\begin{code}  
+Tao> show ele sbend::*
+
+         2  B                                                2.000
+Number of Matches: 1
+\end{code}}
+
+%----------------------------------------------------------
+\Section{Introduction to Plotting in Tao}
+
+\vn{To Do}: Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{lat.bmad} of section~\sref{s:bmad.intro} and experiment with the plotting as shown 
+in this section.
+
+%----------------------------------------------------------
+\subsection{Plot Page Parameters}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.7\textwidth]{plot-page.pdf}
+  \caption{The plot window is divided up into a number of rectangular \vn{regions} into
+which a plot \vn{template} can be placed. Regions can overlap.}
+  \label{f:plot.regions}
+\end{figure}
+
+
+The plot window has a number of parameters that can be displayed using the \vn{show plot}
+command:
+
+{\small
+\begin{code}
+Tao> show plot
+plot_page parameters:
+  %size                         = 500     600
+  %n_curve_pts                  = 401
+  %text_height                  = 12.000
+... etc...
+
+Templates:
+   Plot                                    Description
+   ----------------------------            -------------------
+   alpha                                   Twiss alpha function
+   b_div_curl                              Magnetic Field Divergence and Curl.
+   b_field                                 Magnetic Field Along Orbit
+   beta                                    Twiss beta function
+   bunch_sigma_xy                          Bunch transverse sigmas
+   bunch_R1_R2                             Bunch phase space plot.
+   cbar                                    Cbar coupling matrix
+   dbeta                                   Chromatic normalized beta beat
+... etc...
+
+                                               Location on Page
+Plot Region         <-->  Plot                 x1    x2    y1    y2
+-----------               -----------------------------------------
+layout              <-->  lat_layout          0.00  1.00  0.00  0.15
+r11                 <-->                      0.00  1.00  0.15  1.00
+r12                 <-->                      0.00  1.00  0.58  1.00
+r22                 <-->                      0.00  1.00  0.15  0.58
+r13                 <-->  beta                0.00  1.00  0.72  1.00
+r23                 <-->  dispersion          0.00  1.00  0.43  0.72
+r33                 <-->  orbit               0.00  1.00  0.15  0.43
+r14                 <-->                      0.00  1.00  0.79  1.00
+... etc...
+\end{code}}
+The output of the \vn{show plot} is divided into three sections. The top section
+shows some parameters like the size of the plot window. Use the \vn{set plot_page}
+command to change these parameters. 
+
+The middle section of the output of the \vn{show plot} command shows plot \vn{templates}.
+Plot templates specify parameters for drawing plot. For example, how many graphs are
+associated with a plot (in the plots of Figure.~\ref{f:init.lat} there are one graph per plot)
+and how many curves per graph there are. \tao defines a set of default templates and custom
+ones can be defined by constructing the appropriate initialization file. Directions for
+constructing templates are given in the \vn{Initializing Plotting} section of the \vn{Tao
+Initialization} chapter of the \tao manual.
+
+The bottom section of the output of the \vn{show plot} command shows the plot \vn{regions} of the
+plot window along with associated plots. The plot regions are rectangular regions of the plot window
+into which a plot can be placed as illustrated in Figure~\ref{f:plot.regions}.  See the
+\vn{Initializing Plotting} section of the \vn{Tao Initialization} chapter of the \tao manual. for
+more details. With the present example, there are four regions that have plot. The \vn{r13} region
+has a \vn{beta} plot, etc.
+
+
+%----------------------------------------------------------
+\subsection{Placing Plots}
+
+The \vn{place} command is used to place a \vn{template} plot into a plot region. Example:
+{\small
+\begin{code}
+Tao> place r22 floor_plan
+\end{code}}
+This places a \vn{floor_plan} plot in the \vn{r22} region.
+The result is shown in Figure~\ref{f:lat.floor}. Plots associated with other regions
+that overlap the region that is used in the \vn{place} command are erased. 
+
+Example place commands:
+{\small
+\begin{code}
+Tao> place r22 none    ! Clear a region
+Tao> place * none      ! Clear all regions
+\end{code}}
+
+%----------------------------------------------------------
+\subsection{Scaling Plots}
+
+Plots can be scalled vertically using the \vn{scale} command:
+{\small
+\begin{code}
+Tao> scale beta 0 20  ! Set y_min = 0, y_max = 20
+Tao> scale r22 0 20   ! Same as above if beta plot in r22 region
+Tao> scale beta       ! Tao will calculate nice bounds
+Tao> scale all        ! "all" = all plots
+Tao> scale            ! Same as "scale all"
+\end{code}}
+
+The \vn{x_scale} command can be used to scale the horizontal axis and
+the \vn{xy_scale} command can be used to simultaneously scale the x and y axis.
+{\small
+\begin{code}
+Tao> x_scale beta 0.8 1.0   ! Scale horizontal axis
+Tao> xy_scale floor_plan    ! Combined scale and x_scale.
+\end{code}}
+
+\newpage
+
+%----------------------------------------------------------
+\Section{Model Design and Base Lattices in Tao}
+
+When \tao runs, \tao instantiates three lattices:
+\begin{description}
+\item[\vn{Design Lattice}] \Newline
+The \vn{design} lattice corresponds to the lattice read in from the lattice
+description file(s). Parameters of this lattice are never varied.
+\item[\vn{Model Lattice}] \Newline
+Initially, when Tao is started, \vn{Model} = \vn{Design}. Essentially all commands to vary lattice
+parameters vary parameters of this lattice.
+\item[\vn{Base Lattice}] \Newline
+The \vn{base} lattice is a reference lattice used so that changes in the \vn{Model} 
+lattice may more easily be viewed.
+\end{description}
+
+[Technically, \tao instantiates three lattices per \vn{universe}. See below.]
+
+%----------------------------------------------------------
+\subsection{Setup}
+
+The lattice used to illustrate things in this section is:
+{\small
+\begin{code}
+beginning[beta_a] = 10.   ! m
+beginning[beta_b] = 10.   ! m
+beginning[e_tot] = 10e6   ! eV
+parameter[geometry] = open  ! or closed
+
+d: drift, L = 0.5
+b: sbend, L = 0.5, g = 1, e1 = 0.01, e2 = 0.02, g_err = 0.001
+q: quadrupole, L = 0.6, k1 = 0.23
+
+lat: line = (d, b, q)
+use, lat
+\end{code}}
+
+Copy this lattice to a file and run \tao with this lattice as explained in section~\sref{s:tao.start}.
+
+%----------------------------------------------------------
+\subsection{Changing Model Parameters}
+
+To see the difference between the \vn{model} and \vn{design} lattices issue the following commands:
+{\small
+\begin{code}
+Tao> place r23 orbit
+Tao> place r13 orbit
+Tao> set plot r33 component = design
+Tao> set plot r13 component = model - design
+Tao> scale
+\end{code}}
+The result is shown in 
+
+%----------------------------------------------------------
+\subsection{}
+
+%----------------------------------------------------------
+\subsection{Multiple Universes}
 
 
 
