@@ -273,7 +273,7 @@ The \vn{-noinit} option prevents a \tao initialization file from being read in
 a lattice file for Cornell's CESR ring is used. For a list of options when starting up
 \tao, see the \tao manual or start \tao with the command:
 \begin{display}
-  \BF{\$ACC_ROOT_DIR/production/bin/tao -help}
+  \BF{tao -help}
 \end{display}
 
 After \tao is started, commands may be entered on the command line. The section
@@ -323,7 +323,7 @@ in \sref{s:starting.tao}, this window will looks as shown on the left in
 \fig{f:tao-start}. If the plot window is too large (or too small), the \vn{-geometry} option
 can be used at startup to specify the window size. For example:
 \begin{display}
-  \$ACC_ROOT_DIR/production/bin/tao -geometry 300x500 -lat ....
+  \tao -geometry 300x500 -lat ....
 \end{display}
 With this example, \tao would open a plotting window 300 pixels wide by 500 pixels tall.
 To prevent any plotting, use the \vn{-noplot} option.
