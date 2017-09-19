@@ -31,8 +31,6 @@
 
 \input{macros.tex}
 
-\newcommand{\BF}[1]{{\normalfont\textbf{#1}}}
-
 \renewcommand{\ttdefault}{txtt}
 
 \renewcommand{\textfraction}{0.1}
@@ -77,11 +75,24 @@ you know about beta functions, dispersion and closed orbits.
 \bmad is an open-source software library (aka toolkit) for simulating charged particles
 and X-rays. \bmad is not a program itself but is used by programs for doing
 calculations. 
-  \item[Tao] \Newline
 The advantage of \bmad over a stand-alone simulation program is that when new types of simulations
 need to be developed, \bmad can be used to cut down on the time needed to develop such programs
-with the added benefit that the number of programming errors will be reduced
-as well. The disadvantage of \bmad is that, as a toolkit, one cannot perform any calculations
+with the added benefit that the number of programming errors will be reduced.
+
+Over the years, \bmad has been used for a wide range of charged-particle and X-ray
+simulations. The following list gives some idea as to the range that \bmad has been put to use
+for:
+{\small
+\begin{code}
+  Lattice design                              X-ray simulations
+  Spin tracking                               Wakefields and HOMs
+  Beam breakup (BBU) simulations in ERLs      Touschek Simulations
+  Intra-beam scattering (IBS) simulations     Dark current tracking
+  Coherent Synchrotron Radiation (CSR)        Frequency map analysis
+\end{code}}
+
+  \item[Tao] \Newline
+The disadvantage of \bmad is that, as a toolkit, one cannot perform any calculations
 without first developing a program. To get around this, the \tao program was developed.
 \tao is a general purpose simulation program, based upon \bmad. \tao can be used to view
 lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
@@ -89,19 +100,7 @@ Additionally, \tao's object oriented design makes it relatively easy to extend i
 example, it can be used for orbit flattening in a machine control system.
   \end{description}
 
-%------------------------------------------------------------------------------
-\Section{What Can Bmad Do?}
-
-Over the years, \bmad has been used for a wide range of charged-particle and X-ray
-simulations. The following list gives some idea as to the range that \bmad has been put to use
-for:
-\begin{display}
-  Lattice design                              X-ray simulations
-  Spin tracking                               Wakefields and HOMs
-  Beam breakup simulations in ERLs            Touschek Simulations
-  Intra-beam scattering (IBS) simulations     Dark current tracking
-  Coherent Synchrotron Radiation (CSR)        Frequency map analysis
-\end{display}
+\newpage
 
 %------------------------------------------------------------------------------
 \Section{Resources}
@@ -122,7 +121,7 @@ To keep in touch with the latest \bmad developments, there are two mailing lists
 \bmad.  The bmad-l mailing list is used to send information on Bmad developments.  The
 bmad-devel-l mailing list is for programmers. The volume of e-mail is small -- Typically
 less than one a week. Instructions on how to sign up can be obtained from the \bmad web
-page (\sref{s:resources}).
+page.
 
 %------------------------------------------------------------------------------
 \Section{Orientation}
@@ -130,11 +129,10 @@ page (\sref{s:resources}).
 
   \begin{description}
   \item[Distributions and Releases] \Newline
-A \vn{Release} is a build of \bmad and associated libraries and programs (including \tao)
-that is done on the Linux computer system at CLASSE (Cornell's Laboratory for
-Accelerator-based Sciences and Education). A \vn{Distribution} is like a \vn{Release},
-except it is done outside of the CLASSE Linux computer system. For the purpose
-of this introduction, \vn{Releases} and \vn{Distributions} are considered to be the same.
+A \vn{Distribution} is a build of \bmad and associated libraries and programs (including \tao).  A
+\vn{Release} is like a \vn{Distribution} except that it is done on the Linux computer system at
+CLASSE (Cornell's Laboratory for Accelerator-based Sciences and Education). For the purpose of this
+tutorial, \vn{Releases} and \vn{Distributions} are considered to be the same.
   \end{description}
 
 It is assumed that you already of access to a \vn{Distribution} or a \vn{Release} and that
@@ -143,14 +141,18 @@ local \bmad Guru to guide you, download and setup instructions can be found on t
 site (\sref{s:resources}). If everything is setup correctly, the environmental variable
 \vn{ACC_ROOT_DIR} will point to the root directory of the Distribution or Release you are
 using. For a Distribution, this directory looks something like:
-\begin{display}
-  \BF{> ls \$ACC_ROOT_DIR}
-  PGPLOT                debug       h5hut        plplot                tao
-  bmad                  examples    hdf5         production            util
-  bsim                  fgsl        include      recipes_f-90_LEPP     util_programs
-  build_system          forest      lapack       regression_tests      xraylib
-  cpp_bmad_interface    gsl         lattice      sim_utils             xsif
-\end{display}
+{\small
+\begin{lstlisting}[mathescape]
+$\BF{> ls \$ACC_ROOT_DIR}$
+PGPLOT              forest             openmpi            test
+bmad                gnu_utilities_src  plplot             test_glassle
+bsim                gsl                production         test_herrod
+build_system        h5hut              recipes_f-90_LEPP  util
+cpp_bmad_interface  hdf5               regression_tests   util_programs
+debug               include            sim_utils          xraylib
+examples            lapack             tao                xsif
+fgsl                lattice            temp
+\end{lstlisting}}
 
 For an explanation of what directories contain what, see:
 \begin{display}
@@ -185,7 +187,7 @@ files.
   \end{description}
 
 %------------------------------------------------------------------------------
-\section{Simulation Programs}
+\section{Bmad Based Simulation Programs}
 
 Below is a partial list of simulation programs that are based upon \bmad. All of these
 programs are included in any \vn{distribution} or \vn{release} in the \vn{production/bin}
@@ -234,13 +236,18 @@ available from the web (\sref{s:resources}).
 %------------------------------------------------------------------------------
 \Section{How to Use this Tutorial}
 
-This tutorial contains a set of examples which involve running the \tao program. 
-While it is not 100\% necessary that you actually run \tao with the examples, it is
-definitely easier to absorb the material if you do. For instructions on installing \bmad
-and \tao, please go to the \bmad web site (\sref{s:resources}).
+This tutorial contains a set of examples which involve running the \tao program.  While it is not
+100\% necessary that you actually run the examples, it is definitely easier to absorb the material
+if you do. For instructions on installing \bmad and \tao, please go to the \bmad web site
+(\sref{s:resources}).
 
 \tao is a command line program so you will need a terminal emulator program like \vn{terminal} on a
 Mac.
+
+You should be able to cut and paste the lattice file examples in this PDF. However, if you are using
+a PDF viewer that does not support text cut and paste (EG \vn{xpdf}), try a different PDF viewer. If
+all else fails, try cutting from the LaTeX source file at
+\vn{bmad/doc/tutorial_bmad_tao/tutorial_bmad_tao.tex}.
 
 To find out if everything is properly setup. Issue the command
 \begin{code}
@@ -250,7 +257,8 @@ The response should be the location of the \tao executable which will look somet
 \begin{code}
 /Users/dcs16/bmad/bmad_dist/production/bin/tao
 \end{code}
-If there is no response, consult your local \bmad Guru or look at the \bmad web site.
+If there is no response, consult your local \bmad Guru. One common problem is not initializing
+the \bmad environmental variables.
 
 %------------------------------------------------------------------------------
 \Section{Introduction to Bmad Lattices}
@@ -681,13 +689,13 @@ Tao> xy_scale floor_plan    ! Combined scale and x_scale.
 
 When \tao runs, \tao instantiates three lattices:
 \begin{description}
-\item[\vn{Design Lattice}] \Newline
+\item[Design Lattice] \Newline
 The \vn{design} lattice corresponds to the lattice read in from the lattice
 description file(s). Parameters of this lattice are never varied.
-\item[\vn{Model Lattice}] \Newline
+\item[Model Lattice] \Newline
 Initially, when Tao is started, \vn{model} = \vn{design}. Essentially all commands to vary lattice
 parameters vary parameters of this lattice.
-\item[\vn{Base Lattice}] \Newline
+\item[Base Lattice] \Newline
 The \vn{base} lattice is a reference lattice used so that changes in the \vn{Model} 
 lattice may more easily be viewed.
 \end{description}
@@ -1087,11 +1095,11 @@ of lattice elements.
 There are three coordinate systems that are used to describe the positioning
 of lattice elements as shown in Figure~\ref{f:coordinates}:
 \begin{description}
-\item[\vn{Glorbal Coordinates}] \Newline
+\item[Glorbal Coordinates] \Newline
 The \vn{global} (also called \vn{floor}) coordinate system is independent of the accelerator and is 
 "attached" to the building the accelerator is in. Typically, the Y-axis is taken to be pointing vertically up
 and (X, Z) is the horizontal plane.
-\item[\vn{Reference Coordinates}] \Newline
+\item[Reference Coordinates] \Newline
 The \vn{global} coordinate system is not convenient for describing where particles are as they move
 through the lattice. For this the \vn{local} (also called \vn{laboratory}, also called \vn{reference}) curvilinear coordinate 
 system is used to describe particle positions and also to describe the nominal position of the
@@ -1099,7 +1107,7 @@ lattice elements.
 
 Traveling on the \vn{s} curve of the local coordinate system there is imagined to be a \vn{reference particle}.
 Frequently, this reference particle is thought of as describing the center of a bunch of particles.
-\item[\vn{Element Body Coordinates}] \Newline
+\item[Element Body Coordinates] \Newline
 Elements can be shifted from their nominal position ("misalignments"). So to describe things like
 electric and magnetic fields or apertures (which depend upon the elements actual position),
 \vn{element body} coordinates are used. 
@@ -1126,14 +1134,14 @@ three types are called \vn{straight}, \vn{bend} and \vn{patch} based upon how th
 coordinates transform as a function of the longitudinal \vn{s} position from the \vn{entrance} end
 of the element to the \vn{exit} end.
 \begin{description}
-\item[\vn{Straight Geometry}] \Newline
+\item[Straight Geometry] \Newline
 With \vn{straight} elements like \vn{drift}s and \vn{quadrupole}s, the element body coordinates
 transform as a translation along the \vn{entrance} \vn{z}-axis so that the \vn{exit} coordinates are
 co-linear with the \vn{entrance} coordinates.
-\item[\vn{Bend Geometry}] \Newline
+\item[Bend Geometry] \Newline
 (\vn{Sbend} and \vn{rbend}) elements have a \vn{bend} geometry where the body coordinates rotate
 about an axis which is in the $x$-$y$ plane of the \vn{entrance} (and \vn{exit}) coordinates.
-\item[\vn{Patch Geometry}] \Newline 
+\item[Patch Geometry] \Newline 
 \vn{Patch} and \vn{floor_shift} elements have a \vn{patch} geometry where the exit coordinates can
 be arbitrarily positioned with respect to the entrance coordinates (see below).
 \end{description}
