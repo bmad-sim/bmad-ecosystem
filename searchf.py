@@ -129,7 +129,7 @@ def print_help_message ():
 # routine_here function
 
 re_routine = re.compile('(program|subroutine|recursive subroutine|elemental subroutine|' + \
-      'function|recursive function|real\(rp\) *function|' +  \
+      'function|recursive function|elemental function|real\(rp\) *function|' +  \
       'integer *function|logical *function|interface) ')
 
 re_routine_name = re.compile('\w+')
