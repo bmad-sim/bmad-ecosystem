@@ -2779,7 +2779,7 @@ parameters from within a program. If the \vn{match_end} attribute is
 set to True, the beginning design Twiss parameters are set to be equal
 to the actual Twiss parameters from the exit end of the previous
 element. In this case, the actual Twiss parameters at the end of the
-match element will be the design end Twiss parameters. The
+match element will be the design Twiss parameters. The
 \vn{match_end} attribute may only be set to True with \vn{open}
 lattices (\sref{s:param}) since, for a \vn{closed} lattice, it is not
 possible to calculate the Twiss parameters at the previous element
@@ -2787,7 +2787,7 @@ independently of the design end Twiss parameters at the \vn{match}
 element.
 
 When running a program, if a \vn{match} element initially has it's
-\vn{match_end} attribute is set to True, the \bmad bookkeeping
+\vn{match_end} attribute set to True, the \bmad bookkeeping
 routines will ensure that the \vn{match} element's beginning design
 Twiss parameters are appropriately set as explained above. If
 \vn{match_end} is now toggled to False by the program, the beginning
@@ -2802,7 +2802,7 @@ to \vn{match_end}. This attribute is not settable by the user and is simply pres
 tell the user what the setting of \vn{match_end} was in the lattice file.
 
   \index{match_end_orbit}\index{match_end_orbit_input}
-  \item[match_end_orbit, match-end_orbit_input]
+  \item[match_end_orbit, match_end_orbit_input] \Newline
 The \vn{match_end_orbit} attribute is similar in operation to the \vn{match_end}
 attribute. The default value of \vn{match_end_orbit} is False. When
 running a program, if \vn{match_end_orbit} is set to True, when any
