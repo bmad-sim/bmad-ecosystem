@@ -119,7 +119,7 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 
 case (match$)
 
-  if (ele%value(match_end_orbit$) /= 0) then
+  if (is_true(ele%value(match_end_orbit$))) then
     ele%value(x0$)  = start2_orb%vec(1)
     ele%value(px0$) = start2_orb%vec(2)
     ele%value(y0$)  = start2_orb%vec(3)
