@@ -53,7 +53,14 @@ function tao_curve_component (curve, graph) result (component)
   type (tao_graph_struct) graph
   character(60) component
 end function
- 
+
+function tao_curve_ix_uni (curve) result (ix_uni)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  integer ix_uni
+end function
+
 function tao_data_sanity_check (datum, print_err) result (is_valid)
   import
   type (tao_data_struct) datum

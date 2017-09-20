@@ -154,11 +154,11 @@ wc0 => wg0%curve(1)
 
 wc0%y_axis_scale_factor = 1
 
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 branch => u%model%lat%branch(0)
 
 if (wc0%data_source == 'data') then
-  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = wc0%ix_universe)
+  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(wc0))
   d1_dat => d1_array(1)%d1
   wg0%x%min = 0
   if (wg0%x%max < ubound(d1_dat%d, 1)) wg0%x%max = ubound(d1_dat%d, 1)
@@ -268,13 +268,13 @@ else
   n_pt0 = size(wc0%x_symb)
 endif
 
-u => tao_pointer_to_universe (wc0%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(wc0))
 branch => u%model%lat%branch(0)
 
 s%wave%i_wrap_pt = n_pt0
 
 if (wc0%data_source == 'data') then
-  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = wc0%ix_universe)
+  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(wc0))
   d1_dat => d1_array(1)%d1
   n_dat_arr = size(d1_dat%d)
 else
@@ -418,7 +418,7 @@ character(*), parameter :: r_name = 'tao_orbit_beta_wave_anal'
 ! Init
 
 curve => plot%graph(1)%curve(1)
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
 
 n_track = lat%n_ele_track
@@ -580,7 +580,7 @@ character(*), parameter :: r_name = 'tao_phase_wave_anal'
 ! Init
 
 curve => plot%graph(1)%curve(1)
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
 
 n_track = lat%n_ele_track
@@ -730,7 +730,7 @@ character(*), parameter :: r_name = 'tao_cbar_wave_anal'
 ! Init
 
 curve => plot%graph(1)%curve(1)
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
 
 n_track = lat%n_ele_track
@@ -1026,11 +1026,11 @@ curve => s%wave%graph%curve(1)
 
 curve2 => plot%graph(1)%curve(1)
 
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 branch => u%model%lat%branch(0)
 
 if (curve%data_source == 'data') then
-  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
+  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(curve))
   d1_dat => d1_array(1)%d1
   ix = curve2%ix_symb(ix_pt)
   ix_ele = d1_dat%d(ix)%ix_ele

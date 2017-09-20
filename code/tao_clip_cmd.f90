@@ -104,7 +104,7 @@ do i = 1, size(graph%curve)
 
   curve => graph%curve(i)
   if (.not. allocated(curve%y_symb)) cycle
-  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = curve%ix_universe)
+  call tao_find_data (err, curve%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(curve))
   if (err) return    
   if (size(d1_array) == 0) cycle
   d2 => d1_array(1)%d1%d2

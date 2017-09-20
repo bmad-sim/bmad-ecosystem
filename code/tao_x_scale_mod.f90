@@ -297,7 +297,7 @@ if (graph%type == 'floor_plan') then
 else if (graph%p%x_axis_type == 's') then
   if (allocated(graph%curve)) then
     do i = 1, size(graph%curve)
-      iu = tao_universe_number(graph%curve(i)%ix_universe)
+      iu = tao_universe_number(tao_curve_ix_uni(graph%curve(i)))
       ib = graph%curve(i)%ix_branch
       this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
       ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
