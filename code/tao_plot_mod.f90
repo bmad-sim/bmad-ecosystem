@@ -616,7 +616,13 @@ endif
 
 if (is_bend) then
 
-  floor = floor1
+  ! Start at entrance end (not upstream end)
+  if (ele%orientation == 1) then
+    floor = floor1
+  else
+    floor = floor2
+  endif
+
   v_old = floor%r
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
