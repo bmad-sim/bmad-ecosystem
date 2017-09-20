@@ -600,45 +600,45 @@ The syntax is as follows:
 \index{beam_init!polarization}\index{track_start}\index{track_end}
 \begin{example}
   &tao_beam_init
-    ix_universe             = <integer>
-    beam0_file              = <string>         ! File used in place of beam_init.
-    beam_all_file           = <string>         ! File used in place of beam tracking.
-    beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
-    track_start             = "<ele_name>"     ! Element start tracking name or index.
-    track_end               = "<ele_name>"     ! Element end tracking name or index.
+    ix_universe                 = <integer>    ! Universe to apply to.
+    beam0_file                  = <string>     ! File used in place of beam_init.
+    beam_all_file               = <string>     ! File used in place of beam tracking.
+    beam_saved_at               = "<ele_list>" ! Where to save the beam info.
+    track_start                 = "<ele_name>" ! Element start tracking name or index.
+    track_end                   = "<ele_name>" ! Element end tracking name or index.
     beam_init%distribution_type(3) = "<type>"  ! "ELLIPSE", "KV", "GRID", "" (default)
-    beam_init%ellipse(3)%... = ...             ! Parameters for an ellipse type distribution.
-    beam_init%KV%...        = ...              ! Parameters for a KV distribution
-    beam_init%grid(i)%...   = ...              ! Parameters for a grid distribution.
-    beam_init%a_norm_emit   = <number>         ! A-mode energy normalized emittance
-    beam_init%b_norm_emit   = <number>         ! B-mode energy normalized emittance
-    beam_init%a_emit        = <number>         ! A-mode emittance
-    beam_init%b_emit        = <number>         ! B-mode emittance
-    beam_init%dPz_dZ        = <number>         ! Energy-Z correlation
-    beam_init%center        = <number>*6       ! Bunch center offset relative to
-                                               ! reference particle (BMAD coords)
-    beam_init%sig_e         = <number>         ! e_sigma in dE/E0
-    beam_init%sig_z         = <number>         ! Z sigma in m
-    beam_init%n_bunch       = <integer>        ! Number of bunches
-    beam_init%dt_bunch      = <number>         ! Time between bunches (meters)
-    beam_init%n_particle    = <number>         ! Number of particles per bunch
-    beam_init%bunch_charge  = <number>         ! charge per bunch (Coulombs)
-    beam_init%renorm_center = <logical>        ! Default is T
-    beam_init%renorm_sigma  = <logical>        ! Default is F
-    beam_init%center_jitter = <number>*6       ! Bunch center rms jitter (meters)
-    beam_init%emit_jitter   = <number>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
-    beam_init%sig_z_jitter  = <number>         ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter  = <number>         ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin%polarization = <number>     ! spin polarization (1.0 = 100%)
-    beam_init%spin%theta    = <number>         ! spin orientation  (polar coordinate)
-    beam_init%spin%phi      = <number>         ! spin orientation  (polar coordinate)
-    beam_init%init_spin     = <logical>        ! Initialize the spin (default: False)
-    beam_init%preserve_dist = <logical>        ! Use the same particle distribution.
-    beam_init%random_engine = "pseudo"         ! random number engine to use
+    beam_init%ellipse(3)%...    = ...          ! Parameters for an ellipse type distribution.
+    beam_init%KV%...            = ...          ! Parameters for a KV distribution
+    beam_init%grid(i)%...       = ...          ! Parameters for a grid distribution.
+    beam_init%a_norm_emit       = <real>       ! A-mode energy normalized emittance
+    beam_init%b_norm_emit       = <real>       ! B-mode energy normalized emittance
+    beam_init%a_emit            = <real>       ! A-mode emittance
+    beam_init%b_emit            = <real>       ! B-mode emittance
+    beam_init%dPz_dZ            = <real>       ! Energy-Z correlation
+    beam_init%center            = <real>*6     ! Bunch center offset relative to
+                                               !   reference particle (BMAD coords)
+    beam_init%sig_e             = <real>       ! e_sigma in dE/E0
+    beam_init%sig_z             = <real>       ! Z sigma in m
+    beam_init%n_bunch           = <integer>    ! Number of bunches
+    beam_init%dt_bunch          = <real>       ! Time between bunches (meters)
+    beam_init%n_particle        = <real>       ! Number of particles per bunch
+    beam_init%bunch_charge      = <real>       ! charge per bunch (Coulombs)
+    beam_init%renorm_center     = <logical>    ! Default is T
+    beam_init%renorm_sigma      = <logical>    ! Default is F
+    beam_init%center_jitter     = <real>*6     ! Bunch center rms jitter (meters)
+    beam_init%emit_jitter       = <real>*2     ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
+    beam_init%sig_z_jitter      = <real>       ! bunch length rms jitter (dz/z)
+    beam_init%sig_e_jitter      = <real>       ! bunch energy spread rms jitter (dE/E)
+    beam_init%spin%polarization = <real>       ! spin polarization (1.0 = 100%)
+    beam_init%spin%theta        = <real>       ! spin orientation  (polar coordinate)
+    beam_init%spin%phi          = <real>       ! spin orientation  (polar coordinate)
+    beam_init%init_spin         = <logical>    ! Initialize the spin (default: False)
+    beam_init%preserve_dist     = <logical>    ! Use the same particle distribution.
+    beam_init%random_engine     = "pseudo"     ! random number engine to use
     beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
-    beam_init%use_t_coords = <logical>         ! Use time coords (for e_guns)?
-    beam_init%use_z_as_t   = <logical>         ! Use time instead of z (for e_guns)?
+    beam_init%use_t_coords      = <logical>    ! Use time coords (for e_guns)?
+    beam_init%use_z_as_t        = <logical>    ! Use time instead of z (for e_guns)?
   /
 \end{example}
 \vn{ix_universe} refers to the universe index.
@@ -850,32 +850,32 @@ format for this is
     search_for_lat_eles  = "<element_list>"    ! Find elements by name.
     default_universe     = "<integer>"         ! Universe variables belong in.
     default_attribute    = "<attribute_name>"  ! Attribute to control.
-    default_weight       = <number>            ! Merit_function weight.
+    default_weight       = <real>              ! Merit_function weight.
                                                ! default = 0.0
-    default_step         = <number>            ! Small step value.
+    default_step         = <real>              ! Small step value.
                                                ! default = 0.0
     default_merit_type   = "<merit_type>"      ! Sets how the merit is calculated.
                                                ! default = "limit"
-    default_low_lim      = <number>            ! Lower variable value limit. 
+    default_low_lim      = <real>              ! Lower variable value limit. 
                                                ! default = -1e30
-    default_high_lim     = <number>            ! Upper variable value limit. 
+    default_high_lim     = <real>              ! Upper variable value limit. 
                                                ! default =  1e30
     default_key_bound    = <logical>           ! Variables to be bound?
-    default_key_delta    = <number>            ! Change when key is pressed.
+    default_key_delta    = <real>              ! Change when key is pressed.
     ix_min_var           = <integer>           ! Minimum array index.
     ix_max_var           = <integer>           ! Maximum array index.
     var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
     var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
     var(i)%universe      = "<uni_list>"        ! Universe containing variable to 
                                                !    be controlled. "*" => All.
-    var(i)%weight        = <number>            ! Merit function weight.
-    var(i)%step          = <number>            ! Small step size.
-    var(i)%low_lim       = <number>            ! Lower variable value limit
-    var(i)%high_lim      = <number>            ! Upper variable value limit
+    var(i)%weight        = <real>              ! Merit function weight.
+    var(i)%step          = <real>              ! Small step size.
+    var(i)%low_lim       = <real>              ! Lower variable value limit
+    var(i)%high_lim      = <real>              ! Upper variable value limit
     var(i)%merit_type    = "<merit_type_name>" ! Sets how the merit is calculated.
     var(i)%good_user     = <logical>           ! Good optimization variable?
     var(i)%key_bound     = <logical>           ! Variable bound to a key
-    var(i)%key_delta     = <number>            ! Change when key is pressed.
+    var(i)%key_delta     = <real>              ! Change when key is pressed.
   /
 \end{example}
 Example:
@@ -1090,7 +1090,7 @@ structure. For each \vn{n_d1_data} structure there must be a
     search_for_lat_eles    = "<element_list>"    ! Find elements by name.
     d1_data%name           = "<d1_name>"         ! d1_data name.
     default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
-    default_weight         = <number>            ! Merit function weight. Dflt: 0.0
+    default_weight         = <real>              ! Merit function weight. Dflt: 0.0
     default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
@@ -1100,12 +1100,12 @@ structure. For each \vn{n_d1_data} structure there must be a
     datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
     datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference element names.
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
-    datum(j)%meas           = "<number>"         ! Datum "measured" value
+    datum(j)%meas           = "<real>  "         ! Datum "measured" value
     datum(j)%weight         = "<weight>"         ! Merit function weight.
     datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
     datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
     datum(j)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
-    datum(j)%s_offset       = <number>           ! Default: 0.
+    datum(j)%s_offset       = <real>             ! Default: 0.
   /
 \end{example}
 For example:
@@ -1444,17 +1444,17 @@ plots go. The syntax of this block is:
     plot_page%plot_display_type        = <string>  ! Display type: 'X' or 'TK'
     plot_page%size                     = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                   = <x1\(_{\dstyle{b}}\)>, <x2\(_{\dstyle{b}}\)>, <y1\(_{\dstyle{b}}\)>, <y2\(_{\dstyle{b}}\)>, "<units>"
-    plot_page%text_height              = <num>    ! height in POINTS. Def = 12
-    plot_page%main_title_text_scale    = <num>    ! Relative to text_height. Def = 1.3
-    plot_page%graph_title_text_scale   = <num>    ! Relative to text_height. Def = 1.1
-    plot_page%axis_number_text_scale   = <num>    ! Relative to text_height. Def = 0.9
-    plot_page%axis_label_text_scale    = <num>    ! Relative to text_height. Def = 1.0
-    plot_page%legend_text_scale        = <num>    ! Relative to text_height. Def = 0.8
-    plot_page%key_table_text_scale     = <num>    ! Relative to text_height. Def = 0.9
-    plot_page%floor_plan_shape_scale   = <num>    ! Floor_plan shape size scaling.
-    plot_page%lat_layout_shape_scale   = <num>    ! Lat_layout shape size scaling.
+    plot_page%text_height              = <real>   ! height in POINTS. Def = 12
+    plot_page%main_title_text_scale    = <real>   ! Relative to text_height. Def = 1.3
+    plot_page%graph_title_text_scale   = <real>   ! Relative to text_height. Def = 1.1
+    plot_page%axis_number_text_scale   = <real>   ! Relative to text_height. Def = 0.9
+    plot_page%axis_label_text_scale    = <real>   ! Relative to text_height. Def = 1.0
+    plot_page%legend_text_scale        = <real>   ! Relative to text_height. Def = 0.8
+    plot_page%key_table_text_scale     = <real>   ! Relative to text_height. Def = 0.9
+    plot_page%floor_plan_shape_scale   = <real>   ! Floor_plan shape size scaling.
+    plot_page%lat_layout_shape_scale   = <real>   ! Lat_layout shape size scaling.
     plot_page%title(i)                 = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%n_curve_pts              = <num>    ! Num points used to construct a 
+    plot_page%n_curve_pts              = <intger> ! Num points used to construct a 
                                                   !   smooth curve. Default = 401
      = <T/F>    ! Used with "show plot" command.
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
@@ -1590,7 +1590,6 @@ Template plots are defined using namelists with a name of
 \index{plot!name}
 \index{plot!x}
 \index{plot!x_axis_type}
-\index{plot!ix_universe}
 \index{plot!n_graph}
 \index{plot!autoscale_gang_x}
 \index{plot!autoscale_gang_y}
@@ -1602,7 +1601,6 @@ Template plots are defined using namelists with a name of
     plot%x           = <qp_axis_struct>
     plot%x_axis_type = "<x_axis_type>"   ! "index", "ele_index" "s", "lat", or "var". 
                                          ! Default is "index".
-    plot%ix_universe = <number>          ! used for lat_layout plots
     plot%n_graph     = <n_graphs>
     plot%autoscale_gang_x = <logical>    ! Default: True.
     plot%autoscale_gang_y = <logical>    ! Default: True.
@@ -1716,7 +1714,7 @@ namelists should be placed directly after their respective
 \index{curve!ix_bunch}\index{curve!ix_ele_ref}\index{curve!data_type_x}
 \begin{example}
   &tao_template_graph
-    graph_index             = <number>
+    graph_index             = <integer>
     graph%name              = "<string>"       ! Default is  "g<n>" <n> = graph_index. 
     graph%type              = "<string>"       ! "data", "floor_plan", etc.
     graph%box               = <ix>, <iy>, <ix_tot>, <iy_tot>
@@ -1733,7 +1731,8 @@ namelists should be placed directly after their respective
     graph%component         = "<string>"       ! Eg: "model - design"
     graph%symbol_size_scale      = <real>      ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>   ! For Floor Plan plots: Default = F
-    graph%floor_plan_rotation    = <num>       ! Rotation of floor plan plot: 1.0 -> 360 deg. 
+    graph%ix_universe            = <integer>   ! Default = -1 => Use default universe
+    graph%floor_plan_rotation    = <real>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
     graph%floor_plan_view        = <string>    ! View plane for floor plan plot. default = 'zx'
     graph%floor_plan_orbit_scale = <real>      ! Scale for drawing orbits. Default: 0 -> Do not draw.
     graph%floor_plan_orbit_color = <string>    ! Color of orbit. Default = 'RED'
@@ -1742,7 +1741,7 @@ namelists should be placed directly after their respective
     graph%draw_only_good_user_data_or_vars     ! Veto data or variables with good_user = F?
                                  = <logical>   !   Default = T.
     graph%x_axis_scale_factor    = <factor>    ! Scale the x-axis by this.
-    graph%n_curve                = <number>    ! number of curves
+    graph%n_curve                = <integer>   ! number of curves
     curve(i)%name                = "<string>"  ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>"  ! Source for the data curve points
     curve(i)%data_type_x         = "<string>"  ! Used with plot%x_axis_type = "data" or "var".
@@ -1756,14 +1755,14 @@ namelists should be placed directly after their respective
     curve(i)%draw_line           = <logical>   ! Connect data with lines?
     curve(i)%draw_symbols        = <logical>   ! Draw data symbols?
     curve(i)%draw_symbol_index   = <logical>   ! Print index number next to the data symbol?
-    curve(i)%ix_universe         = <number>    ! Default = -1 => Use default universe
-    curve(i)%ix_branch           = <number>    ! Default = 0  => Use main lattice.  
+    curve(i)%ix_universe         = <integer>   ! Default = -1 => Use graph%ix_universe.
+    curve(i)%ix_branch           = <integer>   ! Default = 0  => Use main lattice.  
     curve(i)%ix_bunch            = <integer>   ! Bunch index. Default = 0 (all bunches).
     curve(i)%line        = <qp_line_struct>    ! Line spec (color, width, etc.)
     curve(i)%symbol      = <qp_symbol_struct>  ! Symbol spec (color size, etc.)
     curve(i)%symbol_every     = <integer>      ! Plot symbol every # datums
     curve(i)%ele_ref_name     = "<string>"     ! Name of reference element.
-    curve(i)%ix_ele_ref       = <num>          ! Index number of reference element.
+    curve(i)%ix_ele_ref       = <integer>      ! Index number of reference element.
     curve(i)%smooth_line_calc = <Logical>      ! Calc data between symbol points? 
     curve(i)%units            = "<string>"     ! Data units
   /
@@ -2113,13 +2112,13 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
-    plot%x%min       = <number>
-    plot%x%max       = <number>
-    plot%n_graph     = <number>
+    plot%x%min       = <real>  
+    plot%x%max       = <real>  
+    plot%n_graph     = <integer>
     plot%x_axis_type = "s"
   /
   &tao_template_graph
-    graph_index       = <number>
+    graph_index       = <integer>
     graph%name        = <name>
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"

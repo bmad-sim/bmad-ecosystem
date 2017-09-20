@@ -38,12 +38,28 @@ endif
 call tao_hook_graph_setup (plot, graph, found)
 if (found) return
 
-u => tao_pointer_to_universe(graph%ix_universe)
-if (.not. u%is_on) then
-  graph%valid = .false.
-  write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
-  return
+!
+
+if (allocated (graph%curve)) then
+  do i = 1, size(graph%curve)
+    curve => graph%curve(i)
+    u => tao_pointer_to_universe(tao_curve_ix_uni(curve))
+    if (.not. u%is_on) then
+      graph%valid = .false.
+      write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
+      return
+    endif
+  enddo
+else
+  u => tao_pointer_to_universe(graph%ix_universe)
+  if (.not. u%is_on) then
+    graph%valid = .false.
+    write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
+    return
+  endif
 endif
+
+!
 
 select case (graph%type)
 case ('phase_space')
@@ -284,16 +300,16 @@ n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 same_uni = .true.
-ix = tao_universe_number(graph%curve(1)%ix_universe)
+ix = tao_universe_number(tao_curve_ix_uni(graph%curve(1)))
 do k = 2, size(graph%curve)
   curve => graph%curve(k)
-  if (tao_universe_number(curve%ix_universe) /= ix) same_uni = .false.
+  if (tao_universe_number(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
 enddo
 
 graph%title_suffix = ''
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
-  u => tao_pointer_to_universe (curve%ix_universe)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
   if (.not. associated(u)) return
   if (curve%ix_ele_ref_track < 0) then
     call out_io (s_error$, r_name, &
@@ -318,7 +334,7 @@ enddo
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  u => tao_pointer_to_universe (curve%ix_universe)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
   ! find phase space axes to plot
 
@@ -380,7 +396,7 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    call tao_find_data (err, curve%data_source, d2_array, ix_uni = curve%ix_universe)
+    call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
     if (err .or. size(d2_array) /= 1) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
@@ -676,7 +692,7 @@ character(40) :: r_name = 'tao_curve_physical_aperture_setup'
 
 !
 
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 ! Set to beginning if x_ele_ref out of bounds 
 if (curve%ix_ele_ref < 1 .or. curve%ix_ele_ref > u%model%lat%n_ele_track) then
   call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for: ' // tao_curve_name(curve) //', setting to 1')
@@ -787,16 +803,16 @@ if (size(graph%curve) == 0) return
 ! Set up the graph suffix
 
 same_uni = .true.
-ix = tao_universe_number(graph%curve(1)%ix_universe)
+ix = tao_universe_number(tao_curve_ix_uni(graph%curve(1)))
 do k = 2, size(graph%curve)
   curve => graph%curve(k)
-  if (tao_universe_number(curve%ix_universe) /= ix) same_uni = .false.
+  if (tao_universe_number(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
 enddo
 
 graph%title_suffix = ''
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
-  u => tao_pointer_to_universe (curve%ix_universe)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
   if (.not. associated(u)) return
   if (curve%ix_ele_ref_track < 0) then
     call out_io (s_error$, r_name, &
@@ -821,7 +837,7 @@ enddo
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  u => tao_pointer_to_universe (curve%ix_universe)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
   ! find phase space axes to plot
 
@@ -867,7 +883,7 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    call tao_find_data (err, curve%data_source, d2_array, ix_uni = curve%ix_universe)
+    call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
     if (err .or. size(d2_array) /= 1) then
       call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       graph%valid = .false.
@@ -1066,7 +1082,7 @@ if (allocated(graph%curve)) then
 
     ! Floor plan curves use all branches.
     if (graph%type == 'floor_plan') then
-      u => tao_pointer_to_universe (graph%curve(ic)%ix_universe)
+      u => tao_pointer_to_universe (tao_curve_ix_uni(graph%curve(ic)))
       if (.not. associated(u)) return
       n0_line = 0
       n0_symb = 0
@@ -1149,7 +1165,7 @@ if (allocated(curve%z_symb)) deallocate (curve%z_symb)
 if (allocated(curve%ix_symb)) deallocate (curve%ix_symb)
 if (allocated(curve%symb_size)) deallocate (curve%symb_size)
 
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 if (.not. associated(u)) then
   graph%why_invalid = 'NO ASSOCIATED UNIVERSE!'
   return
@@ -1168,14 +1184,14 @@ if (curve%ele_ref_name == '') then
   zero_average_phase = .true.
 else
   zero_average_phase = .false.
-  call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, scratch%eles, err, ignore_blank = .true.)
+  call tao_locate_elements (curve%ele_ref_name, tao_curve_ix_uni(curve), scratch%eles, err, ignore_blank = .true.)
   if (err) then
     graph%why_invalid = 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name)
     return
   endif
   curve%ix_branch  = scratch%eles(1)%ele%ix_branch
   curve%ix_ele_ref = scratch%eles(1)%ele%ix_ele
-  call tao_ele_to_ele_track(curve%ix_universe, scratch%eles(1)%ele%ix_branch, &
+  call tao_ele_to_ele_track(tao_curve_ix_uni(curve), scratch%eles(1)%ele%ix_branch, &
                                       scratch%eles(1)%ele%ix_ele, curve%ix_ele_ref_track)
 endif
 
@@ -1368,7 +1384,7 @@ case ('data')
     endif
   enddo
 
-  call tao_find_data (err, scratch%stack(i)%name, d2_array, scratch%d1_array, ix_uni = curve%ix_universe)
+  call tao_find_data (err, scratch%stack(i)%name, d2_array, scratch%d1_array, ix_uni = tao_curve_ix_uni(curve))
   if (err .or. size(scratch%d1_array) /= 1) then
     graph%why_invalid = 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type
     return
@@ -2554,7 +2570,7 @@ integer i, j, m, ie, n_dat
 
 ! calculate the y-axis data point values.
 
-u => tao_pointer_to_universe (curve%ix_universe)
+u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 n_dat = size(eles)
 
 call re_allocate (good, n_dat)   ! allocate space for the data

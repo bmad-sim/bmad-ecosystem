@@ -945,7 +945,7 @@ logical error
 !
 
 i_branch = this_curve%ix_branch
-i_uni = tao_universe_number(this_curve%ix_universe)
+i_uni = tao_universe_number(tao_curve_ix_uni(this_curve))
 
 this_graph => this_curve%g
 
@@ -965,25 +965,25 @@ case ('ix_ele_ref')
   call tao_set_integer_value (this_curve%ix_ele_ref, component, &
                     set_value, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
-  call tao_ele_to_ele_track (this_curve%ix_universe, i_branch, &
+  call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), i_branch, &
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
-  call tao_set_integer_value (this_curve%ix_universe, component, &
+  call tao_set_integer_value (tao_curve_ix_uni(this_curve), component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
-  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, eles, error, ignore_blank = .true.)
+  call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch
-  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
+  call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), this_curve%ix_branch, &
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
   call tao_set_integer_value (this_curve%ix_branch, component, set_value, error)
 
 case ('ix_bunch')
-  u => tao_pointer_to_universe (this_curve%ix_universe)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
   call tao_set_integer_value (this_curve%ix_bunch, component, &
                         set_value, error, -1, u%beam%beam_init%n_bunch)
