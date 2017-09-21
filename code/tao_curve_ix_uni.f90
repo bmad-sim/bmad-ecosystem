@@ -12,7 +12,7 @@
 
 function tao_curve_ix_uni (curve) result (ix_uni)
 
-use tao_interface
+use tao_interface, dummy => tao_curve_ix_uni
 
 implicit none
 
