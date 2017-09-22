@@ -187,6 +187,7 @@ files.
 
 %------------------------------------------------------------------------------
 \section{Bmad Based Simulation Programs}
+\label{s:programs}
 
 Below is a partial list of simulation programs that are based upon \bmad. All of these
 programs are included in any \vn{distribution} or \vn{release} in the \vn{production/bin}
@@ -248,7 +249,7 @@ parameter[geometry] = open          ! Or closed
 parameter[particle] = electron      ! Reference particle.
 
 d: drift, L = 0.5
-b: sbend, L = 0.5, g = 1, e1 = 0.1, g_err = 0.001   ! g = 1 / design_bending_radius
+b: sbend, L = 0.5, g = 1, e1 = 0.1, g_err = 0.001   ! g = 1/design_radius
 q: quadrupole, L = 0.6, k1 = 0.23
 
 lat: line = (d, b, q)       ! List of lattice elements
@@ -318,8 +319,7 @@ if you do. For instructions on installing \bmad and \tao, please go to the \bmad
 %------------------------------------------------------------------------------
 \subsection{Tao Setup}
 
-\tao is a command line program so you will need a terminal emulator program like \vn{terminal} on a
-Mac.
+\tao is a command line program so you will need to run na terminal program.
 
 To find out if everything is properly setup. Issue the command
 \begin{code}
@@ -456,6 +456,7 @@ curve parameters.
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file
 \vn{simple.bmad}
 
+%----------------------------------------------------------
 \subsection{To Show a List of Elements in the Lattice}
 
 To show the elements in the lattice use the command \vn{show lattice}:
@@ -496,12 +497,14 @@ The default is to show the parameters at the exit end of the elements.
 ... etc...
 \end{code}
 
+\newpage
+
 %----------------------------------------------------------
 \subsection{To Show the Attributes of a Lattice Element}
 
 Use the \vn{show element} command to show the attributes of a particular lattice elements. Example:
 \begin{code} 
-Tao> show ele b   ! or: show ele 2
+Tao> show ele b   ! Or:n show ele 2
 
  Element #                2
  Element Name: B
@@ -537,6 +540,8 @@ Orbit:  Positron   State: Alive
 \end{code}
 Note: By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
 
+\newpage
+
 %----------------------------------------------------------
 \subsection{To Show a List of Elements Using Wild Cards}
 
@@ -548,8 +553,10 @@ pattern. Wild card character are:
 \end{code}
 The general syntax is:
 \begin{code}
+show element <name_with_wild_card_characters>                  ! or
 show element <element_type>::<name_with_wild_card_characters>
 \end{code}
+where \vn{<element_type>} is the type of element (\vn{drift}, \vn{quadrupole}, etc.)
 
 For example, to show all elements whose name begins with "Q" the command is:
 \begin{code}
@@ -567,28 +574,27 @@ Tao> show ele sbend::*
 Number of Matches: 1
 \end{code}
 
-%----------------------------------------------------------
-\Section{Introduction to Plotting in Tao}
-
-\vn{To Do}: Start \tao as explained in section~\sref{s:tao.start} with the lattice file
-\vn{simple.bmad} of section~\sref{s:bmad.intro} and experiment with the plotting as shown 
-in this section.
-
-The default is to have three plots: beta, dispersion, and
-orbit, along with what is called a \vn{lat_layout} plot (at the bottom of the window) that
-graphically shows the lattice elements. Note: If you do not want \tao to display the plot window,
-use the \vn{-noplot} option on the command line.
-
-%----------------------------------------------------------
-\subsection{Plot Page Parameters}
-
-\begin{figure}[tb]
+\begin{figure}[b]
   \centering
-  \includegraphics[width=0.7\textwidth]{plot-page.pdf}
+  \includegraphics[width=0.6\textwidth]{plot-page.pdf}
   \caption{The plot window is divided up into a number of rectangular \vn{regions} into
 which a plot \vn{template} can be placed. Regions can overlap.}
   \label{f:plot.regions}
 \end{figure}
+
+%----------------------------------------------------------
+\Section{Introduction to Plotting in Tao}
+
+First: Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{simple.bmad}.
+
+The default is to have three plots as shown in Figure~\ref{f:lat.init}: beta, dispersion, and
+orbit, along with what is called a \vn{lat_layout} plot (at the bottom of the window) that
+graphically shows the lattice elements. Note: If you do not want \tao to display the plot window,
+use the \vn{-noplot} option on the command line when you start \tao.
+
+%----------------------------------------------------------
+\subsection{Plot Page Parameters}
 
 The plot window has a number of parameters that can be displayed using the \vn{show plot}
 command:
@@ -628,8 +634,9 @@ r14                 <-->                      0.00  1.00  0.79  1.00
 ... etc...
 \end{code}
 The output of the \vn{show plot} is divided into three sections. The top section
-shows some parameters like the size of the plot window. Use the \vn{set plot_page}
-command to change these parameters. 
+shows some parameters like the size of the plot window. These parameters can be 
+set using a \tao initalization file (\sref{s:init.file}) or by using the ``\vn{set plot_page}''
+command when running \tao.
 
 The middle section of the output of the \vn{show plot} command shows plot \vn{templates}.
 Plot templates specify parameters for drawing plot. For example, how many graphs are
@@ -643,8 +650,8 @@ The bottom section of the output of the \vn{show plot} command shows the plot \v
 plot window along with associated plots. The plot regions are rectangular regions of the plot window
 into which a plot can be placed as illustrated in Figure~\ref{f:plot.regions}.  See the
 \vn{Initializing Plotting} section of the \vn{Tao Initialization} chapter of the \tao manual. for
-more details. With the present example, there are four regions that have plot. The \vn{r13} region
-has a \vn{beta} plot, etc.
+more details. With the present example, there are four regions that have plot. The \vn{r13} region,
+for example, has a \vn{beta} plot, etc.
 
 
 %----------------------------------------------------------
@@ -686,13 +693,96 @@ Tao> xy_scale floor_plan    ! Combined scale and x_scale.
 \newpage
 
 %----------------------------------------------------------
+\subsection{Getting Information on a Plot}
+
+To see the parameters associated with a given plot use the command ``\vn{show plot}''.
+Example:
+
+\begin{code}
+Tao> show plot beta  ! or "show plot r13" is equivalent.
+
+Plot:  beta
+Region:  r13
+Visible                = T
+Location [x1,x2,y1,y2] = .000  1.000  .717  1.000
+x_axis_type          = s
+... etc...
+x%draw_label         = T
+x%draw_numbers       = T
+autoscale_x          = F
+autoscale_y          = F
+autoscale_gang_x     = T
+autoscale_gang_y     = T
+n_curve_pts          = -1
+Graphs:
+   g
+\end{code}
+The output shows that the \vn{beta} plot is associated with the region \vn{r13}. Also the
+output shows that there is one associated graph called ``\vn{g}''. This graph can be referred
+to as ``\vn{beta.g}'' or ``\vn{r13.g}''.
+
+To display information on a graph use the command \vn{show graph}. Example:
+\begin{code}
+Tao> show graph beta
+
+Region.Graph: r13.g
+Plot.Graph:   beta.g
+type                             = data
+title                            = Beta Function
+title_suffix                     = [model]
+component                        = model
+margin                           =   0.15    0.06    0.12    0.12  %BOX
+scale_margin                     =   0.00    0.00    0.00    0.00  %GRAPH
+... etc...
+y%max                            =   1.02000000E+01
+y%min                            =   4.20000000E+00
+y%major_div                      = 3
+y%major_div_nominal              = 4
+
+Curves:
+   a
+   b
+\end{code}
+Here the ``\vn{show graph beta}'' command works since there is only one graph associated with the
+beta plot. The output shows that the graph has two associated curves called \vn{a} and \vn{b}.
+The \vn{a} curve can be referred to as ``\vn{beta.g.a}'' or \vn{r13.g.a}'' with similar names for
+the \vn{b} curve.
+
+To display information on curves use the ``\vn{show curve}'' command. using the ``\vn{-line}''
+option with this command will display the set of points that are used to draw the curve:
+\begin{code}
+Tao> show curve -line beta
+Region.Graph.Curve: r13.g.a
+                    r13.g.b
+Plot.Graph.Curve:   beta.g.a
+                    beta.g.b
+data_source          = lat
+... etc...
+draw_symbol_index    = F
+smooth_line_calc     = T
+smooth_line_calc     = T
+line%width           = 2
+line%color           = 4  Blue
+line%pattern         = 1  solid
+... etc...
+
+# Smooth line points:
+# index        x-axis             a             b
+      1  0.000000E+00  1.000000E+01  1.000000E+01
+      2  4.000000E-03  1.000000E+01  1.000000E+01
+      3  8.000000E-03  1.000001E+01  1.000001E+01
+      4  1.200000E-02  1.000001E+01  1.000001E+01
+... etc...
+\end{code}
+
+%----------------------------------------------------------
 \Section{Model Design and Base Lattices in Tao}
 
 When \tao runs, \tao instantiates three lattices:
 \begin{description}
 \item[Design Lattice] \Newline
 The \vn{design} lattice corresponds to the lattice read in from the lattice
-description file(s). Parameters of this lattice are never varied.
+description file(s). Parameters onf this lattice are never varied.
 \item[Model Lattice] \Newline
 Initially, when Tao is started, \vn{model} = \vn{design}. Essentially all commands to vary lattice
 parameters vary parameters of this lattice.
@@ -701,37 +791,17 @@ The \vn{base} lattice is a reference lattice used so that changes in the \vn{Mod
 lattice may more easily be viewed.
 \end{description}
 
-[Technically, \tao instantiates three lattices per \vn{universe}. See below.]
-
-%----------------------------------------------------------
-\subsection{Setup}
-
-The lattice used to illustrate things in this section is:
-\begin{code}
-beginning[beta_a] = 10.   ! m
-beginning[beta_b] = 10.   ! m
-beginning[e_tot] = 10e6   ! eV
-parameter[geometry] = open  ! or closed
-
-d: drift, L = 0.5
-b: sbend, L = 0.5, g = 1, e1 = 0.01, e2 = 0.02, g_err = 0.001
-q: quadrupole, L = 0.6, k1 = 0.23
-
-lat: line = (d, b, q)
-use, lat
-\end{code}
-
-Copy this lattice to a file and run \tao with this lattice as explained in section~\sref{s:tao.start}.
+Technically, \tao instantiates three lattices per \vn{universe}. See \sref{s:mult.uni}.
 
 \begin{figure}[tb]
   \centering
-  \begin{subfigure}[b]{0.47\textwidth}
+  \begin{subfigure}[b]{0.48\textwidth}
     \includegraphics[width=\textwidth]{model-equal-design.pdf}
     \caption{Initially, the \vn{model} lattice and the \vn{design} lattices are the same.}
     \label{f:model.eq.design}
   \end{subfigure}
   \hfil
-  \begin{subfigure}[b]{0.47\textwidth}
+  \begin{subfigure}[b]{0.48\textwidth}
     \includegraphics[width=\textwidth]{changed-model.pdf}
     \caption{The \vn{set} and \vn{change} commands will modify \vn{model} lattice parameters.}
     \label{f:changed.model}
@@ -742,18 +812,24 @@ Copy this lattice to a file and run \tao with this lattice as explained in secti
 %----------------------------------------------------------
 \subsection{Changing Model Parameters}
 
-To see the difference between the \vn{model} and \vn{design} lattices issue the following commands:
+To see the difference between the \vn{model} and \vn{design} lattices start \tao as explained in
+section~\sref{s:tao.start} with the lattice file \vn{simple.bmad}.
+
+Now issue the following commands:
 \begin{code}
 Tao> place r23 orbit
 Tao> place r13 orbit
-Tao> set plot r33 component = design
-Tao> set plot r13 component = model - design
+Tao> set plot r33 component = design          ! Bottom plot
+Tao> set plot r13 component = model - design  ! Plot difference orbit
 Tao> scale
 \end{code}
-The result is shown in Figure~\ref{f:model.eq.design}. The bottom plot shows the \vn{design} lattice
-orbit, the middle plot shows the \vn{model} lattice orbit and the top plot shows the difference in
-orbits between \vn{model} and \vn{design}. Since the two lattices are the same when \tao is started,
-the difference orbit is zero.
+The ``\vn{set plot <plot_name> component = ...}'' command sets where the data to be plotted
+comes from.  The result is shown in Figure~\ref{f:model.eq.design}. The bottom plot shows the
+\vn{design} lattice orbit, the middle plot shows the \vn{model} lattice orbit and the top plot shows
+the difference in orbits between \vn{model} and \vn{design}. Since the two lattices are the same
+when \tao is started, the difference orbit is zero.
+
+\newpage
 
 Now change the \vn{model} lattice using the following commands:
 \begin{code}
@@ -765,7 +841,7 @@ The \vn{change} command changes real numbers by a given delta. The \vn{set} comm
 parameters other than real numbers.  The result is shown in Figure~\ref{f:changed.model}. Since now
 the \vn{model} lattice is not the same as the \vn{design} lattice the difference orbit is non-zero.
 
-\begin{figure}[tb]
+\begin{figure}[b]
   \centering
   \includegraphics[width=0.7\textwidth]{with-base.pdf}
   \caption{The \vn{base} lattice is used to view changes when the reference lattice configuration
@@ -776,7 +852,7 @@ does not correspond to the \vn{design} lattice.}
 %----------------------------------------------------------
 \subsection{Using the Base Lattice}
 
-The \vn{base} lattice is used to view changes when the reference lattice configuration does not
+The \vn{base} lattice is used to view changes when the desired reference lattice does not
 correspond to the \vn{design} lattice.
 
 Continuing from the previous subsection, issue the following commands:
@@ -793,10 +869,11 @@ Figure~\ref{f:base}. The bottom plot of the orbit difference between \vn{model} 
 
 %----------------------------------------------------------
 \subsection{Multiple Universes}
+\label{s:mult.uni}
 
 \tao has a concept called a \vn{universe}. A \vn{universe} consists of \vn{model}, \vn{design},
-and \vn{base} lattice along with a \vn{data} which can, say, represent something like
-an orbit measurement. In \tao multiple universes may be defined. This is useful in a number of 
+and \vn{base} lattice along with ``\vn{data}'' (\sref{s:data}) which can, say, represent something like
+an orbit measurement. Multiple universes may be defined. This is useful in a number of 
 situations. For example, if multiple orbit measurements have been made with steering magnets
 changing between measurements, each measurement could be associated with a different universe
 and the entire collection of measurements could be analyzed simultaneously. 
@@ -814,19 +891,22 @@ referred to the \tao manual.
 Control elements are elements that control the parameters of other elements. There are three types
 of control elements called \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
-supply that powers a chain of magnets can be simulated with a control element.
-\vn{Girder} elements are used for simulating support structures that support lattice elements.
+supply that powers a chain of magnets can be simulated with a control element.  \vn{Girder} elements
+are used for simulating support structures. For example, a \vn{girder} can simulate an I-beam that
+supports a number of mangnets or can be used to simulate an optical table.
 
 Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as \vn{minor} lords since they
 only control a subset of an element's attributes. The other type of lord elements, \vn{multipass}
-and \vn{super} lords, are called \vn{major} lords.
+(\sref{s:multipass}) and \vn{superposition} (\sref{s:super}) lords, are called \vn{major} lords.
+
+\newpage
 
 %----------------------------------------------------------
 \subsection{Example Lattice}
 
-
 The lattice used to illustrate control elements is:
 \begin{code}
+! Lattice File: control.bmad
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
@@ -840,11 +920,11 @@ ll: line = (q, b)
 use, ll
 
 ov1: overlay = {q[k1]: a+b^2, b[g]: 0.1*a+tan(b)}, var = {a, b}
-ov2: overlay = {q[k1]: 0.7, q[x_offset]: 0.1*kt}, var={kt}
-gr1: group = {b[e1]: 0.4*sqrt(k)}, var = {k}
+ov2: overlay = {q[k1]: 0.7, q[x_offset]: 0.1*hh}, var={hh}
+gr1: group = {b[e1]: 0.4*sqrt(z)}, var = {z}
 \end{code}
 
-Explanation:
+Notes:
 \begin{itemize}
 \item
 The overlay \vn{ov1} controls two parameters: 
@@ -860,19 +940,17 @@ Since overlay \vn{ov2} also controls \vn{q[k1]}, the value of \vn{q[k1]} is the 
 contributions of \vn{ov1} and \vn{ov2}.
 \item
 The given "formula" for the control of \vn{q[k1]} by \vn{ov2} is just a constant: 0.7. 
-This is a shorthand notation and the actual formula used is \vn{0.7*kt}. 
-Note: When this shorthand notation is used, only one variable (in this case \vn{kt}) may be used by the overlay.
-\item
-The difference between \vn{group} and \vn{overlay} elements is explained below.
+This is a shorthand notation and the actual formula used is \vn{0.7*hh}. 
+Note: When this shorthand notation is used, only one variable (in this case \vn{hh}) may be used by the overlay.
 \end{itemize}
+
+\newpage
 
 %----------------------------------------------------------
 \subsection{Control Element Organization in the Lattice}
 
-Copy the above lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}.
-
-To see the elements in the lattice use the \vn{show lattice} command:
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{control.bmad}. To
+see the elements in the lattice use the \vn{show lattice} command:
 \begin{code}
 Tao> show lat
 
@@ -892,27 +970,27 @@ Lord Elements:
       Values at End of Element:
 \end{code}
 
-The list of lattice elements is divided up into two sections
+The list of lattice elements is divided up into two sections:
 \begin{itemize}
 \item
 The \vn{"tracking"} part of the lattice are the elements to be tracked through. Here the tracking part of
-the lattice is elements 0 through 3.
+the lattice contains elements 0 through 3.
 \item
-The \vn{"lord"} section of the lattice are where the overlay and group elements (and other "lord"
-elements as described elsewhere). Here the lord section is elements 4 through 6.
+The \vn{"lord"} section of the lattice are where the lord elements reside.  Here the lord section contains
+elements 4 through 6.
 \end{itemize}
 
 %----------------------------------------------------------
 \subsection{Examining Controls}
 
-To see how things are controlled, use the \vn{show element} command. For example:
+To see how things are controlled, use the \vn{show element} command. Examining lord \vn{ov1} shows:
 \begin{code}
 Tao> show ele 4
 
  Element #                4
  Element Name: OV1
  Key: Overlay
-... ... ... etc...
+... etc...
 Slave_status: Free
 Lord_status:  Overlay_Lord
 Control Variables:
@@ -922,11 +1000,16 @@ Slaves: [Attrib_Val = Expression_Val summed over all controlling overlays.]
    Index   Ele_Name  Attribute   Attrib_Value  Expression_Val    Expression
        1   Q         K1            0.0000E+00      0.0000E+00    a+b^2
        2   B         G             0.0000E+00      0.0000E+00    0.1*a+tan(b)
-... ... ... etc...
+... etc...
 \end{code}
 
-And
+All lattice elements have a \vn{slave_status} which shows what type of slave the element is and a
+\vn{lord_status} which shows what type of lord the element is. \vn{overlay} elements automatically
+have a \vn{lord_status} of \vn{overlay_lord}. In this case \vn{ov1} has a \vn{slave_status} of
+\vn{free} since there are no lord elements that control parameters of \vn{ov1}. In general,
+\vn{overlay} and \vn{group} lords may control parameters of other lords as well as non-lords.
 
+Examining the \vn{q} slave element shows:
 \begin{code}
 Tao> show ele q
  Element #                1
@@ -938,13 +1021,16 @@ Slave_status: Minor_Slave
 Controller Lord(s):
    Index   Name        Attribute           Lord_Type           Expression
        4   OV1         K1                  Overlay             a+b^2
-       5   OV2         K1                  Overlay             0.7*KT
-       5   OV2         X_OFFSET            Overlay             0.1*kT
+       5   OV2         K1                  Overlay             0.7*hh
+       5   OV2         X_OFFSET            Overlay             0.1*hh
 
 Lord_status:  Not_a_Lord
-
         ... etc...
 \end{code}
+
+The \vn{slave_status} of element \vn{q} is set to \vn{minor_slave} to show that it is controlled by
+one or more minor lords. The \vn{lord_status} of \vn{q} is \vn{not_a_lord} indicating that it does not
+control anything (``tracking elements'' never control other elements).
 
 %----------------------------------------------------------
 \subsection{Overlay Control}
@@ -952,10 +1038,10 @@ Lord_status:  Not_a_Lord
 When a element parameter is controlled by one or more overlays, the value of the element parameter
 is the sum of the values for each overlay.
 
-In this case there are two overlays controlling the \vn{q[k1]} attribute:
+In this case, there are two overlays controlling the \vn{q[k1]} attribute:
 \begin{code}
 Tao> set ele ov1 a = 0.02
-Tao> set ele ov2 kt = 0.01
+Tao> set ele ov2 hh = 0.01
 
 Tao> show ele q
  Element #                1
@@ -982,13 +1068,11 @@ Tao> set ele q k1 = 0.02
 %----------------------------------------------------------
 \subsection{Group Control}
 
-Group Control
-
 Unlike overlay control, a parameter that is controlled by one or more group elements is free to vary.
 When a group element is varied, a change in the value for parameters it controls is computed.
 Consider \vn{group} element \vn{gr1}:
 \begin{code} 
-Tao> set ele gr1 k = 0.01
+Tao> set ele gr1 z = 0.01
 
 Tao> show ele gr1
  Element #                6
@@ -1000,41 +1084,55 @@ Tao> show ele gr1
 Slave_status: Free
 Lord_status:  Group_Lord
 Control Variables:
-    1   K  =  1.0000000E-02           OLD_K  =  1.0000000E-02
+    1   Z  =  1.0000000E-02           OLD_Z  =  1.0000000E-02
 Slaves:
    Index   Ele_Name  Attribute   Attrib_Value  Expression_Val    Expression
-       2   B         K1            4.0000E-02      4.0000E-02    0.4*sqrt(k)
+       2   B         K1            4.0000E-02      4.0000E-02    0.4*sqrt(z)
 \end{code}
-A \vn{group} element not only has associated variables (in this case a single variable \vn{k}) but
-\bmad also keeps a record of what is called the ``old'' value (\vn{old_k}). When the above \vn{set
-  ele gr1} command is executed, the value of \vn{gr1[k]} becomes 0.01. \bmad detects that \vn{k}
-and \vn{old_k} are different and
+A \vn{group} element not only has associated variables (in this case a single variable \vn{z}) but
+\bmad also keeps a record of what is called the ``old'' value (\vn{old_z}). When the above \vn{set
+  ele gr1} command is executed, the value of \vn{gr1[z]} becomes 0.01. \bmad detects that \vn{z}
+and \vn{old_z} are different and updates \vn{b[k1]} using the following procedure:
 \begin{enumerate}
 \item
-Evaluates the difference \vn{0.4*sqrt(k)} - \vn{0.4*sqrt(old_k)} = 0.04
+Evaluates the difference \vn{0.4*sqrt(z)} - \vn{0.4*sqrt(old_z)} = 0.04
 \item
 Increments the value of \vn{b[k1]} by 0.04.
+Since the old value of \vn{b[k1]} was zero. The new value of \vn{b[k1]} is 0.04.
 \item
-Sets the value of \vn{old_k} equal to \vn{k}.
+Sets the value of \vn{old_z} equal to \vn{z}.
 \end{enumerate}
-Since the old value of \vn{b[k1]} was zero. The new value of \vn{b[k1]} is 0.04
 
-Now consider the effect of the following two set commands:
+Now consider the effect of the following commands:
 \begin{code}
+Tao> reinit tao
+Tao> set ele gr1 z = 0.01
 Tao> set ele b k1 = 0.02
-Tao> set ele gr1 k = 0.04
+Tao> set ele gr1 z = 0.04
+\end{code}
 
+The result is:
+
+\begin{code}
 Tao> show ele gr1
 ... etc...
 Control Variables:
-    1   K  =  4.0000000E-02           OLD_K  =  4.0000000E-02
+    1   Z  =  4.0000000E-02           OLD_Z  =  4.0000000E-02
 Slaves:
    Index   Ele_Name  Attribute   Attrib_Value  Expression_Val    Expression
-       2   B         K1            6.0000E-02      8.0000E-02    0.4*sqrt(k)
+       2   B         K1            6.0000E-02      8.0000E-02    0.4*sqrt(z)
 \end{code}
-The \vn{set ele b} command sets the value of \vn{b[k1]} to 0.02 and the \vn{set ele gr1} command
-sets the value of \vn{gr1[k]} to 0.04 which causes the value of \vn{b[k1]} to increase by 0.04 (=
-0.08 - 0.04) from 0.02 to a value of 0.06.
+\begin{enumerate}
+\item
+The ``\vn{reinit tao}'' command resets \tao to its initial state.
+\item
+The ``\vn{set ele gr1 z = 0.01}'' command acts as explained above.
+\item
+The ``\vn{set ele b}'' command sets the value of \vn{b[k1]} to 0.02. This is independent of the state of element \vn{gr1}.
+\item
+The ``\vn{set ele gr1 z = 0.04}'' command sets the value of \vn{gr1[z]} to 0.04 which causes the
+value of \vn{b[k1]} to increase by 0.04 (= 0.08 - 0.04) from 0.02 to a value of 0.06.
+\end{enumerate}
 
 What is a group element useful for? Example: Consider the situation where you want to control the
 chromaticity (change in tune with particle energy) of a ring by varying sextupole strengths. To
@@ -1066,8 +1164,6 @@ structures. See the Bmad manual for more details.
 %----------------------------------------------------------
 \Section{Machine Coordinates and Patch Elements}
 
-This section describes the coordinate systems used to describe the positioning
-of lattice elements.
 
 \begin{figure}[tb]
   \centering
@@ -1084,23 +1180,25 @@ There are three coordinate systems that are used to describe the positioning
 of lattice elements as shown in Figure~\ref{f:coordinates}:
 \begin{description}
 \item[Glorbal Coordinates] \Newline
-The \vn{global} (also called \vn{floor}) coordinate system is independent of the accelerator and is 
-"attached" to the building the accelerator is in. Typically, the Y-axis is taken to be pointing vertically up
-and (X, Z) is the horizontal plane.
+The \vn{(X, Y, Z)} \vn{global} (also called \vn{floor}) coordinate system is independent of the accelerator and is 
+"attached" to the building the accelerator is in. Typically, the \vn{Y}-axis is taken to be pointing vertically up
+and \vn{(X, Z)} is the horizontal plane.
 \item[Reference Coordinates] \Newline
 The \vn{global} coordinate system is not convenient for describing where particles are as they move
-through the lattice. For this the \vn{local} (also called \vn{laboratory}, also called \vn{reference}) curvilinear coordinate 
-system is used to describe particle positions and also to describe the nominal position of the
-lattice elements.
+through the lattice. For this, the \vn{(x, y, s)} \vn{local} (also called \vn{laboratory}, also called
+\vn{reference}) curvilinear coordinate system is used to describe particle positions and also to
+describe the nominal (that is, without any ``misalignment'') position of the lattice elements. \vn{s}
+is the longitudinal coordinate and \vn{(x, y)} are the transverse coordinates.
 
-Traveling on the \vn{s} curve of the local coordinate system there is imagined to be a \vn{reference particle}.
-Frequently, this reference particle is thought of as describing the center of a bunch of particles.
+Traveling on the \vn{s} curve of the local coordinate system there is imagined to be a
+\vn{reference particle}. Frequently, this reference particle is thought of as describing the center
+of a bunch of particles.
 \item[Element Body Coordinates] \Newline
-Elements can be shifted from their nominal position ("misalignments"). So to describe things like
-electric and magnetic fields or apertures (which depend upon the elements actual position),
-\vn{element body} coordinates are used. 
-The \vn{element body} coordinates are the coordinates attached to the physical element. Without any "misalignments",
-the \vn{element} coordinates correspond to the \vn{laboratory} coordinates.
+Elements can be shifted ("misaligned") from their nominal position. To describe things like electric
+and magnetic fields or apertures (which depend upon the elements actual position), \vn{element body}
+coordinates are used.  The \vn{element body} coordinates are the coordinates attached to the
+physical element. Without any "misalignments", the \vn{element} coordinates correspond to the
+\vn{laboratory} coordinates.
 \end{description}
 
 \begin{figure}[tb]
@@ -1124,14 +1222,14 @@ of the element to the \vn{exit} end.
 \begin{description}
 \item[Straight Geometry] \Newline
 With \vn{straight} elements like \vn{drift}s and \vn{quadrupole}s, the element body coordinates
-transform as a translation along the \vn{entrance} \vn{z}-axis so that the \vn{exit} coordinates are
-co-linear with the \vn{entrance} coordinates.
+transform as a translation along the \vn{z}-axis so that the \vn{z}-axis at the \vn{exit} end is
+co-linear with the \vn{entrance} \vn{z}-axis.
 \item[Bend Geometry] \Newline
-(\vn{Sbend} and \vn{rbend}) elements have a \vn{bend} geometry where the body coordinates rotate
-about an axis which is in the $x$-$y$ plane of the \vn{entrance} (and \vn{exit}) coordinates.
+\vn{Sbend} and \vn{rbend} elements have a \vn{bend} geometry where the body coordinates rotate
+about an axis which is in the \vn{x}-\vn{y} plane of the \vn{entrance} (and \vn{exit}) coordinates.
 \item[Patch Geometry] \Newline 
 \vn{Patch} and \vn{floor_shift} elements have a \vn{patch} geometry where the exit coordinates can
-be arbitrarily positioned with respect to the entrance coordinates (see below).
+be arbitrarily positioned with respect to the entrance coordinates. See \sref{s:patch}.
 \end{description}
 
 %----------------------------------------------------------
@@ -1174,8 +1272,8 @@ respect to the \vn{global} coordinate system by 6 parameters as shown in Figure~
 
 Notes:
 \begin{itemize}
-\item The default is for the beginning of the lattice (\vn{s} = 0) is to have the local (x, y, z) aligned with the 
-global (X, Y, Z).
+\item The default is for the beginning of the lattice (\vn{s} = 0) is to have the local \vn{(x, y, z)} aligned with the 
+global \vn{(X, Y, Z)}.
 \item For a machine that lies in the horizontal plane, \vn{$\phi$} and \vn{$\psi$} angles are zero.
 \end{itemize}
 
@@ -1200,19 +1298,20 @@ global (X, Y, Z).
   \caption{}
 \end{figure}
 
-Once the \vn{reference} coordinate system is established, The position of any physical element with straight geometry can
-be shifted (``misaligned'') using the element attributes:
+Once the \vn{reference} coordinate system is established, the position of any physical element with
+straight or bend geometry can be shifted (``misaligned''). For straight elements, the element attributes
+that determine any misalignment are:
 \begin{description}
 \item[x_offset, y_offset, z_offset]
-The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes offset the element in the $x$, $y$,
-and $z$ directions respectively. See Figure~\ref{f:pitch}.
+The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes offset the element in the \vn{x}, \vn{y},
+and \vn{z} directions respectively. See Figure~\ref{f:pitch}.
 \item[x_pitch, y_pitch]
 The \vn{x_pitch} and \vn{y_pitch} attributes rotate the element. A \vn{x_pitch} of $\pi/2$ would rotate the
-element around the +$y$-axis so that the body +$z$-axis is aligned with the local
-+$x$-axis. Similarly, a \vn{y_pitch} of $\pi/2$ would rotate the element around the -$x$-axis so
-that the body +$z$-axis is aligned with the local +$y$-axis. See Figure~\ref{f:pitch}.
+element around the +\vn{y}-axis so that the body +\vn{z}-axis is aligned with the local
++\vn{x}-axis. Similarly, a \vn{y_pitch} of $\pi/2$ would rotate the element around the -\vn{x}-axis so
+that the body +\vn{z}-axis is aligned with the local +\vn{y}-axis. See Figure~\ref{f:pitch}.
 \item[tilt]
-A \vn{tilt} rotates the element around the +$z$-axis as shown in Figure~\ref{f:tilt}
+A \vn{tilt} rotates the element around the +\vn{z}-axis as shown in Figure~\ref{f:tilt}
 \end{description}
 
 Note: The above only applies to straight elements. Patch like elements are explained below. For a
@@ -1220,6 +1319,7 @@ discussion of misalignments for bend type elements see the \bmad manual.
 
 Example:
 \begin{code}
+! Lattice File: misalign.bmad
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV
@@ -1229,9 +1329,8 @@ lat: line = (q)   ! List of lattice elements
 use, lat          ! Line used to construct the lattice
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}:
-
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{misalign.bmad}. The
+misalignment can be viewd using the \vn{-floor} option with the \vn{show element } command:
 \begin{code} 
 Tao> show ele q -floor
 
@@ -1242,7 +1341,7 @@ Global Floor Coords at End of Element:
                 X        Y        Z    Theta  
 Reference  0.00000  0.00000  1.00000  0.00000 ... ! Without misalignments
 Actual     0.11999  0.00000  0.99960  0.04000 ... ! With misalignments
-delta Ref  0.11999  0.00000  0.99960  0.04000 ... ! Delta from last element
+... etc...
 \end{code}
 
 The \vn{Reference} row shows the nominal position of the \vn{exit} end of the element without
@@ -1268,12 +1367,11 @@ zero in this case.] The \vn{Actual} row shows the position of the physical eleme
 
 %----------------------------------------------------------
 \subsection{Patch Elements}
+\label{s:patch}
 
 For \vn{patch} elements the same six parameters that are used to misalign straight line elements
-are, for a \vn{patch}, use to set the placement of the \vn{exit} frame relative to the \vn{entrance}
-frame.
-
-The transformation from entrance coordinates to exit coordinate is:
+are, for a \vn{patch}, used to set the placement of the \vn{exit} frame relative to the \vn{entrance}
+frame. The transformation from entrance coordinates to exit coordinate is:
 \begin{enumerate}
 \item Initially the exit coordinates coincide with the entrance coordinates.
 \item The origin of the exit coordinates is translated by (\vn{x_offset}, \vn{y_offset}, \vn{z_offset})
@@ -1291,6 +1389,7 @@ element.
 
 Example:
 \begin{code}
+! Lattice File: patch.bmad
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV
@@ -1304,23 +1403,21 @@ lat: line = (b, p, q)   ! List of lattice elements
 use, lat                ! Line used to construct the lattice
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start} and create a \vn{floor_plan} with the command 
-\vn{place r11 floor}. The result is shown in Figure~\ref{f:patch.example}.
-By default, \vn{patch} elements are not drawn but the global coordinates
-of the elements can be seen by using the \vn{show lat -fllor} command:
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{patch.bmad}. Create
+a \vn{floor_plan} with the command \vn{place r11 floor}. The result is shown in
+Figure~\ref{f:patch.example}.  By default, \vn{patch} elements are not drawn but the global
+coordinates of the nominal positions of the elements can be seen by using the \vn{show lat -fllor}
+command:
 \begin{code}
 Tao> show lat -floor
 
       Values at End of Element:
- Index  name      key               s           X           Y           Z       Theta ...
-     0  BEGINNING Beginning_Ele  0.000     0.00000     0.00000     0.00000     0.00000 ...
-     1  B         Sbend          0.500    -0.12242     0.00000     0.47943    -0.50000 ...
-     2  P         Patch          1.207    -0.60184     0.00000     1.35701     0.28540 ...
-     3  Q         Quadrupole     1.807    -0.43292     0.00000     1.93274     0.28540 ...
-     4  END       Marker         1.807    -0.43292     0.00000     1.93274     0.28540 ...
- Index  name      key                s           X           Y           Z       Theta ...
-      Values at End of Element:
+Ix  name      key               s          X         Y         Z     Theta ...
+ 0  BEGINNING Beginning_Ele  0.000    0.0000    0.0000    0.0000    0.0000 ...
+ 1  B         Sbend          0.500   -0.1224    0.0000    0.4794   -0.5000 ...
+ 2  P         Patch          1.207   -0.6018    0.0000    1.3570    0.2854 ...
+ 3  Q         Quadrupole     1.807   -0.4329    0.0000    1.9327    0.2854 ...
+ 4  END       Marker         1.807   -0.4329    0.0000    1.9327    0.2854 ...
 \end{code}
 
 %----------------------------------------------------------
@@ -1361,31 +1458,31 @@ For tracking purposes, canonical phase space coordinates are used:
 \begin{code}
     (x, px, y, py, z, pz)   
 \end{code}
-[Note convention: Upper case \vn{P} = (unnormalized) momentum. Lower case \vn{p} = phase space momentum]
+Note convention: Upper case \vn{P} = (unnormalized) momentum (Figure~\ref{f:phase.space}). Lower
+case \vn{p} = phase space momentum
 
 where
-\begin{code}
+\begin{lstlisting}[mathescape]
     px = Px / P0
     py = Py / P0
     pz = (P - P0) / P0
     z  = c * $\beta$ * (t_ref - t)
-\end{code}
-
-where 
+\end{lstlisting}
+with
 \begin{itemize}
 \item \vn{P0} is the reference momentum, 
 \item \vn{$\beta$} is the velocity of the particle, 
 \item \vn{t_ref(s)} is the time the reference particle reaches the point \vn{s}.
 \end{itemize}
 
-This is illustrated in Figure~\ref{f:phase.space}.
-
 Notes:
 \begin{itemize}
-\item For a bunch of particles at a given \vn{s} position, in general the particles will have differing \vn{t}.
-\item If the reference particle has the same $\beta$ value as a particle, canonical \vn{z} will be the longitudinal distance 
-the particle is with respect to the reference particle. Positive \vn{z} indicates that the particle
-is in front of the reference particle.
+\item 
+For a bunch of particles at a given \vn{s} position, in general the particles will have differing \vn{t}.
+\item 
+If the reference particle has the same $\beta$ value as a particle, canonical \vn{z} will be the
+longitudinal distance the particle is with respect to the reference particle. Positive \vn{z}
+indicates that the particle is in front of the reference particle and vice versa.
 \end{itemize}
 
 
@@ -1410,6 +1507,7 @@ is in front of the reference particle.
 
 Example lattice:
 \begin{code}
+! Lattice File: orbit.bmad
 beginning[beta_a] = 10.     ! m  a-mode beta function
 beginning[beta_b] = 10.     ! m  b-mode beta function
 beginning[e_tot] = 10e6     ! eV
@@ -1426,9 +1524,9 @@ lat: line = (b, q)      ! List of lattice elements
 use, lat                ! Line used to construct the lattice
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}. The resulting orbit is shown in Figure~\ref{f:phase0}.
-
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{orbit.bmad}. The
+lattice file specifies a non-zero initial orbit using \vn{beam_start} parameters. The resulting
+orbit is shown in Figure~\ref{f:phase0}.
 
 Now the initial phase space coordinates can be varied using the \vn{change} or \vn{set}
 commands. For example:
@@ -1437,24 +1535,24 @@ commands. For example:
 
 Tao> change beam_start px 0.04
            Old           New    Old-Design    New-Design         Delta
-      0.060000      0.100000      0.000000      0.040000      0.040000    BEAM_START
+      0.060000      0.100000      0.000000      0.040000      0.040000  
 \end{code}
 
-The result is shown in Figure~\ref{s:phase1}.
+The result is shown in Figure~\ref{f:phase1}.
 
 View Orbits with \vn{show lattice} caommand
 
 \begin{code}
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00  10.000   Alive
-     1  B         Sbend                 0.500   0.500    7.62   0.069   0.20  28.889    8.51   0.069   0.01   9.201   Alive
-     2  Q         Quadrupole            1.100   0.600    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
-     3  END       Marker                1.100   0.000    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+ Index  name      key                 s       l    beta     phi    eta ...
+                                                      a       a      a ...
+     0  BEGINNING Beginning_Ele   0.000     ---   10.00   0.000   0.00 ...
+     1  B         Sbend           0.500   0.500    7.62   0.069   0.20 ...
+     2  Q         Quadrupole      1.100   0.600    3.60   3.153   0.11 ...
+     3  END       Marker          1.100   0.000    3.60   3.153   0.11 ...
+ Index  name      key                 s       l    beta     phi    eta ...
+                                                      a       a      a ...
       Values at End of Element:
 \end{code}
 
@@ -1470,9 +1568,9 @@ Tao> show ele 0
 
 Orbit:  Positron   State: Alive
          Position[mm] Momentum[mrad]        Spin   |
-  X:       0.00000000   100.00000000               | Particle [sec]:      0.00000000E+00  E_tot;  8.0059E+06
-  Y:      10.00000000     0.00000000               | Part-Ref [sec]:      0.00000000E+00  PC:     7.9895E+06
-  Z:       0.00000000  -200.00000000               | (Ref-Part)*Vel [m]:  0.00000000E+00  Beta:    0.997961
+  X:       0.00000000   100.00000000               | Particle [sec]:     ...
+  Y:      10.00000000     0.00000000               | Part-Ref [sec]:     ...
+  Z:       0.00000000  -200.00000000               | (Ref-Part)*Vel [m]: ...
 \end{code}
 
 %----------------------------------------------------------
@@ -1483,6 +1581,7 @@ Orbit:  Positron   State: Alive
  energy at the exit end of an \vn{lcavity} is shifted from the reference energy at the beginning
  while \vn{rfcavity} elements do not affect the reference energy. Example:
 \begin{code}
+! Lattice File: cavity.bmad
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[p0c] = 1e8   ! eV  
@@ -1505,8 +1604,8 @@ Notes:
 \item For an \vn{rfcavity} phi0 = 0.25 corresponds to peak acceleration.
 \end{itemize}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}.
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{cavity.bmad}.
 
 \begin{code}
 > tao -lat cavity.bmad
@@ -1516,30 +1615,30 @@ Element #                3
 Element Name: LC
 Key: Lcavity
 ... etc...
-   51   P0C_START                    =  1.0000000E+08 eV            BETA_START      =  0.026811514
-   52   E_TOT_START                  =  3.7297409E+09 eV            DELTA_E         =  1.0000000E+09 eV
-   53   P0C                          =  2.9102374E+09 eV            BETA            =  0.615305883
-   54   E_TOT                        =  4.7297409E+09 eV            GAMMA           =  1.2685712E+00
+   51   P0C_START    =  1.000000E+08 eV        BETA_START   =  0.02681151
+   52   E_TOT_START  =  3.729740E+09 eV        DELTA_E      =  1.000000E+09 eV
+   53   P0C          =  2.910237E+09 eV        BETA         =  0.61530588
+   54   E_TOT        =  4.729740E+09 eV        GAMMA        =  1.268571E+00
 ... etc...    
 Orbit:  He+   State: Alive
          Position[mm] Momentum[mrad]        Spin   |
-  X:       0.00000000     0.00000000               | Particle [sec]:      3.42560963E-08  E_tot;  4.7297E+09
-  Y:       0.00000000     0.00000000               | Part-Ref [sec]:      0.00000000E+00  PC:     2.9102E+09
-  Z:      -0.00000000     0.00000000               | (Ref-Part)*Vel [m]:  0.00000000E+00  Beta:    0.615306
+  X:       0.00000000     0.00000000               | Particle [sec]:     ...
+  Y:       0.00000000     0.00000000               | Part-Ref [sec]:     ...
+  Z:      -0.00000000     0.00000000               | (Ref-Part)*Vel [m]: ...
 
 Tao> show ele 6
 Element #                6
 Element Name: RF
 Key: RFcavity
 ... etc...
-   53   P0C                          =  2.9102374E+09 eV            BETA            =  0.615305883
-   54   E_TOT                        =  4.7297409E+09 eV            GAMMA           =  1.2685712E+00
+   53   P0C         =  2.9102374E+09 eV         BETA      =  0.615305883
+   54   E_TOT       =  4.7297409E+09 eV         GAMMA     =  1.2685712E+00
 ... etc...
  Orbit:  He+   State: Alive
          Position[mm] Momentum[mrad]        Spin   |
-  X:       0.00000000     0.00000000               | Particle [sec]:      4.01447790E-08  E_tot;  5.7297E+09
-  Y:       0.00000000     0.00000000               | Part-Ref [sec]:     -6.16649425E-10  PC:     4.3507E+09
-  Z:     140.37425587   494.97867675               | (Ref-Part)*Vel [m]:  1.40374256E-01  Beta:    0.759326
+  X:       0.00000000     0.00000000               | Particle [sec]:     ...
+  Y:       0.00000000     0.00000000               | Part-Ref [sec]:     ...
+  Z:     140.37425587   494.97867675               | (Ref-Part)*Vel [m]: ...
 \end{code}
 
 Questions:
@@ -1550,6 +1649,7 @@ Questions:
 
 %----------------------------------------------------------
 \Section{Superposition}
+\label{s:super}
 
 Superposition is used when elements overlap spatially. In such a case Bmad creates \vn{slave} elements that will be tracked through
 and \vn{lord} elements that represent the individual elements.
@@ -1569,6 +1669,8 @@ To superimpose an element you need to specify where the element is placed. To do
 and the superimposed element is placed at that position shifted by a specified offset.
 
 \begin{code}
+! Lattice File: superimpose1.bmad
+
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV   Or can set p0c
@@ -1584,28 +1686,26 @@ lat: line = (q, d)   ! List of lattice elements
 use, lat             ! Line used to construct the lattice
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}. 
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{superimpose1.bmad}.
 
 \begin{code}
-> tao -lat superimpose.bmad
-
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00   0.000   Alive
-     1  Q#1       Quadrupole            0.300   0.300    9.83   0.030   0.00   0.000   10.19   0.030   0.00   0.000   Alive
-     2  M1        Marker                0.300   0.000    9.83   0.030   0.00   0.000   10.19   0.030   0.00   0.000   Alive
-     3  Q#2       Quadrupole            1.000   0.700    8.22   0.107   0.00   0.000   12.24   0.094   0.00   0.000   Alive
-     4  D#1       Drift                 1.400   0.400    6.97   0.160   0.00   0.000   14.24   0.124   0.00   0.000   Alive
-     5  M2        Marker                1.400   0.000    6.97   0.160   0.00   0.000   14.24   0.124   0.00   0.000   Alive
-     6  D#2       Drift                 2.000   0.600    5.37   0.258   0.00   0.000   17.58   0.162   0.00   0.000   Alive
-     7  END       Marker                2.000   0.000    5.37   0.258   0.00   0.000   17.58   0.162   0.00   0.000   Alive
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
+     0  BEGINNING Beginning_Ele       0.000     ---   10.00   0.000   0.00 ...
+     1  Q#1       Quadrupole          0.300   0.300    9.83   0.030   0.00 ...
+     2  M1        Marker              0.300   0.000    9.83   0.030   0.00 ...
+     3  Q#2       Quadrupole          1.000   0.700    8.22   0.107   0.00 ...
+     4  D#1       Drift               1.400   0.400    6.97   0.160   0.00 ...
+     5  M2        Marker              1.400   0.000    6.97   0.160   0.00 ...
+     6  D#2       Drift               2.000   0.600    5.37   0.258   0.00 ...
+     7  END       Marker              2.000   0.000    5.37   0.258   0.00 ...
  ord Elements:
-     8  Q         Quadrupole            1.000   1.000    8.22   0.107   0.00   0.000   12.24   0.094   0.00   0.000   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     8  Q         Quadrupole          1.000   1.000    8.22   0.107   0.00 ...
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
       Values at End of Element:
 \end{code}
 
@@ -1680,6 +1780,8 @@ the two elements \vn{D\#1} and \vn{D\#1} and \vn{not} super_slaves.
 
 A more complicated example involving superposition of an element with finite length:
 \begin{code}
+! Lattice File: superimpose2.bmad
+
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV   Or can set p0c
@@ -1694,31 +1796,31 @@ lat: line = (Q, D)
 use, lat
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}. 
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{superimpose2.bmad}.
 
 \begin{code}
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00   0.000   Alive
-     1  Q#1       Quadrupole            2.000   2.000   10.40   0.197   0.00   0.000   10.40   0.197   0.00   0.000   Alive
-     2  Q\S       Sol_Quad              4.000   2.000   11.60   0.381   0.00   0.000   11.60   0.381   0.00   0.000   Alive
-     3  S#1       Solenoid              7.000   3.000   14.90   0.611   0.00   0.000   14.90   0.611   0.00   0.000   Alive
-     4  M         Marker                7.000   0.000   14.90   0.611   0.00   0.000   14.90   0.611   0.00   0.000   Alive
-     5  S#2       Solenoid             10.000   3.000   20.00   0.785   0.00   0.000   20.00   0.785   0.00   0.000   Alive
-     6  D#1       Drift                16.000   6.000   35.60   1.012   0.00   0.000   35.60   1.012   0.00   0.000   Alive
-     7  END       Marker               16.000   0.000   35.60   1.012   0.00   0.000   35.60   1.012   0.00   0.000   Alive
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
+     0  BEGINNING Beginning_Ele       0.000     ---   10.00   0.000   0.00 ...
+     1  Q#1       Quadrupole          2.000   2.000   10.40   0.197   0.00 ...
+     2  Q\S       Sol_Quad            4.000   2.000   11.60   0.381   0.00 ...
+     3  S#1       Solenoid            7.000   3.000   14.90   0.611   0.00 ...
+     4  M         Marker              7.000   0.000   14.90   0.611   0.00 ...
+     5  S#2       Solenoid           10.000   3.000   20.00   0.785   0.00 ...
+     6  D#1       Drift              16.000   6.000   35.60   1.012   0.00 ...
+     7  END       Marker             16.000   0.000   35.60   1.012   0.00 ...
 Lord Elements:
-     8  Q         Quadrupole            4.000   4.000   11.60   0.381   0.00   0.000   11.60   0.381   0.00   0.000   Alive
-     9  S         Solenoid             10.000   8.000   20.00   0.785   0.00   0.000   20.00   0.785   0.00   0.000   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     8  Q         Quadrupole          4.000   4.000   11.60   0.381   0.00 ...
+     9  S         Solenoid           10.000   8.000   20.00   0.785   0.00 ...
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
       Values at End of Element:
 \end{code}
 
-The \vn{Q\S} super_slave element has both \vn{Q} and \vn{S} elements as super_lords
+The \vn{Q\B S} super_slave element has both \vn{Q} and \vn{S} elements as super_lords
 \begin{code}
 Tao> show ele q\s
  Element #                2
@@ -1743,6 +1845,7 @@ and part of the element is at the beginning of the lattice.
 
 %----------------------------------------------------------
 \Section{Multipass}
+\label{s:multipass}
 
 Some lattices have the beam recirculating through the same element multiple times. For example, an
 Energy Recovery Linac (ERL) will circulate the beam back through the LINAC part to retrieve the
@@ -1783,10 +1886,11 @@ linac: line[multipass] = (...)
 \subsection{Example}
 
 \begin{code}
+! Lattice File: multipass.bmad
+
 beginning[beta_a] = 100.   ! m  a-mode beta function
 beginning[beta_b] = 100.   ! m  b-mode beta function
 beginning[p0c] = 10e6   ! eV   
-
 parameter[geometry] = open      ! or closed
 
 cavity: lcavity, l = 1, voltage = 10e6
@@ -1799,25 +1903,24 @@ expand_lattice
 cavity\2[phi0_multipass] = 0.5
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}. 
-
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{multipass.bmad}.
 
 \begin{code}
 Tao> show lat
 
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---  100.00   0.000   0.00   0.000  100.00   0.000   0.00   0.000   Alive
-     1  CAVITY\\1  Lcavity               1.000   1.000   78.87   0.011  -0.00   0.372   78.87   0.011   0.00   0.000   Alive
-     2  CAVITY\\2  Lcavity               2.000   1.000   42.09   0.028  -0.00   0.352   42.09   0.028   0.00   0.000   Alive
-     3  END       Marker                2.000   0.000   42.09   0.028  -0.00   0.352   42.09   0.028   0.00   0.000   Alive
+ Index  name      key                    s       l    beta     phi    eta ...
+                                                         a       a      a ...
+     0  BEGINNING Beginning_Ele      0.000     ---  100.00   0.000   0.00 ...
+     1  CAVITY\\1  Lcavity           1.000   1.000   78.87   0.011  -0.00 ...
+     2  CAVITY\\2  Lcavity           2.000   1.000   42.09   0.028  -0.00 ...
+     3  END       Marker             2.000   0.000   42.09   0.028  -0.00 ...
 Lord Elements:
-     4  CAVITY    Lcavity               0.000   1.000    0.00   0.000   0.00     ---    0.00   0.000   0.00     ---   Not_Set
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                        a       a      a  x [mm]       b       b      b  y [mm]
+     4  CAVITY    Lcavity            0.000   1.000    0.00   0.000   0.00 ...
+ Index  name      key                    s       l    beta     phi    eta ...
+                                                         a       a      a ...
   Values at End of Element:
 \end{code}
 
@@ -1849,9 +1952,9 @@ Tao> show ele 2
  Ref_time:  6.675633E-09
 
  Attribute values [Only non-zero/non-default values shown]:
-    1   L                            =  1.0000000E+00 m
+    1   L          =  1.000E+00 m
 ... etc...
-   36   X_OFFSET                     =  1.0000000E-03 m        57   X_OFFSET_TOT    =  1.0000000E-03 m
+   36   X_OFFSET   =  1.000E-03 m        57   X_OFFSET_TOT  =  1.000E-03 m
 ... etc...
 \end{code}
 
@@ -1861,7 +1964,7 @@ allows for different settings of the RF phase for different passes through the c
 From the above lattice:
 \begin{code}
 expand_lattice                 ! cavity\2 is created during lattice expansion
-cavity\2[phi0_multipass] = 0.5 ! This shifts the RF phase for cavity\2 by 180^deg
+cavity\2[phi0_multipass] = 0.5 ! Shifts the RF phase for cavity\2 by 180^deg
 \end{code}
 Giving:
 \begin{code}
@@ -1907,6 +2010,8 @@ Bmad will ignore Twiss and orbit settings.
 
 Example:
 \begin{code}
+! Lattice File: geometry.bmad
+
 parameter[p0c] = 1e9
 parameter[geometry] = closed
 
@@ -1925,19 +2030,19 @@ The result is shown in Figure~\ref{f:geometry}:
 \begin{code}
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---    5.93   0.000   0.00   0.000    4.05   0.000   0.00   0.000   Alive
-     1  Q1#2      Quadrupole            0.250   0.250    5.57   0.043   0.00   0.000    4.32   0.060   0.00   0.000   Alive
-     2  D#1       Drift                 0.750   0.500    4.32   0.145   0.00   0.000    5.57   0.162   0.00   0.000   Alive
-     3  Q2        Quadrupole            1.250   0.500    4.32   0.266   0.00   0.000    5.57   0.249   0.00   0.000   Alive
-     4  D#2       Drift                 1.750   0.500    5.57   0.368   0.00   0.000    4.32   0.351   0.00   0.000   Alive
-     5  Q1#1      Quadrupole            2.000   0.250    5.93   0.411   0.00   0.000    4.05   0.411   0.00   0.000   Alive
-     6  END       Marker                2.000   0.000    5.93   0.411   0.00   0.000    4.05   0.411   0.00   0.000   Alive
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
+     0  BEGINNING Beginning_Ele       0.000     ---    5.93   0.000   0.00 ...
+     1  Q1#2      Quadrupole          0.250   0.250    5.57   0.043   0.00 ...
+     2  D#1       Drift               0.750   0.500    4.32   0.145   0.00 ...
+     3  Q2        Quadrupole          1.250   0.500    4.32   0.266   0.00 ...
+     4  D#2       Drift               1.750   0.500    5.57   0.368   0.00 ...
+     5  Q1#1      Quadrupole          2.000   0.250    5.93   0.411   0.00 ...
+     6  END       Marker              2.000   0.000    5.93   0.411   0.00 ...
 Lord Elements:
-     7  Q1        Quadrupole            0.250   0.500    5.57   0.043   0.00     ---    4.32   0.060   0.00     ---   Not_Set
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     7  Q1        Quadrupole          0.250   0.500    5.57   0.043   0.00 ...
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
       Values at End of Element:
 
 
@@ -1990,6 +2095,8 @@ extraction lines, etc. as shown in Figure~\ref{f:fork}
 \subsection{Example}
 
 \begin{code}
+! Lattice File: fork.bmad
+
 beginning[beta_a] = 10.0        ! m  a-mode beta function
 beginning[beta_b] = 10.0        ! m  b-mode beta function
 beginning[e_tot] = 10e6         ! eV 
@@ -2006,11 +2113,10 @@ lat: line = (b)
 use, lat                ! Line used to construct the lattice
 \end{code}
 
-Copy this lattice to a file and run \tao with this lattice as explained in
-section~\sref{s:tao.start}. 
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file
+\vn{fork.bmad}.
 
 \begin{code}
-> tao -lat fork.bmad
 Tao> place r11 floor
 \end{code}
 
@@ -2020,17 +2126,17 @@ The lattice is looks like:
 \begin{code}
 Tao> show lat
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00   0.000   Alive
-     1  B#1       Sbend                 0.400   0.400    9.77   0.040   0.03   0.000   10.02   0.040   0.00   0.000   Alive
-     2  F         Fork                  0.400   0.000    9.77   0.040   0.03   0.000   10.02   0.040   0.00   0.000   Alive
-     3  B#2       Sbend                 2.000   1.600    5.32   0.249   0.75   0.000   10.40   0.197   0.00   0.000   Alive
-     4  END       Marker                2.000   0.000    5.32   0.249   0.75   0.000   10.40   0.197   0.00   0.000   Alive
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
+     0  BEGINNING Beginning_Ele       0.000     ---   10.00   0.000   0.00 ...
+     1  B#1       Sbend               0.400   0.400    9.77   0.040   0.03 ...
+     2  F         Fork                0.400   0.000    9.77   0.040   0.03 ...
+     3  B#2       Sbend               2.000   1.600    5.32   0.249   0.75 ...
+     4  END       Marker              2.000   0.000    5.32   0.249   0.75 ...
 Lord Elements:
-     5  B         Sbend                 2.000   2.000    5.32   0.249   0.75   0.000   10.40   0.197   0.00   0.000   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     5  B         Sbend               2.000   2.000    5.32   0.249   0.75 ...
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
       Values at End of Element:
 \end{code}
 
@@ -2039,27 +2145,27 @@ lines. Branches are assigned an index starting from 0:
 
 \begin{code}
 Tao> show branch
-                          N_ele  N_ele                  Default                       Live
-  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry  Branch  From_Fork
-  0: LAT                      4      5   Positron       Ref_Particle        Open       T
-  1: EXTRACT_LINE             2      2   Positron       Ref_Particle        Open       T      0>>2
+                    N_ele  N_ele   ...              Live
+  Branch            Track    Max   ...    Geometry  Branch  From_Fork
+  0: LAT                4      5   ...    Open       T
+  1: EXTRACT_LINE       2      2   ...    Open       T      0>>2
  
-                                                                                                      Defines
-  Fork_Element                              Forking_To                                   Direction    To_Branch?
-  0>>2: LAT>>F                              1>>0: EXTRACT_LINE>>BEGINNING                 1             T
+                                                                    Defines
+  Fork_Element      Forking_To                         Direction    To_Branch?
+  0>>2: LAT>>F      1>>0: EXTRACT_LINE>>BEGINNING        1             T
 \end{code}  
 
 The \vn{show lat} branch, by default, shows branch 0. To see other branches use the \vn{-branch} option:
 \begin{code}
 Tao> show lat -branch 1
       Values at End of Element:
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---    9.77   0.040   0.03   0.000   10.02   0.040   0.00   0.000   Alive
-     1  D         Drift                 2.000   2.000    8.04   0.268   0.34   0.000   10.58   0.236   0.00   0.000   Alive
-     2  END       Marker                2.000   0.000    8.04   0.268   0.34   0.000   10.58   0.236   0.00   0.000   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
+     0  BEGINNING Beginning_Ele       0.000     ---    9.77   0.040   0.03 ...
+     1  D         Drift               2.000   2.000    8.04   0.268   0.34 ...
+     2  END       Marker              2.000   0.000    8.04   0.268   0.34 ...
+ Index  name      key                     s       l    beta     phi    eta ...
+                                                          a       a      a ...
       Values at End of Element:
 \end{code}
 
@@ -2095,9 +2201,27 @@ Much more information in the Bmad manual...
 
 
 %----------------------------------------------------------
-\Section{Data in Tao}
+\Section{Tao Initialization Files}
+\label{s:init.file}
 
-In order to optimize, you must tell Tao what quantities that you want to calculate that will contribute to the merit function. The basic structure has several: d2_data, which contains d1_data, which contains individual datums. You input these in the tao.init file as:
+\tao initialization files are used to set inital parameters like the name of the lattice file to be
+used, what is to be initally plotted, etc. Initialization files are also used to define \vn{data}
+(\sref{s:data}) and \vn{variables} (\sref{s:variables}) that are used for \vn{optimization} (\sref{optimization}).
+
+Example \tao initialization files can be found in a \vn{Distribution} or \vn{Release}
+(\sref{s:orientation}) in the directory:
+\begin{code}
+  tao/examples
+\end{code}
+
+
+%----------------------------------------------------------
+\Section{Data in Tao}
+\label{s:data}
+
+In order to optimize, you must tell Tao what quantities that you want to calculate that will
+contribute to the merit function. The basic structure has several: d2_data, which contains d1_data,
+which contains individual datums. You input these in the tao.init file as:
 \begin{code}
 &tao_d2_data
     d2_data%name = 'twiss'
@@ -2117,9 +2241,12 @@ In order to optimize, you must tell Tao what quantities that you want to calcula
 / 
 \end{code}
 
-The first datum means that beta.a at element END should be 12.5 m with a weight of 10. If the model beta function is, say, 20 m at element END, then this datum would contribute $10*(20 - 12.5)^2$ to the merit function. 
+The first datum means that beta.a at element END should be 12.5 m with a weight of 10. If the model
+beta function is, say, 20 m at element END, then this datum would contribute $10*(20 - 12.5)^2$ to
+the merit function.
 
-The columns of an individual datum(i) are a shorthand input of the datum structure (type 'getf tao_datum_input' on the command line to see a full list). The columns are:
+The columns of an individual datum(i) are a shorthand input of the datum structure (type 'getf
+tao_datum_input' on the command line to see a full list). The columns are:
 \begin{code}
 data_type       ! Type of data: 'orbit.x', etc.
 ele_ref_name    ! Name of reference lattice element
@@ -2142,7 +2269,7 @@ Tao> show dat
 
 %----------------------------------------------------------
 \Section{Variables in Tao}
-
+\label{s:variables}
 
 
 Variables must be defined in order to optimize. The simplest possible variable definition is: 
@@ -2171,14 +2298,14 @@ or a more detailed list:
 Tao> sho var quad
 Variable name:  quad
 
- Index  Controlled Attributes(s)    Meas         Model        Design  Useit_opt
-     1  Q1[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
-     2  Q2[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
-     3  Q3[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
-     4  Q4[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
-     5  Q5[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
-     6  Q6[K1]                  8.6924-311    0.0000E+00    0.0000E+00       F
- Index  Controlled Attributes(s)    Meas         Model        Design  Useit_opt
+ Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
+     1  Q1[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     2  Q2[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     3  Q3[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     4  Q4[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     5  Q5[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     6  Q6[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+ Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
 \end{code}
 
 A tao_var is an array of variables, each of which can have individually set attributes. Type: 
@@ -2189,7 +2316,8 @@ Tao> sho var quad[2]
 ...
 \end{code}
 
-to see a complete list. Prepending: 'default_' in front of any of these in the variable definition will flag all variables to have the same property, like 'k1'. 
+to see a complete list. Prepending: 'default_' in front of any of these in the variable definition
+will flag all variables to have the same property, like 'k1'.
 
 Variables can also have mixed properties, as in:
 \begin{code}
@@ -2211,7 +2339,9 @@ will set the lower limit for the first four quads.
 \subsection{Key Bound Variables}
 
 
-An alternative use for variables is to bind them to keys on the keyboard for use in Tao's 'Single Mode'. The two properties to set are %key_bound and %key_delta. In the input file, adding these properties as:
+An alternative use for variables is to bind them to keys on the keyboard for use in Tao's 'Single
+Mode'. The two properties to set are %key_bound and %key_delta. In the input file, adding these
+properties as:
 \begin{code}
 &tao_var
   v1_var%name = 'quad'
@@ -2219,15 +2349,20 @@ An alternative use for variables is to bind them to keys on the keyboard for use
   default_key_bound = T
   default_key_delta = 1e-2
 /
+\end{code}
 
 Will then bind these variables to the keyboard keys 1-9, Q-O in single mode. For example,
+
 \begin{code}
 Tao> single
 Entering Single Mode...
 11>>111>>11qq>>>11
 \end{code}
 
-Enters single mode, and 1 raises the variable quad[1] by 1e-2, and q (the key under 1 on the keyboard) lowers it. The > and < signs change the default step by a factor of 2 or 1/2, which is useful when you would like the keys to make larger or smaller steps. The '11>>111>>11qq>>>11' is a history of what was pressed. 
+Enters single mode, and 1 raises the variable quad[1] by 1e-2, and q (the key under 1 on the
+keyboard) lowers it. The > and < signs change the default step by a factor of 2 or 1/2, which is
+useful when you would like the keys to make larger or smaller steps. The '11>>111>>11qq>>>11' is a
+history of what was pressed.
 
 To quit single mode, type upper case Z:
 \begin{code}
@@ -2240,7 +2375,28 @@ Tao>
 
 %----------------------------------------------------------
 \Section{Using Tao for Optimization}
+\label{s:optimization}
 
+``Optimization'' is the process of varying (model) lattice parameters to create a lattice with a
+certain set of properties as close to ``ideal'' as possible. For example, orbit flattening involves
+optimizing steering setting in the lattice so that the orbit, as calculated from the lattice,
+matches the measured orbit. The steering strengths in the optimized lattice can then be used to
+correct the actual orbit in the machine.
+
+Another example of optimization is lattice design where, say, sextupole magnet strengths in the
+lattice are adjusted to give maximum dynamic aperture.
+
+Optimization involves minimizing one or more ``objectives'' or ``merit functions''. In the case of
+orbit flattening, typically there is a single merit function that is a function of the differences
+between the measured and calculated orbits. In other situations, multiple objectives may
+be desired. \tao itself implements ``single objective'' optimization. For ``multiple objective''
+optimization, there is a separate program called \vn{moga} that you can use (\sref{s:programs}).
+
+To be able to do optimization in \tao, you must create appropriate initalization files
+(\sref{s:init.file}) that define the \vn{data} (\sref{s:data}) that is used to construct the merit
+function and the \vn{variables} (\sref{s:variables}) which will be varied in the optimization
+process. Once everything has been setup, the \vn{run} command will start the \vn{optimization}
+process.
 
 
 
