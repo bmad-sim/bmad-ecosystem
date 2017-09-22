@@ -43,12 +43,26 @@ integer species
 logical :: err_flag
 logical, optional :: include_delta_time
 
+! If no Twiss has been set then just use the unit matrix.
+
+v => ele%value
+
+if (v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. &
+    v(alpha_a0$) == 0 .and. v(alpha_b0$) == 0 .and. &
+    v(beta_a1$) == 0 .and. v(beta_b1$) == 0 .and. &
+    v(alpha_a1$) == 0 .and. v(alpha_b1$) == 0 .and. is_false(v(match_end$))) then
+  call mat_make_unit(mat6)
+  vec0 = [v(x1$)-v(x0$), v(px1$)-v(px0$), v(y1$)-v(y0$), v(py1$)-v(py0$), v(z1$)-v(z0$), v(pz1$)-v(pz0$)]
+  err_flag = .false.
+  return
+endif
+
 ! Error Check
 
 old_mat6 = mat6
 old_vec0 = vec0
 
-if (ele%value(beta_a1$) == 0 .or. ele%value(beta_b1$) == 0) then
+if (v(beta_a1$) == 0 .or. v(beta_b1$) == 0) then
   mat6 = 0
   vec0 = 0
   err_flag = .true.
@@ -58,29 +72,29 @@ endif
 
 ! Match_end
 
-if (is_true(ele%value(match_end$))) then
+if (is_true(v(match_end$))) then
   if (present(twiss_ele)) then
     t_ele => twiss_ele
   else
     t_ele => pointer_to_next_ele (ele, -1)
   endif
-  ele%value(beta_a0$)    = t_ele%a%beta
-  ele%value(beta_b0$)    = t_ele%b%beta
-  ele%value(alpha_a0$)   = t_ele%a%alpha
-  ele%value(alpha_b0$)   = t_ele%b%alpha
-  ele%value(eta_x0$)     = t_ele%x%eta
-  ele%value(eta_y0$)     = t_ele%y%eta
-  ele%value(etap_x0$)    = t_ele%x%etap
-  ele%value(etap_y0$)    = t_ele%y%etap
-  ele%value(gamma_c$)    = t_ele%gamma_c
-  ele%value(c_11$:c_22$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+  v(beta_a0$)    = t_ele%a%beta
+  v(beta_b0$)    = t_ele%b%beta
+  v(alpha_a0$)   = t_ele%a%alpha
+  v(alpha_b0$)   = t_ele%b%alpha
+  v(eta_x0$)     = t_ele%x%eta
+  v(eta_y0$)     = t_ele%y%eta
+  v(etap_x0$)    = t_ele%x%etap
+  v(etap_y0$)    = t_ele%y%etap
+  v(gamma_c$)    = t_ele%gamma_c
+  v(c_11$:c_22$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
 endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.
 ! In this case, just return the unit matrix. 
 ! This is not an error since it is important for lat_make_mat6 to keep on computing matrices.
 
-if (is_true(ele%value(match_end$)) .and. (ele%value(beta_a0$) == 0 .or. ele%value(beta_b0$) == 0)) then
+if (is_true(v(match_end$)) .and. (v(beta_a0$) == 0 .or. v(beta_b0$) == 0)) then
   call mat_make_unit (mat6)
   vec0 = 0
   err_flag = .false.
@@ -90,7 +104,7 @@ endif
 
 !
 
-if (ele%value(beta_a0$) == 0 .or. ele%value(beta_b0$) == 0) then
+if (v(beta_a0$) == 0 .or. v(beta_b0$) == 0) then
   mat6 = 0
   err_flag = .true.
   call kill_taylor (ele%taylor)
@@ -100,8 +114,6 @@ endif
 !
 
 err_flag = .false.
-
-v => ele%value
 
 ele0%a%beta   = v(beta_a0$)
 ele0%a%alpha  = v(alpha_a0$)
@@ -144,12 +156,12 @@ call transfer_mat_from_twiss (ele0, ele1, orb0, orb1, mat6)
 
 ! Finite delta_time introduces a mat(5,6) component.
 
-if (logic_option(.true., include_delta_time) .and. ele%value(delta_time$) /= 0) then
+if (logic_option(.true., include_delta_time) .and. v(delta_time$) /= 0) then
   species = ele%branch%param%particle
-  p0c = ele%value(p0c$)
+  p0c = v(p0c$)
   mass = mass_of(species)
-  E = (1 + start_orb%vec(6)) * ele%value(p0c$) / start_orb%beta
-  m56 = -c_light * ele%value(delta_time$) * mass**2 *p0c / E**3
+  E = (1 + start_orb%vec(6)) * v(p0c$) / start_orb%beta
+  m56 = -c_light * v(delta_time$) * mass**2 *p0c / E**3
   mat6(:,6) = mat6(:,6) + mat6(:,5) * m56 
 endif
 

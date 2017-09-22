@@ -195,7 +195,7 @@ do
     if (key > 0) then
       n_loc2 = 0
       do i = ele_start%ix_ele, ele_end%ix_ele, step
-        if (lat%branch(ib)%ele(i)%key == key) n_loc2 = n_loc2 + 1
+        if (lat%branch(ib)%ele(i)%key == key .or. lat%branch(ib)%ele(i)%sub_key == key) n_loc2 = n_loc2 + 1
       enddo
     else
       n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
@@ -205,7 +205,7 @@ do
 
     n_loc2 = 0
     do i = ele_start%ix_ele, ele_end%ix_ele, step
-      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key) cycle
+      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
       n_loc2 = n_loc2 + 1
       eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
       eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
@@ -349,7 +349,7 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   n_dup = 0
   if (ix_branch /= -1 .and. k /= ix_branch) cycle
   do i = 0, lat%branch(k)%n_ele_max
-    if (key /= 0 .and. lat%branch(k)%ele(i)%key /= key) cycle
+    if (key /= 0 .and. lat%branch(k)%ele(i)%key /= key .and. lat%branch(k)%ele(i)%sub_key /= key) cycle
     if (do_match_wild) then
       if (.not. match_wild(lat%branch(k)%ele(i)%name, name)) cycle
     else
