@@ -2727,12 +2727,13 @@ Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of
 the \vn{match} element are called the ending (downstream) ``design'' Twiss
 parameters.
 
-The matrix $\Bf M$ is calculated such that if (and only if) the actual
-(computed) Twiss parameters at the beginning \vn{match} element are
-equal to the beginning design Twiss parameters, then the computed
-Twiss parameters at the end of the \vn{match} element will be the end
-design Twiss parameters and the phase advances (in radians) will be
-\vn{dphi_a} and \vn{dphi_b}.
+The matrix $\Bf M$ is calculated such that if (and only if) the actual (computed) Twiss parameters
+at the beginning \vn{match} element are equal to the beginning design Twiss parameters, then the
+computed Twiss parameters at the end of the \vn{match} element will be the end design Twiss
+parameters and the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+
+Note: If all input betas and alphas (\vn{beta_a0}, etc.) are zero, and \vn{match_end} is False,
+then $\Bf M$ will be the unit map.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}

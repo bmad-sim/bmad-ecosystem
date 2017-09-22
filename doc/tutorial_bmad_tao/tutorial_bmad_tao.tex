@@ -574,6 +574,9 @@ Tao> show ele sbend::*
 Number of Matches: 1
 \end{code}
 
+Note: When \vn{rbend} (rectangular bend) elements are read in, internally they are converted to
+\vn{sbend} (sector bend) elements. Thus a search for \vn{sbend} elements will include all \vn{rbend} elements.
+
 \begin{figure}[b]
   \centering
   \includegraphics[width=0.6\textwidth]{plot-page.pdf}
@@ -1508,19 +1511,21 @@ indicates that the particle is in front of the reference particle and vice versa
 Example lattice:
 \begin{code}
 ! Lattice File: orbit.bmad
-beginning[beta_a] = 10.     ! m  a-mode beta function
-beginning[beta_b] = 10.     ! m  b-mode beta function
-beginning[e_tot] = 10e6     ! eV
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV
 parameter[geometry] = open  ! or closed
+bmad_com[spin_tracking_on] = T
 
 beam_start[y] = 0.01
 beam_start[px] = 0.06
 beam_start[pz] = -0.2
+beam_start[spin_x] = 1
 
 b: sbend, L = 0.5, g = 1    ! g = 1 / bending_radius
 q: quadrupole, L = 0.6, k1 = 10
 
-lat: line = (b, q)      ! List of lattice elements
+lat: line = (b, q)   ! List of lattice elements
 use, lat                ! Line used to construct the lattice
 \end{code}
 
@@ -1545,6 +1550,15 @@ View Orbits with \vn{show lattice} command
 \begin{code}
 Tao> show lat
       Values at End of Element:
+ Index  name      key                 s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
+                                                            a       a      a  x [mm]       b       b      b  y [mm]
+     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00  10.000   Alive
+     1  B         Sbend                 0.500   0.500    7.62   0.069   0.20  28.889    8.51   0.069   0.01   9.201   Alive
+     2  Q         Quadrupole            1.100   0.600    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
+     3  END       Marker                1.100   0.000    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
+ Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
+                                                            a       a      a  x [mm]       b       b      b  y [mm]
+
  Index  name      key                 s       l    beta     phi    eta ...
                                                       a       a      a ...
      0  BEGINNING Beginning_Ele   0.000     ---   10.00   0.000   0.00 ...
@@ -1559,12 +1573,16 @@ Tao> show lat
 or the \vn{show element} command
 
 \begin{code}
-Tao> show ele 0
- Element #                0
- Element Name: BEGINNING
- Key: Beginning_Ele
-
+Tao> show ele 1
+ Element #                1
+ Element Name: B
 ... etc...
+
+Orbit:  Positron   State: Alive
+         Position[mm] Momentum[mrad]        Spin   |
+  X:       5.02772161   -44.34051580  -0.14145163  | Particle [sec]:     ...
+  Y:       9.52710654    -1.27804602  -0.00171549  | Part-Ref [sec]:     ...
+  Z:      -4.78648430  -200.00000000   0.98994368  | (Ref-Part)*Vel [m]: ...
 
 Orbit:  Positron   State: Alive
          Position[mm] Momentum[mrad]        Spin   |
@@ -1573,13 +1591,17 @@ Orbit:  Positron   State: Alive
   Z:       0.00000000  -200.00000000               | (Ref-Part)*Vel [m]: ...
 \end{code}
 
+
+
+\newpage
+
 %----------------------------------------------------------
 \subsection{Reference Energy and the Lcavity and RFcavity Elements}
 
-
-\vn{Lcavity} and \vn{RFcavity}  elements are RF cavity elements. The difference is that the reference
- energy at the exit end of an \vn{lcavity} is shifted from the reference energy at the beginning
- while \vn{rfcavity} elements do not affect the reference energy. Example:
+\vn{Lcavity} and \vn{RFcavity} elements are RF cavity elements. The difference is that the reference
+energy at the exit end of an \vn{lcavity} is set so that a particle entering the cavity with zero
+phase space coordinates leaves with zero phase space \vn{pz}.
+On the other hand, \vn{rfcavity} elements do not affect the reference energy. Example:
 \begin{code}
 ! Lattice File: cavity.bmad
 beginning[beta_a] = 10.   ! m  a-mode beta function
@@ -1605,8 +1627,7 @@ Notes:
 \end{itemize}
 
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file
-\vn{cavity.bmad}.
-
+\vn{cavity.bmad}. Examining the \vn{lcavity} element shows:
 \begin{code}
 > tao -lat cavity.bmad
 
@@ -1625,7 +1646,16 @@ Orbit:  He+   State: Alive
   X:       0.00000000     0.00000000               | Particle [sec]:     ...
   Y:       0.00000000     0.00000000               | Part-Ref [sec]:     ...
   Z:      -0.00000000     0.00000000               | (Ref-Part)*Vel [m]: ...
+\end{code}
 
+The reference energy at the start of the element, \vn{E_tot_start}, is not the same as the reference
+energy at the end of the element \vn{E_tot}. The particle orbit, which started out with zero phase
+space coordinates (there were no \vn{beam_start} statements to give a non-zero starting orbit), still
+has zero phase space coordinates at the end of the \vn{lcavity} element.
+
+
+Compare this to the \vn{rfcavity} element:
+\begin{code}
 Tao> show ele 6
 Element #                6
 Element Name: RF
@@ -1640,6 +1670,10 @@ Key: RFcavity
   Y:       0.00000000     0.00000000               | Part-Ref [sec]:     ...
   Z:     140.37425587   494.97867675               | (Ref-Part)*Vel [m]: ...
 \end{code}
+
+Here there is no \vn{E_tot_start} parameter since the ending reference energy is always equal to the
+starting one. With the \vn{rfcavity} element, the \vn{pz} coordinate at the end of the element is
+now nonzero.
 
 Questions:
 \begin{itemize}
