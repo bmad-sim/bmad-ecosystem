@@ -635,7 +635,7 @@ r14                 <-->                      0.00  1.00  0.79  1.00
 \end{code}
 The output of the \vn{show plot} is divided into three sections. The top section
 shows some parameters like the size of the plot window. These parameters can be 
-set using a \tao initalization file (\sref{s:init.file}) or by using the ``\vn{set plot_page}''
+set using a \tao initialization file (\sref{s:init.file}) or by using the ``\vn{set plot_page}''
 command when running \tao.
 
 The middle section of the output of the \vn{show plot} command shows plot \vn{templates}.
@@ -674,7 +674,7 @@ Tao> place * none      ! Clear all regions
 %----------------------------------------------------------
 \subsection{Scaling Plots}
 
-Plots can be scalled vertically using the \vn{scale} command:
+Plots can be scaled vertically using the \vn{scale} command:
 \begin{code}
 Tao> scale beta 0 20  ! Set y_min = 0, y_max = 20
 Tao> scale r22 0 20   ! Same as above if beta plot in r22 region
@@ -782,7 +782,7 @@ When \tao runs, \tao instantiates three lattices:
 \begin{description}
 \item[Design Lattice] \Newline
 The \vn{design} lattice corresponds to the lattice read in from the lattice
-description file(s). Parameters onf this lattice are never varied.
+description file(s). Parameters in this lattice are never varied.
 \item[Model Lattice] \Newline
 Initially, when Tao is started, \vn{model} = \vn{design}. Essentially all commands to vary lattice
 parameters vary parameters of this lattice.
@@ -878,7 +878,7 @@ situations. For example, if multiple orbit measurements have been made with stee
 changing between measurements, each measurement could be associated with a different universe
 and the entire collection of measurements could be analyzed simultaneously. 
 
-The discussion of multiple universes is beyound this tutorial and the interested reader is 
+The discussion of multiple universes is beyond this tutorial and the interested reader is 
 referred to the \tao manual.
 
 
@@ -893,7 +893,7 @@ of control elements called \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Gro
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
 supply that powers a chain of magnets can be simulated with a control element.  \vn{Girder} elements
 are used for simulating support structures. For example, a \vn{girder} can simulate an I-beam that
-supports a number of mangnets or can be used to simulate an optical table.
+supports a number of magnets or can be used to simulate an optical table.
 
 Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as \vn{minor} lords since they
 only control a subset of an element's attributes. The other type of lord elements, \vn{multipass}
@@ -1179,7 +1179,7 @@ structures. See the Bmad manual for more details.
 There are three coordinate systems that are used to describe the positioning
 of lattice elements as shown in Figure~\ref{f:coordinates}:
 \begin{description}
-\item[Glorbal Coordinates] \Newline
+\item[Global Coordinates] \Newline
 The \vn{(X, Y, Z)} \vn{global} (also called \vn{floor}) coordinate system is independent of the accelerator and is 
 "attached" to the building the accelerator is in. Typically, the \vn{Y}-axis is taken to be pointing vertically up
 and \vn{(X, Z)} is the horizontal plane.
@@ -1330,7 +1330,7 @@ use, lat          ! Line used to construct the lattice
 \end{code}
 
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{misalign.bmad}. The
-misalignment can be viewd using the \vn{-floor} option with the \vn{show element } command:
+misalignment can be viewed using the \vn{-floor} option with the \vn{show element } command:
 \begin{code} 
 Tao> show ele q -floor
 
@@ -1345,7 +1345,7 @@ Actual     0.11999  0.00000  0.99960  0.04000 ... ! With misalignments
 \end{code}
 
 The \vn{Reference} row shows the nominal position of the \vn{exit} end of the element without
-misalignmnets. [Due to space constaraints the \vn{phi} and \vn{psi} columns are not shown. They are
+misalignments. [Due to space constraints the \vn{phi} and \vn{psi} columns are not shown. They are
 zero in this case.] The \vn{Actual} row shows the position of the physical element at the \vn{exit} end.
 
 \begin{figure}[tb]
@@ -1383,7 +1383,7 @@ towards the \vn{+y} axis (rotation around the -x axis).
 axis.
 \end{enumerate}
 This transformation is illustrated in Figure~\ref{f:patch}. The transformation from \vn{patch}
-\vn{entrance} to \vn{exit} coordinates is the same transformation from laboritory coordinates at the
+\vn{entrance} to \vn{exit} coordinates is the same transformation from laboratory coordinates at the
 center of a straight element to the element body coordinates at the center of the misaligned
 element.
 
@@ -1406,7 +1406,7 @@ use, lat                ! Line used to construct the lattice
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{patch.bmad}. Create
 a \vn{floor_plan} with the command \vn{place r11 floor}. The result is shown in
 Figure~\ref{f:patch.example}.  By default, \vn{patch} elements are not drawn but the global
-coordinates of the nominal positions of the elements can be seen by using the \vn{show lat -fllor}
+coordinates of the nominal positions of the elements can be seen by using the \vn{show lat -floor}
 command:
 \begin{code}
 Tao> show lat -floor
@@ -1540,7 +1540,7 @@ Tao> change beam_start px 0.04
 
 The result is shown in Figure~\ref{f:phase1}.
 
-View Orbits with \vn{show lattice} caommand
+View Orbits with \vn{show lattice} command
 
 \begin{code}
 Tao> show lat
@@ -2204,8 +2204,8 @@ Much more information in the Bmad manual...
 \Section{Tao Initialization Files}
 \label{s:init.file}
 
-\tao initialization files are used to set inital parameters like the name of the lattice file to be
-used, what is to be initally plotted, etc. Initialization files are also used to define \vn{data}
+\tao initialization files are used to set initial parameters like the name of the lattice file to be
+used, what is to be initially plotted, etc. Initialization files are also used to define \vn{data}
 (\sref{s:data}) and \vn{variables} (\sref{s:variables}) that are used for \vn{optimization} (\sref{optimization}).
 
 Example \tao initialization files can be found in a \vn{Distribution} or \vn{Release}
@@ -2392,7 +2392,7 @@ between the measured and calculated orbits. In other situations, multiple object
 be desired. \tao itself implements ``single objective'' optimization. For ``multiple objective''
 optimization, there is a separate program called \vn{moga} that you can use (\sref{s:programs}).
 
-To be able to do optimization in \tao, you must create appropriate initalization files
+To be able to do optimization in \tao, you must create appropriate initialization files
 (\sref{s:init.file}) that define the \vn{data} (\sref{s:data}) that is used to construct the merit
 function and the \vn{variables} (\sref{s:variables}) which will be varied in the optimization
 process. Once everything has been setup, the \vn{run} command will start the \vn{optimization}
