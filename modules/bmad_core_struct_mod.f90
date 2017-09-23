@@ -930,7 +930,7 @@ end subroutine init_lat
 !   key       -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
 !   sub_key   -- Integer, optional: Sub-key to initialize to.
 !   ix_ele    -- Integer, optional: ix_ele index to initalize to. Default = -1.
-!   branch    -- branch_struct: Branch to point ele%branch and ele%ix_branch to.
+!   branch    -- branch_struct, optional: Branch to point ele%branch and ele%ix_branch to.
 !                  Otherwise ele%branch is nullified and ele%ix_branch = 0.
 !
 ! Output:
