@@ -162,10 +162,10 @@ Table~\ref{t:delta}.
 {\tt
 \begin{tabular}{lll} \toprule
   \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{delta} \\ \midrule
-  F & F & Model - Meas                \\
-  T & F & Model - Meas + Ref - Design \\
-  F & T & Model - Meas - Base         \\
-  T & T & Model - Meas + Ref - Base   \\
+  F & F & model - meas                \\
+  T & F & model - meas + ref - design \\
+  F & T & model - meas - base         \\
+  T & T & model - meas + ref - base   \\
 \bottomrule
 \end{tabular}
 } 
@@ -214,11 +214,11 @@ A \vn{target} \vn{merit_type} for a variable is the same as for
 datum. In this case \vn{model} is just the value of the variable.
 A \vn{limit} \vn{merit_type} has the form
 \Begineq
-  V = 
+  \delta V = 
     \begin{cases}
     \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
     \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
-    0                               & \mbox{Otherwise}
+    0                                & \mbox{Otherwise}
     \end{cases}
 \Endeq
 The default \vn{merit_type} for a variable is \vn{limit}.

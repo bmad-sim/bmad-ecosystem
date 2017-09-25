@@ -1,49 +1,45 @@
 \section*{Introduction}
+\label{c:introduction}
 \pdfbookmark[1]{Introduction}{Intro}
 
-\tao stands for ``Tool for Accelerator Optics''. \tao is a general
-purpose program for simulating high energy particle beams in
-accelerators and storage rings. The simulation engine that \tao uses
-is the \bmad software library\cite{b:bmad}. \bmad was developed as an
-object-oriented library so that common tasks, such as reading in a
-lattice file and particle tracking, did not have to be coded from
-scratch every time someone wanted to develop a program to calculate
-this, that or whatever.
+\tao stands for ``Tool for Accelerator Optics''. \tao is a general purpose program for simulating
+high energy particle beams in accelerators and storage rings. The simulation engine that \tao uses
+is the \bmad software library\cite{b:bmad}. \bmad was developed as an object-oriented library so
+that common tasks, such as reading in a lattice file and particle tracking, did not have to be coded
+from scratch every time someone wanted to develop a program to calculate this, that or whatever.
 
-After the development of \bmad, it became apparent that many simulation
-programs had common needs: For example, plotting data, viewing machine
-parameters, etc. Because of this commonality, the \tao program was
-developed to reduce the time needed to develop a working programs
-without sacrificing flexibility. That is, while the ``vanilla''
-version of the \tao program is quite a powerful simulation tool, \tao
-has been designed to be easily customizable so that extending \tao to
-solve new and different problems is relatively straight forward.
+After the development of \bmad, it became apparent that many simulation programs had common needs:
+For example, plotting data, viewing machine parameters, etc. Because of this commonality, the \tao
+program was developed to reduce the time needed to develop a working programs without sacrificing
+flexibility. That is, while the ``vanilla'' version of the \tao program is quite a powerful
+simulation tool, \tao has been designed to be easily customizable so that extending \tao to solve
+new and different problems is relatively straight forward.
 
-This manual is divided into three parts. Part I gives a quick
-walk though of how to use \tao with examples of how to set-up tracking, 
-do plotting, etc. Part II is the reference section 
-which defines the
-terms used by \tao and explains in detail the syntax of the
-configuration files that \tao uses to make a connection with a
-specific machine. Finally, Part III is a programmer's guide which
-shows how to extend \tao's capabilities and incorporate custom
-calculations.
+This manual is divided into two parts. Part I is the reference section which defines the terms used
+by \tao and explains in detail the syntax of the configuration files that \tao uses to make a
+connection with a specific machine. Part II is a programmer's guide which shows how to extend
+\tao's capabilities and incorporate custom calculations.
 
 More information, including the most up--to--date version of this
-manual, can be found at the \bmad web site at
+manual, can be found at the \bmad web site at:
 \begin{example}
   http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
 
-Errors and omissions are a fact of life for any reference work and
-comments from you, dear reader, are therefore most welcome. Please
-send any missives (or chocolates, or any other kind of sustenance) to:
+\vspace{0.1in}
+The \tao manual is organized as reference guide and so does not do a good job of instructing the
+beginner as to how to use \tao. For that there is an introduction and tutorial on \bmad and \tao
+concepts that can be downloaded from the \bmad web page. Go to either the \bmad or \tao manual pages
+and there will be a link for the tutorial.
+
+Errors and omissions are a fact of life for any reference work and comments from you, dear reader,
+are therefore most welcome. Please send any missives (or chocolates, or any other kind of
+sustenance) to:
 \begin{example}
   David Sagan <dcs16@cornell.edu>
 \end{example}
 
-It is my pleasure to express appreciation to people who have
-contributed to this effort. In particular Jeff Smith who greatly
-contributed to this manual and Chris Mayes for his bug reports and
-suggestions for improvements to the program. Thanks also must go to
-Dave Rubin and Georg Hoffstaetter.
+It is my pleasure to express appreciation to people who have contributed to this effort. In
+particular Jeff Smith who greatly contributed to this manual and Chris Mayes for his bug reports and
+suggestions for improvements to the program. Thanks also must go to Dave Rubin and Georg
+Hoffstaetter.
