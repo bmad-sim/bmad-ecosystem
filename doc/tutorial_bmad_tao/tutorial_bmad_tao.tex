@@ -2610,12 +2610,12 @@ For example:
 \begin{code}
 Tao> show data twiss.b
 Data name: twiss.b
-                     ...                                                       |   Useit
-                     ...  Ele             Meas           Model          Design | Opt  Plot
- 1  beta.b <target>  ...  END    1.2000000E+01   9.2922886E+00   9.2922886E+00     T     F
- 2  alpha.b <target> ...  END   -4.0000000E-01  -4.4270176E-01  -4.4270176E-01     T     F
-                     ...  Ele             Meas           Model          Design | Opt  Plot
-                     ...                                                       |   Useit
+                    ...                                           |   Useit
+                    ...  Ele         Meas       Model      Design | Opt  Plot
+1  beta.b <target>  ...  END    1.200E+01   9.292E+00   9.292E+00     T     F
+2  alpha.b <target> ...  END   -4.000E-01  -4.427E-01  -4.427E-01     T     F
+                    ...  Ele         Meas       Model      Design | Opt  Plot
+                    ...                                           |   Useit
 \end{code}
 
 To see the parameters of an individual datum append the datum name after \vn{show data}.
@@ -2795,7 +2795,7 @@ group of variables does not have to contain variables of a single type.
 
 %----------------------------------------------------------
 \subsection{Key Binding}
-\label{s:opt.run}
+\label{s:key.bound}
 
 Tao has two modes for entering commands. In \vn{single mode}, each keystroke represents a
 command. That is, with a few exceptions, the user does not have to press the carriage control key to
@@ -2868,9 +2868,9 @@ quad[5]     Q5[K1]            ...   3.30      5.000E+01   1.000E+00  0.00E+00
  figure of merit: 1.738388E+02
 
 List of non-zero contributors to the Merit Function:
-Name                                          Merit           Sigma [= sqrt(Chi^2/N)]
-twiss.b                                       1.0034E+02      2.2179E+00
-twiss.a                                       7.3499E+01      1.9149E+00
+Name                           Merit           Sigma [= sqrt(Chi^2/N)]
+twiss.b                        1.0034E+02      2.2179E+00
+twiss.a                        7.3499E+01      1.9149E+00
 \end{code}
 
 To run, say, the \vn{lm} optimizer use the \vn{run lm} command. In this case, this command
@@ -2912,9 +2912,10 @@ that calls the original lattice and \vn{var1.out}. That is, the new file would l
 call, file = lat.bmad
 call, file = var1.out
 \end{code}
+
 \end{document}
 
-
+%----------------------------
 
 \begin{figure}[tb]
   \centering

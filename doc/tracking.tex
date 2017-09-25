@@ -211,39 +211,36 @@ To check if a particle is still traveling in the forward direction,
 the \Hyperref{r:particle.is.moving.forward}{particle_is_moving_forward} 
 routine can be used as shown in the above example.
 
-The ``virtual'' entrance and exit ends of a lattice element are, by
-definition, where the physical ends of the element would be if there
-were no offsets. In particular, if an element has a finite
-\vn{z_offset} (\sref{s:ele.offset}), the physical ends will be
-displaced from the virtual ends. The position \vn{ds} of a particle
-with respect to the physical entrance end of the element is
+The ``virtual'' entrance and exit ends of a lattice element are, by definition, where the physical
+ends of the element would be if there were no offsets. In particular, if an element has a finite
+\vn{z_offset} (\sref{s:ele.offset}), the physical ends will be displaced from the virtual ends. The
+position \vn{ds} of a particle with respect to the physical entrance end of the element is
 \begin{example}
   ds = coord%s - (ele%s + ele%value(z_offset_tot\$) - ele%value(l\$))
 \end{example}
-When tracking through an element, the starting and ending positions
-always correspond to the virtual ends. If there is a finite
-\vn{z_offset}, the tracking of the element will involve tracking
-through drifts just before and just after the tracking of the body of
-the element so that the particle ends at the proper virtual exit end.
+When tracking through an element, the starting and ending positions always correspond to the virtual
+ends. If there is a finite \vn{z_offset}, the tracking of the element will involve tracking through
+drifts just before and just after the tracking of the body of the element so that the particle ends
+at the proper virtual exit end.
 
-%----------------------------------------------------------------
-\section{Intra Element Trajectory}
-
-
+Note: The $z$ phase space component of the orbit (\vn{%vec(5)}) is independent of the value of
+\vn{ele%ref_time} even though the reference time is used to define $z$ (See \Eq{zbctt}). This is
+true since the starting reference time that is used for a particle is arbitrary. For example, when
+tracking multiple bunches, the reference time is typically set so that a particle at the center of
+a bunch has $z = 0$. Also, in a ring, \vn{ele%ref_time} is only the reference time for the first turn
+through an element. Since \bmad does not keep track of turn number, there is no way for \bmad to know
+what the true reference time is other than to calculate it from the value of $z$!
 
 %----------------------------------------------------------------
 \section{Tracking Through a Lattice Branch}
 
-When tracking through a lattice branch, one often defines an array of
-\vn{coord_struct}s -- one for each element of the lattice branch. In
-this case, the $i$\Th \vn{coord_struct} corresponds to the particle
-coordinates at the end of the $i$\Th element. Since the number of
-elements in the lattice is not known in advance, the array must be
-declared to be allocatable. The lower bound of the array must be set
-to zero to match a \vn{lat%branch(i)%ele(:)} array.  The upper bound
-should be the upper bound of the \vn{%branch(i)%ele(:)} array.  The
-routine \Hyperref{r:reallocate.coord}{reallocate_coord} will allocate
-an array of \vn{coord_struct}s:
+When tracking through a lattice branch, one often defines an array of \vn{coord_struct}s -- one for
+each element of the lattice branch. In this case, the $i$\Th \vn{coord_struct} corresponds to the
+particle coordinates at the end of the $i$\Th element. Since the number of elements in the lattice
+is not known in advance, the array must be declared to be allocatable. The lower bound of the array
+must be set to zero to match a \vn{lat%branch(i)%ele(:)} array.  The upper bound should be the upper
+bound of the \vn{%branch(i)%ele(:)} array.  The routine
+\Hyperref{r:reallocate.coord}{reallocate_coord} will allocate an array of \vn{coord_struct}s:
 \begin{example}
   type (coord_struct), allocatable :: orbit(:)
   type (lat_struct) lat
