@@ -1498,7 +1498,7 @@ Format:
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
         \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves_lines\} \{-orbit\} 
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
-        \{-tracking_elements\} \{<elements>\}                             ! \sref{s:show.lattice}
+        \{-spin\} \{-tracking_elements\} \{<elements>\}                     ! \sref{s:show.lattice}
   show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
   show normal_form \{-order <n_order>\} <type>                        ! \sref{s:show.normal}
   show optimizer \{-geodesic_lm\}                                     ! \sref{s:show.optimizer}
@@ -1928,7 +1928,7 @@ Syntax:
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-orbit\} \{-radiation_integrals\}
-      \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-tracking_elements\}
+      \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} \{-tracking_elements\}
       \{<element_list>\} 
 \end{example}
 
@@ -1936,19 +1936,21 @@ Show a table of Twiss and orbit data, etc. at the specified element locations. T
 is to show the parameters at the exit end of the elements. To show the parameters in the
 middle use the \vn{-middle} switch.
 
-The \vn{<element_list>} is optional but if it is present it must be at the end of the
-command line.
-
 By default, the appropriate element(s) within the \vn{model} lattice (\sref{s:universe})
 are used. This can be overridden by using the \vn{-base} or the \vn{-design} switches
 which switch the lattice to the \vn{base} or \vn{design} lattices respectively.
 
 The \vn{-all} switch shows all tracking and lord elements.
 
-The \vn{-orbit} switch will show the particle reference orbit which is the closed orbit if
-the lattice has a closed geometry and is the orbit beginning from the specified starting
-position for lattices with an open geometry. Use \vn{set beam_start} to vary the starting
-position in this case.
+The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
+lattice has a closed geometry and is the orbit beginning from the specified starting position for
+lattices with an open geometry. Use \vn{set beam_start} to vary the starting position in this
+case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
+
+The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
+closed geometry and is the spin beginning from the specified starting spin for lattices with an open
+geometry. Use \vn{set beam_start} to vary the starting spin in this case. If the \vn{-orbit} switch
+is also present, the particle's phase space orbit will also be displayed.
 
 The \vn{-radiation_integrals} switch, if present, will cause the radiation integrals for
 each lattice element to be displayed instead of the standard Twiss and orbit data.

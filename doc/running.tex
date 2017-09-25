@@ -7,11 +7,12 @@
 \index{command line}
 \label{s:command.line} 
 
-The syntax of the command line is:
+The syntax of the command line for running \tao is:
 \begin{example}
   EXE-DIRECTORY/tao \{OPTIONS\}
 \end{example}
-where \vn{EXE-DIRECTORY} is the directory where the tao executable lives.
+where \vn{EXE-DIRECTORY} is the directory where the tao executable lives. If this directory is
+listed in your \vn{PATH} environmental variable then the directory specification may be omitted.
 The optional arguments are:
   \begin{description}
   \item[\vn{-beam <beam_file>}] \Newline
@@ -53,13 +54,13 @@ Overrides the \vn{design_lattice}
 lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
-  \$ACC_EXE/tao -init my.init -lat slac.xsif
+  tao -init my.init -lat slac.xsif
 \end{example}
 If there is more than one universe and the universes have different
 lattices, separate the different lattice names using a "|" character.
 Do not put any spaces in between. Example:
 \begin{example}
-  \$ACC_EXE/tao -lat xsif::slac.lat|cesr.bmad
+  tao -lat xsif::slac.lat|cesr.bmad
 \end{example}
   \item[\vn{-log_startup}]
 If there is a problem with \tao is started, \vn{-log_startup} can be used

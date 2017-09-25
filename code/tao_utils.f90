@@ -102,7 +102,7 @@ enddo
 ! Write header 
 
 write (fmt, '(a, i5, a, i2, a)') '(a, ', j_var1-2, 'x, a, ', j_att, 'x, a)'
-write (header_str, fmt) 'Name', 'Attrib', 'Value         Value0          Delta Opt'
+write (header_str, fmt) 'Name', 'Attrib', 'Value         Value0      Delta Opt'
 
 ! Write key info
 

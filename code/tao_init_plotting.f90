@@ -94,7 +94,7 @@ plot_page = plot_page_default
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%size = [500, 600]
-plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '')
+plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '%PAGE')
 
 default_plot%name = ' '
 default_plot%description = ''

@@ -13,7 +13,7 @@ and for obtaining the source files can be found at:
 
 Briefly, you should be able to run \tao using the command
 \begin{example}
-  \$ACC_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
+  tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
            \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
 \end{example}
 \vn{\$ACC_EXE} is an environmental variable pointing to the directory
@@ -27,7 +27,7 @@ switch is for specifying the initial beam distribution.  The
 the root initialization file. See section~\sref{s:command.line} for
 more details. Example:
 \begin{example}
-  \$ACC_EXE/tao -init my.init -lat slac.xsif
+  tao -init my.init -lat slac.xsif
 \end{example}
 An initialization file is actually not needed. In this case, a
 \vn{-lat} switch is manditory and \tao will use a set of default plot
@@ -56,7 +56,7 @@ initialization files are found. \tao uses a default initialization.
 
 \tao is started with the command:
 \begin{example}
-  \$ACC_EXE/tao
+  tao
 \end{example}
 Since no initialization file is specified on the command line, the default file \vn{tao.init} (if it
 exists) is used.  Using the example files in the \vn{introduction_to_tao} directory \tao
