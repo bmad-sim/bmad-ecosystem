@@ -119,8 +119,8 @@ directory (\sref{s:orientation}) and example \tao initialization files in the \v
 directory (\sref{s:orientation}).
 
 To keep in touch with the latest \bmad developments, there are two mailing lists for
-\bmad.  The bmad-l mailing list is used to send information on Bmad developments.  The
-bmad-devel-l mailing list is for programmers. The volume of e-mail is small -- Typically
+\bmad.  The \vn{bmad-l} mailing list is used to send information on Bmad developments.  The
+\vn{bmad-devel-l} mailing list is for programmers. The volume of e-mail is small -- Typically
 less than one a week. Instructions on how to sign up can be obtained from the \bmad web
 page.
 
@@ -136,7 +136,7 @@ CLASSE (Cornell's Laboratory for Accelerator-based Sciences and Education). For 
 tutorial, \vn{Releases} and \vn{Distributions} are considered to be the same.
   \end{description}
 
-It is assumed that you already of access to a \vn{Distribution} or a \vn{Release} and that
+It is assumed that you already have access to a \vn{Distribution} or a \vn{Release} and that
 you have setup the requisite environmental variables. If this is not true, and there is no
 local \bmad Guru to guide you, download and setup instructions can be found on the \bmad web
 site (\sref{s:resources}). If everything is setup correctly, the environmental variable
@@ -158,7 +158,13 @@ For an explanation of what directories contain what, see:
   \url{https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#DistDirs}
 \end{display}
 
-A quick introduction to the most important directories:
+\newpage
+
+%------------------------------------------------------------------------------
+\subsection{Bmad Directories}
+\label{s:bmad.dir}
+
+A quick introduction to the most important directories in a \vn{Distribution} or a \vn{Release}:
   \begin{description}
   \item[bmad] \Newline
 The \vn{bmad} directory holds the code for the \bmad library.
@@ -185,8 +191,10 @@ The \vn{tao} directory holds the code for the \tao program as well as example in
 files.
   \end{description}
 
+\newpage
+
 %------------------------------------------------------------------------------
-\section{Bmad Based Simulation Programs}
+\Section{Bmad Based Simulation Programs}
 \label{s:programs}
 
 Below is a partial list of simulation programs that are based upon \bmad. All of these
@@ -232,6 +240,8 @@ documentation are in \vn{bsim/synrad3d} and \vn{bsim/code_synrad3d}.
 documentation, and examples can be found in the \vn{tao} directory. Documentation is also
 available from the web (\sref{s:resources}).
   \end{description}
+
+\newpage
 
 %------------------------------------------------------------------------------
 \Section{Introduction to Bmad Lattices}
@@ -308,6 +318,8 @@ sub-lines, etc.
 [Note: the above discussion assumes that the lattice has only one \vn{branch}. Branches will be
 discussed in more detail later.]
 
+\newpage
+
 %------------------------------------------------------------------------------
 \Section{How to Use this Tutorial}
 
@@ -362,7 +374,7 @@ examples/bmad_tao_tutorial_files/
 \end{code}
 Each lattice shown in this tutorial lists the appropriate file name on the first line.
 
-Alternatively, you can use one of the more complicated lattices in the directory
+Note: Other lattice examples can be obtained from the directory:
 \begin{code}
 examples/lattice_file_examples
 \end{code}
@@ -386,7 +398,15 @@ Consult the \tao manual for a list of command line arguments or use the command:
 > tao -help
 \end{code}
 
+If you are runing with a \tao initiation file (\sref{s:init.file}, the \vn{-lat} option is
+not needed and \tao is started with the command:
+\begin{code}
+> tao
+\end{code}
+
 In your terminal window there should be a ``\vn{Tao>}'' prompt where you can type \tao commands.
+
+\newpage
 
 %----------------------------------------------------------
 \Section{Tao: Getting Help}
@@ -437,18 +457,14 @@ variables, etc. Format:
 
 Also see the "change" command . The "change" command is specialized
 for varying real parameters while the "set" command is more general.
-
 ... etc...
-
-Use the command:
-  help set <what>
-to obtain more information on a particular set subtopic. Example:
-  help set plot
 \end{code}
 
 Some commands are complicated enough so that there is a second help level. The \vn{set} command is
 an example of such a command. Thus you can type \vn{help set curve} for help on setting plotting
 curve parameters.
+
+\newpage
 
 %----------------------------------------------------------
 \Section{Tao Show Command}
@@ -778,6 +794,8 @@ line%pattern         = 1  solid
 ... etc...
 \end{code}
 
+\newpage
+
 %----------------------------------------------------------
 \Section{Model Design and Base Lattices in Tao}
 
@@ -832,8 +850,6 @@ comes from.  The result is shown in Figure~\ref{f:model.eq.design}. The bottom p
 the difference in orbits between \vn{model} and \vn{design}. Since the two lattices are the same
 when \tao is started, the difference orbit is zero.
 
-\newpage
-
 Now change the \vn{model} lattice using the following commands:
 \begin{code}
 Tao> change element b vkick  -0.0005   ! Changes by a given delta
@@ -846,7 +862,7 @@ the \vn{model} lattice is not the same as the \vn{design} lattice the difference
 
 \begin{figure}[b]
   \centering
-  \includegraphics[width=0.7\textwidth]{with-base.pdf}
+  \includegraphics[width=0.6\textwidth]{with-base.pdf}
   \caption{The \vn{base} lattice is used to view changes when the reference lattice configuration
 does not correspond to the \vn{design} lattice.}
   \label{f:base}
@@ -882,8 +898,10 @@ changing between measurements, each measurement could be associated with a diffe
 and the entire collection of measurements could be analyzed simultaneously. 
 
 The discussion of multiple universes is beyond this tutorial and the interested reader is 
-referred to the \tao manual.
+referred to the \tao manual. in the chapter on ``Overall Organization and Structure''.
 
+
+\newpage
 
 %----------------------------------------------------------
 \Section{Control Elements}
@@ -892,17 +910,14 @@ referred to the \tao manual.
 \subsection{Overview}
 
 Control elements are elements that control the parameters of other elements. There are three types
-of control elements called \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
+of control elements \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
-supply that powers a chain of magnets can be simulated with a control element.  \vn{Girder} elements
-are used for simulating support structures. For example, a \vn{girder} can simulate an I-beam that
-supports a number of magnets or can be used to simulate an optical table.
+supply that powers a chain of magnets. \vn{Girder} elements (\sref{s:girder})
+are used for simulating support structures.
 
 Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as \vn{minor} lords since they
 only control a subset of an element's attributes. The other type of lord elements, \vn{multipass}
 (\sref{s:multipass}) and \vn{superposition} (\sref{s:super}) lords, are called \vn{major} lords.
-
-\newpage
 
 %----------------------------------------------------------
 \subsection{Example Lattice}
@@ -928,6 +943,7 @@ gr1: group = {b[e1]: 0.4*sqrt(z)}, var = {z}
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item
 The overlay \vn{ov1} controls two parameters: 
@@ -936,7 +952,7 @@ The \vn{k1} attribute of element \vn{q} (denoted \vn{q[k1]}) and the \vn{g} attr
 \item
 Overlay \vn{ov1} has two variables called \vn{a} and \vn{b} that are used to control the two attributes.
 \item
-The formulas for overlay \vn{ov1} that are used to calculate the the values of the two controlled
+The formulas for overlay \vn{ov1} that are used to calculate the values of the two controlled
 attributes are \vn{a+b$^2$} for \vn{q[k1]} and \vn{0.1*a+tan(b)} for \vn{b[g]}.
 \item 
 Since overlay \vn{ov2} also controls \vn{q[k1]}, the value of \vn{q[k1]} is the sum of the
@@ -974,6 +990,7 @@ Lord Elements:
 \end{code}
 
 The list of lattice elements is divided up into two sections:
+\vspace{-10 pt}
 \begin{itemize}
 \item
 The \vn{"tracking"} part of the lattice are the elements to be tracked through. Here the tracking part of
@@ -1096,6 +1113,7 @@ A \vn{group} element not only has associated variables (in this case a single va
 \bmad also keeps a record of what is called the ``old'' value (\vn{old_z}). When the above \vn{set
   ele gr1} command is executed, the value of \vn{gr1[z]} becomes 0.01. \bmad detects that \vn{z}
 and \vn{old_z} are different and updates \vn{b[k1]} using the following procedure:
+\vspace{-10 pt}
 \begin{enumerate}
 \item
 Evaluates the difference \vn{0.4*sqrt(z)} - \vn{0.4*sqrt(old_z)} = 0.04
@@ -1125,6 +1143,7 @@ Slaves:
    Index   Ele_Name  Attribute   Attrib_Value  Expression_Val    Expression
        2   B         K1            6.0000E-02      8.0000E-02    0.4*sqrt(z)
 \end{code}
+\vspace{-10 pt}
 \begin{enumerate}
 \item
 The ``\vn{reinit tao}'' command resets \tao to its initial state.
@@ -1148,6 +1167,7 @@ raw_xqune_1 : group ={SEX_08W:-.6415E-03*k2,...}, var = {k2}
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item
 Group and overlay elements can control other group and overlay elements.
@@ -1158,9 +1178,11 @@ elements but may not be controlled by both group and overlay elements.
 
 %----------------------------------------------------------
 \subsection{Girders}
+\label{s:girder}
 
 A third type of controller is the \vn{girder} element which can be used to simulate support
-structures. See the Bmad manual for more details.
+structures like an I-beam that supports a number of magnets or an optical table supporting an
+optical setup. See section~\sref{s:ele.mis} and the \bmad manual for more details.
 
 \newpage
 
@@ -1235,6 +1257,8 @@ about an axis which is in the \vn{x}-\vn{y} plane of the \vn{entrance} (and \vn{
 be arbitrarily positioned with respect to the entrance coordinates. See \sref{s:patch}.
 \end{description}
 
+\newpage
+
 %----------------------------------------------------------
 \subsection{Local Coordinate System Construction}
 
@@ -1247,15 +1271,19 @@ connecting the \vn{exit} frame of one element to the \vn{entrance} frame of the 
 \end{figure}
 
 The \vn{local} coordinate system is constructed by taking the ordered list of lattice elements and
-connecting the \vn{exit} frame of one element to the \vn{entrance} frame of the next (just like LEGO
-blocks). Given a line constructed as:
+connecting the \vn{(x, y, z)} \vn{exit} frame of one element to the \vn{(x, y, z)} \vn{entrance}
+frame of the next (just like LEGO blocks). Given a line constructed as:
 \begin{code}
     lat: line = (A, B, C)
 \end{code}
 The result could look as shown in Figure~\ref{f:leggo}.
 
+
+\newpage
+
 %----------------------------------------------------------
 \subsection{Laboratory Coordinates Relative to Global Coordinates}
+\label{s:lab.rel.glob}
 
 \begin{figure}[tb]
   \centering
@@ -1266,6 +1294,7 @@ The result could look as shown in Figure~\ref{f:leggo}.
 
 For any given position on the reference orbit, the \vn{local} coordinate system is described with
 respect to the \vn{global} coordinate system by 6 parameters as shown in Figure~\ref{f:global}:
+\vspace{-10 pt}
 \begin{itemize}
 \item (\vn{X}, \vn{Y}, \vn{Z}) global position
 \item \vn{$\theta$} azimuth angle in the (X, Z) plane.
@@ -1274,16 +1303,18 @@ respect to the \vn{global} coordinate system by 6 parameters as shown in Figure~
 \end{itemize}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item The default is for the beginning of the lattice (\vn{s} = 0) is to have the local \vn{(x, y, z)} aligned with the 
 global \vn{(X, Y, Z)}.
 \item For a machine that lies in the horizontal plane, \vn{$\phi$} and \vn{$\psi$} angles are zero.
 \end{itemize}
 
+\newpage
 
 %----------------------------------------------------------
 \subsection{Element Misalignments}
-
+\label{s:ele.mis}
 
 \begin{figure}[tb]
   \centering
@@ -1339,6 +1370,15 @@ Tao> show ele q -floor
 
  Element #                1
  Element Name: Q
+... etc...
+
+ Attribute values [Only non-zero/non-default values shown]:
+    1  L               =  1.0000E+00 m
+   13  SPIN_FRINGE_ON  =  T (1)
+   31  L_HARD_EDGE     =  1.0000E+00 m
+   34  X_PITCH         =  4.0000E-02       55  X_PITCH_TOT   =  4.0000E-02
+   36  X_OFFSET        =  1.0000E-01 m     57  X_OFFSET_TOT  =  1.0000E-01 m
+... etc...
 
 Global Floor Coords at End of Element:
                 X        Y        Z    Theta  
@@ -1347,14 +1387,29 @@ Actual     0.11999  0.00000  0.99960  0.04000 ... ! With misalignments
 ... etc...
 \end{code}
 
-The \vn{Reference} row shows the nominal position of the \vn{exit} end of the element without
-misalignments. [Due to space constraints the \vn{phi} and \vn{psi} columns are not shown. They are
-zero in this case.] The \vn{Actual} row shows the position of the physical element at the \vn{exit} end.
+In the ``\vn{Global Floor Coords}'' section, the \vn{Reference} row shows the nominal position of
+the \vn{exit} end of the element without misalignments. [Due to space constraints the \vn{phi} and
+\vn{psi} columns are not shown. They are zero in this case.] The \vn{Actual} row shows the position
+of the physical element at the \vn{exit} end.
+
+Associated with each misalignment attribute there is a corresponding attribute with a ``\vn{_tot}''
+suffix. The difference is that an attribute like \vn{x_offset} is the misalignment with respect to
+any \vn{girder} (\sref{s:girder}) that may be supporting it while the corresponding
+\vn{x_offset_tot} is the total misalignment of the lattice element with respect to the element's
+nominal position. Another difference is that misalignments attributes are set by the user while the
+corresponding \vn{_tot} attributes acre calculated by \bmad. If there is no \vn{girder} support the 
+\vn{_tot} attributes will be the same as the misalignment attributes.
+
+Exersize: Setup a lattice with a \vn{girder} element and see that when the \vn{girder} is misaligned
+that a supported element will have \vn{_tot} attributes different from the misalignment attributes.
+
+\newpage
 
 \begin{figure}[tb]
   \centering
   \begin{subfigure}[b]{0.48\textwidth}
     \includegraphics[width=\textwidth]{patch.pdf}
+    \vspace*{5pt}
     \caption{The body coordinates at the exit end of a \vn{patch} is set by the element attributes
 \vn{x_offset}, \vn{y_offset}, \vn{z_offset}, \vn{x_pitch}, \vn{y_pitch}, and \vn{tilt}.}
     \label{f:patch}
@@ -1362,7 +1417,8 @@ zero in this case.] The \vn{Actual} row shows the position of the physical eleme
   \hfil
   \begin{subfigure}[b]{0.48\textwidth}
     \includegraphics[width=\textwidth]{patch-example.pdf}
-    \caption{Example use of a patch element in a lattice.}
+    \caption{Lattice with a patch element.
+The patch element is the coordinates patch element in a lattice. By default, the patch element is not drawn.}
     \label{f:patch.example}
   \end{subfigure}
   \caption{}
@@ -1372,9 +1428,15 @@ zero in this case.] The \vn{Actual} row shows the position of the physical eleme
 \subsection{Patch Elements}
 \label{s:patch}
 
+\vn{Patch} elements are used to shift the reference orbit. As a consequence, the nominal placements
+of all elements downstream of the patch are affected. This is useful in simulating things like injection
+or extraction lines where the patch is used to reorient the reference orbit so that it follows the 
+injection or extracing line.
+
 For \vn{patch} elements the same six parameters that are used to misalign straight line elements
 are, for a \vn{patch}, used to set the placement of the \vn{exit} frame relative to the \vn{entrance}
 frame. The transformation from entrance coordinates to exit coordinate is:
+\vspace{-10 pt}
 \begin{enumerate}
 \item Initially the exit coordinates coincide with the entrance coordinates.
 \item The origin of the exit coordinates is translated by (\vn{x_offset}, \vn{y_offset}, \vn{z_offset})
@@ -1389,6 +1451,8 @@ This transformation is illustrated in Figure~\ref{f:patch}. The transformation f
 \vn{entrance} to \vn{exit} coordinates is the same transformation from laboratory coordinates at the
 center of a straight element to the element body coordinates at the center of the misaligned
 element.
+
+\newpage
 
 Example:
 \begin{code}
@@ -1408,9 +1472,9 @@ use, lat                ! Line used to construct the lattice
 
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{patch.bmad}. Create
 a \vn{floor_plan} with the command \vn{place r11 floor}. The result is shown in
-Figure~\ref{f:patch.example}.  By default, \vn{patch} elements are not drawn but the global
-coordinates of the nominal positions of the elements can be seen by using the \vn{show lat -floor}
-command:
+Figure~\ref{f:patch.example} except that, by default, \tao does not draw a patch element so in the
+figure the patch has been drawn in by hand. The global coordinates of the nominal positions of the
+elements can be seen by using the \vn{show lat -floor} command:
 \begin{code}
 Tao> show lat -floor
 
@@ -1422,6 +1486,12 @@ Ix  name      key               s          X         Y         Z     Theta ...
  3  Q         Quadrupole     1.807   -0.4329    0.0000    1.9327    0.2854 ...
  4  END       Marker         1.807   -0.4329    0.0000    1.9327    0.2854 ...
 \end{code}
+
+A \vn{patch} represents a field free space so particle traveling through a patch propagate as in a
+drift. The differnence is that in a \vn{patch} there is a coordinate transformation from entrance
+coordinates to exit coordinates.
+
+\newpage
 
 %----------------------------------------------------------
 \Section{Particle Phase Space Coordinates}
@@ -1472,6 +1542,7 @@ where
     z  = c * $\beta$ * (t_ref - t)
 \end{lstlisting}
 with
+\vspace{-10 pt}
 \begin{itemize}
 \item \vn{P0} is the reference momentum, 
 \item \vn{$\beta$} is the velocity of the particle, 
@@ -1479,6 +1550,7 @@ with
 \end{itemize}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item 
 For a bunch of particles at a given \vn{s} position, in general the particles will have differing \vn{t}.
@@ -1529,11 +1601,11 @@ lat: line = (b, q)   ! List of lattice elements
 use, lat                ! Line used to construct the lattice
 \end{code}
 
-Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{orbit.bmad}. The
-lattice file specifies a non-zero initial orbit using \vn{beam_start} parameters. The resulting
-orbit is shown in Figure~\ref{f:phase0}.
+Start \tao as explained in section~\sref{s:tao.start} with the lattice file \vn{orbit.bmad}. Here
+spin tracking is turned on (\vn{bmad_com[spin_tracking_on] = T}) and a non-zero initial orbit is set
+using \vn{beam_start} parameters. The resulting orbit is shown in Figure~\ref{f:phase0}.
 
-Now the initial phase space coordinates can be varied using the \vn{change} or \vn{set}
+The initial phase space coordinates can now be varied using the \vn{change} or \vn{set}
 commands. For example:
 \begin{code}
 > tao -lat phase_space.bmad
@@ -1543,30 +1615,21 @@ Tao> change beam_start px 0.04
       0.060000      0.100000      0.000000      0.040000      0.040000  
 \end{code}
 
-The result is shown in Figure~\ref{f:phase1}.
+The result is shown in Figure~\ref{f:phase1}. 
 
 View Orbits with \vn{show lattice} command
 
 \begin{code}
-Tao> show lat
+Tao> show lat -spin -orbit
       Values at End of Element:
- Index  name      key                 s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-     0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000   0.00   0.000   10.00   0.000   0.00  10.000   Alive
-     1  B         Sbend                 0.500   0.500    7.62   0.069   0.20  28.889    8.51   0.069   0.01   9.201   Alive
-     2  Q         Quadrupole            1.100   0.600    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
-     3  END       Marker                1.100   0.000    3.60   3.153   0.11 -18.477  138.05   0.112  -0.00  36.926   Alive
- Index  name      key                       s       l    beta     phi    eta  orbit     beta     phi    eta  orbit    Track_State
-                                                            a       a      a  x [mm]       b       b      b  y [mm]
-
- Index  name      key                 s       l    beta     phi    eta ...
-                                                      a       a      a ...
-     0  BEGINNING Beginning_Ele   0.000     ---   10.00   0.000   0.00 ...
-     1  B         Sbend           0.500   0.500    7.62   0.069   0.20 ...
-     2  Q         Quadrupole      1.100   0.600    3.60   3.153   0.11 ...
-     3  END       Marker          1.100   0.000    3.60   3.153   0.11 ...
- Index  name      key                 s       l    beta     phi    eta ...
-                                                      a       a      a ...
+ Index  name      key           ...           orbit  ...          spin 
+                                ...               x  ...             x 
+     0  BEGINNING Beginning_Ele ...    0.000000E+00  ...  0.000000E+00 
+     1  B         Sbend         ...    5.027722E-03  ... -1.414516E-01 
+     2  Q         Quadrupole    ...   -1.599068E-02  ... -7.350543E-02 
+     3  END       Marker        ...   -1.599068E-02  ... -7.350543E-02 
+ Index  name      key           ...           orbit  ...          spin 
+                                ...               x  ...             x 
       Values at End of Element:
 \end{code}
 
@@ -1583,12 +1646,6 @@ Orbit:  Positron   State: Alive
   X:       5.02772161   -44.34051580  -0.14145163  | Particle [sec]:     ...
   Y:       9.52710654    -1.27804602  -0.00171549  | Part-Ref [sec]:     ...
   Z:      -4.78648430  -200.00000000   0.98994368  | (Ref-Part)*Vel [m]: ...
-
-Orbit:  Positron   State: Alive
-         Position[mm] Momentum[mrad]        Spin   |
-  X:       0.00000000   100.00000000               | Particle [sec]:     ...
-  Y:      10.00000000     0.00000000               | Part-Ref [sec]:     ...
-  Z:       0.00000000  -200.00000000               | (Ref-Part)*Vel [m]: ...
 \end{code}
 
 
@@ -1598,10 +1655,10 @@ Orbit:  Positron   State: Alive
 %----------------------------------------------------------
 \subsection{Reference Energy and the Lcavity and RFcavity Elements}
 
-\vn{Lcavity} and \vn{RFcavity} elements are RF cavity elements. The difference is that the reference
-energy at the exit end of an \vn{lcavity} is set so that a particle entering the cavity with zero
-phase space coordinates leaves with zero phase space \vn{pz}.
-On the other hand, \vn{rfcavity} elements do not affect the reference energy. Example:
+\vn{Lcavity} and \vn{RFcavity} elements are Electro-magnetic cavity elements. The difference is that
+the reference energy at the exit end of an \vn{lcavity} is set so that a particle entering the
+cavity with zero phase space coordinates leaves with zero phase space \vn{pz}.  On the other hand,
+\vn{rfcavity} elements do not affect the reference energy. Example:
 \begin{code}
 ! Lattice File: cavity.bmad
 beginning[beta_a] = 10.   ! m  a-mode beta function
@@ -1621,6 +1678,7 @@ use, lat
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item For a \vn{lcavity} phi0 = 0 corresponds to peak acceleration.
 \item For an \vn{rfcavity} phi0 = 0.25 corresponds to peak acceleration.
@@ -1672,24 +1730,26 @@ Key: RFcavity
 \end{code}
 
 Here there is no \vn{E_tot_start} parameter since the ending reference energy is always equal to the
-starting one. With the \vn{rfcavity} element, the \vn{pz} coordinate at the end of the element is
-now nonzero.
+starting one. Here, the \vn{pz} coordinate at the end of the element is nonzero.
 
 Questions:
+\vspace{-10 pt}
 \begin{itemize}
 \item What are the k1 and b1_gradient values for the first q1 and the second q1? Do you understand this?
 \item What are the k1 and b1_gradient values for the first q2 and the second q2?
 \end{itemize}
 
+\newpage
+
 %----------------------------------------------------------
 \Section{Superposition}
 \label{s:super}
 
-Superposition is used when elements overlap spatially. In such a case Bmad creates \vn{slave} elements that will be tracked through
-and \vn{lord} elements that represent the individual elements.
+Superposition is used when elements overlap spatially. In such a case, Bmad creates \vn{slave}
+elements that will be tracked through and \vn{lord} elements that represent the individual elements.
+Superposition is discussed in the ``Superposition and Multipass'' chapter in the Bmad manual.
 
-
-\begin{figure}[tb]
+\begin{figure}[b]
   \centering
   \includegraphics[width=0.9\textwidth]{superimpose.pdf}
   \caption{The placement of superimposed elements is determined by an offset from a reference element.}
@@ -1699,8 +1759,9 @@ and \vn{lord} elements that represent the individual elements.
 %----------------------------------------------------------
 \subsection{Example 1}
 
-To superimpose an element you need to specify where the element is placed. To do this, a reference position is specified
-and the superimposed element is placed at that position shifted by a specified offset.
+To superimpose an element you need to specify where the element is placed. To do this, a reference
+position is specified and the superimposed element is placed at that position shifted by a specified
+offset as illustrated in Figure~\ref{f:superimpose}.
 
 \begin{code}
 ! Lattice File: superimpose1.bmad
@@ -1720,8 +1781,13 @@ lat: line = (q, d)   ! List of lattice elements
 use, lat             ! Line used to construct the lattice
 \end{code}
 
+Here two marker elements named \vn{m1} and \vn{m2} are superimposed on the lattice. The reference
+point for \vn{m1} is the beginning of element \vn{q} and \vn{m1} will be put at a position 0.3
+meters from this.  The reference point for \vn{m2} is the end of element \vn{q} and \vn{m2} will be
+put at a position 0.4 meters from this.
+
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file
-\vn{superimpose1.bmad}.
+\vn{superimpose1.bmad}. The lattice looks like:
 
 \begin{code}
 Tao> show lat
@@ -1736,33 +1802,17 @@ Tao> show lat
      5  M2        Marker              1.400   0.000    6.97   0.160   0.00 ...
      6  D#2       Drift               2.000   0.600    5.37   0.258   0.00 ...
      7  END       Marker              2.000   0.000    5.37   0.258   0.00 ...
- ord Elements:
+ Lord Elements:
      8  Q         Quadrupole          1.000   1.000    8.22   0.107   0.00 ...
  Index  name      key                     s       l    beta     phi    eta ...
                                                           a       a      a ...
       Values at End of Element:
 \end{code}
 
-The quadrupole \vn{Q} has been split by marker \vn{M1}. The two \vn{super_slave} elements \vn{Q\#1}
-and \vn{Q\#2} will be used when tracking a particle through the lattice.
-
-\begin{code}
-Tao> show ele Q#1
- Element #                1
- Element Name: Q#1
- Key: Quadrupole
-... etc...
-
-Slave_status: Super_Slave
-Associated Super_Lord(s):
-   Index   Name                             Type
-       8   Q                                Quadrupole
-Lord_status:  Not_a_Lord
-\end{code}
-
-The \vn{Q} \vn{super_lord} element represents the actual quadrupole.
+The quadrupole \vn{Q} has been split by marker \vn{M1} and so has become a \vn{super_lord} element:
 \begin{code}
 Tao> show ele Q
+
  Element #                8
  Element Name: Q
  Key: Quadrupole
@@ -1776,46 +1826,62 @@ Slaves:
        3   Q#2         Quadrupole
 \end{code}
 
+The two \vn{super_slaves} of \vn{Q}, elements \vn{Q\#1} and \vn{Q\#2}, will be used when tracking a
+particle through the lattice.
+
 If parameters of element \vn{Q} are modified, Bmad bookkeeping routines will automatically update the super_slaves.
+Thus if the \vn{k1} attribute of \vn{Q} is modified:
 \begin{code}
 Tao> change ele Q k1 0.11
            Old           New    Old-Design    New-Design         Delta
       0.200000      0.310000      0.110000      0.110000      0.110000    Q
+\end{code}
 
+\newpage
+
+The change will be refected in the slave elements:
+
+\begin{code}
 Tao> show ele 1
  Element #                1
  Element Name: Q#1
  Key: Quadrupole
- S_start, S:    0.000000,    0.300000
- Ref_time:  1.002001E-09
 
  Attribute values [Only non-zero/non-default values shown]:
     1   L                            =  3.0000000E-01 m
     4   K1                           =  3.1000000E-01 1/m^2
 ... etc...
+
+Slave_status: Super_Slave
+Associated Super_Lord(s):
+   Index   Name                             Type
+       8   Q                                Quadrupole
+Lord_status:  Not_a_Lord
 \end{code}
 
-Parameter values of the super_slave elements may not be directly set:
+Parameter values of the super_slave elements are determined by the super_lord and may not be directly set:
 \begin{code}
 Tao> change ele Q#1 k1 0.01
+
 [ERROR | 2017-AUG-28 22:38:36] tao_change_ele:
     ATTRIBUTE NOT FREE TO VARY. NOTHING DONE
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
-\item No super_lord element is made when a drift element is split. Thus in the above example, there is no \vn{D} super_lord and
-the two elements \vn{D\#1} and \vn{D\#1} and \vn{not} super_slaves.
+\item 
+No super_lord element is made when a drift element is split. Thus in the above example, there is no
+\vn{D} super_lord and the two elements \vn{D\#1} and \vn{D\#1} are {\em not} \vn{super_slave}s.
+Drifts are the only type of element where, if split, a super_lord element is not created.
 \end{itemize}
 
 %----------------------------------------------------------
 \subsection{Example 2}
 
-
 A more complicated example involving superposition of an element with finite length:
 \begin{code}
 ! Lattice File: superimpose2.bmad
-
 beginning[beta_a] = 10.   ! m  a-mode beta function
 beginning[beta_b] = 10.   ! m  b-mode beta function
 beginning[e_tot] = 10e6   ! eV   Or can set p0c
@@ -1870,12 +1936,24 @@ Lord_status:  Not_a_Lord
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
-\item This superposition works since Bmad has a \vn{sol_quad} element which is a combination solenoid/quadrupole. It is not possible
-to superimpose a quadrupole with a sextupole since Bmad does not have a combination quadrupole/sextupole element.
-\item With closed lattices, a superimposed element may "wrap" around so that part of the superimposed element is at the end of the lattice
-and part of the element is at the beginning of the lattice.
+\item 
+This superposition works since Bmad has a \vn{sol_quad} element which is a combination
+solenoid/quadrupole. For example, it is not possible to superimpose a quadrupole with a sextupole
+since Bmad does not have a combination quadrupole/sextupole element.
+\item 
+With closed lattices, a superimposed element may "wrap" around so that part of
+the superimposed element is at the end of the lattice and part of the element is at the beginning of
+the lattice. See the example in Section~\sref{s:lat.geom}.
+\item
+\vn{Jumbo} superposition can be used to superimpose elements that whose combination cannot be
+represented by a corresponding \bmad element. The drawback in this case is that the particle
+tracking through this element must be done via a Runge-Kutta or similar tracking
+method. (\sref{s:methods}). See the \bmad manual for more details.
 \end{itemize}
+
+\newpage
 
 %----------------------------------------------------------
 \Section{Multipass}
@@ -1883,7 +1961,8 @@ and part of the element is at the beginning of the lattice.
 
 Some lattices have the beam recirculating through the same element multiple times. For example, an
 Energy Recovery Linac (ERL) will circulate the beam back through the LINAC part to retrieve the
-energy in the beam. In \bmad, this situation can simulated by designating the LINAC section as \vn{multipass}. 
+energy in the beam. In \bmad, this situation can simulated using the concept of \vn{multipass}. 
+In the Bmad manual multipass is discussed in the ``Superposition and Multipass'' chapter.
 
 %----------------------------------------------------------
 \subsection{What is Multipass and What is it Good For?}
@@ -1894,27 +1973,36 @@ A: quadrupole
 ll: line = (A, A)
 use, ll
 \end{code}
-The lattice has two elements both called \vn{A}. These two elements, even though they have the same name, are independent.
+The lattice has two qudrupoles both called \vn{A}. These two elements, even though they have the
+same name, are independent.
 \begin{code}
 Tao> change ele 1 k1 0.01   ! Can modify first A element.
 Tao> change ele 2 k1 0.02   ! And can modify second A element independently.
 \end{code}
-With an ERL the beam will go through the linac section multiple times
+Now consider and ERL. With an ERL, the beam will go through the linac section multiple times. An ERL
+lattice might look like:
 \begin{code}
 linac: line = (...)
 arc: line = (...)
-erl_line: line = (injector, linac, arc, linac, ...)
+dump: line = (..)
+erl_line: line = (injector, linac, arc, linac, dump)
 \end{code}
 Here you don't want the elements of the fist \vn{linac} in \vn{erl_line} to be treated as separate
 from the second \vn{linac} in \vn{erl_line} since they represent the same set of physical elements.
 This is where \vn{multipass} comes in.  Multipass is used to describe the situation where a beam
 recirculates through the same physical set of elements multiple times.
 
-Essentially the solution is to mark the \vn{linac} line as multipass to tell Bmad that the first instance of \vn{linac} in \vn{erl_line}
-contains the same physical elements as the second instance of \vn{linac}:
+The solution is to mark the \vn{linac} line as multipass to tell Bmad that the first instance of
+\vn{linac} in \vn{erl_line} contains the same physical elements as the second instance of
+\vn{linac}:
 \begin{code}
 linac: line[multipass] = (...)
 \end{code}
+
+With a \vn{multipass} line, \bmad will setup appropriate multipass lords and multipass slaves to
+connent together all elements which represent the same physical element.
+
+\newpage
 
 %----------------------------------------------------------
 \subsection{Example}
@@ -1938,11 +2026,9 @@ cavity\2[phi0_multipass] = 0.5
 \end{code}
 
 Start \tao as explained in section~\sref{s:tao.start} with the lattice file
-\vn{multipass.bmad}.
+\vn{multipass.bmad}. The lattice looks like:
 
 \begin{code}
-Tao> show lat
-
 Tao> show lat
       Values at End of Element:
  Index  name      key                    s       l    beta     phi    eta ...
@@ -1959,7 +2045,7 @@ Lord Elements:
 \end{code}
 
 Bmad creates a \vn{multipass_lord} called \vn{cavity} to control the \vn{multipass_slaves} called
-\vn{cavity\\1} and \vn{cavity\\2}:
+\vn{cavity\B1} and \vn{cavity\B2}:
 \begin{code}
 Tao> show ele 4
  Element #                4
@@ -1974,10 +2060,13 @@ Slaves:
 \end{code}
 
 Since the \vn{cavity} element represents the physical element, any change in the parameters of \vn{cavity}
-will be be reflected in the slaves:
+will be be reflected in the slaves (just like superposition lords and slaves). As an example, changing
+the attribute of the lord:
 \begin{code}
 Tao> set ele cavity x_offset = 0.001
-
+\end{code}
+changes the corresponding attributes of the slaves:
+\begin{code}
 Tao> show ele 2
  Element #                2
  Element Name: CAVITY\\2
@@ -2000,7 +2089,12 @@ From the above lattice:
 expand_lattice                 ! cavity\2 is created during lattice expansion
 cavity\2[phi0_multipass] = 0.5 ! Shifts the RF phase for cavity\2 by 180^deg
 \end{code}
-Giving:
+The \vn{expand_lattice} command ``expands'' the lattice to create \vn{cavity\B2} (see the \bmad
+manual for more details) and the next line shifts the phase of \vn{cavity\B2} by 180 degrees.
+
+This 180 degrees phase shift makes \vn{cavity\B2} decellerating instead of accelerating. Thus the
+reference energy after cavity \vn{cavity\B2} will be the same as the reference energy at the start
+of the lattice:
 \begin{code}
 Tao> show lat -attrib e_tot
       Values at End of Element:
@@ -2017,35 +2111,45 @@ Lord Elements:
 \end{code}
 
 Notes:
+\vspace{-5 pt}
 \begin{itemize}
-\item Bmad does not demand that the global position of the multipass_slaves of a multipass_lord be in
+\item 
+Bmad does not demand that the global position of the multipass_slaves of a multipass_lord be in
 the same position in the global coordinate system.
+\item
+Since the reference energy is changing, the transfer matrix through a \vn{lcavity} will
+not be symplectic.
 \end{itemize}
+
+\newpage
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=0.9\textwidth]{geometry.pdf}
+  \includegraphics[width=0.45\textwidth]{geometry.pdf}
   \caption{\bmad computes the periodic Twiss and orbits for \vn{closed} lattices.}
   \label{f:geometry}
 \end{figure}
 
 %----------------------------------------------------------
 \Section{Lattice Geometry}
+\label{s:lat.geom}
 
-The \vn{parameter[geometry]} parameter in a lattice file sets the lattice topology to:
+The \vn{parameter[geometry]} parameter in a lattice file sets the lattice topology to be
+\vn{open} or \vn{closed}:
+\vspace*{-20pt}
 \begin{description}
-\item \vn{open}: For Twiss and reference orbit calculations Bmad uses the initial Twiss 
-and orbit settings in the lattice for the beginning of the lattice and
-propagates them to the end of the lattice (like you would do for a linac). 
-\item \vn{closed}: For Twiss and reference orbit calculations, Bmad calculates the 
-periodic solution (like you would in a storage ring). 
-Bmad will ignore Twiss and orbit settings.
+\item \vn{open} \Newline 
+For \vn{open} lattices \bmad computes Twiss and reference orbit calculations by taking the
+Twiss and orbit settings in the lattice as the initial values and propagates them to the
+end of the lattice (like you would do for a linac).
+\item \vn{closed} \Newline 
+For a \vn{closed} lattice \bmad calculates the periodic solution (like you would in a storage ring).
+In this case, \bmad will ignore Twiss and orbit settings in the lattice.
 \end{description}
 
 Example:
 \begin{code}
 ! Lattice File: geometry.bmad
-
 parameter[p0c] = 1e9
 parameter[geometry] = closed
 
@@ -2057,10 +2161,7 @@ lat: line = (d)
 use, lat
 \end{code}
 
-The result is shown in Figure~\ref{f:geometry}:
-
-
-
+The lattice looks like:
 \begin{code}
 Tao> show lat
       Values at End of Element:
@@ -2077,9 +2178,12 @@ Lord Elements:
      7  Q1        Quadrupole          0.250   0.500    5.57   0.043   0.00 ...
  Index  name      key                     s       l    beta     phi    eta ...
                                                           a       a      a ...
-      Values at End of Element:
-
-
+\end{code}
+The result is shown in Figure~\ref{f:geometry}. The \vn{q1} quadrupole has been superimposed
+placing its center at the origin \vn{s} = 0. This results in \vn{q1} being ``wrapped around''
+so that first half of \vn{q1}, \vn{q1\#1} comes at the {\em end} of the tracking part of the lattice
+and the second half, \vn{q1\#2}, comes at the beginning of the lattice:
+\begin{code}
 Tao> show ele q1
  Element #                7
  Element Name: Q1
@@ -2096,10 +2200,14 @@ Slaves:
 \end{code}
 
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
-\item Bmad does not demand that a closed lattice be closed in the sense that the global position at the end of the lattice be the same as the beginning.
+\item 
+Bmad does not demand that a closed lattice be closed in the sense that the global position at the
+end of the lattice be the same as the beginning.
 \end{itemize}
 
+\newpage
 
 \begin{figure}[tb]
   \centering
@@ -2136,27 +2244,30 @@ beginning[beta_b] = 10.0        ! m  b-mode beta function
 beginning[e_tot] = 10e6         ! eV 
 parameter[geometry] = open      ! or closed
 
-b: bend, l = 2, rho = pi/4
+b: sbend, l = 2, angle = pi/3
 f: fork, to_line = extract_line, superimpose, offset = 0.4
-d: drift, l = 2
+q quadrupole, l = 2
 
-extract_line: line = (d)       ! The line forked to.
+extract_line: line = (q)       ! The line forked to.
 extract_line[geometry] = open
 
 lat: line = (b)
 use, lat                ! Line used to construct the lattice
 \end{code}
 
-Start \tao as explained in section~\sref{s:tao.start} with the lattice file
-\vn{fork.bmad}.
+In this example The \vn{lat} line is used as the basis for the lattice due to the \vn{use, lat}
+statement.  This line contains the bend \vn{b} and, via superposition, the fork element \vn{f}. The
+fork element \vn{f} connects to the \vn{to_line} called \vn{extract_line} which contains a single 
+quadrupole element called \vn{q}. 
 
+To see the geometry of the lattice, start \tao as explained in section~\sref{s:tao.start} with the
+lattice file \vn{fork.bmad} and create a \vn{floor_plan} plot:
 \begin{code}
 Tao> place r11 floor
 \end{code}
 
-Gives Figure~\ref{f:fork.example}.
+The result is shown in Figure~\ref{f:fork.example}.The \vn{fork} element is the red circle.
 The lattice is looks like:
-
 \begin{code}
 Tao> show lat
       Values at End of Element:
@@ -2174,9 +2285,9 @@ Lord Elements:
       Values at End of Element:
 \end{code}
 
-Where is the line that was forked to? Bmad creates \vn{branches} to hold the different
-lines. Branches are assigned an index starting from 0:
-
+The \vn{show lat} output does not show \vn{q}. Where is the line that was forked to? The answer is
+that Bmad creates a set of \vn{branches} to hold the different lines. Branches are assigned an index
+starting from 0 and information on them can be see with the \vn{show branch} command:
 \begin{code}
 Tao> show branch
                     N_ele  N_ele   ...              Live
@@ -2188,6 +2299,23 @@ Tao> show branch
   Fork_Element      Forking_To                         Direction    To_Branch?
   0>>2: LAT>>F      1>>0: EXTRACT_LINE>>BEGINNING        1             T
 \end{code}  
+This shows that the lattice has two branches. When there are multiple branches, elements
+are indexed using the notation:
+\begin{code}
+branch_index>>element_index
+\end{code}
+so that, for example, ``\vn{0}$>>$\vn{2}'' represents element number 2 in branch 0. That is, the
+fork element \vn{f}. 
+
+Each branch has its own set of parameters like the geometry, reference energy, etc. These may be set
+using the syntax
+\begin{code}
+  branch_name[parameter] = ...
+\end{code}
+For example the ``\vn{extract_line[geometry]}'' was used to set the geometry of \vn{extract_line} in
+\vn{fork.bmad}.
+
+\newpage
 
 The \vn{show lat} branch, by default, shows branch 0. To see other branches use the \vn{-branch} option:
 \begin{code}
@@ -2203,7 +2331,11 @@ Tao> show lat -branch 1
       Values at End of Element:
 \end{code}
 
+Forked lines can, in turn, have forks to other lines. And lines can connect back to existing lines. In this
+way an entire accelerator complex can be simulated. 
+
 Notes:
+\vspace{-10 pt}
 \begin{itemize}
 \item The difference between \vn{fork} and \vn{photon_fork} is that the default species for \vn{fork} is
 the same as the line forked from while for a \vn{photon_fork} the default species are photons.
@@ -2211,76 +2343,249 @@ the same as the line forked from while for a \vn{photon_fork} the default specie
 The place where a fork element connects can be set by the \vn{to_element} attribute.
 \end{itemize}
 
+\newpage
+
 %----------------------------------------------------------
 \Section{Tracking Methods}
+\label{s:methods}
 
-To each lattice element one can vary the method used to track particles through the element. This is
-useful, among other things for optimizing speed and/or accuracy.
+For each lattice element one can vary the method used to track particles through the element. This is
+useful, among other things for optimizing speed and/or accuracy. There are several element parameters
+that control tracking. These are:
+\begin{lstlisting}[mathescape]
+$\textbf{tracking_method}$                   ! How a particle is tracked through the element.
+$\textbf{mat6_calc_method}$                   ! How the element's transfer matrix is calculated.
+$\textbf{spin_tracking_method}$                   ! How a particle's spin is tracked through an element.
+$\textbf{field_calc}$                   ! How the electric and/or magnetic field is calculated.
+\end{lstlisting}
+
+Example:
 \begin{code}
-    q1: quadrupole, l = 0.6, ..., tracking_method = runge_kutta
+q1: quadrupole, l = 0.6, ..., tracking_method = runge_kutta
 \end{code}
 
-Some possibilities:
-\begin{code}
-\vn{bmad_standard}   Fast, thick element formulas.
-\vn{symp_lie_ptc}    Symplectic Lee integration tracking.
-\vn{taylor}          Taylor map.
-\vn{linear}          Linear tracking.
-\vn{custom}          Tracking with custom code.
-\vn{runge_kutta}     Track through fields.
+For the \vn{tracking_method} parameter some possible values are:
+\begin{lstlisting}[mathescape]
+$\textbf{bmad_standard}$              ! Fast, thick element formulas.
+$\textbf{symp_lie_ptc}$              ! Symplectic Lee integration tracking.
+$\textbf{taylor}$              ! Taylor map.
+$\textbf{linear}$              ! Linear tracking.
+$\textbf{custom}$              ! Tracking with custom code.
+$\textbf{runge_kutta}$              ! Track through fields.
 etc...
-\end{code}
+\end{lstlisting}
 
-Much more information in the Bmad manual...
+Much more information in the Bmad manual in the Chapter on ``Tracking, Spin, and Transfer Matrix
+Calculation Methods''.
 
+\newpage
 
 %----------------------------------------------------------
-\Section{Tao Initialization Files}
+\subsection{Tao Initialization Files and Command Files}
 \label{s:init.file}
 
 \tao initialization files are used to set initial parameters like the name of the lattice file to be
 used, what is to be initially plotted, etc. Initialization files are also used to define \vn{data}
-(\sref{s:data}) and \vn{variables} (\sref{s:variables}) that are used for \vn{optimization} (\sref{optimization}).
+(\sref{s:data}) and \vn{variables} (\sref{s:variables}) that are used for \vn{optimization}.
+
+\tao command files are files with \tao commands that can be executed at startup or while \tao is running
+with the \vn{call} command. 
+
+Documentation on \tao initilization files is in the \tao manual in the ``Tao Initialization'' chapter.
 
 Example \tao initialization files can be found in a \vn{Distribution} or \vn{Release}
 (\sref{s:orientation}) in the directory:
 \begin{code}
-  tao/examples
+tao/examples
 \end{code}
+
+\tao initialization can be split among several files but there is always one main initialization
+file that will reference secondary initialization files if needed. The default name for the main
+initialization is \vn{tao.init}.  The main initialization file can be specified using the \vn{-init}
+option when starting \tao.
+
+\tao initialization files use \vn{namelist} input. The general syntax is:
+\begin{code}
+&namelist-name
+  variable1 = value1
+  variable2 = value2
+  ... etc...
+/
+\end{code}
+The namelist starts with \vn{\&namelist-name} where \vn{namelist-name} is the name of the
+namelist. The namelist end with the slash \vn{/} character. In between, there is a set of lines
+that set appropriate variable values. Example:
+\begin{code}
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "lat.bmad"
+/
+\end{code}
+
+After initialization, \tao will read in a command file if the appropriate one exists. The default is
+to read in a command file named \vn{tao.startup}. The name of the starup command file may be
+specified either in a initialization file or on the command line using the \vn{-startup} option.
+While \tao is running, command files can be called using the \vn{call} command.
+
+See section~\sref{s:opt.files} for an example.
+
+\newpage
+
+%----------------------------------------------------------
+\Section{Optimization with Tao}
+\label{s:optimization}
+
+``Optimization'' is the process of varying (model) lattice parameters to create a lattice with a
+certain set of properties as close to ``ideal'' as possible. For example, orbit flattening involves
+optimizing steering setting in the lattice so that the orbit, as calculated from the lattice,
+matches the measured orbit. The steering strengths in the optimized lattice can then be used to
+correct the actual orbit in the machine.
+
+Another example of optimization is lattice design where, say, sextupole magnet strengths in the
+lattice are adjusted to give maximum dynamic aperture.
+
+Optimization is covered in detail in the ``Lattice Correction and Design'' chapter in the \tao manual.
+
+
+Optimization involves minimizing one or more ``objectives'' or ``merit functions''. In the case of
+orbit flattening, typically there is a single merit function that is a function of the differences
+between the measured and calculated orbits. In other situations, multiple objectives may
+be desired. \tao itself implements ``single objective'' optimization. For ``multiple objective''
+optimization, there is a separate program called \vn{moga} that you can use (\sref{s:programs}).
+
+The general form of the merit function \vn{M} is
+\Begineq
+  {\cal M} \equiv 
+    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
+    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
+  \label{m1}
+\Endeq
+where the first sum is a sum over the data and the second sum is a sum over the variables. The
+$w_i$ and $w_j$ are weights specified by the user. The sum over the variables is used to keep the
+values of the variables ``reasonable'' in case there are degeneracies or near degeneracies in the
+effects of the variables.
+
+There are several different optimizers that can be used with \tao. The one optimizer that is good
+for finding global merit function minima is the \vn{de} (differential evolution) optimizer. All of
+the others are good for finding local minima.
+
+%----------------------------------------------------------
+\subsection{Example Optimization Files}
+\label{s:opt.files}
+
+The example files used to illustrate optimization are in the directory 
+\begin{code}
+examples/bmad_tao_tutorial_files/lattice_optimization
+\end{code}
+Copy these files to your working directory. Here the main initialization file is named
+\vn{tao.init}. Since this is the default name for initialization files (\sref{s:init.file}), \tao
+can be started without the \vn{-lat} option (\sref{s:tao.start}).
+
+There are four files here:
+\begin{lstlisting}[mathescape]
+$\textbf{lat.bmad}$             ! Lattice file
+$\textbf{setup.tao}$             ! Command file
+$\textbf{tao.init}$             ! Primary initialzation file
+$\textbf{tao_plot.init}$             ! Secondary initialization file
+\end{lstlisting}
+
+Consider the file \vn{tao.init} first. The file is divided into three parts. The first part looks like:
+\begin{code}
+&tao_start
+  plot_file = 'tao_plot.init' 
+  startup_file = 'setup.tao'
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "lat.bmad"
+/
+\end{code}
+This part sets the name of the lattice file to be \vn{lat.bmad} while plotting information is in the
+file \vn{tao_plot.init}. [If \vn{plot_file} had not been set, \tao would look in the \vn{tao.init} file
+itself for plotting information.] Lastly, the command file \vn{setup.tao} will be run after all other 
+initialization is complete. 
+
+The next two sections of the \vn{tao.init} file setup data and variables. this is explained in \sref{s:data}
+and \vn{s:variables}.
+
+The plot initialization file \vn{tao_plot.init} overrides the default size of the plot window and
+the default placement of plots:
+\begin{code}
+&tao_plot_page
+  plot_page%size = 500, 400
+  place(1) = 'layout', 'lat_layout'
+  place(2) = 'r12', 'beta'
+  place(3) = 'r22', 'key'
+/
+\end{code}
+
+The startup command file \vn{setup.tao} defines an \vn{alias} command:
+\begin{code}
+alias opt run lm
+\end{code}
+This defines the command ``\vn{opt}'' to be ``\vn{run lm}. The \vn{run} command starts optimization and the ``\vn{lm}''
+option specifies the Levenburg-Marquardt optimizer which is a good optimizer for finding a local minimum.
 
 
 %----------------------------------------------------------
-\Section{Data in Tao}
+\subsection{Data in Tao}
 \label{s:data}
 
 In order to optimize, you must tell Tao what quantities that you want to calculate that will
-contribute to the merit function. The basic structure has several: d2_data, which contains d1_data,
-which contains individual datums. You input these in the tao.init file as:
+contribute to the merit function. A detailed description on how to construct \vn{data} is given
+in the ``Data'' chapter of the \tao manual.
+
+The data that is used in the present example is defined in
+the middle section of the \vn{tao.init} file:
 \begin{code}
 &tao_d2_data
-    d2_data%name = 'twiss'
-    n_d1_data = 2
+  d2_data%name = 'twiss'
+  n_d1_data = 2
 /
+
 &tao_d1_data
-    ix_d1_data = 1
-    d1_data%name = 'end'
-    datum( 1) =  'beta.a'     '' '' 'END'   'target'  12.5   1e1  
-    datum( 2) =  'alpha.a'    '' '' 'END'   'target'  -1     1e2
-/ 
+  ix_d1_data = 1
+  d1_data%name = 'a'
+  datum(1) =  'beta.a'     '' '' 'END'   'target'  12.0   1e1
+  datum(2) =  'alpha.a'    '' '' 'END'   'target' -0.4    1e2
+/
+
 &tao_d1_data
-    ix_d1_data = 2
-    d1_data%name = 'max'
-    datum( 1) =  'beta.a'    '' 'Q1' 'END'   'max'  100   1e1
-    datum( 2) =  'eta.x'     '' 'Q1' 'END'   'abs_max'  1     1e2
-/ 
+  ix_d1_data = 2
+  d1_data%name = 'b'
+  datum(1) =  'beta.b'     '' '' 'END'   'target'  12.0   1e1
+  datum(2) =  'alpha.b'    '' '' 'END'   'target' -0.4    1e2
+/
 \end{code}
+In general, \vn{data} is divided into groups called \vn{d1_data} structures and the
+\vn{d1_data} structures are, in turn grouped into \vn{d2_data} structures. In the present example,
+there are \vn{d1_data} structures named \vn{a} and \vn{b} and each hold two datums. These
+\vn{d1_data} structures are grouped into a \vn{d2_data} structure named \vn{twiss}.
+The syntax to refer to a 
+particular \vn{d1_data} structure is:
+\begin{code}
+  d2-data-name.d1-data-name
+\end{code}
+So with the above example, the \vn{a} structure would be referred to a \vn{twiss.a} . To refer to an
+individual datum use the syntax:
+\begin{code}
+  d2-data-name.d1-data-name[datum-index]
+\end{code}
+where \vn{datum-index} is the index for the datum. So with the above example, the first datum in
+\vn{twiss.a} would be referred to as \vn{twiss.a[1]} .
 
-The first datum means that beta.a at element END should be 12.5 m with a weight of 10. If the model
-beta function is, say, 20 m at element END, then this datum would contribute $10*(20 - 12.5)^2$ to
-the merit function.
+In \vn{twiss.a}, The first datum means that \vn{beta.a} at lattice element \vn{END} should be 12~m
+with a weight $w_i$ (\Eq{m1}) of 10. The \vn{target} type merit means that $\delta D$ in \Eq{m1} will
+be
+\begin{lstlisting}[mathescape]
+$\delta D$ = model - design
+\end{lstlisting}
+Thus if the model beta function is, say, 20 m at element \vn{END}, then this datum would contribute
+$10*(20 - 12)^2$ to the merit function.
 
-The columns of an individual datum(i) are a shorthand input of the datum structure (type 'getf
-tao_datum_input' on the command line to see a full list). The columns are:
+The columns of an individual datum(i) are a shorthand input of the datum structure.  The columns
+are:
 \begin{code}
 data_type       ! Type of data: 'orbit.x', etc.
 ele_ref_name    ! Name of reference lattice element
@@ -2291,42 +2596,139 @@ meas            ! Measured datum value.
 weight          ! Weight for the merit function term
 \end{code}
 
-In Tao, these can be shown with:
+Running \tao, the \vn{d2_data} structures can be shown with the command \vn{show data}: 
 \begin{code}
-Tao> show dat
+Tao> show data
 
   Name                                 Using for Optimization
-  twiss.end[1:6]                                 Using: 1:6
-  twiss.max[1:2]                                 Using: 1:2
+  twiss.a[1:2]                                   Using: 1:2
+  twiss.b[1:2]                                   Using: 1:2
 \end{code}
 
+To see a list of datums for an individual \vn{d1_data} structure append the \vn{d1_data} name after \vn{show data}.
+For example:
+\begin{code}
+Tao> show data twiss.b
+Data name: twiss.b
+                     ...                                                       |   Useit
+                     ...  Ele             Meas           Model          Design | Opt  Plot
+ 1  beta.b <target>  ...  END    1.2000000E+01   9.2922886E+00   9.2922886E+00     T     F
+ 2  alpha.b <target> ...  END   -4.0000000E-01  -4.4270176E-01  -4.4270176E-01     T     F
+                     ...  Ele             Meas           Model          Design | Opt  Plot
+                     ...                                                       |   Useit
+\end{code}
+
+To see the parameters of an individual datum append the datum name after \vn{show data}.
+For example:
+\begin{code}
+Tao> show data twiss.a[2]
+
+%ele_name          = END
+... etc...
+%data_type         = alpha.a
+... etc...
+%model             =  -4.42701763E-01
+%design            =  -4.42701763E-01
+... etc...
+%good_model        = T
+%good_design       = T
+%good_base         = T
+%good_meas         = T
+%good_ref          = F
+%good_user         = T
+%good_opt          = T
+%good_plot         = F
+%useit_plot        = F
+%useit_opt         = T
+\end{code}
+The \vn{useit_opt} logical indicates whether the datum will be used when the merit function is
+evaluated. For example, if the \vn{meas} value has not been set, \tao will set \vn{%good_meas} to
+False and this will cause \tao to set \vn{useit_opt} to False. The user also as control as to whether
+a datum will be used in optimization and this is controlled by setting the \vn{good_user} component.
+The commands that control this are \vn{use}, \vn{veto} and \vn{restore}. Example:
+\begin{code}
+Tao> veto data twiss.a
+  twiss.a[1:2]                                   Using:
+  twiss.b[1:2]                                   Using: 1:2
+\end{code}
+In this example the two \vn{twiss.a} datums have been vetoed. It can be checked that the \vn{twiss.a} datums
+now have their \vn{good_user} components set to False.
+
+Notice that it does not matter to the optimization process how data is divided into \vn{d1_data} and
+\vn{d2_data} groups. It is only a matter of convenience to the user. Also a given \vn{d1_data} group
+of data does not have to contain data of a single type. Thus the \vn{twiss.a} datums include both
+\vn{beta} and \vn{alpha} type data.
 
 %----------------------------------------------------------
-\Section{Variables in Tao}
+\subsection{Variables in Tao}
 \label{s:variables}
 
+In order to optimize, you must tell Tao what \vn{variables} you want to vary to minimize the merit
+function. A detailed description on how to construct \vn{variables} is given in the ``Variables''
+chapter of the \tao manual.
 
-Variables must be defined in order to optimize. The simplest possible variable definition is: 
+The variables that are used in the present example are defined in
+the bottom section of the \vn{tao.init} file:
 \begin{code}
-    &tao_var
-      v1_var%name = 'quad'
-      default_step = 1e-4
-      default_attribute = 'k1'
-      search_for_lat_eles = 'Quad::*'
-      ! or: 
-      ! var(1:)%ele_name = 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'
-    /
+&tao_var
+  v1_var%name = 'quad'
+  search_for_lat_eles = 'Quad::*'
+  default_step = 1e-4
+  default_attribute = 'k1'
+  default_merit_type = 'limit'
+  default_low_lim = -50
+  default_high_lim = 50
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
 \end{code}
+Just like \vn{data}, variables are grouped into arrays called \vn{v1_var} structures. In this
+example a \vn{v1_var} structure is defined called \vn{quad} which controls the \vn{k1} attribute of
+all element whose name matches \vn{quad::*}. This will match to all quadrupoles. In this case there
+are 6 quadrupoles in the lattice named \vn{Q1} through \vn{Q6} thus there will be 6 variables
+associated with the \vn{quad} \vn{v1_var} structure. Notice that variables have only one level of
+grouping. That is, there is no \vn{v2_var} structure.
 
-This will search the lattice of all quadrupole key elements, and control their 'k1' attribute with a step of 1e-4.
-
-In tao you will then see (if the elements exist) the variables in a short notation:
+To refer to an individual datum use the syntax:
 \begin{code}
-Tao> sho var
+v1-var-name[var-index]
+\end{code}
+where \vn{var-index} is the index of the variable. For example, the first variable in the \vn{quad}
+structure is \vn{quad[1]}.
+
+The parameters like \vn{default_step} in the above namelist establish a default value for the
+\vn{step} attribute of each variable that is created for the \vn{quad} structure. The \vn{step}
+attribute is used by \tao to calculate derivatives that are used by some of the
+optimizers. Essentially, to calculate derivatives, \tao varies the variable by $\pm$\vn{step} and
+looks at the changes in the \vn{data}. Like many attributes associated with \vn{optimization} it is
+important that the \vn{step} attribute be set properly. To small a setting and roundoff error can throw off
+the derivative calculation. On the other hand, if the value of \vn{step} is too large, nonlinearities
+can throw off the calculation.
+
+The \vn{weight} of varible sets the value of $w_j$ in \Eq{m1}. Since the \vn{merit_type} in this case
+is \vn{limit}, the $\delta V$ used in the merit function is:
+\Begineq
+  \delta V = 
+    \begin{cases}
+    \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
+    \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
+    0                                & \mbox{Otherwise}
+    \end{cases}
+\Endeq
+That is, the contribution to the merit function will be zero if the value of the variable is between
+\vn{low_lim} and \vn{high_lim} which in this case is -50 and 50.
+
+Running \tao, the \vn{v1_var} structures can be shown with the command \vn{show variable}: 
+\begin{code}
+Tao> show var
        Name                                      Using for Optimization
-    quad[1:6]
+    quad[1:6]                                    1:6
 \end{code}
 
+To see a list of individual variables of a given \vn{v1_var} structure, append the \vn{v1_var}
+name to the \vn{show variable} command:
 or a more detailed list:
 \begin{code}
 Tao> sho var quad
@@ -2342,25 +2744,28 @@ Variable name:  quad
  Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
 \end{code}
 
-A tao_var is an array of variables, each of which can have individually set attributes. Type: 
+To see the parameters of an individual variable, append the variable name to the \vn{show var}
+command. Example:
 \begin{code}
 Tao> sho var quad[2]
 %ele_name         = Q2
 %attrib_name      = K1
-...
+... etc...
+%exists           = T
+%good_var         = T
+%good_user        = T
+%good_opt         = T
+%useit_opt        = T
+... etc...
 \end{code}
-
-to see a complete list. Prepending: 'default_' in front of any of these in the variable definition
-will flag all variables to have the same property, like 'k1'.
-
-Variables can also have mixed properties, as in:
+The \vn{useit_opt} logical indicates whether the variable will be used in the optimization process.
+The user has some control as to whether a datum will be used in optimization and this is controlled
+by setting the \vn{good_user} component. The commands that control this are \vn{use}, \vn{veto} and
+\vn{restore}. Example:
 \begin{code}
-var(1:4)%ele_name = 'FF.Qua01',  'FF.Qua02',  'FF.Qua02',  'O_quad_length'
-var(1:4)%attribute = 'b1_gradient', 'b1_gradient', 'x_offset', 'f'
-var(1:4)%key_delta = 0.1, 0.1, 0.0001, .01
-var(1:4)%low_lim = -50, -50, -.1, .2
-var(1:4)%high_lim = 50,  50,  .1, .8
-\end{code}
+Tao> veto var quad[4]
+  quad[1:6]                                      Using: 1:3 5:6
+\begin{code}
 
 Variable properties can also be changed within Tao. For example, 
 \begin{code}
@@ -2368,74 +2773,145 @@ Tao> set var quad[1:4]|low_lim = -1
 \end{code}
 will set the lower limit for the first four quads.
 
+Notice that, like data, it does not matter to the optimization process how variables are divided
+into \vn{v1_var} groups. It is only a matter of convenience to the user. Also a given \vn{v1_var}
+group of variables does not have to contain variables of a single type.
+
+\begin{figure}[tb]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{opt0.pdf}
+    \caption{Initial plot window showing the initial beta functions.}
+    \label{f:opt0}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{opt1.pdf}
+    \caption{Plot window after optimization showing the optimized beta functions.}
+    \label{f:opt1}
+  \end{subfigure}
+  \caption{}
+\end{figure}
 
 %----------------------------------------------------------
-\subsection{Key Bound Variables}
+\subsection{Key Binding}
+\label{s:opt.run}
 
+Tao has two modes for entering commands. In \vn{single mode}, each keystroke represents a
+command. That is, with a few exceptions, the user does not have to press the carriage control key to
+signal the end of a command. This is to be contrasted with \vn{line mode} where \tao waits until
+the return key is depressed to execute a command. \vn{Single Mode} is useful for quickly varying
+parameters to see how they affect a lattice but the number of commands in Single Mode is limited.
+\vn{Single mode} is covered in detail in the ``Single Mode'' chapter in the \tao manual.
 
-An alternative use for variables is to bind them to keys on the keyboard for use in Tao's 'Single
-Mode'. The two properties to set are %key_bound and %key_delta. In the input file, adding these
-properties as:
-\begin{code}
-&tao_var
-  v1_var%name = 'quad'
-  ...
-  default_key_bound = T
-  default_key_delta = 1e-2
-/
-\end{code}
+The main purpose of \vn{single mode} is to associate certain keyboard keys with certain variables so that
+the pressing of these keys will change their associated model value of the variable. This is called
+a \vn{key binding}.
 
-Will then bind these variables to the keyboard keys 1-9, Q-O in single mode. For example,
+Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
+command to reinitalize \tao. The plot window should look like Figure~\ref{f:opt0}. The
+\vn{key_table} plot in the middle shows what variables (\sref{s:variables}) have been bound to what keyboard
+keys. In this instance the \vn{quad[1]} variable is bound so that pressing the ``1'' key will change
+\vn{quad[1]} by +\vn{delta}, and pressing the ``q'' key will change \vn{quad[1]} by -\vn{delta}.
+Pressing the shift key when pressing the ``1'' or ``q'' keys will change \vn{quad[1]} by
++10\vn{delta} and -10\vn{delta} respectively. Similarly, the \vn{quad[2]} variable is bound
+to the \vn{2} and \vn{w} keys, etc. 
 
-\begin{code}
-Tao> single
-Entering Single Mode...
-11>>111>>11qq>>>11
-\end{code}
-
-Enters single mode, and 1 raises the variable quad[1] by 1e-2, and q (the key under 1 on the
-keyboard) lowers it. The > and < signs change the default step by a factor of 2 or 1/2, which is
-useful when you would like the keys to make larger or smaller steps. The '11>>111>>11qq>>>11' is a
-history of what was pressed.
-
-To quit single mode, type upper case Z:
-\begin{code}
-Z
-Entering line mode...
-    
-Tao> 
-\end{code}
-
+Single mode and key bindings are useful for getting a feel for how variables affect the lattice. Get
+into single mode by issuing the \vn{single_mode} command. Play around with varying variables. To
+get out of single mode press the \vn{Z} key.
 
 %----------------------------------------------------------
-\Section{Using Tao for Optimization}
-\label{s:optimization}
+\subsection{Running an optimization}
+\label{s:opt.run}
 
-``Optimization'' is the process of varying (model) lattice parameters to create a lattice with a
-certain set of properties as close to ``ideal'' as possible. For example, orbit flattening involves
-optimizing steering setting in the lattice so that the orbit, as calculated from the lattice,
-matches the measured orbit. The steering strengths in the optimized lattice can then be used to
-correct the actual orbit in the machine.
+Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
+command to reinitalize \tao. The plot window should look like Figure~\ref{f:opt0}. 
 
-Another example of optimization is lattice design where, say, sextupole magnet strengths in the
-lattice are adjusted to give maximum dynamic aperture.
+To see what data and what variables are being used in the optimization, use the \vn{show data} and
+\vn{show variables} commands as illustrated above or use the \vn{show optimizer} command:
+\begin{code}
+Tao> show opti
+Data Used:
+  twiss.a[1:2]                                   Using: 1:2
+  twiss.b[1:2]                                   Using: 1:2
+Variables Used:
+  quad[1:6]                                      Using: 1:6
 
-Optimization involves minimizing one or more ``objectives'' or ``merit functions''. In the case of
-orbit flattening, typically there is a single merit function that is a function of the differences
-between the measured and calculated orbits. In other situations, multiple objectives may
-be desired. \tao itself implements ``single objective'' optimization. For ``multiple objective''
-optimization, there is a separate program called \vn{moga} that you can use (\sref{s:programs}).
+optimizer:        lm
+Global optimization parameters (use "set global" to change):
+  %de_lm_step_ratio              =   1.00000000E+00
+  %de_var_to_population_factor   =   5.00000000E+00
+  %lm_opt_deriv_reinit           =  -1.00000000E+00
+  %lmdif_eps                     =   9.99999996E-13
+  %merit_stop_value              =  -1.00000000E+00
+  %svd_cutoff                    =   9.99999975E-06
+... etc...
+\end{code}
+There are many parameters associated with optimization and it is important to carfully consider
+what values these parameters have in order to be able to have a successful optimization.
 
-To be able to do optimization in \tao, you must create appropriate initialization files
-(\sref{s:init.file}) that define the \vn{data} (\sref{s:data}) that is used to construct the merit
-function and the \vn{variables} (\sref{s:variables}) which will be varied in the optimization
-process. Once everything has been setup, the \vn{run} command will start the \vn{optimization}
-process.
+To see what the bigest contributions to the merit function
+are use the \vn{show top10} command:
+\begin{code}
+Tao> show top
 
+Constraints                   ...   Ele/S     Target      Value      Merit  
+twiss.b[1]  beta.b <target>   ...   END       1.200E+01   1.513E+01  9.82E+01
+twiss.a[1]  beta.a <target>   ...   END       1.200E+01   9.292E+00  7.33E+01
+twiss.b[2]  alpha.b <target>  ...   END      -4.000E-01  -2.527E-01  2.17E+00
+twiss.a[2]  alpha.a <target>  ...   END      -4.000E-01  -4.427E-01  1.82E-01
+quad[6]     Q6[K1]            ...   3.80     -5.000E+01  -1.000E+00  0.00E+00
+quad[5]     Q5[K1]            ...   3.30      5.000E+01   1.000E+00  0.00E+00
+... etc...
 
+ figure of merit: 1.738388E+02
 
+List of non-zero contributors to the Merit Function:
+Name                                          Merit           Sigma [= sqrt(Chi^2/N)]
+twiss.b                                       1.0034E+02      2.2179E+00
+twiss.a                                       7.3499E+01      1.9149E+00
+\end{code}
 
+To run, say, the \vn{lm} optimizer use the \vn{run lm} command. In this case, this command
+has been aliased to the \vn{opt} commanad by the \vn{setup.tao} command file that was run
+at initializaiton (\sref{s:opt.files}):
+\begin{code}
+Tao> opt
+Optimizing with: lm
+Type ``.'' to stop the optimizer before it's finished.
+[INFO] tao_dmodel_dvar_calc:
+    Remaking dModel_dVar derivative matrix.
+    This may take a while...
 
+  Cycle      Merit   A_lambda
+    1    5.4532E-01  1.00E-04
+    2    8.7067E-02  1.00E-05
+... etc...
+   19    3.5034E-04  1.00E-22
+   20    2.9333E-04  1.00E-23
+Written: var1.out
+   21    2.9333E-04  0.00E+00
+\end{code}
+The optimization has managedto reduce the merit function from 5.4E-1 to 2.9E-4. Further reductions
+in the merit function can be had by running the optimizer repeatedly. At the end of optimization,
+\tao creates a file \vn{var1.out} which contains the optimized variable values:
+\begin{code}
+ Q1[K1] =   7.76217267682967E-01
+ Q2[K1] =  -1.40330956873957E+00
+ Q3[K1] =   8.78773428675319E-01
+ Q4[K1] =  -1.07943627873167E+00
+ Q5[K1] =   1.29072113653010E+00
+ Q6[K1] =  -4.57469896955973E-01
+... etc...
+\end{code}
+The format of this file conforms to \bmad lattice file syntax so this file can be used to create a lattice
+with the optimized values. One way to form a lattice with optimized values is to create a new lattice file
+that calls the original lattice and \vn{var1.out}. That is, the new file would look like:
+\begin{code}
+call, file = lat.bmad
+call, file = var1.out
+\end{code}
 \end{document}
 
 
@@ -2462,3 +2938,4 @@ process.
   \caption{.}
   \label{f:}
 \end{figure}
+
