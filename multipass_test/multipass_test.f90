@@ -1,4 +1,4 @@
-program test
+program multipass_test
 
 use bmad
 use write_lat_file_mod
