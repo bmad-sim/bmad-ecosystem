@@ -969,7 +969,7 @@ case ('ix_ele_ref')
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
-  call tao_set_integer_value (tao_curve_ix_uni(this_curve), component, &
+  call tao_set_integer_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
