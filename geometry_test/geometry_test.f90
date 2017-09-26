@@ -7,50 +7,104 @@ implicit none
 
 type (lat_struct), target :: lat
 type (coord_struct) orbit
-type (floor_position_struct) local, floor, pos_ele
-type (ele_struct), pointer :: ele
+type (floor_position_struct) local, floor, pos_ele, floor2, f0
+type (ele_struct), pointer :: ele, ele1
 type (em_field_struct) f1, f2
+type (branch_struct), pointer :: branch
 
 real(rp) w_mat(3,3), s
 
-integer status
+integer i, status, nargs
+logical print_extra
+
+character(100) lat_file
 
 !
 
-call bmad_parser ('geometry_test.bmad', lat)
+lat_file = 'geometry_test.bmad'
+print_extra = .false.
+nargs = cesr_iargc()
+
+if (nargs > 0) then
+  call cesr_getarg(1, lat_file)
+  print *, 'Using ', trim(lat_file)
+  print_extra = .true.
+endif
+
+call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
 
-floor%r = [-0.11_rp, 0.2_rp, 2.0_rp]
-local = coords_floor_to_local_curvilinear(floor, lat%branch(1)%ele(1), status)
-write (1, '(a, 3f12.8, i6)') '"Floor-to-loc" ABS 0 ', local%r, status
+!
+
+local = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
+branch => lat%branch(0)
+
+do i = 1, lat%n_ele_max
+  local%r = lat%beam_start%vec(1:5:2)
+
+  if (branch%ele(i)%orientation == 1) then
+    f0 = branch%ele(i-1)%floor
+  else
+    f0 = branch%ele(i)%floor
+  endif
+
+  floor = coords_local_curvilinear_to_floor(local, branch%ele(i), .true., calculate_angles = .true.)
+  write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-up-T ', i, '" ABS 0 ', floor%r-f0%r, &
+                                                       floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+  floor = coords_local_curvilinear_to_floor(local, branch%ele(i), .false., calculate_angles = .true.)
+  write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-up-F ', i, '" ABS 0 ', floor%r-f0%r, &
+                                                       floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+
+  if (branch%ele(i)%orientation == 1) then
+    f0 = branch%ele(i)%floor
+  else
+    f0 = branch%ele(i-1)%floor
+  endif
+
+  local%r = lat%beam_start%vec(1:5:2)
+  local%r(3) = local%r(3) + lat%ele(i)%value(l$)
+
+  floor = coords_local_curvilinear_to_floor(local, branch%ele(i), .true., calculate_angles = .true.)
+  write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-dn-T ', i, '" ABS 0 ', floor%r-f0%r, &
+                                                       floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+enddo
 
 !
 
-floor%r = [1.0_rp, 0.1_rp, 2.1_rp]
-local = coords_floor_to_curvilinear (floor, lat%ele(2), ele, status)
-write (1, '(a, 2i6, 3f12.6)') '"G1" ABS 0 ', ele%ix_ele, status, local%r
+do i = 1, lat%n_ele_max
+  floor = branch%ele(i-1)%floor
+  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor%r = floor2%r
+  local = coords_floor_to_curvilinear(floor, branch%ele(lat%n_ele_max), ele1, status)
+  write (1, '(a, i0, a, i4, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-curvi-up ', i, '" ABS 0 ', ele1%ix_ele, local%r, &
+                                                       local%theta, local%phi, local%psi, status
+  floor = branch%ele(i)%floor
+  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor%r = floor2%r
+  local = coords_floor_to_curvilinear(floor, branch%ele(0), ele1, status)
+  write (1, '(a, i0, a, i4, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-curvi-dn ', i, '" ABS 0 ', ele1%ix_ele, local%r, &
+                                                       local%theta, local%phi, local%psi, status
+enddo
 
-ele => lat%ele(4)
+!
 
-call init_coord (orbit, lat%beam_start, ele, inside$)
-s = orbit%vec(5) / 2
-call offset_particle (ele, lat%param, unset$, orbit, ds_pos = s)
+do i = 1, lat%n_ele_max
+  floor = branch%ele(i-1)%floor
+  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor%r = floor2%r
+  local = coords_floor_to_local_curvilinear(floor, branch%ele(i), status)
+  write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-loc-up ', i, '" ABS 0 ', local%r, &
+                                                       local%theta, local%phi, local%psi, status
+  floor = branch%ele(i)%floor
+  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor%r = floor2%r
+  local = coords_floor_to_local_curvilinear(floor, branch%ele(i), status)
+  write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-loc-dn ', i, '" ABS 0 ', local%r, &
+                                                       local%theta, local%phi, local%psi, status
+enddo
 
-call em_field_calc (ele, lat%param, s, orbit, .false., f1)
-
-call em_field_calc (ele, lat%param, s, orbit, .true., f2)
-
-pos_ele%r = [orbit%vec(1), orbit%vec(3), s]
-local = coords_element_frame_to_local(pos_ele, ele, w_mat)
-f2%e = matmul(f2%e, w_mat)
-f2%b = matmul(f2%b, w_mat)
-
-write (1, '(a, 3f12.8)') '"Sbend-B1"  ABS 1e-8', f1%b
-!write (1, '(a, 3es12.4)') '"Sbend-B2"  ABS 1e-8', f2%b
-!write (1, '(a, 3es12.4)') '"Sbend-Orb"  ABS 1e-8', [orbit%vec(1), orbit%vec(3), s]
-!write (1, '(a, 3es12.4)') '"Sbend-Loc"  ABS 1e-8', local%r
-!write (1, '(a, 3es12.4)') '"Sbend-dB" ABS 1e-8', f1%b - f2%b
+!
 
 close (1)
 
