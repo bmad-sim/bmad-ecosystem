@@ -57,9 +57,16 @@ character(20) track_type, name
 
 logical calc_ok, this_calc_ok, err, rf_on
 
-!
+! Lattice bookkeeping
 
 calc_ok = .true.
+
+do iuni = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(iuni)
+  if (.not. u%is_on .or. .not. u%calc%lattice) cycle
+  tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
+  call tao_lat_bookkeeper (u, tao_lat)
+enddo
 
 ! do a custom lattice calculation if desired
 
@@ -80,10 +87,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
   u%data(:)%good_model = .false. ! reset
   u%data%model_value = tiny(1.0_rp)
-
-  ! Lattice bookkeeping
-
-  call tao_lat_bookkeeper (u, tao_lat)
 
   ! Loop over all branches
 
