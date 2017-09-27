@@ -1167,7 +1167,7 @@ do
 
     ! Try previous element
     ix_ele = ix_ele - 1
-    if (ix_ele == 0) ix_ele = branch%n_ele_track
+    if (ix_ele < 1) ix_ele = branch%n_ele_track
     last_direction = -1
     cycle
 
@@ -1184,7 +1184,7 @@ do
 
     ! Try next element
     ix_ele = ix_ele + 1
-    if (ix_ele == branch%n_ele_track) ix_ele = 1
+    if (ix_ele > branch%n_ele_track) ix_ele = 1
     last_direction = 1
     cycle
 
