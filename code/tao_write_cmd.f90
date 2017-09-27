@@ -17,6 +17,7 @@ use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
 use tao_top10_mod, dummy4 => tao_write_cmd
 use madx_ptc_module, only: m_u, m_t, print_universe_pointed, print_complex_single_structure, print_new_flat, print_universe
+use beam_file_io
 
 implicit none
 
@@ -48,9 +49,9 @@ character(20) :: names(24) = [ &
       'gif-l            ', 'ptc              ', 'sad_lattice      ', 'blender          ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer i_chan, ix_beam, ix_word, ix_w2
+integer i_chan, ix_beam, ix_word, ix_w2, file_format
 
-logical is_open, ascii, ok, err, good_opt_only, at_switch
+logical is_open, ok, err, good_opt_only, at_switch, new_file
 
 !
 
@@ -79,7 +80,7 @@ select case (action)
 
 case ('beam')
 
-  ascii = .false.
+  file_format = binary$
   is_open = .false.
   at_switch = .false.
   ix_word = 0
@@ -94,7 +95,7 @@ case ('beam')
 
     select case (switch)
     case ('');       exit
-    case ('-ascii'); ascii = .true.
+    case ('-ascii'); file_format = ascii$
     case ('-at')
       ix_word = ix_word + 1
       call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
@@ -119,70 +120,27 @@ case ('beam')
   iu = lunget()
 
   uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
-
     u => s%u(i)
 
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call fullfilename (file_name, file_name)
+    new_file = .true.
 
     do ie = 1, size(eles)
-
       ele => eles(ie)%ele
       ! Write file
 
       beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
       if (.not. allocated(beam%bunch)) cycle
 
-      if (.not. is_open) then
-        if (ascii) then
-          open (iu, file = file_name)
-          which = '!ASCII::3'
-          write (iu, '(a)') which
-        else
-          open (iu, file = file_name, form = 'unformatted')
-          which = '!BIN::3'
-          write (iu) which
-        endif
-        is_open = .true.
-      endif
-
-      if (ascii) then
-        write (iu, *) ele%ix_ele, '  ! ix_ele' 
-        write (iu, *) size(beam%bunch), '  ! n_bunch'
-        write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
-        do ib = 1, size(beam%bunch)
-          bunch => beam%bunch(ib)
-          write (iu, *) 'BEGIN_BUNCH'
-          write (iu, *) '  ', trim(species_name(bunch%particle(1)%species))
-          write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
-          write (iu, *) bunch%z_center,   '  ! z_center'
-          write (iu, *) bunch%t_center,   '  ! t_center'
-          do ip = 1, size(bunch%particle)
-            p => bunch%particle(ip)
-            write (iu, '(6es19.10, es14.5, i6, 3es19.10, i6, i3)') &
-                  p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
-          enddo
-          write (iu, *) 'END_BUNCH'
-        enddo
-      else
-        write (iu) ie, size(beam%bunch), size(beam%bunch(1)%particle)
-        do ib = 1, size(beam%bunch)
-          bunch => beam%bunch(ib)
-          write (iu) bunch%particle(1)%species, bunch%charge_tot, bunch%z_center, bunch%t_center, size(bunch%particle)
-          do ip = 1, size(bunch%particle)
-            p => bunch%particle(ip)
-            write (iu) p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
-          enddo
-        enddo
-      endif
-
+      call write_beam_file (file_name, ele, beam, new_file, file_format)
+      new_file = .false.
     enddo 
 
-    if (is_open) then
-      close (iu)
-      call out_io (s_info$, r_name, 'Writen: ' // file_name)
-    else
+    if (new_file) then
       call out_io (s_error$, r_name, 'NO ALLOCATED BEAM FOUND!')
+    else
+      call out_io (s_info$, r_name, 'Writen: ' // file_name)
     endif
 
   enddo uni_loop
