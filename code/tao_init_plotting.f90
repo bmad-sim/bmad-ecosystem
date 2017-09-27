@@ -38,7 +38,7 @@ type (tao_plot_input) plot, default_plot
 type (tao_graph_input) :: graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
-type (tao_place_input) place(10)
+type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
 type (tao_ele_shape_struct) ele_shape(30)
 type (tao_ele_shape_struct), pointer :: e_shape
