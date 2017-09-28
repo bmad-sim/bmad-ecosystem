@@ -103,8 +103,10 @@ rel_E = (1 + end_orb%vec(6))
 rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
-mat6 => ele%mat6
-call mat_make_unit(mat6)
+if (calculate_mat6) then
+  mat6 => ele%mat6
+  call mat_make_unit(mat6)
+endif
 
 err = .false.
 
