@@ -56,7 +56,7 @@ implicit none
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
-type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: start_orb, end_orb, start_orb_saved
 type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (cartesian_map_struct), pointer :: ct_map
@@ -88,6 +88,7 @@ character(16) :: r_name = 'symp_lie_bmad'
 
 calculate_mat6 = (make_matrix .or. synch_rad_com%i_calc_on)
 
+start_orb_saved = start_orb
 end_orb = start_orb
 if (end_orb%direction == 1) then
   end_orb%s = ele%s_start
@@ -386,7 +387,7 @@ if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = mat6, m
 
 z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
 end_orb%vec(5) = end_orb%vec(5) + z_patch
-end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
+end_orb%t = start_orb_saved%t + ele%value(delta_ref_time$) + (start_orb_saved%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 
 if (calculate_mat6) then
   mat6(5,6) = mat6(5,6) + ele%value(delta_ref_time$) * c_light * &
@@ -396,7 +397,7 @@ endif
 ! calc vec0
 
 if (calculate_mat6) then
-  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
+  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb_saved%vec)
   ele%vec0(6) = 0
 endif
 
@@ -458,7 +459,7 @@ if (calculate_mat6) then
   track%map(ix)%mat6 = mat6
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
-  track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb%vec)
+  track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb_saved%vec)
 endif
 
 if (bmad_com%convert_to_kinetic_momentum) then
@@ -684,7 +685,7 @@ real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = charge_of(start_orb%species) * c_light * field_ele%value(polarity$) / ele%value(p0c$)
+factor = charge_of(start_orb_saved%species) * c_light * field_ele%value(polarity$) / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
@@ -1401,9 +1402,9 @@ if (synch_rad_com%i_calc_on) then
   synch_rad_com%i3 = synch_rad_com%i3 + g3 * ds
   if (associated(ele%branch)) then
     temp_ele%mat6 = mat6
-    temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
+    temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb_saved%vec)
     temp_ele%vec0(6) = 0
-    temp_ele%map_ref_orb_in = start_orb
+    temp_ele%map_ref_orb_in = start_orb_saved
     temp_ele%map_ref_orb_out = end_orb
     ele0 => ele%branch%ele(ele%ix_ele-1)
     call twiss_propagate1 (ele0, temp_ele)
