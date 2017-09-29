@@ -28,10 +28,10 @@ interface operator (==)
   module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
-  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield
-  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch
-  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data
-  module procedure eq_aperture_param, eq_aperture_scan
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
+  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch, eq_lat
+  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
+  module procedure eq_aperture_scan
 end interface
 
 contains
@@ -2348,24 +2348,6 @@ end function eq_rad_int_all_ele
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_ptc_genfield (f1, f2) result (is_eq)
-
-implicit none
-
-type(ptc_genfield_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%vec0 == f2%vec0)
-
-end function eq_ptc_genfield
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_ele (f1, f2) result (is_eq)
 
 implicit none
@@ -2438,8 +2420,6 @@ if (.not. is_eq) return
 if (associated(f1%grid_field)) is_eq = all(f1%grid_field == f2%grid_field)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%floor == f2%floor)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_genfield == f2%ptc_genfield)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%mode3) .eqv. associated(f2%mode3))
