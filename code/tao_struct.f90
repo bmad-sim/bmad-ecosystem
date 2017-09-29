@@ -29,7 +29,7 @@ end interface
 
 !---------
 
-type cmd_history_struct  ! record the command history
+type tao_cmd_history_struct  ! record the command history
   character(:), allocatable :: cmd     ! the command
   integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
   logical cmd_file       ! Did command come from a command file
@@ -880,7 +880,7 @@ type tao_super_universe_struct
   type (tao_wave_struct) :: wave 
   integer :: n_var_used = 0
   integer :: n_v1_var_used = 0
-  type (cmd_history_struct) :: history(1000) ! command history
+  type (tao_cmd_history_struct) :: history(1000) ! command history
 end type
 
 type (tao_super_universe_struct), save, target :: s

@@ -39,11 +39,6 @@ character(40) :: cmd_word(12)
  
 character(16) cmd_name
 
-!!!! put your list of hook commands in here. 
-! "echo" is an example of how to implement a command. See below.
-
-character(16) :: cmd_names(1) = [character(16):: 'echo']  
-
 logical quit_tao, err
 
 ! found will be set to TRUE if the command is found in here
@@ -60,10 +55,13 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 
 if (cmd_line(1:1) == '') return
 
+!!!! put your list of hook commands in here. 
+! "echo" is an example of how to implement a command. See below.
+
 ! match first word to a command name
 ! If not found then found = .false.
 
-call match_word (cmd_line(:ix_line), cmd_names, ix_cmd, .true., .true., cmd_name)
+call match_word (cmd_line(:ix_line), [character(16):: 'echo'], ix_cmd, .true., .true., cmd_name)
 if (ix_cmd == 0) return
 if (ix_cmd < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS HOOK COMMAND')
@@ -89,8 +87,7 @@ case ('echo')
   call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
 
   ! send any output to out_io
-  call out_io (s_blank$, r_name, &
-               "This is just a dummy command for illustration purposes")
+  call out_io (s_blank$, r_name, "This is just a dummy command for illustration purposes")
   call out_io (s_blank$, r_name, "I will just echo anything you tell me!")
   call out_io (s_blank$, r_name, "***")
   do i = 1, size(cmd_word)
