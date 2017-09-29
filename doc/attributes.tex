@@ -2051,6 +2051,11 @@ sum of the fields of each one. Separating fields like this can be useful, for ex
 decouple the specification of electric from magnetic fields, or to decouple the
 specification of AC and DC fields.
 
+fields may stored in a \vn{binary} format (\sref{s:binary.form}). For example:
+\begin{example}
+  qq: quadrupole, grid_field = call::my_grid.bin, ...
+\end{example}
+
 The field of one element can overlap onto other elements. This is
 explained in Sec.~\sref{s:overlap}.
 

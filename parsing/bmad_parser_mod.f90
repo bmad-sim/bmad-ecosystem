@@ -14,6 +14,7 @@ use wake_mod
 use attribute_mod
 use superimpose_mod
 use track1_mod
+use binary_parser_mod
 
 implicit none
 
@@ -1070,7 +1071,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
     return
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
+  !
 
   if (associated(ele%cartesian_map)) then
     i_ptr = size(ele%cartesian_map) + 1
@@ -1084,8 +1085,16 @@ if (attrib_word == 'CARTESIAN_MAP') then
     i_ptr = 1
   endif
 
-  allocate (ele%cartesian_map(i_ptr)%ptr)
-  call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
+  !
+
+  if (word(1:8) == 'BINARY::') then
+    call read_binary_cartesian_map(word(9:), ele%cartesian_map(i_ptr), err_flag)
+  else
+    if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
+    allocate (ele%cartesian_map(i_ptr)%ptr)
+    call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
+  endif
+
   return
 endif
 
@@ -1110,8 +1119,6 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     return
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
-
   if (associated(ele%cylindrical_map)) then
     i_ptr = size(ele%cylindrical_map) + 1
     ele0%cylindrical_map => ele%cylindrical_map
@@ -1124,11 +1131,16 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     i_ptr = 1
   endif
 
-  allocate (ele%cylindrical_map(i_ptr)%ptr)
-  cl_map => ele%cylindrical_map(i_ptr)
-  if (ele%key == lcavity$ .or. ele%key == rfcavity$) cl_map%harmonic = 1 ! Default
+  if (word(1:8) == 'BINARY::') then
+    call read_binary_cylindrical_map(word(9:), ele%cylindrical_map(i_ptr), err_flag)
+  else
+    if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
+    allocate (ele%cylindrical_map(i_ptr)%ptr)
+    cl_map => ele%cylindrical_map(i_ptr)
+    if (ele%key == lcavity$ .or. ele%key == rfcavity$) cl_map%harmonic = 1 ! Default
+    call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
+  endif
 
-  call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
   return
 endif
 
@@ -1153,8 +1165,6 @@ if (attrib_word == 'GRID_FIELD') then
     return
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
-
   if (associated(ele%grid_field)) then
     i_ptr = size(ele%grid_field) + 1
     ele0%grid_field => ele%grid_field
@@ -1168,11 +1178,17 @@ if (attrib_word == 'GRID_FIELD') then
     i_ptr = 1
   endif
 
-  allocate (ele%grid_field(i_ptr)%ptr)
-  g_field => ele%grid_field(i_ptr)
-  if (ele%key == lcavity$ .or. ele%key == rfcavity$) g_field%harmonic = 1 ! Default
+  if (word(1:8) == 'BINARY::') then
+    call read_binary_grid_field(word(9:), ele%grid_field(i_ptr), err_flag)
+  else
+    if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
+    allocate (ele%grid_field(i_ptr)%ptr)
+    g_field => ele%grid_field(i_ptr)
+    if (ele%key == lcavity$ .or. ele%key == rfcavity$) g_field%harmonic = 1 ! Default
 
-  call parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
+    call parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
+  endif
+
   return
 endif
 
@@ -1197,8 +1213,6 @@ if (attrib_word == 'TAYLOR_FIELD') then
     return
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
-
   if (associated(ele%taylor_field)) then
     i_ptr = size(ele%taylor_field) + 1
     ele0%taylor_field => ele%taylor_field
@@ -1211,10 +1225,16 @@ if (attrib_word == 'TAYLOR_FIELD') then
     i_ptr = 1
   endif
 
-  allocate (ele%taylor_field(i_ptr)%ptr)
-  t_field => ele%taylor_field(i_ptr)
+  if (word(1:8) == 'BINARY::') then
+    call read_binary_taylor_field(word(9:), ele%taylor_field(i_ptr), err_flag)
+  else
+    if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+    allocate (ele%taylor_field(i_ptr)%ptr)
+    t_field => ele%taylor_field(i_ptr)
 
-  call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
+    call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
+  endif
+
   return
 endif
 
@@ -1299,6 +1319,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     case (y_family$);   ct_term%type = hyper_y_family_y$
     case (qu_family$);  ct_term%type = hyper_y_family_qu$
     case (sq_family$);  ct_term%type = hyper_y_family_sq$
+    ky = sign_of(ky) * sqrt(kx**2 + kz**2)
     end select
 
     if (old_style_input) then
@@ -1311,6 +1332,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     case (y_family$);   ct_term%type = hyper_xy_family_y$
     case (qu_family$);  ct_term%type = hyper_xy_family_qu$
     case (sq_family$);  ct_term%type = hyper_xy_family_sq$
+    kz = sign_of(kz) * sqrt(kx**2 + ky**2)
     end select
 
     if (old_style_input) then
@@ -1325,6 +1347,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     case (y_family$);   ct_term%type = hyper_x_family_y$
     case (qu_family$);  ct_term%type = hyper_x_family_qu$
     case (sq_family$);  ct_term%type = hyper_x_family_sq$
+    kx = sign_of(kx) * sqrt(ky**2 + kz**2)
     end select
 
     if (old_style_input) then
@@ -2186,8 +2209,13 @@ if (logic_option(.false., call_check)) then
   if (str == 'CALL::') then
     bp_com%parse_line = bp_com%parse_line(7:)
     call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
-    bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
-    call parser_file_stack ('push_inline', line); if (bp_com%fatal_error_flag) return
+    if (index(line, '.bin') == len_trim(line) - 3) then
+      word = 'BINARY::' // trim(line)
+      return
+    else
+      bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
+      call parser_file_stack ('push_inline', line); if (bp_com%fatal_error_flag) return
+    endif
   endif
 endif
 
@@ -6795,6 +6823,7 @@ do
       case (y_family$);   tm%type = hyper_y_family_y$
       case (qu_family$);  tm%type = hyper_y_family_qu$
       case (sq_family$);  tm%type = hyper_y_family_sq$
+      ky = sign_of(ky) * sqrt(kx**2 + kz**2)
       end select
 
     elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
@@ -6803,6 +6832,7 @@ do
       case (y_family$);   tm%type = hyper_xy_family_y$
       case (qu_family$);  tm%type = hyper_xy_family_qu$
       case (sq_family$);  tm%type = hyper_xy_family_sq$
+      kz = sign_of(kz) * sqrt(kx**2 + ky**2)
       end select
 
     elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
@@ -6811,6 +6841,7 @@ do
       case (y_family$);   tm%type = hyper_x_family_y$
       case (qu_family$);  tm%type = hyper_x_family_qu$
       case (sq_family$);  tm%type = hyper_x_family_sq$
+      kx = sign_of(kx) * sqrt(ky**2 + kz**2)
       end select
 
     else

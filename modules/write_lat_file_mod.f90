@@ -3,6 +3,7 @@ module write_lat_file_mod
 use multipole_mod
 use multipass_mod
 use element_modeling_mod
+use binary_parser_mod
 
 private re_str, rchomp, cmplx_re_str, write_line_element, array_re_str
 private write_lat_in_sad_format
@@ -13,7 +14,7 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_bmad_lattice_file (bmad_file, lat, err)
+! Subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form)
 !
 ! Subroutine to write a Bmad lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
@@ -29,12 +30,15 @@ contains
 !                       used for output.
 !   ix_end        -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
+!   output_form   -- integer, optional: 
+!                       binary$ -> Write field info in binary form. All else ascii. Default.
+!                       ascii$  -> All ascii.
 !
 ! Output:
 !   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_bmad_lattice_file (bmad_file, lat, err)
+subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form)
 
 implicit none
 
@@ -97,6 +101,7 @@ character(4) end_str, last
 character(1), parameter :: xyz(3) = ['x', 'y', 'z']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
+integer, optional :: output_form
 integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
@@ -105,7 +110,7 @@ integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
 logical unit_found, write_term, found, in_multi_region, expand_branch_out
-logical x_lim_good, y_lim_good, is_default, need_new_region
+logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag
 
 ! Init...
 ! Init default parameters
@@ -619,48 +624,51 @@ do ib = 0, ubound(lat%branch, 1)
         ! First find out out if an file has been written
         call find_matching_fieldmap (ct_map%ptr%file, ele, cartesian_map$, ele2, ix_ptr) 
 
-
         if (ix_ptr > 0) then
-          call str_downcase(name, ele2%name)
-          write (string, '(2a, i0, a)') trim(name), '_', ix_ptr, '.cartesian_map'
+          call form_this_field_map_name(string, '.cartesian_map', ele2, ix_ptr, output_form)
           write (line, '(3a)')  trim(line), ', cartesian_map = call::', trim(string)
+
         else
-          call str_downcase(name, ele%name)
-          write (string, '(2a, i0, a)')  trim(name), '_', im, '.cartesian_map'
+          call form_this_field_map_name(string, '.cartesian_map', ele, im, output_form)
           line = trim(line) // ', cartesian_map = call::' // trim(string)
+          string = trim(path) // '/' // trim(string)
 
-          iu2 = lunget()
-          open (iu2, file = trim(path) // '/' // trim(string))
+          if (integer_option(binary$, output_form) == binary$) then
+            call write_binary_cartesian_map(string, ct_map, err_flag)
+          else
+            iu2 = lunget()
+            open (iu2, file = string)
 
-          write (iu2, '(a)') '{'
-          if (ct_map%master_parameter > 0) write (iu2, '(2x, 3a)') &
-                                  'master_parameter  = ', trim(attribute_name(ele, ct_map%master_parameter)), ','
-          write (iu2, '(2x, 3a)') 'field_scale       = ', trim(re_str(ct_map%field_scale)), ','
-          write (iu2, '(2x, 4a)') 'r0                = ', trim(array_re_str(ct_map%r0)), ','
-          write (iu2, '(2x, 3a)') 'ele_anchor_pt     = ', trim(anchor_pt_name(ct_map%ele_anchor_pt)), ','
-          write (iu2, '(2x, 3a)') 'field_type        = ', trim(em_field_type_name(ct_map%field_type)), ','
+            write (iu2, '(a)') '{'
+            if (ct_map%master_parameter > 0) write (iu2, '(2x, 3a)') &
+                                    'master_parameter  = ', trim(attribute_name(ele, ct_map%master_parameter)), ','
+            write (iu2, '(2x, 3a)') 'field_scale       = ', trim(re_str(ct_map%field_scale)), ','
+            write (iu2, '(2x, 4a)') 'r0                = ', trim(array_re_str(ct_map%r0)), ','
+            write (iu2, '(2x, 3a)') 'ele_anchor_pt     = ', trim(anchor_pt_name(ct_map%ele_anchor_pt)), ','
+            write (iu2, '(2x, 3a)') 'field_type        = ', trim(em_field_type_name(ct_map%field_type)), ','
 
-          do j = 1, size(ct_map%ptr%term)
-            ct_term => ct_map%ptr%term(j)
-            last = '}, &'
-            if (j == size(ct_map%ptr%term)) last = '} &'
-            select case (ct_term%type)
-            case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
-              name = 'X'
-            case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
-              name = 'Y'
-            case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
-              name = 'QU'
-            case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
-              name = 'SQ'
-            end select
-            write (iu2, '(17a)') '  term = {', trim(re_str(ct_term%coef)), ', ', &
-              trim(re_str(ct_term%kx)), ', ', trim(re_str(ct_term%ky)), ', ', trim(re_str(ct_term%kz)), &
-              ', ', trim(re_str(ct_term%x0)), ', ', trim(re_str(ct_term%y0)), ', ', trim(re_str(ct_term%phi_z)), ', ', trim(name), trim(last)
-          enddo
+            do j = 1, size(ct_map%ptr%term)
+              ct_term => ct_map%ptr%term(j)
+              last = '}, &'
+              if (j == size(ct_map%ptr%term)) last = '} &'
+              select case (ct_term%type)
+              case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+                name = 'X'
+              case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+                name = 'Y'
+              case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+                name = 'QU'
+              case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+                name = 'SQ'
+              end select
+              write (iu2, '(17a)') '  term = {', trim(re_str(ct_term%coef)), ', ', &
+                trim(re_str(ct_term%kx)), ', ', trim(re_str(ct_term%ky)), ', ', trim(re_str(ct_term%kz)), &
+                ', ', trim(re_str(ct_term%x0)), ', ', trim(re_str(ct_term%y0)), ', ', trim(re_str(ct_term%phi_z)), ', ', trim(name), trim(last)
+            enddo
 
-          write (iu2, '(a)') '}'
-          close (iu2)
+            write (iu2, '(a)') '}'
+            close (iu2)
+          endif
         endif
       enddo
     endif
@@ -674,36 +682,40 @@ do ib = 0, ubound(lat%branch, 1)
         call find_matching_fieldmap (cl_map%ptr%file, ele, cylindrical_map$, ele2, ix_ptr) 
 
         if (ix_ptr > 0) then
-          call str_downcase(name, ele2%name)
-          write (string, '(2a, i0, a)') trim(name), '_', ix_ptr, '.cylindrical_map'
+          call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, output_form)
           write (line, '(3a)')  trim(line), ', cylindrical_map = call::', trim(string)
+
         else
-          call str_downcase(name, ele%name)
-          write (string, '(2a, i0, a)')  trim(name), '_', im, '.cylindrical_map'
+          call form_this_field_map_name(string, '.cylindrical_map', ele, im, output_form)
           line = trim(line) // ', cylindrical_map = call::' // trim(string)
+          string = trim(path) // '/' // trim(string)
 
-          iu2 = lunget()
-          open (iu2, file = trim(path) // '/' // trim(string))
+          if (integer_option(binary$, output_form) == binary$) then
+            call write_binary_cylindrical_map(string, cl_map, err_flag)
+          else
+            iu2 = lunget()
+            open (iu2, file = string)
 
-          write (iu2, '(a)') '{'
-          if (cl_map%master_parameter > 0) write (iu2, '(2x, 3a)') &
-                                        'master_parameter  = ', trim(attribute_name(ele, cl_map%master_parameter)), ','
-          write (iu2, '(2x, 3a)')       'field_scale       = ', trim(re_str(cl_map%field_scale)), ','
-          write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(cl_map%ele_anchor_pt)), ','
-          write (iu2, '(2x, a, i0, a)') 'm                 = ', cl_map%m, ','
-          write (iu2, '(2x, a, i0, a)') 'harmonic          = ', cl_map%harmonic, ','
-          write (iu2, '(2x, 3a)')       'dz                = ', trim(re_str(cl_map%dz)), ','
-          write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(cl_map%r0)), ','
-          write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(cl_map%phi0_fieldmap)), ','
-          write (iu2, '(2x, 3a)', advance = 'NO') 'theta0_azimuth      = ', trim(re_str(cl_map%theta0_azimuth))
+            write (iu2, '(a)') '{'
+            if (cl_map%master_parameter > 0) write (iu2, '(2x, 3a)') &
+                                          'master_parameter  = ', trim(attribute_name(ele, cl_map%master_parameter)), ','
+            write (iu2, '(2x, 3a)')       'field_scale       = ', trim(re_str(cl_map%field_scale)), ','
+            write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(cl_map%ele_anchor_pt)), ','
+            write (iu2, '(2x, a, i0, a)') 'm                 = ', cl_map%m, ','
+            write (iu2, '(2x, a, i0, a)') 'harmonic          = ', cl_map%harmonic, ','
+            write (iu2, '(2x, 3a)')       'dz                = ', trim(re_str(cl_map%dz)), ','
+            write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(cl_map%r0)), ','
+            write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(cl_map%phi0_fieldmap)), ','
+            write (iu2, '(2x, 3a)', advance = 'NO') 'theta0_azimuth      = ', trim(re_str(cl_map%theta0_azimuth))
 
-          if (any(real(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_re', real(cl_map%ptr%term%e_coef))
-          if (any(aimag(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_im', aimag(cl_map%ptr%term%e_coef))
-          if (any(real(cl_map%ptr%term%b_coef) /= 0)) call write_map_coef ('B_coef_re', real(cl_map%ptr%term%b_coef))
-          if (any(aimag(cl_map%ptr%term%b_coef) /= 0)) call write_map_coef ('B_coef_im', aimag(cl_map%ptr%term%b_coef))
+            if (any(real(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_re', real(cl_map%ptr%term%e_coef))
+            if (any(aimag(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_im', aimag(cl_map%ptr%term%e_coef))
+            if (any(real(cl_map%ptr%term%b_coef) /= 0)) call write_map_coef ('B_coef_re', real(cl_map%ptr%term%b_coef))
+            if (any(aimag(cl_map%ptr%term%b_coef) /= 0)) call write_map_coef ('B_coef_im', aimag(cl_map%ptr%term%b_coef))
 
-          write (iu2, '(2x, a)') '}'
-          close (iu2)
+            write (iu2, '(2x, a)') '}'
+            close (iu2)
+          endif
         endif
       enddo
     endif
@@ -718,75 +730,79 @@ do ib = 0, ubound(lat%branch, 1)
         call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr) 
 
         if (ix_ptr > 0) then
-          call str_downcase(name, ele2%name)
-          write (string, '(2a, i0, a)') trim(name), '_', ix_ptr, '.grid_field'
+          call form_this_field_map_name(string, '.grid_field', ele2, ix_ptr, output_form)
           write (line, '(3a)')  trim(line), ', grid_field = call::', trim(string)
+
         else
-          call str_downcase(name, ele%name)
-          write (string, '(2a, i0, a)')  trim(name), '_', im, '.grid_field'
+          call form_this_field_map_name(string, '.grid_field', ele, im, output_form)
           line = trim(line) // ', grid_field = call::' // trim(string)
+          string = trim(path) // '/' // trim(string)
 
-          iu2 = lunget()
-          open (iu2, file = trim(path) // '/' // trim(string))
+          if (integer_option(binary$, output_form) == binary$) then
+            call write_binary_grid_field (string, g_field, err_flag)
+          else
+            iu2 = lunget()
+            open (iu2, file = string)
 
-          write (iu2, '(a)') '{'
-          n = grid_field_dimension(g_field%geometry)
-          write (iu2, '(2x, 3a)')       'geometry          = ', trim(grid_field_geometry_name(g_field%geometry)), ','
-          if (g_field%master_parameter > 0) write (iu2, '(2x, 3a)') &
-                                        'master_parameter  = ', trim(attribute_name(ele, g_field%master_parameter)), ','
-          write (iu2, '(2x, 3a)')       'field_scale       = ', trim(re_str(g_field%field_scale)), ','
-          write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(g_field%ele_anchor_pt)), ','
-          write (iu2, '(2x, 3a)')       'field_type        = ', trim(em_field_type_name(g_field%field_type)), ','
-          write (iu2, '(2x, a, i0, a)') 'harmonic          = ', g_field%harmonic, ','
-          write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(g_field%phi0_fieldmap)), ','
-          write (iu2, '(2x, 4a)')       'dr                = ', trim(array_re_str(g_field%dr(1:n))), ','
-          write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(g_field%r0(1:n))), ','
-          write (iu2, '(2x, a, l1, a)') 'curved_ref_frame  = ', g_field%curved_ref_frame, ','
+            write (iu2, '(a)') '{'
+            n = grid_field_dimension(g_field%geometry)
+            write (iu2, '(2x, 3a)')       'geometry          = ', trim(grid_field_geometry_name(g_field%geometry)), ','
+            if (g_field%master_parameter > 0) write (iu2, '(2x, 3a)') &
+                                          'master_parameter  = ', trim(attribute_name(ele, g_field%master_parameter)), ','
+            write (iu2, '(2x, 3a)')       'field_scale       = ', trim(re_str(g_field%field_scale)), ','
+            write (iu2, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(g_field%ele_anchor_pt)), ','
+            write (iu2, '(2x, 3a)')       'field_type        = ', trim(em_field_type_name(g_field%field_type)), ','
+            write (iu2, '(2x, a, i0, a)') 'harmonic          = ', g_field%harmonic, ','
+            write (iu2, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(g_field%phi0_fieldmap)), ','
+            write (iu2, '(2x, 4a)')       'dr                = ', trim(array_re_str(g_field%dr(1:n))), ','
+            write (iu2, '(2x, 4a)')       'r0                = ', trim(array_re_str(g_field%r0(1:n))), ','
+            write (iu2, '(2x, a, l1, a)') 'curved_ref_frame  = ', g_field%curved_ref_frame, ','
 
-          end_str = '),'
+            end_str = '),'
 
-          do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
-          do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
-          do id3 = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
+            do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
+            do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
+            do id3 = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
 
-            if (all([id1, id2, id3] == ubound(g_field%ptr%pt))) end_str = ') &'
+              if (all([id1, id2, id3] == ubound(g_field%ptr%pt))) end_str = ') &'
 
-            select case (grid_field_dimension(g_field%geometry))
-            case (1)
-              write (string, '(2x, a, i0, 13a)') 'pt(', id1, ') = ('
-            case (2)
-              write (string, '(2x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = ('
-            case (3)
-              write (string, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = ('
-            end select
+              select case (grid_field_dimension(g_field%geometry))
+              case (1)
+                write (string, '(2x, a, i0, 13a)') 'pt(', id1, ') = ('
+              case (2)
+                write (string, '(2x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = ('
+              case (3)
+                write (string, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = ('
+              end select
 
-            select case (g_field%field_type)
-            case (mixed$)
-              write (iu2, '(2x, a, 13a)') trim(string), &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
-            case (electric$)
-              write (iu2, '(2x, a, 13a)') trim(string), &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), end_str
-            case (magnetic$)
-              write (iu2, '(2x, a, 13a)') trim(string), &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
-                                                 trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
-            end select
+              select case (g_field%field_type)
+              case (mixed$)
+                write (iu2, '(2x, a, 13a)') trim(string), &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
+              case (electric$)
+                write (iu2, '(2x, a, 13a)') trim(string), &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), end_str
+              case (magnetic$)
+                write (iu2, '(2x, a, 13a)') trim(string), &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                                   trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), end_str
+              end select
 
-          enddo
-          enddo
-          enddo
+            enddo
+            enddo
+            enddo
 
-          write (iu2, '(4x, a)') '}'
-          close (iu2)
+            write (iu2, '(4x, a)') '}'
+            close (iu2)
+          endif
         endif
       enddo
     endif
@@ -801,52 +817,56 @@ do ib = 0, ubound(lat%branch, 1)
         call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr) 
 
         if (ix_ptr > 0) then
-          call str_downcase(name, ele2%name)
-          write (string, '(2a, i0, a)') trim(name), '_', ix_ptr, '.taylor_field'
+          call form_this_field_map_name(string, '.taylor_field', ele2, ix_ptr, output_form)
           write (line, '(3a)')  trim(line), ', taylor_field = call::', trim(string)
+
         else
-          call str_downcase(name, ele%name)
-          write (string, '(2a, i0, a)')  trim(name), '_', im, '.taylor_field'
+          call form_this_field_map_name(string, '.taylor_field', ele, im, output_form)
           line = trim(line) // ', taylor_field = call::' // trim(string)
+          string = trim(path) // '/' // trim(string)
 
-          iu2 = lunget()
-          open (iu2, file = trim(path) // '/' // trim(string))
+          if (integer_option(binary$, output_form) == binary$) then
+            call write_binary_taylor_field (string, t_field, err_flag)
+          else
+            iu2 = lunget()
+            open (iu2, file = string)
 
-          write (iu2, '(a)') '{'
-          if (t_field%master_parameter > 0) write (iu2, '(2x, 3a)') &
-                                        'master_parameter   = ', trim(attribute_name(ele, t_field%master_parameter)), ','
-          write (iu2, '(2x, 3a)')       'field_scale        = ', trim(re_str(t_field%field_scale)), ','
-          write (iu2, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(t_field%ele_anchor_pt)), ','
-          write (iu2, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(t_field%field_type)), ','
-          write (iu2, '(2x, 3a)')       'dz                 = ', trim(re_str(t_field%dz)), ','
-          write (iu2, '(2x, 4a)')       'r0                 = ', trim(array_re_str(t_field%r0)), ','
-          write (iu2, '(2x, a, l1, a)') 'curved_ref_frame   = ', t_field%curved_ref_frame, ','
-          write (iu2, '(2x, a, l1, a)') 'canonical_tracking = ', t_field%canonical_tracking, ','
+            write (iu2, '(a)') '{'
+            if (t_field%master_parameter > 0) write (iu2, '(2x, 3a)') &
+                                          'master_parameter   = ', trim(attribute_name(ele, t_field%master_parameter)), ','
+            write (iu2, '(2x, 3a)')       'field_scale        = ', trim(re_str(t_field%field_scale)), ','
+            write (iu2, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(t_field%ele_anchor_pt)), ','
+            write (iu2, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(t_field%field_type)), ','
+            write (iu2, '(2x, 3a)')       'dz                 = ', trim(re_str(t_field%dz)), ','
+            write (iu2, '(2x, 4a)')       'r0                 = ', trim(array_re_str(t_field%r0)), ','
+            write (iu2, '(2x, a, l1, a)') 'curved_ref_frame   = ', t_field%curved_ref_frame, ','
+            write (iu2, '(2x, a, l1, a)') 'canonical_tracking = ', t_field%canonical_tracking, ','
 
-          do ip = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-            write (iu2, '(2x, a, i0, a)') 'plane(', ip, ') = {'
-            line2 = ''
-            do k = 1, 3
-              do it = 1, size(t_field%ptr%plane(ip)%field(k)%term)
-                t_term => t_field%ptr%plane(ip)%field(k)%term(it)
-                if (line2 == '') then
-                  write (line2, '(4x, 5a, 2i2, a)') '{', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
-                else
-                  write (line2, '(6a, 2i2, a)') trim(line2), ', {', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
-                endif
+            do ip = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+              write (iu2, '(2x, a, i0, a)') 'plane(', ip, ') = {'
+              line2 = ''
+              do k = 1, 3
+                do it = 1, size(t_field%ptr%plane(ip)%field(k)%term)
+                  t_term => t_field%ptr%plane(ip)%field(k)%term(it)
+                  if (line2 == '') then
+                    write (line2, '(4x, 5a, 2i2, a)') '{', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
+                  else
+                    write (line2, '(6a, 2i2, a)') trim(line2), ', {', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
+                  endif
+                enddo
               enddo
+              line2 = trim(line2) // ' }'
+              if (ip == ubound(t_field%ptr%plane, 1)) then
+                line2 = trim(line2) // ' &'
+              else
+                line2 = trim(line2) // ','
+              endif
+              call write_lat_line (line2, iu2, .true.)
             enddo
-            line2 = trim(line2) // ' }'
-            if (ip == ubound(t_field%ptr%plane, 1)) then
-              line2 = trim(line2) // ' &'
-            else
-              line2 = trim(line2) // ','
-            endif
-            call write_lat_line (line2, iu2, .true.)
-          enddo
 
-          write (iu2, '(a)') '}'
-          close (iu2)
+            write (iu2, '(a)') '}'
+            close (iu2)
+          endif
         endif
       enddo
     endif
@@ -1454,6 +1474,30 @@ write (iu, '(a)')
 expand_branch_out = .true.
 
 end subroutine write_expand_lat_header
+
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine form_this_field_map_name(string, field_type, ele, ix_map, output_form)
+
+type (ele_struct) ele
+integer ix_map
+integer, optional :: output_form
+character(*) string, field_type
+character(40) name
+
+!
+
+call str_downcase(name, ele%name)
+if (ix_map == 1) then
+  write (string, '(2a)') trim(name), field_type
+else
+  write (string, '(2a, i0, a)') trim(name), '_', ix_map, field_type
+endif
+
+if (integer_option(binary$, output_form) == binary$) string = trim(string) // '.bin'
+
+end subroutine form_this_field_map_name
 
 !--------------------------------------------------------------------------------
 ! contains

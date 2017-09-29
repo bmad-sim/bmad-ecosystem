@@ -4,8 +4,6 @@ use spin_mod
 
 implicit none
 
-integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3
-
 contains
 
 !-----------------------------------------------------------------------------

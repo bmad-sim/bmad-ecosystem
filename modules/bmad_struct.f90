@@ -214,6 +214,8 @@ end type
 
 !-------------------------------------------------------------------------
 
+integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3
+
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 80
