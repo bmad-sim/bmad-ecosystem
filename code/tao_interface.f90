@@ -172,14 +172,6 @@ subroutine tao_hook_command (command_line, found)
   logical found
 end subroutine
  
-subroutine tao_hook_init_var() 
-  implicit none
-end subroutine
-
-subroutine tao_hook_parse_command_args()
-  implicit none
-end subroutine
-
 subroutine tao_hook_draw_floor_plan (plot, graph)
   import
   implicit none
@@ -194,22 +186,7 @@ subroutine tao_hook_draw_graph (plot, graph, found)
   type (tao_graph_struct) graph
   logical found
 end subroutine
- 
-subroutine tao_hook_graph_setup (plot, graph, found)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-  logical found
-end subroutine
- 
-subroutine tao_hook_graph_postsetup (plot, graph)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-end subroutine
- 
+
 subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
   import
   implicit none
@@ -219,6 +196,65 @@ subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, val
   real(rp) datum_value
   logical found, valid_value
   character(*), optional :: why_invalid
+end subroutine
+
+subroutine tao_hook_graph_postsetup (plot, graph)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+end subroutine
+ 
+subroutine tao_hook_graph_setup (plot, graph, found)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+  logical found
+end subroutine
+ 
+subroutine tao_hook_init_beam ()
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_data () 
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_global (init_file, global)
+  import
+  implicit none
+  type (tao_global_struct) global
+  character(*) init_file
+end subroutine
+ 
+subroutine tao_hook_init_lattice_post_parse (u)
+  import
+  implicit none
+  type (tao_universe_struct) u
+end subroutine
+
+subroutine tao_hook_init_read_lattice_info (lat_file)
+  implicit none
+  character(*) lat_file
+end subroutine
+
+subroutine tao_hook_init1 (init_file_name)
+  implicit none
+  character(*) init_file_name
+end subroutine
+
+subroutine tao_hook_init2 ()
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_var() 
+  implicit none
+end subroutine
+
+subroutine tao_hook_lattice_calc (calc_ok)
+  implicit none
+  logical calc_ok
 end subroutine
 
 subroutine tao_hook_merit_data (i_uni, j_data, data, valid_value_set)
@@ -241,6 +277,14 @@ subroutine tao_hook_optimizer (abort)
   logical abort
 end subroutine
  
+subroutine tao_hook_parse_command_args()
+  implicit none
+end subroutine
+
+subroutine tao_hook_plot_setup()
+  implicit none
+end subroutine
+
 subroutine tao_hook_post_process_data ()
   implicit none
 end subroutine
@@ -250,46 +294,6 @@ subroutine tao_hook_show_cmd (what, stuff, result_id, lines, nl)
   character(*) what, stuff, result_id
   character(*), allocatable :: lines(:)
   integer nl
-end subroutine
-
-subroutine tao_hook_lattice_calc (calc_ok)
-  implicit none
-  logical calc_ok
-end subroutine
-
-subroutine tao_hook_init_data () 
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_beam ()
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_global (init_file, global)
-  import
-  implicit none
-  type (tao_global_struct) global
-  character(*) init_file
-end subroutine
- 
-subroutine tao_hook_init_lattice_post_process (u)
-  import
-  implicit none
-  type (tao_universe_struct) u
-end subroutine
-
-subroutine tao_hook_init_read_lattice_info (lat_file)
-  implicit none
-  character(*) lat_file
-end subroutine
-
-subroutine tao_hook_init1 (init_file_name)
-  implicit none
-  character(*) init_file_name
-end subroutine
-
-subroutine tao_hook_init2 ()
-  implicit none
 end subroutine
 
 subroutine tao_init (err_flag)
