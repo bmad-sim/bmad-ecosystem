@@ -3240,29 +3240,6 @@ extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, Opaque_rad_int1_c
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_ptc_genfield
-
-extern "C" void ptc_genfield_to_c (const Opaque_ptc_genfield_class*, CPP_ptc_genfield&);
-
-// c_side.to_f2_arg
-extern "C" void ptc_genfield_to_f2 (Opaque_ptc_genfield_class*, c_RealArr);
-
-extern "C" void ptc_genfield_to_f (const CPP_ptc_genfield& C, Opaque_ptc_genfield_class* F) {
-
-  // c_side.to_f2_call
-  ptc_genfield_to_f2 (F, &C.vec0[0]);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void ptc_genfield_to_c2 (CPP_ptc_genfield& C, c_RealArr z_vec0) {
-
-  // c_side.to_c2_set[real, 1, NOT]
-  C.vec0 << z_vec0;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_ele
 
 extern "C" void ele_to_c (const Opaque_ele_class*, CPP_ele&);

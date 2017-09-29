@@ -386,11 +386,6 @@ typedef valarray<CPP_rad_int_all_ele>          CPP_rad_int_all_ele_ARRAY;
 typedef valarray<CPP_rad_int_all_ele_ARRAY>    CPP_rad_int_all_ele_MATRIX;
 typedef valarray<CPP_rad_int_all_ele_MATRIX>   CPP_rad_int_all_ele_TENSOR;
 
-class CPP_ptc_genfield;
-typedef valarray<CPP_ptc_genfield>          CPP_ptc_genfield_ARRAY;
-typedef valarray<CPP_ptc_genfield_ARRAY>    CPP_ptc_genfield_MATRIX;
-typedef valarray<CPP_ptc_genfield_MATRIX>   CPP_ptc_genfield_TENSOR;
-
 class CPP_ele;
 typedef valarray<CPP_ele>          CPP_ele_ARRAY;
 typedef valarray<CPP_ele_ARRAY>    CPP_ele_MATRIX;
@@ -3083,30 +3078,6 @@ bool operator== (const CPP_rad_int_all_ele&, const CPP_rad_int_all_ele&);
 
 
 //--------------------------------------------------------------------
-// CPP_ptc_genfield
-
-class Opaque_ptc_genfield_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_ptc_genfield {
-public:
-  Real_ARRAY vec0;
-
-  CPP_ptc_genfield() :
-    vec0(0.0, 6)
-    {}
-
-  ~CPP_ptc_genfield() {
-  }
-
-};   // End Class
-
-extern "C" void ptc_genfield_to_c (const Opaque_ptc_genfield_class*, CPP_ptc_genfield&);
-extern "C" void ptc_genfield_to_f (const CPP_ptc_genfield&, Opaque_ptc_genfield_class*);
-
-bool operator== (const CPP_ptc_genfield&, const CPP_ptc_genfield&);
-
-
-//--------------------------------------------------------------------
 // CPP_ele
 
 class Opaque_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -3268,7 +3239,7 @@ public:
     n_slave(0),
     n_slave_field(0),
     ix1_slave(0),
-    slave_status(Bmad::NOT_A_CHILD),
+    slave_status(Bmad::FREE),
     n_lord(0),
     n_lord_field(0),
     ic1_lord(0),

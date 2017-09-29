@@ -94,7 +94,6 @@ struct_list = [
     'bmad_common_struct',
     'rad_int1_struct',
     'rad_int_all_ele_struct',
-    'ptc_genfield_struct',
     'ele_struct',
     'complex_taylor_term_struct',
     'complex_taylor_struct',
@@ -116,10 +115,10 @@ struct_list = [
 
 component_no_translate_list = set([
     'fibre', 
-    'genfield',
     'ptc_branch1_info_struct',
     'layout',
     'exact_bend_multipole_struct',
+    'ele_struct%ptc_genfield',
     'ele_struct%lord',
     'ele_struct%branch',
     'branch_struct%lat',
@@ -178,7 +177,7 @@ c_custom_constructors = {
     'ele%value' : 'value(double(0), Bmad::NUM_ELE_ATTRIB+1)',
     'ele%old_value' : 'old_value(double(0), Bmad::NUM_ELE_ATTRIB+1)', 
     'ele%ix_ele' : 'ix_ele(-1)',
-    'ele%slave_status' : 'slave_status(Bmad::NOT_A_CHILD)', 
+    'ele%slave_status' : 'slave_status(Bmad::FREE)', 
     'ele%ix2_slave' : 'ix2_slave(-1)',
     'ele%lord_status' : 'lord_status(Bmad::NOT_A_LORD)', 
     'ele%ic2_lord' : 'ic2_lord(-1)',

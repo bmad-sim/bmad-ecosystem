@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 197;
+  const int BMAD_INC_VERSION = 198;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -40,7 +40,7 @@ namespace Bmad {
   const int FIELDMAP = 2, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int BRAGG = 1, LAUE = 2;
   const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3;
-  const int NOT_A_CHILD = 1, SUPER_SLAVE = 2;
+  const int MINOR_SLAVE = 1, SUPER_SLAVE = 2, FREE = 3;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
   const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
   const int NOT_A_LORD = 10, SLICE_SLAVE = 11, CONTROL_LORD = 12;
@@ -55,6 +55,7 @@ namespace Bmad {
   const int OK = 1, IN_STOP_BAND = 2, NON_SYMPLECTIC = 3, UNSTABLE = 4;
   const int UNSTABLE_A = 5, UNSTABLE_B = 6;
   const int XFER_MAT_CALC_FAILURE = 7, TWISS_PROPAGATE_FAILURE = 8, NO_CLOSED_ORBIT = 9;
+  const int ASCII = 1, BINARY = 2, HDF5 = 3;
   const int NUM_ELE_ATTRIB = 80;
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
@@ -78,7 +79,7 @@ namespace Bmad {
   const int ALIVE = 1, LOST = 2;
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
-  const int LOST_Z_APERTURE = 7;
+  const int LOST_PZ_APERTURE = 7;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
   const int HYPER_Y_FAMILY_Y = 1, HYPER_XY_FAMILY_Y = 2, HYPER_X_FAMILY_Y = 3;
   const int HYPER_Y_FAMILY_X = 4, HYPER_XY_FAMILY_X = 5, HYPER_X_FAMILY_X = 6;
@@ -120,7 +121,9 @@ namespace Bmad {
   const int ALPHA_B1 = 9, DPHI_A = 10, DPHI_B = 11;
   const int ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15;
   const int ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
-  const int MATCH_END_INPUT = 20, MATCH_END = 21;
+  const int MATCH_END_INPUT = 20;
+  const int MATCH_END = 21;
+  const int DELTA_TIME = 22;
   const int X0 = 24, PX0 = 25, Y0 = 26, PY0 = 27, Z0 = 28, PZ0 = 29;
   const int X1 = 30, PX1 = 31, Y1 = 32, PY1 = 33, Z1 = 34, PZ1 = 35;
   const int MATCH_END_ORBIT_INPUT = 36, MATCH_END_ORBIT = 37;
@@ -146,7 +149,7 @@ namespace Bmad {
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
   const int RHO = 8, DELTA_E = 8, DIFFRACTION_LIMITED = 8;
   const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8;
-  const int VOLTAGE = 9;
+  const int VOLTAGE = 9, EPS_STEP_SCALE = 9;
   const int FRINGE_TYPE = 10;
   const int FRINGE_AT = 11, GANG = 11;
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
@@ -179,22 +182,22 @@ namespace Bmad {
   const int DTHETA_ORIGIN = 30, B_PARAM = 30, TRANSVERSE_SIGMA_CUT = 30, L_CHORD = 30;
   const int DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30, SPINOR_THETA = 30;
   const int L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31, DS_SLICE = 31, SPINOR_PHI = 31;
-  const int FIELD_AUTOSCALE = 32, DPSI_ORIGIN = 32, SPINOR_XI = 32;
+  const int FIELD_AUTOSCALE = 32, DPSI_ORIGIN = 32, T_OFFSET = 32, SPINOR_XI = 32;
   const int ANGLE = 33, N_CELL = 33, X_RAY_LINE_LEN = 33, SPINOR_POLARIZATION = 33;
   const int X_PITCH = 34;
   const int Y_PITCH = 35;
   const int X_OFFSET = 36;
   const int Y_OFFSET = 37;
   const int Z_OFFSET = 38;
-  const int D_SPACING = 39, T_OFFSET = 39, X_OFFSET_MULT = 39, EMITTANCE_A = 39;
-  const int HKICK = 40, Y_OFFSET_MULT = 40, P0C_REF_INIT = 40, EMITTANCE_B = 40;
-  const int VKICK = 41, X_PITCH_MULT = 41, E_TOT_REF_INIT = 41, EMITTANCE_Z = 41;
-  const int BL_HKICK = 42, Y_PITCH_MULT = 42, DARWIN_WIDTH_SIGMA = 42;
-  const int BL_VKICK = 43, EPS_STEP_SCALE = 43, PENDELLOSUNG_PERIOD_SIGMA = 43;
-  const int BL_KICK = 44, B_FIELD = 44, E_FIELD = 44, COUPLER_PHASE = 44, DARWIN_WIDTH_PI = 44;
-  const int COUPLER_ANGLE = 45, B_FIELD_ERR = 45, PENDELLOSUNG_PERIOD_PI = 45;
-  const int B1_GRADIENT = 46, E1_GRADIENT = 46, COUPLER_STRENGTH = 46, DBRAGG_ANGLE_DE = 46;
-  const int B2_GRADIENT = 47, E2_GRADIENT = 47, COUPLER_AT = 47, E_TOT_SET = 47;
+  const int HKICK = 39, D_SPACING = 39, X_OFFSET_MULT = 39, EMITTANCE_A = 39;
+  const int VKICK = 40, Y_OFFSET_MULT = 40, P0C_REF_INIT = 40, EMITTANCE_B = 40;
+  const int BL_HKICK = 41, X_PITCH_MULT = 41, E_TOT_REF_INIT = 41, EMITTANCE_Z = 41;
+  const int BL_VKICK = 42, Y_PITCH_MULT = 42, DARWIN_WIDTH_SIGMA = 42;
+  const int PENDELLOSUNG_PERIOD_SIGMA = 43, BL_KICK = 43, B_FIELD = 43, E_FIELD = 43;
+  const int COUPLER_PHASE = 44, DARWIN_WIDTH_PI = 44, B_FIELD_ERR = 44;
+  const int B1_GRADIENT = 45, E1_GRADIENT = 45, COUPLER_ANGLE = 45, PENDELLOSUNG_PERIOD_PI = 45;
+  const int B2_GRADIENT = 46, E2_GRADIENT = 46, COUPLER_STRENGTH = 46, DBRAGG_ANGLE_DE = 46;
+  const int COUPLER_AT = 47, E_TOT_SET = 47, PTC_CANONICAL_COORDS = 47;
   const int B3_GRADIENT = 48, E3_GRADIENT = 48, PTC_FRINGE_GEOMETRY = 48, P0C_SET = 48;
   const int BS_FIELD = 49, E_TOT_OFFSET = 49, PTC_FIELD_GEOMETRY = 49;
   const int DELTA_REF_TIME = 50;
@@ -320,8 +323,6 @@ namespace Bmad {
   const double PI = 3.141592653589793238462643383279E0;
   const double TWOPI = 2 * PI;
   const double FOURPI = 4 * PI;
-  const double SQRT_2 = 1.414213562373095048801688724209698E0;
-  const double SQRT_3 = 1.732050807568877293527446341505872E0;
   const double M_ELECTRON = 0.5109989461E6;
   const double M_PROTON   = 0.9382720813E9;
   const double M_MUON     = 105.6583715E6;

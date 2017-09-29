@@ -5271,57 +5271,6 @@ extern "C" void test_c_rad_int_all_ele (Opaque_rad_int_all_ele_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_ptc_genfield (CPP_ptc_genfield&, bool&);
-
-void set_CPP_ptc_genfield_test_pattern (CPP_ptc_genfield& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.vec0.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.vec0[i] = rhs;}
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_ptc_genfield (Opaque_ptc_genfield_class* F, bool& c_ok) {
-
-  CPP_ptc_genfield C, C2;
-
-  c_ok = true;
-
-  ptc_genfield_to_c (F, C);
-  set_CPP_ptc_genfield_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " ptc_genfield: C side convert F->C: Good" << endl;
-  } else {
-    cout << " ptc_genfield: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_ptc_genfield_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_ptc_genfield (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_ptc_genfield_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " ptc_genfield: F side convert F->C: Good" << endl;
-  } else {
-    cout << " ptc_genfield: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_ptc_genfield_test_pattern (C2, 4);
-  ptc_genfield_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_ele (CPP_ele&, bool&);
 
 void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {

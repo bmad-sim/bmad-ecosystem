@@ -1321,17 +1321,6 @@ template bool is_all_equal (const CPP_rad_int_all_ele_MATRIX&, const CPP_rad_int
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_ptc_genfield& x, const CPP_ptc_genfield& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_ptc_genfield_ARRAY&, const CPP_ptc_genfield_ARRAY&);
-template bool is_all_equal (const CPP_ptc_genfield_MATRIX&, const CPP_ptc_genfield_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_ele& x, const CPP_ele& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);

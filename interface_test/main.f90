@@ -82,7 +82,6 @@ call test1_f_csr_parameter(ok); if (.not. ok) all_ok = .false.
 call test1_f_bmad_common(ok); if (.not. ok) all_ok = .false.
 call test1_f_rad_int1(ok); if (.not. ok) all_ok = .false.
 call test1_f_rad_int_all_ele(ok); if (.not. ok) all_ok = .false.
-call test1_f_ptc_genfield(ok); if (.not. ok) all_ok = .false.
 call test1_f_ele(ok); if (.not. ok) all_ok = .false.
 call test1_f_complex_taylor_term(ok); if (.not. ok) all_ok = .false.
 call test1_f_complex_taylor(ok); if (.not. ok) all_ok = .false.
