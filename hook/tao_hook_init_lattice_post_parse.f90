@@ -12,13 +12,13 @@
 
 subroutine tao_hook_init_lattice_post_parse (u)
 
-  use tao_mod
+use tao_mod, dummy => tao_hook_init_lattice_post_parse
 
-  implicit none
+implicit none
 
-  type (tao_universe_struct) u
+type (tao_universe_struct) u
 
-  character(*), parameter :: r_name = 'tao_hook_init_lattice_post_parse'
+character(*), parameter :: r_name = 'tao_hook_init_lattice_post_parse'
   
 !
   

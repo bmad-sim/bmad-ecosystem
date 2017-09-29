@@ -9,8 +9,6 @@ subroutine tao_hook_init_global (init_file, global)
 
 use tao_mod, dummy => tao_hook_init_global
 
-use tao_struct
-
 implicit none
 
 type (tao_global_struct) global

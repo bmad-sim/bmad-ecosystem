@@ -11,6 +11,8 @@
 
 subroutine tao_hook_init_read_lattice_info (file_name)
 
+use tao_mod, dummy => tao_hook_init_read_lattice_info
+
 implicit none
 
 character(*) file_name

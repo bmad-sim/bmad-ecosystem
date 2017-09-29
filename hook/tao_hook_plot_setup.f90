@@ -6,6 +6,8 @@
 
 subroutine tao_hook_plot_setup ()
 
+use tao_mod, dummy => tao_hook_plot_setup
+
 ! This is just a dummy subroutine used as the default.
 
 end subroutine

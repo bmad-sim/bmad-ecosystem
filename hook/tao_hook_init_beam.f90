@@ -8,6 +8,8 @@
 
 subroutine tao_hook_init_beam ()
 
+use tao_mod, dummy => tao_hook_init_beam
+
 implicit none
 
 !

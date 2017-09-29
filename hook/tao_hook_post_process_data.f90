@@ -10,6 +10,8 @@
 
 subroutine tao_hook_post_process_data ()
 
+use tao_mod, dummy => tao_hook_post_process_data
+
 implicit none
 
 end subroutine tao_hook_post_process_data
