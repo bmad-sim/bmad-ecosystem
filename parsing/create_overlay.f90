@@ -143,7 +143,7 @@ do j = 1, n_slave
     exit
   enddo
 
-  if (.not. var_found .and. size(lord%control_var) == 1) then
+  if (.not. var_found) then
     if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
       c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
     else
