@@ -3,7 +3,8 @@
 !
 ! Subroutine to add the controller information to slave elements of a group_lord.
 !
-! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term,
+! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term, and
+! if there is only one control variable, then
 ! the arithmatic expression is modified so that the controlled attribute is linear
 ! in lord%control_var(1) with a coefficient given by the single numeric term.
 !
@@ -168,7 +169,7 @@ do i = 1, n_control
     exit
   enddo
 
-  if (.not. var_found) then
+  if (.not. var_found .and. size(lord%control_var) == 1) then
     if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
       c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
     else
