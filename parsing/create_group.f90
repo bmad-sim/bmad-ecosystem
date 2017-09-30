@@ -14,7 +14,7 @@
 !   use bmad
 !
 ! Input:
-!   lord           -- ele_struct: Overlay element.
+!   lord           -- ele_struct: Group element.
 !   contrl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
 !     %slave         -- Integer: Index to lat%branch()%ele() of element controlled.
@@ -24,7 +24,7 @@
 !                       printing of an error message if attribute is not free.  
 !
 ! Output:
-!   lord          -- ele_struct: Modified overlay elment
+!   lord          -- ele_struct: Modified group elment
 !-
 
 subroutine create_group (lord, contrl, err, err_print_flag)
@@ -169,7 +169,7 @@ do i = 1, n_control
     exit
   enddo
 
-  if (.not. var_found .and. size(lord%control_var) == 1) then
+  if (.not. var_found) then
     if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
       c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
     else
@@ -190,7 +190,7 @@ do i = 1, n_control
   do is = 1, size(c%stack)
     select case (c%stack(is)%type)
     case (ran$, ran_gauss$)
-      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP', &
                          'FOR ELEMENT: ' // lord%name)
     case (variable$)
       call word_to_value (c%stack(is)%name, lat, c%stack(is)%value)
