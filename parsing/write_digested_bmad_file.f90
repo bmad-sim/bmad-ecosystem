@@ -94,13 +94,11 @@ enddo
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
-write (d_unit) &
-        lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
-        lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
-        lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, &
-        lat%n_ic_max, lat%input_taylor_order, lat%absolute_time_tracking, &
-        lat%pre_tracker, lat%photon_type
-write (d_unit) ubound(lat%branch, 1)
+write (d_unit) lat%use_name, lat%lattice, lat%input_file_name, lat%title
+write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
+write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
+write (d_unit) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
+write (d_unit) ubound(lat%branch, 1), lat%pre_tracker
 
 ! custom attribute names
 

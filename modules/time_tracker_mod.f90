@@ -679,7 +679,7 @@ ele =>  branch%ele(orb%ix_ele)
 
 !Convert to time coordinates
 particle = orb;
-if (.not. logic_option( .false., in_time_coordinates)) then
+if (.not. logic_option(.false., in_time_coordinates)) then
   ! Set vec(5) to be relative to entrance of ele 
   call convert_particle_coordinates_s_to_t (particle, particle%s - ele%s_start, ele%orientation)
 endif
@@ -808,7 +808,7 @@ integer, optional :: orientation
 vec => particle%vec
 
 ! Convert s to t
-vec(6) = particle%direction * integer_option(orientation, 1) * particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
+vec(6) = particle%direction * integer_option(1, orientation) * particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
 ! vec(1) = vec(1) !this is unchanged
 vec(2) = vec(2) * particle%p0c
 ! vec(3) = vec(3) !this is unchanged
@@ -938,17 +938,13 @@ integer :: i, i_style, a_species_id, a_status
 integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3, gpt$ = 4
 logical, optional   :: err
 
-character(*), optional  :: style 
-character(16) :: style_names(4) = ['BMAD        ', &
-								   'OPAL        ', &
-								   'ASTRA       ', & 
-								   'GPT         ']
+character(*), optional  :: style
 character(40)	:: r_name = 'write_time_particle_distribution'
 
 !
 
 if (present(style)) then
-  call match_word (style, style_names, i_style)
+  call match_word (style, [character(8):: 'BMAD', 'OPAL', 'ASTRA', 'GPT'], i_style)
   if (i_style == 0) then
     call out_io (s_error$, r_name, 'Invalid style: '//trim(style))
   endif
@@ -958,11 +954,9 @@ endif
 
 if (present(err)) err = .true.
 
-!Format for numbers
-  rfmt = string_option('es15.7',format )
+rfmt = string_option('es15.7', format) ! Format for numbers
 
-! Number of alive particles
-n_alive = count(bunch%particle(:)%state == alive$)
+n_alive = count(bunch%particle(:)%state == alive$) ! Number of alive particles
 
 ! First line
 select case (i_style)
@@ -1007,16 +1001,16 @@ do i = 1, size(bunch%particle)
   ! Only write live particles
   if (orb%state /= alive$) cycle
   
-  !Get time to track backwards by
+  ! Get time to track backwards by
   dt = orb%t - bunch%t_center
 
- !Get pc before conversion
+  ! Get pc before conversion
   pc = (1+orb%vec(6)) * orb%p0c 
   
-  !convert to time coordinates
+  ! convert to time coordinates
   call convert_particle_coordinates_s_to_t (orb, orb%s)
   
-  !get \gamma m c
+  ! get \gamma m c
   gmc = sqrt(pc**2 + mass_of(orb%species)**2) / c_light
    
   !'track' particles backwards in time and write to file
@@ -1033,7 +1027,7 @@ do i = 1, size(bunch%particle)
   
   case (opal$)  
     gammabeta =  orb%vec(2:6:2) / mass_of(orb%species)
-     ! OPAL has a problem with zero beta_s
+    ! OPAL has a problem with zero beta_s
     if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30 
     write(time_file_unit, '(6'//rfmt//')')  orb%vec(1), gammabeta(1), &
 										    orb%vec(3), gammabeta(2), &
@@ -1066,9 +1060,11 @@ end do
 
 if (present(err)) err = .false.
 
+!-----------------------------------
+
 contains
 
-function astra_species_id(species) result (index)
+function astra_species_id (species) result (index)
 implicit none
 integer :: species, index
 select case (species)
@@ -1080,10 +1076,9 @@ select case (species)
         call out_io (s_warn$, r_name, 'Only electrons or positrons allowed for Astra. Setting index to -1')
         index = -1
 end select
-end function
+end function astra_species_id
 
 end subroutine  write_time_particle_distribution
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
