@@ -6,7 +6,7 @@ implicit none
 
 ! The numeric$ category is for numeric constants [EG: "1.3d-5"].
 ! The variable$ category includes symbolic constants defined in a lattice file, lattice parameters, etc.
-! The species$ category is for particle species.
+! The species$ category is for the species() function. The species_const$ category is for particle species ('He3', etc).
 
 integer, parameter :: end_stack$ = 0, plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
 integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
@@ -16,7 +16,7 @@ integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
-integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_var$ = 35
+integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
 integer, parameter :: sinc$ = 36
 
 character(20), parameter :: expression_op_name(36) = [character(20) :: '+', '-', '*', '/', &
@@ -411,7 +411,7 @@ else
   if (n_stack > 0) then
     select case (stack(n_stack)%type)
     case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
-      var_type = species_var$
+      var_type = species_const$
     end select
   endif
 

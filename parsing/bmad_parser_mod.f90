@@ -2826,7 +2826,7 @@ do i = 1, n_stk
     call bp_set_ran_status
   case (variable$)
     call word_to_value (stk(i)%name, lat, stk(i)%value)
-  case (species_var$)
+  case (species_const$)
     stk(i)%value = species_id(stk(i)%name)
     if (stk(i)%value == invalid$) then
       call parser_error ('INVALID PARTICLE SPECIES: ' // word)
