@@ -9,6 +9,12 @@ use physical_constants
 
 implicit none
 
+! Structure holding a variable length (allocatable) string
+
+type var_length_string_struct
+  character(:), allocatable :: str
+end type
+
 ! A all_pointer_struct is just a pointer to either a real, integer, or logical variable.
 ! This is used to construct arrays of pointers.
 
