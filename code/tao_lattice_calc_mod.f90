@@ -95,6 +95,10 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     branch => tao_lat%lat%branch(ib)
     tao_branch => tao_lat%tao_branch(ib)
 
+    u%model%tao_branch(:)%plot_cache_valid = .false.
+    u%design%tao_branch(:)%plot_cache_valid = .false.
+    u%base%tao_branch(:)%plot_cache_valid = .false.
+
     call tao_data_coupling_init(branch)
 
     if (.not. branch%param%live_branch) cycle

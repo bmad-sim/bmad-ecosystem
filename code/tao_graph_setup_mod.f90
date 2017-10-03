@@ -1861,6 +1861,8 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, amp, phase, ds
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
+integer cache_status   
+integer, parameter :: cache_off$ = 0, loading_cache$ = 1, using_cache$ = 2
 
 character(40) data_type, name
 character(40) data_type_select, data_source
@@ -1897,6 +1899,22 @@ if (curve%data_source == 'lat') then
     good = .false.
     return
   end select 
+
+  ! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
+  if (size(curve%x_line) == s%plot_page%n_curve_pts) then
+    if (tao_branch%plot_cache_valid) then
+      cache_status = using_cache$
+    else
+      cache_status = loading_cache$
+      if (allocated(tao_branch%plot_cache)) then
+        if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) deallocate(tao_branch%plot_cache)
+      endif
+      if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(s%plot_page%n_curve_pts))
+    endif
+    tao_branch%plot_cache_valid = .true.
+  else
+    cache_status = cache_off$
+  endif
 endif
 
 ! x1 and x2 are the longitudinal end points of the plot
@@ -1996,39 +2014,53 @@ do ii = 1, size(curve%x_line)
     bunch_params%z%norm_emit = (1-r_bunch) * bunch_params0%z%norm_emit + (1-r_bunch) * bunch_params1%z%norm_emit
 
   case ('lat')
-    if (first_time) then
-      call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
-      orbit_end = orbit
-      first_time = .false.
+    if (cache_status == using_cache$) then
+      ele = tao_branch%plot_cache(ii)%ele
+      orbit = tao_branch%plot_cache(ii)%orbit
+      mat6 = tao_branch%plot_cache(ii)%ele%mat6
+      vec0 = tao_branch%plot_cache(ii)%ele%vec0
+
     else
-      call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err)
-      orbit = orbit_end
-    endif
-
-    if (err) then
-      good(ii:) = .false.
-      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-      return
-    endif
-
-    if (orbit_end%state /= alive$) then
-      write (curve%message_text, '(f10.3)') s_now
-      curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
-                           trim(adjustl(curve%message_text))
-      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-      return
-    endif
-
-    if (data_type == 'momentum_compaction' .or. data_type == 'r56_compaction') then
       if (first_time) then
-        call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
+        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
+        orbit_end = orbit
         first_time = .false.
       else
-        mat6 = matmul(ele%mat6, mat6)
-        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err)
+        orbit = orbit_end
+      endif
+
+      if (err) then
+        good(ii:) = .false.
+        bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+        return
+      endif
+
+      if (orbit_end%state /= alive$) then
+        write (curve%message_text, '(f10.3)') s_now
+        curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                             trim(adjustl(curve%message_text))
+        bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+        return
+      endif
+
+      if (data_type == 'momentum_compaction' .or. data_type == 'r56_compaction') then
+        if (first_time) then
+          call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
+          first_time = .false.
+        else
+          mat6 = matmul(ele%mat6, mat6)
+          vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        endif
+      endif
+
+      if (cache_status == loading_cache$) then
+        tao_branch%plot_cache(ii)%ele = ele
+        tao_branch%plot_cache(ii)%orbit = orbit
+        tao_branch%plot_cache(ii)%ele%mat6  = mat6
+        tao_branch%plot_cache(ii)%ele%vec0 = vec0
       endif
     endif
-
 
   case default
     call out_io (s_fatal$, r_name, 'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
